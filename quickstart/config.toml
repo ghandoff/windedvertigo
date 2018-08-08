@@ -7,7 +7,7 @@ googleAnalytics = ""
 
 [params]
     author = "Garrett J Jaeger"
-    description = "collaborations from garrett jaeger"
+    description = "garrett jaeger collaborations"
     githubUsername = "jaegerjaeger"
     accent = "black"
     showBorder = true
