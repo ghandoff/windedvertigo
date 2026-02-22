@@ -47,11 +47,11 @@ function formatDate(dateStr: string | null): string {
 }
 
 const TYPE_COLOURS: Record<string, string> = {
-  "internal practice": "#273248",
-  "webinar": "#cb7858",
-  "delivery": "#b15043",
-  "BD/prospect": "#273248",
-  "R&D": "#273248",
+  "internal practice": "var(--wv-cadet)",
+  "webinar": "var(--wv-sienna)",
+  "delivery": "var(--wv-redwood)",
+  "BD/prospect": "var(--wv-cadet)",
+  "R&D": "var(--wv-cadet)",
 };
 
 export default function RunList({
@@ -75,7 +75,7 @@ export default function RunList({
         <Link
           href="/runs/new"
           className="inline-block rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90"
-          style={{ backgroundColor: "#b15043" }}
+          style={{ backgroundColor: "var(--wv-redwood)" }}
         >
           log a run
         </Link>
@@ -118,7 +118,7 @@ export default function RunList({
                 <span
                   className="text-xs px-2.5 py-0.5 rounded-full font-medium text-white"
                   style={{
-                    backgroundColor: TYPE_COLOURS[run.run_type] || "#273248",
+                    backgroundColor: TYPE_COLOURS[run.run_type] || "var(--wv-cadet)",
                   }}
                 >
                   {run.run_type}
@@ -138,7 +138,7 @@ export default function RunList({
                 className="text-xs px-2 py-0.5 rounded-full"
                 style={{
                   backgroundColor: "rgba(39, 50, 72, 0.06)",
-                  color: "#273248",
+                  color: "var(--wv-cadet)",
                 }}
               >
                 {tag}
@@ -150,7 +150,7 @@ export default function RunList({
                 className="text-xs px-2 py-0.5 rounded-full"
                 style={{
                   backgroundColor: "rgba(177, 80, 67, 0.08)",
-                  color: "#b15043",
+                  color: "var(--wv-redwood)",
                 }}
               >
                 {ev}

@@ -42,7 +42,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           <Link
             href="/packs"
             className="rounded-lg px-6 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90 inline-block"
-            style={{ backgroundColor: "#b15043" }}
+            style={{ backgroundColor: "var(--wv-redwood)" }}
           >
             go to your packs
           </Link>

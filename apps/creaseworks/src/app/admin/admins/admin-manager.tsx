@@ -85,17 +85,18 @@ export default function AdminListManager({
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
             className="rounded-lg border border-cadet/15 px-3 py-2 text-sm flex-1 min-w-48 outline-none focus:ring-2"
+            aria-label="admin email address"
           />
           <button
             onClick={handleAdd}
             disabled={loading || !newEmail.trim()}
             className="rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-40 transition-all"
-            style={{ backgroundColor: "#b15043" }}
+            style={{ backgroundColor: "var(--wv-redwood)" }}
           >
             {loading ? "adding…" : "add"}
           </button>
         </div>
-        {error && <p className="text-sm mt-2 text-redwood">{error}</p>}
+        {error && <p id="admin-error" className="text-sm mt-2 text-redwood">{error}</p>}
       </div>
 
       {/* table */}

@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
-/* ── winded vertigo / creaseworks brand tokens ─────────────────────── */
+/* ── shared design tokens ─────────────────────────────────────────
+   brand palette, semantic colours, spacing, focus, reduced-motion.
+   single source of truth — packages/tokens/index.css              */
+@import "@windedvertigo/tokens/index.css";
+
+/* ── creaseworks-specific overrides ───────────────────────────────
+   the app uses a light background with cadet text by default.     */
 
 :root {
-  --wv-cadet: #273248;
-  --wv-redwood: #b15043;
-  --wv-sienna: #cb7858;
-  --wv-champagne: #ffebd2;
-  --wv-white: #ffffff;
-
   --background: var(--wv-white);
   --foreground: var(--wv-cadet);
 }
@@ -23,14 +23,45 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* ── base styles ──────────────────────────────────────────────── */
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  line-height: var(--line-height-body);
+  letter-spacing: var(--letter-spacing-body);
 }
 
 /* all UI copy is lowercase except acronyms */
 h1, h2, h3, h4, h5, h6,
 button, a, label, th, nav {
   text-transform: lowercase;
+}
+
+/* ── prose readability ────────────────────────────────────────── */
+
+p, li, dd {
+  max-width: var(--max-line-length);
+}
+
+/* ── skip link ───────────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-md);
+  z-index: 100;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--wv-champagne);
+  color: var(--wv-cadet);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0 0 4px 4px;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 0;
 }

@@ -137,7 +137,7 @@ export default function RunForm({
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" aria-label="log a run" aria-describedby={error ? "run-error" : undefined}>
       {/* required section */}
       <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-5 space-y-4">
         <h2 className="text-sm font-semibold text-cadet/80">essentials</h2>
@@ -246,9 +246,9 @@ export default function RunForm({
                         ? "rgba(39, 50, 72, 0.1)"
                         : "transparent",
                       borderColor: contextTags.includes(tag)
-                        ? "#273248"
+                        ? "var(--wv-cadet)"
                         : "rgba(39, 50, 72, 0.15)",
-                      color: "#273248",
+                      color: "var(--wv-cadet)",
                       fontWeight: contextTags.includes(tag) ? 600 : 400,
                     }}
                   >
@@ -277,9 +277,9 @@ export default function RunForm({
                         ? "rgba(177, 80, 67, 0.1)"
                         : "transparent",
                       borderColor: traceEvidence.includes(ev)
-                        ? "#b15043"
+                        ? "var(--wv-redwood)"
                         : "rgba(39, 50, 72, 0.15)",
-                      color: traceEvidence.includes(ev) ? "#b15043" : "#273248",
+                      color: traceEvidence.includes(ev) ? "var(--wv-redwood)" : "var(--wv-cadet)",
                       fontWeight: traceEvidence.includes(ev) ? 600 : 400,
                     }}
                   >
@@ -379,10 +379,11 @@ export default function RunForm({
       {/* error */}
       {error && (
         <div
+          id="run-error"
           className="rounded-lg p-3 text-sm"
           style={{
             backgroundColor: "rgba(177, 80, 67, 0.08)",
-            color: "#b15043",
+            color: "var(--wv-redwood)",
           }}
         >
           {error}
@@ -395,7 +396,7 @@ export default function RunForm({
           type="submit"
           disabled={loading || !title.trim() || !runType || !runDate}
           className="rounded-lg px-6 py-2.5 text-sm font-medium text-white disabled:opacity-40 transition-all"
-          style={{ backgroundColor: "#b15043" }}
+          style={{ backgroundColor: "var(--wv-redwood)" }}
         >
           {loading ? "saving…" : "save run"}
         </button>
@@ -403,7 +404,7 @@ export default function RunForm({
           type="button"
           onClick={() => router.push("/runs")}
           className="rounded-lg px-6 py-2.5 text-sm font-medium transition-all hover:opacity-70"
-          style={{ color: "#273248" }}
+          style={{ color: "var(--wv-cadet)" }}
         >
           cancel
         </button>

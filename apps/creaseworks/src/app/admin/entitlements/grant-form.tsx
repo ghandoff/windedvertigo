@@ -59,7 +59,7 @@ export default function EntitlementGrantForm({ orgs, packs }: GrantFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" aria-label="grant entitlement" aria-describedby={message || error ? "grant-message" : undefined}>
       <div>
         <label htmlFor="org" className="block text-xs text-cadet/60 mb-1">
           organisation
@@ -125,8 +125,8 @@ export default function EntitlementGrantForm({ orgs, packs }: GrantFormProps) {
         {loading ? "granting…" : "grant entitlement"}
       </button>
 
-      {message && <p className="text-sm text-green-700">{message}</p>}
-      {error && <p className="text-sm text-redwood">{error}</p>}
+      {message && <p id="grant-message" className="text-sm text-green-700">{message}</p>}
+      {error && <p id="grant-message" className="text-sm text-redwood">{error}</p>}
     </form>
   );
 }

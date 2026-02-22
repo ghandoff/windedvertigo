@@ -37,7 +37,7 @@ export default async function RunsPage() {
           <Link
             href="/runs/new"
             className="rounded-lg px-4 sm:px-5 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90"
-            style={{ backgroundColor: "#b15043", minHeight: 44 }}
+            style={{ backgroundColor: "var(--wv-redwood)", minHeight: 44 }}
           >
             log a run
           </Link>

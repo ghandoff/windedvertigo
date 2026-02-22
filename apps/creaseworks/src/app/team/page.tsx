@@ -48,7 +48,7 @@ export default async function TeamPage({
             backgroundColor: "rgba(42, 157, 80, 0.05)",
           }}
         >
-          <p className="text-sm" style={{ color: "#2a9d50" }}>
+          <p className="text-sm" style={{ color: "var(--color-success-vivid)" }}>
             <strong>@{params.domain}</strong> has been verified. anyone who
             signs in with an @{params.domain} email will now auto-join your
             organisation.
@@ -63,7 +63,7 @@ export default async function TeamPage({
             backgroundColor: "rgba(177, 80, 67, 0.05)",
           }}
         >
-          <p className="text-sm" style={{ color: "#b15043" }}>
+          <p className="text-sm" style={{ color: "var(--wv-redwood)" }}>
             {params.reason === "missing-token"
               ? "verification link is missing — please use the link from your email."
               : params.reason === "invalid-token"
@@ -86,13 +86,13 @@ export default async function TeamPage({
         <section className="mb-12">
           <h2
             className="text-lg font-semibold tracking-tight mb-1"
-            style={{ color: "#273248" }}
+            style={{ color: "var(--wv-cadet)" }}
           >
             verified domains
           </h2>
           <p
             className="text-sm mb-4"
-            style={{ color: "#273248", opacity: 0.5 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
           >
             verify your organisation&apos;s email domain so colleagues
             auto-join when they sign in.
@@ -109,7 +109,7 @@ export default async function TeamPage({
         {session.orgRole === "admin" && (
           <h2
             className="text-lg font-semibold tracking-tight mb-4"
-            style={{ color: "#273248" }}
+            style={{ color: "var(--wv-cadet)" }}
           >
             team members
           </h2>

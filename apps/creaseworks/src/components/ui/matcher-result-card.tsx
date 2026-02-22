@@ -82,11 +82,11 @@ export default function MatcherResultCard({
           style={{
             backgroundColor:
               pattern.score >= 70
-                ? "#b15043"
+                ? "var(--wv-redwood)"
                 : pattern.score >= 40
-                  ? "#cb7858"
+                  ? "var(--wv-sienna)"
                   : "rgba(39, 50, 72, 0.1)",
-            color: pattern.score >= 40 ? "#ffffff" : "#273248",
+            color: pattern.score >= 40 ? "var(--wv-white)" : "var(--wv-cadet)",
           }}
         >
           {pattern.score}
@@ -95,14 +95,14 @@ export default function MatcherResultCard({
         <div className="flex-1 min-w-0">
           <h3
             className="text-base sm:text-lg font-semibold tracking-tight leading-snug"
-            style={{ color: "#273248" }}
+            style={{ color: "var(--wv-cadet)" }}
           >
             {pattern.title}
           </h3>
           {pattern.headline && (
             <p
               className="text-sm mt-0.5 line-clamp-2"
-              style={{ color: "#273248", opacity: 0.6 }}
+              style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
             >
               {pattern.headline}
             </p>
@@ -115,7 +115,7 @@ export default function MatcherResultCard({
         {pattern.primaryFunction && (
           <span
             className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs"
-            style={{ backgroundColor: "#ffebd2", color: "#273248" }}
+            style={{ backgroundColor: "var(--wv-champagne)", color: "var(--wv-cadet)" }}
           >
             {pattern.primaryFunction}
           </span>
@@ -126,7 +126,7 @@ export default function MatcherResultCard({
             className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs"
             style={{
               backgroundColor: "rgba(39, 50, 72, 0.06)",
-              color: "#273248",
+              color: "var(--wv-cadet)",
               opacity: 0.7,
             }}
           >
@@ -138,7 +138,7 @@ export default function MatcherResultCard({
             className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs font-medium"
             style={{
               backgroundColor: "rgba(177, 80, 67, 0.1)",
-              color: "#b15043",
+              color: "var(--wv-redwood)",
             }}
           >
             starts in 120s
@@ -147,7 +147,7 @@ export default function MatcherResultCard({
         {pattern.frictionDial != null && (
           <span
             className="text-xs px-1"
-            style={{ color: "#273248", opacity: 0.4 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
           >
             friction {pattern.frictionDial}/5
           </span>
@@ -158,7 +158,7 @@ export default function MatcherResultCard({
               className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs font-medium"
               style={{
                 backgroundColor: "rgba(177, 80, 67, 0.1)",
-                color: "#b15043",
+                color: "var(--wv-redwood)",
               }}
             >
               find again: {pattern.findAgainMode}
@@ -168,7 +168,7 @@ export default function MatcherResultCard({
               className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs font-medium"
               style={{
                 backgroundColor: "rgba(203, 120, 88, 0.1)",
-                color: "#cb7858",
+                color: "var(--wv-sienna)",
               }}
             >
               includes find again
@@ -187,7 +187,7 @@ export default function MatcherResultCard({
             type="button"
             onClick={() => setCoverageOpen(!coverageOpen)}
             className="flex items-center gap-1.5 text-xs font-medium sm:hidden mb-2"
-            style={{ color: "#273248", opacity: 0.5 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
           >
             <svg
               width="12"
@@ -225,7 +225,7 @@ export default function MatcherResultCard({
                 <div>
                   <h4
                     className="font-medium mb-1"
-                    style={{ color: "#273248", opacity: 0.6 }}
+                    style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
                   >
                     materials
                   </h4>
@@ -233,17 +233,17 @@ export default function MatcherResultCard({
                     {coverage.materialsCovered.map((m) => (
                       <div
                         key={m.id}
-                        style={{ color: "#273248", opacity: 0.7 }}
+                        style={{ color: "var(--wv-cadet)", opacity: 0.7 }}
                       >
-                        <span style={{ color: "#2a9d50" }}>✓</span> {m.title}
+                        <span style={{ color: "var(--color-success-vivid)" }}>✓</span> {m.title}
                       </div>
                     ))}
                     {coverage.materialsMissing.map((m) => (
                       <div
                         key={m.id}
-                        style={{ color: "#273248", opacity: 0.5 }}
+                        style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
                       >
-                        <span style={{ color: "#b15043" }}>✗</span> {m.title}
+                        <span style={{ color: "var(--wv-redwood)" }}>✗</span> {m.title}
                       </div>
                     ))}
                   </div>
@@ -256,7 +256,7 @@ export default function MatcherResultCard({
                 <div>
                   <h4
                     className="font-medium mb-1"
-                    style={{ color: "#273248", opacity: 0.6 }}
+                    style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
                   >
                     forms
                   </h4>
@@ -264,17 +264,17 @@ export default function MatcherResultCard({
                     {coverage.formsCovered.map((f) => (
                       <div
                         key={f}
-                        style={{ color: "#273248", opacity: 0.7 }}
+                        style={{ color: "var(--wv-cadet)", opacity: 0.7 }}
                       >
-                        <span style={{ color: "#2a9d50" }}>✓</span> {f}
+                        <span style={{ color: "var(--color-success-vivid)" }}>✓</span> {f}
                       </div>
                     ))}
                     {coverage.formsMissing.map((f) => (
                       <div
                         key={f}
-                        style={{ color: "#273248", opacity: 0.5 }}
+                        style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
                       >
-                        <span style={{ color: "#b15043" }}>✗</span> {f}
+                        <span style={{ color: "var(--wv-redwood)" }}>✗</span> {f}
                       </div>
                     ))}
                   </div>
@@ -289,7 +289,7 @@ export default function MatcherResultCard({
       {coverage.suggestedSubstitutions.length > 0 && (
         <div
           className="mt-3 rounded-lg p-3 text-xs"
-          style={{ backgroundColor: "#ffebd2", color: "#273248" }}
+          style={{ backgroundColor: "var(--wv-champagne)", color: "var(--wv-cadet)" }}
         >
           <h4 className="font-medium mb-1">substitution ideas</h4>
           {coverage.suggestedSubstitutions.map((sub, i) => (
@@ -307,10 +307,10 @@ export default function MatcherResultCard({
           className="mt-3 rounded-lg p-3 text-xs"
           style={{
             backgroundColor: "rgba(177, 80, 67, 0.05)",
-            color: "#273248",
+            color: "var(--wv-cadet)",
           }}
         >
-          <h4 className="font-medium mb-1" style={{ color: "#b15043" }}>
+          <h4 className="font-medium mb-1" style={{ color: "var(--wv-redwood)" }}>
             author notes on substitutions
           </h4>
           <p style={{ opacity: 0.8 }}>{pattern.substitutionsNotes}</p>
@@ -327,8 +327,8 @@ export default function MatcherResultCard({
                   href={`/packs/${slug}/patterns/${pattern.slug}`}
                   className="flex items-center justify-center rounded-lg px-4 py-3 sm:px-3 sm:py-1.5 text-sm sm:text-xs font-medium transition-all hover:opacity-80 active:scale-[0.98]"
                   style={{
-                    backgroundColor: "#b15043",
-                    color: "#ffffff",
+                    backgroundColor: "var(--wv-redwood)",
+                    color: "var(--wv-white)",
                     minHeight: 44,
                   }}
                 >
@@ -342,8 +342,8 @@ export default function MatcherResultCard({
                   className="flex items-center justify-center rounded-lg px-4 py-3 sm:px-3 sm:py-1.5 text-sm sm:text-xs font-medium transition-all hover:opacity-80 active:scale-[0.98]"
                   style={{
                     backgroundColor: "transparent",
-                    color: "#b15043",
-                    border: "1px solid #b15043",
+                    color: "var(--wv-redwood)",
+                    border: "1px solid var(--wv-redwood)",
                     minHeight: 44,
                   }}
                 >
@@ -359,7 +359,7 @@ export default function MatcherResultCard({
           <Link
             href={`/sampler/${pattern.slug}`}
             className="inline-flex items-center justify-center rounded-lg px-4 py-3 sm:px-0 sm:py-0 text-sm sm:text-xs font-medium transition-opacity hover:opacity-80 active:scale-[0.98]"
-            style={{ color: "#b15043", minHeight: 44 }}
+            style={{ color: "var(--wv-redwood)", minHeight: 44 }}
           >
             view in sampler →
           </Link>

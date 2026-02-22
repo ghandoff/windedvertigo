@@ -70,7 +70,7 @@ export default function ExportButton() {
         className="rounded-lg border px-4 py-2.5 text-sm font-medium transition-all hover:opacity-80 active:scale-[0.98] disabled:opacity-40"
         style={{
           borderColor: "rgba(39, 50, 72, 0.15)",
-          color: "#273248",
+          color: "var(--wv-cadet)",
           minHeight: 44,
         }}
       >
@@ -81,7 +81,7 @@ export default function ExportButton() {
         <div
           className="absolute right-0 top-full mt-1 z-10 rounded-xl border shadow-lg overflow-hidden"
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: "var(--wv-white)",
             borderColor: "rgba(39, 50, 72, 0.1)",
             minWidth: 180,
           }}
@@ -89,7 +89,7 @@ export default function ExportButton() {
           <button
             onClick={() => handleExport("csv")}
             className="w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-50 flex items-center gap-2"
-            style={{ color: "#273248", minHeight: 44 }}
+            style={{ color: "var(--wv-cadet)", minHeight: 44 }}
           >
             <svg
               width="16"
@@ -123,7 +123,7 @@ export default function ExportButton() {
           <button
             onClick={() => handleExport("pdf")}
             className="w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-50 flex items-center gap-2"
-            style={{ color: "#273248", minHeight: 44 }}
+            style={{ color: "var(--wv-cadet)", minHeight: 44 }}
           >
             <svg
               width="16"

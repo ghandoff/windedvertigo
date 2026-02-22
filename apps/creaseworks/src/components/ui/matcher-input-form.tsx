@@ -74,12 +74,13 @@ function FilterSection({
       <button
         type="button"
         onClick={() => setOpen(!open)}
+        aria-label={open ? "collapse section" : "expand section"}
         className="w-full flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 text-left"
       >
         <div className="flex items-center gap-2 min-w-0">
           <h2
             className="text-sm font-semibold truncate"
-            style={{ color: "#273248", opacity: 0.8 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.8 }}
           >
             {title}
           </h2>
@@ -87,8 +88,8 @@ function FilterSection({
             <span
               className="flex-shrink-0 inline-flex items-center justify-center rounded-full text-xs font-medium"
               style={{
-                backgroundColor: "#b15043",
-                color: "#ffffff",
+                backgroundColor: "var(--wv-redwood)",
+                color: "var(--wv-white)",
                 minWidth: 22,
                 height: 22,
                 padding: "0 6px",
@@ -112,7 +113,7 @@ function FilterSection({
         >
           <path
             d="M4 6L8 10L12 6"
-            stroke="#273248"
+            stroke="var(--wv-cadet)"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -126,7 +127,7 @@ function FilterSection({
           {subtitle && (
             <p
               className="text-xs mb-3"
-              style={{ color: "#273248", opacity: 0.45 }}
+              style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
             >
               {subtitle}
             </p>
@@ -145,7 +146,7 @@ function FilterSection({
 function Pill({
   label,
   selected,
-  accentColor = "#b15043",
+  accentColor = "var(--wv-redwood)",
   onClick,
 }: {
   label: string;
@@ -160,7 +161,7 @@ function Pill({
       className="rounded-full px-3.5 py-2 text-sm sm:text-xs sm:px-3 sm:py-1.5 transition-all border select-none active:scale-95"
       style={{
         backgroundColor: selected ? accentColor : "transparent",
-        color: selected ? "#ffffff" : "#273248",
+        color: selected ? "var(--wv-white)" : "var(--wv-cadet)",
         borderColor: selected ? accentColor : "rgba(39, 50, 72, 0.2)",
         opacity: selected ? 1 : 0.7,
         minHeight: 44,
@@ -333,12 +334,13 @@ export default function MatcherInputForm({
           <input
             type="text"
             placeholder="search materials…"
+            aria-label="search materials"
             value={materialSearch}
             onChange={(e) => setMaterialSearch(e.target.value)}
             className="w-full rounded-lg border px-4 py-3 sm:px-3 sm:py-2 text-sm mb-3 outline-none focus:ring-2"
             style={{
               borderColor: "rgba(39, 50, 72, 0.15)",
-              color: "#273248",
+              color: "var(--wv-cadet)",
               minHeight: 44,
             }}
           />
@@ -366,13 +368,13 @@ export default function MatcherInputForm({
                     >
                       <span
                         className="text-xs font-medium uppercase tracking-wider"
-                        style={{ color: "#273248", opacity: 0.5 }}
+                        style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
                       >
                         {form}
                         {groupSelected > 0 && (
                           <span
                             className="ml-1.5 normal-case tracking-normal"
-                            style={{ color: "#b15043", opacity: 1 }}
+                            style={{ color: "var(--wv-redwood)", opacity: 1 }}
                           >
                             ({groupSelected})
                           </span>
@@ -393,7 +395,7 @@ export default function MatcherInputForm({
                       >
                         <path
                           d="M4 6L8 10L12 6"
-                          stroke="#273248"
+                          stroke="var(--wv-cadet)"
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -430,7 +432,7 @@ export default function MatcherInputForm({
             {filteredMaterialsByForm.size === 0 && (
               <p
                 className="text-xs py-4 text-center"
-                style={{ color: "#273248", opacity: 0.4 }}
+                style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
               >
                 no materials match your search.
               </p>
@@ -442,7 +444,7 @@ export default function MatcherInputForm({
             <div className="mt-3">
               <p
                 className="text-xs mb-1.5"
-                style={{ color: "#273248", opacity: 0.5 }}
+                style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
               >
                 {selectedMaterials.size} material
                 {selectedMaterials.size !== 1 ? "s" : ""} selected
@@ -452,6 +454,7 @@ export default function MatcherInputForm({
                   <button
                     key={id}
                     type="button"
+                    aria-label="remove"
                     onClick={() =>
                       toggleSet(
                         selectedMaterials,
@@ -462,7 +465,7 @@ export default function MatcherInputForm({
                     className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-all active:scale-95"
                     style={{
                       backgroundColor: "rgba(177, 80, 67, 0.1)",
-                      color: "#b15043",
+                      color: "var(--wv-redwood)",
                     }}
                   >
                     {materialTitleMap.get(id) ?? id}
@@ -519,7 +522,7 @@ export default function MatcherInputForm({
                 key={ctx}
                 label={ctx}
                 selected={selectedContexts.has(ctx)}
-                accentColor="#cb7858"
+                accentColor="var(--wv-sienna)"
                 onClick={() =>
                   toggleSet(selectedContexts, setSelectedContexts, ctx)
                 }
@@ -542,7 +545,7 @@ export default function MatcherInputForm({
                   key={slot}
                   label={slot}
                   selected={selectedSlots.has(slot)}
-                  accentColor="#cb7858"
+                  accentColor="var(--wv-sienna)"
                   onClick={() =>
                     toggleSet(selectedSlots, setSelectedSlots, slot)
                   }
@@ -558,10 +561,11 @@ export default function MatcherInputForm({
             type="button"
             onClick={handleSubmit}
             disabled={!hasSelection || loading}
+            aria-describedby={error ? "matcher-error" : undefined}
             className="rounded-lg px-6 py-2.5 text-sm font-medium transition-all disabled:opacity-40"
             style={{
-              backgroundColor: "#b15043",
-              color: "#ffffff",
+              backgroundColor: "var(--wv-redwood)",
+              color: "var(--wv-white)",
             }}
           >
             {loading ? "matching…" : "find patterns"}
@@ -572,7 +576,7 @@ export default function MatcherInputForm({
               type="button"
               onClick={handleClear}
               className="text-sm transition-opacity hover:opacity-80"
-              style={{ color: "#273248", opacity: 0.5 }}
+              style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
             >
               clear all
             </button>
@@ -580,7 +584,7 @@ export default function MatcherInputForm({
         </div>
 
         {error && (
-          <p className="text-sm mt-2" style={{ color: "#b15043" }}>
+          <p id="matcher-error" className="text-sm mt-2" style={{ color: "var(--wv-redwood)" }}>
             {error}
           </p>
         )}
@@ -600,10 +604,11 @@ export default function MatcherInputForm({
           type="button"
           onClick={handleSubmit}
           disabled={!hasSelection || loading}
+          aria-describedby={error ? "matcher-error" : undefined}
           className="flex-1 rounded-lg py-3.5 text-sm font-medium transition-all disabled:opacity-40 active:scale-[0.98]"
           style={{
-            backgroundColor: "#b15043",
-            color: "#ffffff",
+            backgroundColor: "var(--wv-redwood)",
+            color: "var(--wv-white)",
             minHeight: 48,
           }}
         >
@@ -620,7 +625,7 @@ export default function MatcherInputForm({
             onClick={handleClear}
             className="flex-shrink-0 rounded-lg py-3.5 px-4 text-sm transition-opacity active:scale-95"
             style={{
-              color: "#273248",
+              color: "var(--wv-cadet)",
               opacity: 0.5,
               minHeight: 48,
             }}
@@ -639,14 +644,14 @@ export default function MatcherInputForm({
           <div className="mb-4 sm:mb-6">
             <h2
               className="text-lg sm:text-xl font-semibold tracking-tight mb-1"
-              style={{ color: "#273248" }}
+              style={{ color: "var(--wv-cadet)" }}
             >
               {results.ranked.length} pattern
               {results.ranked.length !== 1 ? "s" : ""} found
             </h2>
             <p
               className="text-xs"
-              style={{ color: "#273248", opacity: 0.5 }}
+              style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
             >
               {results.meta.totalCandidates} candidates evaluated
               {results.meta.contextFiltersApplied.length > 0 &&
@@ -661,7 +666,7 @@ export default function MatcherInputForm({
             >
               <p
                 className="text-sm"
-                style={{ color: "#273248", opacity: 0.5 }}
+                style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
               >
                 no patterns matched your filters. try broadening your
                 selection or removing context constraints.

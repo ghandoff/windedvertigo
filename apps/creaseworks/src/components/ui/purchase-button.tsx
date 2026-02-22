@@ -61,7 +61,7 @@ export default function PurchaseButton({
         onClick={handlePurchase}
         disabled={loading}
         className="rounded-lg px-6 py-3 text-sm font-medium text-white disabled:opacity-50 transition-all hover:opacity-90"
-        style={{ backgroundColor: "#b15043" }}
+        style={{ backgroundColor: "var(--wv-redwood)" }}
       >
         {loading
           ? "redirecting to checkout…"
@@ -70,7 +70,7 @@ export default function PurchaseButton({
       {error && (
         <p
           className="mt-2 text-sm"
-          style={{ color: "#b15043" }}
+          style={{ color: "var(--wv-redwood)" }}
         >
           {error}
         </p>

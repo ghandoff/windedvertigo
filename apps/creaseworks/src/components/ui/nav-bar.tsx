@@ -42,16 +42,12 @@ export default function NavBar() {
   const authAction =
     status === "loading" ? null : session?.user ? (
       <>
-        <span
-          className="hidden sm:inline text-xs"
-          style={{ color: "rgba(255,235,210,0.5)" }}
-        >
+        <span className="wv-header-email hidden sm:inline">
           {session.user.email}
         </span>
         <button
           onClick={() => { close(); signOut({ callbackUrl: "/" }); }}
-          className="text-sm font-medium transition-colors hover:opacity-80"
-          style={{ color: "#cb7858" }}
+          className="wv-header-signout"
         >
           sign out
         </button>
@@ -62,26 +58,16 @@ export default function NavBar() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50"
-      style={{ backgroundColor: "#273248" }}
+      className="wv-header fixed top-0 left-0 right-0 z-50"
+      aria-label="main navigation"
     >
-      {/* top bar */}
-      <div
-        className="flex items-center justify-between"
-        style={{ maxWidth: "100%", padding: "12px 30px" }}
-      >
         {/* brand */}
-        <Link
-          href="/"
-          className="text-sm font-bold tracking-tight transition-colors hover:opacity-80"
-          style={{ color: "#ffebd2" }}
-          onClick={close}
-        >
+        <Link href="/" className="wv-header-brand" onClick={close}>
           creaseworks
         </Link>
 
         {/* desktop links */}
-        <div className="hidden sm:flex items-center gap-6 text-sm">
+        <div className="wv-header-nav hidden sm:flex">
           {publicLinks}
           {authedLinks}
           {authAction}
@@ -97,23 +83,22 @@ export default function NavBar() {
           <span
             className="block w-5 h-0.5 rounded-full transition-transform duration-200"
             style={{
-              backgroundColor: "#ffebd2",
+              backgroundColor: "var(--wv-champagne)",
               transform: mobileOpen ? "rotate(45deg) translate(2px, 2px)" : "none",
             }}
           />
           <span
             className="block w-5 h-0.5 rounded-full transition-opacity duration-200"
-            style={{ backgroundColor: "#ffebd2", opacity: mobileOpen ? 0 : 1 }}
+            style={{ backgroundColor: "var(--wv-champagne)", opacity: mobileOpen ? 0 : 1 }}
           />
           <span
             className="block w-5 h-0.5 rounded-full transition-transform duration-200"
             style={{
-              backgroundColor: "#ffebd2",
+              backgroundColor: "var(--wv-champagne)",
               transform: mobileOpen ? "rotate(-45deg) translate(2px, -2px)" : "none",
             }}
           />
         </button>
-      </div>
 
       {/* mobile dropdown */}
       {mobileOpen && (
@@ -146,8 +131,8 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="text-sm font-medium transition-colors hover:opacity-80"
-      style={{ color: accent ? "#cb7858" : "#ffebd2" }}
+      className="wv-header-nav-link"
+      data-accent={accent || undefined}
       onClick={onClick}
     >
       {children}

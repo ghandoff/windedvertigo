@@ -7,11 +7,11 @@ export default function NotFound() {
   return (
     <main
       className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center"
-      style={{ color: "#ffebd2" }}
+      style={{ color: "var(--wv-champagne)" }}
     >
       <h1
         className="text-6xl font-bold tracking-tight mb-2"
-        style={{ color: "#cb7858" }}
+        style={{ color: "var(--wv-sienna)" }}
       >
         404
       </h1>
@@ -25,7 +25,7 @@ export default function NotFound() {
       <a
         href="/"
         className="px-4 py-2 text-sm font-medium rounded hover:opacity-80 transition-opacity"
-        style={{ backgroundColor: "#cb7858", color: "#273248" }}
+        style={{ backgroundColor: "var(--wv-sienna)", color: "var(--wv-cadet)" }}
       >
         back to homepage
       </a>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { brand } from "@windedvertigo/tokens";
 
 /* ------------------------------------------------------------------ */
 /*  types (mirroring server-side AnalyticsSummary)                     */
@@ -55,19 +56,19 @@ interface AnalyticsData {
 /* ------------------------------------------------------------------ */
 
 const COLOURS = {
-  cadet: "#273248",
-  redwood: "#b15043",
-  sienna: "#cb7858",
-  champagne: "#ffebd2",
+  cadet: brand.cadet,
+  redwood: brand.redwood,
+  sienna: brand.sienna,
+  champagne: brand.champagne,
 };
 
 const BAR_COLOURS = [
-  "#b15043", // redwood
-  "#cb7858", // sienna
-  "#273248", // cadet
-  "#d4956b", // lighter sienna
-  "#8a3d33", // darker redwood
-  "#ffebd2", // champagne
+  brand.redwood,
+  brand.sienna,
+  brand.cadet,
+  "#d4956b", // lighter sienna (chart-specific variant)
+  "#8a3d33", // darker redwood (chart-specific variant)
+  brand.champagne,
 ];
 
 /* ------------------------------------------------------------------ */

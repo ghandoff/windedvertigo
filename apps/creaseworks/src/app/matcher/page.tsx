@@ -34,20 +34,20 @@ export default async function MatcherPage() {
       <Link
         href="/"
         className="text-sm hover:opacity-80 transition-opacity mb-4 sm:mb-6 inline-block"
-        style={{ color: "#273248", opacity: 0.5 }}
+        style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
       >
         &larr; creaseworks
       </Link>
 
       <h1
         className="text-2xl sm:text-3xl font-semibold tracking-tight mb-2"
-        style={{ color: "#273248" }}
+        style={{ color: "var(--wv-cadet)" }}
       >
         pattern matcher
       </h1>
       <p
         className="mb-6 sm:mb-8 text-sm sm:text-base"
-        style={{ color: "#273248", opacity: 0.6 }}
+        style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
       >
         tell us what you have — materials, forms, context — and we&apos;ll
         find the patterns that fit.

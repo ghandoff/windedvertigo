@@ -16,11 +16,11 @@ export default function GlobalError({
   return (
     <main
       className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center"
-      style={{ backgroundColor: "#273248", color: "#ffebd2" }}
+      style={{ backgroundColor: "var(--wv-cadet)", color: "var(--wv-champagne)" }}
     >
       <h1
         className="text-5xl font-bold tracking-tight mb-4"
-        style={{ color: "#cb7858" }}
+        style={{ color: "var(--wv-sienna)" }}
       >
         something went wrong
       </h1>
@@ -40,7 +40,7 @@ export default function GlobalError({
         <button
           onClick={() => reset()}
           className="px-4 py-2 text-sm font-medium rounded hover:opacity-80 transition-opacity"
-          style={{ backgroundColor: "#cb7858", color: "#273248" }}
+          style={{ backgroundColor: "var(--wv-sienna)", color: "var(--wv-cadet)" }}
         >
           try again
         </button>
@@ -49,8 +49,8 @@ export default function GlobalError({
           href="/"
           className="px-4 py-2 text-sm font-medium rounded hover:opacity-80 transition-opacity"
           style={{
-            border: "1px solid #cb7858",
-            color: "#cb7858",
+            border: "1px solid var(--wv-sienna)",
+            color: "var(--wv-sienna)",
           }}
         >
           go home

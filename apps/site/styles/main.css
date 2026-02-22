@@ -1,103 +1,176 @@
 /* winded.vertigo - Static Site Styles */
-/* Mirror of windedvertigo.com - Built with Bricks */
+
+/* ── shared design tokens ─────────────────────────────────────────
+   brand palette, semantic colours, spacing, focus, reduced-motion.
+   single source of truth for all wv apps.                         */
+@import url('../../../packages/tokens/index.css');
 
 /* Ionicons for link/tag icons */
 @import url('https://unpkg.com/ionicons@4.5.10-0/dist/css/ionicons.min.css');
 
+/* ── site-specific variables ──────────────────────────────────────
+   override/extend tokens for the dark-background static site.     */
 :root {
-  --bg-primary: #273248;
-  --text-primary: #ffffff;
-  --accent: #AF4F41;
-  --accent-hover: #ffebd2;
-  --text-secondary: rgba(255, 255, 255, 0.7);
+  --bg-primary: var(--wv-cadet);
+  --text-primary: var(--wv-white);
+  --accent: var(--wv-redwood);
+  --accent-hover: var(--wv-champagne);
+  --text-secondary: var(--color-text-on-dark-muted);
   --tag-check: #6b8e6b;
-  --font-primary: -apple-system, "system-ui", "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  --space-xs: 0.5rem;
-  --space-sm: 1rem;
-  --space-md: 1.5rem;
-  --space-lg: 50px;
+  --font-primary: var(--font-body);
   --container-width: 1100px;
   --edge-padding: 30px;
 }
 
+/* ── reset ────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; background: var(--bg-primary); }
-body { font-family: var(--font-primary); background: var(--bg-primary); color: var(--text-primary); font-size: 15px; font-weight: 400; line-height: 1.7; min-height: 100vh; display: flex; flex-direction: column; }
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-primary); font-weight: 700; line-height: 1.4; margin-bottom: var(--space-sm); text-transform: lowercase; }
-.hero-title { font-size: 82.8px; font-weight: 700; line-height: 1.4; margin-top: 50px; margin-bottom: var(--space-md); text-transform: lowercase; }
+
+/* ── base typography (inclusive defaults) ──────────────────────── */
+body {
+  font-family: var(--font-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: var(--line-height-body);
+  letter-spacing: var(--letter-spacing-body);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-primary);
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: var(--space-md);
+  text-transform: lowercase;
+}
+
+/* ── content sections ─────────────────────────────────────────── */
+.hero-title { font-size: 82.8px; font-weight: 700; line-height: 1.4; margin-top: 50px; margin-bottom: var(--space-lg); text-transform: lowercase; }
 .content-section { font-size: 20px; line-height: 28px; }
-.content-section p { margin-bottom: 1em; }
+.content-section p { margin-bottom: 1em; max-width: var(--max-line-length); }
 .content-section p:last-child { margin-bottom: 0; }
-p { margin-bottom: var(--space-sm); color: var(--text-primary); font-weight: 400; }
+p { margin-bottom: var(--space-md); color: var(--text-primary); font-weight: 400; }
+
+/* ── links (visible without colour alone) ─────────────────────── */
 a { color: var(--text-primary); text-decoration: none; transition: color 0.2s ease; }
 a:hover { color: var(--accent-hover); }
 em { font-style: italic; }
+
+/* ── layout ───────────────────────────────────────────────────── */
 .container { width: 100%; max-width: var(--container-width); margin: 0 auto; padding: 0 var(--edge-padding); }
 .content-narrow { max-width: var(--container-width); }
-.header { padding: var(--space-md) 0; position: absolute; top: 0; left: 0; right: 0; z-index: 100; }
+
+/* ── header ───────────────────────────────────────────────────── */
+.header { padding: var(--space-lg) 0; position: absolute; top: 0; left: 0; right: 0; z-index: 100; }
 .header .container { max-width: 100%; padding: 0 var(--edge-padding); }
 .header-inner { display: flex; justify-content: space-between; align-items: flex-start; }
 .logo { display: block; }
 .logo-img { width: 200px; height: auto; }
+
+/* ── navigation ───────────────────────────────────────────────── */
 .nav { display: flex; gap: 30px; }
 .nav a { font-family: var(--font-primary); font-size: 32px; font-weight: 800; padding: var(--space-xs) 0; text-transform: lowercase; color: var(--text-primary); transition: color 0.2s ease; }
 .nav a:hover { color: var(--accent-hover); }
 .nav a.active { color: var(--accent); }
 .nav-toggle { display: none; background: none; border: none; color: var(--text-primary); cursor: pointer; padding: var(--space-xs); }
+
+/* home page overrides */
 body.home .nav { display: none; }
 body.home .header { position: absolute; }
 body.home main { padding-top: 0; }
+
 main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
+
+/* ── hero ─────────────────────────────────────────────────────── */
 .hero { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: calc(100vh - 100px); text-align: center; }
 .hero-nav { display: flex; gap: 35px; }
 .hero-nav a { font-size: 7.2rem; font-weight: 700; text-transform: lowercase; transition: color 0.2s ease; }
 .hero-nav a:hover { color: var(--accent-hover); }
+
+/* ── team section ─────────────────────────────────────────────── */
 .team-grid { display: flex; flex-direction: column; gap: var(--space-lg); }
 .team-member { display: grid; grid-template-columns: 400px 1fr; gap: var(--space-lg); }
 .team-member h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: var(--space-xs); text-transform: lowercase; color: var(--text-primary); }
-.team-member .role { font-size: 20px; color: var(--accent); text-transform: lowercase; margin-bottom: var(--space-md); font-weight: 400; font-style: italic; }
-.team-member .bio { margin-bottom: var(--space-md); position: relative; }
+.team-member .role { font-size: 20px; color: var(--accent); text-transform: lowercase; margin-bottom: var(--space-lg); font-weight: 400; font-style: italic; }
+.team-member .bio { margin-bottom: var(--space-lg); position: relative; }
 .team-member .bio.truncated { overflow: hidden; transition: max-height 0.3s ease; }
 .team-member .bio.expanded { max-height: none !important; overflow: visible; }
-.team-member .bio p { line-height: 1.7; color: var(--text-primary); }
+.team-member .bio p { line-height: 1.7; color: var(--text-primary); max-width: var(--max-line-length); }
 .team-member .bio p:last-child { margin-bottom: 0; }
 .see-more-btn { background: none; border: none; color: var(--text-secondary); font-size: 0.9rem; font-weight: 400; cursor: pointer; padding: 0; margin-top: 4px; margin-bottom: var(--space-sm); text-transform: lowercase; transition: color 0.2s ease; }
 .see-more-btn:hover { color: var(--text-primary); }
 .team-member .links { margin-bottom: var(--space-sm); }
-.team-member .links a { font-size: 0.9rem; color: var(--accent); margin-right: var(--space-md); }
+.team-member .links a { font-size: 0.9rem; color: var(--accent); margin-right: var(--space-lg); }
 .team-member .links a::before { font-family: "Ionicons"; content: "\f41a"; margin-right: 0.4rem; }
 .member-photo { display: flex; justify-content: center; align-items: flex-start; }
 .member-headshot { width: 400px; height: 400px; border-radius: 200px; object-fit: cover; background-size: cover; background-position: center center; }
 .member-content { flex: 1; }
+
+/* ── tags ─────────────────────────────────────────────────────── */
 .tags { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
 .tag { font-size: 0.85rem; padding: 0; background: transparent; border: none; color: var(--text-secondary); font-weight: 400; }
 .tag::before { font-family: "Ionicons"; content: "\f35c"; color: var(--tag-check); margin-right: 0.4rem; font-size: 0.9em; }
+
+/* ── services ─────────────────────────────────────────────────── */
 .services-intro { margin-bottom: var(--space-lg); font-size: 1.15rem; line-height: 1.5; color: var(--text-primary); font-weight: 700; }
 .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-lg); margin-bottom: 100px; }
 .service { text-align: center; }
 .service h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: var(--space-sm); color: var(--accent); text-transform: lowercase; }
 .service p { font-size: 0.95rem; line-height: 1.5; text-align: center; color: var(--text-secondary); }
-.projects-section h2 { font-size: 1rem; font-weight: 400; margin-bottom: var(--space-md); color: var(--text-secondary); }
-.projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-md); }
+
+/* ── projects ─────────────────────────────────────────────────── */
+.projects-section h2 { font-size: 1rem; font-weight: 400; margin-bottom: var(--space-lg); color: var(--text-secondary); }
+.projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-lg); }
 .project-card { background: #1e2738; overflow: hidden; transition: transform 0.3s ease; }
 .project-card:hover { transform: translateY(-4px); }
-.project-card-content { padding: var(--space-md); }
+.project-card-content { padding: var(--space-lg); }
 .project-card h3 { font-size: 1.1rem; margin-bottom: var(--space-xs); text-transform: lowercase; }
 .project-card p { font-size: 0.9rem; margin-bottom: var(--space-sm); color: var(--text-secondary); }
-.footer { padding: var(--space-md) 0; margin-top: auto; }
-.footer .container { max-width: 100%; padding: 0 var(--edge-padding); display: flex; justify-content: space-between; align-items: center; }
-.footer p { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0; }
-.social-links { display: flex; gap: var(--space-md); }
-.social-links a { color: var(--text-primary); transition: color 0.2s ease; font-size: 24px; display: flex; align-items: center; justify-content: center; }
-.social-links a:hover { color: var(--accent-hover); }
-/* Font Awesome social icons - explicit rules for reliability */
-.social-links .fa-instagram::before { font-family: "Font Awesome 6 Brands"; content: "\f16d"; }
-.social-links .fa-facebook-square::before { font-family: "Font Awesome 6 Brands"; content: "\f082"; }
-.social-links .fa-linkedin::before { font-family: "Font Awesome 6 Brands"; content: "\f08c"; }
-.social-links .fa-threads::before { font-family: "Font Awesome 6 Brands"; content: "\e618"; }
+
+/* ── footer ───────────────────────────────────────────────────── */
+/* layout now handled by shared .wv-footer classes in tokens.
+   only font-awesome icon rules remain here (site-specific).       */
+.wv-footer-social .fa-instagram::before { font-family: "Font Awesome 6 Brands"; content: "\f16d"; }
+.wv-footer-social .fa-facebook-square::before { font-family: "Font Awesome 6 Brands"; content: "\f082"; }
+.wv-footer-social .fa-linkedin::before { font-family: "Font Awesome 6 Brands"; content: "\f08c"; }
+.wv-footer-social .fa-threads::before { font-family: "Font Awesome 6 Brands"; content: "\e618"; }
+
+/* ── responsive ───────────────────────────────────────────────── */
 @media (max-width: 1200px) { .hero-title { font-size: 60px; } }
-@media (max-width: 1024px) { :root { --edge-padding: 25px; } .team-member { grid-template-columns: 350px 1fr; } .member-headshot { width: 350px; height: 350px; border-radius: 175px; } .hero-title { font-size: 50px; } }
-@media (max-width: 768px) { :root { --edge-padding: 20px; } .hero-title { font-size: 36px; margin-top: 30px; } .content-section { font-size: 16px; line-height: 24px; } .nav { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); flex-direction: column; padding: var(--space-md); } .nav.active { display: flex; } .nav a { font-size: 24px; } .nav-toggle { display: block; } body.home .nav-toggle { display: none; } .hero-nav { flex-direction: column; gap: var(--space-sm); } .hero-nav a { font-size: 2.5rem; } .team-member { grid-template-columns: 1fr; text-align: center; } .member-photo { justify-content: center; } .member-headshot { width: 280px; height: 280px; border-radius: 140px; } .tags { justify-content: center; } .see-more-btn { display: block; margin: 0 auto var(--space-sm); } .services-grid { grid-template-columns: 1fr; } .footer .container { flex-direction: column; gap: var(--space-md); text-align: center; } .logo-img { width: 150px; } }
+
+@media (max-width: 1024px) {
+  :root { --edge-padding: 25px; }
+  .team-member { grid-template-columns: 350px 1fr; }
+  .member-headshot { width: 350px; height: 350px; border-radius: 175px; }
+  .hero-title { font-size: 50px; }
+}
+
+@media (max-width: 768px) {
+  :root { --edge-padding: 20px; }
+  .hero-title { font-size: 36px; margin-top: 30px; }
+  .content-section { font-size: 16px; line-height: 24px; }
+  .nav { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); flex-direction: column; padding: var(--space-lg); }
+  .nav.active { display: flex; }
+  .nav a { font-size: 24px; }
+  .nav-toggle { display: block; }
+  body.home .nav-toggle { display: none; }
+  .hero-nav { flex-direction: column; gap: var(--space-sm); }
+  .hero-nav a { font-size: 2.5rem; }
+  .team-member { grid-template-columns: 1fr; text-align: center; }
+  .member-photo { justify-content: center; }
+  .member-headshot { width: 280px; height: 280px; border-radius: 140px; }
+  .tags { justify-content: center; }
+  .see-more-btn { display: block; margin: 0 auto var(--space-sm); }
+  .services-grid { grid-template-columns: 1fr; }
+  /* footer responsive now handled by shared .wv-footer classes in tokens */
+  .logo-img { width: 150px; }
+}
+
+/* ── accessibility ────────────────────────────────────────────── */
 .skip-link { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; z-index: 1000; background: var(--text-primary); color: var(--bg-primary); padding: var(--space-xs) var(--space-sm); text-decoration: none; font-weight: 600; }
 .skip-link:focus { position: fixed; top: 10px; left: 10px; width: auto; height: auto; overflow: visible; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

@@ -43,7 +43,7 @@ export default function SyncTrigger() {
         onClick={handleSync}
         disabled={loading}
         className="rounded-lg px-6 py-2.5 text-sm font-medium text-white disabled:opacity-40 transition-all"
-        style={{ backgroundColor: "#b15043" }}
+        style={{ backgroundColor: "var(--wv-redwood)" }}
       >
         {loading ? "syncing…" : "sync now"}
       </button>
@@ -55,7 +55,7 @@ export default function SyncTrigger() {
             backgroundColor: result.success
               ? "rgba(42, 157, 80, 0.08)"
               : "rgba(177, 80, 67, 0.08)",
-            color: result.success ? "#2a6e3f" : "#b15043",
+            color: result.success ? "var(--color-success)" : "var(--wv-redwood)",
           }}
         >
           {result.message}

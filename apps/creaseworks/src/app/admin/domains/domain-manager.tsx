@@ -92,6 +92,7 @@ export default function DomainBlocklistManager({
             value={newDomain}
             onChange={(e) => setNewDomain(e.target.value)}
             className="rounded-lg border border-cadet/15 px-3 py-2 text-sm flex-1 min-w-48 outline-none focus:ring-2"
+            aria-label="domain to block"
           />
           <input
             type="text"
@@ -99,17 +100,18 @@ export default function DomainBlocklistManager({
             value={newReason}
             onChange={(e) => setNewReason(e.target.value)}
             className="rounded-lg border border-cadet/15 px-3 py-2 text-sm flex-1 min-w-48 outline-none focus:ring-2"
+            aria-label="reason for blocking"
           />
           <button
             onClick={handleAdd}
             disabled={loading || !newDomain.trim()}
             className="rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-40 transition-all"
-            style={{ backgroundColor: "#b15043" }}
+            style={{ backgroundColor: "var(--wv-redwood)" }}
           >
             {loading ? "adding…" : "add"}
           </button>
         </div>
-        {error && <p className="text-sm mt-2 text-redwood">{error}</p>}
+        {error && <p id="domain-block-error" className="text-sm mt-2 text-redwood">{error}</p>}
       </div>
 
       {/* table */}
@@ -136,7 +138,7 @@ export default function DomainBlocklistManager({
                       backgroundColor: d.enabled
                         ? "rgba(177, 80, 67, 0.1)"
                         : "rgba(39, 50, 72, 0.06)",
-                      color: d.enabled ? "#b15043" : "#273248",
+                      color: d.enabled ? "var(--wv-redwood)" : "var(--wv-cadet)",
                       opacity: d.enabled ? 1 : 0.5,
                     }}
                   >

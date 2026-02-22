@@ -8,6 +8,8 @@ windedvertigo/
 │   ├── site/              ← windedvertigo.com static site (HTML/CSS/JS)
 │   ├── creaseworks/       ← creaseworks Next.js app (TypeScript)
 │   └── nordic-sqr-rct/   ← sqr-rct Next.js app (JavaScript)
+├── packages/
+│   └── tokens/            ← shared design tokens (CSS + TS)
 ├── scripts/               ← shared Notion sync scripts
 ├── .github/workflows/     ← CI + Notion sync
 └── docs/                  ← design docs, migration plans
@@ -78,13 +80,48 @@ Maria uploads thumbnail images for portfolio and vertigo vault. Options:
 - The Sync Notion Content workflow runs on push to main (scripts changes only), manual dispatch, and daily at 6 AM UTC.
 - CI runs tsc + lint for creaseworks only when `apps/creaseworks/**` files change.
 
+## Shared Design Tokens (`packages/tokens`)
+
+Single source of truth for brand palette, semantic colours, spacing, typography, and accessibility primitives. All apps import `packages/tokens/index.css`; server-side code (PDF generation, emails) imports `packages/tokens/index.ts`.
+
+### Colour rules
+- **Never hardcode hex** in components. Use CSS custom properties from tokens (`--wv-cadet`, `--color-text-on-dark`, etc.).
+- Brand palette: `--wv-cadet`, `--wv-redwood`, `--wv-sienna`, `--wv-champagne`, `--wv-white`.
+- Semantic colours map brand to function and are tested to WCAG AAA (7:1) contrast.
+- Dark card surfaces: `--color-surface-raised` (#1e2738).
+
+### Inclusive design foundations (applied globally via tokens import)
+- **prefers-reduced-motion**: global reset kills all animation when OS setting is on.
+- **:focus-visible**: 3px blue (#3B82F6) outline, 2px offset, on all interactive elements.
+- **Typography**: 16px base, line-height 1.6, letter-spacing 0.02em, max-width 70ch.
+- **prefers-contrast: more**: bumps text-primary to pure black, secondary to gray-800.
+
+### Nordic SQR-RCT
+Stays platform-branded by Nordic. Does NOT import wv brand tokens. Has "powered by winded.vertigo" in footer for attribution only.
+
+### Shared footer (`packages/tokens/footer.html`)
+Single source of truth for the winded.vertigo footer used by every app. Edit this one file, then run `npm run sync:footer` to:
+1. Regenerate `packages/tokens/footer-html.ts` (TS wrapper for creaseworks import)
+2. Inject the footer HTML into all 10 static site pages in `apps/site/`
+
+Creaseworks renders the footer via `dangerouslySetInnerHTML` — zero reconstruction, same HTML everywhere.
+
+### Accessibility
+- **Skip-to-content links** in creaseworks layout and static site pages.
+- **ARIA landmarks**: `aria-label="main navigation"` on all navs, `aria-label="social links"` on footer nav.
+- **Form accessibility**: all inputs have `aria-label` or associated `<label>`, error messages connected via `aria-describedby`, forms have `aria-label`.
+- **Automated audit**: `npm run test:a11y` runs axe-core against the dev server (install deps first: `npm install`).
+- **Contrast**: all text/bg combos tested to WCAG AAA (7:1). Accent-on-dark uses `--color-accent-on-dark` (#e09878, 5.5:1 AA).
+
 ## npm Workspaces
 
-Root `package.json` declares `"workspaces": ["apps/*"]`. Convenience commands:
+Root `package.json` declares `"workspaces": ["apps/*", "packages/*"]`. Convenience commands:
 - `npm run sync` — run Notion fetch scripts
+- `npm run sync:footer` — sync canonical footer to static site + TS wrapper
 - `npm run dev:creaseworks` — start creaseworks dev server
 - `npm run dev:sqr-rct` — start sqr-rct dev server
 - `npm run test` — run creaseworks tests (vitest)
+- `npm run test:a11y` — run accessibility audit against dev server
 - `npm run lint` — run creaseworks linter
 
 Each app keeps its own `package.json` and `node_modules`. Install at root: `npm install`.

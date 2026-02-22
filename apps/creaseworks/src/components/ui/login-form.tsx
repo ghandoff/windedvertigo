@@ -42,14 +42,14 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
       <div className="text-center space-y-4">
         <div
           className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-          style={{ backgroundColor: "#ffebd2" }}
+          style={{ backgroundColor: "var(--wv-champagne)" }}
         >
           <span className="text-2xl">{"\u2709"}</span>
         </div>
-        <h2 className="text-xl font-bold" style={{ color: "#273248" }}>
+        <h2 className="text-xl font-bold" style={{ color: "var(--wv-cadet)" }}>
           check your email
         </h2>
-        <p style={{ color: "#273248" }}>
+        <p style={{ color: "var(--wv-cadet)" }}>
           we sent a magic link to <strong>{email}</strong>.
           <br />
           click it to sign in &mdash; no password needed.
@@ -60,7 +60,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
             setEmail("");
           }}
           className="text-sm underline"
-          style={{ color: "#b15043" }}
+          style={{ color: "var(--wv-redwood)" }}
         >
           use a different email
         </button>
@@ -75,7 +75,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         type="button"
         onClick={handleGoogleSignIn}
         className="w-full flex items-center justify-center gap-3 py-3 rounded-lg border font-medium text-sm transition-colors hover:bg-gray-50"
-        style={{ borderColor: "#273248", color: "#273248" }}
+        style={{ borderColor: "var(--wv-cadet)", color: "var(--wv-cadet)" }}
       >
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <path
@@ -100,18 +100,18 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
 
       {/* separator */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-px" style={{ backgroundColor: "#273248", opacity: 0.15 }} />
-        <span className="text-xs" style={{ color: "#273248", opacity: 0.4 }}>or</span>
-        <div className="flex-1 h-px" style={{ backgroundColor: "#273248", opacity: 0.15 }} />
+        <div className="flex-1 h-px" style={{ backgroundColor: "var(--wv-cadet)", opacity: 0.15 }} />
+        <span className="text-xs" style={{ color: "var(--wv-cadet)", opacity: 0.4 }}>or</span>
+        <div className="flex-1 h-px" style={{ backgroundColor: "var(--wv-cadet)", opacity: 0.15 }} />
       </div>
 
       {/* magic link form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" aria-label="sign in with email">
         <div>
           <label
             htmlFor="email"
             className="block text-sm font-medium mb-1"
-            style={{ color: "#273248" }}
+            style={{ color: "var(--wv-cadet)" }}
           >
             email address
           </label>
@@ -126,15 +126,16 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
             placeholder="you@yourorg.edu"
             className="w-full px-4 py-3 rounded-lg border text-base outline-none transition-colors"
             style={{
-              borderColor: "#273248",
-              color: "#273248",
-              backgroundColor: "white",
+              borderColor: "var(--wv-cadet)",
+              color: "var(--wv-cadet)",
+              backgroundColor: "var(--wv-white)",
             }}
             disabled={status === "loading"}
+            aria-describedby={status === "error" ? "login-error" : undefined}
           />
         </div>
         {status === "error" && (
-          <p className="text-sm" style={{ color: "#b15043" }}>
+          <p id="login-error" className="text-sm" style={{ color: "var(--wv-redwood)" }}>
             {errorMsg}
           </p>
         )}
@@ -142,13 +143,13 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
           type="submit"
           disabled={status === "loading" || !email}
           className="w-full py-3 rounded-lg font-medium text-white transition-opacity disabled:opacity-50"
-          style={{ backgroundColor: "#b15043" }}
+          style={{ backgroundColor: "var(--wv-redwood)" }}
         >
           {status === "loading" ? "sending..." : "send magic link"}
         </button>
         <p
           className="text-xs text-center"
-          style={{ color: "#273248", opacity: 0.6 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
         >
           we&apos;ll email you a link to sign in.
           <br />

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers";
 import NavBar from "@/components/ui/nav-bar";
+import Footer from "@/components/ui/footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -48,8 +49,17 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="antialiased pt-12">
         <Providers>
+          <a
+            href="#main-content"
+            className="skip-link"
+          >
+            skip to main content
+          </a>
           <NavBar />
-          {children}
+          <div id="main-content">
+            {children}
+          </div>
+          <Footer />
         </Providers>
       </body>
     </html>

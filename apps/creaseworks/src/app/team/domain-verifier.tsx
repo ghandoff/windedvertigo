@@ -176,13 +176,14 @@ export default function DomainVerifier({
       {/* ---- feedback messages ---- */}
       {error && (
         <div
+          id="domain-error"
           className="rounded-xl border px-4 py-3 mb-4"
           style={{
             borderColor: "rgba(177, 80, 67, 0.2)",
             backgroundColor: "rgba(177, 80, 67, 0.05)",
           }}
         >
-          <p className="text-sm" style={{ color: "#b15043" }}>
+          <p className="text-sm" style={{ color: "var(--wv-redwood)" }}>
             {error}
           </p>
         </div>
@@ -195,7 +196,7 @@ export default function DomainVerifier({
             backgroundColor: "rgba(42, 157, 80, 0.05)",
           }}
         >
-          <p className="text-sm" style={{ color: "#2a9d50" }}>
+          <p className="text-sm" style={{ color: "var(--color-success-vivid)" }}>
             {success}
           </p>
         </div>
@@ -211,13 +212,13 @@ export default function DomainVerifier({
       >
         <h3
           className="text-sm font-semibold mb-1"
-          style={{ color: "#273248", opacity: 0.8 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.8 }}
         >
           add a domain
         </h3>
         <p
           className="text-xs mb-3"
-          style={{ color: "#273248", opacity: 0.45 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
         >
           anyone who signs in with an email at this domain will
           automatically join your organisation.
@@ -230,10 +231,12 @@ export default function DomainVerifier({
             value={newDomain}
             onChange={(e) => setNewDomain(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            aria-label="domain name"
+            aria-describedby={error ? "domain-error" : undefined}
             className="rounded-lg border px-4 py-3 sm:px-3 sm:py-2 text-sm flex-1 min-w-0 outline-none focus:ring-2"
             style={{
               borderColor: "rgba(39, 50, 72, 0.15)",
-              color: "#273248",
+              color: "var(--wv-cadet)",
               minHeight: 44,
             }}
           />
@@ -243,7 +246,7 @@ export default function DomainVerifier({
               loading || !enteredDomain || !enteredDomain.includes(".")
             }
             className="rounded-lg px-5 py-3 sm:py-2 text-sm font-medium text-white disabled:opacity-40 transition-all active:scale-[0.98]"
-            style={{ backgroundColor: "#b15043", minHeight: 44 }}
+            style={{ backgroundColor: "var(--wv-redwood)", minHeight: 44 }}
           >
             {loading ? "sending…" : "verify domain"}
           </button>
@@ -255,13 +258,13 @@ export default function DomainVerifier({
           !emailMatchesDomain && (
             <div className="mt-3">
               {!showEmailField ? (
-                <p className="text-xs" style={{ color: "#273248", opacity: 0.5 }}>
+                <p className="text-xs" style={{ color: "var(--wv-cadet)", opacity: 0.5 }}>
                   your email ({userEmail}) doesn&apos;t match @{enteredDomain}.{" "}
                   <button
                     type="button"
                     onClick={() => setShowEmailField(true)}
                     className="underline"
-                    style={{ color: "#b15043" }}
+                    style={{ color: "var(--wv-redwood)" }}
                   >
                     enter a verification email
                   </button>
@@ -273,10 +276,12 @@ export default function DomainVerifier({
                   value={verifyEmail}
                   onChange={(e) => setVerifyEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                  aria-label="verification email address"
+                  aria-describedby={error ? "domain-error" : undefined}
                   className="w-full rounded-lg border px-4 py-3 sm:px-3 sm:py-2 text-sm outline-none focus:ring-2"
                   style={{
                     borderColor: "rgba(39, 50, 72, 0.15)",
-                    color: "#273248",
+                    color: "var(--wv-cadet)",
                     minHeight: 44,
                   }}
                 />
@@ -288,7 +293,7 @@ export default function DomainVerifier({
         {enteredDomain && emailMatchesDomain && (
           <p
             className="text-xs mt-2"
-            style={{ color: "#273248", opacity: 0.45 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
           >
             we&apos;ll send a verification email to {userEmail}
           </p>
@@ -309,12 +314,12 @@ export default function DomainVerifier({
                 <span
                   className="flex-shrink-0 w-2 h-2 rounded-full"
                   style={{
-                    backgroundColor: d.verified ? "#2a9d50" : "#cb7858",
+                    backgroundColor: d.verified ? "var(--color-success-vivid)" : "var(--wv-sienna)",
                   }}
                 />
                 <span
                   className="font-mono text-sm truncate"
-                  style={{ color: "#273248" }}
+                  style={{ color: "var(--wv-cadet)" }}
                 >
                   @{d.domain}
                 </span>
@@ -324,7 +329,7 @@ export default function DomainVerifier({
                     backgroundColor: d.verified
                       ? "rgba(42, 157, 80, 0.1)"
                       : "rgba(203, 120, 88, 0.1)",
-                    color: d.verified ? "#2a9d50" : "#cb7858",
+                    color: d.verified ? "var(--color-success-vivid)" : "var(--wv-sienna)",
                   }}
                 >
                   {d.verified ? "verified" : "pending"}
@@ -337,7 +342,7 @@ export default function DomainVerifier({
                     onClick={() => handleResend(d)}
                     disabled={loading}
                     className="text-xs transition-opacity hover:opacity-80 disabled:opacity-40"
-                    style={{ color: "#b15043" }}
+                    style={{ color: "var(--wv-redwood)" }}
                   >
                     resend email
                   </button>
@@ -345,7 +350,7 @@ export default function DomainVerifier({
                 {d.verified && d.verified_at && (
                   <span
                     className="text-xs"
-                    style={{ color: "#273248", opacity: 0.4 }}
+                    style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
                   >
                     verified{" "}
                     {new Date(d.verified_at).toLocaleDateString("en-GB")}
@@ -355,7 +360,7 @@ export default function DomainVerifier({
                   onClick={() => handleRemove(d.id, d.domain)}
                   disabled={loading}
                   className="text-xs transition-opacity hover:opacity-80 disabled:opacity-40"
-                  style={{ color: "#273248", opacity: 0.4 }}
+                  style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
                 >
                   remove
                 </button>
@@ -368,7 +373,7 @@ export default function DomainVerifier({
       {domains.length === 0 && (
         <p
           className="text-sm"
-          style={{ color: "#273248", opacity: 0.4 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
         >
           no verified domains yet. add one above so colleagues can
           auto-join when they sign in.
