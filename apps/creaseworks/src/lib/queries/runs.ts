@@ -408,6 +408,7 @@ export async function updateRun(
  * when the caller is internal (admin or @windedvertigo.com) or is the
  * run's creator — same rule as the API sanitisation logic.
  */
+// Audit-2 M2: accept optional limit to cap export size and prevent OOM on Vercel
 export async function getRunsForExport(
   session: {
     userId: string;
@@ -415,6 +416,7 @@ export async function getRunsForExport(
     isAdmin: boolean;
     isInternal: boolean;
   },
+  limit: number = 500,
 ): Promise<
   (RunRow & { materials_list: string })[]
 > {
@@ -440,8 +442,9 @@ export async function getRunsForExport(
       FROM runs_cache r
       LEFT JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
       ORDER BY r.run_date DESC NULLS LAST, r.title ASC
+      LIMIT $1
     `;
-    params = [];
+    params = [limit];
   } else if (session.orgId) {
     query = `
       SELECT r.id, r.title, r.run_type, r.run_date,
@@ -463,8 +466,9 @@ export async function getRunsForExport(
       WHERE r.org_id = $1
          OR r.created_by = $2
       ORDER BY r.run_date DESC NULLS LAST, r.title ASC
+      LIMIT $3
     `;
-    params = [session.orgId, session.userId];
+    params = [session.orgId, session.userId, limit];
   } else {
     query = `
       SELECT r.id, r.title, r.run_type, r.run_date,
@@ -485,8 +489,9 @@ export async function getRunsForExport(
       LEFT JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
       WHERE r.created_by = $1
       ORDER BY r.run_date DESC NULLS LAST, r.title ASC
+      LIMIT $2
     `;
-    params = [session.userId];
+    params = [session.userId, limit];
   }
 
   const result = await sql.query(query, params);

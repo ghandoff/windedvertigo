@@ -77,7 +77,12 @@ export async function POST(request: NextRequest) {
   // Handle Notion's verification token BEFORE signature check.
   // Notion sends { verification_token: "secret_..." } (no type field).
   // The token is also used as the HMAC secret for future event signatures.
+  // Audit-2 L1: reject rogue verification requests when secret is already set.
   if (payload.verification_token && !payload.type) {
+    if (process.env.NOTION_WEBHOOK_SECRET) {
+      console.warn("[webhook] verification request rejected — secret already configured");
+      return NextResponse.json({ error: "already configured" }, { status: 409 });
+    }
     console.log("[webhook] verification token received");
     return NextResponse.json({ ok: true });
   }

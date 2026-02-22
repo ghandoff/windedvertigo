@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getRunById, getRunMaterials, updateRun } from "@/lib/queries/runs";
 import { logAccess } from "@/lib/queries/audit";
+import { MAX_LENGTHS, checkLength, sanitiseStringArray } from "@/lib/validation";
 
 export async function GET(
   _req: NextRequest,
@@ -53,7 +54,44 @@ export async function PATCH(
     );
   }
 
-  const updated = await updateRun(id, body, session);
+  // Audit-2 H1: whitelist allowed keys to prevent arbitrary field injection
+  const ALLOWED_KEYS = new Set([
+    "title", "patternId", "runType", "runDate",
+    "contextTags", "traceEvidence", "whatChanged",
+    "nextIteration", "materialIds",
+  ]);
+  const unknownKeys = Object.keys(body).filter((k) => !ALLOWED_KEYS.has(k));
+  if (unknownKeys.length > 0) {
+    return NextResponse.json(
+      { error: `unknown fields: ${unknownKeys.join(", ")}` },
+      { status: 400 },
+    );
+  }
+
+  // Audit-2 H1: length validation — mirrors POST /api/runs validation
+  const lengthErr =
+    checkLength("title", body.title, MAX_LENGTHS.title) ||
+    checkLength("runType", body.runType, MAX_LENGTHS.title) ||
+    checkLength("runDate", body.runDate, MAX_LENGTHS.title) ||
+    checkLength("whatChanged", body.whatChanged, MAX_LENGTHS.freeText) ||
+    checkLength("nextIteration", body.nextIteration, MAX_LENGTHS.freeText);
+  if (lengthErr) {
+    return NextResponse.json({ error: lengthErr }, { status: 400 });
+  }
+
+  // Sanitise array fields before passing to updateRun
+  const sanitised = { ...body };
+  if (sanitised.contextTags !== undefined) {
+    sanitised.contextTags = sanitiseStringArray(sanitised.contextTags);
+  }
+  if (sanitised.traceEvidence !== undefined) {
+    sanitised.traceEvidence = sanitiseStringArray(sanitised.traceEvidence);
+  }
+  if (sanitised.materialIds !== undefined) {
+    sanitised.materialIds = sanitiseStringArray(sanitised.materialIds, MAX_LENGTHS.arrayMax, MAX_LENGTHS.uuid);
+  }
+
+  const updated = await updateRun(id, sanitised, session);
 
   if (!updated) {
     return NextResponse.json(

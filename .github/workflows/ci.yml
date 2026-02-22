@@ -46,3 +46,7 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      # Audit-2 M5: run vitest suite (20 unit tests added in session 12)
+      - name: Test
+        run: npm run test

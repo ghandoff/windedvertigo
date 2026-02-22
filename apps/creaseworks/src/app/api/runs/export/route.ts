@@ -30,7 +30,10 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const runs = await getRunsForExport(session);
+  // Audit-2 M2: cap export to 500 rows to prevent OOM on Vercel serverless
+  const EXPORT_LIMIT = 500;
+  const runs = await getRunsForExport(session, EXPORT_LIMIT);
+  const truncated = runs.length === EXPORT_LIMIT;
 
   // audit log
   const ip =
@@ -43,7 +46,7 @@ export async function GET(req: NextRequest) {
     `export_runs_${format}`,
     ip,
     [],
-    { count: runs.length },
+    { count: runs.length, truncated },
   );
 
   const now = new Date();

@@ -5,10 +5,14 @@ import { join } from "path";
 export { sql };
 
 /**
- * Run the initial schema migration.
- * Called from a setup script or on first deploy.
+ * Run the initial schema migration only (001_initial_schema.sql).
+ *
+ * Audit-2 L2: renamed from runMigrations() to clarify this does NOT run
+ * all 11+ migrations - only the initial schema. In production, migrations
+ * are applied via the Neon console or a dedicated migration runner.
+ * This helper is only used for local development setup.
  */
-export async function runMigrations() {
+export async function runInitialSchema() {
   const migrationPath = join(process.cwd(), "migrations", "001_initial_schema.sql");
   const migration = readFileSync(migrationPath, "utf-8");
 

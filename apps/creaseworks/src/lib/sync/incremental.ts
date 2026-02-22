@@ -100,17 +100,25 @@ export async function handlePageDeletion(
   const contentType = resolveContentType(databaseId);
   if (!contentType) return { deleted: false, type: null };
 
-  const tableMap: Record<ContentType, string> = {
-    materials: "materials_cache",
-    patterns: "patterns_cache",
-    packs: "packs_cache",
-    runs: "runs_cache",
-  };
-
-  const table = tableMap[contentType];
   const normalised = pageId.replace(/-/g, "");
 
-  await sql.query(`DELETE FROM ${table} WHERE notion_id = $1`, [normalised]);
+  // Audit-2 M3: use explicit switch with literal SQL to avoid dynamic table
+  // name interpolation (even though tableMap values were hardcoded, this
+  // pattern is safer against future edits introducing user input).
+  switch (contentType) {
+    case "materials":
+      await sql.query(`DELETE FROM materials_cache WHERE notion_id = $1`, [normalised]);
+      break;
+    case "patterns":
+      await sql.query(`DELETE FROM patterns_cache WHERE notion_id = $1`, [normalised]);
+      break;
+    case "packs":
+      await sql.query(`DELETE FROM packs_cache WHERE notion_id = $1`, [normalised]);
+      break;
+    case "runs":
+      await sql.query(`DELETE FROM runs_cache WHERE notion_id = $1`, [normalised]);
+      break;
+  }
   console.log(`[webhook-sync] deleted ${contentType} ${pageId}`);
   return { deleted: true, type: contentType };
 }
@@ -355,18 +363,19 @@ async function upsertRun(page: any) {
   const lastEdited = extractLastEdited(page);
   const materialRelationIds = extractRelationIds(props, "materials used (actual)");
 
+  // Audit-2 H3: explicitly set source='notion' for parity with batch sync
   await sql`
     INSERT INTO runs_cache (
       notion_id, title, pattern_notion_id, run_type, run_date,
       context_tags, trace_evidence, what_changed, next_iteration,
-      notion_last_edited, synced_at
+      notion_last_edited, synced_at, source
     ) VALUES (
       ${notionId}, ${title}, ${patternNotionId},
       ${runType}, ${runDate},
       ${JSON.stringify(contextTags)},
       ${JSON.stringify(traceEvidence)},
       ${whatChanged}, ${nextIteration},
-      ${lastEdited}, NOW()
+      ${lastEdited}, NOW(), 'notion'
     )
     ON CONFLICT (notion_id) DO UPDATE SET
       title = EXCLUDED.title,

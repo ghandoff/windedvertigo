@@ -29,11 +29,14 @@ export async function sendDomainVerificationEmail({
     return { success: false, error: "email service not configured" };
   }
 
+  // Audit-2 M4: explicit parens to clarify operator precedence.
+  // NEXTAUTH_URL is preferred; fall back to VERCEL_URL with https prefix;
+  // fall back to localhost for local dev.
   const baseUrl =
     process.env.NEXTAUTH_URL ||
-    process.env.VERCEL_URL
+    (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+      : "http://localhost:3000");
 
   const verifyUrl = `${baseUrl}/api/team/domains/verify?token=${encodeURIComponent(token)}`;
 

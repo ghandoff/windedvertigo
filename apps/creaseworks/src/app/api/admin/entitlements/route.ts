@@ -16,7 +16,13 @@ import { logAccess } from "@/lib/queries/audit";
 
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
-  const body = await req.json();
+  // Audit-2 H2: wrap req.json() in try/catch to return 400 on malformed JSON
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "invalid request body" }, { status: 400 });
+  }
 
   const { orgId, packCacheId, trialDays } = body;
 
@@ -65,7 +71,13 @@ export async function POST(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   const session = await requireAdmin();
-  const body = await req.json();
+  // Audit-2 H2: wrap req.json() in try/catch to return 400 on malformed JSON
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "invalid request body" }, { status: 400 });
+  }
 
   const { orgId, packCacheId } = body;
 

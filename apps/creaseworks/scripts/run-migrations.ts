@@ -27,11 +27,11 @@ try {
   console.warn("no .env.local found — relying on existing env vars");
 }
 
-import { runMigrations } from "@/lib/db";
+import { runInitialSchema } from "@/lib/db";
 
 async function main() {
   console.log("running migrations…");
-  await runMigrations();
+  await runInitialSchema();
   console.log("migrations complete.");
   process.exit(0);
 }

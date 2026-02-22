@@ -63,6 +63,10 @@ export interface AnalyticsSummary {
 /*  visibility clause builder                                          */
 /* ------------------------------------------------------------------ */
 
+// SAFETY (Audit-2 M1): visibilityClause().where is ALWAYS a hardcoded string
+// literal — never derived from user input. The returned `where` is interpolated
+// into SQL template literals below. If you ever need to include user-supplied
+// values in the WHERE clause, pass them via `params` and use $N placeholders.
 function visibilityClause(session: {
   userId: string;
   orgId: string | null;
