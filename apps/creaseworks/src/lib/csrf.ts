@@ -16,7 +16,8 @@ import { NextRequest, NextResponse } from "next/server";
 const EXEMPT_PATHS = [
   "/api/stripe/webhook",
   "/api/webhooks/notion",
-  "/api/cron/sync-notion",
+  "/api/cron/",
+  "/api/auth/",
 ];
 
 const STATE_CHANGING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);

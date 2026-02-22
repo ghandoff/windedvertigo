@@ -15,16 +15,23 @@
  *   - Anonymous: 20 requests/min
  *   - Falls back to in-memory bucket if DB is unavailable.
  *
+ * CSRF protection: Origin header validation on state-changing methods.
+ *   - Rejects POST/PUT/PATCH/DELETE from cross-origin requests.
+ *   - Falls back to Referer header if Origin is missing.
+ *   - Exempt: Stripe webhook, Notion webhook, cron routes (signature-verified).
+ *
  * Unauthenticated users hitting protected routes are redirected to /login.
  *
  * MVP 4 -- admin pages and rate limiting.
  * Updated session 11: middleware.ts -> proxy.ts (Next.js 16).
  * Updated session 12: persistent Postgres-backed rate limiter.
+ * Updated session 14: CSRF Origin header validation.
  */
 
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { checkCsrf } from "@/lib/csrf";
 
 /* ------------------------------------------------------------------ */
 /*  rate limiting config                                               */
@@ -73,6 +80,10 @@ function isPublicRoute(pathname: string): boolean {
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // CSRF protection — reject cross-origin state-changing requests
+  const csrfRejection = checkCsrf(req);
+  if (csrfRejection) return csrfRejection;
 
   // Skip rate limiting for static assets, auth, and webhook routes
   const isApiRoute = pathname.startsWith("/api/");
