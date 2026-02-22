@@ -65,3 +65,7 @@ export const typography = {
   letterSpacing: "0.02em",
   maxLineLength: "70ch",
 } as const;
+
+/* ── shared footer HTML ──────────────────────────────────────────── */
+
+export { WV_FOOTER_HTML } from "./footer-html";

@@ -7,7 +7,7 @@
  * by scripts/sync-footer.mjs — run `npm run sync:footer` after editing footer.html.
  */
 
-import { WV_FOOTER_HTML } from "@windedvertigo/tokens/footer-html";
+import { WV_FOOTER_HTML } from "@windedvertigo/tokens";
 
 export default function Footer() {
   return <div dangerouslySetInnerHTML={{ __html: WV_FOOTER_HTML }} />;
