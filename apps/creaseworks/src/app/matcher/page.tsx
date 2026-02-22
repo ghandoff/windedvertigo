@@ -1,0 +1,64 @@
+/**
+ * /matcher — public pattern matcher page.
+ *
+ * Server component that fetches picker data (materials, forms, slots,
+ * contexts) and passes them to the client-side form component.
+ *
+ * MVP 3 — matcher.
+ * Session 12: mobile-first responsive layout — reduced padding on
+ *   small screens, responsive heading, shorter intro copy on mobile.
+ */
+
+import Link from "next/link";
+import { getAllMaterials } from "@/lib/queries/materials";
+import {
+  getDistinctForms,
+  getDistinctSlots,
+  getDistinctContexts,
+} from "@/lib/queries/matcher";
+import MatcherInputForm from "@/components/ui/matcher-input-form";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
+export default async function MatcherPage() {
+  const [materials, forms, slots, contexts] = await Promise.all([
+    getAllMaterials(),
+    getDistinctForms(),
+    getDistinctSlots(),
+    getDistinctContexts(),
+  ]);
+
+  return (
+    <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-16 max-w-5xl mx-auto">
+      <Link
+        href="/"
+        className="text-sm hover:opacity-80 transition-opacity mb-4 sm:mb-6 inline-block"
+        style={{ color: "#273248", opacity: 0.5 }}
+      >
+        &larr; creaseworks
+      </Link>
+
+      <h1
+        className="text-2xl sm:text-3xl font-semibold tracking-tight mb-2"
+        style={{ color: "#273248" }}
+      >
+        pattern matcher
+      </h1>
+      <p
+        className="mb-6 sm:mb-8 text-sm sm:text-base"
+        style={{ color: "#273248", opacity: 0.6 }}
+      >
+        tell us what you have — materials, forms, context — and we&apos;ll
+        find the patterns that fit.
+      </p>
+
+      <MatcherInputForm
+        materials={materials}
+        forms={forms}
+        slots={slots}
+        contexts={contexts}
+      />
+    </main>
+  );
+}

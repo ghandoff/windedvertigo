@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>do.  winded.vertigo</title>
+  <meta name="description" content="Build your custom learning experience package with our interactive Package Builder.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://windedvertigo.com/do/">
+  <meta property="og:title" content="do.  winded.vertigo">
+  <meta property="og:description" content="Build your custom learning experience package with our interactive Package Builder.">
+  <meta property="og:image" content="https://windedvertigo.com/images/logo.png">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="do.  winded.vertigo">
+  <meta name="twitter:description" content="Build your custom learning experience package with our interactive Package Builder.">
+  <meta name="twitter:image" content="https://windedvertigo.com/images/logo.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://windedvertigo.com/do/">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css?v=13">
+  <style>
+    /* Package Builder Scoped Styles */
+    .package-builder {
+      width: 100%;
+      min-height: calc(100vh - 200px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pb-intro {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      padding: 0 20px 16px;
+      font-size: 13px;
+      color: #ffffff;
+      line-height: 1.5;
+    }
+
+    .pb-header {
+      width: 100%;
+      max-width: 468px;
+      padding: 0 24px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .progress {
+      display: flex;
+      gap: 6px;
+    }
+
+    .progress-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--surface, #3a4459);
+      transition: all 0.3s ease;
+    }
+
+    .progress-dot.active {
+      width: 24px;
+      border-radius: 4px;
+      background: var(--accent, #b15043);
+    }
+
+    .progress-dot.complete {
+      background: #cb7858;
+    }
+
+    .pb-main {
+      width: 100%;
+      max-width: 420px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0 20px;
+    }
+
+    .step-container {
+      position: relative;
+      flex: 1;
+      min-height: 500px;
+    }
+
+    .question-area {
+      position: absolute;
+      top: 20%;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .question {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      text-transform: lowercase;
+      line-height: 1.3;
+      margin-bottom: 24px;
+    }
+
+    .button-grid {
+      width: 100%;
+      max-width: 340px;
+    }
+
+    .grid-2x1 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .choice-btn {
+      position: relative;
+      width: 100%;
+      background: transparent;
+      border: 1.5px solid rgba(255, 255, 255, 0.7);
+      color: #ffffff;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-family: inherit;
+      font-weight: 400;
+      text-transform: lowercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Only apply hover on devices that support it (not touch) */
+    @media (hover: hover) {
+      .choice-btn:hover {
+        background: var(--accent, #b15043);
+        border-color: var(--accent, #b15043);
+      }
+    }
+
+    .choice-btn.selected {
+      background: var(--accent, #b15043);
+      border-color: var(--accent, #b15043);
+    }
+
+    .choice-btn.large {
+      height: 56px;
+    }
+
+    .choice-btn.small {
+      height: 48px;
+    }
+
+    .tooltip {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #3a4459;
+      font-size: 11px;
+      color: #ffebd2;
+      white-space: nowrap;
+      border-radius: 4px;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .tooltip::before {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-bottom-color: #3a4459;
+    }
+
+    .choice-btn:hover .tooltip {
+      opacity: 1;
+    }
+
+    .choice-btn.selected .tooltip {
+      opacity: 0;
+    }
+
+    .helper-text {
+      margin-top: 12px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: center;
+    }
+
+    .matrix-area {
+      position: absolute;
+      top: 55%;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .matrix-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: 50px 50px;
+      gap: 3px;
+    }
+
+    .matrix-col-labels {
+      display: grid;
+      grid-template-columns: 50px 50px;
+      gap: 3px;
+      margin-bottom: 3px;
+    }
+
+    .matrix-col-label {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      text-transform: lowercase;
+    }
+
+    .matrix-grid-wrapper {
+      position: relative;
+    }
+
+    .matrix-row-labels {
+      position: absolute;
+      right: 100%;
+      top: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      padding-right: 8px;
+    }
+
+    .matrix-row-label {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: right;
+      text-transform: lowercase;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .matrix-cell {
+      width: 50px;
+      height: 50px;
+      background: #3a4459;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .matrix-cell.active {
+      background: var(--accent, #b15043);
+    }
+
+    .matrix-cell.highlight {
+      background: #cb7858;
+    }
+
+    .matrix-cell-label {
+      font-size: 0;
+      color: transparent;
+      text-align: center;
+      line-height: 1.2;
+      text-transform: lowercase;
+    }
+
+    /* Expanded matrix for package page */
+    .matrix-container.expanded .matrix-grid {
+      grid-template-columns: 64px 64px;
+    }
+
+    .matrix-container.expanded .matrix-col-labels {
+      grid-template-columns: 64px 64px;
+    }
+
+    .matrix-container.expanded .matrix-col-label {
+      font-size: 10px;
+    }
+
+    .matrix-container.expanded .matrix-row-label {
+      font-size: 10px;
+      height: 64px;
+    }
+
+    .matrix-container.expanded .matrix-cell {
+      width: 64px;
+      height: 64px;
+    }
+
+    .matrix-container.expanded .matrix-cell-label {
+      font-size: 8px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.3;
+    }
+
+    .matrix-container.expanded .matrix-cell.active .matrix-cell-label {
+      color: #ffffff;
+    }
+
+    .nav-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-family: inherit;
+      text-transform: lowercase;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      background: transparent;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .nav-btn.primary {
+      background: var(--accent, #b15043);
+      border-color: var(--accent, #b15043);
+      color: #ffffff;
+    }
+
+    /* Result Page */
+    .result-container {
+      flex: 1;
+      padding-top: 10px;
+      padding-bottom: 40px;
+    }
+
+    .result-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-transform: lowercase;
+    }
+
+    .result-promise {
+      font-size: 16px;
+      color: #ffffff;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .pb-tags {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .pb-tag {
+      background: var(--accent, #b15043);
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: lowercase;
+    }
+
+    .quadrant-context {
+      background: #1e2738;
+      padding: 24px;
+      margin-bottom: 28px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .quadrant-story {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.7;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .section-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffebd2;
+      margin-bottom: 16px;
+      text-transform: lowercase;
+      letter-spacing: 0.5px;
+    }
+
+    .outcome-card {
+      padding: 16px 20px;
+      background: #3a4459;
+      margin-bottom: 8px;
+      border-left: 3px solid #cb7858;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .outcome-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .outcome-detail {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+    }
+
+    .story-box {
+      padding: 20px;
+      background: #1e2738;
+      border: 1px solid #3a4459;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 16px;
+    }
+
+    .crossover-box {
+      padding: 16px;
+      background: rgba(203, 120, 88, 0.15);
+      border-left: 3px solid #cb7858;
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #ffebd2;
+      font-style: italic;
+    }
+
+    .crossover-box strong {
+      font-style: normal;
+    }
+
+    .example-card {
+      padding: 18px 20px;
+      background: #3a4459;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      text-decoration: none;
+      display: block;
+    }
+
+    .example-card:hover {
+      transform: translateX(4px);
+    }
+
+    .example-inner {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .example-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .example-content {
+      flex: 1;
+    }
+
+    .example-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-transform: lowercase;
+      color: #ffffff;
+    }
+
+    .example-type {
+      font-size: 11px;
+      color: #cb7858;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .example-detail {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+    }
+
+    .example-arrow {
+      color: var(--accent, #b15043);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 32px;
+    }
+
+    .cta-btn {
+      flex: 1;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 700;
+      text-transform: lowercase;
+      cursor: pointer;
+      border-radius: 4px;
+      text-decoration: none;
+      text-align: center;
+      border: none;
+    }
+
+    .cta-btn.primary {
+      background: var(--accent, #b15043);
+      color: #ffffff;
+    }
+
+    .cta-btn.secondary {
+      background: #cb7858;
+      color: #ffffff;
+    }
+
+    .cta-btn.outline {
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      color: #ffffff;
+    }
+
+    .pb-section { margin-bottom: 28px; }
+
+    .hidden { display: none !important; }
+
+    /* Mobile responsive for Package Builder */
+    @media (max-width: 480px) {
+      .cta-row {
+        flex-direction: column;
+      }
+      .cta-btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .pb-intro {
+        display: none;
+      }
+      .step-container {
+        min-height: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-bottom: 16px;
+      }
+      .question-area {
+        position: static;
+        padding-top: 10px;
+      }
+      .button-grid {
+        min-height: 195px;
+      }
+      .matrix-area {
+        position: static;
+      }
+      .nav-buttons {
+        margin-top: 12px;
+      }
+      .question {
+        font-size: 20px;
+        margin-bottom: 16px;
+      }
+      .choice-btn {
+        font-size: 13px;
+        padding: 8px 10px;
+      }
+      .choice-btn.large {
+        height: 44px;
+      }
+      .choice-btn.small {
+        height: 38px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="header">
+    <div class="container header-inner">
+      <a href="../" class="logo">
+        <img src="../images/logo.png" alt="winded.vertigo" class="logo-img">
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <nav class="nav" id="main-nav">
+        <a href="../what/">what.</a>
+        <a href="../we/">we.</a>
+        <a href="../do/" class="active">do.</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="package-builder">
+      <p class="pb-intro">get to know us by building your custom learning experience package</p>
+      <header class="pb-header">
+        <div class="progress" id="progress">
+          <div class="progress-dot active" data-step="1"></div>
+          <div class="progress-dot" data-step="2"></div>
+          <div class="progress-dot" data-step="3"></div>
+          <div class="progress-dot" data-step="4"></div>
+          <div class="progress-dot" data-step="5"></div>
+        </div>
+      </header>
+
+      <div class="pb-main">
+        <!-- Steps 1-4 -->
+        <div class="step-container" id="steps-1-4">
+          <div class="question-area">
+            <h1 class="question" id="question">what are you trying to change?</h1>
+            <div class="button-grid" id="button-grid"></div>
+          </div>
+          <div class="matrix-area">
+            <div class="matrix-container" id="matrix"></div>
+            <div class="nav-buttons" id="nav-buttons"></div>
+          </div>
+        </div>
+
+        <!-- Step 5: Result -->
+        <div class="result-container hidden" id="result-container"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© copyright winded.vertigo, 2024-2026. all rights reserved.</p>
+      <div class="social-links">
+        <a href="../portfolio/" aria-label="Portfolio" style="color: #ffebd2;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="1" width="10" height="10" rx="1"/><rect x="13" y="1" width="10" height="10" rx="1"/><rect x="1" y="13" width="10" height="10" rx="1"/><rect x="13" y="13" width="10" height="10" rx="1"/></svg></a>
+        <a href="https://www.instagram.com/winded.vertigo/" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="https://www.facebook.com/windedvertigo" aria-label="Facebook"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-3 7h-1.924c-.615 0-1.076.252-1.076.889v1.111h3l-.238 3h-2.762v8h-3v-8h-2v-3h2v-1.923c0-2.022 1.064-3.077 3.461-3.077h2.539v3z"/></svg></a>
+        <a href="https://www.linkedin.com/company/winded-vertigo/" aria-label="LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+        <a href="https://windedvertigo.substack.com/" aria-label="Substack"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/></svg></a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const nav = document.querySelector('.nav');
+    navToggle?.addEventListener('click', () => {
+      const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+      navToggle.setAttribute('aria-expanded', !expanded);
+      nav.classList.toggle('active');
+    });
+
+    // ========================================
+    // PACKAGE BUILDER - CONTENT
+    // ========================================
+    // UI choices (kept in HTML - these don't change often)
+    const CONTENT = {
+      insights: {
+        people: "training, behaviour change, system adoption",
+        product: "the tool, game, or experience itself",
+        design: "build, improve, make it work better",
+        research: "measure, prove, understand impact"
+      },
+      services: {
+        'people-design': [
+          { label: "trainings", value: "trainings", desc: "workshops and facilitation" },
+          { label: "learning experiences", value: "learning-experiences", desc: "immersive programmes" },
+          { label: "programmes", value: "programmes", desc: "structured learning journeys" },
+          { label: "comms assets", value: "comms-assets", desc: "materials that communicate" }
+        ],
+        'people-research': [
+          { label: "programme evaluation", value: "program-evaluation", desc: "measure programme impact" },
+          { label: "MEL touchpoints", value: "mel-touchpoints", desc: "monitoring checkpoints" },
+          { label: "psychometrics", value: "psychometrics", desc: "validated assessments" },
+          { label: "evidence for funders", value: "evidence-for-funders", desc: "proof for stakeholders" }
+        ],
+        'product-design': [
+          { label: "learning tools", value: "learning-tools", desc: "educational products" },
+          { label: "toys/games", value: "toys-games", desc: "play-based products" },
+          { label: "comms assets", value: "comms", desc: "brand materials" },
+          { label: "UDL improvements", value: "udl-improvements", desc: "accessibility upgrades" }
+        ],
+        'product-research': [
+          { label: "exhibit efficacy", value: "efficacy", desc: "does the exhibit work?" },
+          { label: "toy impacts", value: "toy-impacts", desc: "play value research" },
+          { label: "UDL validation", value: "udl-validation", desc: "accessibility testing" },
+          { label: "usability testing", value: "usability-testing", desc: "user experience research" }
+        ]
+      },
+      outcomes: [
+        { label: "prove it", value: "prove", desc: "demonstrate measurable impact" },
+        { label: "improve it", value: "improve", desc: "make what exists better" },
+        { label: "scale it", value: "scale", desc: "expand reach and adoption" },
+        { label: "accessibility", value: "accessibility", desc: "ensure inclusive design" },
+        { label: "concept sprint", value: "concept", desc: "rapid idea exploration" },
+        { label: "prototype", value: "prototype", desc: "build a testable version" }
+      ],
+      // Pack content loaded from Notion via JSON (see loadContentAndInit)
+      // Minimal fallback only shown if JSON fails to load
+      packs: null
+    };
+
+    // Minimal fallback content (only used if Notion JSON fails to load)
+    const FALLBACK_PACKS = {
+      'people-design': {
+        title: "design & deploy",
+        promise: "build learning experiences your team actually wants to use.",
+        quadrantStory: "you're in the people × design quadrant—where behaviour change meets creative craft.",
+        story: "we'll work together to design and deploy effective learning experiences.",
+        crossover: "our design work is always informed by research.",
+        outcomes: [{ title: "custom learning experience", detail: "tailored to your needs and context." }],
+        examples: []
+      },
+      'people-research': {
+        title: "pinpoint & prove",
+        promise: "show exactly where your approach moves the needle.",
+        quadrantStory: "you're in the people × research quadrant—where rigorous measurement meets human complexity.",
+        story: "we'll help you measure and prove your impact.",
+        crossover: "research without design is just measurement.",
+        outcomes: [{ title: "evidence of impact", detail: "credible data that satisfies stakeholders." }],
+        examples: []
+      },
+      'product-design': {
+        title: "build & iterate",
+        promise: "launch a polished, tested product in two sprints.",
+        quadrantStory: "you're in the product × design quadrant—where learning science meets rapid prototyping.",
+        story: "we'll prototype and test your product with real users.",
+        crossover: "great products are shaped by evidence.",
+        outcomes: [{ title: "working prototype", detail: "functional and tested with users." }],
+        examples: []
+      },
+      'product-research': {
+        title: "test & validate",
+        promise: "prove your product meets accessibility and learning standards.",
+        quadrantStory: "you're in the product × research quadrant—where user experience meets rigorous validation.",
+        story: "we'll validate your product against UDL and usability standards.",
+        crossover: "validation is the beginning of better design.",
+        outcomes: [{ title: "validation report", detail: "actionable findings and recommendations." }],
+        examples: []
+      }
+    };
+
+    // ========================================
+    // STATE
+    // ========================================
+    let state = {
+      step: 1,
+      audience: null,
+      mode: null,
+      focus: [],
+      goals: []
+    };
+
+    // ========================================
+    // HELPERS
+    // ========================================
+    const getQuadrant = () => state.audience && state.mode ? `${state.audience}-${state.mode}` : null;
+
+    const questions = {
+      1: "what are you trying to change?",
+      2: "how do you want to approach it?",
+      3: "which needs are closest to yours?",
+      4: "what does success look like?"
+    };
+
+    // ========================================
+    // RENDER FUNCTIONS
+    // ========================================
+    function updateProgress() {
+      document.querySelectorAll('.progress-dot').forEach(dot => {
+        const dotStep = parseInt(dot.dataset.step);
+        dot.classList.remove('active', 'complete');
+        if (dotStep === state.step) dot.classList.add('active');
+        else if (dotStep < state.step) dot.classList.add('complete');
+      });
+    }
+
+    function renderMatrix(expanded = false) {
+      const quadrant = getQuadrant();
+
+      const getHighlightClass = (cellId) => {
+        if (quadrant === cellId) return 'active';
+        if (state.step === 2 && state.audience) {
+          if (cellId.startsWith(state.audience)) return 'highlight';
+        }
+        return '';
+      };
+
+      const cellLabels = {
+        'people-design': expanded ? 'design &<br>deploy' : '',
+        'people-research': expanded ? 'pinpoint &<br>prove' : '',
+        'product-design': expanded ? 'build &<br>iterate' : '',
+        'product-research': expanded ? 'test &<br>validate' : ''
+      };
+
+      return `
+        <div class="matrix-container ${expanded ? 'expanded' : ''}">
+          <div class="matrix-col-labels">
+            <div class="matrix-col-label">design</div>
+            <div class="matrix-col-label">research</div>
+          </div>
+          <div class="matrix-grid-wrapper">
+            <div class="matrix-row-labels">
+              <div class="matrix-row-label">people</div>
+              <div class="matrix-row-label">product</div>
+            </div>
+            <div class="matrix-grid">
+              <div class="matrix-cell ${getHighlightClass('people-design')}">
+                <div class="matrix-cell-label">${cellLabels['people-design']}</div>
+              </div>
+              <div class="matrix-cell ${getHighlightClass('people-research')}">
+                <div class="matrix-cell-label">${cellLabels['people-research']}</div>
+              </div>
+              <div class="matrix-cell ${getHighlightClass('product-design')}">
+                <div class="matrix-cell-label">${cellLabels['product-design']}</div>
+              </div>
+              <div class="matrix-cell ${getHighlightClass('product-research')}">
+                <div class="matrix-cell-label">${cellLabels['product-research']}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderChoiceButton(label, value, desc, selected, size = 'small') {
+      return `
+        <button class="choice-btn ${size} ${selected ? 'selected' : ''}" data-value="${value}">
+          ${label}
+          <div class="tooltip">${desc}</div>
+        </button>
+      `;
+    }
+
+    function renderStep() {
+      const quadrant = getQuadrant();
+      const questionEl = document.getElementById('question');
+      const buttonGrid = document.getElementById('button-grid');
+      const matrix = document.getElementById('matrix');
+      const navButtons = document.getElementById('nav-buttons');
+
+      questionEl.textContent = questions[state.step];
+
+      let buttonsHTML = '';
+      let navHTML = '';
+
+      if (state.step === 1) {
+        buttonsHTML = `
+          <div class="grid-2x1">
+            ${renderChoiceButton('people', 'people', CONTENT.insights.people, state.audience === 'people', 'large')}
+            ${renderChoiceButton('product', 'product', CONTENT.insights.product, state.audience === 'product', 'large')}
+          </div>
+        `;
+      } else if (state.step === 2) {
+        buttonsHTML = `
+          <div class="grid-2x1">
+            ${renderChoiceButton('design', 'design', CONTENT.insights.design, state.mode === 'design', 'large')}
+            ${renderChoiceButton('research', 'research', CONTENT.insights.research, state.mode === 'research', 'large')}
+          </div>
+        `;
+      } else if (state.step === 3) {
+        const services = CONTENT.services[quadrant] || [];
+        buttonsHTML = `
+          <div class="grid-2x2">
+            ${services.map(svc => renderChoiceButton(svc.label, svc.value, svc.desc, state.focus.includes(svc.value))).join('')}
+          </div>
+          <p class="helper-text">select one or more</p>
+        `;
+      } else if (state.step === 4) {
+        buttonsHTML = `
+          <div class="grid-2x2">
+            ${CONTENT.outcomes.map(opt => renderChoiceButton(opt.label, opt.value, opt.desc, state.goals.includes(opt.value))).join('')}
+          </div>
+          <p class="helper-text">select one or more</p>
+        `;
+      }
+
+      if (state.step > 1) {
+        navHTML += `<button class="nav-btn" id="back-btn">back</button>`;
+      }
+      if (state.step === 3 && state.focus.length > 0) {
+        navHTML += `<button class="nav-btn primary" id="next-btn">next</button>`;
+      }
+      if (state.step === 4 && state.goals.length > 0) {
+        navHTML += `<button class="nav-btn primary" id="next-btn">see your pack</button>`;
+      }
+
+      buttonGrid.innerHTML = buttonsHTML;
+      matrix.innerHTML = renderMatrix();
+      navButtons.innerHTML = navHTML;
+
+      attachStepListeners();
+    }
+
+    function renderResult() {
+      const quadrant = getQuadrant();
+      const pack = CONTENT.packs[quadrant];
+      if (!pack) return;
+
+      const container = document.getElementById('result-container');
+      const emailBody = encodeURIComponent(
+        `I'm interested in the "${pack.title}" package from winded.vertigo.\n\nQuadrant: ${state.audience} × ${state.mode}\nServices: ${state.focus.join(', ')}\nGoals: ${state.goals.join(', ')}\n\n${pack.promise}\n\nLearn more at windedvertigo.com`
+      );
+
+      container.innerHTML = `
+        <h1 class="result-title">${pack.title}</h1>
+        <p class="result-promise">${pack.promise}</p>
+
+        <div class="pb-tags">
+          <span class="pb-tag">${state.audience}</span>
+          <span class="pb-tag">${state.mode}</span>
+          <span class="pb-tag">${state.focus.length} service${state.focus.length > 1 ? 's' : ''}</span>
+          <span class="pb-tag">${state.goals.length} goal${state.goals.length > 1 ? 's' : ''}</span>
+        </div>
+
+        <div class="quadrant-context">
+          ${renderMatrix(true)}
+          <p class="quadrant-story">${pack.quadrantStory}</p>
+        </div>
+
+        <div class="pb-section">
+          <div class="section-label">what you'll get</div>
+          ${pack.outcomes.map(o => `
+            <div class="outcome-card">
+              <div class="outcome-title">${o.title}</div>
+              <div class="outcome-detail">${o.detail}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="pb-section">
+          <div class="section-label">how we'll work together</div>
+          <div class="story-box">${pack.story}</div>
+          <div class="crossover-box">
+            <strong>crossing boundaries:</strong> ${pack.crossover}
+          </div>
+        </div>
+
+        <div class="pb-section">
+          <div class="section-label">see it in action</div>
+          ${pack.examples.map(ex => `
+            <a href="../portfolio/?asset=${ex.id}" class="example-card">
+              <div class="example-inner">
+                <span class="example-icon">${ex.icon}</span>
+                <div class="example-content">
+                  <div class="example-title">${ex.title}</div>
+                  <div class="example-type">${ex.type}</div>
+                  <div class="example-detail">${ex.detail}</div>
+                </div>
+                <span class="example-arrow">→</span>
+              </div>
+            </a>
+          `).join('')}
+        </div>
+
+        <div class="cta-row">
+          <a href="https://calendar.app.google/ZXVqJLdprmUZk1DW6" target="_blank" rel="noopener noreferrer" class="cta-btn primary">book a playdate</a>
+          <a href="mailto:?subject=My winded.vertigo package: ${encodeURIComponent(pack.title)}&body=${emailBody}" class="cta-btn secondary">email package</a>
+          <button class="cta-btn outline" id="start-over-btn">start over</button>
+        </div>
+      `;
+
+      document.getElementById('start-over-btn').addEventListener('click', startOver);
+    }
+
+    // ========================================
+    // EVENT HANDLERS
+    // ========================================
+    function attachStepListeners() {
+      document.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const value = btn.dataset.value;
+
+          if (state.step === 1) {
+            state.audience = value;
+            btn.classList.add('selected');
+            setTimeout(() => { state.step = 2; render(); }, 350);
+          } else if (state.step === 2) {
+            state.mode = value;
+            btn.classList.add('selected');
+            setTimeout(() => { state.step = 3; render(); }, 350);
+          } else if (state.step === 3) {
+            toggleArray(state.focus, value);
+            render();
+          } else if (state.step === 4) {
+            toggleArray(state.goals, value);
+            render();
+          }
+        });
+      });
+
+      const backBtn = document.getElementById('back-btn');
+      const nextBtn = document.getElementById('next-btn');
+
+      if (backBtn) backBtn.addEventListener('click', () => { state.step--; render(); });
+      if (nextBtn) nextBtn.addEventListener('click', () => { state.step++; render(); });
+    }
+
+    function toggleArray(arr, value) {
+      const idx = arr.indexOf(value);
+      if (idx > -1) arr.splice(idx, 1);
+      else arr.push(value);
+    }
+
+    function startOver() {
+      state = { step: 1, audience: null, mode: null, focus: [], goals: [] };
+      render();
+    }
+
+    // ========================================
+    // MAIN RENDER
+    // ========================================
+    function render() {
+      updateProgress();
+
+      const stepsContainer = document.getElementById('steps-1-4');
+      const resultContainer = document.getElementById('result-container');
+
+      if (state.step < 5) {
+        stepsContainer.classList.remove('hidden');
+        resultContainer.classList.add('hidden');
+        renderStep();
+      } else {
+        stepsContainer.classList.add('hidden');
+        resultContainer.classList.remove('hidden');
+        renderResult();
+      }
+    }
+
+    // ========================================
+    // LOAD CONTENT FROM NOTION (via JSON)
+    // ========================================
+    // JSON is generated by scripts/fetch-notion.js
+    // and synced daily at 6 AM UTC via GitHub Actions.
+
+    async function loadContentAndInit() {
+      try {
+        const response = await fetch('../data/package-builder-content.json');
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+
+        const data = await response.json();
+
+        // Validate the loaded data
+        if (!data.packs || Object.keys(data.packs).length === 0) {
+          throw new Error('No packs in JSON');
+        }
+
+        CONTENT.packs = data.packs;
+        console.log('✓ Loaded from Notion:', Object.keys(data.packs).length, 'packs (updated:', data.lastUpdated, ')');
+
+      } catch (error) {
+        console.warn('⚠ Using fallback content:', error.message);
+        CONTENT.packs = FALLBACK_PACKS;
+      }
+
+      render();
+    }
+
+    loadContentAndInit();
+  </script>
+</body>
+</html>

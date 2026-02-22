@@ -1,0 +1,68 @@
+/**
+ * POST /api/matcher â public pattern matching endpoint.
+ *
+ * Accepts materials, forms, slots, and context filters.
+ * Returns ranked patterns with scores and coverage details.
+ * Entitled fields (substitutionsNotes, findAgainMode) are only
+ * populated when the caller's org owns the relevant pack.
+ *
+ * MVP 3 â matcher.
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth-helpers";
+import { logAccess } from "@/lib/queries/audit";
+import { performMatching, type MatcherInput } from "@/lib/queries/matcher";
+
+export async function POST(req: NextRequest) {
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "invalid json body" },
+      { status: 400 },
+    );
+  }
+
+  const materials = Array.isArray(body.materials) ? body.materials : [];
+  const forms = Array.isArray(body.forms) ? body.forms : [];
+  const slots = Array.isArray(body.slots) ? body.slots : [];
+  const contexts = Array.isArray(body.contexts) ? body.contexts : [];
+
+  // at least one filter required
+  if (
+    materials.length === 0 &&
+    forms.length === 0 &&
+    slots.length === 0 &&
+    contexts.length === 0
+  ) {
+    return NextResponse.json(
+      { error: "at least one filter is required (materials, forms, slots, or contexts)" },
+      { status: 400 },
+    );
+  }
+
+  const input: MatcherInput = { materials, forms, slots, contexts };
+
+  // optional auth â matcher is public but entitled users get extra fields
+  const session = await getSession();
+
+  const result = await performMatching(input, session);
+
+  // audit log for authenticated users (M1: capture IP)
+  if (session) {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
+    await logAccess(
+      session.userId,
+      session.orgId,
+      null,
+      null,
+      "matcher_search",
+      ip,
+      ["materials", "forms", "slots", "contexts"],
+    );
+  }
+
+  return NextResponse.json(result, { status: 200 });
+}

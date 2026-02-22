@@ -1,0 +1,48 @@
+# CI — type-check and lint creaseworks on every push and PR.
+#
+# Runs TypeScript compilation (tsc --noEmit) and the ESLint check.
+# Does NOT run `next build` because that requires real env vars
+# (database, Stripe, etc.) which aren't available in CI.
+#
+# Monorepo: runs only when creaseworks files change.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/creaseworks/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/creaseworks/**'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  typecheck-and-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/creaseworks
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/creaseworks/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint

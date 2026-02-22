@@ -1,0 +1,40 @@
+# CI — type-check and lint on every push and PR.
+#
+# Session 12 audit fix: the repo had no CI at all, meaning broken
+# commits could go straight to production via Vercel auto-deploy.
+#
+# This workflow runs TypeScript compilation (tsc --noEmit) and the
+# ESLint check on every push to main and on all pull requests.
+# It does NOT run `next build` because that requires real env vars
+# (database, Stripe, etc.) which aren't available in CI.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint

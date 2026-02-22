@@ -1,0 +1,301 @@
+{
+  "lastUpdated": "2026-02-21T20:01:31.468Z",
+  "note": "Auto-generated from Notion BD Assets. Do not edit directly.",
+  "assets": [
+    {
+      "id": "bec5b20b-3f06-47f4-b671-9ea9e95b979d",
+      "name": "webinar slides",
+      "slug": "webinar-slides",
+      "assetType": "slides",
+      "quadrants": [
+        "people-design"
+      ],
+      "quadrantKey": "people-design",
+      "url": "https://drive.google.com/open?id=1GNDYst-AXStIsGM_6byTNMfKGMeqUrSj&usp=drive_fs",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/active-learning-in-large-classrooms.png",
+      "description": "slide deck from our play-based learning webinar",
+      "tags": [
+        "workshop",
+        "case-study"
+      ],
+      "featured": false,
+      "showInPackageBuilder": true,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": 2,
+      "icon": ""
+    },
+    {
+      "id": "de533ce8-b89d-4c22-be04-e6943e3c4850",
+      "name": "impact measurement dashboard",
+      "slug": "impact-measurement-dashboard",
+      "assetType": "dashboard",
+      "quadrants": [
+        "people-research"
+      ],
+      "quadrantKey": "people-research",
+      "url": "https://qualtricsxmbpg4ms963.pdx1.qualtrics.com/reports/public/cXVhbHRyaWNzeG1icGc0bXM5NjMtNjgzMDM0NTUwODk2ZTIwMDA4ZWIyZTRhLVVSXzI0ZHR5ZnlZYjZvQjBGYQ==",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/live-dashboard.png",
+      "description": "live dashboard tracking learning outcomes and engagement metrics",
+      "tags": [
+        "tool",
+        "report"
+      ],
+      "featured": false,
+      "showInPackageBuilder": true,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": 3,
+      "icon": ""
+    },
+    {
+      "id": "2fe6855e-e2a7-4307-bd90-a6d7691100c4",
+      "name": "UDL compliance audit template",
+      "slug": "udl-compliance-audit-template",
+      "assetType": "pdf",
+      "quadrants": [
+        "product-research"
+      ],
+      "quadrantKey": "product-research",
+      "url": "https://udlguidelines.cast.org/",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/udl-compliance-audit.png",
+      "description": "PDF template for conducting Universal Design for Learning audits",
+      "tags": [
+        "template",
+        "research"
+      ],
+      "featured": false,
+      "showInPackageBuilder": true,
+      "showInPortfolio": false,
+      "passwordProtected": true,
+      "password": "udl2024",
+      "client": "",
+      "order": 4,
+      "icon": ""
+    },
+    {
+      "id": "6c432eea-37f2-4140-b98b-0558b05bd66f",
+      "name": "cross-cultural business education",
+      "slug": "designing-cross-cultural-business-education",
+      "assetType": "video",
+      "quadrants": [
+        "people-design"
+      ],
+      "quadrantKey": "people-design",
+      "url": "https://www.youtube.com/watch?v=f2PZ-95I59Q",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/desiging-cross-cultural-business-education.png",
+      "description": "recorded faculty development webinar",
+      "tags": [
+        "workshop"
+      ],
+      "featured": false,
+      "showInPackageBuilder": true,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": 5,
+      "icon": ""
+    },
+    {
+      "id": "97c2fe8c-e141-4383-83a6-a88c6cb62da3",
+      "name": "holistic skills framework",
+      "slug": "holistic-skills-framework",
+      "assetType": "figma",
+      "quadrants": [
+        "product-design"
+      ],
+      "quadrantKey": "product-design",
+      "url": "https://www.figma.com/proto/6FFBbtwu3bglPZA2HKyfDv/holistic-skills-framework?page-id=0%3A1&node-id=104-9023&viewport=1595%2C-428%2C0.07&t=3kHjNyFDTPp9c5LQ-1&scaling=contain&content-scaling=fixed&starting-point-node-id=2%3A1375",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/holistic-skills-framework.png",
+      "description": "an interactive learning experience of a skills framework",
+      "tags": [
+        "template",
+        "tool"
+      ],
+      "featured": false,
+      "showInPackageBuilder": true,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": 6,
+      "icon": ""
+    },
+    {
+      "id": "fd3677e4-d84f-42ae-b14f-5afab1c33820",
+      "name": "strengthening emotional intelligence",
+      "slug": "strengthening-emotional-intelligence-session",
+      "assetType": "slides",
+      "quadrants": [
+        "people-design"
+      ],
+      "quadrantKey": "people-design",
+      "url": "https://d30mzt1bxg5llt.cloudfront.net/public/uploads/PDFs/PRME_October2025_EI_Slides.pdf",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/strengthening-emotional-intelligence.png",
+      "description": "session deck covering emotional awareness, regulation strategies, and practical reflection prompts for teams",
+      "tags": [
+        "workshop"
+      ],
+      "featured": false,
+      "showInPackageBuilder": true,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": 7,
+      "icon": ""
+    },
+    {
+      "id": "ce698fb8-ef13-4e39-bb8e-67e15fbb73d4",
+      "name": "vertigo.vault",
+      "slug": "vertigo-vault",
+      "assetType": "notion-db",
+      "quadrants": [
+        "people-design"
+      ],
+      "quadrantKey": "people-design",
+      "url": "https://windedvertigo.com/vertigo-vault/",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/vertigo-vault.png",
+      "description": "this gallery of playful activities provides learning opportunities in a variety of different contexts",
+      "tags": [
+        "tool",
+        "workshop"
+      ],
+      "featured": true,
+      "showInPackageBuilder": true,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": 8,
+      "icon": ""
+    },
+    {
+      "id": "76d43051-a6d8-4acd-8e86-bc1ef8921620",
+      "name": "MindShift Missions",
+      "slug": "mindshift-missions",
+      "assetType": "web-app",
+      "quadrants": [
+        "product-design"
+      ],
+      "quadrantKey": "product-design",
+      "url": "https://windedvertigo.com/portfolio/assets/mindshift-missions/index.html",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/mindshift-missions.png",
+      "description": "an inquiry-driven learning game where players navigate complex scenarios, make critical decisions, and explore how questioning transforms challenges into opportunities",
+      "tags": [
+        "prototype",
+        "case-study",
+        "tool"
+      ],
+      "featured": false,
+      "showInPackageBuilder": true,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": 9,
+      "icon": ""
+    },
+    {
+      "id": "305e4ee7-4ba4-804b-8979-e8f52ea4e9ba",
+      "name": "when the ground tilts",
+      "slug": "when-the-ground-tilts",
+      "assetType": "blog",
+      "quadrants": [
+        "people-design"
+      ],
+      "quadrantKey": "people-design",
+      "url": "https://windedvertigo.substack.com/p/when-the-ground-tilts-designing-for",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/when-the-ground-tilts.png",
+      "description": "substack-style reflection on orientation, perspective shifts, and learning design",
+      "tags": [
+        "case-study"
+      ],
+      "featured": false,
+      "showInPackageBuilder": false,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": null,
+      "icon": ""
+    },
+    {
+      "id": "305e4ee7-4ba4-808d-8fa2-f17a55361a72",
+      "name": "the first stir of winded.vertigo",
+      "slug": "no-pebble-tossed",
+      "assetType": "blog",
+      "quadrants": [
+        "people-design"
+      ],
+      "quadrantKey": "people-design",
+      "url": "https://windedvertigo.substack.com/p/no-pebble-tossed-the-first-stir-of",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/no-pebble-tossed.png",
+      "description": "substack-style “what is winded.vertigo?” explainer post (draft or concept)",
+      "tags": [
+        "case-study"
+      ],
+      "featured": true,
+      "showInPackageBuilder": false,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": null,
+      "icon": ""
+    },
+    {
+      "id": "2fde4ee7-4ba4-8091-9383-d0c313fb4389",
+      "name": "brand guidelines ",
+      "slug": "brand-guidelines",
+      "assetType": "pdf",
+      "quadrants": [
+        "product-design"
+      ],
+      "quadrantKey": "product-design",
+      "url": "https://drive.google.com/file/d/1_BI3D5YRq9h0inV_uzQ2fXnThRqOOc48/view?usp=sharing",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/brand-guidelines.png",
+      "description": "winded.vertigo aligns messaging with collaborators via its brand guidelines",
+      "tags": [
+        "template"
+      ],
+      "featured": false,
+      "showInPackageBuilder": false,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": null,
+      "icon": ""
+    },
+    {
+      "id": "2fde4ee7-4ba4-8094-ac3c-cde008e6c797",
+      "name": "winded.vertigo introduction slide deck ",
+      "slug": "winded-vertigo-introduction-slide-deck",
+      "assetType": "slides",
+      "quadrants": [
+        "people-design"
+      ],
+      "quadrantKey": "people-design",
+      "url": "https://docs.google.com/presentation/d/1X3ifQmRX_QdSxwvA3fuj-3ZsOnGONcTOS0RDkeZqE1o/edit?usp=drive_link",
+      "thumbnailUrl": "https://ghandoff.github.io/windedvertigo-site/images/thumbnails/w.v-welcome-deck.png",
+      "description": "intro slide deck for winded.vertigo: overview, examples, and starting points",
+      "tags": [
+        "template"
+      ],
+      "featured": true,
+      "showInPackageBuilder": false,
+      "showInPortfolio": true,
+      "passwordProtected": false,
+      "password": "",
+      "client": "",
+      "order": null,
+      "icon": ""
+    }
+  ]
+}

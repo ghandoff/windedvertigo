@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mindshift missions · winded.vertigo</title>
+  <meta name="description" content="navigate complex scenarios, make critical decisions, and explore how inquiry-driven thinking can transform challenges into opportunities.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../../../images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../images/apple-touch-icon.png">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://windedvertigo.com/portfolio/assets/mindshift-missions/">
+  <meta property="og:title" content="mindshift missions · winded.vertigo">
+  <meta property="og:description" content="navigate complex scenarios, make critical decisions, and explore how inquiry-driven thinking can transform challenges into opportunities.">
+  <meta property="og:image" content="https://windedvertigo.com/images/logo.png">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="mindshift missions · winded.vertigo">
+  <meta name="twitter:description" content="navigate complex scenarios, make critical decisions, and explore how inquiry-driven thinking can transform challenges into opportunities.">
+  <meta name="twitter:image" content="https://windedvertigo.com/images/logo.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://windedvertigo.com/portfolio/assets/mindshift-missions/">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../styles/main.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">skip to main content</a>
+
+  <header class="header">
+    <div class="container header-inner">
+      <a href="../../../" class="logo">
+        <img src="../../../images/logo.png" alt="winded.vertigo" class="logo-img">
+      </a>
+      <nav class="nav">
+        <a href="../../../what/">what.</a>
+        <a href="../../../we/">we.</a>
+        <a href="../../../do/">do.</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="mindshift-app">
+    <div class="container">
+      <header class="app-header">
+        <h1 class="app-title">mindshift missions</h1>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">welcome</div>
+      </header>
+
+      <div class="app-main">
+        <!-- Welcome Screen -->
+        <section id="welcome" class="screen active">
+          <div class="card">
+            <div class="card__body">
+              <h2>welcome to mindshift missions</h2>
+              <p>navigate complex scenarios, make critical decisions, and explore how inquiry-driven thinking can transform challenges into opportunities.</p>
+              <div class="form-group">
+                <label class="form-label">team members</label>
+                <textarea class="form-control" id="teamMembers" rows="3" placeholder="enter one name per line, e.g.&#10;alex&#10;jordan&#10;sam"></textarea>
+              </div>
+              <button class="btn btn--primary btn--lg" id="startMission" onclick="showRoleSelection()" disabled>start your mission</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Role Selection Screen -->
+        <section id="roleSelection" class="screen">
+          <div class="card">
+            <div class="card__body">
+              <h2>choose your role</h2>
+              <p>select the role that will guide your perspective through this mission:</p>
+              <div class="role-grid">
+                <div class="role-card" data-role="CEO">
+                  <h3>CEO</h3>
+                  <p>strategic decision-maker focused on overall company direction</p>
+                </div>
+                <div class="role-card" data-role="Innovation Officer">
+                  <h3>Innovation Officer</h3>
+                  <p>change catalyst focused on implementing new solutions</p>
+                </div>
+                <div class="role-card" data-role="Sustainability Lead">
+                  <h3>Sustainability Lead</h3>
+                  <p>environmental advocate focused on sustainable practices</p>
+                </div>
+              </div>
+              <button class="btn btn--primary btn--lg" id="continueToScenario" onclick="showScenarioSelection()" disabled>continue to scenarios</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Scenario Selection Screen -->
+        <section id="scenarioSelection" class="screen">
+          <div class="card">
+            <div class="card__body">
+              <h2>choose your scenario</h2>
+              <p>select the challenge you'll tackle:</p>
+              <div class="scenario-grid">
+                <div class="scenario-card" data-scenario="plastic_packaging">
+                  <h3>plastic packaging u-turn</h3>
+                  <p>navigate sustainability challenges in a global food company facing public pressure to reduce plastic packaging.</p>
+                  <div class="scenario-details">
+                    <strong>constraint:</strong> cost ceiling + public trust at risk
+                  </div>
+                </div>
+                <div class="scenario-card" data-scenario="edtech_rollout">
+                  <h3>equity in edtech rollout</h3>
+                  <p>address equity concerns in educational technology implementation across diverse school districts.</p>
+                  <div class="scenario-details">
+                    <strong>constraint:</strong> limited training time + political pressure to scale fast
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn--primary btn--lg" id="continueToMission" onclick="showMissionBrief()" disabled>start mission</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Mission Brief Screen -->
+        <section id="missionBrief" class="screen">
+          <div class="card">
+            <div class="card__body">
+              <h2>mission brief</h2>
+              <div class="mission-info">
+                <div class="info-item">
+                  <strong>your role:</strong> <span id="selectedRole"></span>
+                </div>
+                <div class="info-item">
+                  <strong>scenario:</strong> <span id="selectedScenario"></span>
+                </div>
+                <div class="info-item">
+                  <strong>challenge:</strong> <span id="scenarioBrief"></span>
+                </div>
+                <div class="info-item">
+                  <strong>constraint:</strong> <span id="scenarioConstraint"></span>
+                </div>
+              </div>
+              <button class="btn btn--primary btn--lg" onclick="showCheckpoint(1)">begin checkpoint 1</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Checkpoint Screen -->
+        <section id="checkpoint" class="screen">
+          <div class="card">
+            <div class="card__body">
+              <h2 id="checkpointTitle">checkpoint 1</h2>
+              <div class="checkpoint-info">
+                <h3 id="checkpointSituation"></h3>
+                <p id="checkpointDetails"></p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">choose a guiding question:</label>
+                <div id="questionsContainer" class="choice-container"></div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">choose your action:</label>
+                <div id="actionsContainer" class="choice-container"></div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">discuss in your group and brainstorm potential answers:</label>
+                <textarea class="form-control" id="groupDiscussion" rows="4" placeholder="share your group's brainstorming thoughts..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">explain why you chose that action:</label>
+                <textarea class="form-control" id="actionExplanation" rows="4" placeholder="describe your reasoning..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">use an external AI (ChatGPT, Perplexity, Gemini, etc.) to ask for advice. explain how its answer helped you think differently:</label>
+                <textarea class="form-control" id="aiAdvice" rows="4" placeholder="what did the AI suggest and how did it change your thinking?"></textarea>
+              </div>
+
+              <button class="btn btn--primary btn--lg" id="continueCheckpoint" onclick="continueFromCheckpoint()" disabled>continue</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Outcome Snapshot Screen -->
+        <section id="outcome" class="screen">
+          <div class="card">
+            <div class="card__body">
+              <h2>outcome snapshot</h2>
+              <p>here's how your decisions played out:</p>
+              <div class="outcome-grid">
+                <div class="outcome-item">
+                  <div class="outcome-icon"></div>
+                  <h3 id="outcomeCategory1"></h3>
+                  <p id="outcomeResult1"></p>
+                </div>
+                <div class="outcome-item">
+                  <div class="outcome-icon"></div>
+                  <h3>public perception</h3>
+                  <p id="outcomeResult2"></p>
+                </div>
+                <div class="outcome-item">
+                  <div class="outcome-icon"></div>
+                  <h3>operational</h3>
+                  <p id="outcomeResult3"></p>
+                </div>
+              </div>
+              <button class="btn btn--primary btn--lg" onclick="showReflection()">continue to reflection</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Final Reflection Screen -->
+        <section id="reflection" class="screen">
+          <div class="card">
+            <div class="card__body">
+              <h2>final reflection</h2>
+              <p>take a moment to reflect on your journey:</p>
+
+              <div class="form-group">
+                <label class="form-label" id="reflectionPrompt1"></label>
+                <textarea class="form-control" id="reflectionAnswer1" rows="4" placeholder="share your thoughts..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" id="reflectionPrompt2"></label>
+                <div class="scaffold-helper" id="scaffoldHelper"></div>
+                <textarea class="form-control" id="reflectionAnswer2" rows="4" placeholder="use the scaffold above to guide your response..."></textarea>
+              </div>
+
+              <button class="btn btn--primary btn--lg" onclick="showSummary()">view summary</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Summary Screen -->
+        <section id="summary" class="screen">
+          <div class="card">
+            <div class="card__body">
+              <h2>mission summary</h2>
+              <div id="summaryPrintArea" class="prme-stripe">
+                <div class="prme-cobrand">
+                  <div><span class="prme-cobrand-logo">PRME</span><span class="prme-cobrand-sep">×</span><span class="prme-cobrand-wv">winded.vertigo</span></div>
+                  <div>mission summary</div>
+                </div>
+                <div class="summary-grid">
+                  <div class="summary-section">
+                    <h3>mission overview</h3>
+                    <div id="summaryOverview"></div>
+                  </div>
+                  <div class="summary-section">
+                    <h3>outcome snapshot</h3>
+                    <div id="summaryOutcome"></div>
+                  </div>
+                  <div class="summary-section">
+                    <h3>checkpoint 1 decisions</h3>
+                    <div id="summaryCheckpoint1"></div>
+                  </div>
+                  <div class="summary-section">
+                    <h3>checkpoint 2 decisions</h3>
+                    <div id="summaryCheckpoint2"></div>
+                  </div>
+                  <div class="summary-section">
+                    <h3>reflections</h3>
+                    <div id="summaryReflections"></div>
+                  </div>
+                  <div class="badges" id="badgesContainer"></div>
+                </div>
+              </div>
+              <div class="export-buttons">
+                <button class="btn btn--primary" onclick="exportPDF()">export pdf</button>
+                <button class="btn btn--outline" onclick="copyToClipboard()">copy to clipboard</button>
+                <button class="btn btn--secondary" onclick="startOver()">start over</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© copyright winded.vertigo, 2024-2026. all rights reserved.</p>
+      <div class="social-links">
+        <a href="../../../portfolio/" aria-label="portfolio" style="color: #ffebd2;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="1" width="10" height="10" rx="1"/><rect x="13" y="1" width="10" height="10" rx="1"/><rect x="1" y="13" width="10" height="10" rx="1"/><rect x="13" y="13" width="10" height="10" rx="1"/></svg></a>
+        <a href="https://www.instagram.com/winded.vertigo/" aria-label="instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="https://www.facebook.com/windedvertigo" aria-label="facebook"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-3 7h-1.924c-.615 0-1.076.252-1.076.889v1.111h3l-.238 3h-2.762v8h-3v-8h-2v-3h2v-1.923c0-2.022 1.064-3.077 3.461-3.077h2.539v3z"/></svg></a>
+        <a href="https://www.linkedin.com/company/winded-vertigo/" aria-label="linkedin"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+        <a href="https://windedvertigo.substack.com/" aria-label="substack"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/></svg></a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
+  <script src="export-pdf.js"></script>
+</body>
+</html>

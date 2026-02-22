@@ -1,0 +1,162 @@
+{
+  "lastUpdated": "2026-02-21T20:01:31.467Z",
+  "note": "Auto-generated from Notion. Do not edit directly.",
+  "packs": {
+    "product-design": {
+      "title": "product × design",
+      "promise": "build learning products people actually use.",
+      "quadrantStory": "you're in the product × design quadrant—where learning science meets rapid prototyping. this is where we build the tools, games, and experiences that teach through doing - and are designed to flex around the inherent variability of how humans learn.",
+      "story": "we kick off with a concept sprint—exploring the problem space, sketching multiple approaches, and converging on the strongest direction. then we prototype rapidly, building just enough to test our core assumptions. playtests happen early and often, with real users in realistic contexts. we synthesise findings after each round and iterate. by the end of sprint two, you have a validated concept and a clear path to production.",
+      "crossover": "great products don't just emerge from intuition—they're shaped by evidence. we bake research into every sprint, testing assumptions with users and measuring learning outcomes. design and research aren't separate phases; they're intertwined throughout.",
+      "outcomes": [
+        {
+          "title": "working prototype in 2 sprints",
+          "detail": "not wireframes or mockups—a functional prototype you can put in front of real users and learn from immediately."
+        },
+        {
+          "title": "playtest insights",
+          "detail": "we run structured playtests with your target users, capturing what delights, what confuses, and what needs to change."
+        },
+        {
+          "title": "implementation specification",
+          "detail": "a detailed handoff document that lets your dev team build with confidence—including edge cases, accessibility requirements, and content guidelines that bake in flexibility needed to reflect the different ways we all think, feel and learn."
+        }
+      ],
+      "examples": [
+        {
+          "id": "97c2fe8c-e141-4383-83a6-a88c6cb62da3",
+          "title": "holistic skills framework",
+          "type": "figma",
+          "icon": "",
+          "url": "https://www.figma.com/proto/6FFBbtwu3bglPZA2HKyfDv/holistic-skills-framework?page-id=0%3A1&node-id=104-9023&viewport=1595%2C-428%2C0.07&t=3kHjNyFDTPp9c5LQ-1&scaling=contain&content-scaling=fixed&starting-point-node-id=2%3A1375",
+          "detail": "an interactive learning experience of a skills framework"
+        },
+        {
+          "id": "76d43051-a6d8-4acd-8e86-bc1ef8921620",
+          "title": "MindShift Missions",
+          "type": "web-app",
+          "icon": "",
+          "url": "https://windedvertigo.com/portfolio/assets/mindshift-missions/index.html",
+          "detail": "an inquiry-driven learning game where players navigate complex scenarios, make critical decisions, and explore how questioning transforms challenges into opportunities"
+        }
+      ]
+    },
+    "people-research": {
+      "title": "people × research",
+      "promise": "understand what's really happening with your people.",
+      "quadrantStory": "you're in the people × research quadrant—where rigorous measurement meets human complexity. this is where we prove that your interventions actually change how people think, feel, and act.",
+      "story": "we begin by mapping your theory of change to measurable outcomes. then we design a lightweight evaluation approach—selecting validated instruments or creating custom measures that fit your context. we collect baseline data, observe your intervention in action, and gather post-programme responses. the analysis goes beyond simple comparisons to explore moderators and mechanisms. you receive a findings deck that tells the story of your impact in language your stakeholders understand.",
+      "crossover": "research without design is just measurement. we bring a designer's eye to how we collect data—making surveys engaging, interviews conversational, and dashboards actionable. the best evidence comes from participants who actually want to engage with your evaluation.",
+      "outcomes": [
+        {
+          "title": "pinpoint what's working",
+          "detail": "we identify the specific mechanisms driving change—not just whether something worked, but why and for whom."
+        },
+        {
+          "title": "credible evidence of change",
+          "detail": "you get pre-post data, effect sizes, and confidence intervals that satisfy funders, boards, and skeptics."
+        },
+        {
+          "title": "actionable insights for scale",
+          "detail": "we don't just measure—we tell you what to amplify, what to adjust, and what to drop as you grow."
+        }
+      ],
+      "examples": [
+        {
+          "id": "de533ce8-b89d-4c22-be04-e6943e3c4850",
+          "title": "impact measurement dashboard",
+          "type": "dashboard",
+          "icon": "",
+          "url": "https://qualtricsxmbpg4ms963.pdx1.qualtrics.com/reports/public/cXVhbHRyaWNzeG1icGc0bXM5NjMtNjgzMDM0NTUwODk2ZTIwMDA4ZWIyZTRhLVVSXzI0ZHR5ZnlZYjZvQjBGYQ==",
+          "detail": "live dashboard tracking learning outcomes and engagement metrics"
+        }
+      ]
+    },
+    "product-research": {
+      "title": "product × research",
+      "promise": "prove your product meets accessibility and learning standards—before you ship.",
+      "quadrantStory": "you're in the product × research quadrant—where user experience meets rigorous validation. this is where we make sure your products and experiences actually works for the people it's meant to serve.",
+      "story": "we start with a heuristic review—our team looks at your product or experience through established usability and access lenses.  then we recruit real users for moderated testing sessions, working alongside them as they move through realistic task and share what's helping or getting in the way. we agree with the participants how to capture their experiences, missing numbers and stories, notes, visuals and recordings, so what we gather is authentic and meaningful.  the analysis identifies patterns across experiences and prioritises issues by impact and feasibility. you receive a findings report with specific, actionable recommendations and examples of what participants found easy, hard or valuable.",
+      "crossover": "validation isn't the end of the story—it's the beginning of better design. our research always points toward solutions, not just problems. we work closely with your design and dev teams to translate findings into improvements that ship.",
+      "outcomes": [
+        {
+          "title": "access and inclusion snapshot",
+          "detail": "a structured view of who your product or experience currently works well for, and who it quietly leaves out, with clear ratings across key steps of the journey and a focussed set of viable changes that take into account your real constraints."
+        },
+        {
+          "title": "usability issues mapped",
+          "detail": "a prioritised list of friction points, dead ends, and confusion—categorised by severity and linked to specific user sessions."
+        },
+        {
+          "title": "stakeholder-ready brief",
+          "detail": "a clear, visual summary that communicates findings to leadership, with recommended fixes and estimated impact."
+        }
+      ],
+      "examples": [
+        {
+          "id": "2fe6855e-e2a7-4307-bd90-a6d7691100c4",
+          "title": "UDL compliance audit template",
+          "type": "pdf",
+          "icon": "",
+          "url": "https://udlguidelines.cast.org/",
+          "detail": "PDF template for conducting Universal Design for Learning audits"
+        }
+      ]
+    },
+    "people-design": {
+      "title": "people × design",
+      "promise": "transform how your people learn, engage, and grow.",
+      "quadrantStory": "you're in the people × design quadrant—where behaviour change meets creative craft. this is where we build the tools and working frameworks that shift mindsets, not just transfer information.",
+      "story": "we start with a discovery session to understand your learning goals and audience. then we move into rapid prototyping—sketching session flows, testing activities, and iterating based on what we learn. we pilot the experience with a real cohort, gather structured feedback, and refine the design. by the end, you have a learning experience that's been tested in the field and is ready to scale. when it's the right move for the project, we'll propose co-creation sessions with the people most affected - and handle the design and facilitation for you.",
+      "crossover": "our design work is always informed by research—we build in feedback loops and measurement from day one, so you're not just launching something that feels good, but something you can prove works. justice and inclusion are threaded through everything we do: we use frameworks like Universal Design for Learning as tools, and we don’t claim lived‑experience expertise we don’t have—we make space for it where we can and signpost or partner where others are better placed.",
+      "outcomes": [
+        {
+          "title": "co-designed session kit",
+          "detail": "we work alongside your team to build a facilitation toolkit that reflects your culture, your language, and your goals—not an off-the-shelf template."
+        },
+        {
+          "title": "live pilot with real feedback",
+          "detail": "we run the first session with you, capturing participant responses in real-time to see what lands and what needs refinement."
+        },
+        {
+          "title": "production-ready handoff",
+          "detail": "you get a polished kit with facilitator notes, participant materials, and a train-the-trainer guide so your team can run it independently."
+        }
+      ],
+      "examples": [
+        {
+          "id": "bec5b20b-3f06-47f4-b671-9ea9e95b979d",
+          "title": "webinar slides",
+          "type": "slides",
+          "icon": "",
+          "url": "https://drive.google.com/open?id=1GNDYst-AXStIsGM_6byTNMfKGMeqUrSj&usp=drive_fs",
+          "detail": "slide deck from our play-based learning webinar"
+        },
+        {
+          "id": "6c432eea-37f2-4140-b98b-0558b05bd66f",
+          "title": "cross-cultural business education",
+          "type": "video",
+          "icon": "",
+          "url": "https://www.youtube.com/watch?v=f2PZ-95I59Q",
+          "detail": "recorded faculty development webinar"
+        },
+        {
+          "id": "fd3677e4-d84f-42ae-b14f-5afab1c33820",
+          "title": "strengthening emotional intelligence",
+          "type": "slides",
+          "icon": "",
+          "url": "https://d30mzt1bxg5llt.cloudfront.net/public/uploads/PDFs/PRME_October2025_EI_Slides.pdf",
+          "detail": "session deck covering emotional awareness, regulation strategies, and practical reflection prompts for teams"
+        },
+        {
+          "id": "ce698fb8-ef13-4e39-bb8e-67e15fbb73d4",
+          "title": "vertigo.vault",
+          "type": "notion-db",
+          "icon": "",
+          "url": "https://windedvertigo.com/vertigo-vault/",
+          "detail": "this gallery of playful activities provides learning opportunities in a variety of different contexts"
+        }
+      ]
+    }
+  }
+}

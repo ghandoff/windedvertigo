@@ -1,0 +1,30 @@
+{
+  "name": "nordic-sqr-rct",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.73.0",
+    "@notionhq/client": "^2.2.15",
+    "@vercel/blob": "^2.2.0",
+    "bcryptjs": "^3.0.3",
+    "jose": "^5.2.4",
+    "next": "^14.2.0",
+    "openai": "^6.18.0",
+    "pdfkit": "^0.17.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^3.7.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "eslint": "^9.39.2",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3"
+  }
+}

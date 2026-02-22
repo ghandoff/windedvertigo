@@ -1,0 +1,18 @@
+{
+  "name": "windedvertigo",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "sync": "node scripts/fetch-notion.js",
+    "dev:creaseworks": "npm run dev -w apps/creaseworks",
+    "dev:sqr-rct": "npm run dev -w apps/nordic-sqr-rct",
+    "build:creaseworks": "npm run build -w apps/creaseworks",
+    "build:sqr-rct": "npm run build -w apps/nordic-sqr-rct",
+    "test": "npm run test -w apps/creaseworks",
+    "lint": "npm run lint -w apps/creaseworks"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.3.0",
+    "node-fetch": "^3.3.2"
+  }
+}

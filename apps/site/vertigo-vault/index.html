@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>vertigo.vault  winded.vertigo</title>
+  <meta name="description" content="A curated collection of learning activities, energizers, and reflections designed to spark curiosity, collaboration, and creative thinking.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://windedvertigo.com/vertigo-vault/">
+  <meta property="og:title" content="vertigo.vault  winded.vertigo">
+  <meta property="og:description" content="A curated collection of learning activities, energizers, and reflections designed to spark curiosity, collaboration, and creative thinking.">
+  <meta property="og:image" content="https://windedvertigo.com/images/logo.png">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="vertigo.vault  winded.vertigo">
+  <meta name="twitter:description" content="A curated collection of learning activities, energizers, and reflections designed to spark curiosity, collaboration, and creative thinking.">
+  <meta name="twitter:image" content="https://windedvertigo.com/images/logo.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://windedvertigo.com/vertigo-vault/">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css?v=13">
+  <style>
+    /* ========================================
+       VERTIGO VAULT - Gallery Styles
+       ======================================== */
+
+    .vault-page {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 30px;
+    }
+
+    .vault-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .vault-title {
+      font-size: 48px;
+      font-weight: 700;
+      text-transform: lowercase;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+
+    .vault-subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      max-width: 560px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+
+    /* Filter bar */
+    .vault-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 36px;
+    }
+
+    .filter-btn {
+      padding: 7px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 500;
+      text-transform: lowercase;
+      cursor: pointer;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      background: transparent;
+      color: rgba(255, 255, 255, 0.7);
+      border-radius: 20px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .filter-btn:hover {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: #ffffff;
+    }
+
+    .filter-btn.active {
+      background: var(--accent, #AF4F41);
+      border-color: var(--accent, #AF4F41);
+      color: #ffffff;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .filter-divider {
+      width: 1px;
+      background: rgba(255, 255, 255, 0.15);
+      margin: 0 4px;
+      align-self: stretch;
+    }
+
+    /* Gallery grid */
+    .vault-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 60px;
+    }
+
+    .vault-card {
+      background: #1e2738;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .vault-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-cover {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-color-bar {
+      height: 5px;
+      width: 100%;
+    }
+
+    .card-color-bar.has-cover {
+      height: 4px;
+    }
+
+    .card-body {
+      padding: 22px 24px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-type-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .card-type-badge {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--accent, #AF4F41);
+    }
+
+    .card-duration {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .card-name {
+      font-size: 20px;
+      font-weight: 700;
+      text-transform: lowercase;
+      color: #ffffff;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .card-headline {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.5;
+      margin-bottom: 16px;
+      flex: 1;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .card-tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.55);
+      white-space: nowrap;
+    }
+
+    /* Empty state */
+    .vault-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 15px;
+    }
+
+    /* Activity count */
+    .vault-count {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-bottom: 24px;
+    }
+
+    /* ========================================
+       DETAIL MODAL
+       ======================================== */
+
+    .vault-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .vault-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .vault-modal {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100%;
+      max-width: 560px;
+      height: 100vh;
+      background: #1e2738;
+      z-index: 1001;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .vault-modal.open {
+      transform: translateX(0);
+    }
+
+    .modal-color-bar {
+      height: 6px;
+      width: 100%;
+    }
+
+    .modal-header {
+      padding: 28px 32px 0;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 28px;
+      right: 28px;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 28px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+      transition: color 0.2s ease;
+    }
+
+    .modal-close:hover {
+      color: #ffffff;
+    }
+
+    .modal-type-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .modal-type-badge {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--accent, #AF4F41);
+    }
+
+    .modal-duration {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .modal-duration::before {
+      content: '';
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E") no-repeat center;
+    }
+
+    .modal-name {
+      font-size: 32px;
+      font-weight: 700;
+      text-transform: lowercase;
+      color: #ffffff;
+      margin-bottom: 8px;
+      line-height: 1.2;
+      padding-right: 40px;
+    }
+
+    .modal-headline {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .modal-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .modal-tag {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.6);
+      white-space: nowrap;
+    }
+
+    .modal-body {
+      padding: 24px 32px 40px;
+    }
+
+    .modal-section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent, #AF4F41);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+    }
+
+    .modal-content {
+      font-size: 15px;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .modal-content h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffebd2;
+      margin-top: 28px;
+      margin-bottom: 10px;
+      text-transform: lowercase;
+    }
+
+    .modal-content h2:first-child {
+      margin-top: 0;
+    }
+
+    .modal-content p {
+      margin-bottom: 12px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .modal-content ol,
+    .modal-content ul {
+      margin-bottom: 12px;
+      padding-left: 20px;
+    }
+
+    .modal-content li {
+      margin-bottom: 6px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .modal-content li li {
+      margin-top: 4px;
+    }
+
+    .modal-skills {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-skills-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .skill-tag {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 14px;
+      background: rgba(175, 79, 65, 0.15);
+      color: #cb7858;
+      white-space: nowrap;
+    }
+
+    /* ========================================
+       TYPE COLOR MAPPING
+       ======================================== */
+
+    .type-energizer { background: #AF4F41; }
+    .type-getting-to-know { background: #6b8e6b; }
+    .type-playful-reflections { background: #8b6fb0; }
+    .type-rme-related { background: #4a7fb5; }
+
+    /* ========================================
+       RESPONSIVE
+       ======================================== */
+
+    @media (max-width: 768px) {
+      .vault-title {
+        font-size: 36px;
+      }
+
+      .vault-subtitle {
+        font-size: 14px;
+      }
+
+      .vault-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .vault-modal {
+        max-width: 100%;
+      }
+
+      .modal-header {
+        padding: 20px 20px 0;
+      }
+
+      .modal-body {
+        padding: 20px 20px 40px;
+      }
+
+      .modal-name {
+        font-size: 26px;
+      }
+
+      .modal-close {
+        top: 20px;
+        right: 16px;
+      }
+
+      .filter-divider {
+        display: none;
+      }
+
+      .vault-filters {
+        gap: 6px;
+      }
+
+      .filter-btn {
+        font-size: 12px;
+        padding: 5px 12px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .vault-page {
+        padding: 0 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="header">
+    <div class="container header-inner">
+      <a href="../" class="logo">
+        <img src="../images/logo.png" alt="winded.vertigo" class="logo-img">
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <nav class="nav" id="main-nav">
+        <a href="../what/">what.</a>
+        <a href="../we/">we.</a>
+        <a href="../do/">do.</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="vault-page">
+      <div class="vault-header">
+        <h1 class="vault-title">vertigo.vault</h1>
+        <p class="vault-subtitle">a curated collection of learning activities, energizers, and reflections designed to spark curiosity, collaboration, and creative thinking.</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="vault-filters" id="vault-filters">
+        <div class="filter-group" id="type-filters">
+          <button class="filter-btn active" data-filter="all" data-group="type">all</button>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group" id="duration-filters">
+          <button class="filter-btn active" data-filter="all" data-group="duration">any duration</button>
+        </div>
+      </div>
+
+      <div class="vault-count" id="vault-count"></div>
+
+      <!-- Gallery -->
+      <div class="vault-grid" id="vault-grid"></div>
+      <div class="vault-empty hidden" id="vault-empty">no activities match your filters. try broadening your selection.</div>
+    </div>
+  </main>
+
+  <!-- Detail modal -->
+  <div class="vault-overlay" id="vault-overlay"></div>
+  <div class="vault-modal" id="vault-modal" role="dialog" aria-modal="true" aria-label="Activity details">
+    <div class="modal-color-bar" id="modal-color-bar"></div>
+    <div class="modal-header">
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      <div class="modal-type-row" id="modal-type-row"></div>
+      <h2 class="modal-name" id="modal-name"></h2>
+      <p class="modal-headline" id="modal-headline"></p>
+      <div class="modal-tags" id="modal-format-tags"></div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-label">instructions</div>
+      <div class="modal-content" id="modal-content"></div>
+      <div class="modal-skills" id="modal-skills">
+        <div class="modal-section-label">skills developed</div>
+        <div class="modal-skills-grid" id="modal-skills-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; copyright winded.vertigo, 2024-2026. all rights reserved.</p>
+      <div class="social-links">
+        <a href="../portfolio/" aria-label="Portfolio" style="color: #ffebd2;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="1" width="10" height="10" rx="1"/><rect x="13" y="1" width="10" height="10" rx="1"/><rect x="1" y="13" width="10" height="10" rx="1"/><rect x="13" y="13" width="10" height="10" rx="1"/></svg></a>
+        <a href="https://www.instagram.com/winded.vertigo/" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="https://www.facebook.com/windedvertigo" aria-label="Facebook"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-3 7h-1.924c-.615 0-1.076.252-1.076.889v1.111h3l-.238 3h-2.762v8h-3v-8h-2v-3h2v-1.923c0-2.022 1.064-3.077 3.461-3.077h2.539v3z"/></svg></a>
+        <a href="https://www.linkedin.com/company/winded-vertigo/" aria-label="LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+        <a href="https://windedvertigo.substack.com/" aria-label="Substack"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/></svg></a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const nav = document.querySelector('.nav');
+    navToggle?.addEventListener('click', () => {
+      const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+      navToggle.setAttribute('aria-expanded', !expanded);
+      nav.classList.toggle('active');
+    });
+
+    // ========================================
+    // TYPE → COLOR MAPPING
+    // ========================================
+    const TYPE_COLORS = {
+      'Energizer': { bar: '#AF4F41', cls: 'type-energizer' },
+      'Getting to know each other': { bar: '#6b8e6b', cls: 'type-getting-to-know' },
+      'Playful reflections': { bar: '#8b6fb0', cls: 'type-playful-reflections' },
+      'RME Related': { bar: '#4a7fb5', cls: 'type-rme-related' }
+    };
+
+    const getTypeColor = (types) => {
+      if (!types || types.length === 0) return TYPE_COLORS['Energizer'];
+      return TYPE_COLORS[types[0]] || TYPE_COLORS['Energizer'];
+    };
+
+    // ========================================
+    // STATE
+    // ========================================
+    let activities = [];
+    let filterType = 'all';
+    let filterDuration = 'all';
+
+    // ========================================
+    // MARKDOWN-LITE → HTML
+    // ========================================
+    function markdownToHtml(md) {
+      if (!md) return '';
+      let html = md
+        // Headers
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        // Bold
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        // Italic
+        .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
+        // Smart quotes
+        .replace(/\u201c/g, '\u201c').replace(/\u201d/g, '\u201d')
+        .replace(/\u2019/g, '\u2019');
+
+      // Process lines into paragraphs and lists
+      const lines = html.split('\n');
+      let result = '';
+      let inList = false;
+      let listType = '';
+      let listDepth = 0;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        if (trimmed === '') {
+          if (inList) {
+            result += '</' + listType + '>';
+            inList = false;
+          }
+          continue;
+        }
+
+        // Already an HTML tag
+        if (trimmed.startsWith('<h2>')) {
+          if (inList) { result += '</' + listType + '>'; inList = false; }
+          result += trimmed;
+          continue;
+        }
+
+        // Numbered list
+        const olMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
+        if (olMatch) {
+          if (!inList || listType !== 'ol') {
+            if (inList) result += '</' + listType + '>';
+            result += '<ol>';
+            inList = true;
+            listType = 'ol';
+          }
+          result += '<li>' + olMatch[2] + '</li>';
+          continue;
+        }
+
+        // Bullet list
+        if (trimmed.startsWith('- ')) {
+          if (!inList || listType !== 'ul') {
+            if (inList) result += '</' + listType + '>';
+            result += '<ul>';
+            inList = true;
+            listType = 'ul';
+          }
+          result += '<li>' + trimmed.substring(2) + '</li>';
+          continue;
+        }
+
+        // Indented sub-items (treat as continuation)
+        if ((line.startsWith('   ') || line.startsWith('\t')) && inList) {
+          const subOl = trimmed.match(/^(\d+)\.\s+(.+)/);
+          const subUl = trimmed.startsWith('- ');
+          if (subOl) {
+            result += '<li>' + subOl[2] + '</li>';
+          } else if (subUl) {
+            result += '<li>' + trimmed.substring(2) + '</li>';
+          } else {
+            result += '<li>' + trimmed + '</li>';
+          }
+          continue;
+        }
+
+        // Regular paragraph
+        if (inList) { result += '</' + listType + '>'; inList = false; }
+        result += '<p>' + trimmed + '</p>';
+      }
+
+      if (inList) result += '</' + listType + '>';
+      return result;
+    }
+
+    // ========================================
+    // RENDER GALLERY
+    // ========================================
+    function getFiltered() {
+      return activities.filter(a => {
+        const typeMatch = filterType === 'all' || (a.type && a.type.includes(filterType));
+        const durMatch = filterDuration === 'all' || a.duration === filterDuration;
+        return typeMatch && durMatch;
+      });
+    }
+
+    function renderGallery() {
+      const filtered = getFiltered();
+      const grid = document.getElementById('vault-grid');
+      const empty = document.getElementById('vault-empty');
+      const count = document.getElementById('vault-count');
+
+      count.textContent = filtered.length + ' activit' + (filtered.length === 1 ? 'y' : 'ies');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      grid.innerHTML = filtered.map(a => {
+        const tc = getTypeColor(a.type);
+        const coverHtml = a.coverImage
+          ? `<img class="card-cover" src="../${a.coverImage}" alt="" loading="lazy">`
+          : '';
+        const barExtra = a.coverImage ? ' has-cover' : '';
+        return `
+          <div class="vault-card" data-id="${a.id}" tabindex="0" role="button" aria-label="View ${a.name}">
+            ${coverHtml}
+            <div class="card-color-bar${barExtra} ${tc.cls}"></div>
+            <div class="card-body">
+              <div class="card-type-row">
+                <span class="card-type-badge">${(a.type || []).join(' / ')}</span>
+                <span class="card-duration">${a.duration || ''}</span>
+              </div>
+              <div class="card-name">${a.name}</div>
+              <div class="card-headline">${a.headline || ''}</div>
+              <div class="card-tags">
+                ${(a.format || []).map(f => `<span class="card-tag">${f.toLowerCase()}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Attach click listeners
+      grid.querySelectorAll('.vault-card').forEach(card => {
+        card.addEventListener('click', () => openModal(card.dataset.id));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openModal(card.dataset.id);
+          }
+        });
+      });
+    }
+
+    // ========================================
+    // FILTERS
+    // ========================================
+    function buildFilters() {
+      const types = [...new Set(activities.flatMap(a => a.type || []))].sort();
+      const durations = [...new Set(activities.map(a => a.duration).filter(Boolean))];
+      // Sort durations numerically
+      durations.sort((a, b) => parseInt(a) - parseInt(b));
+
+      const typeContainer = document.getElementById('type-filters');
+      types.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.filter = t;
+        btn.dataset.group = 'type';
+        btn.textContent = t.toLowerCase();
+        typeContainer.appendChild(btn);
+      });
+
+      const durContainer = document.getElementById('duration-filters');
+      durations.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.filter = d;
+        btn.dataset.group = 'duration';
+        btn.textContent = d;
+        durContainer.appendChild(btn);
+      });
+
+      // Filter click handler
+      document.getElementById('vault-filters').addEventListener('click', (e) => {
+        const btn = e.target.closest('.filter-btn');
+        if (!btn) return;
+
+        const group = btn.dataset.group;
+        const value = btn.dataset.filter;
+
+        if (group === 'type') {
+          filterType = value;
+          document.querySelectorAll('[data-group="type"]').forEach(b => b.classList.remove('active'));
+        } else {
+          filterDuration = value;
+          document.querySelectorAll('[data-group="duration"]').forEach(b => b.classList.remove('active'));
+        }
+
+        btn.classList.add('active');
+        renderGallery();
+      });
+    }
+
+    // ========================================
+    // MODAL
+    // ========================================
+    function openModal(id) {
+      const a = activities.find(act => act.id === id);
+      if (!a) return;
+
+      const tc = getTypeColor(a.type);
+      const overlay = document.getElementById('vault-overlay');
+      const modal = document.getElementById('vault-modal');
+
+      document.getElementById('modal-color-bar').className = 'modal-color-bar ' + tc.cls;
+      document.getElementById('modal-type-row').innerHTML = `
+        <span class="modal-type-badge">${(a.type || []).join(' / ')}</span>
+        <span class="modal-duration">${a.duration || ''}</span>
+      `;
+      document.getElementById('modal-name').textContent = a.name;
+      document.getElementById('modal-headline').textContent = a.headline || '';
+      document.getElementById('modal-format-tags').innerHTML = (a.format || []).map(f =>
+        `<span class="modal-tag">${f.toLowerCase()}</span>`
+      ).join('');
+      document.getElementById('modal-content').innerHTML = markdownToHtml(a.content);
+      document.getElementById('modal-skills-grid').innerHTML = (a.skillsDeveloped || []).map(s =>
+        `<span class="skill-tag">${s.toLowerCase()}</span>`
+      ).join('');
+
+      overlay.classList.add('open');
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+
+      // Focus management
+      document.getElementById('modal-close').focus();
+    }
+
+    function closeModal() {
+      document.getElementById('vault-overlay').classList.remove('open');
+      document.getElementById('vault-modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    document.getElementById('vault-overlay').addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // ========================================
+    // LOAD DATA & INIT
+    // ========================================
+    async function init() {
+      try {
+        const response = await fetch('../data/vertigo-vault.json');
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const data = await response.json();
+
+        if (!data.activities || data.activities.length === 0) {
+          throw new Error('No activities in JSON');
+        }
+
+        activities = data.activities;
+        console.log('vertigo.vault loaded:', activities.length, 'activities (updated:', data.lastUpdated, ')');
+      } catch (error) {
+        console.warn('Failed to load vertigo.vault data:', error.message);
+        activities = [];
+      }
+
+      buildFilters();
+      renderGallery();
+    }
+
+    init();
+  </script>
+</body>
+</html>
