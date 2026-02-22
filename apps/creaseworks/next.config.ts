@@ -19,8 +19,8 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self'",
               "img-src 'self' data: https:",
               "connect-src 'self' https://api.stripe.com https://vitals.vercel-insights.com",
               "frame-src https://js.stripe.com",

@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     `export_runs_${format}`,
     ip,
     [],
-    { count: runs.length, truncated },
+    { count: runs.length, truncated: truncated ? 1 : 0 },
   );
 
   const now = new Date();
