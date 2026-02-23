@@ -26,7 +26,7 @@ export default async function LoginPage({
   return (
     <main
       className="min-h-screen flex items-center justify-center px-4"
-      style={{ backgroundColor: "var(--wv-champagne)" }}
+      style={{ backgroundColor: "var(--wv-cadet)" }}
     >
       <div
         className="w-full max-w-md p-8 rounded-2xl shadow-lg"
