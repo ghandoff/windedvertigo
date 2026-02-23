@@ -37,7 +37,7 @@ export default async function LoginPage({
             creaseworks
           </h1>
           <p className="text-sm" style={{ color: "var(--wv-cadet)", opacity: 0.7 }}>
-            co-design pattern platform
+            play ideas that use what you already have
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export default async function LoginPage({
               className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
               style={{ backgroundColor: "var(--wv-champagne)" }}
             >
-              <span className="text-2xl">\u2709</span>
+              <span className="text-2xl">{"✉"}</span>
             </div>
             <h2 className="text-xl font-bold" style={{ color: "var(--wv-cadet)" }}>
               check your email
@@ -66,7 +66,7 @@ export default async function LoginPage({
             <p style={{ color: "var(--wv-cadet)" }}>
               we sent you a magic link.
               <br />
-              click it to sign in \u2014 no password needed.
+              click it to sign in — no password needed.
             </p>
           </div>
         ) : (

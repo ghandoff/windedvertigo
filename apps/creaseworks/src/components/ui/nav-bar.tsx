@@ -22,9 +22,9 @@ export default function NavBar() {
 
   const publicLinks = (
     <>
-      <NavLink href="/sampler" onClick={close}>sampler</NavLink>
+      <NavLink href="/sampler" onClick={close}>ideas</NavLink>
       <NavLink href="/matcher" onClick={close}>matcher</NavLink>
-      <NavLink href="/packs" onClick={close}>packs</NavLink>
+      <NavLink href="/packs" onClick={close}>kits</NavLink>
     </>
   );
 

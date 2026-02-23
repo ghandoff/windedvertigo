@@ -141,7 +141,7 @@ export default function MatcherResultCard({
               color: "var(--wv-redwood)",
             }}
           >
-            starts in 120s
+            ready in 2 min
           </span>
         )}
         {pattern.frictionDial != null && (
@@ -149,7 +149,7 @@ export default function MatcherResultCard({
             className="text-xs px-1"
             style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
           >
-            friction {pattern.frictionDial}/5
+            effort {pattern.frictionDial}/5
           </span>
         )}
         {pattern.hasFindAgain &&
@@ -161,7 +161,7 @@ export default function MatcherResultCard({
                 color: "var(--wv-redwood)",
               }}
             >
-              find again: {pattern.findAgainMode}
+              spot it again: {pattern.findAgainMode}
             </span>
           ) : (
             <span
@@ -171,7 +171,7 @@ export default function MatcherResultCard({
                 color: "var(--wv-sienna)",
               }}
             >
-              includes find again
+              spot it again
             </span>
           ))}
       </div>
@@ -207,7 +207,7 @@ export default function MatcherResultCard({
                 strokeLinejoin="round"
               />
             </svg>
-            {coverageOpen ? "hide coverage detail" : "show coverage detail"}
+            {coverageOpen ? "hide what you need" : "show what you need"}
             <span style={{ opacity: 0.7 }}>
               ({coverage.materialsCovered.length} of{" "}
               {coverage.materialsCovered.length +
@@ -291,7 +291,7 @@ export default function MatcherResultCard({
           className="mt-3 rounded-lg p-3 text-xs"
           style={{ backgroundColor: "var(--wv-champagne)", color: "var(--wv-cadet)" }}
         >
-          <h4 className="font-medium mb-1">substitution ideas</h4>
+          <h4 className="font-medium mb-1">swap ideas</h4>
           {coverage.suggestedSubstitutions.map((sub, i) => (
             <p key={i} style={{ opacity: 0.8 }}>
               instead of <strong>{sub.missingMaterial}</strong>, try{" "}
@@ -311,7 +311,7 @@ export default function MatcherResultCard({
           }}
         >
           <h4 className="font-medium mb-1" style={{ color: "var(--wv-redwood)" }}>
-            author notes on substitutions
+            tips on swapping materials
           </h4>
           <p style={{ opacity: 0.8 }}>{pattern.substitutionsNotes}</p>
         </div>
@@ -332,7 +332,7 @@ export default function MatcherResultCard({
                     minHeight: 44,
                   }}
                 >
-                  view full pattern →
+                  see the full idea →
                 </Link>
               ))
             : pattern.packSlugs.map((slug) => (
@@ -347,7 +347,7 @@ export default function MatcherResultCard({
                     minHeight: 44,
                   }}
                 >
-                  get the pack →
+                  get the kit →
                 </Link>
               ))}
         </div>

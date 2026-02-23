@@ -13,26 +13,26 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "creaseworks — co-design patterns for people who make things together",
+    default: "creaseworks — play ideas that use what you already have",
     template: "%s — creaseworks",
   },
   description:
-    "a library of facilitation patterns — tested scripts, materials lists, and guided prompts that help you run creative workshops with confidence.",
+    "simple, tested play ideas for parents and teachers. help kids notice the world around them, see possibility everywhere, and make things with whatever's on hand.",
   metadataBase: new URL("https://creaseworks.windedvertigo.com"),
   openGraph: {
     type: "website",
     siteName: "creaseworks",
-    title: "creaseworks — co-design patterns for people who make things together",
+    title: "creaseworks — play ideas that use what you already have",
     description:
-      "a library of facilitation patterns — tested scripts, materials lists, and guided prompts that help you run creative workshops with confidence.",
+      "simple, tested play ideas for parents and teachers. help kids notice the world around them, see possibility everywhere, and make things with whatever's on hand.",
     url: "https://creaseworks.windedvertigo.com",
     locale: "en_GB",
   },
   twitter: {
     card: "summary_large_image",
-    title: "creaseworks — co-design patterns for people who make things together",
+    title: "creaseworks — play ideas that use what you already have",
     description:
-      "a library of facilitation patterns — tested scripts, materials lists, and guided prompts that help you run creative workshops with confidence.",
+      "simple, tested play ideas for parents and teachers. help kids notice the world around them, see possibility everywhere, and make things with whatever's on hand.",
   },
   robots: {
     index: true,

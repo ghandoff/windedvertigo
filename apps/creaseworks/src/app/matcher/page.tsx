@@ -43,14 +43,14 @@ export default async function MatcherPage() {
         className="text-2xl sm:text-3xl font-semibold tracking-tight mb-2"
         style={{ color: "var(--wv-cadet)" }}
       >
-        pattern matcher
+        what do you have on hand?
       </h1>
       <p
         className="mb-6 sm:mb-8 text-sm sm:text-base"
         style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
       >
-        tell us what you have — materials, forms, context — and we&apos;ll
-        find the patterns that fit.
+        tell us what&apos;s around — cardboard, sticks, fabric, whatever —
+        and we&apos;ll find play ideas that work with your stuff.
       </p>
 
       <MatcherInputForm

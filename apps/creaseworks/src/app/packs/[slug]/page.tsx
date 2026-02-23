@@ -44,7 +44,7 @@ export default async function PackDetailPage({ params }: Props) {
           href="/packs"
           className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
         >
-          &larr; back to packs
+          &larr; back to kits
         </Link>
 
         <h1 className="text-3xl font-semibold tracking-tight mb-2">
@@ -57,7 +57,7 @@ export default async function PackDetailPage({ params }: Props) {
 
         <section>
           <h2 className="text-sm font-semibold text-cadet/80 mb-4">
-            patterns in this pack
+            ideas in this kit
           </h2>
           <div className="space-y-3">
             {patterns.map((p: any) => (
@@ -78,7 +78,7 @@ export default async function PackDetailPage({ params }: Props) {
                   )}
                   {p.find_again_mode && (
                     <span className="rounded-full bg-redwood/10 text-redwood px-2 py-0.5">
-                      includes find again
+                      spot it again
                     </span>
                   )}
                 </div>
@@ -99,7 +99,7 @@ export default async function PackDetailPage({ params }: Props) {
         href="/packs"
         className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
       >
-        &larr; back to packs
+        &larr; back to kits
       </Link>
 
       <h1 className="text-3xl font-semibold tracking-tight mb-2">
@@ -111,7 +111,7 @@ export default async function PackDetailPage({ params }: Props) {
       )}
 
       <p className="text-sm text-cadet/50 mb-8">
-        {pack.pattern_count} pattern{Number(pack.pattern_count) !== 1 ? "s" : ""} included
+        {pack.pattern_count} idea{Number(pack.pattern_count) !== 1 ? "s" : ""} included
       </p>
 
       {/* pattern teasers */}
@@ -134,7 +134,7 @@ export default async function PackDetailPage({ params }: Props) {
                 )}
                 {p.has_find_again && (
                   <span className="rounded-full bg-redwood/10 text-redwood px-2 py-0.5">
-                    find again
+                    spot it again
                   </span>
                 )}
               </div>
@@ -143,36 +143,36 @@ export default async function PackDetailPage({ params }: Props) {
         </ul>
       </section>
 
-      {/* find again CTA */}
+      {/* spot it again CTA */}
       <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-6 mb-8">
         <h2 className="text-lg font-semibold text-redwood mb-3">
-          you've built something. now find it again.
+          you played something. now spot it everywhere.
         </h2>
         <p className="text-sm text-cadet/70 mb-3">
-          every creaseworks pattern ends with a step we call <em>find again</em>
-          &nbsp;&mdash; a prompt that helps you and your participants spot the
-          same move in a completely different context.
+          every creaseworks idea ends with a prompt we call <em>spot it again</em>
+          &nbsp;&mdash; a nudge that helps you and your kids notice the same
+          idea popping up in totally different places.
         </p>
         <p className="text-sm text-cadet/70 mb-3">
-          maybe it's the same material doing a new job. maybe it's the
-          same structure under a tighter constraint. maybe it's the leap
-          from the workshop table to Tuesday morning.
+          maybe it&apos;s the same material doing a new job. maybe it&apos;s the
+          same shape under a tighter constraint. maybe it&apos;s the leap from
+          the kitchen table to the walk to school.
         </p>
         <p className="text-sm text-cadet/70 mb-4">
-          find again is where a single activity becomes a transferable skill.
-          it's included with every pattern in <strong>{pack.title}</strong>.
+          that&apos;s when a single activity becomes a way of seeing.
+          it&apos;s included with every idea in <strong>{pack.title}</strong>.
         </p>
         {/* purchase or contact CTA */}
         {!session.orgId ? (
           <p className="text-sm text-cadet/50">
-            join an organisation to purchase packs.{" "}
+            join a team to grab kits.{" "}
             <a
               href="mailto:garrett@windedvertigo.com"
               className="text-redwood hover:text-sienna underline"
             >
-              contact us
+              get in touch
             </a>{" "}
-            to get started.
+            and we&apos;ll help you get started.
           </p>
         ) : pack.price_cents && pack.visible ? (
           <PurchaseButton

@@ -29,13 +29,13 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </div>
 
         <h1 className="text-2xl font-semibold tracking-tight mb-3">
-          your pack is ready
+          your kit is ready
         </h1>
 
         <p className="text-sm text-cadet/60 mb-6">
           {pack
-            ? `you now have full access to ${pack}. every pattern, every find again prompt — it's all yours.`
-            : "your purchase is complete. you now have full access to the pack and all its patterns."}
+            ? `you now have full access to ${pack}. every idea, every "spot it again" prompt — it's all yours.`
+            : "your purchase is complete. you now have full access to the kit and all its ideas."}
         </p>
 
         <div className="flex flex-col gap-3">
@@ -44,7 +44,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
             className="rounded-lg px-6 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90 inline-block"
             style={{ backgroundColor: "var(--wv-redwood)" }}
           >
-            go to your packs
+            go to your kits
           </Link>
 
           <Link

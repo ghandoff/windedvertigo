@@ -37,31 +37,31 @@ export default function EntitledPatternView({
           )}
           {pattern.friction_dial !== null && (
             <>
-              <dt className="text-cadet/50">friction dial</dt>
+              <dt className="text-cadet/50">effort</dt>
               <dd>{pattern.friction_dial} / 5</dd>
             </>
           )}
           {pattern.start_in_120s && (
             <>
               <dt className="text-cadet/50">quick start</dt>
-              <dd>starts in 120 seconds</dd>
+              <dd>ready in 2 minutes</dd>
             </>
           )}
           {(pattern.arc_emphasis as string[])?.length > 0 && (
             <>
-              <dt className="text-cadet/50">arc emphasis</dt>
+              <dt className="text-cadet/50">focus</dt>
               <dd>{(pattern.arc_emphasis as string[]).join(", ")}</dd>
             </>
           )}
           {(pattern.required_forms as string[])?.length > 0 && (
             <>
-              <dt className="text-cadet/50">required forms</dt>
+              <dt className="text-cadet/50">shapes needed</dt>
               <dd>{(pattern.required_forms as string[]).join(", ")}</dd>
             </>
           )}
           {(pattern.slots_optional as string[])?.length > 0 && (
             <>
-              <dt className="text-cadet/50">optional slots</dt>
+              <dt className="text-cadet/50">nice to have</dt>
               <dd>{(pattern.slots_optional as string[]).join(", ")}</dd>
             </>
           )}
@@ -72,7 +72,7 @@ export default function EntitledPatternView({
       {pattern.rails_sentence && (
         <section className="rounded-xl border border-cadet/10 bg-white p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
-            rails sentence
+            the big idea
           </h2>
           <p className="text-sm text-cadet/80 italic">
             {pattern.rails_sentence}
@@ -83,13 +83,13 @@ export default function EntitledPatternView({
       {/* find, fold, unfold */}
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-cadet/80">
-          pattern flow
+          how to play
         </h2>
 
         {pattern.find && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
             <h3 className="text-xs font-bold text-redwood uppercase tracking-wider mb-2">
-              find
+              notice
             </h3>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
               {pattern.find}
@@ -100,7 +100,7 @@ export default function EntitledPatternView({
         {pattern.fold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
             <h3 className="text-xs font-bold text-sienna uppercase tracking-wider mb-2">
-              fold
+              make
             </h3>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
               {pattern.fold}
@@ -111,7 +111,7 @@ export default function EntitledPatternView({
         {pattern.unfold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
             <h3 className="text-xs font-bold text-cadet uppercase tracking-wider mb-2">
-              unfold
+              look again
             </h3>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
               {pattern.unfold}
@@ -124,7 +124,7 @@ export default function EntitledPatternView({
       {pattern.find_again_mode && (
         <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-6">
           <h2 className="text-sm font-semibold text-redwood mb-2">
-            find again — {pattern.find_again_mode}
+            spot it again — {pattern.find_again_mode}
           </h2>
           {pattern.find_again_prompt && (
             <p className="text-sm text-cadet/80 whitespace-pre-line">
@@ -138,7 +138,7 @@ export default function EntitledPatternView({
       {pattern.slots_notes && (
         <section className="rounded-xl border border-cadet/10 bg-champagne/20 p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
-            slots notes
+            timing and space tips
           </h2>
           <p className="text-sm text-cadet/70 whitespace-pre-line">
             {pattern.slots_notes}
@@ -150,7 +150,7 @@ export default function EntitledPatternView({
       {pattern.substitutions_notes && (
         <section className="rounded-xl border border-cadet/10 bg-champagne/20 p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
-            substitutions notes
+            swap ideas
           </h2>
           <p className="text-sm text-cadet/70 whitespace-pre-line">
             {pattern.substitutions_notes}
@@ -162,7 +162,7 @@ export default function EntitledPatternView({
       {materials.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold text-cadet/80 mb-3">
-            materials used
+            what you'll need
           </h2>
           <ul className="space-y-2">
             {materials.map((m: any) => (

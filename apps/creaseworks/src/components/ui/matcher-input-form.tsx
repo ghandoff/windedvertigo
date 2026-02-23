@@ -491,7 +491,7 @@ export default function MatcherInputForm({
 
         {/* ---- forms checklist ---- */}
         <FilterSection
-          title="forms you can provide"
+          title="shapes you can make"
           selectedCount={selectedForms.size}
           defaultOpen={true}
         >
@@ -511,8 +511,8 @@ export default function MatcherInputForm({
 
         {/* ---- context constraints ---- */}
         <FilterSection
-          title="context constraints"
-          subtitle="patterns must work in all selected contexts."
+          title="where are you playing?"
+          subtitle="we'll only show ideas that work in all of these."
           selectedCount={selectedContexts.size}
           defaultOpen={true}
         >
@@ -534,8 +534,8 @@ export default function MatcherInputForm({
         {/* ---- slots (optional) ---- */}
         {slots.length > 0 && (
           <FilterSection
-            title="slot preferences (optional)"
-            subtitle="boost patterns that use these slots."
+            title="time and space (optional)"
+            subtitle="we'll bump up ideas that fit these."
             selectedCount={selectedSlots.size}
             defaultOpen={false}
           >
@@ -568,7 +568,7 @@ export default function MatcherInputForm({
               color: "var(--wv-white)",
             }}
           >
-            {loading ? "matching…" : "find patterns"}
+            {loading ? "matching…" : "find ideas"}
           </button>
 
           {hasSelection && (
@@ -615,7 +615,7 @@ export default function MatcherInputForm({
           {loading
             ? "matching…"
             : hasSelection
-              ? `find patterns (${totalSelections} filter${totalSelections !== 1 ? "s" : ""})`
+              ? `find ideas (${totalSelections} filter${totalSelections !== 1 ? "s" : ""})`
               : "select filters to start"}
         </button>
 
@@ -646,16 +646,16 @@ export default function MatcherInputForm({
               className="text-lg sm:text-xl font-semibold tracking-tight mb-1"
               style={{ color: "var(--wv-cadet)" }}
             >
-              {results.ranked.length} pattern
+              {results.ranked.length} idea
               {results.ranked.length !== 1 ? "s" : ""} found
             </h2>
             <p
               className="text-xs"
               style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
             >
-              {results.meta.totalCandidates} candidates evaluated
+              searched {results.meta.totalCandidates} ideas
               {results.meta.contextFiltersApplied.length > 0 &&
-                ` · ${results.meta.totalAfterFilter} matched context filters (${results.meta.contextFiltersApplied.join(", ")})`}
+                ` · ${results.meta.totalAfterFilter} fit your setting (${results.meta.contextFiltersApplied.join(", ")})`}
             </p>
           </div>
 
@@ -668,8 +668,8 @@ export default function MatcherInputForm({
                 className="text-sm"
                 style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
               >
-                no patterns matched your filters. try broadening your
-                selection or removing context constraints.
+                nothing matched. try selecting fewer filters or changing
+                where you&apos;re playing.
               </p>
             </div>
           ) : (

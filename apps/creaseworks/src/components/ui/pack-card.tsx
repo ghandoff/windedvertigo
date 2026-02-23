@@ -29,7 +29,7 @@ export default function PackCard({ pack }: PackCardProps) {
 
       <div className="flex items-center gap-3 text-xs text-cadet/50">
         <span>
-          {pack.pattern_count} pattern{Number(pack.pattern_count) !== 1 ? "s" : ""}
+          {pack.pattern_count} idea{Number(pack.pattern_count) !== 1 ? "s" : ""}
         </span>
 
         {pack.price_cents != null && (

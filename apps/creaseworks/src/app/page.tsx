@@ -16,9 +16,9 @@ import type { Metadata } from "next";
  */
 
 export const metadata: Metadata = {
-  title: "creaseworks — co-design patterns for people who make things together",
+  title: "creaseworks — play ideas that use what you already have",
   description:
-    "a library of facilitation patterns — tested scripts, materials lists, and guided prompts that help you run creative workshops with confidence.",
+    "simple, tested play ideas for parents and teachers. help kids notice the world around them, see possibility everywhere, and make things with whatever's on hand.",
   alternates: { canonical: "https://creaseworks.windedvertigo.com" },
 };
 
@@ -38,15 +38,16 @@ export default function Home() {
           className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight"
           style={{ color: "var(--wv-white)", maxWidth: 800, margin: "0 auto 24px" }}
         >
-          co-design patterns for people who make things together
+          play ideas that use what you already have
         </h1>
 
         <p
           className="text-lg sm:text-xl mb-12 leading-relaxed"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 600, margin: "0 auto 48px" }}
         >
-          a library of facilitation patterns — tested scripts, materials lists,
-          and guided prompts that help you run creative workshops with confidence.
+          simple, tested activities for parents and teachers. help kids notice
+          the world around them, see possibility everywhere, and make things
+          with whatever&rsquo;s on hand.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -55,7 +56,7 @@ export default function Home() {
             className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
             style={{ backgroundColor: "var(--wv-redwood)", color: "var(--wv-white)" }}
           >
-            browse the sampler
+            see free ideas
           </Link>
           <Link
             href="/packs"
@@ -66,7 +67,7 @@ export default function Home() {
               backgroundColor: "transparent",
             }}
           >
-            view packs
+            get a kit
           </Link>
         </div>
       </section>
@@ -77,42 +78,42 @@ export default function Home() {
           className="text-xs font-semibold tracking-widest uppercase text-center mb-3"
           style={{ color: "var(--wv-redwood)", letterSpacing: "0.08em" }}
         >
-          what you get
+          what&rsquo;s included
         </p>
         <h2
           className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-center"
           style={{ color: "var(--wv-white)" }}
         >
-          what&rsquo;s inside every pattern
+          everything you need to start playing
         </h2>
         <p
           className="text-center mb-12"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 560, margin: "0 auto 48px" }}
         >
-          each pattern is a complete facilitation kit — not just an idea, but
-          everything you need to run it.
+          every idea is a complete kit — not just a concept, but step-by-step
+          instructions so you can jump in right away.
         </p>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <FeatureCard
             icon={<ScriptIcon />}
-            title="find, fold, unfold"
-            description="a three-part facilitation script you can run in under two hours. each step has clear instructions, timing, and facilitator notes."
+            title="step-by-step guide"
+            description="a simple three-part activity you can do in under two hours. clear instructions, timing, and tips — no prep degree required."
           />
           <FeatureCard
             icon={<MaterialsIcon />}
-            title="materials guidance"
-            description="exactly what you need on the table — forms, surfaces, connectors, mark-makers — with substitution suggestions when you're working with what you've got."
+            title="use what you have"
+            description="every idea tells you what to grab — cardboard, tape, sticks, whatever's around. plus easy swaps for when you don't have the exact thing."
           />
           <FeatureCard
             icon={<TransferIcon />}
-            title="find again"
-            description="the step after the workshop. a guided prompt that helps participants spot the same creative move in a completely different context."
+            title="spot it again"
+            description="the fun part after playing. a prompt that helps kids (and you) notice the same idea popping up in totally different places."
           />
           <FeatureCard
             icon={<PdfIcon />}
-            title="watermarked PDFs"
-            description="download any pattern as a branded PDF card for your facilitation kit. watermarked with your organisation's name and the download date."
+            title="printable cards"
+            description="download any idea as a handy PDF card. keep it in your bag, stick it on the fridge, or hand it to a babysitter."
           />
         </div>
       </section>
@@ -135,18 +136,18 @@ export default function Home() {
         <div className="space-y-8" style={{ maxWidth: 640, margin: "0 auto" }}>
           <Step
             number="1"
-            title="browse or match"
-            description="explore the free sampler to see pattern teasers, or use the matcher to find patterns that fit your materials and context."
+            title="find an idea"
+            description="browse free previews or tell us what you have on hand — we'll suggest activities that work with your stuff."
           />
           <Step
             number="2"
-            title="get a pack"
-            description="packs are curated collections of patterns. purchase once and your whole organisation gets perpetual access."
+            title="grab a kit"
+            description="kits are bundles of play ideas. buy once and everyone in your family or classroom gets access forever."
           />
           <Step
             number="3"
-            title="run the pattern"
-            description="follow the find-fold-unfold script, log your run, capture evidence, and use find again to transfer the learning."
+            title="play!"
+            description="follow the steps, see what happens, and help kids spot the same idea in the wild. no new toys needed."
           />
         </div>
       </section>
@@ -163,21 +164,21 @@ export default function Home() {
           className="text-2xl sm:text-3xl font-bold tracking-tight mb-12 text-center"
           style={{ color: "var(--wv-white)" }}
         >
-          built for facilitators, educators, and design teams
+          made for parents, teachers, and anyone who plays with kids
         </h2>
 
         <div className="grid gap-5 sm:grid-cols-3" style={{ maxWidth: 900, margin: "0 auto" }}>
           <AudienceCard
-            title="facilitators"
-            description="run creative sessions with tested scripts and materials lists. no more improvising from scratch."
+            title="parents"
+            description="play with your kids right now with whatever's around. no shopping trip required."
           />
           <AudienceCard
-            title="educators"
-            description="bring co-design into classrooms with ready-made activities that work for any resource level."
+            title="teachers"
+            description="bring creative, hands-on activities into your classroom. works with any budget and any age."
           />
           <AudienceCard
-            title="design teams"
-            description="give your whole team a shared language for creative facilitation that scales across projects."
+            title="anyone, really"
+            description="babysitters, grandparents, camp counselors — if you spend time with kids, you'll find something here."
           />
         </div>
       </section>
@@ -188,21 +189,21 @@ export default function Home() {
           className="text-2xl sm:text-3xl font-bold tracking-tight mb-4"
           style={{ color: "var(--wv-white)" }}
         >
-          start with the sampler
+          start exploring — it&rsquo;s free
         </h2>
         <p
           className="mb-8 leading-relaxed"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 500, margin: "0 auto 32px" }}
         >
-          the sampler is free. browse pattern teasers, try the matcher, and
-          see how creaseworks works before you buy.
+          peek at ideas, try the matcher, and see if creaseworks is your kind
+          of thing — no sign-up needed.
         </p>
         <Link
           href="/sampler"
           className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
           style={{ backgroundColor: "var(--wv-redwood)", color: "var(--wv-white)" }}
         >
-          explore the sampler
+          see free ideas
         </Link>
       </section>
 
