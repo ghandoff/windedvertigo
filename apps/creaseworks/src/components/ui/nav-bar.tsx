@@ -83,18 +83,18 @@ export default function NavBar() {
           <span
             className="block w-5 h-0.5 rounded-full transition-transform duration-200"
             style={{
-              backgroundColor: "var(--wv-champagne)",
+              backgroundColor: "var(--wv-white)",
               transform: mobileOpen ? "rotate(45deg) translate(2px, 2px)" : "none",
             }}
           />
           <span
             className="block w-5 h-0.5 rounded-full transition-opacity duration-200"
-            style={{ backgroundColor: "var(--wv-champagne)", opacity: mobileOpen ? 0 : 1 }}
+            style={{ backgroundColor: "var(--wv-white)", opacity: mobileOpen ? 0 : 1 }}
           />
           <span
             className="block w-5 h-0.5 rounded-full transition-transform duration-200"
             style={{
-              backgroundColor: "var(--wv-champagne)",
+              backgroundColor: "var(--wv-white)",
               transform: mobileOpen ? "rotate(-45deg) translate(2px, -2px)" : "none",
             }}
           />
