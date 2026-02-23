@@ -172,48 +172,53 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
+      // Gate check only — all DB mutations happen in the jwt callback
+      // AFTER NextAuth has created the user row (for new sign-ups).
       if (!user.email) return false;
+      return true;
+    },
 
-      // Sync name from Google profile if we don't have one yet
-      if (account?.provider === "google" && profile?.name && user.id) {
-        const existing = await sql.query(
-          "SELECT name FROM users WHERE id = $1",
-          [user.id],
-        );
-        if (existing.rows[0] && !existing.rows[0].name) {
-          await sql.query(
-            "UPDATE users SET name = $1, email_verified = TRUE, updated_at = NOW() WHERE id = $2",
-            [profile.name, user.id],
+    async jwt({ token, user, account, profile }) {
+      if (user?.id) {
+        // Initial sign-in — user row is guaranteed to exist in DB at
+        // this point (NextAuth creates it before issuing the JWT).
+        token.userId = user.id;
+        token.email = user.email;
+
+        // Sync name from Google profile if we don't have one yet
+        if (account?.provider === "google" && profile?.name) {
+          const existing = await sql.query(
+            "SELECT name FROM users WHERE id = $1",
+            [user.id],
           );
+          if (existing.rows[0] && !existing.rows[0].name) {
+            await sql.query(
+              "UPDATE users SET name = $1, email_verified = TRUE, updated_at = NOW() WHERE id = $2",
+              [profile.name, user.id],
+            );
+          }
         }
-      }
 
-      // Mark email as verified after successful sign-in
-      // (Google OAuth proves email ownership; Resend magic-link proves it too)
-      if (user.id) {
+        // Mark email as verified after successful sign-in
+        // (Google OAuth proves email ownership; Resend magic-link proves it too)
         await sql.query(
           "UPDATE users SET email_verified = TRUE, updated_at = NOW() WHERE id = $1 AND email_verified = FALSE",
           [user.id],
         );
-      }
 
-      if (user.id) await autoJoinOrg(user.id, user.email);
-      const adm = process.env.INITIAL_ADMIN_EMAIL?.toLowerCase().trim();
-      if (adm && user.email.toLowerCase().trim() === adm && user.id) {
-        if (!(await isAdmin(user.id))) {
-          await addAdmin(user.id);
-          console.log("bootstrapped initial admin:", user.email);
+        // Auto-join org based on verified email domains
+        await autoJoinOrg(user.id, user.email!);
+
+        // Bootstrap initial admin if configured
+        const adm = process.env.INITIAL_ADMIN_EMAIL?.toLowerCase().trim();
+        if (adm && user.email!.toLowerCase().trim() === adm) {
+          if (!(await isAdmin(user.id))) {
+            await addAdmin(user.id);
+            console.log("bootstrapped initial admin:", user.email);
+          }
         }
-      }
-      return true;
-    },
 
-    async jwt({ token, user }) {
-      if (user?.id) {
-        // Initial sign-in — populate all fields
-        token.userId = user.id;
-        token.email = user.email;
         const m = await getOrgMembership(user.id);
         token.orgId = m?.org_id ?? null;
         token.orgName = m?.org_name ?? null;
