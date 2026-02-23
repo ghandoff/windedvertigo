@@ -204,9 +204,17 @@
 }
 
 .wv-header-nav {
-  display: flex;
   align-items: center;
   gap: var(--space-lg);
+}
+
+/* Let Tailwind's hidden/sm:flex control visibility on mobile.
+   Only set display:flex at the sm breakpoint so it doesn't
+   override Tailwind's `hidden` utility on narrow screens. */
+@media (min-width: 640px) {
+  .wv-header-nav {
+    display: flex;
+  }
 }
 
 .wv-header-nav a {

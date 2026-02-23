@@ -81,7 +81,7 @@ export default async function LoginPage({
             className="text-xs underline"
             style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
           >
-            \u2190 back to home
+            ← back to home
           </a>
         </div>
       </div>
