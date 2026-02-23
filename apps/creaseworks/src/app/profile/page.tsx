@@ -11,19 +11,15 @@
  * Designed for shared devices where both grownups and kids navigate.
  */
 
-import Link from "next/link";
 import { requireAuth } from "@/lib/auth-helpers";
-import { getVisiblePacks, getAllPacks } from "@/lib/queries/packs";
 import {
   getOrgMembers,
   getOrgVerifiedDomains,
 } from "@/lib/queries/organisations";
-import PackCard from "@/components/ui/pack-card";
 import TeamManager from "@/app/team/team-manager";
 import DomainVerifier from "@/app/team/domain-verifier";
 import AnalyticsDashboard from "@/app/analytics/analytics-dashboard";
-import TierCard, { TIERS } from "@/components/ui/tier-card";
-import type { TierState } from "@/components/ui/tier-card";
+import TierCard, { TIERS, getTierState } from "@/components/ui/tier-card";
 import ProfileManageToggle from "./manage-toggle";
 
 export const dynamic = "force-dynamic";
@@ -55,10 +51,6 @@ export default async function ProfilePage({
   const displayName = session.email.split("@")[0].replace(/[._]/g, " ");
 
   const initials = (session.email.charAt(0) ?? "?").toUpperCase();
-
-  /* ---- packs data -------------------------------------------------- */
-  const isCollective = session.isInternal;
-  const packs = isCollective ? await getAllPacks() : await getVisiblePacks();
 
   /* ---- team data (only if user has an org) ------------------------- */
   const hasOrg = !!session.orgId;
@@ -127,88 +119,17 @@ export default async function ProfilePage({
       <section className="mb-12">
         <h2 className="text-lg font-semibold tracking-tight mb-1">your journey</h2>
         <p className="text-sm text-cadet/40 mb-5">
-          where you are and where you could go.
+          where you are and where you could go. tap any tier to explore.
         </p>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {TIERS.map((tier) => {
-            let state: TierState;
-            if (tierLabel === "admin" || tierLabel === "collective") {
-              /* admin + collective see everything — collective is "current" */
-              state = tier.key === "collective" ? "current" : "current";
-            } else if (tierLabel === "entitled") {
-              /* entitled users own at least one pack — mark sampler + explorer
-                 as unlocked, practitioner as current, collective as available */
-              if (tier.key === "sampler" || tier.key === "explorer") {
-                state = "current";
-              } else if (tier.key === "practitioner") {
-                state = "current";
-              } else {
-                state = "available";
-              }
-            } else {
-              /* sampler — free tier */
-              if (tier.key === "sampler") {
-                state = "current";
-              } else {
-                state = "available";
-              }
-            }
-            return (
-              <TierCard key={tier.key} tier={tier} state={state} />
-            );
-          })}
+          {TIERS.map((tier) => (
+            <TierCard
+              key={tier.key}
+              tier={tier}
+              state={getTierState(tier.key, tierLabel)}
+            />
+          ))}
         </div>
-      </section>
-
-      {/* ---- my packs — treasure box section ----------------------- */}
-      <section className="mb-12">
-        <div className="flex items-center gap-3 mb-1">
-          <h2 className="text-lg font-semibold tracking-tight">my packs</h2>
-          {isCollective && (
-            <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-champagne/20 text-champagne">
-              collective view
-            </span>
-          )}
-        </div>
-        <p className="text-sm text-cadet/40 mb-5">
-          playdates you&apos;ve collected. buy once, keep forever.
-        </p>
-
-        {packs.length === 0 ? (
-          <div
-            className="rounded-2xl border-2 border-dashed py-12 text-center"
-            style={{ borderColor: "rgba(39, 50, 72, 0.08)" }}
-          >
-            <p className="text-cadet/30 text-sm mb-3">
-              no packs yet — your collection starts here.
-            </p>
-            <Link
-              href="/sampler"
-              className="text-sm font-medium transition-colors"
-              style={{ color: "var(--wv-redwood)" }}
-            >
-              explore free playdates &rarr;
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {packs.map((pack: any) => (
-              <div key={pack.id} className="relative">
-                {isCollective && pack.visible === false && (
-                  <span className="absolute top-3 right-3 z-10 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-cadet/40 text-white/70">
-                    hidden
-                  </span>
-                )}
-                {isCollective && pack.status !== "ready" && (
-                  <span className="absolute top-3 left-3 z-10 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-amber-600/80 text-white">
-                    draft
-                  </span>
-                )}
-                <PackCard pack={pack} />
-              </div>
-            ))}
-          </div>
-        )}
       </section>
 
       {/* ---- manage toggle (grownup stuff) ------------------------- */}
@@ -304,7 +225,7 @@ export default async function ProfilePage({
                   analytics
                 </h3>
                 <p className="text-sm text-cadet/40 mb-6">
-                  patterns used, evidence captured, and trends over time.
+                  playdates used, evidence captured, and trends over time.
                 </p>
                 <AnalyticsDashboard />
               </section>
