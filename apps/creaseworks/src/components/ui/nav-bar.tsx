@@ -32,10 +32,36 @@ export default function NavBar() {
     </>
   );
 
+  /* build initials from name or email */
+  const initials = isAuthed
+    ? (session.user.name
+        ? session.user.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2)
+        : session.user.email?.charAt(0) ?? "?"
+      ).toUpperCase()
+    : "";
+
   const authedLinks = isAuthed ? (
     <>
       <NavLink href="/playbook" onClick={close}>playbook</NavLink>
-      <NavLink href="/profile" onClick={close}>profile</NavLink>
+      <Link
+        href="/profile"
+        onClick={close}
+        className="wv-header-nav-link flex items-center gap-1.5"
+      >
+        <span
+          className="inline-flex items-center justify-center rounded-full text-[10px] font-bold leading-none"
+          style={{
+            width: 22,
+            height: 22,
+            backgroundColor: "var(--wv-sienna)",
+            color: "var(--wv-white)",
+          }}
+          aria-hidden="true"
+        >
+          {initials}
+        </span>
+        <span>profile</span>
+      </Link>
       {session?.isAdmin && (
         <NavLink href="/admin" onClick={close} accent>admin</NavLink>
       )}
@@ -44,17 +70,12 @@ export default function NavBar() {
 
   const authAction =
     status === "loading" ? null : session?.user ? (
-      <>
-        <span className="wv-header-email hidden sm:inline">
-          {session.user.email}
-        </span>
-        <button
-          onClick={() => { close(); signOut({ callbackUrl: "/" }); }}
-          className="wv-header-signout"
-        >
-          sign out
-        </button>
-      </>
+      <button
+        onClick={() => { close(); signOut({ callbackUrl: "/" }); }}
+        className="wv-header-signout"
+      >
+        sign out
+      </button>
     ) : (
       <NavLink href="/login" onClick={close} accent>sign in</NavLink>
     );

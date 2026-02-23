@@ -1,5 +1,5 @@
 /**
- * /team — redirects to /profile?tab=team.
+ * /team — redirects to /profile?manage=true.
  *
  * Preserves query params (verify, domain, reason) for the domain
  * verification callback flow.
@@ -13,7 +13,7 @@ export default async function TeamPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const qs = new URLSearchParams({ tab: "team" });
+  const qs = new URLSearchParams({ manage: "true" });
   for (const [k, v] of Object.entries(params)) {
     if (v) qs.set(k, v);
   }

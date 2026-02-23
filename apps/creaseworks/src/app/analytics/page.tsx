@@ -1,9 +1,9 @@
 /**
- * /analytics — redirects to /profile?tab=analytics.
+ * /analytics — redirects to /profile?manage=true.
  */
 
 import { redirect } from "next/navigation";
 
 export default function AnalyticsPage() {
-  redirect("/profile?tab=analytics");
+  redirect("/profile?manage=true");
 }
