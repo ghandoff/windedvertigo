@@ -63,7 +63,7 @@ export const TIERS: TierDef[] = [
       "design rationale",
       "developmental notes",
       "author notes",
-      "all patterns unlocked",
+      "all playdates unlocked",
     ],
   },
 ];

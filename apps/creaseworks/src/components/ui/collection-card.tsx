@@ -42,7 +42,7 @@ export default function CollectionCard({
             {title}
           </h2>
           {description && (
-            <p className="text-sm text-cadet/50 mt-0.5 line-clamp-1">
+            <p className="text-sm text-cadet/50 mt-0.5 line-clamp-2">
               {description}
             </p>
           )}

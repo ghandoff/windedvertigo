@@ -14,37 +14,37 @@ const SEED = [
   {
     title: "puddle scientists",
     icon: "🔬",
-    desc: "water play, outdoor exploration, messy experimentation",
+    desc: "splashing with purpose — pouring, mixing, freezing, and watching what happens when water meets everything else",
     sort: 1,
   },
   {
     title: "cardboard architects",
     icon: "📦",
-    desc: "building, structural play, spatial reasoning",
+    desc: "towers, tunnels, and tiny cities — turning boxes and tape into buildings that test gravity and imagination",
     sort: 2,
   },
   {
     title: "kitchen explorers",
     icon: "🍳",
-    desc: "cooking, sensory, measurement, chemistry-through-baking",
+    desc: "measuring, mixing, tasting, and discovering why bread rises — chemistry you can eat",
     sort: 3,
   },
   {
     title: "sidewalk neighbors",
     icon: "🏘️",
-    desc: "social play, community, negotiation, public space",
+    desc: "chalk maps, trading games, and front-yard invitations — play that turns strangers into friends",
     sort: 4,
   },
   {
     title: "rhythm makers",
     icon: "🥁",
-    desc: "sound, music, pattern, movement",
+    desc: "drums from tins, shakers from rice, dances from nowhere — finding the beat in everything around you",
     sort: 5,
   },
   {
     title: "tiny engineers",
     icon: "⚙️",
-    desc: "mechanisms, cause-and-effect, tinkering",
+    desc: "pulleys, levers, ramps, and rubber bands — figuring out how things work by taking them apart and building new ones",
     sort: 6,
   },
 ];

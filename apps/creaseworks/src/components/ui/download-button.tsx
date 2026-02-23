@@ -53,7 +53,7 @@ export default function DownloadButton({
         disabled={loading}
         className="inline-flex items-center gap-2 rounded-lg bg-cadet px-4 py-2 text-sm text-champagne font-medium hover:bg-cadet/90 transition-colors disabled:opacity-50"
       >
-        {loading ? "generating pdf…" : "download pattern card"}
+        {loading ? "generating pdf…" : "download playdate card"}
       </button>
 
       {error && (

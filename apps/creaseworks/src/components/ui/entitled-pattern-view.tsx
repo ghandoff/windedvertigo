@@ -23,49 +23,73 @@ export default function EntitledPatternView({
         <p className="text-lg text-cadet/60">{pattern.headline}</p>
       )}
 
-      {/* at a glance */}
+      {/* at a glance — playful, parent-readable summary */}
       <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6">
-        <h2 className="text-sm font-semibold text-cadet/80 mb-3">
-          at a glance
+        <h2 className="text-sm font-semibold text-cadet/80 mb-4">
+          before you begin
         </h2>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {pattern.primary_function && (
-            <>
-              <dt className="text-cadet/50">function</dt>
-              <dd>{pattern.primary_function}</dd>
-            </>
+            <div className="flex items-start gap-2.5">
+              <span className="text-base leading-none mt-px">🎯</span>
+              <div>
+                <p className="text-cadet/45 text-xs font-medium">what&apos;s it about</p>
+                <p className="text-cadet/80">{pattern.primary_function}</p>
+              </div>
+            </div>
           )}
           {pattern.friction_dial !== null && (
-            <>
-              <dt className="text-cadet/50" title="how much back-and-forth the activity needs — 1 is chill, 5 is intense">friction dial</dt>
-              <dd>{pattern.friction_dial} / 5</dd>
-            </>
+            <div className="flex items-start gap-2.5">
+              <span className="text-base leading-none mt-px">🎚️</span>
+              <div>
+                <p className="text-cadet/45 text-xs font-medium">energy level</p>
+                <p className="text-cadet/80">
+                  {pattern.friction_dial <= 2
+                    ? `chill (${pattern.friction_dial}/5)`
+                    : pattern.friction_dial <= 3
+                      ? `medium (${pattern.friction_dial}/5)`
+                      : `high energy (${pattern.friction_dial}/5)`}
+                </p>
+              </div>
+            </div>
           )}
           {pattern.start_in_120s && (
-            <>
-              <dt className="text-cadet/50">quick start</dt>
-              <dd>ready in 2 minutes</dd>
-            </>
+            <div className="flex items-start gap-2.5">
+              <span className="text-base leading-none mt-px">⚡</span>
+              <div>
+                <p className="text-cadet/45 text-xs font-medium">setup time</p>
+                <p className="text-cadet/80">ready in under 2 minutes</p>
+              </div>
+            </div>
           )}
           {(pattern.arc_emphasis as string[])?.length > 0 && (
-            <>
-              <dt className="text-cadet/50">focus</dt>
-              <dd>{(pattern.arc_emphasis as string[]).join(", ")}</dd>
-            </>
+            <div className="flex items-start gap-2.5">
+              <span className="text-base leading-none mt-px">🌱</span>
+              <div>
+                <p className="text-cadet/45 text-xs font-medium">what kids practise</p>
+                <p className="text-cadet/80">{(pattern.arc_emphasis as string[]).join(", ")}</p>
+              </div>
+            </div>
           )}
           {(pattern.required_forms as string[])?.length > 0 && (
-            <>
-              <dt className="text-cadet/50">shapes needed</dt>
-              <dd>{(pattern.required_forms as string[]).join(", ")}</dd>
-            </>
+            <div className="flex items-start gap-2.5">
+              <span className="text-base leading-none mt-px">✂️</span>
+              <div>
+                <p className="text-cadet/45 text-xs font-medium">you&apos;ll need to make</p>
+                <p className="text-cadet/80">{(pattern.required_forms as string[]).join(", ")}</p>
+              </div>
+            </div>
           )}
           {(pattern.slots_optional as string[])?.length > 0 && (
-            <>
-              <dt className="text-cadet/50">nice to have</dt>
-              <dd>{(pattern.slots_optional as string[]).join(", ")}</dd>
-            </>
+            <div className="flex items-start gap-2.5">
+              <span className="text-base leading-none mt-px">🧩</span>
+              <div>
+                <p className="text-cadet/45 text-xs font-medium">bonus if you have</p>
+                <p className="text-cadet/80">{(pattern.slots_optional as string[]).join(", ")}</p>
+              </div>
+            </div>
           )}
-        </dl>
+        </div>
       </section>
 
       {/* rails sentence */}
