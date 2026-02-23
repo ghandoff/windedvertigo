@@ -9,8 +9,10 @@
    the app uses a light background with cadet text by default.     */
 
 :root {
-  --background: var(--wv-white);
+  --background: #fffbf7;            /* warm linen — barely off-white  */
   --foreground: var(--wv-cadet);
+  --shadow-soft: 0 1px 3px rgba(39, 50, 72, 0.06);
+  --shadow-warm: 0 2px 8px rgba(203, 120, 88, 0.08);
 }
 
 @theme inline {
@@ -21,6 +23,8 @@
   --color-sienna: var(--wv-sienna);
   --color-champagne: var(--wv-champagne);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --shadow-soft: 0 1px 3px rgba(39, 50, 72, 0.06);
+  --shadow-warm: 0 2px 8px rgba(203, 120, 88, 0.08);
 }
 
 /* ── base styles ──────────────────────────────────────────────── */
@@ -65,3 +69,8 @@ p, li, dd {
 .skip-link:focus {
   top: 0;
 }
+
+/* ── warm shadow utilities ──────────────────────────────────────── */
+
+.shadow-soft { box-shadow: var(--shadow-soft); }
+.shadow-warm { box-shadow: var(--shadow-warm); }

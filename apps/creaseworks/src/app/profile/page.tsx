@@ -22,6 +22,8 @@ import PackCard from "@/components/ui/pack-card";
 import TeamManager from "@/app/team/team-manager";
 import DomainVerifier from "@/app/team/domain-verifier";
 import AnalyticsDashboard from "@/app/analytics/analytics-dashboard";
+import TierCard, { TIERS } from "@/components/ui/tier-card";
+import type { TierState } from "@/components/ui/tier-card";
 import ProfileManageToggle from "./manage-toggle";
 
 export const dynamic = "force-dynamic";
@@ -120,6 +122,43 @@ export default async function ProfilePage({
           </div>
         </div>
       </div>
+
+      {/* ---- your journey — tier cards ----------------------------- */}
+      <section className="mb-12">
+        <h2 className="text-lg font-semibold tracking-tight mb-1">your journey</h2>
+        <p className="text-sm text-cadet/40 mb-5">
+          where you are and where you could go.
+        </p>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {TIERS.map((tier) => {
+            let state: TierState;
+            if (tierLabel === "admin" || tierLabel === "collective") {
+              /* admin + collective see everything — collective is "current" */
+              state = tier.key === "collective" ? "current" : "current";
+            } else if (tierLabel === "entitled") {
+              /* entitled users own at least one pack — mark sampler + explorer
+                 as unlocked, practitioner as current, collective as available */
+              if (tier.key === "sampler" || tier.key === "explorer") {
+                state = "current";
+              } else if (tier.key === "practitioner") {
+                state = "current";
+              } else {
+                state = "available";
+              }
+            } else {
+              /* sampler — free tier */
+              if (tier.key === "sampler") {
+                state = "current";
+              } else {
+                state = "available";
+              }
+            }
+            return (
+              <TierCard key={tier.key} tier={tier} state={state} />
+            );
+          })}
+        </div>
+      </section>
 
       {/* ---- my packs — treasure box section ----------------------- */}
       <section className="mb-12">
