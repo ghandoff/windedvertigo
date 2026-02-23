@@ -8,6 +8,7 @@ import { sql } from "@/lib/db";
 import {
   PATTERN_TEASER_COLUMNS,
   PATTERN_ENTITLED_COLUMNS,
+  PATTERN_COLLECTIVE_COLUMNS,
   columnsToSql,
 } from "@/lib/security/column-selectors";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
@@ -99,6 +100,78 @@ export async function getPackPatternsEntitled(packCacheId: string) {
   );
   assertNoLeakedFields(result.rows, "entitled");
   return result.rows;
+}
+
+/**
+ * Fetch collective-tier patterns belonging to a pack.
+ * Includes design rationale, developmental notes, author notes.
+ * No status filter — collective can see drafts.
+ * Caller must verify isInternal before calling.
+ */
+export async function getPackPatternsCollective(packCacheId: string) {
+  const cols = PATTERN_COLLECTIVE_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const result = await sql.query(
+    `SELECT ${cols},
+       (p.find_again_mode IS NOT NULL) AS has_find_again
+     FROM patterns_cache p
+     JOIN pack_patterns pp ON pp.pattern_id = p.id
+     WHERE pp.pack_id = $1
+     ORDER BY p.title ASC`,
+    [packCacheId],
+  );
+  assertNoLeakedFields(result.rows, "collective");
+  return result.rows;
+}
+
+/**
+ * Collective: fetch all packs regardless of visibility or status.
+ * Includes non-visible and draft packs.
+ * Caller must verify isInternal before calling.
+ */
+export async function getAllPacks() {
+  const result = await sql.query(
+    `SELECT
+       pc.id,
+       pc.slug,
+       pc.title,
+       pc.description,
+       pc.status,
+       cat.price_cents,
+       cat.currency,
+       cat.visible,
+       (SELECT COUNT(*) FROM pack_patterns pp WHERE pp.pack_id = pc.id) AS pattern_count
+     FROM packs_cache pc
+     LEFT JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
+     WHERE pc.slug IS NOT NULL
+     ORDER BY pc.title ASC`,
+  );
+  return result.rows;
+}
+
+/**
+ * Collective: fetch a single pack by slug (no status filter).
+ * Caller must verify isInternal before calling.
+ */
+export async function getPackBySlugCollective(slug: string) {
+  const result = await sql.query(
+    `SELECT
+       pc.id,
+       pc.slug,
+       pc.title,
+       pc.description,
+       pc.status,
+       cat.id AS catalogue_id,
+       cat.price_cents,
+       cat.currency,
+       cat.visible,
+       (SELECT COUNT(*) FROM pack_patterns pp WHERE pp.pack_id = pc.id) AS pattern_count
+     FROM packs_cache pc
+     LEFT JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
+     WHERE pc.slug = $1
+     LIMIT 1`,
+    [slug],
+  );
+  return result.rows[0] ?? null;
 }
 
 /**

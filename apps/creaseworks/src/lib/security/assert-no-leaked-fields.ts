@@ -17,6 +17,12 @@ const INTERNAL_ONLY_FIELDS = new Set([
   "do_not_use_reason",
 ]);
 
+const COLLECTIVE_ONLY_FIELDS = new Set([
+  "design_rationale",
+  "developmental_notes",
+  "author_notes",
+]);
+
 const ENTITLED_ONLY_FIELDS = new Set([
   "slots_optional",
   "slots_notes",
@@ -36,7 +42,7 @@ const ENTITLED_ONLY_FIELDS = new Set([
   "source",
 ]);
 
-type Tier = "teaser" | "entitled" | "internal";
+type Tier = "teaser" | "entitled" | "collective" | "internal";
 
 export function assertNoLeakedFields(
   rows: Record<string, unknown>[],
@@ -49,8 +55,12 @@ export function assertNoLeakedFields(
 
   if (tier === "teaser") {
     INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+    COLLECTIVE_ONLY_FIELDS.forEach((f) => forbidden.add(f));
     ENTITLED_ONLY_FIELDS.forEach((f) => forbidden.add(f));
   } else if (tier === "entitled") {
+    INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+    COLLECTIVE_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+  } else if (tier === "collective") {
     INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
   }
   // internal tier → nothing is forbidden

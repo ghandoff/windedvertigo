@@ -30,7 +30,7 @@ export default function NavBar() {
 
   const authedLinks = session?.user ? (
     <>
-      <NavLink href="/runs" onClick={close}>runs</NavLink>
+      <NavLink href="/playbook" onClick={close}>playbook</NavLink>
       <NavLink href="/team" onClick={close}>team</NavLink>
       <NavLink href="/analytics" onClick={close}>analytics</NavLink>
       {session?.isAdmin && (

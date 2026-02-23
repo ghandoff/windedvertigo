@@ -34,6 +34,9 @@ interface PatternRow {
   findAgainMode: string | null;
   findAgainPrompt: string | null;
   substitutionsNotes: string | null;
+  designRationale: string | null;
+  developmentalNotes: string | null;
+  authorNotes: string | null;
   lastEdited: string;
   materialRelationIds: string[];
 }
@@ -65,6 +68,9 @@ function parsePatternPage(page: any): PatternRow {
     findAgainMode: extractSelect(props, "find again mode"),
     findAgainPrompt: extractRichText(props, "find again prompt"),
     substitutionsNotes: extractRichText(props, "substitutions notes"),
+    designRationale: extractRichText(props, "design rationale"),
+    developmentalNotes: extractRichText(props, "developmental notes"),
+    authorNotes: extractRichText(props, "author notes"),
     lastEdited: extractLastEdited(page),
     materialRelationIds: extractRelationIds(props, "materials"),
   };
@@ -88,8 +94,9 @@ export async function syncPatterns() {
         primary_function, arc_emphasis, context_tags, friction_dial,
         start_in_120s, required_forms, slots_optional, slots_notes,
         rails_sentence, find, fold, unfold, find_again_mode,
-        find_again_prompt, substitutions_notes, notion_last_edited,
-        synced_at, slug
+        find_again_prompt, substitutions_notes,
+        design_rationale, developmental_notes, author_notes,
+        notion_last_edited, synced_at, slug
       ) VALUES (
         ${row.notionId}, ${row.title}, ${row.headline},
         ${row.releaseChannel}, ${row.ipTier}, ${row.status},
@@ -99,8 +106,9 @@ export async function syncPatterns() {
         ${JSON.stringify(row.slotsOptional)}, ${row.slotsNotes},
         ${row.railsSentence}, ${row.find}, ${row.fold}, ${row.unfold},
         ${row.findAgainMode}, ${row.findAgainPrompt},
-        ${row.substitutionsNotes}, ${row.lastEdited},
-        NOW(), ${makeSlug(row.title)}
+        ${row.substitutionsNotes},
+        ${row.designRationale}, ${row.developmentalNotes}, ${row.authorNotes},
+        ${row.lastEdited}, NOW(), ${makeSlug(row.title)}
       )
       ON CONFLICT (notion_id) DO UPDATE SET
         title = EXCLUDED.title,
@@ -123,6 +131,9 @@ export async function syncPatterns() {
         find_again_mode = EXCLUDED.find_again_mode,
         find_again_prompt = EXCLUDED.find_again_prompt,
         substitutions_notes = EXCLUDED.substitutions_notes,
+        design_rationale = EXCLUDED.design_rationale,
+        developmental_notes = EXCLUDED.developmental_notes,
+        author_notes = EXCLUDED.author_notes,
         notion_last_edited = EXCLUDED.notion_last_edited,
         synced_at = NOW()
     `;

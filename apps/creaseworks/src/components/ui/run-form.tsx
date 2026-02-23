@@ -72,6 +72,7 @@ export default function RunForm({
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [whatChanged, setWhatChanged] = useState("");
   const [nextIteration, setNextIteration] = useState("");
+  const [isFindAgain, setIsFindAgain] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
   const [materialSearch, setMaterialSearch] = useState("");
 
@@ -104,13 +105,14 @@ export default function RunForm({
           materialIds: selectedMaterials,
           whatChanged: whatChanged.trim() || null,
           nextIteration: nextIteration.trim() || null,
+          isFindAgain,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "failed to create run");
 
-      router.push("/runs");
+      router.push("/playbook");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -209,6 +211,19 @@ export default function RunForm({
             ))}
           </select>
         </div>
+
+        {/* find again toggle — quiet, only relevant when a pattern is linked */}
+        {patternId && (
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-cadet/60 pt-1">
+            <input
+              type="checkbox"
+              checked={isFindAgain}
+              onChange={(e) => setIsFindAgain(e.target.checked)}
+              className="rounded"
+            />
+            this was a find again moment
+          </label>
+        )}
       </div>
 
       {/* optional section — collapsible */}
@@ -402,7 +417,7 @@ export default function RunForm({
         </button>
         <button
           type="button"
-          onClick={() => router.push("/runs")}
+          onClick={() => router.push("/playbook")}
           className="rounded-lg px-6 py-2.5 text-sm font-medium transition-all hover:opacity-70"
           style={{ color: "var(--wv-cadet)" }}
         >

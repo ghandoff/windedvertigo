@@ -2,11 +2,12 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-helpers";
-import { getPackBySlug, isPatternInPack } from "@/lib/queries/packs";
+import { getPackBySlug, getPackBySlugCollective, isPatternInPack } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
 import {
   getEntitledPatternBySlug,
+  getCollectivePatternBySlug,
   getTeaserMaterialsForPattern,
 } from "@/lib/queries/patterns";
 import EntitledPatternView from "@/components/ui/entitled-pattern-view";
@@ -21,16 +22,21 @@ export default async function EntitledPatternPage({ params }: Props) {
   const session = await requireAuth();
   const { slug: packSlug, patternSlug } = await params;
 
-  // resolve pack
-  const pack = await getPackBySlug(packSlug);
+  // resolve pack — collective can see draft packs
+  const pack = session.isInternal
+    ? await getPackBySlugCollective(packSlug)
+    : await getPackBySlug(packSlug);
   if (!pack) return notFound();
 
-  // check entitlement
-  const isEntitled = await checkEntitlement(session.orgId, pack.id);
+  // check entitlement — collective auto-entitled
+  const isEntitled =
+    session.isInternal || (await checkEntitlement(session.orgId, pack.id));
   if (!isEntitled) return notFound();
 
-  // resolve pattern
-  const pattern = await getEntitledPatternBySlug(patternSlug);
+  // resolve pattern — collective gets extra fields + can see drafts
+  const pattern = session.isInternal
+    ? await getCollectivePatternBySlug(patternSlug)
+    : await getEntitledPatternBySlug(patternSlug);
   if (!pattern) return notFound();
 
   // verify pattern belongs to this pack
@@ -50,6 +56,9 @@ export default async function EntitledPatternPage({ params }: Props) {
     "find_again_prompt",
     "slots_notes",
     "substitutions_notes",
+    ...(session.isInternal
+      ? ["design_rationale", "developmental_notes", "author_notes"]
+      : []),
   ].filter((f) => pattern[f] != null);
 
   const hdrs = await headers();
@@ -59,7 +68,7 @@ export default async function EntitledPatternPage({ params }: Props) {
     session.orgId,
     pattern.id,
     pack.id,
-    "view_entitled",
+    session.isInternal ? "view_collective" : "view_entitled",
     ip,
     fieldsAccessed,
   );

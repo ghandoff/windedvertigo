@@ -45,6 +45,8 @@ export interface CreateRunInput {
   whatChanged: string | null;
   nextIteration: string | null;
   materialIds: string[];
+  /** Flag this run as a "find again" moment — playbook badge tier */
+  isFindAgain?: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -267,8 +269,8 @@ export async function createRun(
     `INSERT INTO runs_cache
        (notion_id, title, pattern_notion_id, run_type, run_date,
         context_tags, trace_evidence, what_changed, next_iteration,
-        created_by, org_id, source)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'app')
+        created_by, org_id, source, is_find_again)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'app', $12)
      RETURNING id`,
     [
       appNotionId,
@@ -282,6 +284,7 @@ export async function createRun(
       input.nextIteration || null,
       session.userId,
       session.orgId,
+      input.isFindAgain ?? false,
     ],
   );
 
@@ -353,6 +356,11 @@ export async function updateRun(
   if (input.nextIteration !== undefined) {
     sets.push(`next_iteration = $${idx++}`);
     params.push(input.nextIteration || null);
+  }
+
+  if (input.isFindAgain !== undefined) {
+    sets.push(`is_find_again = $${idx++}`);
+    params.push(input.isFindAgain);
   }
 
   if (input.patternId !== undefined) {

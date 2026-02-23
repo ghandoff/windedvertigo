@@ -185,6 +185,51 @@ export default function EntitledPatternView({
           patternTitle={pattern.title}
         />
       </section>
+
+      {/* ── collective-only sections ── */}
+      {/* these fields are only present when fetched at collective tier */}
+      {(pattern.design_rationale ||
+        pattern.developmental_notes ||
+        pattern.author_notes) && (
+        <div className="mt-8 space-y-6 border-t-2 border-dashed border-cadet/20 pt-8">
+          <p className="text-xs font-semibold text-cadet/40 uppercase tracking-wider">
+            behind the curtain
+          </p>
+
+          {pattern.design_rationale && (
+            <section className="rounded-xl border border-cadet/15 bg-cadet/5 p-6">
+              <h2 className="text-sm font-semibold text-cadet/80 mb-2">
+                why this playdate
+              </h2>
+              <p className="text-sm text-cadet/70 whitespace-pre-line">
+                {pattern.design_rationale}
+              </p>
+            </section>
+          )}
+
+          {pattern.developmental_notes && (
+            <section className="rounded-xl border border-cadet/15 bg-cadet/5 p-6">
+              <h2 className="text-sm font-semibold text-cadet/80 mb-2">
+                what to look for
+              </h2>
+              <p className="text-sm text-cadet/70 whitespace-pre-line">
+                {pattern.developmental_notes}
+              </p>
+            </section>
+          )}
+
+          {pattern.author_notes && (
+            <section className="rounded-xl border border-cadet/15 bg-cadet/5 p-6">
+              <h2 className="text-sm font-semibold text-cadet/80 mb-2">
+                notes from us
+              </h2>
+              <p className="text-sm text-cadet/70 whitespace-pre-line">
+                {pattern.author_notes}
+              </p>
+            </section>
+          )}
+        </div>
+      )}
     </div>
   );
 }

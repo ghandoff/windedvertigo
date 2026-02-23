@@ -38,9 +38,17 @@ export const PATTERN_ENTITLED_COLUMNS = [
   "substitutions_notes",
 ] as const;
 
+/** Collective tier — windedvertigo.com team. Entitled + design context. */
+export const PATTERN_COLLECTIVE_COLUMNS = [
+  ...PATTERN_ENTITLED_COLUMNS,
+  "design_rationale",
+  "developmental_notes",
+  "author_notes",
+] as const;
+
 /** Internal-only — admin dashboard. Includes everything. */
 export const PATTERN_INTERNAL_COLUMNS = [
-  ...PATTERN_ENTITLED_COLUMNS,
+  ...PATTERN_COLLECTIVE_COLUMNS,
   "ip_tier",
   "notion_id",
   "notion_last_edited",

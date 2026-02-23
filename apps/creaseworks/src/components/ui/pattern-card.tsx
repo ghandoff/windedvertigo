@@ -1,5 +1,18 @@
 import Link from "next/link";
 
+export type ProgressTier =
+  | "tried_it"
+  | "found_something"
+  | "folded_unfolded"
+  | "found_again";
+
+const TIER_BADGE: Record<ProgressTier, { label: string; className: string }> = {
+  tried_it:        { label: "◎", className: "bg-cadet/10 text-cadet/40" },
+  found_something: { label: "◉", className: "bg-champagne/60 text-cadet/50" },
+  folded_unfolded:  { label: "◉◉", className: "bg-sienna/20 text-sienna" },
+  found_again:     { label: "★", className: "bg-redwood/15 text-redwood" },
+};
+
 interface PatternCardProps {
   slug: string;
   title: string;
@@ -10,6 +23,10 @@ interface PatternCardProps {
   frictionDial: number | null;
   startIn120s: boolean;
   hasFindAgain?: boolean;
+  /** Optional: user's progress tier on this pattern (playbook pages only) */
+  progressTier?: ProgressTier | null;
+  /** Override the link href (e.g. for collection context) */
+  href?: string;
 }
 
 export function PatternCard({
@@ -22,12 +39,24 @@ export function PatternCard({
   frictionDial,
   startIn120s,
   hasFindAgain,
+  progressTier,
+  href,
 }: PatternCardProps) {
+  const badge = progressTier ? TIER_BADGE[progressTier] : null;
+
   return (
     <Link
-      href={`/sampler/${slug}`}
-      className="block rounded-xl border border-cadet/10 bg-white p-6 shadow-sm hover:shadow-md hover:border-sienna/40 transition-all"
+      href={href ?? `/sampler/${slug}`}
+      className="relative block rounded-xl border border-cadet/10 bg-white p-6 shadow-sm hover:shadow-md hover:border-sienna/40 transition-all"
     >
+      {badge && (
+        <span
+          className={`absolute top-3 right-3 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${badge.className}`}
+          title={progressTier?.replace(/_/g, " ") ?? ""}
+        >
+          {badge.label}
+        </span>
+      )}
       <h2 className="text-lg font-semibold text-cadet mb-1">{title}</h2>
 
       {headline && (

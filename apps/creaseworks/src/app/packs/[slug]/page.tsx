@@ -2,7 +2,13 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-helpers";
-import { getPackBySlug, getPackPatterns, getPackPatternsEntitled } from "@/lib/queries/packs";
+import {
+  getPackBySlug,
+  getPackBySlugCollective,
+  getPackPatterns,
+  getPackPatternsEntitled,
+  getPackPatternsCollective,
+} from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
 import PurchaseButton from "@/components/ui/purchase-button";
@@ -16,14 +22,22 @@ interface Props {
 export default async function PackDetailPage({ params }: Props) {
   const session = await requireAuth();
   const { slug } = await params;
-  const pack = await getPackBySlug(slug);
+
+  // collective members can see all packs (including drafts/non-visible)
+  const pack = session.isInternal
+    ? await getPackBySlugCollective(slug)
+    : await getPackBySlug(slug);
 
   if (!pack) return notFound();
 
-  const isEntitled = await checkEntitlement(session.orgId, pack.id);
+  // collective → auto-entitled to everything
+  // otherwise → check per-pack entitlement
+  const isCollective = session.isInternal && !session.isAdmin;
+  const isEntitled =
+    session.isInternal || (await checkEntitlement(session.orgId, pack.id));
 
   if (isEntitled) {
-    // log entitled access (M1: capture IP via server component headers)
+    // log access
     const hdrs = await headers();
     const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
     await logAccess(
@@ -31,12 +45,15 @@ export default async function PackDetailPage({ params }: Props) {
       session.orgId,
       null,
       pack.id,
-      "view_entitled",
+      session.isInternal ? "view_collective" : "view_entitled",
       ip,
       [],
     );
 
-    const patterns = await getPackPatternsEntitled(pack.id);
+    // collective gets extra fields + draft patterns; entitled gets standard
+    const patterns = session.isInternal
+      ? await getPackPatternsCollective(pack.id)
+      : await getPackPatternsEntitled(pack.id);
 
     return (
       <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
@@ -47,12 +64,27 @@ export default async function PackDetailPage({ params }: Props) {
           &larr; back to packs
         </Link>
 
+        {/* collective indicator */}
+        {isCollective && (
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cadet/20 bg-cadet/5 px-3 py-1 text-xs text-cadet/60">
+            <span className="inline-block w-2 h-2 rounded-full bg-sienna" />
+            collective view
+          </div>
+        )}
+
         <h1 className="text-3xl font-semibold tracking-tight mb-2">
           {pack.title}
         </h1>
 
         {pack.description && (
           <p className="text-lg text-cadet/60 mb-8">{pack.description}</p>
+        )}
+
+        {/* draft status warning */}
+        {pack.status !== "ready" && (
+          <div className="mb-6 rounded-lg border border-sienna/30 bg-sienna/5 px-4 py-2 text-sm text-sienna">
+            this pack is still in draft — not visible to clients yet.
+          </div>
         )}
 
         <section>
@@ -66,7 +98,14 @@ export default async function PackDetailPage({ params }: Props) {
                 href={`/packs/${slug}/patterns/${p.slug}`}
                 className="block rounded-xl border border-cadet/10 bg-white p-4 hover:shadow-md hover:border-sienna/40 transition-all"
               >
-                <h3 className="font-medium">{p.title}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium">{p.title}</h3>
+                  {p.status !== "ready" && (
+                    <span className="rounded-full bg-sienna/10 text-sienna px-2 py-0.5 text-xs font-medium">
+                      draft
+                    </span>
+                  )}
+                </div>
                 {p.headline && (
                   <p className="text-sm text-cadet/60 mt-1">{p.headline}</p>
                 )}
@@ -76,7 +115,7 @@ export default async function PackDetailPage({ params }: Props) {
                       {p.primary_function}
                     </span>
                   )}
-                  {p.find_again_mode && (
+                  {(p.find_again_mode || p.has_find_again) && (
                     <span className="rounded-full bg-redwood/10 text-redwood px-2 py-0.5">
                       find again
                     </span>
@@ -90,7 +129,7 @@ export default async function PackDetailPage({ params }: Props) {
     );
   }
 
-  // not entitled â show teaser + CTA
+  // not entitled — show teaser + CTA
   const patterns = await getPackPatterns(pack.id);
 
   return (

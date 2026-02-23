@@ -2,6 +2,7 @@ import { sql } from "@/lib/db";
 import {
   PATTERN_TEASER_COLUMNS,
   PATTERN_ENTITLED_COLUMNS,
+  PATTERN_COLLECTIVE_COLUMNS,
   columnsToSql,
 } from "@/lib/security/column-selectors";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
@@ -77,6 +78,25 @@ export async function getEntitledPatternById(id: string) {
     [id],
   );
   assertNoLeakedFields(result.rows, "entitled");
+  return result.rows[0] ?? null;
+}
+
+/**
+ * Fetch a single pattern by slug at collective tier.
+ * Includes design rationale, developmental notes, and author notes.
+ * No status filter — collective can see drafts.
+ * Caller must verify isInternal before calling.
+ */
+export async function getCollectivePatternBySlug(slug: string) {
+  const cols = columnsToSql(PATTERN_COLLECTIVE_COLUMNS);
+  const result = await sql.query(
+    `SELECT ${cols}
+     FROM patterns_cache
+     WHERE slug = $1
+     LIMIT 1`,
+    [slug],
+  );
+  assertNoLeakedFields(result.rows, "collective");
   return result.rows[0] ?? null;
 }
 

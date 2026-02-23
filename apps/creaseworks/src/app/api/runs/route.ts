@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { title, patternId, runType, runDate, contextTags, traceEvidence, whatChanged, nextIteration, materialIds } = body;
+  const { title, patternId, runType, runDate, contextTags, traceEvidence, whatChanged, nextIteration, materialIds, isFindAgain } = body;
 
   // Validate required fields
   if (!title || typeof title !== "string" || !title.trim()) {
@@ -97,6 +97,7 @@ export async function POST(req: NextRequest) {
         whatChanged: whatChanged || null,
         nextIteration: nextIteration || null,
         materialIds: sanitiseStringArray(materialIds, MAX_LENGTHS.arrayMax, MAX_LENGTHS.uuid),
+        isFindAgain: isFindAgain === true,
       },
       session,
     );
