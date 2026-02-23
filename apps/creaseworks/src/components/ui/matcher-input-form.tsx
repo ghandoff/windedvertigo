@@ -512,7 +512,7 @@ export default function MatcherInputForm({
         {/* ---- context constraints ---- */}
         <FilterSection
           title="where are you playing?"
-          subtitle="we'll only show ideas that work in all of these."
+          subtitle="we'll only show playdates that work in all of these."
           selectedCount={selectedContexts.size}
           defaultOpen={true}
         >
@@ -535,7 +535,7 @@ export default function MatcherInputForm({
         {slots.length > 0 && (
           <FilterSection
             title="time and space (optional)"
-            subtitle="we'll bump up ideas that fit these."
+            subtitle="we'll bump up playdates that fit these."
             selectedCount={selectedSlots.size}
             defaultOpen={false}
           >
@@ -568,7 +568,7 @@ export default function MatcherInputForm({
               color: "var(--wv-white)",
             }}
           >
-            {loading ? "matching…" : "find ideas"}
+            {loading ? "matching…" : "find playdates"}
           </button>
 
           {hasSelection && (
@@ -615,7 +615,7 @@ export default function MatcherInputForm({
           {loading
             ? "matching…"
             : hasSelection
-              ? `find ideas (${totalSelections} filter${totalSelections !== 1 ? "s" : ""})`
+              ? `find playdates (${totalSelections} filter${totalSelections !== 1 ? "s" : ""})`
               : "select filters to start"}
         </button>
 
@@ -646,14 +646,14 @@ export default function MatcherInputForm({
               className="text-lg sm:text-xl font-semibold tracking-tight mb-1"
               style={{ color: "var(--wv-cadet)" }}
             >
-              {results.ranked.length} idea
+              {results.ranked.length} playdate
               {results.ranked.length !== 1 ? "s" : ""} found
             </h2>
             <p
               className="text-xs"
               style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
             >
-              searched {results.meta.totalCandidates} ideas
+              searched {results.meta.totalCandidates} playdates
               {results.meta.contextFiltersApplied.length > 0 &&
                 ` · ${results.meta.totalAfterFilter} fit your setting (${results.meta.contextFiltersApplied.join(", ")})`}
             </p>

@@ -37,7 +37,7 @@ export default async function LoginPage({
             creaseworks
           </h1>
           <p className="text-sm" style={{ color: "var(--wv-cadet)", opacity: 0.7 }}>
-            play ideas that use what you already have
+            playdates that use what you already have
           </p>
         </div>
 

@@ -37,7 +37,7 @@ export default function EntitledPatternView({
           )}
           {pattern.friction_dial !== null && (
             <>
-              <dt className="text-cadet/50">effort</dt>
+              <dt className="text-cadet/50" title="how much back-and-forth the activity needs — 1 is chill, 5 is intense">friction dial</dt>
               <dd>{pattern.friction_dial} / 5</dd>
             </>
           )}
@@ -89,7 +89,7 @@ export default function EntitledPatternView({
         {pattern.find && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
             <h3 className="text-xs font-bold text-redwood uppercase tracking-wider mb-2">
-              notice
+              find
             </h3>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
               {pattern.find}
@@ -100,7 +100,7 @@ export default function EntitledPatternView({
         {pattern.fold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
             <h3 className="text-xs font-bold text-sienna uppercase tracking-wider mb-2">
-              make
+              fold
             </h3>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
               {pattern.fold}
@@ -111,7 +111,7 @@ export default function EntitledPatternView({
         {pattern.unfold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
             <h3 className="text-xs font-bold text-cadet uppercase tracking-wider mb-2">
-              look again
+              unfold
             </h3>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
               {pattern.unfold}
@@ -124,7 +124,7 @@ export default function EntitledPatternView({
       {pattern.find_again_mode && (
         <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-6">
           <h2 className="text-sm font-semibold text-redwood mb-2">
-            spot it again — {pattern.find_again_mode}
+            find again — {pattern.find_again_mode}
           </h2>
           {pattern.find_again_prompt && (
             <p className="text-sm text-cadet/80 whitespace-pre-line">

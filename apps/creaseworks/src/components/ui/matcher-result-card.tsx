@@ -149,7 +149,7 @@ export default function MatcherResultCard({
             className="text-xs px-1"
             style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
           >
-            effort {pattern.frictionDial}/5
+            friction {pattern.frictionDial}/5
           </span>
         )}
         {pattern.hasFindAgain &&
@@ -161,7 +161,7 @@ export default function MatcherResultCard({
                 color: "var(--wv-redwood)",
               }}
             >
-              spot it again: {pattern.findAgainMode}
+              find again: {pattern.findAgainMode}
             </span>
           ) : (
             <span
@@ -171,7 +171,7 @@ export default function MatcherResultCard({
                 color: "var(--wv-sienna)",
               }}
             >
-              spot it again
+              includes find again
             </span>
           ))}
       </div>
@@ -332,7 +332,7 @@ export default function MatcherResultCard({
                     minHeight: 44,
                   }}
                 >
-                  see the full idea →
+                  see full playdate →
                 </Link>
               ))
             : pattern.packSlugs.map((slug) => (
@@ -347,7 +347,7 @@ export default function MatcherResultCard({
                     minHeight: 44,
                   }}
                 >
-                  get the kit →
+                  get the pack →
                 </Link>
               ))}
         </div>

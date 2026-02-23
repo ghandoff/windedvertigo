@@ -52,12 +52,12 @@ export function PatternCard({
 
       <div className="flex items-center gap-3 text-xs text-cadet/50">
         {frictionDial !== null && (
-          <span>effort: {frictionDial}/5</span>
+          <span title="how much back-and-forth — 1 is chill, 5 is intense">friction: {frictionDial}/5</span>
         )}
         {startIn120s && <span>ready in 2 min</span>}
         {hasFindAgain && (
           <span className="inline-block rounded-full bg-sienna/10 px-2 py-0.5 text-xs font-medium text-sienna">
-            spot it again
+            find again
           </span>
         )}
       </div>

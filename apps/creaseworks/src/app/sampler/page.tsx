@@ -17,18 +17,18 @@ export default async function SamplerPage() {
           &larr; creaseworks
         </Link>
         <h1 className="text-3xl font-semibold tracking-tight mb-2">
-          idea sampler
+          playdate sampler
         </h1>
         <p className="text-cadet/60 max-w-lg">
-          free previews of every play idea. each card gives you a taste —
-          grab a kit to unlock the full guide, materials list, and
-          &ldquo;spot it again&rdquo; prompts.
+          free previews of every playdate. each card gives you a taste —
+          grab a pack to unlock the full guide, materials list, and
+          find again prompts.
         </p>
       </header>
 
       {patterns.length === 0 ? (
         <p className="text-cadet/40 text-center py-20">
-          no ideas here yet. check back soon.
+          no playdates here yet. check back soon.
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

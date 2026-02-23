@@ -44,7 +44,7 @@ export default async function PackDetailPage({ params }: Props) {
           href="/packs"
           className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
         >
-          &larr; back to kits
+          &larr; back to packs
         </Link>
 
         <h1 className="text-3xl font-semibold tracking-tight mb-2">
@@ -57,7 +57,7 @@ export default async function PackDetailPage({ params }: Props) {
 
         <section>
           <h2 className="text-sm font-semibold text-cadet/80 mb-4">
-            ideas in this kit
+            playdates in this pack
           </h2>
           <div className="space-y-3">
             {patterns.map((p: any) => (
@@ -78,7 +78,7 @@ export default async function PackDetailPage({ params }: Props) {
                   )}
                   {p.find_again_mode && (
                     <span className="rounded-full bg-redwood/10 text-redwood px-2 py-0.5">
-                      spot it again
+                      find again
                     </span>
                   )}
                 </div>
@@ -99,7 +99,7 @@ export default async function PackDetailPage({ params }: Props) {
         href="/packs"
         className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
       >
-        &larr; back to kits
+        &larr; back to packs
       </Link>
 
       <h1 className="text-3xl font-semibold tracking-tight mb-2">
@@ -111,7 +111,7 @@ export default async function PackDetailPage({ params }: Props) {
       )}
 
       <p className="text-sm text-cadet/50 mb-8">
-        {pack.pattern_count} idea{Number(pack.pattern_count) !== 1 ? "s" : ""} included
+        {pack.pattern_count} playdate{Number(pack.pattern_count) !== 1 ? "s" : ""} included
       </p>
 
       {/* pattern teasers */}
@@ -134,7 +134,7 @@ export default async function PackDetailPage({ params }: Props) {
                 )}
                 {p.has_find_again && (
                   <span className="rounded-full bg-redwood/10 text-redwood px-2 py-0.5">
-                    spot it again
+                    find again
                   </span>
                 )}
               </div>
@@ -143,29 +143,29 @@ export default async function PackDetailPage({ params }: Props) {
         </ul>
       </section>
 
-      {/* spot it again CTA */}
+      {/* find again CTA */}
       <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-6 mb-8">
         <h2 className="text-lg font-semibold text-redwood mb-3">
-          you played something. now spot it everywhere.
+          you tried something. now find it again everywhere.
         </h2>
         <p className="text-sm text-cadet/70 mb-3">
-          every creaseworks idea ends with a prompt we call <em>spot it again</em>
-          &nbsp;&mdash; a nudge that helps you and your kids notice the same
-          idea popping up in totally different places.
+          every playdate ends with something we call <em>find again</em>
+          &nbsp;&mdash; a little prompt that helps you notice the same
+          idea showing up in totally different places.
         </p>
         <p className="text-sm text-cadet/70 mb-3">
           maybe it&apos;s the same material doing a new job. maybe it&apos;s the
-          same shape under a tighter constraint. maybe it&apos;s the leap from
+          same shape with a tighter rule. maybe it&apos;s the jump from
           the kitchen table to the walk to school.
         </p>
         <p className="text-sm text-cadet/70 mb-4">
-          that&apos;s when a single activity becomes a way of seeing.
-          it&apos;s included with every idea in <strong>{pack.title}</strong>.
+          that&apos;s when one playdate becomes a way of seeing.
+          it&apos;s included with every playdate in <strong>{pack.title}</strong>.
         </p>
         {/* purchase or contact CTA */}
         {!session.orgId ? (
           <p className="text-sm text-cadet/50">
-            join a team to grab kits.{" "}
+            join a team to grab packs.{" "}
             <a
               href="mailto:garrett@windedvertigo.com"
               className="text-redwood hover:text-sienna underline"

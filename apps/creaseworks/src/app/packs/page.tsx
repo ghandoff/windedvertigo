@@ -11,12 +11,12 @@ export default async function PacksCataloguePage() {
   return (
     <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
       <h1 className="text-3xl font-semibold tracking-tight mb-2">
-        kits
+        packs
       </h1>
       <p className="text-cadet/60 mb-8">
-        each kit is a bundle of play ideas. you get the full step-by-step
-        guide, materials list, and a &ldquo;spot it again&rdquo; prompt for
-        every idea inside. buy once, keep forever.
+        each pack is a bundle of playdates. you get the full step-by-step
+        guide, materials list, and a find again prompt for every playdate
+        inside. buy once, keep forever.
       </p>
 
       {packs.length === 0 ? (
@@ -28,7 +28,7 @@ export default async function PacksCataloguePage() {
             href="/sampler"
             className="mt-4 inline-block text-sm text-redwood hover:text-sienna transition-colors"
           >
-            browse free ideas &rarr;
+            browse free playdates &rarr;
           </Link>
         </div>
       ) : (

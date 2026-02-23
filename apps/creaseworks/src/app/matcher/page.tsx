@@ -50,7 +50,7 @@ export default async function MatcherPage() {
         style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
       >
         tell us what&apos;s around — cardboard, sticks, fabric, whatever —
-        and we&apos;ll find play ideas that work with your stuff.
+        and we&apos;ll find playdates that work with your stuff.
       </p>
 
       <MatcherInputForm

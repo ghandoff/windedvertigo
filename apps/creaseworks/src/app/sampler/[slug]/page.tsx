@@ -28,7 +28,7 @@ export default async function PatternTeaserPage({ params }: Props) {
         href="/sampler"
         className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
       >
-        &larr; back to ideas
+        &larr; back to playdates
       </Link>
 
       <h1 className="text-3xl font-semibold tracking-tight mb-2">
@@ -53,7 +53,7 @@ export default async function PatternTeaserPage({ params }: Props) {
           )}
           {pattern.friction_dial !== null && (
             <>
-              <dt className="text-cadet/50">effort</dt>
+              <dt className="text-cadet/50" title="how much back-and-forth the activity needs — 1 is chill, 5 is intense">friction dial</dt>
               <dd>{pattern.friction_dial} / 5</dd>
             </>
           )}
@@ -104,19 +104,18 @@ export default async function PatternTeaserPage({ params }: Props) {
       {pattern.has_find_again && (
         <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-6">
           <h2 className="text-sm font-semibold text-redwood mb-2">
-            includes &ldquo;spot it again&rdquo;
+            includes find again
           </h2>
           <p className="text-sm text-cadet/70 mb-4">
             after you play, there&apos;s a prompt that helps kids (and you)
             notice the same idea popping up in totally different places.
-            &ldquo;spot it again&rdquo; prompts unlock when you grab the full
-            kit.
+            find again prompts unlock when you grab the full pack.
           </p>
           <Link
             href={pack ? `/packs/${pack.slug}` : "/packs"}
             className="inline-block rounded-lg bg-redwood px-4 py-2 text-sm text-white font-medium hover:bg-sienna transition-colors"
           >
-            {pack ? `get ${pack.title}` : "see kits"}
+            {pack ? `get ${pack.title}` : "see packs"}
           </Link>
         </section>
       )}

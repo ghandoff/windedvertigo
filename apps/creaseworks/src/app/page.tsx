@@ -16,9 +16,9 @@ import type { Metadata } from "next";
  */
 
 export const metadata: Metadata = {
-  title: "creaseworks — play ideas that use what you already have",
+  title: "creaseworks — playdates that use what you already have",
   description:
-    "simple, tested play ideas for parents and teachers. help kids notice the world around them, see possibility everywhere, and make things with whatever's on hand.",
+    "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever's on hand.",
   alternates: { canonical: "https://creaseworks.windedvertigo.com" },
 };
 
@@ -38,15 +38,15 @@ export default function Home() {
           className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight"
           style={{ color: "var(--wv-white)", maxWidth: 800, margin: "0 auto 24px" }}
         >
-          play ideas that use what you already have
+          playdates that use what you already have
         </h1>
 
         <p
           className="text-lg sm:text-xl mb-12 leading-relaxed"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 600, margin: "0 auto 48px" }}
         >
-          simple, tested activities for parents and teachers. help kids notice
-          the world around them, see possibility everywhere, and make things
+          simple, tested playdates for parents, teachers, and kids. notice
+          the world around you, see possibility everywhere, and make things
           with whatever&rsquo;s on hand.
         </p>
 
@@ -56,7 +56,7 @@ export default function Home() {
             className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
             style={{ backgroundColor: "var(--wv-redwood)", color: "var(--wv-white)" }}
           >
-            see free ideas
+            see free playdates
           </Link>
           <Link
             href="/packs"
@@ -67,7 +67,7 @@ export default function Home() {
               backgroundColor: "transparent",
             }}
           >
-            get a kit
+            get a pack
           </Link>
         </div>
       </section>
@@ -84,13 +84,13 @@ export default function Home() {
           className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-center"
           style={{ color: "var(--wv-white)" }}
         >
-          everything you need to start playing
+          everything you need to get started
         </h2>
         <p
           className="text-center mb-12"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 560, margin: "0 auto 48px" }}
         >
-          every idea is a complete kit — not just a concept, but step-by-step
+          every playdate is a complete package — not just a concept, but step-by-step
           instructions so you can jump in right away.
         </p>
 
@@ -98,22 +98,22 @@ export default function Home() {
           <FeatureCard
             icon={<ScriptIcon />}
             title="step-by-step guide"
-            description="a simple three-part activity you can do in under two hours. clear instructions, timing, and tips — no prep degree required."
+            description="a simple three-part playdate you can do in under two hours. clear steps, timing, and tips — no prep degree needed."
           />
           <FeatureCard
             icon={<MaterialsIcon />}
             title="use what you have"
-            description="every idea tells you what to grab — cardboard, tape, sticks, whatever's around. plus easy swaps for when you don't have the exact thing."
+            description="every playdate tells you what to grab — cardboard, tape, sticks, whatever's around. plus easy swaps when you don't have the exact thing."
           />
           <FeatureCard
             icon={<TransferIcon />}
-            title="spot it again"
-            description="the fun part after playing. a prompt that helps kids (and you) notice the same idea popping up in totally different places."
+            title="find again"
+            description="the fun part after playing. a prompt that helps you notice the same idea popping up in totally different places."
           />
           <FeatureCard
             icon={<PdfIcon />}
             title="printable cards"
-            description="download any idea as a handy PDF card. keep it in your bag, stick it on the fridge, or hand it to a babysitter."
+            description="download any playdate as a handy PDF card. keep it in your bag, stick it on the fridge, or hand it to a babysitter."
           />
         </div>
       </section>
@@ -136,18 +136,18 @@ export default function Home() {
         <div className="space-y-8" style={{ maxWidth: 640, margin: "0 auto" }}>
           <Step
             number="1"
-            title="find an idea"
-            description="browse free previews or tell us what you have on hand — we'll suggest activities that work with your stuff."
+            title="find a playdate"
+            description="browse free previews or tell us what you have on hand — we'll find playdates that work with your stuff."
           />
           <Step
             number="2"
-            title="grab a kit"
-            description="kits are bundles of play ideas. buy once and everyone in your family or classroom gets access forever."
+            title="grab a pack"
+            description="packs are bundles of playdates. buy once and everyone in your family or classroom gets access forever."
           />
           <Step
             number="3"
             title="play!"
-            description="follow the steps, see what happens, and help kids spot the same idea in the wild. no new toys needed."
+            description="follow the steps, see what happens, and try to find the same idea in the wild. no new toys needed."
           />
         </div>
       </section>
@@ -164,21 +164,21 @@ export default function Home() {
           className="text-2xl sm:text-3xl font-bold tracking-tight mb-12 text-center"
           style={{ color: "var(--wv-white)" }}
         >
-          made for parents, teachers, and anyone who plays with kids
+          made for kids, parents, teachers, and anyone who likes to make things
         </h2>
 
         <div className="grid gap-5 sm:grid-cols-3" style={{ maxWidth: 900, margin: "0 auto" }}>
           <AudienceCard
             title="parents"
-            description="play with your kids right now with whatever's around. no shopping trip required."
+            description="play right now with whatever's around. no shopping trip needed."
           />
           <AudienceCard
             title="teachers"
-            description="bring creative, hands-on activities into your classroom. works with any budget and any age."
+            description="bring hands-on playdates into your classroom. works with any budget and any age."
           />
           <AudienceCard
             title="anyone, really"
-            description="babysitters, grandparents, camp counselors — if you spend time with kids, you'll find something here."
+            description="babysitters, grandparents, camp counselors, kids on their own — if you like making things, you'll find something here."
           />
         </div>
       </section>
@@ -195,15 +195,15 @@ export default function Home() {
           className="mb-8 leading-relaxed"
           style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 500, margin: "0 auto 32px" }}
         >
-          peek at ideas, try the matcher, and see if creaseworks is your kind
-          of thing — no sign-up needed.
+          peek at playdates, try the matcher, and see if creaseworks is your
+          kind of thing — no sign-up needed.
         </p>
         <Link
           href="/sampler"
           className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
           style={{ backgroundColor: "var(--wv-redwood)", color: "var(--wv-white)" }}
         >
-          see free ideas
+          see free playdates
         </Link>
       </section>
 
