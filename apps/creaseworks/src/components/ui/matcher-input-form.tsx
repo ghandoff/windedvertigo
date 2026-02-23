@@ -68,7 +68,7 @@ function FilterSection({
   return (
     <section
       className="rounded-xl border transition-colors"
-      style={{ borderColor: "rgba(39, 50, 72, 0.1)" }}
+      style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
     >
       {/* section header — always visible, acts as toggle */}
       <button
@@ -662,7 +662,7 @@ export default function MatcherInputForm({
           {results.ranked.length === 0 ? (
             <div
               className="rounded-xl border p-6 sm:p-8 text-center"
-              style={{ borderColor: "rgba(39, 50, 72, 0.1)" }}
+              style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
             >
               <p
                 className="text-sm"
