@@ -34,9 +34,9 @@ export default function NavBar() {
 
   /* build initials from name or email */
   const initials = isAuthed
-    ? (session.user.name
+    ? (session?.user?.name
         ? session.user.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2)
-        : session.user.email?.charAt(0) ?? "?"
+        : session?.user?.email?.charAt(0) ?? "?"
       ).toUpperCase()
     : "";
 
