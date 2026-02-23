@@ -9,7 +9,7 @@
    the app uses a light background with cadet text by default.     */
 
 :root {
-  --background: #fffbf7;            /* warm linen — barely off-white  */
+  --background: color-mix(in srgb, var(--wv-champagne) 8%, var(--wv-white)); /* warm tint from brand palette */
   --foreground: var(--wv-cadet);
   --shadow-soft: 0 1px 3px rgba(39, 50, 72, 0.06);
   --shadow-warm: 0 2px 8px rgba(203, 120, 88, 0.08);
