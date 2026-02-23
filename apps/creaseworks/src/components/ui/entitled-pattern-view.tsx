@@ -112,9 +112,12 @@ export default function EntitledPatternView({
 
         {pattern.find && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
-            <h3 className="text-xs font-bold text-redwood uppercase tracking-wider mb-2">
+            <h3 className="text-xs font-bold text-redwood uppercase tracking-wider mb-1">
               find
             </h3>
+            <p className="text-[11px] text-cadet/40 mb-2">
+              gather materials and set the stage
+            </p>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
               {pattern.find}
             </p>
@@ -123,9 +126,12 @@ export default function EntitledPatternView({
 
         {pattern.fold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
-            <h3 className="text-xs font-bold text-sienna uppercase tracking-wider mb-2">
+            <h3 className="text-xs font-bold text-sienna uppercase tracking-wider mb-1">
               fold
             </h3>
+            <p className="text-[11px] text-cadet/40 mb-2">
+              the hands-on exploration
+            </p>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
               {pattern.fold}
             </p>
@@ -134,9 +140,12 @@ export default function EntitledPatternView({
 
         {pattern.unfold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
-            <h3 className="text-xs font-bold text-cadet uppercase tracking-wider mb-2">
+            <h3 className="text-xs font-bold text-cadet uppercase tracking-wider mb-1">
               unfold
             </h3>
+            <p className="text-[11px] text-cadet/40 mb-2">
+              reflect on what happened
+            </p>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
               {pattern.unfold}
             </p>
@@ -158,11 +167,11 @@ export default function EntitledPatternView({
         </section>
       )}
 
-      {/* slots notes */}
+      {/* slots notes — practical material hints */}
       {pattern.slots_notes && (
         <section className="rounded-xl border border-cadet/10 bg-champagne/20 p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
-            timing and space tips
+            material tips
           </h2>
           <p className="text-sm text-cadet/70 whitespace-pre-line">
             {pattern.slots_notes}
