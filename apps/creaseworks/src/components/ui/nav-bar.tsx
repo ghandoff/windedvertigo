@@ -20,19 +20,22 @@ export default function NavBar() {
 
   const close = () => setMobileOpen(false);
 
+  const isAuthed = !!session?.user;
+
   const publicLinks = (
     <>
       <NavLink href="/sampler" onClick={close}>playdates</NavLink>
       <NavLink href="/matcher" onClick={close}>matcher</NavLink>
-      <NavLink href="/packs" onClick={close}>packs</NavLink>
+      {!isAuthed && (
+        <NavLink href="/packs" onClick={close}>packs</NavLink>
+      )}
     </>
   );
 
-  const authedLinks = session?.user ? (
+  const authedLinks = isAuthed ? (
     <>
       <NavLink href="/playbook" onClick={close}>playbook</NavLink>
-      <NavLink href="/team" onClick={close}>team</NavLink>
-      <NavLink href="/analytics" onClick={close}>analytics</NavLink>
+      <NavLink href="/profile" onClick={close}>profile</NavLink>
       {session?.isAdmin && (
         <NavLink href="/admin" onClick={close} accent>admin</NavLink>
       )}
