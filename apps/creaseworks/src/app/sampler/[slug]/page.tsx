@@ -3,10 +3,13 @@ import Link from "next/link";
 import {
   getTeaserPatternBySlug,
   getTeaserMaterialsForPattern,
+  getCollectivePatternBySlug,
+  getEntitledPatternBySlug,
 } from "@/lib/queries/patterns";
 import { getFirstVisiblePackForPattern } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { getSession } from "@/lib/auth-helpers";
+import EntitledPatternView from "@/components/ui/entitled-pattern-view";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -27,8 +30,7 @@ export default async function PatternTeaserPage({ params }: Props) {
     getSession(),
   ]);
 
-  // If the user is logged in and entitled (or is admin/collective),
-  // redirect to the full facilitation view instead of the teaser.
+  // ── Entitled user WITH a pack → redirect to the pack's pattern page ──
   if (session && pack) {
     const isEntitled =
       session.isInternal ||
@@ -40,6 +42,36 @@ export default async function PatternTeaserPage({ params }: Props) {
     }
   }
 
+  // ── Internal user WITHOUT a pack → render full view inline ──
+  // Patterns may not be in a visible pack yet (e.g. still being assembled),
+  // but admins / collective members should still see the full facilitation view.
+  if (session?.isInternal) {
+    const fullPattern = await getCollectivePatternBySlug(slug);
+    if (fullPattern) {
+      return (
+        <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
+          <Link
+            href="/sampler"
+            className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
+          >
+            &larr; back to playdates
+          </Link>
+
+          <h1 className="text-3xl font-semibold tracking-tight mb-4">
+            {fullPattern.title}
+          </h1>
+
+          <EntitledPatternView
+            pattern={fullPattern}
+            materials={materials}
+            packSlug={null}
+          />
+        </main>
+      );
+    }
+  }
+
+  // ── Everyone else → sampler teaser ──
   const packHref = pack ? `/packs/${pack.slug}` : "/packs";
 
   return (

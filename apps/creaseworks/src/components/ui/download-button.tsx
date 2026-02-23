@@ -4,7 +4,7 @@ import { useState } from "react";
 
 interface DownloadButtonProps {
   patternId: string;
-  packSlug: string;
+  packSlug: string | null;
   patternTitle: string;
 }
 
@@ -22,7 +22,7 @@ export default function DownloadButton({
 
     try {
       const res = await fetch(
-        `/api/patterns/${patternId}/pdf?pack=${encodeURIComponent(packSlug)}`,
+        `/api/patterns/${patternId}/pdf${packSlug ? `?pack=${encodeURIComponent(packSlug)}` : ""}`,
       );
 
       if (!res.ok) {

@@ -3,7 +3,7 @@ import DownloadButton from "@/components/ui/download-button";
 interface EntitledPatternViewProps {
   pattern: any;
   materials: any[];
-  packSlug: string;
+  packSlug: string | null;
 }
 
 /**
