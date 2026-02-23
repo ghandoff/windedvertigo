@@ -32,25 +32,33 @@ export async function GET(req: NextRequest, { params }: Props) {
   const { patternId } = await params;
   const packSlug = req.nextUrl.searchParams.get("pack");
 
-  if (!packSlug) {
-    return NextResponse.json({ error: "missing pack parameter" }, { status: 400 });
-  }
+  let pack: { id: string; title: string; slug: string } | null = null;
 
-  // resolve pack and check entitlement
-  const pack = await getPackBySlug(packSlug);
-  if (!pack) {
-    return NextResponse.json({ error: "pack not found" }, { status: 404 });
-  }
+  if (session.isInternal) {
+    // Internal users bypass pack/entitlement gate — they can download any ready pattern
+    if (packSlug) {
+      pack = await getPackBySlug(packSlug);
+    }
+  } else {
+    // External users: require pack + active entitlement
+    if (!packSlug) {
+      return NextResponse.json({ error: "missing pack parameter" }, { status: 400 });
+    }
 
-  const isEntitled = await checkEntitlement(session.orgId, pack.id);
-  if (!isEntitled) {
-    return NextResponse.json({ error: "not entitled" }, { status: 403 });
-  }
+    pack = await getPackBySlug(packSlug);
+    if (!pack) {
+      return NextResponse.json({ error: "pack not found" }, { status: 404 });
+    }
 
-  // verify pattern belongs to pack
-  const inPack = await isPatternInPack(patternId, pack.id);
-  if (!inPack) {
-    return NextResponse.json({ error: "pattern not in pack" }, { status: 404 });
+    const isEntitled = await checkEntitlement(session.orgId, pack.id);
+    if (!isEntitled) {
+      return NextResponse.json({ error: "not entitled" }, { status: 403 });
+    }
+
+    const inPack = await isPatternInPack(patternId, pack.id);
+    if (!inPack) {
+      return NextResponse.json({ error: "pattern not in pack" }, { status: 404 });
+    }
   }
 
   // fetch full pattern
@@ -169,7 +177,7 @@ export async function GET(req: NextRequest, { params }: Props) {
   const watermark = [
     session.orgName || "personal",
     session.email,
-    pack.title,
+    pack?.title || "internal",
     `${dd}/${mm}/${yyyy}`,
   ].join("  \u00b7  ");
 
@@ -199,7 +207,7 @@ export async function GET(req: NextRequest, { params }: Props) {
     session.userId,
     session.orgId,
     pattern.id,
-    pack.id,
+    pack?.id || null,
     "download_pdf",
     ip,
     ["find", "fold", "unfold", "rails_sentence", "find_again_mode", "find_again_prompt"],
