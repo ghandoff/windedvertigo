@@ -14,6 +14,9 @@
 
 import { sql } from "@/lib/db";
 
+/* Re-export shared enums so existing imports keep working */
+export { RUN_TYPES, TRACE_EVIDENCE_OPTIONS, CONTEXT_TAGS as RUN_CONTEXT_TAGS } from "@/lib/constants/enums";
+
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
 /* ------------------------------------------------------------------ */
@@ -48,35 +51,6 @@ export interface CreateRunInput {
   /** Flag this run as a "find again" moment — playbook badge tier */
   isFindAgain?: boolean;
 }
-
-/* ------------------------------------------------------------------ */
-/*  enum values (from DESIGN.md appendix F)                            */
-/* ------------------------------------------------------------------ */
-
-export const RUN_TYPES = [
-  "internal practice",
-  "webinar",
-  "delivery",
-  "BD/prospect",
-  "R&D",
-] as const;
-
-export const TRACE_EVIDENCE_OPTIONS = [
-  "photo",
-  "video",
-  "quote",
-  "artifact",
-  "notes",
-] as const;
-
-export const RUN_CONTEXT_TAGS = [
-  "classroom",
-  "home",
-  "remote",
-  "low-resource",
-  "travel-kit",
-  "mess-sensitive",
-] as const;
 
 /* ------------------------------------------------------------------ */
 /*  visibility-aware listing                                           */

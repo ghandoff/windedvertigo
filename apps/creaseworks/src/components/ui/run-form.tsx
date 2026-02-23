@@ -11,6 +11,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { RUN_TYPES, TRACE_EVIDENCE_OPTIONS, CONTEXT_TAGS } from "@/lib/constants/enums";
 
 interface Pattern {
   id: string;
@@ -23,31 +24,6 @@ interface Material {
   title: string;
   form_primary: string | null;
 }
-
-const RUN_TYPES = [
-  "internal practice",
-  "webinar",
-  "delivery",
-  "BD/prospect",
-  "R&D",
-];
-
-const TRACE_EVIDENCE_OPTIONS = [
-  "photo",
-  "video",
-  "quote",
-  "artifact",
-  "notes",
-];
-
-const CONTEXT_TAGS = [
-  "classroom",
-  "home",
-  "remote",
-  "low-resource",
-  "travel-kit",
-  "mess-sensitive",
-];
 
 export default function RunForm({
   patterns,
