@@ -128,6 +128,21 @@ export async function POST(req: NextRequest) {
     targetEmail,
   );
 
+  // if the domain is already verified, return early — no email needed
+  if (record.verified) {
+    return NextResponse.json({
+      ok: true,
+      domain: {
+        id: record.id,
+        domain: record.domain,
+        verified: true,
+        verification_email: targetEmail,
+        verified_at: null, // not returned by query, but doesn't matter
+      },
+      message: `${cleanDomain} is already verified`,
+    });
+  }
+
   // send the verification email
   const emailResult = await sendDomainVerificationEmail({
     to: targetEmail,

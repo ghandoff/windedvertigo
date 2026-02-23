@@ -53,19 +53,45 @@ export async function addVerifiedDomain(
 ) {
   const token = crypto.randomBytes(32).toString("hex");
   // Token expires in 24 hours — audit fix: tokens previously had no TTL.
+  // The ON CONFLICT only refreshes the token for unverified domains.
+  // If the domain is already verified we leave it alone (no-op update
+  // that preserves all existing values).
   const r = await sql.query(
     `INSERT INTO verified_domains (org_id, domain, verification_token, verification_email, token_expires_at)
      VALUES ($1, $2, $3, $4, NOW() + INTERVAL '24 hours')
      ON CONFLICT (domain) DO UPDATE SET
-       verification_token = $3,
-       verification_email = $4,
-       token_expires_at = NOW() + INTERVAL '24 hours',
-       verified = FALSE,
-       verified_at = NULL
-     RETURNING id, domain, verification_token`,
+       verification_token = CASE
+         WHEN verified_domains.verified = FALSE THEN $3
+         ELSE verified_domains.verification_token
+       END,
+       verification_email = CASE
+         WHEN verified_domains.verified = FALSE THEN $4
+         ELSE verified_domains.verification_email
+       END,
+       token_expires_at = CASE
+         WHEN verified_domains.verified = FALSE THEN NOW() + INTERVAL '24 hours'
+         ELSE verified_domains.token_expires_at
+       END
+     RETURNING id, domain, verification_token, verified`,
     [orgId, domain.toLowerCase().trim(), token, verificationEmail.toLowerCase().trim()],
   );
   return r.rows[0];
+}
+
+/**
+ * Look up a domain record by its verification token — used to
+ * distinguish "already verified" from "genuinely invalid" when the
+ * verify endpoint's UPDATE returns no rows.
+ */
+export async function getDomainByToken(token: string) {
+  const r = await sql.query(
+    `SELECT id, domain, verified
+     FROM verified_domains
+     WHERE verification_token = $1
+     LIMIT 1`,
+    [token],
+  );
+  return r.rows[0] ?? null;
 }
 
 export async function verifyDomainByToken(token: string) {

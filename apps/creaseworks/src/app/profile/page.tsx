@@ -175,9 +175,11 @@ export default async function ProfilePage({
                       >
                         {params.reason === "missing-token"
                           ? "verification link is missing — please use the link from your email."
-                          : params.reason === "invalid-token"
-                            ? "this verification link has expired or was already used. try sending a new one below."
-                            : "something went wrong with domain verification. please try again."}
+                          : params.reason === "expired-token"
+                            ? "this verification link has expired. click \u201cresend email\u201d below to get a fresh one."
+                            : params.reason === "invalid-token"
+                              ? "this verification link is invalid or was already used. try sending a new one below."
+                              : "something went wrong with domain verification. please try again."}
                       </p>
                     </div>
                   )}
