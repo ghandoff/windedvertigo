@@ -1,13 +1,15 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import {
   getTeaserPatternBySlug,
   getTeaserMaterialsForPattern,
 } from "@/lib/queries/patterns";
 import { getFirstVisiblePackForPattern } from "@/lib/queries/packs";
+import { checkEntitlement } from "@/lib/queries/entitlements";
+import { getSession } from "@/lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 3600;
+export const revalidate = 0;
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -19,8 +21,26 @@ export default async function PatternTeaserPage({ params }: Props) {
 
   if (!pattern) return notFound();
 
-  const materials = await getTeaserMaterialsForPattern(pattern.id);
-  const pack = await getFirstVisiblePackForPattern(pattern.id);
+  const [materials, pack, session] = await Promise.all([
+    getTeaserMaterialsForPattern(pattern.id),
+    getFirstVisiblePackForPattern(pattern.id),
+    getSession(),
+  ]);
+
+  // If the user is logged in and entitled (or is admin/collective),
+  // redirect to the full facilitation view instead of the teaser.
+  if (session && pack) {
+    const isEntitled =
+      session.isInternal ||
+      (session.orgId
+        ? await checkEntitlement(session.orgId, pack.id)
+        : false);
+    if (isEntitled) {
+      redirect(`/packs/${pack.slug}/patterns/${slug}`);
+    }
+  }
+
+  const packHref = pack ? `/packs/${pack.slug}` : "/packs";
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
@@ -39,10 +59,22 @@ export default async function PatternTeaserPage({ params }: Props) {
         <p className="text-lg text-cadet/60 mb-6">{pattern.headline}</p>
       )}
 
-      {/* teaser metadata — playful, parent-readable */}
+      {/* the big idea — narrative hook */}
+      {pattern.rails_sentence && (
+        <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-8">
+          <h2 className="text-sm font-semibold text-cadet/80 mb-2">
+            the big idea
+          </h2>
+          <p className="text-sm text-cadet/80 italic">
+            {pattern.rails_sentence}
+          </p>
+        </section>
+      )}
+
+      {/* at a glance — quick parent-readable summary */}
       <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6 mb-8">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
-          before you begin
+          at a glance
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {pattern.primary_function && (
@@ -87,23 +119,14 @@ export default async function PatternTeaserPage({ params }: Props) {
               </div>
             </div>
           )}
-          {(pattern.required_forms as string[])?.length > 0 && (
-            <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">✂️</span>
-              <div>
-                <p className="text-cadet/45 text-xs font-medium">you&apos;ll need to make</p>
-                <p className="text-cadet/80">{(pattern.required_forms as string[]).join(", ")}</p>
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
-      {/* teaser materials */}
+      {/* materials preview */}
       {materials.length > 0 && (
         <section className="mb-8">
           <h2 className="text-sm font-semibold text-cadet/80 mb-3">
-            what you'll need
+            what you&apos;ll need
           </h2>
           <ul className="space-y-2">
             {materials.map((m: any) => (
@@ -121,25 +144,51 @@ export default async function PatternTeaserPage({ params }: Props) {
         </section>
       )}
 
-      {/* find again teaser — conversion hook */}
-      {pattern.has_find_again && (
-        <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-6">
-          <h2 className="text-sm font-semibold text-redwood mb-2">
-            includes find again
-          </h2>
-          <p className="text-sm text-cadet/70 mb-4">
-            after you play, there&apos;s a prompt that helps kids (and you)
-            notice the same idea popping up in totally different places.
-            find again prompts unlock when you grab the full pack.
-          </p>
-          <Link
-            href={pack ? `/packs/${pack.slug}` : "/packs"}
-            className="inline-block rounded-lg bg-redwood px-4 py-2 text-sm text-white font-medium hover:bg-sienna transition-colors"
-          >
-            {pack ? `get ${pack.title}` : "see packs"}
-          </Link>
-        </section>
-      )}
+      {/* locked content teaser — FOMO section */}
+      <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-champagne/20 to-champagne/5 p-6 mb-8">
+        <div className="flex items-start gap-3 mb-4">
+          <span className="text-lg leading-none mt-0.5">🔒</span>
+          <div>
+            <h2 className="text-sm font-semibold text-cadet/80 mb-1">
+              full facilitation guide
+            </h2>
+            <p className="text-sm text-cadet/60">
+              the full playdate includes step-by-step facilitation
+              with three phases — find, fold, and unfold — plus
+              material swap ideas and timing tips.
+            </p>
+          </div>
+        </div>
+
+        {/* teaser list of what's inside */}
+        <div className="ml-8 space-y-2 text-sm text-cadet/50 mb-5">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-redwood/40" />
+            <span>find — how to set up and introduce the activity</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-sienna/40" />
+            <span>fold — the core hands-on exploration</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cadet/30" />
+            <span>unfold — reflection and what to notice</span>
+          </div>
+          {pattern.has_find_again && (
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-redwood/60" />
+              <span>find again — a prompt to spot the idea in everyday life</span>
+            </div>
+          )}
+        </div>
+
+        <Link
+          href={packHref}
+          className="inline-block rounded-lg bg-redwood px-5 py-2.5 text-sm text-white font-medium hover:bg-sienna transition-colors"
+        >
+          {pack ? `unlock with ${pack.title}` : "see packs"}
+        </Link>
+      </section>
     </main>
   );
 }

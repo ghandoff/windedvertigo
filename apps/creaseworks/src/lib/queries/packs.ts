@@ -194,9 +194,9 @@ export async function getAllReadyPacks() {
  */
 export async function getFirstVisiblePackForPattern(
   patternId: string,
-): Promise<{ slug: string; title: string } | null> {
+): Promise<{ id: string; slug: string; title: string } | null> {
   const result = await sql.query(
-    `SELECT pc.slug, pc.title
+    `SELECT pc.id, pc.slug, pc.title
      FROM packs_cache pc
      JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
      JOIN pack_patterns pp ON pp.pack_id = pc.id

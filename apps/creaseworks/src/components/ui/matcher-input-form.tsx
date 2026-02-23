@@ -491,7 +491,7 @@ export default function MatcherInputForm({
 
         {/* ---- forms checklist ---- */}
         <FilterSection
-          title="shapes you can make"
+          title="types of materials"
           selectedCount={selectedForms.size}
           defaultOpen={true}
         >
@@ -534,8 +534,8 @@ export default function MatcherInputForm({
         {/* ---- slots (optional) ---- */}
         {slots.length > 0 && (
           <FilterSection
-            title="time and space (optional)"
-            subtitle="we'll bump up playdates that fit these."
+            title="extras (optional)"
+            subtitle="we'll bump up playdates that use these."
             selectedCount={selectedSlots.size}
             defaultOpen={false}
           >

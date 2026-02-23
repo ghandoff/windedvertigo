@@ -26,7 +26,7 @@ export default function EntitledPatternView({
       {/* at a glance — playful, parent-readable summary */}
       <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
-          before you begin
+          at a glance
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {pattern.primary_function && (
@@ -75,7 +75,7 @@ export default function EntitledPatternView({
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">✂️</span>
               <div>
-                <p className="text-cadet/45 text-xs font-medium">you&apos;ll need to make</p>
+                <p className="text-cadet/45 text-xs font-medium">what you&apos;ll gather</p>
                 <p className="text-cadet/80">{(pattern.required_forms as string[]).join(", ")}</p>
               </div>
             </div>
@@ -84,7 +84,7 @@ export default function EntitledPatternView({
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">🧩</span>
               <div>
-                <p className="text-cadet/45 text-xs font-medium">bonus if you have</p>
+                <p className="text-cadet/45 text-xs font-medium">nice to have</p>
                 <p className="text-cadet/80">{(pattern.slots_optional as string[]).join(", ")}</p>
               </div>
             </div>

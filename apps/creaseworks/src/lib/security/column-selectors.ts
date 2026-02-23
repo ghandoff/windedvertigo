@@ -22,6 +22,7 @@ export const PATTERN_TEASER_COLUMNS = [
   "friction_dial",
   "start_in_120s",
   "required_forms",
+  "rails_sentence",
 ] as const;
 
 /** Entitled tier — authenticated users whose org owns the pack. */
@@ -29,7 +30,6 @@ export const PATTERN_ENTITLED_COLUMNS = [
   ...PATTERN_TEASER_COLUMNS,
   "slots_optional",
   "slots_notes",
-  "rails_sentence",
   "find",
   "fold",
   "unfold",
