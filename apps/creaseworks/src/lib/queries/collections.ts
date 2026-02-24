@@ -312,8 +312,9 @@ export async function recomputeUserProgress(
        SELECT
          p.id AS playdate_id,
          MIN(r.run_date) AS first_run,
-         -- found_something: any run has evidence
+         -- found_something: any run has evidence (quick-log OR structured)
          MAX(CASE WHEN jsonb_array_length(COALESCE(r.trace_evidence, '[]'::jsonb)) > 0
+                       OR EXISTS (SELECT 1 FROM run_evidence re WHERE re.run_id = r.id)
                   THEN r.run_date END) AS found_date,
          -- folded: runs in 2+ distinct weeks
          CASE WHEN COUNT(DISTINCT date_trunc('week', r.run_date)) >= 2

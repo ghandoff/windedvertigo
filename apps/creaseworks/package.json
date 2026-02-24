@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@auth/core": "^0.41.0",
+    "@aws-sdk/client-s3": "^3.996.0",
+    "@aws-sdk/s3-request-presigner": "^3.996.0",
     "@notionhq/client": "^2.3.0",
     "@vercel/postgres": "^0.10.0",
     "next": "16.1.6",
@@ -25,6 +27,7 @@
     "stripe": "^17.7.0"
   },
   "devDependencies": {
+    "@axe-core/cli": "^4.10.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -34,7 +37,6 @@
     "eslint-config-next": "^0.2.4",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.0.18",
-    "@axe-core/cli": "^4.10.0"
+    "vitest": "^4.0.18"
   }
 }
