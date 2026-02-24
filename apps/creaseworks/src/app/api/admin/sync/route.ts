@@ -7,12 +7,12 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireInternal } from "@/lib/auth-helpers";
 import { logAccess } from "@/lib/queries/audit";
 import { syncAll } from "@/lib/sync";
 
 export async function POST(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requireInternal();
 
   try {
     await syncAll();

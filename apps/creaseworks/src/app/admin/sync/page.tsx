@@ -6,13 +6,13 @@
  * MVP 4 — admin pages and rate limiting.
  */
 
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireInternal } from "@/lib/auth-helpers";
 import SyncTrigger from "./sync-trigger";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSyncPage() {
-  await requireAdmin();
+  await requireInternal();
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
@@ -22,7 +22,7 @@ export default async function AdminSyncPage() {
       <p className="text-sm text-cadet/50 mb-8">
         the cron job syncs content from Notion every day at 06:00 UTC.
         use this button to trigger an immediate sync — useful after
-        editing patterns, materials, or packs in Notion.
+        editing playdates, materials, or packs in Notion.
       </p>
 
       <SyncTrigger />

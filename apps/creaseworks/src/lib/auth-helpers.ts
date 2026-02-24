@@ -54,6 +54,12 @@ export async function requireAdmin(): Promise<CWSession> {
   return s;
 }
 
+export async function requireInternal(): Promise<CWSession> {
+  const s = await requireAuth();
+  if (!s.isInternal) redirect("/");
+  return s;
+}
+
 export async function requireOrgAdmin(): Promise<CWSession> {
   const s = await requireAuth();
   if (!s.orgId || s.orgRole !== "admin") redirect("/");

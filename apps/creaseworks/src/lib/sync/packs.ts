@@ -51,6 +51,14 @@ export async function syncPacks() {
   }
 
   if (notionIds.length > 0) {
+    // Remove catalogue + entitlement rows first to satisfy foreign keys
+    await sql.query(
+      `DELETE FROM packs_catalogue
+       WHERE pack_cache_id IN (
+         SELECT id FROM packs_cache WHERE notion_id != ALL($1::text[])
+       )`,
+      [notionIds],
+    );
     await sql.query(
       `DELETE FROM packs_cache WHERE notion_id != ALL($1::text[])`,
       [notionIds],
