@@ -895,7 +895,7 @@ all Notion field names are lowercase as of 2026-02-16.
 |---|---|---|---|
 | run (title) | `title` | title | all |
 | pattern | `pattern_notion_id` | relation | all |
-| run type | `run_type` | select | all |
+| context of use | `run_type` | select | all |
 | date | `run_date` | date | all |
 | context tags | `context_tags` | multi_select | all |
 | materials used (actual) | `run_materials` junction | relation | all |
@@ -933,7 +933,7 @@ all Notion field names are lowercase as of 2026-02-16.
 
 ### runs
 
-- **run type**: internal practice, webinar, delivery, BD/prospect, R&D
+- **context of use**: internal practice, webinar, delivery, BD/prospect, R&D
 - **trace evidence captured**: photo, video, quote, artifact, notes
 - **context tags**: classroom, home, remote, low-resource, travel-kit, mess-sensitive
 

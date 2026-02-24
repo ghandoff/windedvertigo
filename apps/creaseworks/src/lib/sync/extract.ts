@@ -66,3 +66,23 @@ export function extractLastEdited(page: NotionPage): string {
 export function extractPageId(page: NotionPage): string {
   return page.id;
 }
+
+/**
+ * Fail-loud check: assert that a Notion property exists in the page's
+ * properties object. Used to catch property renames in Notion that
+ * haven't been mirrored in the sync code.
+ */
+export function assertPropertiesExist(
+  props: Properties,
+  requiredKeys: string[],
+  pageId: string,
+): void {
+  const missing = requiredKeys.filter((k) => !(k in props));
+  if (missing.length > 0) {
+    throw new Error(
+      `[sync] Notion property mismatch on page ${pageId}: ` +
+        `missing properties: ${missing.map((k) => `"${k}"`).join(", ")}. ` +
+        `Check for Notion property renames.`,
+    );
+  }
+}

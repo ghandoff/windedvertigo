@@ -9,16 +9,28 @@ import {
   extractRelationIds,
   extractLastEdited,
   extractPageId,
+  assertPropertiesExist,
 } from "./extract";
+
+/** Notion property names that must exist on every reflections page. */
+const REQUIRED_NOTION_PROPS = [
+  "reflection",       // title
+  "context of use",   // select (was "reflection type")
+  "date",
+  "playdate",
+  "context tags",
+  "trace evidence captured",
+];
 
 function parseRunPage(page: any) {
   const props = page.properties;
+  assertPropertiesExist(props, REQUIRED_NOTION_PROPS, page.id);
   const playdateIds = extractRelationIds(props, "playdate");
   return {
     notionId: extractPageId(page),
     title: extractTitle(props, "reflection"),
     playdateNotionId: playdateIds.length > 0 ? playdateIds[0] : null,
-    runType: extractSelect(props, "reflection type"),
+    runType: extractSelect(props, "context of use"),
     runDate: extractDate(props, "date"),
     contextTags: extractMultiSelect(props, "context tags"),
     traceEvidence: extractMultiSelect(props, "trace evidence captured"),

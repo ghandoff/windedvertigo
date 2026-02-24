@@ -28,7 +28,18 @@ import {
   extractRelationIds,
   extractLastEdited,
   extractPageId,
+  assertPropertiesExist,
 } from "./extract";
+
+/** Notion property names that must exist on every reflections page. */
+const REQUIRED_RUN_PROPS = [
+  "reflection",       // title
+  "context of use",   // select (was "reflection type")
+  "date",
+  "playdate",
+  "context tags",
+  "trace evidence captured",
+];
 
 /* ------------------------------------------------------------------ */
 /*  database ID → type mapping                                         */
@@ -351,10 +362,11 @@ async function upsertPack(page: any) {
 async function upsertRun(page: any) {
   const props = page.properties;
   const notionId = extractPageId(page);
+  assertPropertiesExist(props, REQUIRED_RUN_PROPS, notionId);
   const title = extractTitle(props, "reflection");
   const playdateIds = extractRelationIds(props, "playdate");
   const playdateNotionId = playdateIds.length > 0 ? playdateIds[0] : null;
-  const runType = extractSelect(props, "reflection type");
+  const runType = extractSelect(props, "context of use");
   const runDate = extractDate(props, "date");
   const contextTags = extractMultiSelect(props, "context tags");
   const traceEvidence = extractMultiSelect(props, "trace evidence captured");

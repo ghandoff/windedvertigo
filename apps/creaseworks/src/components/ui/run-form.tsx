@@ -246,7 +246,7 @@ export default function RunForm({
         {/* run type */}
         <div>
           <label className="block text-xs text-cadet/60 mb-1">
-            reflection type <span className="text-redwood">*</span>
+            context of use <span className="text-redwood">*</span>
           </label>
           <select
             value={runType}

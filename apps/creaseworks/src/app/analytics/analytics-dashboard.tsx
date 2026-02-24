@@ -228,7 +228,7 @@ export default function AnalyticsDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="total reflections" value={data.totalRuns} />
         <StatCard label="this month" value={data.runsThisMonth} subtitle={deltaLabel} />
-        <StatCard label="reflection types" value={data.runsByType.length} />
+        <StatCard label="contexts of use" value={data.runsByType.length} />
         <StatCard
           label="avg. evidence per reflection"
           value={data.averageEvidencePerRun}
@@ -248,7 +248,7 @@ export default function AnalyticsDashboard() {
         {/* By type */}
         <section>
           <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-            by reflection type
+            by context of use
           </h2>
           <HorizontalBar items={data.runsByType} labelKey="run_type" valueKey="count" />
         </section>
