@@ -42,6 +42,7 @@ export default function NavBar() {
 
   const authedLinks = isAuthed ? (
     <>
+      <NavLink href="/reflections/new" onClick={close}>reflections</NavLink>
       <NavLink href="/playbook" onClick={close}>playbook</NavLink>
       <Link
         href="/profile"
