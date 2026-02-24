@@ -27,6 +27,7 @@ export interface CollectionWithProgress extends Collection {
   found_count: number;
   folded_count: number;
   found_again_count: number;
+  evidence_count: number;
 }
 
 export interface CollectionPlaydate {
@@ -40,6 +41,7 @@ export interface CollectionPlaydate {
   start_in_120s: boolean;
   has_find_again: boolean;
   progress_tier: string | null;
+  evidence_count: number;
 }
 
 export interface ProgressSummary {
@@ -89,13 +91,23 @@ export async function getCollectionsWithProgress(
             COUNT(DISTINCT CASE WHEN pp.progress_tier IS NOT NULL THEN cp.playdate_id END)::int AS tried_count,
             COUNT(DISTINCT CASE WHEN pp.progress_tier IN ('found_something','folded_unfolded','found_again') THEN cp.playdate_id END)::int AS found_count,
             COUNT(DISTINCT CASE WHEN pp.progress_tier IN ('folded_unfolded','found_again') THEN cp.playdate_id END)::int AS folded_count,
-            COUNT(DISTINCT CASE WHEN pp.progress_tier = 'found_again' THEN cp.playdate_id END)::int AS found_again_count
+            COUNT(DISTINCT CASE WHEN pp.progress_tier = 'found_again' THEN cp.playdate_id END)::int AS found_again_count,
+            COALESCE(ev.evidence_count, 0)::int AS evidence_count
      FROM collections c
      LEFT JOIN collection_playdates cp ON cp.collection_id = c.id
      LEFT JOIN playdate_progress pp
        ON pp.playdate_id = cp.playdate_id AND pp.user_id = $1
+     LEFT JOIN (
+       SELECT cp2.collection_id, COUNT(re.id)::int AS evidence_count
+       FROM run_evidence re
+       JOIN runs_cache r ON r.id = re.run_id
+       JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
+       JOIN collection_playdates cp2 ON cp2.playdate_id = p.id
+       WHERE r.created_by = $1
+       GROUP BY cp2.collection_id
+     ) ev ON ev.collection_id = c.id
      WHERE c.status = 'ready'
-     GROUP BY c.id
+     GROUP BY c.id, ev.evidence_count
      ORDER BY c.sort_order ASC, c.title ASC`,
     [userId],
   );
@@ -138,17 +150,61 @@ export async function getCollectionPlaydates(
             p.primary_function, p.arc_emphasis,
             p.friction_dial, p.start_in_120s,
             (p.find_again_mode IS NOT NULL) AS has_find_again,
-            pp.progress_tier
+            pp.progress_tier,
+            COALESCE(ev_counts.evidence_count, 0)::int AS evidence_count
      FROM playdates_cache p
      JOIN collection_playdates cp ON cp.playdate_id = p.id
      LEFT JOIN playdate_progress pp
        ON pp.playdate_id = p.id AND pp.user_id = $2
+     LEFT JOIN (
+       SELECT r.playdate_notion_id, COUNT(re.id)::int AS evidence_count
+       FROM run_evidence re
+       JOIN runs_cache r ON r.id = re.run_id
+       WHERE r.created_by = $2
+       GROUP BY r.playdate_notion_id
+     ) ev_counts ON ev_counts.playdate_notion_id = p.notion_id
      WHERE cp.collection_id = $1
        AND p.status = 'ready'
      ORDER BY cp.display_order ASC, p.title ASC`,
     [collectionId, userId],
   );
   return result.rows;
+}
+
+/* ------------------------------------------------------------------ */
+/*  collection evidence summary                                        */
+/* ------------------------------------------------------------------ */
+
+export interface CollectionEvidenceSummary {
+  total: number;
+  photos: number;
+  quotes: number;
+  observations: number;
+}
+
+/**
+ * Count evidence items for a collection, broken down by type.
+ * Used on the collection detail page.
+ */
+export async function getCollectionEvidenceSummary(
+  collectionId: string,
+  userId: string,
+): Promise<CollectionEvidenceSummary> {
+  const result = await sql.query(
+    `SELECT
+       COUNT(*)::int AS total,
+       COUNT(*) FILTER (WHERE re.evidence_type = 'photo')::int AS photos,
+       COUNT(*) FILTER (WHERE re.evidence_type = 'quote')::int AS quotes,
+       COUNT(*) FILTER (WHERE re.evidence_type IN ('observation', 'artifact'))::int AS observations
+     FROM run_evidence re
+     JOIN runs_cache r ON r.id = re.run_id
+     JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
+     JOIN collection_playdates cp ON cp.playdate_id = p.id
+     WHERE cp.collection_id = $1
+       AND r.created_by = $2`,
+    [collectionId, userId],
+  );
+  return result.rows[0] ?? { total: 0, photos: 0, quotes: 0, observations: 0 };
 }
 
 /* ------------------------------------------------------------------ */

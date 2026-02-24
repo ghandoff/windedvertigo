@@ -13,6 +13,8 @@ interface CollectionCardProps {
     folded: number;
     foundAgain: number;
   } | null;
+  /** Number of evidence items in this collection */
+  evidenceCount?: number;
 }
 
 export default function CollectionCard({
@@ -22,6 +24,7 @@ export default function CollectionCard({
   iconEmoji,
   playdateCount,
   progress,
+  evidenceCount,
 }: CollectionCardProps) {
   const hasTried = progress && progress.tried > 0;
   const pct = hasTried ? Math.round((progress.tried / playdateCount) * 100) : 0;
@@ -62,6 +65,9 @@ export default function CollectionCard({
             {progress.tried} of {playdateCount} tried
             {progress.foundAgain > 0 && (
               <span className="text-redwood/70"> · {progress.foundAgain} found again</span>
+            )}
+            {!!evidenceCount && evidenceCount > 0 && (
+              <span className="text-cadet/30"> · {evidenceCount} evidence</span>
             )}
           </p>
         </div>

@@ -142,6 +142,7 @@ export default async function PlaybookPage() {
                     }
                   : null
               }
+              evidenceCount={c.evidence_count}
             />
           ))}
         </div>

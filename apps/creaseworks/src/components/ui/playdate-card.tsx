@@ -25,6 +25,8 @@ interface PlaydateCardProps {
   hasFindAgain?: boolean;
   /** Optional: user's progress tier on this playdate (playbook pages only) */
   progressTier?: ProgressTier | null;
+  /** Optional: number of evidence items captured for this playdate */
+  evidenceCount?: number;
   /** Override the link href (e.g. for collection context) */
   href?: string;
 }
@@ -40,6 +42,7 @@ export function PlaydateCard({
   startIn120s,
   hasFindAgain,
   progressTier,
+  evidenceCount,
   href,
 }: PlaydateCardProps) {
   const badge = progressTier ? TIER_BADGE[progressTier] : null;
@@ -87,6 +90,11 @@ export function PlaydateCard({
         {hasFindAgain && (
           <span className="inline-block rounded-full bg-sienna/10 px-2 py-0.5 text-xs font-medium text-sienna">
             find again
+          </span>
+        )}
+        {!!evidenceCount && evidenceCount > 0 && (
+          <span className="text-[10px] text-cadet/30">
+            {evidenceCount} piece{evidenceCount !== 1 ? "s" : ""} of evidence
           </span>
         )}
       </div>
