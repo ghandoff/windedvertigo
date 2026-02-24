@@ -4,7 +4,6 @@ import {
   getTeaserPatternBySlug,
   getTeaserMaterialsForPattern,
   getCollectivePatternBySlug,
-  getEntitledPatternBySlug,
 } from "@/lib/queries/patterns";
 import { getFirstVisiblePackForPattern } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
@@ -20,54 +19,61 @@ interface Props {
 
 export default async function PatternTeaserPage({ params }: Props) {
   const { slug } = await params;
-  const pattern = await getTeaserPatternBySlug(slug);
+  const session = await getSession();
 
-  if (!pattern) return notFound();
-
-  const [materials, pack, session] = await Promise.all([
-    getTeaserMaterialsForPattern(pattern.id),
-    getFirstVisiblePackForPattern(pattern.id),
-    getSession(),
-  ]);
-
-  // ── Entitled user WITH a pack → redirect to the pack's pattern page ──
-  if (session && pack) {
-    const isEntitled =
-      session.isInternal ||
-      (session.orgId
-        ? await checkEntitlement(session.orgId, pack.id)
-        : false);
-    if (isEntitled) {
-      redirect(`/packs/${pack.slug}/patterns/${slug}`);
-    }
-  }
-
-  // ── Internal user WITHOUT a pack → render full view inline ──
-  // Patterns may not be in a visible pack yet (e.g. still being assembled),
-  // but admins / collective members should still see the full facilitation view.
+  // ── Internal user → always show full collective view ──
   if (session?.isInternal) {
     const fullPattern = await getCollectivePatternBySlug(slug);
-    if (fullPattern) {
-      return (
-        <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
-          <Link
-            href="/sampler"
-            className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
-          >
-            &larr; back to playdates
-          </Link>
+    if (!fullPattern) return notFound();
 
-          <h1 className="text-3xl font-semibold tracking-tight mb-4">
-            {fullPattern.title}
-          </h1>
+    const [materials, pack] = await Promise.all([
+      getTeaserMaterialsForPattern(fullPattern.id),
+      getFirstVisiblePackForPattern(fullPattern.id),
+    ]);
 
-          <EntitledPatternView
-            pattern={fullPattern}
-            materials={materials}
-            packSlug={null}
-          />
-        </main>
-      );
+    // If the pattern IS in a pack, redirect to the pack view
+    if (pack) {
+      redirect(`/packs/${pack.slug}/patterns/${slug}`);
+    }
+
+    return (
+      <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
+        <Link
+          href="/sampler"
+          className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
+        >
+          &larr; back to playdates
+        </Link>
+
+        <h1 className="text-3xl font-semibold tracking-tight mb-4">
+          {fullPattern.title}
+        </h1>
+
+        <EntitledPatternView
+          pattern={fullPattern}
+          materials={materials}
+          packSlug={null}
+        />
+      </main>
+    );
+  }
+
+  // ── Everyone else → sampler teaser path ──
+  const pattern = await getTeaserPatternBySlug(slug);
+  if (!pattern) return notFound();
+
+  const [materials, pack] = await Promise.all([
+    getTeaserMaterialsForPattern(pattern.id),
+    getFirstVisiblePackForPattern(pattern.id),
+  ]);
+
+  // Entitled user WITH a pack → redirect to the pack's pattern page
+  if (session && pack) {
+    const isEntitled = session.orgId
+      ? await checkEntitlement(session.orgId, pack.id)
+      : false;
+    if (isEntitled) {
+      redirect(`/packs/${pack.slug}/patterns/${slug}`);
     }
   }
 

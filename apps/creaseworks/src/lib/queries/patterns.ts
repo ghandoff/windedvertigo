@@ -26,6 +26,23 @@ export async function getTeaserPatterns() {
 }
 
 /**
+ * Fetch all ready patterns with teaser-tier columns (no release_channel filter).
+ * Used on /sampler for internal users who should see everything.
+ */
+export async function getAllReadyPatterns() {
+  const cols = columnsToSql(PATTERN_TEASER_COLUMNS);
+  const result = await sql.query(
+    `SELECT ${cols},
+       (find_again_mode IS NOT NULL) AS has_find_again
+     FROM patterns_cache
+     WHERE status = 'ready'
+     ORDER BY title ASC`,
+  );
+  assertNoLeakedFields(result.rows, "teaser");
+  return result.rows;
+}
+
+/**
  * Fetch a single pattern by slug at teaser tier.
  */
 export async function getTeaserPatternBySlug(slug: string) {

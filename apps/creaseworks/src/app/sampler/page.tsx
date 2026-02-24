@@ -1,4 +1,5 @@
-import { getTeaserPatterns } from "@/lib/queries/patterns";
+import { getTeaserPatterns, getAllReadyPatterns } from "@/lib/queries/patterns";
+import { getSession } from "@/lib/auth-helpers";
 import { PatternCard } from "@/components/ui/pattern-card";
 import Link from "next/link";
 
@@ -8,7 +9,13 @@ export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export default async function SamplerPage() {
-  const patterns = await getTeaserPatterns();
+  const session = await getSession();
+  const isInternal = session?.isInternal ?? false;
+
+  // Internal users see all ready playdates; everyone else sees sampler only
+  const patterns = isInternal
+    ? await getAllReadyPatterns()
+    : await getTeaserPatterns();
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-5xl mx-auto">
@@ -17,12 +24,12 @@ export default async function SamplerPage() {
           &larr; creaseworks
         </Link>
         <h1 className="text-3xl font-semibold tracking-tight mb-2">
-          playdate sampler
+          {isInternal ? "all playdates" : "playdate sampler"}
         </h1>
         <p className="text-cadet/60 max-w-lg">
-          free previews of every playdate. each card gives you a taste —
-          grab a pack to unlock the full guide, materials list, and
-          find again prompts.
+          {isInternal
+            ? "all ready playdates synced from Notion. drafts are hidden."
+            : "free previews of every playdate. each card gives you a taste — grab a pack to unlock the full guide, materials list, and find again prompts."}
         </p>
       </header>
 
