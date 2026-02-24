@@ -398,7 +398,7 @@ Daily (every 24 hours at midnight UTC), plus a manual "sync now" button in the a
 ### Notion API specifics
 
 - Use `@notionhq/client` v2.
-- The four database IDs are environment variables: `NOTION_DB_PATTERNS`, `NOTION_DB_MATERIALS`, `NOTION_DB_PACKS`, `NOTION_DB_RUNS`.
+- The four database IDs are environment variables: `NOTION_DB_PLAYDATES`, `NOTION_DB_MATERIALS`, `NOTION_DB_PACKS`, `NOTION_DB_REFLECTIONS`.
 - Relations in Notion return arrays of page IDs. We map these to internal UUIDs via the `notion_id` column.
 - Rate limiting: Notion API allows 3 requests/second. The sync job uses serial pagination with a 350ms delay between requests.
 - BD touchpoint relation on runs is **not synced**. It stays in Notion only.
@@ -407,10 +407,10 @@ Daily (every 24 hours at midnight UTC), plus a manual "sync now" button in the a
 
 | database | Notion ID | collection ID |
 |---|---|---|
-| creaseworks — patterns | `b446ffd5-d166-4a31-b4f5-f6a93aadaab8` | `0a90f5dc-a264-48ff-a49f-fabb07667116` |
+| creaseworks — playdates | `b446ffd5-d166-4a31-b4f5-f6a93aadaab8` | `0a90f5dc-a264-48ff-a49f-fabb07667116` |
 | co-design materials | `a6b32bc6-e021-41a4-b6f4-3d528e814d71` | `2bb1cd66-b20d-4b21-8816-1feba57f187a` |
 | creaseworks — packs | `beb34e7b-86cd-4f20-b9be-641431b99e5f` | `7b9e565b-29ad-4e6f-91f9-b12772cc2d37` |
-| creaseworks — runs | `67215537-b307-49f6-b0db-d6ca7a514c78` | `8702904a-3802-4bda-a31b-29050c238f92` |
+| creaseworks — reflections | `67215537-b307-49f6-b0db-d6ca7a514c78` | `8702904a-3802-4bda-a31b-29050c238f92` |
 
 ---
 
@@ -810,10 +810,10 @@ path `/Users/garrettjaeger/Projects/creaseworks`.
 ```
 # Notion
 NOTION_API_KEY=secret_...
-NOTION_DB_PATTERNS=b446ffd5-d166-4a31-b4f5-f6a93aadaab8
+NOTION_DB_PLAYDATES=b446ffd5-d166-4a31-b4f5-f6a93aadaab8
 NOTION_DB_MATERIALS=a6b32bc6-e021-41a4-b6f4-3d528e814d71
 NOTION_DB_PACKS=beb34e7b-86cd-4f20-b9be-641431b99e5f
-NOTION_DB_RUNS=67215537-b307-49f6-b0db-d6ca7a514c78
+NOTION_DB_REFLECTIONS=67215537-b307-49f6-b0db-d6ca7a514c78
 
 # database
 POSTGRES_URL=postgresql://...

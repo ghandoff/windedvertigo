@@ -31,7 +31,7 @@ function parseRunPage(page: any) {
 
 export async function syncRuns() {
   console.log("[sync] fetching runs from Notion...");
-  const pages = await queryAllPages(NOTION_DBS.runs);
+  const pages = await queryAllPages(NOTION_DBS.reflections);
   console.log(`[sync] found ${pages.length} runs`);
 
   const notionIds: string[] = [];

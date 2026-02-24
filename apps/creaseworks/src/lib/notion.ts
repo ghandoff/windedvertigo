@@ -20,10 +20,10 @@ function getNotion(): Client {
 export { getNotion as notion };
 
 export const NOTION_DBS = {
-  playdates: process.env.NOTION_DB_PATTERNS ?? "",
+  playdates: process.env.NOTION_DB_PLAYDATES ?? "",
   materials: process.env.NOTION_DB_MATERIALS ?? "",
   packs: process.env.NOTION_DB_PACKS ?? "",
-  runs: process.env.NOTION_DB_RUNS ?? "",
+  reflections: process.env.NOTION_DB_REFLECTIONS ?? "",
 } as const;
 
 // Notion rate limit: 3 req/s. We use 350ms delay for safety.

@@ -44,7 +44,7 @@ function resolveContentType(databaseId: string): ContentType | null {
     [NOTION_DBS.playdates.replace(/-/g, "")]: "playdates",
     [NOTION_DBS.materials.replace(/-/g, "")]: "materials",
     [NOTION_DBS.packs.replace(/-/g, "")]: "packs",
-    [NOTION_DBS.runs.replace(/-/g, "")]: "runs",
+    [NOTION_DBS.reflections.replace(/-/g, "")]: "runs",
   };
 
   return map[normalised] ?? null;
