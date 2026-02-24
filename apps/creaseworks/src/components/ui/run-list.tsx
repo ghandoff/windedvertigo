@@ -73,7 +73,7 @@ export default function RunList({
           no reflections yet. log your first reflection to start tracking.
         </p>
         <Link
-          href="/runs/new"
+          href="/reflections/new"
           className="inline-block rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90"
           style={{ backgroundColor: "var(--wv-redwood)" }}
         >

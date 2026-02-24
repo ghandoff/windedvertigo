@@ -37,7 +37,7 @@ const sections = [
   {
     title: "analytics",
     href: "/analytics",
-    description: "view run analytics and usage dashboard",
+    description: "view reflection analytics and usage dashboard",
     icon: "📊",
   },
   {

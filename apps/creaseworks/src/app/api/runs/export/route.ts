@@ -80,8 +80,8 @@ function buildCsv(
   const headers = [
     "title",
     "playdate",
-    "run_type",
-    "run_date",
+    "context_of_use",
+    "date",
     "context_tags",
     "trace_evidence",
     "materials",
@@ -114,7 +114,7 @@ function buildCsv(
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="creaseworks-runs-${dateStr}.csv"`,
+      "Content-Disposition": `attachment; filename="creaseworks-reflections-${dateStr}.csv"`,
     },
   });
 }
@@ -223,7 +223,7 @@ async function buildPdf(
     cadet,
   );
   y -= 2;
-  y = drawText("runs report", margin, y, 14, fontItalic, redwood);
+  y = drawText("reflections report", margin, y, 14, fontItalic, redwood);
   y -= 2;
   y = drawText(`generated ${dateStr}`, margin, y, 9, font, grey);
   y -= 16;
@@ -231,7 +231,7 @@ async function buildPdf(
   /* ---- summary section ---- */
   y = drawText("SUMMARY", margin, y, 9, fontBold, redwood);
   y -= 2;
-  y = drawText(`total runs: ${runs.length}`, margin, y, 10, font, cadet);
+  y = drawText(`total reflections: ${runs.length}`, margin, y, 10, font, cadet);
 
   // runs by type breakdown
   const typeCounts: Record<string, number> = {};
@@ -276,7 +276,7 @@ async function buildPdf(
   y -= 4;
 
   /* ---- run details ---- */
-  y = drawText("RUN DETAILS", margin, y, 9, fontBold, redwood);
+  y = drawText("REFLECTION DETAILS", margin, y, 9, fontBold, redwood);
   y -= 4;
 
   for (let i = 0; i < runs.length; i++) {
@@ -389,7 +389,7 @@ async function buildPdf(
   return new NextResponse(Buffer.from(pdfBytes), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="creaseworks-runs-${dateStr}.pdf"`,
+      "Content-Disposition": `attachment; filename="creaseworks-reflections-${dateStr}.pdf"`,
     },
   });
 }

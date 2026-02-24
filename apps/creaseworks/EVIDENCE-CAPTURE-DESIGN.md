@@ -203,9 +203,51 @@ The existing run form stays the same structure but the "more details" section ex
 
 **Later:** Phase C (portfolio) and Phase D (export) — these are polish that make the feature delightful but the core value is in capture.
 
-## Open questions
+## Implementation status (as of session 20)
 
-1. **R2 vs Supabase Storage** — R2 is cheaper and we're already on Cloudflare for the domain. But Supabase Storage has row-level security built in. Leaning R2 with signed URLs.
-2. **Video** — should we support short video clips? Storage cost goes up significantly. Could limit to 30s clips. Defer for now.
-3. **Offline capture** — facilitators often work in low-connectivity environments (classrooms, outdoors). Should the form work offline with sync? Big engineering lift. Defer, but design the API to be sync-friendly.
-4. **Privacy** — photos of children require consent frameworks. The app should prompt "do you have photo consent?" before enabling upload. This is a hard requirement, not a nice-to-have.
+All four phases are complete and deployed:
+
+| Phase | Status | Session | Notes |
+|-------|--------|---------|-------|
+| A: data model + upload | ✅ Complete | 17 | migration 015, R2 bucket, evidence CRUD API, presigned upload URLs |
+| B: enhanced run form | ✅ Complete | 19 | photo upload (drag-drop + camera, up to 5), quote capture, guided observations, practitioner gating |
+| C: portfolio + gallery | ✅ Complete | 20 | masonry grid, type/playdate filters, full-screen lightbox with keyboard nav |
+| D: export | ✅ Complete | 20 | branded PDF with embedded R2 photos, shareable public links (7-day expiry, migration 016) |
+
+### Where to find it in the UI
+
+- **Evidence capture** → `/runs/new` → "capture evidence" collapsible section (practitioner tier only)
+- **Portfolio gallery** → `/playbook/portfolio` (also linked from `/playbook` when user has progress)
+- **PDF export + share** → buttons on portfolio page (appear when evidence items exist)
+- **Shared view** → `/evidence/shared/[token]` (public, no auth, expires after 7 days)
+
+## Resolved questions
+
+1. **R2 vs Supabase Storage** — Resolved: R2 with presigned URLs. Cheaper, S3-compatible, already on Cloudflare for domain.
+2. **Video** — Deferred. Photos only for now.
+3. **Offline capture** — Deferred. API is sync-friendly but no offline queue yet.
+4. **Privacy** — Not yet implemented. Photo consent prompt should be added before public launch.
+
+## What's next — candidate roadmap items
+
+These are the natural next steps now that evidence capture is complete. Not prioritised yet.
+
+### 1. Collections & progress tiers activation
+
+Session 15 designed a gamification framework with collections and badges, and migration 013 created the tables (collections, user_progress, etc.), but the progress tier computation hasn't been wired to the evidence layer yet. `hasStructuredEvidence()` exists in evidence.ts but isn't called from progress recomputation. Activating this would let practitioners see their progression and feel rewarded for documenting evidence. The portfolio could show badge progress and the playbook page could surface "you're 2 reflections away from the explorer badge" nudges.
+
+### 2. Mobile-optimised matcher
+
+Listed as remaining in DESIGN.md. The matcher works on desktop but hasn't been specifically tuned for mobile touch interactions — the materials picker, form checkboxes, and results cards could benefit from larger touch targets, swipeable result cards, and a bottom-sheet filter pattern. This is user-facing and could drive engagement since facilitators often plan on their phones.
+
+### 3. Notification / email digests
+
+Now that evidence and sharing exist, there's a natural engagement loop to close. Ideas: weekly digest email showing "you captured 3 new pieces of evidence this week", notifications when someone views your shared portfolio link, progress tier milestone celebrations ("you just earned the explorer badge!"), and org-level summaries for team leads ("your team logged 12 reflections this month"). Would use Resend (already configured) for delivery.
+
+### 4. Public landing / marketing polish
+
+The sampler pages and pack catalogue are functional but were built for MVP. Now that the product has real depth (evidence capture, portfolios, PDF export, shareable links), the public-facing pages could benefit from conversion-focused polish: testimonials/social proof section, animated feature walkthrough, better pack comparison, and a "see what practitioners are building" showcase using anonymised shared portfolios.
+
+### 5. Standards alignment for reflections (future)
+
+Connect reflections and evidence to school standards frameworks (Common Core, NGSS, state-level standards). Possible directions: tag playdates or reflections with standards codes, generate standards-aligned evidence reports from the portfolio, let teachers filter portfolio by standard when preparing for evaluations or professional development documentation. This would make creaseworks directly useful for teachers who need to demonstrate standards coverage in their creative practice — turning the portfolio from a personal record into a compliance-ready artifact.

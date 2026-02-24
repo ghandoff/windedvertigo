@@ -178,13 +178,13 @@ export default async function PlaybookPage() {
           <h2 className="text-lg font-semibold text-cadet">recent reflections</h2>
           <div className="flex items-center gap-3">
             <Link
-              href="/playbook/runs"
+              href="/playbook/reflections"
               className="text-xs text-cadet/40 hover:text-cadet/60 transition-colors"
             >
               see all &rarr;
             </Link>
             <Link
-              href="/runs/new"
+              href="/reflections/new"
               className="rounded-lg px-4 py-2 text-xs font-medium text-white transition-all hover:opacity-90"
               style={{ backgroundColor: "var(--wv-redwood)" }}
             >
@@ -197,7 +197,7 @@ export default async function PlaybookPage() {
           <p className="text-sm text-cadet/30 py-4 text-center">
             no reflections yet. after you try a playdate,{" "}
             <Link
-              href="/runs/new"
+              href="/reflections/new"
               className="text-redwood hover:text-sienna transition-colors"
             >
               log it here
