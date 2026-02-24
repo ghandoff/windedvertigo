@@ -23,6 +23,25 @@ import {
   columnsToSql,
 } from "@/lib/security/column-selectors";
 
+/**
+ * Sanitise text for pdf-lib StandardFonts (WinAnsi / Windows-1252).
+ * Replaces common Unicode characters that aren't in the WinAnsi set,
+ * then strips anything still outside the safe range.
+ */
+function sanitize(text: string): string {
+  return text
+    .replace(/\u2014/g, "-")   // em dash
+    .replace(/\u2013/g, "-")   // en dash
+    .replace(/\u2018/g, "'")   // left single quote
+    .replace(/\u2019/g, "'")   // right single quote / apostrophe
+    .replace(/\u201C/g, '"')   // left double quote
+    .replace(/\u201D/g, '"')   // right double quote
+    .replace(/\u2026/g, "...")  // ellipsis
+    .replace(/\u00A0/g, " ")   // non-breaking space
+    // Strip anything outside printable ASCII + Latin-1 Supplement (WinAnsi safe)
+    .replace(/[^\x20-\x7E\xA1-\xFF]/g, "");
+}
+
 interface Props {
   params: Promise<{ patternId: string }>;
 }
@@ -72,7 +91,8 @@ export async function GET(req: NextRequest, { params }: Props) {
     return NextResponse.json({ error: "pattern not found" }, { status: 404 });
   }
 
-  // generate PDF
+  // generate PDF — wrapped in try/catch so encoding errors return 500 with detail
+  try {
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -91,7 +111,7 @@ export async function GET(req: NextRequest, { params }: Props) {
 
   // helper: wrap and draw text, return new y position
   function drawText(
-    text: string,
+    rawText: string,
     x: number,
     startY: number,
     size: number,
@@ -99,6 +119,7 @@ export async function GET(req: NextRequest, { params }: Props) {
     colour: typeof cadet,
     lineHeight: number = size * 1.4,
   ): number {
+    const text = sanitize(rawText);
     const words = text.split(/\s+/);
     let line = "";
     let currentY = startY;
@@ -174,12 +195,12 @@ export async function GET(req: NextRequest, { params }: Props) {
   const dd = String(now.getDate()).padStart(2, "0");
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const yyyy = now.getFullYear();
-  const watermark = [
+  const watermark = sanitize([
     session.orgName || "personal",
     session.email,
     pack?.title || "internal",
     `${dd}/${mm}/${yyyy}`,
-  ].join("  \u00b7  ");
+  ].join("  \u00b7  "));
 
   const pages = pdfDoc.getPages();
   for (const pg of pages) {
@@ -219,5 +240,13 @@ export async function GET(req: NextRequest, { params }: Props) {
       "Content-Disposition": `attachment; filename="${pattern.slug || "pattern"}.pdf"`,
     },
   });
+
+  } catch (err: any) {
+    console.error("[pdf] generation failed:", err);
+    return NextResponse.json(
+      { error: `pdf generation failed: ${err.message}` },
+      { status: 500 },
+    );
+  }
 }
 
