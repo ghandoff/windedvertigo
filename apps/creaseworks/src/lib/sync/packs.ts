@@ -16,7 +16,7 @@ function parsePackPage(page: any) {
     notionId: extractPageId(page),
     title: extractTitle(props, "pack"),
     description: extractRichText(props, "description"),
-    status: extractSelect(props, "status"),
+    status: extractSelect(props, "status") || "draft",
     lastEdited: extractLastEdited(page),
     patternRelationIds: extractRelationIds(props, "patterns included"),
   };
