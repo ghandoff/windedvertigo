@@ -21,6 +21,7 @@ import DomainVerifier from "@/app/team/domain-verifier";
 import AnalyticsDashboard from "@/app/analytics/analytics-dashboard";
 import TierCard, { TIERS, getTierState } from "@/components/ui/tier-card";
 import ProfileManageToggle from "./manage-toggle";
+import NotificationPrefs from "./notification-prefs";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export default async function ProfilePage({
     verify?: string;
     domain?: string;
     reason?: string;
+    unsubscribed?: string;
   }>;
 }) {
   const session = await requireAuth();
@@ -63,11 +65,47 @@ export default async function ProfilePage({
       ])
     : [[], []];
 
-  /* should we show the manage toggle at all? */
-  const canManage = hasOrg || session.isInternal;
+  /* show manage toggle for everyone (notification prefs are universal) */
+  const canManage = true;
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-16 max-w-4xl mx-auto">
+      {/* ---- unsubscribe confirmation banner ----------------------- */}
+      {params.unsubscribed === "true" && (
+        <div
+          className="rounded-xl border px-4 py-3 mb-6"
+          style={{
+            borderColor: "rgba(39, 50, 72, 0.15)",
+            backgroundColor: "rgba(39, 50, 72, 0.03)",
+          }}
+        >
+          <p
+            className="text-sm"
+            style={{ color: "var(--wv-cadet)", opacity: 0.7 }}
+          >
+            you&apos;ve been unsubscribed from the weekly digest. you can
+            re-enable it anytime in the manage section below.
+          </p>
+        </div>
+      )}
+      {params.unsubscribed === "error" && (
+        <div
+          className="rounded-xl border px-4 py-3 mb-6"
+          style={{
+            borderColor: "rgba(177, 80, 67, 0.2)",
+            backgroundColor: "rgba(177, 80, 67, 0.05)",
+          }}
+        >
+          <p
+            className="text-sm"
+            style={{ color: "var(--wv-redwood)" }}
+          >
+            something went wrong with unsubscribing. the link may have
+            expired — try toggling the digest off in the manage section below.
+          </p>
+        </div>
+      )}
+
       {/* ---- profile header — warm + personal ---------------------- */}
       <div className="flex items-center gap-4 mb-10">
         {/* avatar circle */}
@@ -139,6 +177,22 @@ export default async function ProfilePage({
 
           {showManage && (
             <div className="mt-6 space-y-12">
+              {/* notifications section */}
+              <section>
+                <h3 className="text-lg font-semibold tracking-tight mb-1">
+                  notifications
+                </h3>
+                <p className="text-sm text-cadet/40 mb-4">
+                  control what creaseworks sends to your inbox.
+                </p>
+                <div
+                  className="rounded-xl border p-4"
+                  style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
+                >
+                  <NotificationPrefs />
+                </div>
+              </section>
+
               {/* team section */}
               {hasOrg && (
                 <section>
