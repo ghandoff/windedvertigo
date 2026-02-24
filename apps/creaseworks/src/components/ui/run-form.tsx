@@ -6,12 +6,23 @@
  * Lightweight UX per DESIGN.md: required fields are minimal (title,
  * type, date). Everything else is optional and collapsible.
  *
- * MVP 5 — runs and evidence.
+ * Phase B adds the evidence capture section for practitioner-tier
+ * users: photo upload, quote capture, guided observation prompts.
+ * After the run is created, evidence items are saved via the
+ * /api/runs/[id]/evidence endpoint, and photos are uploaded to R2.
+ *
+ * MVP 5 — reflections and evidence.
  */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RUN_TYPES, TRACE_EVIDENCE_OPTIONS, CONTEXT_TAGS } from "@/lib/constants/enums";
+import EvidenceCaptureSection, {
+  createEmptyEvidenceState,
+  hasEvidenceContent,
+  type EvidenceCaptureState,
+} from "./evidence-capture-section";
+import { uploadPhotoToR2 } from "./evidence-photo-upload";
 
 interface Playdate {
   id: string;
@@ -28,9 +39,12 @@ interface Material {
 export default function RunForm({
   playdates,
   materials,
+  isPractitioner = false,
 }: {
   playdates: Playdate[];
   materials: Material[];
+  /** Whether the current user has practitioner-level access for evidence capture. */
+  isPractitioner?: boolean;
 }) {
   const router = useRouter();
 
@@ -52,12 +66,93 @@ export default function RunForm({
   const [showOptional, setShowOptional] = useState(false);
   const [materialSearch, setMaterialSearch] = useState("");
 
+  // Evidence capture state (practitioner tier)
+  const [evidenceState, setEvidenceState] = useState<EvidenceCaptureState>(
+    createEmptyEvidenceState,
+  );
+
   // UI state
   const [loading, setLoading] = useState(false);
+  const [savingEvidence, setSavingEvidence] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function toggleTag(tag: string, list: string[], setter: (v: string[]) => void) {
     setter(list.includes(tag) ? list.filter((t) => t !== tag) : [...list, tag]);
+  }
+
+  /**
+   * Save evidence items for a newly created reflection.
+   * Called after the reflection POST succeeds. Best-effort — errors are
+   * logged but don't block navigation.
+   */
+  async function saveEvidence(runId: string, state: EvidenceCaptureState) {
+    const promises: Promise<void>[] = [];
+
+    // Save photos — create evidence record, then upload to R2
+    for (const photo of state.photos) {
+      promises.push(
+        (async () => {
+          const res = await fetch(`/api/runs/${runId}/evidence`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ evidenceType: "photo" }),
+          });
+          if (!res.ok) throw new Error("failed to create photo evidence");
+          const { id: evidenceId } = await res.json();
+
+          // Upload to R2
+          const { storageKey, thumbnailKey } = await uploadPhotoToR2(
+            photo,
+            runId,
+            evidenceId,
+          );
+
+          // Update evidence record with storage keys
+          await fetch(`/api/runs/${runId}/evidence/${evidenceId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ storageKey, thumbnailKey }),
+          });
+        })(),
+      );
+    }
+
+    // Save quotes
+    for (const quote of state.quotes) {
+      promises.push(
+        (async () => {
+          await fetch(`/api/runs/${runId}/evidence`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              evidenceType: "quote",
+              quoteText: quote.text,
+              quoteAttribution: quote.attribution || null,
+            }),
+          });
+        })(),
+      );
+    }
+
+    // Save observations (only non-empty ones)
+    for (const obs of state.observations) {
+      if (!obs.body.trim()) continue;
+      promises.push(
+        (async () => {
+          await fetch(`/api/runs/${runId}/evidence`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              evidenceType: "observation",
+              body: obs.body.trim(),
+              promptKey: obs.promptKey,
+            }),
+          });
+        })(),
+      );
+    }
+
+    await Promise.allSettled(promises);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -68,6 +163,7 @@ export default function RunForm({
     setError(null);
 
     try {
+      // 1. Create the run
       const res = await fetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -88,11 +184,23 @@ export default function RunForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "failed to create run");
 
+      // 2. Save evidence items if any exist (practitioner tier)
+      if (isPractitioner && hasEvidenceContent(evidenceState) && data.id) {
+        setSavingEvidence(true);
+        try {
+          await saveEvidence(data.id, evidenceState);
+        } catch (evidenceErr) {
+          // Log but don't block — the run itself was saved
+          console.error("evidence save error:", evidenceErr);
+        }
+      }
+
       router.push("/playbook");
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
+      setSavingEvidence(false);
     }
   }
 
@@ -115,7 +223,7 @@ export default function RunForm({
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" aria-label="log a reflection" aria-describedby={error ? "run-error" : undefined}>
+    <form onSubmit={handleSubmit} className="space-y-6" aria-label="log a reflection" aria-describedby={error ? "reflection-error" : undefined}>
       {/* required section */}
       <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-5 space-y-4">
         <h2 className="text-sm font-semibold text-cadet/80">essentials</h2>
@@ -201,6 +309,14 @@ export default function RunForm({
           </label>
         )}
       </div>
+
+      {/* ── evidence capture section (practitioner tier) ────────────── */}
+      <EvidenceCaptureSection
+        runId={null}
+        state={evidenceState}
+        onChange={setEvidenceState}
+        isPractitioner={isPractitioner}
+      />
 
       {/* optional section — collapsible */}
       <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-5">
@@ -370,7 +486,7 @@ export default function RunForm({
       {/* error */}
       {error && (
         <div
-          id="run-error"
+          id="reflection-error"
           className="rounded-lg p-3 text-sm"
           style={{
             backgroundColor: "rgba(177, 80, 67, 0.08)",
@@ -389,7 +505,11 @@ export default function RunForm({
           className="rounded-lg px-6 py-2.5 text-sm font-medium text-white disabled:opacity-40 transition-all"
           style={{ backgroundColor: "var(--wv-redwood)" }}
         >
-          {loading ? "saving…" : "save reflection"}
+          {savingEvidence
+            ? "uploading evidence…"
+            : loading
+              ? "saving…"
+              : "save reflection"}
         </button>
         <button
           type="button"

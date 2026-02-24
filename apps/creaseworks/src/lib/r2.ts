@@ -12,7 +12,7 @@
  *   R2_PUBLIC_URL       — public bucket URL for reading (optional)
  */
 
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const BUCKET = process.env.R2_BUCKET_NAME ?? "creaseworks-evidence";
@@ -87,6 +87,42 @@ export async function generateUploadUrl(
   });
 
   return getSignedUrl(client, command, { expiresIn: 600 });
+}
+
+/**
+ * Generate a presigned GET URL for reading a stored object.
+ * Expires in 1 hour. Used by the portfolio/gallery to show photos.
+ */
+export async function generateReadUrl(
+  key: string,
+  expiresIn = 3600,
+): Promise<string> {
+  const client = getR2Client();
+  const command = new GetObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+  });
+  return getSignedUrl(client, command, { expiresIn });
+}
+
+/**
+ * Fetch raw bytes of a stored object from R2.
+ * Used by the evidence PDF export to embed photos directly.
+ * Returns null if the object doesn't exist or fetch fails.
+ */
+export async function getObjectBytes(key: string): Promise<Uint8Array | null> {
+  try {
+    const client = getR2Client();
+    const command = new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+    });
+    const response = await client.send(command);
+    if (!response.Body) return null;
+    return response.Body.transformToByteArray();
+  } catch {
+    return null;
+  }
 }
 
 /**

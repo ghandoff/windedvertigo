@@ -147,6 +147,30 @@ export default async function PlaybookPage() {
         </div>
       )}
 
+      {/* ── portfolio link ── */}
+      {hasProgress && (
+        <Link
+          href="/playbook/portfolio"
+          className="block mb-8 rounded-xl border px-5 py-4 hover:shadow-warm transition-shadow"
+          style={{
+            borderColor: "rgba(203, 120, 88, 0.12)",
+            backgroundColor: "rgba(203, 120, 88, 0.03)",
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-cadet">
+                your portfolio
+              </h3>
+              <p className="text-xs text-cadet/40 mt-0.5">
+                photos, quotes, and observations from your reflections.
+              </p>
+            </div>
+            <span className="text-cadet/30 text-sm">&rarr;</span>
+          </div>
+        </Link>
+      )}
+
       {/* ── section 3: recent reflections ── */}
       <div className="border-t border-cadet/10 pt-8">
         <div className="flex items-center justify-between mb-4">

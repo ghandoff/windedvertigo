@@ -50,6 +50,8 @@ export interface UpdateEvidenceInput {
   body?: string | null;
   promptKey?: string | null;
   sortOrder?: number;
+  storageKey?: string | null;
+  thumbnailKey?: string | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -173,7 +175,6 @@ export async function createEvidence(
 
 /**
  * Update a single evidence item. Caller must own the parent run.
- * Photo storage_key/thumbnail_key cannot be updated here (use upload flow).
  * Returns true if updated, false if not found or not authorised.
  */
 export async function updateEvidence(
@@ -219,6 +220,14 @@ export async function updateEvidence(
   if (input.sortOrder !== undefined) {
     sets.push(`sort_order = $${idx++}`);
     params.push(input.sortOrder);
+  }
+  if (input.storageKey !== undefined) {
+    sets.push(`storage_key = $${idx++}`);
+    params.push(input.storageKey);
+  }
+  if (input.thumbnailKey !== undefined) {
+    sets.push(`thumbnail_key = $${idx++}`);
+    params.push(input.thumbnailKey);
   }
 
   if (sets.length === 0) return true; // nothing to update
@@ -275,6 +284,127 @@ export async function countEvidenceForRun(runId: string): Promise<number> {
     `SELECT COUNT(*)::int AS count FROM run_evidence WHERE run_id = $1`,
     [runId],
   );
+  return result.rows[0]?.count ?? 0;
+}
+
+/* ------------------------------------------------------------------ */
+/*  portfolio query                                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Row shape for the portfolio view: evidence enriched with reflection
+ * and playdate context.
+ */
+export interface PortfolioItem {
+  id: string;
+  evidence_type: EvidenceType;
+  storage_key: string | null;
+  thumbnail_key: string | null;
+  quote_text: string | null;
+  quote_attribution: string | null;
+  body: string | null;
+  prompt_key: string | null;
+  created_at: string;
+  /* reflection context */
+  run_id: string;
+  run_title: string;
+  run_date: string | null;
+  /* playdate context */
+  playdate_title: string | null;
+  playdate_slug: string | null;
+}
+
+/**
+ * Fetch all evidence for a user's reflections, newest first.
+ * Joins with runs_cache + playdates_cache for display context.
+ *
+ * Supports optional filters:
+ *   - evidenceType: restrict to one type
+ *   - playdateSlug: restrict to one playdate
+ *   - limit/offset: pagination (default 50)
+ */
+export async function getPortfolioEvidence(
+  userId: string,
+  opts: {
+    evidenceType?: EvidenceType;
+    playdateSlug?: string;
+    limit?: number;
+    offset?: number;
+  } = {},
+): Promise<PortfolioItem[]> {
+  const limit = opts.limit ?? 50;
+  const offset = opts.offset ?? 0;
+
+  const conditions = [
+    "r.created_by = $1",
+  ];
+  const params: unknown[] = [userId];
+  let idx = 2;
+
+  if (opts.evidenceType) {
+    conditions.push(`re.evidence_type = $${idx++}`);
+    params.push(opts.evidenceType);
+  }
+  if (opts.playdateSlug) {
+    conditions.push(`p.slug = $${idx++}`);
+    params.push(opts.playdateSlug);
+  }
+
+  params.push(limit, offset);
+
+  const result = await sql.query(
+    `SELECT
+       re.id, re.evidence_type,
+       re.storage_key, re.thumbnail_key,
+       re.quote_text, re.quote_attribution,
+       re.body, re.prompt_key,
+       re.created_at,
+       r.id AS run_id,
+       r.title AS run_title,
+       r.run_date,
+       p.title AS playdate_title,
+       p.slug AS playdate_slug
+     FROM run_evidence re
+     JOIN runs_cache r ON r.id = re.run_id
+     LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
+     WHERE ${conditions.join(" AND ")}
+     ORDER BY re.created_at DESC
+     LIMIT $${idx++} OFFSET $${idx}`,
+    params,
+  );
+
+  return result.rows as PortfolioItem[];
+}
+
+/**
+ * Count total evidence items for a user (for pagination).
+ */
+export async function countPortfolioEvidence(
+  userId: string,
+  opts: { evidenceType?: EvidenceType; playdateSlug?: string } = {},
+): Promise<number> {
+  const conditions = ["r.created_by = $1"];
+  const params: unknown[] = [userId];
+  let idx = 2;
+
+  if (opts.evidenceType) {
+    conditions.push(`re.evidence_type = $${idx++}`);
+    params.push(opts.evidenceType);
+  }
+  if (opts.playdateSlug) {
+    conditions.push(`p.slug = $${idx++}`);
+    params.push(opts.playdateSlug);
+  }
+
+  const result = await sql.query(
+    `SELECT COUNT(*)::int AS count
+     FROM run_evidence re
+     JOIN runs_cache r ON r.id = re.run_id
+     LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
+     WHERE ${conditions.join(" AND ")}`,
+    params,
+  );
+
   return result.rows[0]?.count ?? 0;
 }
 

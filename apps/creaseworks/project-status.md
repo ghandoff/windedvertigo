@@ -1,13 +1,13 @@
 # creaseworks — Project Status
 
-**Last updated**: 2026-02-22 (session 14)
+**Last updated**: 2026-02-24 (session 19)
 **Monorepo**: `ghandoff/windedvertigo` → `apps/creaseworks/`
 **Live**: `creaseworks.windedvertigo.com`
-**Stack**: Next.js 16.1.6, React 19.2.3, Neon Postgres, Stripe, Auth.js, Resend, Vercel
+**Stack**: Next.js 16.1.6, React 19.2.3, Neon Postgres, Cloudflare R2, Stripe, Auth.js, Vercel
 
-## Current state: Launch-ready
+## Current state: Evidence capture in progress
 
-All audit-1 and audit-2 findings resolved. 20 automated tests passing. CI pipeline active. Monorepo migration complete.
+Brand review complete. Four-tier access model (sampler → explorer → practitioner → collective) implemented. Full "pattern→playdate" and "runs→reflections" terminology rename applied across all layers. Profile page iteration (warmth, tier cards, manage toggle redesign) complete. Evidence capture Phase A (backend) complete — Phase B (frontend UI) in progress.
 
 ## Monorepo structure
 
@@ -34,6 +34,11 @@ ghandoff/windedvertigo (single source of truth)
 | 12 | Audit-1: 14 findings, all fixed. Added vitest suite (20 tests). CI pipeline. |
 | 13 | Monorepo consolidation: merged site + creaseworks + nordic-sqr-rct into windedvertigo. Reconnected all 3 Vercel projects. Added NOTION_API_KEY secret. |
 | 14 | Audit-2: 9 findings (3 HIGH, 5 MEDIUM, 2 LOW), all fixed in commit c5bf915. Archived old GitHub repos. Deleted local duplicate folders (~1.5 GB freed). Tested Notion sync workflow — passing. Started audit-1 deferred items. |
+| 15 | Brand review: full copy rewrite, terminology corrections. Four-tier access model (sampler, explorer, practitioner, collective). Gamification framework (collections, badges, progress tiers). |
+| 16 | Full "pattern→playdate" and "runs→reflections" rename across all code, DB (migration 014), Notion columns, API routes, and UI. |
+| 17 | Evidence capture Phase A: migration 015 (run_evidence table), R2 client (r2.ts), evidence CRUD queries, presigned upload URL endpoint, evidence API routes. Cloudflare R2 bucket + API token created. |
+| 18 | Profile page iteration: warm off-white background (globals.css), manage toggle pill redesign (manage-toggle.tsx), tier cards component (tier-card.tsx), "your journey" section on profile page. Cleaned up stale Vercel env vars. |
+| 19 | Evidence capture Phase B: enhanced run form with photo upload, quote capture, guided observation prompts. Practitioner-tier gating. |
 
 ## Completed features (sessions 1–12)
 
@@ -45,6 +50,17 @@ ghandoff/windedvertigo (single source of truth)
 - **Pattern matcher** with scoring algorithm, form/material/context filtering, substitution suggestions
 - **Runs system** — log runs, link patterns + materials, visibility model, N+1 fixed
 - **Run export** — CSV + branded PDF with summary section
+
+### Brand & access tiers (sessions 15–16)
+- **Four-tier access model**: sampler → explorer → practitioner → collective
+- **Full terminology rename**: pattern→playdate, runs→reflections across all layers
+- **Brand-aligned copy**: warm, educator-friendly voice throughout UI
+- **Collections & progress tiers**: gamification framework with badges
+
+### Profile & evidence (sessions 17–18)
+- **Profile page redesign**: warm background, avatar, tier badge, "your journey" tier cards
+- **Manage toggle**: pill-style toggle for team/analytics (grownup stuff)
+- **Evidence capture Phase A**: run_evidence table, Cloudflare R2 presigned uploads, evidence CRUD API, progress tier computation updated
 
 ### Auth & organisations
 - Google OAuth + Resend magic links via Auth.js
@@ -101,6 +117,10 @@ All critical/high/medium items resolved. See git history for details.
 | 009 | Source column on runs_cache + backfill | Applied |
 | 010 | Missing indexes (created_by, org_id, stripe_session_id) | Applied |
 | 011 | Verification token table (moved from runtime) | Applied |
+| 012 | Collective-tier fields on playdates | Applied |
+| 013 | Collections and progress tiers | Applied |
+| 014 | Rename pattern→playdate across all tables/columns | Applied |
+| 015 | run_evidence table for structured evidence capture | Applied |
 
 ## Test coverage
 

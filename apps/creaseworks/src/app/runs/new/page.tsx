@@ -17,12 +17,23 @@ import RunForm from "@/components/ui/run-form";
 export const dynamic = "force-dynamic";
 
 export default async function NewRunPage() {
-  await requireAuth();
+  const session = await requireAuth();
 
   const [playdates, materials] = await Promise.all([
     getReadyPlaydatesForPicker(),
     getAllMaterials(),
   ]);
+
+  /**
+   * Practitioner-level access for evidence capture:
+   * - Internal users (windedvertigo.com emails) always have it
+   * - Admins always have it
+   * - Users with an org have it (entitled via pack purchase)
+   *
+   * In Phase C we can refine this to check specific entitlements.
+   */
+  const isPractitioner =
+    session.isInternal || session.isAdmin || !!session.orgId;
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
@@ -34,7 +45,11 @@ export default async function NewRunPage() {
         and what you&apos;d do differently.
       </p>
 
-      <RunForm playdates={playdates} materials={materials} />
+      <RunForm
+        playdates={playdates}
+        materials={materials}
+        isPractitioner={isPractitioner}
+      />
     </main>
   );
 }
