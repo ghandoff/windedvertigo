@@ -18,7 +18,7 @@ function parsePackPage(page: any) {
     description: extractRichText(props, "description"),
     status: extractSelect(props, "status") || "draft",
     lastEdited: extractLastEdited(page),
-    playdateRelationIds: extractRelationIds(props, "patterns included"),
+    playdateRelationIds: extractRelationIds(props, "playdates included"),
   };
 }
 

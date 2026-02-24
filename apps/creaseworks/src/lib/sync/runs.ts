@@ -13,12 +13,12 @@ import {
 
 function parseRunPage(page: any) {
   const props = page.properties;
-  const playdateIds = extractRelationIds(props, "pattern");
+  const playdateIds = extractRelationIds(props, "playdate");
   return {
     notionId: extractPageId(page),
-    title: extractTitle(props, "run"),
+    title: extractTitle(props, "reflection"),
     playdateNotionId: playdateIds.length > 0 ? playdateIds[0] : null,
-    runType: extractSelect(props, "run type"),
+    runType: extractSelect(props, "reflection type"),
     runDate: extractDate(props, "date"),
     contextTags: extractMultiSelect(props, "context tags"),
     traceEvidence: extractMultiSelect(props, "trace evidence captured"),

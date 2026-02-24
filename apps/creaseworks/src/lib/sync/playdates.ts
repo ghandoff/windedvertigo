@@ -48,7 +48,7 @@ function parsePlaydatePage(page: any): PlaydateRow {
 
   return {
     notionId: extractPageId(page),
-    title: extractTitle(props, "pattern"),
+    title: extractTitle(props, "playdate"),
     headline: extractRichText(props, "headline"),
     releaseChannel: extractSelect(props, "release channel"),
     ipTier: extractSelect(props, "ip tier"),
@@ -57,7 +57,7 @@ function parsePlaydatePage(page: any): PlaydateRow {
     arcEmphasis: extractMultiSelect(props, "arc emphasis"),
     contextTags: extractMultiSelect(props, "context tags"),
     frictionDial: Number.isNaN(frictionDial) ? null : frictionDial,
-    startIn120s: extractCheckbox(props, "start in 120 seconds"),
+    startIn120s: extractCheckbox(props, "start in 2 minutes"),
     requiredForms: extractMultiSelect(props, "required forms"),
     slotsOptional: extractMultiSelect(props, "slots (optional)"),
     slotsNotes: extractRichText(props, "slots notes (optional)"),

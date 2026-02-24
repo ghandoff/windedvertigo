@@ -184,7 +184,7 @@ async function upsertMaterial(page: any) {
 async function upsertPlaydate(page: any) {
   const props = page.properties;
   const notionId = extractPageId(page);
-  const title = extractTitle(props, "pattern");
+  const title = extractTitle(props, "playdate");
   const headline = extractRichText(props, "headline");
   const releaseChannel = extractSelect(props, "release channel");
   const ipTier = extractSelect(props, "ip tier");
@@ -194,7 +194,7 @@ async function upsertPlaydate(page: any) {
   const contextTags = extractMultiSelect(props, "context tags");
   const frictionStr = extractSelect(props, "friction dial");
   const frictionDial = frictionStr ? parseInt(frictionStr, 10) : null;
-  const startIn120s = extractCheckbox(props, "start in 120 seconds");
+  const startIn120s = extractCheckbox(props, "start in 2 minutes");
   const requiredForms = extractMultiSelect(props, "required forms");
   const slotsOptional = extractMultiSelect(props, "slots (optional)");
   const slotsNotes = extractRichText(props, "slots notes (optional)");
@@ -319,7 +319,7 @@ async function upsertPack(page: any) {
   `;
 
   // Resolve playdate relations inside a transaction to prevent orphaned links
-  const playdateRelationIds = extractRelationIds(props, "patterns included");
+  const playdateRelationIds = extractRelationIds(props, "playdates included");
   const packResult = await sql`
     SELECT id FROM packs_cache WHERE notion_id = ${notionId}
   `;
@@ -351,10 +351,10 @@ async function upsertPack(page: any) {
 async function upsertRun(page: any) {
   const props = page.properties;
   const notionId = extractPageId(page);
-  const title = extractTitle(props, "run");
-  const playdateIds = extractRelationIds(props, "pattern");
+  const title = extractTitle(props, "reflection");
+  const playdateIds = extractRelationIds(props, "playdate");
   const playdateNotionId = playdateIds.length > 0 ? playdateIds[0] : null;
-  const runType = extractSelect(props, "run type");
+  const runType = extractSelect(props, "reflection type");
   const runDate = extractDate(props, "date");
   const contextTags = extractMultiSelect(props, "context tags");
   const traceEvidence = extractMultiSelect(props, "trace evidence captured");
