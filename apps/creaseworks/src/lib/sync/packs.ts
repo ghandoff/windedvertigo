@@ -51,16 +51,12 @@ export async function syncPacks() {
   }
 
   if (notionIds.length > 0) {
-    // Remove catalogue + entitlement rows first to satisfy foreign keys
+    // Soft-delete packs removed from Notion rather than hard-deleting,
+    // because packs_catalogue and purchases reference packs_cache.
     await sql.query(
-      `DELETE FROM packs_catalogue
-       WHERE pack_cache_id IN (
-         SELECT id FROM packs_cache WHERE notion_id != ALL($1::text[])
-       )`,
-      [notionIds],
-    );
-    await sql.query(
-      `DELETE FROM packs_cache WHERE notion_id != ALL($1::text[])`,
+      `UPDATE packs_cache
+       SET status = 'archived', synced_at = NOW()
+       WHERE notion_id != ALL($1::text[])`,
       [notionIds],
     );
   }

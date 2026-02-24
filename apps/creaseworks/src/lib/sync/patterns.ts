@@ -139,10 +139,12 @@ export async function syncPatterns() {
     `;
   }
 
-  // Remove patterns deleted from Notion
+  // Soft-delete patterns removed from Notion (other tables reference patterns_cache)
   if (notionIds.length > 0) {
     await sql.query(
-      `DELETE FROM patterns_cache WHERE notion_id != ALL($1::text[])`,
+      `UPDATE patterns_cache
+       SET status = 'archived', synced_at = NOW()
+       WHERE notion_id != ALL($1::text[])`,
       [notionIds],
     );
   }
