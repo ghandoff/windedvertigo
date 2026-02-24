@@ -1,9 +1,9 @@
 /**
  * Collection & progress queries — the playbook data layer.
  *
- * Collections are topical groupings of patterns (puddle scientists,
+ * Collections are topical groupings of playdates (puddle scientists,
  * cardboard architects…). Progress is derived from runs_cache and
- * cached in pattern_progress for quick reads.
+ * cached in playdate_progress for quick reads.
  */
 
 import { sql } from "@/lib/db";
@@ -19,7 +19,7 @@ export interface Collection {
   icon_emoji: string | null;
   slug: string;
   sort_order: number;
-  pattern_count: number;
+  playdate_count: number;
 }
 
 export interface CollectionWithProgress extends Collection {
@@ -29,7 +29,7 @@ export interface CollectionWithProgress extends Collection {
   found_again_count: number;
 }
 
-export interface CollectionPattern {
+export interface CollectionPlaydate {
   id: string;
   slug: string;
   title: string;
@@ -60,15 +60,15 @@ export interface ArcCoverage {
 /* ------------------------------------------------------------------ */
 
 /**
- * All ready collections with pattern counts.
+ * All ready collections with playdate counts.
  * Used on the playbook page for the collection grid.
  */
 export async function getReadyCollections(): Promise<Collection[]> {
   const result = await sql.query(
     `SELECT c.id, c.title, c.description, c.icon_emoji, c.slug, c.sort_order,
-            COUNT(cp.pattern_id)::int AS pattern_count
+            COUNT(cp.playdate_id)::int AS playdate_count
      FROM collections c
-     LEFT JOIN collection_patterns cp ON cp.collection_id = c.id
+     LEFT JOIN collection_playdates cp ON cp.collection_id = c.id
      WHERE c.status = 'ready'
      GROUP BY c.id
      ORDER BY c.sort_order ASC, c.title ASC`,
@@ -85,15 +85,15 @@ export async function getCollectionsWithProgress(
 ): Promise<CollectionWithProgress[]> {
   const result = await sql.query(
     `SELECT c.id, c.title, c.description, c.icon_emoji, c.slug, c.sort_order,
-            COUNT(DISTINCT cp.pattern_id)::int AS pattern_count,
-            COUNT(DISTINCT CASE WHEN pp.progress_tier IS NOT NULL THEN cp.pattern_id END)::int AS tried_count,
-            COUNT(DISTINCT CASE WHEN pp.progress_tier IN ('found_something','folded_unfolded','found_again') THEN cp.pattern_id END)::int AS found_count,
-            COUNT(DISTINCT CASE WHEN pp.progress_tier IN ('folded_unfolded','found_again') THEN cp.pattern_id END)::int AS folded_count,
-            COUNT(DISTINCT CASE WHEN pp.progress_tier = 'found_again' THEN cp.pattern_id END)::int AS found_again_count
+            COUNT(DISTINCT cp.playdate_id)::int AS playdate_count,
+            COUNT(DISTINCT CASE WHEN pp.progress_tier IS NOT NULL THEN cp.playdate_id END)::int AS tried_count,
+            COUNT(DISTINCT CASE WHEN pp.progress_tier IN ('found_something','folded_unfolded','found_again') THEN cp.playdate_id END)::int AS found_count,
+            COUNT(DISTINCT CASE WHEN pp.progress_tier IN ('folded_unfolded','found_again') THEN cp.playdate_id END)::int AS folded_count,
+            COUNT(DISTINCT CASE WHEN pp.progress_tier = 'found_again' THEN cp.playdate_id END)::int AS found_again_count
      FROM collections c
-     LEFT JOIN collection_patterns cp ON cp.collection_id = c.id
-     LEFT JOIN pattern_progress pp
-       ON pp.pattern_id = cp.pattern_id AND pp.user_id = $1
+     LEFT JOIN collection_playdates cp ON cp.collection_id = c.id
+     LEFT JOIN playdate_progress pp
+       ON pp.playdate_id = cp.playdate_id AND pp.user_id = $1
      WHERE c.status = 'ready'
      GROUP BY c.id
      ORDER BY c.sort_order ASC, c.title ASC`,
@@ -114,9 +114,9 @@ export async function getCollectionBySlug(
 ): Promise<Collection | null> {
   const result = await sql.query(
     `SELECT c.id, c.title, c.description, c.icon_emoji, c.slug, c.sort_order,
-            COUNT(cp.pattern_id)::int AS pattern_count
+            COUNT(cp.playdate_id)::int AS playdate_count
      FROM collections c
-     LEFT JOIN collection_patterns cp ON cp.collection_id = c.id
+     LEFT JOIN collection_playdates cp ON cp.collection_id = c.id
      WHERE c.slug = $1
      GROUP BY c.id
      LIMIT 1`,
@@ -126,23 +126,23 @@ export async function getCollectionBySlug(
 }
 
 /**
- * Fetch patterns in a collection with per-user progress.
+ * Fetch playdates in a collection with per-user progress.
  * Returns teaser-level columns (safe for any logged-in user).
  */
-export async function getCollectionPatterns(
+export async function getCollectionPlaydates(
   collectionId: string,
   userId: string | null,
-): Promise<CollectionPattern[]> {
+): Promise<CollectionPlaydate[]> {
   const result = await sql.query(
     `SELECT p.id, p.slug, p.title, p.headline,
             p.primary_function, p.arc_emphasis,
             p.friction_dial, p.start_in_120s,
             (p.find_again_mode IS NOT NULL) AS has_find_again,
             pp.progress_tier
-     FROM patterns_cache p
-     JOIN collection_patterns cp ON cp.pattern_id = p.id
-     LEFT JOIN pattern_progress pp
-       ON pp.pattern_id = p.id AND pp.user_id = $2
+     FROM playdates_cache p
+     JOIN collection_playdates cp ON cp.playdate_id = p.id
+     LEFT JOIN playdate_progress pp
+       ON pp.playdate_id = p.id AND pp.user_id = $2
      WHERE cp.collection_id = $1
        AND p.status = 'ready'
      ORDER BY cp.display_order ASC, p.title ASC`,
@@ -156,7 +156,7 @@ export async function getCollectionPatterns(
 /* ------------------------------------------------------------------ */
 
 /**
- * Aggregate progress summary for a user across all patterns.
+ * Aggregate progress summary for a user across all playdates.
  */
 export async function getUserProgressSummary(
   userId: string,
@@ -167,7 +167,7 @@ export async function getUserProgressSummary(
        COUNT(*) FILTER (WHERE progress_tier IN ('found_something','folded_unfolded','found_again'))::int AS total_found,
        COUNT(*) FILTER (WHERE progress_tier IN ('folded_unfolded','found_again'))::int AS total_folded,
        COUNT(*) FILTER (WHERE progress_tier = 'found_again')::int AS total_found_again
-     FROM pattern_progress
+     FROM playdate_progress
      WHERE user_id = $1 AND progress_tier IS NOT NULL`,
     [userId],
   );
@@ -180,8 +180,8 @@ export async function getUserProgressSummary(
 }
 
 /**
- * Developmental arc coverage: for each arc, how many patterns has
- * the user tried vs. total patterns with that arc.
+ * Developmental arc coverage: for each arc, how many playdates has
+ * the user tried vs. total playdates with that arc.
  *
  * arc_emphasis is a JSONB array, so we unnest it.
  */
@@ -191,21 +191,21 @@ export async function getArcCoverage(
   const result = await sql.query(
     `WITH all_arcs AS (
        SELECT DISTINCT jsonb_array_elements_text(arc_emphasis) AS arc
-       FROM patterns_cache
+       FROM playdates_cache
        WHERE status = 'ready'
      ),
      arc_totals AS (
        SELECT jsonb_array_elements_text(arc_emphasis) AS arc,
               COUNT(DISTINCT id)::int AS total
-       FROM patterns_cache
+       FROM playdates_cache
        WHERE status = 'ready'
        GROUP BY arc
      ),
      user_arcs AS (
        SELECT jsonb_array_elements_text(p.arc_emphasis) AS arc,
               COUNT(DISTINCT p.id)::int AS tried
-       FROM pattern_progress pp
-       JOIN patterns_cache p ON p.id = pp.pattern_id
+       FROM playdate_progress pp
+       JOIN playdates_cache p ON p.id = pp.playdate_id
        WHERE pp.user_id = $1 AND pp.progress_tier IS NOT NULL
        GROUP BY arc
      )
@@ -232,15 +232,15 @@ export async function getNextSuggestion(
     `WITH user_arcs AS (
        SELECT jsonb_array_elements_text(p.arc_emphasis) AS arc,
               COUNT(DISTINCT p.id) AS tried
-       FROM pattern_progress pp
-       JOIN patterns_cache p ON p.id = pp.pattern_id
+       FROM playdate_progress pp
+       JOIN playdates_cache p ON p.id = pp.playdate_id
        WHERE pp.user_id = $1 AND pp.progress_tier IS NOT NULL
        GROUP BY arc
      ),
      arc_totals AS (
        SELECT jsonb_array_elements_text(arc_emphasis) AS arc,
               COUNT(DISTINCT id) AS total
-       FROM patterns_cache WHERE status = 'ready'
+       FROM playdates_cache WHERE status = 'ready'
        GROUP BY arc
      )
      SELECT at.arc,
@@ -261,23 +261,23 @@ export async function getNextSuggestion(
   // Skip suggestion if coverage is already decent (>60%) for all arcs
   if (leastArc.coverage > 0.6) return null;
 
-  // Find a collection that has patterns with this arc that user hasn't tried
+  // Find a collection that has playdates with this arc that user hasn't tried
   const collResult = await sql.query(
     `SELECT c.id, c.title, c.description, c.icon_emoji, c.slug, c.sort_order,
-            COUNT(DISTINCT cp.pattern_id)::int AS pattern_count
+            COUNT(DISTINCT cp.playdate_id)::int AS playdate_count
      FROM collections c
-     JOIN collection_patterns cp ON cp.collection_id = c.id
-     JOIN patterns_cache p ON p.id = cp.pattern_id
+     JOIN collection_playdates cp ON cp.collection_id = c.id
+     JOIN playdates_cache p ON p.id = cp.playdate_id
      WHERE c.status = 'ready'
        AND p.status = 'ready'
        AND p.arc_emphasis ? $1
        AND NOT EXISTS (
-         SELECT 1 FROM pattern_progress pp
-         WHERE pp.pattern_id = p.id AND pp.user_id = $2
+         SELECT 1 FROM playdate_progress pp
+         WHERE pp.playdate_id = p.id AND pp.user_id = $2
            AND pp.progress_tier IS NOT NULL
        )
      GROUP BY c.id
-     ORDER BY COUNT(DISTINCT cp.pattern_id) DESC
+     ORDER BY COUNT(DISTINCT cp.playdate_id) DESC
      LIMIT 1`,
     [leastArc.arc, userId],
   );
@@ -295,11 +295,11 @@ export async function getNextSuggestion(
 /* ------------------------------------------------------------------ */
 
 /**
- * Recompute pattern_progress for a single user from their runs.
+ * Recompute playdate_progress for a single user from their runs.
  * Called when the playbook page loads. Returns count of rows upserted.
  *
  * Tier logic:
- *   tried_it        — ≥1 run for this pattern
+ *   tried_it        — ≥1 run for this playdate
  *   found_something — any run has trace_evidence (non-empty JSONB array)
  *   folded_unfolded — runs span 2+ different ISO weeks
  *   found_again     — any run has is_find_again = true
@@ -310,7 +310,7 @@ export async function recomputeUserProgress(
   const result = await sql.query(
     `WITH run_data AS (
        SELECT
-         p.id AS pattern_id,
+         p.id AS playdate_id,
          MIN(r.run_date) AS first_run,
          -- found_something: any run has evidence
          MAX(CASE WHEN jsonb_array_length(COALESCE(r.trace_evidence, '[]'::jsonb)) > 0
@@ -321,23 +321,23 @@ export async function recomputeUserProgress(
                 WHERE date_trunc('week', r.run_date) != (
                   SELECT MIN(date_trunc('week', r2.run_date))
                   FROM runs_cache r2
-                  WHERE r2.pattern_notion_id = p.notion_id
+                  WHERE r2.playdate_notion_id = p.notion_id
                     AND r2.created_by = $1
                 )
               ) END AS folded_date,
          -- found_again: explicitly flagged
          MAX(CASE WHEN r.is_find_again = true THEN r.run_date END) AS found_again_date
        FROM runs_cache r
-       JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
+       JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
        WHERE r.created_by = $1
-         AND r.pattern_notion_id IS NOT NULL
+         AND r.playdate_notion_id IS NOT NULL
        GROUP BY p.id
      )
-     INSERT INTO pattern_progress (user_id, pattern_id, progress_tier,
+     INSERT INTO playdate_progress (user_id, playdate_id, progress_tier,
        tried_at, found_at, folded_at, found_again_at, updated_at)
      SELECT
        $1,
-       rd.pattern_id,
+       rd.playdate_id,
        CASE
          WHEN rd.found_again_date IS NOT NULL THEN 'found_again'
          WHEN rd.folded_date IS NOT NULL THEN 'folded_unfolded'
@@ -350,7 +350,7 @@ export async function recomputeUserProgress(
        rd.found_again_date,
        NOW()
      FROM run_data rd
-     ON CONFLICT (user_id, pattern_id) DO UPDATE SET
+     ON CONFLICT (user_id, playdate_id) DO UPDATE SET
        progress_tier = EXCLUDED.progress_tier,
        tried_at = EXCLUDED.tried_at,
        found_at = EXCLUDED.found_at,

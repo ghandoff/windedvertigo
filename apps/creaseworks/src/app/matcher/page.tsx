@@ -1,5 +1,5 @@
 /**
- * /matcher — public pattern matcher page.
+ * /matcher — public playdate matcher page.
  *
  * Server component that fetches picker data (materials, forms, slots,
  * contexts) and passes them to the client-side form component.

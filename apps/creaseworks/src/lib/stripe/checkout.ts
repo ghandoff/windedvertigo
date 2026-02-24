@@ -75,7 +75,7 @@ export async function createCheckoutSession(opts: {
           currency: opts.currency.toLowerCase(),
           product_data: {
             name: opts.packTitle,
-            description: `creaseworks pattern pack — perpetual access for ${opts.orgName}`,
+            description: `creaseworks playdate pack — perpetual access for ${opts.orgName}`,
           },
           unit_amount: opts.priceCents,
         },

@@ -3,7 +3,7 @@
 /**
  * Run list — client component displaying runs in a card grid.
  *
- * Shows run type, date, pattern, context tags, trace evidence,
+ * Shows run type, date, playdate, context tags, trace evidence,
  * and optionally what_changed / next_iteration.
  *
  * MVP 5 — runs and evidence.
@@ -19,8 +19,8 @@ interface RunMaterial {
 interface Run {
   id: string;
   title: string;
-  pattern_title: string | null;
-  pattern_slug: string | null;
+  playdate_title: string | null;
+  playdate_slug: string | null;
   run_type: string | null;
   run_date: string | null;
   context_tags: string[];
@@ -70,14 +70,14 @@ export default function RunList({
     return (
       <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-8 text-center">
         <p className="text-cadet/50 text-sm mb-4">
-          no runs yet. log your first run to start tracking.
+          no reflections yet. log your first reflection to start tracking.
         </p>
         <Link
           href="/runs/new"
           className="inline-block rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90"
           style={{ backgroundColor: "var(--wv-redwood)" }}
         >
-          log a run
+          log a reflection
         </Link>
       </div>
     );
@@ -96,18 +96,18 @@ export default function RunList({
               <h3 className="text-base font-semibold tracking-tight truncate">
                 {run.title}
               </h3>
-              {run.pattern_title && (
+              {run.playdate_title && (
                 <p className="text-xs text-cadet/50 mt-0.5">
-                  pattern:{" "}
-                  {run.pattern_slug ? (
+                  playdate:{" "}
+                  {run.playdate_slug ? (
                     <Link
                       href={`/sampler`}
                       className="underline hover:text-cadet/70 transition-colors"
                     >
-                      {run.pattern_title}
+                      {run.playdate_title}
                     </Link>
                   ) : (
-                    run.pattern_title
+                    run.playdate_title
                   )}
                 </p>
               )}
@@ -193,7 +193,7 @@ export default function RunList({
           {run.created_by === currentUserId && (
             <div className="mt-3 pt-3 border-t border-cadet/5">
               <span className="text-xs text-cadet/30">
-                you created this run
+                you created this reflection
               </span>
             </div>
           )}

@@ -5,7 +5,7 @@ interface CollectionCardProps {
   title: string;
   description: string | null;
   iconEmoji: string | null;
-  patternCount: number;
+  playdateCount: number;
   /** Progress counts — null when user is not logged in */
   progress: {
     tried: number;
@@ -20,11 +20,11 @@ export default function CollectionCard({
   title,
   description,
   iconEmoji,
-  patternCount,
+  playdateCount,
   progress,
 }: CollectionCardProps) {
   const hasTried = progress && progress.tried > 0;
-  const pct = hasTried ? Math.round((progress.tried / patternCount) * 100) : 0;
+  const pct = hasTried ? Math.round((progress.tried / playdateCount) * 100) : 0;
 
   return (
     <Link
@@ -59,7 +59,7 @@ export default function CollectionCard({
             />
           </div>
           <p className="text-[11px] text-cadet/40 mt-1.5">
-            {progress.tried} of {patternCount} tried
+            {progress.tried} of {playdateCount} tried
             {progress.foundAgain > 0 && (
               <span className="text-redwood/70"> · {progress.foundAgain} found again</span>
             )}
@@ -67,7 +67,7 @@ export default function CollectionCard({
         </div>
       ) : (
         <p className="text-[11px] text-cadet/30 mt-3">
-          {patternCount} playdate{patternCount !== 1 ? "s" : ""}
+          {playdateCount} playdate{playdateCount !== 1 ? "s" : ""}
         </p>
       )}
     </Link>

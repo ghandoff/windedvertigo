@@ -1,14 +1,14 @@
 /**
- * Pack catalogue and pack-pattern queries.
+ * Pack catalogue and pack-playdate queries.
  *
  * MVP 2 — entitlements, pack-only content, watermarking.
  */
 
 import { sql } from "@/lib/db";
 import {
-  PATTERN_TEASER_COLUMNS,
-  PATTERN_ENTITLED_COLUMNS,
-  PATTERN_COLLECTIVE_COLUMNS,
+  PLAYDATE_TEASER_COLUMNS,
+  PLAYDATE_ENTITLED_COLUMNS,
+  PLAYDATE_COLLECTIVE_COLUMNS,
   columnsToSql,
 } from "@/lib/security/column-selectors";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
@@ -26,7 +26,7 @@ export async function getVisiblePacks() {
        pc.description,
        cat.price_cents,
        cat.currency,
-       (SELECT COUNT(*) FROM pack_patterns pp WHERE pp.pack_id = pc.id) AS pattern_count
+       (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count
      FROM packs_cache pc
      JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
      WHERE cat.visible = true
@@ -52,7 +52,7 @@ export async function getPackBySlug(slug: string) {
        cat.price_cents,
        cat.currency,
        cat.visible,
-       (SELECT COUNT(*) FROM pack_patterns pp WHERE pp.pack_id = pc.id) AS pattern_count
+       (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count
      FROM packs_cache pc
      LEFT JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
      WHERE pc.slug = $1
@@ -64,16 +64,16 @@ export async function getPackBySlug(slug: string) {
 }
 
 /**
- * Fetch teaser-tier patterns belonging to a pack.
+ * Fetch teaser-tier playdates belonging to a pack.
  * Used on the pack detail page for non-entitled users.
  */
-export async function getPackPatterns(packCacheId: string) {
-  const cols = PATTERN_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
+export async function getPackPlaydates(packCacheId: string) {
+  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
        (p.find_again_mode IS NOT NULL) AS has_find_again
-     FROM patterns_cache p
-     JOIN pack_patterns pp ON pp.pattern_id = p.id
+     FROM playdates_cache p
+     JOIN pack_playdates pp ON pp.playdate_id = p.id
      WHERE pp.pack_id = $1
        AND p.status = 'ready'
      ORDER BY p.title ASC`,
@@ -84,15 +84,15 @@ export async function getPackPatterns(packCacheId: string) {
 }
 
 /**
- * Fetch entitled-tier patterns belonging to a pack.
+ * Fetch entitled-tier playdates belonging to a pack.
  * Caller must verify entitlement before calling.
  */
-export async function getPackPatternsEntitled(packCacheId: string) {
-  const cols = PATTERN_ENTITLED_COLUMNS.map((c) => `p.${c}`).join(", ");
+export async function getPackPlaydatesEntitled(packCacheId: string) {
+  const cols = PLAYDATE_ENTITLED_COLUMNS.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols}
-     FROM patterns_cache p
-     JOIN pack_patterns pp ON pp.pattern_id = p.id
+     FROM playdates_cache p
+     JOIN pack_playdates pp ON pp.playdate_id = p.id
      WHERE pp.pack_id = $1
        AND p.status = 'ready'
      ORDER BY p.title ASC`,
@@ -103,18 +103,18 @@ export async function getPackPatternsEntitled(packCacheId: string) {
 }
 
 /**
- * Fetch collective-tier patterns belonging to a pack.
+ * Fetch collective-tier playdates belonging to a pack.
  * Includes design rationale, developmental notes, author notes.
  * No status filter — collective can see drafts.
  * Caller must verify isInternal before calling.
  */
-export async function getPackPatternsCollective(packCacheId: string) {
-  const cols = PATTERN_COLLECTIVE_COLUMNS.map((c) => `p.${c}`).join(", ");
+export async function getPackPlaydatesCollective(packCacheId: string) {
+  const cols = PLAYDATE_COLLECTIVE_COLUMNS.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
        (p.find_again_mode IS NOT NULL) AS has_find_again
-     FROM patterns_cache p
-     JOIN pack_patterns pp ON pp.pattern_id = p.id
+     FROM playdates_cache p
+     JOIN pack_playdates pp ON pp.playdate_id = p.id
      WHERE pp.pack_id = $1
      ORDER BY p.title ASC`,
     [packCacheId],
@@ -139,7 +139,7 @@ export async function getAllPacks() {
        cat.price_cents,
        cat.currency,
        cat.visible,
-       (SELECT COUNT(*) FROM pack_patterns pp WHERE pp.pack_id = pc.id) AS pattern_count
+       (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count
      FROM packs_cache pc
      LEFT JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
      WHERE pc.slug IS NOT NULL
@@ -164,7 +164,7 @@ export async function getPackBySlugCollective(slug: string) {
        cat.price_cents,
        cat.currency,
        cat.visible,
-       (SELECT COUNT(*) FROM pack_patterns pp WHERE pp.pack_id = pc.id) AS pattern_count
+       (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count
      FROM packs_cache pc
      LEFT JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
      WHERE pc.slug = $1
@@ -188,41 +188,41 @@ export async function getAllReadyPacks() {
 }
 
 /**
- * Fetch the first visible pack containing a given pattern.
+ * Fetch the first visible pack containing a given playdate.
  * Used for "view packs" links on sampler teaser pages.
- * Returns { slug, title } or null if the pattern isn't in any visible pack.
+ * Returns { slug, title } or null if the playdate isn't in any visible pack.
  */
-export async function getFirstVisiblePackForPattern(
-  patternId: string,
+export async function getFirstVisiblePackForPlaydate(
+  playdateId: string,
 ): Promise<{ id: string; slug: string; title: string } | null> {
   const result = await sql.query(
     `SELECT pc.id, pc.slug, pc.title
      FROM packs_cache pc
      JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
-     JOIN pack_patterns pp ON pp.pack_id = pc.id
-     WHERE pp.pattern_id = $1
+     JOIN pack_playdates pp ON pp.pack_id = pc.id
+     WHERE pp.playdate_id = $1
        AND cat.visible = true
        AND pc.status = 'ready'
        AND pc.slug IS NOT NULL
      ORDER BY pc.title ASC
      LIMIT 1`,
-    [patternId],
+    [playdateId],
   );
   return result.rows[0] ?? null;
 }
 
 /**
- * Check whether a pattern belongs to a specific pack.
+ * Check whether a playdate belongs to a specific pack.
  */
-export async function isPatternInPack(
-  patternId: string,
+export async function isPlaydateInPack(
+  playdateId: string,
   packCacheId: string,
 ): Promise<boolean> {
   const result = await sql.query(
-    `SELECT 1 FROM pack_patterns
-     WHERE pattern_id = $1 AND pack_id = $2
+    `SELECT 1 FROM pack_playdates
+     WHERE playdate_id = $1 AND pack_id = $2
      LIMIT 1`,
-    [patternId, packCacheId],
+    [playdateId, packCacheId],
   );
   return result.rows.length > 0;
 }

@@ -50,7 +50,7 @@ export default function ExportButton() {
         res.headers
           .get("Content-Disposition")
           ?.match(/filename="(.+)"/)?.[1] ||
-        `creaseworks-runs.${format}`;
+        `creaseworks-reflections.${format}`;
       document.body.appendChild(a);
       a.click();
       a.remove();

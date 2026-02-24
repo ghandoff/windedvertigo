@@ -3,15 +3,15 @@
 import { useState } from "react";
 
 interface DownloadButtonProps {
-  patternId: string;
+  playdateId: string;
   packSlug: string | null;
-  patternTitle: string;
+  playdateTitle: string;
 }
 
 export default function DownloadButton({
-  patternId,
+  playdateId,
   packSlug,
-  patternTitle,
+  playdateTitle,
 }: DownloadButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export default function DownloadButton({
 
     try {
       const res = await fetch(
-        `/api/patterns/${patternId}/pdf${packSlug ? `?pack=${encodeURIComponent(packSlug)}` : ""}`,
+        `/api/playdates/${playdateId}/pdf${packSlug ? `?pack=${encodeURIComponent(packSlug)}` : ""}`,
       );
 
       if (!res.ok) {
@@ -34,7 +34,7 @@ export default function DownloadButton({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${patternTitle.replace(/[^a-z0-9-]/gi, "-")}.pdf`;
+      a.download = `${playdateTitle.replace(/[^a-z0-9-]/gi, "-")}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

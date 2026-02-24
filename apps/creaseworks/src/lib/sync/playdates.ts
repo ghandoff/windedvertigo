@@ -12,7 +12,7 @@ import {
   extractPageId,
 } from "./extract";
 
-interface PatternRow {
+interface PlaydateRow {
   notionId: string;
   title: string;
   headline: string | null;
@@ -41,7 +41,7 @@ interface PatternRow {
   materialRelationIds: string[];
 }
 
-function parsePatternPage(page: any): PatternRow {
+function parsePlaydatePage(page: any): PlaydateRow {
   const props = page.properties;
   const frictionStr = extractSelect(props, "friction dial");
   const frictionDial = frictionStr ? parseInt(frictionStr, 10) : null;
@@ -76,20 +76,20 @@ function parsePatternPage(page: any): PatternRow {
   };
 }
 
-export async function syncPatterns() {
-  console.log("[sync] fetching patterns from Notion...");
-  const pages = await queryAllPages(NOTION_DBS.patterns);
-  console.log(`[sync] found ${pages.length} patterns`);
+export async function syncPlaydates() {
+  console.log("[sync] fetching playdates from Notion...");
+  const pages = await queryAllPages(NOTION_DBS.playdates);
+  console.log(`[sync] found ${pages.length} playdates`);
 
   const notionIds: string[] = [];
 
   for (const page of pages) {
-    const row = parsePatternPage(page);
+    const row = parsePlaydatePage(page);
     notionIds.push(row.notionId);
 
     // Upsert — generate slug only on insert (COALESCE keeps existing slug)
     await sql`
-      INSERT INTO patterns_cache (
+      INSERT INTO playdates_cache (
         notion_id, title, headline, release_channel, ip_tier, status,
         primary_function, arc_emphasis, context_tags, friction_dial,
         start_in_120s, required_forms, slots_optional, slots_notes,
@@ -139,10 +139,10 @@ export async function syncPatterns() {
     `;
   }
 
-  // Soft-delete patterns removed from Notion (other tables reference patterns_cache)
+  // Soft-delete playdates removed from Notion (other tables reference playdates_cache)
   if (notionIds.length > 0) {
     await sql.query(
-      `UPDATE patterns_cache
+      `UPDATE playdates_cache
        SET status = 'archived', synced_at = NOW()
        WHERE notion_id != ALL($1::text[])`,
       [notionIds],
@@ -151,15 +151,15 @@ export async function syncPatterns() {
 
   // Resolve material relations
   for (const page of pages) {
-    const row = parsePatternPage(page);
-    const patternResult = await sql`
-      SELECT id FROM patterns_cache WHERE notion_id = ${row.notionId}
+    const row = parsePlaydatePage(page);
+    const playdateResult = await sql`
+      SELECT id FROM playdates_cache WHERE notion_id = ${row.notionId}
     `;
-    if (patternResult.rows.length === 0) continue;
-    const patternId = patternResult.rows[0].id;
+    if (playdateResult.rows.length === 0) continue;
+    const playdateId = playdateResult.rows[0].id;
 
-    // Clear existing relations for this pattern
-    await sql`DELETE FROM pattern_materials WHERE pattern_id = ${patternId}`;
+    // Clear existing relations for this playdate
+    await sql`DELETE FROM playdate_materials WHERE playdate_id = ${playdateId}`;
 
     // Insert new relations
     for (const materialNotionId of row.materialRelationIds) {
@@ -168,14 +168,14 @@ export async function syncPatterns() {
       `;
       if (materialResult.rows.length > 0) {
         await sql`
-          INSERT INTO pattern_materials (pattern_id, material_id)
-          VALUES (${patternId}, ${materialResult.rows[0].id})
+          INSERT INTO playdate_materials (playdate_id, material_id)
+          VALUES (${playdateId}, ${materialResult.rows[0].id})
           ON CONFLICT DO NOTHING
         `;
       }
     }
   }
 
-  console.log(`[sync] patterns sync complete: ${pages.length} upserted`);
+  console.log(`[sync] playdates sync complete: ${pages.length} upserted`);
   return pages.length;
 }

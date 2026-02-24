@@ -1,26 +1,26 @@
 import DownloadButton from "@/components/ui/download-button";
 
-interface EntitledPatternViewProps {
-  pattern: any;
+interface EntitledPlaydateViewProps {
+  playdate: any;
   materials: any[];
   packSlug: string | null;
 }
 
 /**
- * Full entitled-tier pattern display.
+ * Full entitled-tier playdate display.
  * Shows find, fold, unfold flow, rails sentence,
  * find again mode + prompt, slots notes, substitutions notes.
  */
-export default function EntitledPatternView({
-  pattern,
+export default function EntitledPlaydateView({
+  playdate,
   materials,
   packSlug,
-}: EntitledPatternViewProps) {
+}: EntitledPlaydateViewProps) {
   return (
     <div className="space-y-8">
       {/* headline */}
-      {pattern.headline && (
-        <p className="text-lg text-cadet/60">{pattern.headline}</p>
+      {playdate.headline && (
+        <p className="text-lg text-cadet/60">{playdate.headline}</p>
       )}
 
       {/* at a glance — playful, parent-readable summary */}
@@ -29,31 +29,31 @@ export default function EntitledPatternView({
           at a glance
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          {pattern.primary_function && (
+          {playdate.primary_function && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">🎯</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what&apos;s it about</p>
-                <p className="text-cadet/80">{pattern.primary_function}</p>
+                <p className="text-cadet/80">{playdate.primary_function}</p>
               </div>
             </div>
           )}
-          {pattern.friction_dial !== null && (
+          {playdate.friction_dial !== null && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">🎚️</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">energy level</p>
                 <p className="text-cadet/80">
-                  {pattern.friction_dial <= 2
-                    ? `chill (${pattern.friction_dial}/5)`
-                    : pattern.friction_dial <= 3
-                      ? `medium (${pattern.friction_dial}/5)`
-                      : `high energy (${pattern.friction_dial}/5)`}
+                  {playdate.friction_dial <= 2
+                    ? `chill (${playdate.friction_dial}/5)`
+                    : playdate.friction_dial <= 3
+                      ? `medium (${playdate.friction_dial}/5)`
+                      : `high energy (${playdate.friction_dial}/5)`}
                 </p>
               </div>
             </div>
           )}
-          {pattern.start_in_120s && (
+          {playdate.start_in_120s && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">⚡</span>
               <div>
@@ -62,30 +62,30 @@ export default function EntitledPatternView({
               </div>
             </div>
           )}
-          {(pattern.arc_emphasis as string[])?.length > 0 && (
+          {(playdate.arc_emphasis as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">🌱</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what kids practise</p>
-                <p className="text-cadet/80">{(pattern.arc_emphasis as string[]).join(", ")}</p>
+                <p className="text-cadet/80">{(playdate.arc_emphasis as string[]).join(", ")}</p>
               </div>
             </div>
           )}
-          {(pattern.required_forms as string[])?.length > 0 && (
+          {(playdate.required_forms as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">✂️</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what you&apos;ll gather</p>
-                <p className="text-cadet/80">{(pattern.required_forms as string[]).join(", ")}</p>
+                <p className="text-cadet/80">{(playdate.required_forms as string[]).join(", ")}</p>
               </div>
             </div>
           )}
-          {(pattern.slots_optional as string[])?.length > 0 && (
+          {(playdate.slots_optional as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">🧩</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">nice to have</p>
-                <p className="text-cadet/80">{(pattern.slots_optional as string[]).join(", ")}</p>
+                <p className="text-cadet/80">{(playdate.slots_optional as string[]).join(", ")}</p>
               </div>
             </div>
           )}
@@ -93,13 +93,13 @@ export default function EntitledPatternView({
       </section>
 
       {/* rails sentence */}
-      {pattern.rails_sentence && (
+      {playdate.rails_sentence && (
         <section className="rounded-xl border border-cadet/10 bg-white p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
             the big idea
           </h2>
           <p className="text-sm text-cadet/80 italic">
-            {pattern.rails_sentence}
+            {playdate.rails_sentence}
           </p>
         </section>
       )}
@@ -110,7 +110,7 @@ export default function EntitledPatternView({
           how to play
         </h2>
 
-        {pattern.find && (
+        {playdate.find && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
             <h3 className="text-xs font-bold text-redwood uppercase tracking-wider mb-1">
               find
@@ -119,12 +119,12 @@ export default function EntitledPatternView({
               gather materials and set the stage
             </p>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
-              {pattern.find}
+              {playdate.find}
             </p>
           </div>
         )}
 
-        {pattern.fold && (
+        {playdate.fold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
             <h3 className="text-xs font-bold text-sienna uppercase tracking-wider mb-1">
               fold
@@ -133,12 +133,12 @@ export default function EntitledPatternView({
               the hands-on exploration
             </p>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
-              {pattern.fold}
+              {playdate.fold}
             </p>
           </div>
         )}
 
-        {pattern.unfold && (
+        {playdate.unfold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
             <h3 className="text-xs font-bold text-cadet uppercase tracking-wider mb-1">
               unfold
@@ -147,46 +147,46 @@ export default function EntitledPatternView({
               reflect on what happened
             </p>
             <p className="text-sm text-cadet/80 whitespace-pre-line">
-              {pattern.unfold}
+              {playdate.unfold}
             </p>
           </div>
         )}
       </section>
 
       {/* find again */}
-      {pattern.find_again_mode && (
+      {playdate.find_again_mode && (
         <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-6">
           <h2 className="text-sm font-semibold text-redwood mb-2">
-            find again — {pattern.find_again_mode}
+            find again — {playdate.find_again_mode}
           </h2>
-          {pattern.find_again_prompt && (
+          {playdate.find_again_prompt && (
             <p className="text-sm text-cadet/80 whitespace-pre-line">
-              {pattern.find_again_prompt}
+              {playdate.find_again_prompt}
             </p>
           )}
         </section>
       )}
 
       {/* slots notes — practical material hints */}
-      {pattern.slots_notes && (
+      {playdate.slots_notes && (
         <section className="rounded-xl border border-cadet/10 bg-champagne/20 p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
             material tips
           </h2>
           <p className="text-sm text-cadet/70 whitespace-pre-line">
-            {pattern.slots_notes}
+            {playdate.slots_notes}
           </p>
         </section>
       )}
 
       {/* substitutions notes */}
-      {pattern.substitutions_notes && (
+      {playdate.substitutions_notes && (
         <section className="rounded-xl border border-cadet/10 bg-champagne/20 p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
             swap ideas
           </h2>
           <p className="text-sm text-cadet/70 whitespace-pre-line">
-            {pattern.substitutions_notes}
+            {playdate.substitutions_notes}
           </p>
         </section>
       )}
@@ -213,51 +213,51 @@ export default function EntitledPatternView({
       {/* download */}
       <section className="pt-4 border-t border-cadet/10">
         <DownloadButton
-          patternId={pattern.id}
+          playdateId={playdate.id}
           packSlug={packSlug}
-          patternTitle={pattern.title}
+          playdateTitle={playdate.title}
         />
       </section>
 
       {/* ── collective-only sections ── */}
       {/* these fields are only present when fetched at collective tier */}
-      {(pattern.design_rationale ||
-        pattern.developmental_notes ||
-        pattern.author_notes) && (
+      {(playdate.design_rationale ||
+        playdate.developmental_notes ||
+        playdate.author_notes) && (
         <div className="mt-8 space-y-6 border-t-2 border-dashed border-cadet/20 pt-8">
           <p className="text-xs font-semibold text-cadet/40 uppercase tracking-wider">
             behind the curtain
           </p>
 
-          {pattern.design_rationale && (
+          {playdate.design_rationale && (
             <section className="rounded-xl border border-cadet/15 bg-cadet/5 p-6">
               <h2 className="text-sm font-semibold text-cadet/80 mb-2">
                 why this playdate
               </h2>
               <p className="text-sm text-cadet/70 whitespace-pre-line">
-                {pattern.design_rationale}
+                {playdate.design_rationale}
               </p>
             </section>
           )}
 
-          {pattern.developmental_notes && (
+          {playdate.developmental_notes && (
             <section className="rounded-xl border border-cadet/15 bg-cadet/5 p-6">
               <h2 className="text-sm font-semibold text-cadet/80 mb-2">
                 what to look for
               </h2>
               <p className="text-sm text-cadet/70 whitespace-pre-line">
-                {pattern.developmental_notes}
+                {playdate.developmental_notes}
               </p>
             </section>
           )}
 
-          {pattern.author_notes && (
+          {playdate.author_notes && (
             <section className="rounded-xl border border-cadet/15 bg-cadet/5 p-6">
               <h2 className="text-sm font-semibold text-cadet/80 mb-2">
                 notes from us
               </h2>
               <p className="text-sm text-cadet/70 whitespace-pre-line">
-                {pattern.author_notes}
+                {playdate.author_notes}
               </p>
             </section>
           )}

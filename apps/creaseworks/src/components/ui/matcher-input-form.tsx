@@ -674,10 +674,10 @@ export default function MatcherInputForm({
             </div>
           ) : (
             <div className="space-y-3 sm:space-y-4">
-              {results.ranked.map((pattern) => (
+              {results.ranked.map((playdate) => (
                 <MatcherResultCard
-                  key={pattern.patternId}
-                  pattern={pattern}
+                  key={playdate.playdateId}
+                  playdate={playdate}
                 />
               ))}
             </div>

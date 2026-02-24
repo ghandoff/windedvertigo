@@ -32,7 +32,7 @@ export default async function PlaybookRunsPage() {
 
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-          all runs
+          all reflections
         </h1>
         <div className="flex items-center gap-2 sm:gap-3">
           <ExportButton />
@@ -41,13 +41,13 @@ export default async function PlaybookRunsPage() {
             className="rounded-lg px-4 sm:px-5 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90"
             style={{ backgroundColor: "var(--wv-redwood)", minHeight: 44 }}
           >
-            log a run
+            log a reflection
           </Link>
         </div>
       </div>
       <p className="text-sm text-cadet/50 mb-8">
-        track when you&apos;ve used a playdate — what happened, what evidence
-        you captured, and what you&apos;d change next time.
+        track when you&apos;ve used a playdate — what happened, what you
+        noticed, and what you&apos;d change next time.
       </p>
 
       <RunList

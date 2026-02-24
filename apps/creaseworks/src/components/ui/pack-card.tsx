@@ -5,7 +5,7 @@ interface PackCardProps {
     slug: string;
     title: string;
     description: string | null;
-    pattern_count: number;
+    playdate_count: number;
     price_cents: number | null;
     currency: string;
   };
@@ -29,7 +29,7 @@ export default function PackCard({ pack }: PackCardProps) {
 
       <div className="flex items-center gap-3 text-xs text-cadet/50">
         <span>
-          {pack.pattern_count} playdate{Number(pack.pattern_count) !== 1 ? "s" : ""}
+          {pack.playdate_count} playdate{Number(pack.playdate_count) !== 1 ? "s" : ""}
         </span>
 
         {pack.price_cents != null && (

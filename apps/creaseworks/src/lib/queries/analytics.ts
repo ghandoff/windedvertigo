@@ -25,9 +25,9 @@ export interface RunsOverTime {
   count: number;
 }
 
-export interface TopPattern {
-  pattern_title: string;
-  pattern_slug: string;
+export interface TopPlaydate {
+  playdate_title: string;
+  playdate_slug: string;
   count: number;
 }
 
@@ -50,7 +50,7 @@ export interface AnalyticsSummary {
   totalRuns: number;
   runsByType: RunsByType[];
   runsOverTime: RunsOverTime[];
-  topPatterns: TopPattern[];
+  topPlaydates: TopPlaydate[];
   topMaterials: TopMaterial[];
   evidenceBreakdown: EvidenceBreakdown[];
   contextBreakdown: ContextBreakdown[];
@@ -126,15 +126,15 @@ export async function getAnalytics(session: {
     vis.params,
   );
 
-  // Top patterns (by run count)
-  const topPatternsResult = await sql.query(
-    `SELECT p.title AS pattern_title,
-            p.slug AS pattern_slug,
+  // Top playdates (by run count)
+  const topPlaydatesResult = await sql.query(
+    `SELECT p.title AS playdate_title,
+            p.slug AS playdate_slug,
             COUNT(*)::int AS count
      FROM runs_cache r
-     JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
+     JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
      WHERE ${vis.where}
-       AND r.pattern_notion_id IS NOT NULL
+       AND r.playdate_notion_id IS NOT NULL
      GROUP BY p.title, p.slug
      ORDER BY count DESC
      LIMIT 10`,
@@ -203,7 +203,7 @@ export async function getAnalytics(session: {
     totalRuns,
     runsByType: byTypeResult.rows,
     runsOverTime: overTimeResult.rows,
-    topPatterns: topPatternsResult.rows,
+    topPlaydates: topPlaydatesResult.rows,
     topMaterials: topMaterialsResult.rows,
     evidenceBreakdown: evidenceResult.rows,
     contextBreakdown: contextResult.rows,

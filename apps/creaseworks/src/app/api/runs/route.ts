@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { title, patternId, runType, runDate, contextTags, traceEvidence, whatChanged, nextIteration, materialIds, isFindAgain } = body;
+  const { title, playdateId, runType, runDate, contextTags, traceEvidence, whatChanged, nextIteration, materialIds, isFindAgain } = body;
 
   // Validate required fields
   if (!title || typeof title !== "string" || !title.trim()) {
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     const runId = await createRun(
       {
         title: title.trim(),
-        patternId: patternId || null,
+        playdateId: playdateId || null,
         runType,
         runDate,
         contextTags: sanitiseStringArray(contextTags),

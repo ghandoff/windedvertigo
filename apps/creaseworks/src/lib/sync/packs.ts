@@ -18,7 +18,7 @@ function parsePackPage(page: any) {
     description: extractRichText(props, "description"),
     status: extractSelect(props, "status") || "draft",
     lastEdited: extractLastEdited(page),
-    patternRelationIds: extractRelationIds(props, "patterns included"),
+    playdateRelationIds: extractRelationIds(props, "patterns included"),
   };
 }
 
@@ -61,7 +61,7 @@ export async function syncPacks() {
     );
   }
 
-  // Resolve pack → pattern relations
+  // Resolve pack → playdate relations
   for (const page of pages) {
     const row = parsePackPage(page);
     const packResult = await sql`
@@ -70,16 +70,16 @@ export async function syncPacks() {
     if (packResult.rows.length === 0) continue;
     const packId = packResult.rows[0].id;
 
-    await sql`DELETE FROM pack_patterns WHERE pack_id = ${packId}`;
+    await sql`DELETE FROM pack_playdates WHERE pack_id = ${packId}`;
 
-    for (const patternNotionId of row.patternRelationIds) {
-      const patternResult = await sql`
-        SELECT id FROM patterns_cache WHERE notion_id = ${patternNotionId}
+    for (const playdateNotionId of row.playdateRelationIds) {
+      const playdateResult = await sql`
+        SELECT id FROM playdates_cache WHERE notion_id = ${playdateNotionId}
       `;
-      if (patternResult.rows.length > 0) {
+      if (playdateResult.rows.length > 0) {
         await sql`
-          INSERT INTO pack_patterns (pack_id, pattern_id)
-          VALUES (${packId}, ${patternResult.rows[0].id})
+          INSERT INTO pack_playdates (pack_id, playdate_id)
+          VALUES (${packId}, ${playdateResult.rows[0].id})
           ON CONFLICT DO NOTHING
         `;
       }

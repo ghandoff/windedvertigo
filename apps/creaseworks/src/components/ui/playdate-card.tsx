@@ -13,7 +13,7 @@ const TIER_BADGE: Record<ProgressTier, { label: string; className: string }> = {
   found_again:     { label: "★", className: "bg-redwood/15 text-redwood" },
 };
 
-interface PatternCardProps {
+interface PlaydateCardProps {
   slug: string;
   title: string;
   headline: string | null;
@@ -23,13 +23,13 @@ interface PatternCardProps {
   frictionDial: number | null;
   startIn120s: boolean;
   hasFindAgain?: boolean;
-  /** Optional: user's progress tier on this pattern (playbook pages only) */
+  /** Optional: user's progress tier on this playdate (playbook pages only) */
   progressTier?: ProgressTier | null;
   /** Override the link href (e.g. for collection context) */
   href?: string;
 }
 
-export function PatternCard({
+export function PlaydateCard({
   slug,
   title,
   headline,
@@ -41,7 +41,7 @@ export function PatternCard({
   hasFindAgain,
   progressTier,
   href,
-}: PatternCardProps) {
+}: PlaydateCardProps) {
   const badge = progressTier ? TIER_BADGE[progressTier] : null;
 
   return (

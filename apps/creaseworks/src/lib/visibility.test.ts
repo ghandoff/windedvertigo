@@ -30,7 +30,7 @@ function stripReflectiveFields(
 
 /** Simulates PATCH key whitelisting from PATCH /api/runs/[id] */
 const ALLOWED_KEYS = new Set([
-  "title", "patternId", "runType", "runDate",
+  "title", "playdateId", "runType", "runDate",
   "contextTags", "traceEvidence", "whatChanged",
   "nextIteration", "materialIds",
 ]);
@@ -106,7 +106,7 @@ describe("PATCH key whitelisting", () => {
   it("allows all valid update fields", () => {
     const body = {
       title: "t",
-      patternId: "p",
+      playdateId: "p",
       runType: "r",
       runDate: "d",
       contextTags: [],

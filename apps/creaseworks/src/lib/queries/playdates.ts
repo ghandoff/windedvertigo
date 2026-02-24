@@ -1,22 +1,22 @@
 import { sql } from "@/lib/db";
 import {
-  PATTERN_TEASER_COLUMNS,
-  PATTERN_ENTITLED_COLUMNS,
-  PATTERN_COLLECTIVE_COLUMNS,
+  PLAYDATE_TEASER_COLUMNS,
+  PLAYDATE_ENTITLED_COLUMNS,
+  PLAYDATE_COLLECTIVE_COLUMNS,
   columnsToSql,
 } from "@/lib/security/column-selectors";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
 
 /**
- * Fetch all public-ready patterns with teaser-tier columns only.
+ * Fetch all public-ready playdates with teaser-tier columns only.
  * Used on the /sampler page grid.
  */
-export async function getTeaserPatterns() {
-  const cols = columnsToSql(PATTERN_TEASER_COLUMNS);
+export async function getTeaserPlaydates() {
+  const cols = columnsToSql(PLAYDATE_TEASER_COLUMNS);
   const result = await sql.query(
     `SELECT ${cols},
        (find_again_mode IS NOT NULL) AS has_find_again
-     FROM patterns_cache
+     FROM playdates_cache
      WHERE status = 'ready'
        AND release_channel = 'sampler'
      ORDER BY title ASC`,
@@ -26,15 +26,15 @@ export async function getTeaserPatterns() {
 }
 
 /**
- * Fetch all ready patterns with teaser-tier columns (no release_channel filter).
+ * Fetch all ready playdates with teaser-tier columns (no release_channel filter).
  * Used on /sampler for internal users who should see everything.
  */
-export async function getAllReadyPatterns() {
-  const cols = columnsToSql(PATTERN_TEASER_COLUMNS);
+export async function getAllReadyPlaydates() {
+  const cols = columnsToSql(PLAYDATE_TEASER_COLUMNS);
   const result = await sql.query(
     `SELECT ${cols},
        (find_again_mode IS NOT NULL) AS has_find_again
-     FROM patterns_cache
+     FROM playdates_cache
      WHERE status = 'ready'
      ORDER BY title ASC`,
   );
@@ -43,14 +43,14 @@ export async function getAllReadyPatterns() {
 }
 
 /**
- * Fetch a single pattern by slug at teaser tier.
+ * Fetch a single playdate by slug at teaser tier.
  */
-export async function getTeaserPatternBySlug(slug: string) {
-  const cols = columnsToSql(PATTERN_TEASER_COLUMNS);
+export async function getTeaserPlaydateBySlug(slug: string) {
+  const cols = columnsToSql(PLAYDATE_TEASER_COLUMNS);
   const result = await sql.query(
     `SELECT ${cols},
        (find_again_mode IS NOT NULL) AS has_find_again
-     FROM patterns_cache
+     FROM playdates_cache
      WHERE slug = $1
        AND status = 'ready'
        AND release_channel = 'sampler'
@@ -62,14 +62,14 @@ export async function getTeaserPatternBySlug(slug: string) {
 }
 
 /**
- * Fetch a single pattern by slug at entitled tier.
+ * Fetch a single playdate by slug at entitled tier.
  * Caller must verify entitlement before calling.
  */
-export async function getEntitledPatternBySlug(slug: string) {
-  const cols = columnsToSql(PATTERN_ENTITLED_COLUMNS);
+export async function getEntitledPlaydateBySlug(slug: string) {
+  const cols = columnsToSql(PLAYDATE_ENTITLED_COLUMNS);
   const result = await sql.query(
     `SELECT ${cols}
-     FROM patterns_cache
+     FROM playdates_cache
      WHERE slug = $1
        AND status = 'ready'
      LIMIT 1`,
@@ -80,15 +80,15 @@ export async function getEntitledPatternBySlug(slug: string) {
 }
 
 /**
- * Fetch a single pattern by UUID at entitled tier.
+ * Fetch a single playdate by UUID at entitled tier.
  * Used by the PDF generation route (lookup by id instead of slug).
  * Caller must verify entitlement before calling.
  */
-export async function getEntitledPatternById(id: string) {
-  const cols = columnsToSql(PATTERN_ENTITLED_COLUMNS);
+export async function getEntitledPlaydateById(id: string) {
+  const cols = columnsToSql(PLAYDATE_ENTITLED_COLUMNS);
   const result = await sql.query(
     `SELECT ${cols}
-     FROM patterns_cache
+     FROM playdates_cache
      WHERE id = $1
        AND status = 'ready'
      LIMIT 1`,
@@ -99,16 +99,16 @@ export async function getEntitledPatternById(id: string) {
 }
 
 /**
- * Fetch a single pattern by slug at collective tier.
+ * Fetch a single playdate by slug at collective tier.
  * Includes design rationale, developmental notes, and author notes.
  * No status filter — collective can see drafts.
  * Caller must verify isInternal before calling.
  */
-export async function getCollectivePatternBySlug(slug: string) {
-  const cols = columnsToSql(PATTERN_COLLECTIVE_COLUMNS);
+export async function getCollectivePlaydateBySlug(slug: string) {
+  const cols = columnsToSql(PLAYDATE_COLLECTIVE_COLUMNS);
   const result = await sql.query(
     `SELECT ${cols}
-     FROM patterns_cache
+     FROM playdates_cache
      WHERE slug = $1
      LIMIT 1`,
     [slug],
@@ -118,17 +118,17 @@ export async function getCollectivePatternBySlug(slug: string) {
 }
 
 /**
- * Fetch teaser-tier materials linked to a pattern (by pattern UUID).
+ * Fetch teaser-tier materials linked to a playdate (by playdate UUID).
  */
-export async function getTeaserMaterialsForPattern(patternId: string) {
+export async function getTeaserMaterialsForPlaydate(playdateId: string) {
   const result = await sql.query(
     `SELECT m.id, m.title, m.form_primary, m.functions, m.context_tags
      FROM materials_cache m
-     JOIN pattern_materials pm ON pm.material_id = m.id
-     WHERE pm.pattern_id = $1
+     JOIN playdate_materials pm ON pm.material_id = m.id
+     WHERE pm.playdate_id = $1
        AND m.do_not_use = false
      ORDER BY m.title ASC`,
-    [patternId],
+    [playdateId],
   );
   return result.rows;
 }

@@ -1,6 +1,6 @@
-import { getTeaserPatterns, getAllReadyPatterns } from "@/lib/queries/patterns";
+import { getTeaserPlaydates, getAllReadyPlaydates } from "@/lib/queries/playdates";
 import { getSession } from "@/lib/auth-helpers";
-import { PatternCard } from "@/components/ui/pattern-card";
+import { PlaydateCard } from "@/components/ui/playdate-card";
 import Link from "next/link";
 
 // Force dynamic rendering — the DB connection isn't available at build time.
@@ -13,9 +13,9 @@ export default async function SamplerPage() {
   const isInternal = session?.isInternal ?? false;
 
   // Internal users see all ready playdates; everyone else sees sampler only
-  const patterns = isInternal
-    ? await getAllReadyPatterns()
-    : await getTeaserPatterns();
+  const playdates = isInternal
+    ? await getAllReadyPlaydates()
+    : await getTeaserPlaydates();
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-5xl mx-auto">
@@ -33,14 +33,14 @@ export default async function SamplerPage() {
         </p>
       </header>
 
-      {patterns.length === 0 ? (
+      {playdates.length === 0 ? (
         <p className="text-cadet/40 text-center py-20">
           no playdates here yet. check back soon.
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {patterns.map((p: any) => (
-            <PatternCard
+          {playdates.map((p: any) => (
+            <PlaydateCard
               key={p.id}
               slug={p.slug}
               title={p.title}

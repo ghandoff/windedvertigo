@@ -1,5 +1,5 @@
 /**
- * Collection detail — patterns in this collection with user progress badges.
+ * Collection detail — playdates in this collection with user progress badges.
  */
 
 import { notFound } from "next/navigation";
@@ -7,10 +7,10 @@ import Link from "next/link";
 import { requireAuth } from "@/lib/auth-helpers";
 import {
   getCollectionBySlug,
-  getCollectionPatterns,
+  getCollectionPlaydates,
   recomputeUserProgress,
 } from "@/lib/queries/collections";
-import { PatternCard, type ProgressTier } from "@/components/ui/pattern-card";
+import { PlaydateCard, type ProgressTier } from "@/components/ui/playdate-card";
 
 export const dynamic = "force-dynamic";
 
@@ -27,15 +27,15 @@ export default async function CollectionDetailPage({ params }: Props) {
   const collection = await getCollectionBySlug(params.slug);
   if (!collection) notFound();
 
-  const patterns = await getCollectionPatterns(collection.id, session.userId);
+  const playdates = await getCollectionPlaydates(collection.id, session.userId);
 
-  const triedCount = patterns.filter((p) => p.progress_tier).length;
-  const foundAgainCount = patterns.filter(
-    (p) => p.progress_tier === "found_again",
+  const triedCount = playdates.filter((p: any) => p.progress_tier).length;
+  const foundAgainCount = playdates.filter(
+    (p: any) => p.progress_tier === "found_again",
   ).length;
 
   const pct =
-    patterns.length > 0 ? Math.round((triedCount / patterns.length) * 100) : 0;
+    playdates.length > 0 ? Math.round((triedCount / playdates.length) * 100) : 0;
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
@@ -75,7 +75,7 @@ export default async function CollectionDetailPage({ params }: Props) {
           />
         </div>
         <p className="text-[11px] text-cadet/40 mt-1.5">
-          {triedCount} of {patterns.length} tried
+          {triedCount} of {playdates.length} tried
           {foundAgainCount > 0 && (
             <span className="text-redwood/70">
               {" "}
@@ -85,15 +85,15 @@ export default async function CollectionDetailPage({ params }: Props) {
         </p>
       </div>
 
-      {/* pattern grid */}
-      {patterns.length === 0 ? (
+      {/* playdate grid */}
+      {playdates.length === 0 ? (
         <p className="text-sm text-cadet/40 py-12 text-center">
           no playdates in this collection yet.
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {patterns.map((p) => (
-            <PatternCard
+          {playdates.map((p) => (
+            <PlaydateCard
               key={p.id}
               slug={p.slug}
               title={p.title}

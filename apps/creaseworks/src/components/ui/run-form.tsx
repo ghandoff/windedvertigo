@@ -13,7 +13,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RUN_TYPES, TRACE_EVIDENCE_OPTIONS, CONTEXT_TAGS } from "@/lib/constants/enums";
 
-interface Pattern {
+interface Playdate {
   id: string;
   title: string;
   slug: string;
@@ -26,10 +26,10 @@ interface Material {
 }
 
 export default function RunForm({
-  patterns,
+  playdates,
   materials,
 }: {
-  patterns: Pattern[];
+  playdates: Playdate[];
   materials: Material[];
 }) {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function RunForm({
   );
 
   // Optional fields
-  const [patternId, setPatternId] = useState("");
+  const [playdateId, setPlaydateId] = useState("");
   const [contextTags, setContextTags] = useState<string[]>([]);
   const [traceEvidence, setTraceEvidence] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
@@ -73,7 +73,7 @@ export default function RunForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: title.trim(),
-          patternId: patternId || null,
+          playdateId: playdateId || null,
           runType,
           runDate,
           contextTags,
@@ -115,7 +115,7 @@ export default function RunForm({
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" aria-label="log a run" aria-describedby={error ? "run-error" : undefined}>
+    <form onSubmit={handleSubmit} className="space-y-6" aria-label="log a reflection" aria-describedby={error ? "run-error" : undefined}>
       {/* required section */}
       <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-5 space-y-4">
         <h2 className="text-sm font-semibold text-cadet/80">essentials</h2>
@@ -138,7 +138,7 @@ export default function RunForm({
         {/* run type */}
         <div>
           <label className="block text-xs text-cadet/60 mb-1">
-            run type <span className="text-redwood">*</span>
+            reflection type <span className="text-redwood">*</span>
           </label>
           <select
             value={runType}
@@ -169,18 +169,18 @@ export default function RunForm({
           />
         </div>
 
-        {/* pattern link */}
+        {/* playdate link */}
         <div>
           <label className="block text-xs text-cadet/60 mb-1">
-            linked pattern
+            linked playdate
           </label>
           <select
-            value={patternId}
-            onChange={(e) => setPatternId(e.target.value)}
+            value={playdateId}
+            onChange={(e) => setPlaydateId(e.target.value)}
             className="w-full rounded-lg border border-cadet/15 px-3 py-2 text-sm outline-none focus:ring-2 bg-white"
           >
             <option value="">none</option>
-            {patterns.map((p) => (
+            {playdates.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.title}
               </option>
@@ -188,8 +188,8 @@ export default function RunForm({
           </select>
         </div>
 
-        {/* find again toggle — quiet, only relevant when a pattern is linked */}
-        {patternId && (
+        {/* find again toggle — quiet, only relevant when a playdate is linked */}
+        {playdateId && (
           <label className="flex items-center gap-2 cursor-pointer text-xs text-cadet/60 pt-1">
             <input
               type="checkbox"
@@ -389,7 +389,7 @@ export default function RunForm({
           className="rounded-lg px-6 py-2.5 text-sm font-medium text-white disabled:opacity-40 transition-all"
           style={{ backgroundColor: "var(--wv-redwood)" }}
         >
-          {loading ? "saving…" : "save run"}
+          {loading ? "saving…" : "save reflection"}
         </button>
         <button
           type="button"

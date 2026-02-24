@@ -33,7 +33,7 @@ import { sql } from "@/lib/db";
 export async function logAccess(
   userId: string,
   orgId: string | null,
-  patternId: string | null,
+  playdateId: string | null,
   packId: string | null,
   action: string,
   ipAddress: string | null,
@@ -49,8 +49,8 @@ export async function logAccess(
 
   await sql.query(
     `INSERT INTO access_audit_logs
-       (user_id, org_id, pattern_id, pack_id, action, ip_address, fields_accessed)
+       (user_id, org_id, playdate_id, pack_id, action, ip_address, fields_accessed)
      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [userId, orgId, patternId, packId, action, ipAddress, fields],
+    [userId, orgId, playdateId, packId, action, ipAddress, fields],
   );
 }

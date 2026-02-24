@@ -1,9 +1,9 @@
 /**
  * Matcher algorithm — queries, scoring, and ranking.
  *
- * MVP 3 — pattern matcher.
+ * MVP 3 — playdate matcher.
  *
- * Strategy: fetch all ready patterns with their materials in a single query,
+ * Strategy: fetch all ready playdates with their materials in a single query,
  * then score and rank in TypeScript. Batch queries for entitlements and pack
  * slugs to avoid N+1.
  */
@@ -32,8 +32,8 @@ interface CoverageDetail {
   }[];
 }
 
-export interface RankedPattern {
-  patternId: string;
+export interface RankedPlaydate {
+  playdateId: string;
   slug: string;
   title: string;
   headline: string | null;
@@ -51,7 +51,7 @@ export interface RankedPattern {
 }
 
 export interface MatcherResult {
-  ranked: RankedPattern[];
+  ranked: RankedPlaydate[];
   meta: {
     contextFiltersApplied: string[];
     totalCandidates: number;
@@ -63,11 +63,11 @@ export interface MatcherResult {
 /*  picker data queries (used by the server page to populate the form) */
 /* ------------------------------------------------------------------ */
 
-/** Distinct required_forms values across all ready public patterns. */
+/** Distinct required_forms values across all ready public playdates. */
 export async function getDistinctForms(): Promise<string[]> {
   const result = await sql.query(
     `SELECT DISTINCT val AS form
-     FROM patterns_cache,
+     FROM playdates_cache,
           jsonb_array_elements_text(required_forms) AS val
      WHERE status = 'ready'
        AND release_channel IN ('sampler', 'pack-only')
@@ -76,11 +76,11 @@ export async function getDistinctForms(): Promise<string[]> {
   return result.rows.map((r: any) => r.form);
 }
 
-/** Distinct slots_optional values across all ready public patterns. */
+/** Distinct slots_optional values across all ready public playdates. */
 export async function getDistinctSlots(): Promise<string[]> {
   const result = await sql.query(
     `SELECT DISTINCT val AS slot
-     FROM patterns_cache,
+     FROM playdates_cache,
           jsonb_array_elements_text(slots_optional) AS val
      WHERE status = 'ready'
        AND release_channel IN ('sampler', 'pack-only')
@@ -89,11 +89,11 @@ export async function getDistinctSlots(): Promise<string[]> {
   return result.rows.map((r: any) => r.slot);
 }
 
-/** Distinct context_tags values across all ready public patterns. */
+/** Distinct context_tags values across all ready public playdates. */
 export async function getDistinctContexts(): Promise<string[]> {
   const result = await sql.query(
     `SELECT DISTINCT val AS context
-     FROM patterns_cache,
+     FROM playdates_cache,
           jsonb_array_elements_text(context_tags) AS val
      WHERE status = 'ready'
        AND release_channel IN ('sampler', 'pack-only')
@@ -120,14 +120,14 @@ interface CandidateRow {
   slots_optional: string[];
   find_again_mode: string | null;
   substitutions_notes: string | null;
-  // joined material fields (null when pattern has no materials)
+  // joined material fields (null when playdate has no materials)
   material_id: string | null;
   material_title: string | null;
   material_form_primary: string | null;
 }
 
 /**
- * In-memory cache for candidate rows. Patterns only change when the
+ * In-memory cache for candidate rows. Playdates only change when the
  * Notion sync runs (at most once per hour via cron), so a 5-minute
  * TTL eliminates redundant full-table scans while staying fresh.
  *
@@ -143,8 +143,8 @@ export function invalidateCandidateCache(): void {
 }
 
 /**
- * Fetch all ready public patterns LEFT JOINed to their materials.
- * Returns one row per pattern–material pair (patterns with no materials
+ * Fetch all ready public playdates LEFT JOINed to their materials.
+ * Returns one row per playdate-material pair (playdates with no materials
  * appear once with null material columns).
  *
  * Results are cached in-memory for 5 minutes.
@@ -164,8 +164,8 @@ async function getCandidateRows(): Promise<CandidateRow[]> {
        m.id   AS material_id,
        m.title AS material_title,
        m.form_primary AS material_form_primary
-     FROM patterns_cache p
-     LEFT JOIN pattern_materials pm ON pm.pattern_id = p.id
+     FROM playdates_cache p
+     LEFT JOIN playdate_materials pm ON pm.playdate_id = p.id
      LEFT JOIN materials_cache m ON m.id = pm.material_id AND m.do_not_use = false
      WHERE p.status = 'ready'
        AND p.release_channel IN ('sampler', 'pack-only')
@@ -177,7 +177,7 @@ async function getCandidateRows(): Promise<CandidateRow[]> {
   return rows;
 }
 
-interface PatternCandidate {
+interface PlaydateCandidate {
   id: string;
   slug: string;
   title: string;
@@ -194,14 +194,14 @@ interface PatternCandidate {
   materials: { id: string; title: string; formPrimary: string }[];
 }
 
-/** Group flat candidate rows into pattern objects with material arrays. */
-function groupCandidates(rows: CandidateRow[]): PatternCandidate[] {
-  const map = new Map<string, PatternCandidate>();
+/** Group flat candidate rows into playdate objects with material arrays. */
+function groupCandidates(rows: CandidateRow[]): PlaydateCandidate[] {
+  const map = new Map<string, PlaydateCandidate>();
 
   for (const row of rows) {
-    let pattern = map.get(row.id);
-    if (!pattern) {
-      pattern = {
+    let playdate = map.get(row.id);
+    if (!playdate) {
+      playdate = {
         id: row.id,
         slug: row.slug,
         title: row.title,
@@ -217,11 +217,11 @@ function groupCandidates(rows: CandidateRow[]): PatternCandidate[] {
         substitutionsNotes: row.substitutions_notes,
         materials: [],
       };
-      map.set(row.id, pattern);
+      map.set(row.id, playdate);
     }
 
     if (row.material_id) {
-      pattern.materials.push({
+      playdate.materials.push({
         id: row.material_id,
         title: row.material_title!,
         formPrimary: row.material_form_primary!,
@@ -237,52 +237,52 @@ function groupCandidates(rows: CandidateRow[]): PatternCandidate[] {
 /* ------------------------------------------------------------------ */
 
 /**
- * For a set of pattern IDs, return the set of IDs that the user's org
- * is entitled to (via any pack that contains the pattern).
+ * For a set of playdate IDs, return the set of IDs that the user's org
+ * is entitled to (via any pack that contains the playdate).
  */
 async function batchCheckEntitlements(
   orgId: string | null,
-  patternIds: string[],
+  playdateIds: string[],
 ): Promise<Set<string>> {
-  if (!orgId || patternIds.length === 0) return new Set();
+  if (!orgId || playdateIds.length === 0) return new Set();
 
   const result = await sql.query(
-    `SELECT DISTINCT pp.pattern_id
-     FROM pack_patterns pp
+    `SELECT DISTINCT pp.playdate_id
+     FROM pack_playdates pp
      JOIN entitlements e ON e.pack_cache_id = pp.pack_id
      WHERE e.org_id = $1
        AND e.revoked_at IS NULL
        AND (e.expires_at IS NULL OR e.expires_at > NOW())
-       AND pp.pattern_id = ANY($2::uuid[])`,
-    [orgId, patternIds],
+       AND pp.playdate_id = ANY($2::uuid[])`,
+    [orgId, playdateIds],
   );
 
-  return new Set(result.rows.map((r: any) => r.pattern_id));
+  return new Set(result.rows.map((r: any) => r.playdate_id));
 }
 
 /**
- * For a set of pattern IDs, return a map of patternId → pack slugs.
+ * For a set of playdate IDs, return a map of playdateId → pack slugs.
  */
 async function batchGetPackSlugs(
-  patternIds: string[],
+  playdateIds: string[],
 ): Promise<Map<string, string[]>> {
-  if (patternIds.length === 0) return new Map();
+  if (playdateIds.length === 0) return new Map();
 
   const result = await sql.query(
-    `SELECT pp.pattern_id, pc.slug
-     FROM pack_patterns pp
+    `SELECT pp.playdate_id, pc.slug
+     FROM pack_playdates pp
      JOIN packs_cache pc ON pc.id = pp.pack_id
      WHERE pc.status = 'ready'
-       AND pp.pattern_id = ANY($1::uuid[])
-     ORDER BY pp.pattern_id, pc.slug`,
-    [patternIds],
+       AND pp.playdate_id = ANY($1::uuid[])
+     ORDER BY pp.playdate_id, pc.slug`,
+    [playdateIds],
   );
 
   const map = new Map<string, string[]>();
   for (const row of result.rows) {
-    const list = map.get(row.pattern_id) ?? [];
+    const list = map.get(row.playdate_id) ?? [];
     list.push(row.slug);
-    map.set(row.pattern_id, list);
+    map.set(row.playdate_id, list);
   }
   return map;
 }
@@ -291,8 +291,8 @@ async function batchGetPackSlugs(
 /*  scoring                                                            */
 /* ------------------------------------------------------------------ */
 
-function scorePattern(
-  pattern: PatternCandidate,
+function scorePlaydate(
+  playdate: PlaydateCandidate,
   userMaterialIds: Set<string>,
   userForms: Set<string>,
   userSlots: Set<string>,
@@ -301,7 +301,7 @@ function scorePattern(
   const materialsCovered: { id: string; title: string }[] = [];
   const materialsMissing: { id: string; title: string; formPrimary: string }[] = [];
 
-  for (const mat of pattern.materials) {
+  for (const mat of playdate.materials) {
     if (userMaterialIds.has(mat.id)) {
       materialsCovered.push({ id: mat.id, title: mat.title });
     } else {
@@ -310,16 +310,16 @@ function scorePattern(
   }
 
   const materialsRatio =
-    pattern.materials.length === 0
+    playdate.materials.length === 0
       ? 1.0
-      : materialsCovered.length / pattern.materials.length;
+      : materialsCovered.length / playdate.materials.length;
   const materialsScore = materialsRatio * 45;
 
   // --- forms coverage (0–30) ---
   const formsCovered: string[] = [];
   const formsMissing: string[] = [];
 
-  for (const form of pattern.requiredForms) {
+  for (const form of playdate.requiredForms) {
     if (userForms.has(form)) {
       formsCovered.push(form);
     } else {
@@ -328,9 +328,9 @@ function scorePattern(
   }
 
   const formsRatio =
-    pattern.requiredForms.length === 0
+    playdate.requiredForms.length === 0
       ? 1.0
-      : formsCovered.length / pattern.requiredForms.length;
+      : formsCovered.length / playdate.requiredForms.length;
   const formsScore = formsRatio * 30;
 
   // --- slots match bonus (0–10) ---
@@ -338,16 +338,16 @@ function scorePattern(
   if (userSlots.size === 0) {
     slotsScore = 10; // no preference = no penalty
   } else {
-    const slotsOverlap = pattern.slotsOptional.filter((s) => userSlots.has(s));
-    const slotDenom = Math.max(pattern.slotsOptional.length, 1);
+    const slotsOverlap = playdate.slotsOptional.filter((s) => userSlots.has(s));
+    const slotDenom = Math.max(playdate.slotsOptional.length, 1);
     slotsScore = (slotsOverlap.length / slotDenom) * 10;
   }
 
   // --- quick-start bonus (0–10) ---
-  const quickStartScore = pattern.startIn120s ? 10 : 0;
+  const quickStartScore = playdate.startIn120s ? 10 : 0;
 
   // --- friction penalty (0–5 deduction) ---
-  const frictionPenalty = pattern.frictionDial ? pattern.frictionDial - 1 : 0;
+  const frictionPenalty = playdate.frictionDial ? playdate.frictionDial - 1 : 0;
 
   const score = Math.round(
     materialsScore + formsScore + slotsScore + quickStartScore - frictionPenalty,
@@ -381,9 +381,9 @@ interface SessionSlice {
 /**
  * Run the full matcher algorithm.
  *
- * 1. Fetch all ready patterns with materials (single query).
+ * 1. Fetch all ready playdates with materials (single query).
  * 2. Hard-filter by user context constraints.
- * 3. Score each surviving pattern.
+ * 3. Score each surviving playdate.
  * 4. Generate substitution suggestions.
  * 5. Batch-check entitlements (if authenticated).
  * 6. Batch-fetch pack slugs.
@@ -414,8 +414,8 @@ export async function performMatching(
   // build a map of user material id → { title, formPrimary } for substitution suggestions
   // we need to resolve titles for user materials — pull from candidate materials
   const allMaterialsMap = new Map<string, { id: string; title: string; formPrimary: string }>();
-  for (const pattern of candidates) {
-    for (const mat of pattern.materials) {
+  for (const playdate of candidates) {
+    for (const mat of playdate.materials) {
       allMaterialsMap.set(mat.id, mat);
     }
   }
@@ -431,10 +431,10 @@ export async function performMatching(
     }
   }
 
-  // 3. score each pattern
-  const scored = filtered.map((pattern) => {
-    const { score, coverage } = scorePattern(
-      pattern,
+  // 3. score each playdate
+  const scored = filtered.map((playdate) => {
+    const { score, coverage } = scorePlaydate(
+      playdate,
       userMaterialIds,
       userForms,
       userSlots,
@@ -455,39 +455,39 @@ export async function performMatching(
       }
     }
 
-    return { pattern, score, coverage };
+    return { playdate, score, coverage };
   });
 
   // 5. batch entitlement check
-  const patternIds = scored.map((s) => s.pattern.id);
+  const playdateIds = scored.map((s) => s.playdate.id);
   const entitledIds = await batchCheckEntitlements(
     session?.orgId ?? null,
-    patternIds,
+    playdateIds,
   );
 
   // 6. batch pack slugs
-  const packSlugsMap = await batchGetPackSlugs(patternIds);
+  const packSlugsMap = await batchGetPackSlugs(playdateIds);
 
   // 7. assemble and sort
-  const ranked: RankedPattern[] = scored
+  const ranked: RankedPlaydate[] = scored
     .map((s) => {
-      const isEntitled = entitledIds.has(s.pattern.id);
+      const isEntitled = entitledIds.has(s.playdate.id);
       return {
-        patternId: s.pattern.id,
-        slug: s.pattern.slug,
-        title: s.pattern.title,
-        headline: s.pattern.headline,
+        playdateId: s.playdate.id,
+        slug: s.playdate.slug,
+        title: s.playdate.title,
+        headline: s.playdate.headline,
         score: s.score,
-        primaryFunction: s.pattern.primaryFunction,
-        arcEmphasis: s.pattern.arcEmphasis,
-        frictionDial: s.pattern.frictionDial,
-        startIn120s: s.pattern.startIn120s,
+        primaryFunction: s.playdate.primaryFunction,
+        arcEmphasis: s.playdate.arcEmphasis,
+        frictionDial: s.playdate.frictionDial,
+        startIn120s: s.playdate.startIn120s,
         coverage: s.coverage,
-        substitutionsNotes: isEntitled ? s.pattern.substitutionsNotes : null,
-        hasFindAgain: s.pattern.findAgainMode != null,
-        findAgainMode: isEntitled ? s.pattern.findAgainMode : null,
+        substitutionsNotes: isEntitled ? s.playdate.substitutionsNotes : null,
+        hasFindAgain: s.playdate.findAgainMode != null,
+        findAgainMode: isEntitled ? s.playdate.findAgainMode : null,
         isEntitled,
-        packSlugs: packSlugsMap.get(s.pattern.id) ?? [],
+        packSlugs: packSlugsMap.get(s.playdate.id) ?? [],
       };
     })
     .sort((a, b) => {

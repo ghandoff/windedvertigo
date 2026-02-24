@@ -20,7 +20,7 @@ function getNotion(): Client {
 export { getNotion as notion };
 
 export const NOTION_DBS = {
-  patterns: process.env.NOTION_DB_PATTERNS ?? "",
+  playdates: process.env.NOTION_DB_PATTERNS ?? "",
   materials: process.env.NOTION_DB_MATERIALS ?? "",
   packs: process.env.NOTION_DB_PACKS ?? "",
   runs: process.env.NOTION_DB_RUNS ?? "",

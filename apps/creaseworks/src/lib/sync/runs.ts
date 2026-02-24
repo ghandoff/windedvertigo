@@ -13,11 +13,11 @@ import {
 
 function parseRunPage(page: any) {
   const props = page.properties;
-  const patternIds = extractRelationIds(props, "pattern");
+  const playdateIds = extractRelationIds(props, "pattern");
   return {
     notionId: extractPageId(page),
     title: extractTitle(props, "run"),
-    patternNotionId: patternIds.length > 0 ? patternIds[0] : null,
+    playdateNotionId: playdateIds.length > 0 ? playdateIds[0] : null,
     runType: extractSelect(props, "run type"),
     runDate: extractDate(props, "date"),
     contextTags: extractMultiSelect(props, "context tags"),
@@ -42,11 +42,11 @@ export async function syncRuns() {
 
     await sql`
       INSERT INTO runs_cache (
-        notion_id, title, pattern_notion_id, run_type, run_date,
+        notion_id, title, playdate_notion_id, run_type, run_date,
         context_tags, trace_evidence, what_changed, next_iteration,
         notion_last_edited, synced_at, source
       ) VALUES (
-        ${row.notionId}, ${row.title}, ${row.patternNotionId},
+        ${row.notionId}, ${row.title}, ${row.playdateNotionId},
         ${row.runType}, ${row.runDate},
         ${JSON.stringify(row.contextTags)},
         ${JSON.stringify(row.traceEvidence)},
@@ -55,7 +55,7 @@ export async function syncRuns() {
       )
       ON CONFLICT (notion_id) DO UPDATE SET
         title = EXCLUDED.title,
-        pattern_notion_id = EXCLUDED.pattern_notion_id,
+        playdate_notion_id = EXCLUDED.playdate_notion_id,
         run_type = EXCLUDED.run_type,
         run_date = EXCLUDED.run_date,
         context_tags = EXCLUDED.context_tags,

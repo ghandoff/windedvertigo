@@ -5,7 +5,7 @@
  * These tests verify the expected weights and edge cases by
  * re-implementing the scoring formula from DESIGN.md.
  *
- * The actual scorePattern() is a private function in matcher.ts,
+ * The actual scorePlaydate() is a private function in matcher.ts,
  * so we test the formula independently. If the implementation
  * changes, these tests catch regressions in the scoring contract.
  */
@@ -13,7 +13,7 @@
 import { describe, it, expect } from "vitest";
 
 // Re-implement the scoring formula for independent verification.
-// This mirrors scorePattern() in src/lib/queries/matcher.ts.
+// This mirrors scorePlaydate() in src/lib/queries/matcher.ts.
 function computeScore(params: {
   totalMaterials: number;
   coveredMaterials: number;
@@ -113,7 +113,7 @@ describe("matcher scoring formula", () => {
     expect(score).toBe(0);
   });
 
-  it("handles patterns with no materials gracefully (ratio = 1.0)", () => {
+  it("handles playdates with no materials gracefully (ratio = 1.0)", () => {
     const score = computeScore({
       totalMaterials: 0,
       coveredMaterials: 0,

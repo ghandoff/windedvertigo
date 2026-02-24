@@ -4,7 +4,7 @@
  * Three sections, vertically stacked:
  * 1. Progress summary (compact pills + arc coverage bar)
  * 2. Collections grid with per-user progress
- * 3. Recent runs (condensed, links to full list)
+ * 3. Recent reflections (condensed, links to full list)
  *
  * Quiet when empty, fills up as you play.
  */
@@ -131,7 +131,7 @@ export default async function PlaybookPage() {
               title={c.title}
               description={c.description}
               iconEmoji={c.icon_emoji}
-              patternCount={c.pattern_count}
+              playdateCount={c.playdate_count}
               progress={
                 hasProgress
                   ? {
@@ -147,10 +147,10 @@ export default async function PlaybookPage() {
         </div>
       )}
 
-      {/* ── section 3: recent runs ── */}
+      {/* ── section 3: recent reflections ── */}
       <div className="border-t border-cadet/10 pt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-cadet">recent runs</h2>
+          <h2 className="text-lg font-semibold text-cadet">recent reflections</h2>
           <div className="flex items-center gap-3">
             <Link
               href="/playbook/runs"
@@ -163,14 +163,14 @@ export default async function PlaybookPage() {
               className="rounded-lg px-4 py-2 text-xs font-medium text-white transition-all hover:opacity-90"
               style={{ backgroundColor: "var(--wv-redwood)" }}
             >
-              log a run
+              log a reflection
             </Link>
           </div>
         </div>
 
         {recentRuns.length === 0 ? (
           <p className="text-sm text-cadet/30 py-4 text-center">
-            no runs yet. after you try a playdate,{" "}
+            no reflections yet. after you try a playdate,{" "}
             <Link
               href="/runs/new"
               className="text-redwood hover:text-sienna transition-colors"
@@ -188,7 +188,7 @@ export default async function PlaybookPage() {
               >
                 <div className="min-w-0">
                   <span className="font-medium text-cadet">
-                    {run.pattern_title ?? run.title}
+                    {run.playdate_title ?? run.title}
                   </span>
                   {run.run_date && (
                     <span className="text-cadet/40 ml-2">

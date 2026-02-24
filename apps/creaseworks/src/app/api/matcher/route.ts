@@ -1,8 +1,8 @@
 /**
- * POST /api/matcher â public pattern matching endpoint.
+ * POST /api/matcher â public playdate matching endpoint.
  *
  * Accepts materials, forms, slots, and context filters.
- * Returns ranked patterns with scores and coverage details.
+ * Returns ranked playdates with scores and coverage details.
  * Entitled fields (substitutionsNotes, findAgainMode) are only
  * populated when the caller's org owns the relevant pack.
  *

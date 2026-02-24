@@ -4,7 +4,7 @@
  * Used by the webhook handler to sync individual pages as they change,
  * rather than the full daily cron sync.
  *
- * Supports: patterns, materials, packs, runs.
+ * Supports: playdates, materials, packs, runs.
  * Falls back gracefully — if the page type is unknown, logs and skips.
  *
  * MVP 7 — Notion webhook listener.
@@ -34,14 +34,14 @@ import {
 /*  database ID → type mapping                                         */
 /* ------------------------------------------------------------------ */
 
-type ContentType = "patterns" | "materials" | "packs" | "runs";
+type ContentType = "playdates" | "materials" | "packs" | "runs";
 
 function resolveContentType(databaseId: string): ContentType | null {
   // Normalise: Notion sometimes sends IDs with dashes, sometimes without
   const normalised = databaseId.replace(/-/g, "");
 
   const map: Record<string, ContentType> = {
-    [NOTION_DBS.patterns.replace(/-/g, "")]: "patterns",
+    [NOTION_DBS.playdates.replace(/-/g, "")]: "playdates",
     [NOTION_DBS.materials.replace(/-/g, "")]: "materials",
     [NOTION_DBS.packs.replace(/-/g, "")]: "packs",
     [NOTION_DBS.runs.replace(/-/g, "")]: "runs",
@@ -74,8 +74,8 @@ export async function syncSinglePage(
     case "materials":
       await upsertMaterial(page);
       break;
-    case "patterns":
-      await upsertPattern(page);
+    case "playdates":
+      await upsertPlaydate(page);
       break;
     case "packs":
       await upsertPack(page);
@@ -109,8 +109,8 @@ export async function handlePageDeletion(
     case "materials":
       await sql.query(`DELETE FROM materials_cache WHERE notion_id = $1`, [normalised]);
       break;
-    case "patterns":
-      await sql.query(`DELETE FROM patterns_cache WHERE notion_id = $1`, [normalised]);
+    case "playdates":
+      await sql.query(`DELETE FROM playdates_cache WHERE notion_id = $1`, [normalised]);
       break;
     case "packs":
       await sql.query(`DELETE FROM packs_cache WHERE notion_id = $1`, [normalised]);
@@ -181,7 +181,7 @@ async function upsertMaterial(page: any) {
   `;
 }
 
-async function upsertPattern(page: any) {
+async function upsertPlaydate(page: any) {
   const props = page.properties;
   const notionId = extractPageId(page);
   const title = extractTitle(props, "pattern");
@@ -214,7 +214,7 @@ async function upsertPattern(page: any) {
     .replace(/^-|-$/g, "");
 
   await sql`
-    INSERT INTO patterns_cache (
+    INSERT INTO playdates_cache (
       notion_id, title, headline, release_channel, ip_tier, status,
       primary_function, arc_emphasis, context_tags, friction_dial,
       start_in_120s, required_forms, slots_optional, slots_notes,
@@ -260,22 +260,22 @@ async function upsertPattern(page: any) {
 
   // Resolve material relations inside a transaction to prevent orphaned links
   const materialRelationIds = extractRelationIds(props, "materials");
-  const patternResult = await sql`
-    SELECT id FROM patterns_cache WHERE notion_id = ${notionId}
+  const playdateResult = await sql`
+    SELECT id FROM playdates_cache WHERE notion_id = ${notionId}
   `;
-  if (patternResult.rows.length > 0) {
-    const patternId = patternResult.rows[0].id;
+  if (playdateResult.rows.length > 0) {
+    const playdateId = playdateResult.rows[0].id;
     await sql.query("BEGIN");
     try {
-      await sql`DELETE FROM pattern_materials WHERE pattern_id = ${patternId}`;
+      await sql`DELETE FROM playdate_materials WHERE playdate_id = ${playdateId}`;
       for (const materialNotionId of materialRelationIds) {
         const matResult = await sql`
           SELECT id FROM materials_cache WHERE notion_id = ${materialNotionId}
         `;
         if (matResult.rows.length > 0) {
           await sql`
-            INSERT INTO pattern_materials (pattern_id, material_id)
-            VALUES (${patternId}, ${matResult.rows[0].id})
+            INSERT INTO playdate_materials (playdate_id, material_id)
+            VALUES (${playdateId}, ${matResult.rows[0].id})
             ON CONFLICT DO NOTHING
           `;
         }
@@ -318,8 +318,8 @@ async function upsertPack(page: any) {
       synced_at = NOW()
   `;
 
-  // Resolve pattern relations inside a transaction to prevent orphaned links
-  const patternRelationIds = extractRelationIds(props, "patterns");
+  // Resolve playdate relations inside a transaction to prevent orphaned links
+  const playdateRelationIds = extractRelationIds(props, "playdates");
   const packResult = await sql`
     SELECT id FROM packs_cache WHERE notion_id = ${notionId}
   `;
@@ -327,15 +327,15 @@ async function upsertPack(page: any) {
     const packId = packResult.rows[0].id;
     await sql.query("BEGIN");
     try {
-      await sql`DELETE FROM pack_patterns WHERE pack_id = ${packId}`;
-      for (const patternNotionId of patternRelationIds) {
-        const patResult = await sql`
-          SELECT id FROM patterns_cache WHERE notion_id = ${patternNotionId}
+      await sql`DELETE FROM pack_playdates WHERE pack_id = ${packId}`;
+      for (const playdateNotionId of playdateRelationIds) {
+        const playdateMatchResult = await sql`
+          SELECT id FROM playdates_cache WHERE notion_id = ${playdateNotionId}
         `;
-        if (patResult.rows.length > 0) {
+        if (playdateMatchResult.rows.length > 0) {
           await sql`
-            INSERT INTO pack_patterns (pack_id, pattern_id)
-            VALUES (${packId}, ${patResult.rows[0].id})
+            INSERT INTO pack_playdates (pack_id, playdate_id)
+            VALUES (${packId}, ${playdateMatchResult.rows[0].id})
             ON CONFLICT DO NOTHING
           `;
         }
@@ -352,8 +352,8 @@ async function upsertRun(page: any) {
   const props = page.properties;
   const notionId = extractPageId(page);
   const title = extractTitle(props, "run");
-  const patternIds = extractRelationIds(props, "pattern");
-  const patternNotionId = patternIds.length > 0 ? patternIds[0] : null;
+  const playdateIds = extractRelationIds(props, "pattern");
+  const playdateNotionId = playdateIds.length > 0 ? playdateIds[0] : null;
   const runType = extractSelect(props, "run type");
   const runDate = extractDate(props, "date");
   const contextTags = extractMultiSelect(props, "context tags");
@@ -366,11 +366,11 @@ async function upsertRun(page: any) {
   // Audit-2 H3: explicitly set source='notion' for parity with batch sync
   await sql`
     INSERT INTO runs_cache (
-      notion_id, title, pattern_notion_id, run_type, run_date,
+      notion_id, title, playdate_notion_id, run_type, run_date,
       context_tags, trace_evidence, what_changed, next_iteration,
       notion_last_edited, synced_at, source
     ) VALUES (
-      ${notionId}, ${title}, ${patternNotionId},
+      ${notionId}, ${title}, ${playdateNotionId},
       ${runType}, ${runDate},
       ${JSON.stringify(contextTags)},
       ${JSON.stringify(traceEvidence)},
@@ -379,7 +379,7 @@ async function upsertRun(page: any) {
     )
     ON CONFLICT (notion_id) DO UPDATE SET
       title = EXCLUDED.title,
-      pattern_notion_id = EXCLUDED.pattern_notion_id,
+      playdate_notion_id = EXCLUDED.playdate_notion_id,
       run_type = EXCLUDED.run_type,
       run_date = EXCLUDED.run_date,
       context_tags = EXCLUDED.context_tags,

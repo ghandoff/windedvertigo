@@ -56,7 +56,7 @@ export async function PATCH(
 
   // Audit-2 H1: whitelist allowed keys to prevent arbitrary field injection
   const ALLOWED_KEYS = new Set([
-    "title", "patternId", "runType", "runDate",
+    "title", "playdateId", "runType", "runDate",
     "contextTags", "traceEvidence", "whatChanged",
     "nextIteration", "materialIds",
   ]);

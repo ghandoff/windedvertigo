@@ -2,25 +2,25 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-helpers";
-import { getPackBySlug, getPackBySlugCollective, isPatternInPack } from "@/lib/queries/packs";
+import { getPackBySlug, getPackBySlugCollective, isPlaydateInPack } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
 import {
-  getEntitledPatternBySlug,
-  getCollectivePatternBySlug,
-  getTeaserMaterialsForPattern,
-} from "@/lib/queries/patterns";
-import EntitledPatternView from "@/components/ui/entitled-pattern-view";
+  getEntitledPlaydateBySlug,
+  getCollectivePlaydateBySlug,
+  getTeaserMaterialsForPlaydate,
+} from "@/lib/queries/playdates";
+import EntitledPlaydateView from "@/components/ui/entitled-playdate-view";
 
 export const dynamic = "force-dynamic";
 
 interface Props {
-  params: Promise<{ slug: string; patternSlug: string }>;
+  params: Promise<{ slug: string; playdateSlug: string }>;
 }
 
-export default async function EntitledPatternPage({ params }: Props) {
+export default async function EntitledPlaydatePage({ params }: Props) {
   const session = await requireAuth();
-  const { slug: packSlug, patternSlug } = await params;
+  const { slug: packSlug, playdateSlug } = await params;
 
   // resolve pack — collective can see draft packs
   const pack = session.isInternal
@@ -33,18 +33,18 @@ export default async function EntitledPatternPage({ params }: Props) {
     session.isInternal || (await checkEntitlement(session.orgId, pack.id));
   if (!isEntitled) return notFound();
 
-  // resolve pattern — collective gets extra fields + can see drafts
-  const pattern = session.isInternal
-    ? await getCollectivePatternBySlug(patternSlug)
-    : await getEntitledPatternBySlug(patternSlug);
-  if (!pattern) return notFound();
+  // resolve playdate — collective gets extra fields + can see drafts
+  const playdate = session.isInternal
+    ? await getCollectivePlaydateBySlug(playdateSlug)
+    : await getEntitledPlaydateBySlug(playdateSlug);
+  if (!playdate) return notFound();
 
-  // verify pattern belongs to this pack
-  const inPack = await isPatternInPack(pattern.id, pack.id);
+  // verify playdate belongs to this pack
+  const inPack = await isPlaydateInPack(playdate.id, pack.id);
   if (!inPack) return notFound();
 
   // fetch materials
-  const materials = await getTeaserMaterialsForPattern(pattern.id);
+  const materials = await getTeaserMaterialsForPlaydate(playdate.id);
 
   // log access
   const fieldsAccessed = [
@@ -59,14 +59,14 @@ export default async function EntitledPatternPage({ params }: Props) {
     ...(session.isInternal
       ? ["design_rationale", "developmental_notes", "author_notes"]
       : []),
-  ].filter((f) => pattern[f] != null);
+  ].filter((f) => playdate[f] != null);
 
   const hdrs = await headers();
   const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
   await logAccess(
     session.userId,
     session.orgId,
-    pattern.id,
+    playdate.id,
     pack.id,
     session.isInternal ? "view_collective" : "view_entitled",
     ip,
@@ -83,11 +83,11 @@ export default async function EntitledPatternPage({ params }: Props) {
       </Link>
 
       <h1 className="text-3xl font-semibold tracking-tight mb-4">
-        {pattern.title}
+        {playdate.title}
       </h1>
 
-      <EntitledPatternView
-        pattern={pattern}
+      <EntitledPlaydateView
+        playdate={playdate}
         materials={materials}
         packSlug={packSlug}
       />

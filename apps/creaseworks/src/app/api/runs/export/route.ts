@@ -79,7 +79,7 @@ function buildCsv(
   // columns — reflective fields included conditionally
   const headers = [
     "title",
-    "pattern",
+    "playdate",
     "run_type",
     "run_date",
     "context_tags",
@@ -90,7 +90,7 @@ function buildCsv(
 
   const rows = runs.map((r) => [
     escCsv(r.title),
-    escCsv(r.pattern_title),
+    escCsv(r.playdate_title),
     escCsv(r.run_type),
     escCsv(r.run_date),
     escCsv(
@@ -247,22 +247,22 @@ async function buildPdf(
     y = drawText(`by type: ${typeList}`, margin, y, 10, font, cadet);
   }
 
-  // top patterns
-  const patternCounts: Record<string, number> = {};
+  // top playdates
+  const playdateCounts: Record<string, number> = {};
   for (const r of runs) {
-    if (r.pattern_title) {
-      patternCounts[r.pattern_title] =
-        (patternCounts[r.pattern_title] || 0) + 1;
+    if (r.playdate_title) {
+      playdateCounts[r.playdate_title] =
+        (playdateCounts[r.playdate_title] || 0) + 1;
     }
   }
-  const topPatterns = Object.entries(patternCounts)
+  const topPlaydates = Object.entries(playdateCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([p, c]) => `${p} (${c})`)
     .join(", ");
-  if (topPatterns) {
+  if (topPlaydates) {
     y = drawText(
-      `top patterns: ${topPatterns}`,
+      `top playdates: ${topPlaydates}`,
       margin,
       y,
       10,
@@ -301,9 +301,9 @@ async function buildPdf(
       cadet,
     );
 
-    // pattern + type
+    // playdate + type
     const meta: string[] = [];
-    if (r.pattern_title) meta.push(`pattern: ${r.pattern_title}`);
+    if (r.playdate_title) meta.push(`playdate: ${r.playdate_title}`);
     if (r.run_type) meta.push(`type: ${r.run_type}`);
     if (meta.length) {
       y = drawText(meta.join("  ·  "), margin, y, 9, font, grey);

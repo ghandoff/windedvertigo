@@ -1,14 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import {
-  getTeaserPatternBySlug,
-  getTeaserMaterialsForPattern,
-  getCollectivePatternBySlug,
-} from "@/lib/queries/patterns";
-import { getFirstVisiblePackForPattern } from "@/lib/queries/packs";
+  getTeaserPlaydateBySlug,
+  getTeaserMaterialsForPlaydate,
+  getCollectivePlaydateBySlug,
+} from "@/lib/queries/playdates";
+import { getFirstVisiblePackForPlaydate } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { getSession } from "@/lib/auth-helpers";
-import EntitledPatternView from "@/components/ui/entitled-pattern-view";
+import EntitledPlaydateView from "@/components/ui/entitled-playdate-view";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,23 +17,23 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export default async function PatternTeaserPage({ params }: Props) {
+export default async function PlaydateTeaserPage({ params }: Props) {
   const { slug } = await params;
   const session = await getSession();
 
   // ── Internal user → always show full collective view ──
   if (session?.isInternal) {
-    const fullPattern = await getCollectivePatternBySlug(slug);
-    if (!fullPattern) return notFound();
+    const fullPlaydate = await getCollectivePlaydateBySlug(slug);
+    if (!fullPlaydate) return notFound();
 
     const [materials, pack] = await Promise.all([
-      getTeaserMaterialsForPattern(fullPattern.id),
-      getFirstVisiblePackForPattern(fullPattern.id),
+      getTeaserMaterialsForPlaydate(fullPlaydate.id),
+      getFirstVisiblePackForPlaydate(fullPlaydate.id),
     ]);
 
-    // If the pattern IS in a pack, redirect to the pack view
+    // If the playdate IS in a pack, redirect to the pack view
     if (pack) {
-      redirect(`/packs/${pack.slug}/patterns/${slug}`);
+      redirect(`/packs/${pack.slug}/playdates/${slug}`);
     }
 
     return (
@@ -46,11 +46,11 @@ export default async function PatternTeaserPage({ params }: Props) {
         </Link>
 
         <h1 className="text-3xl font-semibold tracking-tight mb-4">
-          {fullPattern.title}
+          {fullPlaydate.title}
         </h1>
 
-        <EntitledPatternView
-          pattern={fullPattern}
+        <EntitledPlaydateView
+          playdate={fullPlaydate}
           materials={materials}
           packSlug={null}
         />
@@ -59,21 +59,21 @@ export default async function PatternTeaserPage({ params }: Props) {
   }
 
   // ── Everyone else → sampler teaser path ──
-  const pattern = await getTeaserPatternBySlug(slug);
-  if (!pattern) return notFound();
+  const playdate = await getTeaserPlaydateBySlug(slug);
+  if (!playdate) return notFound();
 
   const [materials, pack] = await Promise.all([
-    getTeaserMaterialsForPattern(pattern.id),
-    getFirstVisiblePackForPattern(pattern.id),
+    getTeaserMaterialsForPlaydate(playdate.id),
+    getFirstVisiblePackForPlaydate(playdate.id),
   ]);
 
-  // Entitled user WITH a pack → redirect to the pack's pattern page
+  // Entitled user WITH a pack → redirect to the pack's playdate page
   if (session && pack) {
     const isEntitled = session.orgId
       ? await checkEntitlement(session.orgId, pack.id)
       : false;
     if (isEntitled) {
-      redirect(`/packs/${pack.slug}/patterns/${slug}`);
+      redirect(`/packs/${pack.slug}/playdates/${slug}`);
     }
   }
 
@@ -90,21 +90,21 @@ export default async function PatternTeaserPage({ params }: Props) {
       </Link>
 
       <h1 className="text-3xl font-semibold tracking-tight mb-2">
-        {pattern.title}
+        {playdate.title}
       </h1>
 
-      {pattern.headline && (
-        <p className="text-lg text-cadet/60 mb-6">{pattern.headline}</p>
+      {playdate.headline && (
+        <p className="text-lg text-cadet/60 mb-6">{playdate.headline}</p>
       )}
 
       {/* the big idea — narrative hook */}
-      {pattern.rails_sentence && (
+      {playdate.rails_sentence && (
         <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-8">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
             the big idea
           </h2>
           <p className="text-sm text-cadet/80 italic">
-            {pattern.rails_sentence}
+            {playdate.rails_sentence}
           </p>
         </section>
       )}
@@ -115,31 +115,31 @@ export default async function PatternTeaserPage({ params }: Props) {
           at a glance
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          {pattern.primary_function && (
+          {playdate.primary_function && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">🎯</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what&apos;s it about</p>
-                <p className="text-cadet/80">{pattern.primary_function}</p>
+                <p className="text-cadet/80">{playdate.primary_function}</p>
               </div>
             </div>
           )}
-          {pattern.friction_dial !== null && (
+          {playdate.friction_dial !== null && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">🎚️</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">energy level</p>
                 <p className="text-cadet/80">
-                  {pattern.friction_dial <= 2
-                    ? `chill (${pattern.friction_dial}/5)`
-                    : pattern.friction_dial <= 3
-                      ? `medium (${pattern.friction_dial}/5)`
-                      : `high energy (${pattern.friction_dial}/5)`}
+                  {playdate.friction_dial <= 2
+                    ? `chill (${playdate.friction_dial}/5)`
+                    : playdate.friction_dial <= 3
+                      ? `medium (${playdate.friction_dial}/5)`
+                      : `high energy (${playdate.friction_dial}/5)`}
                 </p>
               </div>
             </div>
           )}
-          {pattern.start_in_120s && (
+          {playdate.start_in_120s && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">⚡</span>
               <div>
@@ -148,12 +148,12 @@ export default async function PatternTeaserPage({ params }: Props) {
               </div>
             </div>
           )}
-          {(pattern.arc_emphasis as string[])?.length > 0 && (
+          {(playdate.arc_emphasis as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
               <span className="text-base leading-none mt-px">🌱</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what kids practise</p>
-                <p className="text-cadet/80">{(pattern.arc_emphasis as string[]).join(", ")}</p>
+                <p className="text-cadet/80">{(playdate.arc_emphasis as string[]).join(", ")}</p>
               </div>
             </div>
           )}
@@ -212,7 +212,7 @@ export default async function PatternTeaserPage({ params }: Props) {
             <span className="w-1.5 h-1.5 rounded-full bg-cadet/30" />
             <span>unfold — reflection and what to notice</span>
           </div>
-          {pattern.has_find_again && (
+          {playdate.has_find_again && (
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-redwood/60" />
               <span>find again — a prompt to spot the idea in everyday life</span>

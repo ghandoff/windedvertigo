@@ -17,9 +17,9 @@ interface RunsOverTime {
   count: number;
 }
 
-interface TopPattern {
-  pattern_title: string;
-  pattern_slug: string;
+interface TopPlaydate {
+  playdate_title: string;
+  playdate_slug: string;
   count: number;
 }
 
@@ -42,7 +42,7 @@ interface AnalyticsData {
   totalRuns: number;
   runsByType: RunsByType[];
   runsOverTime: RunsOverTime[];
-  topPatterns: TopPattern[];
+  topPlaydates: TopPlaydate[];
   topMaterials: TopMaterial[];
   evidenceBreakdown: EvidenceBreakdown[];
   contextBreakdown: ContextBreakdown[];
@@ -226,11 +226,11 @@ export default function AnalyticsDashboard() {
     <div className="space-y-10">
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="total runs" value={data.totalRuns} />
+        <StatCard label="total reflections" value={data.totalRuns} />
         <StatCard label="this month" value={data.runsThisMonth} subtitle={deltaLabel} />
-        <StatCard label="run types used" value={data.runsByType.length} />
+        <StatCard label="reflection types" value={data.runsByType.length} />
         <StatCard
-          label="avg. evidence per run"
+          label="avg. evidence per reflection"
           value={data.averageEvidencePerRun}
         />
       </div>
@@ -238,7 +238,7 @@ export default function AnalyticsDashboard() {
       {/* Runs over time */}
       <section>
         <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-          runs over time
+          reflections over time
         </h2>
         <Sparkline data={data.runsOverTime} />
       </section>
@@ -248,19 +248,19 @@ export default function AnalyticsDashboard() {
         {/* By type */}
         <section>
           <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-            by run type
+            by reflection type
           </h2>
           <HorizontalBar items={data.runsByType} labelKey="run_type" valueKey="count" />
         </section>
 
-        {/* Top patterns */}
+        {/* Top playdates */}
         <section>
           <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-            most-used patterns
+            most-used playdates
           </h2>
           <HorizontalBar
-            items={data.topPatterns}
-            labelKey="pattern_title"
+            items={data.topPlaydates}
+            labelKey="playdate_title"
             valueKey="count"
           />
         </section>

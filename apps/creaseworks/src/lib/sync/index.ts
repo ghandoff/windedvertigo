@@ -1,5 +1,5 @@
 import { syncMaterials } from "./materials";
-import { syncPatterns } from "./patterns";
+import { syncPlaydates } from "./playdates";
 import { syncPacks } from "./packs";
 import { syncRuns } from "./runs";
 import { invalidateCandidateCache } from "@/lib/queries/matcher";
@@ -9,8 +9,8 @@ import { invalidateCandidateCache } from "@/lib/queries/matcher";
  *
  * Order matters:
  *   1. materials  — no foreign-key deps
- *   2. patterns   — resolves pattern_materials → materials_cache
- *   3. packs      — resolves pack_patterns    → patterns_cache
+ *   2. playdates  — resolves playdate_materials → materials_cache
+ *   3. packs      — resolves pack_playdates    → playdates_cache
  *   4. runs       — resolves run_materials    → materials_cache
  */
 export async function syncAll() {
@@ -18,15 +18,15 @@ export async function syncAll() {
   console.log("[sync] starting full sync…");
 
   const materialsCount = await syncMaterials();
-  const patternsCount = await syncPatterns();
+  const playdatesCount = await syncPlaydates();
   const packsCount = await syncPacks();
   const runsCount = await syncRuns();
 
-  // Invalidate matcher cache so new patterns/materials are picked up immediately
+  // Invalidate matcher cache so new playdates/materials are picked up immediately
   invalidateCandidateCache();
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`[sync] full sync complete in ${elapsed}s`);
 
-  return { materialsCount, patternsCount, packsCount, runsCount, elapsedSeconds: elapsed };
+  return { materialsCount, playdatesCount, packsCount, runsCount, elapsedSeconds: elapsed };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Matcher result card — displays a single ranked pattern.
+ * Matcher result card — displays a single ranked playdate.
  *
  * Shows score, coverage breakdown, substitution suggestions,
  * find-again teaser, and entitlement-aware links.
@@ -32,8 +32,8 @@ interface Coverage {
   suggestedSubstitutions: SubstitutionSuggestion[];
 }
 
-interface RankedPattern {
-  patternId: string;
+interface RankedPlaydate {
+  playdateId: string;
   slug: string;
   title: string;
   headline: string | null;
@@ -55,11 +55,11 @@ interface RankedPattern {
 /* ------------------------------------------------------------------ */
 
 export default function MatcherResultCard({
-  pattern,
+  playdate,
 }: {
-  pattern: RankedPattern;
+  playdate: RankedPlaydate;
 }) {
-  const { coverage } = pattern;
+  const { coverage } = playdate;
   const hasCoverageDetail =
     coverage.materialsCovered.length > 0 ||
     coverage.materialsMissing.length > 0 ||
@@ -81,15 +81,15 @@ export default function MatcherResultCard({
           className="flex-shrink-0 flex items-center justify-center rounded-lg w-11 h-11 sm:w-14 sm:h-14 text-base sm:text-lg font-bold"
           style={{
             backgroundColor:
-              pattern.score >= 70
+              playdate.score >= 70
                 ? "var(--wv-redwood)"
-                : pattern.score >= 40
+                : playdate.score >= 40
                   ? "var(--wv-sienna)"
                   : "rgba(39, 50, 72, 0.1)",
-            color: pattern.score >= 40 ? "var(--wv-white)" : "var(--wv-cadet)",
+            color: playdate.score >= 40 ? "var(--wv-white)" : "var(--wv-cadet)",
           }}
         >
-          {pattern.score}
+          {playdate.score}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -97,14 +97,14 @@ export default function MatcherResultCard({
             className="text-base sm:text-lg font-semibold tracking-tight leading-snug"
             style={{ color: "var(--wv-cadet)" }}
           >
-            {pattern.title}
+            {playdate.title}
           </h3>
-          {pattern.headline && (
+          {playdate.headline && (
             <p
               className="text-sm mt-0.5 line-clamp-2"
               style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
             >
-              {pattern.headline}
+              {playdate.headline}
             </p>
           )}
         </div>
@@ -112,15 +112,15 @@ export default function MatcherResultCard({
 
       {/* tags row — wraps naturally, slightly larger on mobile */}
       <div className="flex flex-wrap items-center gap-1.5 mt-3">
-        {pattern.primaryFunction && (
+        {playdate.primaryFunction && (
           <span
             className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs"
             style={{ backgroundColor: "var(--wv-champagne)", color: "var(--wv-cadet)" }}
           >
-            {pattern.primaryFunction}
+            {playdate.primaryFunction}
           </span>
         )}
-        {pattern.arcEmphasis.map((arc) => (
+        {playdate.arcEmphasis.map((arc) => (
           <span
             key={arc}
             className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs"
@@ -133,7 +133,7 @@ export default function MatcherResultCard({
             {arc}
           </span>
         ))}
-        {pattern.startIn120s && (
+        {playdate.startIn120s && (
           <span
             className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs font-medium"
             style={{
@@ -144,16 +144,16 @@ export default function MatcherResultCard({
             ready in 2 min
           </span>
         )}
-        {pattern.frictionDial != null && (
+        {playdate.frictionDial != null && (
           <span
             className="text-xs px-1"
             style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
           >
-            friction {pattern.frictionDial}/5
+            friction {playdate.frictionDial}/5
           </span>
         )}
-        {pattern.hasFindAgain &&
-          (pattern.isEntitled && pattern.findAgainMode ? (
+        {playdate.hasFindAgain &&
+          (playdate.isEntitled && playdate.findAgainMode ? (
             <span
               className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs font-medium"
               style={{
@@ -161,7 +161,7 @@ export default function MatcherResultCard({
                 color: "var(--wv-redwood)",
               }}
             >
-              find again: {pattern.findAgainMode}
+              find again: {playdate.findAgainMode}
             </span>
           ) : (
             <span
@@ -302,7 +302,7 @@ export default function MatcherResultCard({
       )}
 
       {/* entitled: substitutions notes from author */}
-      {pattern.isEntitled && pattern.substitutionsNotes && (
+      {playdate.isEntitled && playdate.substitutionsNotes && (
         <div
           className="mt-3 rounded-lg p-3 text-xs"
           style={{
@@ -313,18 +313,18 @@ export default function MatcherResultCard({
           <h4 className="font-medium mb-1" style={{ color: "var(--wv-redwood)" }}>
             tips on swapping materials
           </h4>
-          <p style={{ opacity: 0.8 }}>{pattern.substitutionsNotes}</p>
+          <p style={{ opacity: 0.8 }}>{playdate.substitutionsNotes}</p>
         </div>
       )}
 
       {/* pack links / CTA — full-width on mobile for easy tapping */}
-      {pattern.packSlugs.length > 0 && (
+      {playdate.packSlugs.length > 0 && (
         <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
-          {pattern.isEntitled
-            ? pattern.packSlugs.map((slug) => (
+          {playdate.isEntitled
+            ? playdate.packSlugs.map((slug) => (
                 <Link
                   key={slug}
-                  href={`/packs/${slug}/patterns/${pattern.slug}`}
+                  href={`/packs/${slug}/playdates/${playdate.slug}`}
                   className="flex items-center justify-center rounded-lg px-4 py-3 sm:px-3 sm:py-1.5 text-sm sm:text-xs font-medium transition-all hover:opacity-80 active:scale-[0.98]"
                   style={{
                     backgroundColor: "var(--wv-redwood)",
@@ -335,7 +335,7 @@ export default function MatcherResultCard({
                   see full playdate →
                 </Link>
               ))
-            : pattern.packSlugs.map((slug) => (
+            : playdate.packSlugs.map((slug) => (
                 <Link
                   key={slug}
                   href={`/packs/${slug}`}
@@ -353,11 +353,11 @@ export default function MatcherResultCard({
         </div>
       )}
 
-      {/* sampler-only patterns (no pack) link to sampler */}
-      {pattern.packSlugs.length === 0 && (
+      {/* sampler-only playdates (no pack) link to sampler */}
+      {playdate.packSlugs.length === 0 && (
         <div className="mt-4">
           <Link
-            href={`/sampler/${pattern.slug}`}
+            href={`/sampler/${playdate.slug}`}
             className="inline-flex items-center justify-center rounded-lg px-4 py-3 sm:px-0 sm:py-0 text-sm sm:text-xs font-medium transition-opacity hover:opacity-80 active:scale-[0.98]"
             style={{ color: "var(--wv-redwood)", minHeight: 44 }}
           >

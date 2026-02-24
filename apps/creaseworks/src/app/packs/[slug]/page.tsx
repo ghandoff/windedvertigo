@@ -5,9 +5,9 @@ import { requireAuth } from "@/lib/auth-helpers";
 import {
   getPackBySlug,
   getPackBySlugCollective,
-  getPackPatterns,
-  getPackPatternsEntitled,
-  getPackPatternsCollective,
+  getPackPlaydates,
+  getPackPlaydatesEntitled,
+  getPackPlaydatesCollective,
 } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
@@ -50,10 +50,10 @@ export default async function PackDetailPage({ params }: Props) {
       [],
     );
 
-    // collective gets extra fields + draft patterns; entitled gets standard
-    const patterns = session.isInternal
-      ? await getPackPatternsCollective(pack.id)
-      : await getPackPatternsEntitled(pack.id);
+    // collective gets extra fields + draft playdates; entitled gets standard
+    const playdates = session.isInternal
+      ? await getPackPlaydatesCollective(pack.id)
+      : await getPackPlaydatesEntitled(pack.id);
 
     return (
       <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
@@ -92,10 +92,10 @@ export default async function PackDetailPage({ params }: Props) {
             playdates in this pack
           </h2>
           <div className="space-y-3">
-            {patterns.map((p: any) => (
+            {playdates.map((p: any) => (
               <Link
                 key={p.id}
-                href={`/packs/${slug}/patterns/${p.slug}`}
+                href={`/packs/${slug}/playdates/${p.slug}`}
                 className="block rounded-xl border border-cadet/10 bg-white p-4 hover:shadow-md hover:border-sienna/40 transition-all"
               >
                 <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export default async function PackDetailPage({ params }: Props) {
   }
 
   // not entitled — show teaser + CTA
-  const patterns = await getPackPatterns(pack.id);
+  const playdates = await getPackPlaydates(pack.id);
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
@@ -150,16 +150,16 @@ export default async function PackDetailPage({ params }: Props) {
       )}
 
       <p className="text-sm text-cadet/50 mb-8">
-        {pack.pattern_count} playdate{Number(pack.pattern_count) !== 1 ? "s" : ""} included
+        {pack.playdate_count} playdate{Number(pack.playdate_count) !== 1 ? "s" : ""} included
       </p>
 
-      {/* pattern teasers */}
+      {/* playdate teasers */}
       <section className="mb-10">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
           what's inside
         </h2>
         <ul className="space-y-2">
-          {patterns.map((p: any) => (
+          {playdates.map((p: any) => (
             <li
               key={p.id}
               className="flex items-center justify-between rounded-lg border border-cadet/10 bg-champagne/20 px-4 py-3 text-sm"

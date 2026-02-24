@@ -24,8 +24,8 @@ export { RUN_TYPES, TRACE_EVIDENCE_OPTIONS, CONTEXT_TAGS as RUN_CONTEXT_TAGS } f
 export interface RunRow {
   id: string;
   title: string;
-  pattern_title: string | null;
-  pattern_slug: string | null;
+  playdate_title: string | null;
+  playdate_slug: string | null;
   run_type: string | null;
   run_date: string | null;
   context_tags: string[];
@@ -40,7 +40,7 @@ export interface RunRow {
 
 export interface CreateRunInput {
   title: string;
-  patternId: string | null;
+  playdateId: string | null;
   runType: string;
   runDate: string;
   contextTags: string[];
@@ -84,10 +84,10 @@ export async function getRunsForUser(
              r.what_changed, r.next_iteration,
              r.created_by, r.org_id,
              r.synced_at AS created_at,
-             p.title AS pattern_title,
-             p.slug AS pattern_slug
+             p.title AS playdate_title,
+             p.slug AS playdate_slug
       FROM runs_cache r
-      LEFT JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
+      LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
       ORDER BY r.run_date DESC NULLS LAST, r.title ASC
       LIMIT $1 OFFSET $2
     `;
@@ -100,10 +100,10 @@ export async function getRunsForUser(
              r.what_changed, r.next_iteration,
              r.created_by, r.org_id,
              r.synced_at AS created_at,
-             p.title AS pattern_title,
-             p.slug AS pattern_slug
+             p.title AS playdate_title,
+             p.slug AS playdate_slug
       FROM runs_cache r
-      LEFT JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
+      LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
       WHERE r.org_id = $1
          OR r.created_by = $2
       ORDER BY r.run_date DESC NULLS LAST, r.title ASC
@@ -118,10 +118,10 @@ export async function getRunsForUser(
              r.what_changed, r.next_iteration,
              r.created_by, r.org_id,
              r.synced_at AS created_at,
-             p.title AS pattern_title,
-             p.slug AS pattern_slug
+             p.title AS playdate_title,
+             p.slug AS playdate_slug
       FROM runs_cache r
-      LEFT JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
+      LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
       WHERE r.created_by = $1
       ORDER BY r.run_date DESC NULLS LAST, r.title ASC
       LIMIT $2 OFFSET $3
@@ -147,10 +147,10 @@ export async function getRunById(
             r.what_changed, r.next_iteration,
             r.created_by, r.org_id,
             r.synced_at AS created_at,
-            p.title AS pattern_title,
-            p.slug AS pattern_slug
+            p.title AS playdate_title,
+            p.slug AS playdate_slug
      FROM runs_cache r
-     LEFT JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
+     LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
      WHERE r.id = $1
      LIMIT 1`,
     [runId],
@@ -226,14 +226,14 @@ export async function createRun(
   input: CreateRunInput,
   session: { userId: string; orgId: string | null },
 ): Promise<string> {
-  // Resolve pattern's notion_id from the pattern cache ID
-  let patternNotionId: string | null = null;
-  if (input.patternId) {
-    const patternResult = await sql.query(
-      `SELECT notion_id FROM patterns_cache WHERE id = $1 LIMIT 1`,
-      [input.patternId],
+  // Resolve playdate's notion_id from the playdate cache ID
+  let playdateNotionId: string | null = null;
+  if (input.playdateId) {
+    const playdateResult = await sql.query(
+      `SELECT notion_id FROM playdates_cache WHERE id = $1 LIMIT 1`,
+      [input.playdateId],
     );
-    patternNotionId = patternResult.rows[0]?.notion_id ?? null;
+    playdateNotionId = playdateResult.rows[0]?.notion_id ?? null;
   }
 
   // Generate a unique notion_id for the app-created run
@@ -241,7 +241,7 @@ export async function createRun(
 
   const result = await sql.query(
     `INSERT INTO runs_cache
-       (notion_id, title, pattern_notion_id, run_type, run_date,
+       (notion_id, title, playdate_notion_id, run_type, run_date,
         context_tags, trace_evidence, what_changed, next_iteration,
         created_by, org_id, source, is_find_again)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'app', $12)
@@ -249,7 +249,7 @@ export async function createRun(
     [
       appNotionId,
       input.title,
-      patternNotionId,
+      playdateNotionId,
       input.runType,
       input.runDate,
       JSON.stringify(input.contextTags),
@@ -337,17 +337,17 @@ export async function updateRun(
     params.push(input.isFindAgain);
   }
 
-  if (input.patternId !== undefined) {
-    let patternNotionId: string | null = null;
-    if (input.patternId) {
-      const patternResult = await sql.query(
-        `SELECT notion_id FROM patterns_cache WHERE id = $1 LIMIT 1`,
-        [input.patternId],
+  if (input.playdateId !== undefined) {
+    let playdateNotionId: string | null = null;
+    if (input.playdateId) {
+      const playdateResult = await sql.query(
+        `SELECT notion_id FROM playdates_cache WHERE id = $1 LIMIT 1`,
+        [input.playdateId],
       );
-      patternNotionId = patternResult.rows[0]?.notion_id ?? null;
+      playdateNotionId = playdateResult.rows[0]?.notion_id ?? null;
     }
-    sets.push(`pattern_notion_id = $${idx++}`);
-    params.push(patternNotionId);
+    sets.push(`playdate_notion_id = $${idx++}`);
+    params.push(playdateNotionId);
   }
 
   if (sets.length > 0) {
@@ -412,8 +412,8 @@ export async function getRunsForExport(
              r.what_changed, r.next_iteration,
              r.created_by, r.org_id,
              r.synced_at AS created_at,
-             p.title AS pattern_title,
-             p.slug AS pattern_slug,
+             p.title AS playdate_title,
+             p.slug AS playdate_slug,
              COALESCE(
                (SELECT string_agg(m.title, ', ' ORDER BY m.title)
                 FROM run_materials rm
@@ -422,7 +422,7 @@ export async function getRunsForExport(
                ''
              ) AS materials_list
       FROM runs_cache r
-      LEFT JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
+      LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
       ORDER BY r.run_date DESC NULLS LAST, r.title ASC
       LIMIT $1
     `;
@@ -434,8 +434,8 @@ export async function getRunsForExport(
              r.what_changed, r.next_iteration,
              r.created_by, r.org_id,
              r.synced_at AS created_at,
-             p.title AS pattern_title,
-             p.slug AS pattern_slug,
+             p.title AS playdate_title,
+             p.slug AS playdate_slug,
              COALESCE(
                (SELECT string_agg(m.title, ', ' ORDER BY m.title)
                 FROM run_materials rm
@@ -444,7 +444,7 @@ export async function getRunsForExport(
                ''
              ) AS materials_list
       FROM runs_cache r
-      LEFT JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
+      LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
       WHERE r.org_id = $1
          OR r.created_by = $2
       ORDER BY r.run_date DESC NULLS LAST, r.title ASC
@@ -458,8 +458,8 @@ export async function getRunsForExport(
              r.what_changed, r.next_iteration,
              r.created_by, r.org_id,
              r.synced_at AS created_at,
-             p.title AS pattern_title,
-             p.slug AS pattern_slug,
+             p.title AS playdate_title,
+             p.slug AS playdate_slug,
              COALESCE(
                (SELECT string_agg(m.title, ', ' ORDER BY m.title)
                 FROM run_materials rm
@@ -468,7 +468,7 @@ export async function getRunsForExport(
                ''
              ) AS materials_list
       FROM runs_cache r
-      LEFT JOIN patterns_cache p ON p.notion_id = r.pattern_notion_id
+      LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
       WHERE r.created_by = $1
       ORDER BY r.run_date DESC NULLS LAST, r.title ASC
       LIMIT $2
@@ -496,15 +496,15 @@ export async function getRunsForExport(
 /* ------------------------------------------------------------------ */
 
 /**
- * Get all ready patterns for the "link to pattern" picker.
+ * Get all ready playdates for the "link to playdate" picker.
  * Returns just id, title, slug for the dropdown.
  */
-export async function getReadyPatternsForPicker(): Promise<
+export async function getReadyPlaydatesForPicker(): Promise<
   { id: string; title: string; slug: string }[]
 > {
   const result = await sql.query(
     `SELECT id, title, slug
-     FROM patterns_cache
+     FROM playdates_cache
      WHERE status = 'ready'
        AND release_channel IN ('sampler', 'pack-only')
      ORDER BY title ASC`,
