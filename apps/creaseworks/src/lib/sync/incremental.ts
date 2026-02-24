@@ -319,7 +319,7 @@ async function upsertPack(page: any) {
   `;
 
   // Resolve playdate relations inside a transaction to prevent orphaned links
-  const playdateRelationIds = extractRelationIds(props, "playdates");
+  const playdateRelationIds = extractRelationIds(props, "patterns included");
   const packResult = await sql`
     SELECT id FROM packs_cache WHERE notion_id = ${notionId}
   `;
