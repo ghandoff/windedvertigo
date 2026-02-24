@@ -12,7 +12,7 @@
  *   mobile, selection summary chips, and responsive result cards.
  */
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useId } from "react";
 import MatcherResultCard from "@/components/ui/matcher-result-card";
 
 /* ------------------------------------------------------------------ */
@@ -64,6 +64,7 @@ function FilterSection({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const panelId = useId();
 
   return (
     <section
@@ -74,7 +75,8 @@ function FilterSection({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        aria-label={open ? "collapse section" : "expand section"}
+        aria-expanded={open}
+        aria-controls={panelId}
         className="w-full flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 text-left"
       >
         <div className="flex items-center gap-2 min-w-0">
@@ -123,7 +125,7 @@ function FilterSection({
 
       {/* collapsible body */}
       {open && (
-        <div className="px-4 pb-4 sm:px-5 sm:pb-5">
+        <div id={panelId} role="region" className="px-4 pb-4 sm:px-5 sm:pb-5">
           {subtitle && (
             <p
               className="text-xs mb-3"
@@ -311,6 +313,7 @@ export default function MatcherInputForm({
     setExpandedFormGroups(new Set());
     setResults(null);
     setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   // resolve material titles for the selection summary
@@ -592,12 +595,13 @@ export default function MatcherInputForm({
 
       {/* ---- mobile sticky action bar ---- */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-3 px-4 py-3 sm:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-3 px-4 pt-3 sm:hidden"
         style={{
           backgroundColor: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
           borderTop: "1px solid rgba(39, 50, 72, 0.1)",
+          paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
         }}
       >
         <button
@@ -638,9 +642,25 @@ export default function MatcherInputForm({
       {/* spacer for mobile sticky bar so content isn't hidden behind it */}
       <div className="h-20 sm:hidden" />
 
+      {/* --- loading skeleton --- */}
+      {loading && (
+        <div className="mt-8 sm:mt-12 space-y-3" aria-busy="true" aria-label="loading results">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="rounded-xl border animate-pulse h-32"
+              style={{
+                borderColor: "rgba(39, 50, 72, 0.06)",
+                backgroundColor: "rgba(39, 50, 72, 0.04)",
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       {/* --- results --- */}
-      {results && (
-        <div ref={resultsRef} className="mt-8 sm:mt-12">
+      {results && !loading && (
+        <div ref={resultsRef} className="mt-8 sm:mt-12" role="region" aria-label="matcher results" aria-live="polite">
           <div className="mb-4 sm:mb-6">
             <h2
               className="text-lg sm:text-xl font-semibold tracking-tight mb-1"
@@ -665,11 +685,14 @@ export default function MatcherInputForm({
               style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
             >
               <p
-                className="text-sm"
+                className="text-sm leading-relaxed"
                 style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
               >
-                nothing matched. try selecting fewer filters or changing
-                where you&apos;re playing.
+                {results.meta.contextFiltersApplied.length > 0
+                  ? `no playdates match all of your setting constraints — try removing ${results.meta.contextFiltersApplied.join(" or ")} to see more.`
+                  : selectedMaterials.size > 3
+                    ? "we couldn't find a perfect fit — try selecting fewer materials to broaden the search."
+                    : "nothing matched yet. try adding more materials or changing where you're playing."}
               </p>
             </div>
           ) : (

@@ -71,6 +71,8 @@ export default function MatcherResultCard({
 
   return (
     <div
+      role="group"
+      aria-label={`${playdate.title} — score ${playdate.score}`}
       className="rounded-xl border bg-white p-4 sm:p-5 transition-all hover:shadow-md"
       style={{ borderColor: "rgba(39, 50, 72, 0.1)" }}
     >
@@ -186,6 +188,7 @@ export default function MatcherResultCard({
           <button
             type="button"
             onClick={() => setCoverageOpen(!coverageOpen)}
+            aria-expanded={coverageOpen}
             className="flex items-center gap-1.5 text-xs font-medium sm:hidden mb-2"
             style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
           >

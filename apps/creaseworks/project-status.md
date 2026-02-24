@@ -1,13 +1,13 @@
 # creaseworks — Project Status
 
-**Last updated**: 2026-02-24 (session 19)
+**Last updated**: 2026-02-24 (session 20)
 **Monorepo**: `ghandoff/windedvertigo` → `apps/creaseworks/`
 **Live**: `creaseworks.windedvertigo.com`
 **Stack**: Next.js 16.1.6, React 19.2.3, Neon Postgres, Cloudflare R2, Stripe, Auth.js, Vercel
 
-## Current state: Evidence capture in progress
+## Current state: Evidence capture complete
 
-Brand review complete. Four-tier access model (sampler → explorer → practitioner → collective) implemented. Full "pattern→playdate" and "runs→reflections" terminology rename applied across all layers. Profile page iteration (warmth, tier cards, manage toggle redesign) complete. Evidence capture Phase A (backend) complete — Phase B (frontend UI) in progress.
+Brand review complete. Four-tier access model (sampler → explorer → practitioner → collective) implemented. Full "pattern→playdate" and "runs→reflections" terminology rename applied across all layers. Profile page iteration complete. All four evidence capture phases (A–D) complete: backend, form UI, portfolio gallery, PDF export, and shareable links. Stack audit clean.
 
 ## Monorepo structure
 
@@ -39,6 +39,7 @@ ghandoff/windedvertigo (single source of truth)
 | 17 | Evidence capture Phase A: migration 015 (run_evidence table), R2 client (r2.ts), evidence CRUD queries, presigned upload URL endpoint, evidence API routes. Cloudflare R2 bucket + API token created. |
 | 18 | Profile page iteration: warm off-white background (globals.css), manage toggle pill redesign (manage-toggle.tsx), tier cards component (tier-card.tsx), "your journey" section on profile page. Cleaned up stale Vercel env vars. |
 | 19 | Evidence capture Phase B: enhanced run form with photo upload, quote capture, guided observation prompts. Practitioner-tier gating. |
+| 20 | Evidence capture Phases C–D: portfolio gallery with filters/lightbox, branded PDF export with embedded R2 photos, shareable public links (migration 016). Stack audit — clean. |
 
 ## Completed features (sessions 1–12)
 
@@ -57,10 +58,13 @@ ghandoff/windedvertigo (single source of truth)
 - **Brand-aligned copy**: warm, educator-friendly voice throughout UI
 - **Collections & progress tiers**: gamification framework with badges
 
-### Profile & evidence (sessions 17–18)
+### Profile & evidence (sessions 17–20)
 - **Profile page redesign**: warm background, avatar, tier badge, "your journey" tier cards
 - **Manage toggle**: pill-style toggle for team/analytics (grownup stuff)
-- **Evidence capture Phase A**: run_evidence table, Cloudflare R2 presigned uploads, evidence CRUD API, progress tier computation updated
+- **Evidence capture Phase A**: run_evidence table, Cloudflare R2 presigned uploads, evidence CRUD API
+- **Evidence capture Phase B**: photo upload (drag-drop + camera, up to 5), quote capture with attribution, guided observation prompts, practitioner-tier gating on reflection form
+- **Evidence capture Phase C**: portfolio gallery with type/playdate filters, masonry grid, full-screen lightbox with keyboard nav
+- **Evidence capture Phase D**: branded PDF export with embedded R2 photos, shareable public links (7-day expiry), migration 016 (evidence_shares table)
 
 ### Auth & organisations
 - Google OAuth + Resend magic links via Auth.js
@@ -121,6 +125,7 @@ All critical/high/medium items resolved. See git history for details.
 | 013 | Collections and progress tiers | Applied |
 | 014 | Rename pattern→playdate across all tables/columns | Applied |
 | 015 | run_evidence table for structured evidence capture | Applied |
+| 016 | evidence_shares table for shareable portfolio links | Applied |
 
 ## Test coverage
 
