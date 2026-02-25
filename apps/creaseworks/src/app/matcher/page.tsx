@@ -9,7 +9,14 @@
  *   small screens, responsive heading, shorter intro copy on mobile.
  */
 
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "playdate matcher",
+  description:
+    "tell us what materials you have on hand and we'll find playdates that work. cardboard, sticks, fabric, tape — whatever's around.",
+};
 import { getAllMaterials } from "@/lib/queries/materials";
 import {
   getDistinctForms,

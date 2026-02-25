@@ -18,6 +18,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "/favicon.ico",
+  },
   title: {
     default: "creaseworks — playdates that use what you already have",
     template: "%s — creaseworks",

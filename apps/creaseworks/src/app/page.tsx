@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getPublicStats } from "@/lib/queries/stats";
 
 /**
  * Landing page for creaseworks.
  *
- * Static page (no DB queries) — renders at build time.
  * Dark theme matching windedvertigo.com design language:
  *   - cadet (#273248) background, white text, #1e2738 card surfaces
  *   - redwood accent, champagne hover, lowercase everything
@@ -13,7 +13,10 @@ import type { Metadata } from "next";
  * Session 11: replaced placeholder with marketing landing page.
  * Session 12: redesigned to match windedvertigo.com dark theme and
  *   vertigo-vault integration pattern.
+ * Session 21: added matcher section, social proof stats, JSON-LD.
  */
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "creaseworks — playdates that use what you already have",
@@ -22,9 +25,44 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://creaseworks.windedvertigo.com" },
 };
 
-export default function Home() {
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      name: "creaseworks",
+      url: "https://creaseworks.windedvertigo.com",
+      description:
+        "simple, tested playdates for parents, teachers, and kids. use what you already have.",
+      parentOrganization: {
+        "@type": "Organization",
+        name: "winded vertigo",
+        url: "https://windedvertigo.com",
+      },
+    },
+    {
+      "@type": "WebSite",
+      name: "creaseworks",
+      url: "https://creaseworks.windedvertigo.com",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: "https://creaseworks.windedvertigo.com/matcher",
+        description: "find playdates that match what you have on hand",
+      },
+    },
+  ],
+};
+
+export default async function Home() {
+  const stats = await getPublicStats();
   return (
     <main className="min-h-screen" style={{ backgroundColor: "var(--wv-cadet)" }}>
+      {/* structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* -- hero ------------------------------------------------- */}
       <section className="px-6 py-28 sm:py-36 text-center" style={{ maxWidth: 1100, margin: "0 auto" }}>
         <p
@@ -118,6 +156,41 @@ export default function Home() {
         </div>
       </section>
 
+      {/* -- matcher highlight ------------------------------------- */}
+      <section className="px-6 py-16 sm:py-20" style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div
+          className="rounded-2xl px-8 py-12 sm:px-12 sm:py-16 text-center"
+          style={{ backgroundColor: "rgba(250, 241, 232, 0.06)" }}
+        >
+          <p
+            className="text-xs font-semibold tracking-widest uppercase mb-3"
+            style={{ color: "var(--wv-sienna)", letterSpacing: "0.08em" }}
+          >
+            free tool
+          </p>
+          <h2
+            className="text-2xl sm:text-3xl font-bold tracking-tight mb-4"
+            style={{ color: "var(--wv-white)" }}
+          >
+            what do you have on hand?
+          </h2>
+          <p
+            className="mb-8 leading-relaxed"
+            style={{ color: "var(--color-text-on-dark-muted)", maxWidth: 500, margin: "0 auto 32px" }}
+          >
+            tell us what&rsquo;s around — cardboard, sticks, fabric, whatever —
+            and we&rsquo;ll instantly match you with playdates that work.
+          </p>
+          <Link
+            href="/matcher"
+            className="inline-block rounded-lg px-8 py-3.5 font-medium transition-colors"
+            style={{ backgroundColor: "var(--wv-sienna)", color: "var(--wv-white)" }}
+          >
+            try the matcher
+          </Link>
+        </div>
+      </section>
+
       {/* -- how it works ----------------------------------------- */}
       <section className="px-6 py-20 sm:py-24" style={{ maxWidth: 1100, margin: "0 auto" }}>
         <p
@@ -182,6 +255,53 @@ export default function Home() {
           />
         </div>
       </section>
+
+      {/* -- social proof stats ----------------------------------- */}
+      {(stats.playdateCount > 0 || stats.materialCount > 0) && (
+        <section className="px-6 py-16 sm:py-20" style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div className="grid gap-8 sm:grid-cols-3 text-center" style={{ maxWidth: 700, margin: "0 auto" }}>
+            {stats.playdateCount > 0 && (
+              <div>
+                <p
+                  className="text-3xl sm:text-4xl font-bold mb-1"
+                  style={{ color: "var(--wv-redwood)" }}
+                >
+                  {stats.playdateCount}
+                </p>
+                <p className="text-sm" style={{ color: "var(--color-text-on-dark-muted)" }}>
+                  playdates and counting
+                </p>
+              </div>
+            )}
+            {stats.materialCount > 0 && (
+              <div>
+                <p
+                  className="text-3xl sm:text-4xl font-bold mb-1"
+                  style={{ color: "var(--wv-sienna)" }}
+                >
+                  {stats.materialCount}
+                </p>
+                <p className="text-sm" style={{ color: "var(--color-text-on-dark-muted)" }}>
+                  everyday materials
+                </p>
+              </div>
+            )}
+            {stats.reflectionCount > 0 && (
+              <div>
+                <p
+                  className="text-3xl sm:text-4xl font-bold mb-1"
+                  style={{ color: "var(--wv-champagne)" }}
+                >
+                  {stats.reflectionCount}
+                </p>
+                <p className="text-sm" style={{ color: "var(--color-text-on-dark-muted)" }}>
+                  reflections logged
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* -- CTA -------------------------------------------------- */}
       <section className="px-6 py-20 sm:py-24 text-center" style={{ maxWidth: 1100, margin: "0 auto" }}>

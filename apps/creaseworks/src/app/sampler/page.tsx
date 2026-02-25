@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { getTeaserPlaydates, getAllReadyPlaydates } from "@/lib/queries/playdates";
 import { getSession } from "@/lib/auth-helpers";
 import { PlaydateCard } from "@/components/ui/playdate-card";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "free playdates",
+  description:
+    "browse free playdate previews — hands-on activities for kids using everyday materials like cardboard, sticks, and tape. no sign-up needed.",
+};
 
 // Force dynamic rendering — the DB connection isn't available at build time.
 // On Vercel with ISR this will cache for 1 hour after first request.

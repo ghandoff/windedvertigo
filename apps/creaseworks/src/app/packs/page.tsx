@@ -22,23 +22,64 @@ export default async function PacksCataloguePage() {
           </span>
         )}
       </div>
-      <p className="text-cadet/60 mb-8">
-        each pack is a bundle of playdates. you get the full step-by-step
-        guide, materials list, and a find again prompt for every playdate
-        inside. buy once, keep forever.
+      <p className="text-cadet/60 mb-6">
+        each pack is a bundle of playdates. buy once, keep forever.
+      </p>
+
+      {/* value proposition */}
+      <div
+        className="rounded-xl border p-5 mb-4 grid gap-4 sm:grid-cols-5"
+        style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
+      >
+        {[
+          { label: "step-by-step guides", detail: "clear three-part instructions" },
+          { label: "materials + swaps", detail: "use what you already have" },
+          { label: "find again prompts", detail: "keep noticing after play" },
+          { label: "printable PDF cards", detail: "for the fridge or your bag" },
+          { label: "reflection prompts", detail: "capture evidence of learning" },
+        ].map((item) => (
+          <div key={item.label} className="text-center sm:text-left">
+            <p className="text-xs font-semibold" style={{ color: "var(--wv-cadet)" }}>
+              {item.label}
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--wv-cadet)", opacity: 0.45 }}>
+              {item.detail}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-xs text-cadet/40 mb-8">
+        not sure yet?{" "}
+        <Link href="/sampler" className="text-redwood hover:text-sienna transition-colors">
+          try free playdates first
+        </Link>
+        {" "}or{" "}
+        <Link href="/matcher" className="text-redwood hover:text-sienna transition-colors">
+          use the matcher
+        </Link>
+        {" "}to see what fits.
       </p>
 
       {packs.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-cadet/40 text-sm">
-            no packs available yet. check back soon.
+            no packs available yet — we&rsquo;re putting the finishing touches on something good.
           </p>
-          <Link
-            href="/sampler"
-            className="mt-4 inline-block text-sm text-redwood hover:text-sienna transition-colors"
-          >
-            browse free playdates &rarr;
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
+            <Link
+              href="/sampler"
+              className="text-sm text-redwood hover:text-sienna transition-colors"
+            >
+              browse free playdates &rarr;
+            </Link>
+            <Link
+              href="/matcher"
+              className="text-sm text-redwood hover:text-sienna transition-colors"
+            >
+              try the matcher &rarr;
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
