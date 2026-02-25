@@ -635,18 +635,60 @@ async function fetchWhatPageContent() {
 }
 
 // ============================================
+// WHAT PAGE CONTENT V2
+// ============================================
+// Syncs the v2 what page content database with additional Layout and Icon columns
+async function fetchWhatPageContentV2() {
+  const propMap = config.properties.whatPageV2;
+  const required = config.required.whatPageV2;
+
+  const response = await withRetry(
+    () => notion.databases.query({
+      database_id: config.databases.whatPageV2,
+      sorts: [{ property: propMap.order, direction: 'ascending' }],
+    }),
+    'fetchWhatPageContentV2'
+  );
+
+  const sections = [];
+  let skipped = 0;
+
+  for (const page of response.results) {
+    if (!validatePage(page, required, 'What Page V2')) {
+      skipped++;
+      continue;
+    }
+
+    const props = page.properties;
+
+    sections.push({
+      name: getTitleValue(props[propMap.name]),
+      content: getRichTextAsMarkdown(props[propMap.content]),
+      order: getNumberValue(props[propMap.order]),
+      type: getSelectValue(props[propMap.type]),
+      layout: getSelectValue(props[propMap.layout]) || 'default',
+      icon: getUrlValue(props[propMap.icon]) || null,
+    });
+  }
+
+  console.log('  OK What Page V2: ' + sections.length + ' sections loaded, ' + skipped + ' skipped');
+  return sections;
+}
+
+// ============================================
 // MAIN
 // ============================================
 async function main() {
   console.log('Fetching content from Notion...');
 
   try {
-    const [quadrants, outcomes, portfolioAssets, vaultActivities, whatPageSections] = await Promise.all([
+    const [quadrants, outcomes, portfolioAssets, vaultActivities, whatPageSections, whatPageV2Sections] = await Promise.all([
       fetchQuadrants(),
       fetchOutcomes(),
       fetchPortfolioAssets(),
       fetchVertigoVault(),
       fetchWhatPageContent(),
+      fetchWhatPageContentV2(),
     ]);
 
     // Validate we got all 4 quadrants
@@ -735,11 +777,21 @@ async function main() {
     const whatPagePath = path.join(__dirname, '..', 'apps', 'site', 'data', 'what-page.json');
     fs.writeFileSync(whatPagePath, JSON.stringify(whatPageContent, null, 2));
 
+    // Write What Page V2 content
+    const whatPageV2Content = {
+      lastUpdated: new Date().toISOString(),
+      note: 'Auto-generated from Notion what page v2 content database. Do not edit directly.',
+      sections: whatPageV2Sections,
+    };
+    const whatPageV2Path = path.join(__dirname, '..', 'apps', 'site', 'data', 'what-page-v2.json');
+    fs.writeFileSync(whatPageV2Path, JSON.stringify(whatPageV2Content, null, 2));
+
     console.log('Success!');
     console.log('  Package Builder: ' + Object.keys(packs).length + ' packs → ' + outputPath);
     console.log('  Portfolio: ' + portfolioAssets.length + ' assets → ' + portfolioPath);
     console.log('  Vertigo Vault: ' + vaultActivities.length + ' activities → ' + vaultPath);
     console.log('  What Page: ' + whatPageSections.length + ' sections → ' + whatPagePath);
+    console.log('  What Page V2: ' + whatPageV2Sections.length + ' sections → ' + whatPageV2Path);
 
   } catch (err) {
     console.error('Sync failed:', err.message);
