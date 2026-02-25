@@ -54,6 +54,7 @@ All editorial content is authored in Notion and synced to the static site:
 - **Package Builder**: Pack configurations from Notion
 - **Members** (`/we/` page): Synced via `scripts/sync-notion-members.js`
 - **Services** (`/do/` page): Synced via `scripts/sync-notion-services.js`
+- **What page** (`/what/` page): Content from Notion database (ID: `311e4ee74ba480268ad9de5a14d6dce4`), synced to `apps/site/data/what-page.json` via `scripts/fetch-notion.js`
 
 Scripts output to `apps/site/data/` and `apps/site/images/`. The Notion REST API returns `url` under its actual name, not `userDefined:url` (MCP-only convention).
 
@@ -63,7 +64,8 @@ Notion API rate limit is 3 req/sec — monitor as more projects sync.
 
 Long-term, all copy/text across the monorepo should be Notion-authored:
 - creaseworks landing page copy
-- windedvertigo.com `/what/`, `/we/`, `/do/` page text
+- ~~windedvertigo.com `/what/` page text~~ ✅ (synced from Notion "what page content" database)
+- windedvertigo.com `/we/`, `/do/` page text
 - sqr-rct content
 - All synced to JSON or directly into the apps via shared scripts
 
