@@ -142,7 +142,8 @@ export async function getAllPacks() {
        (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count
      FROM packs_cache pc
      LEFT JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
-     WHERE pc.slug IS NOT NULL
+     WHERE pc.slug IS NOT NULL AND pc.slug != ''
+       AND pc.title IS NOT NULL AND pc.title != ''
      ORDER BY pc.title ASC`,
   );
   return result.rows;
