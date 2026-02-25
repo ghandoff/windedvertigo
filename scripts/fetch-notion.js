@@ -62,6 +62,21 @@ function getTitleValue(prop) {
   return '';
 }
 
+// Rich text with formatting preserved as markdown-style markers
+// e.g. Notion italic "yes" → "*yes*", bold → "**bold**"
+function getRichTextAsMarkdown(prop) {
+  if (!prop) return '';
+  if (prop.type === 'rich_text') {
+    return prop.rich_text.map(t => {
+      let text = t.plain_text;
+      if (t.annotations?.bold) text = '**' + text + '**';
+      if (t.annotations?.italic) text = '*' + text + '*';
+      return text;
+    }).join('');
+  }
+  return '';
+}
+
 function getSelectValue(prop) {
   if (!prop) return '';
   if (prop.type === 'select') return prop.select?.name || '';
@@ -453,8 +468,7 @@ async function fetchVertigoVault() {
   );
 
   // Ensure cover image directory exists
-  // Monorepo: output goes to apps/site/ (static site), not repo root
-  const coverDir = path.join(__dirname, '..', 'apps', 'site', 'images', 'vertigo-vault');
+  const coverDir = path.join(__dirname, '..', 'images', 'vertigo-vault');
   if (!fs.existsSync(coverDir)) {
     fs.mkdirSync(coverDir, { recursive: true });
   }
@@ -581,17 +595,56 @@ function richTextToPlain(richText) {
 }
 
 // ============================================
+// WHAT PAGE CONTENT
+// ============================================
+async function fetchWhatPageContent() {
+  const propMap = config.properties.whatPage;
+  const required = config.required.whatPage;
+
+  const response = await withRetry(
+    () => notion.databases.query({
+      database_id: config.databases.whatPage,
+      sorts: [{ property: propMap.order, direction: 'ascending' }],
+    }),
+    'fetchWhatPageContent'
+  );
+
+  const sections = [];
+  let skipped = 0;
+
+  for (const page of response.results) {
+    if (!validatePage(page, required, 'What Page')) {
+      skipped++;
+      continue;
+    }
+
+    const props = page.properties;
+
+    sections.push({
+      name: getTitleValue(props[propMap.name]),
+      content: getRichTextAsMarkdown(props[propMap.content]),
+      order: getNumberValue(props[propMap.order]),
+      type: getSelectValue(props[propMap.type]),
+    });
+  }
+
+  console.log('  OK What Page: ' + sections.length + ' sections loaded, ' + skipped + ' skipped');
+  return sections;
+}
+
+// ============================================
 // MAIN
 // ============================================
 async function main() {
   console.log('Fetching content from Notion...');
 
   try {
-    const [quadrants, outcomes, portfolioAssets, vaultActivities] = await Promise.all([
+    const [quadrants, outcomes, portfolioAssets, vaultActivities, whatPageSections] = await Promise.all([
       fetchQuadrants(),
       fetchOutcomes(),
       fetchPortfolioAssets(),
       fetchVertigoVault(),
+      fetchWhatPageContent(),
     ]);
 
     // Validate we got all 4 quadrants
@@ -649,8 +702,7 @@ async function main() {
     };
 
     // Write Package Builder content
-    // Monorepo: data output goes to apps/site/data/
-    const outputPath = path.join(__dirname, '..', 'apps', 'site', 'data', 'package-builder-content.json');
+    const outputPath = path.join(__dirname, '..', 'data', 'package-builder-content.json');
     fs.writeFileSync(outputPath, JSON.stringify(content, null, 2));
 
     // Write Portfolio Assets (sourced from BD Assets database)
@@ -659,7 +711,7 @@ async function main() {
       note: 'Auto-generated from Notion BD Assets. Do not edit directly.',
       assets: portfolioAssets,
     };
-    const portfolioPath = path.join(__dirname, '..', 'apps', 'site', 'data', 'portfolio-assets.json');
+    const portfolioPath = path.join(__dirname, '..', 'data', 'portfolio-assets.json');
     fs.writeFileSync(portfolioPath, JSON.stringify(portfolioContent, null, 2));
 
     // Write Vertigo Vault
@@ -669,13 +721,23 @@ async function main() {
       notionDatabaseId: config.databases.vertigoVault,
       activities: vaultActivities,
     };
-    const vaultPath = path.join(__dirname, '..', 'apps', 'site', 'data', 'vertigo-vault.json');
+    const vaultPath = path.join(__dirname, '..', 'data', 'vertigo-vault.json');
     fs.writeFileSync(vaultPath, JSON.stringify(vaultContent, null, 2));
+
+    // Write What Page content
+    const whatPageContent = {
+      lastUpdated: new Date().toISOString(),
+      note: 'Auto-generated from Notion what page content database. Do not edit directly.',
+      sections: whatPageSections,
+    };
+    const whatPagePath = path.join(__dirname, '..', 'data', 'what-page.json');
+    fs.writeFileSync(whatPagePath, JSON.stringify(whatPageContent, null, 2));
 
     console.log('Success!');
     console.log('  Package Builder: ' + Object.keys(packs).length + ' packs → ' + outputPath);
     console.log('  Portfolio: ' + portfolioAssets.length + ' assets → ' + portfolioPath);
     console.log('  Vertigo Vault: ' + vaultActivities.length + ' activities → ' + vaultPath);
+    console.log('  What Page: ' + whatPageSections.length + ' sections → ' + whatPagePath);
 
   } catch (err) {
     console.error('Sync failed:', err.message);
