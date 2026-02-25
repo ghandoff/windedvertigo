@@ -49,6 +49,8 @@ jobs:
 
       - name: Lint
         run: npm run lint
+        env:
+          NODE_PATH: ${{ github.workspace }}/node_modules
 
       # Audit-2 M5: run vitest suite (20 unit tests added in session 12)
       - name: Test
