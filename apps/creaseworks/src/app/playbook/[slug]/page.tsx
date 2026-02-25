@@ -16,16 +16,17 @@ import { PlaydateCard, type ProgressTier } from "@/components/ui/playdate-card";
 export const dynamic = "force-dynamic";
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export default async function CollectionDetailPage({ params }: Props) {
+  const { slug } = await params;
   const session = await requireAuth();
 
   // Recompute progress before rendering
   await recomputeUserProgress(session.userId);
 
-  const collection = await getCollectionBySlug(params.slug);
+  const collection = await getCollectionBySlug(slug);
   if (!collection) notFound();
 
   const [playdates, evidenceSummary] = await Promise.all([
