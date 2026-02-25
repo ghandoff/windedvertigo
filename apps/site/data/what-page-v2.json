@@ -1,6 +1,6 @@
 {
   "lastUpdated": "2026-02-25T08:34:16.926Z",
-  "note": "Auto-generated from Notion what page content database. Do not edit directly.",
+  "note": "Auto-generated from Notion what page v2 content database. Do not edit directly.",
   "sections": [
     {
       "name": "hero title",
@@ -15,7 +15,7 @@
       "content": "change can shake our foundations, and even make us feel dizzy from instability. we love that feeling of vertigo, as it is a signal of growth through change and a call for exploration. we seek this dizzy with vigor and want to support others who do as well by dodging obstacles and conventions that get in our way. we approach the precipice of uncertainty without pause but with breathless excitement: winded.vertigo",
       "order": 2,
       "type": "body",
-      "layout": "default",
+      "layout": "side-by-side",
       "icon": null
     },
     {
@@ -23,7 +23,7 @@
       "content": "the winded.vertigo collective is dedicated to fostering human development through experiences with the interconnectedness of everything. we believe that learning through play is a transformative experience that unites individuals and communities. our mission is to support those committed to this holistic approach through the co-creation of playful, innovative, and impactful learning designs.",
       "order": 3,
       "type": "body",
-      "layout": "default",
+      "layout": "centered",
       "icon": null
     },
     {
@@ -31,7 +31,7 @@
       "content": "we create learning ecosystems that thrive through diversity, as every interaction seeds opportunity for growth, connections, and lifelong learning. we are leaders of an educational transformation from conventional tests to the monitoring of playful learning processes, as it enhances the learning experience through feedback and design.",
       "order": 4,
       "type": "body",
-      "layout": "default",
+      "layout": "card",
       "icon": null
     },
     {
@@ -39,7 +39,7 @@
       "content": "we craft compelling stories, design refreshing research, and visualize insights from evidence. everything we do prepares our partners to gain support from their stakeholders—making a *yes* easier for administrators and policymakers.",
       "order": 5,
       "type": "body",
-      "layout": "default",
+      "layout": "highlight",
       "icon": null
     },
     {
@@ -47,7 +47,7 @@
       "content": "at winded.vertigo, we redefine learning, ensuring time is spent on engaging, exploring, and evolving together, transforming the educational landscape one playful leap at a time.",
       "order": 6,
       "type": "body",
-      "layout": "default",
+      "layout": "full-width",
       "icon": null
     }
   ]
