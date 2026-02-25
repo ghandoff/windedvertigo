@@ -2,7 +2,7 @@
 # NOTION SYNC WORKFLOW
 # ================================================
 # Fetches content from Notion databases and generates
-# JSON files + vault cover images for the static site.
+# JSON + cover images for creaseworks and the static site.
 #
 # Triggers:
 # - Manual: Click "Run workflow" in GitHub Actions

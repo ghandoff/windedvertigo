@@ -13,11 +13,13 @@ on:
     branches: [main]
     paths:
       - 'apps/creaseworks/**'
+      - 'packages/tokens/**'
       - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'apps/creaseworks/**'
+      - 'packages/tokens/**'
       - '.github/workflows/ci.yml'
 
 jobs:
@@ -40,6 +42,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: .
 
       - name: TypeScript check
         run: npx tsc --noEmit
