@@ -82,6 +82,18 @@ Maria uploads thumbnail images for portfolio and vertigo vault. Options:
 - The Sync Notion Content workflow runs on push to main (scripts changes only), manual dispatch, and daily at 6 AM UTC.
 - CI runs tsc + lint for creaseworks only when `apps/creaseworks/**` files change.
 
+## Deployment & Operations (Cowork Session)
+
+Claude has access to the full operations stack via the Chrome tab group:
+- **GitHub** (github.com) — commits, pushes, PRs, workflow runs
+- **Vercel** (vercel.com) — deployments, env vars, cron jobs
+- **Neon** (console.neon.tech) — SQL editor for migrations, queries
+- **Notion** (notion.so) — databases, content management
+- **Stripe** (dashboard.stripe.com) — test mode payments
+- **Cloudflare** (dash.cloudflare.com) — R2 storage, domains
+
+Claude should handle commits, pushes, migrations, and deployment checks autonomously using these browser tabs rather than asking Garrett to run commands manually. When the sandbox VM can't reach external hosts (DNS resolution), use the browser tools instead.
+
 ## Shared Design Tokens (`packages/tokens`)
 
 Single source of truth for brand palette, semantic colours, spacing, typography, and accessibility primitives. All apps import `packages/tokens/index.css`; server-side code (PDF generation, emails) imports `packages/tokens/index.ts`.

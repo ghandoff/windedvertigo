@@ -24,6 +24,7 @@ export const NOTION_DBS = {
   materials: process.env.NOTION_DB_MATERIALS ?? "",
   packs: process.env.NOTION_DB_PACKS ?? "",
   reflections: process.env.NOTION_DB_REFLECTIONS ?? "",
+  collections: process.env.NOTION_DB_COLLECTIONS ?? "",
 } as const;
 
 // Notion rate limit: 3 req/s. We use 350ms delay for safety.

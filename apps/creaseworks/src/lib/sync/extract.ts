@@ -59,6 +59,12 @@ export function extractRelationIds(props: Properties, key: string): string[] {
   return (prop.relation ?? []).map((r: any) => r.id);
 }
 
+export function extractNumber(props: Properties, key: string): number | null {
+  const prop = props[key];
+  if (!prop || prop.type !== "number") return null;
+  return prop.number ?? null;
+}
+
 export function extractLastEdited(page: NotionPage): string {
   return page.last_edited_time;
 }

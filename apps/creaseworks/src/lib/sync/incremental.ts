@@ -25,6 +25,7 @@ import {
   extractMultiSelect,
   extractCheckbox,
   extractDate,
+  extractNumber,
   extractRelationIds,
   extractLastEdited,
   extractPageId,
@@ -45,7 +46,7 @@ const REQUIRED_RUN_PROPS = [
 /*  database ID → type mapping                                         */
 /* ------------------------------------------------------------------ */
 
-type ContentType = "playdates" | "materials" | "packs" | "runs";
+type ContentType = "playdates" | "materials" | "packs" | "runs" | "collections";
 
 function resolveContentType(databaseId: string): ContentType | null {
   // Normalise: Notion sometimes sends IDs with dashes, sometimes without
@@ -56,6 +57,7 @@ function resolveContentType(databaseId: string): ContentType | null {
     [NOTION_DBS.materials.replace(/-/g, "")]: "materials",
     [NOTION_DBS.packs.replace(/-/g, "")]: "packs",
     [NOTION_DBS.reflections.replace(/-/g, "")]: "runs",
+    ...(NOTION_DBS.collections ? { [NOTION_DBS.collections.replace(/-/g, "")]: "collections" as ContentType } : {}),
   };
 
   return map[normalised] ?? null;
@@ -94,6 +96,9 @@ export async function syncSinglePage(
     case "runs":
       await upsertRun(page);
       break;
+    case "collections":
+      await upsertCollection(page);
+      break;
   }
 
   console.log(`[webhook-sync] ${contentType} page ${pageId} synced`);
@@ -128,6 +133,9 @@ export async function handlePageDeletion(
       break;
     case "runs":
       await sql.query(`DELETE FROM runs_cache WHERE notion_id = $1`, [normalised]);
+      break;
+    case "collections":
+      await sql.query(`DELETE FROM collections WHERE notion_id = $1`, [normalised]);
       break;
   }
   console.log(`[webhook-sync] deleted ${contentType} ${pageId}`);
@@ -421,6 +429,72 @@ async function upsertRun(page: any) {
             VALUES (${runId}, ${matResult.rows[0].id})
             ON CONFLICT DO NOTHING
           `;
+        }
+      }
+      await sql.query("COMMIT");
+    } catch (err) {
+      await sql.query("ROLLBACK");
+      throw err;
+    }
+  }
+}
+
+async function upsertCollection(page: any) {
+  const props = page.properties;
+  const notionId = extractPageId(page);
+  const title = extractTitle(props, "collection");
+  const description = extractRichText(props, "description");
+  const iconEmoji = extractRichText(props, "icon");
+  const sortOrder = extractNumber(props, "sort order") ?? 0;
+  const status = extractSelect(props, "status") || "draft";
+  const lastEdited = extractLastEdited(page);
+
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  await sql`
+    INSERT INTO collections (
+      notion_id, title, description, icon_emoji, sort_order, status,
+      notion_last_edited, synced_at, slug
+    ) VALUES (
+      ${notionId}, ${title}, ${description},
+      ${iconEmoji}, ${sortOrder}, ${status},
+      ${lastEdited}, NOW(), ${slug}
+    )
+    ON CONFLICT (notion_id) DO UPDATE SET
+      title = EXCLUDED.title,
+      description = EXCLUDED.description,
+      icon_emoji = EXCLUDED.icon_emoji,
+      sort_order = EXCLUDED.sort_order,
+      status = EXCLUDED.status,
+      notion_last_edited = EXCLUDED.notion_last_edited,
+      synced_at = NOW()
+  `;
+
+  // Resolve playdate relations inside a transaction
+  const playdateRelationIds = extractRelationIds(props, "playdates");
+  const collResult = await sql`
+    SELECT id FROM collections WHERE notion_id = ${notionId}
+  `;
+  if (collResult.rows.length > 0) {
+    const collectionId = collResult.rows[0].id;
+    await sql.query("BEGIN");
+    try {
+      await sql`DELETE FROM collection_playdates WHERE collection_id = ${collectionId}`;
+      let displayOrder = 0;
+      for (const playdateNotionId of playdateRelationIds) {
+        const playdateResult = await sql`
+          SELECT id FROM playdates_cache WHERE notion_id = ${playdateNotionId}
+        `;
+        if (playdateResult.rows.length > 0) {
+          await sql`
+            INSERT INTO collection_playdates (collection_id, playdate_id, display_order)
+            VALUES (${collectionId}, ${playdateResult.rows[0].id}, ${displayOrder})
+            ON CONFLICT DO NOTHING
+          `;
+          displayOrder++;
         }
       }
       await sql.query("COMMIT");
