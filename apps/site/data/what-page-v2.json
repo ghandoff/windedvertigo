@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-02-25T08:34:16.926Z",
+  "lastUpdated": "2026-02-25T23:41:40.655Z",
   "note": "Auto-generated from Notion what page v2 content database. Do not edit directly.",
   "sections": [
     {
@@ -12,40 +12,48 @@
     },
     {
       "name": "paragraph 1",
-      "content": "change can shake our foundations, and even make us feel dizzy from instability. we love that feeling of vertigo, as it is a signal of growth through change and a call for exploration. we seek this dizzy with vigor and want to support others who do as well by dodging obstacles and conventions that get in our way. we approach the precipice of uncertainty without pause but with breathless excitement: winded.vertigo",
+      "content": "learning lives at the dizzying edge of change—where vertigo is a signal that growth is happening. we help people move toward uncertainty with curiosity, clearing away conventions that block exploration.",
       "order": 2,
-      "type": "body",
-      "layout": "side-by-side",
-      "icon": null
-    },
-    {
-      "name": "paragraph 2",
-      "content": "the winded.vertigo collective is dedicated to fostering human development through experiences with the interconnectedness of everything. we believe that learning through play is a transformative experience that unites individuals and communities. our mission is to support those committed to this holistic approach through the co-creation of playful, innovative, and impactful learning designs.",
-      "order": 3,
-      "type": "body",
-      "layout": "centered",
-      "icon": null
-    },
-    {
-      "name": "paragraph 3",
-      "content": "we create learning ecosystems that thrive through diversity, as every interaction seeds opportunity for growth, connections, and lifelong learning. we are leaders of an educational transformation from conventional tests to the monitoring of playful learning processes, as it enhances the learning experience through feedback and design.",
-      "order": 4,
       "type": "body",
       "layout": "card",
       "icon": null
     },
     {
-      "name": "paragraph 4",
-      "content": "we craft compelling stories, design refreshing research, and visualize insights from evidence. everything we do prepares our partners to gain support from their stakeholders—making a *yes* easier for administrators and policymakers.",
-      "order": 5,
-      "type": "body",
-      "layout": "highlight",
+      "name": "paragraph 2",
+      "content": "three pillars",
+      "order": 3,
+      "type": "hero",
+      "layout": "centered",
       "icon": null
     },
     {
-      "name": "paragraph 5",
+      "name": "aliveness",
+      "content": "structural transformation signals systemic change rather than surface reform",
+      "order": 4,
+      "type": "body",
+      "layout": "side-by-side",
+      "icon": null
+    },
+    {
+      "name": "play",
+      "content": "a safe space to try new things and make mistakes, shifting thinking with joy and curiosity",
+      "order": 4,
+      "type": "body",
+      "layout": "side-by-side",
+      "icon": null
+    },
+    {
+      "name": "justice",
+      "content": "an embodied sense of wonder, hope, and connection rooted in relationship and regenerative vitality",
+      "order": 4,
+      "type": "body",
+      "layout": "side-by-side",
+      "icon": null
+    },
+    {
+      "name": "paragraph 6",
       "content": "at winded.vertigo, we redefine learning, ensuring time is spent on engaging, exploring, and evolving together, transforming the educational landscape one playful leap at a time.",
-      "order": 6,
+      "order": 7,
       "type": "body",
       "layout": "full-width",
       "icon": null
