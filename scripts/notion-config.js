@@ -74,6 +74,8 @@ module.exports = {
       content: 'Content',
       order: 'Order',
       type: 'Type',
+      layout: 'Layout',
+      icon: 'Icon',
     },
   },
 

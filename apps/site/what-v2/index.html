@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>what. v2 – winded.vertigo</title>
+    <meta name="description" content="Learning is change. The winded.vertigo collective is dedicated to fostering human development through experiences.">
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../styles/main.css?v=11">
+
+    <style>
+        /* ===== V2 Layout Styles ===== */
+
+        .v2-banner {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .v2-banner i { color: #c0785a; }
+
+        /* Section container */
+        .what-section {
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        .what-section:nth-child(2) { animation-delay: 0.1s; }
+        .what-section:nth-child(3) { animation-delay: 0.2s; }
+        .what-section:nth-child(4) { animation-delay: 0.3s; }
+        .what-section:nth-child(5) { animation-delay: 0.4s; }
+        .what-section:nth-child(6) { animation-delay: 0.5s; }
+        .what-section:nth-child(7) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === Layout: default === */
+        .layout-default { }
+        .layout-default .section-content p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.85);
+        }
+
+        /* === Layout: side-by-side === */
+        .layout-side-by-side {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+            padding: 2rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .layout-side-by-side .section-icon {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .layout-side-by-side .section-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: brightness(0) invert(1) opacity(0.7);
+        }
+        .layout-side-by-side .section-content p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.85);
+        }
+        .layout-side-by-side .section-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #c0785a;
+            margin-bottom: 0.5rem;
+            text-transform: lowercase;
+        }
+
+        /* === Layout: centered === */
+        .layout-centered {
+            text-align: center;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem 0;
+        }
+        .layout-centered .section-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+        }
+        .layout-centered .section-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: brightness(0) invert(1) opacity(0.7);
+        }
+        .layout-centered .section-content p {
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: rgba(255,255,255,0.85);
+        }
+        .layout-centered .section-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #c0785a;
+            margin-bottom: 0.75rem;
+            text-transform: lowercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* === Layout: card === */
+        .layout-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 2rem 2.5rem;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .layout-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(192, 120, 90, 0.3);
+        }
+        .layout-card .section-icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 1rem;
+        }
+        .layout-card .section-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: brightness(0) invert(1) opacity(0.6);
+        }
+        .layout-card .section-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #c0785a;
+            margin-bottom: 0.75rem;
+            text-transform: lowercase;
+        }
+        .layout-card .section-content p {
+            font-size: 1rem;
+            line-height: 1.75;
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* === Layout: full-width === */
+        .layout-full-width {
+            padding: 3rem 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .layout-full-width .section-icon {
+            width: 56px;
+            height: 56px;
+            margin-bottom: 1.5rem;
+        }
+        .layout-full-width .section-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: brightness(0) invert(1) opacity(0.7);
+        }
+        .layout-full-width .section-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #c0785a;
+            margin-bottom: 1rem;
+            text-transform: lowercase;
+        }
+        .layout-full-width .section-content p {
+            font-size: 1.1rem;
+            line-height: 1.85;
+            color: rgba(255,255,255,0.85);
+            max-width: 800px;
+        }
+
+        /* Hero section */
+        .what-hero h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 400;
+            color: #fff;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Card grid for multiple cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .card-grid .what-section {
+            margin-bottom: 0;
+        }
+
+        /* Section name (hidden by default for non-hero, shown per layout) */
+        .section-name { display: none; }
+        .layout-side-by-side .section-name,
+        .layout-centered .section-name,
+        .layout-card .section-name,
+        .layout-full-width .section-name { display: block; }
+
+        /* Section icon (hidden when no icon) */
+        .section-icon { display: none; }
+        .section-icon.has-icon { display: flex; }
+
+        /* Divider */
+        .section-divider {
+            width: 60px;
+            height: 2px;
+            background: rgba(192, 120, 90, 0.4);
+            margin: 0 0 2rem;
+        }
+        .layout-centered .section-divider {
+            margin: 0 auto 2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .layout-side-by-side {
+                grid-template-columns: 1fr;
+            }
+            .layout-side-by-side .section-icon {
+                width: 48px;
+                height: 48px;
+            }
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../" class="logo">
+                <img src="../images/logo.png" alt="winded.vertigo" class="logo-img">
+            </a>
+
+            <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
+            <nav class="nav" role="navigation">
+                <a href="../what/" class="nav-link active">what.</a>
+                <a href="../we/" class="nav-link">we.</a>
+                <a href="../do/" class="nav-link">do.</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <section class="page-content" style="padding: 4rem 0;">
+            <div class="container">
+                <div class="v2-banner">
+                    <i class="fas fa-flask"></i>
+                    <span>v2 experimental layout — same content, new design</span>
+                </div>
+                <div id="what-content">
+                    <!-- Content loaded dynamically from what-page.json -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-inner">
+            <p class="footer-copy">&copy; copyright winded.vertigo, 2024-2026. all rights reserved.</p>
+            <div class="footer-links">
+                <a href="https://bento.me/windedvertigo" target="_blank" rel="noopener" aria-label="Bento"><i class="fas fa-th-large"></i></a>
+                <a href="https://www.instagram.com/winded.vertigo/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.facebook.com/winded.vertigo" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                <a href="https://www.linkedin.com/company/winded-vertigo/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://substack.com/@windedvertigo" target="_blank" rel="noopener" aria-label="Substack"><i class="fas fa-stream"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // Nav toggle
+    document.querySelector('.nav-toggle')?.addEventListener('click', function() {
+        const nav = document.querySelector('.nav');
+        const expanded = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', !expanded);
+        nav.classList.toggle('nav-open');
+    });
+
+    // Convert markdown-style markers to HTML
+    function formatContent(text) {
+        if (!text) return '';
+        return text
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+    }
+
+    // Load what-page.json and render with v2 layouts
+    fetch('../data/what-page.json')
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('what-content');
+            if (!data.sections || data.sections.length === 0) {
+                container.innerHTML = '<p>No content available.</p>';
+                return;
+            }
+
+            // Separate hero and body sections
+            const hero = data.sections.find(s => s.type === 'hero');
+            const body = data.sections.filter(s => s.type !== 'hero');
+
+            // Check if any body sections use 'card' layout for grid grouping
+            const cardSections = body.filter(s => s.layout === 'card');
+            const nonCardSections = body.filter(s => s.layout !== 'card');
+
+            let html = '';
+
+            // Render hero
+            if (hero) {
+                html += '<div class="what-section what-hero">';
+                html += '<h2>' + formatContent(hero.content) + '</h2>';
+                html += '</div>';
+            }
+
+            // Render non-card body sections
+            for (const section of nonCardSections) {
+                const layout = section.layout || 'default';
+                html += '<div class="what-section layout-' + layout + '">';
+
+                // Icon
+                if (section.icon) {
+                    html += '<div class="section-icon has-icon">';
+                    html += '<img src="' + section.icon + '" alt="" loading="lazy">';
+                    html += '</div>';
+                } else {
+                    html += '<div class="section-icon"></div>';
+                }
+
+                // Content wrapper
+                html += '<div class="section-content">';
+                html += '<div class="section-name">' + (section.name || '') + '</div>';
+                if (layout !== 'default') {
+                    html += '<div class="section-divider"></div>';
+                }
+                html += '<p>' + formatContent(section.content) + '</p>';
+                html += '</div>';
+
+                html += '</div>';
+            }
+
+            // Render card sections in a grid
+            if (cardSections.length > 0) {
+                html += '<div class="card-grid">';
+                for (const section of cardSections) {
+                    html += '<div class="what-section layout-card">';
+
+                    if (section.icon) {
+                        html += '<div class="section-icon has-icon">';
+                        html += '<img src="' + section.icon + '" alt="" loading="lazy">';
+                        html += '</div>';
+                    }
+
+                    html += '<div class="section-content">';
+                    html += '<div class="section-name">' + (section.name || '') + '</div>';
+                    html += '<div class="section-divider"></div>';
+                    html += '<p>' + formatContent(section.content) + '</p>';
+                    html += '</div>';
+
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        })
+        .catch(err => {
+            console.error('Failed to load what-page.json:', err);
+            document.getElementById('what-content').innerHTML = '<p>Content loading failed.</p>';
+        });
+    </script>
+</body>
+</html>

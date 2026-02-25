@@ -625,6 +625,8 @@ async function fetchWhatPageContent() {
       content: getRichTextAsMarkdown(props[propMap.content]),
       order: getNumberValue(props[propMap.order]),
       type: getSelectValue(props[propMap.type]),
+      layout: getSelectValue(props[propMap.layout]) || 'default',
+      icon: props[propMap.icon]?.url || null,
     });
   }
 
