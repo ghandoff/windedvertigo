@@ -170,6 +170,7 @@ export default async function CollectionDetailPage({ params }: Props) {
               hasFindAgain={p.has_find_again}
               progressTier={(p.progress_tier as ProgressTier) ?? null}
               evidenceCount={p.evidence_count}
+              runCount={p.run_count}
             />
           ))}
         </div>

@@ -40,11 +40,14 @@ export default function RunForm({
   playdates,
   materials,
   isPractitioner = false,
+  initialPlaydateId = "",
 }: {
   playdates: Playdate[];
   materials: Material[];
   /** Whether the current user has practitioner-level access for evidence capture. */
   isPractitioner?: boolean;
+  /** Pre-select a playdate (e.g. from ?playdate=slug deep link). */
+  initialPlaydateId?: string;
 }) {
   const router = useRouter();
 
@@ -56,7 +59,7 @@ export default function RunForm({
   );
 
   // Optional fields
-  const [playdateId, setPlaydateId] = useState("");
+  const [playdateId, setPlaydateId] = useState(initialPlaydateId);
   const [contextTags, setContextTags] = useState<string[]>([]);
   const [traceEvidence, setTraceEvidence] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);

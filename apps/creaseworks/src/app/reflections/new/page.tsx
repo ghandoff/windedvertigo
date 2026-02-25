@@ -14,13 +14,23 @@ import RunForm from "@/components/ui/run-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewReflectionPage() {
+interface Props {
+  searchParams: Promise<{ playdate?: string }>;
+}
+
+export default async function NewReflectionPage({ searchParams }: Props) {
   const session = await requireAuth();
+  const { playdate: playdateSlug } = await searchParams;
 
   const [playdates, materials] = await Promise.all([
     getReadyPlaydatesForPicker(),
     getAllMaterials(),
   ]);
+
+  // Resolve slug to ID for pre-selection
+  const initialPlaydateId = playdateSlug
+    ? playdates.find((p: any) => p.slug === playdateSlug)?.id ?? ""
+    : "";
 
   /**
    * Practitioner-level access for evidence capture:
@@ -45,6 +55,7 @@ export default async function NewReflectionPage() {
         playdates={playdates}
         materials={materials}
         isPractitioner={isPractitioner}
+        initialPlaydateId={initialPlaydateId}
       />
     </main>
   );

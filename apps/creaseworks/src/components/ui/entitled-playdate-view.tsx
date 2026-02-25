@@ -1,3 +1,4 @@
+import Link from "next/link";
 import DownloadButton from "@/components/ui/download-button";
 
 interface EntitledPlaydateViewProps {
@@ -210,13 +211,20 @@ export default function EntitledPlaydateView({
         </section>
       )}
 
-      {/* download */}
-      <section className="pt-4 border-t border-cadet/10">
+      {/* actions */}
+      <section className="pt-4 border-t border-cadet/10 flex items-center gap-4">
         <DownloadButton
           playdateId={playdate.id}
           packSlug={packSlug}
           playdateTitle={playdate.title}
         />
+        <Link
+          href={`/reflections/new?playdate=${playdate.slug}`}
+          className="rounded-lg px-4 py-2 text-xs font-medium text-white transition-all hover:opacity-90"
+          style={{ backgroundColor: "var(--wv-redwood)" }}
+        >
+          log a reflection
+        </Link>
       </section>
 
       {/* ── collective-only sections ── */}

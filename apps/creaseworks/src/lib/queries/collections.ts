@@ -42,6 +42,7 @@ export interface CollectionPlaydate {
   has_find_again: boolean;
   progress_tier: string | null;
   evidence_count: number;
+  run_count: number;
 }
 
 export interface ProgressSummary {
@@ -151,7 +152,8 @@ export async function getCollectionPlaydates(
             p.friction_dial, p.start_in_120s,
             (p.find_again_mode IS NOT NULL) AS has_find_again,
             pp.progress_tier,
-            COALESCE(ev_counts.evidence_count, 0)::int AS evidence_count
+            COALESCE(ev_counts.evidence_count, 0)::int AS evidence_count,
+            COALESCE(run_counts.run_count, 0)::int AS run_count
      FROM playdates_cache p
      JOIN collection_playdates cp ON cp.playdate_id = p.id
      LEFT JOIN playdate_progress pp
@@ -163,6 +165,12 @@ export async function getCollectionPlaydates(
        WHERE r.created_by = $2
        GROUP BY r.playdate_notion_id
      ) ev_counts ON ev_counts.playdate_notion_id = p.notion_id
+     LEFT JOIN (
+       SELECT r.playdate_notion_id, COUNT(r.id)::int AS run_count
+       FROM runs_cache r
+       WHERE r.created_by = $2
+       GROUP BY r.playdate_notion_id
+     ) run_counts ON run_counts.playdate_notion_id = p.notion_id
      WHERE cp.collection_id = $1
        AND p.status = 'ready'
      ORDER BY cp.display_order ASC, p.title ASC`,
