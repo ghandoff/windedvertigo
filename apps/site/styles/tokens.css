@@ -1,0 +1,124 @@
+/* ═══════════════════════════════════════════════════════════════════
+   @windedvertigo/tokens — shared design tokens
+   LOCAL COPY for GitHub Pages deployment (apps/site only).
+   Canonical source: packages/tokens/index.css
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── brand palette ────────────────────────────────────────────────
+   these are the canonical winded.vertigo brand colours.
+   never hardcode hex values in components — reference these vars.  */
+
+:root {
+  --wv-cadet:     #273248;
+  --wv-redwood:   #b15043;
+  --wv-sienna:    #cb7858;
+  --wv-champagne: #ffebd2;
+  --wv-white:     #ffffff;
+}
+
+/* ── semantic colours ─────────────────────────────────────────────
+   map brand colours to function. all text/background combos are
+   tested to WCAG AAA (7:1) unless noted otherwise.                */
+
+:root {
+  /* text on light backgrounds */
+  --color-text-primary:   var(--wv-cadet);          /* #273248 on white = 11.4:1 */
+  --color-text-secondary: #4b5563;                   /* gray-600 on white = 7.5:1 AAA */
+  --color-text-muted:     #6b7280;                   /* gray-500 on white = 5.0:1 AA  */
+
+  /* text on dark (cadet) backgrounds */
+  --color-text-on-dark:         var(--wv-champagne); /* #ffebd2 on #273248 = 9.8:1 */
+  --color-text-on-dark-muted:   rgba(255, 235, 210, 0.85); /* AAA */
+
+  /* surfaces */
+  --color-surface-raised:       #1e2738;             /* card/panel on cadet bg */
+
+  /* interactive */
+  --color-focus:    #3B82F6;                          /* blue-500 — focus rings only */
+  --color-link:     #1e40af;                          /* blue-800 on white = 9.4:1 AAA */
+  --color-link-on-dark: #93c5fd;                      /* blue-300 on cadet = 7.8:1 AAA */
+
+  /* accent (cta buttons, highlights) */
+  --color-accent:       var(--wv-redwood);            /* #b15043 */
+  --color-accent-hover: var(--wv-sienna);             /* #cb7858 */
+  --color-accent-on-dark: #e09878;                    /* lightened sienna on cadet = 5.5:1 AA */
+
+  /* status — each pair is background + text, AAA compliant */
+  --color-error:          #7c2d12;                    /* on error-bg = 7.2:1 */
+  --color-error-bg:       #fee2e2;
+  --color-error-border:   #dc2626;
+  --color-success:        #15803d;                    /* on success-bg = 5.8:1 AA+ */
+  --color-success-vivid:  #2a9d50;                    /* inline success indicator   */
+  --color-success-bg:     #dcfce7;
+  --color-success-border: #22c55e;
+  --color-warning:        #78350f;                    /* on warning-bg = 8.1:1 AAA */
+  --color-warning-bg:     #fef3c7;
+  --color-warning-border: #f59e0b;
+}
+
+/* ── spacing scale ────────────────────────────────────────────────
+   use multiples of 4. consistent across all apps.                 */
+
+:root {
+  --space-xs:  0.25rem;  /*  4px */
+  --space-sm:  0.5rem;   /*  8px */
+  --space-md:  1rem;     /* 16px */
+  --space-lg:  1.5rem;   /* 24px */
+  --space-xl:  2rem;     /* 32px */
+  --space-2xl: 3rem;     /* 48px */
+  --space-3xl: 4rem;     /* 64px */
+}
+
+/* ── typography ───────────────────────────────────────────────────
+   inter is the brand font. these defaults improve readability for
+   dyslexic users and reduce cognitive load for everyone.          */
+
+:root {
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --line-height-body:     1.6;
+  --letter-spacing-body:  0.02em;
+  --word-spacing-body:    0.04em;
+  --max-line-length:      70ch;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   foundation rules — inclusive defaults
+   these apply globally when this file is imported.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── reduced motion ───────────────────────────────────────────────
+   when the OS says reduce motion, kill all animation globally.
+   individual apps can allowlist specific subtle transitions.      */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── focus-visible ────────────────────────────────────────────────
+   clear, consistent focus ring on keyboard navigation.
+   uses :focus-visible so mouse clicks don't trigger it.           */
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── high contrast preference ─────────────────────────────────────
+   bump colours when the OS requests more contrast.                */
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-text-primary:   #000000;
+    --color-text-secondary: #1f2937;
+    --color-link:           #1e3a8a;
+  }
+}
