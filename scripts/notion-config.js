@@ -14,9 +14,10 @@ module.exports = {
     portfolioAssets: '5e27b792adbb4a958779900fb59dd631',  // BD multi-database (parent)
     vertigoVault: '223e4ee74ba4805f8c92cda6e2b8ba00',
     whatPage: '311e4ee74ba480268ad9de5a14d6dce4',
+    whatPageV2: '312e4ee74ba48102aea3e9f1a8828685',
   },
 
-  // Property name mappings (Notion column name → internal key)
+  // Property name mappings (Notion column name â internal key)
   // If Notion column names change, update them here only
   properties: {
     quadrants: {
@@ -77,6 +78,14 @@ module.exports = {
       layout: 'Layout',
       icon: 'Icon',
     },
+    whatPageV2: {
+      name: 'Name',
+      content: 'Content',
+      order: 'Order',
+      type: 'Type',
+      layout: 'Layout',
+      icon: 'Icon',
+    },
   },
 
   // Required properties for validation (sync fails if missing)
@@ -87,6 +96,7 @@ module.exports = {
     portfolioAssets: ['asset', 'Website Asset Type'],
     vertigoVault: ['name'],
     whatPage: ['Name'],
+    whatPageV2: ['Name'],
   },
 
   // Retry configuration for API calls
