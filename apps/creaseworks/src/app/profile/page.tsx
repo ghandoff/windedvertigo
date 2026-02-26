@@ -23,10 +23,12 @@ import {
   recomputeUserProgress,
 } from "@/lib/queries/collections";
 import { getRunsForUser, type RunRow } from "@/lib/queries/runs";
+import { getProfileStats } from "@/lib/queries/profile-stats";
 import TeamManager from "@/app/team/team-manager";
 import DomainVerifier from "@/app/team/domain-verifier";
 import AnalyticsDashboard from "@/app/analytics/analytics-dashboard";
 import TierCard, { TIERS, getTierState } from "@/components/ui/tier-card";
+import ProfileDashboard from "@/components/profile-dashboard";
 import ProfileManageToggle from "./manage-toggle";
 import NotificationPrefs from "./notification-prefs";
 import PlayContextSwitcher from "./play-context-switcher";
@@ -64,9 +66,10 @@ export default async function ProfilePage({
 
   /* ---- play stats -------------------------------------------------- */
   await recomputeUserProgress(session.userId);
-  const [summary, recentRuns] = await Promise.all([
+  const [summary, recentRuns, profileStats] = await Promise.all([
     getUserProgressSummary(session.userId),
     getRunsForUser(session, 3, 0),
+    getProfileStats(session.userId),
   ]);
   const hasActivity = summary.total_tried > 0;
 
@@ -243,6 +246,9 @@ export default async function ProfilePage({
           </p>
         </section>
       )}
+
+      {/* ---- profile dashboard ---------------------------------------- */}
+      <ProfileDashboard stats={profileStats} />
 
       {/* ---- your journey — tier cards ----------------------------- */}
       <section className="mb-12">

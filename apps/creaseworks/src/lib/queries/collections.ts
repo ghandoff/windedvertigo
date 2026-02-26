@@ -348,9 +348,17 @@ export async function getNextSuggestion(
 
   if (collResult.rows.length === 0) return null;
 
+  // Build a natural-sounding reason based on the arc
+  let reason: string;
+  if (leastArc.arc === "explore") {
+    reason = "you haven't started exploring much yet";
+  } else {
+    reason = `you haven't explored much ${leastArc.arc} play yet`;
+  }
+
   return {
     collection: collResult.rows[0],
-    reason: `your ${leastArc.arc} arc could use more play`,
+    reason,
   };
 }
 

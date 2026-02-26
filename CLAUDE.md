@@ -1,5 +1,16 @@
 # winded.vertigo Monorepo — Project Conventions
 
+## Session Memory
+
+Deep project state lives in `memory/` — read these FIRST at session start:
+
+| File | What's in it |
+|------|-------------|
+| `memory/projects/creaseworks.md` | Full creaseworks state: DB IDs, migration log, feature status, architecture, session-start checklist |
+| `apps/creaseworks/creaseworks-review.md` | UX audit + feature recommendations (changelog for sessions 21-26) |
+
+**At session end**: update `memory/projects/creaseworks.md` with new migration numbers, file counts, feature status, and latest commit hash. This is what survives context compaction.
+
 ## Repository Structure
 
 ```

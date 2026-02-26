@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth-helpers";
 import { getPublicStats } from "@/lib/queries/stats";
 
 /**
@@ -14,6 +16,7 @@ import { getPublicStats } from "@/lib/queries/stats";
  * Session 12: redesigned to match windedvertigo.com dark theme and
  *   vertigo-vault integration pattern.
  * Session 21: added matcher section, social proof stats, JSON-LD.
+ * Session 27: redirect logged-in users to playbook.
  */
 
 export const revalidate = 3600;
@@ -54,6 +57,13 @@ const jsonLd = {
 };
 
 export default async function Home() {
+  const session = await getSession();
+
+  // Redirect logged-in users to their playbook
+  if (session) {
+    redirect("/playbook");
+  }
+
   const stats = await getPublicStats();
   return (
     <main className="min-h-screen" style={{ backgroundColor: "var(--wv-cadet)" }}>

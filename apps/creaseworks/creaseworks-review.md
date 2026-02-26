@@ -28,19 +28,19 @@ The four-tier access model (sampler → explorer → practitioner → collective
 
 ### UX friction points
 
-4. **No "start here" onboarding.** A first-time user lands on the homepage, clicks "see free playdates," and gets a flat grid of 10+ cards with no guidance. Consider a short intro flow or a "recommended first playdate" callout on the sampler page.
+4. ~~**No "start here" onboarding.** A first-time user lands on the homepage, clicks "see free playdates," and gets a flat grid of 10+ cards with no guidance. Consider a short intro flow or a "recommended first playdate" callout on the sampler page.~~ **RESOLVED (sessions 23, 26)** — onboarding wizard at `/onboarding` with play context system (session 23); FirstVisitBanner and StartHereCard for first-time users (session 26).
 
-5. **Playdate cards lack visual hierarchy.** Every card looks the same — title, headline, function tags, friction dial, "find again." There's no imagery, no color differentiation, and no indicator of popularity or "great for beginners." The grid feels like a catalog rather than an invitation.
+5. ~~**Playdate cards lack visual hierarchy.** Every card looks the same — title, headline, function tags, friction dial, "find again." There's no imagery, no color differentiation, and no indicator of popularity or "great for beginners." The grid feels like a catalog rather than an invitation.~~ **PARTIALLY RESOLVED (session 26)** — deterministic SVG illustrations per card (Feature E), age range tags (Feature F), and energy level signals with parent-friendly labels (Feature G). Popularity/beginner signals not yet implemented.
 
 6. ~~**The sampler page subtitle says "all ready playdates synced from Notion. drafts are hidden."** This reads like developer-facing copy. Change it to something user-facing like "simple playdates you can try right now — no account needed."~~ **RESOLVED (session 22)** — subtitle updated, and sampler now shows only 5 curated playdates (public view is the same for admins and visitors).
 
-7. **Collection detail pages have no "try this playdate" CTA.** The playdate cards inside a collection don't link anywhere clickable. Users see the grid but can't open a playdate detail from here (the sampler/[slug] route exists but there's no link from the collection view).
+7. ~~**Collection detail pages have no "try this playdate" CTA.** The playdate cards inside a collection don't link anywhere clickable. Users see the grid but can't open a playdate detail from here (the sampler/[slug] route exists but there's no link from the collection view).~~ **RESOLVED (session 24)** — collection playdate cards link to `/sampler/${slug}`; QuickLogButton added directly on cards for one-tap "I tried this!" logging.
 
-8. **Reflections form is clean but feels disconnected.** The "linked playdate" dropdown says "none" by default. If a user just came from a playdate detail page, it should pre-select that playdate. Consider deep-linking: `/reflections/new?playdate=puddle-scientists`.
+8. ~~**Reflections form is clean but feels disconnected.** The "linked playdate" dropdown says "none" by default. If a user just came from a playdate detail page, it should pre-select that playdate. Consider deep-linking: `/reflections/new?playdate=puddle-scientists`.~~ **RESOLVED (pre-existing)** — already implemented via `?playdate=slug` query parameter; confirmed working in session 24.
 
-9. **The playbook is the richest page but buried in the nav.** For logged-in users, this should arguably be the landing page or at least more prominent. The suggestion nudge ("you haven't explored much explore play yet — try cardboard architects →") is great, but the sentence has a grammatical hiccup (double "explore").
+9. ~~**The playbook is the richest page but buried in the nav.** For logged-in users, this should arguably be the landing page or at least more prominent. The suggestion nudge ("you haven't explored much explore play yet — try cardboard architects →") is great, but the sentence has a grammatical hiccup (double "explore").~~ **RESOLVED (session 27)** — homepage now redirects authenticated users to `/playbook` via server-side redirect; "explore explore" grammar bug fixed in `getNextSuggestion()` with conditional handling for the explore arc.
 
-10. **Profile page is minimal.** It shows the tier cards and "manage account" — nothing else. This is a missed opportunity to surface a user's stats, badges, and recent activity. It could feel like a personal dashboard.
+10. ~~**Profile page is minimal.** It shows the tier cards and "manage account" — nothing else. This is a missed opportunity to surface a user's stats, badges, and recent activity. It could feel like a personal dashboard.~~ **RESOLVED (session 27)** — new `ProfileDashboard` component with stats row (runs, playdates tried, evidence, streak), badge journey progress bars, recent activity feed, and favorite collection callout. New `profile-stats.ts` query layer with parallel queries and window-function streak calculation.
 
 ---
 
@@ -217,3 +217,12 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 - **Migrations 023–026 live** — all four executed successfully in Neon production.
 - **Source files: 189 → 223** — net +34 files from feature additions and file splits.
 - **All Part 2 recommendations (A–K) resolved.** Every feature from the original review is now implemented. All Part 4 code audit items complete.
+
+### session 27 accomplishments
+
+*February 26, 2026*
+
+- **Memory system for cross-session persistence** — created `memory/projects/creaseworks.md` with machine-readable project state (DB IDs, migration log, feature status, architecture, session-start checklist). Updated `CLAUDE.md` with session memory pointers. This ensures critical state survives context compaction.
+- **Item 9: Playbook as default landing** — homepage (`src/app/page.tsx`) now server-side redirects authenticated users to `/playbook`. Fixed "explore explore" grammar bug in `getNextSuggestion()` (`src/lib/queries/collections.ts`) with conditional handling for the explore arc.
+- **Item 10: Profile dashboard** — new `ProfileDashboard` server component (`src/components/profile-dashboard.tsx`) with 4 sections: stats row (total runs, playdates tried, evidence captured, current streak), badge journey (progress bars per badge level), recent activity feed, and favorite collection callout. New `profile-stats.ts` query layer using parallel `Promise.all()` and window functions for streak calculation. Integrated into profile page above tier cards.
+- **Review doc fully resolved** — all 10 UX friction points in Part 1 now marked with resolution status. All Part 2 features (A–K), Part 3 wish list items (L–N), and Part 4 code audit items complete. Only remaining open item: popularity/beginner signals on cards (Item 5, partially resolved).
