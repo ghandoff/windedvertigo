@@ -171,6 +171,7 @@ export default async function CollectionDetailPage({ params }: Props) {
               progressTier={(p.progress_tier as ProgressTier) ?? null}
               evidenceCount={p.evidence_count}
               runCount={p.run_count}
+              href={`/sampler/${p.slug}`}
             />
           ))}
         </div>

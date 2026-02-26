@@ -350,7 +350,7 @@ export async function getNextSuggestion(
 
   return {
     collection: collResult.rows[0],
-    reason: `you haven't explored much ${leastArc.arc} play yet`,
+    reason: `your ${leastArc.arc} arc could use more play`,
   };
 }
 

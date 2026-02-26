@@ -35,7 +35,7 @@ export default async function SamplerPage() {
         </h1>
         <p className="text-cadet/60 max-w-lg">
           {isInternal
-            ? "all ready playdates synced from Notion. drafts are hidden."
+            ? "every playdate we've published so far. drafts are hidden from this view."
             : "free previews of every playdate. each card gives you a taste — grab a pack to unlock the full guide, materials list, and find again prompts."}
         </p>
       </header>
