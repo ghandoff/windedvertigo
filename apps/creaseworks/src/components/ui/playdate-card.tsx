@@ -87,7 +87,9 @@ export function PlaydateCard({
 
       <div className="flex items-center gap-3 text-xs text-cadet/50">
         {frictionDial !== null && (
-          <span title="how much back-and-forth — 1 is chill, 5 is intense">friction: {frictionDial}/5</span>
+          <span title={`energy level ${frictionDial}/5`}>
+            {frictionDial <= 2 ? "🌿 chill" : frictionDial <= 3 ? "🌤️ medium" : "⚡ active"}
+          </span>
         )}
         {startIn120s && <span>ready in 2 min</span>}
         {hasFindAgain && (

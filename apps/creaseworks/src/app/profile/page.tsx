@@ -11,11 +11,17 @@
  * Designed for shared devices where both grownups and kids navigate.
  */
 
+import Link from "next/link";
 import { requireAuth } from "@/lib/auth-helpers";
 import {
   getOrgMembers,
   getOrgVerifiedDomains,
 } from "@/lib/queries/organisations";
+import {
+  getUserProgressSummary,
+  recomputeUserProgress,
+} from "@/lib/queries/collections";
+import { getRunsForUser } from "@/lib/queries/runs";
 import TeamManager from "@/app/team/team-manager";
 import DomainVerifier from "@/app/team/domain-verifier";
 import AnalyticsDashboard from "@/app/analytics/analytics-dashboard";
@@ -53,6 +59,14 @@ export default async function ProfilePage({
   const displayName = session.email.split("@")[0].replace(/[._]/g, " ");
 
   const initials = (session.email.charAt(0) ?? "?").toUpperCase();
+
+  /* ---- play stats -------------------------------------------------- */
+  await recomputeUserProgress(session.userId);
+  const [summary, recentRuns] = await Promise.all([
+    getUserProgressSummary(session.userId),
+    getRunsForUser(session, 3, 0),
+  ]);
+  const hasActivity = summary.total_tried > 0;
 
   /* ---- team data (only if user has an org) ------------------------- */
   const hasOrg = !!session.orgId;
@@ -152,6 +166,66 @@ export default async function ProfilePage({
           </div>
         </div>
       </div>
+
+      {/* ---- your play stats ---------------------------------------- */}
+      {hasActivity ? (
+        <section className="mb-10">
+          <h2 className="text-lg font-semibold tracking-tight mb-3">your play</h2>
+          <div className="flex flex-wrap gap-3 mb-4">
+            <StatPill label={`${summary.total_tried} tried`} />
+            {summary.total_found > 0 && (
+              <StatPill label={`${summary.total_found} found`} accent="champagne" />
+            )}
+            {summary.total_folded > 0 && (
+              <StatPill label={`${summary.total_folded} folded`} accent="sienna" />
+            )}
+            {summary.total_found_again > 0 && (
+              <StatPill label={`${summary.total_found_again} found again`} accent="redwood" />
+            )}
+          </div>
+          {recentRuns.length > 0 && (
+            <div className="space-y-1.5">
+              {recentRuns.map((run: any) => (
+                <div
+                  key={run.id}
+                  className="flex items-center justify-between text-sm rounded-lg border border-cadet/5 px-4 py-2.5"
+                >
+                  <span className="text-cadet font-medium truncate">
+                    {run.playdate_title ?? run.title}
+                  </span>
+                  {run.run_date && (
+                    <span className="text-cadet/35 text-xs whitespace-nowrap ml-3">
+                      {new Date(run.run_date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  )}
+                </div>
+              ))}
+              <Link
+                href="/playbook"
+                className="text-xs text-sienna/70 hover:text-sienna transition-colors inline-block mt-1"
+              >
+                see all in playbook &rarr;
+              </Link>
+            </div>
+          )}
+        </section>
+      ) : (
+        <section className="mb-10 rounded-xl border border-cadet/10 px-5 py-4">
+          <p className="text-sm text-cadet/50">
+            no playdates tried yet.{" "}
+            <Link
+              href="/sampler"
+              className="text-redwood hover:text-sienna transition-colors"
+            >
+              browse the sampler
+            </Link>{" "}
+            to get started.
+          </p>
+        </section>
+      )}
 
       {/* ---- your journey — tier cards ----------------------------- */}
       <section className="mb-12">
@@ -290,5 +364,27 @@ export default async function ProfilePage({
         </>
       )}
     </main>
+  );
+}
+
+/* ── helper ── */
+
+function StatPill({
+  label,
+  accent,
+}: {
+  label: string;
+  accent?: "champagne" | "sienna" | "redwood";
+}) {
+  const colors = {
+    champagne: "bg-champagne/20 text-cadet/60",
+    sienna: "bg-sienna/10 text-sienna/70",
+    redwood: "bg-redwood/10 text-redwood/70",
+  };
+  const cls = accent ? colors[accent] : "bg-cadet/5 text-cadet/50";
+  return (
+    <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${cls}`}>
+      {label}
+    </span>
   );
 }

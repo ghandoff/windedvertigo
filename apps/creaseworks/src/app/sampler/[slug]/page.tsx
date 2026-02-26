@@ -9,6 +9,7 @@ import { getFirstVisiblePackForPlaydate } from "@/lib/queries/packs";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { getSession } from "@/lib/auth-helpers";
 import EntitledPlaydateView from "@/components/ui/entitled-playdate-view";
+import QuickLogButton from "@/components/ui/quick-log-button";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -227,6 +228,22 @@ export default async function PlaydateTeaserPage({ params }: Props) {
           {pack ? `unlock with ${pack.title}` : "see packs"}
         </Link>
       </section>
+
+      {/* quick-log + full reflection CTAs — authenticated users only */}
+      {session && (
+        <section className="flex flex-wrap items-center gap-3 mb-8">
+          <QuickLogButton
+            playdateId={playdate.id}
+            playdateTitle={playdate.title}
+          />
+          <Link
+            href={`/reflections/new?playdate=${slug}`}
+            className="inline-block rounded-lg bg-redwood px-5 py-2.5 text-sm text-white font-medium hover:bg-sienna transition-colors"
+          >
+            log a reflection
+          </Link>
+        </section>
+      )}
     </main>
   );
 }

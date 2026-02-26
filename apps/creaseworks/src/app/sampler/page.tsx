@@ -40,6 +40,34 @@ export default async function SamplerPage() {
         </p>
       </header>
 
+      {/* start here — recommend a low-friction quick-start playdate */}
+      {!isInternal && playdates.length > 0 && (() => {
+        const pick = playdates.find(
+          (p: any) => p.friction_dial !== null && p.friction_dial <= 2 && p.start_in_120s,
+        ) ?? playdates[0];
+        return (
+          <Link
+            href={`/sampler/${pick.slug}`}
+            className="block mb-8 rounded-xl border px-5 py-4 hover:shadow-md transition-all"
+            style={{
+              borderColor: "rgba(228, 196, 137, 0.3)",
+              backgroundColor: "rgba(228, 196, 137, 0.08)",
+            }}
+          >
+            <p className="text-[10px] font-semibold tracking-wide uppercase text-champagne mb-1">
+              new here? start with this one
+            </p>
+            <p className="text-base font-semibold text-cadet">{pick.title}</p>
+            {pick.headline && (
+              <p className="text-sm text-cadet/50 mt-0.5">{pick.headline}</p>
+            )}
+            <p className="text-xs text-cadet/40 mt-2">
+              🌿 chill &middot; ready in 2 min &middot; no account needed &rarr;
+            </p>
+          </Link>
+        );
+      })()}
+
       {playdates.length === 0 ? (
         <p className="text-cadet/40 text-center py-20">
           no playdates here yet. check back soon.
