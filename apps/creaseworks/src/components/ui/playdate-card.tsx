@@ -10,13 +10,13 @@ export type ProgressTier =
   | "found_again";
 
 const TIER_BADGE: Record<ProgressTier, { label: string; className: string }> = {
-  tried_it:        { label: "◎", className: "bg-cadet/10 text-cadet/40" },
-  found_something: { label: "◉", className: "bg-champagne/60 text-cadet/50" },
-  folded_unfolded:  { label: "◉◉", className: "bg-sienna/20 text-sienna" },
-  found_again:     { label: "★", className: "bg-redwood/15 text-redwood" },
+  tried_it:        { label: "â", className: "bg-cadet/10 text-cadet/40" },
+  found_something: { label: "â", className: "bg-champagne/60 text-cadet/50" },
+  folded_unfolded:  { label: "ââ", className: "bg-sienna/20 text-sienna" },
+  found_again:     { label: "â", className: "bg-redwood/15 text-redwood" },
 };
 
-/* ── colour accents per arc name ── */
+/* ââ colour accents per arc name ââ */
 const ARC_COLOURS: Record<string, string> = {
   explore:   "bg-sienna/10 text-sienna/80",
   express:   "bg-redwood/10 text-redwood/70",
@@ -46,9 +46,9 @@ function getEnergyLabel(
   frictionDial: number | null,
 ): { emoji: string; label: string } | null {
   if (frictionDial === null) return null;
-  if (frictionDial <= 2) return { emoji: "🌿", label: "calm" };
-  if (frictionDial === 3) return { emoji: "🌤️", label: "moderate" };
-  return { emoji: "⚡", label: "active" };
+  if (frictionDial <= 2) return { emoji: "ð¿", label: "calm" };
+  if (frictionDial === 3) return { emoji: "ð¤ï¸", label: "moderate" };
+  return { emoji: "â¡", label: "active" };
 }
 
 interface PlaydateCardProps {
@@ -107,7 +107,7 @@ export function PlaydateCard({
       {/* illustration header */}
       {showIllustration && (
         <div className="mb-4 -mx-6 -mt-6 w-[calc(100%+48px)]">
-          <PlaydateIllustration slug={slug} primaryFunction={primaryFunction} height={120} />
+          <PlaydateIllustration slug={slug} primaryFunction={primaryFunction} contextTags={contextTags} height={120} />
         </div>
       )}
 
@@ -175,7 +175,7 @@ export function PlaydateCard({
           {!!runCount && runCount > 0 && (
             runCount >= 5 ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-sienna/15 px-2 py-0.5 text-xs font-semibold text-sienna">
-                🔥 popular
+                ð¥ popular
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 rounded-full bg-cadet/8 px-2 py-0.5 text-xs font-medium text-cadet/60">
