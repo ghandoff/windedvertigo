@@ -66,6 +66,19 @@ export interface ProfileStats {
  * Get comprehensive profile stats for a user
  */
 export async function getProfileStats(userId: string): Promise<ProfileStats> {
+  const empty: ProfileStats = {
+    totalRuns: 0,
+    totalPlaydatesTried: 0,
+    totalEvidence: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    galleryShares: 0,
+    badgeCounts: { tried_it: 0, found_something: 0, folded_unfolded: 0, found_again: 0 },
+    recentActivity: [],
+    favoriteCollection: null,
+  };
+
+  try {
   // Get all stats in parallel
   const [
     totalRunsResult,
@@ -97,57 +110,46 @@ export async function getProfileStats(userId: string): Promise<ProfileStats> {
       [userId],
     ),
 
-    // Current and longest streaks
+    // Current and longest streaks (gap-and-island technique)
     sql.query(
       `WITH daily_runs AS (
          SELECT DISTINCT DATE(run_date) as run_day
          FROM runs_cache
          WHERE created_by = $1 AND run_date IS NOT NULL
-         ORDER BY run_day
        ),
-       streaks AS (
+       islands AS (
          SELECT
            run_day,
-           ROW_NUMBER() OVER (ORDER BY run_day) -
-           ROW_NUMBER() OVER (ORDER BY run_day) FILTER (WHERE LAG(run_day) OVER (ORDER BY run_day) = run_day - INTERVAL '1 day') as streak_group
+           run_day - (ROW_NUMBER() OVER (ORDER BY run_day))::int * INTERVAL '1 day' as grp
          FROM daily_runs
        ),
        streak_lengths AS (
          SELECT
-           streak_group,
            COUNT(*)::int as streak_length,
-           MAX(run_day) as streak_end_date
-         FROM streaks
-         GROUP BY streak_group
-       ),
-       longest_streak AS (
-         SELECT MAX(streak_length)::int as longest FROM streak_lengths
-       ),
-       current_streak_calc AS (
-         SELECT
-           CASE
-             WHEN MAX(streak_end_date) = CURRENT_DATE THEN
-               (SELECT streak_length FROM streak_lengths WHERE streak_end_date = CURRENT_DATE)
-             WHEN MAX(streak_end_date) = CURRENT_DATE - INTERVAL '1 day' THEN
-               (SELECT streak_length FROM streak_lengths WHERE streak_end_date = CURRENT_DATE - INTERVAL '1 day')
-             ELSE 0
-           END::int as current_streak
-         FROM streak_lengths
+           MAX(run_day) as streak_end
+         FROM islands
+         GROUP BY grp
        )
        SELECT
-         COALESCE((SELECT current_streak FROM current_streak_calc), 0)::int as current_streak,
-         COALESCE((SELECT longest FROM longest_streak), 0)::int as longest_streak`,
+         COALESCE(MAX(streak_length), 0)::int as longest_streak,
+         COALESCE(
+           (SELECT streak_length FROM streak_lengths
+            WHERE streak_end >= CURRENT_DATE - INTERVAL '1 day'
+            ORDER BY streak_end DESC LIMIT 1),
+           0
+         )::int as current_streak
+       FROM streak_lengths`,
       [userId],
     ),
 
-    // Badge counts from pattern_progress
+    // Badge counts from playdate_progress
     sql.query(
       `SELECT
          COUNT(CASE WHEN progress_tier IS NOT NULL THEN 1 END)::int as tried_it,
          COUNT(CASE WHEN progress_tier IN ('found_something', 'folded_unfolded', 'found_again') THEN 1 END)::int as found_something,
          COUNT(CASE WHEN progress_tier IN ('folded_unfolded', 'found_again') THEN 1 END)::int as folded_unfolded,
          COUNT(CASE WHEN progress_tier = 'found_again' THEN 1 END)::int as found_again
-       FROM pattern_progress
+       FROM playdate_progress
        WHERE user_id = $1`,
       [userId],
     ),
@@ -162,9 +164,7 @@ export async function getProfileStats(userId: string): Promise<ProfileStats> {
          pp.progress_tier::text as badge_earned
        FROM runs_cache rc
        LEFT JOIN playdates_cache pc ON pc.notion_id = rc.playdate_notion_id
-       LEFT JOIN pattern_progress pp ON pp.user_id = $1 AND pp.pattern_id = (
-         SELECT id FROM patterns_cache WHERE notion_id = rc.pattern_notion_id LIMIT 1
-       )
+       LEFT JOIN playdate_progress pp ON pp.user_id = $1 AND pp.playdate_id = pc.id
        WHERE rc.created_by = $1
        ORDER BY rc.run_date DESC NULLS LAST, rc.created_at DESC
        LIMIT 5`,
@@ -179,9 +179,9 @@ export async function getProfileStats(userId: string): Promise<ProfileStats> {
          c.icon_emoji,
          COUNT(rc.id)::int as run_count
        FROM collections c
-       INNER JOIN collection_patterns cp ON cp.collection_id = c.id
-       INNER JOIN patterns_cache pc ON pc.id = cp.pattern_id
-       INNER JOIN runs_cache rc ON rc.pattern_notion_id = pc.notion_id
+       INNER JOIN collection_playdates cp ON cp.collection_id = c.id
+       INNER JOIN playdates_cache pc ON pc.id = cp.playdate_id
+       INNER JOIN runs_cache rc ON rc.playdate_notion_id = pc.notion_id
        WHERE rc.created_by = $1
        GROUP BY c.id, c.title, c.icon_emoji
        ORDER BY run_count DESC
@@ -251,4 +251,9 @@ export async function getProfileStats(userId: string): Promise<ProfileStats> {
     recentActivity,
     favoriteCollection,
   };
+
+  } catch (err) {
+    console.error("[profile-stats] getProfileStats failed, returning empty stats:", err);
+    return empty;
+  }
 }
