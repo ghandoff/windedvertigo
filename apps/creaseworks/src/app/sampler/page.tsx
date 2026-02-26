@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTeaserPlaydates, getAllReadyPlaydates } from "@/lib/queries/playdates";
 import { getSession } from "@/lib/auth-helpers";
+import { getUserOnboardingStatus } from "@/lib/queries/users";
 import { PlaydateCard } from "@/components/ui/playdate-card";
 import Link from "next/link";
 
@@ -24,6 +25,12 @@ export default async function SamplerPage() {
     ? await getAllReadyPlaydates()
     : await getTeaserPlaydates();
 
+  // Check if signed-in user needs onboarding
+  const onboarding = session
+    ? await getUserOnboardingStatus(session.userId)
+    : null;
+  const needsOnboarding = session && onboarding && !onboarding.onboarding_completed;
+
   return (
     <main className="min-h-screen px-6 py-16 max-w-5xl mx-auto">
       <header className="mb-12">
@@ -40,11 +47,49 @@ export default async function SamplerPage() {
         </p>
       </header>
 
+      {/* onboarding nudge for signed-in users who haven't completed the wizard */}
+      {needsOnboarding && (
+        <Link
+          href="/onboarding"
+          className="block mb-8 rounded-xl border px-5 py-4 hover:shadow-md transition-all"
+          style={{
+            borderColor: "rgba(203, 120, 88, 0.3)",
+            backgroundColor: "rgba(203, 120, 88, 0.06)",
+          }}
+        >
+          <p className="text-[10px] font-semibold tracking-wide uppercase text-sienna mb-1">
+            personalise your experience
+          </p>
+          <p className="text-base font-semibold text-cadet">
+            tell us about your play style
+          </p>
+          <p className="text-sm text-cadet/50 mt-0.5">
+            3 quick questions so we can recommend the perfect first playdate &rarr;
+          </p>
+        </Link>
+      )}
+
       {/* start here — recommend a low-friction quick-start playdate */}
-      {!isInternal && playdates.length > 0 && (() => {
-        const pick = playdates.find(
+      {!needsOnboarding && !isInternal && playdates.length > 0 && (() => {
+        // Use preferences to pick a better match if available
+        const prefs = onboarding?.play_preferences;
+        const energyPref = prefs?.energy;
+        const contextPref = prefs?.contexts as string[] | undefined;
+
+        const pick = playdates.find((p: any) => {
+          // Match energy preference
+          if (energyPref === "chill" && (p.friction_dial === null || p.friction_dial > 2)) return false;
+          if (energyPref === "active" && (p.friction_dial === null || p.friction_dial < 4)) return false;
+          // Match context preference if set
+          if (contextPref?.length && p.context_tags?.length) {
+            const tags = p.context_tags as string[];
+            if (!contextPref.some((c: string) => tags.includes(c))) return false;
+          }
+          return p.start_in_120s;
+        }) ?? playdates.find(
           (p: any) => p.friction_dial !== null && p.friction_dial <= 2 && p.start_in_120s,
         ) ?? playdates[0];
+
         return (
           <Link
             href={`/sampler/${pick.slug}`}
@@ -55,7 +100,7 @@ export default async function SamplerPage() {
             }}
           >
             <p className="text-[10px] font-semibold tracking-wide uppercase text-champagne mb-1">
-              new here? start with this one
+              {prefs ? "recommended for you" : "new here? start with this one"}
             </p>
             <p className="text-base font-semibold text-cadet">{pick.title}</p>
             {pick.headline && (

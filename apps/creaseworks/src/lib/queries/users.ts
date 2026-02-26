@@ -38,3 +38,25 @@ export async function addAdmin(userId: string, grantedBy?: string) {
     [userId, grantedBy ?? null],
   );
 }
+
+/* ── onboarding ── */
+
+export interface OnboardingStatus {
+  onboarding_completed: boolean;
+  play_preferences: {
+    age_groups?: string[];
+    contexts?: string[];
+    energy?: string;
+  } | null;
+}
+
+export async function getUserOnboardingStatus(
+  userId: string,
+): Promise<OnboardingStatus | null> {
+  const r = await sql.query(
+    `SELECT onboarding_completed, play_preferences
+       FROM users WHERE id = $1 LIMIT 1`,
+    [userId],
+  );
+  return r.rows[0] ?? null;
+}
