@@ -10,6 +10,8 @@ interface PlaydateIllustrationProps {
   primaryFunction: string | null;
   /** optional: override the default height (default: 120px) */
   height?: number;
+  /** optional: context tags from the playdate â used to scatter activity-hint motifs */
+  contextTags?: string[];
 }
 
 /**
@@ -386,18 +388,89 @@ function renderPattern(
   return renderDefaultPattern(palette, seed, width, height);
 }
 
+/* ââ activity-hint motifs ââ
+ * Small iconic shapes scattered over the illustration to hint at the
+ * activity's physicality. Each keyword maps to a tiny SVG snippet
+ * rendered at a deterministic position derived from the slug hash.
+ */
+
+const HINT_MOTIFS: Record<string, string> = {
+  // physical actions
+  cut:       `<path d="M-3-2L0 2L3-2M-3 2L0-2L3 2" stroke="${COLORS.redwood}" stroke-width="0.8" fill="none" opacity="0.35"/>`,
+  tear:      `<path d="M-3 0Q0-3 3 0" stroke="${COLORS.sienna}" stroke-width="0.7" fill="none" opacity="0.3" stroke-dasharray="1 0.8"/>`,
+  fold:      `<path d="M-3-1L0 1L3-1" stroke="${COLORS.cadet}" stroke-width="0.7" fill="none" opacity="0.3"/>`,
+  stack:     `<rect x="-2.5" y="-1" width="5" height="2" rx="0.3" fill="${COLORS.cadet}" opacity="0.15"/><rect x="-2" y="-2.5" width="4" height="2" rx="0.3" fill="${COLORS.sienna}" opacity="0.2"/>`,
+  wrap:      `<circle cx="0" cy="0" r="2.5" stroke="${COLORS.sienna}" stroke-width="0.6" fill="none" opacity="0.25" stroke-dasharray="1.5 1"/>`,
+  pour:      `<path d="M-1-3Q0 0 2 3" stroke="${COLORS.sienna}" stroke-width="0.8" fill="none" opacity="0.3" stroke-linecap="round"/>`,
+  squeeze:   `<ellipse cx="0" cy="0" rx="2" ry="3" fill="${COLORS.redwood}" opacity="0.12"/>`,
+  roll:      `<circle cx="0" cy="0" r="2" fill="none" stroke="${COLORS.sienna}" stroke-width="0.6" opacity="0.25"/>`,
+  paint:     `<path d="M-2 2L0-3L2 2" fill="${COLORS.redwood}" opacity="0.15"/><line x1="0" y1="-3" x2="0" y2="3" stroke="${COLORS.sienna}" stroke-width="0.5" opacity="0.25"/>`,
+  draw:      `<path d="M-3 2Q0-2 3 1" stroke="${COLORS.cadet}" stroke-width="0.7" fill="none" opacity="0.3" stroke-linecap="round"/>`,
+  stamp:     `<rect x="-2" y="-2" width="4" height="4" rx="0.5" fill="${COLORS.redwood}" opacity="0.12"/>`,
+  weave:     `<path d="M-3 0Q-1.5-2 0 0Q1.5 2 3 0" stroke="${COLORS.sienna}" stroke-width="0.6" fill="none" opacity="0.3"/>`,
+  // material hints
+  water:     `<path d="M-2 0Q0-3 2 0Q0 3-2 0Z" fill="${COLORS.cadet}" opacity="0.12"/>`,
+  paper:     `<rect x="-2.5" y="-2" width="5" height="4" rx="0.3" fill="${COLORS.champagne}" stroke="${COLORS.sienna}" stroke-width="0.4" opacity="0.3"/>`,
+  clay:      `<ellipse cx="0" cy="0" rx="3" ry="2" fill="${COLORS.sienna}" opacity="0.15"/>`,
+  sand:      `<circle cx="-1" cy="1" r="0.6" fill="${COLORS.sienna}" opacity="0.3"/><circle cx="1" cy="0" r="0.5" fill="${COLORS.sienna}" opacity="0.25"/><circle cx="0" cy="-1" r="0.4" fill="${COLORS.sienna}" opacity="0.2"/>`,
+  fabric:    `<line x1="-3" y1="-1" x2="3" y2="-1" stroke="${COLORS.cadet}" stroke-width="0.3" opacity="0.2"/><line x1="-3" y1="1" x2="3" y2="1" stroke="${COLORS.cadet}" stroke-width="0.3" opacity="0.2"/>`,
+  string:    `<path d="M-3 1Q0-2 3 1" stroke="${COLORS.sienna}" stroke-width="0.7" fill="none" opacity="0.3"/>`,
+  glue:      `<ellipse cx="0" cy="0" rx="1.5" ry="2" fill="${COLORS.champagne}" opacity="0.35"/>`,
+  tape:      `<rect x="-3" y="-0.8" width="6" height="1.6" rx="0.3" fill="${COLORS.champagne}" opacity="0.3" stroke="${COLORS.sienna}" stroke-width="0.3"/>`,
+  bubble:    `<circle cx="0" cy="0" r="2.5" fill="none" stroke="${COLORS.cadet}" stroke-width="0.5" opacity="0.2"/>`,
+  leaf:      `<path d="M0-3Q3 0 0 3Q-3 0 0-3Z" fill="${COLORS.sage}" opacity="0.2"/>`,
+  stick:     `<line x1="-2" y1="3" x2="2" y2="-3" stroke="${COLORS.sienna}" stroke-width="0.8" opacity="0.25" stroke-linecap="round"/>`,
+};
+
+/**
+ * Pick up to 3 hint motifs from the context tags and scatter them
+ * at deterministic positions across the illustration.
+ */
+function renderActivityHints(
+  contextTags: string[],
+  seed: number,
+  width: number,
+  height: number,
+): string {
+  if (contextTags.length === 0) return "";
+
+  const joined = contextTags.join(" ").toLowerCase();
+  const matched: string[] = [];
+
+  for (const [keyword, motif] of Object.entries(HINT_MOTIFS)) {
+    if (joined.includes(keyword)) matched.push(motif);
+    if (matched.length >= 3) break;
+  }
+
+  if (matched.length === 0) return "";
+
+  let svg = "";
+  for (let i = 0; i < matched.length; i++) {
+    // deterministic placement: spread across the width, varied y
+    const x = (width * (0.2 + seededRandom(seed, 100 + i) * 0.6));
+    const y = (height * (0.25 + seededRandom(seed, 110 + i) * 0.5));
+    const scale = 1.2 + seededRandom(seed, 120 + i) * 0.6;
+    svg += `<g transform="translate(${x},${y}) scale(${scale})">${matched[i]}</g>`;
+  }
+
+  return svg;
+}
+
 /**
  * PlaydateIllustration component
- * Generates a deterministic abstract SVG pattern for a playdate card.
+ * Generates a deterministic abstract SVG pattern for a playdate card,
+ * with optional activity-hint motifs derived from context tags.
  */
 export function PlaydateIllustration({
   slug,
   primaryFunction,
   height = 120,
+  contextTags = [],
 }: PlaydateIllustrationProps) {
   const seed = hashSlug(slug);
   const width = 100; // as percentage, will fill container
   const svgPattern = renderPattern(primaryFunction, seed, width, height);
+  const hints = renderActivityHints(contextTags, seed, width, height);
 
   return (
     <svg
@@ -411,7 +484,10 @@ export function PlaydateIllustration({
       <rect width={width} height={height} fill="#ffffff" opacity="0.5" />
 
       {/* Pattern */}
-      <g>{svgPattern}</g>
+      <g dangerouslySetInnerHTML={{ __html: svgPattern }} />
+
+      {/* Activity-hint motifs */}
+      {hints && <g dangerouslySetInnerHTML={{ __html: hints }} />}
     </svg>
   );
 }
