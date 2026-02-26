@@ -11,6 +11,12 @@ export const dynamic = "force-dynamic";
 
 const sections = [
   {
+    title: "playdates",
+    href: "/admin/playdates",
+    description: "full catalog view — sampler, campaign, and internal-only channels",
+    icon: "🎯",
+  },
+  {
     title: "entitlements",
     href: "/admin/entitlements",
     description: "grant and revoke pack access for organisations",

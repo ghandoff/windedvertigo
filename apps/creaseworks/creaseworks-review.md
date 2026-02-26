@@ -20,7 +20,7 @@ The four-tier access model (sampler → explorer → practitioner → collective
 
 ### bugs and data issues spotted
 
-1. **"function tag scavenger" has a broken headline** — the text "find objects. name functions. make play." repeats 3 times in the headline field. This is a Notion data issue, not a code bug. Fix it in the Notion playdates database.
+1. ~~**"function tag scavenger" has a broken headline** — the text "find objects. name functions. make play." repeats 3 times in the headline field. This is a Notion data issue, not a code bug. Fix it in the Notion playdates database.~~ **RESOLVED (session 22)** — headline rewritten during child-friendly rewrite pass. Now reads: "find three things nearby and turn them into something you can play with."
 
 2. **Packs page shows a blank draft card** — the left pack card on `/packs` has no title, no description, just "0 playdates" and a DRAFT badge. Either hide packs with no title or clean up the Notion packs database.
 
@@ -32,7 +32,7 @@ The four-tier access model (sampler → explorer → practitioner → collective
 
 5. **Playdate cards lack visual hierarchy.** Every card looks the same — title, headline, function tags, friction dial, "find again." There's no imagery, no color differentiation, and no indicator of popularity or "great for beginners." The grid feels like a catalog rather than an invitation.
 
-6. **The sampler page subtitle says "all ready playdates synced from Notion. drafts are hidden."** This reads like developer-facing copy. Change it to something user-facing like "simple playdates you can try right now — no account needed."
+6. ~~**The sampler page subtitle says "all ready playdates synced from Notion. drafts are hidden."** This reads like developer-facing copy. Change it to something user-facing like "simple playdates you can try right now — no account needed."~~ **RESOLVED (session 22)** — subtitle updated, and sampler now shows only 5 curated playdates (public view is the same for admins and visitors).
 
 7. **Collection detail pages have no "try this playdate" CTA.** The playdate cards inside a collection don't link anywhere clickable. Users see the grid but can't open a playdate detail from here (the sampler/[slug] route exists but there's no link from the collection view).
 
@@ -103,6 +103,28 @@ Currently there's only 1 pack (co-design essentials, $49.99, DRAFT). Packs are t
 | **the whole collection** | $79 | all 20 playdates unlocked, full collection access | completionists, schools |
 | **new baby sibling** | $19 | 4 playdates designed for involving a toddler alongside an older child | parents with 2+ kids |
 
+### wish list — session 22 additions
+
+These are feature requests captured during session 22 that should be planned into future work:
+
+**L. Revisitable onboarding survey / context switching.** The 4-item playdate profile (ages, setting, materials, energy level) should not be a one-time wizard. Users need to revisit and toggle it for different contexts — at home vs. traveling, at school vs. with friends. Consider a persistent "play context" switcher in the nav or profile that re-runs the matcher filters without re-doing the full onboarding. Teachers especially may use creaseworks in school but also at home or with friends.
+
+**M. Scavenger hunt package as a separate access point.** Campaigns (now supported via `/campaign/[slug]`) let people discover playdates through scavenger hunts. But the user wants a full *package* for scavenger hunts — a standalone access point similar to the sampler, focused exclusively on campaign scenarios. This would be a dedicated page (e.g., `/scavenger`) that aggregates all campaign-tagged playdates, provides a hunt-style navigation experience, and could be gated behind its own entitlement or shared via invite links.
+
+**N. Complimentary subscriptions by email address.** Allow admins to grant free access to specific email addresses — colleagues, friends, schools, pilot partners. These would bypass domain verification and map to a specific entitlement tier (explorer or practitioner). Implementation could extend the existing `grantEntitlement()` function with an email-based invite system: admin enters an email → system creates a pending entitlement → recipient signs up/in with that email and gets auto-entitled. Consider a simple `/admin/invites` UI for managing these.
+
+### session 22 accomplishments
+
+*February 25–26, 2026*
+
+- **Sampler reduced to 5 curated playdates** — moved 19 playdates from `release_channel = 'sampler'` to `'internal-only'`. The 5 remaining (shadow-tracker, cloud-cartographer, leaf-press-telegraph, function-tag-scavenger, kek-loop-micro-experience) are all `ip_tier = 'standard'` so the design methodology stays protected.
+- **Admin playdates page** — new route at `/admin/playdates` shows the full catalog grouped by release channel (sampler, campaign, internal-only) with count badges. Admins no longer see everything on the public sampler.
+- **Sampler page fixed** — removed the `isInternal` bypass so admins see the same public view as visitors. Updated subtitle to user-facing copy. Always shows "start here" recommendation block.
+- **Campaign system built** — migration 020 adds `campaign_tags TEXT[]` column with GIN index. New `getCampaignPlaydates()` query function. New `/campaign/[slug]` public landing page with per-campaign metadata.
+- **Acetate campaign launched** — 3 playdates tagged with `'acetate'`: acetate-color-mixer, colored-shadow-puppets, kitchen-dye-spectrum. Live at `/campaign/acetate`.
+- **Child-friendly rewrite** — all 30 playdate headlines, find & unfold text, and related copy rewritten for parent/child audience (completed earlier in session).
+- **Function-tag-scavenger headline fixed** — no longer triple-repeated; now reads "find three things nearby and turn them into something you can play with."
+
 ---
 
 ## part 4: codebase audit summary
@@ -135,9 +157,15 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 
 ## recommended next session priorities
 
-1. **Fix the data issues** — clean up "function tag scavenger" headline in Notion, hide or delete the blank draft pack
+*Updated session 22*
+
+1. ~~**Fix the data issues** — clean up "function tag scavenger" headline in Notion, hide or delete the blank draft pack~~ **DONE** (headline fixed; blank pack still needs cleanup)
 2. **Wire playdate card links in collection views** — make cards clickable through to the detail page
 3. **Add the quick-log "mark as tried" button** — lowest-friction way to build engagement
 4. **Pre-select linked playdate in reflection form** via query param
 5. **Author 2-3 new collections in Notion** — start with story builders and nature detectives to broaden the portfolio
 6. **Create and publish the "rainy day rescue" pack** — a $19 entry-point pack to validate the purchase flow end-to-end
+7. **Build the scavenger hunt package page** — dedicated `/scavenger` access point aggregating all campaign-tagged playdates (wish list item M)
+8. **Implement revisitable onboarding / play context switcher** — let users toggle their playdate profile for different settings (wish list item L)
+9. **Build complimentary invite system** — `/admin/invites` for granting email-based entitlements (wish list item N)
+10. **Update Notion release_channel values** — the 19 playdates moved to `internal-only` in Postgres need their Notion records updated so future syncs don't overwrite the change

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTeaserPlaydates, getAllReadyPlaydates } from "@/lib/queries/playdates";
+import { getTeaserPlaydates } from "@/lib/queries/playdates";
 import { getSession } from "@/lib/auth-helpers";
 import { getUserOnboardingStatus } from "@/lib/queries/users";
 import { PlaydateCard } from "@/components/ui/playdate-card";
@@ -18,12 +18,10 @@ export const revalidate = 3600;
 
 export default async function SamplerPage() {
   const session = await getSession();
-  const isInternal = session?.isInternal ?? false;
 
-  // Internal users see all ready playdates; everyone else sees sampler only
-  const playdates = isInternal
-    ? await getAllReadyPlaydates()
-    : await getTeaserPlaydates();
+  // Everyone sees sampler-channel playdates only.
+  // Admins who need the full catalog should use /admin/playdates.
+  const playdates = await getTeaserPlaydates();
 
   // Check if signed-in user needs onboarding
   const onboarding = session
@@ -38,12 +36,11 @@ export default async function SamplerPage() {
           &larr; creaseworks
         </Link>
         <h1 className="text-3xl font-semibold tracking-tight mb-2">
-          {isInternal ? "all playdates" : "playdate sampler"}
+          playdate sampler
         </h1>
         <p className="text-cadet/60 max-w-lg">
-          {isInternal
-            ? "every playdate we've published so far. drafts are hidden from this view."
-            : "free previews of every playdate. each card gives you a taste — grab a pack to unlock the full guide, materials list, and find again prompts."}
+          simple playdates you can try right now — no account needed.
+          grab a pack to unlock the full guide, materials list, and find-again prompts.
         </p>
       </header>
 
@@ -70,7 +67,7 @@ export default async function SamplerPage() {
       )}
 
       {/* start here — recommend a low-friction quick-start playdate */}
-      {!needsOnboarding && !isInternal && playdates.length > 0 && (() => {
+      {!needsOnboarding && playdates.length > 0 && (() => {
         // Use preferences to pick a better match if available
         const prefs = onboarding?.play_preferences;
         const energyPref = prefs?.energy;
