@@ -23,7 +23,7 @@ import {
   getDistinctSlots,
   getDistinctContexts,
 } from "@/lib/queries/matcher";
-import MatcherInputForm from "@/components/ui/matcher-input-form";
+import MatcherInputForm from "@/components/matcher/matcher-input-form";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;

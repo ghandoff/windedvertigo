@@ -23,6 +23,7 @@ export const PLAYDATE_TEASER_COLUMNS = [
   "start_in_120s",
   "required_forms",
   "rails_sentence",
+  "age_range",
 ] as const;
 
 /** Entitled tier — authenticated users whose org owns the pack. */

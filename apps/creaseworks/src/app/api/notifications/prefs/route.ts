@@ -24,7 +24,11 @@ export async function GET() {
  * PATCH /api/notifications/prefs
  *
  * Update notification preferences. Accepts:
- * { digestEnabled?: boolean, digestFrequency?: "weekly" | "never" }
+ * {
+ *   digestEnabled?: boolean,
+ *   digestFrequency?: "weekly" | "biweekly" | "never",
+ *   nudgeEnabled?: boolean
+ * }
  */
 export async function PATCH(request: Request) {
   const session = await getSession();
@@ -34,17 +38,31 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const updates: { digestEnabled?: boolean; digestFrequency?: "weekly" | "never" } = {};
+    const updates: {
+      digestEnabled?: boolean;
+      digestFrequency?: "weekly" | "biweekly" | "never";
+      nudgeEnabled?: boolean;
+    } = {};
 
     if (typeof body.digestEnabled === "boolean") {
       updates.digestEnabled = body.digestEnabled;
     }
-    if (body.digestFrequency === "weekly" || body.digestFrequency === "never") {
+    if (
+      body.digestFrequency === "weekly" ||
+      body.digestFrequency === "biweekly" ||
+      body.digestFrequency === "never"
+    ) {
       updates.digestFrequency = body.digestFrequency;
+    }
+    if (typeof body.nudgeEnabled === "boolean") {
+      updates.nudgeEnabled = body.nudgeEnabled;
     }
 
     if (Object.keys(updates).length === 0) {
-      return NextResponse.json({ error: "no valid fields to update" }, { status: 400 });
+      return NextResponse.json(
+        { error: "no valid fields to update" },
+        { status: 400 },
+      );
     }
 
     // If toggling digest on, set frequency to weekly; if off, set to never

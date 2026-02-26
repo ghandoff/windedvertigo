@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { getTeaserPlaydates } from "@/lib/queries/playdates";
 import { getSession } from "@/lib/auth-helpers";
 import { getUserOnboardingStatus } from "@/lib/queries/users";
+import { getRunsForUser } from "@/lib/queries/runs";
 import { PlaydateCard } from "@/components/ui/playdate-card";
+import StartHereCard from "@/components/start-here-card";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -44,6 +46,13 @@ export default async function SamplerPage() {
     ? await getUserOnboardingStatus(session.userId)
     : null;
   const needsOnboarding = session && onboarding && !onboarding.onboarding_completed;
+
+  // Check if user has any runs logged
+  let userRuns = [];
+  if (session && !needsOnboarding) {
+    userRuns = await getRunsForUser(session, 1, 0);
+  }
+  const hasRuns = userRuns.length > 0;
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-5xl mx-auto">
@@ -103,6 +112,25 @@ export default async function SamplerPage() {
           (p: TeaserPlaydate) => p.friction_dial !== null && p.friction_dial <= 2 && p.start_in_120s,
         ) ?? playdates[0];
 
+        // Show "start here" card for logged-in users with no runs
+        if (session && !hasRuns) {
+          return (
+            <StartHereCard
+              slug={pick.slug}
+              title={pick.title}
+              headline={pick.headline}
+              primaryFunction={pick.primary_function}
+              arcEmphasis={pick.arc_emphasis ?? []}
+              contextTags={pick.context_tags ?? []}
+              frictionDial={pick.friction_dial}
+              startIn120s={pick.start_in_120s}
+              hasFindAgain={pick.has_find_again}
+              runCount={pick.run_count}
+            />
+          );
+        }
+
+        // Otherwise show the standard recommendation link
         return (
           <Link
             href={`/sampler/${pick.slug}`}

@@ -14,6 +14,7 @@ import {
 } from "@/lib/queries/collections";
 import { PlaydateCard, type ProgressTier } from "@/components/ui/playdate-card";
 import QuickLogButton from "@/components/ui/quick-log-button";
+import CollectionExportButton from "@/components/collection-export-button";
 
 export const dynamic = "force-dynamic";
 
@@ -76,23 +77,29 @@ export default async function CollectionDetailPage({ params }: Props) {
         &larr; back to playbook
       </Link>
 
-      {/* header */}
-      <div className="flex items-start gap-3 mb-2">
-        {collection.icon_emoji && (
-          <span className="text-3xl leading-none mt-1" aria-hidden>
-            {collection.icon_emoji}
-          </span>
-        )}
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {collection.title}
-          </h1>
-          {collection.description && (
-            <p className="text-cadet/50 text-sm mt-1">
-              {collection.description}
-            </p>
+      {/* header with export button */}
+      <div className="flex items-start justify-between gap-4 mb-2">
+        <div className="flex items-start gap-3">
+          {collection.icon_emoji && (
+            <span className="text-3xl leading-none mt-1" aria-hidden>
+              {collection.icon_emoji}
+            </span>
           )}
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {collection.title}
+            </h1>
+            {collection.description && (
+              <p className="text-cadet/50 text-sm mt-1">
+                {collection.description}
+              </p>
+            )}
+          </div>
         </div>
+        <CollectionExportButton
+          collectionSlug={collection.slug}
+          collectionTitle={collection.title}
+        />
       </div>
 
       {/* progress bar */}

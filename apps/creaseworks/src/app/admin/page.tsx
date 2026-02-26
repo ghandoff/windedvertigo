@@ -29,6 +29,12 @@ const sections = [
     icon: "✉️",
   },
   {
+    title: "gallery",
+    href: "/admin/gallery",
+    description: "review and approve community gallery submissions",
+    icon: "🖼️",
+  },
+  {
     title: "domains",
     href: "/admin/domains",
     description: "manage the email domain blocklist",

@@ -13,8 +13,10 @@ import { sql } from "@/lib/db";
 export interface NotificationPrefs {
   userId: string;
   digestEnabled: boolean;
-  digestFrequency: "weekly" | "never";
+  digestFrequency: "weekly" | "biweekly" | "never";
   lastDigestAt: string | null;
+  nudgeEnabled?: boolean;
+  lastNudgeAt?: string | null;
 }
 
 export interface DigestUser {
@@ -48,15 +50,17 @@ export async function getOrCreatePrefs(
     `INSERT INTO user_notification_prefs (user_id)
      VALUES ($1)
      ON CONFLICT (user_id) DO UPDATE SET updated_at = NOW()
-     RETURNING user_id, digest_enabled, digest_frequency, last_digest_at`,
+     RETURNING user_id, digest_enabled, digest_frequency, last_digest_at, nudge_enabled, last_nudge_sent_at`,
     [userId],
   );
   const row = r.rows[0];
   return {
     userId: row.user_id,
     digestEnabled: row.digest_enabled,
-    digestFrequency: row.digest_frequency,
+    digestFrequency: row.digest_frequency as "weekly" | "biweekly" | "never",
     lastDigestAt: row.last_digest_at,
+    nudgeEnabled: row.nudge_enabled ?? true,
+    lastNudgeAt: row.last_nudge_sent_at,
   };
 }
 
@@ -65,7 +69,11 @@ export async function getOrCreatePrefs(
  */
 export async function updatePrefs(
   userId: string,
-  prefs: { digestEnabled?: boolean; digestFrequency?: "weekly" | "never" },
+  prefs: {
+    digestEnabled?: boolean;
+    digestFrequency?: "weekly" | "biweekly" | "never";
+    nudgeEnabled?: boolean;
+  },
 ): Promise<void> {
   const sets: string[] = ["updated_at = NOW()"];
   const vals: any[] = [];
@@ -79,6 +87,11 @@ export async function updatePrefs(
   if (prefs.digestFrequency !== undefined) {
     sets.push(`digest_frequency = $${i}`);
     vals.push(prefs.digestFrequency);
+    i++;
+  }
+  if (prefs.nudgeEnabled !== undefined) {
+    sets.push(`nudge_enabled = $${i}`);
+    vals.push(prefs.nudgeEnabled);
     i++;
   }
 
@@ -98,17 +111,23 @@ export async function updatePrefs(
  * Users eligible for a digest right now:
  * - email_verified = true
  * - digest_enabled = true (or no prefs row yet → default enabled)
- * - last_digest_at is NULL or > 6 days ago (safety margin for weekly)
+ * - Frequency-specific eligibility:
+ *   - weekly: last_digest_at is NULL or > 6 days ago
+ *   - biweekly: last_digest_at is NULL or > 13 days ago
  */
 export async function getDigestEligibleUsers(): Promise<DigestUser[]> {
   const r = await sql.query(`
-    SELECT u.id, u.email, u.name, np.last_digest_at
+    SELECT u.id, u.email, u.name, np.last_digest_at, COALESCE(np.digest_frequency, 'weekly') AS freq
     FROM users u
     LEFT JOIN user_notification_prefs np ON np.user_id = u.id
     WHERE u.email_verified = TRUE
       AND COALESCE(np.digest_enabled, TRUE) = TRUE
-      AND COALESCE(np.digest_frequency, 'weekly') = 'weekly'
-      AND (np.last_digest_at IS NULL OR np.last_digest_at < NOW() - INTERVAL '6 days')
+      AND COALESCE(np.digest_frequency, 'weekly') IN ('weekly', 'biweekly')
+      AND (
+        (COALESCE(np.digest_frequency, 'weekly') = 'weekly' AND (np.last_digest_at IS NULL OR np.last_digest_at < NOW() - INTERVAL '6 days'))
+        OR
+        (np.digest_frequency = 'biweekly' AND (np.last_digest_at IS NULL OR np.last_digest_at < NOW() - INTERVAL '13 days'))
+      )
   `);
   return r.rows.map((row: any) => ({
     id: row.id,
@@ -235,4 +254,95 @@ export async function markDigestSent(userId: string): Promise<void> {
      ON CONFLICT (user_id) DO UPDATE SET last_digest_at = NOW(), updated_at = NOW()`,
     [userId],
   );
+}
+
+/* ------------------------------------------------------------------ */
+/*  nudge / re-engagement emails                                       */
+/* ------------------------------------------------------------------ */
+
+export interface NudgeUser {
+  id: string;
+  email: string;
+  name: string | null;
+  daysInactive: number;
+}
+
+/**
+ * Users eligible for a nudge email:
+ * - email_verified = true
+ * - nudge_enabled = true
+ * - last_active_at is more than 14 days ago
+ * - last_nudge_sent_at is null or more than 7 days ago (don't spam)
+ */
+export async function getNudgeEligibleUsers(): Promise<NudgeUser[]> {
+  const r = await sql.query(`
+    SELECT
+      u.id,
+      u.email,
+      u.name,
+      EXTRACT(DAY FROM NOW() - COALESCE(u.last_active_at, u.created_at))::int AS days_inactive
+    FROM users u
+    LEFT JOIN user_notification_prefs np ON np.user_id = u.id
+    WHERE u.email_verified = TRUE
+      AND COALESCE(np.nudge_enabled, TRUE) = TRUE
+      AND COALESCE(u.last_active_at, u.created_at) < NOW() - INTERVAL '14 days'
+      AND (np.last_nudge_sent_at IS NULL OR np.last_nudge_sent_at < NOW() - INTERVAL '7 days')
+    ORDER BY u.created_at ASC
+    LIMIT 100
+  `);
+  return r.rows.map((row: any) => ({
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    daysInactive: row.days_inactive,
+  }));
+}
+
+/**
+ * Get a single untried playdate recommendation for a nudge email.
+ * Tries to pick something accessible (shorter, common materials).
+ */
+export async function getNudgeRecommendation(
+  userId: string,
+): Promise<{ title: string; slug: string; headline: string | null } | null> {
+  const r = await sql.query(
+    `SELECT pc.title, pc.slug, pc.headline
+     FROM playdates_cache pc
+     WHERE pc.status = 'published'
+       AND NOT EXISTS (
+         SELECT 1 FROM playdate_progress pp
+         WHERE pp.user_id = $1 AND pp.playdate_id = pc.id
+       )
+     ORDER BY RANDOM()
+     LIMIT 1`,
+    [userId],
+  );
+  if (!r.rows[0]) return null;
+  const row = r.rows[0];
+  return {
+    title: row.title,
+    slug: row.slug,
+    headline: row.headline,
+  };
+}
+
+/**
+ * Record that a nudge email was sent to a user.
+ */
+export async function markNudgeSent(userId: string): Promise<void> {
+  await sql.query(
+    `INSERT INTO user_notification_prefs (user_id, last_nudge_sent_at)
+     VALUES ($1, NOW())
+     ON CONFLICT (user_id) DO UPDATE SET last_nudge_sent_at = NOW(), updated_at = NOW()`,
+    [userId],
+  );
+}
+
+/**
+ * Update last_active_at for a user (called from activity endpoints).
+ */
+export async function updateLastActive(userId: string): Promise<void> {
+  await sql.query(`UPDATE users SET last_active_at = NOW() WHERE id = $1`, [
+    userId,
+  ]);
 }

@@ -23,21 +23,23 @@ export async function POST(req: NextRequest) {
   const forms = Array.isArray(body.forms) ? body.forms : [];
   const slots = Array.isArray(body.slots) ? body.slots : [];
   const contexts = Array.isArray(body.contexts) ? body.contexts : [];
+  const energyLevels = Array.isArray(body.energyLevels) ? body.energyLevels : [];
 
   // at least one filter required
   if (
     materials.length === 0 &&
     forms.length === 0 &&
     slots.length === 0 &&
-    contexts.length === 0
+    contexts.length === 0 &&
+    energyLevels.length === 0
   ) {
     return NextResponse.json(
-      { error: "at least one filter is required (materials, forms, slots, or contexts)" },
+      { error: "at least one filter is required (materials, forms, slots, contexts, or energyLevels)" },
       { status: 400 },
     );
   }
 
-  const input: MatcherInput = { materials, forms, slots, contexts };
+  const input: MatcherInput = { materials, forms, slots, contexts, energyLevels };
 
   // optional auth â matcher is public but entitled users get extra fields
   const session = await getSession();
@@ -54,7 +56,7 @@ export async function POST(req: NextRequest) {
       null,
       "matcher_search",
       ip,
-      ["materials", "forms", "slots", "contexts"],
+      ["materials", "forms", "slots", "contexts", "energyLevels"],
     );
   }
 

@@ -135,7 +135,7 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 
 **Priority: medium**
 
-- **5 large files should be split.** `matcher-input-form.tsx` (712 lines), `run-form.tsx` (525), `pdf/route.ts` (606), `queries/runs.ts` (513), `queries/matcher.ts` (512). Extract sub-components and scoring logic into separate files.
+- ~~**5 large files should be split.** `matcher-input-form.tsx` (712 lines), `run-form.tsx` (525), `pdf/route.ts` (606), `queries/runs.ts` (513), `queries/matcher.ts` (512). Extract sub-components and scoring logic into separate files.~~ **RESOLVED (session 26)** — all 5 files split into directory modules with backward-compatible re-exports.
 
 - ~~**Sync module duplication.** All 5 sync handlers (materials, playdates, runs, collections, packs) share ~40% identical structure. Extract a generic `syncCacheTable()` utility.~~ **RESOLVED (session 25)** — new `sync-cache-table.ts` with generic `syncCacheTable<T>()` orchestrator; all 5 handlers refactored to use it.
 
@@ -157,7 +157,7 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 
 ## recommended next session priorities
 
-*Updated session 25*
+*Updated session 26*
 
 1. ~~**Fix the data issues** — clean up "function tag scavenger" headline in Notion, hide or delete the blank draft pack~~ **DONE** (headline fixed session 22; blank pack deleted from DB session 23)
 2. ~~**Wire playdate card links in collection views** — make cards clickable through to the detail page~~ **DONE** (already wired via `href` prop in session 23)
@@ -197,3 +197,23 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 - **Notion content: 6 new collections live** — story builders, nature detectives, color lab, body movers, quiet makers, fix-it shop. Total: 12 collections with playdates assigned.
 - **Notion content: rainy day rescue pack** — 5 indoor zero-prep playdates, status: ready. First entry-point pack at $19.
 - **All code audit findings resolved** — every actionable item from Part 4 (sync duplication, `any` types, API boilerplate) is now addressed. Remaining item: split 5 large files (712/525/606/513/512 lines).
+
+### session 26 accomplishments
+
+*February 26, 2026*
+
+- **5 large file splits completed** — all Part 4 code cleanup done. `matcher-input-form.tsx` (712 lines) → `src/components/matcher/` (6 files: types, filter-section, pill, use-matcher-state hook, matcher-results, main component). `run-form.tsx` (525 lines) → `src/components/ui/run-form/` (6 files: types, use-run-form-state hook, essentials, optional fields, actions, main component). `pdf/route.ts` (606 lines) → `src/app/api/playdates/[playdateId]/pdf/` (6 files: types, constants, utils, sections, pdf-generator, route). `queries/runs.ts` (513 lines) → `src/lib/queries/runs/` (6 files: types, list, detail, mutations, export, picker + index.ts re-exports). `queries/matcher.ts` (512 lines) → `src/lib/queries/matcher/` (6 files: types, picker, candidate-cache, scoring, orchestrator + index.ts re-exports). All backward-compatible via re-export indexes.
+- **Feature A: Playdate detail links audit** — verified all card surfaces already properly linked to `/sampler/[slug]`. No changes needed.
+- **Feature B: First-visit onboarding** — `FirstVisitBanner` component (dismissible, CTA to /onboarding) shown on playbook page when user has no play contexts. `StartHereCard` badge wrapper highlights shadow-tracker for new users on sampler page.
+- **Feature C: Community gallery** — migration 024 adds `shared_to_gallery`, `gallery_approved`, `gallery_shared_at` columns to `run_evidence` with partial indexes. Full query layer (`gallery.ts`, 10 functions). API routes for public feed, share toggle, and admin moderation. Public gallery page at `/gallery` with masonry grid. Admin moderation at `/admin/gallery`.
+- **Feature D: Email digest / nudge system** — migration 025 adds biweekly digest option, `nudge_enabled`, `last_nudge_sent_at`, and `last_active_at` tracking. Nudge email template via Resend. Daily cron at `/api/cron/send-nudges` (08:00 UTC). Enhanced notification preferences UI with digest + nudge sections.
+- **Feature E: Playdate card thumbnails** — `PlaydateIllustration` component generates deterministic SVG patterns from playdate slug hash, mapped to function tags (observe→circles, construct→blocks, explore→waves, imagine→stars, move→zigzags, etc.). Integrated into every `PlaydateCard`.
+- **Feature F: Age range indicators** — migration 023 adds `age_range` and `energy_level` columns to `playdates_cache`. Sync handler extracts from Notion. Cards display age range tags.
+- **Feature G: Energy level signal** — friction dial translated to parent-friendly labels: 1-2 → "calm" 🌿, 3 → "moderate" 🌤️, 4-5 → "active" ⚡. Matcher accepts `energyLevels` filter parameter.
+- **Feature I: Seasonal recommendations** — `src/lib/seasonal.ts` utility (season detection + tag mapping), `src/lib/queries/seasonal.ts` (array overlap queries), `SeasonalBanner` server component on playbook page, `/api/seasonal` public endpoint. Winter shows ❄️ cozy indoor picks, spring shows 🌱 outdoor garden activities, etc.
+- **Feature J: PDF batch export** — `/api/collections/[slug]/pdf` generates multi-page booklets with cover page, table of contents, and individual playdate pages. Reuses existing pdf-lib infrastructure. `CollectionExportButton` client component on collection detail pages.
+- **Feature K: Co-play mode** — migration 026 adds `co_play_invite_code`, `co_play_parent_id`, `co_play_reflections` JSONB to `runs_cache`. Full query layer with invite code generation, join flow, and reflection storage. API routes for enabling co-play, joining, and submitting reflections. Public join page at `/co-play/[code]`, reflection form, and `CoPlayInvite` component for run detail views.
+- **4 new packs in Notion** — classroom starter ($39, 8 playdates for K-3 teachers), summer play camp ($29, 6 outdoor playdates), the whole collection ($79, all 20 playdates), new baby sibling ($19, 4 sibling-friendly playdates).
+- **Migrations 023–026 live** — all four executed successfully in Neon production.
+- **Source files: 189 → 223** — net +34 files from feature additions and file splits.
+- **All Part 2 recommendations (A–K) resolved.** Every feature from the original review is now implemented. All Part 4 code audit items complete.

@@ -19,7 +19,10 @@ import {
   recomputeUserProgress,
 } from "@/lib/queries/collections";
 import { getRunsForUser, type RunRow } from "@/lib/queries/runs";
+import { getUserOnboardingStatus } from "@/lib/queries/users";
 import CollectionCard from "@/components/ui/collection-card";
+import FirstVisitBanner from "@/components/first-visit-banner";
+import SeasonalBanner from "@/components/seasonal-banner";
 
 export const dynamic = "force-dynamic";
 
@@ -30,16 +33,18 @@ export default async function PlaybookPage() {
   await recomputeUserProgress(session.userId);
 
   // Fetch everything in parallel
-  const [collections, summary, arcs, suggestion, recentRuns] =
+  const [collections, summary, arcs, suggestion, recentRuns, onboarding] =
     await Promise.all([
       getCollectionsWithProgress(session.userId),
       getUserProgressSummary(session.userId),
       getArcCoverage(session.userId),
       getNextSuggestion(session.userId),
       getRunsForUser(session, 5, 0),
+      getUserOnboardingStatus(session.userId),
     ]);
 
   const hasProgress = summary.total_tried > 0;
+  const hasPlayContexts = onboarding && onboarding.play_contexts.length > 0;
 
   return (
     <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
@@ -50,6 +55,9 @@ export default async function PlaybookPage() {
       <p className="text-cadet/50 text-sm mb-8">
         your collections, badges, and play history — all in one place.
       </p>
+
+      {/* ── first-visit banner for users with no play contexts ── */}
+      {!hasPlayContexts && <FirstVisitBanner />}
 
       {/* ── section 1: progress summary ── */}
       {hasProgress && (
@@ -170,7 +178,10 @@ export default async function PlaybookPage() {
         </div>
       </Link>
 
-      {/* ── section 3: recent reflections ── */}
+      {/* ── section 3: seasonal recommendations ── */}
+      <SeasonalBanner />
+
+      {/* ── section 4: recent reflections ── */}
       <div className="border-t border-cadet/10 pt-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-cadet">recent reflections</h2>
