@@ -14,6 +14,7 @@
 
 import { useState, useRef, useMemo, useId } from "react";
 import MatcherResultCard from "@/components/ui/matcher-result-card";
+import { MaterialIllustration } from "@/components/material-illustration";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -373,7 +374,9 @@ export default function MatcherInputForm({
                         className="text-xs font-medium uppercase tracking-wider"
                         style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
                       >
-                        {form}
+                        
+                                                <MaterialIllustration formPrimary={form} size={18} />
+                                                {form}
                         {groupSelected > 0 && (
                           <span
                             className="ml-1.5 normal-case tracking-normal"
