@@ -2,7 +2,7 @@
  * NOTION CONTENT FETCHER
  *
  * Fetches content from Notion databases and generates
- * a JSON file for the Package Builder.
+ * JSON files for the Package Builder and static site.
  *
  * Features:
  * - Centralized config (see notion-config.js)
