@@ -14,7 +14,7 @@
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | 225 (.ts + .tsx) |
 | **Migrations** | 026 (latest: co-play-mode) |
-| **Latest commit** | pending (session 27 uncommitted) |
+| **Latest commit** | `78888a7` session 27 |
 | **Last session** | 27 (Feb 26, 2026) |
 
 ## Notion Database IDs
@@ -110,7 +110,7 @@ src/
 
 ### Open UX Items (from review doc Part 1)
 - ✅ **Item 4**: First-visit onboarding — resolved (sessions 23, 26: onboarding wizard + FirstVisitBanner)
-- 🟡 **Item 5**: Card visual hierarchy — partially resolved (session 26: SVG illustrations, age range tags, energy levels; no popularity/beginner signals yet)
+- ✅ **Item 5**: Card visual hierarchy — resolved (sessions 26-27: SVG illustrations, age range tags, energy levels, "great first pick" beginner badge, "🔥 popular" badge for 5+ tries)
 - ✅ **Item 7**: Collection CTA — resolved (session 24, quick-log button + card links)
 - ✅ **Item 8**: Reflection form pre-select — resolved (pre-existing ?playdate= param)
 - ✅ **Item 9**: Playbook prominence — resolved (session 27: homepage redirects logged-in users to /playbook; grammar fix)

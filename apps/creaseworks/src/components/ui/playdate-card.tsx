@@ -173,9 +173,15 @@ export function PlaydateCard({
             </span>
           )}
           {!!runCount && runCount > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-cadet/8 px-2 py-0.5 text-xs font-medium text-cadet/60">
-              <span aria-hidden>&times;</span>{runCount}
-            </span>
+            runCount >= 5 ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-sienna/15 px-2 py-0.5 text-xs font-semibold text-sienna">
+                🔥 popular
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-cadet/8 px-2 py-0.5 text-xs font-medium text-cadet/60">
+                {runCount} {runCount === 1 ? "try" : "tries"}
+              </span>
+            )
           )}
           {!!evidenceCount && evidenceCount > 0 && (
             <span className="text-[10px] text-cadet/30">
