@@ -8,9 +8,10 @@ import {
   extractCheckbox,
   extractLastEdited,
   extractPageId,
+  NotionPage,
 } from "./extract";
 
-function parseMaterialPage(page: any) {
+function parseMaterialPage(page: NotionPage) {
   const props = page.properties;
   return {
     notionId: extractPageId(page),

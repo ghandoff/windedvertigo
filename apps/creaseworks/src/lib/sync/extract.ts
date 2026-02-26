@@ -3,7 +3,16 @@
  * Normalises all string values to lowercase on extract.
  */
 
-type NotionPage = any; // Notion API page object
+import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+
+export type NotionPage = PageObjectResponse;
+
+/**
+ * Notion properties are deeply nested discriminated unions. We use
+ * Record<string, any> here because the SDK's union types make
+ * property-level access extremely verbose without real safety gain —
+ * each extract* helper already does its own runtime type check.
+ */
 type Properties = Record<string, any>;
 
 function norm(value: string | null | undefined): string | null {

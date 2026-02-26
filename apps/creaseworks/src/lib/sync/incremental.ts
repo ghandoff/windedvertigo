@@ -30,6 +30,7 @@ import {
   extractLastEdited,
   extractPageId,
   assertPropertiesExist,
+  NotionPage,
 } from "./extract";
 
 /** Notion property names that must exist on every reflections page. */
@@ -146,7 +147,7 @@ export async function handlePageDeletion(
 /*  per-type upsert helpers (mirrors sync/*.ts but for single pages)   */
 /* ------------------------------------------------------------------ */
 
-async function upsertMaterial(page: any) {
+async function upsertMaterial(page: NotionPage) {
   const props = page.properties;
   const notionId = extractPageId(page);
   const title = extractTitle(props, "material");
@@ -200,7 +201,7 @@ async function upsertMaterial(page: any) {
   `;
 }
 
-async function upsertPlaydate(page: any) {
+async function upsertPlaydate(page: NotionPage) {
   const props = page.properties;
   const notionId = extractPageId(page);
   const title = extractTitle(props, "playdate");
@@ -307,7 +308,7 @@ async function upsertPlaydate(page: any) {
   }
 }
 
-async function upsertPack(page: any) {
+async function upsertPack(page: NotionPage) {
   const props = page.properties;
   const notionId = extractPageId(page);
   const title = extractTitle(props, "pack");
@@ -367,7 +368,7 @@ async function upsertPack(page: any) {
   }
 }
 
-async function upsertRun(page: any) {
+async function upsertRun(page: NotionPage) {
   const props = page.properties;
   const notionId = extractPageId(page);
   assertPropertiesExist(props, REQUIRED_RUN_PROPS, notionId);
@@ -439,7 +440,7 @@ async function upsertRun(page: any) {
   }
 }
 
-async function upsertCollection(page: any) {
+async function upsertCollection(page: NotionPage) {
   const props = page.properties;
   const notionId = extractPageId(page);
   const title = extractTitle(props, "collection");

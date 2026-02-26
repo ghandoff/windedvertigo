@@ -1,4 +1,8 @@
 import { Client } from "@notionhq/client";
+import type {
+  PageObjectResponse,
+  QueryDatabaseResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 
 /**
  * Lazy-initialised Notion client.
@@ -37,20 +41,24 @@ export async function delay(ms: number) {
 /**
  * Paginate through all results of a Notion database query.
  */
-export async function queryAllPages(databaseId: string) {
+export async function queryAllPages(
+  databaseId: string,
+): Promise<PageObjectResponse[]> {
   const client = getNotion();
-  const pages: any[] = [];
+  const pages: PageObjectResponse[] = [];
   let cursor: string | undefined = undefined;
 
   do {
     await delay(RATE_LIMIT_DELAY_MS);
-    const response: any = await client.databases.query({
+    const response: QueryDatabaseResponse = await client.databases.query({
       database_id: databaseId,
       start_cursor: cursor,
       page_size: 100,
     });
-    pages.push(...response.results);
-    cursor = response.has_more ? response.next_cursor : undefined;
+    pages.push(
+      ...(response.results as PageObjectResponse[]),
+    );
+    cursor = response.has_more ? (response.next_cursor ?? undefined) : undefined;
   } while (cursor);
 
   return pages;

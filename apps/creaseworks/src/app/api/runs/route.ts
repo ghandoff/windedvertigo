@@ -12,6 +12,7 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { getRunsForUser, createRun, batchGetRunMaterials } from "@/lib/queries/runs";
 import { logAccess } from "@/lib/queries/audit";
 import { MAX_LENGTHS, checkLength, sanitiseStringArray } from "@/lib/validation";
+import { parseJsonBody } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   const session = await requireAuth();
@@ -42,15 +43,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await requireAuth();
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "invalid request body" },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseJsonBody(req);
+  if (parsed instanceof NextResponse) return parsed;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- runtime-validated below
+  const body = parsed as Record<string, any>;
 
   const { title, playdateId, runType, runDate, contextTags, traceEvidence, whatChanged, nextIteration, materialIds, isFindAgain } = body;
 

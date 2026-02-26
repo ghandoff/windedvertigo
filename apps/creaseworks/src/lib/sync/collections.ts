@@ -9,9 +9,10 @@ import {
   extractRelationIds,
   extractLastEdited,
   extractPageId,
+  NotionPage,
 } from "./extract";
 
-function parseCollectionPage(page: any) {
+function parseCollectionPage(page: NotionPage) {
   const props = page.properties;
   return {
     notionId: extractPageId(page),

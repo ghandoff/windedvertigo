@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { logAccess } from "@/lib/queries/audit";
+import { parseJsonBody } from "@/lib/api-helpers";
 import {
   getAllAdmins,
   addAdminByEmail,
@@ -26,14 +27,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
-  // Audit-2 H2: wrap req.json() in try/catch to return 400 on malformed JSON
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "invalid request body" }, { status: 400 });
-  }
-  const { email } = body;
+  const parsed = await parseJsonBody(req);
+  if (parsed instanceof NextResponse) return parsed;
+  const { email } = parsed as Record<string, unknown>;
 
   if (!email || typeof email !== "string") {
     return NextResponse.json({ error: "email is required" }, { status: 400 });
@@ -58,16 +54,11 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const session = await requireAdmin();
-  // Audit-2 H2: wrap req.json() in try/catch to return 400 on malformed JSON
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "invalid request body" }, { status: 400 });
-  }
-  const { id } = body;
+  const delResult = await parseJsonBody(req);
+  if (delResult instanceof NextResponse) return delResult;
+  const { id } = delResult as Record<string, unknown>;
 
-  if (!id) {
+  if (!id || typeof id !== "string") {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
 

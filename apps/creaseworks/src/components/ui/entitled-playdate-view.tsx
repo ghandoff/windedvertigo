@@ -1,9 +1,40 @@
 import Link from "next/link";
 import DownloadButton from "@/components/ui/download-button";
 
+interface PlaydateData {
+  id: string;
+  slug: string;
+  title: string;
+  headline: string | null;
+  primary_function: string | null;
+  friction_dial: number | null;
+  start_in_120s: boolean;
+  arc_emphasis: string[];
+  required_forms: string[];
+  slots_optional: string[];
+  rails_sentence: string | null;
+  find: string | null;
+  fold: string | null;
+  unfold: string | null;
+  find_again_mode: string | null;
+  find_again_prompt: string | null;
+  slots_notes: string | null;
+  substitutions_notes: string | null;
+  /* collective-only fields (may be absent for entitled tier) */
+  design_rationale?: string | null;
+  developmental_notes?: string | null;
+  author_notes?: string | null;
+}
+
+interface MaterialData {
+  id: string;
+  title: string;
+  form_primary: string | null;
+}
+
 interface EntitledPlaydateViewProps {
-  playdate: any;
-  materials: any[];
+  playdate: PlaydateData;
+  materials: MaterialData[];
   packSlug: string | null;
 }
 
@@ -199,7 +230,7 @@ export default function EntitledPlaydateView({
             what you'll need
           </h2>
           <ul className="space-y-2">
-            {materials.map((m: any) => (
+            {materials.map((m) => (
               <li key={m.id} className="flex items-center gap-2 text-sm">
                 <span className="inline-block rounded-full bg-cadet/5 px-2.5 py-0.5 text-xs font-medium">
                   {m.form_primary}

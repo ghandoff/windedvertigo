@@ -10,6 +10,7 @@ import {
   extractRelationIds,
   extractLastEdited,
   extractPageId,
+  NotionPage,
 } from "./extract";
 
 interface PlaydateRow {
@@ -41,7 +42,7 @@ interface PlaydateRow {
   materialRelationIds: string[];
 }
 
-function parsePlaydatePage(page: any): PlaydateRow {
+function parsePlaydatePage(page: NotionPage): PlaydateRow {
   const props = page.properties;
   const frictionStr = extractSelect(props, "friction dial");
   const frictionDial = frictionStr ? parseInt(frictionStr, 10) : null;

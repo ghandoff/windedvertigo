@@ -10,6 +10,7 @@ import {
   extractLastEdited,
   extractPageId,
   assertPropertiesExist,
+  NotionPage,
 } from "./extract";
 
 /** Notion property names that must exist on every reflections page. */
@@ -22,7 +23,7 @@ const REQUIRED_NOTION_PROPS = [
   "trace evidence captured",
 ];
 
-function parseRunPage(page: any) {
+function parseRunPage(page: NotionPage) {
   const props = page.properties;
   assertPropertiesExist(props, REQUIRED_NOTION_PROPS, page.id);
   const playdateIds = extractRelationIds(props, "playdate");
