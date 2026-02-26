@@ -12,6 +12,7 @@ import {
   recomputeUserProgress,
 } from "@/lib/queries/collections";
 import { PlaydateCard, type ProgressTier } from "@/components/ui/playdate-card";
+import QuickLogButton from "@/components/ui/quick-log-button";
 
 export const dynamic = "force-dynamic";
 
@@ -172,6 +173,12 @@ export default async function CollectionDetailPage({ params }: Props) {
               evidenceCount={p.evidence_count}
               runCount={p.run_count}
               href={`/sampler/${p.slug}`}
+              action={
+                <QuickLogButton
+                  playdateId={p.id}
+                  playdateTitle={p.title}
+                />
+              }
             />
           ))}
         </div>

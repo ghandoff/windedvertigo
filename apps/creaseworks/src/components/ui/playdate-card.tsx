@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+import CardActionSlot from "./card-action-slot";
 
 export type ProgressTier =
   | "tried_it"
@@ -56,6 +58,8 @@ interface PlaydateCardProps {
   runCount?: number;
   /** Override the link href (e.g. for collection context) */
   href?: string;
+  /** Optional slot for an action button (e.g. QuickLogButton) rendered in-card */
+  action?: ReactNode;
 }
 
 export function PlaydateCard({
@@ -72,6 +76,7 @@ export function PlaydateCard({
   evidenceCount,
   runCount,
   href,
+  action,
 }: PlaydateCardProps) {
   const badge = progressTier ? TIER_BADGE[progressTier] : null;
   const isBeginner = frictionDial !== null && frictionDial <= 2 && startIn120s;
@@ -144,6 +149,9 @@ export function PlaydateCard({
           </span>
         )}
       </div>
+
+      {/* optional action slot (e.g. quick-log button) */}
+      {action && <CardActionSlot>{action}</CardActionSlot>}
     </Link>
   );
 }
