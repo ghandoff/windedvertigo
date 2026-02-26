@@ -10,6 +10,7 @@ import { checkEntitlement } from "@/lib/queries/entitlements";
 import { getSession } from "@/lib/auth-helpers";
 import EntitledPlaydateView from "@/components/ui/entitled-playdate-view";
 import QuickLogButton from "@/components/ui/quick-log-button";
+import { MaterialIllustration } from "@/components/material-illustration";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -30,7 +31,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
   const { slug } = await params;
   const session = await getSession();
 
-  // ── Internal user → always show full collective view ──
+  // ââ Internal user â always show full collective view ââ
   if (session?.isInternal) {
     const fullPlaydate = await getCollectivePlaydateBySlug(slug);
     if (!fullPlaydate) return notFound();
@@ -67,7 +68,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
     );
   }
 
-  // ── Everyone else → sampler teaser path ──
+  // ââ Everyone else â sampler teaser path ââ
   const playdate = await getTeaserPlaydateBySlug(slug);
   if (!playdate) return notFound();
 
@@ -76,7 +77,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
     getFirstVisiblePackForPlaydate(playdate.id),
   ]);
 
-  // Entitled user WITH a pack → redirect to the pack's playdate page
+  // Entitled user WITH a pack â redirect to the pack's playdate page
   if (session && pack) {
     const isEntitled = session.orgId
       ? await checkEntitlement(session.orgId, pack.id)
@@ -86,7 +87,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
     }
   }
 
-  // ── Everyone else → sampler teaser ──
+  // ââ Everyone else â sampler teaser ââ
   const packHref = pack ? `/packs/${pack.slug}` : "/packs";
 
   return (
@@ -106,7 +107,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         <p className="text-lg text-cadet/60 mb-6">{playdate.headline}</p>
       )}
 
-      {/* the big idea — narrative hook */}
+      {/* the big idea â narrative hook */}
       {playdate.rails_sentence && (
         <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-8">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
@@ -118,7 +119,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         </section>
       )}
 
-      {/* at a glance — quick parent-readable summary */}
+      {/* at a glance â quick parent-readable summary */}
       <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6 mb-8">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
           at a glance
@@ -126,7 +127,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {playdate.primary_function && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">🎯</span>
+              <span className="text-base leading-none mt-px">ð¯</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what&apos;s it about</p>
                 <p className="text-cadet/80">{playdate.primary_function}</p>
@@ -135,7 +136,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
           )}
           {playdate.friction_dial !== null && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">🎚️</span>
+              <span className="text-base leading-none mt-px">ðï¸</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">energy level</p>
                 <p className="text-cadet/80">
@@ -150,7 +151,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
           )}
           {playdate.start_in_120s && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">⚡</span>
+              <span className="text-base leading-none mt-px">â¡</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">setup time</p>
                 <p className="text-cadet/80">ready in under 2 minutes</p>
@@ -159,7 +160,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
           )}
           {(playdate.arc_emphasis as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">🌱</span>
+              <span className="text-base leading-none mt-px">ð±</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what kids practise</p>
                 <p className="text-cadet/80">{(playdate.arc_emphasis as string[]).join(", ")}</p>
@@ -179,29 +180,30 @@ export default async function PlaydateTeaserPage({ params }: Props) {
             {materials.map((m: Material) => (
               <li
                 key={m.id}
-                className="flex items-center gap-2 text-sm"
+                className="flex items-center gap-2.5 text-sm"
               >
-                <span className="inline-block rounded-full bg-cadet/5 px-2.5 py-0.5 text-xs font-medium">
+                <MaterialIllustration formPrimary={m.form_primary} size={24} className="opacity-80" />
+                <span className="inline-block rounded-full bg-cadet/5 px-2.5 py-0.5 text-xs font-medium text-cadet/70">
                   {m.form_primary}
                 </span>
-                <span>{m.title}</span>
+                <span className="text-cadet/80">{m.title}</span>
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      {/* locked content teaser — FOMO section */}
+      {/* locked content teaser â FOMO section */}
       <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-champagne/20 to-champagne/5 p-6 mb-8">
         <div className="flex items-start gap-3 mb-4">
-          <span className="text-lg leading-none mt-0.5">🔒</span>
+          <span className="text-lg leading-none mt-0.5">ð</span>
           <div>
             <h2 className="text-sm font-semibold text-cadet/80 mb-1">
               full facilitation guide
             </h2>
             <p className="text-sm text-cadet/60">
               the full playdate includes step-by-step facilitation
-              with three phases — find, fold, and unfold — plus
+              with three phases â find, fold, and unfold â plus
               material swap ideas and timing tips.
             </p>
           </div>
@@ -211,20 +213,20 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         <div className="ml-8 space-y-2 text-sm text-cadet/50 mb-5">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-redwood/40" />
-            <span>find — how to set up and introduce the activity</span>
+            <span>find â how to set up and introduce the activity</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-sienna/40" />
-            <span>fold — the core hands-on exploration</span>
+            <span>fold â the core hands-on exploration</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-cadet/30" />
-            <span>unfold — reflection and what to notice</span>
+            <span>unfold â reflection and what to notice</span>
           </div>
           {playdate.has_find_again && (
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-redwood/60" />
-              <span>find again — a prompt to spot the idea in everyday life</span>
+              <span>find again â a prompt to spot the idea in everyday life</span>
             </div>
           )}
         </div>
@@ -237,7 +239,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         </Link>
       </section>
 
-      {/* quick-log + full reflection CTAs — authenticated users only */}
+      {/* quick-log + full reflection CTAs â authenticated users only */}
       {session && (
         <section className="flex flex-wrap items-center gap-3 mb-8">
           <QuickLogButton
