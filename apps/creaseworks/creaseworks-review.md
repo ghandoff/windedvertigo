@@ -113,6 +113,12 @@ These are feature requests captured during session 22 that should be planned int
 
 ~~**N. Complimentary subscriptions by email address.** Allow admins to grant free access to specific email addresses — colleagues, friends, schools, pilot partners. These would bypass domain verification and map to a specific entitlement tier (explorer or practitioner). Implementation could extend the existing `grantEntitlement()` function with an email-based invite system: admin enters an email → system creates a pending entitlement → recipient signs up/in with that email and gets auto-entitled. Consider a simple `/admin/invites` UI for managing these.~~ **RESOLVED (session 23)** — full invite system: migration 022 creates `invites` table with tier check constraint, expiry, soft-delete; query layer at `lib/queries/invites.ts`; API at `/api/admin/invites`; admin UI at `/admin/invites` with form (email, tier, expiry, note) and table views (pending/accepted); admin landing page updated with invites card.
 
+### wish list — session 27 additions
+
+**O. Materials illustrations.** Each material item in the database needs an image or illustration. The matcher UI may not have space to show images inline, but when a playdate references its materials (detail page, PDF export, etc.), the materials should appear with a small visual. This could be a library of simple hand-drawn-style illustrations or icons per material category (cardboard, tape, water, fabric, etc.) stored as static assets or generated SVGs.
+
+**P. Playdate preview images.** Each playdate tile needs a hero image that previews the activity — something visual and playful, not just a grid of words. These could collage the materials illustrations, show a stylized scene, or use AI-generated watercolor/sketch imagery. The current deterministic SVG patterns (Feature E) provide color and texture but don't communicate *what* the playdate is. The goal is to make browsing feel like flipping through a picture book rather than scanning a spreadsheet. Consider: Notion-hosted images synced via the existing sync pipeline, or generated at build time from playdate metadata.
+
 ### session 22 accomplishments
 
 *February 25–26, 2026*
