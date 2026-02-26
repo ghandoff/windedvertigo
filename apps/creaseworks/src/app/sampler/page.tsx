@@ -58,6 +58,7 @@ export default async function SamplerPage() {
               frictionDial={p.friction_dial}
               startIn120s={p.start_in_120s}
               hasFindAgain={p.has_find_again}
+              runCount={p.run_count}
             />
           ))}
         </div>

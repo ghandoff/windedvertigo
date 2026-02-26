@@ -12,14 +12,20 @@ import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
  * Used on the /sampler page grid.
  */
 export async function getTeaserPlaydates() {
-  const cols = columnsToSql(PLAYDATE_TEASER_COLUMNS);
+  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
-       (find_again_mode IS NOT NULL) AS has_find_again
-     FROM playdates_cache
-     WHERE status = 'ready'
-       AND release_channel = 'sampler'
-     ORDER BY title ASC`,
+       (p.find_again_mode IS NOT NULL) AS has_find_again,
+       COALESCE(rc.run_count, 0)::int AS run_count
+     FROM playdates_cache p
+     LEFT JOIN (
+       SELECT playdate_notion_id, COUNT(*)::int AS run_count
+       FROM runs_cache
+       GROUP BY playdate_notion_id
+     ) rc ON rc.playdate_notion_id = p.notion_id
+     WHERE p.status = 'ready'
+       AND p.release_channel = 'sampler'
+     ORDER BY p.title ASC`,
   );
   assertNoLeakedFields(result.rows, "teaser");
   return result.rows;
@@ -30,13 +36,19 @@ export async function getTeaserPlaydates() {
  * Used on /sampler for internal users who should see everything.
  */
 export async function getAllReadyPlaydates() {
-  const cols = columnsToSql(PLAYDATE_TEASER_COLUMNS);
+  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
-       (find_again_mode IS NOT NULL) AS has_find_again
-     FROM playdates_cache
-     WHERE status = 'ready'
-     ORDER BY title ASC`,
+       (p.find_again_mode IS NOT NULL) AS has_find_again,
+       COALESCE(rc.run_count, 0)::int AS run_count
+     FROM playdates_cache p
+     LEFT JOIN (
+       SELECT playdate_notion_id, COUNT(*)::int AS run_count
+       FROM runs_cache
+       GROUP BY playdate_notion_id
+     ) rc ON rc.playdate_notion_id = p.notion_id
+     WHERE p.status = 'ready'
+     ORDER BY p.title ASC`,
   );
   assertNoLeakedFields(result.rows, "teaser");
   return result.rows;
