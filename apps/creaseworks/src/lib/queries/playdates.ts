@@ -155,6 +155,33 @@ export async function getCampaignPlaydates(campaignSlug: string) {
 }
 
 /**
+ * Fetch ALL ready playdates that have any campaign tag.
+ * Returns playdates with their campaign_tags array so the caller can group them.
+ * Used on the /scavenger aggregation page.
+ */
+export async function getAllCampaignPlaydates() {
+  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const result = await sql.query(
+    `SELECT ${cols},
+       p.campaign_tags,
+       (p.find_again_mode IS NOT NULL) AS has_find_again,
+       COALESCE(rc.run_count, 0)::int AS run_count
+     FROM playdates_cache p
+     LEFT JOIN (
+       SELECT playdate_notion_id, COUNT(*)::int AS run_count
+       FROM runs_cache
+       GROUP BY playdate_notion_id
+     ) rc ON rc.playdate_notion_id = p.notion_id
+     WHERE p.status = 'ready'
+       AND p.campaign_tags IS NOT NULL
+       AND array_length(p.campaign_tags, 1) > 0
+     ORDER BY p.title ASC`,
+  );
+  // campaign_tags is an extra field needed for grouping — skip the leak check
+  return result.rows;
+}
+
+/**
  * Fetch teaser-tier materials linked to a playdate (by playdate UUID).
  */
 export async function getTeaserMaterialsForPlaydate(playdateId: string) {

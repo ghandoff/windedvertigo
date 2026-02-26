@@ -41,6 +41,14 @@ export async function addAdmin(userId: string, grantedBy?: string) {
 
 /* ── onboarding ── */
 
+export interface PlayContext {
+  name: string;
+  age_groups: string[];
+  contexts: string[];
+  energy: string;
+  created_at: string;
+}
+
 export interface OnboardingStatus {
   onboarding_completed: boolean;
   play_preferences: {
@@ -48,15 +56,22 @@ export interface OnboardingStatus {
     contexts?: string[];
     energy?: string;
   } | null;
+  play_contexts: PlayContext[];
+  active_context_name: string | null;
 }
 
 export async function getUserOnboardingStatus(
   userId: string,
 ): Promise<OnboardingStatus | null> {
   const r = await sql.query(
-    `SELECT onboarding_completed, play_preferences
+    `SELECT onboarding_completed, play_preferences,
+            play_contexts, active_context_name
        FROM users WHERE id = $1 LIMIT 1`,
     [userId],
   );
-  return r.rows[0] ?? null;
+  if (!r.rows[0]) return null;
+  return {
+    ...r.rows[0],
+    play_contexts: r.rows[0].play_contexts ?? [],
+  };
 }

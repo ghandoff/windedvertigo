@@ -23,6 +23,12 @@ const sections = [
     icon: "🔑",
   },
   {
+    title: "invites",
+    href: "/admin/invites",
+    description: "grant complimentary access to specific email addresses",
+    icon: "✉️",
+  },
+  {
     title: "domains",
     href: "/admin/domains",
     description: "manage the email domain blocklist",

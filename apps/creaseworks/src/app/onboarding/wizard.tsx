@@ -26,14 +26,35 @@ const ENERGY = [
   { value: "any", label: "surprise me", sub: "show me everything", icon: "🎲" },
 ] as const;
 
-type Step = 0 | 1 | 2;
+const CONTEXT_NAME_SUGGESTIONS = [
+  "at home",
+  "school time",
+  "outdoors adventure",
+  "road trip",
+  "rainy day",
+  "weekend play",
+] as const;
 
-export default function OnboardingWizard() {
+type Step = 0 | 1 | 2 | 3;
+
+interface WizardProps {
+  editMode?: boolean;
+  initialValues?: {
+    ageGroups: string[];
+    contexts: string[];
+    energy: string;
+    contextName: string;
+  } | null;
+}
+
+export default function OnboardingWizard({ editMode = false, initialValues }: WizardProps) {
   const router = useRouter();
+  const totalSteps = editMode ? 4 : 3; // edit mode adds a context-name step at the end
   const [step, setStep] = useState<Step>(0);
-  const [ageGroups, setAgeGroups] = useState<string[]>([]);
-  const [contexts, setContexts] = useState<string[]>([]);
-  const [energy, setEnergy] = useState<string>("any");
+  const [ageGroups, setAgeGroups] = useState<string[]>(initialValues?.ageGroups ?? []);
+  const [contexts, setContexts] = useState<string[]>(initialValues?.contexts ?? []);
+  const [energy, setEnergy] = useState<string>(initialValues?.energy ?? "any");
+  const [contextName, setContextName] = useState<string>(initialValues?.contextName ?? "");
   const [saving, setSaving] = useState(false);
 
   const toggle = useCallback(
@@ -46,25 +67,43 @@ export default function OnboardingWizard() {
   async function finish() {
     setSaving(true);
     try {
-      await fetch("/api/onboarding", {
+      const endpoint = editMode ? "/api/onboarding/context" : "/api/onboarding";
+      await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ageGroups, contexts, energy }),
+        body: JSON.stringify({
+          ageGroups,
+          contexts,
+          energy,
+          ...(editMode && { contextName: contextName.trim() || "default" }),
+          ...(editMode && initialValues?.contextName && {
+            originalContextName: initialValues.contextName,
+          }),
+        }),
       });
-      router.push("/sampler");
+      router.push(editMode ? "/profile?manage=true" : "/sampler");
+      router.refresh();
     } catch {
       setSaving(false);
     }
   }
 
   const canAdvance =
-    step === 0 ? ageGroups.length > 0 : step === 1 ? contexts.length > 0 : true;
+    step === 0
+      ? ageGroups.length > 0
+      : step === 1
+        ? contexts.length > 0
+        : step === 2
+          ? true
+          : contextName.trim().length > 0; // step 3: name required
+
+  const lastContentStep = editMode ? 3 : 2;
 
   return (
     <div className="w-full max-w-md mx-auto">
       {/* progress dots */}
       <div className="flex items-center justify-center gap-2 mb-8">
-        {[0, 1, 2].map((i) => (
+        {Array.from({ length: totalSteps }).map((_, i) => (
           <span
             key={i}
             className={`block rounded-full transition-all ${
@@ -86,7 +125,7 @@ export default function OnboardingWizard() {
               who&apos;s playing?
             </h1>
             <p className="text-sm text-cadet/50 mb-6">
-              pick all that apply — we&apos;ll tailor your first playdate
+              pick all that apply — we&apos;ll tailor {editMode ? "this context" : "your first playdate"}
             </p>
             <div className="grid grid-cols-2 gap-3">
               {AGE_GROUPS.map((opt) => (
@@ -173,6 +212,40 @@ export default function OnboardingWizard() {
           </>
         )}
 
+        {/* step 3 (edit mode only): name this context */}
+        {step === 3 && editMode && (
+          <>
+            <h1 className="text-xl font-semibold text-cadet mb-1">
+              name this context
+            </h1>
+            <p className="text-sm text-cadet/50 mb-6">
+              give it a name so you can switch between play settings
+            </p>
+            <input
+              type="text"
+              value={contextName}
+              onChange={(e) => setContextName(e.target.value)}
+              placeholder="e.g. at home, school time, road trip"
+              maxLength={40}
+              className="w-full rounded-xl border-2 border-cadet/10 px-4 py-3 text-sm text-cadet placeholder:text-cadet/30 focus:border-sienna focus:outline-none transition-colors"
+            />
+            <div className="flex flex-wrap gap-2 mt-4">
+              {CONTEXT_NAME_SUGGESTIONS
+                .filter((s) => s !== contextName)
+                .map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setContextName(suggestion)}
+                    className="rounded-full border border-cadet/10 px-3 py-1.5 text-xs text-cadet/50 hover:border-sienna/30 hover:text-sienna transition-colors"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+            </div>
+          </>
+        )}
+
         {/* nav buttons */}
         <div className="flex items-center justify-between mt-8">
           {step > 0 ? (
@@ -183,11 +256,19 @@ export default function OnboardingWizard() {
             >
               &larr; back
             </button>
+          ) : editMode ? (
+            <button
+              type="button"
+              onClick={() => router.push("/profile?manage=true")}
+              className="text-sm text-cadet/50 hover:text-cadet transition-colors"
+            >
+              &larr; cancel
+            </button>
           ) : (
             <span />
           )}
 
-          {step < 2 ? (
+          {step < lastContentStep ? (
             <button
               type="button"
               disabled={!canAdvance}
@@ -199,17 +280,17 @@ export default function OnboardingWizard() {
           ) : (
             <button
               type="button"
-              disabled={saving}
+              disabled={saving || !canAdvance}
               onClick={finish}
               className="rounded-lg bg-redwood px-5 py-2.5 text-sm font-medium text-white hover:bg-sienna transition-colors disabled:opacity-60"
             >
-              {saving ? "saving..." : "show me playdates"}
+              {saving ? "saving..." : editMode ? "save context" : "show me playdates"}
             </button>
           )}
         </div>
 
-        {/* skip link */}
-        {step === 0 && (
+        {/* skip link — first-time only */}
+        {step === 0 && !editMode && (
           <p className="text-center mt-4">
             <button
               type="button"

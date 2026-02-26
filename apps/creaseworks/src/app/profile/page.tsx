@@ -12,6 +12,7 @@
  */
 
 import Link from "next/link";
+import { sql } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-helpers";
 import {
   getOrgMembers,
@@ -28,6 +29,7 @@ import AnalyticsDashboard from "@/app/analytics/analytics-dashboard";
 import TierCard, { TIERS, getTierState } from "@/components/ui/tier-card";
 import ProfileManageToggle from "./manage-toggle";
 import NotificationPrefs from "./notification-prefs";
+import PlayContextSwitcher from "./play-context-switcher";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +69,21 @@ export default async function ProfilePage({
     getRunsForUser(session, 3, 0),
   ]);
   const hasActivity = summary.total_tried > 0;
+
+  /* ---- play contexts ------------------------------------------------ */
+  const ctxResult = await sql.query(
+    `SELECT play_contexts, active_context_name FROM users WHERE id = $1`,
+    [session.userId],
+  );
+  const playContexts = (ctxResult.rows[0]?.play_contexts ?? []) as Array<{
+    name: string;
+    age_groups: string[];
+    contexts: string[];
+    energy: string;
+    created_at: string;
+  }>;
+  const activeContextName: string | null =
+    ctxResult.rows[0]?.active_context_name ?? null;
 
   /* ---- team data (only if user has an org) ------------------------- */
   const hasOrg = !!session.orgId;
@@ -265,6 +282,29 @@ export default async function ProfilePage({
                 >
                   <NotificationPrefs />
                 </div>
+              </section>
+
+              {/* play contexts section */}
+              <section>
+                <h3 className="text-lg font-semibold tracking-tight mb-1">
+                  play contexts
+                </h3>
+                <p className="text-sm text-cadet/40 mb-4">
+                  save different play settings for home, school, travel — and switch between them.
+                </p>
+                {playContexts.length > 0 ? (
+                  <PlayContextSwitcher
+                    contexts={playContexts}
+                    activeContextName={activeContextName}
+                  />
+                ) : (
+                  <a
+                    href="/onboarding?edit=true"
+                    className="block rounded-xl border-2 border-dashed border-cadet/10 px-5 py-4 text-center text-sm text-cadet/40 hover:border-sienna/30 hover:text-sienna/60 transition-colors"
+                  >
+                    + create your first play context
+                  </a>
+                )}
               </section>
 
               {/* team section */}

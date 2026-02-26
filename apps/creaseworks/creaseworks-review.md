@@ -22,7 +22,7 @@ The four-tier access model (sampler → explorer → practitioner → collective
 
 1. ~~**"function tag scavenger" has a broken headline** — the text "find objects. name functions. make play." repeats 3 times in the headline field. This is a Notion data issue, not a code bug. Fix it in the Notion playdates database.~~ **RESOLVED (session 22)** — headline rewritten during child-friendly rewrite pass. Now reads: "find three things nearby and turn them into something you can play with."
 
-2. **Packs page shows a blank draft card** — the left pack card on `/packs` has no title, no description, just "0 playdates" and a DRAFT badge. Either hide packs with no title or clean up the Notion packs database.
+2. ~~**Packs page shows a blank draft card** — the left pack card on `/packs` has no title, no description, just "0 playdates" and a DRAFT badge. Either hide packs with no title or clean up the Notion packs database.~~ **RESOLVED (session 23)** — blank draft pack (notion_id 30ae4ee7…) deleted from packs_cache.
 
 3. **Draft packs visible to all users** — both packs show DRAFT badges. Unless you want customers to see upcoming packs as a teaser, filter these out for non-admin users.
 
@@ -107,11 +107,11 @@ Currently there's only 1 pack (co-design essentials, $49.99, DRAFT). Packs are t
 
 These are feature requests captured during session 22 that should be planned into future work:
 
-**L. Revisitable onboarding survey / context switching.** The 4-item playdate profile (ages, setting, materials, energy level) should not be a one-time wizard. Users need to revisit and toggle it for different contexts — at home vs. traveling, at school vs. with friends. Consider a persistent "play context" switcher in the nav or profile that re-runs the matcher filters without re-doing the full onboarding. Teachers especially may use creaseworks in school but also at home or with friends.
+~~**L. Revisitable onboarding survey / context switching.** The 4-item playdate profile (ages, setting, materials, energy level) should not be a one-time wizard. Users need to revisit and toggle it for different contexts — at home vs. traveling, at school vs. with friends. Consider a persistent "play context" switcher in the nav or profile that re-runs the matcher filters without re-doing the full onboarding. Teachers especially may use creaseworks in school but also at home or with friends.~~ **RESOLVED (session 23)** — full play context system: migration 021 adds `play_contexts` JSONB + `active_context_name`; onboarding wizard now revisitable via `/onboarding?edit=true&context=name`; profile page has PlayContextSwitcher with switch/edit/remove/add actions; API at `/api/onboarding/context` supports POST/PATCH/DELETE; backward-compatible with `play_preferences`.
 
-**M. Scavenger hunt package as a separate access point.** Campaigns (now supported via `/campaign/[slug]`) let people discover playdates through scavenger hunts. But the user wants a full *package* for scavenger hunts — a standalone access point similar to the sampler, focused exclusively on campaign scenarios. This would be a dedicated page (e.g., `/scavenger`) that aggregates all campaign-tagged playdates, provides a hunt-style navigation experience, and could be gated behind its own entitlement or shared via invite links.
+~~**M. Scavenger hunt package as a separate access point.** Campaigns (now supported via `/campaign/[slug]`) let people discover playdates through scavenger hunts. But the user wants a full *package* for scavenger hunts — a standalone access point similar to the sampler, focused exclusively on campaign scenarios. This would be a dedicated page (e.g., `/scavenger`) that aggregates all campaign-tagged playdates, provides a hunt-style navigation experience, and could be gated behind its own entitlement or shared via invite links.~~ **RESOLVED (session 23)** — `/scavenger` page built with `getAllCampaignPlaydates()` query; groups playdates by campaign tag with per-campaign metadata (emoji, title, tagline); links through to individual `/campaign/[slug]` pages.
 
-**N. Complimentary subscriptions by email address.** Allow admins to grant free access to specific email addresses — colleagues, friends, schools, pilot partners. These would bypass domain verification and map to a specific entitlement tier (explorer or practitioner). Implementation could extend the existing `grantEntitlement()` function with an email-based invite system: admin enters an email → system creates a pending entitlement → recipient signs up/in with that email and gets auto-entitled. Consider a simple `/admin/invites` UI for managing these.
+~~**N. Complimentary subscriptions by email address.** Allow admins to grant free access to specific email addresses — colleagues, friends, schools, pilot partners. These would bypass domain verification and map to a specific entitlement tier (explorer or practitioner). Implementation could extend the existing `grantEntitlement()` function with an email-based invite system: admin enters an email → system creates a pending entitlement → recipient signs up/in with that email and gets auto-entitled. Consider a simple `/admin/invites` UI for managing these.~~ **RESOLVED (session 23)** — full invite system: migration 022 creates `invites` table with tier check constraint, expiry, soft-delete; query layer at `lib/queries/invites.ts`; API at `/api/admin/invites`; admin UI at `/admin/invites` with form (email, tier, expiry, note) and table views (pending/accepted); admin landing page updated with invites card.
 
 ### session 22 accomplishments
 
@@ -157,15 +157,25 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 
 ## recommended next session priorities
 
-*Updated session 22*
+*Updated session 23*
 
-1. ~~**Fix the data issues** — clean up "function tag scavenger" headline in Notion, hide or delete the blank draft pack~~ **DONE** (headline fixed; blank pack still needs cleanup)
+1. ~~**Fix the data issues** — clean up "function tag scavenger" headline in Notion, hide or delete the blank draft pack~~ **DONE** (headline fixed session 22; blank pack deleted from DB session 23)
 2. **Wire playdate card links in collection views** — make cards clickable through to the detail page
 3. **Add the quick-log "mark as tried" button** — lowest-friction way to build engagement
 4. **Pre-select linked playdate in reflection form** via query param
 5. **Author 2-3 new collections in Notion** — start with story builders and nature detectives to broaden the portfolio
 6. **Create and publish the "rainy day rescue" pack** — a $19 entry-point pack to validate the purchase flow end-to-end
-7. **Build the scavenger hunt package page** — dedicated `/scavenger` access point aggregating all campaign-tagged playdates (wish list item M)
-8. **Implement revisitable onboarding / play context switcher** — let users toggle their playdate profile for different settings (wish list item L)
-9. **Build complimentary invite system** — `/admin/invites` for granting email-based entitlements (wish list item N)
-10. **Update Notion release_channel values** — the 19 playdates moved to `internal-only` in Postgres need their Notion records updated so future syncs don't overwrite the change
+7. ~~**Build the scavenger hunt package page** — dedicated `/scavenger` access point aggregating all campaign-tagged playdates (wish list item M)~~ **DONE (session 23)**
+8. ~~**Implement revisitable onboarding / play context switcher** — let users toggle their playdate profile for different settings (wish list item L)~~ **DONE (session 23)**
+9. ~~**Build complimentary invite system** — `/admin/invites` for granting email-based entitlements (wish list item N)~~ **DONE (session 23)**
+10. ~~**Update Notion release_channel values** — the 19 playdates moved to `internal-only` in Postgres need their Notion records updated so future syncs don't overwrite the change~~ **DONE (session 23)** — all 19 playdates updated in Notion to match Postgres values
+
+### session 23 accomplishments
+
+*February 26, 2026*
+
+- **Notion release_channel sync** — updated all 19 playdates in Notion whose `release_channel` had been changed in Postgres (sampler → internal-only) so future syncs won't overwrite the values.
+- **Revisitable onboarding with play context switching** — migration 021 adds `play_contexts` JSONB array and `active_context_name` to users table with backward migration from existing `play_preferences`. Onboarding wizard now supports `?edit=true&context=name` for revisiting. New `/api/onboarding/context` API (POST/PATCH/DELETE) for creating, switching, and removing contexts. Profile page has new PlayContextSwitcher component with switch/edit/remove/add actions. Maintains backward compatibility by syncing `play_preferences` with active context.
+- **Scavenger hunt package page** — new `/scavenger` route aggregates all campaign-tagged playdates grouped by campaign, with per-campaign metadata (emoji, title, tagline) and links through to individual `/campaign/[slug]` pages. New `getAllCampaignPlaydates()` query function.
+- **Complimentary invite system** — migration 022 creates `invites` table with tier constraint, expiry, soft-delete, and acceptance tracking. Full query layer (`createInvite`, `listAllInvites`, `getPendingInvitesForEmail`, `acceptInvite`, `revokeInvite`). API at `/api/admin/invites` (POST/GET/DELETE). Admin UI at `/admin/invites` with form (email, tier, expiry selector, note) and table views split by status. Admin landing page updated with invites navigation card.
+- **Blank draft pack cleanup** — deleted the orphaned blank draft pack (no title, no slug, status=draft) from `packs_cache`.
