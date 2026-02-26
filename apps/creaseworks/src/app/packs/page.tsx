@@ -5,6 +5,18 @@ import { getSession } from "@/lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
 
+interface Pack {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  price_cents: number | null;
+  currency: string;
+  visible?: boolean;
+  status?: string;
+  playdate_count: number;
+}
+
 export default async function PacksCataloguePage() {
   const session = await getSession();
   const isCollective = session?.isInternal ?? false;
@@ -83,7 +95,7 @@ export default async function PacksCataloguePage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {packs.map((pack: any) => (
+          {packs.map((pack: Pack) => (
             <div key={pack.id} className="relative">
               {isCollective && pack.visible === false && (
                 <span className="absolute top-3 right-3 z-10 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-cadet/40 text-white/70">

@@ -137,13 +137,13 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 
 - **5 large files should be split.** `matcher-input-form.tsx` (712 lines), `run-form.tsx` (525), `pdf/route.ts` (606), `queries/runs.ts` (513), `queries/matcher.ts` (512). Extract sub-components and scoring logic into separate files.
 
-- **Sync module duplication.** All 5 sync handlers (materials, playdates, runs, collections, packs) share ~40% identical structure. Extract a generic `syncCacheTable()` utility.
+- ~~**Sync module duplication.** All 5 sync handlers (materials, playdates, runs, collections, packs) share ~40% identical structure. Extract a generic `syncCacheTable()` utility.~~ **RESOLVED (session 25)** — new `sync-cache-table.ts` with generic `syncCacheTable<T>()` orchestrator; all 5 handlers refactored to use it.
 
 **Priority: low**
 
-- **9 instances of `any` types** could be stronger. The Notion API responses (`page: any` in sync modules) and component props (`playdate: any` in entitled-playdate-view) would benefit from typed interfaces.
+- ~~**9 instances of `any` types** could be stronger. The Notion API responses (`page: any` in sync modules) and component props (`playdate: any` in entitled-playdate-view) would benefit from typed interfaces.~~ **RESOLVED (session 25)** — added proper interfaces (`Pack`, `TeaserPlaydate`, `PlaydateRow`, `Material`, `CampaignPlaydate`, etc.) to 10 page files; imported `RunRow` and `CollectionPlaydate` from query layer.
 
-- **API route error handling boilerplate.** 15+ routes have identical `try { await req.json() } catch` blocks. A shared `parseJsonBody()` helper would reduce repetition.
+- ~~**API route error handling boilerplate.** 15+ routes have identical `try { await req.json() } catch` blocks. A shared `parseJsonBody()` helper would reduce repetition.~~ **RESOLVED (session 25)** — `parseJsonBody<T>()` added to `lib/validation.ts`; applied to 10 API route files (15+ handler functions).
 
 **No issues found:**
 
@@ -157,14 +157,14 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 
 ## recommended next session priorities
 
-*Updated session 24*
+*Updated session 25*
 
 1. ~~**Fix the data issues** — clean up "function tag scavenger" headline in Notion, hide or delete the blank draft pack~~ **DONE** (headline fixed session 22; blank pack deleted from DB session 23)
 2. ~~**Wire playdate card links in collection views** — make cards clickable through to the detail page~~ **DONE** (already wired via `href` prop in session 23)
 3. ~~**Add the quick-log "mark as tried" button** — lowest-friction way to build engagement~~ **DONE (session 24)** — `PlaydateCard` now accepts an `action` ReactNode slot via `CardActionSlot` client wrapper; collection detail page passes `QuickLogButton` into each card
 4. ~~**Pre-select linked playdate in reflection form** via query param~~ **DONE** (already implemented via `?playdate=slug` param)
-5. **Author 2-3 new collections in Notion** — start with story builders and nature detectives to broaden the portfolio
-6. **Create and publish the "rainy day rescue" pack** — a $19 entry-point pack to validate the purchase flow end-to-end
+5. ~~**Author 2-3 new collections in Notion** — start with story builders and nature detectives to broaden the portfolio~~ **DONE (session 24-25)** — 6 new collections created: story builders, nature detectives, color lab, body movers, quiet makers, fix-it shop (12 total)
+6. ~~**Create and publish the "rainy day rescue" pack** — a $19 entry-point pack to validate the purchase flow end-to-end~~ **DONE (session 24-25)** — rainy day rescue pack created in Notion with 5 indoor zero-prep playdates, status: ready
 7. ~~**Build the scavenger hunt package page** — dedicated `/scavenger` access point aggregating all campaign-tagged playdates (wish list item M)~~ **DONE (session 23)**
 8. ~~**Implement revisitable onboarding / play context switcher** — let users toggle their playdate profile for different settings (wish list item L)~~ **DONE (session 23)**
 9. ~~**Build complimentary invite system** — `/admin/invites` for granting email-based entitlements (wish list item N)~~ **DONE (session 23)**
@@ -186,3 +186,14 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 
 - **Quick-log button on playdate cards** — `PlaydateCard` now accepts an `action?: ReactNode` prop for embedding interactive elements. New `CardActionSlot` client wrapper component handles click/key propagation so buttons inside the card don't trigger the parent `<Link>` navigation. Collection detail page (`playbook/[slug]`) passes `QuickLogButton` into each card, giving users one-tap "I tried this!" logging without leaving the collection view.
 - **Confirmed existing implementations** — verified that collection playdate cards already link through to `/sampler/${slug}` detail pages (item #2), reflection form already supports `?playdate=slug` pre-selection (item #4), and draft pack visibility is already properly gated behind `getVisiblePacks()` for non-collective users (item #3).
+
+### session 25 accomplishments
+
+*February 26, 2026*
+
+- **parseJsonBody() utility** — generic `parseJsonBody<T>()` helper added to `lib/validation.ts` returning `T | NextResponse`. Applied to 10 API route files (runs, evidence, admin/entitlements, admin/domains, team/members, team/domains, evidence/upload-url, matcher, checkout), eliminating 15+ identical try/catch blocks. Pattern: `const body = await parseJsonBody(req); if (body instanceof NextResponse) return body;`
+- **TypeScript `any` type cleanup** — added proper interfaces to 10 page files. Inline types: `Pack`, `TeaserPlaydate`, `PlaydateTeaser`, `PlaydateFull`, `PlaydateCollective`, `Material`, `Playdate`, `CampaignPlaydate`. Imported existing types: `RunRow` from `queries/runs`, `CollectionPlaydate` from `queries/collections`.
+- **syncCacheTable() generic utility** — new `sync-cache-table.ts` extracts the shared 4-step orchestration (fetch pages → parse & upsert → cleanup stale → resolve relations) into a typed generic. All 5 sync handlers (materials, playdates, packs, collections, runs) refactored to delegate to `syncCacheTable()` with handler-specific callbacks. Eliminates ~40% duplicated structure.
+- **Notion content: 6 new collections live** — story builders, nature detectives, color lab, body movers, quiet makers, fix-it shop. Total: 12 collections with playdates assigned.
+- **Notion content: rainy day rescue pack** — 5 indoor zero-prep playdates, status: ready. First entry-point pack at $19.
+- **All code audit findings resolved** — every actionable item from Part 4 (sync duplication, `any` types, API boilerplate) is now addressed. Remaining item: split 5 large files (712/525/606/513/512 lines).

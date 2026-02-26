@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { updateEvidence, deleteEvidence } from "@/lib/queries/evidence";
 import { logAccess } from "@/lib/queries/audit";
-import { MAX_LENGTHS, checkLength } from "@/lib/validation";
+import { MAX_LENGTHS, checkLength, parseJsonBody } from "@/lib/validation";
 
 export async function PATCH(
   req: NextRequest,
@@ -20,15 +20,8 @@ export async function PATCH(
   const session = await requireAuth();
   const { evidenceId } = await params;
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "invalid request body" },
-      { status: 400 },
-    );
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   // Whitelist allowed keys
   const ALLOWED_KEYS = new Set([

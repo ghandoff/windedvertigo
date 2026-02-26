@@ -12,15 +12,31 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
+interface Playdate {
+  id: string;
+  slug: string;
+  title: string;
+  headline: string | null;
+  release_channel: string | null;
+  status: string;
+  primary_function: string | null;
+  arc_emphasis: string[];
+  context_tags: string[];
+  friction_dial: number | null;
+  start_in_120s: boolean;
+  has_find_again?: boolean;
+  run_count: number;
+}
+
 export default async function AdminPlaydatesPage() {
   await requireAdmin();
   const playdates = await getAllReadyPlaydates();
 
   // Group by release_channel for easy scanning
-  const sampler = playdates.filter((p: any) => p.release_channel === "sampler");
-  const internal = playdates.filter((p: any) => p.release_channel === "internal-only");
+  const sampler = playdates.filter((p: Playdate) => p.release_channel === "sampler");
+  const internal = playdates.filter((p: Playdate) => p.release_channel === "internal-only");
   const campaign = playdates.filter(
-    (p: any) => p.release_channel !== "sampler" && p.release_channel !== "internal-only",
+    (p: Playdate) => p.release_channel !== "sampler" && p.release_channel !== "internal-only",
   );
 
   return (
@@ -50,7 +66,7 @@ export default async function AdminPlaydatesPage() {
           these are the playdates the public sees at /sampler
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sampler.map((p: any) => (
+          {sampler.map((p: Playdate) => (
             <PlaydateCard
               key={p.id}
               slug={p.slug}
@@ -78,7 +94,7 @@ export default async function AdminPlaydatesPage() {
             </span>
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {campaign.map((p: any) => (
+            {campaign.map((p: Playdate) => (
               <PlaydateCard
                 key={p.id}
                 slug={p.slug}
@@ -109,7 +125,7 @@ export default async function AdminPlaydatesPage() {
           these are only visible to entitled users or internal team
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {internal.map((p: any) => (
+          {internal.map((p: Playdate) => (
             <PlaydateCard
               key={p.id}
               slug={p.slug}

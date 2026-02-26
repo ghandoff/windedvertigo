@@ -16,6 +16,22 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
+interface TeaserPlaydate {
+  id: string;
+  slug: string;
+  title: string;
+  headline: string | null;
+  release_channel: string | null;
+  status: string;
+  primary_function: string | null;
+  arc_emphasis: string[];
+  context_tags: string[];
+  friction_dial: number | null;
+  start_in_120s: boolean;
+  has_find_again?: boolean;
+  run_count: number;
+}
+
 export default async function SamplerPage() {
   const session = await getSession();
 
@@ -73,7 +89,7 @@ export default async function SamplerPage() {
         const energyPref = prefs?.energy;
         const contextPref = prefs?.contexts as string[] | undefined;
 
-        const pick = playdates.find((p: any) => {
+        const pick = playdates.find((p: TeaserPlaydate) => {
           // Match energy preference
           if (energyPref === "chill" && (p.friction_dial === null || p.friction_dial > 2)) return false;
           if (energyPref === "active" && (p.friction_dial === null || p.friction_dial < 4)) return false;
@@ -84,7 +100,7 @@ export default async function SamplerPage() {
           }
           return p.start_in_120s;
         }) ?? playdates.find(
-          (p: any) => p.friction_dial !== null && p.friction_dial <= 2 && p.start_in_120s,
+          (p: TeaserPlaydate) => p.friction_dial !== null && p.friction_dial <= 2 && p.start_in_120s,
         ) ?? playdates[0];
 
         return (
@@ -116,7 +132,7 @@ export default async function SamplerPage() {
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {playdates.map((p: any) => (
+          {playdates.map((p: TeaserPlaydate) => (
             <PlaydateCard
               key={p.id}
               slug={p.slug}

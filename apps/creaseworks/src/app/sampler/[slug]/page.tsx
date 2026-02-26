@@ -18,6 +18,14 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+interface Material {
+  id: string;
+  title: string;
+  form_primary: string;
+  functions: string[] | null;
+  context_tags: string[] | null;
+}
+
 export default async function PlaydateTeaserPage({ params }: Props) {
   const { slug } = await params;
   const session = await getSession();
@@ -168,7 +176,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
             what you&apos;ll need
           </h2>
           <ul className="space-y-2">
-            {materials.map((m: any) => (
+            {materials.map((m: Material) => (
               <li
                 key={m.id}
                 className="flex items-center gap-2 text-sm"

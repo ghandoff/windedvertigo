@@ -13,16 +13,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { grantEntitlement, revokeEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
+import { parseJsonBody } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
-  // Audit-2 H2: wrap req.json() in try/catch to return 400 on malformed JSON
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "invalid request body" }, { status: 400 });
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const { orgId, packCacheId, trialDays } = body;
 
@@ -71,13 +67,8 @@ export async function POST(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   const session = await requireAdmin();
-  // Audit-2 H2: wrap req.json() in try/catch to return 400 on malformed JSON
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "invalid request body" }, { status: 400 });
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const { orgId, packCacheId } = body;
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
+import { parseJsonBody } from "@/lib/validation";
 import {
   getOrgMembers,
   updateMemberRole,
@@ -25,12 +26,8 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "invalid request body" }, { status: 400 });
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const { userId, role } = body;
   if (!userId || !role || !["member", "admin"].includes(role)) {
@@ -70,12 +67,8 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "invalid request body" }, { status: 400 });
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const { userId } = body;
   if (!userId) {

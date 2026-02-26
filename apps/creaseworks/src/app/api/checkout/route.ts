@@ -19,6 +19,7 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { createCheckoutSession } from "@/lib/stripe/checkout";
 import { logAccess } from "@/lib/queries/audit";
+import { parseJsonBody } from "@/lib/validation";
 import { sql } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
@@ -32,15 +33,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "invalid request body" },
-      { status: 400 },
-    );
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const { packCacheId } = body;
   if (!packCacheId || typeof packCacheId !== "string") {

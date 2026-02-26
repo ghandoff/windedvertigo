@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getRunById, getRunMaterials, updateRun } from "@/lib/queries/runs";
 import { logAccess } from "@/lib/queries/audit";
-import { MAX_LENGTHS, checkLength, sanitiseStringArray } from "@/lib/validation";
+import { MAX_LENGTHS, checkLength, sanitiseStringArray, parseJsonBody } from "@/lib/validation";
 
 export async function GET(
   _req: NextRequest,
@@ -44,15 +44,8 @@ export async function PATCH(
   const session = await requireAuth();
   const { id } = await params;
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "invalid request body" },
-      { status: 400 },
-    );
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   // Audit-2 H1: whitelist allowed keys to prevent arbitrary field injection
   const ALLOWED_KEYS = new Set([

@@ -13,7 +13,7 @@ import { getRunById } from "@/lib/queries/runs";
 import { getEvidenceForRun, createEvidence } from "@/lib/queries/evidence";
 import type { EvidenceType } from "@/lib/queries/evidence";
 import { logAccess } from "@/lib/queries/audit";
-import { MAX_LENGTHS, checkLength } from "@/lib/validation";
+import { MAX_LENGTHS, checkLength, parseJsonBody } from "@/lib/validation";
 
 const VALID_TYPES = new Set<EvidenceType>(["photo", "quote", "observation", "artifact"]);
 
@@ -41,15 +41,8 @@ export async function POST(
   const session = await requireAuth();
   const { id: runId } = await params;
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "invalid request body" },
-      { status: 400 },
-    );
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const { evidenceType, storageKey, thumbnailKey, quoteText, quoteAttribution, body: evidenceBody, promptKey, sortOrder } = body;
 

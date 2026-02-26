@@ -22,7 +22,7 @@ import {
   getUserProgressSummary,
   recomputeUserProgress,
 } from "@/lib/queries/collections";
-import { getRunsForUser } from "@/lib/queries/runs";
+import { getRunsForUser, type RunRow } from "@/lib/queries/runs";
 import TeamManager from "@/app/team/team-manager";
 import DomainVerifier from "@/app/team/domain-verifier";
 import AnalyticsDashboard from "@/app/analytics/analytics-dashboard";
@@ -202,7 +202,7 @@ export default async function ProfilePage({
           </div>
           {recentRuns.length > 0 && (
             <div className="space-y-1.5">
-              {recentRuns.map((run: any) => (
+              {recentRuns.map((run: RunRow) => (
                 <div
                   key={run.id}
                   className="flex items-center justify-between text-sm rounded-lg border border-cadet/5 px-4 py-2.5"

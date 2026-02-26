@@ -19,6 +19,26 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+interface PlaydateTeaser {
+  id: string;
+  slug: string;
+  title: string;
+  headline: string | null;
+  status: string;
+  primary_function: string | null;
+  has_find_again?: boolean;
+}
+
+interface PlaydateFull extends PlaydateTeaser {
+  find_again_mode: string | null;
+}
+
+interface PlaydateCollective extends PlaydateFull {
+  design_rationale: string | null;
+  developmental_notes: string | null;
+  author_notes: string | null;
+}
+
 export default async function PackDetailPage({ params }: Props) {
   const session = await requireAuth();
   const { slug } = await params;
@@ -92,7 +112,7 @@ export default async function PackDetailPage({ params }: Props) {
             playdates in this pack
           </h2>
           <div className="space-y-3">
-            {playdates.map((p: any) => (
+            {playdates.map((p: PlaydateFull | PlaydateCollective) => (
               <Link
                 key={p.id}
                 href={`/packs/${slug}/playdates/${p.slug}`}
@@ -159,7 +179,7 @@ export default async function PackDetailPage({ params }: Props) {
           what's inside
         </h2>
         <ul className="space-y-2">
-          {playdates.map((p: any) => (
+          {playdates.map((p: PlaydateTeaser) => (
             <li
               key={p.id}
               className="flex items-center justify-between rounded-lg border border-cadet/10 bg-champagne/20 px-4 py-3 text-sm"

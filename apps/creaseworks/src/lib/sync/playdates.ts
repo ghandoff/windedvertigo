@@ -1,6 +1,7 @@
 import { sql } from "@/lib/db";
-import { queryAllPages, NOTION_DBS } from "@/lib/notion";
+import { NOTION_DBS } from "@/lib/notion";
 import { makeSlug } from "@/lib/slugify";
+import { syncCacheTable } from "./sync-cache-table";
 import {
   extractTitle,
   extractRichText,
@@ -10,7 +11,7 @@ import {
   extractRelationIds,
   extractLastEdited,
   extractPageId,
-  NotionPage,
+  type NotionPage,
 } from "./extract";
 
 interface PlaydateRow {
@@ -78,105 +79,98 @@ function parsePlaydatePage(page: NotionPage): PlaydateRow {
 }
 
 export async function syncPlaydates() {
-  console.log("[sync] fetching playdates from Notion...");
-  const pages = await queryAllPages(NOTION_DBS.playdates);
-  console.log(`[sync] found ${pages.length} playdates`);
-
-  const notionIds: string[] = [];
-
-  for (const page of pages) {
-    const row = parsePlaydatePage(page);
-    notionIds.push(row.notionId);
-
-    // Upsert — generate slug only on insert (COALESCE keeps existing slug)
-    await sql`
-      INSERT INTO playdates_cache (
-        notion_id, title, headline, release_channel, ip_tier, status,
-        primary_function, arc_emphasis, context_tags, friction_dial,
-        start_in_120s, required_forms, slots_optional, slots_notes,
-        rails_sentence, find, fold, unfold, find_again_mode,
-        find_again_prompt, substitutions_notes,
-        design_rationale, developmental_notes, author_notes,
-        notion_last_edited, synced_at, slug
-      ) VALUES (
-        ${row.notionId}, ${row.title}, ${row.headline},
-        ${row.releaseChannel}, ${row.ipTier}, ${row.status},
-        ${row.primaryFunction}, ${JSON.stringify(row.arcEmphasis)},
-        ${JSON.stringify(row.contextTags)}, ${row.frictionDial},
-        ${row.startIn120s}, ${JSON.stringify(row.requiredForms)},
-        ${JSON.stringify(row.slotsOptional)}, ${row.slotsNotes},
-        ${row.railsSentence}, ${row.find}, ${row.fold}, ${row.unfold},
-        ${row.findAgainMode}, ${row.findAgainPrompt},
-        ${row.substitutionsNotes},
-        ${row.designRationale}, ${row.developmentalNotes}, ${row.authorNotes},
-        ${row.lastEdited}, NOW(), ${makeSlug(row.title)}
-      )
-      ON CONFLICT (notion_id) DO UPDATE SET
-        title = EXCLUDED.title,
-        headline = EXCLUDED.headline,
-        release_channel = EXCLUDED.release_channel,
-        ip_tier = EXCLUDED.ip_tier,
-        status = EXCLUDED.status,
-        primary_function = EXCLUDED.primary_function,
-        arc_emphasis = EXCLUDED.arc_emphasis,
-        context_tags = EXCLUDED.context_tags,
-        friction_dial = EXCLUDED.friction_dial,
-        start_in_120s = EXCLUDED.start_in_120s,
-        required_forms = EXCLUDED.required_forms,
-        slots_optional = EXCLUDED.slots_optional,
-        slots_notes = EXCLUDED.slots_notes,
-        rails_sentence = EXCLUDED.rails_sentence,
-        find = EXCLUDED.find,
-        fold = EXCLUDED.fold,
-        unfold = EXCLUDED.unfold,
-        find_again_mode = EXCLUDED.find_again_mode,
-        find_again_prompt = EXCLUDED.find_again_prompt,
-        substitutions_notes = EXCLUDED.substitutions_notes,
-        design_rationale = EXCLUDED.design_rationale,
-        developmental_notes = EXCLUDED.developmental_notes,
-        author_notes = EXCLUDED.author_notes,
-        notion_last_edited = EXCLUDED.notion_last_edited,
-        synced_at = NOW()
-    `;
-  }
-
-  // Soft-delete playdates removed from Notion (other tables reference playdates_cache)
-  if (notionIds.length > 0) {
-    await sql.query(
-      `UPDATE playdates_cache
-       SET status = 'archived', synced_at = NOW()
-       WHERE notion_id != ALL($1::text[])`,
-      [notionIds],
-    );
-  }
-
-  // Resolve material relations
-  for (const page of pages) {
-    const row = parsePlaydatePage(page);
-    const playdateResult = await sql`
-      SELECT id FROM playdates_cache WHERE notion_id = ${row.notionId}
-    `;
-    if (playdateResult.rows.length === 0) continue;
-    const playdateId = playdateResult.rows[0].id;
-
-    // Clear existing relations for this playdate
-    await sql`DELETE FROM playdate_materials WHERE playdate_id = ${playdateId}`;
-
-    // Insert new relations
-    for (const materialNotionId of row.materialRelationIds) {
-      const materialResult = await sql`
-        SELECT id FROM materials_cache WHERE notion_id = ${materialNotionId}
+  return syncCacheTable<PlaydateRow>({
+    databaseId: NOTION_DBS.playdates,
+    label: "playdates",
+    parsePage: parsePlaydatePage,
+    upsertRow: async (row) => {
+      // Upsert — generate slug only on insert (COALESCE keeps existing slug)
+      await sql`
+        INSERT INTO playdates_cache (
+          notion_id, title, headline, release_channel, ip_tier, status,
+          primary_function, arc_emphasis, context_tags, friction_dial,
+          start_in_120s, required_forms, slots_optional, slots_notes,
+          rails_sentence, find, fold, unfold, find_again_mode,
+          find_again_prompt, substitutions_notes,
+          design_rationale, developmental_notes, author_notes,
+          notion_last_edited, synced_at, slug
+        ) VALUES (
+          ${row.notionId}, ${row.title}, ${row.headline},
+          ${row.releaseChannel}, ${row.ipTier}, ${row.status},
+          ${row.primaryFunction}, ${JSON.stringify(row.arcEmphasis)},
+          ${JSON.stringify(row.contextTags)}, ${row.frictionDial},
+          ${row.startIn120s}, ${JSON.stringify(row.requiredForms)},
+          ${JSON.stringify(row.slotsOptional)}, ${row.slotsNotes},
+          ${row.railsSentence}, ${row.find}, ${row.fold}, ${row.unfold},
+          ${row.findAgainMode}, ${row.findAgainPrompt},
+          ${row.substitutionsNotes},
+          ${row.designRationale}, ${row.developmentalNotes}, ${row.authorNotes},
+          ${row.lastEdited}, NOW(), ${makeSlug(row.title)}
+        )
+        ON CONFLICT (notion_id) DO UPDATE SET
+          title = EXCLUDED.title,
+          headline = EXCLUDED.headline,
+          release_channel = EXCLUDED.release_channel,
+          ip_tier = EXCLUDED.ip_tier,
+          status = EXCLUDED.status,
+          primary_function = EXCLUDED.primary_function,
+          arc_emphasis = EXCLUDED.arc_emphasis,
+          context_tags = EXCLUDED.context_tags,
+          friction_dial = EXCLUDED.friction_dial,
+          start_in_120s = EXCLUDED.start_in_120s,
+          required_forms = EXCLUDED.required_forms,
+          slots_optional = EXCLUDED.slots_optional,
+          slots_notes = EXCLUDED.slots_notes,
+          rails_sentence = EXCLUDED.rails_sentence,
+          find = EXCLUDED.find,
+          fold = EXCLUDED.fold,
+          unfold = EXCLUDED.unfold,
+          find_again_mode = EXCLUDED.find_again_mode,
+          find_again_prompt = EXCLUDED.find_again_prompt,
+          substitutions_notes = EXCLUDED.substitutions_notes,
+          design_rationale = EXCLUDED.design_rationale,
+          developmental_notes = EXCLUDED.developmental_notes,
+          author_notes = EXCLUDED.author_notes,
+          notion_last_edited = EXCLUDED.notion_last_edited,
+          synced_at = NOW()
       `;
-      if (materialResult.rows.length > 0) {
-        await sql`
-          INSERT INTO playdate_materials (playdate_id, material_id)
-          VALUES (${playdateId}, ${materialResult.rows[0].id})
-          ON CONFLICT DO NOTHING
+    },
+    cleanupStale: async (activeNotionIds) => {
+      // Soft-delete playdates removed from Notion (other tables reference playdates_cache)
+      await sql.query(
+        `UPDATE playdates_cache
+         SET status = 'archived', synced_at = NOW()
+         WHERE notion_id != ALL($1::text[])`,
+        [activeNotionIds],
+      );
+    },
+    resolveRelations: async (pages) => {
+      // Resolve material relations
+      for (const page of pages) {
+        const row = parsePlaydatePage(page);
+        const playdateResult = await sql`
+          SELECT id FROM playdates_cache WHERE notion_id = ${row.notionId}
         `;
-      }
-    }
-  }
+        if (playdateResult.rows.length === 0) continue;
+        const playdateId = playdateResult.rows[0].id;
 
-  console.log(`[sync] playdates sync complete: ${pages.length} upserted`);
-  return pages.length;
+        // Clear existing relations for this playdate
+        await sql`DELETE FROM playdate_materials WHERE playdate_id = ${playdateId}`;
+
+        // Insert new relations
+        for (const materialNotionId of row.materialRelationIds) {
+          const materialResult = await sql`
+            SELECT id FROM materials_cache WHERE notion_id = ${materialNotionId}
+          `;
+          if (materialResult.rows.length > 0) {
+            await sql`
+              INSERT INTO playdate_materials (playdate_id, material_id)
+              VALUES (${playdateId}, ${materialResult.rows[0].id})
+              ON CONFLICT DO NOTHING
+            `;
+          }
+        }
+      }
+    },
+  });
 }

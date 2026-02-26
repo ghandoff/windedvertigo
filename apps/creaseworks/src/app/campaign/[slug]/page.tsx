@@ -13,6 +13,22 @@ import { PlaydateCard } from "@/components/ui/playdate-card";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+interface CampaignPlaydate {
+  id: string;
+  slug: string;
+  title: string;
+  headline: string | null;
+  release_channel: string | null;
+  status: string;
+  primary_function: string | null;
+  arc_emphasis: string[];
+  context_tags: string[];
+  friction_dial: number | null;
+  start_in_120s: boolean;
+  has_find_again?: boolean;
+  run_count: number;
+}
+
 // Campaign metadata — add new campaigns here as they're created.
 const CAMPAIGNS: Record<string, { title: string; description: string }> = {
   acetate: {
@@ -73,7 +89,7 @@ export default async function CampaignPage({
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {playdates.map((p: any) => (
+          {playdates.map((p: CampaignPlaydate) => (
             <PlaydateCard
               key={p.id}
               slug={p.slug}

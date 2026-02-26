@@ -20,7 +20,7 @@ import {
 } from "@/lib/queries/organisations";
 import { sendDomainVerificationEmail } from "@/lib/email/send-verification";
 import { logAccess } from "@/lib/queries/audit";
-import { MAX_LENGTHS } from "@/lib/validation";
+import { MAX_LENGTHS, parseJsonBody } from "@/lib/validation";
 
 /* ------------------------------------------------------------------ */
 /*  GET — list org's verified domains                                  */
@@ -39,15 +39,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await requireOrgAdmin();
 
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "invalid request body" },
-      { status: 400 },
-    );
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const { domain, verificationEmail } = body as {
     domain?: string;
@@ -195,15 +188,8 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const session = await requireOrgAdmin();
 
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "invalid request body" },
-      { status: 400 },
-    );
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const { domainId } = body as { domainId?: string };
   if (!domainId) {

@@ -24,7 +24,7 @@ import {
   buildThumbnailKey,
   generateUploadUrl,
 } from "@/lib/r2";
-import { isValidUuid } from "@/lib/validation";
+import { isValidUuid, parseJsonBody } from "@/lib/validation";
 
 /** Map MIME type to file extension. */
 function extFromMime(mime: string): string {
@@ -40,15 +40,8 @@ function extFromMime(mime: string): string {
 export async function POST(req: NextRequest) {
   const session = await requireAuth();
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "invalid request body" },
-      { status: 400 },
-    );
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const { runId, evidenceId, contentType } = body;
 

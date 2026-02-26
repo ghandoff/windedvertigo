@@ -13,17 +13,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth-helpers";
 import { logAccess } from "@/lib/queries/audit";
 import { performMatching, type MatcherInput } from "@/lib/queries/matcher";
+import { parseJsonBody } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "invalid json body" },
-      { status: 400 },
-    );
-  }
+  const body = await parseJsonBody(req);
+  if (body instanceof NextResponse) return body;
 
   const materials = Array.isArray(body.materials) ? body.materials : [];
   const forms = Array.isArray(body.forms) ? body.forms : [];

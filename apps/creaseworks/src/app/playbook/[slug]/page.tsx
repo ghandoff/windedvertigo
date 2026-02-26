@@ -10,6 +10,7 @@ import {
   getCollectionPlaydates,
   getCollectionEvidenceSummary,
   recomputeUserProgress,
+  type CollectionPlaydate,
 } from "@/lib/queries/collections";
 import { PlaydateCard, type ProgressTier } from "@/components/ui/playdate-card";
 import QuickLogButton from "@/components/ui/quick-log-button";
@@ -35,19 +36,19 @@ export default async function CollectionDetailPage({ params }: Props) {
     getCollectionEvidenceSummary(collection.id, session.userId),
   ]);
 
-  const triedCount = playdates.filter((p: any) => p.progress_tier).length;
+  const triedCount = playdates.filter((p: CollectionPlaydate) => p.progress_tier).length;
   const foundCount = playdates.filter(
-    (p: any) =>
+    (p: CollectionPlaydate) =>
       p.progress_tier &&
       ["found_something", "folded_unfolded", "found_again"].includes(p.progress_tier),
   ).length;
   const foldedCount = playdates.filter(
-    (p: any) =>
+    (p: CollectionPlaydate) =>
       p.progress_tier &&
       ["folded_unfolded", "found_again"].includes(p.progress_tier),
   ).length;
   const foundAgainCount = playdates.filter(
-    (p: any) => p.progress_tier === "found_again",
+    (p: CollectionPlaydate) => p.progress_tier === "found_again",
   ).length;
 
   const pct =

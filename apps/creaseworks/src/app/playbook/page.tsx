@@ -18,7 +18,7 @@ import {
   getNextSuggestion,
   recomputeUserProgress,
 } from "@/lib/queries/collections";
-import { getRunsForUser } from "@/lib/queries/runs";
+import { getRunsForUser, type RunRow } from "@/lib/queries/runs";
 import CollectionCard from "@/components/ui/collection-card";
 
 export const dynamic = "force-dynamic";
@@ -204,7 +204,7 @@ export default async function PlaybookPage() {
           </p>
         ) : (
           <div className="space-y-2">
-            {recentRuns.map((run: any) => (
+            {recentRuns.map((run: RunRow) => (
               <div
                 key={run.id}
                 className="flex items-center justify-between rounded-lg border border-cadet/5 px-4 py-3 text-sm"

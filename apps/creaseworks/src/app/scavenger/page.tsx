@@ -23,6 +23,23 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
+interface CampaignPlaydate {
+  id: string;
+  slug: string;
+  title: string;
+  headline: string | null;
+  release_channel: string | null;
+  status: string;
+  primary_function: string | null;
+  arc_emphasis: string[];
+  context_tags: string[];
+  friction_dial: number | null;
+  start_in_120s: boolean;
+  campaign_tags: string[];
+  has_find_again?: boolean;
+  run_count: number;
+}
+
 // Campaign display metadata — extend as campaigns are added.
 const CAMPAIGN_META: Record<
   string,
@@ -124,7 +141,7 @@ export default async function ScavengerPage() {
 
                 {/* playdate grid */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {playdates.map((p: any) => (
+                  {playdates.map((p: CampaignPlaydate) => (
                     <PlaydateCard
                       key={`${tag}-${p.id}`}
                       slug={p.slug}

@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
-import { queryAllPages, NOTION_DBS } from "@/lib/notion";
+import { NOTION_DBS } from "@/lib/notion";
+import { syncCacheTable } from "./sync-cache-table";
 import {
   extractTitle,
   extractRichText,
@@ -8,7 +9,7 @@ import {
   extractCheckbox,
   extractLastEdited,
   extractPageId,
-  NotionPage,
+  type NotionPage,
 } from "./extract";
 
 function parseMaterialPage(page: NotionPage) {
@@ -33,57 +34,49 @@ function parseMaterialPage(page: NotionPage) {
 }
 
 export async function syncMaterials() {
-  console.log("[sync] fetching materials from Notion...");
-  const pages = await queryAllPages(NOTION_DBS.materials);
-  console.log(`[sync] found ${pages.length} materials`);
-
-  const notionIds: string[] = [];
-
-  for (const page of pages) {
-    const row = parseMaterialPage(page);
-    notionIds.push(row.notionId);
-
-    await sql`
-      INSERT INTO materials_cache (
-        notion_id, title, form_primary, functions, connector_modes,
-        context_tags, do_not_use, do_not_use_reason, shareability,
-        min_qty_size, examples_notes, generation_notes,
-        generation_prompts, source, notion_last_edited, synced_at
-      ) VALUES (
-        ${row.notionId}, ${row.title}, ${row.formPrimary},
-        ${JSON.stringify(row.functions)}, ${JSON.stringify(row.connectorModes)},
-        ${JSON.stringify(row.contextTags)}, ${row.doNotUse},
-        ${row.doNotUseReason}, ${row.shareability}, ${row.minQtySize},
-        ${row.examplesNotes}, ${row.generationNotes},
-        ${JSON.stringify(row.generationPrompts)}, ${row.source},
-        ${row.lastEdited}, NOW()
-      )
-      ON CONFLICT (notion_id) DO UPDATE SET
-        title = EXCLUDED.title,
-        form_primary = EXCLUDED.form_primary,
-        functions = EXCLUDED.functions,
-        connector_modes = EXCLUDED.connector_modes,
-        context_tags = EXCLUDED.context_tags,
-        do_not_use = EXCLUDED.do_not_use,
-        do_not_use_reason = EXCLUDED.do_not_use_reason,
-        shareability = EXCLUDED.shareability,
-        min_qty_size = EXCLUDED.min_qty_size,
-        examples_notes = EXCLUDED.examples_notes,
-        generation_notes = EXCLUDED.generation_notes,
-        generation_prompts = EXCLUDED.generation_prompts,
-        source = EXCLUDED.source,
-        notion_last_edited = EXCLUDED.notion_last_edited,
-        synced_at = NOW()
-    `;
-  }
-
-  if (notionIds.length > 0) {
-    await sql.query(
-      `DELETE FROM materials_cache WHERE notion_id != ALL($1::text[])`,
-      [notionIds],
-    );
-  }
-
-  console.log(`[sync] materials sync complete: ${pages.length} upserted`);
-  return pages.length;
+  return syncCacheTable<ReturnType<typeof parseMaterialPage>>({
+    databaseId: NOTION_DBS.materials,
+    label: "materials",
+    parsePage: parseMaterialPage,
+    upsertRow: async (row) => {
+      await sql`
+        INSERT INTO materials_cache (
+          notion_id, title, form_primary, functions, connector_modes,
+          context_tags, do_not_use, do_not_use_reason, shareability,
+          min_qty_size, examples_notes, generation_notes,
+          generation_prompts, source, notion_last_edited, synced_at
+        ) VALUES (
+          ${row.notionId}, ${row.title}, ${row.formPrimary},
+          ${JSON.stringify(row.functions)}, ${JSON.stringify(row.connectorModes)},
+          ${JSON.stringify(row.contextTags)}, ${row.doNotUse},
+          ${row.doNotUseReason}, ${row.shareability}, ${row.minQtySize},
+          ${row.examplesNotes}, ${row.generationNotes},
+          ${JSON.stringify(row.generationPrompts)}, ${row.source},
+          ${row.lastEdited}, NOW()
+        )
+        ON CONFLICT (notion_id) DO UPDATE SET
+          title = EXCLUDED.title,
+          form_primary = EXCLUDED.form_primary,
+          functions = EXCLUDED.functions,
+          connector_modes = EXCLUDED.connector_modes,
+          context_tags = EXCLUDED.context_tags,
+          do_not_use = EXCLUDED.do_not_use,
+          do_not_use_reason = EXCLUDED.do_not_use_reason,
+          shareability = EXCLUDED.shareability,
+          min_qty_size = EXCLUDED.min_qty_size,
+          examples_notes = EXCLUDED.examples_notes,
+          generation_notes = EXCLUDED.generation_notes,
+          generation_prompts = EXCLUDED.generation_prompts,
+          source = EXCLUDED.source,
+          notion_last_edited = EXCLUDED.notion_last_edited,
+          synced_at = NOW()
+      `;
+    },
+    cleanupStale: async (activeNotionIds) => {
+      await sql.query(
+        `DELETE FROM materials_cache WHERE notion_id != ALL($1::text[])`,
+        [activeNotionIds],
+      );
+    },
+  });
 }
