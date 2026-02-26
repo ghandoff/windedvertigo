@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DownloadButton from "@/components/ui/download-button";
+import { MaterialIllustration } from "@/components/material-illustration";
 
 interface PlaydateData {
   id: string;
@@ -55,7 +56,7 @@ export default function EntitledPlaydateView({
         <p className="text-lg text-cadet/60">{playdate.headline}</p>
       )}
 
-      {/* at a glance — playful, parent-readable summary */}
+      {/* at a glance â playful, parent-readable summary */}
       <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
           at a glance
@@ -63,7 +64,7 @@ export default function EntitledPlaydateView({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {playdate.primary_function && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">🎯</span>
+              <span className="text-base leading-none mt-px">ð¯</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what&apos;s it about</p>
                 <p className="text-cadet/80">{playdate.primary_function}</p>
@@ -72,7 +73,7 @@ export default function EntitledPlaydateView({
           )}
           {playdate.friction_dial !== null && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">🎚️</span>
+              <span className="text-base leading-none mt-px">ðï¸</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">energy level</p>
                 <p className="text-cadet/80">
@@ -87,7 +88,7 @@ export default function EntitledPlaydateView({
           )}
           {playdate.start_in_120s && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">⚡</span>
+              <span className="text-base leading-none mt-px">â¡</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">setup time</p>
                 <p className="text-cadet/80">ready in under 2 minutes</p>
@@ -96,7 +97,7 @@ export default function EntitledPlaydateView({
           )}
           {(playdate.arc_emphasis as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">🌱</span>
+              <span className="text-base leading-none mt-px">ð±</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what kids practise</p>
                 <p className="text-cadet/80">{(playdate.arc_emphasis as string[]).join(", ")}</p>
@@ -105,7 +106,7 @@ export default function EntitledPlaydateView({
           )}
           {(playdate.required_forms as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">✂️</span>
+              <span className="text-base leading-none mt-px">âï¸</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what you&apos;ll gather</p>
                 <p className="text-cadet/80">{(playdate.required_forms as string[]).join(", ")}</p>
@@ -114,7 +115,7 @@ export default function EntitledPlaydateView({
           )}
           {(playdate.slots_optional as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">🧩</span>
+              <span className="text-base leading-none mt-px">ð§©</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">nice to have</p>
                 <p className="text-cadet/80">{(playdate.slots_optional as string[]).join(", ")}</p>
@@ -189,7 +190,7 @@ export default function EntitledPlaydateView({
       {playdate.find_again_mode && (
         <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-6">
           <h2 className="text-sm font-semibold text-redwood mb-2">
-            find again — {playdate.find_again_mode}
+            find again â {playdate.find_again_mode}
           </h2>
           {playdate.find_again_prompt && (
             <p className="text-sm text-cadet/80 whitespace-pre-line">
@@ -199,7 +200,7 @@ export default function EntitledPlaydateView({
         </section>
       )}
 
-      {/* slots notes — practical material hints */}
+      {/* slots notes â practical material hints */}
       {playdate.slots_notes && (
         <section className="rounded-xl border border-cadet/10 bg-champagne/20 p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
@@ -231,11 +232,12 @@ export default function EntitledPlaydateView({
           </h2>
           <ul className="space-y-2">
             {materials.map((m) => (
-              <li key={m.id} className="flex items-center gap-2 text-sm">
-                <span className="inline-block rounded-full bg-cadet/5 px-2.5 py-0.5 text-xs font-medium">
-                  {m.form_primary}
+              <li key={m.id} className="flex items-center gap-2.5 text-sm">
+                {m.form_primary && <MaterialIllustration formPrimary={m.form_primary} size={24} className="opacity-80" />}
+                <span className="inline-block rounded-full bg-cadet/5 px-2.5 py-0.5 text-xs font-medium text-cadet/70">
+                  {m.form_primary ?? "material"}
                 </span>
-                <span>{m.title}</span>
+                <span className="text-cadet/80">{m.title}</span>
               </li>
             ))}
           </ul>
@@ -258,7 +260,7 @@ export default function EntitledPlaydateView({
         </Link>
       </section>
 
-      {/* ── collective-only sections ── */}
+      {/* ââ collective-only sections ââ */}
       {/* these fields are only present when fetched at collective tier */}
       {(playdate.design_rationale ||
         playdate.developmental_notes ||
