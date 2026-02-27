@@ -7,6 +7,7 @@
  */
 
 import { sql } from "@/lib/db";
+import { coverSelect } from "@/lib/db-compat";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -148,11 +149,12 @@ export async function getCollectionPlaydates(
   collectionId: string,
   userId: string | null,
 ): Promise<CollectionPlaydate[]> {
+  const cv = await coverSelect("p");
   const result = await sql.query(
     `SELECT p.id, p.slug, p.title, p.headline,
             p.primary_function, p.arc_emphasis,
             p.friction_dial, p.start_in_120s,
-            p.tinkering_tier, p.cover_url,
+            p.tinkering_tier, ${cv}
             (p.find_again_mode IS NOT NULL) AS has_find_again,
             pp.progress_tier,
             COALESCE(ev_counts.evidence_count, 0)::int AS evidence_count,

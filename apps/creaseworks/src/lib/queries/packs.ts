@@ -9,22 +9,23 @@ import {
   PLAYDATE_TEASER_COLUMNS,
   PLAYDATE_ENTITLED_COLUMNS,
   PLAYDATE_COLLECTIVE_COLUMNS,
-  columnsToSql,
 } from "@/lib/security/column-selectors";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
+import { hasCoverUrlColumn, coverSelect, coverGroupBy, safeCols } from "@/lib/db-compat";
 
 /**
  * Fetch all visible packs for the public catalogue page.
  * Joins packs_cache with packs_catalogue for pricing/visibility.
  */
 export async function getVisiblePacks() {
+  const cv = await coverSelect("pc");
   const result = await sql.query(
     `SELECT
        pc.id,
        pc.slug,
        pc.title,
        pc.description,
-       pc.cover_url,
+       ${cv}
        cat.price_cents,
        cat.currency,
        (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count,
@@ -49,13 +50,14 @@ export async function getVisiblePacks() {
  * Fetch a single pack by slug with catalogue data.
  */
 export async function getPackBySlug(slug: string) {
+  const cv = await coverSelect("pc");
   const result = await sql.query(
     `SELECT
        pc.id,
        pc.slug,
        pc.title,
        pc.description,
-       pc.cover_url,
+       ${cv}
        pc.status,
        cat.id AS catalogue_id,
        cat.price_cents,
@@ -77,7 +79,8 @@ export async function getPackBySlug(slug: string) {
  * Used on the pack detail page for non-entitled users.
  */
 export async function getPackPlaydates(packCacheId: string) {
-  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const safe = await safeCols(PLAYDATE_TEASER_COLUMNS);
+  const cols = safe.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
        (p.find_again_mode IS NOT NULL) AS has_find_again
@@ -97,7 +100,8 @@ export async function getPackPlaydates(packCacheId: string) {
  * Caller must verify entitlement before calling.
  */
 export async function getPackPlaydatesEntitled(packCacheId: string) {
-  const cols = PLAYDATE_ENTITLED_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const safe = await safeCols(PLAYDATE_ENTITLED_COLUMNS);
+  const cols = safe.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols}
      FROM playdates_cache p
@@ -118,7 +122,8 @@ export async function getPackPlaydatesEntitled(packCacheId: string) {
  * Caller must verify isInternal before calling.
  */
 export async function getPackPlaydatesCollective(packCacheId: string) {
-  const cols = PLAYDATE_COLLECTIVE_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const safe = await safeCols(PLAYDATE_COLLECTIVE_COLUMNS);
+  const cols = safe.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
        (p.find_again_mode IS NOT NULL) AS has_find_again
@@ -138,13 +143,14 @@ export async function getPackPlaydatesCollective(packCacheId: string) {
  * Caller must verify isInternal before calling.
  */
 export async function getAllPacks() {
+  const cv = await coverSelect("pc");
   const result = await sql.query(
     `SELECT
        pc.id,
        pc.slug,
        pc.title,
        pc.description,
-       pc.cover_url,
+       ${cv}
        pc.status,
        cat.price_cents,
        cat.currency,
@@ -164,13 +170,14 @@ export async function getAllPacks() {
  * Caller must verify isInternal before calling.
  */
 export async function getPackBySlugCollective(slug: string) {
+  const cv = await coverSelect("pc");
   const result = await sql.query(
     `SELECT
        pc.id,
        pc.slug,
        pc.title,
        pc.description,
-       pc.cover_url,
+       ${cv}
        pc.status,
        cat.id AS catalogue_id,
        cat.price_cents,
@@ -190,8 +197,10 @@ export async function getPackBySlugCollective(slug: string) {
  * Admin: fetch all packs with status='ready' (ignores visibility).
  */
 export async function getAllReadyPacks() {
+  const hasCover = await hasCoverUrlColumn();
+  const coverCol = hasCover ? "cover_url," : "NULL AS cover_url,";
   const result = await sql.query(
-    `SELECT id, slug, title, description, cover_url, status
+    `SELECT id, slug, title, description, ${coverCol} status
      FROM packs_cache
      WHERE status = 'ready'
      ORDER BY title ASC`,
@@ -268,13 +277,14 @@ export async function getUnownedPacks(orgId: string | null) {
     // No org = show all visible packs
     return getVisiblePacks();
   }
+  const cv = await coverSelect("pc");
   const result = await sql.query(
     `SELECT
        pc.id,
        pc.slug,
        pc.title,
        pc.description,
-       pc.cover_url,
+       ${cv}
        cat.price_cents,
        cat.currency,
        (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count
@@ -332,18 +342,21 @@ export async function getRecommendedPacks(
   userId: string,
   limit = 3,
 ) {
+  const cv = await coverSelect("pc");
+  const cg = await coverGroupBy("pc");
+
   // If no org, recommend visible packs by size
   if (!orgId) {
     const result = await sql.query(
       `SELECT
-         pc.id, pc.slug, pc.title, pc.description, pc.cover_url,
+         pc.id, pc.slug, pc.title, pc.description, ${cv}
          cat.price_cents, cat.currency,
          COUNT(DISTINCT pp.playdate_id)::int AS playdate_count
        FROM packs_cache pc
        JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
        LEFT JOIN pack_playdates pp ON pp.pack_id = pc.id
        WHERE cat.visible = true AND pc.status = 'ready' AND pc.slug IS NOT NULL
-       GROUP BY pc.id, pc.slug, pc.title, pc.description, pc.cover_url, cat.price_cents, cat.currency
+       GROUP BY pc.id, pc.slug, pc.title, pc.description${cg}, cat.price_cents, cat.currency
        ORDER BY playdate_count DESC
        LIMIT $1`,
       [limit],
@@ -370,7 +383,7 @@ export async function getRecommendedPacks(
      ),
      pack_scores AS (
        SELECT
-         pc.id, pc.slug, pc.title, pc.description, pc.cover_url,
+         pc.id, pc.slug, pc.title, pc.description, ${cv}
          cat.price_cents, cat.currency,
          COUNT(DISTINCT pp.playdate_id)::int AS playdate_count,
          COUNT(DISTINCT ua.arc)::int AS arc_overlap
@@ -391,7 +404,7 @@ export async function getRecommendedPacks(
              AND e.revoked_at IS NULL
              AND (e.expires_at IS NULL OR e.expires_at > NOW())
          )
-       GROUP BY pc.id, pc.slug, pc.title, pc.description, pc.cover_url, cat.price_cents, cat.currency
+       GROUP BY pc.id, pc.slug, pc.title, pc.description${cg}, cat.price_cents, cat.currency
      )
      SELECT * FROM pack_scores
      ORDER BY arc_overlap DESC, playdate_count DESC
