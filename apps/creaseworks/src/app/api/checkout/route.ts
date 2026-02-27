@@ -52,7 +52,8 @@ export async function POST(req: NextRequest) {
        cat.id AS catalogue_id,
        cat.price_cents,
        cat.currency,
-       cat.visible
+       cat.visible,
+       cat.stripe_price_id
      FROM packs_cache pc
      JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
      WHERE pc.id = $1
@@ -103,6 +104,7 @@ export async function POST(req: NextRequest) {
       priceCents: pack.price_cents,
       currency: pack.currency || "USD",
       userId: session.userId,
+      stripePriceId: pack.stripe_price_id ?? undefined,
     });
 
     // Audit log the checkout initiation (M1: capture IP)

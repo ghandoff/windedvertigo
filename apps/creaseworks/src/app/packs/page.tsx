@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PackCard from "@/components/ui/pack-card";
+import PackFinder from "@/components/pack-finder";
 import { getVisiblePacks, getAllPacks } from "@/lib/queries/packs";
 import { getSession } from "@/lib/auth-helpers";
 
@@ -60,6 +61,16 @@ export default async function PacksCataloguePage() {
           </div>
         ))}
       </div>
+
+      {/* guided pack finder */}
+      <PackFinder packs={packs.map((p: Pack) => ({
+        slug: p.slug,
+        title: p.title,
+        description: p.description,
+        playdate_count: p.playdate_count,
+        price_cents: p.price_cents,
+        currency: p.currency,
+      }))} />
 
       <p className="text-xs text-cadet/40 mb-8">
         not sure yet?{" "}

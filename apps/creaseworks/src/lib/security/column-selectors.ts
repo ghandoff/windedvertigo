@@ -24,6 +24,7 @@ export const PLAYDATE_TEASER_COLUMNS = [
   "required_forms",
   "rails_sentence",
   "age_range",
+  "energy_level",
 ] as const;
 
 /** Entitled tier — authenticated users whose org owns the pack. */

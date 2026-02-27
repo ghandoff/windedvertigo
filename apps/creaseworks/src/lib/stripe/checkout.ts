@@ -57,6 +57,7 @@ export async function createCheckoutSession(opts: {
   priceCents: number;
   currency: string;
   userId: string;
+  stripePriceId?: string;
 }): Promise<string> {
   const stripe = getStripe();
 
@@ -70,17 +71,19 @@ export async function createCheckoutSession(opts: {
     customer: customerId,
     mode: "payment",
     line_items: [
-      {
-        price_data: {
-          currency: opts.currency.toLowerCase(),
-          product_data: {
-            name: opts.packTitle,
-            description: `creaseworks playdate pack — perpetual access for ${opts.orgName}`,
+      opts.stripePriceId
+        ? { price: opts.stripePriceId, quantity: 1 }
+        : {
+            price_data: {
+              currency: opts.currency.toLowerCase(),
+              product_data: {
+                name: opts.packTitle,
+                description: `creaseworks playdate pack — perpetual access for ${opts.orgName}`,
+              },
+              unit_amount: opts.priceCents,
+            },
+            quantity: 1,
           },
-          unit_amount: opts.priceCents,
-        },
-        quantity: 1,
-      },
     ],
     metadata: {
       orgId: opts.orgId,

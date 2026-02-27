@@ -11,6 +11,7 @@
 import { sql } from "@/lib/db";
 import type { CWSession } from "@/lib/auth-helpers";
 import type { EvidenceRow, EvidenceType } from "./evidence";
+import { sendGalleryApprovedEmail } from "@/lib/email/send-gallery-approved";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -203,6 +204,32 @@ export async function approveGalleryItem(
      WHERE id = $1`,
     [evidenceId],
   );
+
+  // Send approval notification email (fire-and-forget)
+  try {
+    const info = await sql.query(
+      `SELECT u.email, u.name, re.evidence_type, p.title AS playdate_title
+       FROM run_evidence re
+       JOIN runs_cache r ON r.id = re.run_id
+       JOIN users u ON u.id = r.created_by
+       LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
+       WHERE re.id = $1`,
+      [evidenceId],
+    );
+    const row = info.rows[0];
+    if (row?.email) {
+      sendGalleryApprovedEmail({
+        to: row.email,
+        name: row.name,
+        playdateTitle: row.playdate_title,
+        evidenceType: row.evidence_type,
+      }).catch((err) =>
+        console.error("gallery approval email failed:", err),
+      );
+    }
+  } catch (err) {
+    console.error("failed to fetch user info for gallery email:", err);
+  }
 
   return true;
 }

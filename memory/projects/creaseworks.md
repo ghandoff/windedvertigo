@@ -12,10 +12,10 @@
 | **Neon DB** | creaseworks-db (divine-dust-87453436) |
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
-| **Source files** | 225 (.ts + .tsx) |
-| **Migrations** | 026 (latest: co-play-mode) |
-| **Latest commit** | `78888a7` session 27 |
-| **Last session** | 27 (Feb 26, 2026) |
+| **Source files** | 235 (.ts + .tsx) |
+| **Migrations** | 027 (latest: campaigns) |
+| **Latest commit** | `7b72c7c` session 29 (pending push) |
+| **Last session** | 29 (Feb 27, 2026) |
 
 ## Notion Database IDs
 
@@ -59,7 +59,7 @@ src/
 ├── components/
 │   ├── matcher/            # MatcherInputForm (split into 6 files)
 │   ├── ui/                 # Shared UI (playdate-card, run-form/ directory)
-│   └── *.tsx               # Feature components (co-play, gallery, seasonal, etc.)
+│   └── *.tsx               # Feature components (co-play, gallery, seasonal, pack-finder, playbook-search, playdate-peek, etc.)
 └── lib/
     ├── auth.ts             # Auth.js session helpers
     ├── db.ts               # Neon serverless client
@@ -108,6 +108,14 @@ src/
 - ✅ **Feature J**: PDF batch export for collections
 - ✅ **Feature K**: Co-play mode (invite codes + shared reflections)
 
+### Session 28-29 Features (Wave 2: Q–X)
+- ✅ **Feature Q**: Stripe price_id support (checkout uses pre-created Stripe prices)
+- ✅ **Feature T**: Playdate peek cards (expandable teasers for non-entitled pack view)
+- ✅ **Feature U**: Gallery approval email (Resend notification on admin approve)
+- ✅ **Feature V**: Campaign DB lookup (replace hardcoded campaign metadata)
+- ✅ **Feature W**: Pack finder wizard (3-question guided selector on /packs)
+- ✅ **Feature X**: Playbook search/filter (text search + progress filter chips)
+
 ### Open UX Items (from review doc Part 1)
 - ✅ **Item 4**: First-visit onboarding — resolved (sessions 23, 26: onboarding wizard + FirstVisitBanner)
 - ✅ **Item 5**: Card visual hierarchy — resolved (sessions 26-27: SVG illustrations, age range tags, energy levels, "great first pick" beginner badge, "🔥 popular" badge for 5+ tries)
@@ -133,6 +141,7 @@ src/
 | 024 | community-gallery | `shared_to_gallery`, `gallery_approved` on run_evidence |
 | 025 | email-preferences | biweekly digest, nudge_enabled, last_active_at |
 | 026 | co-play-mode | `co_play_invite_code`, `co_play_parent_id`, `co_play_reflections` on runs_cache |
+| 027 | campaigns | `campaigns` table (slug, title, description, active) + acetate seed |
 
 ## Session-Start Checklist
 

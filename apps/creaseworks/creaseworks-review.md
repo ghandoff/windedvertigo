@@ -119,6 +119,12 @@ These are feature requests captured during session 22 that should be planned int
 
 **P. Playdate preview images.** Each playdate tile needs a hero image that previews the activity — something visual and playful, not just a grid of words. These could collage the materials illustrations, show a stylized scene, or use AI-generated watercolor/sketch imagery. The current deterministic SVG patterns (Feature E) provide color and texture but don't communicate *what* the playdate is. The goal is to make browsing feel like flipping through a picture book rather than scanning a spreadsheet. Consider: Notion-hosted images synced via the existing sync pipeline, or generated at build time from playdate metadata.
 
+### wish list — session 29 additions
+
+**Q–X. Wave 2 features (implemented session 29).** See session 29 accomplishments below.
+
+**Y. Visual architecture for non-readers.** We want children to be able to use creaseworks, so we need to find a visual architecture to help non-readers semi-navigate the app. This means: icon-based navigation, color-coded sections, illustration-heavy UI cues, and minimal reliance on text labels for core actions (try, log, explore). Consider a "kid mode" toggle or an always-visual nav layer that supplements the current text-based interface. Research: Montessori color coding, PBS Kids navigation patterns, Toca Boca UI, Duolingo ABC.
+
 ### session 22 accomplishments
 
 *February 25–26, 2026*
@@ -232,3 +238,16 @@ The codebase is clean for a 20-session project. 144 source files, 53 tests passi
 - **Item 9: Playbook as default landing** — homepage (`src/app/page.tsx`) now server-side redirects authenticated users to `/playbook`. Fixed "explore explore" grammar bug in `getNextSuggestion()` (`src/lib/queries/collections.ts`) with conditional handling for the explore arc.
 - **Item 10: Profile dashboard** — new `ProfileDashboard` server component (`src/components/profile-dashboard.tsx`) with 4 sections: stats row (total runs, playdates tried, evidence captured, current streak), badge journey (progress bars per badge level), recent activity feed, and favorite collection callout. New `profile-stats.ts` query layer using parallel `Promise.all()` and window functions for streak calculation. Integrated into profile page above tier cards.
 - **Review doc fully resolved** — all 10 UX friction points in Part 1 now marked with resolution status. All Part 2 features (A–K), Part 3 wish list items (L–N), and Part 4 code audit items complete. Only remaining open item: popularity/beginner signals on cards (Item 5, partially resolved).
+
+### session 29 accomplishments
+
+*February 27, 2026*
+
+- **Feature Q: Stripe price_id support** — `packs_catalogue.stripe_price_id` column now queried in checkout route. `createCheckoutSession()` conditionally uses `{ price: stripePriceId }` when a pre-created Stripe price exists, falling back to inline `price_data` for ad-hoc pricing. Eliminates duplicate product creation in Stripe dashboard.
+- **Feature T: Playdate peek cards** — new `PlaydatePeek` client component (`src/components/playdate-peek.tsx`) with expandable accordion for non-entitled pack teaser view. Shows title, function tag, find-again badge, age range, and energy level emoji (🧘 calm / ⚡ moderate / 🔥 active). Integrated into `packs/[slug]/page.tsx` replacing flat `<li>` teasers. `energy_level` added to `PLAYDATE_TEASER_COLUMNS` in column-selectors.ts.
+- **Feature U: Gallery approval email** — new `sendGalleryApprovedEmail()` in `src/lib/email/send-gallery-approved.ts` sends branded HTML notification via Resend when admin approves gallery evidence. Fire-and-forget call added to `approveGalleryItem()` in gallery.ts.
+- **Feature V: Campaign DB lookup** — migration 027 creates `campaigns` table (slug, title, description, active, timestamps) with acetate seed. New query layer at `src/lib/queries/campaigns.ts` (getAllCampaigns with playdate_count, getCampaignBySlug, CRUD operations). Campaign detail page (`campaign/[slug]/page.tsx`) now fetches metadata from DB instead of hardcoded `CAMPAIGNS` constant. Admin UI at `/admin/campaigns` with form, table, and toggle/delete actions. API at `/api/admin/campaigns` (GET/POST/PUT/DELETE).
+- **Feature W: Pack finder wizard** — new `PackFinder` client component (`src/components/pack-finder.tsx`) with 3-question guided selector (setting → age range → goals) mapping situations to pack slugs. Includes comparison table toggle showing per-playdate pricing. Integrated above pack grid on `/packs`.
+- **Feature X: Playbook search/filter** — new `PlaybookSearch` client component (`src/components/playbook-search.tsx`) with text search input + progress-based filter chips (all, not tried, in progress, completed). Uses `useMemo` for filtered results, renders `CollectionCard` grid. Integrated into playbook page replacing static grid.
+- **10 new files, 11 existing files modified** — total of 21 file changes across features Q–X.
+- **Non-reader visual architecture** — added wish list item Y for child-friendly navigation (icon-based nav, color-coded sections, illustration-heavy UI cues, kid mode toggle).

@@ -12,6 +12,7 @@ import {
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
 import PurchaseButton from "@/components/ui/purchase-button";
+import PlaydatePeek from "@/components/playdate-peek";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,8 @@ interface PlaydateTeaser {
   status: string;
   primary_function: string | null;
   has_find_again?: boolean;
+  age_range: string | null;
+  energy_level: string | null;
 }
 
 interface PlaydateFull extends PlaydateTeaser {
@@ -180,24 +183,15 @@ export default async function PackDetailPage({ params }: Props) {
         </h2>
         <ul className="space-y-2">
           {playdates.map((p: PlaydateTeaser) => (
-            <li
+            <PlaydatePeek
               key={p.id}
-              className="flex items-center justify-between rounded-lg border border-cadet/10 bg-champagne/20 px-4 py-3 text-sm"
-            >
-              <span>{p.title}</span>
-              <div className="flex items-center gap-2 text-xs text-cadet/40">
-                {p.primary_function && (
-                  <span className="rounded-full bg-champagne px-2 py-0.5">
-                    {p.primary_function}
-                  </span>
-                )}
-                {p.has_find_again && (
-                  <span className="rounded-full bg-redwood/10 text-redwood px-2 py-0.5">
-                    find again
-                  </span>
-                )}
-              </div>
-            </li>
+              title={p.title}
+              headline={p.headline}
+              primaryFunction={p.primary_function}
+              hasFindAgain={p.has_find_again ?? false}
+              ageRange={p.age_range}
+              energyLevel={p.energy_level}
+            />
           ))}
         </ul>
       </section>

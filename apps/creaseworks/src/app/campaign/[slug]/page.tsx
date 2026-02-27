@@ -9,6 +9,7 @@
 
 import type { Metadata } from "next";
 import { getCampaignPlaydates } from "@/lib/queries/playdates";
+import { getCampaignBySlug } from "@/lib/queries/campaigns";
 import { PlaydateCard } from "@/components/ui/playdate-card";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -29,22 +30,11 @@ interface CampaignPlaydate {
   run_count: number;
 }
 
-// Campaign metadata — add new campaigns here as they're created.
-const CAMPAIGNS: Record<string, { title: string; description: string }> = {
-  acetate: {
-    title: "color acetate adventures",
-    description:
-      "you found the acetate trail! these playdates all use color acetate sheets — " +
-      "layer them, hold them up to the light, project them onto walls, and discover " +
-      "what happens when colors overlap.",
-  },
-};
-
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Metadata> {
   const { slug } = await params;
-  const campaign = CAMPAIGNS[slug];
+  const campaign = await getCampaignBySlug(slug);
   return {
     title: campaign?.title ?? `${slug} — creaseworks campaign`,
     description: campaign?.description ?? `playdates from the ${slug} campaign.`,
@@ -59,14 +49,17 @@ export default async function CampaignPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const playdates = await getCampaignPlaydates(slug);
+  const [playdates, campaignMeta] = await Promise.all([
+    getCampaignPlaydates(slug),
+    getCampaignBySlug(slug),
+  ]);
 
   // If no campaign metadata and no playdates, 404
-  if (!CAMPAIGNS[slug] && playdates.length === 0) {
+  if (!campaignMeta && playdates.length === 0) {
     notFound();
   }
 
-  const campaign = CAMPAIGNS[slug] ?? {
+  const campaign = campaignMeta ?? {
     title: slug.replace(/-/g, " "),
     description: `playdates from the ${slug} campaign.`,
   };

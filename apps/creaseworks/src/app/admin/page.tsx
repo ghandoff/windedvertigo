@@ -35,6 +35,12 @@ const sections = [
     icon: "🖼️",
   },
   {
+    title: "campaigns",
+    href: "/admin/campaigns",
+    description: "manage promotional campaigns and scavenger hunts",
+    icon: "📣",
+  },
+  {
     title: "domains",
     href: "/admin/domains",
     description: "manage the email domain blocklist",

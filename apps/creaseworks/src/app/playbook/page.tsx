@@ -21,6 +21,7 @@ import {
 import { getRunsForUser, type RunRow } from "@/lib/queries/runs";
 import { getUserOnboardingStatus } from "@/lib/queries/users";
 import CollectionCard from "@/components/ui/collection-card";
+import PlaybookSearch from "@/components/playbook-search";
 import FirstVisitBanner from "@/components/first-visit-banner";
 import SeasonalBanner from "@/components/seasonal-banner";
 
@@ -131,29 +132,7 @@ export default async function PlaybookPage() {
           no collections yet. check back soon.
         </p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 mb-12">
-          {collections.map((c) => (
-            <CollectionCard
-              key={c.id}
-              slug={c.slug}
-              title={c.title}
-              description={c.description}
-              iconEmoji={c.icon_emoji}
-              playdateCount={c.playdate_count}
-              progress={
-                hasProgress
-                  ? {
-                      tried: c.tried_count,
-                      found: c.found_count,
-                      folded: c.folded_count,
-                      foundAgain: c.found_again_count,
-                    }
-                  : null
-              }
-              evidenceCount={c.evidence_count}
-            />
-          ))}
-        </div>
+        <PlaybookSearch collections={collections} hasProgress={hasProgress} />
       )}
 
       {/* ── portfolio link ── */}
