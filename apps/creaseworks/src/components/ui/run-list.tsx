@@ -69,8 +69,9 @@ export default function RunList({
   if (runs.length === 0) {
     return (
       <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-8 text-center">
-        <p className="text-cadet/50 text-sm mb-4">
-          no reflections yet. log your first reflection to start tracking.
+        <p className="text-2xl mb-3" aria-hidden>📝</p>
+        <p className="text-cadet/60 text-sm mb-4">
+          your reflections will show up here — try a playdate and log what you noticed!
         </p>
         <Link
           href="/reflections/new"

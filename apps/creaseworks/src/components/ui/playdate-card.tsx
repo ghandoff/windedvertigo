@@ -124,7 +124,7 @@ export function PlaydateCard({
   return (
     <Link
       href={href ?? `/sampler/${slug}`}
-      className="relative block rounded-xl border border-cadet/10 bg-white shadow-sm hover:shadow-md hover:border-sienna/40 transition-all overflow-hidden"
+      className="relative block rounded-xl border border-cadet/10 bg-white shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
       style={{ borderLeftWidth: 3, borderLeftColor: functionAccentColor(primaryFunction) }}
     >
       {/* illustration header */}
@@ -222,12 +222,12 @@ export function PlaydateCard({
             )
           )}
           {!!evidenceCount && evidenceCount > 0 && (
-            <span className="text-[10px] text-cadet/30">
+            <span className="text-[10px] text-cadet/40">
               {evidenceCount} piece{evidenceCount !== 1 ? "s" : ""} of evidence
             </span>
           )}
           {!!family_count && family_count > 0 && (
-            <span className="text-[10px] text-cadet/30">
+            <span className="text-[10px] text-cadet/40">
               {family_count} {family_count === 1 ? "family" : "families"} exploring
             </span>
           )}

@@ -82,7 +82,7 @@ export default async function ScavengerPage() {
   );
 
   return (
-    <main className="min-h-screen px-6 py-16 max-w-5xl mx-auto">
+    <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-5xl mx-auto">
       <header className="mb-12">
         <Link
           href="/"

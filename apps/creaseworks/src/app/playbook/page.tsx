@@ -57,7 +57,7 @@ export default async function PlaybookPage() {
   const hasPlayContexts = onboarding && onboarding.play_contexts.length > 0;
 
   return (
-    <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
+    <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-4xl mx-auto">
       {/* ── header ── */}
       <h1 className="text-3xl font-semibold tracking-tight mb-1">
         my playbook
@@ -140,9 +140,12 @@ export default async function PlaybookPage() {
       {/* ── section 2: collections grid ── */}
       <h2 className="text-lg font-semibold text-cadet mb-3">collections</h2>
       {collections.length === 0 ? (
-        <p className="text-sm text-cadet/40 py-8 text-center">
-          no collections yet. check back soon.
-        </p>
+        <div className="py-8 text-center">
+          <p className="text-2xl mb-2" aria-hidden>📚</p>
+          <p className="text-sm text-cadet/50">
+            collections are being built — check back soon!
+          </p>
+        </div>
       ) : (
         <PlaybookSearch collections={collections} hasProgress={hasProgress} />
       )}
@@ -197,8 +200,8 @@ export default async function PlaybookPage() {
         </div>
 
         {recentRuns.length === 0 ? (
-          <p className="text-sm text-cadet/30 py-4 text-center">
-            no reflections yet. after you try a playdate,{" "}
+          <p className="text-sm text-cadet/50 py-4 text-center">
+            no reflections yet — after you try a playdate,{" "}
             <Link
               href="/reflections/new"
               className="text-redwood hover:text-sienna transition-colors"

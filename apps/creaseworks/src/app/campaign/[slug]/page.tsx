@@ -66,7 +66,7 @@ export default async function CampaignPage({
   };
 
   return (
-    <main className="min-h-screen px-6 py-16 max-w-5xl mx-auto">
+    <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-5xl mx-auto">
       <header className="mb-12">
         <Link href="/sampler" className="text-sm text-cadet/50 hover:text-cadet mb-4 inline-block">
           &larr; all playdates

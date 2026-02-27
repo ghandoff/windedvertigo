@@ -41,7 +41,7 @@ export default async function GalleryPage({
   const hasPrevious = page > 1;
 
   return (
-    <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-12 max-w-6xl mx-auto">
+    <main className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-12 sm:pb-12 max-w-6xl mx-auto">
       {/* ---- header ---- */}
       <div className="mb-12">
         <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-3">
@@ -86,20 +86,10 @@ export default async function GalleryPage({
 
       {/* ---- gallery grid ---- */}
       {items.length === 0 ? (
-        <div
-          className="rounded-xl border p-8 text-center"
-          style={{
-            borderColor: "rgba(39, 50, 72, 0.15)",
-            backgroundColor: "rgba(39, 50, 72, 0.03)",
-          }}
-        >
-          <p
-            className="text-base"
-            style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
-          >
-            the gallery is being filled with community contributions.
-            <br />
-            check back soon!
+        <div className="rounded-xl border border-cadet/15 bg-cadet/[0.03] p-8 text-center">
+          <p className="text-3xl mb-3" aria-hidden>🖼️</p>
+          <p className="text-base text-cadet/60">
+            the gallery is filling up with community creations — check back soon!
           </p>
         </div>
       ) : (

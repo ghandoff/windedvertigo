@@ -115,7 +115,7 @@ export default async function ProfilePage({
   const canManage = true;
 
   return (
-    <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-16 max-w-4xl mx-auto">
+    <main className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-16 sm:pb-16 max-w-4xl mx-auto">
       {/* ---- unsubscribe confirmation banner ----------------------- */}
       {params.unsubscribed === "true" && (
         <div
@@ -246,8 +246,9 @@ export default async function ProfilePage({
         </section>
       ) : (
         <section className="mb-10 rounded-xl border border-cadet/10 px-5 py-4">
-          <p className="text-sm text-cadet/50">
-            no playdates tried yet.{" "}
+          <p className="text-2xl mb-2" aria-hidden>🌱</p>
+          <p className="text-sm text-cadet/60">
+            your play journey starts here!{" "}
             <Link
               href="/sampler"
               className="text-redwood hover:text-sienna transition-colors"

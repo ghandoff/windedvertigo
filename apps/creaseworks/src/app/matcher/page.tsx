@@ -37,7 +37,7 @@ export default async function MatcherPage() {
   ]);
 
   return (
-    <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-16 max-w-5xl mx-auto">
+    <main className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-16 sm:pb-16 max-w-5xl mx-auto">
       <Link
         href="/"
         className="text-sm hover:opacity-80 transition-opacity mb-4 sm:mb-6 inline-block"

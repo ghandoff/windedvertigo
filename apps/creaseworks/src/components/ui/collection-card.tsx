@@ -32,7 +32,7 @@ export default function CollectionCard({
   return (
     <Link
       href={`/playbook/${slug}`}
-      className="block rounded-xl border border-cadet/10 bg-white p-5 shadow-sm hover:shadow-md hover:border-sienna/40 transition-all"
+      className="block rounded-xl border border-cadet/10 bg-white p-5 shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200"
     >
       <div className="flex items-start gap-3 mb-2">
         {iconEmoji && (
@@ -67,12 +67,12 @@ export default function CollectionCard({
               <span className="text-redwood/70"> · {progress.foundAgain} found again</span>
             )}
             {!!evidenceCount && evidenceCount > 0 && (
-              <span className="text-cadet/30"> · {evidenceCount} evidence</span>
+              <span className="text-cadet/40"> · {evidenceCount} evidence</span>
             )}
           </p>
         </div>
       ) : (
-        <p className="text-[11px] text-cadet/30 mt-3">
+        <p className="text-[11px] text-cadet/40 mt-3">
           {playdateCount} playdate{playdateCount !== 1 ? "s" : ""}
         </p>
       )}

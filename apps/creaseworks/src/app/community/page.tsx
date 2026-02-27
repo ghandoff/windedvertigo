@@ -20,28 +20,14 @@ export default async function CommunityPage() {
   const userStatus = session ? await getLeaderboardStatus(session.userId) : null;
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "40px 20px" }}>
+    <main className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-12 sm:pb-12 max-w-[900px] mx-auto">
       {/* Header */}
-      <div style={{ marginBottom: "40px" }}>
-        <h1
-          style={{
-            margin: "0 0 8px 0",
-            fontSize: "36px",
-            fontWeight: 700,
-            color: "var(--wv-redwood)",
-          }}
-        >
+      <div className="mb-10">
+        <h1 className="text-4xl font-bold mb-2 text-redwood">
           community
         </h1>
-        <p
-          style={{
-            margin: 0,
-            fontSize: "16px",
-            color: "var(--wv-cadet)",
-            lineHeight: "1.5",
-          }}
-        >
-          Celebrate creativity and consistency. See who's earning credits through reflection,
+        <p className="text-base text-cadet leading-relaxed">
+          Celebrate creativity and consistency. See who&apos;s earning credits through reflection,
           sharing, and sustained practice.
         </p>
       </div>
@@ -56,180 +42,56 @@ export default async function CommunityPage() {
 
       {/* Leaderboard content */}
       {leaderboard.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "60px 20px",
-            borderRadius: "8px",
-            backgroundColor: "rgba(255, 255, 255, 0.5)",
-            border: `1px solid var(--wv-champagne)`,
-          }}
-        >
-          <h3
-            style={{
-              margin: "0 0 8px 0",
-              fontSize: "18px",
-              fontWeight: 600,
-              color: "var(--wv-cadet)",
-            }}
-          >
-            No leaders yet
-          </h3>
-          <p
-            style={{
-              margin: 0,
-              fontSize: "14px",
-              color: "var(--wv-cadet)",
-            }}
-          >
-            Be the first to join the leaderboard and share your creative journey!
+        <div className="text-center py-16 rounded-lg bg-white/50 border border-champagne">
+          <p className="text-lg font-semibold text-cadet mb-2">
+            no leaders yet
+          </p>
+          <p className="text-sm text-cadet/60">
+            be the first to join the leaderboard and share your creative journey!
           </p>
         </div>
       ) : (
         <div>
           {/* Desktop table */}
           <div className="hidden md:block">
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "14px",
-              }}
-            >
+            <table className="w-full border-collapse text-sm">
               <thead>
-                <tr
-                  style={{
-                    borderBottom: `2px solid var(--wv-champagne)`,
-                    backgroundColor: "rgba(255, 255, 255, 0.3)",
-                  }}
-                >
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "left",
-                      fontWeight: 600,
-                      color: "var(--wv-cadet)",
-                    }}
-                  >
-                    Rank
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "left",
-                      fontWeight: 600,
-                      color: "var(--wv-cadet)",
-                    }}
-                  >
-                    Name
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "center",
-                      fontWeight: 600,
-                      color: "var(--wv-cadet)",
-                    }}
-                  >
-                    Credits
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "center",
-                      fontWeight: 600,
-                      color: "var(--wv-cadet)",
-                    }}
-                  >
-                    Streak
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "center",
-                      fontWeight: 600,
-                      color: "var(--wv-cadet)",
-                    }}
-                  >
-                    Runs
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "center",
-                      fontWeight: 600,
-                      color: "var(--wv-cadet)",
-                    }}
-                  >
-                    Shares
-                  </th>
+                <tr className="border-b-2 border-champagne bg-white/30">
+                  <th className="px-4 py-3 text-left font-semibold text-cadet">Rank</th>
+                  <th className="px-4 py-3 text-left font-semibold text-cadet">Name</th>
+                  <th className="px-4 py-3 text-center font-semibold text-cadet">Credits</th>
+                  <th className="px-4 py-3 text-center font-semibold text-cadet">Streak</th>
+                  <th className="px-4 py-3 text-center font-semibold text-cadet">Runs</th>
+                  <th className="px-4 py-3 text-center font-semibold text-cadet">Shares</th>
                 </tr>
               </thead>
               <tbody>
                 {leaderboard.map((entry) => (
                   <tr
                     key={entry.rank}
-                    style={{
-                      borderBottom: `1px solid var(--wv-champagne)`,
-                      backgroundColor: entry.is_current_user
-                        ? "rgba(206, 164, 130, 0.1)"
-                        : undefined,
-                    }}
+                    className={`border-b border-champagne ${
+                      entry.is_current_user ? "bg-sienna/10" : ""
+                    }`}
                   >
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        fontWeight: 600,
-                        color: "var(--wv-sienna)",
-                      }}
-                    >
+                    <td className="px-4 py-3 font-semibold text-sienna">
                       #{entry.rank}
                     </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        fontWeight: 500,
-                        color: entry.is_current_user ? "var(--wv-redwood)" : "inherit",
-                      }}
-                    >
+                    <td className={`px-4 py-3 font-medium ${
+                      entry.is_current_user ? "text-redwood" : ""
+                    }`}>
                       {entry.display_name}
                       {entry.is_current_user && " (you)"}
                     </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        textAlign: "center",
-                        color: "var(--wv-redwood)",
-                        fontWeight: 600,
-                      }}
-                    >
+                    <td className="px-4 py-3 text-center text-redwood font-semibold">
                       {entry.total_credits}
                     </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        textAlign: "center",
-                        color: "var(--wv-sienna)",
-                      }}
-                    >
+                    <td className="px-4 py-3 text-center text-sienna">
                       {entry.current_streak > 0 ? `${entry.current_streak}d` : "—"}
                     </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        textAlign: "center",
-                        color: "var(--wv-cadet)",
-                      }}
-                    >
+                    <td className="px-4 py-3 text-center text-cadet">
                       {entry.total_runs}
                     </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        textAlign: "center",
-                        color: "var(--wv-cadet)",
-                      }}
-                    >
+                    <td className="px-4 py-3 text-center text-cadet">
                       {entry.gallery_shares}
                     </td>
                   </tr>
@@ -243,94 +105,38 @@ export default async function CommunityPage() {
             {leaderboard.map((entry) => (
               <div
                 key={entry.rank}
-                style={{
-                  padding: "16px",
-                  borderRadius: "8px",
-                  border: `1px solid var(--wv-champagne)`,
-                  backgroundColor: entry.is_current_user
-                    ? "rgba(206, 164, 130, 0.1)"
-                    : "rgba(255, 255, 255, 0.5)",
-                }}
+                className={`p-4 rounded-lg border border-champagne ${
+                  entry.is_current_user ? "bg-sienna/10" : "bg-white/50"
+                }`}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    marginBottom: "8px",
-                  }}
-                >
-                  <div>
-                    <h3
-                      style={{
-                        margin: "0 0 4px 0",
-                        fontSize: "16px",
-                        fontWeight: 600,
-                        color: entry.is_current_user ? "var(--wv-redwood)" : "inherit",
-                      }}
-                    >
-                      #{entry.rank} {entry.display_name}
-                      {entry.is_current_user && " (you)"}
-                    </h3>
-                  </div>
-                  <div
-                    style={{
-                      backgroundColor: "var(--wv-redwood)",
-                      color: "white",
-                      padding: "4px 12px",
-                      borderRadius: "4px",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                    }}
-                  >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className={`text-base font-semibold ${
+                    entry.is_current_user ? "text-redwood" : ""
+                  }`}>
+                    #{entry.rank} {entry.display_name}
+                    {entry.is_current_user && " (you)"}
+                  </h3>
+                  <span className="bg-redwood text-white px-3 py-1 rounded font-semibold text-sm">
                     {entry.total_credits}
-                  </div>
+                  </span>
                 </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr",
-                    gap: "12px",
-                    fontSize: "12px",
-                  }}
-                >
+                <div className="grid grid-cols-3 gap-3 text-xs">
                   <div>
-                    <p style={{ margin: "0 0 2px 0", color: "var(--wv-cadet)" }}>Streak</p>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "var(--wv-sienna)",
-                      }}
-                    >
+                    <p className="text-cadet/60 mb-0.5">Streak</p>
+                    <p className="text-sm font-semibold text-sienna">
                       {entry.current_streak > 0 ? `${entry.current_streak}d` : "—"}
                     </p>
                   </div>
                   <div>
-                    <p style={{ margin: "0 0 2px 0", color: "var(--wv-cadet)" }}>Runs</p>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "var(--wv-cadet)",
-                      }}
-                    >
+                    <p className="text-cadet/60 mb-0.5">Runs</p>
+                    <p className="text-sm font-semibold text-cadet">
                       {entry.total_runs}
                     </p>
                   </div>
                   <div>
-                    <p style={{ margin: "0 0 2px 0", color: "var(--wv-cadet)" }}>Shares</p>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "var(--wv-cadet)",
-                      }}
-                    >
+                    <p className="text-cadet/60 mb-0.5">Shares</p>
+                    <p className="text-sm font-semibold text-cadet">
                       {entry.gallery_shares}
                     </p>
                   </div>
@@ -340,6 +146,6 @@ export default async function CommunityPage() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

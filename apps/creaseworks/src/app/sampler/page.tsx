@@ -62,7 +62,7 @@ export default async function SamplerPage() {
   const hasRuns = userRuns.length > 0;
 
   return (
-    <main className="min-h-screen px-6 py-16 max-w-5xl mx-auto">
+    <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-5xl mx-auto">
       <header className="mb-12">
         <Link href="/" className="text-sm text-cadet/50 hover:text-cadet mb-4 inline-block">
           &larr; creaseworks
@@ -162,9 +162,12 @@ export default async function SamplerPage() {
       })()}
 
       {playdates.length === 0 ? (
-        <p className="text-cadet/40 text-center py-20">
-          no playdates here yet. check back soon.
-        </p>
+        <div className="text-center py-20">
+          <p className="text-3xl mb-3" aria-hidden>🎨</p>
+          <p className="text-cadet/50 text-sm">
+            new playdates are on the way — check back soon!
+          </p>
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {playdates.map((p: TeaserPlaydate) => {

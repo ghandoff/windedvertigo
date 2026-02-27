@@ -68,7 +68,7 @@ export default async function CollectionDetailPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
+    <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-4xl mx-auto">
       {/* back link */}
       <Link
         href="/playbook"
@@ -160,9 +160,12 @@ export default async function CollectionDetailPage({ params }: Props) {
 
       {/* playdate grid */}
       {playdates.length === 0 ? (
-        <p className="text-sm text-cadet/40 py-12 text-center">
-          no playdates in this collection yet.
-        </p>
+        <div className="py-12 text-center">
+          <p className="text-2xl mb-2" aria-hidden>🧩</p>
+          <p className="text-sm text-cadet/50">
+            playdates are being added to this collection — check back soon!
+          </p>
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {playdates.map((p) => (

@@ -26,7 +26,7 @@ export default async function PacksCataloguePage() {
   const packs = isCollective ? await getAllPacks() : await getVisiblePacks();
 
   return (
-    <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
+    <main className="min-h-screen px-6 pt-16 pb-24 sm:pb-16 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <h1 className="text-3xl font-semibold tracking-tight">packs</h1>
         {isCollective && (
