@@ -35,7 +35,7 @@ export default async function PlaybookPage() {
   // Recompute progress from runs before rendering
   await recomputeUserProgress(session.userId);
 
-  // Fetch everything in parallel
+  // Fetch everything in parallel (unownedPacks wrapped in try-catch to prevent page crash)
   const [collections, summary, arcs, suggestion, recentRuns, onboarding, unownedPacks] =
     await Promise.all([
       getCollectionsWithProgress(session.userId),
@@ -44,7 +44,10 @@ export default async function PlaybookPage() {
       getNextSuggestion(session.userId),
       getRunsForUser(session, 5, 0),
       getUserOnboardingStatus(session.userId),
-      getUnownedPacks(session.orgId),
+      getUnownedPacks(session.orgId).catch((err) => {
+        console.error("getUnownedPacks failed:", err);
+        return [] as Awaited<ReturnType<typeof getUnownedPacks>>;
+      }),
     ]);
 
   const hasProgress = summary.total_tried > 0;
