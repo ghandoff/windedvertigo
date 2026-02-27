@@ -29,6 +29,10 @@ import DomainVerifier from "@/app/team/domain-verifier";
 import AnalyticsDashboard from "@/app/analytics/analytics-dashboard";
 import TierCard, { TIERS, getTierState } from "@/components/ui/tier-card";
 import ProfileDashboard from "@/components/profile-dashboard";
+import ProfileYourPacks from "@/components/profile-your-packs";
+import ProfileWhatsNext from "@/components/profile-whats-next";
+import { getOrgPacksWithProgress } from "@/lib/queries/entitlements";
+import { getRecommendedPacks } from "@/lib/queries/packs";
 import ProfileManageToggle from "./manage-toggle";
 import NotificationPrefs from "./notification-prefs";
 import PlayContextSwitcher from "./play-context-switcher";
@@ -98,6 +102,14 @@ export default async function ProfilePage({
           : Promise.resolve([]),
       ])
     : [[], []];
+
+  /* ---- pack progress + recommendations ------------------------------ */
+  const [ownedPacks, recommendedPacks] = await Promise.all([
+    hasOrg
+      ? getOrgPacksWithProgress(session.orgId!, session.userId)
+      : Promise.resolve([]),
+    getRecommendedPacks(session.orgId, session.userId),
+  ]);
 
   /* show manage toggle for everyone (notification prefs are universal) */
   const canManage = true;
@@ -249,6 +261,12 @@ export default async function ProfilePage({
 
       {/* ---- profile dashboard ---------------------------------------- */}
       <ProfileDashboard stats={profileStats} />
+
+      {/* ---- your packs — owned packs with progress ------------------- */}
+      <ProfileYourPacks packs={ownedPacks} />
+
+      {/* ---- what's next — recommended unowned packs ------------------- */}
+      <ProfileWhatsNext packs={recommendedPacks} />
 
       {/* ---- your journey — tier cards ----------------------------- */}
       <section className="mb-12">

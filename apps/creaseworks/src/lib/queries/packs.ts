@@ -310,6 +310,94 @@ export async function getAllPacksWithPlaydateIds() {
 }
 
 /**
+ * Fetch up to 3 recommended unowned packs for a user.
+ * Ranks by overlap with the user's tried arc_emphasis tags —
+ * packs whose playdates cover arcs the user already enjoys
+ * are scored higher. Falls back to playdate_count if no progress.
+ */
+export async function getRecommendedPacks(
+  orgId: string | null,
+  userId: string,
+  limit = 3,
+) {
+  // If no org, recommend visible packs by size
+  if (!orgId) {
+    const result = await sql.query(
+      `SELECT
+         pc.id, pc.slug, pc.title, pc.description,
+         cat.price_cents, cat.currency,
+         COUNT(DISTINCT pp.playdate_id)::int AS playdate_count
+       FROM packs_cache pc
+       JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
+       LEFT JOIN pack_playdates pp ON pp.pack_id = pc.id
+       WHERE cat.visible = true AND pc.status = 'ready' AND pc.slug IS NOT NULL
+       GROUP BY pc.id, pc.slug, pc.title, pc.description, cat.price_cents, cat.currency
+       ORDER BY playdate_count DESC
+       LIMIT $1`,
+      [limit],
+    );
+    return result.rows as Array<{
+      id: string;
+      slug: string;
+      title: string;
+      description: string | null;
+      price_cents: number | null;
+      currency: string | null;
+      playdate_count: number;
+      arc_overlap: number;
+    }>;
+  }
+
+  const result = await sql.query(
+    `WITH user_arcs AS (
+       SELECT DISTINCT jsonb_array_elements_text(p.arc_emphasis) AS arc
+       FROM playdate_progress prg
+       JOIN playdates_cache p ON p.id = prg.playdate_id
+       WHERE prg.user_id = $2 AND prg.progress_tier IS NOT NULL
+     ),
+     pack_scores AS (
+       SELECT
+         pc.id, pc.slug, pc.title, pc.description,
+         cat.price_cents, cat.currency,
+         COUNT(DISTINCT pp.playdate_id)::int AS playdate_count,
+         COUNT(DISTINCT ua.arc)::int AS arc_overlap
+       FROM packs_cache pc
+       JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
+       LEFT JOIN pack_playdates pp ON pp.pack_id = pc.id
+       LEFT JOIN playdates_cache plc ON plc.id = pp.playdate_id AND plc.status = 'ready'
+       LEFT JOIN LATERAL (
+         SELECT jsonb_array_elements_text(plc.arc_emphasis) AS arc
+       ) pack_arcs ON true
+       LEFT JOIN user_arcs ua ON ua.arc = pack_arcs.arc
+       WHERE cat.visible = true
+         AND pc.status = 'ready'
+         AND pc.slug IS NOT NULL
+         AND pc.id NOT IN (
+           SELECT e.pack_cache_id FROM entitlements e
+           WHERE e.org_id = $1
+             AND e.revoked_at IS NULL
+             AND (e.expires_at IS NULL OR e.expires_at > NOW())
+         )
+       GROUP BY pc.id, pc.slug, pc.title, pc.description, cat.price_cents, cat.currency
+     )
+     SELECT * FROM pack_scores
+     ORDER BY arc_overlap DESC, playdate_count DESC
+     LIMIT $3`,
+    [orgId, userId, limit],
+  );
+  return result.rows as Array<{
+    id: string;
+    slug: string;
+    title: string;
+    description: string | null;
+    price_cents: number | null;
+    currency: string | null;
+    playdate_count: number;
+    arc_overlap: number;
+  }>;
+}
+
+/**
  * Check whether a playdate belongs to a specific pack.
  */
 export async function isPlaydateInPack(

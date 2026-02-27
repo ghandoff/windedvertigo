@@ -108,6 +108,53 @@ export async function listOrgEntitlements(orgId: string) {
 }
 
 /**
+ * Fetch owned packs for an org with per-user progress breakdown.
+ * Joins entitlements → packs_cache → pack_playdates → playdate_progress.
+ * Returns one row per entitled pack with playdate count + tier counts.
+ */
+export async function getOrgPacksWithProgress(
+  orgId: string,
+  userId: string,
+) {
+  const result = await sql.query(
+    `SELECT
+       pc.id,
+       pc.slug,
+       pc.title,
+       pc.description,
+       COUNT(DISTINCT pp.playdate_id)::int AS playdate_count,
+       COUNT(DISTINCT CASE WHEN prg.progress_tier IS NOT NULL THEN pp.playdate_id END)::int AS tried_count,
+       COUNT(DISTINCT CASE WHEN prg.progress_tier IN ('found_something','folded_unfolded','found_again') THEN pp.playdate_id END)::int AS found_count,
+       COUNT(DISTINCT CASE WHEN prg.progress_tier IN ('folded_unfolded','found_again') THEN pp.playdate_id END)::int AS folded_count,
+       COUNT(DISTINCT CASE WHEN prg.progress_tier = 'found_again' THEN pp.playdate_id END)::int AS found_again_count
+     FROM entitlements e
+     JOIN packs_cache pc ON pc.id = e.pack_cache_id
+     LEFT JOIN pack_playdates pp ON pp.pack_id = pc.id
+     LEFT JOIN playdates_cache plc ON plc.id = pp.playdate_id AND plc.status = 'ready'
+     LEFT JOIN playdate_progress prg
+       ON prg.playdate_id = pp.playdate_id AND prg.user_id = $2
+     WHERE e.org_id = $1
+       AND e.revoked_at IS NULL
+       AND (e.expires_at IS NULL OR e.expires_at > NOW())
+       AND pc.slug IS NOT NULL
+     GROUP BY pc.id, pc.slug, pc.title, pc.description
+     ORDER BY pc.title ASC`,
+    [orgId, userId],
+  );
+  return result.rows as Array<{
+    id: string;
+    slug: string;
+    title: string;
+    description: string | null;
+    playdate_count: number;
+    tried_count: number;
+    found_count: number;
+    folded_count: number;
+    found_again_count: number;
+  }>;
+}
+
+/**
  * Admin: list all entitlements with org and pack names.
  */
 export async function listAllEntitlements() {
