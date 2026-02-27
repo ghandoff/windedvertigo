@@ -69,28 +69,42 @@ export default async function ProfilePage({
   const initials = (session.email.charAt(0) ?? "?").toUpperCase();
 
   /* ---- play stats -------------------------------------------------- */
-  await recomputeUserProgress(session.userId);
+  try {
+    await recomputeUserProgress(session.userId);
+  } catch {
+    // non-critical — progress recompute can fail without blocking the page
+  }
   const [summary, recentRuns, profileStats] = await Promise.all([
-    getUserProgressSummary(session.userId),
-    getRunsForUser(session, 3, 0),
+    getUserProgressSummary(session.userId).catch(() => ({
+      total_tried: 0,
+      total_found: 0,
+      total_folded: 0,
+      total_found_again: 0,
+    })),
+    getRunsForUser(session, 3, 0).catch(() => []),
     getProfileStats(session.userId),
   ]);
   const hasActivity = summary.total_tried > 0;
 
   /* ---- play contexts ------------------------------------------------ */
-  const ctxResult = await sql.query(
-    `SELECT play_contexts, active_context_name FROM users WHERE id = $1`,
-    [session.userId],
-  );
-  const playContexts = (ctxResult.rows[0]?.play_contexts ?? []) as Array<{
+  let playContexts: Array<{
     name: string;
     age_groups: string[];
     contexts: string[];
     energy: string;
     created_at: string;
-  }>;
-  const activeContextName: string | null =
-    ctxResult.rows[0]?.active_context_name ?? null;
+  }> = [];
+  let activeContextName: string | null = null;
+  try {
+    const ctxResult = await sql.query(
+      `SELECT play_contexts, active_context_name FROM users WHERE id = $1`,
+      [session.userId],
+    );
+    playContexts = (ctxResult.rows[0]?.play_contexts ?? []) as typeof playContexts;
+    activeContextName = ctxResult.rows[0]?.active_context_name ?? null;
+  } catch {
+    // columns may not exist if migration 021 hasn't been applied
+  }
 
   /* ---- team data (only if user has an org) ------------------------- */
   const hasOrg = !!session.orgId;
@@ -106,9 +120,9 @@ export default async function ProfilePage({
   /* ---- pack progress + recommendations ------------------------------ */
   const [ownedPacks, recommendedPacks] = await Promise.all([
     hasOrg
-      ? getOrgPacksWithProgress(session.orgId!, session.userId)
+      ? getOrgPacksWithProgress(session.orgId!, session.userId).catch(() => [])
       : Promise.resolve([]),
-    getRecommendedPacks(session.orgId, session.userId),
+    getRecommendedPacks(session.orgId, session.userId).catch(() => []),
   ]);
 
   /* show manage toggle for everyone (notification prefs are universal) */
