@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getRunsForUser, createRun, batchGetRunMaterials } from "@/lib/queries/runs";
 import { logAccess } from "@/lib/queries/audit";
+import { awardCredit, CREDIT_VALUES } from "@/lib/queries/credits";
 import { MAX_LENGTHS, checkLength, sanitiseStringArray } from "@/lib/validation";
 import { parseJsonBody } from "@/lib/api-helpers";
 
@@ -109,6 +110,12 @@ export async function POST(req: NextRequest) {
       ip,
       ["title", "run_type", "run_date"],
     );
+
+    // Award reflection credits (fire-and-forget — don't block response)
+    awardCredit(session.userId, session.orgId, CREDIT_VALUES.quick_log, "quick_log", runId).catch(() => {});
+    if (isFindAgain === true) {
+      awardCredit(session.userId, session.orgId, CREDIT_VALUES.find_again, "find_again", runId).catch(() => {});
+    }
 
     return NextResponse.json({ id: runId, message: "run created" }, { status: 201 });
   } catch (err: any) {

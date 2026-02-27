@@ -25,7 +25,9 @@ import PlaybookSearch from "@/components/playbook-search";
 import FirstVisitBanner from "@/components/first-visit-banner";
 import SeasonalBanner from "@/components/seasonal-banner";
 import PackUpsellSection from "@/components/pack-upsell-section";
+import CreditProgressBar from "@/components/credit-progress-bar";
 import { getUnownedPacks } from "@/lib/queries/packs";
+import { getUserCredits } from "@/lib/queries/credits";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +38,7 @@ export default async function PlaybookPage() {
   await recomputeUserProgress(session.userId);
 
   // Fetch everything in parallel (unownedPacks wrapped in try-catch to prevent page crash)
-  const [collections, summary, arcs, suggestion, recentRuns, onboarding, unownedPacks] =
+  const [collections, summary, arcs, suggestion, recentRuns, onboarding, unownedPacks, creditBalance] =
     await Promise.all([
       getCollectionsWithProgress(session.userId),
       getUserProgressSummary(session.userId),
@@ -48,6 +50,7 @@ export default async function PlaybookPage() {
         console.error("getUnownedPacks failed:", err);
         return [] as Awaited<ReturnType<typeof getUnownedPacks>>;
       }),
+      getUserCredits(session.userId).catch(() => 0),
     ]);
 
   const hasProgress = summary.total_tried > 0;
@@ -130,6 +133,9 @@ export default async function PlaybookPage() {
           &rarr;
         </Link>
       )}
+
+      {/* ── credit progress bar ── */}
+      <CreditProgressBar balance={creditBalance} />
 
       {/* ── section 2: collections grid ── */}
       <h2 className="text-lg font-semibold text-cadet mb-3">collections</h2>
