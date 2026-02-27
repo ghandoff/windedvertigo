@@ -23,27 +23,27 @@ interface ProfileDashboardProps {
 const BADGE_TIERS = [
   {
     key: "tried_it",
-    label: "Tried It",
+    label: "tried it",
     emoji: "🎯",
-    description: "Tried a playdate",
+    description: "tried a playdate",
   },
   {
     key: "found_something",
-    label: "Found Something",
+    label: "found something",
     emoji: "🔍",
-    description: "Discovered something new",
+    description: "discovered something new",
   },
   {
     key: "folded_unfolded",
-    label: "Folded & Unfolded",
+    label: "folded & unfolded",
     emoji: "🎨",
-    description: "Created and changed",
+    description: "created and changed",
   },
   {
     key: "found_again",
-    label: "Found Again",
+    label: "found again",
     emoji: "✨",
-    description: "Rediscovered the magic",
+    description: "rediscovered the magic",
   },
 ];
 
@@ -55,25 +55,25 @@ export default function ProfileDashboard({ stats }: ProfileDashboardProps) {
       {/* ---- stats row: 4 cards ---- */}
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-4 mb-8">
         <StatCard
-          label="Total Runs"
+          label="total runs"
           value={stats.totalRuns}
           accent="cadet"
           icon="▶️"
         />
         <StatCard
-          label="Playdates Tried"
+          label="playdates tried"
           value={stats.totalPlaydatesTried}
           accent="sienna"
           icon="🎮"
         />
         <StatCard
-          label="Evidence Captured"
+          label="evidence captured"
           value={stats.totalEvidence}
           accent="champagne"
           icon="📸"
         />
         <StatCard
-          label="Current Streak"
+          label="current streak"
           value={stats.currentStreak}
           accent="redwood"
           icon="🔥"
@@ -182,12 +182,12 @@ export default function ProfileDashboard({ stats }: ProfileDashboardProps) {
                   {activity.badge_earned && (
                     <div className="text-xs text-cadet/40 mt-0.5">
                       {activity.badge_earned === "tried_it"
-                        ? "🎯 Tried it"
+                        ? "🎯 tried it"
                         : activity.badge_earned === "found_something"
-                          ? "🔍 Found something"
+                          ? "🔍 found something"
                           : activity.badge_earned === "folded_unfolded"
-                            ? "🎨 Folded & unfolded"
-                            : "✨ Found again"}
+                            ? "🎨 folded & unfolded"
+                            : "✨ found again"}
                     </div>
                   )}
                 </div>

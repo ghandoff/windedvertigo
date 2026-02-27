@@ -105,7 +105,7 @@ export default async function PacksCataloguePage() {
           </div>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 wv-stagger">
           {packs.map((pack: Pack) => (
             <div key={pack.id} className="relative">
               {isCollective && pack.visible === false && (

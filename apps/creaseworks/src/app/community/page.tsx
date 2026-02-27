@@ -27,7 +27,7 @@ export default async function CommunityPage() {
           community
         </h1>
         <p className="text-base text-cadet leading-relaxed">
-          Celebrate creativity and consistency. See who&apos;s earning credits through reflection,
+          celebrate creativity and consistency. see who&apos;s earning credits through reflection,
           sharing, and sustained practice.
         </p>
       </div>
@@ -42,12 +42,30 @@ export default async function CommunityPage() {
 
       {/* Leaderboard content */}
       {leaderboard.length === 0 ? (
-        <div className="text-center py-16 rounded-lg bg-white/50 border border-champagne">
-          <p className="text-lg font-semibold text-cadet mb-2">
-            no leaders yet
+        <div className="text-center py-14 rounded-xl bg-sienna/[0.03] border border-sienna/15 max-w-md mx-auto">
+          {/* brand-aligned illustration: connected people */}
+          <svg
+            viewBox="0 0 80 50"
+            width={80}
+            height={50}
+            className="mx-auto mb-4"
+            aria-hidden="true"
+          >
+            <circle cx="40" cy="16" r="7" fill="none" stroke="var(--wv-sienna)" strokeWidth="1.3" opacity="0.5" />
+            <circle cx="20" cy="22" r="5" fill="none" stroke="var(--wv-sienna)" strokeWidth="1" opacity="0.3" />
+            <circle cx="60" cy="22" r="5" fill="none" stroke="var(--wv-sienna)" strokeWidth="1" opacity="0.3" />
+            <path d="M30 42c0-5.5 4.5-10 10-10s10 4.5 10 10" fill="none" stroke="var(--wv-sienna)" strokeWidth="1.3" strokeLinecap="round" opacity="0.4" />
+            <path d="M12 38c0-4.4 3.6-8 8-8" fill="none" stroke="var(--wv-sienna)" strokeWidth="1" strokeLinecap="round" opacity="0.25" />
+            <path d="M68 38c0-4.4-3.6-8-8-8" fill="none" stroke="var(--wv-sienna)" strokeWidth="1" strokeLinecap="round" opacity="0.25" />
+          </svg>
+          <p
+            className="text-base font-medium mb-1"
+            style={{ color: "var(--wv-sienna)" }}
+          >
+            no leaders yet — be the first!
           </p>
-          <p className="text-sm text-cadet/60">
-            be the first to join the leaderboard and share your creative journey!
+          <p className="text-sm text-cadet/50">
+            join the leaderboard and share your creative journey with the community.
           </p>
         </div>
       ) : (
@@ -57,12 +75,12 @@ export default async function CommunityPage() {
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b-2 border-champagne bg-white/30">
-                  <th className="px-4 py-3 text-left font-semibold text-cadet">Rank</th>
-                  <th className="px-4 py-3 text-left font-semibold text-cadet">Name</th>
-                  <th className="px-4 py-3 text-center font-semibold text-cadet">Credits</th>
-                  <th className="px-4 py-3 text-center font-semibold text-cadet">Streak</th>
-                  <th className="px-4 py-3 text-center font-semibold text-cadet">Runs</th>
-                  <th className="px-4 py-3 text-center font-semibold text-cadet">Shares</th>
+                  <th className="px-4 py-3 text-left font-semibold text-cadet">rank</th>
+                  <th className="px-4 py-3 text-left font-semibold text-cadet">name</th>
+                  <th className="px-4 py-3 text-center font-semibold text-cadet">credits</th>
+                  <th className="px-4 py-3 text-center font-semibold text-cadet">streak</th>
+                  <th className="px-4 py-3 text-center font-semibold text-cadet">runs</th>
+                  <th className="px-4 py-3 text-center font-semibold text-cadet">shares</th>
                 </tr>
               </thead>
               <tbody>
@@ -123,19 +141,19 @@ export default async function CommunityPage() {
 
                 <div className="grid grid-cols-3 gap-3 text-xs">
                   <div>
-                    <p className="text-cadet/60 mb-0.5">Streak</p>
+                    <p className="text-cadet/60 mb-0.5">streak</p>
                     <p className="text-sm font-semibold text-sienna">
                       {entry.current_streak > 0 ? `${entry.current_streak}d` : "—"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-cadet/60 mb-0.5">Runs</p>
+                    <p className="text-cadet/60 mb-0.5">runs</p>
                     <p className="text-sm font-semibold text-cadet">
                       {entry.total_runs}
                     </p>
                   </div>
                   <div>
-                    <p className="text-cadet/60 mb-0.5">Shares</p>
+                    <p className="text-cadet/60 mb-0.5">shares</p>
                     <p className="text-sm font-semibold text-cadet">
                       {entry.gallery_shares}
                     </p>

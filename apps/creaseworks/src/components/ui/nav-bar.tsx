@@ -294,7 +294,7 @@ export default function NavBar() {
               }}
             >
               {tab.icon}
-              <span className="text-[9px] font-semibold leading-none">{tab.label}</span>
+              <span className="text-[11px] font-semibold leading-none">{tab.label}</span>
             </Link>
           );
         })}

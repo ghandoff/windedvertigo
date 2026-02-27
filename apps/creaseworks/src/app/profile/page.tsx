@@ -245,18 +245,41 @@ export default async function ProfilePage({
           )}
         </section>
       ) : (
-        <section className="mb-10 rounded-xl border border-cadet/10 px-5 py-4">
-          <p className="text-2xl mb-2" aria-hidden>🌱</p>
-          <p className="text-sm text-cadet/60">
-            your play journey starts here!{" "}
-            <Link
-              href="/sampler"
-              className="text-redwood hover:text-sienna transition-colors"
-            >
-              browse the sampler
-            </Link>{" "}
-            to get started.
+        <section className="mb-10 rounded-xl border border-sienna/15 bg-sienna/[0.03] px-5 py-8 text-center max-w-md mx-auto">
+          {/* brand-aligned illustration: seedling / growth */}
+          <svg
+            viewBox="0 0 80 60"
+            width={80}
+            height={60}
+            className="mx-auto mb-4"
+            aria-hidden="true"
+          >
+            <path d="M40 55V32" stroke="var(--wv-sienna)" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
+            <path d="M40 32c-8-12-20-10-22-4s8 12 22 4z" fill="none" stroke="var(--wv-sienna)" strokeWidth="1.3" opacity="0.4" />
+            <path d="M40 32c8-12 20-10 22-4s-8 12-22 4z" fill="none" stroke="var(--wv-sienna)" strokeWidth="1.3" opacity="0.4" />
+            <circle cx="40" cy="26" r="3" fill="var(--wv-champagne)" stroke="var(--wv-sienna)" strokeWidth="0.8" opacity="0.6" />
+            <path d="M30 55h20" stroke="var(--wv-sienna)" strokeWidth="1" strokeLinecap="round" opacity="0.25" />
+          </svg>
+          <p
+            className="text-base font-medium mb-1"
+            style={{ color: "var(--wv-sienna)" }}
+          >
+            your play journey starts here
           </p>
+          <p className="text-sm text-cadet/50 mb-4">
+            explore a playdate from the sampler and see where curiosity takes you.
+          </p>
+          <Link
+            href="/sampler"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:shadow-md"
+            style={{
+              backgroundColor: "var(--wv-sienna)",
+              color: "var(--wv-white)",
+            }}
+          >
+            <span>browse the sampler</span>
+            <span aria-hidden>→</span>
+          </Link>
         </section>
       )}
 

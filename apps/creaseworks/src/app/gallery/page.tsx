@@ -51,7 +51,7 @@ export default async function GalleryPage({
           className="text-base text-cadet/60 max-w-2xl mb-6"
           style={{ color: "var(--wv-cadet)", opacity: 0.65 }}
         >
-          Explore evidence of play from our community — photos, discoveries, and
+          explore evidence of play from our community — photos, discoveries, and
           moments of joy from playdates around the world.
         </p>
 
@@ -86,15 +86,33 @@ export default async function GalleryPage({
 
       {/* ---- gallery grid ---- */}
       {items.length === 0 ? (
-        <div className="rounded-xl border border-cadet/15 bg-cadet/[0.03] p-8 text-center">
-          <p className="text-3xl mb-3" aria-hidden>🖼️</p>
-          <p className="text-base text-cadet/60">
-            the gallery is filling up with community creations — check back soon!
+        <div className="rounded-xl border border-sienna/15 bg-sienna/[0.03] p-10 text-center max-w-md mx-auto">
+          {/* brand-aligned illustration: simple frame with sparkle */}
+          <svg
+            viewBox="0 0 80 60"
+            width={80}
+            height={60}
+            className="mx-auto mb-4"
+            aria-hidden="true"
+          >
+            <rect x="8" y="8" width="50" height="38" rx="3" fill="none" stroke="var(--wv-sienna)" strokeWidth="1.5" opacity="0.4" />
+            <circle cx="22" cy="22" r="5" fill="none" stroke="var(--wv-sienna)" strokeWidth="1" opacity="0.3" />
+            <path d="M8 38l14-10 10 6 12-12 14 16" stroke="var(--wv-sienna)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.3" />
+            <path d="M66 12l2 4 4 0.5-3 3 0.5 4-3.5-2-3.5 2 0.5-4-3-3 4-0.5z" fill="var(--wv-champagne)" stroke="var(--wv-sienna)" strokeWidth="0.8" opacity="0.6" />
+          </svg>
+          <p
+            className="text-base font-medium mb-1"
+            style={{ color: "var(--wv-sienna)" }}
+          >
+            the gallery is growing
+          </p>
+          <p className="text-sm text-cadet/50">
+            community creations will appear here soon. try a playdate and share what you discover.
           </p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8 wv-stagger">
             {items.map((item) => (
               <GalleryCard key={item.id} item={item} />
             ))}

@@ -138,6 +138,16 @@
   background-color: var(--wv-cadet);
 }
 
+.wv-footer-tagline {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--wv-champagne);
+  margin: 0 0 var(--space-md) 0;
+  opacity: 0.85;
+}
+
 .wv-footer-inner {
   max-width: 100%;
   padding: 0 30px;
