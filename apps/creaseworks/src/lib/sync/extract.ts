@@ -82,6 +82,31 @@ export function extractPageId(page: NotionPage): string {
   return page.id;
 }
 
+/* ------------------------------------------------------------------ */
+/*  page-level image extraction (covers + icons)                       */
+/* ------------------------------------------------------------------ */
+
+export interface NotionImage {
+  url: string;
+  expiry?: string; // notion's expiry_time for file-type images
+}
+
+/**
+ * Extract the page cover image URL.
+ * Handles both "external" (unsplash / pasted URL) and "file" (uploaded) covers.
+ */
+export function extractCover(page: NotionPage): NotionImage | null {
+  const cover = (page as any).cover;
+  if (!cover) return null;
+  if (cover.type === "external") {
+    return { url: cover.external.url };
+  }
+  if (cover.type === "file") {
+    return { url: cover.file.url, expiry: cover.file.expiry_time };
+  }
+  return null;
+}
+
 /**
  * Fail-loud check: assert that a Notion property exists in the page's
  * properties object. Used to catch property renames in Notion that

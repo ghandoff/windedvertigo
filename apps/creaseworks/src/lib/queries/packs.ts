@@ -24,6 +24,7 @@ export async function getVisiblePacks() {
        pc.slug,
        pc.title,
        pc.description,
+       pc.cover_url,
        cat.price_cents,
        cat.currency,
        (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count,
@@ -54,6 +55,7 @@ export async function getPackBySlug(slug: string) {
        pc.slug,
        pc.title,
        pc.description,
+       pc.cover_url,
        pc.status,
        cat.id AS catalogue_id,
        cat.price_cents,
@@ -142,6 +144,7 @@ export async function getAllPacks() {
        pc.slug,
        pc.title,
        pc.description,
+       pc.cover_url,
        pc.status,
        cat.price_cents,
        cat.currency,
@@ -167,6 +170,7 @@ export async function getPackBySlugCollective(slug: string) {
        pc.slug,
        pc.title,
        pc.description,
+       pc.cover_url,
        pc.status,
        cat.id AS catalogue_id,
        cat.price_cents,
@@ -187,7 +191,7 @@ export async function getPackBySlugCollective(slug: string) {
  */
 export async function getAllReadyPacks() {
   const result = await sql.query(
-    `SELECT id, slug, title, description, status
+    `SELECT id, slug, title, description, cover_url, status
      FROM packs_cache
      WHERE status = 'ready'
      ORDER BY title ASC`,
@@ -270,6 +274,7 @@ export async function getUnownedPacks(orgId: string | null) {
        pc.slug,
        pc.title,
        pc.description,
+       pc.cover_url,
        cat.price_cents,
        cat.currency,
        (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count
@@ -331,14 +336,14 @@ export async function getRecommendedPacks(
   if (!orgId) {
     const result = await sql.query(
       `SELECT
-         pc.id, pc.slug, pc.title, pc.description,
+         pc.id, pc.slug, pc.title, pc.description, pc.cover_url,
          cat.price_cents, cat.currency,
          COUNT(DISTINCT pp.playdate_id)::int AS playdate_count
        FROM packs_cache pc
        JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
        LEFT JOIN pack_playdates pp ON pp.pack_id = pc.id
        WHERE cat.visible = true AND pc.status = 'ready' AND pc.slug IS NOT NULL
-       GROUP BY pc.id, pc.slug, pc.title, pc.description, cat.price_cents, cat.currency
+       GROUP BY pc.id, pc.slug, pc.title, pc.description, pc.cover_url, cat.price_cents, cat.currency
        ORDER BY playdate_count DESC
        LIMIT $1`,
       [limit],
@@ -348,6 +353,7 @@ export async function getRecommendedPacks(
       slug: string;
       title: string;
       description: string | null;
+      cover_url: string | null;
       price_cents: number | null;
       currency: string | null;
       playdate_count: number;
@@ -364,7 +370,7 @@ export async function getRecommendedPacks(
      ),
      pack_scores AS (
        SELECT
-         pc.id, pc.slug, pc.title, pc.description,
+         pc.id, pc.slug, pc.title, pc.description, pc.cover_url,
          cat.price_cents, cat.currency,
          COUNT(DISTINCT pp.playdate_id)::int AS playdate_count,
          COUNT(DISTINCT ua.arc)::int AS arc_overlap
@@ -385,7 +391,7 @@ export async function getRecommendedPacks(
              AND e.revoked_at IS NULL
              AND (e.expires_at IS NULL OR e.expires_at > NOW())
          )
-       GROUP BY pc.id, pc.slug, pc.title, pc.description, cat.price_cents, cat.currency
+       GROUP BY pc.id, pc.slug, pc.title, pc.description, pc.cover_url, cat.price_cents, cat.currency
      )
      SELECT * FROM pack_scores
      ORDER BY arc_overlap DESC, playdate_count DESC
@@ -397,6 +403,7 @@ export async function getRecommendedPacks(
     slug: string;
     title: string;
     description: string | null;
+    cover_url: string | null;
     price_cents: number | null;
     currency: string | null;
     playdate_count: number;

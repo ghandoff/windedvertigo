@@ -18,6 +18,7 @@ interface Playdate {
   has_find_again?: boolean;
   run_count: number;
   tinkering_tier: string | null;
+  cover_url?: string | null;
 }
 
 interface PackMapping {
@@ -120,6 +121,7 @@ export default function AdminPlaydateBrowser({
                 hasFindAgain={p.has_find_again}
                 tinkeringTier={p.tinkering_tier}
                 runCount={p.run_count}
+                coverUrl={p.cover_url}
               />
             ))}
           </div>
@@ -149,6 +151,7 @@ export default function AdminPlaydateBrowser({
                 hasFindAgain={p.has_find_again}
                 tinkeringTier={p.tinkering_tier}
                 runCount={p.run_count}
+                coverUrl={p.cover_url}
               />
             ))}
           </div>
@@ -181,6 +184,7 @@ export default function AdminPlaydateBrowser({
                 hasFindAgain={p.has_find_again}
                 tinkeringTier={p.tinkering_tier}
                 runCount={p.run_count}
+                coverUrl={p.cover_url}
               />
             ))}
           </div>

@@ -16,6 +16,7 @@ interface Pack {
   visible?: boolean;
   status?: string;
   playdate_count: number;
+  cover_url?: string | null;
 }
 
 export default async function PacksCataloguePage() {

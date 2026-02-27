@@ -46,6 +46,7 @@ export default async function SeasonalBanner() {
             tinkeringTier={playdate.tinkering_tier}
             ageRange={playdate.age_range}
             runCount={playdate.run_count}
+            coverUrl={playdate.cover_url}
             href={`/sampler/${playdate.slug}`}
           />
         ))}

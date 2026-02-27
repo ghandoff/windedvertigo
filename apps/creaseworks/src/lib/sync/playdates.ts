@@ -11,8 +11,10 @@ import {
   extractRelationIds,
   extractLastEdited,
   extractPageId,
+  extractCover,
   type NotionPage,
 } from "./extract";
+import { syncImageToR2, imageUrl } from "./sync-image";
 
 interface PlaydateRow {
   notionId: string;
@@ -43,6 +45,7 @@ interface PlaydateRow {
   materialRelationIds: string[];
   ageRange: string | null;
   tinkeringTier: string | null;
+  coverSourceUrl: string | null;
 }
 
 function parsePlaydatePage(page: NotionPage): PlaydateRow {
@@ -79,6 +82,7 @@ function parsePlaydatePage(page: NotionPage): PlaydateRow {
     materialRelationIds: extractRelationIds(props, "materials"),
     ageRange: extractSelect(props, "age range"),
     tinkeringTier: extractSelect(props, "tinkering tier"),
+    coverSourceUrl: extractCover(page)?.url ?? null,
   };
 }
 
@@ -88,6 +92,14 @@ export async function syncPlaydates() {
     label: "playdates",
     parsePage: parsePlaydatePage,
     upsertRow: async (row) => {
+      // Sync cover image to R2 (never throws — null on failure)
+      let coverR2Key: string | null = null;
+      let coverUrl: string | null = null;
+      if (row.coverSourceUrl) {
+        coverR2Key = await syncImageToR2(row.coverSourceUrl, row.notionId, "cover");
+        coverUrl = imageUrl(coverR2Key);
+      }
+
       // Upsert — generate slug only on insert (COALESCE keeps existing slug)
       await sql`
         INSERT INTO playdates_cache (
@@ -97,7 +109,8 @@ export async function syncPlaydates() {
           rails_sentence, find, fold, unfold, find_again_mode,
           find_again_prompt, substitutions_notes,
           design_rationale, developmental_notes, author_notes,
-          notion_last_edited, synced_at, slug, age_range, tinkering_tier
+          notion_last_edited, synced_at, slug, age_range, tinkering_tier,
+          cover_r2_key, cover_url
         ) VALUES (
           ${row.notionId}, ${row.title}, ${row.headline},
           ${row.releaseChannel}, ${row.ipTier}, ${row.status},
@@ -110,7 +123,8 @@ export async function syncPlaydates() {
           ${row.substitutionsNotes},
           ${row.designRationale}, ${row.developmentalNotes}, ${row.authorNotes},
           ${row.lastEdited}, NOW(), ${makeSlug(row.title)}, ${row.ageRange},
-          ${row.tinkeringTier}
+          ${row.tinkeringTier},
+          ${coverR2Key}, ${coverUrl}
         )
         ON CONFLICT (notion_id) DO UPDATE SET
           title = EXCLUDED.title,
@@ -139,7 +153,9 @@ export async function syncPlaydates() {
           notion_last_edited = EXCLUDED.notion_last_edited,
           synced_at = NOW(),
           age_range = EXCLUDED.age_range,
-          tinkering_tier = EXCLUDED.tinkering_tier
+          tinkering_tier = EXCLUDED.tinkering_tier,
+          cover_r2_key = EXCLUDED.cover_r2_key,
+          cover_url = EXCLUDED.cover_url
       `;
     },
     cleanupStale: async (activeNotionIds) => {

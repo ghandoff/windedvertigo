@@ -9,6 +9,7 @@ interface PackCardProps {
     price_cents: number | null;
     currency: string;
     family_count?: number;
+    cover_url?: string | null;
   };
 }
 
@@ -41,6 +42,19 @@ export default function PackCard({ pack }: PackCardProps) {
         backgroundColor: accent.bg,
       }}
     >
+      {/* cover banner */}
+      {pack.cover_url && (
+        <div className="-mx-5 -mt-5 mb-4 h-[100px] overflow-hidden rounded-t-xl">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={pack.cover_url}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      )}
+
       {/* playdate count pill — top right */}
       <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-cadet/6 px-2 py-0.5 text-[10px] font-semibold text-cadet/50">
         {pack.playdate_count} playdate{Number(pack.playdate_count) !== 1 ? "s" : ""}

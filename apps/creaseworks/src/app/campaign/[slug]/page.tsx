@@ -29,6 +29,7 @@ interface CampaignPlaydate {
   has_find_again?: boolean;
   run_count: number;
   tinkering_tier: string | null;
+  cover_url?: string | null;
 }
 
 export async function generateMetadata(
@@ -97,6 +98,7 @@ export default async function CampaignPage({
               hasFindAgain={p.has_find_again}
               tinkeringTier={p.tinkering_tier}
               runCount={p.run_count}
+              coverUrl={p.cover_url}
             />
           ))}
         </div>

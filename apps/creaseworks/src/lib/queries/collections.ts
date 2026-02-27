@@ -44,6 +44,7 @@ export interface CollectionPlaydate {
   evidence_count: number;
   run_count: number;
   tinkering_tier: string | null;
+  cover_url: string | null;
 }
 
 export interface ProgressSummary {
@@ -151,6 +152,7 @@ export async function getCollectionPlaydates(
     `SELECT p.id, p.slug, p.title, p.headline,
             p.primary_function, p.arc_emphasis,
             p.friction_dial, p.start_in_120s,
+            p.tinkering_tier, p.cover_url,
             (p.find_again_mode IS NOT NULL) AS has_find_again,
             pp.progress_tier,
             COALESCE(ev_counts.evidence_count, 0)::int AS evidence_count,

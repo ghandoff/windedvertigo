@@ -95,6 +95,8 @@ interface PlaydateCardProps {
   tinkeringTier?: string | null;
   /** Optional: number of families exploring this playdate */
   family_count?: number;
+  /** Optional: cover image URL from R2 (overrides PlaydateIllustration when present) */
+  coverUrl?: string | null;
 }
 
 export function PlaydateCard({
@@ -117,6 +119,7 @@ export function PlaydateCard({
   packInfo,
   tinkeringTier,
   family_count,
+  coverUrl,
 }: PlaydateCardProps) {
   const badge = progressTier ? TIER_BADGE[progressTier] : null;
   const isBeginner = frictionDial !== null && frictionDial <= 2 && startIn120s;
@@ -127,12 +130,22 @@ export function PlaydateCard({
       className="relative block rounded-xl border border-cadet/10 bg-white shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
       style={{ borderLeftWidth: 3, borderLeftColor: functionAccentColor(primaryFunction) }}
     >
-      {/* illustration header */}
-      {showIllustration && (
+      {/* cover / illustration header */}
+      {showIllustration && coverUrl ? (
+        <div className="w-full h-[120px] overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coverUrl}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      ) : showIllustration ? (
         <div className="mb-4 -mx-6 -mt-6 w-[calc(100%+48px)]">
           <PlaydateIllustration slug={slug} primaryFunction={primaryFunction} contextTags={contextTags} height={120} />
         </div>
-      )}
+      ) : null}
 
       {/* content area with padding */}
       <div className="p-6">

@@ -39,6 +39,7 @@ interface CampaignPlaydate {
   has_find_again?: boolean;
   run_count: number;
   tinkering_tier: string | null;
+  cover_url?: string | null;
 }
 
 // Campaign display metadata — extend as campaigns are added.
@@ -156,6 +157,7 @@ export default async function ScavengerPage() {
                       hasFindAgain={p.has_find_again}
                       tinkeringTier={p.tinkering_tier}
                       runCount={p.run_count}
+                      coverUrl={p.cover_url}
                     />
                   ))}
                 </div>

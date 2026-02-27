@@ -9,8 +9,10 @@ import {
   extractRelationIds,
   extractLastEdited,
   extractPageId,
+  extractCover,
   type NotionPage,
 } from "./extract";
+import { syncImageToR2, imageUrl } from "./sync-image";
 
 function parsePackPage(page: NotionPage) {
   const props = page.properties;
@@ -21,6 +23,7 @@ function parsePackPage(page: NotionPage) {
     status: extractSelect(props, "status") || "draft",
     lastEdited: extractLastEdited(page),
     playdateRelationIds: extractRelationIds(props, "playdates included"),
+    coverSourceUrl: extractCover(page)?.url ?? null,
   };
 }
 
@@ -30,20 +33,32 @@ export async function syncPacks() {
     label: "packs",
     parsePage: parsePackPage,
     upsertRow: async (row) => {
+      // Sync cover image to R2 (never throws — null on failure)
+      let coverR2Key: string | null = null;
+      let coverUrl: string | null = null;
+      if (row.coverSourceUrl) {
+        coverR2Key = await syncImageToR2(row.coverSourceUrl, row.notionId, "cover");
+        coverUrl = imageUrl(coverR2Key);
+      }
+
       await sql`
         INSERT INTO packs_cache (
           notion_id, title, description, status,
-          notion_last_edited, synced_at, slug
+          notion_last_edited, synced_at, slug,
+          cover_r2_key, cover_url
         ) VALUES (
           ${row.notionId}, ${row.title}, ${row.description},
-          ${row.status}, ${row.lastEdited}, NOW(), ${makeSlug(row.title)}
+          ${row.status}, ${row.lastEdited}, NOW(), ${makeSlug(row.title)},
+          ${coverR2Key}, ${coverUrl}
         )
         ON CONFLICT (notion_id) DO UPDATE SET
           title = EXCLUDED.title,
           description = EXCLUDED.description,
           status = EXCLUDED.status,
           notion_last_edited = EXCLUDED.notion_last_edited,
-          synced_at = NOW()
+          synced_at = NOW(),
+          cover_r2_key = EXCLUDED.cover_r2_key,
+          cover_url = EXCLUDED.cover_url
       `;
     },
     cleanupStale: async (activeNotionIds) => {

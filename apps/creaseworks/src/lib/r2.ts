@@ -138,6 +138,25 @@ export async function deleteObject(key: string): Promise<void> {
 }
 
 /**
+ * Upload a buffer directly to R2 (server-side).
+ * Used by the sync pipeline to persist Notion images.
+ */
+export async function uploadBuffer(
+  key: string,
+  body: Uint8Array | Buffer,
+  contentType: string,
+): Promise<void> {
+  const client = getR2Client();
+  const command = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+  });
+  await client.send(command);
+}
+
+/**
  * Public read URL for a stored object.
  * If R2_PUBLIC_URL is set, uses that; otherwise falls back to the
  * presigned URL pattern (not ideal for production).

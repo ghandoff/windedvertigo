@@ -29,9 +29,11 @@ import {
   extractRelationIds,
   extractLastEdited,
   extractPageId,
+  extractCover,
   assertPropertiesExist,
   NotionPage,
 } from "./extract";
+import { syncImageToR2, imageUrl } from "./sync-image";
 
 /** Notion property names that must exist on every reflections page. */
 const REQUIRED_RUN_PROPS = [
@@ -227,6 +229,15 @@ async function upsertPlaydate(page: NotionPage) {
   const substitutionsNotes = extractRichText(props, "substitutions notes");
   const lastEdited = extractLastEdited(page);
 
+  // Sync cover image to R2 (never throws — null on failure)
+  const coverSource = extractCover(page);
+  let coverR2Key: string | null = null;
+  let coverUrl: string | null = null;
+  if (coverSource) {
+    coverR2Key = await syncImageToR2(coverSource.url, notionId, "cover");
+    coverUrl = imageUrl(coverR2Key);
+  }
+
   // Generate slug
   const slug = title
     .toLowerCase()
@@ -240,7 +251,7 @@ async function upsertPlaydate(page: NotionPage) {
       start_in_120s, required_forms, slots_optional, slots_notes,
       rails_sentence, find, fold, unfold, find_again_mode,
       find_again_prompt, substitutions_notes, notion_last_edited,
-      synced_at, slug
+      synced_at, slug, cover_r2_key, cover_url
     ) VALUES (
       ${notionId}, ${title}, ${headline},
       ${releaseChannel}, ${ipTier}, ${status},
@@ -251,7 +262,7 @@ async function upsertPlaydate(page: NotionPage) {
       ${railsSentence}, ${find}, ${fold}, ${unfold},
       ${findAgainMode}, ${findAgainPrompt},
       ${substitutionsNotes}, ${lastEdited},
-      NOW(), ${slug}
+      NOW(), ${slug}, ${coverR2Key}, ${coverUrl}
     )
     ON CONFLICT (notion_id) DO UPDATE SET
       title = EXCLUDED.title,
@@ -275,7 +286,9 @@ async function upsertPlaydate(page: NotionPage) {
       find_again_prompt = EXCLUDED.find_again_prompt,
       substitutions_notes = EXCLUDED.substitutions_notes,
       notion_last_edited = EXCLUDED.notion_last_edited,
-      synced_at = NOW()
+      synced_at = NOW(),
+      cover_r2_key = EXCLUDED.cover_r2_key,
+      cover_url = EXCLUDED.cover_url
   `;
 
   // Resolve material relations inside a transaction to prevent orphaned links
@@ -316,6 +329,15 @@ async function upsertPack(page: NotionPage) {
   const status = extractSelect(props, "status");
   const lastEdited = extractLastEdited(page);
 
+  // Sync cover image to R2 (never throws — null on failure)
+  const coverSource = extractCover(page);
+  let coverR2Key: string | null = null;
+  let coverUrl: string | null = null;
+  if (coverSource) {
+    coverR2Key = await syncImageToR2(coverSource.url, notionId, "cover");
+    coverUrl = imageUrl(coverR2Key);
+  }
+
   const slug = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -324,10 +346,12 @@ async function upsertPack(page: NotionPage) {
   await sql`
     INSERT INTO packs_cache (
       notion_id, title, slug, description, status,
-      notion_last_edited, synced_at
+      notion_last_edited, synced_at,
+      cover_r2_key, cover_url
     ) VALUES (
       ${notionId}, ${title}, ${slug}, ${description}, ${status},
-      ${lastEdited}, NOW()
+      ${lastEdited}, NOW(),
+      ${coverR2Key}, ${coverUrl}
     )
     ON CONFLICT (notion_id) DO UPDATE SET
       title = EXCLUDED.title,
@@ -335,7 +359,9 @@ async function upsertPack(page: NotionPage) {
       description = EXCLUDED.description,
       status = EXCLUDED.status,
       notion_last_edited = EXCLUDED.notion_last_edited,
-      synced_at = NOW()
+      synced_at = NOW(),
+      cover_r2_key = EXCLUDED.cover_r2_key,
+      cover_url = EXCLUDED.cover_url
   `;
 
   // Resolve playdate relations inside a transaction to prevent orphaned links

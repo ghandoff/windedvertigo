@@ -22,6 +22,7 @@ interface StartHereCardProps {
   tinkeringTier?: string | null;
   runCount?: number;
   href?: string;
+  coverUrl?: string | null;
 }
 
 export default function StartHereCard({
@@ -39,6 +40,7 @@ export default function StartHereCard({
   tinkeringTier,
   runCount,
   href,
+  coverUrl,
 }: StartHereCardProps) {
   return (
     <div className="relative mb-4 sm:mb-6">
@@ -64,6 +66,7 @@ export default function StartHereCard({
         tinkeringTier={tinkeringTier}
         runCount={runCount}
         href={href}
+        coverUrl={coverUrl}
       />
     </div>
   );
