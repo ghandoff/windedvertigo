@@ -34,6 +34,7 @@ export function useRunFormState(initialPlaydateId: string = "") {
   const [loading, setLoading] = useState(false);
   const [savingEvidence, setSavingEvidence] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   function toggleTag(tag: string, list: string[], setter: (v: string[]) => void) {
     setter(list.includes(tag) ? list.filter((t) => t !== tag) : [...list, tag]);
@@ -76,6 +77,8 @@ export function useRunFormState(initialPlaydateId: string = "") {
     setSavingEvidence,
     error,
     setError,
+    success,
+    setSuccess,
     // Helpers
     toggleTag,
   };

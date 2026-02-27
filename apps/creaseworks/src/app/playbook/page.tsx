@@ -24,6 +24,8 @@ import CollectionCard from "@/components/ui/collection-card";
 import PlaybookSearch from "@/components/playbook-search";
 import FirstVisitBanner from "@/components/first-visit-banner";
 import SeasonalBanner from "@/components/seasonal-banner";
+import PackUpsellSection from "@/components/pack-upsell-section";
+import { getUnownedPacks } from "@/lib/queries/packs";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +36,7 @@ export default async function PlaybookPage() {
   await recomputeUserProgress(session.userId);
 
   // Fetch everything in parallel
-  const [collections, summary, arcs, suggestion, recentRuns, onboarding] =
+  const [collections, summary, arcs, suggestion, recentRuns, onboarding, unownedPacks] =
     await Promise.all([
       getCollectionsWithProgress(session.userId),
       getUserProgressSummary(session.userId),
@@ -42,6 +44,7 @@ export default async function PlaybookPage() {
       getNextSuggestion(session.userId),
       getRunsForUser(session, 5, 0),
       getUserOnboardingStatus(session.userId),
+      getUnownedPacks(session.orgId),
     ]);
 
   const hasProgress = summary.total_tried > 0;
@@ -159,6 +162,9 @@ export default async function PlaybookPage() {
 
       {/* ── section 3: seasonal recommendations ── */}
       <SeasonalBanner />
+
+      {/* ── section 3b: pack upsell for unowned packs ── */}
+      <PackUpsellSection packs={unownedPacks} />
 
       {/* ── section 4: recent reflections ── */}
       <div className="border-t border-cadet/10 pt-8">

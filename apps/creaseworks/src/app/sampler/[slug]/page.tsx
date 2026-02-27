@@ -43,7 +43,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
 
     // If the playdate IS in a pack, redirect to the pack view
     if (pack) {
-      redirect(`/packs/${pack.slug}/playdates/${slug}`);
+      redirect(`/packs/${pack.slug}/playdates/${slug}?from=sampler`);
     }
 
     return (
@@ -83,7 +83,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
       ? await checkEntitlement(session.orgId, pack.id)
       : false;
     if (isEntitled) {
-      redirect(`/packs/${pack.slug}/playdates/${slug}`);
+      redirect(`/packs/${pack.slug}/playdates/${slug}?from=sampler`);
     }
   }
 
@@ -127,7 +127,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {playdate.primary_function && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">ð¯</span>
+              <span className="text-base leading-none mt-px">🎯</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what&apos;s it about</p>
                 <p className="text-cadet/80">{playdate.primary_function}</p>
@@ -136,7 +136,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
           )}
           {playdate.friction_dial !== null && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">ðï¸</span>
+              <span className="text-base leading-none mt-px">🎚️</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">energy level</p>
                 <p className="text-cadet/80">
@@ -151,7 +151,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
           )}
           {playdate.start_in_120s && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">â¡</span>
+              <span className="text-base leading-none mt-px">⚡</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">setup time</p>
                 <p className="text-cadet/80">ready in under 2 minutes</p>
@@ -160,7 +160,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
           )}
           {(playdate.arc_emphasis as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">ð±</span>
+              <span className="text-base leading-none mt-px">🌱</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what kids practise</p>
                 <p className="text-cadet/80">{(playdate.arc_emphasis as string[]).join(", ")}</p>
@@ -196,7 +196,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
       {/* locked content teaser â FOMO section */}
       <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-champagne/20 to-champagne/5 p-6 mb-8">
         <div className="flex items-start gap-3 mb-4">
-          <span className="text-lg leading-none mt-0.5">ð</span>
+          <span className="text-lg leading-none mt-0.5">🔒</span>
           <div>
             <h2 className="text-sm font-semibold text-cadet/80 mb-1">
               full facilitation guide
@@ -245,6 +245,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
           <QuickLogButton
             playdateId={playdate.id}
             playdateTitle={playdate.title}
+            playdateSlug={slug}
           />
           <Link
             href={`/reflections/new?playdate=${slug}`}

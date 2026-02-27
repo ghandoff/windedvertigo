@@ -3,6 +3,7 @@ import { getTeaserPlaydates } from "@/lib/queries/playdates";
 import { getSession } from "@/lib/auth-helpers";
 import { getUserOnboardingStatus } from "@/lib/queries/users";
 import { getRunsForUser } from "@/lib/queries/runs";
+import { batchGetPackInfoForPlaydates } from "@/lib/queries/packs";
 import { PlaydateCard } from "@/components/ui/playdate-card";
 import StartHereCard from "@/components/start-here-card";
 import Link from "next/link";
@@ -40,6 +41,11 @@ export default async function SamplerPage() {
   // Everyone sees sampler-channel playdates only.
   // Admins who need the full catalog should use /admin/playdates.
   const playdates = await getTeaserPlaydates();
+
+  // Batch-fetch pack info for FOMO badges on sampler cards
+  const packInfoMap = await batchGetPackInfoForPlaydates(
+    playdates.map((p: TeaserPlaydate) => p.id),
+  );
 
   // Check if signed-in user needs onboarding
   const onboarding = session
@@ -160,21 +166,25 @@ export default async function SamplerPage() {
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {playdates.map((p: TeaserPlaydate) => (
-            <PlaydateCard
-              key={p.id}
-              slug={p.slug}
-              title={p.title}
-              headline={p.headline}
-              primaryFunction={p.primary_function}
-              arcEmphasis={p.arc_emphasis ?? []}
-              contextTags={p.context_tags ?? []}
-              frictionDial={p.friction_dial}
-              startIn120s={p.start_in_120s}
-              hasFindAgain={p.has_find_again}
-              runCount={p.run_count}
-            />
-          ))}
+          {playdates.map((p: TeaserPlaydate) => {
+            const pi = packInfoMap.get(p.id);
+            return (
+              <PlaydateCard
+                key={p.id}
+                slug={p.slug}
+                title={p.title}
+                headline={p.headline}
+                primaryFunction={p.primary_function}
+                arcEmphasis={p.arc_emphasis ?? []}
+                contextTags={p.context_tags ?? []}
+                frictionDial={p.friction_dial}
+                startIn120s={p.start_in_120s}
+                hasFindAgain={p.has_find_again}
+                runCount={p.run_count}
+                packInfo={pi ? { packSlug: pi.packSlug, packTitle: pi.packTitle } : null}
+              />
+            );
+          })}
         </div>
       )}
     </main>

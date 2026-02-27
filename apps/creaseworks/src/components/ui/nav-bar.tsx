@@ -118,9 +118,7 @@ export default function NavBar() {
     <>
       <NavLink href="/sampler" onClick={close} icon={<IconPlaydates />}>playdates</NavLink>
       <NavLink href="/matcher" onClick={close} icon={<IconMatcher />}>matcher</NavLink>
-      {!isAuthed && (
-        <NavLink href="/packs" onClick={close} icon={<IconPacks />}>packs</NavLink>
-      )}
+      <NavLink href="/packs" onClick={close} icon={<IconPacks />}>packs</NavLink>
     </>
   );
 
@@ -178,9 +176,9 @@ export default function NavBar() {
     ? [
         { href: "/sampler", label: "play", icon: <IconPlaydates />, key: "sampler" },
         { href: "/matcher", label: "match", icon: <IconMatcher />, key: "matcher" },
+        { href: "/packs", label: "packs", icon: <IconPacks />, key: "packs" },
         { href: "/playbook", label: "book", icon: <IconPlaybook />, key: "playbook" },
         { href: "/reflections/new", label: "log", icon: <IconReflections />, key: "reflections" },
-        { href: "/profile", label: "me", icon: <IconProfile />, key: "profile" },
       ]
     : [
         { href: "/sampler", label: "play", icon: <IconPlaydates />, key: "sampler" },

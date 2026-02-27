@@ -213,6 +213,78 @@ export async function getFirstVisiblePackForPlaydate(
 }
 
 /**
+ * Batch-fetch pack info for a list of playdate IDs.
+ * Returns a map of playdateId → { packId, packSlug, packTitle }.
+ * Used by the sampler grid to show "🔒 Pack Name" badges.
+ */
+export async function batchGetPackInfoForPlaydates(
+  playdateIds: string[],
+): Promise<Map<string, { packId: string; packSlug: string; packTitle: string }>> {
+  if (playdateIds.length === 0) return new Map();
+  const result = await sql.query(
+    `SELECT DISTINCT ON (pp.playdate_id)
+       pp.playdate_id,
+       pc.id AS pack_id,
+       pc.slug AS pack_slug,
+       pc.title AS pack_title
+     FROM pack_playdates pp
+     JOIN packs_cache pc ON pc.id = pp.pack_id
+     JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
+     WHERE pp.playdate_id = ANY($1)
+       AND cat.visible = true
+       AND pc.status = 'ready'
+       AND pc.slug IS NOT NULL
+     ORDER BY pp.playdate_id, pc.title ASC`,
+    [playdateIds],
+  );
+  const map = new Map<string, { packId: string; packSlug: string; packTitle: string }>();
+  for (const row of result.rows) {
+    map.set(row.playdate_id, {
+      packId: row.pack_id,
+      packSlug: row.pack_slug,
+      packTitle: row.pack_title,
+    });
+  }
+  return map;
+}
+
+/**
+ * Fetch visible packs that an org does NOT own.
+ * Used for upsell sections on playbook/profile pages.
+ */
+export async function getUnownedPacks(orgId: string | null) {
+  if (!orgId) {
+    // No org = show all visible packs
+    return getVisiblePacks();
+  }
+  const result = await sql.query(
+    `SELECT
+       pc.id,
+       pc.slug,
+       pc.title,
+       pc.description,
+       cat.price_cents,
+       cat.currency,
+       (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count
+     FROM packs_cache pc
+     JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
+     WHERE cat.visible = true
+       AND pc.status = 'ready'
+       AND pc.slug IS NOT NULL
+       AND pc.id NOT IN (
+         SELECT e.pack_cache_id FROM entitlements e
+         WHERE e.org_id = $1
+           AND e.status = 'active'
+           AND (e.revoked_at IS NULL)
+           AND (e.expires_at IS NULL OR e.expires_at > now())
+       )
+     ORDER BY pc.title ASC`,
+    [orgId],
+  );
+  return result.rows;
+}
+
+/**
  * Check whether a playdate belongs to a specific pack.
  */
 export async function isPlaydateInPack(

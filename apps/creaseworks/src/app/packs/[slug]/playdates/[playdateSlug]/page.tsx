@@ -16,11 +16,13 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ slug: string; playdateSlug: string }>;
+  searchParams: Promise<{ from?: string }>;
 }
 
-export default async function EntitledPlaydatePage({ params }: Props) {
+export default async function EntitledPlaydatePage({ params, searchParams }: Props) {
   const session = await requireAuth();
   const { slug: packSlug, playdateSlug } = await params;
+  const { from } = await searchParams;
 
   // resolve pack — collective can see draft packs
   const pack = session.isInternal
@@ -76,10 +78,10 @@ export default async function EntitledPlaydatePage({ params }: Props) {
   return (
     <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
       <Link
-        href={`/packs/${packSlug}`}
+        href={from === "sampler" ? "/sampler" : `/packs/${packSlug}`}
         className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
       >
-        &larr; back to {pack.title}
+        &larr; {from === "sampler" ? "back to playdates" : `back to ${pack.title}`}
       </Link>
 
       <h1 className="text-3xl font-semibold tracking-tight mb-4">

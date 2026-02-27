@@ -10,7 +10,10 @@
 import { requireAuth } from "@/lib/auth-helpers";
 import { getReadyPlaydatesForPicker } from "@/lib/queries/runs";
 import { getAllMaterials } from "@/lib/queries/materials";
+import { getFirstVisiblePackForPlaydate, getPackBySlug } from "@/lib/queries/packs";
+import { checkEntitlement } from "@/lib/queries/entitlements";
 import RunForm from "@/components/ui/run-form/run-form";
+import type { ReflectionPackInfo } from "@/components/ui/run-form/run-form";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +31,32 @@ export default async function NewReflectionPage({ searchParams }: Props) {
   ]);
 
   // Resolve slug to ID for pre-selection
-  const initialPlaydateId = playdateSlug
-    ? playdates.find((p: any) => p.slug === playdateSlug)?.id ?? ""
-    : "";
+  const matchedPlaydate = playdateSlug
+    ? playdates.find((p: any) => p.slug === playdateSlug)
+    : null;
+  const initialPlaydateId = matchedPlaydate?.id ?? "";
+
+  // Look up pack info for upsell CTA (only for unentitled packs)
+  let packInfo: ReflectionPackInfo | null = null;
+  if (matchedPlaydate) {
+    const pack = await getFirstVisiblePackForPlaydate(matchedPlaydate.id);
+    if (pack) {
+      const isEntitled = session.orgId
+        ? await checkEntitlement(session.orgId, pack.id)
+        : false;
+      if (!isEntitled) {
+        // Fetch full pack to get playdate count
+        const fullPack = await getPackBySlug(pack.slug);
+        if (fullPack) {
+          packInfo = {
+            packSlug: pack.slug,
+            packTitle: pack.title,
+            playdateCount: Number(fullPack.playdate_count) || 0,
+          };
+        }
+      }
+    }
+  }
 
   /**
    * Practitioner-level access for evidence capture:
@@ -56,6 +82,7 @@ export default async function NewReflectionPage({ searchParams }: Props) {
         materials={materials}
         isPractitioner={isPractitioner}
         initialPlaydateId={initialPlaydateId}
+        packInfo={packInfo}
       />
     </main>
   );

@@ -64,7 +64,7 @@ export default function EntitledPlaydateView({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {playdate.primary_function && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">ð¯</span>
+              <span className="text-base leading-none mt-px">🎯</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what&apos;s it about</p>
                 <p className="text-cadet/80">{playdate.primary_function}</p>
@@ -73,7 +73,7 @@ export default function EntitledPlaydateView({
           )}
           {playdate.friction_dial !== null && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">ðï¸</span>
+              <span className="text-base leading-none mt-px">🎚️</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">energy level</p>
                 <p className="text-cadet/80">
@@ -88,7 +88,7 @@ export default function EntitledPlaydateView({
           )}
           {playdate.start_in_120s && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">â¡</span>
+              <span className="text-base leading-none mt-px">⚡</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">setup time</p>
                 <p className="text-cadet/80">ready in under 2 minutes</p>
@@ -97,7 +97,7 @@ export default function EntitledPlaydateView({
           )}
           {(playdate.arc_emphasis as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">ð±</span>
+              <span className="text-base leading-none mt-px">🌱</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what kids practise</p>
                 <p className="text-cadet/80">{(playdate.arc_emphasis as string[]).join(", ")}</p>
@@ -106,7 +106,7 @@ export default function EntitledPlaydateView({
           )}
           {(playdate.required_forms as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">âï¸</span>
+              <span className="text-base leading-none mt-px">✂️</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">what you&apos;ll gather</p>
                 <p className="text-cadet/80">{(playdate.required_forms as string[]).join(", ")}</p>
@@ -115,7 +115,7 @@ export default function EntitledPlaydateView({
           )}
           {(playdate.slots_optional as string[])?.length > 0 && (
             <div className="flex items-start gap-2.5">
-              <span className="text-base leading-none mt-px">ð§©</span>
+              <span className="text-base leading-none mt-px">🧩</span>
               <div>
                 <p className="text-cadet/45 text-xs font-medium">nice to have</p>
                 <p className="text-cadet/80">{(playdate.slots_optional as string[]).join(", ")}</p>

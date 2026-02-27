@@ -15,6 +15,8 @@
  */
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import Link from "next/link";
 import EvidenceCaptureSection, {
   hasEvidenceContent,
 } from "../evidence-capture-section";
@@ -25,11 +27,19 @@ import { RunFormEssentials } from "./run-form-essentials";
 import { RunFormOptional } from "./run-form-optional";
 import { RunFormActions } from "./run-form-actions";
 
+/** Optional pack upsell info passed from the server page. */
+export interface ReflectionPackInfo {
+  packSlug: string;
+  packTitle: string;
+  playdateCount: number;
+}
+
 export default function RunForm({
   playdates,
   materials,
   isPractitioner = false,
   initialPlaydateId = "",
+  packInfo,
 }: {
   playdates: Playdate[];
   materials: Material[];
@@ -37,6 +47,8 @@ export default function RunForm({
   isPractitioner?: boolean;
   /** Pre-select a playdate (e.g. from ?playdate=slug deep link). */
   initialPlaydateId?: string;
+  /** Optional pack info for post-reflection upsell CTA. */
+  packInfo?: ReflectionPackInfo | null;
 }) {
   const router = useRouter();
   const state = useRunFormState(initialPlaydateId);
@@ -156,13 +168,51 @@ export default function RunForm({
         }
       }
 
-      router.push("/playbook");
+      // Show success state with optional upsell before redirecting
+      state.setSuccess(true);
     } catch (err: any) {
       state.setError(err.message);
     } finally {
       state.setLoading(false);
       state.setSavingEvidence(false);
     }
+  }
+
+  // Auto-redirect to playbook after success panel is shown
+  useEffect(() => {
+    if (!state.success) return;
+    const timer = setTimeout(() => router.push("/playbook"), 3500);
+    return () => clearTimeout(timer);
+  }, [state.success, router]);
+
+  // ── success state with optional pack upsell ──
+  if (state.success) {
+    return (
+      <div className="rounded-xl border border-champagne/40 bg-champagne/10 p-6 text-center space-y-4">
+        <p className="text-lg font-semibold text-cadet">
+          ✓ reflection saved!
+        </p>
+
+        {packInfo && (
+          <div className="bg-white rounded-lg border border-sienna/15 p-4">
+            <p className="text-sm text-cadet/70 mb-2">
+              love exploring? <span className="font-semibold text-cadet">{packInfo.packTitle}</span> has{" "}
+              {packInfo.playdateCount} more playdate{packInfo.playdateCount !== 1 ? "s" : ""} like this one.
+            </p>
+            <Link
+              href={`/packs/${packInfo.packSlug}`}
+              className="inline-block rounded-lg bg-redwood px-5 py-2 text-sm text-white font-medium hover:bg-sienna transition-colors"
+            >
+              unlock the full pack &rarr;
+            </Link>
+          </div>
+        )}
+
+        <p className="text-xs text-cadet/40">
+          heading to your playbook&hellip;
+        </p>
+      </div>
+    );
   }
 
   return (

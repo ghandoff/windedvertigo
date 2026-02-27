@@ -10,10 +10,10 @@ export type ProgressTier =
   | "found_again";
 
 const TIER_BADGE: Record<ProgressTier, { label: string; className: string }> = {
-  tried_it:        { label: "â", className: "bg-cadet/10 text-cadet/40" },
-  found_something: { label: "â", className: "bg-champagne/60 text-cadet/50" },
-  folded_unfolded:  { label: "ââ", className: "bg-sienna/20 text-sienna" },
-  found_again:     { label: "â", className: "bg-redwood/15 text-redwood" },
+  tried_it:        { label: "◎", className: "bg-cadet/10 text-cadet/40" },
+  found_something: { label: "◉", className: "bg-champagne/60 text-cadet/50" },
+  folded_unfolded:  { label: "◉◉", className: "bg-sienna/20 text-sienna" },
+  found_again:     { label: "★", className: "bg-redwood/15 text-redwood" },
 };
 
 /* ââ colour accents per arc name ââ */
@@ -46,9 +46,15 @@ function getEnergyLabel(
   frictionDial: number | null,
 ): { emoji: string; label: string } | null {
   if (frictionDial === null) return null;
-  if (frictionDial <= 2) return { emoji: "ð¿", label: "calm" };
-  if (frictionDial === 3) return { emoji: "ð¤ï¸", label: "moderate" };
-  return { emoji: "â¡", label: "active" };
+  if (frictionDial <= 2) return { emoji: "🌿", label: "calm" };
+  if (frictionDial === 3) return { emoji: "🌤️", label: "moderate" };
+  return { emoji: "⚡", label: "active" };
+}
+
+/** Pack badge info for FOMO upsell on sampler cards */
+export interface PackBadgeInfo {
+  packSlug: string;
+  packTitle: string;
 }
 
 interface PlaydateCardProps {
@@ -75,6 +81,8 @@ interface PlaydateCardProps {
   action?: ReactNode;
   /** Optional: show the illustration at the top of the card (default: true) */
   showIllustration?: boolean;
+  /** Optional: pack info for FOMO badge on sampler cards */
+  packInfo?: PackBadgeInfo | null;
 }
 
 export function PlaydateCard({
@@ -94,6 +102,7 @@ export function PlaydateCard({
   href,
   action,
   showIllustration = true,
+  packInfo,
 }: PlaydateCardProps) {
   const badge = progressTier ? TIER_BADGE[progressTier] : null;
   const isBeginner = frictionDial !== null && frictionDial <= 2 && startIn120s;
@@ -157,6 +166,13 @@ export function PlaydateCard({
           ))}
         </div>
 
+        {/* pack badge — shows when playdate is in an unpurchased pack */}
+        {packInfo && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-sienna/8 px-2.5 py-0.5 text-[10px] font-medium text-sienna/70 mb-2">
+            🔒 {packInfo.packTitle}
+          </span>
+        )}
+
         <div className="flex items-center gap-3 text-xs text-cadet/50">
           {frictionDial !== null && (() => {
             const energy = getEnergyLabel(frictionDial);
@@ -175,7 +191,7 @@ export function PlaydateCard({
           {!!runCount && runCount > 0 && (
             runCount >= 5 ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-sienna/15 px-2 py-0.5 text-xs font-semibold text-sienna">
-                ð¥ popular
+                🔥 popular
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 rounded-full bg-cadet/8 px-2 py-0.5 text-xs font-medium text-cadet/60">
