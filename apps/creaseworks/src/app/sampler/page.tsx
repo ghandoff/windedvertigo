@@ -33,6 +33,7 @@ interface TeaserPlaydate {
   start_in_120s: boolean;
   has_find_again?: boolean;
   run_count: number;
+  tinkering_tier: string | null;
 }
 
 export default async function SamplerPage() {
@@ -182,6 +183,7 @@ export default async function SamplerPage() {
                 hasFindAgain={p.has_find_again}
                 runCount={p.run_count}
                 packInfo={pi ? { packSlug: pi.packSlug, packTitle: pi.packTitle } : null}
+                tinkeringTier={p.tinkering_tier}
               />
             );
           })}

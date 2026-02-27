@@ -43,6 +43,7 @@ export interface CollectionPlaydate {
   progress_tier: string | null;
   evidence_count: number;
   run_count: number;
+  tinkering_tier: string | null;
 }
 
 export interface ProgressSummary {

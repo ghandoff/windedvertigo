@@ -17,6 +17,7 @@ interface Playdate {
   start_in_120s: boolean;
   has_find_again?: boolean;
   run_count: number;
+  tinkering_tier: string | null;
 }
 
 interface PackMapping {
@@ -117,6 +118,7 @@ export default function AdminPlaydateBrowser({
                 frictionDial={p.friction_dial}
                 startIn120s={p.start_in_120s}
                 hasFindAgain={p.has_find_again}
+                tinkeringTier={p.tinkering_tier}
                 runCount={p.run_count}
               />
             ))}
@@ -145,6 +147,7 @@ export default function AdminPlaydateBrowser({
                 frictionDial={p.friction_dial}
                 startIn120s={p.start_in_120s}
                 hasFindAgain={p.has_find_again}
+                tinkeringTier={p.tinkering_tier}
                 runCount={p.run_count}
               />
             ))}
@@ -176,6 +179,7 @@ export default function AdminPlaydateBrowser({
                 frictionDial={p.friction_dial}
                 startIn120s={p.start_in_120s}
                 hasFindAgain={p.has_find_again}
+                tinkeringTier={p.tinkering_tier}
                 runCount={p.run_count}
               />
             ))}

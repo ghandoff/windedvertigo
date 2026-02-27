@@ -28,6 +28,7 @@ interface CampaignPlaydate {
   start_in_120s: boolean;
   has_find_again?: boolean;
   run_count: number;
+  tinkering_tier: string | null;
 }
 
 export async function generateMetadata(
@@ -94,6 +95,7 @@ export default async function CampaignPage({
               frictionDial={p.friction_dial}
               startIn120s={p.start_in_120s}
               hasFindAgain={p.has_find_again}
+              tinkeringTier={p.tinkering_tier}
               runCount={p.run_count}
             />
           ))}

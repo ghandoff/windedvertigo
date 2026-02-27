@@ -42,6 +42,7 @@ interface PlaydateRow {
   lastEdited: string;
   materialRelationIds: string[];
   ageRange: string | null;
+  tinkeringTier: string | null;
 }
 
 function parsePlaydatePage(page: NotionPage): PlaydateRow {
@@ -77,6 +78,7 @@ function parsePlaydatePage(page: NotionPage): PlaydateRow {
     lastEdited: extractLastEdited(page),
     materialRelationIds: extractRelationIds(props, "materials"),
     ageRange: extractSelect(props, "age range"),
+    tinkeringTier: extractSelect(props, "tinkering tier"),
   };
 }
 
@@ -95,7 +97,7 @@ export async function syncPlaydates() {
           rails_sentence, find, fold, unfold, find_again_mode,
           find_again_prompt, substitutions_notes,
           design_rationale, developmental_notes, author_notes,
-          notion_last_edited, synced_at, slug, age_range
+          notion_last_edited, synced_at, slug, age_range, tinkering_tier
         ) VALUES (
           ${row.notionId}, ${row.title}, ${row.headline},
           ${row.releaseChannel}, ${row.ipTier}, ${row.status},
@@ -107,7 +109,8 @@ export async function syncPlaydates() {
           ${row.findAgainMode}, ${row.findAgainPrompt},
           ${row.substitutionsNotes},
           ${row.designRationale}, ${row.developmentalNotes}, ${row.authorNotes},
-          ${row.lastEdited}, NOW(), ${makeSlug(row.title)}, ${row.ageRange}
+          ${row.lastEdited}, NOW(), ${makeSlug(row.title)}, ${row.ageRange},
+          ${row.tinkeringTier}
         )
         ON CONFLICT (notion_id) DO UPDATE SET
           title = EXCLUDED.title,
@@ -135,7 +138,8 @@ export async function syncPlaydates() {
           author_notes = EXCLUDED.author_notes,
           notion_last_edited = EXCLUDED.notion_last_edited,
           synced_at = NOW(),
-          age_range = EXCLUDED.age_range
+          age_range = EXCLUDED.age_range,
+          tinkering_tier = EXCLUDED.tinkering_tier
       `;
     },
     cleanupStale: async (activeNotionIds) => {

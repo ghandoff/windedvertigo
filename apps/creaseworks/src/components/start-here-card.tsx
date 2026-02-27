@@ -19,6 +19,7 @@ interface StartHereCardProps {
   hasFindAgain?: boolean;
   progressTier?: ProgressTier | null;
   evidenceCount?: number;
+  tinkeringTier?: string | null;
   runCount?: number;
   href?: string;
 }
@@ -35,6 +36,7 @@ export default function StartHereCard({
   hasFindAgain,
   progressTier,
   evidenceCount,
+  tinkeringTier,
   runCount,
   href,
 }: StartHereCardProps) {
@@ -59,6 +61,7 @@ export default function StartHereCard({
         hasFindAgain={hasFindAgain}
         progressTier={progressTier}
         evidenceCount={evidenceCount}
+        tinkeringTier={tinkeringTier}
         runCount={runCount}
         href={href}
       />

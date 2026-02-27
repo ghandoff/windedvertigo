@@ -70,6 +70,27 @@ function IconProfile({ className }: { className?: string }) {
   );
 }
 
+function IconGallery({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
+      <rect x="2" y="4" width="16" height="12" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="7" cy="9" r="2" fill="none" stroke="currentColor" strokeWidth="1" />
+      <path d="M2 14l4-3 3 2 4-4 5 5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </svg>
+  );
+}
+
+function IconCommunity({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
+      <circle cx="10" cy="6" r="3" fill="none" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="5" cy="9" r="2" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+      <circle cx="15" cy="9" r="2" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+      <path d="M6 16c0-2.2 1.8-4 4-4s4 1.8 4 4" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function IconAdmin({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
@@ -90,6 +111,8 @@ const SECTION_COLORS: Record<string, string> = {
   "/reflections":     "var(--wv-sienna)",
   "/playbook":        "var(--wv-redwood)",
   "/profile":         "var(--wv-cadet)",
+  "/gallery":         "var(--wv-champagne)",
+  "/community":       "var(--wv-redwood)",
   "/admin":           "var(--wv-sienna)",
 };
 
@@ -119,6 +142,7 @@ export default function NavBar() {
       <NavLink href="/sampler" onClick={close} icon={<IconPlaydates />}>playdates</NavLink>
       <NavLink href="/matcher" onClick={close} icon={<IconMatcher />}>matcher</NavLink>
       <NavLink href="/packs" onClick={close} icon={<IconPacks />}>packs</NavLink>
+      <NavLink href="/gallery" onClick={close} icon={<IconGallery />}>gallery</NavLink>
     </>
   );
 
@@ -134,6 +158,7 @@ export default function NavBar() {
     <>
       <NavLink href="/reflections/new" onClick={close} icon={<IconReflections />}>reflections</NavLink>
       <NavLink href="/playbook" onClick={close} icon={<IconPlaybook />}>playbook</NavLink>
+      <NavLink href="/community" onClick={close} icon={<IconCommunity />}>community</NavLink>
       <Link
         href="/profile"
         onClick={close}
@@ -175,15 +200,16 @@ export default function NavBar() {
   const bottomTabs = isAuthed
     ? [
         { href: "/sampler", label: "play", icon: <IconPlaydates />, key: "sampler" },
-        { href: "/matcher", label: "match", icon: <IconMatcher />, key: "matcher" },
-        { href: "/packs", label: "packs", icon: <IconPacks />, key: "packs" },
-        { href: "/playbook", label: "book", icon: <IconPlaybook />, key: "playbook" },
+        { href: "/gallery", label: "gallery", icon: <IconGallery />, key: "gallery" },
         { href: "/reflections/new", label: "log", icon: <IconReflections />, key: "reflections" },
+        { href: "/community", label: "crew", icon: <IconCommunity />, key: "community" },
+        { href: "/playbook", label: "book", icon: <IconPlaybook />, key: "playbook" },
       ]
     : [
         { href: "/sampler", label: "play", icon: <IconPlaydates />, key: "sampler" },
         { href: "/matcher", label: "match", icon: <IconMatcher />, key: "matcher" },
         { href: "/packs", label: "packs", icon: <IconPacks />, key: "packs" },
+        { href: "/gallery", label: "gallery", icon: <IconGallery />, key: "gallery" },
       ];
 
   return (

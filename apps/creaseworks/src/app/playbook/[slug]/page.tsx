@@ -179,6 +179,7 @@ export default async function CollectionDetailPage({ params }: Props) {
               hasFindAgain={p.has_find_again}
               progressTier={(p.progress_tier as ProgressTier) ?? null}
               evidenceCount={p.evidence_count}
+              tinkeringTier={p.tinkering_tier}
               runCount={p.run_count}
               href={`/sampler/${p.slug}`}
               action={

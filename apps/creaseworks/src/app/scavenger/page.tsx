@@ -38,6 +38,7 @@ interface CampaignPlaydate {
   campaign_tags: string[];
   has_find_again?: boolean;
   run_count: number;
+  tinkering_tier: string | null;
 }
 
 // Campaign display metadata — extend as campaigns are added.
@@ -153,6 +154,7 @@ export default async function ScavengerPage() {
                       frictionDial={p.friction_dial}
                       startIn120s={p.start_in_120s}
                       hasFindAgain={p.has_find_again}
+                      tinkeringTier={p.tinkering_tier}
                       runCount={p.run_count}
                     />
                   ))}

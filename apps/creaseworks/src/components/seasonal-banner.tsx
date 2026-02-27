@@ -43,6 +43,7 @@ export default async function SeasonalBanner() {
             frictionDial={playdate.friction_dial}
             startIn120s={playdate.start_in_120s ?? false}
             hasFindAgain={playdate.has_find_again}
+            tinkeringTier={playdate.tinkering_tier}
             ageRange={playdate.age_range}
             runCount={playdate.run_count}
             href={`/sampler/${playdate.slug}`}

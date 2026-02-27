@@ -42,6 +42,14 @@ function functionAccentColor(fn: string | null): string {
 }
 
 /** Translate friction dial to parent-friendly energy level label */
+/* ── tinkering tier visual mapping ── */
+const TINKERING_TIERS: Record<string, { emoji: string; label: string; className: string }> = {
+  guided:      { emoji: "🧩", label: "guided",      className: "bg-cadet/8 text-cadet/60" },
+  scaffolded:  { emoji: "🔧", label: "scaffolded",  className: "bg-champagne text-cadet/70" },
+  "open-ended":{ emoji: "🎨", label: "open-ended",  className: "bg-sienna/12 text-sienna/80" },
+  "free-form": { emoji: "✨", label: "free-form",   className: "bg-redwood/10 text-redwood/70" },
+};
+
 function getEnergyLabel(
   frictionDial: number | null,
 ): { emoji: string; label: string } | null {
@@ -83,6 +91,10 @@ interface PlaydateCardProps {
   showIllustration?: boolean;
   /** Optional: pack info for FOMO badge on sampler cards */
   packInfo?: PackBadgeInfo | null;
+  /** Optional: tinkering tier (guided | scaffolded | open-ended | free-form) */
+  tinkeringTier?: string | null;
+  /** Optional: number of families exploring this playdate */
+  family_count?: number;
 }
 
 export function PlaydateCard({
@@ -103,6 +115,8 @@ export function PlaydateCard({
   action,
   showIllustration = true,
   packInfo,
+  tinkeringTier,
+  family_count,
 }: PlaydateCardProps) {
   const badge = progressTier ? TIER_BADGE[progressTier] : null;
   const isBeginner = frictionDial !== null && frictionDial <= 2 && startIn120s;
@@ -156,6 +170,14 @@ export function PlaydateCard({
               ages {ageRange}
             </span>
           )}
+          {tinkeringTier && TINKERING_TIERS[tinkeringTier] && (
+            <span
+              className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${TINKERING_TIERS[tinkeringTier].className}`}
+              title={`tinkering: ${tinkeringTier}`}
+            >
+              {TINKERING_TIERS[tinkeringTier].emoji} {TINKERING_TIERS[tinkeringTier].label}
+            </span>
+          )}
           {arcEmphasis.map((arc) => (
             <span
               key={arc}
@@ -202,6 +224,11 @@ export function PlaydateCard({
           {!!evidenceCount && evidenceCount > 0 && (
             <span className="text-[10px] text-cadet/30">
               {evidenceCount} piece{evidenceCount !== 1 ? "s" : ""} of evidence
+            </span>
+          )}
+          {!!family_count && family_count > 0 && (
+            <span className="text-[10px] text-cadet/30">
+              {family_count} {family_count === 1 ? "family" : "families"} exploring
             </span>
           )}
         </div>

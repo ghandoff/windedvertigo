@@ -25,6 +25,7 @@ export const PLAYDATE_TEASER_COLUMNS = [
   "rails_sentence",
   "age_range",
   "energy_level",
+  "tinkering_tier",
 ] as const;
 
 /** Entitled tier — authenticated users whose org owns the pack. */
