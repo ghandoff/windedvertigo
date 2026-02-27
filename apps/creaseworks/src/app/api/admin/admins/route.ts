@@ -1,11 +1,11 @@
 /**
  * Admin API: admin allowlist management.
  *
- * GET    /api/admin/admins    â list all admins
- * POST   /api/admin/admins    â add admin by email { email }
- * DELETE /api/admin/admins    â remove admin { id }
+ * GET    /api/admin/admins    — list all admins
+ * POST   /api/admin/admins    — add admin by email { email }
+ * DELETE /api/admin/admins    — remove admin { id }
  *
- * MVP 4 â admin pages and rate limiting.
+ * MVP 4 — admin pages and rate limiting.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
   if (!result) {
     return NextResponse.json(
-      { error: "user not found â they must sign in at least once before being added as admin" },
+      { error: "user not found — they must sign in at least once before being added as admin" },
       { status: 404 },
     );
   }

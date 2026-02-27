@@ -1,10 +1,10 @@
 /**
  * API route: /api/runs/[id]
  *
- * GET   â get a single run (visibility-aware)
- * PATCH â update a run (creator only)
+ * GET   — get a single run (visibility-aware)
+ * PATCH — update a run (creator only)
  *
- * MVP 5 â runs and evidence.
+ * MVP 5 — runs and evidence.
  */
 
 import { NextRequest, NextResponse } from "next/server";

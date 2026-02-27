@@ -1,10 +1,10 @@
 /**
  * API route: /api/runs
  *
- * GET  â list runs (visibility-aware)
- * POST â create a new run
+ * GET  — list runs (visibility-aware)
+ * POST — create a new run
  *
- * MVP 5 â runs and evidence.
+ * MVP 5 — runs and evidence.
  */
 
 import { NextRequest, NextResponse } from "next/server";

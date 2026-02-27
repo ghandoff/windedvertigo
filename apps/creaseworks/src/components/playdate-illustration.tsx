@@ -10,7 +10,7 @@ interface PlaydateIllustrationProps {
   primaryFunction: string | null;
   /** optional: override the default height (default: 120px) */
   height?: number;
-  /** optional: context tags from the playdate â used to scatter activity-hint motifs */
+  /** optional: context tags from the playdate — used to scatter activity-hint motifs */
   contextTags?: string[];
 }
 

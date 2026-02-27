@@ -1,7 +1,7 @@
 /**
  * API route: /api/stripe/webhook
  *
- * POST â handle Stripe webhook events.
+ * POST — handle Stripe webhook events.
  *
  * This endpoint is called by Stripe, not by our app.
  * It verifies the webhook signature, then processes payment events.
@@ -11,7 +11,7 @@
  *
  * Must disable Next.js body parsing to access raw body for signature verification.
  *
- * Post-MVP â Stripe integration.
+ * Post-MVP — Stripe integration.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
 /**
  * Handle a completed checkout session.
  *
- * 1. Idempotency check â skip if purchase already exists for this session
+ * 1. Idempotency check — skip if purchase already exists for this session
  * 2. Look up pack catalogue for the purchase record
  * 3. Create purchase record
  * 4. Grant entitlement to the purchaser's org
@@ -131,14 +131,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Grant entitlement with purchase link
   await grantEntitlement(orgId, packCacheId, purchaseId);
 
-  // Audit log â webhook has no client IP, log null
+  // Audit log — webhook has no client IP, log null
   await logAccess(
     userId,
     orgId,
     null,
     packCacheId,
     "purchase_completed",
-    null, // webhook call â no client IP available
+    null, // webhook call — no client IP available
     ["stripe_session_id", "amount_cents", "currency"],
   );
 

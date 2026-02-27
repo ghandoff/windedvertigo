@@ -1,12 +1,12 @@
 /**
  * Admin API: domain blocklist CRUD.
  *
- * GET    /api/admin/domains          â list all blocked domains
- * POST   /api/admin/domains          â add a domain { domain, reason? }
- * PATCH  /api/admin/domains          â toggle or update { id, enabled?, reason? }
- * DELETE /api/admin/domains          â remove a domain { id }
+ * GET    /api/admin/domains          — list all blocked domains
+ * POST   /api/admin/domains          — add a domain { domain, reason? }
+ * PATCH  /api/admin/domains          — toggle or update { id, enabled?, reason? }
+ * DELETE /api/admin/domains          — remove a domain { id }
  *
- * MVP 4 â admin pages and rate limiting.
+ * MVP 4 — admin pages and rate limiting.
  */
 
 import { NextRequest, NextResponse } from "next/server";

@@ -1,12 +1,12 @@
 /**
- * POST /api/matcher â public playdate matching endpoint.
+ * POST /api/matcher — public playdate matching endpoint.
  *
  * Accepts materials, forms, slots, and context filters.
  * Returns ranked playdates with scores and coverage details.
  * Entitled fields (substitutionsNotes, findAgainMode) are only
  * populated when the caller's org owns the relevant pack.
  *
- * MVP 3 â matcher.
+ * MVP 3 — matcher.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
   const input: MatcherInput = { materials, forms, slots, contexts, energyLevels };
 
-  // optional auth â matcher is public but entitled users get extra fields
+  // optional auth — matcher is public but entitled users get extra fields
   const session = await getSession();
 
   const result = await performMatching(input, session);

@@ -107,7 +107,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         <p className="text-lg text-cadet/60 mb-6">{playdate.headline}</p>
       )}
 
-      {/* the big idea â narrative hook */}
+      {/* the big idea — narrative hook */}
       {playdate.rails_sentence && (
         <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-8">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
@@ -119,7 +119,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         </section>
       )}
 
-      {/* at a glance â quick parent-readable summary */}
+      {/* at a glance — quick parent-readable summary */}
       <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6 mb-8">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
           at a glance
@@ -193,7 +193,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         </section>
       )}
 
-      {/* locked content teaser â FOMO section */}
+      {/* locked content teaser — FOMO section */}
       <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-champagne/20 to-champagne/5 p-6 mb-8">
         <div className="flex items-start gap-3 mb-4">
           <span className="text-lg leading-none mt-0.5">🔒</span>
@@ -203,7 +203,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
             </h2>
             <p className="text-sm text-cadet/60">
               the full playdate includes step-by-step facilitation
-              with three phases â find, fold, and unfold â plus
+              with three phases — find, fold, and unfold — plus
               material swap ideas and timing tips.
             </p>
           </div>
@@ -213,20 +213,20 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         <div className="ml-8 space-y-2 text-sm text-cadet/50 mb-5">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-redwood/40" />
-            <span>find â how to set up and introduce the activity</span>
+            <span>find — how to set up and introduce the activity</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-sienna/40" />
-            <span>fold â the core hands-on exploration</span>
+            <span>fold — the core hands-on exploration</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-cadet/30" />
-            <span>unfold â reflection and what to notice</span>
+            <span>unfold — reflection and what to notice</span>
           </div>
           {playdate.has_find_again && (
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-redwood/60" />
-              <span>find again â a prompt to spot the idea in everyday life</span>
+              <span>find again — a prompt to spot the idea in everyday life</span>
             </div>
           )}
         </div>
@@ -239,7 +239,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
         </Link>
       </section>
 
-      {/* quick-log + full reflection CTAs â authenticated users only */}
+      {/* quick-log + full reflection CTAs — authenticated users only */}
       {session && (
         <section className="flex flex-wrap items-center gap-3 mb-8">
           <QuickLogButton

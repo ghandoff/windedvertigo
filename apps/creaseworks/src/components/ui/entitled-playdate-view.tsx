@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DownloadButton from "@/components/ui/download-button";
+import QuickLogButton from "@/components/ui/quick-log-button";
 import { MaterialIllustration } from "@/components/material-illustration";
 
 interface PlaydateData {
@@ -56,7 +57,7 @@ export default function EntitledPlaydateView({
         <p className="text-lg text-cadet/60">{playdate.headline}</p>
       )}
 
-      {/* at a glance â playful, parent-readable summary */}
+      {/* at a glance — playful, parent-readable summary */}
       <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
           at a glance
@@ -190,7 +191,7 @@ export default function EntitledPlaydateView({
       {playdate.find_again_mode && (
         <section className="rounded-xl border border-redwood/20 bg-redwood/5 p-6">
           <h2 className="text-sm font-semibold text-redwood mb-2">
-            find again â {playdate.find_again_mode}
+            find again — {playdate.find_again_mode}
           </h2>
           {playdate.find_again_prompt && (
             <p className="text-sm text-cadet/80 whitespace-pre-line">
@@ -200,7 +201,7 @@ export default function EntitledPlaydateView({
         </section>
       )}
 
-      {/* slots notes â practical material hints */}
+      {/* slots notes — practical material hints */}
       {playdate.slots_notes && (
         <section className="rounded-xl border border-cadet/10 bg-champagne/20 p-6">
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
@@ -245,7 +246,12 @@ export default function EntitledPlaydateView({
       )}
 
       {/* actions */}
-      <section className="pt-4 border-t border-cadet/10 flex items-center gap-4">
+      <section className="pt-4 border-t border-cadet/10 flex flex-wrap items-center gap-3">
+        <QuickLogButton
+          playdateId={playdate.id}
+          playdateTitle={playdate.title}
+          playdateSlug={playdate.slug}
+        />
         <DownloadButton
           playdateId={playdate.id}
           packSlug={packSlug}

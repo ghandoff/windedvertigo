@@ -1,7 +1,7 @@
 /**
  * API route: /api/checkout
  *
- * POST â create a Stripe Checkout Session for a pack purchase.
+ * POST — create a Stripe Checkout Session for a pack purchase.
  *
  * Validates:
  *   - User is authenticated
@@ -11,7 +11,7 @@
  *
  * Returns { url } for client-side redirect to Stripe.
  *
- * Post-MVP â Stripe integration.
+ * Post-MVP — Stripe integration.
  */
 
 import { NextRequest, NextResponse } from "next/server";

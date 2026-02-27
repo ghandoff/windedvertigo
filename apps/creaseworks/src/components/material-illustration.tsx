@@ -1,5 +1,5 @@
 /**
- * MaterialIllustration â deterministic SVG icon per material form category.
+ * MaterialIllustration — deterministic SVG icon per material form category.
  *
  * Each of the 12 form categories gets a unique, hand-crafted mini illustration
  * that evokes the material's physicality. Colors use the creaseworks design

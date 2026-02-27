@@ -1,9 +1,9 @@
 /**
  * Admin API: manual Notion sync trigger.
  *
- * POST /api/admin/sync â run the Notion sync immediately.
+ * POST /api/admin/sync — run the Notion sync immediately.
  *
- * MVP 4 â admin pages and rate limiting.
+ * MVP 4 — admin pages and rate limiting.
  */
 
 import { NextRequest, NextResponse } from "next/server";
