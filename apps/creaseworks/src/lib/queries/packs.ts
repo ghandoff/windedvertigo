@@ -274,8 +274,7 @@ export async function getUnownedPacks(orgId: string | null) {
        AND pc.id NOT IN (
          SELECT e.pack_cache_id FROM entitlements e
          WHERE e.org_id = $1
-           AND e.status = 'active'
-           AND (e.revoked_at IS NULL)
+           AND e.revoked_at IS NULL
            AND (e.expires_at IS NULL OR e.expires_at > now())
        )
      ORDER BY pc.title ASC`,
