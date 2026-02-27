@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getRunsForUser, createRun, batchGetRunMaterials } from "@/lib/queries/runs";
 import { logAccess } from "@/lib/queries/audit";
-import { awardCredit, CREDIT_VALUES } from "@/lib/queries/credits";
+import { awardCredit, CREDIT_VALUES, checkAndAwardStreakBonus } from "@/lib/queries/credits";
 import { MAX_LENGTHS, checkLength, sanitiseStringArray } from "@/lib/validation";
 import { parseJsonBody } from "@/lib/api-helpers";
 
@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
     if (isFindAgain === true) {
       awardCredit(session.userId, session.orgId, CREDIT_VALUES.find_again, "find_again", runId).catch(() => {});
     }
+    checkAndAwardStreakBonus(session.userId, session.orgId).catch(() => {});
 
     return NextResponse.json({ id: runId, message: "run created" }, { status: 201 });
   } catch (err: any) {
