@@ -13,10 +13,10 @@ import { revokePartnerKey } from "@/lib/queries/partner-keys";
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await requireOrgAdmin();
-  const keyId = params.id;
+  const { id: keyId } = await params;
 
   if (!keyId || typeof keyId !== "string") {
     return NextResponse.json(
