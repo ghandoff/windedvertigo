@@ -26,7 +26,14 @@ export async function getVisiblePacks() {
        pc.description,
        cat.price_cents,
        cat.currency,
-       (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count
+       (SELECT COUNT(*) FROM pack_playdates pp WHERE pp.pack_id = pc.id) AS playdate_count,
+       (SELECT COUNT(DISTINCT rc.created_by)
+        FROM pack_playdates pp2
+        JOIN runs_cache rc ON rc.playdate_notion_id = (
+          SELECT plc.notion_id FROM playdates_cache plc WHERE plc.id = pp2.playdate_id
+        )
+        WHERE pp2.pack_id = pc.id
+       )::int AS family_count
      FROM packs_cache pc
      JOIN packs_catalogue cat ON cat.pack_cache_id = pc.id
      WHERE cat.visible = true

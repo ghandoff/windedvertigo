@@ -13,6 +13,7 @@ import { getRunById } from "@/lib/queries/runs";
 import { getEvidenceForRun, createEvidence } from "@/lib/queries/evidence";
 import type { EvidenceType } from "@/lib/queries/evidence";
 import { logAccess } from "@/lib/queries/audit";
+import { awardCredit, CREDIT_VALUES } from "@/lib/queries/credits";
 import { MAX_LENGTHS, checkLength, parseJsonBody } from "@/lib/validation";
 
 const VALID_TYPES = new Set<EvidenceType>(["photo", "quote", "observation", "artifact"]);
@@ -106,6 +107,11 @@ export async function POST(
         { error: "run not found or not authorised to add evidence" },
         { status: 404 },
       );
+    }
+
+    // Award photo credit (fire-and-forget)
+    if (evidenceType === "photo") {
+      awardCredit(session.userId, session.orgId, CREDIT_VALUES.photo_added, "photo_added", runId).catch(() => {});
     }
 
     // Audit log

@@ -61,7 +61,8 @@ export default function RunForm({
   async function saveEvidence(runId: string, evidenceState: typeof state.evidenceState) {
     const promises: Promise<void>[] = [];
 
-    // Save photos — create evidence record, then upload to R2
+    // Save photos — create evidence record, upload to R2, then save consent
+    const photoEvidenceIds: string[] = [];
     for (const photo of evidenceState.photos) {
       promises.push(
         (async () => {
@@ -72,6 +73,7 @@ export default function RunForm({
           });
           if (!res.ok) throw new Error("failed to create photo evidence");
           const { id: evidenceId } = await res.json();
+          photoEvidenceIds.push(evidenceId);
 
           // Upload to R2
           const { storageKey, thumbnailKey } = await uploadPhotoToR2(
@@ -126,6 +128,24 @@ export default function RunForm({
     }
 
     await Promise.allSettled(promises);
+
+    // Save photo consent for all photo evidence items (if consent was given)
+    if (evidenceState.photoConsent && photoEvidenceIds.length > 0) {
+      const consentPromises = photoEvidenceIds.map((evidenceId) =>
+        fetch("/api/photo-consents", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            runEvidenceId: evidenceId,
+            consentTier: evidenceState.photoConsent!.tier,
+            marketingApproved: evidenceState.photoConsent!.marketingApproved,
+            parentName: evidenceState.photoConsent!.parentName || null,
+            childAgeRange: evidenceState.photoConsent!.childAgeRange || null,
+          }),
+        }).catch((err) => console.error("photo consent save error:", err)),
+      );
+      await Promise.allSettled(consentPromises);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -206,6 +226,20 @@ export default function RunForm({
               unlock the full pack &rarr;
             </Link>
           </div>
+        )}
+
+        {/* credit nudge when no pack upsell */}
+        {!packInfo && (
+          <p className="text-xs text-cadet/50">
+            +1 credit earned!{" "}
+            {state.isFindAgain && "+2 bonus for find again! "}
+            <Link
+              href="/playbook"
+              className="text-sienna hover:text-redwood transition-colors"
+            >
+              see your progress &rarr;
+            </Link>
+          </p>
         )}
 
         <p className="text-xs text-cadet/40">

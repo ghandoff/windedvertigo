@@ -23,11 +23,16 @@ import EvidenceObservations, {
   type ObservationItem,
   OBSERVATION_PROMPTS,
 } from "./evidence-observations";
+import PhotoConsentClassifier, {
+  type PhotoConsentDecision,
+} from "../photo-consent-classifier";
 
 export interface EvidenceCaptureState {
   photos: PhotoItem[];
   quotes: QuoteItem[];
   observations: ObservationItem[];
+  /** Photo consent decision — null if not yet classified, undefined if skipped. */
+  photoConsent?: PhotoConsentDecision | null;
 }
 
 export function createEmptyEvidenceState(): EvidenceCaptureState {
@@ -148,6 +153,36 @@ export default function EvidenceCaptureSection({
             photos={state.photos}
             onChange={(photos) => onChange({ ...state, photos })}
           />
+
+          {/* photo consent classifier — shows when photos exist and consent not yet given */}
+          {state.photos.length > 0 && state.photoConsent === undefined && (
+            <PhotoConsentClassifier
+              photoCount={state.photos.length}
+              onComplete={(decision) =>
+                onChange({ ...state, photoConsent: decision })
+              }
+              onSkip={() => onChange({ ...state, photoConsent: null })}
+            />
+          )}
+
+          {/* consent confirmation badge */}
+          {state.photos.length > 0 && state.photoConsent && (
+            <div className="flex items-center gap-2 text-xs text-cadet/50">
+              <span
+                className="inline-block w-2 h-2 rounded-full"
+                style={{ backgroundColor: "var(--wv-champagne)" }}
+              />
+              photo consent: {state.photoConsent.tier}
+              {state.photoConsent.marketingApproved && " · marketing approved"}
+              <button
+                type="button"
+                onClick={() => onChange({ ...state, photoConsent: undefined })}
+                className="text-cadet/30 hover:text-cadet/50 transition-colors ml-1"
+              >
+                change
+              </button>
+            </div>
+          )}
 
           {/* quote capture */}
           <EvidenceQuote

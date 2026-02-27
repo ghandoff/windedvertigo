@@ -8,6 +8,7 @@ interface PackCardProps {
     playdate_count: number;
     price_cents: number | null;
     currency: string;
+    family_count?: number;
   };
 }
 
@@ -31,6 +32,12 @@ export default function PackCard({ pack }: PackCardProps) {
         <span>
           {pack.playdate_count} playdate{Number(pack.playdate_count) !== 1 ? "s" : ""}
         </span>
+
+        {pack.family_count != null && pack.family_count > 0 && (
+          <span className="text-cadet/40">
+            {pack.family_count} {pack.family_count === 1 ? "family" : "families"} exploring
+          </span>
+        )}
 
         {pack.price_cents != null && (
           <span className="inline-block rounded-full bg-redwood/10 text-redwood px-2 py-0.5 font-medium">
