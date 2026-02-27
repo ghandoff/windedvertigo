@@ -1,14 +1,17 @@
-import type { PDFFont, RGB } from "pdf-lib";
+import type { PDFFont, PDFPage, RGB } from "pdf-lib";
+import { rgb } from "pdf-lib";
 import type { DrawCtx } from "./types";
 import {
   CADET,
   REDWOOD,
+  SIENNA,
   CHAMPAGNE,
   CHAMPAGNE_DARK,
   GREY,
   GREY_LIGHT,
   GREY_FAINT,
   FIND_AGAIN_BG,
+  WHITE,
   PAGE_W,
   PAGE_H,
   MARGIN,
@@ -405,6 +408,92 @@ export function drawMaterials(ctx: DrawCtx, playdate: PlaydateData, font: PDFFon
   }
 }
 
+/**
+ * Draw a small 14×14 geometric icon for a material category.
+ * Mirrors the 12 categories from MaterialIllustration (web component)
+ * using pdf-lib drawing primitives.
+ */
+function drawMaterialIcon(page: PDFPage, x: number, y: number, category: string): void {
+  const cat = category.toLowerCase();
+  const cx = x + 7;
+  const cy = y + 7;
+
+  if (cat.includes("discrete") || cat.includes("small parts")) {
+    page.drawCircle({ x: cx - 3, y: cy + 1, size: 2.5, color: SIENNA, opacity: 0.7 });
+    page.drawCircle({ x: cx + 2, y: cy + 2, size: 2, color: REDWOOD, opacity: 0.6 });
+    page.drawCircle({ x: cx, y: cy - 2, size: 2.5, color: CHAMPAGNE_DARK, opacity: 0.8 });
+    page.drawCircle({ x: cx + 4, y: cy - 1, size: 1.5, color: CADET, opacity: 0.5 });
+    return;
+  }
+  if (cat.includes("sheet") || cat.includes("surface")) {
+    page.drawRectangle({ x: x + 1, y: y + 3, width: 9, height: 7, color: CHAMPAGNE_DARK, borderColor: SIENNA, borderWidth: 0.4 });
+    page.drawRectangle({ x: x + 4, y: y + 1, width: 9, height: 7, color: WHITE, borderColor: CADET, borderWidth: 0.3, opacity: 0.8 });
+    return;
+  }
+  if (cat.includes("volume") || cat.includes("substrate")) {
+    page.drawEllipse({ x: cx, y: y + 2, xScale: 5, yScale: 2, color: SIENNA, opacity: 0.3 });
+    page.drawEllipse({ x: cx, y: cy + 1, xScale: 3.5, yScale: 4.5, color: SIENNA, opacity: 0.5 });
+    page.drawEllipse({ x: cx, y: cy + 1, xScale: 2.5, yScale: 3.5, color: CHAMPAGNE_DARK, opacity: 0.5 });
+    return;
+  }
+  if (cat.includes("container") || cat.includes("vessel")) {
+    page.drawRectangle({ x: x + 2, y: y + 1, width: 10, height: 9, color: CHAMPAGNE_DARK, opacity: 0.3 });
+    page.drawRectangle({ x: x + 2, y: y + 1, width: 10, height: 9, borderColor: CADET, borderWidth: 0.5 });
+    page.drawEllipse({ x: cx, y: y + 10, xScale: 5, yScale: 1.5, color: CHAMPAGNE_DARK, borderColor: CADET, borderWidth: 0.4 });
+    return;
+  }
+  if (cat.includes("linear") || cat.includes("filament")) {
+    page.drawLine({ start: { x: x + 1, y: y + 2 }, end: { x: x + 7, y: y + 12 }, thickness: 1.2, color: SIENNA });
+    page.drawLine({ start: { x: x + 7, y: y + 12 }, end: { x: x + 13, y: y + 4 }, thickness: 1.2, color: SIENNA });
+    page.drawLine({ start: { x: x + 3, y: y + 1 }, end: { x: x + 9, y: y + 11 }, thickness: 0.6, color: REDWOOD, opacity: 0.5 });
+    return;
+  }
+  if (cat.includes("wearable") || cat.includes("embodied")) {
+    page.drawEllipse({ x: cx, y: cy + 1, xScale: 5, yScale: 4, borderColor: CADET, borderWidth: 0.5 });
+    page.drawCircle({ x: cx - 2, y: cy + 2, size: 0.8, color: CADET, opacity: 0.6 });
+    page.drawCircle({ x: cx + 2, y: cy + 2, size: 0.8, color: CADET, opacity: 0.6 });
+    return;
+  }
+  if (cat.includes("found") || cat.includes("evocative") || cat.includes("artifact")) {
+    page.drawLine({ start: { x: cx - 1, y: y + 1 }, end: { x: cx + 1, y: y + 13 }, thickness: 1, color: SIENNA });
+    page.drawEllipse({ x: cx + 3, y: cy + 2, xScale: 3, yScale: 2.5, color: rgb(0.612, 0.659, 0.612), opacity: 0.5 });
+    return;
+  }
+  if (cat.includes("mark") || cat.includes("media")) {
+    page.drawRectangle({ x: x + 5, y: y + 2, width: 3, height: 10, color: REDWOOD, opacity: 0.7 });
+    page.drawLine({ start: { x: x + 1, y: y + 2 }, end: { x: x + 12, y: y + 3 }, thickness: 1.5, color: SIENNA, opacity: 0.4 });
+    return;
+  }
+  if (cat.includes("joining") || cat.includes("fastening")) {
+    page.drawRectangle({ x: x + 1, y: y + 5, width: 12, height: 3, color: CHAMPAGNE_DARK, borderColor: SIENNA, borderWidth: 0.4 });
+    page.drawCircle({ x: x + 4, y: cy, size: 1.2, color: CADET, opacity: 0.5 });
+    page.drawCircle({ x: x + 10, y: cy, size: 1.2, color: CADET, opacity: 0.5 });
+    return;
+  }
+  if (cat.includes("overlay") || cat.includes("translucen")) {
+    page.drawRectangle({ x: x + 1, y: y + 4, width: 7, height: 8, color: CHAMPAGNE_DARK, opacity: 0.5 });
+    page.drawRectangle({ x: x + 4, y: y + 2, width: 7, height: 8, color: SIENNA, opacity: 0.2 });
+    page.drawRectangle({ x: x + 6, y: y + 1, width: 6, height: 6, color: REDWOOD, opacity: 0.15 });
+    return;
+  }
+  if (cat.includes("cutting") || cat.includes("dividing")) {
+    page.drawLine({ start: { x: x + 2, y: y + 12 }, end: { x: cx, y: cy }, thickness: 0.7, color: CADET });
+    page.drawLine({ start: { x: x + 2, y: y + 2 }, end: { x: cx, y: cy }, thickness: 0.7, color: CADET });
+    page.drawLine({ start: { x: x + 12, y: y + 12 }, end: { x: cx, y: cy }, thickness: 0.7, color: CADET });
+    page.drawLine({ start: { x: x + 12, y: y + 2 }, end: { x: cx, y: cy }, thickness: 0.7, color: CADET });
+    return;
+  }
+  if (cat.includes("module") || cat.includes("construction unit")) {
+    page.drawRectangle({ x: x + 1, y: y + 1, width: 6, height: 5, color: REDWOOD, opacity: 0.5 });
+    page.drawRectangle({ x: x + 6, y: y + 1, width: 6, height: 5, color: SIENNA, opacity: 0.4 });
+    page.drawRectangle({ x: x + 3, y: y + 6, width: 6, height: 5, color: CHAMPAGNE_DARK, borderColor: SIENNA, borderWidth: 0.4 });
+    return;
+  }
+  // fallback — generic circle
+  page.drawCircle({ x: cx, y: cy, size: 4.5, color: CHAMPAGNE_DARK, borderColor: SIENNA, borderWidth: 0.4 });
+  page.drawCircle({ x: cx, y: cy, size: 1.5, color: SIENNA, opacity: 0.5 });
+}
+
 export function drawLinkedMaterials(ctx: DrawCtx, materials: Material[], font: PDFFont, fontBold: PDFFont): void {
   if (materials.length > 0) {
     ensureRoom(ctx, 50);
@@ -416,20 +505,34 @@ export function drawLinkedMaterials(ctx: DrawCtx, materials: Material[], font: P
       font: fontBold,
       color: CADET,
     });
-    ctx.y -= 18;
+    ctx.y -= 20;
 
     for (const mat of materials) {
-      ensureRoom(ctx, 20);
+      ensureRoom(ctx, 22);
+
+      // draw category icon
+      const iconX = MARGIN + 4;
+      const iconY = ctx.y - 4;
+      drawMaterialIcon(ctx.page, iconX, iconY, mat.form_primary || "");
+
+      // category label + title
       const label = sanitize(mat.form_primary || "material");
       const title = sanitize(mat.title);
-      ctx.page.drawText(`${label}: ${title}`, {
-        x: MARGIN + 8,
-        y: ctx.y,
+      ctx.page.drawText(label, {
+        x: MARGIN + 24,
+        y: ctx.y + 3,
+        size: 7,
+        font,
+        color: GREY,
+      });
+      ctx.page.drawText(title, {
+        x: MARGIN + 24,
+        y: ctx.y - 6,
         size: 9,
         font,
         color: CADET,
       });
-      ctx.y -= 14;
+      ctx.y -= 20;
     }
     ctx.y -= 4;
   }

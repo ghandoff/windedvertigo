@@ -14,8 +14,8 @@
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | 235 (.ts + .tsx) |
 | **Migrations** | 027 (latest: campaigns) |
-| **Latest commit** | `7b72c7c` session 29 (pending push) |
-| **Last session** | 29 (Feb 27, 2026) |
+| **Latest commit** | session 30 (pending push) |
+| **Last session** | 30 (Feb 27, 2026) |
 
 ## Notion Database IDs
 
@@ -115,6 +115,11 @@ src/
 - ✅ **Feature V**: Campaign DB lookup (replace hardcoded campaign metadata)
 - ✅ **Feature W**: Pack finder wizard (3-question guided selector on /packs)
 - ✅ **Feature X**: Playbook search/filter (text search + progress filter chips)
+
+### Session 30 Features (Wish List: O, P, Y)
+- ✅ **Feature O**: PDF material icons (geometric shapes per 12 form categories in drawLinkedMaterials)
+- ✅ **Feature P**: Playdate preview composites (central function icons + denser activity hints)
+- ✅ **Feature Y**: Non-reader visual architecture (nav icons, section colours, mobile bottom tab bar)
 
 ### Open UX Items (from review doc Part 1)
 - ✅ **Item 4**: First-visit onboarding — resolved (sessions 23, 26: onboarding wizard + FirstVisitBanner)

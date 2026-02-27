@@ -3,6 +3,7 @@ import { rgb } from "pdf-lib";
 /* ── colour palette ────────────────────────────────────────────── */
 export const CADET = rgb(0.153, 0.196, 0.282);       // #273248
 export const REDWOOD = rgb(0.694, 0.314, 0.263);      // #b15043
+export const SIENNA = rgb(0.796, 0.471, 0.345);       // #cb7858
 export const CHAMPAGNE = rgb(0.992, 0.976, 0.953);    // #fdf9f3
 export const CHAMPAGNE_DARK = rgb(0.965, 0.937, 0.902); // slightly darker for cards
 export const GREY = rgb(0.5, 0.5, 0.5);

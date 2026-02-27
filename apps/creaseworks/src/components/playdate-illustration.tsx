@@ -423,7 +423,7 @@ const HINT_MOTIFS: Record<string, string> = {
 };
 
 /**
- * Pick up to 3 hint motifs from the context tags and scatter them
+ * Pick up to 5 hint motifs from the context tags and scatter them
  * at deterministic positions across the illustration.
  */
 function renderActivityHints(
@@ -439,7 +439,7 @@ function renderActivityHints(
 
   for (const [keyword, motif] of Object.entries(HINT_MOTIFS)) {
     if (joined.includes(keyword)) matched.push(motif);
-    if (matched.length >= 3) break;
+    if (matched.length >= 5) break;
   }
 
   if (matched.length === 0) return "";
@@ -447,13 +447,95 @@ function renderActivityHints(
   let svg = "";
   for (let i = 0; i < matched.length; i++) {
     // deterministic placement: spread across the width, varied y
-    const x = (width * (0.2 + seededRandom(seed, 100 + i) * 0.6));
-    const y = (height * (0.25 + seededRandom(seed, 110 + i) * 0.5));
-    const scale = 1.2 + seededRandom(seed, 120 + i) * 0.6;
+    const x = (width * (0.12 + seededRandom(seed, 100 + i) * 0.76));
+    const y = (height * (0.15 + seededRandom(seed, 110 + i) * 0.6));
+    const scale = 1.4 + seededRandom(seed, 120 + i) * 0.8;
     svg += `<g transform="translate(${x},${y}) scale(${scale})">${matched[i]}</g>`;
   }
 
   return svg;
+}
+
+/* ── central function icon ──
+ * A larger symbolic shape placed at the centre of the illustration
+ * to clearly communicate the type of activity at a glance.
+ * Each function category maps to a recognisable icon.
+ */
+function renderFunctionIcon(
+  primaryFunction: string | null,
+  seed: number,
+  width: number,
+  height: number,
+): string {
+  if (!primaryFunction) return "";
+  const fn = primaryFunction.toLowerCase();
+  const cx = width / 2;
+  const cy = height / 2;
+
+  // observe → eye icon
+  if (fn.includes("observe")) {
+    return `
+      <g transform="translate(${cx},${cy})" opacity="0.18">
+        <ellipse rx="12" ry="8" fill="none" stroke="${COLORS.cadet}" stroke-width="1.5"/>
+        <circle r="4" fill="${COLORS.cadet}"/>
+        <circle r="1.5" fill="${COLORS.champagne}"/>
+      </g>`;
+  }
+  // construct → stacked blocks
+  if (fn.includes("construct")) {
+    return `
+      <g transform="translate(${cx - 8},${cy - 6})" opacity="0.16">
+        <rect width="10" height="8" rx="1" fill="${COLORS.redwood}"/>
+        <rect x="6" width="10" height="8" rx="1" fill="${COLORS.sienna}"/>
+        <rect x="3" y="-7" width="10" height="8" rx="1" fill="${COLORS.champagne}" stroke="${COLORS.redwood}" stroke-width="0.5"/>
+      </g>`;
+  }
+  // explore → compass/star
+  if (fn.includes("explore")) {
+    return `
+      <g transform="translate(${cx},${cy})" opacity="0.16">
+        <circle r="10" fill="none" stroke="${COLORS.sienna}" stroke-width="1"/>
+        <path d="M0-8L2-2L8 0L2 2L0 8L-2 2L-8 0L-2-2Z" fill="${COLORS.sienna}" opacity="0.6"/>
+        <circle r="1.5" fill="${COLORS.redwood}"/>
+      </g>`;
+  }
+  // transform → spiral arrow
+  if (fn.includes("transform")) {
+    return `
+      <g transform="translate(${cx},${cy})" opacity="0.16">
+        <path d="M0-9A9 9 0 1 1-6.4 6.4" fill="none" stroke="${COLORS.redwood}" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M-6.4 6.4L-3 4L-4 7.5Z" fill="${COLORS.redwood}"/>
+      </g>`;
+  }
+  // connect → linked circles
+  if (fn.includes("connect")) {
+    return `
+      <g transform="translate(${cx},${cy})" opacity="0.16">
+        <line x1="-7" y1="0" x2="7" y2="0" stroke="${COLORS.cadet}" stroke-width="1.2"/>
+        <line x1="0" y1="-7" x2="0" y2="7" stroke="${COLORS.cadet}" stroke-width="1.2"/>
+        <circle cx="-7" cy="0" r="3.5" fill="${COLORS.cadet}" opacity="0.5"/>
+        <circle cx="7" cy="0" r="3.5" fill="${COLORS.sienna}" opacity="0.5"/>
+        <circle cx="0" cy="-7" r="3.5" fill="${COLORS.redwood}" opacity="0.5"/>
+        <circle cx="0" cy="7" r="3.5" fill="${COLORS.champagne}" stroke="${COLORS.cadet}" stroke-width="0.5" opacity="0.6"/>
+      </g>`;
+  }
+  // experiment → beaker/flask
+  if (fn.includes("experiment")) {
+    return `
+      <g transform="translate(${cx},${cy})" opacity="0.16">
+        <path d="M-3-10L-3-3L-9 8Q-9 10 0 10Q9 10 9 8L3-3L3-10Z" fill="none" stroke="${COLORS.sienna}" stroke-width="1.2"/>
+        <path d="M-7 5Q0 2 7 5Q7 10 0 10Q-7 10-7 5Z" fill="${COLORS.redwood}" opacity="0.3"/>
+        <circle cx="-2" cy="6" r="1.5" fill="${COLORS.redwood}" opacity="0.4"/>
+        <circle cx="3" cy="4" r="1" fill="${COLORS.sienna}" opacity="0.4"/>
+      </g>`;
+  }
+  // default → lightbulb shape
+  const r = seededRandom(seed, 200);
+  return `
+    <g transform="translate(${cx},${cy})" opacity="0.14">
+      <circle r="8" fill="none" stroke="${r > 0.5 ? COLORS.sienna : COLORS.cadet}" stroke-width="1"/>
+      <circle r="3" fill="${r > 0.5 ? COLORS.sienna : COLORS.cadet}" opacity="0.4"/>
+    </g>`;
 }
 
 /**
@@ -471,6 +553,7 @@ export function PlaydateIllustration({
   const width = 100; // as percentage, will fill container
   const svgPattern = renderPattern(primaryFunction, seed, width, height);
   const hints = renderActivityHints(contextTags, seed, width, height);
+  const icon = renderFunctionIcon(primaryFunction, seed, width, height);
 
   return (
     <svg
@@ -485,6 +568,9 @@ export function PlaydateIllustration({
 
       {/* Pattern */}
       <g dangerouslySetInnerHTML={{ __html: svgPattern }} />
+
+      {/* Central function icon — communicates what the activity is about */}
+      {icon && <g dangerouslySetInnerHTML={{ __html: icon }} />}
 
       {/* Activity-hint motifs */}
       {hints && <g dangerouslySetInnerHTML={{ __html: hints }} />}
