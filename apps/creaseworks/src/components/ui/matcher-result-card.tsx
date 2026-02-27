@@ -10,6 +10,8 @@
  * Session 12: mobile-first responsive redesign — stacked score+title
  *   on small screens, collapsible coverage detail, larger CTA touch
  *   targets, and improved tag wrapping.
+ * Session 31: aesthetic refresh — hover lift with warm shadow and
+ *   champagne border tint, spring-like cubic-bezier transition.
  */
 
 import { useState } from "react";
@@ -73,8 +75,23 @@ export default function MatcherResultCard({
     <div
       role="group"
       aria-label={`${playdate.title} — score ${playdate.score}`}
-      className="rounded-xl border bg-white p-4 sm:p-5 transition-all hover:shadow-md"
-      style={{ borderColor: "rgba(39, 50, 72, 0.1)" }}
+      className="rounded-xl border p-4 sm:p-5"
+      style={{
+        borderColor: "rgba(39, 50, 72, 0.1)",
+        backgroundColor: "var(--wv-white)",
+        transition: "all 200ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+        cursor: "default",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 4px 16px rgba(203, 120, 88, 0.1)";
+        e.currentTarget.style.borderColor = "rgba(203, 120, 88, 0.2)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "none";
+        e.currentTarget.style.borderColor = "rgba(39, 50, 72, 0.1)";
+      }}
     >
       {/* header: score + title — stacked on mobile, side-by-side on sm+ */}
       <div className="flex items-start gap-3 sm:gap-4">

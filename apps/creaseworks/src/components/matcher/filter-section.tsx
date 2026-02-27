@@ -25,8 +25,12 @@ export function FilterSection({
 
   return (
     <section
-      className="rounded-xl border transition-colors"
-      style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
+      className="rounded-xl border transition-all duration-200"
+      style={{
+        borderColor: selectedCount > 0 ? "rgba(203, 120, 88, 0.2)" : "rgba(39, 50, 72, 0.08)",
+        backgroundColor: selectedCount > 0 ? "rgba(255, 235, 210, 0.15)" : "var(--wv-white)",
+        boxShadow: selectedCount > 0 ? "0 1px 4px rgba(203, 120, 88, 0.06)" : "none",
+      }}
     >
       {/* section header — always visible, acts as toggle */}
       <button
