@@ -284,6 +284,32 @@ export async function getUnownedPacks(orgId: string | null) {
 }
 
 /**
+ * Admin: fetch all packs with their playdate ID arrays.
+ * Used by the admin playdate browser for pack-based filtering.
+ */
+export async function getAllPacksWithPlaydateIds() {
+  const result = await sql.query(
+    `SELECT
+       pc.id,
+       pc.slug,
+       pc.title,
+       ARRAY_AGG(pp.playdate_id) AS playdate_ids
+     FROM packs_cache pc
+     JOIN pack_playdates pp ON pp.pack_id = pc.id
+     WHERE pc.slug IS NOT NULL AND pc.slug != ''
+       AND pc.title IS NOT NULL AND pc.title != ''
+     GROUP BY pc.id, pc.slug, pc.title
+     ORDER BY pc.title ASC`,
+  );
+  return result.rows as Array<{
+    id: string;
+    slug: string;
+    title: string;
+    playdate_ids: string[];
+  }>;
+}
+
+/**
  * Check whether a playdate belongs to a specific pack.
  */
 export async function isPlaydateInPack(
