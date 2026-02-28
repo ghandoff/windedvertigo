@@ -1,6 +1,7 @@
 import Link from "next/link";
 import DownloadButton from "@/components/ui/download-button";
 import QuickLogButton from "@/components/ui/quick-log-button";
+import PhotoQuickLogButton from "@/components/ui/photo-quick-log-button";
 import { MaterialIllustration } from "@/components/material-illustration";
 
 interface PlaydateData {
@@ -248,6 +249,11 @@ export default function EntitledPlaydateView({
       {/* actions */}
       <section className="pt-4 border-t border-cadet/10 flex flex-wrap items-center gap-3">
         <QuickLogButton
+          playdateId={playdate.id}
+          playdateTitle={playdate.title}
+          playdateSlug={playdate.slug}
+        />
+        <PhotoQuickLogButton
           playdateId={playdate.id}
           playdateTitle={playdate.title}
           playdateSlug={playdate.slug}
