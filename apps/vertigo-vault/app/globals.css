@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --vault-bg: #0f1923;
+  --vault-card-bg: #1e2738;
+  --vault-card-hover: #253043;
+  --vault-text: #e8edf3;
+  --vault-text-muted: rgba(232, 237, 243, 0.55);
+  --vault-accent: #AF4F41;
+  --vault-border: rgba(255, 255, 255, 0.08);
+}
+
+body {
+  background-color: var(--vault-bg);
+  color: var(--vault-text);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* ---- slide-in animation for the detail modal ---- */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.animate-slide-in {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* ---- markdown rendered inside the modal ---- */
+.vault-content h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.vault-content h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+}
+.vault-content p {
+  margin-bottom: 0.6rem;
+  line-height: 1.65;
+  opacity: 0.85;
+}
+.vault-content ul,
+.vault-content ol {
+  padding-left: 1.4rem;
+  margin-bottom: 0.6rem;
+}
+.vault-content li {
+  margin-bottom: 0.25rem;
+  line-height: 1.6;
+  opacity: 0.85;
+}
+.vault-content strong {
+  font-weight: 600;
+}
+.vault-content em {
+  font-style: italic;
+}

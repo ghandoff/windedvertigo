@@ -12,6 +12,8 @@
     "dev:sqr-rct": "npm run dev -w apps/nordic-sqr-rct",
     "build:creaseworks": "npm run build -w apps/creaseworks",
     "build:sqr-rct": "npm run build -w apps/nordic-sqr-rct",
+    "dev:vault": "npm run dev -w apps/vertigo-vault",
+    "build:vault": "npm run build -w apps/vertigo-vault",
     "test": "npm run test -w apps/creaseworks",
     "test:a11y": "npm run test:a11y -w apps/creaseworks",
     "lint": "npm run lint -w apps/creaseworks"
