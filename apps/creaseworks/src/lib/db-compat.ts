@@ -84,13 +84,42 @@ export async function coverGroupBy(alias: string): Promise<string> {
   return (await hasCoverUrlColumn()) ? `, ${alias}.cover_url` : "";
 }
 
+/* ── gallery_visible_fields column (migration 035) ─────────────── */
+
+let _hasGalleryVisibleFields: boolean | null = null;
+
 /**
- * Filter cover_url out of a column-selector array when the column
- * doesn't exist yet, keeping all other columns intact.
+ * Check (once per process) whether playdates_cache has the
+ * gallery_visible_fields column (migration 035).
+ */
+export async function hasGalleryVisibleFieldsColumn(): Promise<boolean> {
+  if (_hasGalleryVisibleFields !== null) return _hasGalleryVisibleFields;
+  try {
+    const r = await sql.query(
+      `SELECT 1 FROM information_schema.columns
+       WHERE table_name = 'playdates_cache' AND column_name = 'gallery_visible_fields'
+       LIMIT 1`,
+    );
+    _hasGalleryVisibleFields = r.rows.length > 0;
+  } catch {
+    _hasGalleryVisibleFields = false;
+  }
+  return _hasGalleryVisibleFields;
+}
+
+/**
+ * Filter cover_url and gallery_visible_fields out of a column-selector
+ * array when the respective columns don't exist yet, keeping all other
+ * columns intact.
  */
 export async function safeCols(
   columns: readonly string[],
 ): Promise<string[]> {
-  if (await hasCoverUrlColumn()) return [...columns];
-  return columns.filter((c) => c !== "cover_url");
+  const hasCover = await hasCoverUrlColumn();
+  const hasGallery = await hasGalleryVisibleFieldsColumn();
+  return columns.filter((c) => {
+    if (c === "cover_url" && !hasCover) return false;
+    if (c === "gallery_visible_fields" && !hasGallery) return false;
+    return true;
+  });
 }

@@ -6,13 +6,15 @@ import {
   columnsToSql,
 } from "@/lib/security/column-selectors";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
+import { safeCols } from "@/lib/db-compat";
 
 /**
  * Fetch all public-ready playdates with teaser-tier columns only.
  * Used on the /sampler page grid.
  */
 export async function getTeaserPlaydates() {
-  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const safe = await safeCols(PLAYDATE_TEASER_COLUMNS);
+  const cols = safe.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
        (p.find_again_mode IS NOT NULL) AS has_find_again,
@@ -36,7 +38,8 @@ export async function getTeaserPlaydates() {
  * Used on /sampler for internal users who should see everything.
  */
 export async function getAllReadyPlaydates() {
-  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const safe = await safeCols(PLAYDATE_TEASER_COLUMNS);
+  const cols = safe.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
        (p.find_again_mode IS NOT NULL) AS has_find_again,
@@ -58,7 +61,8 @@ export async function getAllReadyPlaydates() {
  * Fetch a single playdate by slug at teaser tier.
  */
 export async function getTeaserPlaydateBySlug(slug: string) {
-  const cols = columnsToSql(PLAYDATE_TEASER_COLUMNS);
+  const safe = await safeCols(PLAYDATE_TEASER_COLUMNS);
+  const cols = columnsToSql(safe);
   const result = await sql.query(
     `SELECT ${cols},
        (find_again_mode IS NOT NULL) AS has_find_again
@@ -134,7 +138,8 @@ export async function getCollectivePlaydateBySlug(slug: string) {
  * Used on /campaign/[slug] landing pages (scavenger hunts, promos).
  */
 export async function getCampaignPlaydates(campaignSlug: string) {
-  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const safe = await safeCols(PLAYDATE_TEASER_COLUMNS);
+  const cols = safe.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
        (p.find_again_mode IS NOT NULL) AS has_find_again,
@@ -160,7 +165,8 @@ export async function getCampaignPlaydates(campaignSlug: string) {
  * Used on the /scavenger aggregation page.
  */
 export async function getAllCampaignPlaydates() {
-  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const safe = await safeCols(PLAYDATE_TEASER_COLUMNS);
+  const cols = safe.map((c) => `p.${c}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols},
        p.campaign_tags,

@@ -35,6 +35,7 @@ interface TeaserPlaydate {
   run_count: number;
   tinkering_tier: string | null;
   cover_url?: string | null;
+  gallery_visible_fields?: string[] | null;
 }
 
 export default async function SamplerPage() {
@@ -135,6 +136,7 @@ export default async function SamplerPage() {
               hasFindAgain={pick.has_find_again}
               runCount={pick.run_count}
               coverUrl={pick.cover_url}
+              visibleFields={pick.gallery_visible_fields}
             />
           );
         }
@@ -190,6 +192,7 @@ export default async function SamplerPage() {
                 packInfo={pi ? { packSlug: pi.packSlug, packTitle: pi.packTitle } : null}
                 tinkeringTier={p.tinkering_tier}
                 coverUrl={p.cover_url}
+                visibleFields={p.gallery_visible_fields}
               />
             );
           })}

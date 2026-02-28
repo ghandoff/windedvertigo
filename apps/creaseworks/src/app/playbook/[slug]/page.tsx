@@ -185,6 +185,7 @@ export default async function CollectionDetailPage({ params }: Props) {
               tinkeringTier={p.tinkering_tier}
               runCount={p.run_count}
               coverUrl={p.cover_url}
+              visibleFields={p.gallery_visible_fields}
               href={`/sampler/${p.slug}`}
               action={
                 <QuickLogButton

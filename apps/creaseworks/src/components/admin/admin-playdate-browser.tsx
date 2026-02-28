@@ -122,6 +122,7 @@ export default function AdminPlaydateBrowser({
                 tinkeringTier={p.tinkering_tier}
                 runCount={p.run_count}
                 coverUrl={p.cover_url}
+                visibleFields={null}
               />
             ))}
           </div>
@@ -152,6 +153,7 @@ export default function AdminPlaydateBrowser({
                 tinkeringTier={p.tinkering_tier}
                 runCount={p.run_count}
                 coverUrl={p.cover_url}
+                visibleFields={null}
               />
             ))}
           </div>
@@ -185,6 +187,7 @@ export default function AdminPlaydateBrowser({
                 tinkeringTier={p.tinkering_tier}
                 runCount={p.run_count}
                 coverUrl={p.cover_url}
+                visibleFields={null}
               />
             ))}
           </div>

@@ -47,6 +47,7 @@ export default async function SeasonalBanner() {
             ageRange={playdate.age_range}
             runCount={playdate.run_count}
             coverUrl={playdate.cover_url}
+            visibleFields={playdate.gallery_visible_fields}
             href={`/sampler/${playdate.slug}`}
           />
         ))}

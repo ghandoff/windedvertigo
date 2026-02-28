@@ -46,6 +46,7 @@ interface PlaydateRow {
   ageRange: string | null;
   tinkeringTier: string | null;
   coverSourceUrl: string | null;
+  galleryVisibleFields: string[];
 }
 
 function parsePlaydatePage(page: NotionPage): PlaydateRow {
@@ -83,6 +84,7 @@ function parsePlaydatePage(page: NotionPage): PlaydateRow {
     ageRange: extractSelect(props, "age range"),
     tinkeringTier: extractSelect(props, "tinkering tier"),
     coverSourceUrl: extractCover(page)?.url ?? null,
+    galleryVisibleFields: extractMultiSelect(props, "gallery visible fields"),
   };
 }
 
@@ -110,7 +112,7 @@ export async function syncPlaydates() {
           find_again_prompt, substitutions_notes,
           design_rationale, developmental_notes, author_notes,
           notion_last_edited, synced_at, slug, age_range, tinkering_tier,
-          cover_r2_key, cover_url
+          cover_r2_key, cover_url, gallery_visible_fields
         ) VALUES (
           ${row.notionId}, ${row.title}, ${row.headline},
           ${row.releaseChannel}, ${row.ipTier}, ${row.status},
@@ -124,7 +126,8 @@ export async function syncPlaydates() {
           ${row.designRationale}, ${row.developmentalNotes}, ${row.authorNotes},
           ${row.lastEdited}, NOW(), ${makeSlug(row.title)}, ${row.ageRange},
           ${row.tinkeringTier},
-          ${coverR2Key}, ${coverUrl}
+          ${coverR2Key}, ${coverUrl},
+          ${JSON.stringify(row.galleryVisibleFields)}
         )
         ON CONFLICT (notion_id) DO UPDATE SET
           title = EXCLUDED.title,
@@ -155,7 +158,8 @@ export async function syncPlaydates() {
           age_range = EXCLUDED.age_range,
           tinkering_tier = EXCLUDED.tinkering_tier,
           cover_r2_key = EXCLUDED.cover_r2_key,
-          cover_url = EXCLUDED.cover_url
+          cover_url = EXCLUDED.cover_url,
+          gallery_visible_fields = EXCLUDED.gallery_visible_fields
       `;
     },
     cleanupStale: async (activeNotionIds) => {

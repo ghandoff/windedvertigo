@@ -27,6 +27,7 @@ export const PLAYDATE_TEASER_COLUMNS = [
   "energy_level",
   "tinkering_tier",
   "cover_url",
+  "gallery_visible_fields",
 ] as const;
 
 /** Entitled tier — authenticated users whose org owns the pack. */

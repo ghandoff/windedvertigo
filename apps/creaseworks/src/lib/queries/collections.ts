@@ -7,7 +7,7 @@
  */
 
 import { sql } from "@/lib/db";
-import { coverSelect, collectionCoverSelect } from "@/lib/db-compat";
+import { coverSelect, collectionCoverSelect, hasGalleryVisibleFieldsColumn } from "@/lib/db-compat";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -47,6 +47,7 @@ export interface CollectionPlaydate {
   run_count: number;
   tinkering_tier: string | null;
   cover_url: string | null;
+  gallery_visible_fields: string[] | null;
 }
 
 export interface ProgressSummary {
@@ -157,11 +158,14 @@ export async function getCollectionPlaydates(
   userId: string | null,
 ): Promise<CollectionPlaydate[]> {
   const cv = await coverSelect("p");
+  const gvf = (await hasGalleryVisibleFieldsColumn())
+    ? "p.gallery_visible_fields,"
+    : "NULL AS gallery_visible_fields,";
   const result = await sql.query(
     `SELECT p.id, p.slug, p.title, p.headline,
             p.primary_function, p.arc_emphasis,
             p.friction_dial, p.start_in_120s,
-            p.tinkering_tier, ${cv}
+            p.tinkering_tier, ${cv} ${gvf}
             (p.find_again_mode IS NOT NULL) AS has_find_again,
             pp.progress_tier,
             COALESCE(ev_counts.evidence_count, 0)::int AS evidence_count,

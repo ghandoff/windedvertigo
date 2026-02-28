@@ -10,6 +10,7 @@ import {
   PLAYDATE_TEASER_COLUMNS,
 } from "@/lib/security/column-selectors";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
+import { safeCols } from "@/lib/db-compat";
 import { getSeasonalTags } from "@/lib/seasonal";
 
 /**
@@ -23,7 +24,8 @@ import { getSeasonalTags } from "@/lib/seasonal";
  */
 export async function getSeasonalPlaydates(limit: number = 6) {
   const seasonalTags = getSeasonalTags();
-  const cols = PLAYDATE_TEASER_COLUMNS.map((c) => `p.${c}`).join(", ");
+  const safe = await safeCols(PLAYDATE_TEASER_COLUMNS);
+  const cols = safe.map((c) => `p.${c}`).join(", ");
 
   const result = await sql.query(
     `SELECT ${cols},

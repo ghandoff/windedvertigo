@@ -30,6 +30,7 @@ interface CampaignPlaydate {
   run_count: number;
   tinkering_tier: string | null;
   cover_url?: string | null;
+  gallery_visible_fields?: string[] | null;
 }
 
 export async function generateMetadata(
@@ -99,6 +100,7 @@ export default async function CampaignPage({
               tinkeringTier={p.tinkering_tier}
               runCount={p.run_count}
               coverUrl={p.cover_url}
+              visibleFields={p.gallery_visible_fields}
             />
           ))}
         </div>

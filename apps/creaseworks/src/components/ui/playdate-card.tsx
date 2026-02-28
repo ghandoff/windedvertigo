@@ -97,6 +97,9 @@ interface PlaydateCardProps {
   family_count?: number;
   /** Optional: cover image URL from R2 (overrides PlaydateIllustration when present) */
   coverUrl?: string | null;
+  /** Optional: Notion-controlled list of fields to show on card.
+   *  When null/empty, all fields render (backward compatible). */
+  visibleFields?: string[] | null;
 }
 
 export function PlaydateCard({
@@ -120,9 +123,14 @@ export function PlaydateCard({
   tinkeringTier,
   family_count,
   coverUrl,
+  visibleFields,
 }: PlaydateCardProps) {
   const badge = progressTier ? TIER_BADGE[progressTier] : null;
   const isBeginner = frictionDial !== null && frictionDial <= 2 && startIn120s;
+
+  /** When visibleFields is null/empty, show everything (backward compat). */
+  const show = (field: string) =>
+    !visibleFields || visibleFields.length === 0 || visibleFields.includes(field);
 
   return (
     <Link
@@ -168,22 +176,22 @@ export function PlaydateCard({
 
         <h2 className="text-lg font-semibold text-cadet mb-1">{title}</h2>
 
-        {headline && (
+        {show("headline") && headline && (
           <p className="text-sm text-cadet/60 mb-3">{headline}</p>
         )}
 
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {primaryFunction && (
+          {show("primaryFunction") && primaryFunction && (
             <span className="inline-block rounded-full bg-champagne px-2.5 py-0.5 text-xs font-medium text-cadet">
               {primaryFunction}
             </span>
           )}
-          {ageRange && (
+          {show("ageRange") && ageRange && (
             <span className="inline-block rounded-full bg-cadet/8 px-2.5 py-0.5 text-xs font-medium text-cadet/70">
               ages {ageRange}
             </span>
           )}
-          {tinkeringTier && TINKERING_TIERS[tinkeringTier] && (
+          {show("tinkeringTier") && tinkeringTier && TINKERING_TIERS[tinkeringTier] && (
             <span
               className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${TINKERING_TIERS[tinkeringTier].className}`}
               title={`tinkering: ${tinkeringTier}`}
@@ -191,7 +199,7 @@ export function PlaydateCard({
               {TINKERING_TIERS[tinkeringTier].emoji} {TINKERING_TIERS[tinkeringTier].label}
             </span>
           )}
-          {arcEmphasis.map((arc) => (
+          {show("arcEmphasis") && arcEmphasis.map((arc) => (
             <span
               key={arc}
               className={`inline-block rounded-full px-2.5 py-0.5 text-xs ${ARC_COLOURS[arc.toLowerCase()] ?? "bg-cadet/5 text-cadet/70"}`}
@@ -202,14 +210,14 @@ export function PlaydateCard({
         </div>
 
         {/* pack badge — shows when playdate is in an unpurchased pack */}
-        {packInfo && (
+        {show("packInfo") && packInfo && (
           <span className="inline-flex items-center gap-1 rounded-full bg-sienna/8 px-2.5 py-0.5 text-[10px] font-medium text-sienna/70 mb-2">
             🔒 {packInfo.packTitle}
           </span>
         )}
 
         <div className="flex items-center gap-3 text-xs text-cadet/50">
-          {frictionDial !== null && (() => {
+          {show("energyLevel") && frictionDial !== null && (() => {
             const energy = getEnergyLabel(frictionDial);
             return energy ? (
               <span title={`energy level ${frictionDial}/5`}>
@@ -217,13 +225,13 @@ export function PlaydateCard({
               </span>
             ) : null;
           })()}
-          {startIn120s && <span>ready in 2 min</span>}
-          {hasFindAgain && (
+          {show("startIn120s") && startIn120s && <span>ready in 2 min</span>}
+          {show("findAgain") && hasFindAgain && (
             <span className="inline-block rounded-full bg-sienna/10 px-2 py-0.5 text-xs font-medium text-sienna">
               find again
             </span>
           )}
-          {!!runCount && runCount > 0 && (
+          {show("runCount") && !!runCount && runCount > 0 && (
             runCount >= 5 ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-sienna/15 px-2 py-0.5 text-xs font-semibold text-sienna">
                 🔥 popular
@@ -234,12 +242,12 @@ export function PlaydateCard({
               </span>
             )
           )}
-          {!!evidenceCount && evidenceCount > 0 && (
+          {show("evidenceCount") && !!evidenceCount && evidenceCount > 0 && (
             <span className="text-[10px] text-cadet/40">
               {evidenceCount} piece{evidenceCount !== 1 ? "s" : ""} of evidence
             </span>
           )}
-          {!!family_count && family_count > 0 && (
+          {show("familyCount") && !!family_count && family_count > 0 && (
             <span className="text-[10px] text-cadet/40">
               {family_count} {family_count === 1 ? "family" : "families"} exploring
             </span>

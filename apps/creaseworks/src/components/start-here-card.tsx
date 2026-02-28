@@ -23,6 +23,7 @@ interface StartHereCardProps {
   runCount?: number;
   href?: string;
   coverUrl?: string | null;
+  visibleFields?: string[] | null;
 }
 
 export default function StartHereCard({
@@ -41,6 +42,7 @@ export default function StartHereCard({
   runCount,
   href,
   coverUrl,
+  visibleFields,
 }: StartHereCardProps) {
   return (
     <div className="relative mb-4 sm:mb-6">
@@ -67,6 +69,7 @@ export default function StartHereCard({
         runCount={runCount}
         href={href}
         coverUrl={coverUrl}
+        visibleFields={visibleFields}
       />
     </div>
   );
