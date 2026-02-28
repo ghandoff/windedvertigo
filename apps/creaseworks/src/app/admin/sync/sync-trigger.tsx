@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 export default function SyncTrigger() {
   const [loading, setLoading] = useState(false);
@@ -20,7 +21,7 @@ export default function SyncTrigger() {
     setResult(null);
 
     try {
-      const res = await fetch("/api/admin/sync", {
+      const res = await fetch(apiUrl("/api/admin/sync"), {
         method: "POST",
       });
       const data = await res.json();
@@ -64,3 +65,4 @@ export default function SyncTrigger() {
     </div>
   );
 }
+
