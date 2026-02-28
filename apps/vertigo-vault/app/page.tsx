@@ -2,7 +2,6 @@ import { fetchVaultActivities } from "@/lib/notion";
 import VaultGallery from "@/components/vault-gallery";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600; // ISR — revalidate every hour
 
 export default async function VaultPage() {
