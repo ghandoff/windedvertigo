@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   basePath: "/reservoir/creaseworks",
+  transpilePackages: ["@windedvertigo/tokens"],
 
   async headers() {
     return [
