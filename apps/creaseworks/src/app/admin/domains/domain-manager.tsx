@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface BlockedDomain {
   id: string;
@@ -33,7 +34,7 @@ export default function DomainBlocklistManager({
     setError(null);
 
     try {
-      const res = await fetch("/api/admin/domains", {
+      const res = await fetch(apiUrl("/api/admin/domains"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: newDomain, reason: newReason || null }),
@@ -53,7 +54,7 @@ export default function DomainBlocklistManager({
 
   async function handleToggle(id: string, enabled: boolean) {
     try {
-      await fetch("/api/admin/domains", {
+      await fetch(apiUrl("/api/admin/domains"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, enabled }),
@@ -69,7 +70,7 @@ export default function DomainBlocklistManager({
   async function handleDelete(id: string) {
     if (!confirm("remove this domain from the blocklist?")) return;
     try {
-      await fetch("/api/admin/domains", {
+      await fetch(apiUrl("/api/admin/domains"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
@@ -172,3 +173,4 @@ export default function DomainBlocklistManager({
     </div>
   );
 }
+
