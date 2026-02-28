@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface AdminRow {
   id: string;
@@ -35,7 +36,7 @@ export default function AdminListManager({
     setError(null);
 
     try {
-      const res = await fetch("/api/admin/admins", {
+      const res = await fetch(apiUrl("/api/admin/admins"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: newEmail }),
@@ -44,7 +45,7 @@ export default function AdminListManager({
       if (!res.ok) throw new Error(data.error || "failed to add admin");
 
       // refresh the list
-      const listRes = await fetch("/api/admin/admins");
+      const listRes = await fetch(apiUrl("/api/admin/admins"));
       const listData = await listRes.json();
       setAdmins(listData.admins);
       setNewEmail("");
@@ -59,7 +60,7 @@ export default function AdminListManager({
     if (!confirm(`remove ${email} from the admin list?`)) return;
 
     try {
-      const res = await fetch("/api/admin/admins", {
+      const res = await fetch(apiUrl("/api/admin/admins"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: adminId }),
@@ -93,7 +94,7 @@ export default function AdminListManager({
             className="rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-40 transition-all"
             style={{ backgroundColor: "var(--wv-redwood)" }}
           >
-            {loading ? "adding…" : "add"}
+            {loading ? "adding\u2026" : "add"}
           </button>
         </div>
         {error && <p id="admin-error" className="text-sm mt-2 text-redwood">{error}</p>}
@@ -115,14 +116,14 @@ export default function AdminListManager({
             {admins.map((a) => (
               <tr key={a.id} className="border-b border-cadet/5">
                 <td className="py-2 pr-4">{a.email}</td>
-                <td className="py-2 pr-4 text-cadet/50">{a.name || "—"}</td>
+                <td className="py-2 pr-4 text-cadet/50">{a.name || "\u2014"}</td>
                 <td className="py-2 pr-4 text-cadet/50 text-xs">
                   {a.granted_by_email || "system"}
                 </td>
                 <td className="py-2 pr-4 text-cadet/50 text-xs">
                   {a.created_at
                     ? new Date(a.created_at).toLocaleDateString("en-GB")
-                    : "—"}
+                    : "\u2014"}
                 </td>
                 <td className="py-2">
                   {admins.length > 1 ? (
@@ -144,3 +145,4 @@ export default function AdminListManager({
     </div>
   );
 }
+
