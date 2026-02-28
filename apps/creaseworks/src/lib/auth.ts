@@ -10,7 +10,7 @@ import {
 } from "@/lib/queries/users";
 import {
   autoJoinOrg,
-  getOrgMembership,
+  getOrgMembership, 
 } from "@/lib/queries/organisations";
 
 // The verification_token table is created by migration 011.
