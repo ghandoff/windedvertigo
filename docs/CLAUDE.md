@@ -103,7 +103,45 @@ Maria uploads thumbnail images for portfolio and vertigo vault. Options:
 
 **What Claude CAN do in the sandbox**: git commit, git diff, git status, git log, file editing, TypeScript compilation (`npx tsc --noEmit`), writing scripts and migrations.
 
-**What Garrett must do locally**: `git push`, running migration scripts (`node apps/creaseworks/scripts/apply-migrations-028-032.mjs`), running smoke tests against live URLs, any npm install that fetches packages.
+**What Garrett must do locally**: `git push`, running migration scripts, running smoke tests against live URLs, any npm install that fetches packages.
+
+### Local Terminal Runbook
+
+These commands require network access and **must be run from Garrett's terminal**, not the sandbox. Claude should prepare the work (write migrations, scripts, code) and then tell Garrett which commands to run.
+
+```bash
+# ── Git ──────────────────────────────────────────────────
+git pull --rebase                 # sync with remote (run before push)
+git push                          # push commits to origin/main
+
+# ── Migrations (from apps/creaseworks/) ──────────────────
+node scripts/apply-migrations-028-032.mjs
+# Applies SQL migrations 028–033 to Neon. Reads POSTGRES_URL from .env.local.
+# Skips already-applied migrations. Safe to re-run.
+
+# ── Smoke Test (from apps/creaseworks/) ──────────────────
+node scripts/smoke-test.mjs https://creaseworks.windedvertigo.com
+# Hits all 29 routes, checks HTTP status, title/og:title presence.
+# No auth — tests public + redirect behavior for protected routes.
+
+# ── Dependencies (from monorepo root) ────────────────────
+npm install                       # install/update all workspace deps
+
+# ── Dev Servers (from monorepo root) ─────────────────────
+npm run dev:creaseworks           # http://localhost:3000
+npm run dev:sqr-rct               # http://localhost:3001
+
+# ── Notion Sync (from monorepo root) ─────────────────────
+npm run sync                      # fetch all Notion content → data/ + images/
+npm run sync:footer               # sync footer HTML to static site + TS wrapper
+
+# ── Tests & Linting (from monorepo root) ─────────────────
+npm run test                      # vitest for creaseworks
+npm run test:a11y                 # axe-core accessibility audit (needs dev server running)
+npm run lint                      # eslint for creaseworks
+```
+
+> **Why not MCP tools or Chrome?** These are all simple CLI commands that run faster and more reliably from a terminal than through Vercel/Neon/Cloudflare MCP connectors or browser automation. Claude should prefer preparing scripts and telling Garrett to run them over navigating dashboards.
 
 **Vercel projects** (auto-deploy from `main` branch of `ghandoff/windedvertigo`):
 - creaseworks: `prj_EoDpRvw1kdAqcGVrcaYclfWFeX7b`

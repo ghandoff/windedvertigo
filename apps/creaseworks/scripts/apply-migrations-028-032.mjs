@@ -31,6 +31,8 @@ const migrations = [
   "migrations/031-tinkering-tier.sql",
   "migrations/032_cover_images.sql",
   "migrations/033_stripe_price_id.sql",
+  "migrations/034_collection_covers.sql",
+  "migrations/035_gallery_visible_fields.sql",
 ];
 
 /** Split a SQL file into individual statements, ignoring comments and blanks. */
@@ -82,7 +84,7 @@ const tables = await sql`
 const cols = await sql`
   SELECT column_name FROM information_schema.columns
   WHERE table_name = 'playdates_cache'
-    AND column_name IN ('tinkering_tier','cover_url','cover_r2_key')
+    AND column_name IN ('tinkering_tier','cover_url','cover_r2_key','gallery_visible_fields')
   ORDER BY column_name;
 `;
 const catCols = await sql`
@@ -103,10 +105,18 @@ const userCols = await sql`
   ORDER BY column_name;
 `;
 
+const collCols = await sql`
+  SELECT column_name FROM information_schema.columns
+  WHERE table_name = 'collections'
+    AND column_name IN ('cover_r2_key','cover_url')
+  ORDER BY column_name;
+`;
+
 console.log("\n— Verification —");
 console.log(`New tables: ${tables.map((r) => r.table_name).join(", ") || "NONE ⚠️"}`);
 console.log(`playdates_cache columns: ${cols.map((r) => r.column_name).join(", ") || "NONE ⚠️"}`);
 console.log(`users columns: ${userCols.map((r) => r.column_name).join(", ") || "NONE ⚠️"}`);
 console.log(`packs_catalogue.stripe_price_id: ${catCols.length ? "✅ exists" : "MISSING ⚠️"}`);
 console.log(`stripe prices seeded: ${stripePrices.length} of 6`);
-console.log("\n🎉  Migrations 028–033 complete!");
+console.log(`collections cover cols: ${collCols.map((r) => r.column_name).join(", ") || "NONE ⚠️"}`);
+console.log("\n🎉  Migrations 028–035 complete!");
