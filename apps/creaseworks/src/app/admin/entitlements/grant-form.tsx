@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api-url";
 
 interface GrantFormProps {
   orgs: { id: string; name: string }[];
@@ -26,7 +27,7 @@ export default function EntitlementGrantForm({ orgs, packs }: GrantFormProps) {
     setError(null);
 
     try {
-      const res = await fetch("/api/admin/entitlements", {
+      const res = await fetch(apiUrl("/api/admin/entitlements"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Session 11: include trialDays if set (free trial grant)
@@ -59,74 +60,75 @@ export default function EntitlementGrantForm({ orgs, packs }: GrantFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" aria-label="grant entitlement" aria-describedby={message || error ? "grant-message" : undefined}>
-      <div>
-        <label htmlFor="org" className="block text-xs text-cadet/60 mb-1">
-          organisation
-        </label>
-        <select
-          id="org"
-          value={orgId}
-          onChange={(e) => setOrgId(e.target.value)}
-          className="w-full rounded-lg border border-cadet/20 bg-white px-3 py-2 text-sm"
-          required
+    <form onSubmit={handleSubmit} className="rounded-xl border border-cadet/10 bg-champagne/30 p-5 mb-8">
+      <h2 className="text-sm font-semibold text-cadet/80 mb-3">grant entitlement</h2>
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="flex-1 min-w-48">
+          <label htmlFor="ent-org" className="block text-xs text-cadet/50 mb-1">
+            organisation
+          </label>
+          <select
+            id="ent-org"
+            value={orgId}
+            onChange={(e) => setOrgId(e.target.value)}
+            className="w-full rounded-lg border border-cadet/15 px-3 py-2 text-sm outline-none focus:ring-2"
+          >
+            <option value="">select…</option>
+            {orgs.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex-1 min-w-48">
+          <label htmlFor="ent-pack" className="block text-xs text-cadet/50 mb-1">
+            pack
+          </label>
+          <select
+            id="ent-pack"
+            value={packCacheId}
+            onChange={(e) => setPackCacheId(e.target.value)}
+            className="w-full rounded-lg border border-cadet/15 px-3 py-2 text-sm outline-none focus:ring-2"
+          >
+            <option value="">select…</option>
+            {packs.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="w-28">
+          <label htmlFor="ent-trial" className="block text-xs text-cadet/50 mb-1">
+            trial days
+          </label>
+          <input
+            id="ent-trial"
+            type="number"
+            min="0"
+            placeholder="—"
+            value={trialDays}
+            onChange={(e) => setTrialDays(e.target.value)}
+            className="w-full rounded-lg border border-cadet/15 px-3 py-2 text-sm outline-none focus:ring-2"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading || !orgId || !packCacheId}
+          className="rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-40 transition-all"
+          style={{ backgroundColor: "var(--wv-redwood)" }}
         >
-          <option value="">select an organisation</option>
-          {orgs.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </select>
+          {loading ? "granting…" : "grant"}
+        </button>
       </div>
 
-      <div>
-        <label htmlFor="pack" className="block text-xs text-cadet/60 mb-1">
-          pack
-        </label>
-        <select
-          id="pack"
-          value={packCacheId}
-          onChange={(e) => setPackCacheId(e.target.value)}
-          className="w-full rounded-lg border border-cadet/20 bg-white px-3 py-2 text-sm"
-          required
-        >
-          <option value="">select a pack</option>
-          {packs.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.title}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Session 11: optional trial days for free trial grants */}
-      <div>
-        <label htmlFor="trialDays" className="block text-xs text-cadet/60 mb-1">
-          trial days <span className="text-cadet/40">(optional — leave blank for perpetual)</span>
-        </label>
-        <input
-          id="trialDays"
-          type="number"
-          min="1"
-          max="365"
-          value={trialDays}
-          onChange={(e) => setTrialDays(e.target.value)}
-          placeholder="e.g. 14"
-          className="w-full rounded-lg border border-cadet/20 bg-white px-3 py-2 text-sm"
-        />
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading || !orgId || !packCacheId}
-        className="rounded-lg bg-redwood px-4 py-2 text-sm text-white font-medium hover:bg-sienna transition-colors disabled:opacity-50"
-      >
-        {loading ? "granting…" : "grant entitlement"}
-      </button>
-
-      {message && <p id="grant-message" className="text-sm text-green-700">{message}</p>}
-      {error && <p id="grant-message" className="text-sm text-redwood">{error}</p>}
+      {message && <p className="text-sm mt-3 text-sienna">{message}</p>}
+      {error && <p className="text-sm mt-3 text-redwood">{error}</p>}
     </form>
   );
 }
+
