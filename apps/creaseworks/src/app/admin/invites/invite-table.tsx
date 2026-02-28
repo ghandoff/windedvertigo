@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api-url";
 
 interface Invite {
   id: string;
@@ -35,7 +36,7 @@ export default function InviteTable({ invites, showRevoke = false }: Props) {
     if (!confirm("revoke this invite?")) return;
     setRevoking(inviteId);
     try {
-      await fetch("/api/admin/invites", {
+      await fetch(apiUrl("/api/admin/invites"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inviteId }),
@@ -89,14 +90,14 @@ export default function InviteTable({ invites, showRevoke = false }: Props) {
                 </span>
               </td>
               <td className="px-4 py-2.5 text-cadet/40 truncate max-w-[160px] hidden sm:table-cell">
-                {inv.note ?? "—"}
+                {inv.note ?? "\u2014"}
               </td>
               <td className="px-4 py-2.5 text-cadet/40 whitespace-nowrap">
                 {showRevoke
                   ? formatDate(inv.invited_at)
                   : inv.accepted_at
                     ? formatDate(inv.accepted_at)
-                    : "—"}
+                    : "\u2014"}
                 {inv.expires_at && (
                   <span className="text-xs text-cadet/25 ml-1">
                     (exp {formatDate(inv.expires_at)})
@@ -122,3 +123,4 @@ export default function InviteTable({ invites, showRevoke = false }: Props) {
     </div>
   );
 }
+
