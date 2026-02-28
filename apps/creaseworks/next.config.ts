@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: "/reservoir/creaseworks",
+  /* basePath removed — creaseworks is served on its own subdomain
+     (creaseworks.windedvertigo.com). The /reservoir/creaseworks path on
+     windedvertigo.com is handled via Vercel rewrites in apps/site/vercel.json,
+     which proxies to the subdomain without needing a basePath. Re-add basePath
+     only if/when we drop the subdomain and serve exclusively under /reservoir/. */
   transpilePackages: ["@windedvertigo/tokens"],
 
   async headers() {
