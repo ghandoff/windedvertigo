@@ -158,14 +158,17 @@ export async function uploadBuffer(
 
 /**
  * Public read URL for a stored object.
- * If R2_PUBLIC_URL is set, uses that; otherwise falls back to the
- * presigned URL pattern (not ideal for production).
+ *
+ * Priority:
+ *   1. R2_PUBLIC_URL — direct URL (fastest, recommended for production)
+ *   2. /api/images/{key} — internal proxy that generates a presigned
+ *      redirect. Works without any Cloudflare dashboard config.
  */
 export function getPublicUrl(key: string): string {
   const publicUrl = process.env.R2_PUBLIC_URL;
   if (publicUrl) {
     return `${publicUrl.replace(/\/$/, "")}/${key}`;
   }
-  // Fallback: callers should use a presigned GET URL instead
-  return key;
+  // Fallback: proxy route generates presigned redirect on demand
+  return `/api/images/${key}`;
 }

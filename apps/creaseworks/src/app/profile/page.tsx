@@ -42,6 +42,7 @@ export const metadata: Metadata = {
 import ProfileManageToggle from "./manage-toggle";
 import NotificationPrefs from "./notification-prefs";
 import PlayContextSwitcher from "./play-context-switcher";
+import SyncTrigger from "@/app/admin/sync/sync-trigger";
 
 export const dynamic = "force-dynamic";
 
@@ -454,6 +455,21 @@ export default async function ProfilePage({
                     currentUserId={session.userId}
                     isOrgAdmin={session.orgRole === "admin"}
                   />
+                </section>
+              )}
+
+              {/* sync section — admin & collective only */}
+              {(session.isAdmin || session.isInternal) && (
+                <section>
+                  <h3 className="text-lg font-semibold tracking-tight mb-1">
+                    content sync
+                  </h3>
+                  <p className="text-sm text-cadet/40 mb-4">
+                    pull the latest playdates, packs, and cover images from
+                    notion. this usually runs automatically — use this if you
+                    just made changes.
+                  </p>
+                  <SyncTrigger />
                 </section>
               )}
 
