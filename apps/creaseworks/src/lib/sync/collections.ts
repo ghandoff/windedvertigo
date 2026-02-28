@@ -33,24 +33,38 @@ export async function syncCollections() {
     label: "collections",
     parsePage: parseCollectionPage,
     upsertRow: async (row) => {
-      await sql`
-        INSERT INTO collections (
-          notion_id, title, description, icon_emoji, sort_order, status,
-          notion_last_edited, synced_at, slug
-        ) VALUES (
-          ${row.notionId}, ${row.title}, ${row.description},
-          ${row.iconEmoji}, ${row.sortOrder}, ${row.status},
-          ${row.lastEdited}, NOW(), ${makeSlug(row.title)}
-        )
-        ON CONFLICT (notion_id) DO UPDATE SET
-          title = EXCLUDED.title,
-          description = EXCLUDED.description,
-          icon_emoji = EXCLUDED.icon_emoji,
-          sort_order = EXCLUDED.sort_order,
-          status = EXCLUDED.status,
-          notion_last_edited = EXCLUDED.notion_last_edited,
-          synced_at = NOW()
-      `;
+      try {
+        await sql`
+          INSERT INTO collections (
+            notion_id, title, description, icon_emoji, sort_order, status,
+            notion_last_edited, synced_at, slug
+          ) VALUES (
+            ${row.notionId}, ${row.title}, ${row.description},
+            ${row.iconEmoji}, ${row.sortOrder}, ${row.status},
+            ${row.lastEdited}, NOW(), ${makeSlug(row.title)}
+          )
+          ON CONFLICT (notion_id) DO UPDATE SET
+            title = EXCLUDED.title,
+            description = EXCLUDED.description,
+            icon_emoji = EXCLUDED.icon_emoji,
+            sort_order = EXCLUDED.sort_order,
+            status = EXCLUDED.status,
+            notion_last_edited = EXCLUDED.notion_last_edited,
+            synced_at = NOW()
+        `;
+      } catch (err: any) {
+        // Skip duplicate-slug orphan entries rather than failing the whole sync.
+        // These arise from accidental collection entries that share a title with
+        // an existing row but have a different notion_id.
+        if (err.message?.includes("collections_slug_key")) {
+          console.warn(
+            `[sync] skipping duplicate slug "${makeSlug(row.title)}" ` +
+              `for notion_id ${row.notionId} (orphan entry?)`,
+          );
+          return;
+        }
+        throw err;
+      }
     },
     cleanupStale: async (activeNotionIds) => {
       // Soft-delete collections removed from Notion
