@@ -196,13 +196,13 @@ export default function NavBar() {
       <NavLink href="/login" onClick={close} accent>sign in</NavLink>
     );
 
-  /* ── bottom tab bar items for mobile (authed users only) ── */
+  /* ── bottom tab bar items for mobile ── */
   const bottomTabs = isAuthed
     ? [
         { href: "/sampler", label: "play", icon: <IconPlaydates />, key: "sampler" },
-        { href: "/gallery", label: "gallery", icon: <IconGallery />, key: "gallery" },
+        { href: "/packs", label: "packs", icon: <IconPacks />, key: "packs" },
         { href: "/reflections/new", label: "log", icon: <IconReflections />, key: "reflections" },
-        { href: "/community", label: "crew", icon: <IconCommunity />, key: "community" },
+        { href: "/gallery", label: "gallery", icon: <IconGallery />, key: "gallery" },
         { href: "/playbook", label: "book", icon: <IconPlaybook />, key: "playbook" },
       ]
     : [
