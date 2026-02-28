@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { apiUrl } from "@/lib/api-url";
 
 interface QuickLogButtonProps {
   playdateId: string;
@@ -30,7 +31,7 @@ export default function QuickLogButton({
   async function handleClick() {
     setState("loading");
     try {
-      const res = await fetch("/api/runs", {
+      const res = await fetch(apiUrl("/api/runs"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -100,3 +101,4 @@ export default function QuickLogButton({
     </button>
   );
 }
+
