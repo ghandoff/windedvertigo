@@ -1,4 +1,16 @@
 {
+  "redirects": [
+    {
+      "source": "/vertigo-vault/:path*",
+      "destination": "/reservoir/vertigo-vault/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/vertigo-vault",
+      "destination": "/reservoir/vertigo-vault",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/reservoir/creaseworks/:path*",
