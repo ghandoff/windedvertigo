@@ -26,6 +26,7 @@ import { useRunFormState } from "./use-run-form-state";
 import { RunFormEssentials } from "./run-form-essentials";
 import { RunFormOptional } from "./run-form-optional";
 import { RunFormActions } from "./run-form-actions";
+import { apiUrl } from "@/lib/api-url";
 
 /** Optional pack upsell info passed from the server page. */
 export interface ReflectionPackInfo {
@@ -56,7 +57,7 @@ export default function RunForm({
   /**
    * Save evidence items for a newly created reflection.
    * Called after the reflection POST succeeds. Best-effort — errors are
-   * logged but don't block navigation.
+   * logged but don’t block navigation.
    */
   async function saveEvidence(runId: string, evidenceState: typeof state.evidenceState) {
     const promises: Promise<void>[] = [];
@@ -132,7 +133,7 @@ export default function RunForm({
     // Save photo consent for all photo evidence items (if consent was given)
     if (evidenceState.photoConsent && photoEvidenceIds.length > 0) {
       const consentPromises = photoEvidenceIds.map((evidenceId) =>
-        fetch("/api/photo-consents", {
+        fetch(apiUrl("/api/photo-consents"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -157,7 +158,7 @@ export default function RunForm({
 
     try {
       // 1. Create the run
-      const res = await fetch("/api/runs", {
+      const res = await fetch(apiUrl("/api/runs"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -183,7 +184,7 @@ export default function RunForm({
         try {
           await saveEvidence(data.id, state.evidenceState);
         } catch (evidenceErr) {
-          // Log but don't block — the run itself was saved
+          // Log but don’t block — the run itself was saved
           console.error("evidence save error:", evidenceErr);
         }
       }
@@ -258,7 +259,7 @@ export default function RunForm({
     >
       <RunFormEssentials state={state} playdates={playdates} />
 
-      {/* ── evidence capture section (practitioner tier) ────────────── */}
+      {/* ── evidence capture section (practitioner tier) ──────────────── */}
       <EvidenceCaptureSection
         runId={null}
         state={state.evidenceState}
@@ -272,3 +273,4 @@ export default function RunForm({
     </form>
   );
 }
+
