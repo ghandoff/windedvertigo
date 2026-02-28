@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { syncAll } from "@/lib/sync";
 
+/** Allow up to 60 s on Hobby, 300 s on Pro. */
+export const maxDuration = 300;
+
 /**
  * POST /api/cron/sync-notion
  *
