@@ -1,32 +1,40 @@
 {
-    "redirects": [
-          {
-                  "source": "/vertigo-vault/:path*",
-                  "destination": "/reservoir/vertigo-vault/:path*",
-                  "permanent": true
-          },
-          {
-                  "source": "/vertigo-vault",
-                  "destination": "/reservoir/vertigo-vault",
-                  "permanent": true
-          }
-    ],
-    "rewrites": [
-          {
-                  "source": "/reservoir/creaseworks",
-                  "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks"
-          },
-          {
-                  "source": "/reservoir/creaseworks/:path*",
-                  "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/:path*"
-          },
-          {
-                  "source": "/reservoir/vertigo-vault",
-                  "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault"
-          },
-          {
-                  "source": "/reservoir/vertigo-vault/:path*",
-                  "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault/:path*"
-          }
-    ]
+        "redirects": [
+                    {
+                                    "source": "/vertigo-vault/:path*",
+                                    "destination": "/reservoir/vertigo-vault/:path*",
+                                    "permanent": true
+                    },
+                    {
+                                    "source": "/vertigo-vault",
+                                    "destination": "/reservoir/vertigo-vault",
+                                    "permanent": true
+                    }
+        ],
+        "rewrites": [
+                    {
+                                    "source": "/reservoir/creaseworks",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks"
+                    },
+                    {
+                                    "source": "/reservoir/creaseworks/",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks"
+                    },
+                    {
+                                    "source": "/reservoir/creaseworks/:path*",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/:path*"
+                    },
+                    {
+                                    "source": "/reservoir/vertigo-vault",
+                                    "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault"
+                    },
+                    {
+                                    "source": "/reservoir/vertigo-vault/",
+                                    "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault"
+                    },
+                    {
+                                    "source": "/reservoir/vertigo-vault/:path*",
+                                    "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault/:path*"
+                    }
+        ]
 }
