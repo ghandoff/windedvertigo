@@ -13,9 +13,9 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | 235 (.ts + .tsx) |
-| **Migrations** | 033 (latest: stripe_price_id) — all applied to Neon |
-| **Latest commit** | `20232e7` (fix smoke test classifications) |
-| **Last session** | 31 (Feb 28, 2026) |
+| **Migrations** | 035 (latest: gallery_visible_fields) — 028-033 applied to Neon, 034-035 pending |
+| **Latest commit** | `7cf32af` (chore: update migration runner for 034-035) |
+| **Last session** | 32 (Feb 28, 2026) |
 
 ## Notion Database IDs
 
@@ -129,6 +129,24 @@ src/
 - ✅ Smoke test script: 29 routes, validates HTTP status + SEO tags
 - ✅ Migration runner script: comment-aware SQL splitting for Neon serverless driver
 
+### Session 32 (Feb 28, 2026) — Gallery View Control + Vertigo-Vault Monorepo Move
+- ✅ **Phase 1: Gallery View Control from Notion**
+  - `gallery_visible_fields` multi-select synced from Notion → Neon (JSONB column)
+  - PlaydateCard accepts `visibleFields` prop, gates each property block via `show()` helper
+  - All 7 usage sites updated; admin always sees all
+  - Migration 035, column selector, db-compat check added
+  - Notion property still needs to be created manually by Garrett
+- ✅ **Phase 2: Vertigo-Vault monorepo move**
+  - `apps/vertigo-vault/` — standalone Next.js app with ISR (revalidate=3600)
+  - Notion API fetching via `@notionhq/client` with pagination + block→markdown
+  - Full React UI: gallery grid, filter bar (type + duration), slide-in detail modal
+  - `basePath: "/reservoir/vertigo-vault"` set for routing via windedvertigo.com
+  - TypeScript compiles clean; no CI sync needed (ISR replaces it)
+  - **Needs**: `NOTION_TOKEN` env var in Vercel project settings
+- 🐛 **Critical fix: creaseworks 404s** — removed premature `basePath: "/reservoir/creaseworks"` from next.config.ts + updated Vercel rewrite destinations in apps/site/vercel.json
+- ✅ Migration runner updated for 034-035
+- ✅ CLAUDE.md Local Terminal Runbook added
+
 ### Open UX Items (from review doc Part 1)
 - ✅ **Item 4**: First-visit onboarding — resolved (sessions 23, 26: onboarding wizard + FirstVisitBanner)
 - ✅ **Item 5**: Card visual hierarchy — resolved (sessions 26-27: SVG illustrations, age range tags, energy levels, "great first pick" beginner badge, "🔥 popular" badge for 5+ tries)
@@ -161,6 +179,8 @@ src/
 | 031 | tinkering-tier | `tinkering_tier` on playdates_cache |
 | 032 | cover-images | `cover_url`, `cover_r2_key` on playdates_cache |
 | 033 | stripe-price-id | `stripe_price_id TEXT` on packs_catalogue + seed 6 test-mode prices |
+| 034 | collection-covers | `cover_url`, `cover_r2_key` on collections |
+| 035 | gallery-visible-fields | `gallery_visible_fields JSONB` on playdates_cache |
 
 ## Stripe Price IDs (Test Mode)
 
@@ -181,7 +201,12 @@ src/
 
 ## Upcoming / Open Items
 
-### Wave 3 Plan (from magical-brewing-hummingbird.md)
+### Plan: Gallery View + Vertigo-Vault + URL Restructure (magical-brewing-hummingbird.md)
+- ✅ Phase 1: Gallery View Control from Notion (`gallery_visible_fields`)
+- ✅ Phase 2: Vertigo-Vault monorepo move (`apps/vertigo-vault/`)
+- ⏳ Phase 3: URL restructure (`/reservoir/*` routes) — on hold; basePath approach needs rethinking since creaseworks still uses subdomain
+
+### Earlier Wave 3 Plan
 - Phase 1: Admin playdate preview with pack-based filter toggles
 - Phase 2: Profile "your journey" redesign with owned packs + recommendations
 - Phase 3: Engagement system sprint 1 (credits foundation) — DB tables ready, queries/UI not started
