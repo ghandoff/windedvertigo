@@ -18,6 +18,11 @@ import {
 // start — removed in audit fix #12.
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+    /* Next.js basePath is "/reservoir/creaseworks", so Auth.js API routes live at
+         /reservoir/creaseworks/api/auth/*. We must tell Auth.js this so the
+              client-side signIn() from next-auth/react POSTs to the right URL. */
+    basePath: "/reservoir/creaseworks/api/auth",
+  
   providers: [
     Resend({
       apiKey: process.env.RESEND_API_KEY,
