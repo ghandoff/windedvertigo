@@ -14,15 +14,15 @@
         "rewrites": [
                     {
                                     "source": "/reservoir/creaseworks",
-                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/"
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks"
                     },
                     {
                                     "source": "/reservoir/creaseworks/",
-                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/"
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks"
                     },
                     {
                                     "source": "/reservoir/creaseworks/:path*",
-                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/:path*"
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/:path*"
                     },
                     {
                                     "source": "/reservoir/vertigo-vault",
