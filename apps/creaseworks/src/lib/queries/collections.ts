@@ -7,7 +7,7 @@
  */
 
 import { sql } from "@/lib/db";
-import { coverSelect } from "@/lib/db-compat";
+import { coverSelect, collectionCoverSelect } from "@/lib/db-compat";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -21,6 +21,7 @@ export interface Collection {
   slug: string;
   sort_order: number;
   playdate_count: number;
+  cover_url: string | null;
 }
 
 export interface CollectionWithProgress extends Collection {
@@ -70,8 +71,10 @@ export interface ArcCoverage {
  * Used on the playbook page for the collection grid.
  */
 export async function getReadyCollections(): Promise<Collection[]> {
+  const ccv = await collectionCoverSelect("c");
   const result = await sql.query(
     `SELECT c.id, c.title, c.description, c.icon_emoji, c.slug, c.sort_order,
+            ${ccv}
             COUNT(cp.playdate_id)::int AS playdate_count
      FROM collections c
      LEFT JOIN collection_playdates cp ON cp.collection_id = c.id
@@ -89,8 +92,10 @@ export async function getReadyCollections(): Promise<Collection[]> {
 export async function getCollectionsWithProgress(
   userId: string,
 ): Promise<CollectionWithProgress[]> {
+  const ccv = await collectionCoverSelect("c");
   const result = await sql.query(
     `SELECT c.id, c.title, c.description, c.icon_emoji, c.slug, c.sort_order,
+            ${ccv}
             COUNT(DISTINCT cp.playdate_id)::int AS playdate_count,
             COUNT(DISTINCT CASE WHEN pp.progress_tier IS NOT NULL THEN cp.playdate_id END)::int AS tried_count,
             COUNT(DISTINCT CASE WHEN pp.progress_tier IN ('found_something','folded_unfolded','found_again') THEN cp.playdate_id END)::int AS found_count,
@@ -128,8 +133,10 @@ export async function getCollectionsWithProgress(
 export async function getCollectionBySlug(
   slug: string,
 ): Promise<Collection | null> {
+  const ccv = await collectionCoverSelect("c");
   const result = await sql.query(
     `SELECT c.id, c.title, c.description, c.icon_emoji, c.slug, c.sort_order,
+            ${ccv}
             COUNT(cp.playdate_id)::int AS playdate_count
      FROM collections c
      LEFT JOIN collection_playdates cp ON cp.collection_id = c.id
@@ -331,8 +338,10 @@ export async function getNextSuggestion(
   if (leastArc.coverage > 0.6) return null;
 
   // Find a collection that has playdates with this arc that user hasn't tried
+  const ccv = await collectionCoverSelect("c");
   const collResult = await sql.query(
     `SELECT c.id, c.title, c.description, c.icon_emoji, c.slug, c.sort_order,
+            ${ccv}
             COUNT(DISTINCT cp.playdate_id)::int AS playdate_count
      FROM collections c
      JOIN collection_playdates cp ON cp.collection_id = c.id

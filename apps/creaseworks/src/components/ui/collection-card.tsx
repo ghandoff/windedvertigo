@@ -15,6 +15,8 @@ interface CollectionCardProps {
   } | null;
   /** Number of evidence items in this collection */
   evidenceCount?: number;
+  /** Cover image URL from R2 */
+  coverUrl?: string | null;
 }
 
 export default function CollectionCard({
@@ -25,6 +27,7 @@ export default function CollectionCard({
   playdateCount,
   progress,
   evidenceCount,
+  coverUrl,
 }: CollectionCardProps) {
   const hasTried = progress && progress.tried > 0;
   const pct = hasTried ? Math.round((progress.tried / playdateCount) * 100) : 0;
@@ -32,8 +35,22 @@ export default function CollectionCard({
   return (
     <Link
       href={`/playbook/${slug}`}
-      className="block rounded-xl border border-cadet/10 bg-white p-5 shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200"
+      className="block rounded-xl border border-cadet/10 bg-white shadow-sm hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
+      {/* cover image header */}
+      {coverUrl && (
+        <div className="w-full h-[100px] overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coverUrl}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      )}
+
+      <div className="p-5">
       <div className="flex items-start gap-3 mb-2">
         {iconEmoji && (
           <span className="text-xl leading-none mt-0.5" aria-hidden>
@@ -76,6 +93,7 @@ export default function CollectionCard({
           {playdateCount} playdate{playdateCount !== 1 ? "s" : ""}
         </p>
       )}
+      </div>
     </Link>
   );
 }

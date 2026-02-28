@@ -476,6 +476,15 @@ async function upsertCollection(page: NotionPage) {
   const status = extractSelect(props, "status") || "draft";
   const lastEdited = extractLastEdited(page);
 
+  // Sync cover image to R2
+  const coverSource = extractCover(page);
+  let coverR2Key: string | null = null;
+  let coverUrl: string | null = null;
+  if (coverSource) {
+    coverR2Key = await syncImageToR2(coverSource.url, notionId, "cover");
+    coverUrl = imageUrl(coverR2Key);
+  }
+
   const slug = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -484,11 +493,11 @@ async function upsertCollection(page: NotionPage) {
   await sql`
     INSERT INTO collections (
       notion_id, title, description, icon_emoji, sort_order, status,
-      notion_last_edited, synced_at, slug
+      notion_last_edited, synced_at, slug, cover_r2_key, cover_url
     ) VALUES (
       ${notionId}, ${title}, ${description},
       ${iconEmoji}, ${sortOrder}, ${status},
-      ${lastEdited}, NOW(), ${slug}
+      ${lastEdited}, NOW(), ${slug}, ${coverR2Key}, ${coverUrl}
     )
     ON CONFLICT (notion_id) DO UPDATE SET
       title = EXCLUDED.title,
@@ -497,7 +506,9 @@ async function upsertCollection(page: NotionPage) {
       sort_order = EXCLUDED.sort_order,
       status = EXCLUDED.status,
       notion_last_edited = EXCLUDED.notion_last_edited,
-      synced_at = NOW()
+      synced_at = NOW(),
+      cover_r2_key = EXCLUDED.cover_r2_key,
+      cover_url = EXCLUDED.cover_url
   `;
 
   // Resolve playdate relations inside a transaction

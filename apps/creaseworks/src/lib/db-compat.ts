@@ -9,7 +9,7 @@
 
 import { sql } from "@/lib/db";
 
-/* ── cover_url column (migration 032) ────────────────────────────── */
+/* ── cover_url column (migration 032 for packs/playdates, 034 for collections) ── */
 
 let _hasCoverUrl: boolean | null = null;
 
@@ -31,6 +31,39 @@ export async function hasCoverUrlColumn(): Promise<boolean> {
     _hasCoverUrl = false;
   }
   return _hasCoverUrl;
+}
+
+/* ── collection cover_url column (migration 034) ─────────────────── */
+
+let _hasCollectionCoverUrl: boolean | null = null;
+
+/**
+ * Check (once per process) whether collections has the cover_url column.
+ * Migration 034 adds cover_url + cover_r2_key to collections.
+ */
+export async function hasCollectionCoverUrlColumn(): Promise<boolean> {
+  if (_hasCollectionCoverUrl !== null) return _hasCollectionCoverUrl;
+  try {
+    const r = await sql.query(
+      `SELECT 1 FROM information_schema.columns
+       WHERE table_name = 'collections' AND column_name = 'cover_url'
+       LIMIT 1`,
+    );
+    _hasCollectionCoverUrl = r.rows.length > 0;
+  } catch {
+    _hasCollectionCoverUrl = false;
+  }
+  return _hasCollectionCoverUrl;
+}
+
+/**
+ * Returns `"alias.cover_url,"` when the collections cover column exists,
+ * otherwise `"NULL AS cover_url,"`.
+ */
+export async function collectionCoverSelect(alias: string): Promise<string> {
+  return (await hasCollectionCoverUrlColumn())
+    ? `${alias}.cover_url,`
+    : `NULL AS cover_url,`;
 }
 
 /**

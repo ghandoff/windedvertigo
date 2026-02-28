@@ -10,8 +10,10 @@ import {
   extractRelationIds,
   extractLastEdited,
   extractPageId,
+  extractCover,
   type NotionPage,
 } from "./extract";
+import { syncImageToR2, imageUrl } from "./sync-image";
 
 function parseCollectionPage(page: NotionPage) {
   const props = page.properties;
@@ -23,6 +25,7 @@ function parseCollectionPage(page: NotionPage) {
     sortOrder: extractNumber(props, "sort order") ?? 0,
     status: extractSelect(props, "status") || "draft",
     lastEdited: extractLastEdited(page),
+    coverSourceUrl: extractCover(page)?.url ?? null,
     playdateRelationIds: extractRelationIds(props, "playdates"),
   };
 }
@@ -34,14 +37,27 @@ export async function syncCollections() {
     parsePage: parseCollectionPage,
     upsertRow: async (row) => {
       try {
+        // Sync cover image to R2 (if present)
+        let coverR2Key: string | null = null;
+        let coverUrl: string | null = null;
+        if (row.coverSourceUrl) {
+          coverR2Key = await syncImageToR2(
+            row.coverSourceUrl,
+            row.notionId,
+            "cover",
+          );
+          coverUrl = imageUrl(coverR2Key);
+        }
+
         await sql`
           INSERT INTO collections (
             notion_id, title, description, icon_emoji, sort_order, status,
-            notion_last_edited, synced_at, slug
+            notion_last_edited, synced_at, slug, cover_r2_key, cover_url
           ) VALUES (
             ${row.notionId}, ${row.title}, ${row.description},
             ${row.iconEmoji}, ${row.sortOrder}, ${row.status},
-            ${row.lastEdited}, NOW(), ${makeSlug(row.title)}
+            ${row.lastEdited}, NOW(), ${makeSlug(row.title)},
+            ${coverR2Key}, ${coverUrl}
           )
           ON CONFLICT (notion_id) DO UPDATE SET
             title = EXCLUDED.title,
@@ -50,7 +66,9 @@ export async function syncCollections() {
             sort_order = EXCLUDED.sort_order,
             status = EXCLUDED.status,
             notion_last_edited = EXCLUDED.notion_last_edited,
-            synced_at = NOW()
+            synced_at = NOW(),
+            cover_r2_key = EXCLUDED.cover_r2_key,
+            cover_url = EXCLUDED.cover_url
         `;
       } catch (err: any) {
         // Skip duplicate-slug orphan entries rather than failing the whole sync.

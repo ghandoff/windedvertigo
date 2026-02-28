@@ -9,6 +9,7 @@ interface CollectionItem {
   title: string;
   description: string | null;
   icon_emoji: string | null;
+  cover_url: string | null;
   playdate_count: number;
   tried_count: number;
   found_count: number;
@@ -126,6 +127,7 @@ export default function PlaybookSearch({
                   : null
               }
               evidenceCount={c.evidence_count}
+              coverUrl={c.cover_url}
             />
           ))}
         </div>
