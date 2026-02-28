@@ -13,6 +13,7 @@
  */
 
 import { useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface GalleryShareToggleProps {
   evidenceId: string;
@@ -31,7 +32,7 @@ export default function GalleryShareToggle({
   const handleToggle = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/gallery/share", {
+      const response = await fetch(apiUrl("/api/gallery/share"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -75,3 +76,4 @@ export default function GalleryShareToggle({
     </button>
   );
 }
+
