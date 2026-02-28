@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface Prefs {
   digestEnabled: boolean;
@@ -23,7 +24,7 @@ export default function NotificationPrefs() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch("/api/notifications/prefs")
+    fetch(apiUrl("/api/notifications/prefs"))
       .then((r) => r.json())
       .then((data) => {
         setPrefs({
@@ -44,7 +45,7 @@ export default function NotificationPrefs() {
     setSaving(true);
 
     try {
-      const res = await fetch("/api/notifications/prefs", {
+      const res = await fetch(apiUrl("/api/notifications/prefs"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
@@ -240,3 +241,4 @@ export default function NotificationPrefs() {
     </div>
   );
 }
+
