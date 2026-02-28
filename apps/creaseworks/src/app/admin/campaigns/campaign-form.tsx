@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api-url";
 
 export default function CampaignForm() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function CampaignForm() {
     setMessage(null);
 
     try {
-      const res = await fetch("/api/admin/campaigns", {
+      const res = await fetch(apiUrl("/api/admin/campaigns"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,3 +150,4 @@ export default function CampaignForm() {
     </form>
   );
 }
+
