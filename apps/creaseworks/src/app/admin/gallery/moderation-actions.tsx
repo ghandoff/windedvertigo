@@ -9,6 +9,7 @@
 
 import { useState } from "react";
 import { useTransition } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface GalleryModerationActionsProps {
   evidenceId: string;
@@ -23,7 +24,7 @@ export default function GalleryModerationActions({
   const handleAction = async (action: "approve" | "reject") => {
     startTransition(async () => {
       try {
-        const response = await fetch("/api/admin/gallery", {
+        const response = await fetch(apiUrl("/api/admin/gallery"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -43,7 +44,7 @@ export default function GalleryModerationActions({
 
         setMessage({
           type: "success",
-          text: action === "approve" ? "approved ✓" : "rejected",
+          text: action === "approve" ? "approved \u2713" : "rejected",
         });
 
         // Reload page after a short delay
@@ -101,3 +102,4 @@ export default function GalleryModerationActions({
     </div>
   );
 }
+
