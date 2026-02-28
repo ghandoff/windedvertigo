@@ -8,6 +8,7 @@ Deep project state lives in `memory/` — read these FIRST at session start:
 |------|-------------|
 | `memory/projects/creaseworks.md` | Full creaseworks state: DB IDs, migration log, feature status, architecture, session-start checklist |
 | `apps/creaseworks/creaseworks-review.md` | UX audit + feature recommendations (changelog for sessions 21-26) |
+| `docs/creaseworks-session-status-2026-02-28.md` | Latest session status: completed work, outstanding items, learnings, key IDs |
 
 **At session end**: update `memory/projects/creaseworks.md` with new migration numbers, file counts, feature status, and latest commit hash. This is what survives context compaction.
 
@@ -32,13 +33,16 @@ windedvertigo/
 
 This monorepo contains all three winded.vertigo projects. No more multi-mount confusion — everything lives here.
 
-The `.git` directory is NOT visible through the Cowork mount. All git operations (commit, push, pull) must be run by Garrett in his local terminal.
+**Working directory convention**: All terminal commands run from the **monorepo root** (`windedvertigo/`), not from individual app directories. This supports cross-project work. Exception: scripts that depend on `.env.local` (e.g., migration runner) may need to run from `apps/creaseworks/` since that's where the env file lives.
+
+**Git**: The sandbox can run git commands (commit, diff, status, log) but cannot push/pull due to DNS restrictions. Garrett must run `git push origin main` from his local terminal after commits.
 
 ## Apps
 
 ### apps/site — windedvertigo.com
 - Static HTML/CSS/JS site
-- Hosted on GitHub Pages (CNAME: windedvertigo.com)
+- Hosted on Vercel (migrated from GitHub Pages, Feb 2026)
+- Vercel project: `prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx`
 - Content synced from Notion via `scripts/fetch-notion.js`
 - Pages: `/`, `/do/`, `/we/`, `/what/`, `/portfolio/`, `/vertigo-vault/`, `/projects/`
 - Data files in `apps/site/data/` are auto-generated — do not edit directly
@@ -93,17 +97,21 @@ Maria uploads thumbnail images for portfolio and vertigo vault. Options:
 - The Sync Notion Content workflow runs on push to main (scripts changes only), manual dispatch, and daily at 6 AM UTC.
 - CI runs tsc + lint for creaseworks only when `apps/creaseworks/**` files change.
 
-## Deployment & Operations (Cowork Session)
+## Deployment & Operations
 
-Claude has access to the full operations stack via the Chrome tab group:
-- **GitHub** (github.com) — commits, pushes, PRs, workflow runs
-- **Vercel** (vercel.com) — deployments, env vars, cron jobs
-- **Neon** (console.neon.tech) — SQL editor for migrations, queries
-- **Notion** (notion.so) — databases, content management
-- **Stripe** (dashboard.stripe.com) — test mode payments
-- **Cloudflare** (dash.cloudflare.com) — R2 storage, domains
+**Sandbox limitations**: The VM sandbox cannot make outbound HTTP requests (DNS blocked). Scripts that hit external services (Neon, Vercel, Stripe, etc.) must be prepared here but run by Garrett locally.
 
-Claude should handle commits, pushes, migrations, and deployment checks autonomously using these browser tabs rather than asking Garrett to run commands manually. When the sandbox VM can't reach external hosts (DNS resolution), use the browser tools instead.
+**What Claude CAN do in the sandbox**: git commit, git diff, git status, git log, file editing, TypeScript compilation (`npx tsc --noEmit`), writing scripts and migrations.
+
+**What Garrett must do locally**: `git push`, running migration scripts (`node apps/creaseworks/scripts/apply-migrations-028-032.mjs`), running smoke tests against live URLs, any npm install that fetches packages.
+
+**Vercel projects** (auto-deploy from `main` branch of `ghandoff/windedvertigo`):
+- creaseworks: `prj_EoDpRvw1kdAqcGVrcaYclfWFeX7b`
+- windedvertigo-site: `prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx`
+- nordic-sqr-rct: `prj_laAl3qm5w20CrtIjO2klc9dj180z`
+- Team: `team_wrpRda7ZzXdu7nKcEVVXY3th`
+
+Claude also has MCP tool access to Vercel, Stripe, Notion, Cloudflare, Slack, Gmail, and Google Calendar.
 
 ## Shared Design Tokens (`packages/tokens`)
 
@@ -156,9 +164,22 @@ Each app keeps its own `package.json` and `node_modules`. Install at root: `npm 
 Each app is its own Vercel project with monorepo Root Directory settings:
 - **creaseworks**: Root Directory → `apps/creaseworks`
 - **nordic-sqr-rct**: Root Directory → `apps/nordic-sqr-rct`
-- **site** (when moved to Vercel): Root Directory → `apps/site`, framework "Other"
+- **site**: Root Directory → `apps/site`, framework "Other" (migrated to Vercel Feb 2026)
 
 ## Infrastructure Decisions
 
 - **Supabase evaluation**: Test on the next new project (possibly sqr-rct rebuild). Don't migrate creaseworks mid-flight. If Supabase wins, consolidate later.
-- **Vercel consolidation**: Plan to move static site to Vercel alongside apps, enabling shared header/footer/brand system with path-based routing.
+- ~~**Vercel consolidation**: Plan to move static site to Vercel alongside apps.~~ ✅ Done (Feb 2026) — all three projects now deploy from Vercel.
+
+## Tooling
+
+### Smoke Test (`apps/creaseworks/scripts/smoke-test.mjs`)
+Tests 29 routes: 5 public (expect 200), 14 protected (expect 200/302/303/307), 9 admin (expect 302/303/307/403), 1 API. Validates `<title>` and `og:title` presence on 200 responses. Run: `node scripts/smoke-test.mjs [base-url]`
+
+### Migration Runner (`apps/creaseworks/scripts/apply-migrations-028-032.mjs`)
+Applies SQL migration files 028–033 using `@neondatabase/serverless`. Strips `--` comments before splitting on `;` (critical — semicolons inside comments cause false splits). Skips already-applied migrations. Requires `DATABASE_URL` or `POSTGRES_URL` in env/.env.local.
+
+### Gotchas
+- **Neon serverless driver**: One SQL statement per HTTP call. Multi-statement SQL files must be split. Comments must be stripped first.
+- **Next.js Metadata API**: Root layout uses `title: { template: "%s — creaseworks" }`. Route metadata only needs the page-specific part (e.g., `title: "packs"` renders as "packs — creaseworks").
+- **Error boundaries**: Must be `"use client"`. Receive `{ error, reset }`. Brand colors via CSS custom properties. Dev-only error display via `process.env.NODE_ENV === "development"`.

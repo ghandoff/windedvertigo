@@ -13,9 +13,9 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | 235 (.ts + .tsx) |
-| **Migrations** | 027 (latest: campaigns) |
-| **Latest commit** | session 30 (pending push) |
-| **Last session** | 30 (Feb 27, 2026) |
+| **Migrations** | 033 (latest: stripe_price_id) — all applied to Neon |
+| **Latest commit** | `20232e7` (fix smoke test classifications) |
+| **Last session** | 31 (Feb 28, 2026) |
 
 ## Notion Database IDs
 
@@ -121,6 +121,14 @@ src/
 - ✅ **Feature P**: Playdate preview composites (central function icons + denser activity hints)
 - ✅ **Feature Y**: Non-reader visual architecture (nav icons, section colours, mobile bottom tab bar)
 
+### Session 31 (Feb 28, 2026) — Hardening & Tooling
+- ✅ Migrations 028–033 applied to Neon (reflection credits, photo consents, leaderboard, tinkering tier, cover images, stripe_price_id)
+- ✅ Checkout flow fix: added `stripe_price_id` column + seeded 6 test-mode prices
+- ✅ SEO metadata pass: 10 additional routes (19 total with metadata)
+- ✅ Error boundaries: 7 route-specific `error.tsx` files (8 total including global)
+- ✅ Smoke test script: 29 routes, validates HTTP status + SEO tags
+- ✅ Migration runner script: comment-aware SQL splitting for Neon serverless driver
+
 ### Open UX Items (from review doc Part 1)
 - ✅ **Item 4**: First-visit onboarding — resolved (sessions 23, 26: onboarding wizard + FirstVisitBanner)
 - ✅ **Item 5**: Card visual hierarchy — resolved (sessions 26-27: SVG illustrations, age range tags, energy levels, "great first pick" beginner badge, "🔥 popular" badge for 5+ tries)
@@ -147,6 +155,42 @@ src/
 | 025 | email-preferences | biweekly digest, nudge_enabled, last_active_at |
 | 026 | co-play-mode | `co_play_invite_code`, `co_play_parent_id`, `co_play_reflections` on runs_cache |
 | 027 | campaigns | `campaigns` table (slug, title, description, active) + acetate seed |
+| 028 | reflection-credits | `reflection_credits` table for engagement system |
+| 029 | photo-consents | `photo_consents` table (COPPA three-tier model) |
+| 030 | leaderboard | `leaderboard_display_name`, `leaderboard_opted_in` on users; `partner_api_keys` table |
+| 031 | tinkering-tier | `tinkering_tier` on playdates_cache |
+| 032 | cover-images | `cover_url`, `cover_r2_key` on playdates_cache |
+| 033 | stripe-price-id | `stripe_price_id TEXT` on packs_catalogue + seed 6 test-mode prices |
+
+## Stripe Price IDs (Test Mode)
+
+| Pack | Pack UUID | Stripe Price ID | Amount |
+|------|-----------|-----------------|--------|
+| classroom starter | `91753e91-54eb-43ad-a9ab-e4fdc015ae08` | `price_1T5EZ2D50swbC2DglU1gwqio` | $4.99 |
+| new baby sibling | `36f5e2d2-39f8-4fa5-8419-8435a19f5023` | `price_1T5EZ3D50swbC2Dgl1hyJoy5` | $4.99 |
+| rainy day rescue | `9419aa6d-7fc2-4699-a78d-cbf8547c0fee` | `price_1T5EZ4D50swbC2DgddSTnMgt` | $4.99 |
+| summer play camp | `03eaa0b6-c4fa-4fb2-b16e-69970e4f9910` | `price_1T5EZ5D50swbC2DglQtrSnbg` | $4.99 |
+| the whole collection | `9f5e9e28-4ab9-4553-8697-88eb80656a91` | `price_1T5EZ6D50swbC2DgpaTfaJ3N` | $14.99 |
+| co-design essentials | `b535a022-90c0-4e14-b92b-54a43e7aac76` | `price_1T5bqmD50swbC2DgkKdiEHwH` | $49.99 |
+
+## SEO & Error Boundary Coverage
+
+**Routes with metadata** (19): /, /login, /onboarding, /matcher, /sampler, /scavenger, /admin/campaigns, /admin/invites, /campaign/[slug], /packs, /playbook, /community, /gallery, /profile, /checkout/success, /playbook/portfolio, /playbook/reflections, /reflections/new, /admin
+
+**Error boundaries** (8 route groups): global (app root), packs, playbook, profile, admin, checkout, gallery, community
+
+## Upcoming / Open Items
+
+### Wave 3 Plan (from magical-brewing-hummingbird.md)
+- Phase 1: Admin playdate preview with pack-based filter toggles
+- Phase 2: Profile "your journey" redesign with owned packs + recommendations
+- Phase 3: Engagement system sprint 1 (credits foundation) — DB tables ready, queries/UI not started
+- Phase 4: Engagement system sprint 2 (photo consent + upsells)
+
+### Matcher Visual Refresh
+- The matcher page (`/matcher`) needs to be much less bland and more engaging
+- Add photos of materials as visual cues for children playing with the app
+- Goal: make the material selection step feel playful and intuitive, not like a plain form
 
 ## Session-Start Checklist
 
