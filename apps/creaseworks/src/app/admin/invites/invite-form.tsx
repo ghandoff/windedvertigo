@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api-url";
 
 export default function InviteForm() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function InviteForm() {
     setMessage(null);
 
     try {
-      const res = await fetch("/api/admin/invites", {
+      const res = await fetch(apiUrl("/api/admin/invites"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -51,7 +52,7 @@ export default function InviteForm() {
         });
       }
     } catch {
-      setMessage({ type: "error", text: "network error — try again" });
+      setMessage({ type: "error", text: "network error \u2014 try again" });
     } finally {
       setSaving(false);
     }
@@ -169,3 +170,4 @@ export default function InviteForm() {
     </form>
   );
 }
+
