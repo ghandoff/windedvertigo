@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api-url";
 
 interface Entitlement {
   id: string;
@@ -27,7 +28,7 @@ export default function EntitlementTable({
     setRevoking(e.id);
     setError(null);
     try {
-      const res = await fetch("/api/admin/entitlements", {
+      const res = await fetch(apiUrl("/api/admin/entitlements"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orgId: e.org_id, packCacheId: e.pack_cache_id }),
@@ -102,3 +103,4 @@ export default function EntitlementTable({
     </>
   );
 }
+
