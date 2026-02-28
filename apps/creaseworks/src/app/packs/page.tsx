@@ -127,7 +127,7 @@ export default async function PacksCataloguePage() {
                 </span>
               )}
               {isCollective && pack.status !== "ready" && (
-                <span className="absolute top-3 left-3 z-10 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-amber-600/80 text-white">
+                <span className="absolute top-3 left-3 z-10 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-sienna/80 text-white">
                   draft
                 </span>
               )}
