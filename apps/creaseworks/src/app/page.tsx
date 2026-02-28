@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   title: "creaseworks — playdates that use what you already have",
   description:
     "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever's on hand.",
-  alternates: { canonical: "https://creaseworks.windedvertigo.com" },
+  alternates: { canonical: "https://windedvertigo.com/reservoir/creaseworks" },
 };
 
 const jsonLd = {
@@ -34,7 +34,7 @@ const jsonLd = {
     {
       "@type": "Organization",
       name: "creaseworks",
-      url: "https://creaseworks.windedvertigo.com",
+      url: "https://windedvertigo.com/reservoir/creaseworks",
       description:
         "simple, tested playdates for parents, teachers, and kids. use what you already have.",
       parentOrganization: {
@@ -46,10 +46,10 @@ const jsonLd = {
     {
       "@type": "WebSite",
       name: "creaseworks",
-      url: "https://creaseworks.windedvertigo.com",
+      url: "https://windedvertigo.com/reservoir/creaseworks",
       potentialAction: {
         "@type": "SearchAction",
-        target: "https://creaseworks.windedvertigo.com/matcher",
+        target: "https://windedvertigo.com/reservoir/creaseworks/matcher",
         description: "find playdates that match what you have on hand",
       },
     },

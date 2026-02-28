@@ -27,14 +27,14 @@ export const metadata: Metadata = {
   },
   description:
     "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever's on hand.",
-  metadataBase: new URL("https://creaseworks.windedvertigo.com"),
+  metadataBase: new URL("https://windedvertigo.com/reservoir/creaseworks"),
   openGraph: {
     type: "website",
     siteName: "creaseworks",
     title: "creaseworks — playdates that use what you already have",
     description:
       "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever's on hand.",
-    url: "https://creaseworks.windedvertigo.com",
+    url: "https://windedvertigo.com/reservoir/creaseworks",
     locale: "en_GB",
   },
   twitter: {

@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  basePath: "/reservoir/creaseworks",
+
   async headers() {
     return [
       {

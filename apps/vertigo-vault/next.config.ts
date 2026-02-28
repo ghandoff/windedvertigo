@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  basePath: "/reservoir/vertigo-vault",
+
   // Images from Notion's S3 bucket
   images: {
     remotePatterns: [

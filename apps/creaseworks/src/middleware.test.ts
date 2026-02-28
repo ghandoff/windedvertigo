@@ -14,7 +14,7 @@ function makeRequest(
   path: string,
   opts: { origin?: string; referer?: string } = {},
 ): NextRequest {
-  const url = `https://creaseworks.windedvertigo.com${path}`;
+  const url = `https://windedvertigo.com${path}`;
   const headers = new Headers();
   if (opts.origin) headers.set("origin", opts.origin);
   if (opts.referer) headers.set("referer", opts.referer);
@@ -35,19 +35,19 @@ describe("CSRF protection (checkCsrf)", () => {
   // ── Same-origin POST: allowed ─────────────────────────────
   it("allows POST with matching Origin", () => {
     expect(isBlocked("POST", "/api/runs", {
-      origin: "https://creaseworks.windedvertigo.com",
+      origin: "https://windedvertigo.com",
     })).toBe(false);
   });
 
   it("allows PATCH with matching Origin", () => {
     expect(isBlocked("PATCH", "/api/runs/some-id", {
-      origin: "https://creaseworks.windedvertigo.com",
+      origin: "https://windedvertigo.com",
     })).toBe(false);
   });
 
   it("allows DELETE with matching Origin", () => {
     expect(isBlocked("DELETE", "/api/admin/domains", {
-      origin: "https://creaseworks.windedvertigo.com",
+      origin: "https://windedvertigo.com",
     })).toBe(false);
   });
 
@@ -71,7 +71,7 @@ describe("CSRF protection (checkCsrf)", () => {
   // ── Missing Origin, valid Referer: allowed ────────────────
   it("allows POST with matching Referer when Origin is missing", () => {
     expect(isBlocked("POST", "/api/runs", {
-      referer: "https://creaseworks.windedvertigo.com/dashboard",
+      referer: "https://windedvertigo.com/dashboard",
     })).toBe(false);
   });
 

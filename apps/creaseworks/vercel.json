@@ -1,15 +1,15 @@
 {
   "crons": [
     {
-      "path": "/api/cron/sync-notion",
+      "path": "/reservoir/creaseworks/api/cron/sync-notion",
       "schedule": "0 6 * * *"
     },
     {
-      "path": "/api/cron/send-digests",
+      "path": "/reservoir/creaseworks/api/cron/send-digests",
       "schedule": "0 9 * * 1"
     },
     {
-      "path": "/api/cron/send-nudges",
+      "path": "/reservoir/creaseworks/api/cron/send-nudges",
       "schedule": "0 8 * * *"
     }
   ]
