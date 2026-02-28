@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface LeaderboardOptInProps {
   initialOptedIn: boolean;
@@ -31,7 +32,7 @@ export default function LeaderboardOptIn({
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/leaderboard/opt-in", {
+      const response = await fetch(apiUrl("/api/leaderboard/opt-in"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,7 +77,7 @@ export default function LeaderboardOptIn({
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/leaderboard/opt-in", {
+      const response = await fetch(apiUrl("/api/leaderboard/opt-in"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -230,3 +231,4 @@ export default function LeaderboardOptIn({
     </div>
   );
 }
+
