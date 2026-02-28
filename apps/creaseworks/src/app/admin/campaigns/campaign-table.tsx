@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { apiUrl } from "@/lib/api-url";
 
 interface Campaign {
   id: string;
@@ -35,7 +36,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
   async function toggleActive() {
     setToggling(true);
     try {
-      await fetch("/api/admin/campaigns", {
+      await fetch(apiUrl("/api/admin/campaigns"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: campaign.id, active: !campaign.active }),
@@ -52,7 +53,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
     }
     setDeleting(true);
     try {
-      await fetch("/api/admin/campaigns", {
+      await fetch(apiUrl("/api/admin/campaigns"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: campaign.id }),
@@ -124,3 +125,4 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
     </div>
   );
 }
+
