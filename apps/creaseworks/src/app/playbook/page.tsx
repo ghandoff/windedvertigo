@@ -9,8 +9,15 @@
  * Quiet when empty, fills up as you play.
  */
 
+import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-helpers";
+
+export const metadata: Metadata = {
+  title: "playbook",
+  description:
+    "your personal playbook — track progress, explore collections, and earn credits through play.",
+};
 import {
   getCollectionsWithProgress,
   getUserProgressSummary,

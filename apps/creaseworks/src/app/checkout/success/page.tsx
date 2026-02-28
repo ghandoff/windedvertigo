@@ -7,9 +7,15 @@
  * Post-MVP — Stripe integration.
  */
 
+import type { Metadata } from "next";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "purchase complete",
+  description: "your pack is ready — start exploring your creative playdates.",
+};
 
 interface Props {
   searchParams: Promise<{ pack?: string; session_id?: string }>;

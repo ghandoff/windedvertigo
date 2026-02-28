@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import PackCard from "@/components/ui/pack-card";
 import PackFinder from "@/components/pack-finder";
@@ -5,6 +6,17 @@ import { getVisiblePacks, getAllPacks } from "@/lib/queries/packs";
 import { getSession } from "@/lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "packs",
+  description:
+    "browse playdate packs — themed bundles of creative activities for families, teachers, and teams.",
+  openGraph: {
+    title: "packs — creaseworks",
+    description:
+      "browse playdate packs — themed bundles of creative activities for families, teachers, and teams.",
+  },
+};
 
 interface Pack {
   id: string;

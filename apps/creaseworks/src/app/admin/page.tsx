@@ -4,10 +4,16 @@
  * Links to domains, admins, entitlements, sync, and analytics.
  */
 
+import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/auth-helpers";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "admin",
+  description: "creaseworks admin hub — manage playdates, entitlements, and campaigns.",
+};
 
 const sections = [
   {

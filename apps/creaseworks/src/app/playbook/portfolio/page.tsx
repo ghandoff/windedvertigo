@@ -9,12 +9,18 @@
  * Phase C — evidence portfolio.
  */
 
+import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getReadyPlaydatesForPicker } from "@/lib/queries/runs";
 import PortfolioGallery from "./portfolio-gallery";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "portfolio",
+  description: "your evidence portfolio — photos, quotes, and observations from creative play.",
+};
 
 export default async function PortfolioPage() {
   const session = await requireAuth();

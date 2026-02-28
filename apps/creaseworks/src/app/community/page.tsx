@@ -6,11 +6,23 @@
  * Server component that fetches leaderboard data for public display.
  */
 
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth-helpers";
 import { getLeaderboard, getLeaderboardStatus } from "@/lib/queries/leaderboard";
 import LeaderboardOptIn from "@/components/leaderboard-opt-in";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "community",
+  description:
+    "celebrate creativity and consistency — see who's earning credits through reflection, photos, and play.",
+  openGraph: {
+    title: "community — creaseworks",
+    description:
+      "celebrate creativity and consistency — see who's earning credits through reflection, photos, and play.",
+  },
+};
 
 export default async function CommunityPage() {
   const session = await getSession();

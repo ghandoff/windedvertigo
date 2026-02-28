@@ -11,12 +11,24 @@
  * - Call-to-action for logged-in users to share their play
  */
 
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth-helpers";
 import Link from "next/link";
 import Image from "next/image";
 import { getGalleryEvidence, countGalleryEvidence } from "@/lib/queries/gallery";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "gallery",
+  description:
+    "community gallery — photos, quotes, and observations shared by families during creative play.",
+  openGraph: {
+    title: "gallery — creaseworks",
+    description:
+      "community gallery — photos, quotes, and observations shared by families during creative play.",
+  },
+};
 
 const ITEMS_PER_PAGE = 30;
 

@@ -7,6 +7,7 @@
  *           materials used, what changed, next iteration.
  */
 
+import type { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getReadyPlaydatesForPicker } from "@/lib/queries/runs";
 import { getAllMaterials } from "@/lib/queries/materials";
@@ -16,6 +17,11 @@ import RunForm from "@/components/ui/run-form/run-form";
 import type { ReflectionPackInfo } from "@/components/ui/run-form/run-form";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "new reflection",
+  description: "log a new reflection — capture what happened during your playdate.",
+};
 
 interface Props {
   searchParams: Promise<{ playdate?: string }>;

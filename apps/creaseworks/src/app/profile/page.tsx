@@ -11,6 +11,7 @@
  * Designed for shared devices where both grownups and kids navigate.
  */
 
+import type { Metadata } from "next";
 import Link from "next/link";
 import { sql } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-helpers";
@@ -33,6 +34,11 @@ import ProfileYourPacks from "@/components/profile-your-packs";
 import ProfileWhatsNext from "@/components/profile-whats-next";
 import { getOrgPacksWithProgress } from "@/lib/queries/entitlements";
 import { getRecommendedPacks } from "@/lib/queries/packs";
+
+export const metadata: Metadata = {
+  title: "profile",
+  description: "your play journal — packs, progress, and creative journey.",
+};
 import ProfileManageToggle from "./manage-toggle";
 import NotificationPrefs from "./notification-prefs";
 import PlayContextSwitcher from "./play-context-switcher";

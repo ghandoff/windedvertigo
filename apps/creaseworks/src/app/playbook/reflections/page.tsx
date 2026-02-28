@@ -3,6 +3,7 @@
  * Nested under /playbook/reflections.
  */
 
+import type { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getRunsForUser, batchGetRunMaterials } from "@/lib/queries/runs";
 import RunList from "@/components/ui/run-list";
@@ -10,6 +11,11 @@ import ExportButton from "@/app/runs/export-button";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "reflections",
+  description: "all your play reflections — a record of creative moments and learning.",
+};
 
 export default async function PlaybookReflectionsPage() {
   const session = await requireAuth();
