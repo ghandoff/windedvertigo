@@ -31,7 +31,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
   const { slug } = await params;
   const session = await getSession();
 
-  // ââ Internal user â always show full collective view ââ
+  // ── Internal user → always show full collective view ──
   if (session?.isInternal) {
     const fullPlaydate = await getCollectivePlaydateBySlug(slug);
     if (!fullPlaydate) return notFound();
@@ -68,7 +68,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
     );
   }
 
-  // ââ Everyone else â sampler teaser path ââ
+  // ── Everyone else → sampler teaser path ──
   const playdate = await getTeaserPlaydateBySlug(slug);
   if (!playdate) return notFound();
 
@@ -77,7 +77,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
     getFirstVisiblePackForPlaydate(playdate.id),
   ]);
 
-  // Entitled user WITH a pack â redirect to the pack's playdate page
+  // Entitled user WITH a pack → redirect to the pack's playdate page
   if (session && pack) {
     const isEntitled = session.orgId
       ? await checkEntitlement(session.orgId, pack.id)
@@ -87,7 +87,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
     }
   }
 
-  // ââ Everyone else â sampler teaser ââ
+  // ── Everyone else → sampler teaser ──
   const packHref = pack ? `/packs/${pack.slug}` : "/packs";
 
   return (

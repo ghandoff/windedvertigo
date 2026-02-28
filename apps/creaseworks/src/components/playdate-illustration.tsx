@@ -388,7 +388,7 @@ function renderPattern(
   return renderDefaultPattern(palette, seed, width, height);
 }
 
-/* ââ activity-hint motifs ââ
+/* ── activity-hint motifs ──
  * Small iconic shapes scattered over the illustration to hint at the
  * activity's physicality. Each keyword maps to a tiny SVG snippet
  * rendered at a deterministic position derived from the slug hash.

@@ -30,7 +30,7 @@ interface MaterialIllustrationProps {
 function renderIcon(category: string): string {
   const cat = category.toLowerCase();
 
-  // ââ discrete small parts ââ buttons, beads, pebbles
+  // ── discrete small parts ── buttons, beads, pebbles
   if (cat.includes("discrete") || cat.includes("small parts")) {
     return `
       <circle cx="6" cy="8" r="3" fill="${COLORS.sienna}" opacity="0.7"/>
@@ -42,7 +42,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ sheet goods / surfaces ââ paper, cardboard, fabric sheets
+  // ── sheet goods / surfaces ── paper, cardboard, fabric sheets
   if (cat.includes("sheet") || cat.includes("surface")) {
     return `
       <rect x="3" y="5" width="14" height="10" rx="0.5" fill="${COLORS.champagne}" stroke="${COLORS.sienna}" stroke-width="0.6" transform="rotate(-5 10 10)"/>
@@ -52,7 +52,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ volumes / substrates ââ clay, dough, sand
+  // ── volumes / substrates ── clay, dough, sand
   if (cat.includes("volume") || cat.includes("substrate")) {
     return `
       <ellipse cx="12" cy="16" rx="8" ry="3" fill="${COLORS.sienna}" opacity="0.3"/>
@@ -61,7 +61,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ containers / vessels ââ cups, boxes, tubes
+  // ── containers / vessels ── cups, boxes, tubes
   if (cat.includes("container") || cat.includes("vessel")) {
     return `
       <path d="M6 7 L5 17 Q5 19 12 19 Q19 19 19 17 L18 7 Z" fill="none" stroke="${COLORS.cadet}" stroke-width="0.8" opacity="0.7"/>
@@ -70,7 +70,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ linear / filament ââ string, wire, ribbon
+  // ── linear / filament ── string, wire, ribbon
   if (cat.includes("linear") || cat.includes("filament")) {
     return `
       <path d="M4 18 Q8 4 12 12 Q16 20 20 6" stroke="${COLORS.sienna}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
@@ -78,7 +78,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ wearables / embodied props ââ hats, capes, masks
+  // ── wearables / embodied props ── hats, capes, masks
   if (cat.includes("wearable") || cat.includes("embodied")) {
     return `
       <ellipse cx="12" cy="10" rx="7" ry="5" fill="none" stroke="${COLORS.cadet}" stroke-width="0.7"/>
@@ -89,7 +89,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ found objects / evocative artifacts ââ sticks, shells, leaves
+  // ── found objects / evocative artifacts ── sticks, shells, leaves
   if (cat.includes("found") || cat.includes("evocative") || cat.includes("artifact")) {
     return `
       <path d="M8 19 L12 4" stroke="${COLORS.sienna}" stroke-width="1.2" stroke-linecap="round"/>
@@ -99,7 +99,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ mark-making media ââ crayons, paint, ink
+  // ── mark-making media ── crayons, paint, ink
   if (cat.includes("mark") || cat.includes("media")) {
     return `
       <rect x="10" y="3" width="4" height="14" rx="1" fill="${COLORS.redwood}" opacity="0.7" transform="rotate(15 12 12)"/>
@@ -108,7 +108,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ joining / fastening ââ tape, glue, clips
+  // ── joining / fastening ── tape, glue, clips
   if (cat.includes("joining") || cat.includes("fastening")) {
     return `
       <rect x="3" y="10" width="18" height="4" rx="0.5" fill="${COLORS.champagne}" stroke="${COLORS.sienna}" stroke-width="0.5" opacity="0.7"/>
@@ -118,7 +118,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ overlay / translucency media ââ tissue paper, cellophane
+  // ── overlay / translucency media ── tissue paper, cellophane
   if (cat.includes("overlay") || cat.includes("translucen")) {
     return `
       <rect x="4" y="4" width="10" height="12" rx="0.5" fill="${COLORS.champagne}" opacity="0.5"/>
@@ -127,7 +127,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ cutting / dividing ââ scissors, tearing
+  // ── cutting / dividing ── scissors, tearing
   if (cat.includes("cutting") || cat.includes("dividing")) {
     return `
       <path d="M6 6 L13 12 L6 18" stroke="${COLORS.cadet}" stroke-width="1" fill="none" stroke-linecap="round"/>
@@ -137,7 +137,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ modules / construction units ââ blocks, bricks, LEGO-like
+  // ── modules / construction units ── blocks, bricks, LEGO-like
   if (cat.includes("module") || cat.includes("construction unit")) {
     return `
       <rect x="3" y="12" width="8" height="6" rx="0.5" fill="${COLORS.redwood}" opacity="0.6"/>
@@ -147,7 +147,7 @@ function renderIcon(category: string): string {
     `;
   }
 
-  // ââ fallback ââ generic circle
+  // ── fallback ── generic circle
   return `
     <circle cx="12" cy="12" r="6" fill="${COLORS.champagne}" stroke="${COLORS.sienna}" stroke-width="0.6"/>
     <circle cx="12" cy="12" r="2" fill="${COLORS.sienna}" opacity="0.5"/>

@@ -266,7 +266,7 @@ export default function EntitledPlaydateView({
         </Link>
       </section>
 
-      {/* ââ collective-only sections ââ */}
+      {/* ── collective-only sections ── */}
       {/* these fields are only present when fetched at collective tier */}
       {(playdate.design_rationale ||
         playdate.developmental_notes ||

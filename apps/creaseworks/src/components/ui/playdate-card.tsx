@@ -16,7 +16,7 @@ const TIER_BADGE: Record<ProgressTier, { label: string; className: string }> = {
   found_again:     { label: "★", className: "bg-redwood/15 text-redwood" },
 };
 
-/* ââ colour accents per arc name ââ */
+/* ── colour accents per arc name ── */
 const ARC_COLOURS: Record<string, string> = {
   explore:   "bg-sienna/10 text-sienna/80",
   express:   "bg-redwood/10 text-redwood/70",
