@@ -10,7 +10,7 @@ import {
 } from "@/lib/queries/users";
 import {
   autoJoinOrg,
-  getOrgMembership, 
+  getOrgMembership,
 } from "@/lib/queries/organisations";
 
 // The verification_token table is created by migration 011.
@@ -19,12 +19,12 @@ import {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   /* Next.js strips its own basePath ("/reservoir/creaseworks") from the request
-       URL BEFORE it reaches the route handler. So Auth.js on the server only
-            sees "/api/auth/*". The full external path is handled by:
-                   - AUTH_URL env var (origin for outgoing redirects / OAuth callbacks)
-                          - SessionProvider basePath in providers.tsx (client-side fetch target) */
-    basePath: "/api/auth",
-  
+     URL BEFORE it reaches the route handler. So Auth.js on the server only
+     sees "/api/auth/*". The full external path is handled by:
+       - AUTH_URL env var (origin for outgoing redirects / OAuth callbacks)
+       - SessionProvider basePath in providers.tsx (client-side fetch target) */
+  basePath: "/reservoir/creaseworks/api/auth",
+
   providers: [
     Resend({
       apiKey: process.env.RESEND_API_KEY,
@@ -269,3 +269,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
