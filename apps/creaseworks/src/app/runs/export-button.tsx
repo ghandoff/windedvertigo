@@ -89,7 +89,7 @@ export default function ExportButton() {
         >
           <button
             onClick={() => handleExport("csv")}
-            className="w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-50 flex items-center gap-2"
+            className="w-full text-left px-4 py-3 text-sm transition-colors hover:bg-champagne/20 flex items-center gap-2"
             style={{ color: "var(--wv-cadet)", minHeight: 44 }}
           >
             <svg
@@ -123,7 +123,7 @@ export default function ExportButton() {
           />
           <button
             onClick={() => handleExport("pdf")}
-            className="w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-50 flex items-center gap-2"
+            className="w-full text-left px-4 py-3 text-sm transition-colors hover:bg-champagne/20 flex items-center gap-2"
             style={{ color: "var(--wv-cadet)", minHeight: 44 }}
           >
             <svg

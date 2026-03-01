@@ -160,7 +160,7 @@ export function PlaydateCard({
         {/* progress tier badge (top-right) */}
         {badge && (
           <span
-            className={`absolute top-3 right-3 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${badge.className}`}
+            className={`absolute top-3 right-3 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-semibold leading-none ${badge.className}`}
             title={progressTier?.replace(/_/g, " ") ?? ""}
           >
             {badge.label}
@@ -169,7 +169,7 @@ export function PlaydateCard({
 
         {/* beginner-friendly badge */}
         {isBeginner && !badge && (
-          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-champagne px-2 py-0.5 text-[10px] font-semibold text-sienna">
+          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-champagne px-2 py-0.5 text-2xs font-semibold text-sienna">
             great first pick
           </span>
         )}
@@ -211,7 +211,7 @@ export function PlaydateCard({
 
         {/* pack badge — shows when playdate is in an unpurchased pack */}
         {show("packInfo") && packInfo && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-sienna/8 px-2.5 py-0.5 text-[10px] font-medium text-sienna/70 mb-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-sienna/8 px-2.5 py-0.5 text-2xs font-medium text-sienna/70 mb-2">
             🔒 {packInfo.packTitle}
           </span>
         )}
@@ -243,12 +243,12 @@ export function PlaydateCard({
             )
           )}
           {show("evidenceCount") && !!evidenceCount && evidenceCount > 0 && (
-            <span className="text-[10px] text-cadet/40">
+            <span className="text-2xs text-cadet/40">
               {evidenceCount} piece{evidenceCount !== 1 ? "s" : ""} of evidence
             </span>
           )}
           {show("familyCount") && !!family_count && family_count > 0 && (
-            <span className="text-[10px] text-cadet/40">
+            <span className="text-2xs text-cadet/40">
               {family_count} {family_count === 1 ? "family" : "families"} exploring
             </span>
           )}

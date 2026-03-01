@@ -45,7 +45,7 @@ export default function PackUpsellSection({
               </p>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-cadet/40">
+              <span className="text-2xs text-cadet/40">
                 {pack.playdate_count} playdate{Number(pack.playdate_count) !== 1 ? "s" : ""}
               </span>
               <span className="text-xs text-sienna font-medium">

@@ -121,7 +121,7 @@ export function CoPlayReflectionForm({
               type="button"
               onClick={() => setRating(star)}
               className={`text-3xl transition ${
-                rating >= star ? "text-yellow-400" : "text-gray-300"
+                rating >= star ? "text-yellow-400" : "text-cadet/30"
               }`}
               aria-label={`Rate ${star} stars`}
             >
@@ -141,10 +141,10 @@ export function CoPlayReflectionForm({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="What stood out to you? What did the children enjoy?"
-          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full p-3 border border-cadet/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-redwood resize-none"
           rows={5}
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-cadet/50 mt-1">
           {notes.length} / 5000 characters
         </p>
       </div>
@@ -161,7 +161,7 @@ export function CoPlayReflectionForm({
                 type="checkbox"
                 checked={selectedHighlights.has(highlight)}
                 onChange={() => toggleHighlight(highlight)}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                className="w-4 h-4 rounded border-cadet/10 text-redwood"
               />
               <span className="text-sm">{highlight}</span>
             </label>
@@ -173,7 +173,7 @@ export function CoPlayReflectionForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition"
+        className="w-full px-4 py-3 bg-redwood text-white rounded-lg font-medium hover:bg-redwood/90 disabled:opacity-50 transition"
       >
         {isSubmitting ? "Submitting..." : "Submit Reflections"}
       </button>

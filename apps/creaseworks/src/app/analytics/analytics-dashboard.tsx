@@ -139,7 +139,7 @@ function Sparkline({ data }: { data: RunsOverTime[] }) {
               backgroundColor: COLOURS.redwood,
             }}
           />
-          <span className="text-[10px] opacity-50 rotate-[-45deg] origin-top-left whitespace-nowrap">
+          <span className="text-2xs opacity-50 rotate-[-45deg] origin-top-left whitespace-nowrap">
             {d.month.slice(5)}
           </span>
         </div>

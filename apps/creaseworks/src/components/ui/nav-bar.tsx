@@ -165,7 +165,7 @@ export default function NavBar() {
         className="wv-header-nav-link flex items-center gap-1.5"
       >
         <span
-          className="inline-flex items-center justify-center rounded-full text-[10px] font-bold leading-none"
+          className="inline-flex items-center justify-center rounded-full text-2xs font-bold leading-none"
           style={{
             width: 22,
             height: 22,

@@ -236,7 +236,7 @@ export default async function PlaybookPage() {
                   )}
                 </div>
                 {run.trace_evidence?.length > 0 && (
-                  <span className="text-[10px] text-cadet/30">
+                  <span className="text-2xs text-cadet/30">
                     {run.trace_evidence.length} evidence
                   </span>
                 )}

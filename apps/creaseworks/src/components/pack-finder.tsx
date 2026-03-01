@@ -148,7 +148,7 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-semibold tracking-wide text-redwood/60 mb-0.5">
+                <p className="text-2xs font-semibold tracking-wide text-redwood/60 mb-0.5">
                   our pick for you
                 </p>
                 <p className="text-sm font-semibold text-cadet">

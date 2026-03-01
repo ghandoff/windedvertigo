@@ -122,7 +122,7 @@ export default async function SharedEvidencePage({
                       &ldquo;{item.quote_text}&rdquo;
                     </p>
                     {item.quote_attribution && (
-                      <p className="text-[10px] text-cadet/40 mt-1.5">
+                      <p className="text-2xs text-cadet/40 mt-1.5">
                         — {item.quote_attribution}
                       </p>
                     )}
@@ -134,7 +134,7 @@ export default async function SharedEvidencePage({
                   style={{ backgroundColor: "rgba(39, 50, 72, 0.03)" }}
                 >
                   {item.prompt_key && (
-                    <p className="text-[10px] font-medium text-sienna/60 mb-1">
+                    <p className="text-2xs font-medium text-sienna/60 mb-1">
                       {item.prompt_key.replace(/_/g, " ")}
                     </p>
                   )}
@@ -149,7 +149,7 @@ export default async function SharedEvidencePage({
                 <p className="text-[11px] font-medium text-cadet truncate">
                   {item.playdate_title ?? item.run_title}
                 </p>
-                <p className="text-[10px] text-cadet/40">
+                <p className="text-2xs text-cadet/40">
                   {item.run_date
                     ? new Date(item.run_date).toLocaleDateString("en-US", {
                         month: "short",

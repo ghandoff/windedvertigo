@@ -23,6 +23,8 @@
   --color-sienna: var(--wv-sienna);
   --color-champagne: var(--wv-champagne);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-size-2xs: 0.625rem;           /* 10px — micro labels, badges, timestamps */
+  --font-size-2xs--line-height: 1rem;   /* 16px line-height for readability */
   --shadow-soft: 0 1px 3px rgba(39, 50, 72, 0.06);
   --shadow-warm: 0 2px 8px rgba(203, 120, 88, 0.08);
 }

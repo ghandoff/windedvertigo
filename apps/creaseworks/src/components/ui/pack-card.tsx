@@ -64,7 +64,7 @@ export default function PackCard({ pack }: PackCardProps) {
       {/* content area */}
       <div className="p-5">
         {/* playdate count pill — top right of content */}
-        <span className="absolute top-[108px] right-3 inline-flex items-center rounded-full bg-cadet/6 px-2 py-0.5 text-[10px] font-semibold text-cadet/50">
+        <span className="absolute top-[108px] right-3 inline-flex items-center rounded-full bg-cadet/6 px-2 py-0.5 text-2xs font-semibold text-cadet/50">
           {pack.playdate_count} playdate{Number(pack.playdate_count) !== 1 ? "s" : ""}
         </span>
 
@@ -77,7 +77,7 @@ export default function PackCard({ pack }: PackCardProps) {
         </div>
 
         {/* theme label pill */}
-        <span className="inline-block rounded-full bg-cadet/5 px-2 py-0.5 text-[10px] font-medium text-cadet/45 mb-2">
+        <span className="inline-block rounded-full bg-cadet/5 px-2 py-0.5 text-2xs font-medium text-cadet/45 mb-2">
           {theme.label}
         </span>
 

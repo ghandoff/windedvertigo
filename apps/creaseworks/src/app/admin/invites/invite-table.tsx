@@ -80,7 +80,7 @@ export default function InviteTable({ invites, showRevoke = false }: Props) {
               </td>
               <td className="px-4 py-2.5">
                 <span
-                  className={`text-[10px] font-semibold tracking-wide uppercase px-1.5 py-px rounded-full ${
+                  className={`text-2xs font-semibold tracking-wide uppercase px-1.5 py-px rounded-full ${
                     inv.tier === "practitioner"
                       ? "bg-sienna/10 text-sienna"
                       : "bg-cadet/5 text-cadet/50"

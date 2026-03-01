@@ -57,7 +57,7 @@ export function CoPlayJoinForm({
       <button
         onClick={handleJoin}
         disabled={isSubmitting}
-        className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition"
+        className="w-full px-4 py-3 bg-redwood text-white rounded-lg font-medium hover:bg-redwood/90 disabled:opacity-50 transition"
       >
         {isSubmitting ? "Joining..." : "Join Co-Play Session"}
       </button>
