@@ -343,7 +343,7 @@ export default async function ProfilePage({
                 </p>
                 <div
                   className="rounded-xl border p-4"
-                  style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
+                  style={{ borderColor: "var(--cw-border)", backgroundColor: "var(--cw-card-bg)" }}
                 >
                   <AccessibilityPrefs />
                 </div>

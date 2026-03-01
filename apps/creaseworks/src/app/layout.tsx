@@ -65,12 +65,14 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const reduceMotion = cookieStore.get("cw-reduce-motion")?.value === "true";
   const dyslexiaFont = cookieStore.get("cw-dyslexia-font")?.value === "true";
+  const calmTheme = cookieStore.get("cw-calm-theme")?.value === "true";
 
   const htmlClasses = [
     inter.variable,
     atkinson.variable,
     reduceMotion && "reduce-motion",
     dyslexiaFont && "dyslexia-font",
+    calmTheme && "calm-theme",
   ]
     .filter(Boolean)
     .join(" ");

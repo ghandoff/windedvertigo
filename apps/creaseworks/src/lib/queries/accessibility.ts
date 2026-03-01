@@ -1,5 +1,5 @@
 /**
- * Accessibility preferences — reduce motion, dyslexia font.
+ * Accessibility preferences — reduce motion, dyslexia font, calm theme.
  *
  * App-level toggles that supplement OS settings. Stored in the users
  * table and mirrored to cookies for instant CSS application on page load.
@@ -10,11 +10,13 @@ import { sql } from "@/lib/db";
 export interface AccessibilityPrefs {
   reduceMotion: boolean;
   dyslexiaFont: boolean;
+  calmTheme: boolean;
 }
 
 const DEFAULT_PREFS: AccessibilityPrefs = {
   reduceMotion: false,
   dyslexiaFont: false,
+  calmTheme: false,
 };
 
 /**
@@ -25,7 +27,7 @@ export async function getAccessibilityPrefs(
   userId: string,
 ): Promise<AccessibilityPrefs> {
   const r = await sql.query(
-    `SELECT reduce_motion, dyslexia_font
+    `SELECT reduce_motion, dyslexia_font, calm_theme
      FROM users WHERE id = $1 LIMIT 1`,
     [userId],
   );
@@ -33,6 +35,7 @@ export async function getAccessibilityPrefs(
   return {
     reduceMotion: r.rows[0].reduce_motion ?? false,
     dyslexiaFont: r.rows[0].dyslexia_font ?? false,
+    calmTheme: r.rows[0].calm_theme ?? false,
   };
 }
 
@@ -56,6 +59,10 @@ export async function updateAccessibilityPrefs(
     sets.push(`dyslexia_font = $${++idx}`);
     values.push(prefs.dyslexiaFont);
   }
+  if (prefs.calmTheme !== undefined) {
+    sets.push(`calm_theme = $${++idx}`);
+    values.push(prefs.calmTheme);
+  }
 
   if (sets.length === 0) return getAccessibilityPrefs(userId);
 
@@ -63,7 +70,7 @@ export async function updateAccessibilityPrefs(
     `UPDATE users
      SET ${sets.join(", ")}, updated_at = NOW()
      WHERE id = $1
-     RETURNING reduce_motion, dyslexia_font`,
+     RETURNING reduce_motion, dyslexia_font, calm_theme`,
     [userId, ...values],
   );
 
@@ -71,5 +78,6 @@ export async function updateAccessibilityPrefs(
   return {
     reduceMotion: r.rows[0].reduce_motion ?? false,
     dyslexiaFont: r.rows[0].dyslexia_font ?? false,
+    calmTheme: r.rows[0].calm_theme ?? false,
   };
 }

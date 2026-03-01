@@ -30,13 +30,20 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const updates: { reduceMotion?: boolean; dyslexiaFont?: boolean } = {};
+    const updates: {
+      reduceMotion?: boolean;
+      dyslexiaFont?: boolean;
+      calmTheme?: boolean;
+    } = {};
 
     if (typeof body.reduceMotion === "boolean") {
       updates.reduceMotion = body.reduceMotion;
     }
     if (typeof body.dyslexiaFont === "boolean") {
       updates.dyslexiaFont = body.dyslexiaFont;
+    }
+    if (typeof body.calmTheme === "boolean") {
+      updates.calmTheme = body.calmTheme;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -60,6 +67,7 @@ export async function PATCH(req: NextRequest) {
 
     res.cookies.set("cw-reduce-motion", String(prefs.reduceMotion), cookieOpts);
     res.cookies.set("cw-dyslexia-font", String(prefs.dyslexiaFont), cookieOpts);
+    res.cookies.set("cw-calm-theme", String(prefs.calmTheme), cookieOpts);
 
     return res;
   } catch (err: unknown) {

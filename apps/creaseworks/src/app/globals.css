@@ -13,6 +13,14 @@
   --foreground: var(--wv-cadet);
   --shadow-soft: 0 1px 3px rgba(39, 50, 72, 0.06);
   --shadow-warm: 0 2px 8px rgba(203, 120, 88, 0.08);
+
+  /* theme-aware component tokens — used by accessibility prefs + cards */
+  --cw-text: var(--wv-cadet);
+  --cw-text-muted: rgba(39, 50, 72, 0.45);
+  --cw-border: rgba(39, 50, 72, 0.1);
+  --cw-toggle-off: rgba(39, 50, 72, 0.15);
+  --cw-card-bg: var(--wv-white);
+  --cw-skeleton-bg: rgba(39, 50, 72, 0.04);
 }
 
 @theme inline {
@@ -352,3 +360,157 @@ html.dyslexia-font button {
   letter-spacing: 0.02em;
   word-spacing: 0.05em;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   calm theme — low-stimulation dark mode for sensory sensitivity
+   ═══════════════════════════════════════════════════════════════════
+
+   Designed for autism spectrum, migraines, ADHD overstimulation, or
+   anyone who needs less visual stimulation. Key design decisions:
+
+   1. WARM darks — not pitch black (reduces harsh contrast)
+   2. Desaturated accents — colours are present but quieter
+   3. Reduced contrast — still WCAG AA, but softer than default
+   4. Pairs naturally with reduce-motion for full sensory support
+
+   Architecture:
+   - Override brand palette vars on `body` (main content area)
+   - Re-scope dark values on .wv-header / .wv-footer (already dark)
+   - Use !important sparingly for inline-style overrides             */
+
+/* ── calm semantic tokens ──────────────────────────────────────── */
+
+html.calm-theme {
+  --background: #1c2536;
+  --foreground: #c8bfb0;
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-warm: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  /* component tokens */
+  --cw-text: #c8bfb0;
+  --cw-text-muted: rgba(200, 191, 176, 0.5);
+  --cw-border: rgba(200, 191, 176, 0.08);
+  --cw-toggle-off: rgba(200, 191, 176, 0.18);
+  --cw-card-bg: #232f42;
+  --cw-skeleton-bg: rgba(200, 191, 176, 0.06);
+
+  /* override shared semantic tokens from tokens/index.css */
+  --color-text-primary: #c8bfb0;
+  --color-text-secondary: #9a9188;
+  --color-text-muted: #706860;
+  --color-accent: #c0786d;
+  --color-accent-hover: #b89480;
+  --color-accent-on-dark: #b89480;
+  --color-link: #8ab4d4;
+  --color-link-on-dark: #8ab4d4;
+
+  /* status colours — muted for calm context */
+  --color-error: #d4837a;
+  --color-error-bg: #2d1f1f;
+  --color-error-border: #8b4040;
+  --color-success: #6aa878;
+  --color-success-bg: #1f2d22;
+  --color-success-border: #4a7a52;
+  --color-success-vivid: #6aa878;
+  --color-warning: #c4a060;
+  --color-warning-bg: #2d2818;
+  --color-warning-border: #8a7030;
+}
+
+/* ── main content area — remap brand palette ──────────────────────
+   Components use var(--wv-cadet) for text and var(--wv-white) for
+   backgrounds. In calm mode, we swap those roles. The header/footer
+   are re-scoped below to preserve their dark-bg appearance.         */
+
+html.calm-theme body {
+  --wv-cadet: #c8bfb0;
+  --wv-white: #232f42;
+  --wv-champagne: #2a3548;
+  --wv-redwood: #c0786d;
+  --wv-sienna: #b89480;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* ── header — keep dark bg, calmer text ──────────────────────────
+   The header already has a dark cadet background. In calm mode,
+   deepen it slightly and mute the text for less contrast.           */
+
+html.calm-theme .wv-header {
+  --wv-cadet: #151d2c;
+  --wv-white: #b0a898;
+  --wv-champagne: #b0a898;
+  --wv-sienna: #a08878;
+  --color-accent-on-dark: #a08878;
+  background-color: #151d2c;
+}
+
+/* ── footer — match header treatment ──────────────────────────── */
+
+html.calm-theme .wv-footer {
+  --wv-cadet: #151d2c;
+  --wv-white: #b0a898;
+  --wv-champagne: #b0a898;
+  background-color: #151d2c;
+}
+html.calm-theme .wv-footer-copyright {
+  color: rgba(176, 168, 152, 0.6);
+}
+
+/* ── mobile bottom tab bar ───────────────────────────────────────
+   Override the inline white background on the fixed bottom nav.
+   !important needed to beat the inline style={{ backgroundColor }}.*/
+
+html.calm-theme nav[aria-label="quick navigation"] {
+  background-color: #1c2536 !important;
+  border-color: rgba(200, 191, 176, 0.06) !important;
+}
+
+/* ── skip link ───────────────────────────────────────────────── */
+
+html.calm-theme .skip-link {
+  background: #232f42;
+  color: #c8bfb0;
+}
+
+/* ── loading skeletons ─────────────────────────────────────────── */
+
+html.calm-theme .animate-pulse {
+  background-color: var(--cw-skeleton-bg) !important;
+}
+
+/* ── profile page cards + inline-styled borders ───────────────── */
+
+html.calm-theme .cw-a11y-card {
+  background-color: var(--cw-card-bg);
+}
+
+/* ── tailwind border utilities on card-like elements ─────────── */
+
+html.calm-theme .rounded-xl.border,
+html.calm-theme .rounded-lg.border {
+  border-color: var(--cw-border);
+}
+
+/* ── Tailwind text colour overrides for opacity-based inline styles
+   Some components use style={{ color: "var(--wv-cadet)", opacity: N }}
+   The var remap on body handles the base colour; these handle the
+   few remaining hardcoded rgba patterns.                            */
+
+html.calm-theme .text-cadet\/40 {
+  color: rgba(200, 191, 176, 0.4) !important;
+}
+
+/* ── colour-mix based CMS/rich-text ──────────────────────────────
+   CMS body uses color-mix(in srgb, var(--wv-cadet) N%, transparent).
+   Since --wv-cadet is now light (#c8bfb0) in body scope, these
+   automatically produce muted light text on dark backgrounds.
+   No explicit overrides needed — the variable cascade handles it.
+
+   Same applies to .notion-rich-text — it references var(--wv-redwood)
+   and var(--wv-cadet) which are already remapped.                    */
+
+/* ── @theme overrides for Tailwind v4 ────────────────────────────
+   Tailwind 4's @theme reads from custom properties. Since we've
+   overridden the semantic vars, classes like bg-background and
+   text-foreground will automatically use calm values.                */

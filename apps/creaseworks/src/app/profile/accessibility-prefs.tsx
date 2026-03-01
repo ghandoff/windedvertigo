@@ -3,9 +3,11 @@
 /**
  * Accessibility preferences — client component.
  *
- * Two toggles:
+ * Three toggles:
  *   1. Reduced motion — suppresses CSS animations & transitions.
  *   2. Dyslexia-friendly font — switches to Atkinson Hyperlegible.
+ *   3. Calm theme — warm dark backgrounds, muted accents for sensory
+ *      sensitivity (autism spectrum, migraines, ADHD overstimulation).
  *
  * Each toggle immediately updates the <html> classList for instant
  * visual feedback, then calls the API to persist to DB + cookies.
@@ -22,6 +24,7 @@ import { apiUrl } from "@/lib/api-url";
 interface Prefs {
   reduceMotion: boolean;
   dyslexiaFont: boolean;
+  calmTheme: boolean;
 }
 
 export default function AccessibilityPrefs() {
@@ -36,6 +39,7 @@ export default function AccessibilityPrefs() {
         setPrefs({
           reduceMotion: data.reduceMotion ?? false,
           dyslexiaFont: data.dyslexiaFont ?? false,
+          calmTheme: data.calmTheme ?? false,
         });
         setLoading(false);
       })
@@ -69,6 +73,9 @@ export default function AccessibilityPrefs() {
     if (updates.dyslexiaFont !== undefined) {
       applyClassToHtml("dyslexia-font", updates.dyslexiaFont);
     }
+    if (updates.calmTheme !== undefined) {
+      applyClassToHtml("calm-theme", updates.calmTheme);
+    }
 
     setSaving(true);
 
@@ -88,6 +95,9 @@ export default function AccessibilityPrefs() {
         if (updates.dyslexiaFont !== undefined) {
           applyClassToHtml("dyslexia-font", prefs.dyslexiaFont);
         }
+        if (updates.calmTheme !== undefined) {
+          applyClassToHtml("calm-theme", prefs.calmTheme);
+        }
       }
     } catch {
       // rollback state and CSS classes
@@ -97,6 +107,9 @@ export default function AccessibilityPrefs() {
       }
       if (updates.dyslexiaFont !== undefined) {
         applyClassToHtml("dyslexia-font", prefs.dyslexiaFont);
+      }
+      if (updates.calmTheme !== undefined) {
+        applyClassToHtml("calm-theme", prefs.calmTheme);
       }
     } finally {
       setSaving(false);
@@ -108,11 +121,15 @@ export default function AccessibilityPrefs() {
       <div className="space-y-4">
         <div
           className="animate-pulse rounded-lg h-20"
-          style={{ backgroundColor: "rgba(39, 50, 72, 0.04)" }}
+          style={{ backgroundColor: "var(--cw-skeleton-bg)" }}
         />
         <div
           className="animate-pulse rounded-lg h-20"
-          style={{ backgroundColor: "rgba(39, 50, 72, 0.04)" }}
+          style={{ backgroundColor: "var(--cw-skeleton-bg)" }}
+        />
+        <div
+          className="animate-pulse rounded-lg h-20"
+          style={{ backgroundColor: "var(--cw-skeleton-bg)" }}
         />
       </div>
     );
@@ -122,22 +139,54 @@ export default function AccessibilityPrefs() {
 
   return (
     <div className="space-y-6">
-      {/* Reduced motion toggle */}
+      {/* Calm theme toggle — first because it's the most visually dramatic */}
       <div
-        className="rounded-lg border p-4"
-        style={{ borderColor: "rgba(39, 50, 72, 0.1)" }}
+        className="cw-a11y-card rounded-lg border p-4"
+        style={{ borderColor: "var(--cw-border)" }}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
             <p
               className="text-sm font-medium"
-              style={{ color: "var(--wv-cadet)" }}
+              style={{ color: "var(--cw-text)" }}
+            >
+              calm mode
+            </p>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "var(--cw-text-muted)" }}
+            >
+              warm dark backgrounds with muted colours. designed for sensory
+              sensitivity, migraines, or when you just need less visual
+              stimulation.
+            </p>
+          </div>
+
+          <ToggleSwitch
+            checked={prefs.calmTheme}
+            label="toggle calm mode"
+            disabled={saving}
+            onToggle={() => updatePrefs({ calmTheme: !prefs.calmTheme })}
+          />
+        </div>
+      </div>
+
+      {/* Reduced motion toggle */}
+      <div
+        className="cw-a11y-card rounded-lg border p-4"
+        style={{ borderColor: "var(--cw-border)" }}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p
+              className="text-sm font-medium"
+              style={{ color: "var(--cw-text)" }}
             >
               reduce motion
             </p>
             <p
               className="text-xs mt-0.5"
-              style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
+              style={{ color: "var(--cw-text-muted)" }}
             >
               minimise animations and transitions throughout the app.
               supplements your operating system&apos;s reduced motion setting.
@@ -155,20 +204,20 @@ export default function AccessibilityPrefs() {
 
       {/* Dyslexia-friendly font toggle */}
       <div
-        className="rounded-lg border p-4"
-        style={{ borderColor: "rgba(39, 50, 72, 0.1)" }}
+        className="cw-a11y-card rounded-lg border p-4"
+        style={{ borderColor: "var(--cw-border)" }}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
             <p
               className="text-sm font-medium"
-              style={{ color: "var(--wv-cadet)" }}
+              style={{ color: "var(--cw-text)" }}
             >
               dyslexia-friendly font
             </p>
             <p
               className="text-xs mt-0.5"
-              style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
+              style={{ color: "var(--cw-text-muted)" }}
             >
               switch to atkinson hyperlegible — a typeface designed with
               distinct letterforms that reduce mirroring confusion (b/d, p/q).
@@ -214,7 +263,7 @@ function ToggleSwitch({
         height: 24,
         backgroundColor: checked
           ? "var(--wv-redwood)"
-          : "rgba(39, 50, 72, 0.15)",
+          : "var(--cw-toggle-off)",
         opacity: disabled ? 0.6 : 1,
       }}
     >
