@@ -1,11 +1,11 @@
 "use client";
 
 /**
- * Matcher results — loading skeleton, empty state, and staggered card list.
+ * Matcher results — playful loading, celebratory reveal, encouraging empty state.
  *
- * Session 31: aesthetic refresh — warm loading skeleton with champagne pulse,
- * staggered card entry animations (fadeInUp), playful empty-state messaging
- * with decorative accent, and a celebratory heading for results.
+ * Loading: animated "searching" messages with rotating emojis.
+ * Results: staggered card entry with a cheerful heading.
+ * Empty: helpful, non-discouraging suggestions.
  */
 
 import MatcherResultCard from "@/components/ui/matcher-result-card";
@@ -24,133 +24,161 @@ export function MatcherResults({
   resultsRef,
   selectedMaterialsSize,
 }: MatcherResultsProps) {
-  // loading skeleton — warm champagne tones instead of grey
+  /* ── loading state ─────────────────────────────────── */
   if (loading) {
     return (
-      <div className="mt-8 sm:mt-12 space-y-3" aria-busy="true" aria-label="loading results">
-        {[1, 2, 3].map((i) => (
+      <div
+        className="mt-10 sm:mt-14"
+        aria-busy="true"
+        aria-label="loading results"
+      >
+        {/* playful searching animation */}
+        <div className="text-center mb-6">
           <div
-            key={i}
-            className="rounded-xl border animate-pulse"
+            className="inline-block text-4xl mb-3"
             style={{
-              borderColor: "rgba(203, 120, 88, 0.1)",
-              backgroundColor: "rgba(255, 235, 210, 0.25)",
-              height: i === 1 ? 140 : i === 2 ? 120 : 100,
-              animationDelay: `${(i - 1) * 150}ms`,
-              animationFillMode: "both",
+              animation: "searchBounce 800ms ease-in-out infinite alternate",
             }}
           >
-            {/* faux content lines inside skeleton */}
-            <div className="p-4 sm:p-5 space-y-3">
-              <div className="flex items-center gap-3">
-                <div
-                  className="rounded-lg w-11 h-11 sm:w-14 sm:h-14 animate-pulse"
-                  style={{ backgroundColor: "rgba(203, 120, 88, 0.15)" }}
-                />
-                <div className="flex-1 space-y-2">
+            🔮
+          </div>
+          <p
+            className="text-sm font-medium"
+            style={{ color: "var(--wv-sienna)" }}
+          >
+            searching through playdates…
+          </p>
+          <p
+            className="text-xs mt-1"
+            style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+          >
+            finding the best ones for your stuff
+          </p>
+        </div>
+
+        {/* skeleton cards with warm tones */}
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="rounded-2xl border-2 animate-pulse"
+              style={{
+                borderColor: "rgba(203, 120, 88, 0.1)",
+                backgroundColor: "rgba(255, 235, 210, 0.2)",
+                height: i === 1 ? 150 : i === 2 ? 130 : 110,
+                animationDelay: `${(i - 1) * 200}ms`,
+                animationFillMode: "both",
+              }}
+            >
+              <div className="p-5 space-y-3">
+                <div className="flex items-center gap-3">
                   <div
-                    className="h-4 rounded-full animate-pulse"
-                    style={{
-                      backgroundColor: "rgba(203, 120, 88, 0.12)",
-                      width: `${65 - i * 10}%`,
-                    }}
+                    className="rounded-xl w-12 h-12 animate-pulse"
+                    style={{ backgroundColor: "rgba(203, 120, 88, 0.12)" }}
                   />
-                  <div
-                    className="h-3 rounded-full animate-pulse"
-                    style={{
-                      backgroundColor: "rgba(203, 120, 88, 0.08)",
-                      width: `${45 - i * 5}%`,
-                    }}
-                  />
+                  <div className="flex-1 space-y-2">
+                    <div
+                      className="h-4 rounded-full animate-pulse"
+                      style={{
+                        backgroundColor: "rgba(203, 120, 88, 0.1)",
+                        width: `${70 - i * 10}%`,
+                      }}
+                    />
+                    <div
+                      className="h-3 rounded-full animate-pulse"
+                      style={{
+                        backgroundColor: "rgba(203, 120, 88, 0.06)",
+                        width: `${50 - i * 5}%`,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-        <p
-          className="text-xs text-center pt-2"
-          style={{ color: "var(--wv-sienna)", opacity: 0.5 }}
-        >
-          searching through playdates…
-        </p>
+          ))}
+        </div>
       </div>
     );
   }
 
-  // no results yet
-  if (!results) {
-    return null;
-  }
+  /* ── no results yet ────────────────────────────────── */
+  if (!results) return null;
 
-  // results display
+  /* ── results display ───────────────────────────────── */
   return (
-    <div ref={resultsRef} className="mt-8 sm:mt-12" role="region" aria-label="matcher results" aria-live="polite">
-      <div className="mb-4 sm:mb-6">
+    <div
+      ref={resultsRef}
+      className="mt-10 sm:mt-14"
+      role="region"
+      aria-label="matcher results"
+      aria-live="polite"
+    >
+      {/* heading */}
+      <div className="mb-6">
         <h2
-          className="text-lg sm:text-xl font-semibold tracking-tight mb-1"
+          className="text-xl sm:text-2xl font-bold tracking-tight mb-1"
           style={{ color: "var(--wv-cadet)" }}
         >
           {results.ranked.length > 0 ? (
             <>
-              <span style={{ color: "var(--wv-redwood)" }}>{results.ranked.length}</span>{" "}
-              playdate{results.ranked.length !== 1 ? "s" : ""} found
+              <span style={{ color: "var(--wv-redwood)" }}>
+                {results.ranked.length}
+              </span>{" "}
+              playdate{results.ranked.length !== 1 ? "s" : ""} found!{" "}
+              <span
+                className="inline-block"
+                style={{
+                  animation:
+                    "celebrationBounce 600ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                }}
+              >
+                🎉
+              </span>
             </>
           ) : (
-            <>0 playdates found</>
+            <>hmm, no exact matches</>
           )}
         </h2>
         <p
           className="text-xs"
-          style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+          style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
         >
-          searched {results.meta.totalCandidates} playdates
+          looked through {results.meta.totalCandidates} playdates
           {results.meta.contextFiltersApplied.length > 0 &&
-            ` · ${results.meta.totalAfterFilter} fit your setting (${results.meta.contextFiltersApplied.join(", ")})`}
+            ` · ${results.meta.totalAfterFilter} work in your spot (${results.meta.contextFiltersApplied.join(", ")})`}
         </p>
       </div>
 
       {results.ranked.length === 0 ? (
+        /* ── encouraging empty state ────────────────────── */
         <div
-          className="rounded-xl border p-6 sm:p-8 text-center"
+          className="rounded-2xl border-2 border-dashed p-8 text-center"
           style={{
-            borderColor: "rgba(203, 120, 88, 0.15)",
-            backgroundColor: "rgba(255, 235, 210, 0.12)",
+            borderColor: "rgba(203, 120, 88, 0.2)",
+            backgroundColor: "rgba(255, 235, 210, 0.1)",
           }}
         >
-          {/* decorative dots */}
-          <div className="flex items-center justify-center gap-1.5 mb-3">
-            <div
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: "var(--wv-sienna)", opacity: 0.25 }}
-            />
-            <div
-              className="w-1 h-1 rounded-full"
-              style={{ backgroundColor: "var(--wv-redwood)", opacity: 0.2 }}
-            />
-            <div
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: "var(--wv-sienna)", opacity: 0.25 }}
-            />
-          </div>
+          <div className="text-3xl mb-3">🤔</div>
           <p
-            className="text-sm leading-relaxed"
+            className="text-sm leading-relaxed max-w-md mx-auto"
             style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
           >
             {results.meta.contextFiltersApplied.length > 0
-              ? `no playdates match all of your setting constraints — try removing ${results.meta.contextFiltersApplied.join(" or ")} to see more.`
+              ? `we couldn't find a playdate that works in "${results.meta.contextFiltersApplied.join(" + ")}" with your stuff — try removing a place to see more!`
               : selectedMaterialsSize > 3
-                ? "hmm, we couldn't quite find a perfect fit — try selecting fewer materials to broaden the search."
-                : "nothing matched yet — try adding more materials or changing where you're playing."}
+                ? "that's a lot of specific stuff! try picking fewer things to see what comes up."
+                : "nothing matched yet — try adding more stuff or picking a different spot. the more you add, the more we can find!"}
           </p>
         </div>
       ) : (
-        <div className="space-y-3 sm:space-y-4">
+        /* ── result cards ───────────────────────────────── */
+        <div className="space-y-4">
           {results.ranked.map((playdate, index) => (
             <div
               key={playdate.playdateId}
               style={{
-                animation: "matcherFadeInUp 350ms ease-out both",
-                animationDelay: `${index * 40}ms`,
+                animation: "matcherFadeInUp 400ms ease-out both",
+                animationDelay: `${index * 60}ms`,
               }}
             >
               <MatcherResultCard playdate={playdate} />
@@ -159,23 +187,25 @@ export function MatcherResults({
         </div>
       )}
 
-      {/* keyframes for staggered card entry */}
+      {/* keyframes */}
       <style>{`
         @keyframes matcherFadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(16px) scale(0.98); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes searchBounce {
+          from { transform: translateY(0); }
+          to   { transform: translateY(-8px); }
+        }
+        @keyframes celebrationBounce {
+          0%   { transform: scale(0); }
+          50%  { transform: scale(1.3) rotate(10deg); }
+          100% { transform: scale(1) rotate(0deg); }
         }
         @media (prefers-reduced-motion: reduce) {
-          @keyframes matcherFadeInUp {
-            from { opacity: 1; transform: none; }
-            to   { opacity: 1; transform: none; }
-          }
+          @keyframes matcherFadeInUp { from, to { opacity: 1; transform: none; } }
+          @keyframes searchBounce { from, to { transform: none; } }
+          @keyframes celebrationBounce { from, to { transform: scale(1); } }
         }
       `}</style>
     </div>
