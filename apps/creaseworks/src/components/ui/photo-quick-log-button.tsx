@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { uploadPhotoToR2, type PhotoItem } from "@/components/ui/evidence-photo-upload";
+import { apiUrl } from "@/lib/api-url";
 
 interface PhotoQuickLogButtonProps {
   playdateId: string;
@@ -73,7 +74,7 @@ export default function PhotoQuickLogButton({
 
     try {
       // 1. create the run
-      const runRes = await fetch("/api/runs", {
+      const runRes = await fetch(apiUrl("/api/runs"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -230,3 +231,4 @@ function CameraIcon() {
     </svg>
   );
 }
+
