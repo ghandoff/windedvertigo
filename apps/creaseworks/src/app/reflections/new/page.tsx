@@ -47,9 +47,7 @@ export default async function NewReflectionPage({ searchParams }: Props) {
   if (matchedPlaydate) {
     const pack = await getFirstVisiblePackForPlaydate(matchedPlaydate.id);
     if (pack) {
-      const isEntitled = session.orgId
-        ? await checkEntitlement(session.orgId, pack.id)
-        : false;
+      const isEntitled = await checkEntitlement(session.orgId, pack.id, session.userId);
       if (!isEntitled) {
         // Fetch full pack to get playdate count
         const fullPack = await getPackBySlug(pack.slug);

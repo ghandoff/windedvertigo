@@ -32,7 +32,7 @@ export default async function EntitledPlaydatePage({ params, searchParams }: Pro
 
   // check entitlement — collective auto-entitled
   const isEntitled =
-    session.isInternal || (await checkEntitlement(session.orgId, pack.id));
+    session.isInternal || (await checkEntitlement(session.orgId, pack.id, session.userId));
   if (!isEntitled) return notFound();
 
   // resolve playdate — collective gets extra fields + can see drafts

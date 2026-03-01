@@ -126,10 +126,10 @@ export default async function ProfilePage({
     : [[], []];
 
   /* ---- pack progress + recommendations + credits --------------------- */
+  // Always fetch packs — user-level entitlements (from invites) work
+  // even without an org. getOrgPacksWithProgress handles null orgId.
   const [ownedPacks, recommendedPacks, creditBalance] = await Promise.all([
-    hasOrg
-      ? getOrgPacksWithProgress(session.orgId!, session.userId).catch(() => [])
-      : Promise.resolve([]),
+    getOrgPacksWithProgress(session.orgId ?? null, session.userId).catch(() => []),
     getRecommendedPacks(session.orgId, session.userId).catch(() => []),
     getUserCredits(session.userId).catch(() => 0),
   ]);
@@ -450,6 +450,26 @@ export default async function ProfilePage({
                     currentUserId={session.userId}
                     isOrgAdmin={session.orgRole === "admin"}
                   />
+                </section>
+              )}
+
+              {/* invite people section — system admins only */}
+              {session.isAdmin && (
+                <section>
+                  <h3 className="text-lg font-semibold tracking-tight mb-1">
+                    invite people
+                  </h3>
+                  <p className="text-sm text-cadet/40 mb-4">
+                    grant access to colleagues, friends, schools, or pilot
+                    partners who don&apos;t share your email domain.
+                  </p>
+                  <Link
+                    href="/admin/invites"
+                    className="inline-flex items-center gap-2 rounded-lg border border-cadet/10 bg-white px-4 py-2.5 text-sm font-medium text-cadet hover:border-sienna/30 hover:text-sienna transition-colors"
+                  >
+                    <span>✉️</span>
+                    <span>manage invites</span>
+                  </Link>
                 </section>
               )}
 

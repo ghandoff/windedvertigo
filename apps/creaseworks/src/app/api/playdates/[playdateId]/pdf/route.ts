@@ -48,7 +48,7 @@ export async function GET(req: NextRequest, { params }: Props) {
     if (!pack) {
       return NextResponse.json({ error: "pack not found" }, { status: 404 });
     }
-    const isEntitled = await checkEntitlement(session.orgId, pack.id);
+    const isEntitled = await checkEntitlement(session.orgId, pack.id, session.userId);
     if (!isEntitled) {
       return NextResponse.json({ error: "not entitled" }, { status: 403 });
     }

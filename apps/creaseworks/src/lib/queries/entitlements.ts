@@ -7,23 +7,32 @@
 import { sql } from "@/lib/db";
 
 /**
- * Check whether an organisation has an active entitlement for a pack.
+ * Check whether an org or user has an active entitlement for a pack.
  * Active = granted, not revoked, not expired.
+ *
+ * Supports dual-scope: checks org-level entitlements (pack subscriptions
+ * shared by the whole org) AND user-level entitlements (individual access
+ * granted via invites). Either scope matching is sufficient.
  */
 export async function checkEntitlement(
   orgId: string | null,
   packCacheId: string,
+  userId?: string | null,
 ): Promise<boolean> {
-  if (!orgId) return false;
+  if (!orgId && !userId) return false;
 
   const result = await sql.query(
     `SELECT 1 FROM entitlements
-     WHERE org_id = $1
-       AND pack_cache_id = $2
+     WHERE pack_cache_id = $1
        AND revoked_at IS NULL
        AND (expires_at IS NULL OR expires_at > NOW())
+       AND (
+         (org_id = $2 AND $2 IS NOT NULL)
+         OR
+         (user_id = $3 AND $3 IS NOT NULL)
+       )
      LIMIT 1`,
-    [orgId, packCacheId],
+    [packCacheId, orgId ?? null, userId ?? null],
   );
   return result.rows.length > 0;
 }
@@ -52,17 +61,72 @@ export async function grantEntitlement(
     [packCacheId],
   );
 
+  // Use the partial unique index for org-level entitlements.
+  // idx_entitlements_org_pack covers (org_id, pack_cache_id) WHERE user_id IS NULL AND revoked_at IS NULL.
+  // We first try to revive a revoked row, then insert if needed.
+  const existing = await sql.query(
+    `UPDATE entitlements
+     SET revoked_at = NULL,
+         purchase_id = COALESCE($3, entitlements.purchase_id),
+         granted_at = COALESCE(entitlements.granted_at, NOW()),
+         expires_at = $4
+     WHERE org_id = $1
+       AND pack_cache_id = $2
+       AND user_id IS NULL
+     RETURNING id`,
+    [orgId, packCacheId, purchaseId || null, expiresAt || null],
+  );
+  if (existing.rows.length > 0) return existing.rows[0];
+
   const result = await sql.query(
     `INSERT INTO entitlements (org_id, pack_cache_id, purchase_id, granted_at, expires_at)
      VALUES ($1, $2, $3, NOW(), $4)
-     ON CONFLICT (org_id, pack_cache_id)
-     DO UPDATE SET
-       revoked_at = NULL,
-       purchase_id = COALESCE($3, entitlements.purchase_id),
-       granted_at = COALESCE(entitlements.granted_at, NOW()),
-       expires_at = $4
      RETURNING id`,
     [orgId, packCacheId, purchaseId || null, expiresAt || null],
+  );
+  return result.rows[0];
+}
+
+/**
+ * Grant an entitlement to an individual user for a pack.
+ * Used when processing invite-based access — the user gets personal
+ * entitlements for admin-selected packs, independent of any org.
+ *
+ * Re-grants (e.g. after a revoke) are handled by updating the existing
+ * row rather than inserting a duplicate.
+ */
+export async function grantUserEntitlement(
+  userId: string,
+  packCacheId: string,
+  expiresAt?: string | null,
+) {
+  // ensure packs_catalogue row exists (visible=false by default)
+  await sql.query(
+    `INSERT INTO packs_catalogue (pack_cache_id, visible)
+     VALUES ($1, false)
+     ON CONFLICT (pack_cache_id) DO NOTHING`,
+    [packCacheId],
+  );
+
+  // Try to revive an existing (possibly revoked) user-level entitlement
+  const existing = await sql.query(
+    `UPDATE entitlements
+     SET revoked_at = NULL,
+         granted_at = COALESCE(entitlements.granted_at, NOW()),
+         expires_at = $3
+     WHERE user_id = $1
+       AND pack_cache_id = $2
+       AND org_id IS NULL
+     RETURNING id`,
+    [userId, packCacheId, expiresAt || null],
+  );
+  if (existing.rows.length > 0) return existing.rows[0];
+
+  const result = await sql.query(
+    `INSERT INTO entitlements (user_id, pack_cache_id, granted_at, expires_at)
+     VALUES ($1, $2, NOW(), $3)
+     RETURNING id`,
+    [userId, packCacheId, expiresAt || null],
   );
   return result.rows[0];
 }
@@ -108,12 +172,15 @@ export async function listOrgEntitlements(orgId: string) {
 }
 
 /**
- * Fetch owned packs for an org with per-user progress breakdown.
+ * Fetch entitled packs for a user with per-user progress breakdown.
+ * Checks both org-level and user-level entitlements so individually
+ * invited users see their packs alongside any org-granted ones.
+ *
  * Joins entitlements → packs_cache → pack_playdates → playdate_progress.
  * Returns one row per entitled pack with playdate count + tier counts.
  */
 export async function getOrgPacksWithProgress(
-  orgId: string,
+  orgId: string | null,
   userId: string,
 ) {
   const result = await sql.query(
@@ -133,13 +200,17 @@ export async function getOrgPacksWithProgress(
      LEFT JOIN playdates_cache plc ON plc.id = pp.playdate_id AND plc.status = 'ready'
      LEFT JOIN playdate_progress prg
        ON prg.playdate_id = pp.playdate_id AND prg.user_id = $2
-     WHERE e.org_id = $1
+     WHERE (
+         (e.org_id = $1 AND $1 IS NOT NULL)
+         OR
+         (e.user_id = $2 AND $2 IS NOT NULL)
+       )
        AND e.revoked_at IS NULL
        AND (e.expires_at IS NULL OR e.expires_at > NOW())
        AND pc.slug IS NOT NULL
      GROUP BY pc.id, pc.slug, pc.title, pc.description
      ORDER BY pc.title ASC`,
-    [orgId, userId],
+    [orgId ?? null, userId],
   );
   return result.rows as Array<{
     id: string;
@@ -155,7 +226,8 @@ export async function getOrgPacksWithProgress(
 }
 
 /**
- * Admin: list all entitlements with org and pack names.
+ * Admin: list all entitlements with org/user and pack names.
+ * Uses LEFT JOINs because org_id or user_id may be NULL.
  */
 export async function listAllEntitlements() {
   const result = await sql.query(
@@ -163,13 +235,16 @@ export async function listAllEntitlements() {
        e.id,
        e.org_id,
        o.name AS org_name,
+       e.user_id,
+       u.email AS user_email,
        e.pack_cache_id,
        pc.title AS pack_title,
        e.granted_at,
        e.expires_at,
        e.revoked_at
      FROM entitlements e
-     JOIN organisations o ON o.id = e.org_id
+     LEFT JOIN organisations o ON o.id = e.org_id
+     LEFT JOIN users u ON u.id = e.user_id
      JOIN packs_cache pc ON pc.id = e.pack_cache_id
      ORDER BY e.granted_at DESC`,
   );

@@ -8,6 +8,7 @@
 
 import { requireAdmin } from "@/lib/auth-helpers";
 import { listAllInvites } from "@/lib/queries/invites";
+import { getAllReadyPacks } from "@/lib/queries/packs";
 import Link from "next/link";
 import InviteForm from "./invite-form";
 import InviteTable from "./invite-table";
@@ -17,7 +18,10 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminInvitesPage() {
   await requireAdmin();
-  const invites = await listAllInvites();
+  const [invites, packs] = await Promise.all([
+    listAllInvites(),
+    getAllReadyPacks(),
+  ]);
 
   const pending = invites.filter((i) => !i.accepted_at);
   const accepted = invites.filter((i) => !!i.accepted_at);
@@ -45,7 +49,7 @@ export default async function AdminInvitesPage() {
         <h2 className="text-lg font-semibold tracking-tight mb-4">
           send an invite
         </h2>
-        <InviteForm />
+        <InviteForm packs={packs} />
       </section>
 
       {/* pending invites */}

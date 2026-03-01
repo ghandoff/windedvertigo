@@ -79,9 +79,7 @@ export default async function PlaydateTeaserPage({ params }: Props) {
 
   // Entitled user WITH a pack → redirect to the pack's playdate page
   if (session && pack) {
-    const isEntitled = session.orgId
-      ? await checkEntitlement(session.orgId, pack.id)
-      : false;
+    const isEntitled = await checkEntitlement(session.orgId, pack.id, session.userId);
     if (isEntitled) {
       redirect(`/packs/${pack.slug}/playdates/${slug}?from=sampler`);
     }

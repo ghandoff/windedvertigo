@@ -58,7 +58,7 @@ export default async function PackDetailPage({ params }: Props) {
   // otherwise → check per-pack entitlement
   const isCollective = session.isInternal && !session.isAdmin;
   const isEntitled =
-    session.isInternal || (await checkEntitlement(session.orgId, pack.id));
+    session.isInternal || (await checkEntitlement(session.orgId, pack.id, session.userId));
 
   if (isEntitled) {
     // log access

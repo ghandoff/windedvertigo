@@ -13,6 +13,7 @@ interface Invite {
   invited_at: string;
   accepted_at: string | null;
   expires_at: string | null;
+  pack_names?: string[];
 }
 
 interface Props {
@@ -59,6 +60,9 @@ export default function InviteTable({ invites, showRevoke = false }: Props) {
               tier
             </th>
             <th className="px-4 py-2.5 text-xs font-semibold text-cadet/40 uppercase tracking-wide hidden sm:table-cell">
+              packs
+            </th>
+            <th className="px-4 py-2.5 text-xs font-semibold text-cadet/40 uppercase tracking-wide hidden lg:table-cell">
               note
             </th>
             <th className="px-4 py-2.5 text-xs font-semibold text-cadet/40 uppercase tracking-wide">
@@ -89,7 +93,23 @@ export default function InviteTable({ invites, showRevoke = false }: Props) {
                   {inv.tier}
                 </span>
               </td>
-              <td className="px-4 py-2.5 text-cadet/40 truncate max-w-[160px] hidden sm:table-cell">
+              <td className="px-4 py-2.5 text-cadet/40 hidden sm:table-cell">
+                {inv.pack_names && inv.pack_names.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {inv.pack_names.map((name) => (
+                      <span
+                        key={name}
+                        className="text-2xs font-medium tracking-wide px-1.5 py-px rounded-full bg-champagne/20 text-cadet/60 whitespace-nowrap"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-cadet/20">{"\u2014"}</span>
+                )}
+              </td>
+              <td className="px-4 py-2.5 text-cadet/40 truncate max-w-[160px] hidden lg:table-cell">
                 {inv.note ?? "\u2014"}
               </td>
               <td className="px-4 py-2.5 text-cadet/40 whitespace-nowrap">

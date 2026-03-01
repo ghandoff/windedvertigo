@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Check if org is already entitled
-  const alreadyEntitled = await checkEntitlement(session.orgId, packCacheId);
+  const alreadyEntitled = await checkEntitlement(session.orgId, packCacheId, session.userId);
   if (alreadyEntitled) {
     return NextResponse.json(
       { error: "your organisation already has access to this pack" },
