@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { apiUrl } from "@/lib/api-url";
 import EvidenceLightbox, {
   type LightboxItem,
 } from "@/components/ui/evidence-lightbox";
@@ -54,7 +55,7 @@ export default function PortfolioGallery({
     params.set("limit", "100");
 
     try {
-      const res = await fetch(`/api/evidence/portfolio?${params}`);
+      const res = await fetch(apiUrl(`/api/evidence/portfolio?${params}`));
       if (!res.ok) throw new Error("failed to fetch");
       const data = await res.json();
       setItems(data.items);
@@ -95,7 +96,7 @@ export default function PortfolioGallery({
       if (typeFilter !== "all") params.set("type", typeFilter);
       if (playdateFilter) params.set("playdate", playdateFilter);
 
-      const res = await fetch(`/api/evidence/export?${params}`);
+      const res = await fetch(apiUrl(`/api/evidence/export?${params}`));
       if (!res.ok) {
         const err = await res.json().catch(() => null);
         throw new Error(err?.error || "export failed");
@@ -129,7 +130,7 @@ export default function PortfolioGallery({
       if (typeFilter !== "all") body.type = typeFilter;
       if (playdateFilter) body.playdate = playdateFilter;
 
-      const res = await fetch("/api/evidence/share", {
+      const res = await fetch(apiUrl("/api/evidence/share"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -395,3 +396,4 @@ export default function PortfolioGallery({
     </div>
   );
 }
+
