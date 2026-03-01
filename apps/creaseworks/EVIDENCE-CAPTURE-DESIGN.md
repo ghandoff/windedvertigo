@@ -1,5 +1,7 @@
 # Evidence Capture — Practitioner Tier Feature Design
 
+> **STATUS: COMPLETED** — All four phases (A–D) implemented: backend, form UI, portfolio gallery, PDF export, shareable links. R2 photo upload working. This document is archived for historical reference.
+
 ## What exists today
 
 The run form has toggle buttons for five evidence types: photo, video, quote, artifact, notes. These store as a JSONB array of strings in `runs_cache.trace_evidence` — e.g. `["photo", "quote"]`. No actual media is uploaded. The "found_something" progress badge triggers when any evidence is tagged.

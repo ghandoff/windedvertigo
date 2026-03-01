@@ -7,7 +7,7 @@ Monorepo for [winded.vertigo](https://windedvertigo.com) — a collective of des
 | App | Stack | URL |
 |-----|-------|-----|
 | **site** | Static HTML/CSS/JS | [windedvertigo.com](https://windedvertigo.com) |
-| **creaseworks** | Next.js · TypeScript · Postgres | [creaseworks.windedvertigo.com](https://creaseworks.windedvertigo.com) |
+| **creaseworks** | Next.js · TypeScript · Postgres | [windedvertigo.com/reservoir/creaseworks](https://windedvertigo.com/reservoir/creaseworks) |
 | **nordic-sqr-rct** | Next.js · JavaScript | — |
 
 ## Getting Started

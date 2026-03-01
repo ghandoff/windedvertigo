@@ -7,15 +7,17 @@
 | Key | Value |
 |-----|-------|
 | **App** | Next.js 16 + React 19 + TypeScript |
-| **URL** | https://creaseworks.windedvertigo.com |
+| **URL** | https://windedvertigo.com/reservoir/creaseworks |
+| **basePath** | `/reservoir/creaseworks` (set in next.config.ts) |
 | **Vercel project** | creaseworks (ghandoffs-projects) |
 | **Neon DB** | creaseworks-db (divine-dust-87453436) |
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
-| **Source files** | 235 (.ts + .tsx) |
-| **Migrations** | 035 (latest: gallery_visible_fields) — 028-033 applied to Neon, 034-035 pending |
-| **Latest commit** | `7cf32af` (chore: update migration runner for 034-035) |
-| **Last session** | 32 (Feb 28, 2026) |
+| **Source files** | ~235 (.ts + .tsx) |
+| **Migrations** | 035 (latest: gallery_visible_fields) — all 001-035 applied to Neon |
+| **TypeScript** | compiles clean (zero errors) |
+| **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
+| **Last session** | 33 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -24,19 +26,6 @@
 | **Collections** | `312e4ee7-4ba4-8139-b891-fcd21e275a21` | `312e4ee7-4ba4-81a7-9635-000b05e82f4e` |
 | **Packs** | `beb34e7b-86cd-4f20-b9be-641431b99e5f` | — |
 | **Playdates** | `b446ffd5d1664a31b4f5f6a93aadaab8` | `0a90f5dc-a264-48ff-a49f-fabb07667116` |
-
-## Chrome Tabs (Cowork Session)
-
-These tab IDs change per session. Update at session start.
-
-| Tab | ID | URL |
-|-----|----|-----|
-| Neon SQL editor | `1533420837` | console.neon.tech/.../sql-editor |
-| Vercel deployments | `1533420889` | vercel.com/.../creaseworks/deployments |
-| Notion playdates | `1533421409` | notion.so/b446ffd5... |
-| GitHub repo | `1533421393` | github.com/ghandoff/windedvertigo |
-| Stripe dashboard | `1533420846` | dashboard.stripe.com/.../test/dashboard |
-| Live site | `1533421589` | creaseworks.windedvertigo.com |
 
 ## Architecture Overview
 
@@ -67,6 +56,7 @@ src/
     ├── queries/            # Database query layers
     │   ├── runs/           # Directory module (6 files + index.ts)
     │   ├── matcher/        # Directory module (6 files + index.ts)
+    │   ├── credits.ts      # Credit system (awardCredit, getUserCredits, spendCredits, checkAndAwardStreakBonus)
     │   ├── gallery.ts      # Community gallery (10 functions)
     │   ├── co-play.ts      # Co-play queries
     │   ├── seasonal.ts     # Seasonal recommendations
@@ -79,86 +69,17 @@ src/
 
 ## Feature Status
 
-### Core Features (sessions 1-21)
-- ✅ Auth (Auth.js + Google/credentials)
-- ✅ Notion → Neon sync (playdates, collections, packs, materials, runs)
-- ✅ Matcher (materials + context → scored playdate recommendations)
-- ✅ Run logging + evidence capture (photos via R2, notes, ratings)
-- ✅ Badge system (tried → found → folded & unfolded → found again)
-- ✅ Collection progress tracking
-- ✅ Stripe checkout (4 tiers: sampler/explorer/practitioner/collective)
-- ✅ PDF generation per playdate
-- ✅ Email digest cron (Resend)
+All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-28.md` for the remaining backlog.
 
-### Session 22-26 Features
-- ✅ Campaign system (/campaign/[slug])
-- ✅ Sampler curation (5 playdates, admin view separated)
-- ✅ Play context switcher (multi-context onboarding)
-- ✅ Complimentary invite system (/admin/invites)
-- ✅ Scavenger hunt page (/scavenger)
-- ✅ Quick-log button on playdate cards
-- ✅ Design tokens (packages/tokens) + accessibility
-- ✅ **Feature B**: First-visit onboarding banner + start-here card
-- ✅ **Feature C**: Community gallery with admin moderation
-- ✅ **Feature D**: Email nudge system (daily cron, Resend)
-- ✅ **Feature E**: Deterministic SVG playdate illustrations
-- ✅ **Feature F**: Age range indicators
-- ✅ **Feature G**: Energy level signal (calm/moderate/active)
-- ✅ **Feature I**: Seasonal recommendation banner
-- ✅ **Feature J**: PDF batch export for collections
-- ✅ **Feature K**: Co-play mode (invite codes + shared reflections)
-
-### Session 28-29 Features (Wave 2: Q–X)
-- ✅ **Feature Q**: Stripe price_id support (checkout uses pre-created Stripe prices)
-- ✅ **Feature T**: Playdate peek cards (expandable teasers for non-entitled pack view)
-- ✅ **Feature U**: Gallery approval email (Resend notification on admin approve)
-- ✅ **Feature V**: Campaign DB lookup (replace hardcoded campaign metadata)
-- ✅ **Feature W**: Pack finder wizard (3-question guided selector on /packs)
-- ✅ **Feature X**: Playbook search/filter (text search + progress filter chips)
-
-### Session 30 Features (Wish List: O, P, Y)
-- ✅ **Feature O**: PDF material icons (geometric shapes per 12 form categories in drawLinkedMaterials)
-- ✅ **Feature P**: Playdate preview composites (central function icons + denser activity hints)
-- ✅ **Feature Y**: Non-reader visual architecture (nav icons, section colours, mobile bottom tab bar)
-
-### Session 31 (Feb 28, 2026) — Hardening & Tooling
-- ✅ Migrations 028–033 applied to Neon (reflection credits, photo consents, leaderboard, tinkering tier, cover images, stripe_price_id)
-- ✅ Checkout flow fix: added `stripe_price_id` column + seeded 6 test-mode prices
-- ✅ SEO metadata pass: 10 additional routes (19 total with metadata)
-- ✅ Error boundaries: 7 route-specific `error.tsx` files (8 total including global)
-- ✅ Smoke test script: 29 routes, validates HTTP status + SEO tags
-- ✅ Migration runner script: comment-aware SQL splitting for Neon serverless driver
-
-### Session 32 (Feb 28, 2026) — Gallery View Control + Vertigo-Vault Monorepo Move
-- ✅ **Phase 1: Gallery View Control from Notion**
-  - `gallery_visible_fields` multi-select synced from Notion → Neon (JSONB column)
-  - PlaydateCard accepts `visibleFields` prop, gates each property block via `show()` helper
-  - All 7 usage sites updated; admin always sees all
-  - Migration 035, column selector, db-compat check added
-  - Notion property still needs to be created manually by Garrett
-- ✅ **Phase 2: Vertigo-Vault monorepo move**
-  - `apps/vertigo-vault/` — standalone Next.js app with ISR (revalidate=3600)
-  - Notion API fetching via `@notionhq/client` with pagination + block→markdown
-  - Full React UI: gallery grid, filter bar (type + duration), slide-in detail modal
-  - `basePath: "/reservoir/vertigo-vault"` set for routing via windedvertigo.com
-  - TypeScript compiles clean; no CI sync needed (ISR replaces it)
-  - **Needs**: `NOTION_TOKEN` env var in Vercel project settings
-- 🐛 **Critical fix: creaseworks 404s** — removed premature `basePath: "/reservoir/creaseworks"` from next.config.ts + updated Vercel rewrite destinations in apps/site/vercel.json
-- ✅ Migration runner updated for 034-035
-- ✅ CLAUDE.md Local Terminal Runbook added
-
-### Open UX Items (from review doc Part 1)
-- ✅ **Item 4**: First-visit onboarding — resolved (sessions 23, 26: onboarding wizard + FirstVisitBanner)
-- ✅ **Item 5**: Card visual hierarchy — resolved (sessions 26-27: SVG illustrations, age range tags, energy levels, "great first pick" beginner badge, "🔥 popular" badge for 5+ tries)
-- ✅ **Item 7**: Collection CTA — resolved (session 24, quick-log button + card links)
-- ✅ **Item 8**: Reflection form pre-select — resolved (pre-existing ?playdate= param)
-- ✅ **Item 9**: Playbook prominence — resolved (session 27: homepage redirects logged-in users to /playbook; grammar fix)
-- ✅ **Item 10**: Profile page minimal — resolved (session 27: ProfileDashboard with stats, badges, activity, streaks)
-
-### Content Status
-- 30 playdates (5 sampler, 3 campaign, 22 internal-only)
-- 12 collections (original 6 + story builders, nature detectives, color lab, body movers, quiet makers, fix-it shop)
-- 6 packs (co-design essentials, rainy day rescue, classroom starter, summer play camp, the whole collection, new baby sibling)
+### Engagement System (built, needs wiring)
+- ✅ `lib/queries/credits.ts` — awardCredit, getUserCredits, spendCredits, checkAndAwardStreakBonus
+- ✅ `components/credit-progress-bar.tsx` — server component on playbook page
+- ✅ `components/pack-upsell-section.tsx` — shows up to 2 unowned packs
+- ✅ `components/photo-consent-classifier.tsx` — 3-tier COPPA consent flow
+- ✅ `components/ui/run-form/run-form.tsx` — post-reflection pack upsell CTA
+- ⏳ Credit earning not yet wired into run submission
+- ⏳ Photo consent not yet wired into evidence upload
+- ⏳ Credit redemption UI not yet built
 
 ## Migration Log
 
@@ -199,28 +120,14 @@ src/
 
 **Error boundaries** (8 route groups): global (app root), packs, playbook, profile, admin, checkout, gallery, community
 
-## Upcoming / Open Items
-
-### Plan: Gallery View + Vertigo-Vault + URL Restructure (magical-brewing-hummingbird.md)
-- ✅ Phase 1: Gallery View Control from Notion (`gallery_visible_fields`)
-- ✅ Phase 2: Vertigo-Vault monorepo move (`apps/vertigo-vault/`)
-- ⏳ Phase 3: URL restructure (`/reservoir/*` routes) — on hold; basePath approach needs rethinking since creaseworks still uses subdomain
-
-### Earlier Wave 3 Plan
-- Phase 1: Admin playdate preview with pack-based filter toggles
-- Phase 2: Profile "your journey" redesign with owned packs + recommendations
-- Phase 3: Engagement system sprint 1 (credits foundation) — DB tables ready, queries/UI not started
-- Phase 4: Engagement system sprint 2 (photo consent + upsells)
-
-### Matcher Visual Refresh
-- The matcher page (`/matcher`) needs to be much less bland and more engaging
-- Add photos of materials as visual cues for children playing with the app
-- Goal: make the material selection step feel playful and intuitive, not like a plain form
+## Content Status
+- 30 playdates (5 sampler, 3 campaign, 22 internal-only)
+- 12 collections (original 6 + story builders, nature detectives, color lab, body movers, quiet makers, fix-it shop)
+- 6 packs (co-design essentials, rainy day rescue, classroom starter, summer play camp, the whole collection, new baby sibling)
 
 ## Session-Start Checklist
 
-1. Read this file + CLAUDE.md for full context
-2. Check `creaseworks-review.md` for open items
-3. Update Chrome tab IDs in this file if tabs have changed
-4. Run `npx tsc --noEmit --project apps/creaseworks/tsconfig.json` to verify baseline
-5. At session end: update this file, commit, and push
+1. Read this file + `docs/CLAUDE.md` for full context
+2. Check `docs/creaseworks-backlog-2026-02-28.md` for current backlog
+3. Run `npx tsc --noEmit --project apps/creaseworks/tsconfig.json` to verify baseline
+4. At session end: update this file, commit, and push

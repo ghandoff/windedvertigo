@@ -1,5 +1,7 @@
 # creaseworks — experience review & recommendations
 
+> **STATUS: RESOLVED** — All UX items from this audit have been addressed across sessions 22-32. See `docs/creaseworks-backlog-2026-02-28.md` for the current backlog.
+
 *Session 21 audit — February 25, 2026*
 
 ---

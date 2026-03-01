@@ -1,5 +1,7 @@
 # Creaseworks Site Audit — February 27, 2026
 
+> **STATUS: RESOLVED** — All issues from this audit have been fixed. Emoji fixed, packs nav visible, smoke test passing. See `docs/creaseworks-backlog-2026-02-28.md` for current backlog.
+
 ## Issue 1: Garbled Emoji Characters (CRITICAL — Visual)
 
 **What you see:** Strings like `ð¿`, `â¡`, `ð¯`, `ð§©` appearing instead of emoji on playdate cards and detail pages throughout the site.

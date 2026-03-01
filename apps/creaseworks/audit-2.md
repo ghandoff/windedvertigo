@@ -1,5 +1,7 @@
 # creaseworks — Audit 2
 
+> **STATUS: RESOLVED** — All 9 findings from this audit have been addressed. See `docs/creaseworks-backlog-2026-02-28.md` for current issues.
+
 **Date:** 2026-02-22
 **Scope:** Full codebase review — security, performance, reliability, infrastructure
 **Previous audit:** Session 12 (14 findings, all fixed)

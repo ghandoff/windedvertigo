@@ -2,15 +2,25 @@
 
 ## Session Memory
 
-Deep project state lives in `memory/` — read these FIRST at session start:
+Read these three files at session start — they are the single source of truth:
 
 | File | What's in it |
 |------|-------------|
-| `memory/projects/creaseworks.md` | Full creaseworks state: DB IDs, migration log, feature status, architecture, session-start checklist |
-| `apps/creaseworks/creaseworks-review.md` | UX audit + feature recommendations (changelog for sessions 21-26) |
-| `docs/creaseworks-session-status-2026-02-28.md` | Latest session status: completed work, outstanding items, learnings, key IDs |
+| `memory/projects/creaseworks.md` | Machine-readable project state: DB IDs, migration log, feature status, architecture, session-start checklist |
+| `docs/creaseworks-backlog-2026-02-28.md` | Consolidated backlog: what's done, what to build next, open questions |
+| This file (`docs/CLAUDE.md`) | Project conventions, commands, deployment, design tokens |
 
-**At session end**: update `memory/projects/creaseworks.md` with new migration numbers, file counts, feature status, and latest commit hash. This is what survives context compaction.
+**Design references** (read when working on specific features):
+
+| File | When to read |
+|------|-------------|
+| `docs/creaseworks-engagement-system.md` | Wiring credit system, photo consent, or upsells into user flows |
+| `docs/creaseworks-image-sync-scope.md` | Building image sync tiers 3-4 (file properties, body content) |
+| `docs/creaseworks-paywall-strategy.md` | Pack visibility, entitlement security, promotion touchpoints |
+| `docs/notion-database-map.md` | Notion DB IDs, sync architecture, env vars |
+| `docs/CREASEWORKS-DESIGN.md` | Full technical design (v0.3) — architecture, data models, visibility |
+
+**At session end**: update `memory/projects/creaseworks.md` with new migration numbers, file counts, feature status, and latest commit hash.
 
 ## Repository Structure
 
@@ -48,7 +58,7 @@ This monorepo contains all three winded.vertigo projects. No more multi-mount co
 - Data files in `apps/site/data/` are auto-generated — do not edit directly
 - Images in `apps/site/images/vertigo-vault/` are auto-downloaded from Notion
 
-### apps/creaseworks — creaseworks.windedvertigo.com
+### apps/creaseworks — windedvertigo.com/reservoir/creaseworks
 - Next.js 16, TypeScript, React 19, Tailwind CSS 4
 - Auth.js + Neon Postgres + Stripe + Resend
 - Repo: `ghandoff/windedvertigo` (this repo), Vercel Root Directory: `apps/creaseworks`
@@ -97,17 +107,16 @@ Maria uploads thumbnail images for portfolio and vertigo vault. Options:
 - The Sync Notion Content workflow runs on push to main (scripts changes only), manual dispatch, and daily at 6 AM UTC.
 - CI runs tsc + lint for creaseworks only when `apps/creaseworks/**` files change.
 
+### Commit Message Style
+- **Title**: `type: concise summary under 70 chars` (feat, fix, docs, chore)
+- **Description**: what changed and why, then a file manifest with one-line descriptions
+- Keep it human-readable — explain the *purpose*, not just the diff
+
 ## Deployment & Operations
 
-**Sandbox limitations**: The VM sandbox cannot make outbound HTTP requests (DNS blocked). Scripts that hit external services (Neon, Vercel, Stripe, etc.) must be prepared here but run by Garrett locally.
+**Claude Code has full network access** — it can run git operations, migrations, smoke tests, npm install, and all CLI commands directly. MCP integrations are also available for Vercel, Stripe, Notion, Cloudflare, Slack, Gmail, and Google Calendar.
 
-**What Claude CAN do in the sandbox**: git commit, git diff, git status, git log, file editing, TypeScript compilation (`npx tsc --noEmit`), writing scripts and migrations.
-
-**What Garrett must do locally**: `git push`, running migration scripts, running smoke tests against live URLs, any npm install that fetches packages.
-
-### Local Terminal Runbook
-
-These commands require network access and **must be run from Garrett's terminal**, not the sandbox. Claude should prepare the work (write migrations, scripts, code) and then tell Garrett which commands to run.
+### Common Commands
 
 ```bash
 # ── Git ──────────────────────────────────────────────────
@@ -120,7 +129,7 @@ node scripts/apply-migrations-028-032.mjs
 # Skips already-applied migrations. Safe to re-run.
 
 # ── Smoke Test (from apps/creaseworks/) ──────────────────
-node scripts/smoke-test.mjs https://creaseworks.windedvertigo.com
+node scripts/smoke-test.mjs https://windedvertigo.com/reservoir/creaseworks
 # Hits all 29 routes, checks HTTP status, title/og:title presence.
 # No auth — tests public + redirect behavior for protected routes.
 

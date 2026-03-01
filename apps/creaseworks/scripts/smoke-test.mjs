@@ -5,7 +5,7 @@
  *
  * Usage:
  *   node scripts/smoke-test.mjs                     # defaults to localhost:3000
- *   node scripts/smoke-test.mjs https://creaseworks.windedvertigo.com
+ *   node scripts/smoke-test.mjs https://windedvertigo.com/reservoir/creaseworks
  *
  * Requires: Node 18+ (uses native fetch).
  * No extra dependencies.
