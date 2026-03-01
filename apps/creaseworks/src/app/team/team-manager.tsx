@@ -10,6 +10,7 @@
  */
 
 import { useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface MemberRow {
   membership_id: string;
@@ -38,7 +39,7 @@ export default function TeamManager({
     setError(null);
 
     try {
-      const res = await fetch("/api/team/members", {
+      const res = await fetch(apiUrl("/api/team/members"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, role: newRole }),
@@ -65,7 +66,7 @@ export default function TeamManager({
     setError(null);
 
     try {
-      const res = await fetch("/api/team/members", {
+      const res = await fetch(apiUrl("/api/team/members"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
@@ -196,3 +197,4 @@ export default function TeamManager({
     </div>
   );
 }
+
