@@ -34,6 +34,11 @@ these items were listed as "not started" in the previous backlog but are now imp
 | 12 | credit progress bar on playbook | ✅ built — `credit-progress-bar.tsx` integrated on playbook page |
 | 13 | playbook "unlock more" upsell section | ✅ built — `pack-upsell-section.tsx` shows up to 2 unowned packs |
 | 14 | photo consent classification UI | ✅ built — `photo-consent-classifier.tsx` with 3-tier COPPA flow |
+| — | dual-scope entitlements (user + org) | ✅ built — migration 038, `checkEntitlement` accepts userId, `grantUserEntitlement`, partial indexes |
+| — | per-pack individual invites | ✅ built — `createInviteWithPacks`, `processInvitesOnSignIn`, pack selector UI on admin invites |
+| — | org member cap safety valve | ✅ built — `autoJoinOrg` checks `member_cap` before INSERT |
+| — | invite link on admin profile | ✅ built — manage section links to `/admin/invites` |
+| — | profile pack fetch for org-less users | ✅ built — `getOrgPacksWithProgress` accepts null orgId |
 
 ---
 
@@ -123,7 +128,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | metric | value |
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
-| Migrations | 037 (all applied to Neon) |
+| Migrations | 038 (all applied to Neon) |
 | Smoke test | 28/29 pass |
 | Source files | ~235 (.ts + .tsx) |
 | Features A–Y | all implemented |

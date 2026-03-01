@@ -14,10 +14,10 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | ~235 (.ts + .tsx) |
-| **Migrations** | 037 (latest: material_emoji) — 001-037 applied to Neon |
+| **Migrations** | 038 (latest: user_entitlements) — 001-038 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 35 (Mar 1, 2026) |
+| **Last session** | 37 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -85,6 +85,18 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ Photo consent wired into evidence capture flow
 - ✅ Credit redemption UI on playbook page (sampler_pdf=10, single_playdate=25, full_pack=50)
 
+### Dual-Scope Entitlements (session 37 — migration 038)
+- ✅ `entitlements.user_id` — nullable, with CHECK constraint (org_id OR user_id must be set)
+- ✅ Partial unique indexes: `idx_entitlements_org_pack` (org-level), `idx_entitlements_user_pack` (user-level)
+- ✅ `checkEntitlement(orgId, packCacheId, userId)` — checks both org-level and user-level
+- ✅ `grantUserEntitlement(userId, packCacheId)` — creates user-scoped entitlement
+- ✅ `invite_packs` table — links invites to specific packs
+- ✅ `createInviteWithPacks()`, `getInvitePacks()`, `processInvitesOnSignIn()` — full invite lifecycle
+- ✅ `organisations.member_cap` — limits domain auto-join (NULL = unlimited)
+- ✅ `autoJoinOrg` respects member_cap before INSERT
+- ✅ Admin invite form with pack selector UI at `/admin/invites`
+- ✅ Profile manage section shows invite link for admins
+
 ## Migration Log
 
 | # | Name | What it does |
@@ -108,6 +120,7 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 | 035 | gallery-visible-fields | `gallery_visible_fields JSONB` on playdates_cache |
 | 036 | rich-content | body_html on playdates/collections/packs, find/fold/unfold_html, illustration columns, cms_pages table |
 | 037 | material-emoji | `emoji TEXT` on materials_cache — CMS-managed emojis from Notion |
+| 038 | user-entitlements | `user_id` on entitlements (dual-scope), `invite_packs` table, `member_cap` on organisations |
 
 ## Stripe Price IDs (Test Mode)
 
