@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"; // @see next.js docs
 
 const nextConfig: NextConfig = {
   /* creaseworks is served at windedvertigo.com/reservoir/creaseworks via Vercel
@@ -39,5 +39,6 @@ const nextConfig: NextConfig = {
     ];
   },
 };
+
 
 export default nextConfig;
