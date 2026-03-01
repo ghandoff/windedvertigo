@@ -1,15 +1,17 @@
 /**
- * Admin playdates page — full catalog view across all release channels.
+ * Admin playdates page — full catalog view with content review.
  *
- * Requires admin access. Shows every ready playdate with its release_channel
- * and ip_tier so admins can audit what's public vs. internal.
+ * Requires admin access. Shows every ready playdate with pack filter
+ * toggles and content completeness indicators. Admins can expand any
+ * card to preview its full content (find/fold/unfold, materials,
+ * design notes) without leaving the admin area.
  *
- * Pack filter toggles let the admin preview each pack's playdate set —
- * exactly what an entitled user would see.
+ * The initial load fetches lightweight data with boolean completeness
+ * flags. Full content is lazy-loaded via the API when a card is expanded.
  */
 
 import { requireAdmin } from "@/lib/auth-helpers";
-import { getAllReadyPlaydates } from "@/lib/queries/playdates";
+import { getAdminPlaydates } from "@/lib/queries/playdates";
 import { getAllPacksWithPlaydateIds } from "@/lib/queries/packs";
 import AdminPlaydateBrowser from "@/components/admin/admin-playdate-browser";
 import Link from "next/link";
@@ -20,7 +22,7 @@ export default async function AdminPlaydatesPage() {
   await requireAdmin();
 
   const [playdates, packMappings] = await Promise.all([
-    getAllReadyPlaydates(),
+    getAdminPlaydates(),
     getAllPacksWithPlaydateIds(),
   ]);
 
@@ -36,6 +38,7 @@ export default async function AdminPlaydatesPage() {
         <p className="text-cadet/60 max-w-lg">
           every published playdate across all release channels.
           use the pack filters to preview what entitled users see.
+          click any card to expand a content preview.
         </p>
       </header>
 

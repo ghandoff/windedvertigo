@@ -187,6 +187,95 @@ export async function getAllCampaignPlaydates() {
   return result.rows;
 }
 
+// ── admin queries ──────────────────────────────────────────────────────
+
+/**
+ * Admin: fetch all ready playdates with content completeness indicators.
+ *
+ * Returns teaser-tier fields plus boolean flags for content presence
+ * (has_find, has_fold, has_unfold, has_body, has_illustration) and
+ * material_count. Keeps the payload small — full content is loaded
+ * on demand via getAdminPlaydateDetail().
+ */
+export async function getAdminPlaydates() {
+  const result = await sql.query(
+    `SELECT
+       p.id, p.slug, p.title, p.headline,
+       p.release_channel, p.status, p.primary_function,
+       p.arc_emphasis, p.context_tags, p.friction_dial,
+       p.start_in_120s, p.tinkering_tier, p.cover_url,
+       p.age_range, p.energy_level, p.campaign_tags,
+       p.notion_id, p.synced_at,
+       (p.find IS NOT NULL AND p.find != '')::bool AS has_find,
+       (p.fold IS NOT NULL AND p.fold != '')::bool AS has_fold,
+       (p.unfold IS NOT NULL AND p.unfold != '')::bool AS has_unfold,
+       (p.body_html IS NOT NULL AND p.body_html != '')::bool AS has_body,
+       (p.illustration_url IS NOT NULL AND p.illustration_url != '')::bool AS has_illustration,
+       (p.find_again_mode IS NOT NULL) AS has_find_again,
+       COALESCE(rc.run_count, 0)::int AS run_count,
+       COALESCE(mc.material_count, 0)::int AS material_count
+     FROM playdates_cache p
+     LEFT JOIN (
+       SELECT playdate_notion_id, COUNT(*)::int AS run_count
+       FROM runs_cache
+       GROUP BY playdate_notion_id
+     ) rc ON rc.playdate_notion_id = p.notion_id
+     LEFT JOIN (
+       SELECT pm.playdate_id, COUNT(*)::int AS material_count
+       FROM playdate_materials pm
+       JOIN materials_cache m ON m.id = pm.material_id AND m.do_not_use = false
+       GROUP BY pm.playdate_id
+     ) mc ON mc.playdate_id = p.id
+     WHERE p.status = 'ready'
+     ORDER BY p.title ASC`,
+  );
+  return result.rows;
+}
+
+/**
+ * Admin: fetch full detail for a single playdate (on-demand preview).
+ *
+ * Returns all content fields including find/fold/unfold HTML, body_html,
+ * materials list, and collective-tier metadata (design rationale, etc.).
+ * No column selector — admin bypasses the anti-leak tier.
+ */
+export async function getAdminPlaydateDetail(id: string) {
+  const [playdateResult, materialsResult] = await Promise.all([
+    sql.query(
+      `SELECT
+         id, slug, title, headline, headline_html,
+         release_channel, status, primary_function,
+         arc_emphasis, context_tags, friction_dial,
+         start_in_120s, tinkering_tier, cover_url,
+         age_range, energy_level, campaign_tags,
+         find, find_html, fold, fold_html, unfold, unfold_html,
+         find_again_mode, find_again_prompt, find_again_prompt_html,
+         slots_optional, slots_notes,
+         substitutions_notes, substitutions_notes_html,
+         body_html, illustration_url,
+         design_rationale, developmental_notes, author_notes,
+         notion_id, notion_last_edited, synced_at
+       FROM playdates_cache
+       WHERE id = $1
+       LIMIT 1`,
+      [id],
+    ),
+    sql.query(
+      `SELECT m.id, m.title, m.form_primary, m.functions, m.context_tags,
+              m.emoji
+       FROM materials_cache m
+       JOIN playdate_materials pm ON pm.material_id = m.id
+       WHERE pm.playdate_id = $1
+         AND m.do_not_use = false
+       ORDER BY m.title ASC`,
+      [id],
+    ),
+  ]);
+
+  if (!playdateResult.rows[0]) return null;
+  return { ...playdateResult.rows[0], materials: materialsResult.rows };
+}
+
 /**
  * Fetch teaser-tier materials linked to a playdate (by playdate UUID).
  */
