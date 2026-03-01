@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import LoginForm from "@/components/ui/login-form";
 
-export const metadata = { title: "sign in \u2014 creaseworks" };
+export const metadata = { title: "sign in" };
 
 export default async function LoginPage({
   searchParams,

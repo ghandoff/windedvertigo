@@ -12,7 +12,7 @@ import Link from "next/link";
 import InviteForm from "./invite-form";
 import InviteTable from "./invite-table";
 
-export const metadata = { title: "invites — admin — creaseworks" };
+export const metadata = { title: "invites — admin" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminInvitesPage() {

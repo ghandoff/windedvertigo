@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description:
     "community gallery — photos, quotes, and observations shared by families during creative play.",
   openGraph: {
-    title: "gallery — creaseworks",
+    title: "gallery",
     description:
       "community gallery — photos, quotes, and observations shared by families during creative play.",
   },

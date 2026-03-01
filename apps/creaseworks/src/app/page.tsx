@@ -22,7 +22,7 @@ import { getPublicStats } from "@/lib/queries/stats";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "creaseworks — playdates that use what you already have",
+  title: { absolute: "creaseworks — playdates that use what you already have" },
   description:
     "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever's on hand.",
   alternates: { canonical: "https://windedvertigo.com/reservoir/creaseworks" },

@@ -121,7 +121,7 @@ export default function LeaderboardOptIn({
       >
         <div>
           <h3 style={{ margin: "0 0 4px 0", fontSize: "16px", fontWeight: 600 }}>
-            Community Leaderboard
+            community leaderboard
           </h3>
           <p
             style={{
@@ -130,7 +130,7 @@ export default function LeaderboardOptIn({
               color: "var(--wv-cadet)",
             }}
           >
-            {optedIn ? "You're on the leaderboard" : "Join the community leaderboard"}
+            {optedIn ? "you're on the leaderboard" : "join the community leaderboard"}
           </p>
         </div>
 
@@ -150,7 +150,7 @@ export default function LeaderboardOptIn({
             transition: "opacity 0.2s",
           }}
         >
-          {optedIn ? "Leave" : "Join"}
+          {optedIn ? "leave" : "join"}
         </button>
       </div>
 
@@ -166,7 +166,7 @@ export default function LeaderboardOptIn({
               color: "var(--wv-cadet)",
             }}
           >
-            Display Name (optional)
+            display name (optional)
           </label>
           <input
             id="display-name"
@@ -194,7 +194,7 @@ export default function LeaderboardOptIn({
               color: "var(--wv-cadet)",
             }}
           >
-            If blank, we'll use your first name
+            if blank, we'll use your first name
           </p>
         </div>
       )}

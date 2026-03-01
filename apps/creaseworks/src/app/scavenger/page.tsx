@@ -15,7 +15,7 @@ import { PlaydateCard } from "@/components/ui/playdate-card";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "scavenger hunts — creaseworks",
+  title: "scavenger hunts",
   description:
     "discover themed playdate trails — each scavenger hunt is a curated set of hands-on activities linked by a common material or idea.",
 };

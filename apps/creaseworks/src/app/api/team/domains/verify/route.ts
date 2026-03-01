@@ -14,25 +14,26 @@ import {
   getDomainByToken,
 } from "@/lib/queries/organisations";
 
+/** Build a redirect URL that preserves basePath via nextUrl.clone(). */
+function teamRedirect(req: NextRequest, query: Record<string, string>) {
+  const url = req.nextUrl.clone();
+  url.pathname = "/team";
+  url.search = new URLSearchParams(query).toString();
+  return NextResponse.redirect(url);
+}
+
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
 
   if (!token) {
-    return NextResponse.redirect(
-      new URL("/team?verify=error&reason=missing-token", req.url),
-    );
+    return teamRedirect(req, { verify: "error", reason: "missing-token" });
   }
 
   const result = await verifyDomainByToken(token);
 
   if (result) {
     // success — redirect to team page with domain info
-    return NextResponse.redirect(
-      new URL(
-        `/team?verify=success&domain=${encodeURIComponent(result.domain)}`,
-        req.url,
-      ),
-    );
+    return teamRedirect(req, { verify: "success", domain: result.domain });
   }
 
   // verifyDomainByToken returned null — either the token is invalid,
@@ -42,17 +43,10 @@ export async function GET(req: NextRequest) {
   const existing = await getDomainByToken(token);
 
   if (existing?.verified) {
-    return NextResponse.redirect(
-      new URL(
-        `/team?verify=success&domain=${encodeURIComponent(existing.domain)}`,
-        req.url,
-      ),
-    );
+    return teamRedirect(req, { verify: "success", domain: existing.domain });
   }
 
   // token genuinely invalid or expired
   const reason = existing ? "expired-token" : "invalid-token";
-  return NextResponse.redirect(
-    new URL(`/team?verify=error&reason=${reason}`, req.url),
-  );
+  return teamRedirect(req, { verify: "error", reason });
 }

@@ -39,7 +39,7 @@ export async function generateMetadata(
   const { slug } = await params;
   const campaign = await getCampaignBySlug(slug);
   return {
-    title: campaign?.title ?? `${slug} — creaseworks campaign`,
+    title: campaign?.title ?? slug,
     description: campaign?.description ?? `playdates from the ${slug} campaign.`,
   };
 }

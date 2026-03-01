@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { addCoPlayReflections } from "@/lib/queries/co-play";
 import { logAccess } from "@/lib/queries/audit";
+import { awardCredit, CREDIT_VALUES } from "@/lib/queries/credits";
 import { MAX_LENGTHS, checkLength, parseJsonBody } from "@/lib/validation";
 
 export async function POST(
@@ -82,6 +83,15 @@ export async function POST(
       { status: 404 },
     );
   }
+
+  // Award credit for full reflection (fire-and-forget)
+  awardCredit(
+    session.userId,
+    session.orgId,
+    CREDIT_VALUES.full_reflection,
+    "full_reflection",
+    id,
+  ).catch(() => {});
 
   // Audit log
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
