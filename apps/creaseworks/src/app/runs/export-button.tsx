@@ -11,6 +11,7 @@
  */
 
 import { useState, useRef, useEffect } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 export default function ExportButton() {
   const [open, setOpen] = useState(false);
@@ -35,7 +36,7 @@ export default function ExportButton() {
     setOpen(false);
 
     try {
-      const res = await fetch(`/api/runs/export?format=${format}`);
+      const res = await fetch(apiUrl(`/api/runs/export?format=${format}`));
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.error || `export failed (${res.status})`);

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api-url";
 
 interface CoPlayReflectionFormProps {
   runId: string;
@@ -57,7 +58,7 @@ export function CoPlayReflectionForm({
 
       setIsSubmitting(true);
       try {
-        const res = await fetch(`/api/runs/${runId}/co-play-reflections`, {
+        const res = await fetch(apiUrl(`/api/runs/${runId}/co-play-reflections`), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

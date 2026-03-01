@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { CoPlayDetails } from "@/lib/queries/co-play";
+import { apiUrl } from "@/lib/api-url";
 
 interface CoPlayInviteProps {
   runId: string;
@@ -20,7 +21,7 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/runs/${runId}/co-play`);
+      const res = await fetch(apiUrl(`/api/runs/${runId}/co-play`));
       if (!res.ok) {
         // 404 is normal if co-play hasn't been enabled
         if (res.status === 404) {
@@ -44,7 +45,7 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/runs/${runId}/co-play`, {
+      const res = await fetch(apiUrl(`/api/runs/${runId}/co-play`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

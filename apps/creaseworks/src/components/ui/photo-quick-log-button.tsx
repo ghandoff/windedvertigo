@@ -93,7 +93,7 @@ export default function PhotoQuickLogButton({
       const { id: runId } = await runRes.json();
 
       // 2. create the evidence record
-      const evidenceRes = await fetch(`/api/runs/${runId}/evidence`, {
+      const evidenceRes = await fetch(apiUrl(`/api/runs/${runId}/evidence`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -118,7 +118,7 @@ export default function PhotoQuickLogButton({
       );
 
       // 4. patch the evidence record with the storage keys
-      await fetch(`/api/runs/${runId}/evidence/${evidenceId}`, {
+      await fetch(apiUrl(`/api/runs/${runId}/evidence/${evidenceId}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ storageKey, thumbnailKey }),

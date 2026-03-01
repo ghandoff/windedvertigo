@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface CollectionExportButtonProps {
   collectionSlug: string;
@@ -19,7 +20,7 @@ export default function CollectionExportButton({
     setError(null);
 
     try {
-      const res = await fetch(`/api/collections/${encodeURIComponent(collectionSlug)}/pdf`);
+      const res = await fetch(apiUrl(`/api/collections/${encodeURIComponent(collectionSlug)}/pdf`));
 
       if (!res.ok) {
         const msg = await res.text();

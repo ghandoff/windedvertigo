@@ -67,7 +67,7 @@ export default function RunForm({
     for (const photo of evidenceState.photos) {
       promises.push(
         (async () => {
-          const res = await fetch(`/api/runs/${runId}/evidence`, {
+          const res = await fetch(apiUrl(`/api/runs/${runId}/evidence`), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ evidenceType: "photo" }),
@@ -84,7 +84,7 @@ export default function RunForm({
           );
 
           // Update evidence record with storage keys
-          await fetch(`/api/runs/${runId}/evidence/${evidenceId}`, {
+          await fetch(apiUrl(`/api/runs/${runId}/evidence/${evidenceId}`), {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ storageKey, thumbnailKey }),
@@ -97,7 +97,7 @@ export default function RunForm({
     for (const quote of evidenceState.quotes) {
       promises.push(
         (async () => {
-          await fetch(`/api/runs/${runId}/evidence`, {
+          await fetch(apiUrl(`/api/runs/${runId}/evidence`), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -115,7 +115,7 @@ export default function RunForm({
       if (!obs.body.trim()) continue;
       promises.push(
         (async () => {
-          await fetch(`/api/runs/${runId}/evidence`, {
+          await fetch(apiUrl(`/api/runs/${runId}/evidence`), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
