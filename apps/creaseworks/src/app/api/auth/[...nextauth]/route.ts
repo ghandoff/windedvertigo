@@ -12,9 +12,12 @@ function withBasePath(
   handler: (req: NextRequest) => Promise<Response>,
 ) {
   return async (req: NextRequest) => {
+    const origUrl = req.url;
     const url = new URL(req.url);
     url.pathname = `/reservoir/creaseworks${url.pathname}`;
-    return handler(new NextRequest(url.toString(), req));
+    const patched = new NextRequest(url.toString(), req);
+    console.error("[auth-debug] orig:", origUrl, "| patched:", patched.url, "| nextUrl.pathname:", patched.nextUrl.pathname);
+    return handler(patched);
   };
 }
 
