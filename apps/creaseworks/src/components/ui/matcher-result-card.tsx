@@ -1,25 +1,17 @@
 "use client";
 
 /**
- * Matcher result card — displays a single ranked playdate.
+ * Matcher result card — playful, warm, child-friendly.
  *
- * Shows score, coverage breakdown, substitution suggestions,
- * find-again teaser, and entitlement-aware links.
- *
- * MVP 3 — matcher.
- * Session 12: mobile-first responsive redesign — stacked score+title
- *   on small screens, collapsible coverage detail, larger CTA touch
- *   targets, and improved tag wrapping.
- * Session 31: aesthetic refresh — hover lift with warm shadow and
- *   champagne border tint, spring-like cubic-bezier transition.
+ * Replaces the numeric score with a visual match quality indicator
+ * (stars + color), uses friendlier language, bigger touch targets,
+ * and more inviting CTAs.
  */
 
 import { useState } from "react";
 import Link from "next/link";
 
-/* ------------------------------------------------------------------ */
-/*  types (matches MatcherResult.ranked[n] from the API)              */
-/* ------------------------------------------------------------------ */
+/* ── types ─────────────────────────────────────────────────────────── */
 
 interface SubstitutionSuggestion {
   missingMaterial: string;
@@ -52,9 +44,20 @@ interface RankedPlaydate {
   packSlugs: string[];
 }
 
-/* ------------------------------------------------------------------ */
-/*  component                                                          */
-/* ------------------------------------------------------------------ */
+/* ── helpers ───────────────────────────────────────────────────────── */
+
+/** Convert 0-100 score to a playful match quality label + emoji. */
+function getMatchQuality(score: number) {
+  if (score >= 80)
+    return { label: "perfect match!", emoji: "🌟", stars: 3, color: "var(--wv-redwood)" };
+  if (score >= 55)
+    return { label: "great match", emoji: "⭐", stars: 2, color: "var(--wv-sienna)" };
+  if (score >= 30)
+    return { label: "good match", emoji: "✨", stars: 1, color: "var(--wv-champagne)" };
+  return { label: "worth a try", emoji: "💫", stars: 0, color: "rgba(39, 50, 72, 0.3)" };
+}
+
+/* ── component ─────────────────────────────────────────────────────── */
 
 export default function MatcherResultCard({
   playdate,
@@ -62,58 +65,59 @@ export default function MatcherResultCard({
   playdate: RankedPlaydate;
 }) {
   const { coverage } = playdate;
+  const match = getMatchQuality(playdate.score);
   const hasCoverageDetail =
     coverage.materialsCovered.length > 0 ||
     coverage.materialsMissing.length > 0 ||
     coverage.formsCovered.length > 0 ||
     coverage.formsMissing.length > 0;
 
-  // on mobile, coverage detail is collapsed by default to save space
   const [coverageOpen, setCoverageOpen] = useState(false);
 
   return (
     <div
       role="group"
-      aria-label={`${playdate.title} — score ${playdate.score}`}
-      className="rounded-xl border p-4 sm:p-5"
+      aria-label={`${playdate.title} — ${match.label}`}
+      className="rounded-2xl border-2 p-5"
       style={{
-        borderColor: "rgba(39, 50, 72, 0.1)",
+        borderColor: "rgba(39, 50, 72, 0.08)",
         backgroundColor: "var(--wv-white)",
-        transition: "all 200ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+        transition: "all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)",
         cursor: "default",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 4px 16px rgba(203, 120, 88, 0.1)";
+        e.currentTarget.style.transform = "translateY(-3px)";
+        e.currentTarget.style.boxShadow =
+          "0 6px 24px rgba(203, 120, 88, 0.12)";
         e.currentTarget.style.borderColor = "rgba(203, 120, 88, 0.2)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.boxShadow = "none";
-        e.currentTarget.style.borderColor = "rgba(39, 50, 72, 0.1)";
+        e.currentTarget.style.borderColor = "rgba(39, 50, 72, 0.08)";
       }}
     >
-      {/* header: score + title — stacked on mobile, side-by-side on sm+ */}
-      <div className="flex items-start gap-3 sm:gap-4">
-        {/* score badge — slightly smaller on mobile */}
+      {/* ── header: match quality + title ──────────────── */}
+      <div className="flex items-start gap-3">
+        {/* match quality badge — visual, not numeric */}
         <div
-          className="flex-shrink-0 flex items-center justify-center rounded-lg w-11 h-11 sm:w-14 sm:h-14 text-base sm:text-lg font-bold"
+          className="flex-shrink-0 flex flex-col items-center justify-center rounded-xl w-14 h-14"
           style={{
-            backgroundColor:
-              playdate.score >= 70
-                ? "var(--wv-redwood)"
-                : playdate.score >= 40
-                  ? "var(--wv-sienna)"
-                  : "rgba(39, 50, 72, 0.1)",
-            color: playdate.score >= 40 ? "var(--wv-white)" : "var(--wv-cadet)",
+            backgroundColor: `${match.color}18`,
           }}
         >
-          {playdate.score}
+          <span className="text-xl leading-none">{match.emoji}</span>
+          <span
+            className="text-[9px] font-bold mt-0.5 uppercase tracking-wider"
+            style={{ color: match.color }}
+          >
+            {playdate.score}%
+          </span>
         </div>
 
         <div className="flex-1 min-w-0">
           <h3
-            className="text-base sm:text-lg font-semibold tracking-tight leading-snug"
+            className="text-base sm:text-lg font-bold tracking-tight leading-snug"
             style={{ color: "var(--wv-cadet)" }}
           >
             {playdate.title}
@@ -121,20 +125,30 @@ export default function MatcherResultCard({
           {playdate.headline && (
             <p
               className="text-sm mt-0.5 line-clamp-2"
-              style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
+              style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
             >
               {playdate.headline}
             </p>
           )}
+          {/* match quality label */}
+          <p
+            className="text-xs font-medium mt-1"
+            style={{ color: match.color }}
+          >
+            {match.label}
+          </p>
         </div>
       </div>
 
-      {/* tags row — wraps naturally, slightly larger on mobile */}
+      {/* ── tags row ───────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-1.5 mt-3">
         {playdate.primaryFunction && (
           <span
-            className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs"
-            style={{ backgroundColor: "var(--wv-champagne)", color: "var(--wv-cadet)" }}
+            className="rounded-full px-3 py-1.5 text-xs font-medium"
+            style={{
+              backgroundColor: "var(--wv-champagne)",
+              color: "var(--wv-cadet)",
+            }}
           >
             {playdate.primaryFunction}
           </span>
@@ -142,9 +156,9 @@ export default function MatcherResultCard({
         {playdate.arcEmphasis.map((arc) => (
           <span
             key={arc}
-            className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs"
+            className="rounded-full px-3 py-1.5 text-xs"
             style={{
-              backgroundColor: "rgba(39, 50, 72, 0.06)",
+              backgroundColor: "rgba(39, 50, 72, 0.05)",
               color: "var(--wv-cadet)",
               opacity: 0.7,
             }}
@@ -154,54 +168,55 @@ export default function MatcherResultCard({
         ))}
         {playdate.startIn120s && (
           <span
-            className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs font-medium"
+            className="rounded-full px-3 py-1.5 text-xs font-bold"
             style={{
               backgroundColor: "rgba(177, 80, 67, 0.1)",
               color: "var(--wv-redwood)",
             }}
           >
-            ready in 2 min
+            ⚡ ready in 2 min
           </span>
         )}
         {playdate.frictionDial != null && (
           <span
             className="text-xs px-1"
-            style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+            style={{ color: "var(--wv-cadet)", opacity: 0.35 }}
           >
-            friction {playdate.frictionDial}/5
+            {"🟢🟡🟠🔴🔴".charAt(playdate.frictionDial - 1) || "🟢"}{" "}
+            effort {playdate.frictionDial}/5
           </span>
         )}
         {playdate.hasFindAgain &&
           (playdate.isEntitled && playdate.findAgainMode ? (
             <span
-              className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs font-medium"
+              className="rounded-full px-3 py-1.5 text-xs font-medium"
               style={{
                 backgroundColor: "rgba(177, 80, 67, 0.1)",
                 color: "var(--wv-redwood)",
               }}
             >
-              find again: {playdate.findAgainMode}
+              🔄 find again: {playdate.findAgainMode}
             </span>
           ) : (
             <span
-              className="rounded-full px-2.5 py-1 sm:px-2 sm:py-0.5 text-xs font-medium"
+              className="rounded-full px-3 py-1.5 text-xs font-medium"
               style={{
                 backgroundColor: "rgba(203, 120, 88, 0.1)",
                 color: "var(--wv-sienna)",
               }}
             >
-              includes find again
+              ✨ includes find again
             </span>
           ))}
       </div>
 
-      {/* coverage detail — collapsible on mobile */}
+      {/* ── coverage detail ────────────────────────────── */}
       {hasCoverageDetail && (
         <div
           className="mt-3 pt-3 border-t"
-          style={{ borderColor: "rgba(39, 50, 72, 0.06)" }}
+          style={{ borderColor: "rgba(39, 50, 72, 0.05)" }}
         >
-          {/* mobile: toggle button */}
+          {/* mobile toggle */}
           <button
             type="button"
             onClick={() => setCoverageOpen(!coverageOpen)}
@@ -214,7 +229,7 @@ export default function MatcherResultCard({
               height="12"
               viewBox="0 0 16 16"
               fill="none"
-              className="transition-transform duration-150"
+              className="transition-transform duration-200"
               style={{
                 transform: coverageOpen ? "rotate(180deg)" : "rotate(0deg)",
               }}
@@ -227,7 +242,7 @@ export default function MatcherResultCard({
                 strokeLinejoin="round"
               />
             </svg>
-            {coverageOpen ? "hide what you need" : "show what you need"}
+            {coverageOpen ? "hide details" : "what you need"}
             <span style={{ opacity: 0.7 }}>
               ({coverage.materialsCovered.length} of{" "}
               {coverage.materialsCovered.length +
@@ -236,16 +251,14 @@ export default function MatcherResultCard({
             </span>
           </button>
 
-          {/* desktop: always visible. mobile: collapsible */}
           <div className={`${coverageOpen ? "" : "hidden"} sm:block`}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              {/* materials coverage */}
               {(coverage.materialsCovered.length > 0 ||
                 coverage.materialsMissing.length > 0) && (
                 <div>
                   <h4
-                    className="font-medium mb-1"
-                    style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
+                    className="font-bold mb-1"
+                    style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
                   >
                     materials
                   </h4>
@@ -255,30 +268,33 @@ export default function MatcherResultCard({
                         key={m.id}
                         style={{ color: "var(--wv-cadet)", opacity: 0.7 }}
                       >
-                        <span style={{ color: "var(--color-success-vivid)" }}>✓</span> {m.title}
+                        <span style={{ color: "var(--color-success-vivid)" }}>
+                          ✓
+                        </span>{" "}
+                        {m.title}
                       </div>
                     ))}
                     {coverage.materialsMissing.map((m) => (
                       <div
                         key={m.id}
-                        style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+                        style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
                       >
-                        <span style={{ color: "var(--wv-redwood)" }}>✗</span> {m.title}
+                        <span style={{ color: "var(--wv-redwood)" }}>✗</span>{" "}
+                        {m.title}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* forms coverage */}
               {(coverage.formsCovered.length > 0 ||
                 coverage.formsMissing.length > 0) && (
                 <div>
                   <h4
-                    className="font-medium mb-1"
-                    style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
+                    className="font-bold mb-1"
+                    style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
                   >
-                    forms
+                    types
                   </h4>
                   <div className="space-y-0.5">
                     {coverage.formsCovered.map((f) => (
@@ -286,15 +302,19 @@ export default function MatcherResultCard({
                         key={f}
                         style={{ color: "var(--wv-cadet)", opacity: 0.7 }}
                       >
-                        <span style={{ color: "var(--color-success-vivid)" }}>✓</span> {f}
+                        <span style={{ color: "var(--color-success-vivid)" }}>
+                          ✓
+                        </span>{" "}
+                        {f}
                       </div>
                     ))}
                     {coverage.formsMissing.map((f) => (
                       <div
                         key={f}
-                        style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+                        style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
                       >
-                        <span style={{ color: "var(--wv-redwood)" }}>✗</span> {f}
+                        <span style={{ color: "var(--wv-redwood)" }}>✗</span>{" "}
+                        {f}
                       </div>
                     ))}
                   </div>
@@ -305,13 +325,16 @@ export default function MatcherResultCard({
         </div>
       )}
 
-      {/* substitution suggestions */}
+      {/* ── substitution suggestions ───────────────────── */}
       {coverage.suggestedSubstitutions.length > 0 && (
         <div
-          className="mt-3 rounded-lg p-3 text-xs"
-          style={{ backgroundColor: "var(--wv-champagne)", color: "var(--wv-cadet)" }}
+          className="mt-3 rounded-xl p-4 text-xs"
+          style={{
+            backgroundColor: "var(--wv-champagne)",
+            color: "var(--wv-cadet)",
+          }}
         >
-          <h4 className="font-medium mb-1">swap ideas</h4>
+          <h4 className="font-bold mb-1">💡 swap ideas</h4>
           {coverage.suggestedSubstitutions.map((sub, i) => (
             <p key={i} style={{ opacity: 0.8 }}>
               instead of <strong>{sub.missingMaterial}</strong>, try{" "}
@@ -321,23 +344,26 @@ export default function MatcherResultCard({
         </div>
       )}
 
-      {/* entitled: substitutions notes from author */}
+      {/* ── author substitution notes ──────────────────── */}
       {playdate.isEntitled && playdate.substitutionsNotes && (
         <div
-          className="mt-3 rounded-lg p-3 text-xs"
+          className="mt-3 rounded-xl p-4 text-xs"
           style={{
             backgroundColor: "rgba(177, 80, 67, 0.05)",
             color: "var(--wv-cadet)",
           }}
         >
-          <h4 className="font-medium mb-1" style={{ color: "var(--wv-redwood)" }}>
-            tips on swapping materials
+          <h4
+            className="font-bold mb-1"
+            style={{ color: "var(--wv-redwood)" }}
+          >
+            🔧 tips on swapping materials
           </h4>
           <p style={{ opacity: 0.8 }}>{playdate.substitutionsNotes}</p>
         </div>
       )}
 
-      {/* pack links / CTA — full-width on mobile for easy tapping */}
+      {/* ── CTAs ───────────────────────────────────────── */}
       {playdate.packSlugs.length > 0 && (
         <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
           {playdate.isEntitled
@@ -345,43 +371,44 @@ export default function MatcherResultCard({
                 <Link
                   key={slug}
                   href={`/packs/${slug}/playdates/${playdate.slug}`}
-                  className="flex items-center justify-center rounded-lg px-4 py-3 sm:px-3 sm:py-1.5 text-sm sm:text-xs font-medium transition-all hover:opacity-80 active:scale-[0.98]"
+                  className="flex items-center justify-center rounded-xl px-5 py-3.5 text-sm font-bold transition-all hover:opacity-90 active:scale-[0.97]"
                   style={{
                     backgroundColor: "var(--wv-redwood)",
                     color: "var(--wv-white)",
-                    minHeight: 44,
+                    minHeight: 48,
+                    boxShadow: "0 2px 12px rgba(177, 80, 67, 0.2)",
                   }}
                 >
-                  see full playdate →
+                  let&apos;s make this! →
                 </Link>
               ))
             : playdate.packSlugs.map((slug) => (
                 <Link
                   key={slug}
                   href={`/packs/${slug}`}
-                  className="flex items-center justify-center rounded-lg px-4 py-3 sm:px-3 sm:py-1.5 text-sm sm:text-xs font-medium transition-all hover:opacity-80 active:scale-[0.98]"
+                  className="flex items-center justify-center rounded-xl px-5 py-3.5 text-sm font-bold transition-all hover:opacity-90 active:scale-[0.97]"
                   style={{
                     backgroundColor: "transparent",
                     color: "var(--wv-redwood)",
-                    border: "1px solid var(--wv-redwood)",
-                    minHeight: 44,
+                    border: "2px solid var(--wv-redwood)",
+                    minHeight: 48,
                   }}
                 >
-                  get the pack →
+                  see the pack →
                 </Link>
               ))}
         </div>
       )}
 
-      {/* sampler-only playdates (no pack) link to sampler */}
+      {/* sampler-only playdates */}
       {playdate.packSlugs.length === 0 && (
         <div className="mt-4">
           <Link
             href={`/sampler/${playdate.slug}`}
-            className="inline-flex items-center justify-center rounded-lg px-4 py-3 sm:px-0 sm:py-0 text-sm sm:text-xs font-medium transition-opacity hover:opacity-80 active:scale-[0.98]"
-            style={{ color: "var(--wv-redwood)", minHeight: 44 }}
+            className="inline-flex items-center justify-center rounded-xl px-5 py-3.5 text-sm font-bold transition-opacity hover:opacity-80 active:scale-[0.97]"
+            style={{ color: "var(--wv-redwood)", minHeight: 48 }}
           >
-            view in sampler →
+            check it out →
           </Link>
         </div>
       )}

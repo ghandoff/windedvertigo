@@ -144,6 +144,13 @@ export function useMatcherState(materials: Material[]) {
     return map;
   }, [materials]);
 
+  // resolve material form_primary for emoji lookup
+  const materialFormMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const mat of materials) map.set(mat.id, mat.form_primary);
+    return map;
+  }, [materials]);
+
   return {
     selectedMaterials,
     setSelectedMaterials,
@@ -173,6 +180,7 @@ export function useMatcherState(materials: Material[]) {
     handleSubmit,
     handleClear,
     materialTitleMap,
+    materialFormMap,
   };
 }
 

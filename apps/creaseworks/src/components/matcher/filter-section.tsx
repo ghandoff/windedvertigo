@@ -3,19 +3,21 @@
 import { useState, useId } from "react";
 
 /**
- * Accordion-style section that starts expanded on desktop, collapsed on
- * mobile (via the defaultOpen prop). Shows a count badge when items are
- * selected and the section is collapsed.
+ * Playful accordion section with emoji icon, warm colors when active,
+ * and a bouncy expand/collapse animation. Designed to feel like opening
+ * a treasure chest, not filling out a form.
  */
 export function FilterSection({
   title,
   subtitle,
+  emoji,
   selectedCount,
   defaultOpen = true,
   children,
 }: {
   title: string;
   subtitle?: string;
+  emoji?: string;
   selectedCount: number;
   defaultOpen?: boolean;
   children: React.ReactNode;
@@ -23,61 +25,94 @@ export function FilterSection({
   const [open, setOpen] = useState(defaultOpen);
   const panelId = useId();
 
+  const hasItems = selectedCount > 0;
+
   return (
     <section
-      className="rounded-xl border transition-all duration-200"
+      className="rounded-2xl border-2 transition-all duration-300"
       style={{
-        borderColor: selectedCount > 0 ? "rgba(203, 120, 88, 0.2)" : "rgba(39, 50, 72, 0.08)",
-        backgroundColor: selectedCount > 0 ? "rgba(255, 235, 210, 0.15)" : "var(--wv-white)",
-        boxShadow: selectedCount > 0 ? "0 1px 4px rgba(203, 120, 88, 0.06)" : "none",
+        borderColor: hasItems
+          ? "rgba(203, 120, 88, 0.25)"
+          : "rgba(39, 50, 72, 0.06)",
+        backgroundColor: hasItems
+          ? "rgba(255, 235, 210, 0.2)"
+          : "var(--wv-white)",
+        boxShadow: hasItems
+          ? "0 2px 12px rgba(203, 120, 88, 0.08)"
+          : "0 1px 4px rgba(0,0,0,0.03)",
       }}
     >
-      {/* section header — always visible, acts as toggle */}
+      {/* section header — tappable, playful */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-controls={panelId}
-        className="w-full flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 text-left"
+        className="w-full flex items-center justify-between px-5 py-4 text-left"
       >
-        <div className="flex items-center gap-2 min-w-0">
-          <h2
-            className="text-sm font-semibold truncate"
-            style={{ color: "var(--wv-cadet)", opacity: 0.8 }}
-          >
-            {title}
-          </h2>
-          {selectedCount > 0 && (
+        <div className="flex items-center gap-3 min-w-0">
+          {emoji && (
             <span
-              className="flex-shrink-0 inline-flex items-center justify-center rounded-full text-xs font-medium"
+              className="text-xl flex-shrink-0"
+              style={{
+                transition:
+                  "transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                transform: open ? "scale(1.15) rotate(-5deg)" : "scale(1)",
+              }}
+            >
+              {emoji}
+            </span>
+          )}
+          <div className="min-w-0">
+            <h2
+              className="text-sm font-bold truncate"
+              style={{ color: "var(--wv-cadet)" }}
+            >
+              {title}
+            </h2>
+            {subtitle && !open && (
+              <p
+                className="text-xs truncate mt-0.5"
+                style={{ color: "var(--wv-cadet)", opacity: 0.4 }}
+              >
+                {subtitle}
+              </p>
+            )}
+          </div>
+          {hasItems && (
+            <span
+              className="flex-shrink-0 inline-flex items-center justify-center rounded-full text-xs font-bold"
               style={{
                 backgroundColor: "var(--wv-redwood)",
                 color: "var(--wv-white)",
-                minWidth: 22,
-                height: 22,
-                padding: "0 6px",
+                minWidth: 24,
+                height: 24,
+                padding: "0 7px",
+                animation:
+                  "filterBadgePop 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
               }}
             >
               {selectedCount}
             </span>
           )}
         </div>
-        {/* chevron indicator */}
+        {/* chevron with playful rotation */}
         <svg
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           viewBox="0 0 16 16"
           fill="none"
-          className="flex-shrink-0 transition-transform duration-200"
+          className="flex-shrink-0"
           style={{
+            transition: "transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            opacity: 0.4,
+            opacity: 0.35,
           }}
         >
           <path
             d="M4 6L8 10L12 6"
             stroke="var(--wv-cadet)"
-            strokeWidth="1.5"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -86,7 +121,7 @@ export function FilterSection({
 
       {/* collapsible body */}
       {open && (
-        <div id={panelId} role="region" className="px-4 pb-4 sm:px-5 sm:pb-5">
+        <div id={panelId} role="region" className="px-5 pb-5">
           {subtitle && (
             <p
               className="text-xs mb-3"

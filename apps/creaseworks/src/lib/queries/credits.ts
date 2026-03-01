@@ -1,42 +1,18 @@
 /**
  * Reflection credits — award, balance, history, spend.
  *
- * Credit values:
- *   quick_log          = 1
- *   full_reflection    = 1
- *   photo_added        = 2
- *   marketing_consent  = 3
- *   find_again         = 2
- *   streak_bonus       = 5
- *
- * Redemption thresholds:
- *   sampler_pdf       = 10
- *   single_playdate   = 25
- *   full_pack         = 50
+ * Constants (CREDIT_VALUES, REDEMPTION_THRESHOLDS) live in
+ * credit-constants.ts so client components can import them
+ * without pulling in the server-only db module.
  */
 
 import { sql } from "@/lib/db";
-
-/* ------------------------------------------------------------------ */
-/*  credit reasons + amounts                                           */
-/* ------------------------------------------------------------------ */
-
-export const CREDIT_VALUES = {
-  quick_log: 1,
-  full_reflection: 1,
-  photo_added: 2,
-  marketing_consent: 3,
-  find_again: 2,
-  streak_bonus: 5,
-} as const;
-
-export type CreditReason = keyof typeof CREDIT_VALUES;
-
-export const REDEMPTION_THRESHOLDS = {
-  sampler_pdf: 10,
-  single_playdate: 25,
-  full_pack: 50,
-} as const;
+import { CREDIT_VALUES } from "./credit-constants";
+export {
+  CREDIT_VALUES,
+  REDEMPTION_THRESHOLDS,
+  type CreditReason,
+} from "./credit-constants";
 
 /* ------------------------------------------------------------------ */
 /*  award                                                              */

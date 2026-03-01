@@ -1,21 +1,21 @@
 /**
- * /matcher — public playdate matcher page.
+ * /matcher — playdate finder.
  *
- * Server component that fetches picker data (materials, forms, slots,
- * contexts) and passes them to the client-side form component.
+ * The most playful page in creaseworks. A child should be able to
+ * look at this and know exactly what to do: pick your stuff, pick
+ * your place, and find something fun to make together.
  *
- * MVP 3 — matcher.
- * Session 12: mobile-first responsive layout — reduced padding on
- *   small screens, responsive heading, shorter intro copy on mobile.
+ * Server component that fetches picker data and passes to the
+ * client-side form component.
  */
 
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "playdate matcher",
+  title: "playdate finder",
   description:
-    "tell us what materials you have on hand and we'll find playdates that work. cardboard, sticks, fabric, tape — whatever's around.",
+    "tell us what stuff you have around the house and we'll find playdates that work. cardboard, sticks, fabric, tape — whatever you can find!",
 };
 import { getAllMaterials } from "@/lib/queries/materials";
 import {
@@ -38,45 +38,69 @@ export default async function MatcherPage() {
 
   return (
     <main
-      className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-16 sm:pb-16"
+      className="min-h-screen px-4 pt-8 pb-24 sm:px-6 sm:pt-14 sm:pb-16"
       style={{
         background:
-          "linear-gradient(175deg, rgba(255,235,210,0.18) 0%, rgba(255,255,255,0) 40%)",
+          "linear-gradient(175deg, rgba(255,235,210,0.25) 0%, rgba(228,196,137,0.06) 30%, rgba(255,255,255,0) 55%)",
       }}
     >
       <div className="max-w-5xl mx-auto">
         <Link
           href="/"
-          className="text-sm hover:opacity-80 transition-opacity mb-4 sm:mb-6 inline-block"
-          style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
+          className="text-sm hover:opacity-80 transition-opacity mb-5 sm:mb-7 inline-flex items-center gap-1.5"
+          style={{ color: "var(--wv-cadet)", opacity: 0.45 }}
         >
-          &larr; creaseworks
+          <span>&larr;</span> creaseworks
         </Link>
 
-        {/* playful heading with decorative accent */}
-        <div className="relative mb-6 sm:mb-8">
-          {/* small decorative dot cluster — desktop only */}
+        {/* ── playful hero heading ──────────────────────────── */}
+        <div className="relative mb-8 sm:mb-10">
+          {/* decorative floating shapes — desktop only */}
           <div
-            className="hidden sm:block absolute -left-6 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
-            style={{ backgroundColor: "var(--wv-sienna)", opacity: 0.3 }}
+            className="hidden sm:block absolute -left-10 top-2 w-5 h-5 rounded-lg"
+            style={{
+              backgroundColor: "var(--wv-champagne)",
+              opacity: 0.4,
+              transform: "rotate(12deg)",
+            }}
           />
           <div
-            className="hidden sm:block absolute -left-3 top-1/2 -translate-y-1/2 -translate-x-0.5 w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: "var(--wv-redwood)", opacity: 0.2 }}
+            className="hidden sm:block absolute -left-6 top-12 w-3 h-3 rounded-full"
+            style={{
+              backgroundColor: "var(--wv-sienna)",
+              opacity: 0.25,
+            }}
+          />
+          <div
+            className="hidden sm:block absolute -right-6 top-4 w-4 h-4 rounded-full"
+            style={{
+              backgroundColor: "var(--wv-redwood)",
+              opacity: 0.15,
+            }}
           />
 
           <h1
-            className="text-2xl sm:text-3xl font-semibold tracking-tight mb-2"
+            className="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
             style={{ color: "var(--wv-cadet)" }}
           >
-            what do you have on hand?
+            let&apos;s find something to make!{" "}
+            <span
+              className="inline-block"
+              style={{
+                animation:
+                  "heroWave 2s ease-in-out infinite",
+              }}
+            >
+              🎨
+            </span>
           </h1>
           <p
-            className="text-sm sm:text-base leading-relaxed"
+            className="text-base sm:text-lg leading-relaxed max-w-xl"
             style={{ color: "var(--wv-cadet)", opacity: 0.55 }}
           >
-            tell us what&apos;s around — cardboard, sticks, fabric, whatever —
-            and we&apos;ll find playdates that work with your stuff.
+            look around — what stuff do you have? cardboard boxes, sticks, old
+            t-shirts, tape? pick what you find and we&apos;ll show you something
+            amazing to make together.
           </p>
         </div>
 
@@ -87,6 +111,17 @@ export default async function MatcherPage() {
           contexts={contexts}
         />
       </div>
+
+      <style>{`
+        @keyframes heroWave {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(10deg) scale(1.1); }
+          75% { transform: rotate(-5deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          @keyframes heroWave { from, to { transform: none; } }
+        }
+      `}</style>
     </main>
   );
 }
