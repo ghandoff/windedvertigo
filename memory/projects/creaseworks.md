@@ -14,10 +14,10 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | ~235 (.ts + .tsx) |
-| **Migrations** | 036 (latest: rich_content) — 001-035 applied to Neon, 036 pending |
+| **Migrations** | 037 (latest: material_emoji) — 001-037 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 34 (Mar 1, 2026) |
+| **Last session** | 35 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -26,6 +26,7 @@
 | **Collections** | `312e4ee7-4ba4-8139-b891-fcd21e275a21` | `312e4ee7-4ba4-81a7-9635-000b05e82f4e` |
 | **Packs** | `beb34e7b-86cd-4f20-b9be-641431b99e5f` | — |
 | **Playdates** | `b446ffd5d1664a31b4f5f6a93aadaab8` | `0a90f5dc-a264-48ff-a49f-fabb07667116` |
+| **Materials** | `a6b32bc6-e021-41a4-b6f4-3d528e814d71` | `2bb1cd66-b20d-4b21-8816-1feba57f187a` |
 
 ## Architecture Overview
 
@@ -71,15 +72,18 @@ src/
 
 All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-28.md` for the remaining backlog.
 
-### Engagement System (built, needs wiring)
+### Engagement System (fully wired — verified session 35)
 - ✅ `lib/queries/credits.ts` — awardCredit, getUserCredits, spendCredits, checkAndAwardStreakBonus
 - ✅ `components/credit-progress-bar.tsx` — server component on playbook page
+- ✅ `components/credit-redemption.tsx` — redemption UI on playbook page
 - ✅ `components/pack-upsell-section.tsx` — shows up to 2 unowned packs
-- ✅ `components/photo-consent-classifier.tsx` — 3-tier COPPA consent flow
+- ✅ `components/photo-consent-classifier.tsx` — 3-tier COPPA consent flow in evidence-capture-section
 - ✅ `components/ui/run-form/run-form.tsx` — post-reflection pack upsell CTA
-- ⏳ Credit earning not yet wired into run submission
-- ⏳ Photo consent not yet wired into evidence upload
-- ⏳ Credit redemption UI not yet built
+- ✅ `components/ui/quick-log-button.tsx` — expandable photo nudge toast
+- ✅ `components/ui/photo-quick-log-button.tsx` — camera-first quick reflection
+- ✅ Credit earning wired: quick_log (1), find_again (2), photo_added (2), marketing_consent (3), streak_bonus (5)
+- ✅ Photo consent wired into evidence capture flow
+- ✅ Credit redemption UI on playbook page (sampler_pdf=10, single_playdate=25, full_pack=50)
 
 ## Migration Log
 
@@ -103,6 +107,7 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 | 034 | collection-covers | `cover_url`, `cover_r2_key` on collections |
 | 035 | gallery-visible-fields | `gallery_visible_fields JSONB` on playdates_cache |
 | 036 | rich-content | body_html on playdates/collections/packs, find/fold/unfold_html, illustration columns, cms_pages table |
+| 037 | material-emoji | `emoji TEXT` on materials_cache — CMS-managed emojis from Notion |
 
 ## Stripe Price IDs (Test Mode)
 
