@@ -16,6 +16,7 @@
  */
 
 import { useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -69,7 +70,7 @@ export default function DomainVerifier({
         body.verificationEmail = verifyEmail.trim();
       }
 
-      const res = await fetch("/api/team/domains", {
+      const res = await fetch(apiUrl("/api/team/domains"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -116,7 +117,7 @@ export default function DomainVerifier({
         body.verificationEmail = domain.verification_email;
       }
 
-      const res = await fetch("/api/team/domains", {
+      const res = await fetch(apiUrl("/api/team/domains"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -153,7 +154,7 @@ export default function DomainVerifier({
     setSuccess(null);
 
     try {
-      const res = await fetch("/api/team/domains", {
+      const res = await fetch(apiUrl("/api/team/domains"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domainId }),
@@ -382,3 +383,4 @@ export default function DomainVerifier({
     </div>
   );
 }
+
