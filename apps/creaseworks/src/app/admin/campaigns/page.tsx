@@ -12,7 +12,7 @@ import Link from "next/link";
 import CampaignForm from "./campaign-form";
 import CampaignTable from "./campaign-table";
 
-export const metadata = { title: "campaigns — admin — creaseworks" };
+export const metadata = { title: "campaigns — admin" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminCampaignsPage() {

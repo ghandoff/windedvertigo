@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth-helpers";
 import { sql } from "@/lib/db";
 import OnboardingWizard from "./wizard";
 
-export const metadata = { title: "welcome — creaseworks" };
+export const metadata = { title: "welcome" };
 
 export default async function OnboardingPage({
   searchParams,

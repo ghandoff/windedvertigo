@@ -126,9 +126,11 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Redirect unauthenticated users on protected routes
+  // Redirect unauthenticated users on protected routes.
+  // Use req.nextUrl.clone() so the basePath is preserved in the redirect URL.
   if (!isAuthed) {
-    const loginUrl = new URL("/login", req.url);
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = "/login";
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
