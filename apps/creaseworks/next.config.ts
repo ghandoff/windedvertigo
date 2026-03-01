@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"; // trigger deploy
 
 const nextConfig: NextConfig = {
   /* creaseworks is served at windedvertigo.com/reservoir/creaseworks via Vercel
