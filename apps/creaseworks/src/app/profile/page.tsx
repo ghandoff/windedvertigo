@@ -28,12 +28,13 @@ import { getProfileStats } from "@/lib/queries/profile-stats";
 import TeamManager from "@/app/team/team-manager";
 import DomainVerifier from "@/app/team/domain-verifier";
 import AnalyticsDashboard from "@/app/analytics/analytics-dashboard";
-import TierCard, { TIERS, getTierState } from "@/components/ui/tier-card";
 import ProfileDashboard from "@/components/profile-dashboard";
 import ProfileYourPacks from "@/components/profile-your-packs";
 import ProfileWhatsNext from "@/components/profile-whats-next";
+import ProfileJourney from "@/components/profile-journey";
 import { getOrgPacksWithProgress } from "@/lib/queries/entitlements";
 import { getRecommendedPacks } from "@/lib/queries/packs";
+import { getUserCredits } from "@/lib/queries/credits";
 
 export const metadata: Metadata = {
   title: "profile",
@@ -124,12 +125,13 @@ export default async function ProfilePage({
       ])
     : [[], []];
 
-  /* ---- pack progress + recommendations ------------------------------ */
-  const [ownedPacks, recommendedPacks] = await Promise.all([
+  /* ---- pack progress + recommendations + credits --------------------- */
+  const [ownedPacks, recommendedPacks, creditBalance] = await Promise.all([
     hasOrg
       ? getOrgPacksWithProgress(session.orgId!, session.userId).catch(() => [])
       : Promise.resolve([]),
     getRecommendedPacks(session.orgId, session.userId).catch(() => []),
+    getUserCredits(session.userId).catch(() => 0),
   ]);
 
   /* show manage toggle for everyone (notification prefs are universal) */
@@ -313,22 +315,15 @@ export default async function ProfilePage({
       {/* ---- what's next — recommended unowned packs ------------------- */}
       <ProfileWhatsNext packs={recommendedPacks} />
 
-      {/* ---- your journey — tier cards ----------------------------- */}
-      <section className="mb-12">
-        <h2 className="text-lg font-semibold tracking-tight mb-1">your journey</h2>
-        <p className="text-sm text-cadet/40 mb-5">
-          where you are and where you could go. tap any tier to explore.
-        </p>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {TIERS.map((tier) => (
-            <TierCard
-              key={tier.key}
-              tier={tier}
-              state={getTierState(tier.key, tierLabel)}
-            />
-          ))}
-        </div>
-      </section>
+      {/* ---- your journey — milestone path + progress ---------------- */}
+      <ProfileJourney
+        totalRuns={profileStats.totalRuns}
+        totalEvidence={profileStats.totalEvidence}
+        longestStreak={profileStats.longestStreak}
+        badgeCounts={profileStats.badgeCounts}
+        ownedPacks={ownedPacks}
+        creditBalance={creditBalance}
+      />
 
       {/* ---- manage toggle (grownup stuff) ------------------------- */}
       {canManage && (
