@@ -3,6 +3,7 @@ import { syncPlaydates } from "./playdates";
 import { syncCollections } from "./collections";
 import { syncPacks } from "./packs";
 import { syncRuns } from "./runs";
+import { syncCmsPages } from "./cms-pages";
 import { invalidateCandidateCache } from "@/lib/queries/matcher";
 
 /**
@@ -14,6 +15,7 @@ import { invalidateCandidateCache } from "@/lib/queries/matcher";
  *   3. collections  — resolves collection_playdates → playdates_cache
  *   4. packs        — resolves pack_playdates    → playdates_cache
  *   5. runs         — resolves run_materials    → materials_cache
+ *   6. cms pages    — standalone, no foreign-key deps (individual pages)
  */
 export async function syncAll() {
   const t0 = Date.now();
@@ -24,6 +26,7 @@ export async function syncAll() {
   const collectionsCount = await syncCollections();
   const packsCount = await syncPacks();
   const runsCount = await syncRuns();
+  const cmsPageCount = await syncCmsPages();
 
   // Invalidate matcher cache so new playdates/materials are picked up immediately
   invalidateCandidateCache();
@@ -31,5 +34,5 @@ export async function syncAll() {
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`[sync] full sync complete in ${elapsed}s`);
 
-  return { materialsCount, playdatesCount, collectionsCount, packsCount, runsCount, elapsedSeconds: elapsed };
+  return { materialsCount, playdatesCount, collectionsCount, packsCount, runsCount, cmsPageCount, elapsedSeconds: elapsed };
 }

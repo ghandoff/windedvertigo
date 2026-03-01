@@ -1,5 +1,5 @@
 import { sql } from "@/lib/db";
-import { NOTION_DBS } from "@/lib/notion";
+import { notion, NOTION_DBS } from "@/lib/notion";
 import { makeSlug } from "@/lib/slugify";
 import { syncCacheTable } from "./sync-cache-table";
 import {
@@ -13,6 +13,7 @@ import {
   type NotionPage,
 } from "./extract";
 import { syncImageToR2, imageUrl } from "./sync-image";
+import { fetchPageBodyHtml } from "./blocks";
 
 function parsePackPage(page: NotionPage) {
   const props = page.properties;
@@ -41,15 +42,23 @@ export async function syncPacks() {
         coverUrl = imageUrl(coverR2Key);
       }
 
+      // Tier 4: fetch page body content as HTML
+      let bodyHtml: string | null = null;
+      try {
+        bodyHtml = await fetchPageBodyHtml(notion(), row.notionId);
+      } catch {
+        // Non-blocking — body content is supplementary
+      }
+
       await sql`
         INSERT INTO packs_cache (
           notion_id, title, description, status,
           notion_last_edited, synced_at, slug,
-          cover_r2_key, cover_url
+          cover_r2_key, cover_url, body_html
         ) VALUES (
           ${row.notionId}, ${row.title}, ${row.description},
           ${row.status}, ${row.lastEdited}, NOW(), ${makeSlug(row.title)},
-          ${coverR2Key}, ${coverUrl}
+          ${coverR2Key}, ${coverUrl}, ${bodyHtml}
         )
         ON CONFLICT (notion_id) DO UPDATE SET
           title = EXCLUDED.title,
@@ -58,7 +67,8 @@ export async function syncPacks() {
           notion_last_edited = EXCLUDED.notion_last_edited,
           synced_at = NOW(),
           cover_r2_key = EXCLUDED.cover_r2_key,
-          cover_url = EXCLUDED.cover_url
+          cover_url = EXCLUDED.cover_url,
+          body_html = EXCLUDED.body_html
       `;
     },
     cleanupStale: async (activeNotionIds) => {

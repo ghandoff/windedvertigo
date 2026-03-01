@@ -61,7 +61,7 @@ function inferExtension(contentType: string | null, sourceUrl: string): string {
 export async function syncImageToR2(
   sourceUrl: string,
   notionPageId: string,
-  slot: "cover" | "icon",
+  slot: string,
 ): Promise<string | null> {
   try {
     const res = await fetch(sourceUrl, {
