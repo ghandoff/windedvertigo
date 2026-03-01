@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { apiUrl } from "@/lib/api-url";
 
@@ -16,7 +16,8 @@ interface QuickLogButtonProps {
  * without requiring the full reflection form.
  *
  * After logging, shows an expandable toast nudging the user to add a
- * photo for bonus engagement credit.
+ * photo for bonus engagement credit. The toast auto-dismisses after
+ * 5 seconds unless the user hovers over it.
  */
 export default function QuickLogButton({
   playdateId,
@@ -27,8 +28,16 @@ export default function QuickLogButton({
     "idle",
   );
   const [showPhotoNudge, setShowPhotoNudge] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
-  async function handleClick() {
+  // Auto-dismiss the photo nudge after 5s unless hovered
+  useEffect(() => {
+    if (!showPhotoNudge || hovered) return;
+    const timer = setTimeout(() => setShowPhotoNudge(false), 5000);
+    return () => clearTimeout(timer);
+  }, [showPhotoNudge, hovered]);
+
+  const handleClick = useCallback(async () => {
     setState("loading");
     try {
       const res = await fetch(apiUrl("/api/runs"), {
@@ -54,7 +63,11 @@ export default function QuickLogButton({
       setState("error");
       setTimeout(() => setState("idle"), 2000);
     }
-  }
+  }, [playdateId, playdateTitle]);
+
+  const photoHref = playdateSlug
+    ? `/reflections/new?playdate=${playdateSlug}`
+    : "/reflections/new";
 
   if (state === "done") {
     return (
@@ -63,28 +76,30 @@ export default function QuickLogButton({
           ✓ logged
         </span>
 
-        {/* expandable photo nudge toast */}
+        {/* expandable photo nudge toast — auto-dismisses after 5s */}
         {showPhotoNudge && (
-          <div className="flex items-center gap-2 rounded-lg bg-sienna/8 px-4 py-2.5 text-sm animate-in fade-in slide-in-from-top-1 duration-300">
+          <div
+            className="flex items-center gap-2 rounded-lg bg-sienna/8 px-4 py-2.5 text-sm animate-in fade-in slide-in-from-top-1 duration-300"
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+          >
             <span className="text-base">📸</span>
             <span className="text-cadet/60 text-xs">
-              add a photo for bonus credit?
+              add a photo for +2 credit
             </span>
-            {playdateSlug ? (
-              <Link
-                href={`/reflections/new?playdate=${playdateSlug}`}
-                className="ml-auto text-xs font-medium text-sienna hover:text-redwood transition-colors"
-              >
-                add &rarr;
-              </Link>
-            ) : (
-              <Link
-                href="/reflections/new"
-                className="ml-auto text-xs font-medium text-sienna hover:text-redwood transition-colors"
-              >
-                add &rarr;
-              </Link>
-            )}
+            <Link
+              href={photoHref}
+              className="ml-auto rounded-md bg-sienna/15 px-3 py-1 text-xs font-medium text-sienna hover:bg-sienna/25 transition-colors"
+            >
+              add photo
+            </Link>
+            <button
+              onClick={() => setShowPhotoNudge(false)}
+              className="text-cadet/30 hover:text-cadet/60 text-xs transition-colors"
+              aria-label="dismiss"
+            >
+              ✕
+            </button>
           </div>
         )}
       </div>
