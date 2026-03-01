@@ -3,6 +3,7 @@
  *
  * Credit values:
  *   quick_log          = 1
+ *   full_reflection    = 1
  *   photo_added        = 2
  *   marketing_consent  = 3
  *   find_again         = 2
@@ -22,6 +23,7 @@ import { sql } from "@/lib/db";
 
 export const CREDIT_VALUES = {
   quick_log: 1,
+  full_reflection: 1,
   photo_added: 2,
   marketing_consent: 3,
   find_again: 2,
