@@ -2,7 +2,7 @@
 
 consolidated from 14 docs. cross-referenced against live codebase + production smoke test.
 
-last audit: 1 march 2026 (claude code session 35 — comprehensive codebase grep audit)
+last audit: 1 march 2026 (claude code session 36 — tier 4 content & sync all complete)
 
 ---
 
@@ -72,14 +72,14 @@ verified session 35: all engagement features are fully wired into user flows.
 
 ---
 
-## tier 4 — content & sync improvements
+## tier 4 — content & sync improvements — ✅ ALL COMPLETE (except #17)
 
 | # | item | effort | notes |
 |---|------|--------|-------|
-| 13 | 🟡 **image sync tier 3 — file property extraction** | ~4 hr | extract notion file properties (materials covers, pack illustrations) → R2 → postgres. tiers 1+2 done. |
-| 14 | 🟡 **image sync tier 4 — body content / blocks** | ~8 hr | fetch notion block children for full page content. transform to HTML/markdown. |
-| 15 | 🟡 **rich text formatting in sync** | ~3 hr | currently strips bold, italic, links during sync. extract and preserve. |
-| 16 | 🟢 **notion-as-CMS for /we/ and /do/ page text** | ~2 hr | extend existing sync scripts. |
+| 13 | ~~image sync tier 3 — file property extraction~~ | ✅ done | playdate illustrations synced via `extractFiles()` → R2. materials don't have image properties in Notion. all cover images (playdates, packs, collections) synced in tiers 1+2. |
+| 14 | ~~image sync tier 4 — body content / blocks~~ | ✅ done | `fetchPageBodyHtml()` in `blocks.ts` — recursive block fetch, renders all block types to HTML, syncs inline images to R2. integrated in playdates, packs, collections. |
+| 15 | ~~rich text formatting in sync~~ | ✅ done | `extractRichTextHtml()` preserves bold, italic, links, colors, code annotations. HTML columns added to playdates (6), packs (1), collections (1). `SafeHtml` component for progressive enhancement. commit 31a0111. |
+| 16 | ~~notion-as-CMS for /we/ and /do/ page text~~ | ✅ done | `syncCmsPages()` fetches individual Notion pages by ID, renders body HTML. `/we/` and `/do/` routes with ISR. `.cms-body` CSS for all block types. commit 48c0725. TODO: add env vars to Vercel. |
 | 17 | 🟢 **notion-as-CMS for sqr-rct content** | ~4 hr | longer-term. sqr-rct currently queries notion in real-time. |
 
 ---
