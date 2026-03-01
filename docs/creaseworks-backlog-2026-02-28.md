@@ -119,7 +119,7 @@ verified session 35: all engagement features are fully wired into user flows.
 1. **next/image migration** — cover images use raw `<img>` tags. migrate to `<Image>` with R2 custom loader?
 2. **R2 bucket separation** — one bucket for all apps or separate per app?
 3. **URL structure** — creaseworks lives at `windedvertigo.com/reservoir/creaseworks`. should the old `creaseworks.windedvertigo.com` subdomain redirect there?
-4. **shared header across apps** — footer exists in `packages/tokens/footer.html`. extend to header?
+4. **shared header across apps** — footer fully shared via `packages/tokens/footer.html`. header CSS (`.wv-header*`) shared via tokens. creaseworks shows brand hierarchy "winded.vertigo › creaseworks" (session 41). a shared header HTML template would need to handle: no auth in static site, no icons, no bottom tab bar — worth it?
 
 ---
 
