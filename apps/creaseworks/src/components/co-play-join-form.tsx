@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api-url";
 
 interface CoPlayJoinFormProps {
   inviteCode: string;
@@ -21,7 +22,7 @@ export function CoPlayJoinForm({
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/co-play/join", {
+      const res = await fetch(apiUrl("/api/co-play/join"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inviteCode }),
@@ -63,3 +64,4 @@ export function CoPlayJoinForm({
     </div>
   );
 }
+
