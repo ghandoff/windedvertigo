@@ -11,7 +11,7 @@
  * No extra dependencies.
  */
 
-const BASE = process.argv[2] || "http://localhost:3000";
+const BASE = process.argv[2] || "http://localhost:3000/reservoir/creaseworks";
 
 /* ── Route definitions ────────────────────────────────────── */
 

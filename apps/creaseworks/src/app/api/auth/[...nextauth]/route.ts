@@ -2,35 +2,26 @@ import { Auth } from "@auth/core";
 import { authConfig } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
+const BASE_PATH = "/reservoir/creaseworks";
+
 /**
  * Custom Auth.js route handler that bypasses next-auth's `reqWithEnvURL`.
  *
- * ## Why this is needed
+ * Calls `@auth/core`'s `Auth()` directly with a plain `Request` (not
+ * `NextRequest`) so the URL is passed verbatim — no NextURL basePath
+ * stripping that would break Auth.js's action regex.
  *
- * When `basePath: "/reservoir/creaseworks"` is set in next.config.ts, Next.js
- * strips that prefix before the route handler sees the request. Auth.js needs
- * the full external path (including the prefix) to match its action regex
- * `^/reservoir/creaseworks/api/auth(.+)`.
- *
- * The obvious fix — wrapping handlers.GET/POST to re-add the prefix via
- * `new NextRequest(urlWithPrefix, req)` — does NOT work because:
- *
- *   1. NextRequest's internal `NextURL` detects the basePath from Next.js config
- *      and silently strips it from the internal URL representation.
- *   2. next-auth's `reqWithEnvURL` reads `req.nextUrl.href` (the stripped path),
- *      NOT `req.url`.
- *   3. So Auth.js never sees the prefix → "Bad request." (UnknownAction).
- *
- * ## The fix
- *
- * Call `@auth/core`'s `Auth()` directly with a plain `Request` (not
- * `NextRequest`). Plain `Request` objects don't have NextURL or basePath
- * stripping, so the URL we construct is passed to Auth.js verbatim.
+ * The basePath prepend is idempotent: Next.js *usually* strips the basePath
+ * from `req.url` in route handlers, but Vercel rewrites can deliver the full
+ * path. We normalise to always include the prefix exactly once.
  */
 async function handler(req: NextRequest) {
-  // Build the full URL Auth.js expects (with basePath prefix)
   const url = new URL(req.url);
-  url.pathname = `/reservoir/creaseworks${url.pathname}`;
+
+  // Ensure basePath appears exactly once in the pathname
+  if (!url.pathname.startsWith(BASE_PATH)) {
+    url.pathname = `${BASE_PATH}${url.pathname}`;
+  }
 
   // Replace origin with AUTH_URL if set (replicating what reqWithEnvURL does)
   const authUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL;
@@ -50,10 +41,6 @@ async function handler(req: NextRequest) {
     duplex: "half",
   });
 
-  // authConfig is typed as NextAuthConfig (from next-auth) but Auth() expects
-  // AuthConfig (from @auth/core). They are structurally identical but TS sees
-  // them as different types because next-auth bundles its own @auth/core copy.
-  // The cast is safe — NextAuth() already validates the config at module init.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return Auth(request, authConfig as any) as Promise<Response>;
 }
