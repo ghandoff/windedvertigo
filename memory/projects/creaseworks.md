@@ -14,10 +14,10 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | ~235 (.ts + .tsx) |
-| **Migrations** | 038 (latest: user_entitlements) — 001-038 applied to Neon |
+| **Migrations** | 039 (latest: accessibility_prefs) — 001-039 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 37 (Mar 1, 2026) |
+| **Last session** | 38 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -97,6 +97,17 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ Admin invite form with pack selector UI at `/admin/invites`
 - ✅ Profile manage section shows invite link for admins
 
+### Accessibility Preferences (session 38 — migration 039)
+- ✅ `reduce_motion` + `dyslexia_font` columns on users table
+- ✅ `lib/queries/accessibility.ts` — getAccessibilityPrefs, updateAccessibilityPrefs
+- ✅ `app/api/preferences/route.ts` — GET + PATCH with cookie-setting for instant CSS
+- ✅ `app/profile/accessibility-prefs.tsx` — client component with toggle switches
+- ✅ Cookie-first architecture: root layout reads cookies, applies `.reduce-motion` and `.dyslexia-font` CSS classes to `<html>` before React hydrates
+- ✅ Atkinson Hyperlegible loaded via `next/font/google` with `--font-atkinson` CSS variable
+- ✅ `.reduce-motion` CSS kills all animations/transitions via `!important`
+- ✅ `.dyslexia-font` CSS switches body, input, textarea, select, button to Atkinson Hyperlegible
+- ✅ `components/ui/step-progress.tsx` — shared step progress indicator with ARIA progressbar
+
 ## Migration Log
 
 | # | Name | What it does |
@@ -121,6 +132,7 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 | 036 | rich-content | body_html on playdates/collections/packs, find/fold/unfold_html, illustration columns, cms_pages table |
 | 037 | material-emoji | `emoji TEXT` on materials_cache — CMS-managed emojis from Notion |
 | 038 | user-entitlements | `user_id` on entitlements (dual-scope), `invite_packs` table, `member_cap` on organisations |
+| 039 | accessibility-prefs | `reduce_motion`, `dyslexia_font` BOOLEAN columns on users |
 
 ## Stripe Price IDs (Test Mode)
 
