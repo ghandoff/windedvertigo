@@ -17,7 +17,7 @@
 | **Migrations** | 040 (latest: calm_theme) — 001-040 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 39 (Mar 1, 2026) |
+| **Last session** | 40 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -119,6 +119,12 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ CMS body/rich-text styles cascade automatically via `--wv-cadet` remap
 - ✅ Status colours (error/success/warning) muted for calm context
 - ✅ Third toggle in accessibility-prefs.tsx: "calm mode" as first option
+
+### Admin Playdate Content Preview (session 40)
+- ✅ `lib/queries/playdates.ts` — `getAdminPlaydates()` with boolean completeness flags + `getAdminPlaydateDetail(id)` for lazy content
+- ✅ `app/api/admin/playdates/[id]/route.ts` — admin-only detail endpoint with `requireAdmin()`
+- ✅ `components/admin/admin-playdate-browser.tsx` — rewritten with expandable content preview, completeness badges, lazy detail caching, materials list, design notes
+- ✅ `app/admin/playdates/page.tsx` — uses new `getAdminPlaydates` query
 
 ## Migration Log
 

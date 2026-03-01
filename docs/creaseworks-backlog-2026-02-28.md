@@ -72,7 +72,7 @@ verified session 35: all engagement features are fully wired into user flows.
 
 | # | item | effort | notes |
 |---|------|--------|-------|
-| 11 | 🔵 **admin playdate preview with pack filter toggles** | ~4 hr | admin-only feature for content review. not started. |
+| 11 | ~~admin playdate preview with pack filter toggles~~ | ✅ done | expandable content preview — completeness badges (find/fold/unfold/body/illustration), lazy-loaded detail via `/api/admin/playdates/[id]`, materials list, design notes. commit abb7640. |
 | 12 | 🔵 **profile "your journey" redesign** | ~4 hr | owned packs + recommendations. ProfileDashboard exists with stats/badges/activity — this would extend it with pack-aware content. |
 
 ---
