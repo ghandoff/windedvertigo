@@ -23,7 +23,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      sees "/api/auth/*". The full external path is handled by:
        - AUTH_URL env var (origin for outgoing redirects / OAuth callbacks)
        - SessionProvider basePath in providers.tsx (client-side fetch target) */
-  basePath: "/reservoir/creaseworks/api/auth",
+  basePath: "/api/auth",
 
   providers: [
     Resend({
