@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-02-26T01:56:56.959Z",
+  "lastUpdated": "2026-03-01T06:56:38.432Z",
   "note": "Auto-generated from Notion what page v2 content database. Do not edit directly.",
   "sections": [
     {
@@ -15,7 +15,7 @@
       "content": "learning lives at the dizzying edge of change—where vertigo is a signal that growth is happening. we help people move toward uncertainty with curiosity, clearing away conventions that block exploration.",
       "order": 2,
       "type": "body",
-      "layout": "card",
+      "layout": "default",
       "icon": null
     },
     {
@@ -51,11 +51,35 @@
       "icon": null
     },
     {
-      "name": "paragraph 6",
-      "content": "at winded.vertigo, we redefine learning, ensuring time is spent on engaging, exploring, and evolving together, transforming the educational landscape one playful leap at a time.",
+      "name": "find again",
+      "content": "recognise the idea returning in new forms, carrying learning forward into life",
       "order": 7,
       "type": "body",
-      "layout": "full-width",
+      "layout": "side-by-side",
+      "icon": null
+    },
+    {
+      "name": "unfold",
+      "content": "pause to see what the process revealed, allowing reflection to deepen understanding",
+      "order": 7,
+      "type": "body",
+      "layout": "side-by-side",
+      "icon": null
+    },
+    {
+      "name": "fold",
+      "content": "shape what you’ve found into something you can try, turning openness into action",
+      "order": 7,
+      "type": "body",
+      "layout": "side-by-side",
+      "icon": null
+    },
+    {
+      "name": "find",
+      "content": "notice what is already here and treat it as a meaningful starting point",
+      "order": 7,
+      "type": "body",
+      "layout": "side-by-side",
       "icon": null
     }
   ]
