@@ -15,6 +15,7 @@
  */
 
 import { useState, useRef, useCallback } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -238,7 +239,7 @@ export async function uploadPhotoToR2(
   evidenceId: string,
 ): Promise<{ storageKey: string; thumbnailKey: string }> {
   // 1. Get presigned URL from our API
-  const urlRes = await fetch("/api/evidence/upload-url", {
+  const urlRes = await fetch(apiUrl("/api/evidence/upload-url"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
