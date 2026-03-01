@@ -2,6 +2,7 @@
 
 import { useState, useRef, useMemo } from "react";
 import { Material, MatcherResult } from "./types";
+import { apiUrl } from "@/lib/api-url";
 
 export function useMatcherState(materials: Material[]) {
   // selection state
@@ -94,7 +95,7 @@ export function useMatcherState(materials: Material[]) {
     setError(null);
 
     try {
-      const res = await fetch("/api/matcher", {
+      const res = await fetch(apiUrl("/api/matcher"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -174,3 +175,4 @@ export function useMatcherState(materials: Material[]) {
     materialTitleMap,
   };
 }
+
