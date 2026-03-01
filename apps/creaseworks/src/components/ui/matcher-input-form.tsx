@@ -15,6 +15,7 @@
 import { useState, useRef, useMemo, useId } from "react";
 import MatcherResultCard from "@/components/ui/matcher-result-card";
 import { MaterialIllustration } from "@/components/material-illustration";
+import { apiUrl } from "@/lib/api-url";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -275,7 +276,7 @@ export default function MatcherInputForm({
     setError(null);
 
     try {
-      const res = await fetch("/api/matcher", {
+      const res = await fetch(apiUrl("/api/matcher"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -713,3 +714,4 @@ export default function MatcherInputForm({
     </div>
   );
 }
+
