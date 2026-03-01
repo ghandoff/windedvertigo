@@ -15,13 +15,13 @@ export async function POST(req: NextRequest) {
   const session = await requireInternal();
 
   try {
-    await syncAll();
+    const counts = await syncAll();
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
     await logAccess(session.userId, null, null, null, "admin_manual_sync", ip, []);
 
     return NextResponse.json(
-      { success: true, message: "sync completed" },
+      { success: true, message: "sync completed", ...counts },
       { status: 200 },
     );
   } catch (err: any) {
