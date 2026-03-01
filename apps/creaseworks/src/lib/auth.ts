@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Resend from "next-auth/providers/resend";
 import Google from "next-auth/providers/google";
 import { sql } from "@/lib/db";
@@ -17,12 +17,15 @@ import {
 // Previously this module ran CREATE TABLE IF NOT EXISTS on every cold
 // start — removed in audit fix #12.
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  /* Next.js strips its own basePath ("/reservoir/creaseworks") from the request
-     URL BEFORE it reaches the route handler. So Auth.js on the server only
-     sees "/api/auth/*". The full external path is handled by:
-       - AUTH_URL env var (origin for outgoing redirects / OAuth callbacks)
-       - SessionProvider basePath in providers.tsx (client-side fetch target) */
+/**
+ * Raw auth config — exported so route.ts can call @auth/core's Auth()
+ * directly with a plain Request (bypassing NextRequest's basePath stripping
+ * that breaks reqWithEnvURL in next-auth's handler wrapper).
+ *
+ * NextAuth() mutates this object in-place via setEnvDefaults(), so after
+ * module initialisation the config has secret, trustHost etc. filled in.
+ */
+export const authConfig: NextAuthConfig = {
   basePath: "/reservoir/creaseworks/api/auth",
 
   providers: [
@@ -268,4 +271,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-});
+};
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
