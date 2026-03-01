@@ -33,6 +33,7 @@ import FirstVisitBanner from "@/components/first-visit-banner";
 import SeasonalBanner from "@/components/seasonal-banner";
 import PackUpsellSection from "@/components/pack-upsell-section";
 import CreditProgressBar from "@/components/credit-progress-bar";
+import CreditRedemption from "@/components/credit-redemption";
 import { getUnownedPacks } from "@/lib/queries/packs";
 import { getUserCredits } from "@/lib/queries/credits";
 
@@ -141,8 +142,9 @@ export default async function PlaybookPage() {
         </Link>
       )}
 
-      {/* ── credit progress bar ── */}
+      {/* ── credit progress bar + redemption ── */}
       <CreditProgressBar balance={creditBalance} />
+      <CreditRedemption balance={creditBalance} unownedPacks={unownedPacks} />
 
       {/* ── section 2: collections grid ── */}
       <h2 className="text-lg font-semibold text-cadet mb-3">collections</h2>

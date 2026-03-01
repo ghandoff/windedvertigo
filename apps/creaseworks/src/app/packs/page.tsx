@@ -29,6 +29,7 @@ interface Pack {
   status?: string;
   playdate_count: number;
   cover_url?: string | null;
+  family_count?: number;
 }
 
 export default async function PacksCataloguePage() {
@@ -83,6 +84,7 @@ export default async function PacksCataloguePage() {
         playdate_count: p.playdate_count,
         price_cents: p.price_cents,
         currency: p.currency,
+        family_count: p.family_count,
       }))} />
 
       <p className="text-xs text-cadet/40 mb-8">
