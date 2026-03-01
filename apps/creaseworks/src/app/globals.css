@@ -96,6 +96,191 @@ p, li, dd {
   font-size: 0.9em;
 }
 
+/* ── CMS page body ───────────────────────────────────────────────
+   Typography for full-page Notion content rendered by
+   fetchPageBodyHtml(). Covers headings, paragraphs, lists,
+   blockquotes, callouts, toggles, figures, code blocks, and
+   dividers. Applied via the .cms-body class on <article> wrappers
+   in CMS-powered pages (/we/, /do/).                                */
+
+.cms-body h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  color: var(--wv-cadet);
+}
+.cms-body h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--wv-cadet);
+}
+.cms-body h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--wv-cadet);
+}
+/* remove top margin on the first element so page starts flush */
+.cms-body > :first-child { margin-top: 0; }
+
+.cms-body p {
+  margin-bottom: 1rem;
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+
+.cms-body a {
+  color: var(--wv-redwood);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.cms-body a:hover { opacity: 0.8; }
+
+.cms-body strong { font-weight: 600; }
+
+.cms-body ul, .cms-body ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+.cms-body ul { list-style-type: disc; }
+.cms-body ol { list-style-type: decimal; }
+.cms-body li {
+  margin-bottom: 0.35rem;
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+
+.cms-body blockquote {
+  margin: 1.5rem 0;
+  padding: 0.75rem 1.25rem;
+  border-left: 3px solid var(--wv-champagne);
+  color: color-mix(in srgb, var(--wv-cadet) 70%, transparent);
+  font-style: italic;
+}
+
+.cms-body .callout {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--wv-champagne) 15%, transparent);
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+.cms-body .callout::before {
+  content: attr(data-icon);
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.cms-body details {
+  margin: 1rem 0;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--wv-cadet) 10%, transparent);
+}
+.cms-body details summary {
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+  user-select: none;
+}
+.cms-body details > :not(summary) {
+  padding: 0 0.75rem 0.5rem;
+}
+
+.cms-body hr {
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--wv-cadet) 10%, transparent);
+  margin: 2rem 0;
+}
+
+.cms-body figure {
+  margin: 1.5rem 0;
+}
+.cms-body figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.cms-body figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: color-mix(in srgb, var(--wv-cadet) 50%, transparent);
+  text-align: center;
+}
+
+.cms-body pre {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--wv-cadet) 6%, transparent);
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.cms-body pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.cms-body code {
+  background: color-mix(in srgb, var(--wv-cadet) 8%, transparent);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.cms-body .bookmark {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  margin: 0.75rem 0;
+  border: 1px solid color-mix(in srgb, var(--wv-cadet) 12%, transparent);
+  border-radius: 6px;
+  color: var(--wv-redwood);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.cms-body .bookmark:hover {
+  background: color-mix(in srgb, var(--wv-champagne) 10%, transparent);
+}
+
+.cms-body .embed {
+  margin: 1rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--wv-cadet) 12%, transparent);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
+.cms-body .todo {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+
+.cms-body table {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.cms-body td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--wv-cadet) 12%, transparent);
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+
 /* ── warm shadow utilities ──────────────────────────────────────── */
 
 .shadow-soft { box-shadow: var(--shadow-soft); }
