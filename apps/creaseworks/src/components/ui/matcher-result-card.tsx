@@ -108,7 +108,7 @@ export default function MatcherResultCard({
         >
           <span className="text-xl leading-none">{match.emoji}</span>
           <span
-            className="text-[9px] font-bold mt-0.5 uppercase tracking-wider"
+            className="text-[9px] font-bold mt-0.5 tracking-wider"
             style={{ color: match.color }}
           >
             {playdate.score}%

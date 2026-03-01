@@ -237,7 +237,7 @@ function GalleryCard({ item }: GalleryCardProps) {
         <div className="mb-3">
           {item.playdate_title && (
             <p
-              className="text-xs font-semibold tracking-wide uppercase mb-1"
+              className="text-xs font-semibold tracking-wide mb-1"
               style={{ color: "var(--wv-sienna)" }}
             >
               {item.playdate_title}

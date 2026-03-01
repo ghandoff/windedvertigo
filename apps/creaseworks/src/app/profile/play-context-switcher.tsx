@@ -102,7 +102,7 @@ export default function PlayContextSwitcher({
                     {ctx.name}
                   </span>
                   {isActive && (
-                    <span className="text-[10px] font-semibold tracking-wide uppercase px-1.5 py-px rounded-full bg-sienna/10 text-sienna">
+                    <span className="text-[10px] font-semibold tracking-wide px-1.5 py-px rounded-full bg-sienna/10 text-sienna">
                       active
                     </span>
                   )}

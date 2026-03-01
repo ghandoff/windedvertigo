@@ -153,7 +153,7 @@ export default function TierCard({
         </h4>
         {isCurrent && (
           <span
-            className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full"
+            className="text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full"
             style={{
               backgroundColor: "rgba(203, 120, 88, 0.15)",
               color: "var(--wv-sienna)",
@@ -164,7 +164,7 @@ export default function TierCard({
         )}
         {isIncluded && (
           <span
-            className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full"
+            className="text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full"
             style={{
               backgroundColor: "rgba(39, 50, 72, 0.06)",
               color: "rgba(39, 50, 72, 0.4)",
