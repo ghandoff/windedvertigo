@@ -109,7 +109,7 @@ verified session 35: all engagement features are fully wired into user flows.
 |---|------|--------|-------|
 | 25 | ~~dyslexia-friendly font toggle~~ | ✅ done | `accessibility-prefs.tsx` toggle — Atkinson Hyperlegible via `next/font/google`, `.dyslexia-font` class on `<html>`, cookie-first for instant CSS |
 | 26 | ~~animation toggle in app settings~~ | ✅ done | combined with #25 — `.reduce-motion` class, suppresses all animations/transitions via `!important` overrides |
-| 27 | 🔵 **dark/low-colour theme** | ~4 hr | autism spectrum + sensory sensitivity support. |
+| 27 | ~~dark/low-colour theme~~ | ✅ done | "calm mode" — warm dark backgrounds (#1c2536), desaturated accents, CSS custom property cascade. migration 040, cookie-first toggle in accessibility prefs. |
 | 28 | ~~progress bars with labels on multi-step flows~~ | ✅ done | `step-progress.tsx` shared component with ARIA progressbar, dot indicators, "step X of Y · label" text. integrated in onboarding wizard. |
 
 ---
@@ -128,7 +128,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | metric | value |
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
-| Migrations | 039 (all applied to Neon) |
+| Migrations | 040 (all applied to Neon) |
 | Smoke test | 28/29 pass |
 | Source files | ~235 (.ts + .tsx) |
 | Features A–Y | all implemented |
