@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api-url";
 
 interface PlayContext {
   name: string;
@@ -44,7 +45,7 @@ export default function PlayContextSwitcher({
     if (name === active) return;
     setSwitching(name);
     try {
-      const res = await fetch("/api/onboarding/context", {
+      const res = await fetch(apiUrl("/api/onboarding/context"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contextName: name }),
@@ -62,7 +63,7 @@ export default function PlayContextSwitcher({
     if (!confirm(`remove "${name}" context?`)) return;
     setDeleting(name);
     try {
-      const res = await fetch("/api/onboarding/context", {
+      const res = await fetch(apiUrl("/api/onboarding/context"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contextName: name }),
@@ -168,3 +169,4 @@ export default function PlayContextSwitcher({
     </div>
   );
 }
+
