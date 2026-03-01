@@ -7,10 +7,17 @@ import { NextRequest, NextResponse } from "next/server";
  * (POST, PUT, PATCH, DELETE). By checking that it matches our expected
  * host, we prevent cross-site request forgery even if cookies are sent.
  *
+ * Multi-zone note: the app is served behind a Vercel multi-zone rewrite
+ * (windedvertigo.com → creaseworks-*.vercel.app). After the rewrite,
+ * req.nextUrl.host is the internal deployment host, but the browser sends
+ * Origin: https://windedvertigo.com. We use x-forwarded-host to get the
+ * original host for the comparison.
+ *
  * Exempt routes:
  *   - Stripe webhook (/api/stripe/webhook) — verified by signature
  *   - Notion webhook (/api/webhooks/notion) — verified by signature
  *   - Cron sync (/api/cron/sync-notion) — Vercel cron, no cookie
+ *   - Matcher (/api/matcher) — public read-only search (POST for body size)
  */
 
 const EXEMPT_PATHS = [
@@ -18,9 +25,22 @@ const EXEMPT_PATHS = [
   "/api/webhooks/notion",
   "/api/cron/",
   "/api/auth/",
+  "/api/matcher",
 ];
 
 const STATE_CHANGING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+/**
+ * Get the effective host for CSRF comparison.
+ *
+ * In a Vercel multi-zone rewrite, req.nextUrl.host is the internal
+ * deployment host (creaseworks-*.vercel.app), but the browser sends
+ * Origin against the public host (windedvertigo.com). The
+ * x-forwarded-host header preserves the original host.
+ */
+function getEffectiveHost(req: NextRequest): string {
+  return req.headers.get("x-forwarded-host") || req.nextUrl.host;
+}
 
 /**
  * Returns a 403 response if the request fails the CSRF Origin check.
@@ -38,6 +58,7 @@ export function checkCsrf(req: NextRequest): NextResponse | null {
   const path = req.nextUrl.pathname;
   if (EXEMPT_PATHS.some((p) => path.startsWith(p))) return null;
 
+  const host = getEffectiveHost(req);
   const origin = req.headers.get("origin");
 
   // If no Origin header, also check Referer as a fallback.
@@ -53,7 +74,6 @@ export function checkCsrf(req: NextRequest): NextResponse | null {
     // Validate Referer host matches
     try {
       const refUrl = new URL(referer);
-      const host = req.nextUrl.host;
       if (refUrl.host !== host) {
         return NextResponse.json(
           { error: "Forbidden — cross-origin request" },
@@ -72,7 +92,6 @@ export function checkCsrf(req: NextRequest): NextResponse | null {
   // Validate Origin matches our host
   try {
     const originUrl = new URL(origin);
-    const host = req.nextUrl.host;
     if (originUrl.host !== host) {
       return NextResponse.json(
         { error: "Forbidden — cross-origin request" },
