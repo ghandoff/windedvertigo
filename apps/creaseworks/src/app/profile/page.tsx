@@ -200,7 +200,7 @@ export default async function ProfilePage({
               <span className="text-cadet/15">&middot;</span>
             )}
             <span
-              className="text-[10px] font-semibold tracking-wide uppercase px-1.5 py-px rounded-full"
+              className="text-[10px] font-semibold tracking-wide px-1.5 py-px rounded-full"
               style={{
                 backgroundColor:
                   tierLabel === "admin"

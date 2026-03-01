@@ -147,7 +147,7 @@ export default function EntitledPlaydateView({
 
         {playdate.find && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
-            <h3 className="text-xs font-bold text-redwood uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-bold text-redwood tracking-wider mb-1">
               find
             </h3>
             <p className="text-[11px] text-cadet/40 mb-2">
@@ -161,7 +161,7 @@ export default function EntitledPlaydateView({
 
         {playdate.fold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
-            <h3 className="text-xs font-bold text-sienna uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-bold text-sienna tracking-wider mb-1">
               fold
             </h3>
             <p className="text-[11px] text-cadet/40 mb-2">
@@ -175,7 +175,7 @@ export default function EntitledPlaydateView({
 
         {playdate.unfold && (
           <div className="rounded-xl border border-cadet/10 bg-white p-5">
-            <h3 className="text-xs font-bold text-cadet uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-bold text-cadet tracking-wider mb-1">
               unfold
             </h3>
             <p className="text-[11px] text-cadet/40 mb-2">
@@ -278,7 +278,7 @@ export default function EntitledPlaydateView({
         playdate.developmental_notes ||
         playdate.author_notes) && (
         <div className="mt-8 space-y-6 border-t-2 border-dashed border-cadet/20 pt-8">
-          <p className="text-xs font-semibold text-cadet/40 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-cadet/40 tracking-wider">
             behind the curtain
           </p>
 

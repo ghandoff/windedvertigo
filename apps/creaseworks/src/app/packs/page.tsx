@@ -44,7 +44,7 @@ export default async function PacksCataloguePage() {
       <div className="flex items-center gap-3 mb-2">
         <h1 className="text-3xl font-semibold tracking-tight">packs</h1>
         {isCollective && (
-          <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-champagne/20 text-champagne">
+          <span className="text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full bg-champagne/20 text-champagne">
             collective view
           </span>
         )}
@@ -124,12 +124,12 @@ export default async function PacksCataloguePage() {
           {packs.map((pack: Pack) => (
             <div key={pack.id} className="relative">
               {isCollective && pack.visible === false && (
-                <span className="absolute top-3 right-3 z-10 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-cadet/40 text-white/70">
+                <span className="absolute top-3 right-3 z-10 text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full bg-cadet/40 text-white/70">
                   hidden
                 </span>
               )}
               {isCollective && pack.status !== "ready" && (
-                <span className="absolute top-3 left-3 z-10 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-sienna/80 text-white">
+                <span className="absolute top-3 left-3 z-10 text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full bg-sienna/80 text-white">
                   draft
                 </span>
               )}

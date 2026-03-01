@@ -147,7 +147,7 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-redwood/60 mb-0.5">
+                <p className="text-[10px] font-semibold tracking-wide text-redwood/60 mb-0.5">
                   our pick for you
                 </p>
                 <p className="text-sm font-semibold text-cadet">
@@ -228,7 +228,7 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
                           {p.title}
                         </span>
                         {isRec && (
-                          <span className="text-[9px] font-semibold uppercase tracking-wide text-redwood/60 bg-redwood/10 px-1.5 py-0.5 rounded-full">
+                          <span className="text-[9px] font-semibold tracking-wide text-redwood/60 bg-redwood/10 px-1.5 py-0.5 rounded-full">
                             pick
                           </span>
                         )}

@@ -372,7 +372,7 @@ export default function MatcherInputForm({
                       className="w-full flex items-center justify-between py-2 px-1 sm:py-1 sm:px-0 text-left"
                     >
                       <span
-                        className="text-xs font-medium uppercase tracking-wider"
+                        className="text-xs font-medium tracking-wider"
                         style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
                       >
                         

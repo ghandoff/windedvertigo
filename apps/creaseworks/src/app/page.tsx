@@ -76,7 +76,7 @@ export default async function Home() {
       {/* -- hero ------------------------------------------------- */}
       <section className="px-6 py-28 sm:py-36 text-center" style={{ maxWidth: 1100, margin: "0 auto" }}>
         <p
-          className="text-xs font-semibold tracking-widest uppercase mb-6"
+          className="text-xs font-semibold tracking-widest mb-6"
           style={{ color: "var(--wv-redwood)", letterSpacing: "0.1em" }}
         >
           a winded.vertigo project
@@ -123,7 +123,7 @@ export default async function Home() {
       {/* -- what you get ----------------------------------------- */}
       <section className="px-6 py-20 sm:py-24" style={{ maxWidth: 1100, margin: "0 auto" }}>
         <p
-          className="text-xs font-semibold tracking-widest uppercase text-center mb-3"
+          className="text-xs font-semibold tracking-widest text-center mb-3"
           style={{ color: "var(--wv-redwood)", letterSpacing: "0.08em" }}
         >
           what&rsquo;s included
@@ -173,7 +173,7 @@ export default async function Home() {
           style={{ backgroundColor: "rgba(250, 241, 232, 0.06)" }}
         >
           <p
-            className="text-xs font-semibold tracking-widest uppercase mb-3"
+            className="text-xs font-semibold tracking-widest mb-3"
             style={{ color: "var(--wv-sienna)", letterSpacing: "0.08em" }}
           >
             free tool
@@ -204,7 +204,7 @@ export default async function Home() {
       {/* -- how it works ----------------------------------------- */}
       <section className="px-6 py-20 sm:py-24" style={{ maxWidth: 1100, margin: "0 auto" }}>
         <p
-          className="text-xs font-semibold tracking-widest uppercase text-center mb-3"
+          className="text-xs font-semibold tracking-widest text-center mb-3"
           style={{ color: "var(--wv-redwood)", letterSpacing: "0.08em" }}
         >
           getting started
@@ -238,7 +238,7 @@ export default async function Home() {
       {/* -- who it's for ----------------------------------------- */}
       <section className="px-6 py-20 sm:py-24" style={{ maxWidth: 1100, margin: "0 auto" }}>
         <p
-          className="text-xs font-semibold tracking-widest uppercase text-center mb-3"
+          className="text-xs font-semibold tracking-widest text-center mb-3"
           style={{ color: "var(--wv-redwood)", letterSpacing: "0.08em" }}
         >
           who it&rsquo;s for

@@ -24,7 +24,7 @@ export default function FirstVisitBanner() {
     }}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <p className="text-[10px] font-semibold tracking-wide uppercase text-champagne mb-1">
+          <p className="text-[10px] font-semibold tracking-wide text-champagne mb-1">
             new here?
           </p>
           <p className="text-base font-semibold text-cadet">

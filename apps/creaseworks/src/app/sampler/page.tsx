@@ -88,7 +88,7 @@ export default async function SamplerPage() {
             backgroundColor: "rgba(203, 120, 88, 0.06)",
           }}
         >
-          <p className="text-[10px] font-semibold tracking-wide uppercase text-sienna mb-1">
+          <p className="text-[10px] font-semibold tracking-wide text-sienna mb-1">
             personalise your experience
           </p>
           <p className="text-base font-semibold text-cadet">
@@ -151,7 +151,7 @@ export default async function SamplerPage() {
               backgroundColor: "rgba(228, 196, 137, 0.08)",
             }}
           >
-            <p className="text-[10px] font-semibold tracking-wide uppercase text-champagne mb-1">
+            <p className="text-[10px] font-semibold tracking-wide text-champagne mb-1">
               {prefs ? "recommended for you" : "new here? start with this one"}
             </p>
             <p className="text-base font-semibold text-cadet">{pick.title}</p>

@@ -123,7 +123,7 @@ export default function MatcherInputForm({
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">🧺</span>
             <span
-              className="text-xs font-bold uppercase tracking-wider"
+              className="text-xs font-bold tracking-wider"
               style={{ color: "var(--wv-sienna)" }}
             >
               your treasure basket
@@ -272,7 +272,7 @@ export default function MatcherInputForm({
                       <span className="flex items-center gap-2">
                         <span className="text-base">{formEmoji}</span>
                         <span
-                          className="text-xs font-bold uppercase tracking-wider"
+                          className="text-xs font-bold tracking-wider"
                           style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
                         >
                           {form}
