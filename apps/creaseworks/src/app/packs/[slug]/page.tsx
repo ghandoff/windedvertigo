@@ -13,6 +13,7 @@ import { checkEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
 import PurchaseButton from "@/components/ui/purchase-button";
 import PlaydatePeek from "@/components/playdate-peek";
+import SafeHtml from "@/components/ui/safe-html";
 
 export const dynamic = "force-dynamic";
 
@@ -99,8 +100,12 @@ export default async function PackDetailPage({ params }: Props) {
           {pack.title}
         </h1>
 
-        {pack.description && (
-          <p className="text-lg text-cadet/60 mb-8">{pack.description}</p>
+        {(pack.description || pack.description_html) && (
+          <SafeHtml
+            html={pack.description_html}
+            fallback={pack.description}
+            className="text-lg text-cadet/60 mb-8"
+          />
         )}
 
         {/* draft status warning */}
@@ -168,8 +173,12 @@ export default async function PackDetailPage({ params }: Props) {
         {pack.title}
       </h1>
 
-      {pack.description && (
-        <p className="text-lg text-cadet/60 mb-6">{pack.description}</p>
+      {(pack.description || pack.description_html) && (
+        <SafeHtml
+          html={pack.description_html}
+          fallback={pack.description}
+          className="text-lg text-cadet/60 mb-6"
+        />
       )}
 
       <p className="text-sm text-cadet/50 mb-8">

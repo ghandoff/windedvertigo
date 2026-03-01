@@ -16,6 +16,7 @@ import { PlaydateCard, type ProgressTier } from "@/components/ui/playdate-card";
 import EmptyState from "@/components/empty-state";
 import QuickLogButton from "@/components/ui/quick-log-button";
 import CollectionExportButton from "@/components/collection-export-button";
+import SafeHtml from "@/components/ui/safe-html";
 
 export const dynamic = "force-dynamic";
 
@@ -90,10 +91,12 @@ export default async function CollectionDetailPage({ params }: Props) {
             <h1 className="text-3xl font-semibold tracking-tight">
               {collection.title}
             </h1>
-            {collection.description && (
-              <p className="text-cadet/50 text-sm mt-1">
-                {collection.description}
-              </p>
+            {(collection.description || collection.description_html) && (
+              <SafeHtml
+                html={collection.description_html}
+                fallback={collection.description}
+                className="text-cadet/50 text-sm mt-1"
+              />
             )}
           </div>
         </div>

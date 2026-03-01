@@ -56,6 +56,9 @@ interface PlaydateRow {
   findHtml: string | null;
   foldHtml: string | null;
   unfoldHtml: string | null;
+  headlineHtml: string | null;
+  findAgainPromptHtml: string | null;
+  substitutionsNotesHtml: string | null;
 }
 
 function parsePlaydatePage(page: NotionPage): PlaydateRow {
@@ -103,6 +106,9 @@ function parsePlaydatePage(page: NotionPage): PlaydateRow {
     findHtml: extractRichTextHtml(props, "find"),
     foldHtml: extractRichTextHtml(props, "fold"),
     unfoldHtml: extractRichTextHtml(props, "unfold"),
+    headlineHtml: extractRichTextHtml(props, "headline"),
+    findAgainPromptHtml: extractRichTextHtml(props, "find again prompt"),
+    substitutionsNotesHtml: extractRichTextHtml(props, "substitutions notes"),
   };
 }
 
@@ -152,7 +158,9 @@ export async function syncPlaydates() {
           notion_last_edited, synced_at, slug, age_range, tinkering_tier,
           cover_r2_key, cover_url, gallery_visible_fields,
           illustration_r2_key, illustration_url,
-          find_html, fold_html, unfold_html, body_html
+          find_html, fold_html, unfold_html,
+          headline_html, find_again_prompt_html, substitutions_notes_html,
+          body_html
         ) VALUES (
           ${row.notionId}, ${row.title}, ${row.headline},
           ${row.releaseChannel}, ${row.ipTier}, ${row.status},
@@ -169,7 +177,9 @@ export async function syncPlaydates() {
           ${coverR2Key}, ${coverUrl},
           ${JSON.stringify(row.galleryVisibleFields)},
           ${illustrationR2Key}, ${illustrationUrl},
-          ${row.findHtml}, ${row.foldHtml}, ${row.unfoldHtml}, ${bodyHtml}
+          ${row.findHtml}, ${row.foldHtml}, ${row.unfoldHtml},
+          ${row.headlineHtml}, ${row.findAgainPromptHtml}, ${row.substitutionsNotesHtml},
+          ${bodyHtml}
         )
         ON CONFLICT (notion_id) DO UPDATE SET
           title = EXCLUDED.title,
@@ -207,6 +217,9 @@ export async function syncPlaydates() {
           find_html = EXCLUDED.find_html,
           fold_html = EXCLUDED.fold_html,
           unfold_html = EXCLUDED.unfold_html,
+          headline_html = EXCLUDED.headline_html,
+          find_again_prompt_html = EXCLUDED.find_again_prompt_html,
+          substitutions_notes_html = EXCLUDED.substitutions_notes_html,
           body_html = EXCLUDED.body_html
       `;
     },

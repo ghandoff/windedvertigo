@@ -2,6 +2,7 @@ import Link from "next/link";
 import DownloadButton from "@/components/ui/download-button";
 import QuickLogButton from "@/components/ui/quick-log-button";
 import PhotoQuickLogButton from "@/components/ui/photo-quick-log-button";
+import SafeHtml from "@/components/ui/safe-html";
 import { MaterialIllustration } from "@/components/material-illustration";
 
 interface PlaydateData {
@@ -23,6 +24,13 @@ interface PlaydateData {
   find_again_prompt: string | null;
   slots_notes: string | null;
   substitutions_notes: string | null;
+  /* rich-text HTML variants (null when no formatting) */
+  headline_html?: string | null;
+  find_html?: string | null;
+  fold_html?: string | null;
+  unfold_html?: string | null;
+  find_again_prompt_html?: string | null;
+  substitutions_notes_html?: string | null;
   /* collective-only fields (may be absent for entitled tier) */
   design_rationale?: string | null;
   developmental_notes?: string | null;
@@ -55,7 +63,11 @@ export default function EntitledPlaydateView({
     <div className="space-y-8">
       {/* headline */}
       {playdate.headline && (
-        <p className="text-lg text-cadet/60">{playdate.headline}</p>
+        <SafeHtml
+          html={playdate.headline_html}
+          fallback={playdate.headline}
+          className="text-lg text-cadet/60"
+        />
       )}
 
       {/* at a glance — playful, parent-readable summary */}
@@ -153,9 +165,11 @@ export default function EntitledPlaydateView({
             <p className="text-[11px] text-cadet/40 mb-2">
               gather materials and set the stage
             </p>
-            <p className="text-sm text-cadet/80 whitespace-pre-line">
-              {playdate.find}
-            </p>
+            <SafeHtml
+              html={playdate.find_html}
+              fallback={playdate.find}
+              className="text-sm text-cadet/80 whitespace-pre-line"
+            />
           </div>
         )}
 
@@ -167,9 +181,11 @@ export default function EntitledPlaydateView({
             <p className="text-[11px] text-cadet/40 mb-2">
               the hands-on exploration
             </p>
-            <p className="text-sm text-cadet/80 whitespace-pre-line">
-              {playdate.fold}
-            </p>
+            <SafeHtml
+              html={playdate.fold_html}
+              fallback={playdate.fold}
+              className="text-sm text-cadet/80 whitespace-pre-line"
+            />
           </div>
         )}
 
@@ -181,9 +197,11 @@ export default function EntitledPlaydateView({
             <p className="text-[11px] text-cadet/40 mb-2">
               reflect on what happened
             </p>
-            <p className="text-sm text-cadet/80 whitespace-pre-line">
-              {playdate.unfold}
-            </p>
+            <SafeHtml
+              html={playdate.unfold_html}
+              fallback={playdate.unfold}
+              className="text-sm text-cadet/80 whitespace-pre-line"
+            />
           </div>
         )}
       </section>
@@ -195,9 +213,11 @@ export default function EntitledPlaydateView({
             find again — {playdate.find_again_mode}
           </h2>
           {playdate.find_again_prompt && (
-            <p className="text-sm text-cadet/80 whitespace-pre-line">
-              {playdate.find_again_prompt}
-            </p>
+            <SafeHtml
+              html={playdate.find_again_prompt_html}
+              fallback={playdate.find_again_prompt}
+              className="text-sm text-cadet/80 whitespace-pre-line"
+            />
           )}
         </section>
       )}
@@ -220,9 +240,11 @@ export default function EntitledPlaydateView({
           <h2 className="text-sm font-semibold text-cadet/80 mb-2">
             swap ideas
           </h2>
-          <p className="text-sm text-cadet/70 whitespace-pre-line">
-            {playdate.substitutions_notes}
-          </p>
+          <SafeHtml
+            html={playdate.substitutions_notes_html}
+            fallback={playdate.substitutions_notes}
+            className="text-sm text-cadet/70 whitespace-pre-line"
+          />
         </section>
       )}
 

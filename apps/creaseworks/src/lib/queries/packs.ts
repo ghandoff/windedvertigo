@@ -57,6 +57,7 @@ export async function getPackBySlug(slug: string) {
        pc.slug,
        pc.title,
        pc.description,
+       pc.description_html,
        ${cv}
        pc.status,
        cat.id AS catalogue_id,
@@ -177,6 +178,7 @@ export async function getPackBySlugCollective(slug: string) {
        pc.slug,
        pc.title,
        pc.description,
+       pc.description_html,
        ${cv}
        pc.status,
        cat.id AS catalogue_id,
