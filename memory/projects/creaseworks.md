@@ -14,10 +14,10 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | ~235 (.ts + .tsx) |
-| **Migrations** | 035 (latest: gallery_visible_fields) — all 001-035 applied to Neon |
+| **Migrations** | 036 (latest: rich_content) — 001-035 applied to Neon, 036 pending |
 | **TypeScript** | compiles clean (zero errors) |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 33 (Mar 1, 2026) |
+| **Last session** | 34 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -63,7 +63,7 @@ src/
     │   └── ...             # collections, evidence, entitlements, invites, etc.
     ├── seasonal.ts         # Season detection + tag mapping
     ├── security/           # Column selectors, entitlement checks
-    ├── sync/               # Notion → Neon sync handlers (5 handlers + generic utility)
+    ├── sync/               # Notion → Neon sync handlers (6 handlers + blocks.ts + generic utility)
     └── validation.ts       # parseJsonBody<T>() shared helper
 ```
 
@@ -102,6 +102,7 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 | 033 | stripe-price-id | `stripe_price_id TEXT` on packs_catalogue + seed 6 test-mode prices |
 | 034 | collection-covers | `cover_url`, `cover_r2_key` on collections |
 | 035 | gallery-visible-fields | `gallery_visible_fields JSONB` on playdates_cache |
+| 036 | rich-content | body_html on playdates/collections/packs, find/fold/unfold_html, illustration columns, cms_pages table |
 
 ## Stripe Price IDs (Test Mode)
 
