@@ -10,11 +10,12 @@ interface Pack {
   playdate_count: number;
   price_cents: number | null;
   currency: string;
+  family_count?: number;
 }
 
 type Situation = "classroom" | "sibling" | "rainy" | "summer" | "all" | null;
 
-const SITUATIONS: { value: Situation; label: string; detail: string }[] = [
+const SITUATIONS: { value: Situation; label: string; detail: string; season?: string }[] = [
   {
     value: "classroom",
     label: "classroom or group",
@@ -29,11 +30,13 @@ const SITUATIONS: { value: Situation; label: string; detail: string }[] = [
     value: "rainy",
     label: "stuck indoors",
     detail: "quick boredom busters, no prep needed",
+    season: "winter",
   },
   {
     value: "summer",
     label: "summer break",
     detail: "outdoor adventures and longer projects",
+    season: "summer",
   },
   {
     value: "all",
@@ -41,6 +44,22 @@ const SITUATIONS: { value: Situation; label: string; detail: string }[] = [
     detail: "full access to all 30 playdates",
   },
 ];
+
+/** Simple season detection for seasonal callouts. */
+function getCurrentSeason(): string {
+  const month = new Date().getMonth() + 1;
+  if (month >= 3 && month <= 5) return "spring";
+  if (month >= 6 && month <= 8) return "summer";
+  if (month >= 9 && month <= 11) return "fall";
+  return "winter";
+}
+
+const SEASON_EMOJI: Record<string, string> = {
+  spring: "🌱",
+  summer: "☀️",
+  fall: "🍂",
+  winter: "❄️",
+};
 
 // Mapping from situation to pack slug
 const SITUATION_TO_SLUG: Record<string, string> = {
@@ -55,10 +74,17 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
   const [situation, setSituation] = useState<Situation>(null);
   const [showCompare, setShowCompare] = useState(false);
 
+  const currentSeason = getCurrentSeason();
+  const seasonEmoji = SEASON_EMOJI[currentSeason] ?? "";
+  const seasonalSituation = SITUATIONS.find((s) => s.season === currentSeason);
+
   const recommendedSlug = situation ? SITUATION_TO_SLUG[situation] : null;
   const recommended = recommendedSlug
     ? packs.find((p) => p.slug === recommendedSlug) ?? null
     : null;
+
+  // Total families across all packs for social proof header
+  const totalFamilies = packs.reduce((sum, p) => sum + (p.family_count ?? 0), 0);
 
   return (
     <div className="mb-10">
@@ -75,23 +101,40 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
         </h2>
         <p className="text-xs text-cadet/40 mb-4">
           pick what best describes your situation.
+          {totalFamilies > 0 && (
+            <span className="ml-1 text-cadet/30">
+              {totalFamilies} {totalFamilies === 1 ? "family" : "families"} already playing.
+            </span>
+          )}
         </p>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {SITUATIONS.map((s) => (
-            <button
-              key={s.value}
-              onClick={() => setSituation(s.value)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-                situation === s.value
-                  ? "bg-redwood text-white"
-                  : "bg-cadet/5 text-cadet/60 hover:bg-cadet/10"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
+          {SITUATIONS.map((s) => {
+            const isSeasonal = s.season === currentSeason;
+            return (
+              <button
+                key={s.value}
+                onClick={() => setSituation(s.value)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                  situation === s.value
+                    ? "bg-redwood text-white"
+                    : isSeasonal
+                      ? "bg-sienna/10 text-sienna ring-1 ring-sienna/20 hover:bg-sienna/20"
+                      : "bg-cadet/5 text-cadet/60 hover:bg-cadet/10"
+                }`}
+              >
+                {isSeasonal && `${seasonEmoji} `}{s.label}
+              </button>
+            );
+          })}
         </div>
+
+        {/* seasonal nudge — shown before any selection if a seasonal pack exists */}
+        {!situation && seasonalSituation && (
+          <p className="text-[11px] text-sienna/60 mb-3">
+            {seasonEmoji} it&apos;s {currentSeason} — try <button onClick={() => setSituation(seasonalSituation.value)} className="font-medium text-sienna underline underline-offset-2 hover:text-redwood transition-colors">{seasonalSituation.label}</button> for seasonal picks.
+          </p>
+        )}
 
         {/* recommendation */}
         {recommended && (
@@ -112,6 +155,8 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
                 </p>
                 <p className="text-xs text-cadet/50 mt-0.5">
                   {recommended.playdate_count} playdates
+                  {recommended.family_count != null && recommended.family_count > 0 &&
+                    ` · ${recommended.family_count} ${recommended.family_count === 1 ? "family" : "families"} exploring`}
                   {recommended.price_cents != null &&
                     ` · $${(recommended.price_cents / 100).toFixed(2)}`}
                 </p>
@@ -146,6 +191,9 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
                 </th>
                 <th className="text-center px-3 py-2.5 font-semibold text-cadet/60">
                   playdates
+                </th>
+                <th className="text-center px-3 py-2.5 font-semibold text-cadet/60 hidden sm:table-cell">
+                  families
                 </th>
                 <th className="text-center px-3 py-2.5 font-semibold text-cadet/60">
                   price
@@ -188,6 +236,9 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
                     </td>
                     <td className="text-center px-3 py-3 text-cadet/60">
                       {p.playdate_count}
+                    </td>
+                    <td className="text-center px-3 py-3 text-cadet/40 hidden sm:table-cell">
+                      {p.family_count != null && p.family_count > 0 ? p.family_count : "—"}
                     </td>
                     <td className="text-center px-3 py-3 font-medium text-cadet">
                       {p.price_cents != null
