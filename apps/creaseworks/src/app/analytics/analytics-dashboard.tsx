@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { brand } from "@windedvertigo/tokens";
+import { apiUrl } from "@/lib/api-url";
 
 /* ------------------------------------------------------------------ */
 /*  types (mirroring server-side AnalyticsSummary)                     */
@@ -184,7 +185,7 @@ export default function AnalyticsDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/analytics/runs")
+    fetch(apiUrl("/api/analytics/runs"))
       .then(async (res) => {
         if (!res.ok) throw new Error("failed to load analytics");
         return res.json();
@@ -304,3 +305,4 @@ export default function AnalyticsDashboard() {
     </div>
   );
 }
+
