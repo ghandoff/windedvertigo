@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiUrl } from "@/lib/api-url";
-import { REDEMPTION_THRESHOLDS } from "@/lib/queries/credits";
+import { REDEMPTION_THRESHOLDS } from "@/lib/queries/credit-constants";
 
 interface Pack {
   id: string;
