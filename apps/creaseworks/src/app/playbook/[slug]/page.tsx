@@ -13,6 +13,7 @@ import {
   type CollectionPlaydate,
 } from "@/lib/queries/collections";
 import { PlaydateCard, type ProgressTier } from "@/components/ui/playdate-card";
+import EmptyState from "@/components/empty-state";
 import QuickLogButton from "@/components/ui/quick-log-button";
 import CollectionExportButton from "@/components/collection-export-button";
 
@@ -160,12 +161,11 @@ export default async function CollectionDetailPage({ params }: Props) {
 
       {/* playdate grid */}
       {playdates.length === 0 ? (
-        <div className="py-12 text-center">
-          <p className="text-2xl mb-2" aria-hidden>🧩</p>
-          <p className="text-sm text-cadet/50">
-            playdates are being added to this collection — check back soon!
-          </p>
-        </div>
+        <EmptyState
+          type="seedling"
+          heading="playdates are sprouting"
+          body="this collection is being planted — playdates will appear here soon!"
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {playdates.map((p) => (

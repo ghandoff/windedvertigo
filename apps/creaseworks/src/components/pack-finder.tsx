@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { getPackTheme } from "@/components/pack-illustration";
 
 interface Pack {
   slug: string;
@@ -151,6 +152,7 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
                   our pick for you
                 </p>
                 <p className="text-sm font-semibold text-cadet">
+                  <span className="mr-1" aria-hidden="true">{getPackTheme(recommended.slug).emoji}</span>
                   {recommended.title}
                 </p>
                 <p className="text-xs text-cadet/50 mt-0.5">
@@ -220,6 +222,7 @@ export default function PackFinder({ packs }: { packs: Pack[] }) {
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
+                        <span className="text-sm" aria-hidden="true">{getPackTheme(p.slug).emoji}</span>
                         <span
                           className={`font-medium ${
                             isRec ? "text-redwood" : "text-cadet"

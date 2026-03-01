@@ -158,7 +158,22 @@ export function MatcherResults({
             backgroundColor: "rgba(255, 235, 210, 0.1)",
           }}
         >
-          <div className="text-3xl mb-3">🤔</div>
+          {/* magnifying-glass illustration */}
+          <svg
+            viewBox="0 0 80 60"
+            width={80}
+            height={60}
+            className="mx-auto mb-4"
+            aria-hidden="true"
+          >
+            <circle cx="34" cy="26" r="14" fill="none" stroke="var(--wv-sienna)" strokeWidth="1.5" opacity="0.4" />
+            <circle cx="34" cy="26" r="10" fill="var(--wv-champagne)" opacity="0.2" />
+            <line x1="44" y1="36" x2="56" y2="48" stroke="var(--wv-sienna)" strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
+            <text x="34" y="30" textAnchor="middle" dominantBaseline="central" fontSize="12" fontWeight="600" fill="var(--wv-sienna)" opacity="0.25">?</text>
+            <circle cx="60" cy="14" r="1.5" fill="var(--wv-sienna)" opacity="0.12" />
+            <circle cx="66" cy="22" r="1" fill="var(--wv-sienna)" opacity="0.1" />
+            <circle cx="14" cy="42" r="1.2" fill="var(--wv-sienna)" opacity="0.1" />
+          </svg>
           <p
             className="text-sm leading-relaxed max-w-md mx-auto"
             style={{ color: "var(--wv-cadet)", opacity: 0.6 }}
