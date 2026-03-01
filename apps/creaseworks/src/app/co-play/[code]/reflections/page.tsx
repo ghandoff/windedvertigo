@@ -28,7 +28,7 @@ export default async function CoPlayReflectionsPage({
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-cadet/10 p-6 text-center">
           <h1 className="text-2xl font-bold mb-2 text-cadet">
-            Session Not Found
+            session not found
           </h1>
           <p className="text-cadet/60 mb-6">
             This co-play session wasn't found or has expired.
@@ -37,7 +37,7 @@ export default async function CoPlayReflectionsPage({
             href="/"
             className="inline-block px-4 py-2 bg-redwood text-white rounded-lg hover:bg-redwood/90"
           >
-            Back to Home
+            back to home
           </Link>
         </div>
       </div>
@@ -57,14 +57,14 @@ export default async function CoPlayReflectionsPage({
             href={`/runs/${run.id}`}
             className="text-redwood hover:underline text-sm mb-6 inline-block"
           >
-            ← Back to playdate
+            ← back to playdate
           </Link>
 
           <h1 className="text-3xl font-bold mb-2 text-cadet">
-            Share Your Reflections
+            share your reflections
           </h1>
           <p className="text-cadet/60 mb-8">
-            Tell us what you observed and experienced during{" "}
+            tell us what you observed and experienced during{" "}
             <strong>{run.title}</strong>.
           </p>
 

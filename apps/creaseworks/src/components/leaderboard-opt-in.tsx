@@ -43,7 +43,7 @@ export default function LeaderboardOptIn({
 
       if (!response.ok) {
         const data = await response.json();
-        setError(data.error || "Failed to update leaderboard status");
+        setError(data.error || "failed to update leaderboard status");
         setIsLoading(false);
         return;
       }
@@ -52,14 +52,14 @@ export default function LeaderboardOptIn({
       setOptedIn(data.opted_in);
       if (data.opted_in) {
         setShowNameInput(true);
-        setSuccessMessage("You've joined the leaderboard!");
+        setSuccessMessage("you've joined the leaderboard!");
       } else {
         setShowNameInput(false);
-        setSuccessMessage("You've left the leaderboard");
+        setSuccessMessage("you've left the leaderboard");
       }
       setIsLoading(false);
     } catch (err) {
-      setError("Network error. Please try again.");
+      setError("network error — please try again.");
       setIsLoading(false);
     }
   }, [displayName]);
@@ -88,15 +88,15 @@ export default function LeaderboardOptIn({
 
       if (!response.ok) {
         const data = await response.json();
-        setError(data.error || "Failed to update display name");
+        setError(data.error || "failed to update display name");
         setIsLoading(false);
         return;
       }
 
-      setSuccessMessage("Display name updated!");
+      setSuccessMessage("display name updated!");
       setIsLoading(false);
     } catch (err) {
-      setError("Network error. Please try again.");
+      setError("network error — please try again.");
       setIsLoading(false);
     }
   }, [initialDisplayName]);
@@ -174,7 +174,7 @@ export default function LeaderboardOptIn({
             value={displayName}
             onChange={(e) => handleDisplayNameChange(e.target.value)}
             disabled={isLoading}
-            placeholder="First name"
+            placeholder="first name"
             maxLength={50}
             style={{
               width: "100%",

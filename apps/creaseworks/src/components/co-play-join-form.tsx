@@ -41,7 +41,7 @@ export function CoPlayJoinForm({
       }
     } catch (err) {
       console.error("Failed to join co-play:", err);
-      setError(err instanceof Error ? err.message : "Failed to join");
+      setError(err instanceof Error ? err.message : "failed to join");
     } finally {
       setIsSubmitting(false);
     }
@@ -59,7 +59,7 @@ export function CoPlayJoinForm({
         disabled={isSubmitting}
         className="w-full px-4 py-3 bg-redwood text-white rounded-lg font-medium hover:bg-redwood/90 disabled:opacity-50 transition"
       >
-        {isSubmitting ? "Joining..." : "Join Co-Play Session"}
+        {isSubmitting ? "joining..." : "join co-play session"}
       </button>
     </div>
   );
