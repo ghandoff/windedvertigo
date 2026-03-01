@@ -2,6 +2,7 @@ export interface Material {
   id: string;
   title: string;
   form_primary: string;
+  emoji?: string | null;
 }
 
 export interface MatcherInputFormProps {

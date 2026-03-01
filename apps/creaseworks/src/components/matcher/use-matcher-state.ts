@@ -151,6 +151,13 @@ export function useMatcherState(materials: Material[]) {
     return map;
   }, [materials]);
 
+  // resolve CMS-managed emoji (from Notion) for emoji lookup
+  const materialEmojiMap = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const mat of materials) map.set(mat.id, mat.emoji ?? null);
+    return map;
+  }, [materials]);
+
   return {
     selectedMaterials,
     setSelectedMaterials,
@@ -181,6 +188,7 @@ export function useMatcherState(materials: Material[]) {
     handleClear,
     materialTitleMap,
     materialFormMap,
+    materialEmojiMap,
   };
 }
 

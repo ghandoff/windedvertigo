@@ -12,7 +12,7 @@ import { sql } from "@/lib/db";
  */
 export async function getAllMaterials() {
   const result = await sql.query(
-    `SELECT id, title, form_primary, functions, context_tags
+    `SELECT id, title, emoji, form_primary, functions, context_tags
      FROM materials_cache
      WHERE do_not_use = false
      ORDER BY form_primary ASC, title ASC`,
