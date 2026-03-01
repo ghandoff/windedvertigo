@@ -321,3 +321,34 @@ p, li, dd {
     opacity: 1;
   }
 }
+
+/* app-level reduce-motion class — supplements OS prefers-reduced-motion.
+   users toggle this in profile settings → accessibility.                */
+html.reduce-motion .wv-stagger > * {
+  animation: none;
+  opacity: 1;
+}
+
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ── dyslexia-friendly font ─────────────────────────────────────
+   Switches to Atkinson Hyperlegible when .dyslexia-font is on
+   <html>. Characters have distinct shapes to reduce mirroring
+   confusion (b/d, p/q, etc.).                                     */
+
+html.dyslexia-font body,
+html.dyslexia-font input,
+html.dyslexia-font textarea,
+html.dyslexia-font select,
+html.dyslexia-font button {
+  font-family: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  word-spacing: 0.05em;
+}

@@ -42,6 +42,7 @@ export const metadata: Metadata = {
 };
 import ProfileManageToggle from "./manage-toggle";
 import NotificationPrefs from "./notification-prefs";
+import AccessibilityPrefs from "./accessibility-prefs";
 import PlayContextSwitcher from "./play-context-switcher";
 import SyncTrigger from "@/app/admin/sync/sync-trigger";
 
@@ -332,6 +333,22 @@ export default async function ProfilePage({
 
           {showManage && (
             <div className="mt-6 space-y-12">
+              {/* accessibility section */}
+              <section>
+                <h3 className="text-lg font-semibold tracking-tight mb-1">
+                  accessibility
+                </h3>
+                <p className="text-sm text-cadet/40 mb-4">
+                  adjust how creaseworks looks and moves to suit you best.
+                </p>
+                <div
+                  className="rounded-xl border p-4"
+                  style={{ borderColor: "rgba(39, 50, 72, 0.1)", backgroundColor: "var(--wv-white)" }}
+                >
+                  <AccessibilityPrefs />
+                </div>
+              </section>
+
               {/* notifications section */}
               <section>
                 <h3 className="text-lg font-semibold tracking-tight mb-1">
