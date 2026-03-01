@@ -17,7 +17,7 @@
 | **Migrations** | 040 (latest: calm_theme) — 001-040 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 40 (Mar 1, 2026) |
+| **Last session** | 41 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -125,6 +125,12 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ `app/api/admin/playdates/[id]/route.ts` — admin-only detail endpoint with `requireAdmin()`
 - ✅ `components/admin/admin-playdate-browser.tsx` — rewritten with expandable content preview, completeness badges, lazy detail caching, materials list, design notes
 - ✅ `app/admin/playdates/page.tsx` — uses new `getAdminPlaydates` query
+
+### Visual Bridge: Parent Site ↔ Creaseworks (session 41)
+- ✅ `packages/tokens/index.css` — `.wv-header-parent`, `.wv-header-parent-sep`, `.wv-header-crossnav` shared classes
+- ✅ `components/ui/nav-bar.tsx` — brand hierarchy "winded.vertigo › creaseworks" in header, "← windedvertigo.com" in mobile dropdown
+- ✅ `globals.css` — calm theme overrides for parent brand + cross-app nav elements
+- ✅ Footer already fully shared via `@windedvertigo/tokens` package (footer.html → footer-html.ts)
 
 ## Migration Log
 

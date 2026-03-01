@@ -73,7 +73,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | # | item | effort | notes |
 |---|------|--------|-------|
 | 11 | ~~admin playdate preview with pack filter toggles~~ | ✅ done | expandable content preview — completeness badges (find/fold/unfold/body/illustration), lazy-loaded detail via `/api/admin/playdates/[id]`, materials list, design notes. commit abb7640. |
-| 12 | 🔵 **profile "your journey" redesign** | ~4 hr | owned packs + recommendations. ProfileDashboard exists with stats/badges/activity — this would extend it with pack-aware content. |
+| 12 | 🔵 **profile "your journey" redesign** | ~1 hr | **substantially built** — ProfileYourPacks, ProfileWhatsNext, ProfileJourney, ProfileDashboard all exist with pack-aware content, recommendations, milestones, credits. remaining work is UI consolidation (stats shown twice, recent runs duplicated) — needs design decisions on layout priority. |
 
 ---
 
@@ -99,7 +99,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | 21 | ~~DRAFT badge uses non-brand orange~~ | ✅ done | already uses sienna/30 border + sienna/5 bg + sienna text |
 | 22 | ~~footer "let's play." tagline~~ | ✅ done | already in `packages/tokens/footer.html` |
 | 23 | ~~typography scale audit~~ | ✅ done | session 34 — commit f3023fe |
-| 24 | 🔵 **parent site vs creaseworks visual bridge** | ~2 hr | windedvertigo.com and creaseworks feel like different products. |
+| 24 | ~~parent site vs creaseworks visual bridge~~ | ✅ done | brand hierarchy "winded.vertigo › creaseworks" in header, cross-app "← windedvertigo.com" link in mobile menu, shared CSS in tokens, calm theme support. footer was already fully shared. |
 
 ---
 

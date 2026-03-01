@@ -218,10 +218,17 @@ export default function NavBar() {
         className="wv-header fixed top-0 left-0 right-0 z-50"
         aria-label="main navigation"
       >
-          {/* brand */}
-          <Link href="/" className="wv-header-brand" onClick={close}>
-            creaseworks
-          </Link>
+          {/* brand hierarchy — "winded.vertigo › creaseworks"
+             plain <a> for parent link escapes Next.js basePath */}
+          <div className="flex items-center">
+            <a href="/" className="wv-header-parent hidden sm:inline">
+              winded.vertigo
+            </a>
+            <span className="wv-header-parent-sep hidden sm:inline" aria-hidden="true">›</span>
+            <Link href="/" className="wv-header-brand" onClick={close}>
+              creaseworks
+            </Link>
+          </div>
 
           {/* desktop links */}
           <div className="wv-header-nav hidden sm:flex">
@@ -266,6 +273,16 @@ export default function NavBar() {
             {publicLinks}
             {authedLinks}
             {authAction}
+
+            {/* cross-app nav — parent site links */}
+            <div
+              className="flex items-center gap-4 pt-3 mt-1"
+              style={{ borderTop: "1px solid rgba(255,235,210,0.06)" }}
+            >
+              <a href="/" className="wv-header-crossnav" onClick={close}>
+                ← windedvertigo.com
+              </a>
+            </div>
           </div>
         )}
       </nav>

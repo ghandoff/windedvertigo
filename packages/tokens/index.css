@@ -200,6 +200,31 @@
   align-items: center;
 }
 
+/* parent brand — subtle "winded.vertigo ›" prefix in creaseworks header.
+   communicates product hierarchy: the app is PART of the parent brand.
+   uses a plain <a> (not Next.js Link) to escape the basePath prefix.   */
+
+.wv-header-parent {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: rgba(255, 235, 210, 0.45);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.wv-header-parent:hover {
+  color: var(--wv-champagne);
+}
+
+.wv-header-parent-sep {
+  font-size: 0.65rem;
+  color: rgba(255, 235, 210, 0.2);
+  margin: 0 0.4rem;
+  user-select: none;
+}
+
 .wv-header-brand {
   font-size: 0.875rem;
   font-weight: 700;
@@ -211,6 +236,21 @@
 
 .wv-header-brand:hover {
   opacity: 0.8;
+}
+
+/* cross-app nav — parent site links shown in creaseworks mobile menu.
+   smaller + more muted than in-app links to visually subordinate them. */
+
+.wv-header-crossnav {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 235, 210, 0.5);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.wv-header-crossnav:hover {
+  color: var(--wv-champagne);
 }
 
 .wv-header-nav {
