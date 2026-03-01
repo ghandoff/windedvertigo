@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description:
     "celebrate creativity and consistency — see who's earning credits through reflection, photos, and play.",
   openGraph: {
-    title: "community — creaseworks",
+    title: "community",
     description:
       "celebrate creativity and consistency — see who's earning credits through reflection, photos, and play.",
   },

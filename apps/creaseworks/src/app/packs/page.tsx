@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description:
     "browse playdate packs — themed bundles of creative activities for families, teachers, and teams.",
   openGraph: {
-    title: "packs — creaseworks",
+    title: "packs",
     description:
       "browse playdate packs — themed bundles of creative activities for families, teachers, and teams.",
   },
