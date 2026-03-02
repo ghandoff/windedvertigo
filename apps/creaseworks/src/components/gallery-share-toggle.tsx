@@ -6,10 +6,16 @@
  * Small button/toggle for users to opt-in/out of sharing evidence
  * to the community gallery. Uses the /api/gallery/share endpoint.
  *
+ * Progressive disclosure: hidden for non-collaborator users (gallery is
+ * view-only for casual / curious). The `tier` prop controls visibility.
+ * Tiers are cosmetic UX gating, but the API route also checks tier as
+ * a safety net.
+ *
  * Props:
  *   evidenceId — ID of the evidence item
  *   initialShared — initial shared state (optional, defaults to false)
  *   onStatusChange — callback when share status changes (optional)
+ *   tier — user's UI tier (only "collaborator" can share)
  */
 
 import { useState } from "react";
@@ -19,15 +25,23 @@ interface GalleryShareToggleProps {
   evidenceId: string;
   initialShared?: boolean;
   onStatusChange?: (shared: boolean) => void;
+  /** UI tier — component renders nothing unless "collaborator". */
+  tier?: string;
 }
 
 export default function GalleryShareToggle({
   evidenceId,
   initialShared = false,
   onStatusChange,
+  tier,
 }: GalleryShareToggleProps) {
   const [shared, setShared] = useState(initialShared);
   const [loading, setLoading] = useState(false);
+
+  // Gallery sharing is only available to collaborator tier.
+  // If tier is not provided, render normally (backwards-compatible).
+  // Guard placed after hooks to satisfy React rules of hooks.
+  if (tier && tier !== "collaborator") return null;
 
   const handleToggle = async () => {
     setLoading(true);
@@ -76,4 +90,3 @@ export default function GalleryShareToggle({
     </button>
   );
 }
-

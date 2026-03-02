@@ -6,6 +6,27 @@ import StepProgress from "@/components/ui/step-progress";
 
 /* ── option definitions ── */
 
+const TIER_OPTIONS = [
+  {
+    value: "casual",
+    label: "just play",
+    sub: "simple play ideas, no tracking",
+    icon: "🎈",
+  },
+  {
+    value: "curious",
+    label: "play + learn",
+    sub: "ideas with developmental context",
+    icon: "📖",
+  },
+  {
+    value: "collaborator",
+    label: "play + grow",
+    sub: "reflections, community, evidence",
+    icon: "🌱",
+  },
+] as const;
+
 const AGE_GROUPS = [
   { value: "toddler", label: "toddlers", sub: "1-3 yrs" },
   { value: "preschool", label: "preschool", sub: "3-5 yrs" },
@@ -36,7 +57,7 @@ const CONTEXT_NAME_SUGGESTIONS = [
   "weekend play",
 ] as const;
 
-type Step = 0 | 1 | 2 | 3;
+type Step = 0 | 1 | 2 | 3 | 4;
 
 interface WizardProps {
   editMode?: boolean;
@@ -50,8 +71,11 @@ interface WizardProps {
 
 export default function OnboardingWizard({ editMode = false, initialValues }: WizardProps) {
   const router = useRouter();
-  const totalSteps = editMode ? 4 : 3; // edit mode adds a context-name step at the end
-  const [step, setStep] = useState<Step>(0);
+  // New flow: tier → ages → contexts → energy (+ name in edit mode)
+  // Edit mode skips tier step — users change tier from profile instead
+  const totalSteps = editMode ? 4 : 4;
+  const [step, setStep] = useState<Step>(editMode ? 1 : 0);
+  const [tier, setTier] = useState<string>("casual");
   const [ageGroups, setAgeGroups] = useState<string[]>(initialValues?.ageGroups ?? []);
   const [contexts, setContexts] = useState<string[]>(initialValues?.contexts ?? []);
   const [energy, setEnergy] = useState<string>(initialValues?.energy ?? "any");
@@ -76,6 +100,7 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
           ageGroups,
           contexts,
           energy,
+          ...(!editMode && { tier }),
           ...(editMode && { contextName: contextName.trim() || "default" }),
           ...(editMode && initialValues?.contextName && {
             originalContextName: initialValues.contextName,
@@ -91,20 +116,22 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
 
   const canAdvance =
     step === 0
-      ? ageGroups.length > 0
+      ? true // tier always has a default selection
       : step === 1
-        ? contexts.length > 0
+        ? ageGroups.length > 0
         : step === 2
-          ? true
-          : contextName.trim().length > 0; // step 3: name required
+          ? contexts.length > 0
+          : step === 3
+            ? true // energy always has a default
+            : contextName.trim().length > 0; // step 4: name required (edit mode)
 
-  const lastContentStep = editMode ? 3 : 2;
+  const lastContentStep = editMode ? 4 : 3;
 
   const stepLabels = useMemo(
     () =>
       editMode
         ? ["who's playing?", "where?", "energy level", "name it"]
-        : ["who's playing?", "where?", "energy level"],
+        : ["how do you play?", "who's playing?", "where?", "energy level"],
     [editMode],
   );
 
@@ -113,15 +140,47 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
       {/* progress indicator */}
       <div className="mb-8">
         <StepProgress
-          currentStep={step}
+          currentStep={editMode ? step - 1 : step}
           totalSteps={totalSteps}
           stepLabels={stepLabels}
         />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-cadet/10 p-8">
-        {/* step 0: ages */}
-        {step === 0 && (
+        {/* step 0: tier selection (new users only) */}
+        {step === 0 && !editMode && (
+          <>
+            <h1 className="text-xl font-semibold text-cadet mb-1">
+              how do you want to use creaseworks?
+            </h1>
+            <p className="text-sm text-cadet/50 mb-6">
+              you can change this anytime from your profile
+            </p>
+            <div className="space-y-3">
+              {TIER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setTier(opt.value)}
+                  className={`w-full rounded-xl border-2 px-5 py-4 text-left transition-all ${
+                    tier === opt.value
+                      ? "border-sienna bg-sienna/5"
+                      : "border-cadet/10 hover:border-cadet/20"
+                  }`}
+                >
+                  <span className="text-xl mr-3">{opt.icon}</span>
+                  <span className="text-sm font-semibold text-cadet">
+                    {opt.label}
+                  </span>
+                  <span className="text-xs text-cadet/40 ml-2">{opt.sub}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* step 1: ages */}
+        {step === 1 && (
           <>
             <h1 className="text-xl font-semibold text-cadet mb-1">
               who&apos;s playing?
@@ -151,8 +210,8 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
           </>
         )}
 
-        {/* step 1: context */}
-        {step === 1 && (
+        {/* step 2: context */}
+        {step === 2 && (
           <>
             <h1 className="text-xl font-semibold text-cadet mb-1">
               where do you usually play?
@@ -182,8 +241,8 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
           </>
         )}
 
-        {/* step 2: energy */}
-        {step === 2 && (
+        {/* step 3: energy */}
+        {step === 3 && (
           <>
             <h1 className="text-xl font-semibold text-cadet mb-1">
               what energy level works?
@@ -214,8 +273,8 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
           </>
         )}
 
-        {/* step 3 (edit mode only): name this context */}
-        {step === 3 && editMode && (
+        {/* step 4 (edit mode only): name this context */}
+        {step === 4 && editMode && (
           <>
             <h1 className="text-xl font-semibold text-cadet mb-1">
               name this context
@@ -250,7 +309,7 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
 
         {/* nav buttons */}
         <div className="flex items-center justify-between mt-8">
-          {step > 0 ? (
+          {step > (editMode ? 1 : 0) ? (
             <button
               type="button"
               onClick={() => setStep((step - 1) as Step)}
@@ -291,7 +350,7 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
           )}
         </div>
 
-        {/* skip link — first-time only */}
+        {/* skip link — first-time only, on tier step */}
         {step === 0 && !editMode && (
           <p className="text-center mt-4">
             <button

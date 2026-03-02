@@ -8,6 +8,7 @@ declare module "next-auth" {
     orgName: string | null;
     orgRole: string | null;
     isAdmin: boolean;
+    uiTier: string;
   }
 }
 
@@ -18,5 +19,6 @@ declare module "next-auth/jwt" {
     orgName: string | null;
     orgRole: string | null;
     isAdmin: boolean;
+    uiTier: string;
   }
 }
