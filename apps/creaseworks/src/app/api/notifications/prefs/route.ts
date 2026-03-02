@@ -79,7 +79,7 @@ export async function PATCH(request: Request) {
   } catch (err: any) {
     console.error("[prefs] update failed:", err);
     return NextResponse.json(
-      { error: err.message ?? "update failed" },
+      { error: "update failed" },
       { status: 500 },
     );
   }

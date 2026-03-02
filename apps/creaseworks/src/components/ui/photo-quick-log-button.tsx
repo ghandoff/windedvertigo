@@ -81,7 +81,7 @@ export default function PhotoQuickLogButton({
           title: playdateTitle,
           playdateId,
           runType: "quick log",
-          runDate: new Date().toISOString().slice(0, 10),
+          runDate: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })(),
           contextTags: [],
           traceEvidence: [],
           whatChanged: null,
@@ -105,24 +105,14 @@ export default function PhotoQuickLogButton({
       const { id: evidenceId } = await evidenceRes.json();
 
       // 3. upload the photo to R2 via presigned URL
+      // Storage keys are saved server-side in the upload-url route
       const photo: PhotoItem = {
         localId: `pql-${Date.now()}`,
         previewUrl: preview,
         file,
         status: "uploading",
       };
-      const { storageKey, thumbnailKey } = await uploadPhotoToR2(
-        photo,
-        runId,
-        evidenceId,
-      );
-
-      // 4. patch the evidence record with the storage keys
-      await fetch(apiUrl(`/api/runs/${runId}/evidence/${evidenceId}`), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ storageKey, thumbnailKey }),
-      });
+      await uploadPhotoToR2(photo, runId, evidenceId);
 
       setState("done");
     } catch (err) {
@@ -195,7 +185,6 @@ export default function PhotoQuickLogButton({
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic"
-        capture="environment"
         className="hidden"
         onChange={handleFile}
       />

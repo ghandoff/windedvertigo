@@ -12,6 +12,7 @@
  */
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { sql } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-helpers";
@@ -284,7 +285,9 @@ export default async function ProfilePage({
       {/* ---- manage toggle (grownup stuff) ------------------------- */}
       {canManage && (
         <>
-          <ProfileManageToggle isOpen={showManage} />
+          <Suspense fallback={null}>
+            <ProfileManageToggle isOpen={showManage} />
+          </Suspense>
 
           {showManage && (
             <div className="mt-6 space-y-12">

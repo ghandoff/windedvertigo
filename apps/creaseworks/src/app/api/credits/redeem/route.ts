@@ -19,7 +19,7 @@ import {
   getUserCredits,
   REDEMPTION_THRESHOLDS,
 } from "@/lib/queries/credits";
-import { grantEntitlement } from "@/lib/queries/entitlements";
+import { grantEntitlement, grantUserEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
 
 const VALID_REWARD_TYPES = Object.keys(REDEMPTION_THRESHOLDS) as Array<
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Check balance before attempting spend
+  // Pre-flight balance check (the real guard is the atomic spendCredits)
   const balance = await getUserCredits(session.userId);
   if (balance < cost) {
     return NextResponse.json(
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Spend credits
+    // Atomic spend — prevents TOCTOU double-spend
     const redemptionId = await spendCredits(
       session.userId,
       session.orgId,
@@ -88,8 +88,13 @@ export async function POST(req: NextRequest) {
     );
 
     // Grant entitlement for pack-based rewards
-    if ((reward === "single_playdate" || reward === "full_pack") && packId && session.orgId) {
-      await grantEntitlement(session.orgId, packId as string);
+    // Supports both org-level and individual user-level entitlements
+    if ((reward === "single_playdate" || reward === "full_pack") && packId) {
+      if (session.orgId) {
+        await grantEntitlement(session.orgId, packId as string);
+      } else {
+        await grantUserEntitlement(session.userId, packId as string);
+      }
     }
 
     // Audit log
@@ -105,19 +110,24 @@ export async function POST(req: NextRequest) {
       ["reward_type", "credits_spent"],
     );
 
+    const newBalance = await getUserCredits(session.userId);
     return NextResponse.json(
       {
         message: "credits redeemed",
         redemptionId,
         creditsSpent: cost,
-        newBalance: balance - cost,
+        newBalance,
       },
       { status: 201 },
     );
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "redemption failed";
     console.error("[credits/redeem] error:", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    // Don't leak internal error messages to client
+    const isInsufficientCredits =
+      err instanceof Error && err.message.startsWith("Insufficient credits");
+    return NextResponse.json(
+      { error: isInsufficientCredits ? "insufficient credits" : "redemption failed" },
+      { status: isInsufficientCredits ? 400 : 500 },
+    );
   }
 }

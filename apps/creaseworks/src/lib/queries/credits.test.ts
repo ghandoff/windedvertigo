@@ -145,7 +145,9 @@ describe("getUserCreditHistory", () => {
 
 describe("spendCredits", () => {
   it("throws when balance is insufficient", async () => {
-    // getUserCredits returns 5
+    // Atomic CTE returns no rows when balance < amount
+    mockQuery.mockResolvedValueOnce({ rows: [] });
+    // getUserCredits called to build error message
     mockQuery.mockResolvedValueOnce({ rows: [{ balance: "5" }] });
 
     await expect(
@@ -154,25 +156,23 @@ describe("spendCredits", () => {
   });
 
   it("inserts redemption when balance is sufficient", async () => {
-    // getUserCredits returns 30
-    mockQuery.mockResolvedValueOnce({ rows: [{ balance: "30" }] });
-    // INSERT credit_redemptions
+    // Atomic CTE: balance check + INSERT in one query
     mockQuery.mockResolvedValueOnce({ rows: [{ id: "redemp-1" }] });
 
     const result = await spendCredits("user-1", "org-1", 25, "single_playdate", "pack-1");
     expect(result).toBe("redemp-1");
 
-    // Verify INSERT params
-    const [, insertParams] = mockQuery.mock.calls[1];
-    expect(insertParams[0]).toBe("user-1");
-    expect(insertParams[1]).toBe("org-1");
-    expect(insertParams[2]).toBe(25);
-    expect(insertParams[3]).toBe("single_playdate");
-    expect(insertParams[4]).toBe("pack-1");
+    // Verify CTE params (single query now)
+    const [, params] = mockQuery.mock.calls[0];
+    expect(params[0]).toBe("user-1");
+    expect(params[1]).toBe("org-1");
+    expect(params[2]).toBe(25);
+    expect(params[3]).toBe("single_playdate");
+    expect(params[4]).toBe("pack-1");
   });
 
   it("succeeds when balance exactly equals amount", async () => {
-    mockQuery.mockResolvedValueOnce({ rows: [{ balance: "10" }] });
+    // Atomic CTE succeeds when bal >= amount (includes exact match)
     mockQuery.mockResolvedValueOnce({ rows: [{ id: "redemp-exact" }] });
 
     const result = await spendCredits("user-1", null, 10, "sampler_pdf");

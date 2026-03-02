@@ -47,7 +47,7 @@ export default function QuickLogButton({
           title: playdateTitle,
           playdateId,
           runType: "quick log",
-          runDate: new Date().toISOString().slice(0, 10),
+          runDate: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })(),
           contextTags: [],
           traceEvidence: [],
           whatChanged: null,

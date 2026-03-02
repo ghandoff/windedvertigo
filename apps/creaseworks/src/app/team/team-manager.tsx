@@ -124,7 +124,7 @@ export default function TeamManager({
                     <span
                       className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                         m.role === "admin"
-                          ? "bg-burnt-sienna/10 text-burnt-sienna"
+                          ? "bg-sienna/10 text-sienna"
                           : "bg-cadet/5 text-cadet/50"
                       }`}
                     >
@@ -153,7 +153,7 @@ export default function TeamManager({
                               onClick={() =>
                                 handleRoleChange(m.user_id, "admin")
                               }
-                              className="text-xs text-cadet/40 hover:text-burnt-sienna transition-colors"
+                              className="text-xs text-cadet/40 hover:text-sienna transition-colors"
                             >
                               make admin
                             </button>
@@ -162,7 +162,7 @@ export default function TeamManager({
                               onClick={() =>
                                 handleRoleChange(m.user_id, "member")
                               }
-                              className="text-xs text-cadet/40 hover:text-burnt-sienna transition-colors"
+                              className="text-xs text-cadet/40 hover:text-sienna transition-colors"
                             >
                               make member
                             </button>

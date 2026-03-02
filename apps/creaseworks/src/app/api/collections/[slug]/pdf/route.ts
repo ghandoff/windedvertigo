@@ -29,6 +29,15 @@ export async function GET(req: NextRequest, { params }: Props) {
   const session = await requireAuth();
   const { slug } = await params;
 
+  // Collection PDF exports entitled content — restrict to internal users
+  // (external users download individual playdate PDFs via the pack-gated route)
+  if (!session.isInternal) {
+    return NextResponse.json(
+      { error: "collection PDF export requires internal access" },
+      { status: 403 },
+    );
+  }
+
   // Fetch collection by slug
   const collection = await getCollectionBySlug(slug);
   if (!collection) {
@@ -102,7 +111,7 @@ export async function GET(req: NextRequest, { params }: Props) {
   } catch (err: any) {
     console.error("[collection-pdf] generation failed:", err);
     return NextResponse.json(
-      { error: `pdf generation failed: ${err.message}` },
+      { error: "pdf generation failed" },
       { status: 500 },
     );
   }

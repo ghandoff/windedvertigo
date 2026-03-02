@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     console.error("[search] query failed:", err);
     return NextResponse.json(
-      { error: err.message ?? "search failed" },
+      { error: "search failed" },
       { status: 500 },
     );
   }

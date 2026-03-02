@@ -96,7 +96,7 @@ export default function RunList({
                   playdate:{" "}
                   {run.playdate_slug ? (
                     <Link
-                      href={`/sampler`}
+                      href={`/sampler/${run.playdate_slug}`}
                       className="underline hover:text-cadet/70 transition-colors"
                     >
                       {run.playdate_title}

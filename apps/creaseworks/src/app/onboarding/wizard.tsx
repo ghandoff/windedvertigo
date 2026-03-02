@@ -94,7 +94,7 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
     setSaving(true);
     try {
       const endpoint = apiUrl(editMode ? "/api/onboarding/context" : "/api/onboarding");
-      await fetch(endpoint, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -108,6 +108,10 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
           }),
         }),
       });
+      if (!res.ok) {
+        setSaving(false);
+        return;
+      }
       router.push(editMode ? "/profile?manage=true" : "/sampler");
       router.refresh();
     } catch {
