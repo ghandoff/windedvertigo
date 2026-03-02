@@ -4,12 +4,15 @@
  * Returns aggregate run analytics for the authenticated user.
  * Respects the same visibility model as the runs list.
  *
- * MVP 7 — run analytics dashboard.
+ * Admin users additionally receive platform-level metrics:
+ * user growth, pack adoption, credit economy, conversion funnel.
+ *
+ * MVP 7 → Phase 2: enriched admin analytics.
  */
 
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth-helpers";
-import { getAnalytics } from "@/lib/queries/analytics";
+import { getAnalytics, getAdminAnalytics } from "@/lib/queries/analytics";
 
 export async function GET() {
   const session = await getSession();
@@ -19,6 +22,13 @@ export async function GET() {
 
   try {
     const analytics = await getAnalytics(session);
+
+    // Admins get platform-level metrics too
+    if (session.isAdmin) {
+      const admin = await getAdminAnalytics();
+      return NextResponse.json({ ...analytics, admin });
+    }
+
     return NextResponse.json(analytics);
   } catch (err: any) {
     console.error("[analytics] query failed:", err);
