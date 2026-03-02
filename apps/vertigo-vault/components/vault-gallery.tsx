@@ -27,7 +27,7 @@ export default function VaultGallery({ activities }: VaultGalleryProps) {
     activities.forEach((a) => {
       if (a.duration) set.add(a.duration);
     });
-    return Array.from(set).sort();
+    return Array.from(set).sort((a, b) => parseInt(a) - parseInt(b));
   }, [activities]);
 
   // Apply filters
@@ -51,12 +51,12 @@ export default function VaultGallery({ activities }: VaultGalleryProps) {
       />
 
       {/* result count */}
-      <p className="text-xs opacity-30 mb-4">
+      <p className="text-xs opacity-30 mb-4" aria-live="polite">
         {filtered.length} {filtered.length === 1 ? "activity" : "activities"}
       </p>
 
       {/* grid */}
-      <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+      <div id="vault-gallery" className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
         {filtered.map((a) => (
           <VaultCard key={a.id} activity={a} onClick={() => setSelected(a)} />
         ))}

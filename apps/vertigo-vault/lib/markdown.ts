@@ -83,9 +83,18 @@ export function markdownToHtml(md: string): string {
   return html;
 }
 
-/** Bold + italic inline formatting. */
-function formatInline(text: string): string {
+/** Escape HTML entities to prevent XSS from untrusted content. */
+function escapeHtml(text: string): string {
   return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** Bold + italic inline formatting (applied after HTML escaping). */
+function formatInline(text: string): string {
+  return escapeHtml(text)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>");
 }

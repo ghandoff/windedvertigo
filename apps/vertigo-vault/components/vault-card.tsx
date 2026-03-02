@@ -15,7 +15,7 @@ export default function VaultCard({ activity, onClick }: VaultCardProps) {
   return (
     <button
       onClick={onClick}
-      className="group text-left w-full rounded-xl overflow-hidden transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
+      className="group text-left w-full h-full flex flex-col rounded-xl overflow-hidden transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
       style={{ backgroundColor: "var(--vault-card-bg)" }}
     >
       {/* cover image */}
@@ -24,7 +24,8 @@ export default function VaultCard({ activity, onClick }: VaultCardProps) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={activity.coverImage}
-            alt=""
+            alt={activity.name.trim()}
+            loading="lazy"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
@@ -34,7 +35,7 @@ export default function VaultCard({ activity, onClick }: VaultCardProps) {
       <div className="h-[5px]" style={{ backgroundColor: accent }} />
 
       {/* body */}
-      <div className="px-6 py-5 space-y-2.5">
+      <div className="px-6 py-5 flex flex-col gap-2.5 flex-1">
         {/* type badge + duration */}
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider">
           {primaryType && (
@@ -51,7 +52,7 @@ export default function VaultCard({ activity, onClick }: VaultCardProps) {
         </div>
 
         {/* name */}
-        <h3 className="text-base font-semibold leading-snug">{activity.name}</h3>
+        <h2 className="text-base font-semibold leading-snug">{activity.name.trim()}</h2>
 
         {/* headline */}
         {activity.headline && (
@@ -60,9 +61,9 @@ export default function VaultCard({ activity, onClick }: VaultCardProps) {
           </p>
         )}
 
-        {/* format tags */}
+        {/* format tags — pushed to bottom */}
         {activity.format.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div className="flex flex-wrap gap-1.5 pt-1 mt-auto">
             {activity.format.map((f) => (
               <span
                 key={f}

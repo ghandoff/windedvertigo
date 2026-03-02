@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import type { VaultActivity } from "@/lib/types";
 import { typeColor } from "@/lib/types";
 import { markdownToHtml } from "@/lib/markdown";
@@ -15,6 +15,7 @@ export default function VaultDetailModal({
   onClose,
 }: VaultDetailModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   // Close on Escape
   useEffect(() => {
@@ -26,12 +27,47 @@ export default function VaultDetailModal({
     return () => window.removeEventListener("keydown", handleKey);
   }, [activity, onClose]);
 
-  // Trap focus inside the modal
+  // Focus management: save previous focus, restore on close, lock body scroll
   useEffect(() => {
     if (activity && panelRef.current) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
       panelRef.current.focus();
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
     }
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [activity]);
+
+  // Trap Tab/Shift+Tab within the modal
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key !== "Tab" || !panelRef.current) return;
+
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    },
+    []
+  );
 
   if (!activity) return null;
 
@@ -52,8 +88,9 @@ export default function VaultDetailModal({
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={activity.name}
+        aria-label={activity.name.trim()}
         tabIndex={-1}
+        onKeyDown={handleKeyDown}
         className="fixed top-0 right-0 z-50 h-full w-full max-w-[560px] overflow-y-auto shadow-2xl animate-slide-in outline-none"
         style={{ backgroundColor: "var(--vault-card-bg)" }}
       >
@@ -89,7 +126,7 @@ export default function VaultDetailModal({
 
           {/* name */}
           <h2 className="text-xl font-bold leading-snug mb-2">
-            {activity.name}
+            {activity.name.trim()}
           </h2>
 
           {/* headline */}
