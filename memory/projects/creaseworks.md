@@ -14,11 +14,11 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | ~297 (.ts + .tsx) |
-| **Migrations** | 041 (latest: in_app_notifications) — all applied to Neon |
+| **Migrations** | 042 (latest: user_tiers) — all applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Tests** | 9 suites, 123 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 47 (Mar 1, 2026) |
+| **Last session** | 48 (Mar 2, 2026) |
 
 ## Notion Database IDs
 
@@ -187,6 +187,21 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ Emitters: gallery approve/reject (`gallery.ts`), invite acceptance + pack grants (`invites.ts`), org auto-join (`organisations.ts`)
 - ✅ CSS: dropdown with slide-in animation, responsive (full-width on mobile), unread dot indicator, brand-consistent colors
 
+### Progressive Disclosure / User Tiers (sessions 47–48 — Phase 3, migration 042)
+- ✅ Migration 042: `ui_tier TEXT NOT NULL DEFAULT 'casual'` on users with CHECK constraint; backfills existing onboarded users to `collaborator`
+- ✅ `getUserTier()` / `updateUserTier()` in `lib/queries/accessibility.ts`
+- ✅ JWT pipeline: `uiTier` loaded on initial sign-in + 5-minute refresh, flows through to `CWSession`
+- ✅ Cookie-first rendering: `cw-ui-tier` cookie → `tier-{value}` CSS class on `<html>` before hydration (same pattern as calm-theme)
+- ✅ Onboarding wizard: tier selection as Step 0 with 3 visual cards ("just play", "play + learn", "play + grow")
+- ✅ Nav bar: tier-aware link filtering — casual (sampler, matcher, packs, gallery), curious (+playbook), collaborator (+reflections, community)
+- ✅ Mobile bottom tabs: adapts to tier (4 tabs casual, 5 curious, 5 collaborator with different set)
+- ✅ Profile page: tier-aware section gating (Journey/credits hidden for non-collaborator), tier badge with distinct colors per tier
+- ✅ `tier-switcher.tsx` — profile manage section, 3-option radio cards, optimistic UI + CSS class swap + session refresh
+- ✅ Gallery share gating: `gallery-share-toggle.tsx` returns null for non-collaborator, API route returns 403 safety net
+- ✅ `/api/preferences` PATCH accepts `uiTier`, sets `cw-ui-tier` cookie
+- ✅ `/api/onboarding` POST accepts `tier` field, saves to DB + sets cookie
+- ✅ 14 files changed (12 modified + 2 new), TypeScript clean, 123 tests passing
+
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)
 - Q2: R2 bucket — DECIDED: one bucket, folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`)
@@ -220,6 +235,7 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 | 039 | accessibility-prefs | `reduce_motion`, `dyslexia_font` BOOLEAN columns on users |
 | 040 | calm-theme | `calm_theme BOOLEAN` on users — low-stimulation dark theme |
 | 041 | in-app-notifications | `in_app_notifications` table — event_type, title, body, href, actor_id, read_at. partial indexes for unread + dedup |
+| 042 | user-tiers | `ui_tier TEXT NOT NULL DEFAULT 'casual'` on users — progressive disclosure. CHECK constraint (casual/curious/collaborator). backfill existing onboarded users to collaborator |
 
 ## Stripe Price IDs (Test Mode)
 
