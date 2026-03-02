@@ -17,7 +17,7 @@
 | **Migrations** | 040 (latest: calm_theme) — 001-040 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 43 (Mar 1, 2026) |
+| **Last session** | 44 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -133,6 +133,12 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ `globals.css` — calm theme dims footer logo with opacity + filter
 - ✅ Header shows just "creaseworks" — removed previous "winded.vertigo ›" prefix and mobile cross-app link
 - ✅ Removed unused `.wv-header-parent`, `.wv-header-parent-sep`, `.wv-header-crossnav` from tokens CSS
+
+### Profile Page Consolidation (session 44)
+- ✅ Removed duplicate StatPills + recent runs from `page.tsx` (Dashboard has richer StatCards + activity feed with badge labels)
+- ✅ Removed duplicate pack exploration from `ProfileJourney` (YourPacks has richer per-pack cards with badge distribution)
+- ✅ Each data point now has one canonical home: Stats → Dashboard, Activity → Dashboard, Pack progress → YourPacks, Milestones → Journey, Badge counts → Dashboard badge journey
+- ✅ 2 files changed, -167 lines, TypeScript clean
 
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)

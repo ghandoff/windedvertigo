@@ -73,7 +73,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | # | item | effort | notes |
 |---|------|--------|-------|
 | 11 | ~~admin playdate preview with pack filter toggles~~ | ✅ done | expandable content preview — completeness badges (find/fold/unfold/body/illustration), lazy-loaded detail via `/api/admin/playdates/[id]`, materials list, design notes. commit abb7640. |
-| 12 | 🔵 **profile "your journey" redesign** | ~1 hr | **substantially built** — ProfileYourPacks, ProfileWhatsNext, ProfileJourney, ProfileDashboard all exist with pack-aware content, recommendations, milestones, credits. remaining work is UI consolidation (stats shown twice, recent runs duplicated) — needs design decisions on layout priority. |
+| 12 | ~~profile "your journey" redesign~~ | ✅ done | consolidated: removed duplicate StatPills + recent runs from page.tsx (Dashboard has richer versions), removed duplicate pack exploration from ProfileJourney (YourPacks has richer per-pack cards). each data point now has one canonical home. -167 lines. commit 767333f. |
 
 ---
 
