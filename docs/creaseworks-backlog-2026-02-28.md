@@ -128,34 +128,33 @@ verified session 35: all engagement features are fully wired into user flows.
 
 ---
 
-## phase 3 — progressive disclosure & user tiers
+## phase 3 — progressive disclosure & user tiers — ✅ COMPLETE (sessions 47–48)
 
-**Rationale:** The full suite of features (sampler, matcher, packs, playbook, reflections, gallery, community, credits, photo consent, co-play, evidence capture) can overwhelm first-time caregivers and children. Progressive disclosure shows each user only the features that match their engagement level, reducing cognitive load and making the app feel simpler for casual users while still powerful for deep engagers.
+**Rationale:** The full suite of features can overwhelm first-time caregivers. Progressive disclosure shows each user only the features that match their engagement level.
 
 ### User tiers
 
 | Tier | Who | Features visible | Nav items |
 |------|-----|-----------------|-----------|
 | **Casual** | Caregivers who just want play ideas | Playdates (sampler), matcher, packs, gallery (view-only) | sampler, matcher, packs, gallery |
-| **Curious** | Caregivers who want to understand the "why" | + Playbook (collections with developmental context), pack detail pages with research notes | + playbook |
-| **Collaborator** | Educators, therapists, deep engagers | + Reflections, evidence capture, credits, community, co-play, gallery submissions | + reflections, community, profile journey |
+| **Curious** | Caregivers who want to understand the "why" | + Playbook (collections with developmental context) | + playbook |
+| **Collaborator** | Educators, therapists, deep engagers | + Reflections, evidence capture, credits, community, gallery submissions | + reflections, community, profile journey |
 
-### Design considerations
+### Implementation status
 
-| # | Item | Notes |
-|---|------|-------|
-| P3-1 | 🔵 **tier selection during onboarding** | Ask "how do you want to use creaseworks?" during onboarding wizard. Three visual options with icons + short descriptions. Stored on user record. |
-| P3-2 | 🔵 **tier-aware nav bar** | Nav links filtered by user tier. Bottom tab bar adapts. "Explore more" nudge for tier upgrade. |
-| P3-3 | 🔵 **tier-aware profile page** | Hide sections that don't apply to current tier. Show "unlock" teasers for higher-tier features. |
-| P3-4 | 🔵 **upgrade path UX** | Users can change tier anytime from profile. Gentle in-context prompts ("liked this playdate? start tracking reflections →"). Never gate content — just hide UI complexity. |
-| P3-5 | 🔵 **migration for existing users** | DB column `user_tier` on users table. Default existing users to "collaborator" (they've already seen everything). New users start at onboarding choice. |
-| P3-6 | 🔵 **tier-aware notification events** | Collaborators get full notification set. Casual users only get gallery/pack-related notifications. Curious gets everything except evidence/credit notifications. |
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| P3-1 | ~~tier selection during onboarding~~ | ✅ done | Step 0 in wizard with 3 visual cards ("just play", "play + learn", "play + grow"). POST saves tier + sets `cw-ui-tier` cookie. |
+| P3-2 | ~~tier-aware nav bar~~ | ✅ done | Desktop + mobile bottom tabs filter links by tier. Session-driven via `useSession()`. |
+| P3-3 | ~~tier-aware profile page~~ | ✅ done | Journey/credits gated to collaborator. Tier badge with distinct colors. TierSwitcher in manage section. |
+| P3-4 | ~~upgrade path UX~~ | ✅ done | TierSwitcher component — 3 radio cards, optimistic UI + CSS class swap + session refresh. Always available in profile manage. |
+| P3-5 | ~~migration for existing users~~ | ✅ done | Migration 042: `ui_tier` column with CHECK constraint. Existing onboarded users backfilled to collaborator. New users default to casual. |
+| P3-6 | **tier-aware notification events** | 🟡 deferred | Low priority. All notifications currently sent to all users. Can add `minTier` filter to `createInAppNotification` later. |
+| P3-7 | ~~gallery submission gating~~ | ✅ done | `gallery-share-toggle.tsx` returns null for non-collaborator. API route returns 403 as safety net. |
+| P3-8 | ~~JWT + session pipeline~~ | ✅ done | `uiTier` loaded on sign-in + 5-min refresh, flows through JWT → session → `CWSession`. |
+| P3-9 | ~~cookie-first rendering~~ | ✅ done | `cw-ui-tier` cookie → `tier-{value}` CSS class on `<html>` before hydration. `/api/preferences` PATCH sets cookie. |
 
-### Implementation approach (TBD)
-
-- **Not a permission system** — tiers are purely cosmetic/UX. All features remain accessible via direct URL. The tier controls what appears in navigation and on dashboard/profile surfaces.
-- **Cookie-first** (like accessibility prefs) for instant nav rendering before hydration.
-- **Estimated scope:** ~8-12 hours across 5-6 sessions. Touches: nav-bar, profile, onboarding wizard, playbook, notification bell filtering, migration.
+**Key design constraint:** Tiers are purely cosmetic/UX — not a permission system. All features remain accessible via direct URL.
 
 ---
 
@@ -168,17 +167,18 @@ verified session 35: all engagement features are fully wired into user flows.
 
 ---
 
-## codebase health (1 march 2026)
+## codebase health (2 march 2026)
 
 | metric | value |
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
 | Tests | 9 suites, 123 tests, all passing |
-| Migrations | 041 (all applied to Neon) |
+| Migrations | 042 (all applied to Neon) |
 | Smoke test | 28/29 pass |
-| Source files | ~297 (.ts + .tsx) |
+| Source files | ~299 (.ts + .tsx) |
 | Features A–Y | all implemented |
 | Phase 2 | ✅ ALL CODE COMPLETE (P2-1 through P2-7). P2-6 pending (manual env vars in Vercel). |
+| Phase 3 | ✅ COMPLETE — progressive disclosure user tiers (casual/curious/collaborator). P3-6 deferred (notification tier filtering). |
 | Engagement system | fully wired — credits, photo consent, redemption, pack finder all live |
 | Material emoji CMS | Notion-managed via `emoji` rich_text property, hard-coded map as fallback |
 
