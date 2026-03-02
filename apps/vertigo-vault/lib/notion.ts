@@ -51,6 +51,17 @@ function getCoverUrl(page: any): string | null {
   return null;
 }
 
+/** Run async tasks in batches of `n` to respect Notion's 3 req/sec rate limit. */
+async function batchConcurrent<T>(
+  items: T[],
+  n: number,
+  fn: (item: T) => Promise<void>,
+): Promise<void> {
+  for (let i = 0; i < items.length; i += n) {
+    await Promise.allSettled(items.slice(i, i + n).map(fn));
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /*  Block → Markdown                                                   */
 /* ------------------------------------------------------------------ */
@@ -123,11 +134,14 @@ function notion(): Client {
 /**
  * Fetch every activity from the Vertigo Vault database.
  *
- * Handles Notion pagination automatically.
- * Block children are fetched per-page for the markdown content.
+ * Phase 1: Paginated databases.query() to collect all pages.
+ * Phase 2: Extract properties into activity stubs (no extra API calls).
+ * Phase 3: Fetch block content concurrently in batches of 3 (Notion rate limit).
  */
 export async function fetchVaultActivities(): Promise<VaultActivity[]> {
-  const pages: VaultActivity[] = [];
+  // Phase 1 — collect all raw pages
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawPages: any[] = [];
   let cursor: string | undefined;
 
   do {
@@ -137,39 +151,45 @@ export async function fetchVaultActivities(): Promise<VaultActivity[]> {
       start_cursor: cursor,
       page_size: 100,
     });
-
-    for (const page of response.results) {
-      const props = page.properties;
-      const name = getTitleValue(props[PROP_MAP.name]);
-      if (!name) continue; // skip rows without a title
-
-      // Fetch block children for page content
-      let contentMd = "";
-      try {
-        const blocks = await notion().blocks.children.list({
-          block_id: page.id,
-          page_size: 100,
-        });
-        contentMd = blocksToMarkdown(blocks.results);
-      } catch {
-        // Non-fatal — card still renders without instructions
-      }
-
-      pages.push({
-        id: page.id,
-        name,
-        headline: getTextValue(props[PROP_MAP.headline]),
-        duration: getSelectValue(props[PROP_MAP.duration]),
-        format: getMultiSelectValue(props[PROP_MAP.format]),
-        type: getMultiSelectValue(props[PROP_MAP.type]),
-        skillsDeveloped: getMultiSelectValue(props[PROP_MAP.skillsDeveloped]),
-        coverImage: getCoverUrl(page),
-        content: contentMd,
-      });
-    }
-
+    rawPages.push(...response.results);
     cursor = response.has_more ? response.next_cursor : undefined;
   } while (cursor);
 
-  return pages;
+  // Phase 2 — map properties into activity stubs (content empty for now)
+  const stubs = rawPages
+    .map((page) => {
+      const props = page.properties;
+      const name = getTitleValue(props[PROP_MAP.name]);
+      if (!name) return null;
+      return {
+        pageId: page.id as string,
+        activity: {
+          id: page.id,
+          name,
+          headline: getTextValue(props[PROP_MAP.headline]),
+          duration: getSelectValue(props[PROP_MAP.duration]),
+          format: getMultiSelectValue(props[PROP_MAP.format]),
+          type: getMultiSelectValue(props[PROP_MAP.type]),
+          skillsDeveloped: getMultiSelectValue(props[PROP_MAP.skillsDeveloped]),
+          coverImage: getCoverUrl(page),
+          content: "",
+        } satisfies VaultActivity,
+      };
+    })
+    .filter((s): s is NonNullable<typeof s> => s !== null);
+
+  // Phase 3 — fetch block content in concurrent batches of 3
+  await batchConcurrent(stubs, 3, async (stub) => {
+    try {
+      const blocks = await notion().blocks.children.list({
+        block_id: stub.pageId,
+        page_size: 100,
+      });
+      stub.activity.content = blocksToMarkdown(blocks.results);
+    } catch {
+      // Non-fatal — card still renders without instructions
+    }
+  });
+
+  return stubs.map((s) => s.activity);
 }
