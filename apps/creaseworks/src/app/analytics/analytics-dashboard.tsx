@@ -5,55 +5,44 @@ import { brand } from "@windedvertigo/tokens";
 import { apiUrl } from "@/lib/api-url";
 
 /* ------------------------------------------------------------------ */
-/*  types (mirroring server-side AnalyticsSummary)                     */
+/*  types (mirroring server-side AnalyticsSummary + AdminAnalytics)     */
 /* ------------------------------------------------------------------ */
-
-interface RunsByType {
-  run_type: string;
-  count: number;
-}
 
 interface RunsOverTime {
   month: string;
   count: number;
 }
 
-interface TopPlaydate {
-  playdate_title: string;
-  playdate_slug: string;
-  count: number;
-}
-
-interface TopMaterial {
-  material_title: string;
-  count: number;
-}
-
-interface EvidenceBreakdown {
-  evidence_type: string;
-  count: number;
-}
-
-interface ContextBreakdown {
-  context_tag: string;
-  count: number;
+interface AdminAnalytics {
+  totalUsers: number;
+  activeUsersThisMonth: number;
+  userGrowth: { month: string; signups: number; cumulative: number }[];
+  packAdoption: { pack_title: string; org_count: number; user_count: number; total: number }[];
+  creditEconomy: {
+    total_earned: number;
+    total_spent: number;
+    total_balance: number;
+    by_reason: { reason: string; amount: number }[];
+  };
+  funnel: { label: string; count: number }[];
 }
 
 interface AnalyticsData {
   totalRuns: number;
-  runsByType: RunsByType[];
+  runsByType: { run_type: string; count: number }[];
   runsOverTime: RunsOverTime[];
-  topPlaydates: TopPlaydate[];
-  topMaterials: TopMaterial[];
-  evidenceBreakdown: EvidenceBreakdown[];
-  contextBreakdown: ContextBreakdown[];
+  topPlaydates: { playdate_title: string; playdate_slug: string; count: number }[];
+  topMaterials: { material_title: string; count: number }[];
+  evidenceBreakdown: { evidence_type: string; count: number }[];
+  contextBreakdown: { context_tag: string; count: number }[];
   averageEvidencePerRun: number;
   runsThisMonth: number;
   runsLastMonth: number;
+  admin?: AdminAnalytics;
 }
 
 /* ------------------------------------------------------------------ */
-/*  colours (from brand palette)                                       */
+/*  colours                                                            */
 /* ------------------------------------------------------------------ */
 
 const COLOURS = {
@@ -67,13 +56,13 @@ const BAR_COLOURS = [
   brand.redwood,
   brand.sienna,
   brand.cadet,
-  "#d4956b", // lighter sienna (chart-specific variant)
-  "#8a3d33", // darker redwood (chart-specific variant)
+  "#d4956b",
+  "#8a3d33",
   brand.champagne,
 ];
 
 /* ------------------------------------------------------------------ */
-/*  helper: simple horizontal bar                                      */
+/*  shared helpers                                                     */
 /* ------------------------------------------------------------------ */
 
 function HorizontalBar({
@@ -116,11 +105,7 @@ function HorizontalBar({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  helper: sparkline (CSS only)                                       */
-/* ------------------------------------------------------------------ */
-
-function Sparkline({ data }: { data: RunsOverTime[] }) {
+function Sparkline({ data, colour = COLOURS.redwood }: { data: { month: string; count: number }[]; colour?: string }) {
   if (data.length === 0) {
     return <p className="text-sm opacity-50 italic">no data yet</p>;
   }
@@ -136,7 +121,7 @@ function Sparkline({ data }: { data: RunsOverTime[] }) {
             style={{
               height: `${(d.count / max) * 100}%`,
               minHeight: d.count > 0 ? "4px" : "0",
-              backgroundColor: COLOURS.redwood,
+              backgroundColor: colour,
             }}
           />
           <span className="text-2xs opacity-50 rotate-[-45deg] origin-top-left whitespace-nowrap">
@@ -147,10 +132,6 @@ function Sparkline({ data }: { data: RunsOverTime[] }) {
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/*  stat card                                                          */
-/* ------------------------------------------------------------------ */
 
 function StatCard({
   label,
@@ -171,6 +152,116 @@ function StatCard({
         {value}
       </p>
       {subtitle && <p className="text-xs opacity-40 mt-1">{subtitle}</p>}
+    </div>
+  );
+}
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
+      {children}
+    </h2>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  conversion funnel                                                  */
+/* ------------------------------------------------------------------ */
+
+function FunnelChart({ steps }: { steps: { label: string; count: number }[] }) {
+  if (steps.length === 0 || steps[0].count === 0) {
+    return <p className="text-sm opacity-50 italic">no data yet</p>;
+  }
+
+  const maxCount = steps[0].count;
+
+  return (
+    <div className="space-y-3">
+      {steps.map((step, i) => {
+        const pct = maxCount > 0 ? (step.count / maxCount) * 100 : 0;
+        const dropoff = i > 0 && steps[i - 1].count > 0
+          ? Math.round(((steps[i - 1].count - step.count) / steps[i - 1].count) * 100)
+          : null;
+
+        return (
+          <div key={step.label} className="flex items-center gap-3">
+            <span className="text-sm w-32 text-right truncate">{step.label}</span>
+            <div className="flex-1 h-8 rounded overflow-hidden" style={{ backgroundColor: "#f0e6d9" }}>
+              <div
+                className="h-full rounded flex items-center px-3 transition-all duration-500"
+                style={{
+                  width: `${Math.max(pct, 4)}%`,
+                  backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length],
+                }}
+              >
+                <span className="text-xs font-medium text-white drop-shadow-sm">
+                  {step.count}
+                </span>
+              </div>
+            </div>
+            {dropoff !== null && dropoff > 0 && (
+              <span className="text-xs opacity-40 w-16 text-right">
+                −{dropoff}%
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  pack adoption stacked bar                                          */
+/* ------------------------------------------------------------------ */
+
+function PackAdoptionChart({ packs }: { packs: AdminAnalytics["packAdoption"] }) {
+  if (packs.length === 0) {
+    return <p className="text-sm opacity-50 italic">no packs adopted yet</p>;
+  }
+
+  const max = Math.max(...packs.map((p) => p.total), 1);
+
+  return (
+    <div className="space-y-3">
+      {packs.map((pack) => (
+        <div key={pack.pack_title} className="flex items-center gap-3">
+          <span className="text-sm w-36 truncate text-right" title={pack.pack_title}>
+            {pack.pack_title}
+          </span>
+          <div className="flex-1 h-6 rounded overflow-hidden flex" style={{ backgroundColor: "#f0e6d9" }}>
+            {pack.org_count > 0 && (
+              <div
+                className="h-full transition-all duration-500"
+                style={{
+                  width: `${(pack.org_count / max) * 100}%`,
+                  backgroundColor: COLOURS.cadet,
+                }}
+                title={`${pack.org_count} org`}
+              />
+            )}
+            {pack.user_count > 0 && (
+              <div
+                className="h-full transition-all duration-500"
+                style={{
+                  width: `${(pack.user_count / max) * 100}%`,
+                  backgroundColor: COLOURS.sienna,
+                }}
+                title={`${pack.user_count} individual`}
+              />
+            )}
+          </div>
+          <span className="text-sm font-medium w-8 text-right">{pack.total}</span>
+        </div>
+      ))}
+      <div className="flex gap-4 text-xs opacity-40 mt-1">
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded" style={{ backgroundColor: COLOURS.cadet }} /> org
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded" style={{ backgroundColor: COLOURS.sienna }} /> individual
+        </span>
+      </div>
     </div>
   );
 }
@@ -214,7 +305,6 @@ export default function AnalyticsDashboard() {
     );
   }
 
-  // Month-over-month delta
   const delta = data.runsThisMonth - data.runsLastMonth;
   const deltaLabel =
     delta > 0
@@ -223,42 +313,105 @@ export default function AnalyticsDashboard() {
         ? `${delta} from last month`
         : "same as last month";
 
-  return (
-    <div className="space-y-10">
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="total reflections" value={data.totalRuns} />
-        <StatCard label="this month" value={data.runsThisMonth} subtitle={deltaLabel} />
-        <StatCard label="contexts of use" value={data.runsByType.length} />
-        <StatCard
-          label="avg. evidence per reflection"
-          value={data.averageEvidencePerRun}
-        />
-      </div>
+  const admin = data.admin;
 
-      {/* Runs over time */}
+  return (
+    <div className="space-y-12">
+      {/* ── platform overview (admin only) ──────────────────────────── */}
+      {admin && (
+        <>
+          <section>
+            <h2
+              className="text-xs font-semibold uppercase tracking-widest mb-6 pb-2 border-b"
+              style={{ color: COLOURS.sienna, borderColor: "#e8ddd0" }}
+            >
+              platform overview
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard label="total users" value={admin.totalUsers} />
+              <StatCard label="active this month" value={admin.activeUsersThisMonth} />
+              <StatCard
+                label="credits earned"
+                value={admin.creditEconomy.total_earned}
+                subtitle={`${admin.creditEconomy.total_spent} redeemed`}
+              />
+              <StatCard
+                label="credit balance (all users)"
+                value={admin.creditEconomy.total_balance}
+              />
+            </div>
+          </section>
+
+          {/* user growth sparkline */}
+          <section>
+            <SectionHeading>user growth (12 months)</SectionHeading>
+            <Sparkline
+              data={admin.userGrowth.map((g) => ({ month: g.month, count: g.signups }))}
+              colour={COLOURS.sienna}
+            />
+          </section>
+
+          {/* conversion funnel */}
+          <section>
+            <SectionHeading>conversion funnel</SectionHeading>
+            <FunnelChart steps={admin.funnel} />
+          </section>
+
+          {/* pack adoption */}
+          <section>
+            <SectionHeading>pack adoption</SectionHeading>
+            <PackAdoptionChart packs={admin.packAdoption} />
+          </section>
+
+          {/* credit economy by reason */}
+          <section>
+            <SectionHeading>credits by action</SectionHeading>
+            <HorizontalBar
+              items={admin.creditEconomy.by_reason}
+              labelKey="reason"
+              valueKey="amount"
+            />
+          </section>
+
+          {/* divider */}
+          <hr style={{ borderColor: "#e8ddd0" }} />
+        </>
+      )}
+
+      {/* ── reflection analytics ──────────────────────────────────── */}
       <section>
-        <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-          reflections over time
+        <h2
+          className="text-xs font-semibold uppercase tracking-widest mb-6 pb-2 border-b"
+          style={{ color: COLOURS.sienna, borderColor: "#e8ddd0" }}
+        >
+          reflection analytics
         </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="total reflections" value={data.totalRuns} />
+          <StatCard label="this month" value={data.runsThisMonth} subtitle={deltaLabel} />
+          <StatCard label="contexts of use" value={data.runsByType.length} />
+          <StatCard
+            label="avg. evidence per reflection"
+            value={data.averageEvidencePerRun}
+          />
+        </div>
+      </section>
+
+      {/* reflections over time */}
+      <section>
+        <SectionHeading>reflections over time</SectionHeading>
         <Sparkline data={data.runsOverTime} />
       </section>
 
-      {/* Two-column breakdown */}
+      {/* two-column breakdowns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* By type */}
         <section>
-          <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-            by context of use
-          </h2>
+          <SectionHeading>by context of use</SectionHeading>
           <HorizontalBar items={data.runsByType} labelKey="run_type" valueKey="count" />
         </section>
 
-        {/* Top playdates */}
         <section>
-          <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-            most-used playdates
-          </h2>
+          <SectionHeading>most-used playdates</SectionHeading>
           <HorizontalBar
             items={data.topPlaydates}
             labelKey="playdate_title"
@@ -266,11 +419,8 @@ export default function AnalyticsDashboard() {
           />
         </section>
 
-        {/* Top materials */}
         <section>
-          <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-            most-used materials
-          </h2>
+          <SectionHeading>most-used materials</SectionHeading>
           <HorizontalBar
             items={data.topMaterials}
             labelKey="material_title"
@@ -278,11 +428,8 @@ export default function AnalyticsDashboard() {
           />
         </section>
 
-        {/* Evidence breakdown */}
         <section>
-          <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-            evidence captured
-          </h2>
+          <SectionHeading>evidence captured</SectionHeading>
           <HorizontalBar
             items={data.evidenceBreakdown}
             labelKey="evidence_type"
@@ -290,11 +437,8 @@ export default function AnalyticsDashboard() {
           />
         </section>
 
-        {/* Context tags */}
         <section>
-          <h2 className="text-lg font-semibold mb-4" style={{ color: COLOURS.cadet }}>
-            context tags
-          </h2>
+          <SectionHeading>context tags</SectionHeading>
           <HorizontalBar
             items={data.contextBreakdown}
             labelKey="context_tag"
@@ -305,4 +449,3 @@ export default function AnalyticsDashboard() {
     </div>
   );
 }
-

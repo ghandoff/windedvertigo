@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import { grantUserEntitlement } from "@/lib/queries/entitlements";
+import { createInAppNotification } from "@/lib/queries/notifications";
 
 export interface Invite {
   id: string;
@@ -209,5 +210,30 @@ export async function processInvitesOnSignIn(
 
     // Mark invite as accepted
     await acceptInvite(invite.id, userId);
+
+    // Notify the inviter that their invite was accepted
+    if (invite.invited_by) {
+      const packNames = packIds.length > 0
+        ? ` (${packIds.length} pack${packIds.length > 1 ? "s" : ""})`
+        : "";
+      createInAppNotification({
+        userId: invite.invited_by,
+        eventType: "invite_accepted",
+        title: `${email} accepted your invite${packNames}`,
+        href: "/admin/invites",
+        actorId: userId,
+      }).catch(() => {});
+    }
+
+    // Notify the invited user that they received pack access
+    if (packIds.length > 0) {
+      createInAppNotification({
+        userId,
+        eventType: "pack_granted",
+        title: `you've been granted access to ${packIds.length} pack${packIds.length > 1 ? "s" : ""}`,
+        body: "check your packs page to start exploring",
+        href: "/packs",
+      }).catch(() => {});
+    }
   }
 }

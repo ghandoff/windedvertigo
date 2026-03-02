@@ -30,6 +30,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https:",
               "connect-src 'self' https://api.stripe.com https://vitals.vercel-insights.com",
               "frame-src https://js.stripe.com",
+              "worker-src 'self'",
               "base-uri 'self'",
               "form-action 'self'",
             ].join("; "),

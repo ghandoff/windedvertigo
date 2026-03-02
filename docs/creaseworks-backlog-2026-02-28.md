@@ -73,7 +73,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | # | item | effort | notes |
 |---|------|--------|-------|
 | 11 | ~~admin playdate preview with pack filter toggles~~ | ✅ done | expandable content preview — completeness badges (find/fold/unfold/body/illustration), lazy-loaded detail via `/api/admin/playdates/[id]`, materials list, design notes. commit abb7640. |
-| 12 | 🔵 **profile "your journey" redesign** | ~1 hr | **substantially built** — ProfileYourPacks, ProfileWhatsNext, ProfileJourney, ProfileDashboard all exist with pack-aware content, recommendations, milestones, credits. remaining work is UI consolidation (stats shown twice, recent runs duplicated) — needs design decisions on layout priority. |
+| 12 | ~~profile "your journey" redesign~~ | ✅ done | consolidated: removed duplicate StatPills + recent runs from page.tsx (Dashboard has richer versions), removed duplicate pack exploration from ProfileJourney (YourPacks has richer per-pack cards). each data point now has one canonical home. -167 lines. commit 767333f. |
 
 ---
 
@@ -114,6 +114,51 @@ verified session 35: all engagement features are fully wired into user flows.
 
 ---
 
+## phase 2 — post-launch enhancements
+
+| # | item | effort | status | notes |
+|---|------|--------|--------|-------|
+| P2-1 | **mount analytics dashboard** | ~30 min | ✅ done | replaced dead redirect with admin-gated page at `/analytics`, renders `AnalyticsDashboard` |
+| P2-3 | **enrich analytics with admin metrics** | ~3 hr | ✅ done | `getAdminAnalytics()` with 5 SQL queries: user growth, conversion funnel, pack adoption, credit economy, platform overview. new chart components: FunnelChart, PackAdoptionChart. fixed `source` → `purchase_id` bug. |
+| P2-6 | **set Vercel env vars for CMS pages** | ~10 min | 🟡 manual | `NOTION_CMS_PAGE_WE=316e4ee7-4ba4-8181-9935-e6887e8273dd`, `NOTION_CMS_PAGE_DO=316e4ee7-4ba4-81b1-a34c-da9a4b8e1016`. add via Vercel dashboard → creaseworks → Settings → Environment Variables. |
+| P2-2 | **server-side playdate search API** | ~2 hr | ✅ done | `lib/queries/search.ts` — ILIKE across title, headline, rails_sentence, material titles with ranked deduplication. `GET /api/search?q=...` endpoint (auth, 2-100 chars). `playbook-search.tsx` — debounced (300ms) fetch with AbortController, shows playdate results above collection grid with match-field badges. |
+| P2-4 | **notification center** | ~4 hr | ✅ done | migration 041: `in_app_notifications` table with partial indexes (unread, dedup). query layer: getUserNotifications, getUnreadCount, markRead/markAllRead, createInAppNotification (dedup via UNIQUE index). API: `GET /api/notifications/in-app` (list + countOnly polling), `POST` (mark-all-read), `POST /[id]/read`. bell icon in nav bar with badge (60s polling), dropdown with unread dots + time-ago. emitters: gallery approve/reject, invite accepted (notifies inviter + invitee), pack grants, org auto-join. |
+| P2-5 | **PWA / mobile install** | ~2 hr | ✅ done | manifest.json with basePath-aware scope. service worker: cache-first statics, network-first navigation, offline fallback. PwaInstall component with beforeinstallprompt capture + iOS manual instructions. icons from square "W" mark (512, 192, 180). CSP worker-src, apple-web-app-capable, 14-day dismiss cooldown. |
+| P2-7 | **test coverage expansion** | ~6 hr | ✅ done (phase 1) | 5 → 9 suites, 53 → 123 tests. added: entitlements (19), credits (20), search (11), auth guards (20). mock sql.query() pattern. remaining: API route tests, matcher orchestrator, gallery/evidence queries. |
+
+---
+
+## phase 3 — progressive disclosure & user tiers
+
+**Rationale:** The full suite of features (sampler, matcher, packs, playbook, reflections, gallery, community, credits, photo consent, co-play, evidence capture) can overwhelm first-time caregivers and children. Progressive disclosure shows each user only the features that match their engagement level, reducing cognitive load and making the app feel simpler for casual users while still powerful for deep engagers.
+
+### User tiers
+
+| Tier | Who | Features visible | Nav items |
+|------|-----|-----------------|-----------|
+| **Casual** | Caregivers who just want play ideas | Playdates (sampler), matcher, packs, gallery (view-only) | sampler, matcher, packs, gallery |
+| **Curious** | Caregivers who want to understand the "why" | + Playbook (collections with developmental context), pack detail pages with research notes | + playbook |
+| **Collaborator** | Educators, therapists, deep engagers | + Reflections, evidence capture, credits, community, co-play, gallery submissions | + reflections, community, profile journey |
+
+### Design considerations
+
+| # | Item | Notes |
+|---|------|-------|
+| P3-1 | 🔵 **tier selection during onboarding** | Ask "how do you want to use creaseworks?" during onboarding wizard. Three visual options with icons + short descriptions. Stored on user record. |
+| P3-2 | 🔵 **tier-aware nav bar** | Nav links filtered by user tier. Bottom tab bar adapts. "Explore more" nudge for tier upgrade. |
+| P3-3 | 🔵 **tier-aware profile page** | Hide sections that don't apply to current tier. Show "unlock" teasers for higher-tier features. |
+| P3-4 | 🔵 **upgrade path UX** | Users can change tier anytime from profile. Gentle in-context prompts ("liked this playdate? start tracking reflections →"). Never gate content — just hide UI complexity. |
+| P3-5 | 🔵 **migration for existing users** | DB column `user_tier` on users table. Default existing users to "collaborator" (they've already seen everything). New users start at onboarding choice. |
+| P3-6 | 🔵 **tier-aware notification events** | Collaborators get full notification set. Casual users only get gallery/pack-related notifications. Curious gets everything except evidence/credit notifications. |
+
+### Implementation approach (TBD)
+
+- **Not a permission system** — tiers are purely cosmetic/UX. All features remain accessible via direct URL. The tier controls what appears in navigation and on dashboard/profile surfaces.
+- **Cookie-first** (like accessibility prefs) for instant nav rendering before hydration.
+- **Estimated scope:** ~8-12 hours across 5-6 sessions. Touches: nav-bar, profile, onboarding wizard, playbook, notification bell filtering, migration.
+
+---
+
 ## open questions / future work
 
 1. **next/image migration** — DEFERRED. cover images use raw `<img>` tags. migration to `<Image>` with R2 custom loader would give: responsive srcset (saves mobile bandwidth), lazy loading, WebP/AVIF format negotiation (30-50% smaller), CLS prevention (reserved layout space). **cost implications:** Next.js image optimization can either run through Vercel Functions (adds latency + function invocations to bill) or via Cloudflare Image Resizing (separate paid product). evaluate when image volume grows. decision: hold off for now.
@@ -128,10 +173,12 @@ verified session 35: all engagement features are fully wired into user flows.
 | metric | value |
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
-| Migrations | 040 (all applied to Neon) |
+| Tests | 9 suites, 123 tests, all passing |
+| Migrations | 041 (all applied to Neon) |
 | Smoke test | 28/29 pass |
-| Source files | ~235 (.ts + .tsx) |
+| Source files | ~297 (.ts + .tsx) |
 | Features A–Y | all implemented |
+| Phase 2 | ✅ ALL CODE COMPLETE (P2-1 through P2-7). P2-6 pending (manual env vars in Vercel). |
 | Engagement system | fully wired — credits, photo consent, redemption, pack finder all live |
 | Material emoji CMS | Notion-managed via `emoji` rich_text property, hard-coded map as fallback |
 

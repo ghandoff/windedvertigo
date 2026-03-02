@@ -19,11 +19,7 @@ import {
   getOrgMembers,
   getOrgVerifiedDomains,
 } from "@/lib/queries/organisations";
-import {
-  getUserProgressSummary,
-  recomputeUserProgress,
-} from "@/lib/queries/collections";
-import { getRunsForUser, type RunRow } from "@/lib/queries/runs";
+import { recomputeUserProgress } from "@/lib/queries/collections";
 import { getProfileStats } from "@/lib/queries/profile-stats";
 import TeamManager from "@/app/team/team-manager";
 import DomainVerifier from "@/app/team/domain-verifier";
@@ -83,17 +79,8 @@ export default async function ProfilePage({
   } catch {
     // non-critical — progress recompute can fail without blocking the page
   }
-  const [summary, recentRuns, profileStats] = await Promise.all([
-    getUserProgressSummary(session.userId).catch(() => ({
-      total_tried: 0,
-      total_found: 0,
-      total_folded: 0,
-      total_found_again: 0,
-    })),
-    getRunsForUser(session, 3, 0).catch(() => []),
-    getProfileStats(session.userId),
-  ]);
-  const hasActivity = summary.total_tried > 0;
+  const profileStats = await getProfileStats(session.userId);
+  const hasActivity = profileStats.totalRuns > 0;
 
   /* ---- play contexts ------------------------------------------------ */
   let playContexts: Array<{
@@ -223,52 +210,8 @@ export default async function ProfilePage({
         </div>
       </div>
 
-      {/* ---- your play stats ---------------------------------------- */}
-      {hasActivity ? (
-        <section className="mb-10">
-          <h2 className="text-lg font-semibold tracking-tight mb-3">your play</h2>
-          <div className="flex flex-wrap gap-3 mb-4">
-            <StatPill label={`${summary.total_tried} tried`} />
-            {summary.total_found > 0 && (
-              <StatPill label={`${summary.total_found} found`} accent="champagne" />
-            )}
-            {summary.total_folded > 0 && (
-              <StatPill label={`${summary.total_folded} folded`} accent="sienna" />
-            )}
-            {summary.total_found_again > 0 && (
-              <StatPill label={`${summary.total_found_again} found again`} accent="redwood" />
-            )}
-          </div>
-          {recentRuns.length > 0 && (
-            <div className="space-y-1.5">
-              {recentRuns.map((run: RunRow) => (
-                <div
-                  key={run.id}
-                  className="flex items-center justify-between text-sm rounded-lg border border-cadet/5 px-4 py-2.5"
-                >
-                  <span className="text-cadet font-medium truncate">
-                    {run.playdate_title ?? run.title}
-                  </span>
-                  {run.run_date && (
-                    <span className="text-cadet/35 text-xs whitespace-nowrap ml-3">
-                      {new Date(run.run_date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                  )}
-                </div>
-              ))}
-              <Link
-                href="/playbook"
-                className="text-xs text-sienna/70 hover:text-sienna transition-colors inline-block mt-1"
-              >
-                see all in playbook &rarr;
-              </Link>
-            </div>
-          )}
-        </section>
-      ) : (
+      {/* ---- empty state — new users with no activity ------------------- */}
+      {!hasActivity && (
         <section className="mb-10 rounded-xl border border-sienna/15 bg-sienna/[0.03] px-5 py-8 text-center max-w-md mx-auto">
           {/* brand-aligned illustration: seedling / growth */}
           <svg
@@ -523,24 +466,3 @@ export default async function ProfilePage({
   );
 }
 
-/* ── helper ── */
-
-function StatPill({
-  label,
-  accent,
-}: {
-  label: string;
-  accent?: "champagne" | "sienna" | "redwood";
-}) {
-  const colors = {
-    champagne: "bg-champagne/20 text-cadet/60",
-    sienna: "bg-sienna/10 text-sienna/70",
-    redwood: "bg-redwood/10 text-redwood/70",
-  };
-  const cls = accent ? colors[accent] : "bg-cadet/5 text-cadet/50";
-  return (
-    <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${cls}`}>
-      {label}
-    </span>
-  );
-}

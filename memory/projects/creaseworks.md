@@ -13,11 +13,12 @@
 | **Neon DB** | creaseworks-db (divine-dust-87453436) |
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
-| **Source files** | ~235 (.ts + .tsx) |
-| **Migrations** | 040 (latest: calm_theme) — 001-040 applied to Neon |
+| **Source files** | ~297 (.ts + .tsx) |
+| **Migrations** | 041 (latest: in_app_notifications) — all applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
+| **Tests** | 9 suites, 123 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 43 (Mar 1, 2026) |
+| **Last session** | 47 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -134,6 +135,58 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ Header shows just "creaseworks" — removed previous "winded.vertigo ›" prefix and mobile cross-app link
 - ✅ Removed unused `.wv-header-parent`, `.wv-header-parent-sep`, `.wv-header-crossnav` from tokens CSS
 
+### Profile Page Consolidation (session 44)
+- ✅ Removed duplicate StatPills + recent runs from `page.tsx` (Dashboard has richer StatCards + activity feed with badge labels)
+- ✅ Removed duplicate pack exploration from `ProfileJourney` (YourPacks has richer per-pack cards with badge distribution)
+- ✅ Each data point now has one canonical home: Stats → Dashboard, Activity → Dashboard, Pack progress → YourPacks, Milestones → Journey, Badge counts → Dashboard badge journey
+- ✅ 2 files changed, -167 lines, TypeScript clean
+
+### Analytics Dashboard Enrichment (session 45 — Phase 2)
+- ✅ Mounted analytics at `/analytics` as proper admin-gated page (was a dead redirect)
+- ✅ `getAdminAnalytics()` — 5 SQL query sections: user counts, user growth, pack adoption, credit economy, conversion funnel
+- ✅ User growth sparkline (12 months, cumulative signups with window function)
+- ✅ Conversion funnel chart (signed up → onboarded → first run → 3+ reflections → purchased) with drop-off %
+- ✅ Pack adoption stacked bar (org vs individual entitlements per pack)
+- ✅ Credit economy breakdown (earned vs spent, by reason)
+- ✅ Platform overview stat cards (total users, active this month, credits earned/redeemed, credit balance)
+- ✅ Fixed runtime bug: funnel query referenced non-existent `source` column on entitlements, corrected to `purchase_id IS NOT NULL`
+- ✅ 4 files changed: analytics page, dashboard component, API route, analytics queries
+
+### Server-Side Playdate Search (session 45 — Phase 2)
+- ✅ `lib/queries/search.ts` — ILIKE search across 4 playdate fields (title, headline, rails_sentence, material title) + collections (title, description)
+- ✅ UNION ALL + DISTINCT ON pattern for ranked deduplication (title match > headline > description > material)
+- ✅ `GET /api/search?q=...` — authenticated endpoint, min 2 chars, max 100 chars, returns `{ playdates, collections, query }`
+- ✅ `playbook-search.tsx` — dual-mode: instant client-side collection filter + debounced (300ms) server-side playdate search
+- ✅ AbortController for race condition prevention on rapid typing
+- ✅ Playdate results shown above collection grid with cover images, headlines, match-field badges
+- ✅ 3 files changed: search queries, API route, playbook search component
+
+### Test Coverage Expansion (session 45 — Phase 2)
+- ✅ `entitlements.test.ts` (19 tests) — dual-scope checkEntitlement, grant/revive/revoke flows, early-return when no org/user
+- ✅ `credits.test.ts` (20 tests) — balance calculation, insufficient-balance error, streak bonus gating (modulo 7, daily dedup), constants
+- ✅ `search.test.ts` (11 tests) — ILIKE pattern wrapping, short-query early-return, combined search parallel execution
+- ✅ `auth-helpers-guards.test.ts` (20 tests) — requireAuth/getSession/requireAdmin/requireInternal/requireOrgAdmin redirect logic, isInternal derivation
+- ✅ Test suite: 5 → 9 files, 53 → 123 tests (132% increase)
+
+### PWA / Mobile Install (session 46 — Phase 2)
+- ✅ `public/manifest.json` — basePath-aware scope + start_url, standalone display, cadet theme
+- ✅ `public/sw.js` — cache-first for static assets, network-first for navigation, offline fallback to cached home
+- ✅ `src/components/pwa-install.tsx` — captures beforeinstallprompt (Chrome/Edge/Android), shows iOS manual instructions, 14-day dismiss cooldown
+- ✅ Icons: 512×512, 192×192, 180×180 apple-touch-icon from square "W" mark (`wv-icon-square.png`)
+- ✅ CSP updated: `worker-src 'self'` added
+- ✅ Layout metadata: manifest link, apple-web-app-capable, theme-color
+- ✅ Wired into Providers → renders on all pages
+
+### In-App Notification Center (session 47 — Phase 2)
+- ✅ Migration 041: `in_app_notifications` table with partial indexes (unread, dedup by user+event_type+href)
+- ✅ Query layer: getUserNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead, createInAppNotification (with ON CONFLICT dedup), purgeOldNotifications
+- ✅ Types: `NotificationEventType` union — gallery_approved, gallery_rejected, invite_accepted, pack_granted, progress_milestone, co_play_invite, org_joined, system
+- ✅ API routes: `GET /api/notifications/in-app` (list + countOnly polling), `POST` (mark-all-read), `POST /in-app/[id]/read` (mark single)
+- ✅ `NotificationBell` component: bell icon with badge, 60s unread-count polling, dropdown with emoji icons per event type, time-ago timestamps, mark-read on click
+- ✅ Wired into nav-bar.tsx (desktop + mobile dropdown) between authed links and auth action
+- ✅ Emitters: gallery approve/reject (`gallery.ts`), invite acceptance + pack grants (`invites.ts`), org auto-join (`organisations.ts`)
+- ✅ CSS: dropdown with slide-in animation, responsive (full-width on mobile), unread dot indicator, brand-consistent colors
+
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)
 - Q2: R2 bucket — DECIDED: one bucket, folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`)
@@ -166,6 +219,7 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 | 038 | user-entitlements | `user_id` on entitlements (dual-scope), `invite_packs` table, `member_cap` on organisations |
 | 039 | accessibility-prefs | `reduce_motion`, `dyslexia_font` BOOLEAN columns on users |
 | 040 | calm-theme | `calm_theme BOOLEAN` on users — low-stimulation dark theme |
+| 041 | in-app-notifications | `in_app_notifications` table — event_type, title, body, href, actor_id, read_at. partial indexes for unread + dedup |
 
 ## Stripe Price IDs (Test Mode)
 

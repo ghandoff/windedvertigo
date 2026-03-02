@@ -60,6 +60,44 @@ export interface AnalyticsSummary {
 }
 
 /* ------------------------------------------------------------------ */
+/*  admin-only analytics types                                         */
+/* ------------------------------------------------------------------ */
+
+export interface UserGrowthPoint {
+  month: string; // YYYY-MM
+  signups: number;
+  cumulative: number;
+}
+
+export interface PackAdoption {
+  pack_title: string;
+  org_count: number;
+  user_count: number;
+  total: number;
+}
+
+export interface CreditEconomy {
+  total_earned: number;
+  total_spent: number;
+  total_balance: number;
+  by_reason: { reason: string; amount: number }[];
+}
+
+export interface FunnelStep {
+  label: string;
+  count: number;
+}
+
+export interface AdminAnalytics {
+  totalUsers: number;
+  activeUsersThisMonth: number;
+  userGrowth: UserGrowthPoint[];
+  packAdoption: PackAdoption[];
+  creditEconomy: CreditEconomy;
+  funnel: FunnelStep[];
+}
+
+/* ------------------------------------------------------------------ */
 /*  visibility clause builder                                          */
 /* ------------------------------------------------------------------ */
 
@@ -210,5 +248,124 @@ export async function getAnalytics(session: {
     averageEvidencePerRun: Math.round((avgEvidenceResult.rows[0]?.avg ?? 0) * 10) / 10,
     runsThisMonth: monthCompareResult.rows[0]?.this_month ?? 0,
     runsLastMonth: monthCompareResult.rows[0]?.last_month ?? 0,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  admin-only platform analytics                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Platform-level metrics for the admin analytics dashboard.
+ * No visibility scoping — admin-only by design.
+ *
+ * Four sections:
+ *   1. User growth (monthly signups with running cumulative)
+ *   2. Pack adoption (org + user entitlements per pack)
+ *   3. Credit economy (earned vs spent, breakdown by reason)
+ *   4. Conversion funnel (signed up → onboarded → first run → repeat → purchased)
+ */
+export async function getAdminAnalytics(): Promise<AdminAnalytics> {
+  // ── 1. User counts ──────────────────────────────────────────────────
+  const usersResult = await sql.query(`
+    SELECT
+      COUNT(*)::int AS total,
+      COUNT(*) FILTER (
+        WHERE last_active_at >= DATE_TRUNC('month', CURRENT_DATE)
+           OR created_at >= DATE_TRUNC('month', CURRENT_DATE)
+      )::int AS active_this_month
+    FROM users
+  `);
+  const totalUsers = usersResult.rows[0]?.total ?? 0;
+  const activeUsersThisMonth = usersResult.rows[0]?.active_this_month ?? 0;
+
+  // ── 2. User growth (last 12 months) ─────────────────────────────────
+  const growthResult = await sql.query(`
+    WITH monthly AS (
+      SELECT TO_CHAR(created_at, 'YYYY-MM') AS month,
+             COUNT(*)::int AS signups
+      FROM users
+      WHERE created_at >= (CURRENT_DATE - INTERVAL '12 months')
+      GROUP BY month
+      ORDER BY month ASC
+    )
+    SELECT month, signups,
+           SUM(signups) OVER (ORDER BY month)::int AS cumulative
+    FROM monthly
+  `);
+
+  // ── 3. Pack adoption ────────────────────────────────────────────────
+  const adoptionResult = await sql.query(`
+    SELECT
+      pc.title AS pack_title,
+      COUNT(DISTINCT e.org_id) FILTER (WHERE e.org_id IS NOT NULL)::int AS org_count,
+      COUNT(DISTINCT e.user_id) FILTER (WHERE e.user_id IS NOT NULL AND e.org_id IS NULL)::int AS user_count,
+      COUNT(*)::int AS total
+    FROM entitlements e
+    JOIN packs_catalogue pc ON pc.id = e.pack_cache_id
+    WHERE e.revoked_at IS NULL
+      AND (e.expires_at IS NULL OR e.expires_at > NOW())
+    GROUP BY pc.title
+    ORDER BY total DESC
+  `);
+
+  // ── 4. Credit economy ──────────────────────────────────────────────
+  const creditResult = await sql.query(`
+    SELECT
+      COALESCE(SUM(amount) FILTER (WHERE amount > 0), 0)::int AS total_earned,
+      COALESCE(ABS(SUM(amount) FILTER (WHERE amount < 0)), 0)::int AS total_spent
+    FROM reflection_credits
+  `);
+  const totalEarned = creditResult.rows[0]?.total_earned ?? 0;
+  const totalSpent = creditResult.rows[0]?.total_spent ?? 0;
+
+  const byReasonResult = await sql.query(`
+    SELECT reason,
+           SUM(ABS(amount))::int AS amount
+    FROM reflection_credits
+    GROUP BY reason
+    ORDER BY amount DESC
+  `);
+
+  // ── 5. Conversion funnel ───────────────────────────────────────────
+  // Each step: how many users reached this milestone
+  const funnelResult = await sql.query(`
+    SELECT
+      (SELECT COUNT(*)::int FROM users) AS signed_up,
+      (SELECT COUNT(*)::int FROM users WHERE active_context_name IS NOT NULL) AS onboarded,
+      (SELECT COUNT(DISTINCT created_by)::int FROM runs_cache) AS first_run,
+      (SELECT COUNT(*)::int FROM (
+        SELECT created_by FROM runs_cache
+        GROUP BY created_by HAVING COUNT(*) >= 3
+      ) repeat_users) AS repeat_users,
+      (SELECT COUNT(DISTINCT COALESCE(e.org_id::text, e.user_id::text))::int
+       FROM entitlements e
+       WHERE e.purchase_id IS NOT NULL
+         AND e.revoked_at IS NULL) AS purchased
+  `);
+  const f = funnelResult.rows[0];
+
+  return {
+    totalUsers,
+    activeUsersThisMonth,
+    userGrowth: growthResult.rows.map((r: any) => ({
+      month: r.month,
+      signups: r.signups,
+      cumulative: r.cumulative,
+    })),
+    packAdoption: adoptionResult.rows,
+    creditEconomy: {
+      total_earned: totalEarned,
+      total_spent: totalSpent,
+      total_balance: totalEarned - totalSpent,
+      by_reason: byReasonResult.rows,
+    },
+    funnel: [
+      { label: "signed up", count: f?.signed_up ?? 0 },
+      { label: "onboarded", count: f?.onboarded ?? 0 },
+      { label: "first reflection", count: f?.first_run ?? 0 },
+      { label: "3+ reflections", count: f?.repeat_users ?? 0 },
+      { label: "purchased", count: f?.purchased ?? 0 },
+    ],
   };
 }

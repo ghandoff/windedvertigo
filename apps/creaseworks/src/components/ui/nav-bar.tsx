@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import NotificationBell from "@/components/ui/notification-bell";
 
 /* ── inline SVG nav icons ──────────────────────────────────────
  * Small 20×20 icons for each nav destination. Designed to be
@@ -226,6 +227,7 @@ export default function NavBar() {
           <div className="wv-header-nav hidden sm:flex">
             {publicLinks}
             {authedLinks}
+            {isAuthed && <NotificationBell />}
             {authAction}
           </div>
 
@@ -264,6 +266,7 @@ export default function NavBar() {
           >
             {publicLinks}
             {authedLinks}
+            {isAuthed && <NotificationBell />}
             {authAction}
           </div>
         )}
