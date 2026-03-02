@@ -150,6 +150,14 @@ export async function fetchVaultActivities(): Promise<VaultActivity[]> {
       database_id: VAULT_DB_ID,
       start_cursor: cursor,
       page_size: 100,
+      // Only fetch PRME-tier activities (contractual deliverable).
+      // The is_empty fallback keeps untagged activities visible during migration.
+      filter: {
+        or: [
+          { property: "tier", select: { equals: "prme" } },
+          { property: "tier", select: { is_empty: true } },
+        ],
+      },
     });
     rawPages.push(...response.results);
     cursor = response.has_more ? response.next_cursor : undefined;
