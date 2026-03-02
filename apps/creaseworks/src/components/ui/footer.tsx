@@ -21,8 +21,6 @@ import { apiUrl } from "@/lib/api-url";
 export default function Footer() {
   return (
     <footer className="wv-footer">
-      <p className="wv-footer-tagline">let&rsquo;s play.</p>
-
       <div className="wv-footer-inner">
         {/* brand logo — links to parent windedvertigo.com homepage.
             plain <a> escapes Next.js basePath (/reservoir/creaseworks). */}
