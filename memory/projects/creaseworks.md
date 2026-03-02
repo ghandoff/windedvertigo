@@ -168,6 +168,15 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ `auth-helpers-guards.test.ts` (20 tests) — requireAuth/getSession/requireAdmin/requireInternal/requireOrgAdmin redirect logic, isInternal derivation
 - ✅ Test suite: 5 → 9 files, 53 → 123 tests (132% increase)
 
+### PWA / Mobile Install (session 46 — Phase 2)
+- ✅ `public/manifest.json` — basePath-aware scope + start_url, standalone display, cadet theme
+- ✅ `public/sw.js` — cache-first for static assets, network-first for navigation, offline fallback to cached home
+- ✅ `src/components/pwa-install.tsx` — captures beforeinstallprompt (Chrome/Edge/Android), shows iOS manual instructions, 14-day dismiss cooldown
+- ✅ Icons: 512×512, 192×192, 180×180 apple-touch-icon from square "W" mark (`wv-icon-square.png`)
+- ✅ CSP updated: `worker-src 'self'` added
+- ✅ Layout metadata: manifest link, apple-web-app-capable, theme-color
+- ✅ Wired into Providers → renders on all pages
+
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)
 - Q2: R2 bucket — DECIDED: one bucket, folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`)
