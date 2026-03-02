@@ -126,6 +126,7 @@ export const authConfig: NextAuthConfig = {
         [data.id],
       );
       const row = r.rows[0];
+      if (!row) throw new Error(`updateUser: user ${data.id} not found`);
       return {
         id: row.id,
         email: row.email,

@@ -9,16 +9,19 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { apiUrl } from "@/lib/api-url";
 import EvidenceLightbox, {
   type LightboxItem,
 } from "@/components/ui/evidence-lightbox";
+import GalleryShareToggle from "@/components/gallery-share-toggle";
 
 type EvidenceType = "photo" | "quote" | "observation" | "artifact";
 
 interface PortfolioItem extends LightboxItem {
   storage_key?: string | null;
   thumbnail_key?: string | null;
+  shared_to_gallery?: boolean;
 }
 
 const TYPE_FILTERS: { key: EvidenceType | "all"; label: string }[] = [
@@ -35,6 +38,8 @@ export default function PortfolioGallery({
   /** Available playdates for the filter dropdown. */
   playdates: { slug: string; title: string }[];
 }) {
+  const { data: session } = useSession();
+  const uiTier = (session as any)?.uiTier ?? "casual";
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -308,68 +313,83 @@ export default function PortfolioGallery({
       {!loading && items.length > 0 && (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((item, idx) => (
-            <button
+            <div
               key={item.id}
-              onClick={() => setLightboxIdx(idx)}
               className="group rounded-xl overflow-hidden border border-cadet/8 bg-white
                          hover:shadow-warm transition-shadow text-left"
             >
-              {item.evidence_type === "photo" && item.thumbUrl ? (
-                <div className="aspect-square bg-cadet/5">
-                  <img
-                    src={item.thumbUrl}
-                    alt={`evidence from ${item.run_title}`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              ) : item.evidence_type === "quote" ? (
-                <div
-                  className="aspect-square flex items-center justify-center p-4"
-                  style={{ backgroundColor: "rgba(203, 120, 88, 0.06)" }}
-                >
-                  <div className="text-center">
-                    <p className="text-xs italic text-cadet/70 line-clamp-4 leading-relaxed">
-                      &ldquo;{item.quote_text}&rdquo;
-                    </p>
-                    {item.quote_attribution && (
-                      <p className="text-2xs text-cadet/40 mt-1.5">
-                        — {item.quote_attribution}
+              {/* clickable preview area */}
+              <button
+                type="button"
+                onClick={() => setLightboxIdx(idx)}
+                className="w-full text-left"
+              >
+                {item.evidence_type === "photo" && item.thumbUrl ? (
+                  <div className="aspect-square bg-cadet/5">
+                    <img
+                      src={item.thumbUrl}
+                      alt={`evidence from ${item.run_title}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ) : item.evidence_type === "quote" ? (
+                  <div
+                    className="aspect-square flex items-center justify-center p-4"
+                    style={{ backgroundColor: "rgba(203, 120, 88, 0.06)" }}
+                  >
+                    <div className="text-center">
+                      <p className="text-xs italic text-cadet/70 line-clamp-4 leading-relaxed">
+                        &ldquo;{item.quote_text}&rdquo;
+                      </p>
+                      {item.quote_attribution && (
+                        <p className="text-2xs text-cadet/40 mt-1.5">
+                          — {item.quote_attribution}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="aspect-square flex flex-col justify-center p-4"
+                    style={{ backgroundColor: "rgba(39, 50, 72, 0.03)" }}
+                  >
+                    {item.prompt_key && (
+                      <p className="text-2xs font-medium text-sienna/60 mb-1">
+                        {item.prompt_key.replace(/_/g, " ")}
                       </p>
                     )}
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className="aspect-square flex flex-col justify-center p-4"
-                  style={{ backgroundColor: "rgba(39, 50, 72, 0.03)" }}
-                >
-                  {item.prompt_key && (
-                    <p className="text-2xs font-medium text-sienna/60 mb-1">
-                      {item.prompt_key.replace(/_/g, " ")}
+                    <p className="text-xs text-cadet/60 line-clamp-5 leading-relaxed">
+                      {item.body}
                     </p>
-                  )}
-                  <p className="text-xs text-cadet/60 line-clamp-5 leading-relaxed">
-                    {item.body}
-                  </p>
-                </div>
-              )}
+                  </div>
+                )}
+              </button>
 
               {/* caption strip */}
               <div className="px-3 py-2 border-t border-cadet/5">
-                <p className="text-[11px] font-medium text-cadet truncate">
-                  {item.playdate_title ?? item.run_title}
-                </p>
-                <p className="text-2xs text-cadet/40">
-                  {item.run_date
-                    ? new Date(item.run_date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })
-                    : ""}
-                </p>
+                <div className="flex items-start justify-between gap-1">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-medium text-cadet truncate">
+                      {item.playdate_title ?? item.run_title}
+                    </p>
+                    <p className="text-2xs text-cadet/40">
+                      {item.run_date
+                        ? new Date(item.run_date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : ""}
+                    </p>
+                  </div>
+                  <GalleryShareToggle
+                    evidenceId={item.id}
+                    initialShared={item.shared_to_gallery ?? false}
+                    tier={uiTier}
+                  />
+                </div>
               </div>
-            </button>
+            </div>
           ))}
         </div>
       )}

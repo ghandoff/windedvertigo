@@ -70,7 +70,7 @@ export default async function GalleryPage({
         {/* CTA for logged-in users */}
         {session ? (
           <Link
-            href="/profile?manage=true"
+            href="/playbook/portfolio"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all"
             style={{
               backgroundColor: "var(--wv-sienna)",

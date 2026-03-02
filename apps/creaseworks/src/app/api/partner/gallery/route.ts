@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
          JOIN runs_cache r ON r.id = re.run_id
          LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
          JOIN users u ON u.id = r.created_by
-         INNER JOIN org_users ou ON ou.user_id = r.created_by
+         INNER JOIN org_memberships ou ON ou.user_id = r.created_by
          WHERE re.shared_to_gallery = TRUE
            AND re.gallery_approved = TRUE
            AND ou.org_id = $1
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
         `SELECT COUNT(*)::int AS count
          FROM run_evidence re
          JOIN runs_cache r ON r.id = re.run_id
-         INNER JOIN org_users ou ON ou.user_id = r.created_by
+         INNER JOIN org_memberships ou ON ou.user_id = r.created_by
          WHERE re.shared_to_gallery = TRUE
            AND re.gallery_approved = TRUE
            AND ou.org_id = $1`,

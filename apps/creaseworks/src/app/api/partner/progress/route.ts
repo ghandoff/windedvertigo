@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
       // Total users in org
       sql.query(
         `SELECT COUNT(DISTINCT user_id)::int as count
-         FROM org_users
+         FROM org_memberships
          WHERE org_id = $1`,
         [auth.orgId],
       ),
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
       sql.query(
         `SELECT COUNT(rc.id)::int as count
          FROM runs_cache rc
-         INNER JOIN org_users ou ON ou.user_id = rc.created_by
+         INNER JOIN org_memberships ou ON ou.user_id = rc.created_by
          WHERE ou.org_id = $1`,
         [auth.orgId],
       ),
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
         `SELECT COUNT(re.id)::int as count
          FROM run_evidence re
          INNER JOIN runs_cache rc ON rc.id = re.run_id
-         INNER JOIN org_users ou ON ou.user_id = rc.created_by
+         INNER JOIN org_memberships ou ON ou.user_id = rc.created_by
          WHERE ou.org_id = $1`,
         [auth.orgId],
       ),
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
            COUNT(CASE WHEN pp.progress_tier IN ('folded_unfolded', 'found_again') THEN 1 END)::int as folded_unfolded,
            COUNT(CASE WHEN pp.progress_tier = 'found_again' THEN 1 END)::int as found_again
          FROM playdate_progress pp
-         INNER JOIN org_users ou ON ou.user_id = pp.user_id
+         INNER JOIN org_memberships ou ON ou.user_id = pp.user_id
          WHERE ou.org_id = $1`,
         [auth.orgId],
       ),
@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
         `WITH daily_runs AS (
            SELECT DISTINCT ou.user_id, DATE(rc.run_date) as run_day
            FROM runs_cache rc
-           INNER JOIN org_users ou ON ou.user_id = rc.created_by
+           INNER JOIN org_memberships ou ON ou.user_id = rc.created_by
            WHERE ou.org_id = $1 AND rc.run_date IS NOT NULL
          ),
          islands AS (
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
       sql.query(
         `SELECT COALESCE(SUM(rc.amount), 0)::int as total
          FROM reflection_credits rc
-         INNER JOIN org_users ou ON ou.user_id = rc.user_id
+         INNER JOIN org_memberships ou ON ou.user_id = rc.user_id
          WHERE ou.org_id = $1`,
         [auth.orgId],
       ),

@@ -312,6 +312,8 @@ export interface PortfolioItem {
   /* playdate context */
   playdate_title: string | null;
   playdate_slug: string | null;
+  /* gallery sharing state */
+  shared_to_gallery: boolean;
 }
 
 /**
@@ -358,6 +360,7 @@ export async function getPortfolioEvidence(
        re.storage_key, re.thumbnail_key,
        re.quote_text, re.quote_attribution,
        re.body, re.prompt_key,
+       re.shared_to_gallery,
        re.created_at,
        r.id AS run_id,
        r.title AS run_title,

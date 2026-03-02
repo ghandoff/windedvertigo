@@ -9,11 +9,12 @@
  */
 
 export const RUN_TYPES = [
-  "internal practice",
-  "webinar",
-  "delivery",
-  "BD/prospect",
-  "R&D",
+  "home session",
+  "classroom activity",
+  "outdoor play",
+  "on-the-go",
+  "group session",
+  "one-on-one",
 ] as const;
 
 export const TRACE_EVIDENCE_OPTIONS = [

@@ -69,7 +69,7 @@ export default async function CoPlayPage({ params }: CoPlayPageProps) {
             sign in to accept the invitation and share your reflections.
           </p>
           <Link
-            href={`/login?redirect=/co-play/${code}/reflections`}
+            href={`/login?callbackUrl=/co-play/${code}/reflections`}
             className="block w-full text-center px-4 py-2 bg-redwood text-white rounded-lg hover:bg-redwood/90 font-medium mb-3"
           >
             sign in
@@ -77,7 +77,7 @@ export default async function CoPlayPage({ params }: CoPlayPageProps) {
           <p className="text-xs text-cadet/50 text-center">
             don't have an account?{" "}
             <Link
-              href={`/signup?redirect=/co-play/${code}/reflections`}
+              href={`/login?callbackUrl=/co-play/${code}/reflections`}
               className="text-redwood hover:underline"
             >
               sign up
