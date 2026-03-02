@@ -128,6 +128,37 @@ verified session 35: all engagement features are fully wired into user flows.
 
 ---
 
+## phase 3 — progressive disclosure & user tiers
+
+**Rationale:** The full suite of features (sampler, matcher, packs, playbook, reflections, gallery, community, credits, photo consent, co-play, evidence capture) can overwhelm first-time caregivers and children. Progressive disclosure shows each user only the features that match their engagement level, reducing cognitive load and making the app feel simpler for casual users while still powerful for deep engagers.
+
+### User tiers
+
+| Tier | Who | Features visible | Nav items |
+|------|-----|-----------------|-----------|
+| **Casual** | Caregivers who just want play ideas | Playdates (sampler), matcher, packs, gallery (view-only) | sampler, matcher, packs, gallery |
+| **Curious** | Caregivers who want to understand the "why" | + Playbook (collections with developmental context), pack detail pages with research notes | + playbook |
+| **Collaborator** | Educators, therapists, deep engagers | + Reflections, evidence capture, credits, community, co-play, gallery submissions | + reflections, community, profile journey |
+
+### Design considerations
+
+| # | Item | Notes |
+|---|------|-------|
+| P3-1 | 🔵 **tier selection during onboarding** | Ask "how do you want to use creaseworks?" during onboarding wizard. Three visual options with icons + short descriptions. Stored on user record. |
+| P3-2 | 🔵 **tier-aware nav bar** | Nav links filtered by user tier. Bottom tab bar adapts. "Explore more" nudge for tier upgrade. |
+| P3-3 | 🔵 **tier-aware profile page** | Hide sections that don't apply to current tier. Show "unlock" teasers for higher-tier features. |
+| P3-4 | 🔵 **upgrade path UX** | Users can change tier anytime from profile. Gentle in-context prompts ("liked this playdate? start tracking reflections →"). Never gate content — just hide UI complexity. |
+| P3-5 | 🔵 **migration for existing users** | DB column `user_tier` on users table. Default existing users to "collaborator" (they've already seen everything). New users start at onboarding choice. |
+| P3-6 | 🔵 **tier-aware notification events** | Collaborators get full notification set. Casual users only get gallery/pack-related notifications. Curious gets everything except evidence/credit notifications. |
+
+### Implementation approach (TBD)
+
+- **Not a permission system** — tiers are purely cosmetic/UX. All features remain accessible via direct URL. The tier controls what appears in navigation and on dashboard/profile surfaces.
+- **Cookie-first** (like accessibility prefs) for instant nav rendering before hydration.
+- **Estimated scope:** ~8-12 hours across 5-6 sessions. Touches: nav-bar, profile, onboarding wizard, playbook, notification bell filtering, migration.
+
+---
+
 ## open questions / future work
 
 1. **next/image migration** — DEFERRED. cover images use raw `<img>` tags. migration to `<Image>` with R2 custom loader would give: responsive srcset (saves mobile bandwidth), lazy loading, WebP/AVIF format negotiation (30-50% smaller), CLS prevention (reserved layout space). **cost implications:** Next.js image optimization can either run through Vercel Functions (adds latency + function invocations to bill) or via Cloudflare Image Resizing (separate paid product). evaluate when image volume grows. decision: hold off for now.
@@ -143,11 +174,11 @@ verified session 35: all engagement features are fully wired into user flows.
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
 | Tests | 9 suites, 123 tests, all passing |
-| Migrations | 041 (040 applied to Neon; 041 pending) |
+| Migrations | 041 (all applied to Neon) |
 | Smoke test | 28/29 pass |
 | Source files | ~297 (.ts + .tsx) |
 | Features A–Y | all implemented |
-| Phase 2 | P2-1 + P2-2 + P2-3 + P2-4 + P2-5 + P2-7 complete; P2-6 pending (env vars) |
+| Phase 2 | ✅ ALL CODE COMPLETE (P2-1 through P2-7). P2-6 pending (manual env vars in Vercel). |
 | Engagement system | fully wired — credits, photo consent, redemption, pack finder all live |
 | Material emoji CMS | Notion-managed via `emoji` rich_text property, hard-coded map as fallback |
 

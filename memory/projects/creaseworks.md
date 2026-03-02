@@ -14,7 +14,7 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | ~297 (.ts + .tsx) |
-| **Migrations** | 041 (latest: in_app_notifications) — 001-040 applied to Neon; 041 pending |
+| **Migrations** | 041 (latest: in_app_notifications) — all applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Tests** | 9 suites, 123 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
