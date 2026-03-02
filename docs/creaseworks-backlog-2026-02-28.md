@@ -99,7 +99,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | 21 | ~~DRAFT badge uses non-brand orange~~ | ✅ done | already uses sienna/30 border + sienna/5 bg + sienna text |
 | 22 | ~~footer "let's play." tagline~~ | ✅ done | already in `packages/tokens/footer.html` |
 | 23 | ~~typography scale audit~~ | ✅ done | session 34 — commit f3023fe |
-| 24 | ~~parent site vs creaseworks visual bridge~~ | ✅ done | brand hierarchy "winded.vertigo › creaseworks" in header, cross-app "← windedvertigo.com" link in mobile menu, shared CSS in tokens, calm theme support. footer was already fully shared. |
+| 24 | ~~parent site vs creaseworks visual bridge~~ | ✅ done | winded.vertigo logo wordmark in footer left side, linking to parent homepage. header shows just "creaseworks". footer rendered in JSX for layout control. calm theme dims logo with opacity+filter. |
 
 ---
 
@@ -114,12 +114,12 @@ verified session 35: all engagement features are fully wired into user flows.
 
 ---
 
-## open questions (need decisions before building)
+## open questions / future work
 
-1. **next/image migration** — cover images use raw `<img>` tags. migrate to `<Image>` with R2 custom loader?
-2. **R2 bucket separation** — one bucket for all apps or separate per app?
-3. **URL structure** — creaseworks lives at `windedvertigo.com/reservoir/creaseworks`. should the old `creaseworks.windedvertigo.com` subdomain redirect there?
-4. **shared header across apps** — footer fully shared via `packages/tokens/footer.html`. header CSS (`.wv-header*`) shared via tokens. creaseworks shows brand hierarchy "winded.vertigo › creaseworks" (session 41). a shared header HTML template would need to handle: no auth in static site, no icons, no bottom tab bar — worth it?
+1. **next/image migration** — DEFERRED. cover images use raw `<img>` tags. migration to `<Image>` with R2 custom loader would give: responsive srcset (saves mobile bandwidth), lazy loading, WebP/AVIF format negotiation (30-50% smaller), CLS prevention (reserved layout space). **cost implications:** Next.js image optimization can either run through Vercel Functions (adds latency + function invocations to bill) or via Cloudflare Image Resizing (separate paid product). evaluate when image volume grows. decision: hold off for now.
+2. **R2 bucket structure** — DECIDED: one bucket for all apps with folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`). rationale: simpler CORS/token management, shared assets don't need duplication, per-app storage visibility via R2 prefix metrics. re-evaluate if access control needs diverge.
+3. ~~URL redirect for old subdomain~~ — SKIPPED. not enough people have the old `creaseworks.windedvertigo.com` link.
+4. **shared header across apps** — NOT WORTH IT. header needs differ too much between apps (auth, icons, bottom tab bar in creaseworks vs hero nav in parent site). footer is shared via tokens, header CSS classes are shared, but the component structure stays app-specific.
 
 ---
 

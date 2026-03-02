@@ -17,7 +17,7 @@
 | **Migrations** | 040 (latest: calm_theme) — 001-040 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 41 (Mar 1, 2026) |
+| **Last session** | 43 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -126,11 +126,19 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ `components/admin/admin-playdate-browser.tsx` — rewritten with expandable content preview, completeness badges, lazy detail caching, materials list, design notes
 - ✅ `app/admin/playdates/page.tsx` — uses new `getAdminPlaydates` query
 
-### Visual Bridge: Parent Site ↔ Creaseworks (session 41)
-- ✅ `packages/tokens/index.css` — `.wv-header-parent`, `.wv-header-parent-sep`, `.wv-header-crossnav` shared classes
-- ✅ `components/ui/nav-bar.tsx` — brand hierarchy "winded.vertigo › creaseworks" in header, "← windedvertigo.com" in mobile dropdown
-- ✅ `globals.css` — calm theme overrides for parent brand + cross-app nav elements
-- ✅ Footer already fully shared via `@windedvertigo/tokens` package (footer.html → footer-html.ts)
+### Visual Bridge: Parent Site ↔ Creaseworks (sessions 41→43)
+- ✅ `components/ui/footer.tsx` — rewritten in JSX with logo wordmark on left side, links to parent homepage via `<a href="/">`
+- ✅ `public/images/wv-logo.png` — resized wordmark (240×127, 33KB) for 2x retina footer display
+- ✅ `packages/tokens/index.css` — `.wv-footer-brand`, `.wv-footer-brand-img` styles, responsive sizing
+- ✅ `globals.css` — calm theme dims footer logo with opacity + filter
+- ✅ Header shows just "creaseworks" — removed previous "winded.vertigo ›" prefix and mobile cross-app link
+- ✅ Removed unused `.wv-header-parent`, `.wv-header-parent-sep`, `.wv-header-crossnav` from tokens CSS
+
+### Open Questions Resolved (session 43)
+- Q1: next/image migration — DEFERRED (document cost implications for budgeting)
+- Q2: R2 bucket — DECIDED: one bucket, folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`)
+- Q3: subdomain redirect — SKIPPED (not enough users with old URL)
+- Q4: shared header template — NOT WORTH IT (needs differ too much between apps)
 
 ## Migration Log
 
