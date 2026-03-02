@@ -181,11 +181,40 @@
   color: var(--wv-champagne);
 }
 
+/* footer brand — logo linking to parent windedvertigo.com homepage.
+   displayed on the left side of the footer inner row.                */
+
+.wv-footer-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+.wv-footer-brand:hover {
+  opacity: 0.8;
+}
+
+.wv-footer-brand-img {
+  display: block;
+  width: 120px;
+  height: auto;
+}
+
 @media (max-width: 640px) {
   .wv-footer-inner {
     flex-direction: column;
     gap: var(--space-md);
     text-align: center;
+  }
+
+  .wv-footer-brand {
+    justify-content: center;
+  }
+
+  .wv-footer-brand-img {
+    width: 100px;
   }
 }
 

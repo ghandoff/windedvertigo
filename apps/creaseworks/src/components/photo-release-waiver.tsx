@@ -119,7 +119,7 @@ export default function PhotoReleaseWaiver({
           <span className="text-xs text-cadet/70">
             approve for marketing use
           </span>
-          <p className="text-[10px] text-cadet/35 mt-0.5">
+          <p className="text-2xs text-cadet/35 mt-0.5">
             optional — we may feature the photo on our site or social media.
           </p>
         </div>

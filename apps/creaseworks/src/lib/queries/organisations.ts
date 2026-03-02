@@ -31,6 +31,28 @@ export async function autoJoinOrg(userId: string, email: string) {
   if (await isBlockedDomain(domain)) return null;
   const org = await getOrgByVerifiedDomain(domain);
   if (!org) return null;
+
+  // Check member cap — if the org has a cap and is at capacity, skip auto-join.
+  // The user can still sign in (and may have individual invite entitlements),
+  // they just won't inherit org-level pack access.
+  const capResult = await sql.query(
+    "SELECT member_cap FROM organisations WHERE id = $1",
+    [org.org_id],
+  );
+  const cap = capResult.rows[0]?.member_cap;
+  if (cap != null) {
+    const countResult = await sql.query(
+      "SELECT COUNT(*) AS count FROM org_memberships WHERE org_id = $1",
+      [org.org_id],
+    );
+    if (parseInt(countResult.rows[0].count, 10) >= cap) {
+      console.log(
+        `[auth] org ${org.org_id} at member cap (${cap}), skipping auto-join for ${email}`,
+      );
+      return null;
+    }
+  }
+
   const r = await sql.query(
     "INSERT INTO org_memberships (user_id, org_id, role) VALUES ($1, $2, 'member') ON CONFLICT (user_id, org_id) DO NOTHING RETURNING org_id, role",
     [userId, org.org_id],

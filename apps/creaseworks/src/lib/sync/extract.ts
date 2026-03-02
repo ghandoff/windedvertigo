@@ -83,6 +83,119 @@ export function extractPageId(page: NotionPage): string {
 }
 
 /* ------------------------------------------------------------------ */
+/*  rich text → HTML extraction                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Convert Notion's rich text array into lightweight HTML.
+ *
+ * Preserves: bold, italic, underline, strikethrough, code, links, colors.
+ * Falls back to null if the result has no formatting (callers use plain text).
+ *
+ * The output is generated entirely from Notion's structured API response
+ * (admin-controlled content), with all text content escaped via escapeHtml().
+ * It is safe to render via a lightweight sanitiser or React's
+ * dangerouslySetInnerHTML for this trusted source.
+ */
+export function extractRichTextHtml(
+  props: Properties,
+  key: string,
+): string | null {
+  const prop = props[key];
+  if (!prop || prop.type !== "rich_text") return null;
+  const segments: any[] = prop.rich_text ?? [];
+  if (segments.length === 0) return null;
+
+  let hasFormatting = false;
+  const parts = segments.map((seg: any) => {
+    const text = seg.plain_text ?? "";
+    if (!text) return "";
+
+    const ann = seg.annotations ?? {};
+    let html = escapeHtml(text);
+
+    // Wrap in formatting tags (innermost first)
+    if (ann.code) { html = `<code>${html}</code>`; hasFormatting = true; }
+    if (ann.strikethrough) { html = `<s>${html}</s>`; hasFormatting = true; }
+    if (ann.underline) { html = `<u>${html}</u>`; hasFormatting = true; }
+    if (ann.italic) { html = `<em>${html}</em>`; hasFormatting = true; }
+    if (ann.bold) { html = `<strong>${html}</strong>`; hasFormatting = true; }
+
+    // Color annotation — only non-default colors
+    if (ann.color && ann.color !== "default") {
+      html = `<span data-color="${ann.color}">${html}</span>`;
+      hasFormatting = true;
+    }
+
+    // Links
+    if (seg.href) {
+      html = `<a href="${escapeAttr(seg.href)}">${html}</a>`;
+      hasFormatting = true;
+    }
+
+    return html;
+  });
+
+  const result = parts.join("");
+  if (!result.trim()) return null;
+
+  // If no formatting was found, return null so callers fall back to plain text
+  if (!hasFormatting) return null;
+
+  return result;
+}
+
+/** Minimal HTML escaping for text content. */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/** Escape for HTML attribute values. */
+function escapeAttr(text: string): string {
+  return escapeHtml(text).replace(/"/g, "&quot;");
+}
+
+/* ------------------------------------------------------------------ */
+/*  file property extraction                                           */
+/* ------------------------------------------------------------------ */
+
+export interface NotionFileRef {
+  url: string;
+  name: string;
+  expiry?: string;
+}
+
+/**
+ * Extract file URLs from a Notion "files" (Files & media) property.
+ *
+ * Each file entry can be "external" (pasted URL) or "file" (uploaded
+ * to Notion, with an expiring signed URL). We return both types
+ * normalised to { url, name, expiry? }.
+ */
+export function extractFiles(props: Properties, key: string): NotionFileRef[] {
+  const prop = props[key];
+  if (!prop || prop.type !== "files") return [];
+  return (prop.files ?? [])
+    .map((f: any): NotionFileRef | null => {
+      if (f.type === "external") {
+        return { url: f.external?.url, name: f.name ?? "" };
+      }
+      if (f.type === "file") {
+        return {
+          url: f.file?.url,
+          name: f.name ?? "",
+          expiry: f.file?.expiry_time,
+        };
+      }
+      return null;
+    })
+    .filter((f: NotionFileRef | null): f is NotionFileRef => f !== null && !!f.url);
+}
+
+/* ------------------------------------------------------------------ */
 /*  page-level image extraction (covers + icons)                       */
 /* ------------------------------------------------------------------ */
 

@@ -193,7 +193,7 @@ export default function CreditRedemption({
                   >
                     <span className="font-medium text-cadet">{pack.title}</span>
                     {pack.playdate_count != null && (
-                      <span className="text-[10px] text-cadet/40 ml-2">
+                      <span className="text-2xs text-cadet/40 ml-2">
                         {pack.playdate_count} playdates
                       </span>
                     )}

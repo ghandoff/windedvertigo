@@ -81,11 +81,11 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
             >
               {campaign.title}
             </Link>
-            <span className="text-[10px] font-mono text-cadet/40 shrink-0">
+            <span className="text-2xs font-mono text-cadet/40 shrink-0">
               /{campaign.slug}
             </span>
             {!campaign.active && (
-              <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-cadet/10 text-cadet/50">
+              <span className="text-2xs font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-cadet/10 text-cadet/50">
                 inactive
               </span>
             )}
@@ -95,7 +95,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
               {campaign.description}
             </p>
           )}
-          <p className="text-[10px] text-cadet/30 mt-1">
+          <p className="text-2xs text-cadet/30 mt-1">
             {campaign.playdate_count ?? 0} playdate
             {(campaign.playdate_count ?? 0) !== 1 ? "s" : ""}
           </p>

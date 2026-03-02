@@ -1,10 +1,11 @@
 import { sql } from "@/lib/db";
-import { NOTION_DBS } from "@/lib/notion";
+import { notion, NOTION_DBS } from "@/lib/notion";
 import { makeSlug } from "@/lib/slugify";
 import { syncCacheTable } from "./sync-cache-table";
 import {
   extractTitle,
   extractRichText,
+  extractRichTextHtml,
   extractSelect,
   extractNumber,
   extractRelationIds,
@@ -14,6 +15,7 @@ import {
   type NotionPage,
 } from "./extract";
 import { syncImageToR2, imageUrl } from "./sync-image";
+import { fetchPageBodyHtml } from "./blocks";
 
 function parseCollectionPage(page: NotionPage) {
   const props = page.properties;
@@ -21,6 +23,7 @@ function parseCollectionPage(page: NotionPage) {
     notionId: extractPageId(page),
     title: extractTitle(props, "collection"),
     description: extractRichText(props, "description"),
+    descriptionHtml: extractRichTextHtml(props, "description"),
     iconEmoji: extractRichText(props, "icon"),
     sortOrder: extractNumber(props, "sort order") ?? 0,
     status: extractSelect(props, "status") || "draft",
@@ -49,26 +52,39 @@ export async function syncCollections() {
           coverUrl = imageUrl(coverR2Key);
         }
 
+        // Tier 4: fetch page body content as HTML
+        let bodyHtml: string | null = null;
+        try {
+          bodyHtml = await fetchPageBodyHtml(notion(), row.notionId);
+        } catch {
+          // Non-blocking — body content is supplementary
+        }
+
         await sql`
           INSERT INTO collections (
-            notion_id, title, description, icon_emoji, sort_order, status,
-            notion_last_edited, synced_at, slug, cover_r2_key, cover_url
+            notion_id, title, description, description_html,
+            icon_emoji, sort_order, status,
+            notion_last_edited, synced_at, slug, cover_r2_key, cover_url,
+            body_html
           ) VALUES (
             ${row.notionId}, ${row.title}, ${row.description},
+            ${row.descriptionHtml},
             ${row.iconEmoji}, ${row.sortOrder}, ${row.status},
             ${row.lastEdited}, NOW(), ${makeSlug(row.title)},
-            ${coverR2Key}, ${coverUrl}
+            ${coverR2Key}, ${coverUrl}, ${bodyHtml}
           )
           ON CONFLICT (notion_id) DO UPDATE SET
             title = EXCLUDED.title,
             description = EXCLUDED.description,
+            description_html = EXCLUDED.description_html,
             icon_emoji = EXCLUDED.icon_emoji,
             sort_order = EXCLUDED.sort_order,
             status = EXCLUDED.status,
             notion_last_edited = EXCLUDED.notion_last_edited,
             synced_at = NOW(),
             cover_r2_key = EXCLUDED.cover_r2_key,
-            cover_url = EXCLUDED.cover_url
+            cover_url = EXCLUDED.cover_url,
+            body_html = EXCLUDED.body_html
         `;
       } catch (err: any) {
         // Skip duplicate-slug orphan entries rather than failing the whole sync.

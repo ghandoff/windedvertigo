@@ -17,6 +17,7 @@ function parseMaterialPage(page: NotionPage) {
   return {
     notionId: extractPageId(page),
     title: extractTitle(props, "material"),
+    emoji: extractRichText(props, "emoji"),
     formPrimary: extractSelect(props, "form (primary)"),
     functions: extractMultiSelect(props, "functions"),
     connectorModes: extractMultiSelect(props, "connector modes"),
@@ -41,12 +42,12 @@ export async function syncMaterials() {
     upsertRow: async (row) => {
       await sql`
         INSERT INTO materials_cache (
-          notion_id, title, form_primary, functions, connector_modes,
+          notion_id, title, emoji, form_primary, functions, connector_modes,
           context_tags, do_not_use, do_not_use_reason, shareability,
           min_qty_size, examples_notes, generation_notes,
           generation_prompts, source, notion_last_edited, synced_at
         ) VALUES (
-          ${row.notionId}, ${row.title}, ${row.formPrimary},
+          ${row.notionId}, ${row.title}, ${row.emoji}, ${row.formPrimary},
           ${JSON.stringify(row.functions)}, ${JSON.stringify(row.connectorModes)},
           ${JSON.stringify(row.contextTags)}, ${row.doNotUse},
           ${row.doNotUseReason}, ${row.shareability}, ${row.minQtySize},
@@ -56,6 +57,7 @@ export async function syncMaterials() {
         )
         ON CONFLICT (notion_id) DO UPDATE SET
           title = EXCLUDED.title,
+          emoji = EXCLUDED.emoji,
           form_primary = EXCLUDED.form_primary,
           functions = EXCLUDED.functions,
           connector_modes = EXCLUDED.connector_modes,

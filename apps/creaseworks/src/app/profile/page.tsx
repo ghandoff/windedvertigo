@@ -42,6 +42,7 @@ export const metadata: Metadata = {
 };
 import ProfileManageToggle from "./manage-toggle";
 import NotificationPrefs from "./notification-prefs";
+import AccessibilityPrefs from "./accessibility-prefs";
 import PlayContextSwitcher from "./play-context-switcher";
 import SyncTrigger from "@/app/admin/sync/sync-trigger";
 
@@ -126,10 +127,10 @@ export default async function ProfilePage({
     : [[], []];
 
   /* ---- pack progress + recommendations + credits --------------------- */
+  // Always fetch packs — user-level entitlements (from invites) work
+  // even without an org. getOrgPacksWithProgress handles null orgId.
   const [ownedPacks, recommendedPacks, creditBalance] = await Promise.all([
-    hasOrg
-      ? getOrgPacksWithProgress(session.orgId!, session.userId).catch(() => [])
-      : Promise.resolve([]),
+    getOrgPacksWithProgress(session.orgId ?? null, session.userId).catch(() => []),
     getRecommendedPacks(session.orgId, session.userId).catch(() => []),
     getUserCredits(session.userId).catch(() => 0),
   ]);
@@ -200,7 +201,7 @@ export default async function ProfilePage({
               <span className="text-cadet/15">&middot;</span>
             )}
             <span
-              className="text-[10px] font-semibold tracking-wide px-1.5 py-px rounded-full"
+              className="text-2xs font-semibold tracking-wide px-1.5 py-px rounded-full"
               style={{
                 backgroundColor:
                   tierLabel === "admin"
@@ -332,6 +333,22 @@ export default async function ProfilePage({
 
           {showManage && (
             <div className="mt-6 space-y-12">
+              {/* accessibility section */}
+              <section>
+                <h3 className="text-lg font-semibold tracking-tight mb-1">
+                  accessibility
+                </h3>
+                <p className="text-sm text-cadet/40 mb-4">
+                  adjust how creaseworks looks and moves to suit you best.
+                </p>
+                <div
+                  className="rounded-xl border p-4"
+                  style={{ borderColor: "var(--cw-border)", backgroundColor: "var(--cw-card-bg)" }}
+                >
+                  <AccessibilityPrefs />
+                </div>
+              </section>
+
               {/* notifications section */}
               <section>
                 <h3 className="text-lg font-semibold tracking-tight mb-1">
@@ -450,6 +467,26 @@ export default async function ProfilePage({
                     currentUserId={session.userId}
                     isOrgAdmin={session.orgRole === "admin"}
                   />
+                </section>
+              )}
+
+              {/* invite people section — system admins only */}
+              {session.isAdmin && (
+                <section>
+                  <h3 className="text-lg font-semibold tracking-tight mb-1">
+                    invite people
+                  </h3>
+                  <p className="text-sm text-cadet/40 mb-4">
+                    grant access to colleagues, friends, schools, or pilot
+                    partners who don&apos;t share your email domain.
+                  </p>
+                  <Link
+                    href="/admin/invites"
+                    className="inline-flex items-center gap-2 rounded-lg border border-cadet/10 bg-white px-4 py-2.5 text-sm font-medium text-cadet hover:border-sienna/30 hover:text-sienna transition-colors"
+                  >
+                    <span>✉️</span>
+                    <span>manage invites</span>
+                  </Link>
                 </section>
               )}
 

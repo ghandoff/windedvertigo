@@ -115,7 +115,7 @@ export default function EvidencePhotoUpload({
           photos ({photos.length}/{MAX_PHOTOS})
         </label>
         {photos.length > 0 && (
-          <span className="text-[10px] text-cadet/40">
+          <span className="text-2xs text-cadet/40">
             drag to reorder · click × to remove
           </span>
         )}
@@ -150,7 +150,7 @@ export default function EvidencePhotoUpload({
               )}
               {photo.status === "error" && (
                 <div className="absolute inset-0 bg-red-50/80 flex items-center justify-center">
-                  <span className="text-[10px] text-redwood font-medium px-1 text-center">
+                  <span className="text-2xs text-redwood font-medium px-1 text-center">
                     {photo.errorMsg || "upload failed"}
                   </span>
                 </div>
@@ -207,7 +207,7 @@ export default function EvidencePhotoUpload({
               ? "tap to add photos, or drag them here"
               : `add more (${MAX_PHOTOS - photos.length} remaining)`}
           </p>
-          <p className="text-[10px] text-cadet/30 mt-1">
+          <p className="text-2xs text-cadet/30 mt-1">
             jpeg, png, webp · up to 5 MB each
           </p>
         </div>

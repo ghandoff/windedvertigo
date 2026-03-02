@@ -12,6 +12,7 @@ import {
   autoJoinOrg,
   getOrgMembership,
 } from "@/lib/queries/organisations";
+import { processInvitesOnSignIn } from "@/lib/queries/invites";
 
 // The verification_token table is created by migration 011.
 // Previously this module ran CREATE TABLE IF NOT EXISTS on every cold
@@ -219,6 +220,10 @@ export const authConfig: NextAuthConfig = {
 
         // Auto-join org based on verified email domains
         await autoJoinOrg(user.id, user.email!);
+
+        // Process any pending invites — grants user-level pack entitlements
+        // for individually invited users (e.g., personal email addresses)
+        await processInvitesOnSignIn(user.id, user.email!);
 
         // Bootstrap initial admin if configured
         const adm = process.env.INITIAL_ADMIN_EMAIL?.toLowerCase().trim();

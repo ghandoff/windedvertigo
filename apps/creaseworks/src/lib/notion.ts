@@ -31,6 +31,29 @@ export const NOTION_DBS = {
   collections: process.env.NOTION_DB_COLLECTIONS ?? "",
 } as const;
 
+/**
+ * CMS page configuration.
+ *
+ * Maps a URL slug to a Notion page ID. These are individual Notion pages
+ * (not database rows) that serve as a lightweight CMS for static content
+ * like the /we/ and /do/ marketing pages.
+ *
+ * Set via NOTION_CMS_PAGE_{SLUG} environment variables. Pages with empty
+ * IDs are silently skipped during sync, so this is safe even when env
+ * vars aren't set.
+ */
+export interface CmsPageConfig {
+  slug: string;
+  notionPageId: string;
+}
+
+export function getCmsPageConfigs(): CmsPageConfig[] {
+  return [
+    { slug: "we", notionPageId: process.env.NOTION_CMS_PAGE_WE ?? "" },
+    { slug: "do", notionPageId: process.env.NOTION_CMS_PAGE_DO ?? "" },
+  ].filter((c) => c.notionPageId.length > 0);
+}
+
 // Notion rate limit: 3 req/s. We use 350ms delay for safety.
 export const RATE_LIMIT_DELAY_MS = 350;
 

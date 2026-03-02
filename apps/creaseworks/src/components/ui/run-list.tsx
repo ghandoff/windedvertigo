@@ -10,6 +10,7 @@
  */
 
 import Link from "next/link";
+import EmptyState from "@/components/empty-state";
 
 interface RunMaterial {
   id: string;
@@ -68,19 +69,12 @@ export default function RunList({
 }) {
   if (runs.length === 0) {
     return (
-      <div className="rounded-xl border border-cadet/10 bg-champagne/30 p-8 text-center">
-        <p className="text-2xl mb-3" aria-hidden>📝</p>
-        <p className="text-cadet/60 text-sm mb-4">
-          your reflections will show up here — try a playdate and log what you noticed!
-        </p>
-        <Link
-          href="/reflections/new"
-          className="inline-block rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90"
-          style={{ backgroundColor: "var(--wv-redwood)" }}
-        >
-          log a reflection
-        </Link>
-      </div>
+      <EmptyState
+        type="journal"
+        heading="your journal is waiting"
+        body="try a playdate and log what you noticed — your reflections will show up here."
+        cta={{ label: "log a reflection", href: "/reflections/new" }}
+      />
     );
   }
 

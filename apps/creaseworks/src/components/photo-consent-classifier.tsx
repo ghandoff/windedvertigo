@@ -169,7 +169,7 @@ export default function PhotoConsentClassifier({
             <span className="text-xs text-cadet/70">
               i&apos;m happy for creaseworks to use this in materials
             </span>
-            <p className="text-[10px] text-cadet/35 mt-0.5">
+            <p className="text-2xs text-cadet/35 mt-0.5">
               we may feature it on our site or social media. you can revoke this
               anytime from your portfolio.
             </p>
@@ -179,7 +179,7 @@ export default function PhotoConsentClassifier({
 
       {/* artifact tier: auto-consent note */}
       {selectedTier === "artifact" && (
-        <p className="text-[10px] text-cadet/40 px-1">
+        <p className="text-2xs text-cadet/40 px-1">
           artifacts without people are automatically eligible for community
           features. you can change this anytime in your portfolio.
         </p>

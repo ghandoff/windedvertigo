@@ -1,10 +1,11 @@
 import { sql } from "@/lib/db";
-import { NOTION_DBS } from "@/lib/notion";
+import { notion, NOTION_DBS } from "@/lib/notion";
 import { makeSlug } from "@/lib/slugify";
 import { syncCacheTable } from "./sync-cache-table";
 import {
   extractTitle,
   extractRichText,
+  extractRichTextHtml,
   extractSelect,
   extractMultiSelect,
   extractCheckbox,
@@ -12,9 +13,11 @@ import {
   extractLastEdited,
   extractPageId,
   extractCover,
+  extractFiles,
   type NotionPage,
 } from "./extract";
 import { syncImageToR2, imageUrl } from "./sync-image";
+import { fetchPageBodyHtml } from "./blocks";
 
 interface PlaydateRow {
   notionId: string;
@@ -47,12 +50,25 @@ interface PlaydateRow {
   tinkeringTier: string | null;
   coverSourceUrl: string | null;
   galleryVisibleFields: string[];
+  // Tier 3: file property images
+  illustrationSourceUrl: string | null;
+  // Tier 4 (#15): rich text HTML variants
+  findHtml: string | null;
+  foldHtml: string | null;
+  unfoldHtml: string | null;
+  headlineHtml: string | null;
+  findAgainPromptHtml: string | null;
+  substitutionsNotesHtml: string | null;
 }
 
 function parsePlaydatePage(page: NotionPage): PlaydateRow {
   const props = page.properties;
   const frictionStr = extractSelect(props, "friction dial");
   const frictionDial = frictionStr ? parseInt(frictionStr, 10) : null;
+
+  // Tier 3: extract first file from "illustration" property (if it exists)
+  const files = extractFiles(props, "illustration");
+  const illustrationSourceUrl = files.length > 0 ? files[0].url : null;
 
   return {
     notionId: extractPageId(page),
@@ -85,6 +101,14 @@ function parsePlaydatePage(page: NotionPage): PlaydateRow {
     tinkeringTier: extractSelect(props, "tinkering tier"),
     coverSourceUrl: extractCover(page)?.url ?? null,
     galleryVisibleFields: extractMultiSelect(props, "gallery visible fields"),
+    illustrationSourceUrl,
+    // #15: rich text HTML for user-facing phase text
+    findHtml: extractRichTextHtml(props, "find"),
+    foldHtml: extractRichTextHtml(props, "fold"),
+    unfoldHtml: extractRichTextHtml(props, "unfold"),
+    headlineHtml: extractRichTextHtml(props, "headline"),
+    findAgainPromptHtml: extractRichTextHtml(props, "find again prompt"),
+    substitutionsNotesHtml: extractRichTextHtml(props, "substitutions notes"),
   };
 }
 
@@ -102,6 +126,26 @@ export async function syncPlaydates() {
         coverUrl = imageUrl(coverR2Key);
       }
 
+      // Tier 3: sync illustration file property to R2
+      let illustrationR2Key: string | null = null;
+      let illustrationUrl: string | null = null;
+      if (row.illustrationSourceUrl) {
+        illustrationR2Key = await syncImageToR2(
+          row.illustrationSourceUrl,
+          row.notionId,
+          "illustration",
+        );
+        illustrationUrl = imageUrl(illustrationR2Key);
+      }
+
+      // Tier 4: fetch page body content as HTML
+      let bodyHtml: string | null = null;
+      try {
+        bodyHtml = await fetchPageBodyHtml(notion(), row.notionId);
+      } catch {
+        // Non-blocking — body content is supplementary
+      }
+
       // Upsert — generate slug only on insert (COALESCE keeps existing slug)
       await sql`
         INSERT INTO playdates_cache (
@@ -112,7 +156,11 @@ export async function syncPlaydates() {
           find_again_prompt, substitutions_notes,
           design_rationale, developmental_notes, author_notes,
           notion_last_edited, synced_at, slug, age_range, tinkering_tier,
-          cover_r2_key, cover_url, gallery_visible_fields
+          cover_r2_key, cover_url, gallery_visible_fields,
+          illustration_r2_key, illustration_url,
+          find_html, fold_html, unfold_html,
+          headline_html, find_again_prompt_html, substitutions_notes_html,
+          body_html
         ) VALUES (
           ${row.notionId}, ${row.title}, ${row.headline},
           ${row.releaseChannel}, ${row.ipTier}, ${row.status},
@@ -127,7 +175,11 @@ export async function syncPlaydates() {
           ${row.lastEdited}, NOW(), ${makeSlug(row.title)}, ${row.ageRange},
           ${row.tinkeringTier},
           ${coverR2Key}, ${coverUrl},
-          ${JSON.stringify(row.galleryVisibleFields)}
+          ${JSON.stringify(row.galleryVisibleFields)},
+          ${illustrationR2Key}, ${illustrationUrl},
+          ${row.findHtml}, ${row.foldHtml}, ${row.unfoldHtml},
+          ${row.headlineHtml}, ${row.findAgainPromptHtml}, ${row.substitutionsNotesHtml},
+          ${bodyHtml}
         )
         ON CONFLICT (notion_id) DO UPDATE SET
           title = EXCLUDED.title,
@@ -159,7 +211,16 @@ export async function syncPlaydates() {
           tinkering_tier = EXCLUDED.tinkering_tier,
           cover_r2_key = EXCLUDED.cover_r2_key,
           cover_url = EXCLUDED.cover_url,
-          gallery_visible_fields = EXCLUDED.gallery_visible_fields
+          gallery_visible_fields = EXCLUDED.gallery_visible_fields,
+          illustration_r2_key = EXCLUDED.illustration_r2_key,
+          illustration_url = EXCLUDED.illustration_url,
+          find_html = EXCLUDED.find_html,
+          fold_html = EXCLUDED.fold_html,
+          unfold_html = EXCLUDED.unfold_html,
+          headline_html = EXCLUDED.headline_html,
+          find_again_prompt_html = EXCLUDED.find_again_prompt_html,
+          substitutions_notes_html = EXCLUDED.substitutions_notes_html,
+          body_html = EXCLUDED.body_html
       `;
     },
     cleanupStale: async (activeNotionIds) => {

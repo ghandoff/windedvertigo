@@ -268,10 +268,19 @@ const FORM_FALLBACK_EMOJI: Record<string, string> = {
 /**
  * Get a visual emoji for a material.
  *
- * Tries exact title match first (case-insensitive), then checks if the
- * title contains a known keyword, then falls back to form_primary emoji.
+ * If a CMS-managed emoji is provided (from Notion via the sync pipeline),
+ * it takes priority. Otherwise, tries exact title match (case-insensitive),
+ * then checks if the title contains a known keyword, then falls back to
+ * form_primary emoji.
  */
-export function getMaterialEmoji(title: string, formPrimary?: string): string {
+export function getMaterialEmoji(
+  title: string,
+  formPrimary?: string,
+  dbEmoji?: string | null,
+): string {
+  // 0. CMS-managed emoji from Notion takes priority
+  if (dbEmoji) return dbEmoji;
+
   const lower = title.toLowerCase().trim();
 
   // 1. exact match

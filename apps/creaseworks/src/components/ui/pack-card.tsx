@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PackIllustration, getPackTheme } from "@/components/pack-illustration";
 
 interface PackCardProps {
   pack: {
@@ -31,20 +32,21 @@ function packAccent(slug: string) {
 
 export default function PackCard({ pack }: PackCardProps) {
   const accent = packAccent(pack.slug);
+  const theme = getPackTheme(pack.slug);
 
   return (
     <Link
       href={`/packs/${pack.slug}`}
-      className="group relative block rounded-xl border border-cadet/10 bg-white p-5 hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+      className="group relative block rounded-xl border border-cadet/10 bg-white hover:shadow-md hover:border-sienna/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
       style={{
         borderLeftWidth: 3,
         borderLeftColor: accent.border,
         backgroundColor: accent.bg,
       }}
     >
-      {/* cover banner */}
-      {pack.cover_url && (
-        <div className="-mx-5 -mt-5 mb-4 h-[100px] overflow-hidden rounded-t-xl">
+      {/* visual header: cover image OR generated illustration */}
+      {pack.cover_url ? (
+        <div className="h-[100px] overflow-hidden rounded-t-xl">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={pack.cover_url}
@@ -53,36 +55,52 @@ export default function PackCard({ pack }: PackCardProps) {
             loading="lazy"
           />
         </div>
+      ) : (
+        <div className="overflow-hidden rounded-t-xl">
+          <PackIllustration slug={pack.slug} height={100} />
+        </div>
       )}
 
-      {/* playdate count pill — top right */}
-      <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-cadet/6 px-2 py-0.5 text-[10px] font-semibold text-cadet/50">
-        {pack.playdate_count} playdate{Number(pack.playdate_count) !== 1 ? "s" : ""}
-      </span>
+      {/* content area */}
+      <div className="p-5">
+        {/* playdate count pill — top right of content */}
+        <span className="absolute top-[108px] right-3 inline-flex items-center rounded-full bg-cadet/6 px-2 py-0.5 text-2xs font-semibold text-cadet/50">
+          {pack.playdate_count} playdate{Number(pack.playdate_count) !== 1 ? "s" : ""}
+        </span>
 
-      <h2 className="text-lg font-semibold tracking-tight mb-1 pr-20">
-        {pack.title}
-      </h2>
+        {/* title row with theme emoji */}
+        <div className="flex items-center gap-2 mb-1 pr-20">
+          <span className="text-base" aria-hidden="true">{theme.emoji}</span>
+          <h2 className="text-lg font-semibold tracking-tight">
+            {pack.title}
+          </h2>
+        </div>
 
-      {pack.description && (
-        <p className="text-sm text-cadet/60 mb-3 line-clamp-2">
-          {pack.description}
-        </p>
-      )}
+        {/* theme label pill */}
+        <span className="inline-block rounded-full bg-cadet/5 px-2 py-0.5 text-2xs font-medium text-cadet/45 mb-2">
+          {theme.label}
+        </span>
 
-      <div className="flex items-center gap-3 text-xs text-cadet/50">
-        {pack.family_count != null && pack.family_count > 0 && (
-          <span className="text-cadet/40">
-            {pack.family_count} {pack.family_count === 1 ? "family" : "families"} exploring
-          </span>
+        {pack.description && (
+          <p className="text-sm text-cadet/60 mb-3 line-clamp-2">
+            {pack.description}
+          </p>
         )}
 
-        {pack.price_cents != null && (
-          <span className="inline-block rounded-full bg-redwood/10 text-redwood px-2 py-0.5 font-medium">
-            {pack.currency === "USD" ? "$" : pack.currency}
-            {(pack.price_cents / 100).toFixed(2)}
-          </span>
-        )}
+        <div className="flex items-center gap-3 text-xs text-cadet/50">
+          {pack.family_count != null && pack.family_count > 0 && (
+            <span className="text-cadet/40">
+              {pack.family_count} {pack.family_count === 1 ? "family" : "families"} exploring
+            </span>
+          )}
+
+          {pack.price_cents != null && (
+            <span className="inline-block rounded-full bg-redwood/10 text-redwood px-2 py-0.5 font-medium">
+              {pack.currency === "USD" ? "$" : pack.currency}
+              {(pack.price_cents / 100).toFixed(2)}
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import StepProgress from "@/components/ui/step-progress";
 
 /* ── option definitions ── */
 
@@ -99,22 +100,23 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
 
   const lastContentStep = editMode ? 3 : 2;
 
+  const stepLabels = useMemo(
+    () =>
+      editMode
+        ? ["who's playing?", "where?", "energy level", "name it"]
+        : ["who's playing?", "where?", "energy level"],
+    [editMode],
+  );
+
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* progress dots */}
-      <div className="flex items-center justify-center gap-2 mb-8">
-        {Array.from({ length: totalSteps }).map((_, i) => (
-          <span
-            key={i}
-            className={`block rounded-full transition-all ${
-              i === step
-                ? "w-8 h-2 bg-sienna"
-                : i < step
-                  ? "w-2 h-2 bg-sienna/40"
-                  : "w-2 h-2 bg-cadet/15"
-            }`}
-          />
-        ))}
+      {/* progress indicator */}
+      <div className="mb-8">
+        <StepProgress
+          currentStep={step}
+          totalSteps={totalSteps}
+          stepLabels={stepLabels}
+        />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-cadet/10 p-8">

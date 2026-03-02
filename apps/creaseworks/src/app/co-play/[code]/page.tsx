@@ -24,19 +24,19 @@ export default async function CoPlayPage({ params }: CoPlayPageProps) {
 
   if (!run) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
-          <h1 className="text-2xl font-bold mb-2 text-gray-900">
-            Invalid Code
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-cadet/10 p-6 text-center">
+          <h1 className="text-2xl font-bold mb-2 text-cadet">
+            invalid code
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-cadet/60 mb-6">
             This co-play invite code wasn't found or has expired.
           </p>
           <Link
             href="/"
-            className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="inline-block px-4 py-2 bg-redwood text-white rounded-lg hover:bg-redwood/90"
           >
-            Back to Home
+            back to home
           </Link>
         </div>
       </div>
@@ -55,32 +55,32 @@ export default async function CoPlayPage({ params }: CoPlayPageProps) {
   // If not logged in
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h1 className="text-2xl font-bold mb-2 text-gray-900">
-            Join Co-Play
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-cadet/10 p-6">
+          <h1 className="text-2xl font-bold mb-2 text-cadet">
+            join co-play
           </h1>
-          <p className="text-gray-600 mb-4">
+          <p className="text-cadet/60 mb-4">
             <strong>{run.created_by_name}</strong> invited you to share
             reflections on{" "}
             <strong>{run.title}</strong>.
           </p>
-          <p className="text-sm text-gray-500 mb-6">
-            Sign in to accept the invitation and share your reflections.
+          <p className="text-sm text-cadet/50 mb-6">
+            sign in to accept the invitation and share your reflections.
           </p>
           <Link
             href={`/login?redirect=/co-play/${code}/reflections`}
-            className="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium mb-3"
+            className="block w-full text-center px-4 py-2 bg-redwood text-white rounded-lg hover:bg-redwood/90 font-medium mb-3"
           >
-            Sign In
+            sign in
           </Link>
-          <p className="text-xs text-gray-500 text-center">
-            Don't have an account?{" "}
+          <p className="text-xs text-cadet/50 text-center">
+            don't have an account?{" "}
             <Link
               href={`/signup?redirect=/co-play/${code}/reflections`}
-              className="text-blue-600 hover:underline"
+              className="text-redwood hover:underline"
             >
-              Sign up
+              sign up
             </Link>
           </p>
         </div>
@@ -90,12 +90,12 @@ export default async function CoPlayPage({ params }: CoPlayPageProps) {
 
   // Already logged in — show join form
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h1 className="text-2xl font-bold mb-2 text-gray-900">
-          Join Co-Play
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-cadet/10 p-6">
+        <h1 className="text-2xl font-bold mb-2 text-cadet">
+          join co-play
         </h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-cadet/60 mb-6">
           <strong>{run.created_by_name}</strong> invited you to share
           reflections on <strong>{run.title}</strong>.
         </p>

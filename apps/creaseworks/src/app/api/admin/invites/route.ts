@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { parseJsonBody } from "@/lib/api-helpers";
 import {
-  createInvite,
+  createInviteWithPacks,
   listAllInvites,
   revokeInvite,
 } from "@/lib/queries/invites";
@@ -42,7 +42,26 @@ export async function POST(req: NextRequest) {
     ? new Date(Date.now() + Number(body.expiresInDays) * 86400000)
     : undefined;
 
-  const invite = await createInvite(email, tier, session.userId, note, expiresAt);
+  // Pack IDs selected by admin — determines which packs the invitee gets access to
+  const packIds = Array.isArray(body.packIds)
+    ? (body.packIds as string[]).filter((id) => typeof id === "string" && id.length > 0)
+    : [];
+
+  if (packIds.length === 0) {
+    return NextResponse.json(
+      { error: "at least one pack must be selected" },
+      { status: 400 },
+    );
+  }
+
+  const invite = await createInviteWithPacks(
+    email,
+    tier,
+    session.userId,
+    packIds,
+    note,
+    expiresAt,
+  );
 
   return NextResponse.json({ success: true, invite });
 }

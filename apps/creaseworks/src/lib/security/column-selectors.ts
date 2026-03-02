@@ -14,6 +14,7 @@ export const PLAYDATE_TEASER_COLUMNS = [
   "slug",
   "title",
   "headline",
+  "headline_html",
   "release_channel",
   "status",
   "primary_function",
@@ -38,9 +39,14 @@ export const PLAYDATE_ENTITLED_COLUMNS = [
   "find",
   "fold",
   "unfold",
+  "find_html",
+  "fold_html",
+  "unfold_html",
   "find_again_mode",
   "find_again_prompt",
+  "find_again_prompt_html",
   "substitutions_notes",
+  "substitutions_notes_html",
 ] as const;
 
 /** Collective tier — windedvertigo.com team. Entitled + design context. */

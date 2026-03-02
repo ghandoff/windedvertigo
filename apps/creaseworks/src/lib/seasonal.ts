@@ -81,7 +81,7 @@ export function getSeasonalTheme() {
       season: "winter",
       emoji: "❄️",
       label: "Winter Playdates",
-      color: "text-blue-600",
+      color: "text-cadet",
       description: "cozy indoor activities and festive fun for chilly days",
     },
   };

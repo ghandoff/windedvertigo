@@ -106,6 +106,7 @@ export default function MatcherInputForm({
     handleClear,
     materialTitleMap,
     materialFormMap,
+    materialEmojiMap,
   } = useMatcherState(materials);
 
   return (
@@ -150,7 +151,7 @@ export default function MatcherInputForm({
                   color: "var(--wv-redwood)",
                 }}
               >
-                <span>{getMaterialEmoji(materialTitleMap.get(id) ?? id, materialFormMap.get(id))}</span>
+                <span>{getMaterialEmoji(materialTitleMap.get(id) ?? id, materialFormMap.get(id), materialEmojiMap.get(id))}</span>
                 {materialTitleMap.get(id) ?? id}
                 <span style={{ fontSize: "0.9em", opacity: 0.6 }}>✕</span>
               </button>
@@ -321,7 +322,7 @@ export default function MatcherInputForm({
                         <Pill
                           key={mat.id}
                           label={mat.title}
-                          emoji={getMaterialEmoji(mat.title, mat.form_primary)}
+                          emoji={getMaterialEmoji(mat.title, mat.form_primary, mat.emoji)}
                           selected={selectedMaterials.has(mat.id)}
                           onClick={() =>
                             toggleSet(

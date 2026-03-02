@@ -4,14 +4,15 @@
  * Used by the webhook handler to sync individual pages as they change,
  * rather than the full daily cron sync.
  *
- * Supports: playdates, materials, packs, runs.
+ * Supports: playdates, materials, packs, runs, collections.
  * Falls back gracefully — if the page type is unknown, logs and skips.
  *
  * MVP 7 — Notion webhook listener.
+ * Updated: tier 3/4 — illustration images, rich text HTML, body content.
  */
 
 import { sql } from "@/lib/db";
-import { NOTION_DBS, delay, RATE_LIMIT_DELAY_MS } from "@/lib/notion";
+import { notion, NOTION_DBS, delay, RATE_LIMIT_DELAY_MS } from "@/lib/notion";
 import { Client } from "@notionhq/client";
 
 /* ------------------------------------------------------------------ */
@@ -21,6 +22,7 @@ import { Client } from "@notionhq/client";
 import {
   extractTitle,
   extractRichText,
+  extractRichTextHtml,
   extractSelect,
   extractMultiSelect,
   extractCheckbox,
@@ -30,10 +32,12 @@ import {
   extractLastEdited,
   extractPageId,
   extractCover,
+  extractFiles,
   assertPropertiesExist,
   NotionPage,
 } from "./extract";
 import { syncImageToR2, imageUrl } from "./sync-image";
+import { fetchPageBodyHtml } from "./blocks";
 
 /** Notion property names that must exist on every reflections page. */
 const REQUIRED_RUN_PROPS = [
@@ -227,7 +231,18 @@ async function upsertPlaydate(page: NotionPage) {
   const findAgainMode = extractSelect(props, "find again mode");
   const findAgainPrompt = extractRichText(props, "find again prompt");
   const substitutionsNotes = extractRichText(props, "substitutions notes");
+  const designRationale = extractRichText(props, "design rationale");
+  const developmentalNotes = extractRichText(props, "developmental notes");
+  const authorNotes = extractRichText(props, "author notes");
   const lastEdited = extractLastEdited(page);
+  const ageRange = extractSelect(props, "age range");
+  const tinkeringTier = extractSelect(props, "tinkering tier");
+  const galleryVisibleFields = extractMultiSelect(props, "gallery visible fields");
+
+  // #15: rich text HTML for user-facing phase text
+  const findHtml = extractRichTextHtml(props, "find");
+  const foldHtml = extractRichTextHtml(props, "fold");
+  const unfoldHtml = extractRichTextHtml(props, "unfold");
 
   // Sync cover image to R2 (never throws — null on failure)
   const coverSource = extractCover(page);
@@ -236,6 +251,23 @@ async function upsertPlaydate(page: NotionPage) {
   if (coverSource) {
     coverR2Key = await syncImageToR2(coverSource.url, notionId, "cover");
     coverUrl = imageUrl(coverR2Key);
+  }
+
+  // Tier 3: sync illustration file property to R2
+  const files = extractFiles(props, "illustration");
+  let illustrationR2Key: string | null = null;
+  let illustrationUrl: string | null = null;
+  if (files.length > 0) {
+    illustrationR2Key = await syncImageToR2(files[0].url, notionId, "illustration");
+    illustrationUrl = imageUrl(illustrationR2Key);
+  }
+
+  // Tier 4: fetch page body content as HTML
+  let bodyHtml: string | null = null;
+  try {
+    bodyHtml = await fetchPageBodyHtml(notion(), notionId);
+  } catch {
+    // Non-blocking — body content is supplementary
   }
 
   // Generate slug
@@ -250,8 +282,12 @@ async function upsertPlaydate(page: NotionPage) {
       primary_function, arc_emphasis, context_tags, friction_dial,
       start_in_120s, required_forms, slots_optional, slots_notes,
       rails_sentence, find, fold, unfold, find_again_mode,
-      find_again_prompt, substitutions_notes, notion_last_edited,
-      synced_at, slug, cover_r2_key, cover_url
+      find_again_prompt, substitutions_notes,
+      design_rationale, developmental_notes, author_notes,
+      notion_last_edited, synced_at, slug, age_range, tinkering_tier,
+      cover_r2_key, cover_url, gallery_visible_fields,
+      illustration_r2_key, illustration_url,
+      find_html, fold_html, unfold_html, body_html
     ) VALUES (
       ${notionId}, ${title}, ${headline},
       ${releaseChannel}, ${ipTier}, ${status},
@@ -261,8 +297,13 @@ async function upsertPlaydate(page: NotionPage) {
       ${JSON.stringify(slotsOptional)}, ${slotsNotes},
       ${railsSentence}, ${find}, ${fold}, ${unfold},
       ${findAgainMode}, ${findAgainPrompt},
-      ${substitutionsNotes}, ${lastEdited},
-      NOW(), ${slug}, ${coverR2Key}, ${coverUrl}
+      ${substitutionsNotes},
+      ${designRationale}, ${developmentalNotes}, ${authorNotes},
+      ${lastEdited}, NOW(), ${slug}, ${ageRange}, ${tinkeringTier},
+      ${coverR2Key}, ${coverUrl},
+      ${JSON.stringify(galleryVisibleFields)},
+      ${illustrationR2Key}, ${illustrationUrl},
+      ${findHtml}, ${foldHtml}, ${unfoldHtml}, ${bodyHtml}
     )
     ON CONFLICT (notion_id) DO UPDATE SET
       title = EXCLUDED.title,
@@ -285,10 +326,22 @@ async function upsertPlaydate(page: NotionPage) {
       find_again_mode = EXCLUDED.find_again_mode,
       find_again_prompt = EXCLUDED.find_again_prompt,
       substitutions_notes = EXCLUDED.substitutions_notes,
+      design_rationale = EXCLUDED.design_rationale,
+      developmental_notes = EXCLUDED.developmental_notes,
+      author_notes = EXCLUDED.author_notes,
       notion_last_edited = EXCLUDED.notion_last_edited,
       synced_at = NOW(),
+      age_range = EXCLUDED.age_range,
+      tinkering_tier = EXCLUDED.tinkering_tier,
       cover_r2_key = EXCLUDED.cover_r2_key,
-      cover_url = EXCLUDED.cover_url
+      cover_url = EXCLUDED.cover_url,
+      gallery_visible_fields = EXCLUDED.gallery_visible_fields,
+      illustration_r2_key = EXCLUDED.illustration_r2_key,
+      illustration_url = EXCLUDED.illustration_url,
+      find_html = EXCLUDED.find_html,
+      fold_html = EXCLUDED.fold_html,
+      unfold_html = EXCLUDED.unfold_html,
+      body_html = EXCLUDED.body_html
   `;
 
   // Resolve material relations inside a transaction to prevent orphaned links
@@ -338,6 +391,14 @@ async function upsertPack(page: NotionPage) {
     coverUrl = imageUrl(coverR2Key);
   }
 
+  // Tier 4: fetch page body content as HTML
+  let bodyHtml: string | null = null;
+  try {
+    bodyHtml = await fetchPageBodyHtml(notion(), notionId);
+  } catch {
+    // Non-blocking — body content is supplementary
+  }
+
   const slug = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -347,11 +408,11 @@ async function upsertPack(page: NotionPage) {
     INSERT INTO packs_cache (
       notion_id, title, slug, description, status,
       notion_last_edited, synced_at,
-      cover_r2_key, cover_url
+      cover_r2_key, cover_url, body_html
     ) VALUES (
       ${notionId}, ${title}, ${slug}, ${description}, ${status},
       ${lastEdited}, NOW(),
-      ${coverR2Key}, ${coverUrl}
+      ${coverR2Key}, ${coverUrl}, ${bodyHtml}
     )
     ON CONFLICT (notion_id) DO UPDATE SET
       title = EXCLUDED.title,
@@ -361,7 +422,8 @@ async function upsertPack(page: NotionPage) {
       notion_last_edited = EXCLUDED.notion_last_edited,
       synced_at = NOW(),
       cover_r2_key = EXCLUDED.cover_r2_key,
-      cover_url = EXCLUDED.cover_url
+      cover_url = EXCLUDED.cover_url,
+      body_html = EXCLUDED.body_html
   `;
 
   // Resolve playdate relations inside a transaction to prevent orphaned links
@@ -485,6 +547,14 @@ async function upsertCollection(page: NotionPage) {
     coverUrl = imageUrl(coverR2Key);
   }
 
+  // Tier 4: fetch page body content as HTML
+  let bodyHtml: string | null = null;
+  try {
+    bodyHtml = await fetchPageBodyHtml(notion(), notionId);
+  } catch {
+    // Non-blocking — body content is supplementary
+  }
+
   const slug = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -493,11 +563,13 @@ async function upsertCollection(page: NotionPage) {
   await sql`
     INSERT INTO collections (
       notion_id, title, description, icon_emoji, sort_order, status,
-      notion_last_edited, synced_at, slug, cover_r2_key, cover_url
+      notion_last_edited, synced_at, slug, cover_r2_key, cover_url,
+      body_html
     ) VALUES (
       ${notionId}, ${title}, ${description},
       ${iconEmoji}, ${sortOrder}, ${status},
-      ${lastEdited}, NOW(), ${slug}, ${coverR2Key}, ${coverUrl}
+      ${lastEdited}, NOW(), ${slug}, ${coverR2Key}, ${coverUrl},
+      ${bodyHtml}
     )
     ON CONFLICT (notion_id) DO UPDATE SET
       title = EXCLUDED.title,
@@ -508,7 +580,8 @@ async function upsertCollection(page: NotionPage) {
       notion_last_edited = EXCLUDED.notion_last_edited,
       synced_at = NOW(),
       cover_r2_key = EXCLUDED.cover_r2_key,
-      cover_url = EXCLUDED.cover_url
+      cover_url = EXCLUDED.cover_url,
+      body_html = EXCLUDED.body_html
   `;
 
   // Resolve playdate relations inside a transaction

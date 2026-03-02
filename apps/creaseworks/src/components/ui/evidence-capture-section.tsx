@@ -134,7 +134,7 @@ export default function EvidenceCaptureSection({
         capture evidence
         {itemCount > 0 && (
           <span
-            className="text-[10px] font-medium px-1.5 py-0.5 rounded-full ml-1"
+            className="text-2xs font-medium px-1.5 py-0.5 rounded-full ml-1"
             style={{
               backgroundColor: "rgba(203, 120, 88, 0.12)",
               color: "var(--wv-sienna)",

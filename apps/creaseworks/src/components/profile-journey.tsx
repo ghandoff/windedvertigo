@@ -193,7 +193,7 @@ export default function ProfileJourney(props: ProfileJourneyProps) {
                   >
                     {m.label}
                     {done && (
-                      <span className="ml-1.5 text-[10px] text-sienna/60 font-normal">
+                      <span className="ml-1.5 text-2xs text-sienna/60 font-normal">
                         ✓
                       </span>
                     )}

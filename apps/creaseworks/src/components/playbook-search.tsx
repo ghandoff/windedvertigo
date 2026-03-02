@@ -135,7 +135,7 @@ export default function PlaybookSearch({
 
       {/* result count when filtered */}
       {(query.trim() || filter !== "all") && filtered.length > 0 && (
-        <p className="text-[10px] text-cadet/30 -mt-10 mb-12 text-center">
+        <p className="text-2xs text-cadet/30 -mt-10 mb-12 text-center">
           showing {filtered.length} of {collections.length} collection
           {collections.length !== 1 ? "s" : ""}
         </p>

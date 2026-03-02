@@ -72,7 +72,7 @@ export default function PlaydatePeek({
           <p className="text-xs text-cadet/50 mt-2 leading-relaxed">
             {headline}
           </p>
-          <p className="text-[10px] text-cadet/30 mt-2 italic">
+          <p className="text-2xs text-cadet/30 mt-2 italic">
             purchase this pack to unlock the full playdate — step-by-step
             guide, materials list, swaps, and reflection prompts.
           </p>
@@ -81,7 +81,7 @@ export default function PlaydatePeek({
 
       {expanded && !headline && (
         <div className="px-4 pb-3 border-t border-cadet/5">
-          <p className="text-[10px] text-cadet/30 mt-2 italic">
+          <p className="text-2xs text-cadet/30 mt-2 italic">
             purchase this pack to unlock the full playdate.
           </p>
         </div>

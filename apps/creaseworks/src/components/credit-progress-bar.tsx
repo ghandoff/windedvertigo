@@ -38,7 +38,7 @@ export default function CreditProgressBar({ balance }: CreditProgressBarProps) {
             </>
           )}
         </span>
-        <span className="text-[10px] text-cadet/40">{pct}%</span>
+        <span className="text-2xs text-cadet/40">{pct}%</span>
       </div>
       <div className="h-2 rounded-full bg-cadet/8 overflow-hidden">
         <div
@@ -53,7 +53,7 @@ export default function CreditProgressBar({ balance }: CreditProgressBarProps) {
           }}
         />
       </div>
-      <p className="text-[10px] text-cadet/35 mt-1.5">
+      <p className="text-2xs text-cadet/35 mt-1.5">
         earn credits by logging playdates, adding photos, and trying find again rounds.
       </p>
     </div>

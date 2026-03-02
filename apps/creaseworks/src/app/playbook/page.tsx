@@ -29,6 +29,7 @@ import { getRunsForUser, type RunRow } from "@/lib/queries/runs";
 import { getUserOnboardingStatus } from "@/lib/queries/users";
 import CollectionCard from "@/components/ui/collection-card";
 import PlaybookSearch from "@/components/playbook-search";
+import EmptyState from "@/components/empty-state";
 import FirstVisitBanner from "@/components/first-visit-banner";
 import SeasonalBanner from "@/components/seasonal-banner";
 import PackUpsellSection from "@/components/pack-upsell-section";
@@ -149,12 +150,11 @@ export default async function PlaybookPage() {
       {/* ── section 2: collections grid ── */}
       <h2 className="text-lg font-semibold text-cadet mb-3">collections</h2>
       {collections.length === 0 ? (
-        <div className="py-8 text-center">
-          <p className="text-2xl mb-2" aria-hidden>📚</p>
-          <p className="text-sm text-cadet/50">
-            collections are being built — check back soon!
-          </p>
-        </div>
+        <EmptyState
+          type="bookshelf"
+          heading="collections are being built"
+          body="your creative collections will fill these shelves soon — check back shortly!"
+        />
       ) : (
         <PlaybookSearch collections={collections} hasProgress={hasProgress} />
       )}
@@ -209,16 +209,12 @@ export default async function PlaybookPage() {
         </div>
 
         {recentRuns.length === 0 ? (
-          <p className="text-sm text-cadet/50 py-4 text-center">
-            no reflections yet — after you try a playdate,{" "}
-            <Link
-              href="/reflections/new"
-              className="text-redwood hover:text-sienna transition-colors"
-            >
-              log it here
-            </Link>
-            .
-          </p>
+          <EmptyState
+            type="journal"
+            heading="no reflections yet"
+            body="after you try a playdate, jot down what you noticed — your journal starts here."
+            cta={{ label: "log a reflection", href: "/reflections/new" }}
+          />
         ) : (
           <div className="space-y-2">
             {recentRuns.map((run: RunRow) => (
@@ -240,7 +236,7 @@ export default async function PlaybookPage() {
                   )}
                 </div>
                 {run.trace_evidence?.length > 0 && (
-                  <span className="text-[10px] text-cadet/30">
+                  <span className="text-2xs text-cadet/30">
                     {run.trace_evidence.length} evidence
                   </span>
                 )}

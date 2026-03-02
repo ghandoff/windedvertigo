@@ -1,10 +1,11 @@
 import { sql } from "@/lib/db";
-import { NOTION_DBS } from "@/lib/notion";
+import { notion, NOTION_DBS } from "@/lib/notion";
 import { makeSlug } from "@/lib/slugify";
 import { syncCacheTable } from "./sync-cache-table";
 import {
   extractTitle,
   extractRichText,
+  extractRichTextHtml,
   extractSelect,
   extractRelationIds,
   extractLastEdited,
@@ -13,6 +14,7 @@ import {
   type NotionPage,
 } from "./extract";
 import { syncImageToR2, imageUrl } from "./sync-image";
+import { fetchPageBodyHtml } from "./blocks";
 
 function parsePackPage(page: NotionPage) {
   const props = page.properties;
@@ -20,6 +22,7 @@ function parsePackPage(page: NotionPage) {
     notionId: extractPageId(page),
     title: extractTitle(props, "pack"),
     description: extractRichText(props, "description"),
+    descriptionHtml: extractRichTextHtml(props, "description"),
     status: extractSelect(props, "status") || "draft",
     lastEdited: extractLastEdited(page),
     playdateRelationIds: extractRelationIds(props, "playdates included"),
@@ -41,24 +44,35 @@ export async function syncPacks() {
         coverUrl = imageUrl(coverR2Key);
       }
 
+      // Tier 4: fetch page body content as HTML
+      let bodyHtml: string | null = null;
+      try {
+        bodyHtml = await fetchPageBodyHtml(notion(), row.notionId);
+      } catch {
+        // Non-blocking — body content is supplementary
+      }
+
       await sql`
         INSERT INTO packs_cache (
-          notion_id, title, description, status,
+          notion_id, title, description, description_html, status,
           notion_last_edited, synced_at, slug,
-          cover_r2_key, cover_url
+          cover_r2_key, cover_url, body_html
         ) VALUES (
           ${row.notionId}, ${row.title}, ${row.description},
-          ${row.status}, ${row.lastEdited}, NOW(), ${makeSlug(row.title)},
-          ${coverR2Key}, ${coverUrl}
+          ${row.descriptionHtml}, ${row.status}, ${row.lastEdited},
+          NOW(), ${makeSlug(row.title)},
+          ${coverR2Key}, ${coverUrl}, ${bodyHtml}
         )
         ON CONFLICT (notion_id) DO UPDATE SET
           title = EXCLUDED.title,
           description = EXCLUDED.description,
+          description_html = EXCLUDED.description_html,
           status = EXCLUDED.status,
           notion_last_edited = EXCLUDED.notion_last_edited,
           synced_at = NOW(),
           cover_r2_key = EXCLUDED.cover_r2_key,
-          cover_url = EXCLUDED.cover_url
+          cover_url = EXCLUDED.cover_url,
+          body_html = EXCLUDED.body_html
       `;
     },
     cleanupStale: async (activeNotionIds) => {

@@ -14,10 +14,10 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | ~235 (.ts + .tsx) |
-| **Migrations** | 035 (latest: gallery_visible_fields) — all 001-035 applied to Neon |
+| **Migrations** | 040 (latest: calm_theme) — 001-040 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 33 (Mar 1, 2026) |
+| **Last session** | 43 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -26,6 +26,7 @@
 | **Collections** | `312e4ee7-4ba4-8139-b891-fcd21e275a21` | `312e4ee7-4ba4-81a7-9635-000b05e82f4e` |
 | **Packs** | `beb34e7b-86cd-4f20-b9be-641431b99e5f` | — |
 | **Playdates** | `b446ffd5d1664a31b4f5f6a93aadaab8` | `0a90f5dc-a264-48ff-a49f-fabb07667116` |
+| **Materials** | `a6b32bc6-e021-41a4-b6f4-3d528e814d71` | `2bb1cd66-b20d-4b21-8816-1feba57f187a` |
 
 ## Architecture Overview
 
@@ -63,7 +64,7 @@ src/
     │   └── ...             # collections, evidence, entitlements, invites, etc.
     ├── seasonal.ts         # Season detection + tag mapping
     ├── security/           # Column selectors, entitlement checks
-    ├── sync/               # Notion → Neon sync handlers (5 handlers + generic utility)
+    ├── sync/               # Notion → Neon sync handlers (6 handlers + blocks.ts + generic utility)
     └── validation.ts       # parseJsonBody<T>() shared helper
 ```
 
@@ -71,15 +72,73 @@ src/
 
 All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-28.md` for the remaining backlog.
 
-### Engagement System (built, needs wiring)
+### Engagement System (fully wired — verified session 35)
 - ✅ `lib/queries/credits.ts` — awardCredit, getUserCredits, spendCredits, checkAndAwardStreakBonus
 - ✅ `components/credit-progress-bar.tsx` — server component on playbook page
+- ✅ `components/credit-redemption.tsx` — redemption UI on playbook page
 - ✅ `components/pack-upsell-section.tsx` — shows up to 2 unowned packs
-- ✅ `components/photo-consent-classifier.tsx` — 3-tier COPPA consent flow
+- ✅ `components/photo-consent-classifier.tsx` — 3-tier COPPA consent flow in evidence-capture-section
 - ✅ `components/ui/run-form/run-form.tsx` — post-reflection pack upsell CTA
-- ⏳ Credit earning not yet wired into run submission
-- ⏳ Photo consent not yet wired into evidence upload
-- ⏳ Credit redemption UI not yet built
+- ✅ `components/ui/quick-log-button.tsx` — expandable photo nudge toast
+- ✅ `components/ui/photo-quick-log-button.tsx` — camera-first quick reflection
+- ✅ Credit earning wired: quick_log (1), find_again (2), photo_added (2), marketing_consent (3), streak_bonus (5)
+- ✅ Photo consent wired into evidence capture flow
+- ✅ Credit redemption UI on playbook page (sampler_pdf=10, single_playdate=25, full_pack=50)
+
+### Dual-Scope Entitlements (session 37 — migration 038)
+- ✅ `entitlements.user_id` — nullable, with CHECK constraint (org_id OR user_id must be set)
+- ✅ Partial unique indexes: `idx_entitlements_org_pack` (org-level), `idx_entitlements_user_pack` (user-level)
+- ✅ `checkEntitlement(orgId, packCacheId, userId)` — checks both org-level and user-level
+- ✅ `grantUserEntitlement(userId, packCacheId)` — creates user-scoped entitlement
+- ✅ `invite_packs` table — links invites to specific packs
+- ✅ `createInviteWithPacks()`, `getInvitePacks()`, `processInvitesOnSignIn()` — full invite lifecycle
+- ✅ `organisations.member_cap` — limits domain auto-join (NULL = unlimited)
+- ✅ `autoJoinOrg` respects member_cap before INSERT
+- ✅ Admin invite form with pack selector UI at `/admin/invites`
+- ✅ Profile manage section shows invite link for admins
+
+### Accessibility Preferences (session 38 — migration 039)
+- ✅ `reduce_motion` + `dyslexia_font` columns on users table
+- ✅ `lib/queries/accessibility.ts` — getAccessibilityPrefs, updateAccessibilityPrefs
+- ✅ `app/api/preferences/route.ts` — GET + PATCH with cookie-setting for instant CSS
+- ✅ `app/profile/accessibility-prefs.tsx` — client component with toggle switches
+- ✅ Cookie-first architecture: root layout reads cookies, applies `.reduce-motion` and `.dyslexia-font` CSS classes to `<html>` before React hydrates
+- ✅ Atkinson Hyperlegible loaded via `next/font/google` with `--font-atkinson` CSS variable
+- ✅ `.reduce-motion` CSS kills all animations/transitions via `!important`
+- ✅ `.dyslexia-font` CSS switches body, input, textarea, select, button to Atkinson Hyperlegible
+- ✅ `components/ui/step-progress.tsx` — shared step progress indicator with ARIA progressbar
+
+### Calm Theme (session 39 — migration 040)
+- ✅ `calm_theme BOOLEAN` on users table (migration 040)
+- ✅ Low-stimulation dark theme for sensory sensitivity (autism, migraines, ADHD)
+- ✅ CSS custom property cascade: remap brand palette on body, re-scope on header/footer
+- ✅ Warm dark backgrounds (#1c2536), desaturated accents (#c0786d, #b89480)
+- ✅ Theme-aware component tokens: `--cw-text`, `--cw-border`, `--cw-card-bg`, `--cw-toggle-off`
+- ✅ Mobile bottom tab bar override (`!important` to beat inline styles)
+- ✅ Header/footer re-scoped to stay dark with muted text (#151d2c bg, #b0a898 text)
+- ✅ CMS body/rich-text styles cascade automatically via `--wv-cadet` remap
+- ✅ Status colours (error/success/warning) muted for calm context
+- ✅ Third toggle in accessibility-prefs.tsx: "calm mode" as first option
+
+### Admin Playdate Content Preview (session 40)
+- ✅ `lib/queries/playdates.ts` — `getAdminPlaydates()` with boolean completeness flags + `getAdminPlaydateDetail(id)` for lazy content
+- ✅ `app/api/admin/playdates/[id]/route.ts` — admin-only detail endpoint with `requireAdmin()`
+- ✅ `components/admin/admin-playdate-browser.tsx` — rewritten with expandable content preview, completeness badges, lazy detail caching, materials list, design notes
+- ✅ `app/admin/playdates/page.tsx` — uses new `getAdminPlaydates` query
+
+### Visual Bridge: Parent Site ↔ Creaseworks (sessions 41→43)
+- ✅ `components/ui/footer.tsx` — rewritten in JSX with logo wordmark on left side, links to parent homepage via `<a href="/">`
+- ✅ `public/images/wv-logo.png` — resized wordmark (240×127, 33KB) for 2x retina footer display
+- ✅ `packages/tokens/index.css` — `.wv-footer-brand`, `.wv-footer-brand-img` styles, responsive sizing
+- ✅ `globals.css` — calm theme dims footer logo with opacity + filter
+- ✅ Header shows just "creaseworks" — removed previous "winded.vertigo ›" prefix and mobile cross-app link
+- ✅ Removed unused `.wv-header-parent`, `.wv-header-parent-sep`, `.wv-header-crossnav` from tokens CSS
+
+### Open Questions Resolved (session 43)
+- Q1: next/image migration — DEFERRED (document cost implications for budgeting)
+- Q2: R2 bucket — DECIDED: one bucket, folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`)
+- Q3: subdomain redirect — SKIPPED (not enough users with old URL)
+- Q4: shared header template — NOT WORTH IT (needs differ too much between apps)
 
 ## Migration Log
 
@@ -102,6 +161,11 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 | 033 | stripe-price-id | `stripe_price_id TEXT` on packs_catalogue + seed 6 test-mode prices |
 | 034 | collection-covers | `cover_url`, `cover_r2_key` on collections |
 | 035 | gallery-visible-fields | `gallery_visible_fields JSONB` on playdates_cache |
+| 036 | rich-content | body_html on playdates/collections/packs, find/fold/unfold_html, illustration columns, cms_pages table |
+| 037 | material-emoji | `emoji TEXT` on materials_cache — CMS-managed emojis from Notion |
+| 038 | user-entitlements | `user_id` on entitlements (dual-scope), `invite_packs` table, `member_cap` on organisations |
+| 039 | accessibility-prefs | `reduce_motion`, `dyslexia_font` BOOLEAN columns on users |
+| 040 | calm-theme | `calm_theme BOOLEAN` on users — low-stimulation dark theme |
 
 ## Stripe Price IDs (Test Mode)
 

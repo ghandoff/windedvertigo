@@ -99,7 +99,7 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
       <button
         onClick={handleEnableCoPlay}
         disabled={isLoading}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        className="px-4 py-2 bg-redwood text-white rounded hover:bg-redwood/90 disabled:opacity-50"
       >
         {isLoading ? "Enabling..." : "Invite a co-player"}
       </button>
@@ -107,24 +107,24 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+    <div className="border border-cadet/10 rounded-lg p-6 bg-background">
       <h3 className="font-semibold text-lg mb-4">Co-play Invite</h3>
 
       {/* Invite code display */}
       <div className="mb-6">
-        <p className="text-sm text-gray-600 mb-2">Share this code:</p>
+        <p className="text-sm text-cadet/60 mb-2">Share this code:</p>
         <div className="flex items-center gap-3">
-          <div className="text-4xl font-mono font-bold tracking-widest text-blue-600">
+          <div className="text-4xl font-mono font-bold tracking-widest text-redwood">
             {coPlayDetails.inviteCode}
           </div>
           <button
             onClick={handleCopyCode}
-            className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm font-medium"
+            className="px-3 py-2 bg-white border border-cadet/10 rounded hover:bg-champagne/20 text-sm font-medium"
           >
             {copiedCode ? "Copied!" : "Copy"}
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-cadet/50 mt-2">
           Share this code with your co-player
         </p>
       </div>
@@ -137,30 +137,30 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
           </p>
 
           {coPlayDetails.coPlayReflections && (
-            <div className="mt-4 border-t border-gray-200 pt-4">
+            <div className="mt-4 border-t border-cadet/10 pt-4">
               <p className="text-sm font-semibold mb-2">
                 Their Reflections:
               </p>
               <div className="space-y-2 text-sm">
                 <p>
-                  <span className="text-gray-600">Rating:</span>{" "}
+                  <span className="text-cadet/60">Rating:</span>{" "}
                   <span className="font-semibold">
                     {coPlayDetails.coPlayReflections.rating} / 5
                   </span>
                 </p>
                 <p>
-                  <span className="text-gray-600">Notes:</span>{" "}
+                  <span className="text-cadet/60">Notes:</span>{" "}
                   <span className="block mt-1">
                     {coPlayDetails.coPlayReflections.notes}
                   </span>
                 </p>
                 {coPlayDetails.coPlayReflections.highlights?.length > 0 && (
                   <p>
-                    <span className="text-gray-600">Highlights:</span>
+                    <span className="text-cadet/60">Highlights:</span>
                     <ul className="list-disc list-inside mt-1">
                       {coPlayDetails.coPlayReflections.highlights.map(
                         (h, i) => (
-                          <li key={i} className="text-gray-700">
+                          <li key={i} className="text-cadet/80">
                             {h}
                           </li>
                         ),
@@ -173,8 +173,8 @@ export function CoPlayInvite({ runId }: CoPlayInviteProps) {
           )}
         </div>
       ) : (
-        <div className="bg-white border border-gray-300 rounded p-4 text-center">
-          <p className="text-sm text-gray-600">
+        <div className="bg-white border border-cadet/10 rounded p-4 text-center">
+          <p className="text-sm text-cadet/60">
             Waiting for co-player to join...
           </p>
         </div>

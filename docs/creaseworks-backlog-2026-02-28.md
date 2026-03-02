@@ -2,7 +2,7 @@
 
 consolidated from 14 docs. cross-referenced against live codebase + production smoke test.
 
-last audit: 1 march 2026 (claude code session)
+last audit: 1 march 2026 (claude code session 36 — tier 4 content & sync all complete)
 
 ---
 
@@ -34,32 +34,37 @@ these items were listed as "not started" in the previous backlog but are now imp
 | 12 | credit progress bar on playbook | ✅ built — `credit-progress-bar.tsx` integrated on playbook page |
 | 13 | playbook "unlock more" upsell section | ✅ built — `pack-upsell-section.tsx` shows up to 2 unowned packs |
 | 14 | photo consent classification UI | ✅ built — `photo-consent-classifier.tsx` with 3-tier COPPA flow |
+| — | dual-scope entitlements (user + org) | ✅ built — migration 038, `checkEntitlement` accepts userId, `grantUserEntitlement`, partial indexes |
+| — | per-pack individual invites | ✅ built — `createInviteWithPacks`, `processInvitesOnSignIn`, pack selector UI on admin invites |
+| — | org member cap safety valve | ✅ built — `autoJoinOrg` checks `member_cap` before INSERT |
+| — | invite link on admin profile | ✅ built — manage section links to `/admin/invites` |
+| — | profile pack fetch for org-less users | ✅ built — `getOrgPacksWithProgress` accepts null orgId |
 
 ---
 
-## tier 1 — quick wins (high impact, low effort)
+## tier 1 — quick wins (high impact, low effort) — ✅ ALL COMPLETE
 
-| # | item | effort | notes |
+| # | item | status | notes |
 |---|------|--------|-------|
-| 1 | 🟡 **breadcrumb context from sampler** | ~30 min | when entitled user clicks sampler playdate → redirected to pack route → breadcrumb says "← back to {pack}". pass `?from=sampler` in redirect; pack playdate page checks for it. |
-| 2 | 🟡 **quick-log photo toast enhancement** | ~1 hr | expandable 3-second toast after quick-log: "📸 add a photo for bonus credit?" progressive disclosure. |
-| 3 | 🟢 **tag playdates with campaign_tags in notion** | ~30 min | data entry — tag 4-6 playdates per season. unlocks the already-built seasonal banner on playbook. zero code needed. |
-| 4 | 🟡 **lowercase violations in dynamic content** | ~1 hr | gallery/community descriptions, profile dashboard labels ("Total Runs"), badge names use title case. enforce lowercase in data layer. |
-| 5 | 🟡 **smoke test base URL fix** | ~10 min | smoke-test.mjs needs default base URL updated to include `/reservoir/creaseworks` prefix, or accept it as a documented requirement. |
+| 1 | **breadcrumb context from sampler** | ✅ done | `?from=sampler` redirect + dynamic breadcrumb in pack playdate page |
+| 2 | **quick-log photo toast enhancement** | ✅ done | expandable 5s toast with photo nudge + dismiss, hover pauses timer |
+| 3 | **tag playdates with campaign_tags in notion** | ✅ done | session 34 — seed script + commit c5a1605 |
+| 4 | **lowercase violations in dynamic content** | ✅ done | session 34 — commit c6255c1 |
+| 5 | **smoke test base URL fix** | ✅ done | default already includes `/reservoir/creaseworks` prefix |
 
 ---
 
-## tier 2 — engagement wiring (code exists, needs integration)
+## tier 2 — engagement wiring — ✅ ALL COMPLETE
 
-credit queries, photo consent UI, pack upsells, and progress bar components all exist. remaining work is wiring them into the actual user flows.
+verified session 35: all engagement features are fully wired into user flows.
 
-| # | item | effort | notes |
+| # | item | status | notes |
 |---|------|--------|-------|
-| 6 | 🟡 **wire credit earning into run submission** | ~1 hr | call `awardCredit()` after successful quick-log (1 credit) and full reflection (1 credit). call after photo upload (2 credits). |
-| 7 | 🟡 **wire photo consent into evidence upload** | ~1 hr | show `PhotoConsentClassifier` during photo upload flow in evidence capture. store consent tier in `photo_consents` table. |
-| 8 | 🟡 **credit redemption UI** | ~2 hr | profile or playbook page: "redeem 50 credits for a free pack" flow using `spendCredits()`. |
-| 9 | 🟡 **photo-first quick reflection button** | ~2 hr | camera icon → opens device camera → auto-creates run with photo. alongside existing quick-log button. |
-| 10 | 🟡 **pack finder improvements** | ~3 hr | playdate count per pack, "X families exploring" social proof, seasonal callouts, progress visibility. |
+| 6 | **wire credit earning into run submission** | ✅ done | `api/runs/route.ts` L115-119: quick_log, find_again, streak_bonus. `api/runs/[id]/evidence/route.ts` L114: photo_added. `api/photo-consents/route.ts` L63: marketing_consent. |
+| 7 | **wire photo consent into evidence upload** | ✅ done | `PhotoConsentClassifier` integrated in `evidence-capture-section.tsx`. consent saved via `api/photo-consents` endpoint. |
+| 8 | **credit redemption UI** | ✅ done | `credit-redemption.tsx` on playbook page — 3 reward tiers (sampler=10, playdate=25, pack=50). |
+| 9 | **photo-first quick reflection button** | ✅ done | `photo-quick-log-button.tsx` — "snap it" camera button in `EntitledPlaydateView`. |
+| 10 | **pack finder improvements** | ✅ done | `pack-finder.tsx` — situation picker, social proof, comparison table, seasonal nudges. |
 
 ---
 
@@ -67,19 +72,19 @@ credit queries, photo consent UI, pack upsells, and progress bar components all 
 
 | # | item | effort | notes |
 |---|------|--------|-------|
-| 11 | 🔵 **admin playdate preview with pack filter toggles** | ~4 hr | admin-only feature for content review. not started. |
-| 12 | 🔵 **profile "your journey" redesign** | ~4 hr | owned packs + recommendations. ProfileDashboard exists with stats/badges/activity — this would extend it with pack-aware content. |
+| 11 | ~~admin playdate preview with pack filter toggles~~ | ✅ done | expandable content preview — completeness badges (find/fold/unfold/body/illustration), lazy-loaded detail via `/api/admin/playdates/[id]`, materials list, design notes. commit abb7640. |
+| 12 | 🔵 **profile "your journey" redesign** | ~1 hr | **substantially built** — ProfileYourPacks, ProfileWhatsNext, ProfileJourney, ProfileDashboard all exist with pack-aware content, recommendations, milestones, credits. remaining work is UI consolidation (stats shown twice, recent runs duplicated) — needs design decisions on layout priority. |
 
 ---
 
-## tier 4 — content & sync improvements
+## tier 4 — content & sync improvements — ✅ ALL COMPLETE (except #17)
 
 | # | item | effort | notes |
 |---|------|--------|-------|
-| 13 | 🟡 **image sync tier 3 — file property extraction** | ~4 hr | extract notion file properties (materials covers, pack illustrations) → R2 → postgres. tiers 1+2 done. |
-| 14 | 🟡 **image sync tier 4 — body content / blocks** | ~8 hr | fetch notion block children for full page content. transform to HTML/markdown. |
-| 15 | 🟡 **rich text formatting in sync** | ~3 hr | currently strips bold, italic, links during sync. extract and preserve. |
-| 16 | 🟢 **notion-as-CMS for /we/ and /do/ page text** | ~2 hr | extend existing sync scripts. |
+| 13 | ~~image sync tier 3 — file property extraction~~ | ✅ done | playdate illustrations synced via `extractFiles()` → R2. materials don't have image properties in Notion. all cover images (playdates, packs, collections) synced in tiers 1+2. |
+| 14 | ~~image sync tier 4 — body content / blocks~~ | ✅ done | `fetchPageBodyHtml()` in `blocks.ts` — recursive block fetch, renders all block types to HTML, syncs inline images to R2. integrated in playdates, packs, collections. |
+| 15 | ~~rich text formatting in sync~~ | ✅ done | `extractRichTextHtml()` preserves bold, italic, links, colors, code annotations. HTML columns added to playdates (6), packs (1), collections (1). `SafeHtml` component for progressive enhancement. commit 31a0111. |
+| 16 | ~~notion-as-CMS for /we/ and /do/ page text~~ | ✅ done | `syncCmsPages()` fetches individual Notion pages by ID, renders body HTML. `/we/` and `/do/` routes with ISR. `.cms-body` CSS for all block types. commit 48c0725. TODO: add env vars to Vercel. |
 | 17 | 🟢 **notion-as-CMS for sqr-rct content** | ~4 hr | longer-term. sqr-rct currently queries notion in real-time. |
 
 ---
@@ -88,13 +93,13 @@ credit queries, photo consent UI, pack upsells, and progress bar components all 
 
 | # | item | effort | notes |
 |---|------|--------|-------|
-| 18 | 🟡 **pack cards — visual differentiation** | ~2 hr | add illustration, icon, or colour accent per pack. currently text-only. |
-| 19 | 🟡 **matcher page — more playful treatment** | ~2 hr | larger material pills, playful heading, hover animation. |
-| 20 | 🟡 **custom empty-state illustrations/copy** | ~2 hr | gallery and community pages show generic empty states. |
-| 21 | 🟡 **DRAFT badge uses non-brand orange** | ~15 min | replace with sienna/10 bg + sienna text. |
-| 22 | 🟡 **footer "let's play." tagline** | ~15 min | add brand closing philosophy to shared footer. |
-| 23 | 🔵 **typography scale audit** | ~1 hr | brand guidelines specify 50% ratio hierarchy. |
-| 24 | 🔵 **parent site vs creaseworks visual bridge** | ~2 hr | windedvertigo.com and creaseworks feel like different products. |
+| 18 | ~~pack cards — visual differentiation~~ | ✅ done | `pack-illustration.tsx` — 6 themed SVG patterns, per-pack color accents, emojis, cover_url support |
+| 19 | ~~matcher page — more playful treatment~~ | ✅ done | gradient bg, floating shapes, animated emoji heading, playful copy |
+| 20 | ~~custom empty-state illustrations/copy~~ | ✅ done | `empty-state.tsx` — 4 brand-aligned SVG illustrations (bookshelf, journal, magnifier, seedling) |
+| 21 | ~~DRAFT badge uses non-brand orange~~ | ✅ done | already uses sienna/30 border + sienna/5 bg + sienna text |
+| 22 | ~~footer "let's play." tagline~~ | ✅ done | already in `packages/tokens/footer.html` |
+| 23 | ~~typography scale audit~~ | ✅ done | session 34 — commit f3023fe |
+| 24 | ~~parent site vs creaseworks visual bridge~~ | ✅ done | winded.vertigo logo wordmark in footer left side, linking to parent homepage. header shows just "creaseworks". footer rendered in JSX for layout control. calm theme dims logo with opacity+filter. |
 
 ---
 
@@ -102,19 +107,19 @@ credit queries, photo consent UI, pack upsells, and progress bar components all 
 
 | # | item | effort | notes |
 |---|------|--------|-------|
-| 25 | 🔵 **dyslexia-friendly font toggle** | ~2 hr | Atkinson Hyperlegible as user-selectable option. |
-| 26 | 🔵 **animation toggle in app settings** | ~1 hr | separate from OS prefers-reduced-motion. |
-| 27 | 🔵 **dark/low-colour theme** | ~4 hr | autism spectrum + sensory sensitivity support. |
-| 28 | 🟡 **progress bars with labels on multi-step flows** | ~1 hr | "Step 2 of 5" for onboarding, checkout, reflection forms. |
+| 25 | ~~dyslexia-friendly font toggle~~ | ✅ done | `accessibility-prefs.tsx` toggle — Atkinson Hyperlegible via `next/font/google`, `.dyslexia-font` class on `<html>`, cookie-first for instant CSS |
+| 26 | ~~animation toggle in app settings~~ | ✅ done | combined with #25 — `.reduce-motion` class, suppresses all animations/transitions via `!important` overrides |
+| 27 | ~~dark/low-colour theme~~ | ✅ done | "calm mode" — warm dark backgrounds (#1c2536), desaturated accents, CSS custom property cascade. migration 040, cookie-first toggle in accessibility prefs. |
+| 28 | ~~progress bars with labels on multi-step flows~~ | ✅ done | `step-progress.tsx` shared component with ARIA progressbar, dot indicators, "step X of Y · label" text. integrated in onboarding wizard. |
 
 ---
 
-## open questions (need decisions before building)
+## open questions / future work
 
-1. **next/image migration** — cover images use raw `<img>` tags. migrate to `<Image>` with R2 custom loader?
-2. **R2 bucket separation** — one bucket for all apps or separate per app?
-3. **URL structure** — creaseworks lives at `windedvertigo.com/reservoir/creaseworks`. should the old `creaseworks.windedvertigo.com` subdomain redirect there?
-4. **shared header across apps** — footer exists in `packages/tokens/footer.html`. extend to header?
+1. **next/image migration** — DEFERRED. cover images use raw `<img>` tags. migration to `<Image>` with R2 custom loader would give: responsive srcset (saves mobile bandwidth), lazy loading, WebP/AVIF format negotiation (30-50% smaller), CLS prevention (reserved layout space). **cost implications:** Next.js image optimization can either run through Vercel Functions (adds latency + function invocations to bill) or via Cloudflare Image Resizing (separate paid product). evaluate when image volume grows. decision: hold off for now.
+2. **R2 bucket structure** — DECIDED: one bucket for all apps with folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`). rationale: simpler CORS/token management, shared assets don't need duplication, per-app storage visibility via R2 prefix metrics. re-evaluate if access control needs diverge.
+3. ~~URL redirect for old subdomain~~ — SKIPPED. not enough people have the old `creaseworks.windedvertigo.com` link.
+4. **shared header across apps** — NOT WORTH IT. header needs differ too much between apps (auth, icons, bottom tab bar in creaseworks vs hero nav in parent site). footer is shared via tokens, header CSS classes are shared, but the component structure stays app-specific.
 
 ---
 
@@ -123,11 +128,12 @@ credit queries, photo consent UI, pack upsells, and progress bar components all 
 | metric | value |
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
-| Migrations | 035 (all applied to Neon) |
+| Migrations | 040 (all applied to Neon) |
 | Smoke test | 28/29 pass |
 | Source files | ~235 (.ts + .tsx) |
 | Features A–Y | all implemented |
-| Engagement system | queries + UI built, needs wiring into user flows |
+| Engagement system | fully wired — credits, photo consent, redemption, pack finder all live |
+| Material emoji CMS | Notion-managed via `emoji` rich_text property, hard-coded map as fallback |
 
 ---
 
