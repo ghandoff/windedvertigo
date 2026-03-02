@@ -152,6 +152,15 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ Fixed runtime bug: funnel query referenced non-existent `source` column on entitlements, corrected to `purchase_id IS NOT NULL`
 - ✅ 4 files changed: analytics page, dashboard component, API route, analytics queries
 
+### Server-Side Playdate Search (session 45 — Phase 2)
+- ✅ `lib/queries/search.ts` — ILIKE search across 4 playdate fields (title, headline, rails_sentence, material title) + collections (title, description)
+- ✅ UNION ALL + DISTINCT ON pattern for ranked deduplication (title match > headline > description > material)
+- ✅ `GET /api/search?q=...` — authenticated endpoint, min 2 chars, max 100 chars, returns `{ playdates, collections, query }`
+- ✅ `playbook-search.tsx` — dual-mode: instant client-side collection filter + debounced (300ms) server-side playdate search
+- ✅ AbortController for race condition prevention on rapid typing
+- ✅ Playdate results shown above collection grid with cover images, headlines, match-field badges
+- ✅ 3 files changed: search queries, API route, playbook search component
+
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)
 - Q2: R2 bucket — DECIDED: one bucket, folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`)
