@@ -23,11 +23,19 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#273248",
 };
 
 export const metadata: Metadata = {
+  manifest: "/reservoir/creaseworks/manifest.json",
   icons: {
     icon: "/favicon.ico",
+    apple: "/reservoir/creaseworks/images/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "creaseworks",
   },
   title: {
     default: "creaseworks — playdates that use what you already have",
