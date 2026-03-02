@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import type { VaultActivity } from "@/lib/types";
 import { typeColor } from "@/lib/types";
 import { markdownToHtml } from "@/lib/markdown";
@@ -96,6 +97,20 @@ export default function VaultDetailModal({
       >
         {/* colour bar */}
         <div className="h-1.5" style={{ backgroundColor: accent }} />
+
+        {/* cover image */}
+        {activity.coverImage && (
+          <div className="relative w-full" style={{ aspectRatio: "21/9" }}>
+            <Image
+              src={activity.coverImage}
+              alt={activity.name.trim()}
+              fill
+              sizes="(max-width: 560px) 100vw, 560px"
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
 
         {/* close button */}
         <button

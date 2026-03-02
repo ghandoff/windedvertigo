@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { VaultActivity } from "@/lib/types";
 import { typeColor } from "@/lib/types";
 
@@ -20,13 +21,13 @@ export default function VaultCard({ activity, onClick }: VaultCardProps) {
     >
       {/* cover image */}
       {activity.coverImage && (
-        <div className="h-40 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        <div className="relative h-40 overflow-hidden">
+          <Image
             src={activity.coverImage}
             alt={activity.name.trim()}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
       )}
