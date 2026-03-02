@@ -12,6 +12,7 @@ import { sql } from "@/lib/db";
 import type { CWSession } from "@/lib/auth-helpers";
 import type { EvidenceRow, EvidenceType } from "./evidence";
 import { sendGalleryApprovedEmail } from "@/lib/email/send-gallery-approved";
+import { createInAppNotification } from "@/lib/queries/notifications";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -205,10 +206,10 @@ export async function approveGalleryItem(
     [evidenceId],
   );
 
-  // Send approval notification email (fire-and-forget)
+  // Send approval notification email + in-app notification (fire-and-forget)
   try {
     const info = await sql.query(
-      `SELECT u.email, u.name, re.evidence_type, p.title AS playdate_title
+      `SELECT u.id AS user_id, u.email, u.name, re.evidence_type, p.title AS playdate_title, p.slug AS playdate_slug
        FROM run_evidence re
        JOIN runs_cache r ON r.id = re.run_id
        JOIN users u ON u.id = r.created_by
@@ -226,6 +227,18 @@ export async function approveGalleryItem(
       }).catch((err) =>
         console.error("gallery approval email failed:", err),
       );
+
+      // In-app notification
+      createInAppNotification({
+        userId: row.user_id,
+        eventType: "gallery_approved",
+        title: `your ${row.evidence_type ?? "photo"} was approved for the gallery`,
+        body: row.playdate_title
+          ? `from "${row.playdate_title}"`
+          : undefined,
+        href: "/gallery",
+        actorId: session.userId,
+      }).catch(() => {});
     }
   } catch (err) {
     console.error("failed to fetch user info for gallery email:", err);
@@ -252,12 +265,37 @@ export async function rejectGalleryItem(
 
   if (lookup.rows.length === 0) return false;
 
+  // Fetch user info before rejection for the notification
+  const info = await sql.query(
+    `SELECT u.id AS user_id, p.title AS playdate_title
+     FROM run_evidence re
+     JOIN runs_cache r ON r.id = re.run_id
+     JOIN users u ON u.id = r.created_by
+     LEFT JOIN playdates_cache p ON p.notion_id = r.playdate_notion_id
+     WHERE re.id = $1`,
+    [evidenceId],
+  );
+
   await sql.query(
     `UPDATE run_evidence
      SET shared_to_gallery = FALSE, gallery_approved = FALSE
      WHERE id = $1`,
     [evidenceId],
   );
+
+  // In-app notification for rejection
+  const row = info.rows[0];
+  if (row?.user_id) {
+    createInAppNotification({
+      userId: row.user_id,
+      eventType: "gallery_rejected",
+      title: "your gallery submission wasn't approved this time",
+      body: row.playdate_title
+        ? `from "${row.playdate_title}" — you can always re-submit`
+        : "you can always re-submit",
+      href: "/reflections/new",
+    }).catch(() => {});
+  }
 
   return true;
 }

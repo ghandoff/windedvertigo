@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import crypto from "crypto";
+import { createInAppNotification } from "@/lib/queries/notifications";
 
 export async function isBlockedDomain(domain: string): Promise<boolean> {
   const r = await sql.query(
@@ -57,6 +58,23 @@ export async function autoJoinOrg(userId: string, email: string) {
     "INSERT INTO org_memberships (user_id, org_id, role) VALUES ($1, $2, 'member') ON CONFLICT (user_id, org_id) DO NOTHING RETURNING org_id, role",
     [userId, org.org_id],
   );
+
+  // Notify user they've joined an org (only on actual insert, not conflict)
+  if (r.rows.length > 0) {
+    const orgName = await sql.query(
+      "SELECT name FROM organisations WHERE id = $1",
+      [org.org_id],
+    );
+    const name = orgName.rows[0]?.name ?? "your organisation";
+    createInAppNotification({
+      userId,
+      eventType: "org_joined",
+      title: `welcome to ${name}`,
+      body: "you've been automatically added based on your email domain",
+      href: "/profile",
+    }).catch(() => {});
+  }
+
   return r.rows[0] ?? { org_id: org.org_id, role: "member" };
 }
 

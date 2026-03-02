@@ -346,3 +346,163 @@ export async function updateLastActive(userId: string): Promise<void> {
     userId,
   ]);
 }
+
+/* ================================================================== */
+/*  IN-APP NOTIFICATION CENTER                                         */
+/*  Session 47: bell icon + dropdown notifications                      */
+/* ================================================================== */
+
+export type NotificationEventType =
+  | "gallery_approved"
+  | "gallery_rejected"
+  | "invite_accepted"
+  | "pack_granted"
+  | "progress_milestone"
+  | "co_play_invite"
+  | "org_joined"
+  | "system";
+
+export interface InAppNotification {
+  id: string;
+  eventType: NotificationEventType;
+  title: string;
+  body: string | null;
+  href: string | null;
+  actorId: string | null;
+  actorName: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+/**
+ * Fetch recent notifications for a user (paginated, newest first).
+ * Includes actor name via a left join on users.
+ */
+export async function getUserNotifications(
+  userId: string,
+  opts: { limit?: number; offset?: number; unreadOnly?: boolean } = {},
+): Promise<InAppNotification[]> {
+  const limit = Math.min(opts.limit ?? 20, 50);
+  const offset = opts.offset ?? 0;
+
+  const unreadClause = opts.unreadOnly ? "AND n.read_at IS NULL" : "";
+
+  const r = await sql.query(
+    `SELECT
+       n.id, n.event_type, n.title, n.body, n.href,
+       n.actor_id, u.name AS actor_name,
+       n.read_at, n.created_at
+     FROM in_app_notifications n
+     LEFT JOIN users u ON u.id = n.actor_id
+     WHERE n.user_id = $1 ${unreadClause}
+     ORDER BY n.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [userId, limit, offset],
+  );
+
+  return r.rows.map((row: any) => ({
+    id: row.id,
+    eventType: row.event_type as NotificationEventType,
+    title: row.title,
+    body: row.body,
+    href: row.href,
+    actorId: row.actor_id,
+    actorName: row.actor_name,
+    readAt: row.read_at,
+    createdAt: row.created_at,
+  }));
+}
+
+/**
+ * Count unread notifications for a user.
+ * Used for the badge number on the bell icon.
+ */
+export async function getUnreadCount(userId: string): Promise<number> {
+  const r = await sql.query(
+    `SELECT COUNT(*)::int AS count
+     FROM in_app_notifications
+     WHERE user_id = $1 AND read_at IS NULL`,
+    [userId],
+  );
+  return r.rows[0]?.count ?? 0;
+}
+
+/**
+ * Mark a single notification as read.
+ */
+export async function markNotificationRead(
+  notificationId: string,
+  userId: string,
+): Promise<boolean> {
+  const r = await sql.query(
+    `UPDATE in_app_notifications
+     SET read_at = NOW()
+     WHERE id = $1 AND user_id = $2 AND read_at IS NULL
+     RETURNING id`,
+    [notificationId, userId],
+  );
+  return r.rows.length > 0;
+}
+
+/**
+ * Mark all notifications as read for a user.
+ */
+export async function markAllNotificationsRead(
+  userId: string,
+): Promise<number> {
+  const r = await sql.query(
+    `UPDATE in_app_notifications
+     SET read_at = NOW()
+     WHERE user_id = $1 AND read_at IS NULL`,
+    [userId],
+  );
+  return r.rowCount ?? 0;
+}
+
+/**
+ * Create an in-app notification. Uses ON CONFLICT to deduplicate
+ * (same user + event_type + href won't create duplicates).
+ */
+export async function createInAppNotification(opts: {
+  userId: string;
+  eventType: NotificationEventType;
+  title: string;
+  body?: string;
+  href?: string;
+  actorId?: string;
+}): Promise<string | null> {
+  try {
+    const r = await sql.query(
+      `INSERT INTO in_app_notifications (user_id, event_type, title, body, href, actor_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (user_id, event_type, href)
+         WHERE href IS NOT NULL
+         DO NOTHING
+       RETURNING id`,
+      [
+        opts.userId,
+        opts.eventType,
+        opts.title,
+        opts.body ?? null,
+        opts.href ?? null,
+        opts.actorId ?? null,
+      ],
+    );
+    return r.rows[0]?.id ?? null;
+  } catch (err) {
+    console.error("[notifications] createInAppNotification failed:", err);
+    return null;
+  }
+}
+
+/**
+ * Delete old read notifications (cleanup, > 90 days).
+ * Call from a cron job or maintenance script.
+ */
+export async function purgeOldNotifications(): Promise<number> {
+  const r = await sql.query(
+    `DELETE FROM in_app_notifications
+     WHERE read_at IS NOT NULL AND created_at < NOW() - INTERVAL '90 days'`,
+  );
+  return r.rowCount ?? 0;
+}
