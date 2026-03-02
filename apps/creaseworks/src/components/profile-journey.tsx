@@ -1,8 +1,12 @@
 /**
- * Profile "your journey" — milestone path + pack progress + credit balance.
+ * Profile "your journey" — milestone path + credit balance.
  *
- * Replaces the generic subscription tier cards with a personal
- * progression narrative synthesised from play data. Server component.
+ * Shows a personal progression narrative synthesised from play data:
+ * - 8 milestones (first play → pack complete) as a connected path
+ * - Credit progress toward next reward tier
+ *
+ * Pack progress is handled by ProfileYourPacks to avoid duplication.
+ * Server component.
  */
 
 import Link from "next/link";
@@ -107,20 +111,11 @@ const MILESTONES: Milestone[] = [
 /* ── component ─────────────────────────────────────────────────────── */
 
 export default function ProfileJourney(props: ProfileJourneyProps) {
-  const { ownedPacks, creditBalance } = props;
+  const { creditBalance } = props;
 
   const achieved = MILESTONES.filter((m) => m.test(props));
   const upcoming = MILESTONES.filter((m) => !m.test(props));
   const nextMilestone = upcoming[0] ?? null;
-
-  /* pack aggregate progress */
-  const totalPlaydates = ownedPacks.reduce(
-    (s, p) => s + p.playdate_count,
-    0,
-  );
-  const totalTried = ownedPacks.reduce((s, p) => s + p.tried_count, 0);
-  const packPct =
-    totalPlaydates > 0 ? Math.round((totalTried / totalPlaydates) * 100) : 0;
 
   /* credit progress — next reward tier */
   const sortedThresholds = Object.entries(REDEMPTION_THRESHOLDS)
@@ -225,77 +220,6 @@ export default function ProfileJourney(props: ProfileJourneyProps) {
           )}
         </div>
       </div>
-
-      {/* ── pack progress (only if user owns packs) ──────── */}
-      {ownedPacks.length > 0 && (
-        <div
-          className="rounded-xl border px-5 py-4 mb-4"
-          style={{
-            borderColor: "rgba(203, 120, 88, 0.15)",
-            backgroundColor: "rgba(203, 120, 88, 0.03)",
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-cadet/60">
-              pack exploration
-            </span>
-            <span className="text-xs text-cadet/40">
-              {totalTried} of {totalPlaydates} playdates tried
-            </span>
-          </div>
-          <div className="h-2 rounded-full bg-cadet/8 overflow-hidden mb-2">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${packPct}%`,
-                backgroundColor:
-                  packPct >= 80
-                    ? "var(--wv-redwood)"
-                    : packPct >= 40
-                      ? "var(--wv-sienna)"
-                      : "var(--wv-champagne)",
-              }}
-            />
-          </div>
-          {/* per-pack mini bars */}
-          {ownedPacks.length > 1 && (
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-              {ownedPacks.map((pk) => {
-                const pPct =
-                  pk.playdate_count > 0
-                    ? Math.round(
-                        (pk.tried_count / pk.playdate_count) * 100,
-                      )
-                    : 0;
-                return (
-                  <Link
-                    key={pk.id}
-                    href={`/packs/${pk.slug}`}
-                    className="flex items-center gap-1.5 text-[11px] text-cadet/45 hover:text-sienna/70 transition-colors"
-                  >
-                    <div
-                      className="h-1.5 rounded-full bg-cadet/8 overflow-hidden"
-                      style={{ width: 40 }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${pPct}%`,
-                          backgroundColor:
-                            pPct >= 100
-                              ? "var(--wv-redwood)"
-                              : "var(--wv-sienna)",
-                        }}
-                      />
-                    </div>
-                    <span className="truncate max-w-[100px]">{pk.title}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ── credit progress (only if user has credits) ───── */}
       {creditBalance > 0 && (
