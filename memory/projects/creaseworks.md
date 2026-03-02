@@ -16,7 +16,7 @@
 | **Source files** | ~297 (.ts + .tsx) |
 | **Migrations** | 040 (latest: calm_theme) — 001-040 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
-| **Tests** | 5 suites, 53 tests, all passing |
+| **Tests** | 9 suites, 123 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
 | **Last session** | 45 (Mar 1, 2026) |
 
@@ -160,6 +160,13 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ AbortController for race condition prevention on rapid typing
 - ✅ Playdate results shown above collection grid with cover images, headlines, match-field badges
 - ✅ 3 files changed: search queries, API route, playbook search component
+
+### Test Coverage Expansion (session 45 — Phase 2)
+- ✅ `entitlements.test.ts` (19 tests) — dual-scope checkEntitlement, grant/revive/revoke flows, early-return when no org/user
+- ✅ `credits.test.ts` (20 tests) — balance calculation, insufficient-balance error, streak bonus gating (modulo 7, daily dedup), constants
+- ✅ `search.test.ts` (11 tests) — ILIKE pattern wrapping, short-query early-return, combined search parallel execution
+- ✅ `auth-helpers-guards.test.ts` (20 tests) — requireAuth/getSession/requireAdmin/requireInternal/requireOrgAdmin redirect logic, isInternal derivation
+- ✅ Test suite: 5 → 9 files, 53 → 123 tests (132% increase)
 
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)

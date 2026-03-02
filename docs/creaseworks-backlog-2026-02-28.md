@@ -124,7 +124,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | P2-2 | **server-side playdate search API** | ~2 hr | ✅ done | `lib/queries/search.ts` — ILIKE across title, headline, rails_sentence, material titles with ranked deduplication. `GET /api/search?q=...` endpoint (auth, 2-100 chars). `playbook-search.tsx` — debounced (300ms) fetch with AbortController, shows playdate results above collection grid with match-field badges. |
 | P2-4 | **notification center** | ~4 hr | 🟡 ready | bell icon, digest of new playdates/campaigns/co-play invites |
 | P2-5 | **PWA / mobile install** | ~2 hr | 🟡 ready | manifest.json, service worker, install prompt |
-| P2-7 | **test coverage expansion** | ~6 hr | 🟡 ready | currently 5 suites / 53 tests. target: query layers, API routes, entitlement checks |
+| P2-7 | **test coverage expansion** | ~6 hr | ✅ done (phase 1) | 5 → 9 suites, 53 → 123 tests. added: entitlements (19), credits (20), search (11), auth guards (20). mock sql.query() pattern. remaining: API route tests, matcher orchestrator, gallery/evidence queries. |
 
 ---
 
@@ -142,12 +142,12 @@ verified session 35: all engagement features are fully wired into user flows.
 | metric | value |
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
-| Tests | 5 suites, 53 tests, all passing |
+| Tests | 9 suites, 123 tests, all passing |
 | Migrations | 040 (all applied to Neon) |
 | Smoke test | 28/29 pass |
 | Source files | ~297 (.ts + .tsx) |
 | Features A–Y | all implemented |
-| Phase 2 | P2-1 + P2-2 + P2-3 complete (analytics + search), P2-6 pending (env vars) |
+| Phase 2 | P2-1 + P2-2 + P2-3 + P2-7 complete (analytics, search, tests), P2-6 pending (env vars) |
 | Engagement system | fully wired — credits, photo consent, redemption, pack finder all live |
 | Material emoji CMS | Notion-managed via `emoji` rich_text property, hard-coded map as fallback |
 
