@@ -445,21 +445,13 @@ html.calm-theme .wv-header {
   background-color: #151d2c;
 }
 
-/* calm overrides for parent brand link + cross-app nav */
-html.calm-theme .wv-header-parent {
-  color: rgba(176, 168, 152, 0.3);
+/* calm override for footer brand logo — reduce brightness */
+html.calm-theme .wv-footer-brand-img {
+  opacity: 0.5;
+  filter: brightness(0.8) saturate(0.6);
 }
-html.calm-theme .wv-header-parent:hover {
-  color: rgba(176, 168, 152, 0.6);
-}
-html.calm-theme .wv-header-parent-sep {
-  color: rgba(176, 168, 152, 0.12);
-}
-html.calm-theme .wv-header-crossnav {
-  color: rgba(176, 168, 152, 0.35);
-}
-html.calm-theme .wv-header-crossnav:hover {
-  color: rgba(176, 168, 152, 0.6);
+html.calm-theme .wv-footer-brand:hover .wv-footer-brand-img {
+  opacity: 0.7;
 }
 
 /* ── footer — match header treatment ──────────────────────────── */
