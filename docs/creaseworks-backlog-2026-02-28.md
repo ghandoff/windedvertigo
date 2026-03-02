@@ -114,6 +114,20 @@ verified session 35: all engagement features are fully wired into user flows.
 
 ---
 
+## phase 2 — post-launch enhancements
+
+| # | item | effort | status | notes |
+|---|------|--------|--------|-------|
+| P2-1 | **mount analytics dashboard** | ~30 min | ✅ done | replaced dead redirect with admin-gated page at `/analytics`, renders `AnalyticsDashboard` |
+| P2-3 | **enrich analytics with admin metrics** | ~3 hr | ✅ done | `getAdminAnalytics()` with 5 SQL queries: user growth, conversion funnel, pack adoption, credit economy, platform overview. new chart components: FunnelChart, PackAdoptionChart. fixed `source` → `purchase_id` bug. |
+| P2-6 | **set Vercel env vars for CMS pages** | ~10 min | 🟡 manual | `NOTION_CMS_PAGE_WE=316e4ee7-4ba4-8181-9935-e6887e8273dd`, `NOTION_CMS_PAGE_DO=316e4ee7-4ba4-81b1-a34c-da9a4b8e1016`. add via Vercel dashboard → creaseworks → Settings → Environment Variables. |
+| P2-2 | **server-side playdate search API** | ~2 hr | 🟡 ready | currently client-side filter only. add `GET /api/playdates/search?q=...` endpoint |
+| P2-4 | **notification center** | ~4 hr | 🟡 ready | bell icon, digest of new playdates/campaigns/co-play invites |
+| P2-5 | **PWA / mobile install** | ~2 hr | 🟡 ready | manifest.json, service worker, install prompt |
+| P2-7 | **test coverage expansion** | ~6 hr | 🟡 ready | currently 5 suites / 53 tests. target: query layers, API routes, entitlement checks |
+
+---
+
 ## open questions / future work
 
 1. **next/image migration** — DEFERRED. cover images use raw `<img>` tags. migration to `<Image>` with R2 custom loader would give: responsive srcset (saves mobile bandwidth), lazy loading, WebP/AVIF format negotiation (30-50% smaller), CLS prevention (reserved layout space). **cost implications:** Next.js image optimization can either run through Vercel Functions (adds latency + function invocations to bill) or via Cloudflare Image Resizing (separate paid product). evaluate when image volume grows. decision: hold off for now.
@@ -128,10 +142,12 @@ verified session 35: all engagement features are fully wired into user flows.
 | metric | value |
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
+| Tests | 5 suites, 53 tests, all passing |
 | Migrations | 040 (all applied to Neon) |
 | Smoke test | 28/29 pass |
-| Source files | ~235 (.ts + .tsx) |
+| Source files | ~297 (.ts + .tsx) |
 | Features A–Y | all implemented |
+| Phase 2 | P2-1 + P2-3 complete (analytics dashboard), P2-6 pending (env vars) |
 | Engagement system | fully wired — credits, photo consent, redemption, pack finder all live |
 | Material emoji CMS | Notion-managed via `emoji` rich_text property, hard-coded map as fallback |
 

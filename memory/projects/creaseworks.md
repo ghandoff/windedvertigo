@@ -13,11 +13,12 @@
 | **Neon DB** | creaseworks-db (divine-dust-87453436) |
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
-| **Source files** | ~235 (.ts + .tsx) |
+| **Source files** | ~297 (.ts + .tsx) |
 | **Migrations** | 040 (latest: calm_theme) — 001-040 applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
+| **Tests** | 5 suites, 53 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 44 (Mar 1, 2026) |
+| **Last session** | 45 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -139,6 +140,17 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ Removed duplicate pack exploration from `ProfileJourney` (YourPacks has richer per-pack cards with badge distribution)
 - ✅ Each data point now has one canonical home: Stats → Dashboard, Activity → Dashboard, Pack progress → YourPacks, Milestones → Journey, Badge counts → Dashboard badge journey
 - ✅ 2 files changed, -167 lines, TypeScript clean
+
+### Analytics Dashboard Enrichment (session 45 — Phase 2)
+- ✅ Mounted analytics at `/analytics` as proper admin-gated page (was a dead redirect)
+- ✅ `getAdminAnalytics()` — 5 SQL query sections: user counts, user growth, pack adoption, credit economy, conversion funnel
+- ✅ User growth sparkline (12 months, cumulative signups with window function)
+- ✅ Conversion funnel chart (signed up → onboarded → first run → 3+ reflections → purchased) with drop-off %
+- ✅ Pack adoption stacked bar (org vs individual entitlements per pack)
+- ✅ Credit economy breakdown (earned vs spent, by reason)
+- ✅ Platform overview stat cards (total users, active this month, credits earned/redeemed, credit balance)
+- ✅ Fixed runtime bug: funnel query referenced non-existent `source` column on entitlements, corrected to `purchase_id IS NOT NULL`
+- ✅ 4 files changed: analytics page, dashboard component, API route, analytics queries
 
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)
