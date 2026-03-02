@@ -13,6 +13,7 @@ import {
   getOrgMembership,
 } from "@/lib/queries/organisations";
 import { processInvitesOnSignIn } from "@/lib/queries/invites";
+import { getUserTier } from "@/lib/queries/accessibility";
 
 // The verification_token table is created by migration 011.
 // Previously this module ran CREATE TABLE IF NOT EXISTS on every cold
@@ -239,6 +240,7 @@ export const authConfig: NextAuthConfig = {
         token.orgName = m?.org_name ?? null;
         token.orgRole = m?.role ?? null;
         token.isAdmin = await isAdmin(user.id);
+        token.uiTier = await getUserTier(user.id);
         token.refreshedAt = Date.now();
       } else if (token.userId) {
         // Subsequent requests — refresh org/role data every 5 minutes so
@@ -253,6 +255,7 @@ export const authConfig: NextAuthConfig = {
             token.orgName = m?.org_name ?? null;
             token.orgRole = m?.role ?? null;
             token.isAdmin = await isAdmin(token.userId as string);
+            token.uiTier = await getUserTier(token.userId as string);
             token.refreshedAt = Date.now();
           } catch (err) {
             // If DB is temporarily unavailable, keep stale token rather
@@ -272,6 +275,7 @@ export const authConfig: NextAuthConfig = {
         session.orgName = token.orgName;
         session.orgRole = token.orgRole;
         session.isAdmin = token.isAdmin;
+        session.uiTier = token.uiTier;
       }
       return session;
     },

@@ -138,12 +138,27 @@ export default function NavBar() {
 
   const isAuthed = !!session?.user;
 
-  const publicLinks = (
+  /* ── tier-aware visibility flags ──
+   * Tiers are purely cosmetic — they control which nav links are
+   * visible, not which features are accessible via direct URL.
+   *   casual:       sampler, matcher, packs, gallery (view-only)
+   *   curious:      + playbook
+   *   collaborator: + reflections, community
+   */
+  const tier = (session?.uiTier as string) ?? "casual";
+  const showPlaybook = isAuthed && tier !== "casual";
+  const showReflections = isAuthed && tier === "collaborator";
+  const showCommunity = isAuthed && tier === "collaborator";
+
+  const navLinks = (
     <>
       <NavLink href="/sampler" onClick={close} icon={<IconPlaydates />}>playdates</NavLink>
       <NavLink href="/matcher" onClick={close} icon={<IconMatcher />}>matcher</NavLink>
       <NavLink href="/packs" onClick={close} icon={<IconPacks />}>packs</NavLink>
       <NavLink href="/gallery" onClick={close} icon={<IconGallery />}>gallery</NavLink>
+      {showPlaybook && <NavLink href="/playbook" onClick={close} icon={<IconPlaybook />}>playbook</NavLink>}
+      {showReflections && <NavLink href="/reflections/new" onClick={close} icon={<IconReflections />}>reflections</NavLink>}
+      {showCommunity && <NavLink href="/community" onClick={close} icon={<IconCommunity />}>community</NavLink>}
     </>
   );
 
@@ -155,11 +170,8 @@ export default function NavBar() {
       ).toUpperCase()
     : "";
 
-  const authedLinks = isAuthed ? (
+  const profileLink = isAuthed ? (
     <>
-      <NavLink href="/reflections/new" onClick={close} icon={<IconReflections />}>reflections</NavLink>
-      <NavLink href="/playbook" onClick={close} icon={<IconPlaybook />}>playbook</NavLink>
-      <NavLink href="/community" onClick={close} icon={<IconCommunity />}>community</NavLink>
       <Link
         href="/profile"
         onClick={close}
@@ -197,14 +209,14 @@ export default function NavBar() {
       <NavLink href="/login" onClick={close} accent>sign in</NavLink>
     );
 
-  /* ── bottom tab bar items for mobile ── */
+  /* ── bottom tab bar items for mobile (tier-aware) ── */
   const bottomTabs = isAuthed
     ? [
         { href: "/sampler", label: "play", icon: <IconPlaydates />, key: "sampler" },
         { href: "/packs", label: "packs", icon: <IconPacks />, key: "packs" },
-        { href: "/reflections/new", label: "log", icon: <IconReflections />, key: "reflections" },
+        ...(showReflections ? [{ href: "/reflections/new", label: "log", icon: <IconReflections />, key: "reflections" }] : []),
         { href: "/gallery", label: "gallery", icon: <IconGallery />, key: "gallery" },
-        { href: "/playbook", label: "book", icon: <IconPlaybook />, key: "playbook" },
+        ...(showPlaybook ? [{ href: "/playbook", label: "book", icon: <IconPlaybook />, key: "playbook" }] : []),
       ]
     : [
         { href: "/sampler", label: "play", icon: <IconPlaydates />, key: "sampler" },
@@ -225,8 +237,8 @@ export default function NavBar() {
 
           {/* desktop links */}
           <div className="wv-header-nav hidden sm:flex">
-            {publicLinks}
-            {authedLinks}
+            {navLinks}
+            {profileLink}
             {isAuthed && <NotificationBell />}
             {authAction}
           </div>
@@ -264,8 +276,8 @@ export default function NavBar() {
             className="sm:hidden flex flex-col gap-4 px-8 pb-5 text-sm"
             style={{ borderTop: "1px solid rgba(255,235,210,0.1)" }}
           >
-            {publicLinks}
-            {authedLinks}
+            {navLinks}
+            {profileLink}
             {isAuthed && <NotificationBell />}
             {authAction}
           </div>

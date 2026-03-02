@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 
+export type UiTier = "casual" | "curious" | "collaborator";
+
 export interface CWSession {
   userId: string;
   email: string;
@@ -10,6 +12,8 @@ export interface CWSession {
   isAdmin: boolean;
   /** Admin or windedvertigo.com email — can see reflective fields on all runs */
   isInternal: boolean;
+  /** Progressive disclosure tier — controls nav/dashboard visibility, not access */
+  uiTier: UiTier;
 }
 
 /** Returns true if the email domain is windedvertigo.com */
@@ -30,6 +34,7 @@ export async function requireAuth(): Promise<CWSession> {
     orgRole: s.orgRole ?? null,
     isAdmin: admin,
     isInternal: admin || isInternalEmail(s.user.email),
+    uiTier: (s.uiTier as UiTier) ?? "casual",
   };
 }
 
@@ -45,6 +50,7 @@ export async function getSession(): Promise<CWSession | null> {
     orgRole: s.orgRole ?? null,
     isAdmin: admin,
     isInternal: admin || isInternalEmail(s.user.email),
+    uiTier: (s.uiTier as UiTier) ?? "casual",
   };
 }
 

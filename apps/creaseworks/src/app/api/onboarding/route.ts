@@ -1,7 +1,7 @@
 /**
  * API route: /api/onboarding
  *
- * POST — save quick-start wizard answers and mark onboarding complete
+ * POST — save quick-start wizard answers, tier selection, and mark onboarding complete
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -12,6 +12,7 @@ import { parseJsonBody } from "@/lib/api-helpers";
 const VALID_AGE_GROUPS = ["toddler", "preschool", "school-age", "older", "mixed"];
 const VALID_CONTEXTS = ["home", "classroom", "outdoors", "travel"];
 const VALID_ENERGY = ["chill", "medium", "active", "any"];
+const VALID_TIERS = ["casual", "curious", "collaborator"];
 
 export async function POST(req: NextRequest) {
   const session = await requireAuth();
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
     ? body.contexts.filter((v: string) => VALID_CONTEXTS.includes(v))
     : [];
   const energy: string = VALID_ENERGY.includes(body.energy) ? body.energy : "any";
+  const tier: string = VALID_TIERS.includes(body.tier) ? body.tier : "casual";
 
   const prefs = { age_groups: ageGroups, contexts, energy };
 
@@ -35,10 +37,20 @@ export async function POST(req: NextRequest) {
     `UPDATE users
         SET onboarding_completed = TRUE,
             play_preferences = $1,
+            ui_tier = $2,
             updated_at = NOW()
-      WHERE id = $2`,
-    [JSON.stringify(prefs), session.userId],
+      WHERE id = $3`,
+    [JSON.stringify(prefs), tier, session.userId],
   );
 
-  return NextResponse.json({ success: true, preferences: prefs });
+  // Set tier cookie for instant CSS rendering on next page load
+  const res = NextResponse.json({ success: true, preferences: prefs, tier });
+  res.cookies.set("cw-ui-tier", tier, {
+    path: "/reservoir/creaseworks",
+    maxAge: 60 * 60 * 24 * 365, // 1 year
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  return res;
 }

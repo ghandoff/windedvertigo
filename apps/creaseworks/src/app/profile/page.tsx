@@ -39,6 +39,7 @@ export const metadata: Metadata = {
 import ProfileManageToggle from "./manage-toggle";
 import NotificationPrefs from "./notification-prefs";
 import AccessibilityPrefs from "./accessibility-prefs";
+import TierSwitcher from "./tier-switcher";
 import PlayContextSwitcher from "./play-context-switcher";
 import SyncTrigger from "@/app/admin/sync/sync-trigger";
 
@@ -61,13 +62,13 @@ export default async function ProfilePage({
   const showManage = params.manage === "true";
 
   /* ---- tier + display name ---------------------------------------- */
+  // Admin / internal get special badges; everyone else shows their UI tier
   const tierLabel = session.isAdmin
     ? "admin"
     : session.isInternal
       ? "collective"
-      : session.orgId
-        ? "entitled"
-        : "sampler";
+      : session.uiTier ?? "casual";
+  const tier = session.uiTier ?? "casual";
 
   const displayName = session.email.split("@")[0].replace(/[._]/g, " ");
 
@@ -116,10 +117,13 @@ export default async function ProfilePage({
   /* ---- pack progress + recommendations + credits --------------------- */
   // Always fetch packs — user-level entitlements (from invites) work
   // even without an org. getOrgPacksWithProgress handles null orgId.
+  // Credits are only shown for collaborator tier, so skip the query for others.
   const [ownedPacks, recommendedPacks, creditBalance] = await Promise.all([
     getOrgPacksWithProgress(session.orgId ?? null, session.userId).catch(() => []),
     getRecommendedPacks(session.orgId, session.userId).catch(() => []),
-    getUserCredits(session.userId).catch(() => 0),
+    tier === "collaborator"
+      ? getUserCredits(session.userId).catch(() => 0)
+      : Promise.resolve(0),
   ]);
 
   /* show manage toggle for everyone (notification prefs are universal) */
@@ -195,13 +199,19 @@ export default async function ProfilePage({
                     ? "rgba(177, 80, 67, 0.12)"
                     : tierLabel === "collective"
                       ? "rgba(203, 120, 88, 0.12)"
-                      : "rgba(39, 50, 72, 0.06)",
+                      : tierLabel === "collaborator"
+                        ? "rgba(203, 120, 88, 0.10)"
+                        : tierLabel === "curious"
+                          ? "rgba(39, 50, 72, 0.08)"
+                          : "rgba(39, 50, 72, 0.06)",
                 color:
                   tierLabel === "admin"
                     ? "var(--wv-redwood)"
                     : tierLabel === "collective"
                       ? "var(--wv-sienna)"
-                      : "var(--wv-cadet)",
+                      : tierLabel === "collaborator"
+                        ? "var(--wv-sienna)"
+                        : "var(--wv-cadet)",
               }}
             >
               {tierLabel}
@@ -259,15 +269,17 @@ export default async function ProfilePage({
       {/* ---- what's next — recommended unowned packs ------------------- */}
       <ProfileWhatsNext packs={recommendedPacks} />
 
-      {/* ---- your journey — milestone path + progress ---------------- */}
-      <ProfileJourney
-        totalRuns={profileStats.totalRuns}
-        totalEvidence={profileStats.totalEvidence}
-        longestStreak={profileStats.longestStreak}
-        badgeCounts={profileStats.badgeCounts}
-        ownedPacks={ownedPacks}
-        creditBalance={creditBalance}
-      />
+      {/* ---- your journey — milestone path + progress (collaborator) -- */}
+      {tier === "collaborator" && (
+        <ProfileJourney
+          totalRuns={profileStats.totalRuns}
+          totalEvidence={profileStats.totalEvidence}
+          longestStreak={profileStats.longestStreak}
+          badgeCounts={profileStats.badgeCounts}
+          ownedPacks={ownedPacks}
+          creditBalance={creditBalance}
+        />
+      )}
 
       {/* ---- manage toggle (grownup stuff) ------------------------- */}
       {canManage && (
@@ -276,6 +288,23 @@ export default async function ProfilePage({
 
           {showManage && (
             <div className="mt-6 space-y-12">
+              {/* tier / experience level */}
+              <section>
+                <h3 className="text-lg font-semibold tracking-tight mb-1">
+                  experience level
+                </h3>
+                <p className="text-sm text-cadet/40 mb-4">
+                  choose how much of creaseworks you see. you can always change
+                  this later.
+                </p>
+                <div
+                  className="rounded-xl border p-4"
+                  style={{ borderColor: "var(--cw-border)", backgroundColor: "var(--cw-card-bg)" }}
+                >
+                  <TierSwitcher initialTier={tier} />
+                </div>
+              </section>
+
               {/* accessibility section */}
               <section>
                 <h3 className="text-lg font-semibold tracking-tight mb-1">

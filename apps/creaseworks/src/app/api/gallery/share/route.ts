@@ -43,6 +43,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Gallery sharing requires collaborator tier (safety net — UI also hides it)
+  if (shared && session.uiTier !== "collaborator") {
+    return NextResponse.json(
+      { error: "gallery sharing requires collaborator tier" },
+      { status: 403 },
+    );
+  }
+
   try {
     let success = false;
     if (shared) {

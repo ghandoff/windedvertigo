@@ -1,5 +1,6 @@
 /**
  * Accessibility preferences — reduce motion, dyslexia font, calm theme.
+ * Progressive disclosure tier — casual, curious, collaborator.
  *
  * App-level toggles that supplement OS settings. Stored in the users
  * table and mirrored to cookies for instant CSS application on page load.
@@ -80,4 +81,42 @@ export async function updateAccessibilityPrefs(
     dyslexiaFont: r.rows[0].dyslexia_font ?? false,
     calmTheme: r.rows[0].calm_theme ?? false,
   };
+}
+
+/* ── progressive disclosure tier ─────────────────────────────── */
+
+export type UiTier = "casual" | "curious" | "collaborator";
+
+const VALID_TIERS: UiTier[] = ["casual", "curious", "collaborator"];
+
+/**
+ * Get the user's progressive disclosure tier.
+ * Returns "casual" as default if user not found.
+ */
+export async function getUserTier(userId: string): Promise<UiTier> {
+  const r = await sql.query(
+    "SELECT ui_tier FROM users WHERE id = $1 LIMIT 1",
+    [userId],
+  );
+  const tier = r.rows[0]?.ui_tier;
+  return VALID_TIERS.includes(tier) ? tier : "casual";
+}
+
+/**
+ * Update the user's progressive disclosure tier.
+ * Tiers are purely cosmetic — they control navigation and
+ * dashboard visibility, not feature access.
+ */
+export async function updateUserTier(
+  userId: string,
+  tier: string,
+): Promise<UiTier> {
+  if (!VALID_TIERS.includes(tier as UiTier)) {
+    throw new Error(`invalid tier: ${tier}`);
+  }
+  await sql.query(
+    "UPDATE users SET ui_tier = $1, updated_at = NOW() WHERE id = $2",
+    [tier, userId],
+  );
+  return tier as UiTier;
 }

@@ -74,6 +74,7 @@ export default async function RootLayout({
   const reduceMotion = cookieStore.get("cw-reduce-motion")?.value === "true";
   const dyslexiaFont = cookieStore.get("cw-dyslexia-font")?.value === "true";
   const calmTheme = cookieStore.get("cw-calm-theme")?.value === "true";
+  const uiTier = cookieStore.get("cw-ui-tier")?.value || "casual";
 
   const htmlClasses = [
     inter.variable,
@@ -81,6 +82,7 @@ export default async function RootLayout({
     reduceMotion && "reduce-motion",
     dyslexiaFont && "dyslexia-font",
     calmTheme && "calm-theme",
+    `tier-${uiTier}`,
   ]
     .filter(Boolean)
     .join(" ");
