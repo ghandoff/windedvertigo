@@ -32,6 +32,22 @@ export default async function VaultPage() {
           </p>
         </header>
 
+        {/* CTA — expanded vault teaser */}
+        <div className="mb-8 rounded-xl border border-white/10 px-6 py-4 flex items-center justify-between gap-4 flex-wrap"
+             style={{ backgroundColor: "rgba(107,142,107,0.08)" }}>
+          <p className="text-sm opacity-70">
+            <span className="font-medium opacity-100">new activities are being added to the expanded vault.</span>{" "}
+            get access to facilitator notes, video walkthroughs, and 200+ activities.
+          </p>
+          <a
+            href="https://windedvertigo.com/vertigo-vault"
+            className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
+            style={{ backgroundColor: "rgba(107,142,107,0.25)", color: "rgba(255,255,255,0.85)" }}
+          >
+            explore the full library &rarr;
+          </a>
+        </div>
+
         <VaultGallery activities={activities} />
 
         {/* footer */}
