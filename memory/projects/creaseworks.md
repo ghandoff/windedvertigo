@@ -14,11 +14,11 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | ~297 (.ts + .tsx) |
-| **Migrations** | 040 (latest: calm_theme) — 001-040 applied to Neon |
+| **Migrations** | 041 (latest: in_app_notifications) — 001-040 applied to Neon; 041 pending |
 | **TypeScript** | compiles clean (zero errors) |
 | **Tests** | 9 suites, 123 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 45 (Mar 1, 2026) |
+| **Last session** | 47 (Mar 1, 2026) |
 
 ## Notion Database IDs
 
@@ -177,6 +177,16 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ Layout metadata: manifest link, apple-web-app-capable, theme-color
 - ✅ Wired into Providers → renders on all pages
 
+### In-App Notification Center (session 47 — Phase 2)
+- ✅ Migration 041: `in_app_notifications` table with partial indexes (unread, dedup by user+event_type+href)
+- ✅ Query layer: getUserNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead, createInAppNotification (with ON CONFLICT dedup), purgeOldNotifications
+- ✅ Types: `NotificationEventType` union — gallery_approved, gallery_rejected, invite_accepted, pack_granted, progress_milestone, co_play_invite, org_joined, system
+- ✅ API routes: `GET /api/notifications/in-app` (list + countOnly polling), `POST` (mark-all-read), `POST /in-app/[id]/read` (mark single)
+- ✅ `NotificationBell` component: bell icon with badge, 60s unread-count polling, dropdown with emoji icons per event type, time-ago timestamps, mark-read on click
+- ✅ Wired into nav-bar.tsx (desktop + mobile dropdown) between authed links and auth action
+- ✅ Emitters: gallery approve/reject (`gallery.ts`), invite acceptance + pack grants (`invites.ts`), org auto-join (`organisations.ts`)
+- ✅ CSS: dropdown with slide-in animation, responsive (full-width on mobile), unread dot indicator, brand-consistent colors
+
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)
 - Q2: R2 bucket — DECIDED: one bucket, folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`)
@@ -209,6 +219,7 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 | 038 | user-entitlements | `user_id` on entitlements (dual-scope), `invite_packs` table, `member_cap` on organisations |
 | 039 | accessibility-prefs | `reduce_motion`, `dyslexia_font` BOOLEAN columns on users |
 | 040 | calm-theme | `calm_theme BOOLEAN` on users — low-stimulation dark theme |
+| 041 | in-app-notifications | `in_app_notifications` table — event_type, title, body, href, actor_id, read_at. partial indexes for unread + dedup |
 
 ## Stripe Price IDs (Test Mode)
 

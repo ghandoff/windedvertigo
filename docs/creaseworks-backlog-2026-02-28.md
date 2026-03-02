@@ -122,7 +122,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | P2-3 | **enrich analytics with admin metrics** | ~3 hr | ✅ done | `getAdminAnalytics()` with 5 SQL queries: user growth, conversion funnel, pack adoption, credit economy, platform overview. new chart components: FunnelChart, PackAdoptionChart. fixed `source` → `purchase_id` bug. |
 | P2-6 | **set Vercel env vars for CMS pages** | ~10 min | 🟡 manual | `NOTION_CMS_PAGE_WE=316e4ee7-4ba4-8181-9935-e6887e8273dd`, `NOTION_CMS_PAGE_DO=316e4ee7-4ba4-81b1-a34c-da9a4b8e1016`. add via Vercel dashboard → creaseworks → Settings → Environment Variables. |
 | P2-2 | **server-side playdate search API** | ~2 hr | ✅ done | `lib/queries/search.ts` — ILIKE across title, headline, rails_sentence, material titles with ranked deduplication. `GET /api/search?q=...` endpoint (auth, 2-100 chars). `playbook-search.tsx` — debounced (300ms) fetch with AbortController, shows playdate results above collection grid with match-field badges. |
-| P2-4 | **notification center** | ~4 hr | 🟡 ready | bell icon, digest of new playdates/campaigns/co-play invites |
+| P2-4 | **notification center** | ~4 hr | ✅ done | migration 041: `in_app_notifications` table with partial indexes (unread, dedup). query layer: getUserNotifications, getUnreadCount, markRead/markAllRead, createInAppNotification (dedup via UNIQUE index). API: `GET /api/notifications/in-app` (list + countOnly polling), `POST` (mark-all-read), `POST /[id]/read`. bell icon in nav bar with badge (60s polling), dropdown with unread dots + time-ago. emitters: gallery approve/reject, invite accepted (notifies inviter + invitee), pack grants, org auto-join. |
 | P2-5 | **PWA / mobile install** | ~2 hr | ✅ done | manifest.json with basePath-aware scope. service worker: cache-first statics, network-first navigation, offline fallback. PwaInstall component with beforeinstallprompt capture + iOS manual instructions. icons from square "W" mark (512, 192, 180). CSP worker-src, apple-web-app-capable, 14-day dismiss cooldown. |
 | P2-7 | **test coverage expansion** | ~6 hr | ✅ done (phase 1) | 5 → 9 suites, 53 → 123 tests. added: entitlements (19), credits (20), search (11), auth guards (20). mock sql.query() pattern. remaining: API route tests, matcher orchestrator, gallery/evidence queries. |
 
@@ -143,11 +143,11 @@ verified session 35: all engagement features are fully wired into user flows.
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
 | Tests | 9 suites, 123 tests, all passing |
-| Migrations | 040 (all applied to Neon) |
+| Migrations | 041 (040 applied to Neon; 041 pending) |
 | Smoke test | 28/29 pass |
 | Source files | ~297 (.ts + .tsx) |
 | Features A–Y | all implemented |
-| Phase 2 | P2-1 + P2-2 + P2-3 + P2-7 complete (analytics, search, tests), P2-6 pending (env vars) |
+| Phase 2 | P2-1 + P2-2 + P2-3 + P2-4 + P2-5 + P2-7 complete; P2-6 pending (env vars) |
 | Engagement system | fully wired — credits, photo consent, redemption, pack finder all live |
 | Material emoji CMS | Notion-managed via `emoji` rich_text property, hard-coded map as fallback |
 
