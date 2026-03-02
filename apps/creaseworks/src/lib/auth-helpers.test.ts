@@ -9,8 +9,10 @@
 
 import { describe, it, expect, vi } from "vitest";
 
-// Mock the auth module before importing auth-helpers
-vi.mock("./auth", () => ({
+// Mock the auth module before importing auth-helpers.
+// Must use the same specifier that auth-helpers.ts uses ("@/lib/auth"),
+// not the relative path ("./auth"), otherwise vitest won't intercept it.
+vi.mock("@/lib/auth", () => ({
   auth: vi.fn(),
 }));
 
