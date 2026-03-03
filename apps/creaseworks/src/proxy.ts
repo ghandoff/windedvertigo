@@ -7,8 +7,10 @@
  * longer applies. We still use getToken from next-auth/jwt for
  * lightweight JWT verification.
  *
- * Public routes: /, /sampler/*, /matcher/*, /packs (catalogue only), /login, /api/auth/*, /api/cron/*, /api/matcher/*
- * Protected routes: /packs/[slug]/*, /runs/*, /admin/*, /api/admin/*
+ * Public routes: /, /matcher/*, /play/*, /log/*, /community/*, /gallery/*,
+ *   /sampler/*, /packs (catalogue only), /login, /onboarding,
+ *   /api/auth/*, /api/cron/*, /api/matcher/*, /images/*, /manifest.json
+ * Protected routes: /packs/[slug]/*, /runs/*, /admin/*, /api/admin/*, /profile/*
  *
  * Rate limiting: Postgres-backed sliding window counter on /api/* routes.
  *   - Authenticated: 60 requests/min
@@ -52,13 +54,21 @@ function getRateLimitKey(req: NextRequest, isAuthed: boolean): string {
 /*  route protection                                                   */
 /* ------------------------------------------------------------------ */
 
-// Routes that don't require authentication
+// Routes that don't require authentication.
+// Pages use getSession() (returns null for anon) rather than requireAuth()
+// (which redirects). The proxy must also allow them through so the page
+// can render its public content.
 const publicPatterns = [
   /^\/$/,
   /^\/sampler(\/.*)?$/,
-  /^\/matcher(\/.*)?$/,     // matcher is public (entitled fields gated server-side)
+  /^\/matcher(\/.*)?$/,     // find — matcher is public (entitled fields gated server-side)
+  /^\/play(\/.*)?$/,        // fold — merged playbook/sampler; sampler section is public
+  /^\/log(\/.*)?$/,         // unfold — merged reflections/gallery; gallery section is public
+  /^\/community(\/.*)?$/,   // find again — leaderboard is public (opt-in data only)
+  /^\/gallery(\/.*)?$/,     // standalone gallery — approved community evidence
   /^\/packs\/?$/,           // packs catalogue is public; /packs/[slug]/* requires auth
   /^\/login$/,
+  /^\/onboarding$/,         // onboarding wizard (session-aware, handles own auth)
   /^\/api\/auth(\/.*)?$/,
   /^\/api\/cron(\/.*)?$/,
   /^\/api\/matcher(\/.*)?$/,
@@ -68,6 +78,8 @@ const publicPatterns = [
   /^\/checkout\/success$/,     // Stripe redirects here after payment
   /^\/_next(\/.*)?$/,
   /^\/favicon\.ico$/,
+  /^\/images(\/.*)?$/,       // static images (logo, icons)
+  /^\/manifest\.json$/,      // PWA manifest
 ];
 
 function isPublicRoute(pathname: string): boolean {
