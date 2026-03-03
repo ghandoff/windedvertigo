@@ -82,7 +82,7 @@ export function CardDisplay({ card, isFlipped, currentDepth, onFlip, drawKey }: 
     <div className="card-scene w-full max-w-sm mx-auto animate-draw" key={drawKey}>
       <button
         onClick={onFlip}
-        className="w-full aspect-[3/4] cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--dd-redwood)] rounded-2xl"
+        className="w-full aspect-[5/7] cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--dd-redwood)] rounded-2xl"
         aria-label={isFlipped ? "Hide card" : "Reveal card"}
       >
         <div className={`card-inner ${isFlipped ? "is-flipped" : ""}`}>

@@ -47,6 +47,18 @@
                     {
                                     "source": "/reservoir/deep-deck/:path*",
                                     "destination": "https://deep-deck-ghandoffs-projects.vercel.app/reservoir/deep-deck/:path*"
+                    },
+                    {
+                                    "source": "/reservoir",
+                                    "destination": "https://reservoir-ghandoffs-projects.vercel.app/reservoir"
+                    },
+                    {
+                                    "source": "/reservoir/",
+                                    "destination": "https://reservoir-ghandoffs-projects.vercel.app/reservoir"
+                    },
+                    {
+                                    "source": "/reservoir/:path*",
+                                    "destination": "https://reservoir-ghandoffs-projects.vercel.app/reservoir/:path*"
                     }
         ]
 }
