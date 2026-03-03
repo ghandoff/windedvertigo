@@ -62,12 +62,6 @@ export default function ReservoirPage() {
             <ScrollReveal>
               <div className="scroll-shelf justify-start sm:justify-center">
                 <a
-                  href="#deep-deck"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-sm text-white/80 no-underline whitespace-nowrap"
-                >
-                  <span aria-hidden="true">&#127183;</span> deep.deck
-                </a>
-                <a
                   href="#creaseworks"
                   className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-sm text-white/80 no-underline whitespace-nowrap"
                 >
@@ -78,6 +72,12 @@ export default function ReservoirPage() {
                   className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-sm text-white/80 no-underline whitespace-nowrap"
                 >
                   <span aria-hidden="true">&#9889;</span> vertigo.vault
+                </a>
+                <a
+                  href="#deep-deck"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-sm text-white/80 no-underline whitespace-nowrap"
+                >
+                  <span aria-hidden="true">&#127183;</span> deep.deck
                 </a>
               </div>
             </ScrollReveal>
@@ -103,14 +103,8 @@ export default function ReservoirPage() {
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <a
-                  href="/reservoir/deep-deck"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-accent)] text-white text-sm font-semibold hover:bg-[var(--color-accent-hover)] transition-colors no-underline"
-                >
-                  &#127183; play deep.deck
-                </a>
-                <a
                   href="/reservoir/creaseworks"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 text-white text-sm font-semibold hover:bg-white/15 transition-colors no-underline"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-accent)] text-white text-sm font-semibold hover:bg-[var(--color-accent-hover)] transition-colors no-underline"
                 >
                   &#127912; explore creaseworks
                 </a>
@@ -119,6 +113,12 @@ export default function ReservoirPage() {
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 text-white text-sm font-semibold hover:bg-white/15 transition-colors no-underline"
                 >
                   &#9889; browse vertigo.vault
+                </a>
+                <a
+                  href="/reservoir/deep-deck"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 text-white text-sm font-semibold hover:bg-white/15 transition-colors no-underline"
+                >
+                  &#127183; play deep.deck
                 </a>
               </div>
             </div>

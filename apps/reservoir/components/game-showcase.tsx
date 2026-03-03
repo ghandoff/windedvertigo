@@ -15,24 +15,6 @@ export interface Game {
 
 const GAMES: Game[] = [
   {
-    slug: "deep-deck",
-    name: "deep.deck",
-    tagline: "conversations that connect",
-    description:
-      "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6\u201314 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions.",
-    color: "from-[#273248] to-[#1a2233]",
-    accentColor: "bg-[var(--wv-redwood)]",
-    icon: "\uD83C\uDCCF",
-    features: [
-      "128 developmentally-sequenced cards",
-      "deep \u2192 deeper \u2192 deepest progression",
-      "wild cards that turn hard questions into play",
-      "4 age bands: 6\u20138, 9\u201310, 11\u201312, 13\u201314",
-    ],
-    href: "/reservoir/deep-deck",
-    status: "live",
-  },
-  {
     slug: "creaseworks",
     name: "creaseworks",
     tagline: "co-design playdates",
@@ -68,6 +50,24 @@ const GAMES: Game[] = [
     href: "/reservoir/vertigo-vault",
     status: "live",
   },
+  {
+    slug: "deep-deck",
+    name: "deep.deck",
+    tagline: "conversations that connect",
+    description:
+      "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6\u201314 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions.",
+    color: "from-[#273248] to-[#1a2233]",
+    accentColor: "bg-[var(--wv-redwood)]",
+    icon: "\uD83C\uDCCF",
+    features: [
+      "128 developmentally-sequenced cards",
+      "deep \u2192 deeper \u2192 deepest progression",
+      "wild cards that turn hard questions into play",
+      "4 age bands: 6\u20138, 9\u201310, 11\u201312, 13\u201314",
+    ],
+    href: "/reservoir/deep-deck",
+    status: "live",
+  },
 ];
 
 function GameCard({ game, index }: { game: Game; index: number }) {
@@ -77,12 +77,12 @@ function GameCard({ game, index }: { game: Game; index: number }) {
   return (
     <section
       id={game.slug}
-      className="min-h-[70vh] flex items-center py-16 sm:py-24"
+      className="flex items-center py-10 sm:py-14"
     >
       <div
         className={`w-full max-w-6xl mx-auto px-6 flex flex-col ${
           isEven ? "lg:flex-row" : "lg:flex-row-reverse"
-        } gap-10 lg:gap-16 items-center`}
+        } gap-6 lg:gap-10 items-center`}
       >
         {/* Visual card */}
         <ScrollReveal className="w-full lg:w-5/12 flex-shrink-0">
