@@ -8,7 +8,7 @@ export default function HomePage() {
   const router = useRouter();
 
   function handleSelect(band: AgeBand) {
-    router.push(`/reservoir/deep-deck/play?band=${band}`);
+    router.push(`/play?band=${band}`);
   }
 
   return (

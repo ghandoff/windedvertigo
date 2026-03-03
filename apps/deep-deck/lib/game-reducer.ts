@@ -49,7 +49,9 @@ export function gameReducer(state: GameSession, action: GameAction): GameSession
       }
 
       const nextCard = state.deck[nextIndex];
-      // If next card is a wild card, apply it automatically
+      const currentCard = state.deck[state.currentIndex];
+
+      // If next card is a wild card, store it as the active modifier
       if (nextCard.type === "wild") {
         return {
           ...state,
@@ -61,12 +63,15 @@ export function gameReducer(state: GameSession, action: GameAction): GameSession
         };
       }
 
+      // Keep activeWild if we're advancing FROM a wild card —
+      // the modifier should display as a banner on the next non-wild card.
+      // Otherwise clear it (the modifier has been shown for one card).
       return {
         ...state,
         currentIndex: nextIndex,
         currentDepth: "deep",
         isFlipped: false,
-        activeWild: null,
+        activeWild: currentCard?.type === "wild" ? state.activeWild : null,
         cardsPlayed: state.cardsPlayed + 1,
       };
     }

@@ -54,7 +54,7 @@ function PlayContent() {
   }, [band]);
 
   const handleNewBand = useCallback(() => {
-    router.push("/reservoir/deep-deck");
+    router.push("/");
   }, [router]);
 
   // ── End screen ──
