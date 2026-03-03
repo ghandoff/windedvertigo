@@ -1,0 +1,1033 @@
+import type { ConversationCard, GamificationCard } from "@/lib/types";
+
+// ─── Ages 6–8 (Grades 1-2) ──────────────────────────────────────────────────
+
+export const conversation6to8: ConversationCard[] = [
+  {
+    id: "c-6-01",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "If your feelings were colors today, what colors would they be? Why?",
+      deeper: "Can you think of a time when your colors changed during the day? What happened?",
+      deepest: "If you could paint your whole week in feelings-colors, what would the painting look like?",
+    },
+    tip: "Let them choose colors freely. Ask follow-up questions like \u201CWhat happened that felt blue/yellow?\u201D Normalize all emotions as valid.",
+  },
+  {
+    id: "c-6-02",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "If your day was an animal, what animal would it be? Why?",
+      deeper: "What was the wildest part of your day-animal\u2019s adventure?",
+      deepest: "If your animal could talk to you tonight, what would it say?",
+    },
+    tip: "Let them describe the animal first. Ask: \u201CWhat makes it feel like that animal?\u201D Keep it playful \u2014 no correcting answers.",
+  },
+  {
+    id: "c-6-03",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What is something small that made you smile today?",
+      deeper: "Who was with you when that happened? How did it feel?",
+      deepest: "What\u2019s a small moment you wish you could keep forever?",
+    },
+    tip: "Help them think about small moments. Model your own answer first if needed. Celebrate noticing, not the size of the event.",
+  },
+  {
+    id: "c-6-04",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "When do you feel the bravest?",
+      deeper: "What does brave feel like in your body?",
+      deepest: "Can you think of a time you were brave even when you were scared?",
+    },
+    tip: "Normalize that brave can be small. Ask: \u201CWhat does brave feel like in your body?\u201D Avoid comparing siblings or classmates.",
+  },
+  {
+    id: "c-6-05",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "If your heart had a weather report today, what would it say?",
+      deeper: "Was there a moment when the weather changed? What happened?",
+      deepest: "What kind of weather do you wish your heart had more often?",
+    },
+    tip: "Accept mixed weather (sun + clouds). Avoid fixing the \u201Cstorm.\u201D Validate all feelings.",
+  },
+  {
+    id: "c-6-06",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What is something you\u2019re getting better at?",
+      deeper: "How do you know you\u2019re getting better? What changed?",
+      deepest: "What would it feel like to be really, really good at it someday?",
+    },
+    tip: "Emphasize effort over outcome. Say: \u201CGetting better takes practice.\u201D Keep the tone encouraging, not evaluative.",
+  },
+  {
+    id: "c-6-07",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "When do you feel the happiest during the day? What is happening in that moment?",
+      deeper: "Who is usually there with you when you feel happy?",
+      deepest: "If you could bottle that happy feeling, when would you open it?",
+    },
+    tip: "Ask: \u201CWho is usually there with you?\u201D Mirror their answer: \u201CSo you feel happy when\u2026\u201D No correcting, just validating.",
+  },
+  {
+    id: "c-6-08",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What is something that sometimes feels hard for you? What helps a little?",
+      deeper: "Who do you go to when something feels hard?",
+      deepest: "What would you tell a friend who was going through the same hard thing?",
+    },
+    tip: "Keep the focus on \u201Ca little,\u201D not solving everything. Normalize that everyone has hard things. Avoid rushing to fix.",
+  },
+  {
+    id: "c-6-09",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "Who makes you feel safe? What do they do that helps?",
+      deeper: "What does \u201Csafe\u201D feel like in your body?",
+      deepest: "If you could create the safest place in the world, what would it look like?",
+    },
+    tip: "Reinforce what safety looks like. Avoid comparing relationships. Validate their choice.",
+  },
+  {
+    id: "c-6-10",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What does it feel like in your body when you\u2019re nervous?",
+      deeper: "What helps you feel a little less nervous?",
+      deepest: "If your nervousness was a creature, what would it look like? How would you calm it down?",
+    },
+    tip: "Help name physical sensations. Keep tone calm and curious. Normalize nerves.",
+  },
+  {
+    id: "c-6-11",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "Tell about a time you tried something new. How did it feel?",
+      deeper: "What made you decide to try it?",
+      deepest: "What\u2019s something new you\u2019d like to try next?",
+    },
+    tip: "Celebrate courage, not outcome. Emphasize effort. Avoid judging success.",
+  },
+  {
+    id: "c-6-12",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What is something you\u2019re still learning how to do?",
+      deeper: "What\u2019s the trickiest part about learning it?",
+      deepest: "Who do you wish could help you learn it?",
+    },
+    tip: "Normalize learning as ongoing. Avoid labeling as \u201Cgood\u201D or \u201Cbad.\u201D Encourage curiosity.",
+  },
+  {
+    id: "c-6-13",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What is something you\u2019re really proud of about yourself?",
+      deeper: "How did you get to be that way?",
+      deepest: "If your best friend described you, what would they say they love most?",
+    },
+    tip: "If they struggle, offer options: \u201CAre you kind? Are you brave? Are you good at building things?\u201D Celebrate without exaggerating. Say: \u201CI see that in you too.\u201D",
+  },
+  {
+    id: "c-6-14",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What makes you feel really important?",
+      deeper: "Who makes you feel the most important?",
+      deepest: "What would you do if you knew you were the most important person in the room?",
+    },
+    tip: "Reinforce healthy sources of worth. Avoid tying importance only to achievement. Reflect their words back.",
+  },
+  {
+    id: "c-6-15",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What is something that hurts your feelings quickly?",
+      deeper: "What do you wish people would do instead?",
+      deepest: "If you could tell someone exactly how it made you feel, what would you say?",
+    },
+    tip: "Keep tone calm and non-defensive. Do not interrogate. Validate before explaining.",
+  },
+  {
+    id: "c-6-16",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "If you could change one thing about your day, what would it be? Why?",
+      deeper: "What would that change make you feel?",
+      deepest: "If you had a magic wand for just one day, what would your perfect day look like?",
+    },
+    tip: "Avoid promising changes. Listen for patterns. Validate feelings even if change isn\u2019t possible.",
+  },
+  {
+    id: "c-6-17",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What is something you\u2019re still trying to understand about the world?",
+      deeper: "What makes it so tricky to understand?",
+      deepest: "If you could ask the universe one question, what would it be?",
+    },
+    tip: "Welcome curiosity. Avoid over-explaining immediately. Sit with their wonder.",
+  },
+  {
+    id: "c-6-18",
+    type: "conversation",
+    ageBand: "6-8",
+    prompts: {
+      deep: "What makes you feel very loved?",
+      deeper: "How do you like to show love to other people?",
+      deepest: "If love was a sound, what would it sound like?",
+    },
+    tip: "Reinforce emotional safety. Avoid comparing family members. Mirror their language.",
+  },
+];
+
+export const gamification6to8: GamificationCard[] = [
+  {
+    id: "g-6-01",
+    type: "gamification",
+    ageBand: "6-8",
+    title: "Emotion Statue",
+    instructions: "Freeze in a pose that matches the emotion the adult calls out.",
+    tip: "Use simple emotions first (happy, shy, sleepy). Switch roles so the child gets to lead. Celebrate their creativity.",
+  },
+  {
+    id: "g-6-02",
+    type: "gamification",
+    ageBand: "6-8",
+    title: "Freeze Dance Feelings",
+    instructions: "Dance freely. When the music stops, freeze in the emotion called out.",
+    tip: "Use exaggerated poses. Avoid correcting how emotions \u201Cshould\u201D look. Celebrate creativity.",
+  },
+  {
+    id: "g-6-03",
+    type: "gamification",
+    ageBand: "6-8",
+    title: "Magic Mirror",
+    instructions: "One person moves slowly while the other mirrors exactly.",
+    tip: "Switch roles often. Encourage eye contact. Keep movements slow for focus.",
+  },
+  {
+    id: "g-6-04",
+    type: "gamification",
+    ageBand: "6-8",
+    title: "Feelings Charades",
+    instructions: "Act an emotion silently while others guess.",
+    tip: "No \u201Cwrong\u201D guesses. Keep turns short. Rotate quickly to maintain energy.",
+  },
+  {
+    id: "g-6-05",
+    type: "gamification",
+    ageBand: "6-8",
+    title: "Color Corners",
+    instructions: "Each corner represents a feeling. Run to the one that matches how you feel.",
+    tip: "Remind them they can change corners. No questioning their choice. Keep it active.",
+  },
+  {
+    id: "g-6-06",
+    type: "gamification",
+    ageBand: "6-8",
+    title: "Shape Maker",
+    instructions: "Adult calls a shape (star, ball, tall tree). Make it with your body.",
+    tip: "Encourage full-body movement. No \u201Cwrong\u201D shapes. Add teamwork version (make a shape together).",
+  },
+];
+
+// ─── Ages 9–10 (Grades 3-4) ─────────────────────────────────────────────────
+
+export const conversation9to10: ConversationCard[] = [
+  {
+    id: "c-9-01",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "If today had a title like a movie, what would it be?",
+      deeper: "What was the most important scene in your movie today?",
+      deepest: "If you could rewrite the ending of today\u2019s movie, what would you change?",
+    },
+    tip: "Ask gently: \u201CWhy that title?\u201D Follow with: \u201CWhat was the most important scene?\u201D Model first if needed by sharing your own movie title.",
+  },
+  {
+    id: "c-9-02",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What part of your day usually feels the most interesting? Why?",
+      deeper: "What makes that part different from the rest?",
+      deepest: "If you could make every part of your day feel like that, what would change?",
+    },
+    tip: "Ask follow-up: \u201CWhat makes it interesting?\u201D Encourage detail. Avoid judging their interests.",
+  },
+  {
+    id: "c-9-03",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "When do you feel the most confident?",
+      deeper: "What helped you build that confidence?",
+      deepest: "What\u2019s something you wish you felt more confident about?",
+    },
+    tip: "Help them define confidence. Reflect specific strengths. Avoid comparison to others.",
+  },
+  {
+    id: "c-9-04",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What kind of friend do you try to be?",
+      deeper: "What\u2019s the hardest part about being that kind of friend?",
+      deepest: "Has there been a time when being a good friend felt really hard?",
+    },
+    tip: "Focus on values, not popularity. Ask for examples. Reinforce positive traits.",
+  },
+  {
+    id: "c-9-05",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What is something that makes school easier for you?",
+      deeper: "Is there something that makes school harder that you wish was different?",
+      deepest: "If you could redesign school to fit you perfectly, what would it look like?",
+    },
+    tip: "Listen for supports and strengths. Avoid turning it into performance talk. Validate effort.",
+  },
+  {
+    id: "c-9-06",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What is something you enjoy learning about? Why?",
+      deeper: "How did you first get interested in that?",
+      deepest: "If you could spend a whole day learning about anything, what would you choose?",
+    },
+    tip: "Encourage curiosity. Avoid ranking subjects. Ask follow-up questions.",
+  },
+  {
+    id: "c-9-07",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What is something new you learned about yourself this week?",
+      deeper: "What surprised you about that discovery?",
+      deepest: "How do you think that will change how you see yourself?",
+    },
+    tip: "Offer examples if they get stuck (school, friendships, hobbies). Encourage a \u201CWhy do you think that?\u201D moment. Keep tone light, not evaluative.",
+  },
+  {
+    id: "c-9-08",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What is something you wish people understood about you?",
+      deeper: "What would change if they understood that?",
+      deepest: "Is there something about you that feels hard to explain to others?",
+    },
+    tip: "Listen without correcting. Reflect back what you hear. Avoid defending others.",
+  },
+  {
+    id: "c-9-09",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What kind of situations make you nervous? Why?",
+      deeper: "What\u2019s the worst part about feeling nervous?",
+      deepest: "What would you tell yourself right before a nervous moment?",
+    },
+    tip: "Normalize nerves. Share a small example of your own. Emphasize courage.",
+  },
+  {
+    id: "c-9-10",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What is something you try hard at, even if it\u2019s difficult?",
+      deeper: "What keeps you going when it gets really hard?",
+      deepest: "What would it mean to you if you finally got it right?",
+    },
+    tip: "Celebrate effort. Avoid performance pressure. Say: \u201CTrying counts.\u201D",
+  },
+  {
+    id: "c-9-11",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What is something you wish you were better at?",
+      deeper: "What small step could help you get better?",
+      deepest: "If you could fast-forward and already be great at it, would you? Or would you want to learn the hard way?",
+    },
+    tip: "Emphasize growth, not deficiency. Ask: \u201CWhat small step could help?\u201D Avoid comparison.",
+  },
+  {
+    id: "c-9-12",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What makes someone feel like a safe friend to you?",
+      deeper: "Has a friend ever made you feel unsafe? What happened?",
+      deepest: "What would you tell someone about how to be a truly safe friend?",
+    },
+    tip: "Focus on values (kindness, honesty). Reinforce healthy boundaries. Avoid judging specific names.",
+  },
+  {
+    id: "c-9-13",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What is something you want to get better at, and why is it important to you?",
+      deeper: "What\u2019s one tiny step you could try this week?",
+      deepest: "How will you feel when you\u2019ve made real progress?",
+    },
+    tip: "Emphasize: \u201CGetting better doesn\u2019t mean you\u2019re not good already.\u201D Celebrate intention, not outcome.",
+  },
+  {
+    id: "c-9-14",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What do you love most about being part of your family?",
+      deeper: "What\u2019s something that feels good or special at home?",
+      deepest: "If you could add one new tradition to your family, what would it be?",
+    },
+    tip: "Avoid comparing families. If the child struggles, gently ask: \u201CWhat\u2019s something that feels good or special at home?\u201D Don\u2019t force positivity \u2014 allow honesty while staying supportive.",
+  },
+  {
+    id: "c-9-15",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What kind of person do you want to be, even when no one is watching?",
+      deeper: "What makes that hard sometimes?",
+      deepest: "Is there a moment when you were exactly that person? What happened?",
+    },
+    tip: "Focus on character (kind, brave, honest). Avoid perfection language. Reinforce: \u201CYou\u2019re already becoming that.\u201D",
+  },
+  {
+    id: "c-9-16",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What is a value that feels important in your life? (Kindness, fairness, loyalty, effort, honesty?)",
+      deeper: "When was the last time you lived that value?",
+      deepest: "Has anyone ever tested that value for you? What happened?",
+    },
+    tip: "Give examples if needed. Ask why it matters. Connect values to actions.",
+  },
+  {
+    id: "c-9-17",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What do you want people to remember about you?",
+      deeper: "Is there something you do that shows people that side of you?",
+      deepest: "If people could only remember one thing about you, what should it be?",
+    },
+    tip: "Keep tone warm, not heavy. Focus on qualities, not achievements. Avoid pressure.",
+  },
+  {
+    id: "c-9-18",
+    type: "conversation",
+    ageBand: "9-10",
+    prompts: {
+      deep: "What helps you stay calm when things feel unfair?",
+      deeper: "What makes unfairness so hard to deal with?",
+      deepest: "If you could change one unfair thing in the world, what would it be?",
+    },
+    tip: "Normalize frustration. Explore coping tools. Reinforce emotional regulation.",
+  },
+];
+
+export const gamification9to10: GamificationCard[] = [
+  {
+    id: "g-9-01",
+    type: "gamification",
+    ageBand: "9-10",
+    title: "Tiny Challenge Trade",
+    instructions: "You each create one tiny challenge. Swap them and try to complete them within the next hour.",
+    tip: "Keep challenges fun and light. After you complete them, share: \u201CWhat was the best part of doing your challenge?\u201D",
+  },
+  {
+    id: "g-9-02",
+    type: "gamification",
+    ageBand: "9-10",
+    title: "Team Tower",
+    instructions: "Using simple materials, build the tallest tower in 3 minutes.",
+    tip: "Focus on teamwork, not winning. Rotate who leads. Ask: \u201CWhat worked well?\u201D",
+  },
+  {
+    id: "g-9-03",
+    type: "gamification",
+    ageBand: "9-10",
+    title: "3-Step Challenge",
+    instructions: "Complete a small 3-step task together under a timer.",
+    tip: "Keep it achievable. Focus on cooperation. Celebrate effort.",
+  },
+  {
+    id: "g-9-04",
+    type: "gamification",
+    ageBand: "9-10",
+    title: "Mystery Leader",
+    instructions: "One person secretly leads small movements. The group copies. One detective tries to guess the leader.",
+    tip: "Switch roles often. Keep movements subtle. No blaming wrong guesses.",
+  },
+  {
+    id: "g-9-05",
+    type: "gamification",
+    ageBand: "9-10",
+    title: "Fast Finish Story",
+    instructions: "Each person adds ONE word to a story, must continue immediately.",
+    tip: "Keep it moving fast. No correcting words. Embrace silly twists.",
+  },
+  {
+    id: "g-9-06",
+    type: "gamification",
+    ageBand: "9-10",
+    title: "Bluff It!",
+    instructions: "One player shares three short \u201Cfacts\u201D about a made-up character. Two are true, one is fake. Others guess the fake.",
+    tip: "Keep it fictional to avoid personal pressure. Encourage creativity, not trickery. Rotate quickly.",
+  },
+];
+
+// ─── Ages 11–12 (Grades 5-6) ────────────────────────────────────────────────
+
+export const conversation11to12: ConversationCard[] = [
+  {
+    id: "c-11-01",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What kind of energy did you bring into today?",
+      deeper: "What do you think influenced that energy?",
+      deepest: "What kind of energy do you wish you could bring into every day?",
+    },
+    tip: "Ask: \u201CWhat makes you say that?\u201D Help them name it if needed (calm, focused, distracted, excited). Avoid labeling their energy as good or bad.",
+  },
+  {
+    id: "c-11-02",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What kind of mood did you wake up with today?",
+      deeper: "What do you think influenced that mood?",
+      deepest: "Do you think you can change your mood, or does it just happen to you?",
+    },
+    tip: "Ask: \u201CWhat do you think influenced that?\u201D Avoid labeling the mood as good or bad. Keep tone neutral.",
+  },
+  {
+    id: "c-11-03",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What kind of energy do you usually bring into a group?",
+      deeper: "Is that the energy you want to bring, or does it just happen?",
+      deepest: "If you could change one thing about how you show up in groups, what would it be?",
+    },
+    tip: "Help them name traits (leader, listener, joker). Avoid evaluation. Reflect strengths.",
+  },
+  {
+    id: "c-11-04",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What part of your day feels the most \u201Cyou\u201D?",
+      deeper: "What makes that part feel so authentic?",
+      deepest: "Are there moments when you feel like you\u2019re not being yourself? What causes that?",
+    },
+    tip: "Encourage examples. Affirm authenticity. Avoid shaping their answer.",
+  },
+  {
+    id: "c-11-05",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What\u2019s something small that improves your mood?",
+      deeper: "Why do you think that works for you?",
+      deepest: "What\u2019s something that used to make you happy but doesn\u2019t anymore?",
+    },
+    tip: "Normalize emotional shifts. Avoid minimizing their response. Stay reflective.",
+  },
+  {
+    id: "c-11-06",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What kind of challenges feel interesting to you?",
+      deeper: "What makes a challenge interesting vs. just hard?",
+      deepest: "What\u2019s the hardest thing you\u2019ve ever chosen to do on purpose?",
+    },
+    tip: "Focus on growth. Avoid pressure. Ask why they like those challenges.",
+  },
+  {
+    id: "c-11-07",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What\u2019s something people sometimes misunderstand about you?",
+      deeper: "What would you want them to understand instead?",
+      deepest: "Do you think people can ever really fully understand each other?",
+    },
+    tip: "Listen without interrupting. Avoid defending other people immediately. Validate first: \u201CI can see how that would feel frustrating.\u201D",
+  },
+  {
+    id: "c-11-08",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What\u2019s a belief you\u2019ve started questioning lately?",
+      deeper: "What made you start questioning it?",
+      deepest: "What would it mean for you if that belief turned out to be wrong?",
+    },
+    tip: "Stay open, not defensive. Avoid correcting their thinking. Ask: \u201CWhat made you start questioning it?\u201D",
+  },
+  {
+    id: "c-11-09",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What does respect mean to you?",
+      deeper: "How do you show respect, and how do you want to receive it?",
+      deepest: "Has there been a time when you felt truly respected? What made it feel real?",
+    },
+    tip: "Ask for examples. Avoid turning it into a rule discussion. Explore how they show respect.",
+  },
+  {
+    id: "c-11-10",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "When do you feel misunderstood by people your age?",
+      deeper: "What do you wish they could see about you?",
+      deepest: "Is there something about yourself that feels hard to explain to anyone?",
+    },
+    tip: "Avoid jumping to solutions. Reflect emotion before logic. Keep tone calm.",
+  },
+  {
+    id: "c-11-11",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What is something about growing up that feels exciting, and something that feels confusing?",
+      deeper: "Which feeling is stronger right now \u2014 excitement or confusion?",
+      deepest: "If you could talk to your future self about growing up, what would you ask them?",
+    },
+    tip: "Allow both sides equally. Avoid dismissing confusion. Normalize mixed feelings.",
+  },
+  {
+    id: "c-11-12",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What\u2019s something you\u2019ve handled better this year than you would have before?",
+      deeper: "What changed that helped you handle it better?",
+      deepest: "What does that growth tell you about who you\u2019re becoming?",
+    },
+    tip: "Highlight growth. Avoid performance comparison. Celebrate progress.",
+  },
+  {
+    id: "c-11-13",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "When do you feel most like yourself? What are you doing, and who are you with?",
+      deeper: "What about that moment makes you feel authentic?",
+      deepest: "Is there a version of yourself you only show to certain people? Why?",
+    },
+    tip: "Accept all answers without correcting. Use \u201CTell me more about that\u2026\u201D Look for clues about belonging + confidence.",
+  },
+  {
+    id: "c-11-14",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What kind of pressure do people your age feel that adults might not see?",
+      deeper: "Do you feel that pressure yourself?",
+      deepest: "If you could say one thing to all the adults in your life about pressure, what would it be?",
+    },
+    tip: "Listen without minimizing. Avoid saying \u201CIt gets worse later.\u201D Validate their reality.",
+  },
+  {
+    id: "c-11-15",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "If someone described you honestly, what would you hope they say?",
+      deeper: "Is that how you see yourself too?",
+      deepest: "What\u2019s the gap between how others see you and how you see yourself?",
+    },
+    tip: "Focus on character traits. Avoid outcome-based identity. Reflect back strengths.",
+  },
+  {
+    id: "c-11-16",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What do you think makes someone trustworthy?",
+      deeper: "How do you decide if you can trust someone?",
+      deepest: "Has trust ever been broken for you? How did it feel?",
+    },
+    tip: "Encourage critical thinking. Ask for examples. Avoid lecturing.",
+  },
+  {
+    id: "c-11-17",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What is something you\u2019re still figuring out about yourself?",
+      deeper: "What makes it hard to figure out?",
+      deepest: "What would it feel like to have it all figured out? Would that even be a good thing?",
+    },
+    tip: "Normalize that identity takes time. Avoid trying to define them. Say: \u201CIt\u2019s okay not to have it all figured out.\u201D",
+  },
+  {
+    id: "c-11-18",
+    type: "conversation",
+    ageBand: "11-12",
+    prompts: {
+      deep: "What kind of person do you admire, and why?",
+      deeper: "What traits of theirs do you see in yourself?",
+      deepest: "What would it take for you to become someone others admire?",
+    },
+    tip: "Focus on qualities, not status. Ask what traits stand out. Avoid comparing them to that person.",
+  },
+];
+
+export const gamification11to12: GamificationCard[] = [
+  {
+    id: "g-11-01",
+    type: "gamification",
+    ageBand: "11-12",
+    title: "Two Truths & a Boost",
+    instructions: "Say two true facts about yourself + one thing you want to improve. Guess the boost.",
+    tip: "Keep it positive (no \u201CI\u2019m bad at\u2026\u201D). Adult models vulnerability first. End by choosing one tiny \u201Cboost\u201D action for the week.",
+  },
+  {
+    id: "g-11-02",
+    type: "gamification",
+    ageBand: "11-12",
+    title: "Bluff Master",
+    instructions: "Tell a short story with one tiny fake detail. Others must detect the fake.",
+    tip: "Keep stories appropriate. No embarrassing content. Rotate quickly.",
+  },
+  {
+    id: "g-11-03",
+    type: "gamification",
+    ageBand: "11-12",
+    title: "Energy Remix",
+    instructions: "One person starts a movement pattern. Each person adds a twist to it.",
+    tip: "Keep it creative, not chaotic. Encourage originality. Switch leaders often.",
+  },
+  {
+    id: "g-11-04",
+    type: "gamification",
+    ageBand: "11-12",
+    title: "Rapid Fire Choices",
+    instructions: "Answer quick \u201CThis or That\u201D questions under 3 seconds.",
+    tip: "Keep pace fast. No judging answers. Encourage instinct responses.",
+  },
+  {
+    id: "g-11-05",
+    type: "gamification",
+    ageBand: "11-12",
+    title: "Build the Impossible",
+    instructions: "Create something unusual (a bridge for a shoe, a paper tower for 10 seconds).",
+    tip: "Keep materials simple. Focus on creativity. Celebrate attempts.",
+  },
+  {
+    id: "g-11-06",
+    type: "gamification",
+    ageBand: "11-12",
+    title: "Mini Shark Tank",
+    instructions: "Pitch a silly invention in 60 seconds.",
+    tip: "Keep ideas imaginative. Applaud creativity. No harsh criticism.",
+  },
+];
+
+// ─── Ages 13–14 (Grades 7-8) ────────────────────────────────────────────────
+
+export const conversation13to14: ConversationCard[] = [
+  {
+    id: "c-13-01",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What kind of mood has this week had for you?",
+      deeper: "What made it feel that way?",
+      deepest: "If you could change the mood of your week, what would you change it to and why?",
+    },
+    tip: "Ask: \u201CWhat made it feel that way?\u201D Avoid jumping into fixing mode. Accept short answers, teens test safety first.",
+  },
+  {
+    id: "c-13-02",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What kind of conversations do you enjoy the most?",
+      deeper: "What makes those conversations feel good?",
+      deepest: "Is there a conversation you\u2019ve been wanting to have but haven\u2019t yet?",
+    },
+    tip: "Notice depth vs humor vs ideas. Don\u2019t judge their preference. Follow their interests.",
+  },
+  {
+    id: "c-13-03",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "When do you feel the most motivated?",
+      deeper: "What drives that motivation?",
+      deepest: "When motivation disappears, what do you fall back on?",
+    },
+    tip: "Ask what drives that motivation. Avoid performance pressure. Stay curious.",
+  },
+  {
+    id: "c-13-04",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What kind of challenges feel worth your effort right now?",
+      deeper: "How do you decide what\u2019s worth your effort?",
+      deepest: "Is there something you\u2019ve given up on that you wish you hadn\u2019t?",
+    },
+    tip: "Explore values behind effort. Avoid minimizing their choices. Validate priorities.",
+  },
+  {
+    id: "c-13-05",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What\u2019s something you wish you had more time for?",
+      deeper: "Why does it matter to you?",
+      deepest: "What would your life look like if you had all the time in the world?",
+    },
+    tip: "Avoid turning it into productivity advice. Explore why it matters. Respect autonomy.",
+  },
+  {
+    id: "c-13-06",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What kind of influence do you think social media has on people your age?",
+      deeper: "How does it affect you personally?",
+      deepest: "If social media disappeared tomorrow, what would change for you?",
+    },
+    tip: "Keep tone open and non-judgmental. Avoid lecturing. Ask for their reasoning.",
+  },
+  {
+    id: "c-13-07",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What\u2019s something you care about that you don\u2019t talk about much?",
+      deeper: "Why don\u2019t you talk about it?",
+      deepest: "What would happen if you started sharing that part of yourself?",
+    },
+    tip: "Let them decide how much to reveal. Say: \u201CYou don\u2019t have to share details if you don\u2019t want to.\u201D Listen fully before responding.",
+  },
+  {
+    id: "c-13-08",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "When do you feel pressure to be someone you\u2019re not?",
+      deeper: "What makes that pressure so hard to resist?",
+      deepest: "What would happen if you stopped pretending?",
+    },
+    tip: "Stay calm and neutral. Avoid immediately criticizing peers. Ask: \u201CWhat makes it feel that way?\u201D",
+  },
+  {
+    id: "c-13-09",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What\u2019s something people assume about you that isn\u2019t fully true?",
+      deeper: "What do you wish people saw instead?",
+      deepest: "Do you ever play into those assumptions? Why?",
+    },
+    tip: "Listen without defending others. Reflect emotion first. Ask what they wish people saw instead.",
+  },
+  {
+    id: "c-13-10",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What\u2019s something you\u2019ve outgrown recently?",
+      deeper: "How did it feel to let go of that?",
+      deepest: "What are you growing into that feels new or unfamiliar?",
+    },
+    tip: "Keep tone reflective, not nostalgic. Avoid mocking what they used to like. Affirm growth.",
+  },
+  {
+    id: "c-13-11",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "How do you know when someone truly understands you?",
+      deeper: "What specific things do they do that show understanding?",
+      deepest: "Is there someone who understands you better than anyone else? What makes them different?",
+    },
+    tip: "Ask for specific behaviors. Avoid assuming your role in the answer. Reinforce healthy communication.",
+  },
+  {
+    id: "c-13-12",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "When do you feel torn between what you want and what others expect?",
+      deeper: "How do you decide which side wins?",
+      deepest: "Have you ever chosen what you wanted over what was expected? What happened?",
+    },
+    tip: "Validate internal conflict. Avoid choosing sides for them. Encourage balanced thinking.",
+  },
+  {
+    id: "c-13-13",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What\u2019s something you wish adults understood better about your life right now?",
+      deeper: "What would change if they truly understood?",
+      deepest: "Is there something you\u2019ve stopped trying to explain to adults? Why?",
+    },
+    tip: "Listen without interrupting. Validate before offering advice. Repeat back what you heard to show understanding.",
+  },
+  {
+    id: "c-13-14",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What kind of person are you trying not to become?",
+      deeper: "What values guide that decision?",
+      deepest: "Is there a moment when you caught yourself becoming that person? What did you do?",
+    },
+    tip: "Stay calm and non-judgmental. Avoid turning it into criticism of others. Ask what values guide that answer.",
+  },
+  {
+    id: "c-13-15",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What feels most true about you right now?",
+      deeper: "Has what feels true about you changed recently?",
+      deepest: "What\u2019s something that\u2019s becoming more true about you every day?",
+    },
+    tip: "Encourage clarity, not perfection. Avoid correcting their self-description. Reflect confidence back.",
+  },
+  {
+    id: "c-13-16",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "When do you feel the most conflicted inside?",
+      deeper: "What helps you think through that conflict?",
+      deepest: "Do you think inner conflict is a sign of weakness, or a sign of growth?",
+    },
+    tip: "Normalize inner tension. Avoid solving immediately. Ask what helps them think it through.",
+  },
+  {
+    id: "c-13-17",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What is something you believe about yourself that you\u2019re still testing?",
+      deeper: "What would prove it true?",
+      deepest: "What would it mean if that belief turned out to be wrong?",
+    },
+    tip: "Encourage growth mindset. Avoid labeling. Stay curious.",
+  },
+  {
+    id: "c-13-18",
+    type: "conversation",
+    ageBand: "13-14",
+    prompts: {
+      deep: "What part of growing up feels hardest for you right now?",
+      deeper: "Who do you talk to about the hard parts?",
+      deepest: "What would you tell a younger kid about the part of growing up that nobody warned you about?",
+    },
+    tip: "Listen fully. Avoid minimizing. Validate before advising.",
+  },
+];
+
+export const gamification13to14: GamificationCard[] = [
+  {
+    id: "g-13-01",
+    type: "gamification",
+    ageBand: "13-14",
+    title: "Debate in 60 Seconds",
+    instructions: "Pick a fun topic. You each have 30 seconds to defend a side, then switch sides.",
+    tip: "Choose harmless topics (\u201CIs cereal a soup?\u201D). Encourage humor and creativity. Celebrate good arguments, not winning.",
+  },
+  {
+    id: "g-13-02",
+    type: "gamification",
+    ageBand: "13-14",
+    title: "Social Strategy",
+    instructions: "Given a scenario (group project conflict), plan the smartest way to handle it.",
+    tip: "Encourage emotional intelligence. Highlight communication skills. Debrief choices.",
+  },
+  {
+    id: "g-13-03",
+    type: "gamification",
+    ageBand: "13-14",
+    title: "60-Second Origin Story",
+    instructions: "Create a short origin story for yourself like a movie character.",
+    tip: "Keep it creative, not personal trauma. Celebrate imagination. Allow humor.",
+  },
+  {
+    id: "g-13-04",
+    type: "gamification",
+    ageBand: "13-14",
+    title: "The Redesign",
+    instructions: "Redesign one everyday system (home rules, classroom seating, lunch line).",
+    tip: "Focus on solutions, not criticism. Ask for reasoning. Keep it constructive.",
+  },
+  {
+    id: "g-13-05",
+    type: "gamification",
+    ageBand: "13-14",
+    title: "Future Headline",
+    instructions: "Write a headline about yourself 5 years from now.",
+    tip: "Keep tone aspirational. No pressure about careers. Celebrate vision.",
+  },
+  {
+    id: "g-13-06",
+    type: "gamification",
+    ageBand: "13-14",
+    title: "Silent Line-Up",
+    instructions: "Without talking, line up by: birth month, height, favorite subject, wake-up time.",
+    tip: "Encourage creative communication. Debrief teamwork strategy. Keep it moving.",
+  },
+];
+
+// ─── All cards by age band ───────────────────────────────────────────────────
+
+export const allConversationCards: ConversationCard[] = [
+  ...conversation6to8,
+  ...conversation9to10,
+  ...conversation11to12,
+  ...conversation13to14,
+];
+
+export const allGamificationCards: GamificationCard[] = [
+  ...gamification6to8,
+  ...gamification9to10,
+  ...gamification11to12,
+  ...gamification13to14,
+];

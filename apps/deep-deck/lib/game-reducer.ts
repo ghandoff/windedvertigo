@@ -1,0 +1,119 @@
+import type { AgeBand, Card, DepthLevel, GameSession, WildCard } from "./types";
+import { buildDeck, shuffle } from "./deck";
+
+export type GameAction =
+  | { type: "START_GAME"; ageBand: AgeBand }
+  | { type: "FLIP_CARD" }
+  | { type: "DRAW_NEXT" }
+  | { type: "SET_DEPTH"; depth: DepthLevel }
+  | { type: "APPLY_WILD"; wild: WildCard }
+  | { type: "CLEAR_WILD" }
+  | { type: "SHUFFLE_REMAINING" }
+  | { type: "END_GAME" };
+
+export const initialState: GameSession = {
+  phase: "picking",
+  ageBand: "6-8",
+  deck: [],
+  currentIndex: 0,
+  currentDepth: "deep",
+  isFlipped: false,
+  activeWild: null,
+  cardsPlayed: 0,
+};
+
+export function gameReducer(state: GameSession, action: GameAction): GameSession {
+  switch (action.type) {
+    case "START_GAME": {
+      const deck = buildDeck(action.ageBand);
+      return {
+        ...initialState,
+        phase: "playing",
+        ageBand: action.ageBand,
+        deck,
+        currentIndex: 0,
+        isFlipped: false,
+      };
+    }
+
+    case "FLIP_CARD":
+      return {
+        ...state,
+        isFlipped: !state.isFlipped,
+      };
+
+    case "DRAW_NEXT": {
+      const nextIndex = state.currentIndex + 1;
+      if (nextIndex >= state.deck.length) {
+        return { ...state, phase: "ended" };
+      }
+
+      const nextCard = state.deck[nextIndex];
+      // If next card is a wild card, apply it automatically
+      if (nextCard.type === "wild") {
+        return {
+          ...state,
+          currentIndex: nextIndex,
+          currentDepth: "deep",
+          isFlipped: false,
+          activeWild: nextCard,
+          cardsPlayed: state.cardsPlayed + 1,
+        };
+      }
+
+      return {
+        ...state,
+        currentIndex: nextIndex,
+        currentDepth: "deep",
+        isFlipped: false,
+        activeWild: null,
+        cardsPlayed: state.cardsPlayed + 1,
+      };
+    }
+
+    case "SET_DEPTH":
+      return {
+        ...state,
+        currentDepth: action.depth,
+      };
+
+    case "APPLY_WILD":
+      return {
+        ...state,
+        activeWild: action.wild,
+      };
+
+    case "CLEAR_WILD":
+      return {
+        ...state,
+        activeWild: null,
+      };
+
+    case "SHUFFLE_REMAINING": {
+      const played = state.deck.slice(0, state.currentIndex + 1);
+      const remaining = state.deck.slice(state.currentIndex + 1);
+      const reshuffled = shuffle(remaining);
+      return {
+        ...state,
+        deck: [...played, ...reshuffled],
+      };
+    }
+
+    case "END_GAME":
+      return {
+        ...state,
+        phase: "ended",
+      };
+
+    default:
+      return state;
+  }
+}
+
+/** Get the current card from the game state. */
+export function getCurrentCard(state: GameSession): Card | null {
+  if (state.phase !== "playing" || state.currentIndex >= state.deck.length) {
+    return null;
+  }
+  return state.deck[state.currentIndex];
+}

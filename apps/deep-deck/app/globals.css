@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand tokens */
+  --dd-cadet: #273248;
+  --dd-redwood: #b15043;
+  --dd-sienna: #cb7858;
+  --dd-champagne: #ffebd2;
+  --dd-champagne-light: #fff5e8;
+
+  /* Card type colors */
+  --dd-conversation: var(--dd-champagne);
+  --dd-gamification: var(--dd-sienna);
+  --dd-wild: var(--dd-redwood);
+
+  /* Depth colors */
+  --dd-deep: #5b8c6b;
+  --dd-deeper: #3d6b8e;
+  --dd-deepest: #6b4c8e;
+}
+
+body {
+  background-color: var(--dd-champagne-light);
+  color: var(--dd-cadet);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* ---- Card flip animation ---- */
+.card-scene {
+  perspective: 800px;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease-in-out;
+}
+
+.card-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 1rem;
+}
+
+.card-front {
+  /* The back design of the card (face-down) */
+}
+
+.card-back {
+  transform: rotateY(180deg);
+}
+
+/* ---- Draw animation ---- */
+@keyframes draw-card {
+  from {
+    opacity: 0;
+    transform: translateY(2rem) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-draw {
+  animation: draw-card 0.4s ease-out;
+}
+
+/* ---- Depth crossfade ---- */
+@keyframes crossfade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-crossfade {
+  animation: crossfade-in 0.3s ease-out;
+}
+
+/* ---- Wild banner slide ---- */
+@keyframes banner-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-banner {
+  animation: banner-slide 0.35s ease-out;
+}
+
+/* ---- Skip-to-content link ---- */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 100;
+  padding: 8px 16px;
+  background: var(--dd-redwood);
+  color: #fff;
+  border-radius: 0 0 8px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* ---- Respect reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .card-inner {
+    transition: none;
+  }
+  .animate-draw,
+  .animate-crossfade,
+  .animate-banner {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
