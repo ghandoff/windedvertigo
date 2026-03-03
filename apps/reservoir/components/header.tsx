@@ -24,51 +24,54 @@ export function Header() {
         className="flex items-center justify-between"
         style={{ padding: "var(--space-lg) var(--edge-padding, 30px)" }}
       >
-        {/* Logo — matches the global site header */}
+        {/* Logo — matches the global site header (200px desktop, 150px mobile) */}
         <a href="https://windedvertigo.com/" className="block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://windedvertigo.com/images/logo.png"
             alt="winded.vertigo"
-            className="h-auto"
-            style={{ width: 200 }}
+            className="h-auto w-[150px] md:w-[200px]"
           />
         </a>
 
-        {/* Reservoir navigation */}
-        <nav className="hidden sm:flex items-center gap-6" aria-label="main">
+        {/* Reservoir navigation — matches global site nav typography */}
+        <nav
+          className="hidden md:flex items-center"
+          style={{ gap: 30 }}
+          aria-label="main"
+        >
           <a
             href="#games"
-            className="text-white/70 hover:text-white no-underline transition-colors"
+            className="text-white/70 hover:text-[var(--wv-champagne)] no-underline transition-colors"
             style={{
               fontFamily: "var(--font-body)",
-              fontSize: "0.875rem",
-              fontWeight: 400,
-              letterSpacing: "var(--letter-spacing-body)",
+              fontSize: 32,
+              fontWeight: 800,
+              textTransform: "lowercase" as const,
             }}
           >
             games
           </a>
           <a
             href="#why"
-            className="text-white/70 hover:text-white no-underline transition-colors"
+            className="text-white/70 hover:text-[var(--wv-champagne)] no-underline transition-colors"
             style={{
               fontFamily: "var(--font-body)",
-              fontSize: "0.875rem",
-              fontWeight: 400,
-              letterSpacing: "var(--letter-spacing-body)",
+              fontSize: 32,
+              fontWeight: 800,
+              textTransform: "lowercase" as const,
             }}
           >
             why us
           </a>
           <a
             href="https://windedvertigo.com/what/"
-            className="text-white/70 hover:text-white no-underline transition-colors"
+            className="text-white/70 hover:text-[var(--wv-champagne)] no-underline transition-colors"
             style={{
               fontFamily: "var(--font-body)",
-              fontSize: "0.875rem",
-              fontWeight: 400,
-              letterSpacing: "var(--letter-spacing-body)",
+              fontSize: 32,
+              fontWeight: 800,
+              textTransform: "lowercase" as const,
             }}
           >
             about
