@@ -65,7 +65,7 @@
       font-size: 1.15rem;
       font-weight: 300;
       line-height: 1.7;
-      color: var(--color-text-on-dark-muted);
+      color: var(--wv-white);
     }
 
     /* pillars — 3-column grid with vertical dividers */
@@ -93,7 +93,7 @@
     .wt-pillar p {
       font-size: 0.95rem;
       line-height: 1.6;
-      color: var(--color-text-on-dark-muted);
+      color: var(--wv-white);
       max-width: 30ch;
       margin: 0 auto;
     }
@@ -158,7 +158,7 @@
     .wt-step p {
       font-size: 0.95rem;
       line-height: 1.6;
-      color: var(--color-text-on-dark-muted);
+      color: var(--wv-white);
       max-width: 28ch;
       margin: 0 auto;
     }
@@ -380,11 +380,26 @@
           node.innerHTML = safe;
         }
 
+        // ── brand color map — constrained to palette tokens ──
+        const COLOR_MAP = {
+          cadet:     'var(--wv-cadet)',
+          redwood:   'var(--wv-redwood)',
+          sienna:    'var(--wv-sienna)',
+          champagne: 'var(--wv-champagne)',
+          white:     'var(--wv-white)',
+        };
+        function applyTextColor(node, colorName) {
+          if (colorName && COLOR_MAP[colorName]) {
+            node.style.color = COLOR_MAP[colorName];
+          }
+        }
+
         // ── hero section ──
         const hero = groups.hero.find(s => s.section === 'hero');
         if (hero) {
           const heroSection = el('section', 'wt-hero');
           const h2 = el('h2', 'wt-hero-title', hero.content || hero.name);
+          applyTextColor(h2, hero.textColor);
           heroSection.appendChild(h2);
           container.appendChild(heroSection);
         }
@@ -396,6 +411,7 @@
           for (const item of bodyItems) {
             const p = el('p');
             setFormatted(p, item.content);
+            applyTextColor(p, item.textColor);
             introSection.appendChild(p);
           }
           container.appendChild(introSection);
@@ -409,9 +425,12 @@
           const grid = el('div', 'wt-pillars-grid');
           for (const p of pillars) {
             const pillar = el('div', 'wt-pillar');
-            pillar.appendChild(el('h3', null, p.name));
+            const heading = el('h3', null, p.name);
+            applyTextColor(heading, p.textColor);
+            pillar.appendChild(heading);
             const desc = el('p');
             setFormatted(desc, p.content);
+            applyTextColor(desc, p.textColor);
             pillar.appendChild(desc);
             grid.appendChild(pillar);
           }
@@ -452,9 +471,12 @@
           const processGrid = el('div', 'wt-process-grid');
           for (const s of steps) {
             const step = el('div', 'wt-step');
-            step.appendChild(el('h3', null, s.name));
+            const heading = el('h3', null, s.name);
+            applyTextColor(heading, s.textColor);
+            step.appendChild(heading);
             const desc = el('p');
             setFormatted(desc, s.content);
+            applyTextColor(desc, s.textColor);
             step.appendChild(desc);
             processGrid.appendChild(step);
           }

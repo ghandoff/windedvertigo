@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-03T22:05:01.552Z",
+  "lastUpdated": "2026-03-03T23:09:06.805Z",
   "note": "Auto-generated from Notion Site Content CMS. Do not edit directly.",
   "page": "home",
   "sections": [
@@ -15,6 +15,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "https://windedvertigo.com/portfolio/",
       "imageUrl": ""
     },
@@ -30,6 +31,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "",
       "imageUrl": ""
     },
@@ -45,6 +47,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "",
       "imageUrl": ""
     },
@@ -60,6 +63,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "https://windedvertigo.com/what/",
       "imageUrl": ""
     },
@@ -75,6 +79,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "https://www.instagram.com/winded.vertigo/",
       "imageUrl": ""
     },
@@ -90,6 +95,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "https://windedvertigo.com/we/",
       "imageUrl": ""
     },
@@ -105,6 +111,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "https://www.facebook.com/windedvertigo",
       "imageUrl": ""
     },
@@ -120,6 +127,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "https://windedvertigo.com/do/",
       "imageUrl": ""
     },
@@ -135,6 +143,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "https://www.linkedin.com/company/winded-vertigo/",
       "imageUrl": ""
     },
@@ -150,6 +159,7 @@
       "features": "",
       "brandColor": "",
       "accentColor": "",
+      "textColor": "",
       "link": "https://windedvertigo.substack.com/",
       "imageUrl": ""
     }

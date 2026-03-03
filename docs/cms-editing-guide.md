@@ -59,6 +59,7 @@ Every row in the CMS has these fields. Here's what each one does:
 | **Icon** | Text | An emoji or image URL. When present, it displays alongside the content. Examples: `🎨`, `📷`, `🔬` |
 | **Brand Color** | Select | A named brand color (`sienna`, `redwood`, `cadet`). Currently used on reservoir game cards to set the primary color. |
 | **Accent Color** | Select | A secondary named color. Used alongside Brand Color for two-tone styling on game cards. |
+| **Text Color** | Select | Overrides the text color for this content item. Pick from the brand palette: `cadet`, `redwood`, `sienna`, `champagne`, or `white`. When empty, the page's default text color applies. See "Text Color Options" below. |
 | **Image URL** | URL | A link to an image. Used for photo strips, hero backgrounds, or content imagery. Paste a full URL — not a Notion file upload. |
 | **Link** | URL | A destination URL. Used for navigation links, CTA buttons, social media links, or anything clickable. |
 
@@ -104,6 +105,28 @@ The **Layout** field changes how a `body` content type is visually presented. Cu
 | `full-width` | Full-width with top/bottom borders | Section dividers, key statements |
 
 When multiple consecutive items have `layout: card`, they are automatically grouped into a responsive grid.
+
+---
+
+## Text Color Options
+
+The **Text Color** field lets you override the default text color for any content item. It maps directly to the winded.vertigo brand palette:
+
+| Color Name | Hex | CSS Variable | Best On |
+|------------|-----|-------------|---------|
+| `cadet` | #273248 | `--wv-cadet` | Light backgrounds |
+| `redwood` | #b15043 | `--wv-redwood` | Light or dark backgrounds (used for headings) |
+| `sienna` | #cb7858 | `--wv-sienna` | Dark backgrounds |
+| `champagne` | #ffebd2 | `--wv-champagne` | Dark backgrounds |
+| `white` | #ffffff | `--wv-white` | Dark backgrounds |
+
+**How it works:**
+- **Leave empty** → the page uses its default CSS color (recommended for most content)
+- **Set a value** → the selected color overrides the default for that specific content item
+- The override applies to the Content (paragraph text) and, for pillars/process items, also to the heading
+- Text Color is **per-row** — you can give different items different colors within the same section
+
+**Currently supported on:** `/what` page. Other pages will gain support as they migrate to CMS-driven rendering.
 
 ---
 

@@ -744,6 +744,7 @@ async function fetchSiteContent() {
       features: getTextValue(props[propMap.features]),
       brandColor: getSelectValue(props[propMap.brandColor]),
       accentColor: getSelectValue(props[propMap.accentColor]),
+      textColor: getSelectValue(props[propMap.textColor]),
       link: getUrlValue(props[propMap.link]),
       imageUrl: getUrlValue(props[propMap.imageUrl]),
     });

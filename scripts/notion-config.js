@@ -100,6 +100,7 @@ module.exports = {
       features: 'Features',
       brandColor: 'Brand Color',
       accentColor: 'Accent Color',
+      textColor: 'Text Color',
       link: 'Link',
       imageUrl: 'Image URL',
       status: 'Status',
