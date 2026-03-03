@@ -5,9 +5,13 @@
  *
  * Shows current opt-in status with ability to toggle.
  * When opting in, allows setting a custom display name.
+ *
+ * Phase D — rewritten with debounced name saves, router.refresh(),
+ * Tailwind styling, and distinct error/success messages.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { apiUrl } from "@/lib/api-url";
 
 interface LeaderboardOptInProps {
@@ -19,152 +23,160 @@ export default function LeaderboardOptIn({
   initialOptedIn,
   initialDisplayName,
 }: LeaderboardOptInProps) {
+  const router = useRouter();
   const [optedIn, setOptedIn] = useState(initialOptedIn);
   const [displayName, setDisplayName] = useState(initialDisplayName || "");
   const [showNameInput, setShowNameInput] = useState(initialOptedIn);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleToggle = useCallback(async (newOptedInState: boolean) => {
-    setError(null);
-    setSuccessMessage(null);
-    setIsLoading(true);
+  // Auto-clear success messages after 3 seconds
+  useEffect(() => {
+    if (!successMessage) return;
+    const timer = setTimeout(() => setSuccessMessage(null), 3000);
+    return () => clearTimeout(timer);
+  }, [successMessage]);
 
-    try {
-      const response = await fetch(apiUrl("/api/leaderboard/opt-in"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          opted_in: newOptedInState,
-          display_name: newOptedInState ? displayName || null : null,
-        }),
-      });
+  /* ── opt-in / opt-out toggle ── */
+  const handleToggle = useCallback(
+    async (newOptedInState: boolean) => {
+      setError(null);
+      setSuccessMessage(null);
+      setIsLoading(true);
 
-      if (!response.ok) {
+      try {
+        const response = await fetch(apiUrl("/api/leaderboard/opt-in"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            opted_in: newOptedInState,
+            display_name: newOptedInState ? displayName || null : null,
+          }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          setError(data.error || "failed to update leaderboard status");
+          return;
+        }
+
         const data = await response.json();
-        setError(data.error || "failed to update leaderboard status");
+        setOptedIn(data.opted_in);
+        if (data.opted_in) {
+          setShowNameInput(true);
+          setSuccessMessage("you've joined the leaderboard!");
+        } else {
+          setShowNameInput(false);
+          setSuccessMessage("you've left the leaderboard");
+        }
+
+        // Refresh the server-rendered leaderboard table
+        router.refresh();
+      } catch {
+        setError("network error — please try again.");
+      } finally {
         setIsLoading(false);
-        return;
       }
+    },
+    [displayName, router],
+  );
 
-      const data = await response.json();
-      setOptedIn(data.opted_in);
-      if (data.opted_in) {
-        setShowNameInput(true);
-        setSuccessMessage("you've joined the leaderboard!");
-      } else {
-        setShowNameInput(false);
-        setSuccessMessage("you've left the leaderboard");
-      }
-      setIsLoading(false);
-    } catch (err) {
-      setError("network error — please try again.");
-      setIsLoading(false);
-    }
-  }, [displayName]);
+  /* ── debounced display name save ── */
+  const saveDisplayName = useCallback(
+    async (name: string) => {
+      setIsLoading(true);
+      setError(null);
 
-  const handleDisplayNameChange = useCallback(async (newName: string) => {
-    setDisplayName(newName);
-    setError(null);
-    setSuccessMessage(null);
+      try {
+        const response = await fetch(apiUrl("/api/leaderboard/opt-in"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            opted_in: true,
+            display_name: name.trim(),
+          }),
+        });
 
-    // Don't auto-save empty or unchanged names
-    if (!newName.trim() || newName === initialDisplayName) {
-      return;
-    }
+        if (!response.ok) {
+          const data = await response.json();
+          setError(data.error || "failed to update display name");
+          return;
+        }
 
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(apiUrl("/api/leaderboard/opt-in"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          opted_in: true,
-          display_name: newName.trim(),
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        setError(data.error || "failed to update display name");
+        setSuccessMessage("display name updated!");
+        router.refresh();
+      } catch {
+        setError("network error — please try again.");
+      } finally {
         setIsLoading(false);
-        return;
       }
+    },
+    [router],
+  );
 
-      setSuccessMessage("display name updated!");
-      setIsLoading(false);
-    } catch (err) {
-      setError("network error — please try again.");
-      setIsLoading(false);
-    }
-  }, [initialDisplayName]);
+  const handleDisplayNameChange = useCallback(
+    (newName: string) => {
+      setDisplayName(newName);
+      setError(null);
+      setSuccessMessage(null);
+
+      // Clear existing debounce timer
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      // Don't save empty or unchanged names
+      if (!newName.trim() || newName.trim() === initialDisplayName) return;
+
+      // Debounce: wait 600ms after the user stops typing before saving
+      debounceRef.current = setTimeout(() => {
+        saveDisplayName(newName);
+      }, 600);
+    },
+    [initialDisplayName, saveDisplayName],
+  );
+
+  // Clean up debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   return (
-    <div
-      style={{
-        border: `1px solid var(--wv-cadet)`,
-        borderRadius: "8px",
-        padding: "20px",
-        marginBottom: "24px",
-        backgroundColor: "rgba(255, 255, 255, 0.5)",
-      }}
-    >
+    <div className="rounded-xl border border-cadet/12 bg-white/50 p-5 mb-6">
       <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: showNameInput ? "16px" : "0",
-        }}
+        className={`flex justify-between items-center${showNameInput ? " mb-4" : ""}`}
       >
         <div>
-          <h3 style={{ margin: "0 0 4px 0", fontSize: "16px", fontWeight: 600 }}>
+          <h3 className="text-base font-semibold text-cadet mb-0.5">
             community leaderboard
           </h3>
-          <p
-            style={{
-              margin: 0,
-              fontSize: "14px",
-              color: "var(--wv-cadet)",
-            }}
-          >
-            {optedIn ? "you're on the leaderboard" : "join the community leaderboard"}
+          <p className="text-sm text-cadet/60">
+            {optedIn
+              ? "you're on the leaderboard"
+              : "join the community leaderboard"}
           </p>
         </div>
 
         <button
           onClick={() => handleToggle(!optedIn)}
           disabled={isLoading}
-          style={{
-            padding: "8px 16px",
-            borderRadius: "6px",
-            border: "none",
-            backgroundColor: optedIn ? "var(--wv-redwood)" : "var(--wv-sienna)",
-            color: "white",
-            fontSize: "14px",
-            fontWeight: 600,
-            cursor: isLoading ? "not-allowed" : "pointer",
-            opacity: isLoading ? 0.6 : 1,
-            transition: "opacity 0.2s",
-          }}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold text-white transition-opacity disabled:opacity-50 disabled:cursor-not-allowed ${
+            optedIn
+              ? "bg-redwood hover:opacity-90"
+              : "bg-sienna hover:opacity-90"
+          }`}
         >
           {optedIn ? "leave" : "join"}
         </button>
       </div>
 
       {showNameInput && (
-        <div style={{ marginTop: "16px" }}>
+        <div className="mt-4">
           <label
             htmlFor="display-name"
-            style={{
-              display: "block",
-              fontSize: "14px",
-              fontWeight: 500,
-              marginBottom: "6px",
-              color: "var(--wv-cadet)",
-            }}
+            className="block text-sm font-medium text-cadet mb-1.5"
           >
             display name (optional)
           </label>
@@ -176,59 +188,28 @@ export default function LeaderboardOptIn({
             disabled={isLoading}
             placeholder="first name"
             maxLength={50}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              borderRadius: "4px",
-              border: `1px solid var(--wv-champagne)`,
-              fontSize: "14px",
-              fontFamily: "inherit",
-              boxSizing: "border-box",
-              opacity: isLoading ? 0.6 : 1,
-            }}
+            className="w-full px-3 py-2 rounded-lg border border-champagne text-sm font-[inherit] outline-none transition-opacity disabled:opacity-50 focus:border-sienna/40 focus:ring-1 focus:ring-sienna/20"
           />
-          <p
-            style={{
-              margin: "6px 0 0 0",
-              fontSize: "12px",
-              color: "var(--wv-cadet)",
-            }}
-          >
+          <p className="text-xs text-cadet/50 mt-1.5">
             if blank, we'll use your first name
           </p>
         </div>
       )}
 
-      {error && (
-        <div
-          style={{
-            marginTop: "12px",
-            padding: "8px 12px",
-            borderRadius: "4px",
-            backgroundColor: "var(--wv-redwood)",
-            color: "white",
-            fontSize: "13px",
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {/* status messages — visually distinct */}
+      <div aria-live="polite" aria-atomic="true">
+        {error && (
+          <div className="mt-3 px-3 py-2 rounded-lg bg-redwood/10 border border-redwood/20 text-redwood text-xs font-medium">
+            {error}
+          </div>
+        )}
 
-      {successMessage && (
-        <div
-          style={{
-            marginTop: "12px",
-            padding: "8px 12px",
-            borderRadius: "4px",
-            backgroundColor: "var(--wv-sienna)",
-            color: "white",
-            fontSize: "13px",
-          }}
-        >
-          {successMessage}
-        </div>
-      )}
+        {successMessage && (
+          <div className="mt-3 px-3 py-2 rounded-lg bg-sienna/10 border border-sienna/20 text-sienna text-xs font-medium">
+            ✓ {successMessage}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-

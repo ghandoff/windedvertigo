@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import StepProgress from "@/components/ui/step-progress";
+import { apiUrl } from "@/lib/api-url";
 
 /* ── option definitions ── */
 
@@ -92,8 +93,8 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
   async function finish() {
     setSaving(true);
     try {
-      const endpoint = editMode ? "/api/onboarding/context" : "/api/onboarding";
-      await fetch(endpoint, {
+      const endpoint = apiUrl(editMode ? "/api/onboarding/context" : "/api/onboarding");
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -107,6 +108,10 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
           }),
         }),
       });
+      if (!res.ok) {
+        setSaving(false);
+        return;
+      }
       router.push(editMode ? "/profile?manage=true" : "/sampler");
       router.refresh();
     } catch {

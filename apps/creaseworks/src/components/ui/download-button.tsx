@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface DownloadButtonProps {
   playdateId: string;
@@ -22,7 +23,7 @@ export default function DownloadButton({
 
     try {
       const res = await fetch(
-        `/api/playdates/${playdateId}/pdf${packSlug ? `?pack=${encodeURIComponent(packSlug)}` : ""}`,
+        apiUrl(`/api/playdates/${playdateId}/pdf${packSlug ? `?pack=${encodeURIComponent(packSlug)}` : ""}`),
       );
 
       if (!res.ok) {

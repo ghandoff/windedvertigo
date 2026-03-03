@@ -16,9 +16,14 @@ import { sendNudgeEmail } from "@/lib/email/send-nudge";
  * to re-engage with a personalized playdate recommendation.
  */
 export async function POST(request: Request) {
-  const authHeader = request.headers.get("authorization");
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error("[cron/send-nudges] CRON_SECRET is not set — rejecting request");
+    return NextResponse.json({ error: "not configured" }, { status: 500 });
+  }
 
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   }
 

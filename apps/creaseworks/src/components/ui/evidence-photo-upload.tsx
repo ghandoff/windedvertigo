@@ -218,7 +218,6 @@ export default function EvidencePhotoUpload({
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic"
         multiple
-        capture="environment"
         className="hidden"
         onChange={(e) => {
           if (e.target.files) addFiles(e.target.files);

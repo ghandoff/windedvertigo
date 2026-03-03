@@ -76,19 +76,9 @@ export default function RunForm({
           const { id: evidenceId } = await res.json();
           photoEvidenceIds.push(evidenceId);
 
-          // Upload to R2
-          const { storageKey, thumbnailKey } = await uploadPhotoToR2(
-            photo,
-            runId,
-            evidenceId,
-          );
-
-          // Update evidence record with storage keys
-          await fetch(apiUrl(`/api/runs/${runId}/evidence/${evidenceId}`), {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ storageKey, thumbnailKey }),
-          });
+          // Upload to R2 — storage keys are saved server-side
+          // in the upload-url route, no client PATCH needed
+          await uploadPhotoToR2(photo, runId, evidenceId);
         })(),
       );
     }

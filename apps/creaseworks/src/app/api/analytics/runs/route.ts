@@ -33,7 +33,7 @@ export async function GET() {
   } catch (err: any) {
     console.error("[analytics] query failed:", err);
     return NextResponse.json(
-      { error: err.message ?? "unknown error" },
+      { error: "analytics query failed" },
       { status: 500 },
     );
   }

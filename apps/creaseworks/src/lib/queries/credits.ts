@@ -90,7 +90,13 @@ export async function getUserCreditHistory(
 /* ------------------------------------------------------------------ */
 
 /**
- * Spend credits on a reward. Checks balance first.
+ * Spend credits on a reward — atomic check-and-insert to prevent
+ * TOCTOU double-spend race conditions.
+ *
+ * Uses a CTE that computes the balance inline and only inserts the
+ * redemption row when the balance is sufficient. If the INSERT
+ * returns zero rows, the balance was insufficient.
+ *
  * Returns the redemption id, or throws if insufficient balance.
  */
 export async function spendCredits(
@@ -100,19 +106,29 @@ export async function spendCredits(
   rewardType: string,
   rewardRef?: string | null,
 ): Promise<string> {
-  const balance = await getUserCredits(userId);
-  if (balance < amount) {
+  const result = await sql.query(
+    `WITH balance_check AS (
+       SELECT
+         COALESCE((SELECT SUM(amount) FROM reflection_credits WHERE user_id = $1), 0)
+         -
+         COALESCE((SELECT SUM(credits_spent) FROM credit_redemptions WHERE user_id = $1), 0)
+         AS bal
+     )
+     INSERT INTO credit_redemptions (user_id, org_id, credits_spent, reward_type, reward_ref)
+     SELECT $1, $2, $3, $4, $5
+     FROM balance_check
+     WHERE bal >= $3
+     RETURNING id`,
+    [userId, orgId, amount, rewardType, rewardRef || null],
+  );
+
+  if (result.rows.length === 0) {
+    const balance = await getUserCredits(userId);
     throw new Error(
       `Insufficient credits: balance ${balance}, needed ${amount}`,
     );
   }
 
-  const result = await sql.query(
-    `INSERT INTO credit_redemptions (user_id, org_id, credits_spent, reward_type, reward_ref)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id`,
-    [userId, orgId, amount, rewardType, rewardRef || null],
-  );
   return result.rows[0].id;
 }
 

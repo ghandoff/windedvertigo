@@ -9,8 +9,9 @@
  * Returns:
  *   { uploadUrl, storageKey, thumbnailKey }
  *
- * The client uploads directly to R2 via the presigned URL, then
- * PATCHes the evidence item with the storageKey + thumbnailKey.
+ * The client uploads directly to R2 via the presigned URL.
+ * Storage keys are saved to the evidence record server-side at
+ * URL-generation time — clients do NOT need to PATCH them back.
  *
  * Phase A — evidence capture (practitioner tier).
  */
@@ -24,6 +25,7 @@ import {
   buildThumbnailKey,
   generateUploadUrl,
 } from "@/lib/r2";
+import { setEvidenceStorageKeys } from "@/lib/queries/evidence";
 import { isValidUuid, parseJsonBody } from "@/lib/validation";
 
 /** Map MIME type to file extension. */
@@ -69,6 +71,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const uploadUrl = await generateUploadUrl(storageKey, contentType);
+
+    // Save storage keys server-side so clients never PATCH them
+    await setEvidenceStorageKeys(evidenceId, storageKey, thumbnailKey);
 
     return NextResponse.json({
       uploadUrl,

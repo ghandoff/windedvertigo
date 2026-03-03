@@ -114,7 +114,7 @@ export async function GET(req: NextRequest, { params }: Props) {
   } catch (err: any) {
     console.error("[pdf] generation failed:", err);
     return NextResponse.json(
-      { error: `pdf generation failed: ${err.message}` },
+      { error: "pdf generation failed" },
       { status: 500 },
     );
   }

@@ -11,9 +11,14 @@ export const maxDuration = 300;
  * Protected by CRON_SECRET to prevent public access.
  */
 export async function POST(request: Request) {
-  const authHeader = request.headers.get("authorization");
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error("[cron/sync-notion] CRON_SECRET is not set — rejecting request");
+    return NextResponse.json({ error: "not configured" }, { status: 500 });
+  }
 
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   }
 

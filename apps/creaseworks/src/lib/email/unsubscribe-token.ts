@@ -10,7 +10,10 @@
 
 import { createHmac, timingSafeEqual } from "crypto";
 
-const SECRET = process.env.CRON_SECRET ?? "dev-secret";
+const SECRET =
+  process.env.UNSUBSCRIBE_TOKEN_SECRET ??
+  process.env.CRON_SECRET ??
+  "dev-secret";
 const TOKEN_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
 
 function hmac(data: string): string {

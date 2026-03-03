@@ -10,20 +10,30 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth-helpers";
 import { generateReadUrl } from "@/lib/r2";
 
 /** Cache presigned redirects for 30 minutes in the browser. */
 const CACHE_SECONDS = 1800;
 
+/** Only allow safe path characters — prevent directory traversal. */
+const SAFE_KEY_RE = /^[a-zA-Z0-9/_.-]+$/;
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ key: string[] }> },
 ) {
+  // Require authentication to prevent unauthenticated image enumeration
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "unauthorised" }, { status: 401 });
+  }
+
   const { key } = await params;
   const storageKey = key.join("/");
 
-  if (!storageKey) {
-    return NextResponse.json({ error: "missing key" }, { status: 400 });
+  if (!storageKey || !SAFE_KEY_RE.test(storageKey) || storageKey.includes("..")) {
+    return NextResponse.json({ error: "invalid key" }, { status: 400 });
   }
 
   try {

@@ -6,6 +6,7 @@
  */
 
 import { sql } from "@/lib/db";
+import { randomBytes } from "crypto";
 
 /**
  * Reflections submitted by the co-play partner.
@@ -27,13 +28,15 @@ export interface CoPlayDetails {
 }
 
 /**
- * Generate a random 6-character alphanumeric invite code.
+ * Generate a random 6-character alphanumeric invite code
+ * using cryptographically secure randomness.
  */
 export function generateInviteCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const bytes = randomBytes(6);
   let code = "";
   for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(bytes[i] % chars.length);
   }
   return code;
 }
@@ -183,10 +186,15 @@ export async function getCoPlayDetails(
     coPlayParentName = userQuery.rows[0]?.name ?? null;
   }
 
-  // Parse reflections JSONB
-  const reflections: CoPlayReflections | null = runData.co_play_reflections
-    ? JSON.parse(runData.co_play_reflections)
-    : null;
+  // JSONB columns are returned as parsed objects by @vercel/postgres,
+  // but may be strings in some driver versions — handle both safely.
+  let reflections: CoPlayReflections | null = null;
+  if (runData.co_play_reflections) {
+    reflections =
+      typeof runData.co_play_reflections === "string"
+        ? JSON.parse(runData.co_play_reflections)
+        : runData.co_play_reflections;
+  }
 
   return {
     inviteCode: runData.co_play_invite_code,

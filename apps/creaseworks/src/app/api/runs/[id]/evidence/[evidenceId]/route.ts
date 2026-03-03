@@ -23,10 +23,10 @@ export async function PATCH(
   const body = await parseJsonBody(req);
   if (body instanceof NextResponse) return body;
 
-  // Whitelist allowed keys
+  // Whitelist allowed keys — storageKey/thumbnailKey are excluded
+  // because they must only be set server-side via upload-url flow
   const ALLOWED_KEYS = new Set([
     "quoteText", "quoteAttribution", "body", "promptKey", "sortOrder",
-    "storageKey", "thumbnailKey",
   ]);
   const unknownKeys = Object.keys(body).filter((k) => !ALLOWED_KEYS.has(k));
   if (unknownKeys.length > 0) {
@@ -41,9 +41,7 @@ export async function PATCH(
     checkLength("quoteText", body.quoteText, MAX_LENGTHS.freeText) ||
     checkLength("quoteAttribution", body.quoteAttribution, MAX_LENGTHS.title) ||
     checkLength("body", body.body, MAX_LENGTHS.freeText) ||
-    checkLength("promptKey", body.promptKey, MAX_LENGTHS.title) ||
-    checkLength("storageKey", body.storageKey, MAX_LENGTHS.title) ||
-    checkLength("thumbnailKey", body.thumbnailKey, MAX_LENGTHS.title);
+    checkLength("promptKey", body.promptKey, MAX_LENGTHS.title);
   if (lengthErr) {
     return NextResponse.json({ error: lengthErr }, { status: 400 });
   }

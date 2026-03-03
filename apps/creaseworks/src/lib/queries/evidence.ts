@@ -50,8 +50,6 @@ export interface UpdateEvidenceInput {
   body?: string | null;
   promptKey?: string | null;
   sortOrder?: number;
-  storageKey?: string | null;
-  thumbnailKey?: string | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -221,14 +219,8 @@ export async function updateEvidence(
     sets.push(`sort_order = $${idx++}`);
     params.push(input.sortOrder);
   }
-  if (input.storageKey !== undefined) {
-    sets.push(`storage_key = $${idx++}`);
-    params.push(input.storageKey);
-  }
-  if (input.thumbnailKey !== undefined) {
-    sets.push(`thumbnail_key = $${idx++}`);
-    params.push(input.thumbnailKey);
-  }
+  // Note: storageKey/thumbnailKey are set via setEvidenceStorageKeys()
+  // and are intentionally excluded from the client-facing PATCH path.
 
   if (sets.length === 0) return true; // nothing to update
 
@@ -239,6 +231,28 @@ export async function updateEvidence(
   );
 
   return true;
+}
+
+/* ------------------------------------------------------------------ */
+/*  set storage keys (server-side only — never from client input)      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Write R2 storage keys to an evidence record. Called from the
+ * upload-url API route after generating the presigned URL so clients
+ * never need to PATCH storage paths themselves.
+ */
+export async function setEvidenceStorageKeys(
+  evidenceId: string,
+  storageKey: string,
+  thumbnailKey: string,
+): Promise<void> {
+  await sql.query(
+    `UPDATE run_evidence
+        SET storage_key = $1, thumbnail_key = $2
+      WHERE id = $3`,
+    [storageKey, thumbnailKey, evidenceId],
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -312,6 +326,8 @@ export interface PortfolioItem {
   /* playdate context */
   playdate_title: string | null;
   playdate_slug: string | null;
+  /* gallery sharing state */
+  shared_to_gallery: boolean;
 }
 
 /**
@@ -358,6 +374,7 @@ export async function getPortfolioEvidence(
        re.storage_key, re.thumbnail_key,
        re.quote_text, re.quote_attribution,
        re.body, re.prompt_key,
+       re.shared_to_gallery,
        re.created_at,
        r.id AS run_id,
        r.title AS run_title,

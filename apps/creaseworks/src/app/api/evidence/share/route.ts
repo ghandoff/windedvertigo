@@ -42,10 +42,18 @@ export async function POST(req: NextRequest) {
   if (typeParam) filters.type = typeParam;
   if (playdateParam) filters.playdate = playdateParam;
 
-  const share = await createShare(session.userId, filters);
+  try {
+    const share = await createShare(session.userId, filters);
 
-  return NextResponse.json({
-    url: `/evidence/shared/${share.token}`,
-    expiresAt: share.expires_at,
-  });
+    return NextResponse.json({
+      url: `/evidence/shared/${share.token}`,
+      expiresAt: share.expires_at,
+    });
+  } catch (err) {
+    console.error("[evidence/share] error:", err);
+    return NextResponse.json(
+      { error: "failed to create share link" },
+      { status: 500 },
+    );
+  }
 }

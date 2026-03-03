@@ -87,8 +87,7 @@ export async function PATCH(req: NextRequest) {
 
     return res;
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "update failed";
     console.error("[a11y prefs] update failed:", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "update failed" }, { status: 500 });
   }
 }

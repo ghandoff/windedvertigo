@@ -151,7 +151,7 @@ export async function verifyDomainByToken(token: string) {
   if (!row) return null;
   // auto-join existing users with matching email domain
   await sql.query(
-    "INSERT INTO org_memberships (user_id, org_id, role) SELECT u.id, $1, 'member' FROM users u WHERE u.email LIKE '%@' || $2 AND NOT EXISTS (SELECT 1 FROM org_memberships om WHERE om.user_id = u.id AND om.org_id = $1)",
+    "INSERT INTO org_memberships (user_id, org_id, role) SELECT u.id, $1, 'member' FROM users u WHERE SPLIT_PART(LOWER(u.email), '@', 2) = LOWER($2) AND NOT EXISTS (SELECT 1 FROM org_memberships om WHERE om.user_id = u.id AND om.org_id = $1)",
     [row.org_id, row.domain],
   );
   return row;
