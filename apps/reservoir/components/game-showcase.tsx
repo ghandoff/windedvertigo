@@ -121,7 +121,7 @@ function GameCard({ game, index }: { game: Game; index: number }) {
         {/* Description */}
         <ScrollReveal className="w-full lg:w-7/12">
           <div className="max-w-lg">
-            <p className="text-lg sm:text-xl leading-relaxed text-[var(--color-text-on-dark)] mb-6">
+            <p className="text-lg sm:text-xl leading-relaxed text-white mb-6">
               {game.description}
             </p>
             <ul className="space-y-3">

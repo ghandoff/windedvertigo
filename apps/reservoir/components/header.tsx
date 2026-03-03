@@ -42,7 +42,7 @@ export function Header() {
         >
           <a
             href="#games"
-            className="text-white/70 hover:text-[var(--wv-champagne)] no-underline transition-colors"
+            className="text-white hover:text-[var(--wv-champagne)] no-underline transition-colors"
             style={{
               fontFamily: "var(--font-body)",
               fontSize: 32,
@@ -50,11 +50,11 @@ export function Header() {
               textTransform: "lowercase" as const,
             }}
           >
-            games
+            games.
           </a>
           <a
             href="#why"
-            className="text-white/70 hover:text-[var(--wv-champagne)] no-underline transition-colors"
+            className="text-white hover:text-[var(--wv-champagne)] no-underline transition-colors"
             style={{
               fontFamily: "var(--font-body)",
               fontSize: 32,
@@ -62,11 +62,11 @@ export function Header() {
               textTransform: "lowercase" as const,
             }}
           >
-            why us
+            why us.
           </a>
           <a
             href="https://windedvertigo.com/what/"
-            className="text-white/70 hover:text-[var(--wv-champagne)] no-underline transition-colors"
+            className="text-white hover:text-[var(--wv-champagne)] no-underline transition-colors"
             style={{
               fontFamily: "var(--font-body)",
               fontSize: 32,
@@ -74,7 +74,7 @@ export function Header() {
               textTransform: "lowercase" as const,
             }}
           >
-            about
+            about.
           </a>
         </nav>
       </div>
