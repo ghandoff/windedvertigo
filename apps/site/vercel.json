@@ -35,6 +35,18 @@
                     {
                                     "source": "/reservoir/vertigo-vault/:path*",
                                     "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault/:path*"
+                    },
+                    {
+                                    "source": "/reservoir/deep-deck",
+                                    "destination": "https://deep-deck-ghandoffs-projects.vercel.app/reservoir/deep-deck"
+                    },
+                    {
+                                    "source": "/reservoir/deep-deck/",
+                                    "destination": "https://deep-deck-ghandoffs-projects.vercel.app/reservoir/deep-deck"
+                    },
+                    {
+                                    "source": "/reservoir/deep-deck/:path*",
+                                    "destination": "https://deep-deck-ghandoffs-projects.vercel.app/reservoir/deep-deck/:path*"
                     }
         ]
 }
