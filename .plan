@@ -1,0 +1,83 @@
+# deep.deck Monetization Plan — Pack-Based via Stripe
+
+## Context
+deep.deck is a digital card game with 96 cards (18 conversation + 6 gamification per age band × 4 bands) plus 32 wild cards. Currently fully free at `/reservoir/deep-deck`. Goal: make it pack-based behind a paywall like creaseworks, keeping a limited free demo in the reservoir.
+
+## Architecture Decisions
+- **Pack structure**: Free sampler (5 conversation cards per band + 3 wild cards) vs. paid packs (per-age-band or full bundle)
+- **Access control**: Client-side gating for MVP. Cards are tagged by pack; the `buildDeck()` function filters based on entitlement. Stripe Checkout success redirects with a session ID that is verified server-side.
+- **Stripe integration**: New products/prices in the existing Stripe account. Add an API route for checkout session creation and a webhook for fulfillment.
+- **Storage**: Use `localStorage` with a Stripe-verified token for MVP access control. Auth.js integration can come later.
+
+## Implementation Steps
+
+### 1. Define pack types and tag card data
+- Add `pack?: string` field to card types (`ConversationCard`, `GamificationCard`)
+- Create `lib/packs.ts` with pack definitions (free sampler, age-band packs, full bundle)
+- Tag first 5 conversation cards + first 2 gamification cards per band as `"sampler"` (free)
+- Tag remaining cards as `"full"` (requires purchase)
+- Wild cards: first 8 are free, rest require purchase
+
+### 2. Create pack-aware deck builder
+- Update `buildDeck()` to accept an `entitlements: string[]` parameter
+- Free users get only `"sampler"` cards → a small but playable demo deck
+- Paid users get all cards for their entitled packs
+
+### 3. Build landing/marketing page (new app root)
+- Replace the current age-band picker homepage with a marketing page
+- Hero section: what deep.deck is, who it's for
+- Pack showcase: show available packs with pricing
+- CTA: "Try free sampler" + "Get the full deck"
+- Link to `/play?band=X` for the sampler, `/play?band=X&mode=full` for paid
+
+### 4. Add paywall gate to play page
+- Check access in the play page before building the full deck
+- Free users: sampler deck (limited cards), with upsell banner after every few cards
+- Paid users: full deck, no interruptions
+- When sampler deck ends, show upgrade CTA instead of "session complete"
+
+### 5. Create upsell components
+- `UpsellBanner` — subtle banner during play showing "X more cards available with the full deck"
+- `UpsellModal` — shown at end of sampler session with pricing and purchase CTA
+- `PackCard` — card component for the landing page showing pack details
+
+### 6. Add Stripe checkout API route
+- `app/api/checkout/route.ts` — creates a Stripe Checkout session for the selected pack
+- Success URL includes a verification token
+- `app/api/verify/route.ts` — verifies Stripe session and returns access grant
+
+### 7. Add access management
+- `lib/access.ts` — checks localStorage for valid access tokens
+- `useAccess()` hook — returns current entitlements
+- Token stored after successful Stripe checkout verification
+
+### 8. Update reservoir references
+- Update game-showcase.tsx status/description for deep.deck
+- Change CTA from "play now" to "try free · full deck available"
+- Update the reservoir closing CTA section
+
+### 9. Update next.config.ts
+- Move basePath from `/reservoir/deep-deck` to `/deep-deck` (promoted out of reservoir)
+- Update vercel.json rewrites accordingly
+- Keep a redirect from `/reservoir/deep-deck` → `/deep-deck`
+
+## Files Modified
+- `apps/deep-deck/lib/types.ts` — add pack field to card types
+- `apps/deep-deck/lib/packs.ts` — NEW: pack definitions and pricing
+- `apps/deep-deck/lib/deck.ts` — pack-aware deck builder
+- `apps/deep-deck/lib/access.ts` — NEW: access/entitlement checking
+- `apps/deep-deck/data/cards.ts` — tag cards with pack identifiers
+- `apps/deep-deck/data/wild-cards.ts` — tag wild cards
+- `apps/deep-deck/app/page.tsx` — marketing/landing page
+- `apps/deep-deck/app/play/page.tsx` — paywall-aware play page
+- `apps/deep-deck/app/api/checkout/route.ts` — NEW: Stripe checkout
+- `apps/deep-deck/app/api/verify/route.ts` — NEW: verify purchase
+- `apps/deep-deck/components/upsell-banner.tsx` — NEW
+- `apps/deep-deck/components/upsell-modal.tsx` — NEW
+- `apps/deep-deck/components/pack-card.tsx` — NEW
+- `apps/deep-deck/app/globals.css` — upsell styling
+- `apps/deep-deck/next.config.ts` — new basePath
+- `apps/deep-deck/package.json` — add stripe dependency
+- `apps/reservoir/components/game-showcase.tsx` — update deep.deck entry
+- `apps/site/vercel.json` — update routing
+- `package.json` — add dev/build scripts for deep-deck at new path
