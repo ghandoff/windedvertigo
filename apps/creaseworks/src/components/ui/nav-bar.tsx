@@ -6,128 +6,147 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import NotificationBell from "@/components/ui/notification-bell";
 
-/* ── inline SVG nav icons ──────────────────────────────────────
- * Small 20×20 icons for each nav destination. Designed to be
- * legible for non-readers (Feature Y) and colour-coded per section.
- * Using inline SVGs avoids icon-library dependencies.
+/* ── origami-cycle SVG icons ──────────────────────────────────
+ * 20×20 icons following the winded.vertigo creative cycle:
+ *   find → fold → unfold → find again
+ *
+ * Visual progression mirrors the brand one-pager illustrations:
+ *   flat paper → paper airplane → butterfly wings → crane in flight
+ *
+ * Each icon is a stage in the origami metaphor, designed to be
+ * legible at small sizes and colour-coded per cycle phase.
  */
 
-function IconPlaydates({ className }: { className?: string }) {
+/** Flat diamond — paper at rest, waiting to be noticed */
+function IconFind({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <circle cx="10" cy="8" r="5" fill="none" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M10 5v3l2 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-      <path d="M5 15h10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <path
+        d="M10 3L17 10L10 17L3 10Z"
+        fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"
+      />
+      <path
+        d="M10 3L10 17"
+        stroke="currentColor" strokeWidth="0.7" opacity="0.35" strokeDasharray="2 1.5"
+      />
     </svg>
   );
 }
 
-function IconMatcher({ className }: { className?: string }) {
+/** Paper airplane — insight being shaped into experiment */
+function IconFold({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <circle cx="7" cy="10" r="4" fill="none" stroke="currentColor" strokeWidth="1.2" />
-      <circle cx="13" cy="10" r="4" fill="none" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M10 7.5v5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5" />
+      <path
+        d="M3 10L17 3V17Z"
+        fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"
+      />
+      <path
+        d="M3 10L17 10"
+        stroke="currentColor" strokeWidth="0.7" opacity="0.4"
+      />
     </svg>
   );
 }
 
-function IconPacks({ className }: { className?: string }) {
+/** Butterfly / opening wings — reflecting and surfacing what changed */
+function IconUnfold({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <rect x="3" y="5" width="14" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M7 5V3.5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 13 3.5V5" stroke="currentColor" strokeWidth="1.2" fill="none" />
-      <path d="M3 9h14" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
+      <path
+        d="M10 5L3 11L8 13"
+        fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"
+      />
+      <path
+        d="M10 5L17 11L12 13"
+        fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"
+      />
+      <path
+        d="M10 13V18"
+        stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"
+      />
     </svg>
   );
 }
 
-function IconReflections({ className }: { className?: string }) {
+/** Paper crane in flight — learning carried forward so it travels */
+function IconFindAgain({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <path d="M4 4h12v12H4z" fill="none" stroke="currentColor" strokeWidth="1.2" rx="1" />
-      <path d="M7 8h6M7 10.5h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
-      <circle cx="14" cy="14" r="3.5" fill="currentColor" opacity="0.15" />
-      <path d="M13 14l1 1 2-2.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path
+        d="M2 14L10 5L18 14"
+        fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"
+      />
+      <path
+        d="M6 14L10 10L14 14"
+        fill="none" stroke="currentColor" strokeWidth="0.9" strokeLinejoin="round" opacity="0.4"
+      />
+      <path d="M10 5L10 2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
     </svg>
   );
 }
 
-function IconPlaybook({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <path d="M3 3h5.5a1.5 1.5 0 0 1 1.5 1.5V17l-1-1H3V3z" fill="none" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M17 3h-5.5A1.5 1.5 0 0 0 10 4.5V17l1-1H17V3z" fill="none" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-}
-
-function IconProfile({ className }: { className?: string }) {
+/** Person silhouette — profile / me */
+function IconMe({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
       <circle cx="10" cy="7" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <path
+        d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6"
+        fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"
+      />
     </svg>
   );
 }
 
-function IconGallery({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <rect x="2" y="4" width="16" height="12" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
-      <circle cx="7" cy="9" r="2" fill="none" stroke="currentColor" strokeWidth="1" />
-      <path d="M2 14l4-3 3 2 4-4 5 5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </svg>
-  );
-}
-
-function IconCommunity({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <circle cx="10" cy="6" r="3" fill="none" stroke="currentColor" strokeWidth="1.2" />
-      <circle cx="5" cy="9" r="2" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
-      <circle cx="15" cy="9" r="2" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
-      <path d="M6 16c0-2.2 1.8-4 4-4s4 1.8 4 4" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
+/** Admin star/gear */
 function IconAdmin({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" width={20} height={20} className={className} aria-hidden="true">
-      <path d="M10 2l1.5 3 3.5.5-2.5 2.5.5 3.5L10 10l-3 1.5.5-3.5L5 5.5 8.5 5z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      <path
+        d="M10 2l1.5 3 3.5.5-2.5 2.5.5 3.5L10 10l-3 1.5.5-3.5L5 5.5 8.5 5z"
+        fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"
+      />
       <circle cx="10" cy="15" r="2.5" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.5" />
     </svg>
   );
 }
 
-/* ── section colour map ──────────────────────────────────────
- * Each nav section gets a distinct accent colour so non-readers
- * can navigate by colour association.
+/* ── cycle-phase colour map ────────────────────────────────────
+ * Each phase gets a distinct accent so non-readers can navigate
+ * by colour association. Colours progress warm → deep → light → cool.
  */
 const SECTION_COLORS: Record<string, string> = {
-  "/sampler":         "var(--wv-sienna)",
-  "/matcher":         "var(--wv-redwood)",
-  "/packs":           "var(--wv-cadet)",
-  "/reflections":     "var(--wv-sienna)",
-  "/playbook":        "var(--wv-redwood)",
-  "/profile":         "var(--wv-cadet)",
-  "/gallery":         "var(--wv-champagne)",
-  "/community":       "var(--wv-redwood)",
+  "/matcher":         "var(--wv-sienna)",    /* find — warm discovery   */
+  "/play":            "var(--wv-redwood)",   /* fold — deep engagement  */
+  "/sampler":         "var(--wv-redwood)",   /* fold (legacy alias)     */
+  "/playbook":        "var(--wv-redwood)",   /* fold (legacy alias)     */
+  "/log":             "var(--wv-champagne)", /* unfold — warm reflection */
+  "/reflections":     "var(--wv-champagne)", /* unfold (legacy alias)   */
+  "/gallery":         "var(--wv-champagne)", /* unfold (legacy alias)   */
+  "/community":       "var(--wv-cadet)",     /* find again — expansive  */
+  "/profile":         "var(--wv-sienna)",    /* me                      */
   "/admin":           "var(--wv-sienna)",
 };
 
 /**
- * Top navigation bar — matches windedvertigo.com header style.
+ * Navigation bar — find · fold · unfold · find again · me
  *
- * - Dark cadet (#273248) background
- * - Brand left, nav links right
- * - Champagne text, sienna for accent links (sign in, admin)
- * - Mobile: hamburger toggles slide-down menu
- * - Feature Y: icons alongside text + colour-coded bottom tab bar
+ * Embodies the winded.vertigo creative cycle as interactive navigation.
+ * The four phases (find, fold, unfold, find again) map to the Reggio-
+ * inspired observation cycle and the origami progression metaphor
+ * from the brand one-pager.
  *
- * Session 12: redesigned to match w.v site header pattern.
- * Session 30: added nav icons + mobile bottom tab bar for non-readers.
+ * Tier-aware visibility (cosmetic only — all URLs remain accessible):
+ *   casual / curious:  find · fold · find again · me       (4 tabs)
+ *   collaborator:      find · fold · unfold · find again · me (5 tabs)
+ *
+ * Routes (merged pages):
+ *   find       → /matcher     (material matcher + fit scoring)
+ *   fold       → /play        (playbook collections top, playdates bottom)
+ *   unfold     → /log         (reflection form + gallery for inspiration)
+ *   find again → /community   (leaderboard + community activity)
+ *   me         → /profile
  */
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -138,27 +157,36 @@ export default function NavBar() {
 
   const isAuthed = !!session?.user;
 
-  /* ── tier-aware visibility flags ──
-   * Tiers are purely cosmetic — they control which nav links are
-   * visible, not which features are accessible via direct URL.
-   *   casual:       sampler, matcher, packs, gallery (view-only)
-   *   curious:      + playbook
-   *   collaborator: + reflections, community
+  /* ── tier-aware visibility ──
+   * The "unfold" tab (reflections / logging) only appears for
+   * collaborators. All other tabs are visible to every tier.
+   * Tiers are purely cosmetic — direct URL access still works.
    */
   const tier = (session?.uiTier as string) ?? "casual";
-  const showPlaybook = isAuthed && tier !== "casual";
-  const showReflections = isAuthed && tier === "collaborator";
-  const showCommunity = isAuthed && tier === "collaborator";
+  const showUnfold = isAuthed && tier === "collaborator";
 
+  /* ── desktop nav links ── */
   const navLinks = (
     <>
-      <NavLink href="/sampler" onClick={close} icon={<IconPlaydates />}>playdates</NavLink>
-      <NavLink href="/matcher" onClick={close} icon={<IconMatcher />}>matcher</NavLink>
-      <NavLink href="/packs" onClick={close} icon={<IconPacks />}>packs</NavLink>
-      <NavLink href="/gallery" onClick={close} icon={<IconGallery />}>gallery</NavLink>
-      {showPlaybook && <NavLink href="/playbook" onClick={close} icon={<IconPlaybook />}>playbook</NavLink>}
-      {showReflections && <NavLink href="/reflections/new" onClick={close} icon={<IconReflections />}>reflections</NavLink>}
-      {showCommunity && <NavLink href="/community" onClick={close} icon={<IconCommunity />}>community</NavLink>}
+      <NavLink href="/matcher" pathname={pathname} icon={<IconFind />} onClick={close}>
+        find
+      </NavLink>
+      <NavLink href="/play" pathname={pathname} icon={<IconFold />} onClick={close}>
+        fold
+      </NavLink>
+      {showUnfold && (
+        <NavLink
+          href="/log"
+          pathname={pathname}
+          icon={<IconUnfold />}
+          onClick={close}
+        >
+          unfold
+        </NavLink>
+      )}
+      <NavLink href="/community" pathname={pathname} icon={<IconFindAgain />} onClick={close}>
+        find again
+      </NavLink>
     </>
   );
 
@@ -189,10 +217,12 @@ export default function NavBar() {
         >
           {initials}
         </span>
-        <span>profile</span>
+        <span>me</span>
       </Link>
       {session?.isAdmin && (
-        <NavLink href="/admin" onClick={close} accent icon={<IconAdmin />}>admin</NavLink>
+        <NavLink href="/admin" pathname={pathname} icon={<IconAdmin />} accent onClick={close}>
+          admin
+        </NavLink>
       )}
     </>
   ) : null;
@@ -206,23 +236,33 @@ export default function NavBar() {
         sign out
       </button>
     ) : (
-      <NavLink href="/login" onClick={close} accent>sign in</NavLink>
+      <NavLink href="/login" pathname={pathname} accent onClick={close}>
+        sign in
+      </NavLink>
     );
 
-  /* ── bottom tab bar items for mobile (tier-aware) ── */
-  const bottomTabs = isAuthed
+  /* ── mobile bottom tab bar items (tier-aware) ──
+   *   unauthed:     find · fold · find again · sign in     (4)
+   *   casual/curious: find · fold · find again · me        (4)
+   *   collaborator: find · fold · unfold · find again · me (5)
+   */
+  type Tab = { href: string; label: string; icon: React.ReactNode; key: string; matchPrefix?: string };
+
+  const bottomTabs: Tab[] = isAuthed
     ? [
-        { href: "/sampler", label: "play", icon: <IconPlaydates />, key: "sampler" },
-        { href: "/packs", label: "packs", icon: <IconPacks />, key: "packs" },
-        ...(showReflections ? [{ href: "/reflections/new", label: "log", icon: <IconReflections />, key: "reflections" }] : []),
-        { href: "/gallery", label: "gallery", icon: <IconGallery />, key: "gallery" },
-        ...(showPlaybook ? [{ href: "/playbook", label: "book", icon: <IconPlaybook />, key: "playbook" }] : []),
+        { href: "/matcher", label: "find", icon: <IconFind />, key: "find" },
+        { href: "/play", label: "fold", icon: <IconFold />, key: "fold" },
+        ...(showUnfold
+          ? [{ href: "/log", label: "unfold", icon: <IconUnfold />, key: "unfold" }]
+          : []),
+        { href: "/community", label: "find again", icon: <IconFindAgain />, key: "find-again" },
+        { href: "/profile", label: "me", icon: <IconMe />, key: "me" },
       ]
     : [
-        { href: "/sampler", label: "play", icon: <IconPlaydates />, key: "sampler" },
-        { href: "/matcher", label: "match", icon: <IconMatcher />, key: "matcher" },
-        { href: "/packs", label: "packs", icon: <IconPacks />, key: "packs" },
-        { href: "/gallery", label: "gallery", icon: <IconGallery />, key: "gallery" },
+        { href: "/matcher", label: "find", icon: <IconFind />, key: "find" },
+        { href: "/play", label: "fold", icon: <IconFold />, key: "fold" },
+        { href: "/community", label: "find again", icon: <IconFindAgain />, key: "find-again" },
+        { href: "/login", label: "sign in", icon: <IconMe />, key: "sign-in" },
       ];
 
   return (
@@ -295,20 +335,21 @@ export default function NavBar() {
         aria-label="quick navigation"
       >
         {bottomTabs.map((tab) => {
-          const isActive = pathname?.startsWith(tab.href) ?? false;
-          const accentColor = SECTION_COLORS[tab.href] ?? "var(--wv-cadet)";
+          const matchPath = tab.matchPrefix ?? tab.href;
+          const isActive = pathname?.startsWith(matchPath) ?? false;
+          const accentColor = SECTION_COLORS[matchPath] ?? "var(--wv-cadet)";
           return (
             <Link
               key={tab.key}
               href={tab.href}
-              className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors"
+              className="flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-colors"
               style={{
                 color: isActive ? accentColor : "rgba(39,50,72,0.4)",
                 backgroundColor: isActive ? "rgba(39,50,72,0.04)" : "transparent",
               }}
             >
               {tab.icon}
-              <span className="text-[11px] font-semibold leading-none">{tab.label}</span>
+              <span className="text-[10px] font-semibold leading-none">{tab.label}</span>
             </Link>
           );
         })}
@@ -317,26 +358,34 @@ export default function NavBar() {
   );
 }
 
-/* -- nav link component -------------------------------------------- */
+/* ── nav link component ─────────────────────────────────────── */
 
 function NavLink({
   href,
+  pathname,
+  matchPrefix,
   onClick,
   accent,
   icon,
   children,
 }: {
   href: string;
+  pathname: string | null;
+  matchPrefix?: string;
   onClick?: () => void;
   accent?: boolean;
   icon?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const matchPath = matchPrefix ?? href;
+  const isActive = pathname?.startsWith(matchPath) ?? false;
+
   return (
     <Link
       href={href}
       className="wv-header-nav-link flex items-center gap-1.5"
       data-accent={accent || undefined}
+      data-active={isActive || undefined}
       onClick={onClick}
     >
       {icon && <span className="opacity-80">{icon}</span>}
