@@ -1,5 +1,5 @@
 import type { AgeBand, Card, DepthLevel, GameSession, WildCard } from "./types";
-import { buildDeck, shuffle } from "./deck";
+import { buildDeck, shuffleWithSpacing } from "./deck";
 
 export type GameAction =
   | { type: "START_GAME"; ageBand: AgeBand }
@@ -97,7 +97,21 @@ export function gameReducer(state: GameSession, action: GameAction): GameSession
     case "SHUFFLE_REMAINING": {
       const played = state.deck.slice(0, state.currentIndex + 1);
       const remaining = state.deck.slice(state.currentIndex + 1);
-      const reshuffled = shuffle(remaining);
+      const reshuffled = shuffleWithSpacing(remaining);
+
+      // If the current card is wild, make sure the first reshuffled card isn't
+      const lastPlayed = played[played.length - 1];
+      if (
+        lastPlayed?.type === "wild" &&
+        reshuffled.length > 1 &&
+        reshuffled[0].type === "wild"
+      ) {
+        const swapIdx = reshuffled.findIndex((c) => c.type !== "wild");
+        if (swapIdx > 0) {
+          [reshuffled[0], reshuffled[swapIdx]] = [reshuffled[swapIdx], reshuffled[0]];
+        }
+      }
+
       return {
         ...state,
         deck: [...played, ...reshuffled],
