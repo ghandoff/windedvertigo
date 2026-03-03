@@ -20,8 +20,8 @@ const GAMES: Game[] = [
     tagline: "co-design playdates",
     description:
       "a platform where facilitators and participants co-create playful learning experiences together. run playdates, collect real-time evidence of engagement, and iterate designs based on what actually happens when people play.",
-    color: "from-[#3d2b1e] to-[#2a1d14]",
-    accentColor: "bg-[var(--wv-sienna)]",
+    color: "from-[#cb7858] to-[#a86244]",
+    accentColor: "bg-[var(--wv-redwood)]",
     icon: "\uD83C\uDFA8",
     features: [
       "guided playdate facilitation",
@@ -38,8 +38,8 @@ const GAMES: Game[] = [
     tagline: "curated group energizers",
     description:
       "a growing collection of group activities, ice-breakers, and energizers \u2014 curated from years of facilitation across cultures and contexts. find the right activity for any group size, energy level, or learning goal.",
-    color: "from-[#1e3a2f] to-[#152a22]",
-    accentColor: "bg-emerald-600",
+    color: "from-[#b15043] to-[#8c3e33]",
+    accentColor: "bg-[var(--wv-sienna)]",
     icon: "\u26A1",
     features: [
       "searchable activity library",
@@ -56,7 +56,7 @@ const GAMES: Game[] = [
     tagline: "conversations that connect",
     description:
       "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6\u201314 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions.",
-    color: "from-[#273248] to-[#1a2233]",
+    color: "from-[#273248] to-[#1c2438]",
     accentColor: "bg-[var(--wv-redwood)]",
     icon: "\uD83C\uDCCF",
     features: [
