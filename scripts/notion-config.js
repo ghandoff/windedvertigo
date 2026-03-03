@@ -15,6 +15,7 @@ module.exports = {
     vertigoVault: '223e4ee74ba4805f8c92cda6e2b8ba00',
     whatPage: '311e4ee74ba480268ad9de5a14d6dce4',
     whatPageV2: '312e4ee74ba48102aea3e9f1a8828685',
+    siteContent: '09a046a556c1455e80073546b8f83297',
   },
 
   // Property name mappings (Notion column name â internal key)
@@ -86,6 +87,23 @@ module.exports = {
       layout: 'Layout',
       icon: 'Icon',
     },
+    siteContent: {
+      name: 'Name',
+      content: 'Content',
+      tagline: 'Tagline',
+      order: 'Order',
+      type: 'Content Type',
+      layout: 'Layout',
+      icon: 'Icon',
+      page: 'Page',
+      section: 'Section',
+      features: 'Features',
+      brandColor: 'Brand Color',
+      accentColor: 'Accent Color',
+      link: 'Link',
+      imageUrl: 'Image URL',
+      status: 'Status',
+    },
   },
 
   // Required properties for validation (sync fails if missing)
@@ -97,6 +115,7 @@ module.exports = {
     vertigoVault: ['name'],
     whatPage: ['Name'],
     whatPageV2: ['Name'],
+    siteContent: ['Name', 'Page'],
   },
 
   // Retry configuration for API calls

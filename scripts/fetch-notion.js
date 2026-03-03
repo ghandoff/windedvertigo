@@ -676,19 +676,99 @@ async function fetchWhatPageContentV2() {
 }
 
 // ============================================
+// SITE CONTENT (unified CMS for all pages)
+// ============================================
+// Fetches from the single Site Content CMS database and groups
+// results by Page value (what, we, do, home, reservoir, etc.).
+// Includes pagination to handle >100 rows across all pages.
+async function fetchSiteContent() {
+  const propMap = config.properties.siteContent;
+  const required = config.required.siteContent;
+
+  // Paginated query — the CMS holds content for ALL pages
+  let allPages = [];
+  let startCursor = undefined;
+  let round = 0;
+  const MAX_ROUNDS = 10;
+
+  do {
+    round++;
+    const queryOpts = {
+      database_id: config.databases.siteContent,
+      sorts: [
+        { property: propMap.page, direction: 'ascending' },
+        { property: propMap.order, direction: 'ascending' },
+      ],
+      page_size: 100,
+    };
+    if (startCursor) queryOpts.start_cursor = startCursor;
+
+    const response = await withRetry(
+      () => notion.databases.query(queryOpts),
+      'fetchSiteContent:round' + round
+    );
+
+    allPages = allPages.concat(response.results);
+    startCursor = response.has_more ? response.next_cursor : undefined;
+  } while (startCursor && round < MAX_ROUNDS);
+
+  // Group by page value
+  const byPage = {};
+  let total = 0;
+  let skipped = 0;
+
+  for (const page of allPages) {
+    if (!validatePage(page, required, 'SiteContent')) {
+      skipped++;
+      continue;
+    }
+
+    const props = page.properties;
+    const pageKey = getSelectValue(props[propMap.page]);
+    if (!pageKey) continue;
+
+    // Only include rows with status "live" (or no status set)
+    const status = getSelectValue(props[propMap.status]);
+    if (status && status !== 'live') continue;
+
+    if (!byPage[pageKey]) byPage[pageKey] = [];
+    byPage[pageKey].push({
+      name: getTitleValue(props[propMap.name]),
+      content: getRichTextAsMarkdown(props[propMap.content]),
+      tagline: getTextValue(props[propMap.tagline]),
+      order: getNumberValue(props[propMap.order]),
+      type: getSelectValue(props[propMap.type]),
+      layout: getSelectValue(props[propMap.layout]) || 'default',
+      icon: getTextValue(props[propMap.icon]),
+      section: getTextValue(props[propMap.section]),
+      features: getTextValue(props[propMap.features]),
+      brandColor: getSelectValue(props[propMap.brandColor]),
+      accentColor: getSelectValue(props[propMap.accentColor]),
+      link: getUrlValue(props[propMap.link]),
+      imageUrl: getUrlValue(props[propMap.imageUrl]),
+    });
+    total++;
+  }
+
+  console.log('  OK Site Content: ' + total + ' items across ' + Object.keys(byPage).length + ' pages, ' + skipped + ' skipped');
+  return byPage;
+}
+
+// ============================================
 // MAIN
 // ============================================
 async function main() {
   console.log('Fetching content from Notion...');
 
   try {
-    const [quadrants, outcomes, portfolioAssets, vaultActivities, whatPageSections, whatPageV2Sections] = await Promise.all([
+    const [quadrants, outcomes, portfolioAssets, vaultActivities, whatPageSections, whatPageV2Sections, siteContent] = await Promise.all([
       fetchQuadrants(),
       fetchOutcomes(),
       fetchPortfolioAssets(),
       fetchVertigoVault(),
       fetchWhatPageContent(),
       fetchWhatPageContentV2(),
+      fetchSiteContent(),
     ]);
 
     // Validate we got all 4 quadrants
@@ -786,12 +866,29 @@ async function main() {
     const whatPageV2Path = path.join(__dirname, '..', 'apps', 'site', 'data', 'what-page-v2.json');
     fs.writeFileSync(whatPageV2Path, JSON.stringify(whatPageV2Content, null, 2));
 
+    // Write Site Content per-page JSON files
+    const siteContentPaths = [];
+    for (const [pageKey, sections] of Object.entries(siteContent)) {
+      const sitePageContent = {
+        lastUpdated: new Date().toISOString(),
+        note: 'Auto-generated from Notion Site Content CMS. Do not edit directly.',
+        page: pageKey,
+        sections,
+      };
+      const sitePagePath = path.join(__dirname, '..', 'apps', 'site', 'data', 'site-content-' + pageKey + '.json');
+      fs.writeFileSync(sitePagePath, JSON.stringify(sitePageContent, null, 2));
+      siteContentPaths.push({ page: pageKey, count: sections.length, path: sitePagePath });
+    }
+
     console.log('Success!');
     console.log('  Package Builder: ' + Object.keys(packs).length + ' packs → ' + outputPath);
     console.log('  Portfolio: ' + portfolioAssets.length + ' assets → ' + portfolioPath);
     console.log('  Vertigo Vault: ' + vaultActivities.length + ' activities → ' + vaultPath);
     console.log('  What Page: ' + whatPageSections.length + ' sections → ' + whatPagePath);
     console.log('  What Page V2: ' + whatPageV2Sections.length + ' sections → ' + whatPageV2Path);
+    for (const sp of siteContentPaths) {
+      console.log('  Site Content (' + sp.page + '): ' + sp.count + ' sections → ' + sp.path);
+    }
 
   } catch (err) {
     console.error('Sync failed:', err.message);

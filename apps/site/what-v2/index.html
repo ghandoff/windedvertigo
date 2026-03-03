@@ -255,7 +255,7 @@
     // v2: adds layout variant and icon support
     (async function loadWhatContent() {
       try {
-        const resp = await fetch('../data/what-page-v2.json');
+        const resp = await fetch('../data/site-content-what.json');
         if (!resp.ok) return; // keep fallback HTML
         const data = await resp.json();
         if (!data.sections || data.sections.length === 0) return;
@@ -264,8 +264,9 @@
         if (!container) return;
 
         // Separate hero from body sections
+        // Use explicit type matching to exclude metadata rows
         const hero = data.sections.find(s => s.type === 'hero');
-        const body = data.sections.filter(s => s.type !== 'hero');
+        const body = data.sections.filter(s => s.type === 'body');
 
         // Group consecutive card-layout sections
         const groups = [];
