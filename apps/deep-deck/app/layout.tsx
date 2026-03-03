@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://windedvertigo.com"),
   title: "deep.deck — winded.vertigo",
   description:
-    "a digital card game that helps teachers and parents connect with children through conversation, play, and reflection.",
+    "a digital card game that helps teachers and parents connect with children through conversation, play, and reflection. try the free sampler or unlock the full 128-card deck.",
   alternates: {
     canonical: "/reservoir/deep-deck",
   },

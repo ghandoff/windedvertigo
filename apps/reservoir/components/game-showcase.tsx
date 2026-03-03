@@ -11,6 +11,7 @@ export interface Game {
   features: string[];
   href: string;
   status: "live" | "coming-soon";
+  badge?: string;         // custom badge text (defaults to "play now")
 }
 
 const GAMES: Game[] = [
@@ -55,18 +56,19 @@ const GAMES: Game[] = [
     name: "deep.deck",
     tagline: "conversations that connect",
     description:
-      "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6\u201314 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions.",
+      "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6\u201314 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions. try the free sampler or unlock the full 128-card deck.",
     color: "from-[#273248] to-[#1c2438]",
     accentColor: "bg-[var(--wv-redwood)]",
     icon: "\uD83C\uDCCF",
     features: [
-      "128 developmentally-sequenced cards",
+      "free sampler with 36 cards across all age bands",
+      "full deck: 128 cards + 32 wild modifiers",
       "deep \u2192 deeper \u2192 deepest progression",
-      "wild cards that turn hard questions into play",
       "4 age bands: 6\u20138, 9\u201310, 11\u201312, 13\u201314",
     ],
     href: "/reservoir/deep-deck",
     status: "live",
+    badge: "try free",
   },
 ];
 
@@ -106,7 +108,7 @@ function GameCard({ game, index }: { game: Game; index: number }) {
                 <span
                   className={`${game.accentColor} text-white text-xs font-semibold px-3 py-1 rounded-full`}
                 >
-                  play now
+                  {game.badge || "play now"}
                 </span>
               ) : (
                 <span className="bg-white/10 text-white/50 text-xs font-semibold px-3 py-1 rounded-full">

@@ -3,6 +3,7 @@
 import type { AgeBand } from "@/lib/types";
 import { AGE_BAND_LABELS } from "@/lib/types";
 import { getDeckSize } from "@/lib/deck";
+import { useAccess } from "@/lib/use-access";
 
 const AGE_BANDS: AgeBand[] = ["6-8", "9-10", "11-12", "13-14"];
 
@@ -34,12 +35,14 @@ interface AgeBandPickerProps {
 }
 
 export function AgeBandPicker({ onSelect }: AgeBandPickerProps) {
+  const { entitlements } = useAccess();
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
       {AGE_BANDS.map((band) => {
         const { grades, label } = AGE_BAND_LABELS[band];
         const colors = BAND_COLORS[band];
-        const deckSize = getDeckSize(band);
+        const deckSize = getDeckSize(band, entitlements);
 
         return (
           <button

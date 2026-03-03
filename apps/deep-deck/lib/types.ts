@@ -2,10 +2,14 @@ export type AgeBand = "6-8" | "9-10" | "11-12" | "13-14";
 
 export type DepthLevel = "deep" | "deeper" | "deepest";
 
+/** Pack identifiers — "sampler" is free, everything else requires purchase. */
+export type PackId = "sampler" | "full";
+
 export interface ConversationCard {
   id: string;
   type: "conversation";
   ageBand: AgeBand;
+  pack: PackId;
   prompts: Record<DepthLevel, string>;
   tip: string;
 }
@@ -14,6 +18,7 @@ export interface GamificationCard {
   id: string;
   type: "gamification";
   ageBand: AgeBand;
+  pack: PackId;
   title: string;
   instructions: string;
   tip: string;
@@ -22,6 +27,7 @@ export interface GamificationCard {
 export interface WildCard {
   id: string;
   type: "wild";
+  pack: PackId;
   title: string;
   description: string;
   effect: string;

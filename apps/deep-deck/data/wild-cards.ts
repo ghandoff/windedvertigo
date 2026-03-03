@@ -4,6 +4,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-01",
     type: "wild",
+    pack: "sampler",
     title: "Animal Voice",
     description: "Answer the question using an animal voice of your choice.",
     effect: "The answerer must use their best animal voice to respond.",
@@ -11,6 +12,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-02",
     type: "wild",
+    pack: "sampler",
     title: "Reverse Card",
     description: "Switch roles. The asker becomes the answerer.",
     effect: "Swap who asks and who answers for this card.",
@@ -18,6 +20,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-03",
     type: "wild",
+    pack: "sampler",
     title: "Opposite Day",
     description: "Answer the question the opposite way first. Then (if you want) share your real answer.",
     effect: "Give the opposite answer before your real one.",
@@ -25,6 +28,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-04",
     type: "wild",
+    pack: "sampler",
     title: "Draw It",
     description: "Instead of speaking, draw your answer in 30 seconds.",
     effect: "No talking \u2014 grab paper and draw your response in 30 seconds.",
@@ -32,6 +36,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-05",
     type: "wild",
+    pack: "sampler",
     title: "Whisper Round",
     description: "Answer in a whisper.",
     effect: "Everyone must whisper for this round.",
@@ -39,6 +44,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-06",
     type: "wild",
+    pack: "sampler",
     title: "Movie Trailer Voice",
     description: "Answer like you\u2019re narrating a dramatic movie trailer.",
     effect: "Channel your inner movie announcer voice.",
@@ -46,6 +52,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-07",
     type: "wild",
+    pack: "sampler",
     title: "5-Word Limit",
     description: "You can only use five words.",
     effect: "Exactly five words. No more, no less.",
@@ -53,6 +60,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-08",
     type: "wild",
+    pack: "sampler",
     title: "Interview Mode",
     description: "The other person must ask one follow-up question before reacting.",
     effect: "After the answer, ask a follow-up before any other response.",
@@ -60,6 +68,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-09",
     type: "wild",
+    pack: "full",
     title: "Roll the Emotion",
     description: "Before answering, choose an emotion (happy, dramatic, mysterious, confident) and answer with that energy.",
     effect: "Pick an emotion and answer in that emotional style.",
@@ -67,6 +76,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-10",
     type: "wild",
+    pack: "full",
     title: "Secret Identity",
     description: "Answer as if you are a superhero / villain / future version of yourself.",
     effect: "Take on a secret identity for your answer.",
@@ -74,6 +84,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-11",
     type: "wild",
+    pack: "full",
     title: "Why x2",
     description: "After answering, you must answer \u201CWhy?\u201D twice more.",
     effect: "After your answer, dig deeper by answering \u201Cwhy\u201D two more times.",
@@ -81,6 +92,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-12",
     type: "wild",
+    pack: "full",
     title: "Flash Answer",
     description: "First answer must be instinctive (no thinking more than 3 seconds).",
     effect: "Answer within 3 seconds \u2014 go with your gut!",
@@ -88,6 +100,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-13",
     type: "wild",
+    pack: "full",
     title: "Partner Echo",
     description: "The listener must repeat back what they heard before responding.",
     effect: "Before reacting, repeat back what the answerer said in your own words.",
@@ -95,6 +108,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-14",
     type: "wild",
+    pack: "full",
     title: "Tiny Truth",
     description: "You must include one small honest detail you normally wouldn\u2019t share.",
     effect: "Add one small, extra-honest detail to your answer.",
@@ -102,6 +116,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-15",
     type: "wild",
+    pack: "full",
     title: "Time Travel",
     description: "Answer as: your 6-year-old self, your 25-year-old self, and your future self.",
     effect: "Give three answers from three different versions of yourself.",
@@ -109,6 +124,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-16",
     type: "wild",
+    pack: "full",
     title: "Soundtrack Mode",
     description: "Answer and then name a song that matches your answer.",
     effect: "After answering, pick a song that fits your response.",
@@ -116,6 +132,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-17",
     type: "wild",
+    pack: "full",
     title: "Mirror Swap",
     description: "Before answering, say one thing you think the other person might say. Then give your own answer.",
     effect: "Predict the other person\u2019s answer first, then share yours.",
@@ -123,6 +140,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-18",
     type: "wild",
+    pack: "full",
     title: "Invent a Word",
     description: "Invent a new word and define what it means.",
     effect: "Create a brand-new word and explain it.",
@@ -130,6 +148,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-19",
     type: "wild",
+    pack: "full",
     title: "Energy Pose",
     description: "Strike a pose that represents your current energy.",
     effect: "Stand up and strike a pose that shows how you feel right now.",
@@ -137,6 +156,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-20",
     type: "wild",
+    pack: "full",
     title: "Autobiography Title",
     description: "Create the title of your autobiography (no explanation).",
     effect: "Say only the title \u2014 no explaining it.",
@@ -144,6 +164,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-21",
     type: "wild",
+    pack: "full",
     title: "Useless Superpower",
     description: "Invent a completely useless superpower.",
     effect: "Dream up the most wonderfully useless superpower you can imagine.",
@@ -151,6 +172,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-22",
     type: "wild",
+    pack: "full",
     title: "Color Check",
     description: "If you were a color right now, which one would you be?",
     effect: "Name your current color \u2014 that\u2019s your whole answer.",
@@ -158,6 +180,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-23",
     type: "wild",
+    pack: "full",
     title: "Planet Creator",
     description: "Create the name of a planet.",
     effect: "Name a planet. That\u2019s it. No explanation needed.",
@@ -165,6 +188,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-24",
     type: "wild",
+    pack: "full",
     title: "Dramatic Sentence",
     description: "Say one dramatic sentence with no context.",
     effect: "Deliver one dramatic line like a movie scene.",
@@ -172,6 +196,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-25",
     type: "wild",
+    pack: "full",
     title: "Ice Cream Inventor",
     description: "Design a new ice cream flavor.",
     effect: "Invent a flavor, name it, and describe the taste.",
@@ -179,6 +204,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-26",
     type: "wild",
+    pack: "full",
     title: "Sound of an Emotion",
     description: "Make the sound of an emotion.",
     effect: "No words \u2014 just make a sound that captures an emotion.",
@@ -186,6 +212,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-27",
     type: "wild",
+    pack: "full",
     title: "Movie Genre",
     description: "If your life were a movie genre today, what would it be?",
     effect: "Name the genre of your life\u2019s movie today.",
@@ -193,6 +220,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-28",
     type: "wild",
+    pack: "full",
     title: "App Inventor",
     description: "Invent an app that should exist.",
     effect: "Pitch your dream app in one sentence.",
@@ -200,6 +228,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-29",
     type: "wild",
+    pack: "full",
     title: "Emoji Identity",
     description: "Choose one emoji that represents you right now (no explanation).",
     effect: "Pick an emoji. No explaining it. Just the emoji.",
@@ -207,6 +236,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-30",
     type: "wild",
+    pack: "full",
     title: "Today\u2019s Slogan",
     description: "Create a slogan for today.",
     effect: "Invent a motto or slogan for this day.",
@@ -214,6 +244,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-31",
     type: "wild",
+    pack: "full",
     title: "Object Identity",
     description: "If you were an object in this room, what would you be?",
     effect: "Pick an object nearby and explain why you\u2019re that object.",
@@ -221,6 +252,7 @@ export const wildCards: WildCard[] = [
   {
     id: "w-32",
     type: "wild",
+    pack: "full",
     title: "Fake Deep",
     description: "Say something that sounds deep but is completely made up.",
     effect: "Deliver a line that sounds profound but means nothing.",

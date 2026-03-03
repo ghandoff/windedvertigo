@@ -1,4 +1,4 @@
-import type { AgeBand, Card, ConversationCard, GamificationCard } from "./types";
+import type { AgeBand, Card, ConversationCard, GamificationCard, PackId } from "./types";
 import {
   allConversationCards,
   allGamificationCards,
@@ -59,17 +59,23 @@ export function shuffleWithSpacing(cards: Card[]): Card[] {
 /** Max wild cards per deck — keeps modifiers rare enough to space apart. */
 const WILDS_PER_DECK = 8;
 
-/** Build a shuffled deck for a given age band. */
-export function buildDeck(ageBand: AgeBand): Card[] {
+/** Check if a card is accessible with the given entitlements. */
+function isEntitled(card: Card, entitlements: PackId[]): boolean {
+  return entitlements.includes(card.pack);
+}
+
+/** Build a shuffled deck for a given age band, filtered by entitlements. */
+export function buildDeck(ageBand: AgeBand, entitlements: PackId[] = ["sampler"]): Card[] {
   const conversation: ConversationCard[] = allConversationCards.filter(
-    (c) => c.ageBand === ageBand,
+    (c) => c.ageBand === ageBand && isEntitled(c, entitlements),
   );
   const gamification: GamificationCard[] = allGamificationCards.filter(
-    (c) => c.ageBand === ageBand,
+    (c) => c.ageBand === ageBand && isEntitled(c, entitlements),
   );
 
-  // Randomly select a subset of wild cards so modifiers stay rare
-  const selectedWilds = shuffle(wildCards as Card[]).slice(0, WILDS_PER_DECK);
+  // Filter wilds by entitlement, then randomly select a subset
+  const entitledWilds = (wildCards as Card[]).filter((c) => isEntitled(c, entitlements));
+  const selectedWilds = shuffle(entitledWilds).slice(0, WILDS_PER_DECK);
 
   const deck: Card[] = [...conversation, ...gamification, ...selectedWilds];
 
@@ -77,12 +83,38 @@ export function buildDeck(ageBand: AgeBand): Card[] {
 }
 
 /** Get the count of cards for a given age band (including wilds). */
-export function getDeckSize(ageBand: AgeBand): number {
+export function getDeckSize(ageBand: AgeBand, entitlements?: PackId[]): number {
+  const filter = entitlements
+    ? (c: Card) => isEntitled(c, entitlements)
+    : () => true;
+
   const conversation = allConversationCards.filter(
-    (c) => c.ageBand === ageBand,
+    (c) => c.ageBand === ageBand && filter(c),
   ).length;
   const gamification = allGamificationCards.filter(
-    (c) => c.ageBand === ageBand,
+    (c) => c.ageBand === ageBand && filter(c),
   ).length;
+
+  if (entitlements) {
+    const entitledWilds = (wildCards as Card[]).filter(filter);
+    return conversation + gamification + Math.min(entitledWilds.length, WILDS_PER_DECK);
+  }
+
   return conversation + gamification + WILDS_PER_DECK;
+}
+
+/** Get total card counts across all bands for display. */
+export function getTotalDeckSize(entitlements?: PackId[]): number {
+  const bands: AgeBand[] = ["6-8", "9-10", "11-12", "13-14"];
+  const filter = entitlements
+    ? (c: Card) => isEntitled(c, entitlements)
+    : () => true;
+
+  const conv = allConversationCards.filter(filter).length;
+  const gam = allGamificationCards.filter(filter).length;
+  const wilds = entitlements
+    ? (wildCards as Card[]).filter(filter).length
+    : wildCards.length;
+
+  return conv + gam + wilds;
 }

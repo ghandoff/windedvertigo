@@ -7,6 +7,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-01",
     type: "conversation",
     ageBand: "6-8",
+    pack: "sampler",
     prompts: {
       deep: "If your feelings were colors today, what colors would they be? Why?",
       deeper: "Can you think of a time when your colors changed during the day? What happened?",
@@ -18,6 +19,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-02",
     type: "conversation",
     ageBand: "6-8",
+    pack: "sampler",
     prompts: {
       deep: "If your day was an animal, what animal would it be? Why?",
       deeper: "What was the wildest part of your day-animal\u2019s adventure?",
@@ -29,6 +31,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-03",
     type: "conversation",
     ageBand: "6-8",
+    pack: "sampler",
     prompts: {
       deep: "What is something small that made you smile today?",
       deeper: "Who was with you when that happened? How did it feel?",
@@ -40,6 +43,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-04",
     type: "conversation",
     ageBand: "6-8",
+    pack: "sampler",
     prompts: {
       deep: "When do you feel the bravest?",
       deeper: "What does brave feel like in your body?",
@@ -51,6 +55,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-05",
     type: "conversation",
     ageBand: "6-8",
+    pack: "sampler",
     prompts: {
       deep: "If your heart had a weather report today, what would it say?",
       deeper: "Was there a moment when the weather changed? What happened?",
@@ -62,6 +67,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-06",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "What is something you\u2019re getting better at?",
       deeper: "How do you know you\u2019re getting better? What changed?",
@@ -73,6 +79,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-07",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "When do you feel the happiest during the day? What is happening in that moment?",
       deeper: "Who is usually there with you when you feel happy?",
@@ -84,6 +91,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-08",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "What is something that sometimes feels hard for you? What helps a little?",
       deeper: "Who do you go to when something feels hard?",
@@ -95,6 +103,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-09",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "Who makes you feel safe? What do they do that helps?",
       deeper: "What does \u201Csafe\u201D feel like in your body?",
@@ -106,6 +115,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-10",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "What does it feel like in your body when you\u2019re nervous?",
       deeper: "What helps you feel a little less nervous?",
@@ -117,6 +127,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-11",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "Tell about a time you tried something new. How did it feel?",
       deeper: "What made you decide to try it?",
@@ -128,6 +139,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-12",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "What is something you\u2019re still learning how to do?",
       deeper: "What\u2019s the trickiest part about learning it?",
@@ -139,6 +151,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-13",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "What is something you\u2019re really proud of about yourself?",
       deeper: "How did you get to be that way?",
@@ -150,6 +163,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-14",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "What makes you feel really important?",
       deeper: "Who makes you feel the most important?",
@@ -161,6 +175,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-15",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "What is something that hurts your feelings quickly?",
       deeper: "What do you wish people would do instead?",
@@ -172,6 +187,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-16",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "If you could change one thing about your day, what would it be? Why?",
       deeper: "What would that change make you feel?",
@@ -183,6 +199,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-17",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "What is something you\u2019re still trying to understand about the world?",
       deeper: "What makes it so tricky to understand?",
@@ -194,6 +211,7 @@ export const conversation6to8: ConversationCard[] = [
     id: "c-6-18",
     type: "conversation",
     ageBand: "6-8",
+    pack: "full",
     prompts: {
       deep: "What makes you feel very loved?",
       deeper: "How do you like to show love to other people?",
@@ -208,6 +226,7 @@ export const gamification6to8: GamificationCard[] = [
     id: "g-6-01",
     type: "gamification",
     ageBand: "6-8",
+    pack: "sampler",
     title: "Emotion Statue",
     instructions: "Freeze in a pose that matches the emotion the adult calls out.",
     tip: "Use simple emotions first (happy, shy, sleepy). Switch roles so the child gets to lead. Celebrate their creativity.",
@@ -216,6 +235,7 @@ export const gamification6to8: GamificationCard[] = [
     id: "g-6-02",
     type: "gamification",
     ageBand: "6-8",
+    pack: "sampler",
     title: "Freeze Dance Feelings",
     instructions: "Dance freely. When the music stops, freeze in the emotion called out.",
     tip: "Use exaggerated poses. Avoid correcting how emotions \u201Cshould\u201D look. Celebrate creativity.",
@@ -224,6 +244,7 @@ export const gamification6to8: GamificationCard[] = [
     id: "g-6-03",
     type: "gamification",
     ageBand: "6-8",
+    pack: "full",
     title: "Magic Mirror",
     instructions: "One person moves slowly while the other mirrors exactly.",
     tip: "Switch roles often. Encourage eye contact. Keep movements slow for focus.",
@@ -232,6 +253,7 @@ export const gamification6to8: GamificationCard[] = [
     id: "g-6-04",
     type: "gamification",
     ageBand: "6-8",
+    pack: "full",
     title: "Feelings Charades",
     instructions: "Act an emotion silently while others guess.",
     tip: "No \u201Cwrong\u201D guesses. Keep turns short. Rotate quickly to maintain energy.",
@@ -240,6 +262,7 @@ export const gamification6to8: GamificationCard[] = [
     id: "g-6-05",
     type: "gamification",
     ageBand: "6-8",
+    pack: "full",
     title: "Color Corners",
     instructions: "Each corner represents a feeling. Run to the one that matches how you feel.",
     tip: "Remind them they can change corners. No questioning their choice. Keep it active.",
@@ -248,6 +271,7 @@ export const gamification6to8: GamificationCard[] = [
     id: "g-6-06",
     type: "gamification",
     ageBand: "6-8",
+    pack: "full",
     title: "Shape Maker",
     instructions: "Adult calls a shape (star, ball, tall tree). Make it with your body.",
     tip: "Encourage full-body movement. No \u201Cwrong\u201D shapes. Add teamwork version (make a shape together).",
@@ -261,6 +285,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-01",
     type: "conversation",
     ageBand: "9-10",
+    pack: "sampler",
     prompts: {
       deep: "If today had a title like a movie, what would it be?",
       deeper: "What was the most important scene in your movie today?",
@@ -272,6 +297,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-02",
     type: "conversation",
     ageBand: "9-10",
+    pack: "sampler",
     prompts: {
       deep: "What part of your day usually feels the most interesting? Why?",
       deeper: "What makes that part different from the rest?",
@@ -283,6 +309,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-03",
     type: "conversation",
     ageBand: "9-10",
+    pack: "sampler",
     prompts: {
       deep: "When do you feel the most confident?",
       deeper: "What helped you build that confidence?",
@@ -294,6 +321,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-04",
     type: "conversation",
     ageBand: "9-10",
+    pack: "sampler",
     prompts: {
       deep: "What kind of friend do you try to be?",
       deeper: "What\u2019s the hardest part about being that kind of friend?",
@@ -305,6 +333,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-05",
     type: "conversation",
     ageBand: "9-10",
+    pack: "sampler",
     prompts: {
       deep: "What is something that makes school easier for you?",
       deeper: "Is there something that makes school harder that you wish was different?",
@@ -316,6 +345,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-06",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What is something you enjoy learning about? Why?",
       deeper: "How did you first get interested in that?",
@@ -327,6 +357,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-07",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What is something new you learned about yourself this week?",
       deeper: "What surprised you about that discovery?",
@@ -338,6 +369,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-08",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What is something you wish people understood about you?",
       deeper: "What would change if they understood that?",
@@ -349,6 +381,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-09",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What kind of situations make you nervous? Why?",
       deeper: "What\u2019s the worst part about feeling nervous?",
@@ -360,6 +393,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-10",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What is something you try hard at, even if it\u2019s difficult?",
       deeper: "What keeps you going when it gets really hard?",
@@ -371,6 +405,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-11",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What is something you wish you were better at?",
       deeper: "What small step could help you get better?",
@@ -382,6 +417,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-12",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What makes someone feel like a safe friend to you?",
       deeper: "Has a friend ever made you feel unsafe? What happened?",
@@ -393,6 +429,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-13",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What is something you want to get better at, and why is it important to you?",
       deeper: "What\u2019s one tiny step you could try this week?",
@@ -404,6 +441,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-14",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What do you love most about being part of your family?",
       deeper: "What\u2019s something that feels good or special at home?",
@@ -415,6 +453,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-15",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What kind of person do you want to be, even when no one is watching?",
       deeper: "What makes that hard sometimes?",
@@ -426,6 +465,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-16",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What is a value that feels important in your life? (Kindness, fairness, loyalty, effort, honesty?)",
       deeper: "When was the last time you lived that value?",
@@ -437,6 +477,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-17",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What do you want people to remember about you?",
       deeper: "Is there something you do that shows people that side of you?",
@@ -448,6 +489,7 @@ export const conversation9to10: ConversationCard[] = [
     id: "c-9-18",
     type: "conversation",
     ageBand: "9-10",
+    pack: "full",
     prompts: {
       deep: "What helps you stay calm when things feel unfair?",
       deeper: "What makes unfairness so hard to deal with?",
@@ -462,6 +504,7 @@ export const gamification9to10: GamificationCard[] = [
     id: "g-9-01",
     type: "gamification",
     ageBand: "9-10",
+    pack: "sampler",
     title: "Tiny Challenge Trade",
     instructions: "You each create one tiny challenge. Swap them and try to complete them within the next hour.",
     tip: "Keep challenges fun and light. After you complete them, share: \u201CWhat was the best part of doing your challenge?\u201D",
@@ -470,6 +513,7 @@ export const gamification9to10: GamificationCard[] = [
     id: "g-9-02",
     type: "gamification",
     ageBand: "9-10",
+    pack: "sampler",
     title: "Team Tower",
     instructions: "Using simple materials, build the tallest tower in 3 minutes.",
     tip: "Focus on teamwork, not winning. Rotate who leads. Ask: \u201CWhat worked well?\u201D",
@@ -478,6 +522,7 @@ export const gamification9to10: GamificationCard[] = [
     id: "g-9-03",
     type: "gamification",
     ageBand: "9-10",
+    pack: "full",
     title: "3-Step Challenge",
     instructions: "Complete a small 3-step task together under a timer.",
     tip: "Keep it achievable. Focus on cooperation. Celebrate effort.",
@@ -486,6 +531,7 @@ export const gamification9to10: GamificationCard[] = [
     id: "g-9-04",
     type: "gamification",
     ageBand: "9-10",
+    pack: "full",
     title: "Mystery Leader",
     instructions: "One person secretly leads small movements. The group copies. One detective tries to guess the leader.",
     tip: "Switch roles often. Keep movements subtle. No blaming wrong guesses.",
@@ -494,6 +540,7 @@ export const gamification9to10: GamificationCard[] = [
     id: "g-9-05",
     type: "gamification",
     ageBand: "9-10",
+    pack: "full",
     title: "Fast Finish Story",
     instructions: "Each person adds ONE word to a story, must continue immediately.",
     tip: "Keep it moving fast. No correcting words. Embrace silly twists.",
@@ -502,6 +549,7 @@ export const gamification9to10: GamificationCard[] = [
     id: "g-9-06",
     type: "gamification",
     ageBand: "9-10",
+    pack: "full",
     title: "Bluff It!",
     instructions: "One player shares three short \u201Cfacts\u201D about a made-up character. Two are true, one is fake. Others guess the fake.",
     tip: "Keep it fictional to avoid personal pressure. Encourage creativity, not trickery. Rotate quickly.",
@@ -515,6 +563,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-01",
     type: "conversation",
     ageBand: "11-12",
+    pack: "sampler",
     prompts: {
       deep: "What kind of energy did you bring into today?",
       deeper: "What do you think influenced that energy?",
@@ -526,6 +575,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-02",
     type: "conversation",
     ageBand: "11-12",
+    pack: "sampler",
     prompts: {
       deep: "What kind of mood did you wake up with today?",
       deeper: "What do you think influenced that mood?",
@@ -537,6 +587,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-03",
     type: "conversation",
     ageBand: "11-12",
+    pack: "sampler",
     prompts: {
       deep: "What kind of energy do you usually bring into a group?",
       deeper: "Is that the energy you want to bring, or does it just happen?",
@@ -548,6 +599,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-04",
     type: "conversation",
     ageBand: "11-12",
+    pack: "sampler",
     prompts: {
       deep: "What part of your day feels the most \u201Cyou\u201D?",
       deeper: "What makes that part feel so authentic?",
@@ -559,6 +611,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-05",
     type: "conversation",
     ageBand: "11-12",
+    pack: "sampler",
     prompts: {
       deep: "What\u2019s something small that improves your mood?",
       deeper: "Why do you think that works for you?",
@@ -570,6 +623,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-06",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What kind of challenges feel interesting to you?",
       deeper: "What makes a challenge interesting vs. just hard?",
@@ -581,6 +635,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-07",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What\u2019s something people sometimes misunderstand about you?",
       deeper: "What would you want them to understand instead?",
@@ -592,6 +647,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-08",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What\u2019s a belief you\u2019ve started questioning lately?",
       deeper: "What made you start questioning it?",
@@ -603,6 +659,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-09",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What does respect mean to you?",
       deeper: "How do you show respect, and how do you want to receive it?",
@@ -614,6 +671,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-10",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "When do you feel misunderstood by people your age?",
       deeper: "What do you wish they could see about you?",
@@ -625,6 +683,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-11",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What is something about growing up that feels exciting, and something that feels confusing?",
       deeper: "Which feeling is stronger right now \u2014 excitement or confusion?",
@@ -636,6 +695,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-12",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What\u2019s something you\u2019ve handled better this year than you would have before?",
       deeper: "What changed that helped you handle it better?",
@@ -647,6 +707,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-13",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "When do you feel most like yourself? What are you doing, and who are you with?",
       deeper: "What about that moment makes you feel authentic?",
@@ -658,6 +719,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-14",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What kind of pressure do people your age feel that adults might not see?",
       deeper: "Do you feel that pressure yourself?",
@@ -669,6 +731,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-15",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "If someone described you honestly, what would you hope they say?",
       deeper: "Is that how you see yourself too?",
@@ -680,6 +743,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-16",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What do you think makes someone trustworthy?",
       deeper: "How do you decide if you can trust someone?",
@@ -691,6 +755,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-17",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What is something you\u2019re still figuring out about yourself?",
       deeper: "What makes it hard to figure out?",
@@ -702,6 +767,7 @@ export const conversation11to12: ConversationCard[] = [
     id: "c-11-18",
     type: "conversation",
     ageBand: "11-12",
+    pack: "full",
     prompts: {
       deep: "What kind of person do you admire, and why?",
       deeper: "What traits of theirs do you see in yourself?",
@@ -716,6 +782,7 @@ export const gamification11to12: GamificationCard[] = [
     id: "g-11-01",
     type: "gamification",
     ageBand: "11-12",
+    pack: "sampler",
     title: "Two Truths & a Boost",
     instructions: "Say two true facts about yourself + one thing you want to improve. Guess the boost.",
     tip: "Keep it positive (no \u201CI\u2019m bad at\u2026\u201D). Adult models vulnerability first. End by choosing one tiny \u201Cboost\u201D action for the week.",
@@ -724,6 +791,7 @@ export const gamification11to12: GamificationCard[] = [
     id: "g-11-02",
     type: "gamification",
     ageBand: "11-12",
+    pack: "sampler",
     title: "Bluff Master",
     instructions: "Tell a short story with one tiny fake detail. Others must detect the fake.",
     tip: "Keep stories appropriate. No embarrassing content. Rotate quickly.",
@@ -732,6 +800,7 @@ export const gamification11to12: GamificationCard[] = [
     id: "g-11-03",
     type: "gamification",
     ageBand: "11-12",
+    pack: "full",
     title: "Energy Remix",
     instructions: "One person starts a movement pattern. Each person adds a twist to it.",
     tip: "Keep it creative, not chaotic. Encourage originality. Switch leaders often.",
@@ -740,6 +809,7 @@ export const gamification11to12: GamificationCard[] = [
     id: "g-11-04",
     type: "gamification",
     ageBand: "11-12",
+    pack: "full",
     title: "Rapid Fire Choices",
     instructions: "Answer quick \u201CThis or That\u201D questions under 3 seconds.",
     tip: "Keep pace fast. No judging answers. Encourage instinct responses.",
@@ -748,6 +818,7 @@ export const gamification11to12: GamificationCard[] = [
     id: "g-11-05",
     type: "gamification",
     ageBand: "11-12",
+    pack: "full",
     title: "Build the Impossible",
     instructions: "Create something unusual (a bridge for a shoe, a paper tower for 10 seconds).",
     tip: "Keep materials simple. Focus on creativity. Celebrate attempts.",
@@ -756,6 +827,7 @@ export const gamification11to12: GamificationCard[] = [
     id: "g-11-06",
     type: "gamification",
     ageBand: "11-12",
+    pack: "full",
     title: "Mini Shark Tank",
     instructions: "Pitch a silly invention in 60 seconds.",
     tip: "Keep ideas imaginative. Applaud creativity. No harsh criticism.",
@@ -769,6 +841,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-01",
     type: "conversation",
     ageBand: "13-14",
+    pack: "sampler",
     prompts: {
       deep: "What kind of mood has this week had for you?",
       deeper: "What made it feel that way?",
@@ -780,6 +853,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-02",
     type: "conversation",
     ageBand: "13-14",
+    pack: "sampler",
     prompts: {
       deep: "What kind of conversations do you enjoy the most?",
       deeper: "What makes those conversations feel good?",
@@ -791,6 +865,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-03",
     type: "conversation",
     ageBand: "13-14",
+    pack: "sampler",
     prompts: {
       deep: "When do you feel the most motivated?",
       deeper: "What drives that motivation?",
@@ -802,6 +877,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-04",
     type: "conversation",
     ageBand: "13-14",
+    pack: "sampler",
     prompts: {
       deep: "What kind of challenges feel worth your effort right now?",
       deeper: "How do you decide what\u2019s worth your effort?",
@@ -813,6 +889,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-05",
     type: "conversation",
     ageBand: "13-14",
+    pack: "sampler",
     prompts: {
       deep: "What\u2019s something you wish you had more time for?",
       deeper: "Why does it matter to you?",
@@ -824,6 +901,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-06",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "What kind of influence do you think social media has on people your age?",
       deeper: "How does it affect you personally?",
@@ -835,6 +913,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-07",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "What\u2019s something you care about that you don\u2019t talk about much?",
       deeper: "Why don\u2019t you talk about it?",
@@ -846,6 +925,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-08",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "When do you feel pressure to be someone you\u2019re not?",
       deeper: "What makes that pressure so hard to resist?",
@@ -857,6 +937,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-09",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "What\u2019s something people assume about you that isn\u2019t fully true?",
       deeper: "What do you wish people saw instead?",
@@ -868,6 +949,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-10",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "What\u2019s something you\u2019ve outgrown recently?",
       deeper: "How did it feel to let go of that?",
@@ -879,6 +961,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-11",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "How do you know when someone truly understands you?",
       deeper: "What specific things do they do that show understanding?",
@@ -890,6 +973,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-12",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "When do you feel torn between what you want and what others expect?",
       deeper: "How do you decide which side wins?",
@@ -901,6 +985,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-13",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "What\u2019s something you wish adults understood better about your life right now?",
       deeper: "What would change if they truly understood?",
@@ -912,6 +997,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-14",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "What kind of person are you trying not to become?",
       deeper: "What values guide that decision?",
@@ -923,6 +1009,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-15",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "What feels most true about you right now?",
       deeper: "Has what feels true about you changed recently?",
@@ -934,6 +1021,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-16",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "When do you feel the most conflicted inside?",
       deeper: "What helps you think through that conflict?",
@@ -945,6 +1033,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-17",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "What is something you believe about yourself that you\u2019re still testing?",
       deeper: "What would prove it true?",
@@ -956,6 +1045,7 @@ export const conversation13to14: ConversationCard[] = [
     id: "c-13-18",
     type: "conversation",
     ageBand: "13-14",
+    pack: "full",
     prompts: {
       deep: "What part of growing up feels hardest for you right now?",
       deeper: "Who do you talk to about the hard parts?",
@@ -970,6 +1060,7 @@ export const gamification13to14: GamificationCard[] = [
     id: "g-13-01",
     type: "gamification",
     ageBand: "13-14",
+    pack: "sampler",
     title: "Debate in 60 Seconds",
     instructions: "Pick a fun topic. You each have 30 seconds to defend a side, then switch sides.",
     tip: "Choose harmless topics (\u201CIs cereal a soup?\u201D). Encourage humor and creativity. Celebrate good arguments, not winning.",
@@ -978,6 +1069,7 @@ export const gamification13to14: GamificationCard[] = [
     id: "g-13-02",
     type: "gamification",
     ageBand: "13-14",
+    pack: "sampler",
     title: "Social Strategy",
     instructions: "Given a scenario (group project conflict), plan the smartest way to handle it.",
     tip: "Encourage emotional intelligence. Highlight communication skills. Debrief choices.",
@@ -986,6 +1078,7 @@ export const gamification13to14: GamificationCard[] = [
     id: "g-13-03",
     type: "gamification",
     ageBand: "13-14",
+    pack: "full",
     title: "60-Second Origin Story",
     instructions: "Create a short origin story for yourself like a movie character.",
     tip: "Keep it creative, not personal trauma. Celebrate imagination. Allow humor.",
@@ -994,6 +1087,7 @@ export const gamification13to14: GamificationCard[] = [
     id: "g-13-04",
     type: "gamification",
     ageBand: "13-14",
+    pack: "full",
     title: "The Redesign",
     instructions: "Redesign one everyday system (home rules, classroom seating, lunch line).",
     tip: "Focus on solutions, not criticism. Ask for reasoning. Keep it constructive.",
@@ -1002,6 +1096,7 @@ export const gamification13to14: GamificationCard[] = [
     id: "g-13-05",
     type: "gamification",
     ageBand: "13-14",
+    pack: "full",
     title: "Future Headline",
     instructions: "Write a headline about yourself 5 years from now.",
     tip: "Keep tone aspirational. No pressure about careers. Celebrate vision.",
@@ -1010,6 +1105,7 @@ export const gamification13to14: GamificationCard[] = [
     id: "g-13-06",
     type: "gamification",
     ageBand: "13-14",
+    pack: "full",
     title: "Silent Line-Up",
     instructions: "Without talking, line up by: birth month, height, favorite subject, wake-up time.",
     tip: "Encourage creative communication. Debrief teamwork strategy. Keep it moving.",

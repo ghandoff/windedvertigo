@@ -118,7 +118,7 @@ export default function ReservoirPage() {
                   href="/reservoir/deep-deck"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 text-white text-sm font-semibold hover:bg-white/15 transition-colors no-underline"
                 >
-                  &#127183; play deep.deck
+                  &#127183; try deep.deck free
                 </a>
               </div>
             </div>

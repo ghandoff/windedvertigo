@@ -5,25 +5,34 @@ import { useSearchParams, useRouter } from "next/navigation";
 import type { AgeBand, DepthLevel } from "@/lib/types";
 import { AGE_BAND_LABELS } from "@/lib/types";
 import { gameReducer, initialState, getCurrentCard } from "@/lib/game-reducer";
-import { buildDeck } from "@/lib/deck";
+import { buildDeck, getDeckSize } from "@/lib/deck";
+import { useAccess } from "@/lib/use-access";
 import { CardDisplay } from "@/components/card-display";
 import { DepthSelector } from "@/components/depth-selector";
 import { WildBanner } from "@/components/wild-banner";
 import { GameControls } from "@/components/game-controls";
+import { UpsellBanner } from "@/components/upsell-banner";
+import { UpsellEndScreen } from "@/components/upsell-end-screen";
 
 function PlayContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const band = (searchParams.get("band") || "6-8") as AgeBand;
+  const { entitlements, isSamplerOnly } = useAccess();
 
   const [state, dispatch] = useReducer(gameReducer, initialState, () => ({
     ...initialState,
     phase: "playing" as const,
     ageBand: band,
-    deck: buildDeck(band),
+    deck: buildDeck(band, entitlements),
   }));
 
   const currentCard = getCurrentCard(state);
+
+  // How many more cards would the full deck add?
+  const fullDeckSize = getDeckSize(band, ["sampler", "full"]);
+  const samplerDeckSize = getDeckSize(band, ["sampler"]);
+  const additionalCards = fullDeckSize - samplerDeckSize;
 
   const handleFlip = useCallback(() => {
     dispatch({ type: "FLIP_CARD" });
@@ -50,15 +59,32 @@ function PlayContent() {
   }, []);
 
   const handleRestart = useCallback(() => {
-    dispatch({ type: "START_GAME", ageBand: band });
-  }, [band]);
+    dispatch({ type: "START_GAME", ageBand: band, entitlements });
+  }, [band, entitlements]);
 
   const handleNewBand = useCallback(() => {
-    router.push("/");
+    router.push("/play/pick");
+  }, [router]);
+
+  const handleUpgrade = useCallback(() => {
+    router.push("/checkout");
   }, [router]);
 
   // ── End screen ──
   if (state.phase === "ended") {
+    // Show upsell end screen for sampler users
+    if (isSamplerOnly) {
+      return (
+        <UpsellEndScreen
+          ageBand={state.ageBand}
+          cardsPlayed={state.cardsPlayed}
+          onRestart={handleRestart}
+          onNewBand={handleNewBand}
+          onUpgrade={handleUpgrade}
+        />
+      );
+    }
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 text-center">
         <div className="w-16 h-16 rounded-full bg-[var(--dd-redwood)] flex items-center justify-center mb-6">
@@ -109,8 +135,16 @@ function PlayContent() {
         </button>
         <span className="text-sm font-medium text-[var(--dd-cadet)]/60">
           {AGE_BAND_LABELS[band].label}
+          {isSamplerOnly && (
+            <span className="ml-1 text-[var(--dd-redwood)]/60">(sampler)</span>
+          )}
         </span>
       </header>
+
+      {/* Upsell banner for sampler users — show after a few cards */}
+      {isSamplerOnly && state.cardsPlayed >= 3 && state.cardsPlayed % 5 === 3 && (
+        <UpsellBanner totalFull={additionalCards} onUpgrade={handleUpgrade} />
+      )}
 
       {/* Wild card banner */}
       {state.activeWild && currentCard.type !== "wild" && (
