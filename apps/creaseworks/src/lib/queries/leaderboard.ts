@@ -152,7 +152,7 @@ export async function getLeaderboard(
          s.longest_streak,
          us.total_runs,
          us.gallery_shares,
-         (us.id = $2)::boolean as is_current_user
+         (us.id = $2::uuid)::boolean as is_current_user
        FROM user_stats us
        LEFT JOIN streaks s ON s.id = us.id
        ORDER BY us.total_credits DESC

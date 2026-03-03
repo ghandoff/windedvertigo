@@ -137,9 +137,8 @@ const SECTION_COLORS: Record<string, string> = {
  * inspired observation cycle and the origami progression metaphor
  * from the brand one-pager.
  *
- * Tier-aware visibility (cosmetic only — all URLs remain accessible):
- *   casual / curious:  find · fold · find again · me       (4 tabs)
- *   collaborator:      find · fold · unfold · find again · me (5 tabs)
+ * All four cycle phases always visible — each page handles its own
+ * auth gating internally (gallery is public, reflections require auth).
  *
  * Routes (merged pages):
  *   find       → /matcher     (material matcher + fit scoring)
@@ -157,15 +156,12 @@ export default function NavBar() {
 
   const isAuthed = !!session?.user;
 
-  /* ── tier-aware visibility ──
-   * The "unfold" tab (reflections / logging) only appears for
-   * collaborators. All other tabs are visible to every tier.
-   * Tiers are purely cosmetic — direct URL access still works.
+  /* ── desktop nav links ──
+   * All four cycle phases always visible. Each page is publicly
+   * accessible (added to proxy public patterns) and handles auth
+   * internally — e.g. /log shows the gallery for everyone and
+   * gates the reflection form behind session.
    */
-  const tier = (session?.uiTier as string) ?? "casual";
-  const showUnfold = isAuthed && tier === "collaborator";
-
-  /* ── desktop nav links ── */
   const navLinks = (
     <>
       <NavLink href="/matcher" pathname={pathname} icon={<IconFind />} onClick={close}>
@@ -174,16 +170,9 @@ export default function NavBar() {
       <NavLink href="/play" pathname={pathname} icon={<IconFold />} onClick={close}>
         fold
       </NavLink>
-      {showUnfold && (
-        <NavLink
-          href="/log"
-          pathname={pathname}
-          icon={<IconUnfold />}
-          onClick={close}
-        >
-          unfold
-        </NavLink>
-      )}
+      <NavLink href="/log" pathname={pathname} icon={<IconUnfold />} onClick={close}>
+        unfold
+      </NavLink>
       <NavLink href="/community" pathname={pathname} icon={<IconFindAgain />} onClick={close}>
         find again
       </NavLink>
@@ -241,10 +230,9 @@ export default function NavBar() {
       </NavLink>
     );
 
-  /* ── mobile bottom tab bar items (tier-aware) ──
-   *   unauthed:     find · fold · find again · sign in     (4)
-   *   casual/curious: find · fold · find again · me        (4)
-   *   collaborator: find · fold · unfold · find again · me (5)
+  /* ── mobile bottom tab bar items ──
+   *   unauthed: find · fold · unfold · find again · sign in  (5)
+   *   authed:   find · fold · unfold · find again · me       (5)
    */
   type Tab = { href: string; label: string; icon: React.ReactNode; key: string; matchPrefix?: string };
 
@@ -252,15 +240,14 @@ export default function NavBar() {
     ? [
         { href: "/matcher", label: "find", icon: <IconFind />, key: "find" },
         { href: "/play", label: "fold", icon: <IconFold />, key: "fold" },
-        ...(showUnfold
-          ? [{ href: "/log", label: "unfold", icon: <IconUnfold />, key: "unfold" }]
-          : []),
+        { href: "/log", label: "unfold", icon: <IconUnfold />, key: "unfold" },
         { href: "/community", label: "find again", icon: <IconFindAgain />, key: "find-again" },
         { href: "/profile", label: "me", icon: <IconMe />, key: "me" },
       ]
     : [
         { href: "/matcher", label: "find", icon: <IconFind />, key: "find" },
         { href: "/play", label: "fold", icon: <IconFold />, key: "fold" },
+        { href: "/log", label: "unfold", icon: <IconUnfold />, key: "unfold" },
         { href: "/community", label: "find again", icon: <IconFindAgain />, key: "find-again" },
         { href: "/login", label: "sign in", icon: <IconMe />, key: "sign-in" },
       ];
