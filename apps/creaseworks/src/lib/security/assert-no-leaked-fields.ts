@@ -26,7 +26,7 @@ const COLLECTIVE_ONLY_FIELDS = new Set([
 const ENTITLED_ONLY_FIELDS = new Set([
   "slots_optional",
   "slots_notes",
-  "rails_sentence",
+  // rails_sentence is intentionally in PLAYDATE_TEASER_COLUMNS (public)
   "find",
   "fold",
   "unfold",
