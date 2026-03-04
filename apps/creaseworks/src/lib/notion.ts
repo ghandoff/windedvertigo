@@ -29,6 +29,7 @@ export const NOTION_DBS = {
   packs: process.env.NOTION_DB_PACKS ?? "",
   reflections: process.env.NOTION_DB_REFLECTIONS ?? "",
   collections: process.env.NOTION_DB_COLLECTIONS ?? "",
+  vault: process.env.NOTION_DB_VAULT ?? "",
 } as const;
 
 /**
