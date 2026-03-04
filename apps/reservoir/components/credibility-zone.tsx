@@ -42,7 +42,8 @@ export function CredibilityZone() {
   return (
     <section
       id="why"
-      className="py-20 sm:py-32 bg-gradient-to-b from-[var(--wv-cadet)] via-[#1e2738] to-[var(--wv-cadet)]"
+      aria-label="why these tools"
+      className="py-20 sm:py-32 bg-gradient-to-b from-[var(--wv-cadet)] via-[var(--color-surface-raised)] to-[var(--wv-cadet)]"
     >
       <div className="max-w-5xl mx-auto px-6">
         {/* Section heading */}
@@ -51,7 +52,7 @@ export function CredibilityZone() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-accent-on-dark)] mb-4">
               why these tools
             </p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-on-dark)] leading-tight max-w-2xl mx-auto">
               built by people who study how humans grow
             </h2>
           </div>
@@ -64,12 +65,14 @@ export function CredibilityZone() {
               <div
                 key={cred.label}
                 className="credential-pill"
-                title={cred.detail}
+                role="group"
+                aria-label={`${cred.label}: ${cred.detail}`}
               >
                 <span className="text-lg" aria-hidden="true">
                   {cred.icon}
                 </span>
                 <span>{cred.label}</span>
+                <span className="sr-only"> — {cred.detail}</span>
               </div>
             ))}
           </div>
@@ -84,7 +87,7 @@ export function CredibilityZone() {
                   <span className="text-[var(--color-accent-on-dark)] text-2xl font-light leading-none mt-0.5">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <h3 className="text-xl sm:text-2xl font-semibold text-white leading-snug">
+                  <h3 className="text-xl sm:text-2xl font-semibold text-[var(--color-text-on-dark)] leading-snug">
                     {principle.heading}
                   </h3>
                 </div>

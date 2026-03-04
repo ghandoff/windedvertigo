@@ -12,6 +12,7 @@
  */
 
 const { Client } = require('@notionhq/client');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const config = require('./notion-config');
@@ -292,48 +293,6 @@ async function fetchOutcomes() {
   return byQuadrant;
 }
 
-async function fetchExamples() {
-  const propMap = config.properties.examples;
-  const required = config.required.examples;
-
-  const response = await withRetry(
-    () => notion.databases.query({
-      database_id: config.databases.examples,
-      sorts: [{ property: propMap.order, direction: 'ascending' }],
-    }),
-    'fetchExamples'
-  );
-
-  const byQuadrant = {};
-  let total = 0;
-  let skipped = 0;
-
-  for (const page of response.results) {
-    if (!validatePage(page, required, 'Examples')) {
-      skipped++;
-      continue;
-    }
-
-    const props = page.properties;
-    const quadrant = getSelectValue(props[propMap.quadrant]);
-
-    if (quadrant) {
-      if (!byQuadrant[quadrant]) byQuadrant[quadrant] = [];
-      byQuadrant[quadrant].push({
-        title: getTitleValue(props[propMap.name]),
-        type: getTextValue(props[propMap.type]),
-        icon: getTextValue(props[propMap.icon]),
-        url: getUrlWithFallback(props, propMap.url),
-        detail: getTextValue(props[propMap.detail]),
-      });
-      total++;
-    }
-  }
-
-  console.log('  OK Examples: ' + total + ' loaded across ' + Object.keys(byQuadrant).length + ' quadrants, ' + skipped + ' skipped');
-  return byQuadrant;
-}
-
 // ============================================
 // PORTFOLIO ASSETS (from BD multi-database)
 //
@@ -439,7 +398,10 @@ async function fetchPortfolioAssets() {
       showInPackageBuilder: getCheckboxValue(props[propMap.showInPackageBuilder]),
       showInPortfolio: getCheckboxValue(props[propMap.showInPortfolio]),
       passwordProtected: getCheckboxValue(props[propMap.passwordProtected]),
-      password: getTextValue(props[propMap.password]),
+      passwordHash: (() => {
+        const pw = getTextValue(props[propMap.password]);
+        return pw ? crypto.createHash('sha256').update(pw).digest('hex') : '';
+      })(),
       client: getTextValue(props[propMap.client]),
       order: getNumberValue(props[propMap.order]),
       icon: getIconValue(props[propMap.icon]),

@@ -1,7 +1,6 @@
 const { Client } = require('@notionhq/client');
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
 
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
 
@@ -134,7 +133,7 @@ function generateMemberHTML(member) {
         <article class="team-member">
           ${headshotHTML}
                     <div class="member-content">
-          <h2>${nameWithPronouns}${pronounsText ? '' : ''}</h2>
+          <h2>${nameWithPronouns}${pronounsText}</h2>
           <p class="role">${member.role.toLowerCase()}</p>
           <div class="bio">
             ${bioParagraphs || '<p></p>'}

@@ -53,8 +53,12 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
+        {/* Progressive enhancement: show all content if JS is disabled */}
+        <noscript>
+          <style>{`.fade-up, .card-stagger { opacity: 1 !important; transform: none !important; }`}</style>
+        </noscript>
       </head>
-      <body className="bg-[var(--wv-cadet)] text-[var(--color-text-on-dark)] antialiased">
+      <body className="bg-[var(--wv-cadet)] text-[var(--color-text-on-dark)] font-[family-name:var(--font-body)] antialiased">
         <a href="#main" className="skip-link">
           Skip to content
         </a>
