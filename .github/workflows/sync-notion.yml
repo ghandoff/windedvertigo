@@ -56,6 +56,13 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           git add apps/site/data/ apps/site/images/vertigo-vault/
-          git diff --staged --quiet || git commit -m "chore: sync Notion content and vault covers"
+
+          # Exit early if nothing changed
+          if git diff --staged --quiet; then
+            echo "No content changes — skipping commit"
+            exit 0
+          fi
+
+          git commit -m "chore: sync Notion content and vault covers"
           git pull --rebase origin main
           git push
