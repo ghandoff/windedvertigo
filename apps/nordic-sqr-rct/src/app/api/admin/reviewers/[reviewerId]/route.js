@@ -17,7 +17,7 @@ export async function PATCH(request, { params }) {
     }
 
     const body = await request.json();
-    const { reviewerId } = params;
+    const { reviewerId } = await params;
 
     // Build update payload
     const properties = {};

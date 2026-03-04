@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import Footer from '@/components/Footer';
 import { getRubricByVersion, DEFAULT_RUBRIC_VERSION } from '@/lib/rubric';
 import ScoreComparison from '@/components/ScoreComparison';
@@ -279,10 +279,11 @@ function ScoreDetailContent({ scoreId }) {
 }
 
 export default function ScoreDetailPage({ params }) {
+  const { scoreId } = use(params);
   return (
     <AuthProvider>
       <ProtectedRoute>
-        <ScoreDetailContent scoreId={params.scoreId} />
+        <ScoreDetailContent scoreId={scoreId} />
       </ProtectedRoute>
     </AuthProvider>
   );
