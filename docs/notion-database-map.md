@@ -77,7 +77,7 @@ the Site Content CMS (`09a046a5`) was created to consolidate per-page notion dat
 
 | page | legacy source | CMS file | migration status |
 |---|---|---|---|
-| `/what/` | ~~`what-page.json`~~ (retired) | `site-content-what.json` | **complete** — live `/what/` and dev `/what-v2/` both read CMS data; legacy What Page DB retired |
+| `/what/` | ~~`what-page.json`~~ (retired) | `site-content-what.json` | **partial** — live `/what/` uses hardcoded body with CMS metadata overlay only; full CMS-driven redesign on `feature/what-redesign` branch (waiting on backdrop images) |
 | `/we/` | hardcoded HTML + member images | `site-content-we.json` | **planned** — CMS data is generated but page not yet wired |
 | `/do/` | `package-builder-content.json` (Quadrants+Outcomes+Examples) | `site-content-do.json` | **planned** — CMS data is generated but page not yet wired |
 | `/` (home) | n/a | `site-content-home.json` | **planned** — CMS data is generated |
