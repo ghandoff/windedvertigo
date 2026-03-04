@@ -114,8 +114,11 @@ export async function GET(request) {
 
       const lastReviewDate = reviewerScores.length > 0 ? reviewerScores[0].timestamp : null;
 
+      // Strip sensitive fields before sending to client
+      const { password, ...safeReviewer } = reviewer;
+
       return {
-        ...reviewer,
+        ...safeReviewer,
         reviewCount: reviewerScores.length,
         lastReviewDate,
         avgScore: avgScore ? parseFloat(avgScore) : null,

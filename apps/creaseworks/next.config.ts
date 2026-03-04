@@ -24,7 +24,9 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+              // Note: unsafe-inline kept for Next.js hydration scripts/styles.
+              // Dynamic code execution directive removed — not needed by app or Stripe.js.
+              "script-src 'self' 'unsafe-inline' https://js.stripe.com",
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self'",
               "img-src 'self' data: https:",
