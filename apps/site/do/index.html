@@ -794,6 +794,9 @@
       }
     };
 
+    // CTA link — updated by CMS overlay in loadContentAndInit()
+    let ctaLink = 'https://calendar.app.google/ZXVqJLdprmUZk1DW6';
+
     // ========================================
     // STATE
     // ========================================
@@ -1024,7 +1027,7 @@
         </div>
 
         <div class="cta-row">
-          <a href="https://calendar.app.google/ZXVqJLdprmUZk1DW6" target="_blank" rel="noopener noreferrer" class="cta-btn primary">book a playdate</a>
+          <a href="${escapeHTML(ctaLink)}" target="_blank" rel="noopener noreferrer" class="cta-btn primary">book a playdate</a>
           <a href="mailto:?subject=My winded.vertigo package: ${encodeURIComponent(pack.title)}&body=${emailBody}" class="cta-btn secondary">email package</a>
           <button class="cta-btn outline" id="start-over-btn">start over</button>
         </div>
@@ -1104,23 +1107,55 @@
     // and synced daily at 6 AM UTC via GitHub Actions.
 
     async function loadContentAndInit() {
-      try {
-        const response = await fetch('../data/package-builder-content.json');
-        if (!response.ok) throw new Error('HTTP ' + response.status);
+      // Fetch pack content and CMS page data in parallel
+      const [packResult, cmsResult] = await Promise.allSettled([
+        fetch('../data/package-builder-content.json').then(r => r.ok ? r.json() : null),
+        fetch('../data/site-content-do.json').then(r => r.ok ? r.json() : null)
+      ]);
 
-        const data = await response.json();
-
-        // Validate the loaded data
-        if (!data.packs || Object.keys(data.packs).length === 0) {
-          throw new Error('No packs in JSON');
-        }
-
-        CONTENT.packs = data.packs;
-        console.log('✓ Loaded from Notion:', Object.keys(data.packs).length, 'packs (updated:', data.lastUpdated, ')');
-
-      } catch (error) {
-        console.warn('⚠ Using fallback content:', error.message);
+      // Apply pack content
+      const packData = packResult.status === 'fulfilled' ? packResult.value : null;
+      if (packData && packData.packs && Object.keys(packData.packs).length > 0) {
+        CONTENT.packs = packData.packs;
+        console.log('✓ Loaded packs:', Object.keys(packData.packs).length, '(updated:', packData.lastUpdated, ')');
+      } else {
+        console.warn('⚠ Using fallback packs');
         CONTENT.packs = FALLBACK_PACKS;
+      }
+
+      // Apply CMS overlay (metadata, hero, CTA)
+      const cms = cmsResult.status === 'fulfilled' ? cmsResult.value : null;
+      if (cms && cms.sections) {
+        for (let i = 0; i < cms.sections.length; i++) {
+          const s = cms.sections[i];
+
+          if (s.type === 'metadata') {
+            if (s.tagline) document.title = s.tagline;
+            if (s.content) {
+              const metaSels = [
+                'meta[name="description"]',
+                'meta[property="og:description"]',
+                'meta[name="twitter:description"]'
+              ];
+              metaSels.forEach(sel => {
+                const el = document.querySelector(sel);
+                if (el) el.setAttribute('content', s.content);
+              });
+            }
+          }
+
+          if (s.type === 'hero' && s.section === 'hero') {
+            if (s.name) questions[1] = s.name;
+            if (s.content) {
+              const intro = document.querySelector('.pb-intro');
+              if (intro) intro.textContent = s.content;
+            }
+          }
+
+          if (s.type === 'cta' && s.link) {
+            ctaLink = s.link;
+          }
+        }
       }
 
       render();

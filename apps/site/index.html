@@ -96,5 +96,58 @@
     </nav>
   </div>
 </footer>
+<script>
+(function() {
+  fetch('./data/site-content-home.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !data.sections) return;
+      var i, s;
+      // Metadata overlay
+      for (i = 0; i < data.sections.length; i++) {
+        s = data.sections[i];
+        if (s.type === 'metadata') {
+          if (s.tagline) document.title = s.tagline;
+          if (s.content) {
+            var metaSels = [
+              'meta[name="description"]',
+              'meta[property="og:description"]',
+              'meta[name="twitter:description"]'
+            ];
+            for (var d = 0; d < metaSels.length; d++) {
+              var el = document.querySelector(metaSels[d]);
+              if (el) el.setAttribute('content', s.content);
+            }
+          }
+          break;
+        }
+      }
+      // Footer copyright overlay
+      for (i = 0; i < data.sections.length; i++) {
+        s = data.sections[i];
+        if (s.type === 'footer' && s.section === 'footer' && s.content) {
+          var cp = document.querySelector('.wv-footer-copyright');
+          if (cp) cp.textContent = s.content;
+          break;
+        }
+      }
+      // Social link URL overlay — match CMS "social: {name}" to DOM aria-label
+      var socialLinks = document.querySelectorAll('.wv-footer-social a');
+      for (i = 0; i < data.sections.length; i++) {
+        s = data.sections[i];
+        if (s.type === 'footer' && s.section === 'social' && s.link) {
+          var label = s.name.replace('social: ', '').toLowerCase();
+          for (var j = 0; j < socialLinks.length; j++) {
+            if ((socialLinks[j].getAttribute('aria-label') || '').toLowerCase() === label) {
+              socialLinks[j].setAttribute('href', s.link);
+              break;
+            }
+          }
+        }
+      }
+    })
+    .catch(function(e) { console.warn('CMS overlay error:', e); });
+})();
+</script>
 </body>
 </html>
