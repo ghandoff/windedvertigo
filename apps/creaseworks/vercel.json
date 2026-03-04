@@ -1,4 +1,5 @@
 {
+  "ignoreCommand": "npx turbo-ignore creaseworks",
   "crons": [
     {
       "path": "/reservoir/creaseworks/api/cron/sync-notion",

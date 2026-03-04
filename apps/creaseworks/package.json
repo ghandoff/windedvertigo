@@ -24,7 +24,8 @@
     "react-dom": "19.2.3",
     "resend": "^6.9.2",
     "slugify": "^1.6.6",
-    "stripe": "^17.7.0"
+    "stripe": "^17.7.0",
+    "@windedvertigo/tokens": "*"
   },
   "devDependencies": {
     "@axe-core/cli": "^4.10.0",
