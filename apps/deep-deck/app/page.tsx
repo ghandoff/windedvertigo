@@ -197,10 +197,6 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ── Footer ── */}
-      <footer className="py-10 text-center text-xs text-[var(--dd-cadet)]/30">
-        <p>winded.vertigo</p>
-      </footer>
     </div>
   );
 }

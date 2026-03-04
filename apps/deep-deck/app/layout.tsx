@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { NavBar } from "@/components/nav-bar";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -55,12 +56,13 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased min-h-screen flex flex-col">
         <a href="#main" className="skip-link">
           Skip to content
         </a>
         <NavBar />
-        <main id="main">{children}</main>
+        <main id="main" className="flex-1">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );

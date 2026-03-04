@@ -1,7 +1,8 @@
 @import "tailwindcss";
+@import "@windedvertigo/tokens/index.css";
 
 :root {
-  /* Brand tokens */
+  /* Brand tokens (shared wv vars come from tokens/index.css) */
   --dd-cadet: #273248;
   --dd-redwood: #b15043;
   --dd-sienna: #cb7858;
@@ -23,6 +24,9 @@ body {
   background-color: var(--dd-champagne-light);
   color: var(--dd-cadet);
   font-family: "Inter", system-ui, -apple-system, sans-serif;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* ---- Card flip animation ---- */
@@ -110,13 +114,6 @@ body {
   button, a[role="button"] {
     min-height: 44px;
   }
-}
-
-/* ---- Safe area insets for notched phones ---- */
-body {
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* ---- Skip-to-content link ---- */
