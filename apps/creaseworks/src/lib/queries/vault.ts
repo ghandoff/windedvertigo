@@ -131,6 +131,38 @@ export async function getVaultActivityBySlug(
 }
 
 /**
+ * Count vault activities, optionally filtered by content tier.
+ * Used by pack detail pages to show activity counts.
+ */
+export async function getVaultActivityCount(contentTier?: string) {
+  if (contentTier) {
+    const result = await sql`
+      SELECT COUNT(*)::int AS count FROM vault_activities_cache WHERE tier = ${contentTier}
+    `;
+    return result.rows[0]?.count ?? 0;
+  }
+  const result = await sql`SELECT COUNT(*)::int AS count FROM vault_activities_cache`;
+  return result.rows[0]?.count ?? 0;
+}
+
+/**
+ * Get vault activities for a pack detail page.
+ *
+ * For explorer pack: shows all activities (teaser columns)
+ * For practitioner pack: shows all activities (teaser columns)
+ *
+ * The pack page shows activity previews — the tier-based column gating
+ * happens on the individual activity detail page, not the pack listing.
+ */
+export async function getVaultActivitiesForPackPage() {
+  const cols = columnsForTier("teaser");
+  const result = await sql.query(
+    `SELECT ${cols} FROM vault_activities_cache ORDER BY name ASC`,
+  );
+  return result.rows;
+}
+
+/**
  * Get related activities for a vault activity.
  * Always returns teaser-level columns (related activities are shown as cards).
  */
