@@ -77,21 +77,22 @@ This monorepo contains all three winded.vertigo projects. No more multi-mount co
 - Run locally: `npm run dev:creaseworks` (from monorepo root)
 
 ### apps/deep-deck — deep-deck app
-- Next.js app
+- Next.js 16, TypeScript, React 19, Tailwind CSS 4
 - Run locally: `npm run dev:deep-deck` (from monorepo root)
 
 ### apps/nordic-sqr-rct — sqr-rct app
-- Next.js 14, JavaScript, React 18, Tailwind CSS 3
+- Next.js 16, JavaScript, React 19, Tailwind CSS 3
 - Uses @anthropic-ai/sdk, openai, recharts, pdfkit, @vercel/blob
 - Auth: bcryptjs + jose (JWT)
 - Run locally: `npm run dev:sqr-rct` (from monorepo root)
 
 ### apps/reservoir — reservoir app
-- Next.js app, imports `@windedvertigo/tokens`
+- Next.js 16, TypeScript, React 19, Tailwind CSS 4, imports `@windedvertigo/tokens`
 - Run locally: `npm run dev:reservoir` (from monorepo root)
 
 ### apps/vertigo-vault — vertigo-vault app
-- Next.js app
+- Next.js 16, TypeScript, React 19, Tailwind CSS 4, fetches from Notion API
+- Requires `NOTION_TOKEN` env var at build time (set in Vercel, not available locally)
 - Run locally: `npm run dev:vault` (from monorepo root)
 
 ## Notion Integration
@@ -182,6 +183,8 @@ npm run sync:footer               # sync footer HTML to static site + TS wrapper
 npm run test                      # vitest for creaseworks
 npm run test:a11y                 # axe-core accessibility audit (needs dev server running)
 npm run lint                      # eslint for creaseworks
+npm run build --workspace=@windedvertigo/deep-deck   # build a single app
+npm run lint --workspace=@windedvertigo/deep-deck     # lint a single app
 ```
 
 > **Why not MCP tools or Chrome?** These are all simple CLI commands that run faster and more reliably from a terminal than through Vercel/Neon/Cloudflare MCP connectors or browser automation. Claude should prefer preparing scripts and telling Garrett to run them over navigating dashboards.
@@ -289,3 +292,8 @@ Applies SQL migration files 028–033 using `@neondatabase/serverless`. Strips `
 - **Neon serverless driver**: One SQL statement per HTTP call. Multi-statement SQL files must be split. Comments must be stripped first.
 - **Next.js Metadata API**: Root layout uses `title: { template: "%s — creaseworks" }`. Route metadata only needs the page-specific part (e.g., `title: "packs"` renders as "packs — creaseworks").
 - **Error boundaries**: Must be `"use client"`. Receive `{ error, reset }`. Brand colors via CSS custom properties. Dev-only error display via `process.env.NODE_ENV === "development"`.
+- **`next lint` broken in Next.js 16**: CLI treats "lint" as a directory argument. All apps use `"lint": "eslint"` directly instead.
+- **ESLint 9 flat config required**: `.eslintrc.json` is deprecated. All apps use `eslint.config.mjs` with `defineConfig()` + `globalIgnores()`. TypeScript apps also spread `eslint-config-next/typescript`. The `createRequire` pattern is needed to load CommonJS configs from ESM.
+- **Next.js 15+ async params**: `params` and `searchParams` are now Promises. Server components use `await params`, client components (`'use client'`) use React 19's `use(params)`.
+- **Security headers (HSTS + CSP)**: All apps have identical headers in both `next.config.ts` (runtime) and `vercel.json` (edge CDN). CSP exception: nordic-sqr-rct allows Google Fonts domains (`fonts.googleapis.com`, `fonts.gstatic.com`).
+- **vertigo-vault local builds fail**: Pre-rendering requires `NOTION_TOKEN` (only in Vercel). Compilation succeeds; the failure is at the static generation step. This is expected.

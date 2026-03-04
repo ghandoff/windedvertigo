@@ -27,6 +27,12 @@
 - [x] Notion-as-CMS pipeline for `/what/` page (database → JSON → client-side render)
 - [x] Site Content CMS database in Notion (ID: `09a046a556c1455e80073546b8f83297`)
 - [x] Removed orphaned What Page V2 legacy database from sync (Mar 2026) — superseded by Site Content CMS
+- [x] Standardized all 5 Next.js apps on Next.js 16 + React 19 (Mar 2026) — nordic-sqr-rct from 14/18, deep-deck/reservoir/vertigo-vault from 15/19
+- [x] HSTS + CSP security headers on all apps (Mar 2026) — in both `next.config.ts` and `vercel.json`
+- [x] ESLint 9 flat config migration (Mar 2026) — all apps use `eslint.config.mjs`, lint script uses `eslint` directly
+- [x] Standardized `.gitignore` files and aligned `@types/node` across all apps (Mar 2026)
+- [x] Cleaned stale git branches and dismissed Dependabot alerts (Mar 2026)
+- [x] Hardened sync-notion CI workflow — rebase before push, conditional commit step (Mar 2026)
 
 ### In Progress
 
@@ -89,13 +95,15 @@ See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all f
 ## apps/nordic-sqr-rct
 
 - Live and stable
+- Upgraded to Next.js 16 + React 19 (Mar 2026): async params fixed (`use()` in client component, `await` in API routes)
 - Potential Supabase rebuild candidate
 - Stays platform-branded by Nordic (no wv tokens)
 
-## apps/deep-deck & apps/vertigo-vault
+## apps/deep-deck, apps/reservoir & apps/vertigo-vault
 
-- Early development
-- Both deploy to Vercel with turbo-ignore
+- All upgraded to Next.js 16, TypeScript, React 19 (Mar 2026)
+- HSTS + CSP security headers, ESLint flat configs
+- All deploy to Vercel with turbo-ignore
 
 ## Open Decisions
 

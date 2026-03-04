@@ -63,6 +63,10 @@
 - Changes to root config (`turbo.json`, root `package.json`) trigger ALL projects
 - Run `npx turbo run build --dry` to verify what would rebuild
 
+### Notion Sync Auto-Commits
+- The daily sync-notion workflow (6 AM UTC) commits directly to `main`. If you're mid-session and `git push` is rejected, run `git pull --rebase origin main` before retrying.
+- The sync workflow also triggers on push to `main` when `scripts/` files change — be aware of cascading pushes.
+
 ### Deployment Limits
 - Vercel free tier: 100 deploys/day shared across all 6 projects
 - Turborepo + turbo-ignore reduces this, but root config changes still trigger all 6
