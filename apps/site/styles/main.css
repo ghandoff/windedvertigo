@@ -96,16 +96,16 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
 .team-grid { display: flex; flex-direction: column; gap: var(--space-lg); }
 .team-member { display: grid; grid-template-columns: 300px 1fr; gap: var(--space-lg); }
 .team-member h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: var(--space-xs); text-transform: lowercase; color: var(--text-primary); }
-.team-member .role { font-size: 20px; color: var(--accent); text-transform: lowercase; margin-bottom: var(--space-lg); font-weight: 400; font-style: italic; }
+.team-member .role { font-size: 20px; color: var(--wv-champagne); text-transform: lowercase; margin-bottom: var(--space-lg); font-weight: 400; font-style: italic; }
 .team-member .bio { margin-bottom: var(--space-lg); position: relative; }
 .team-member .bio.truncated { overflow: hidden; transition: max-height 0.3s ease; }
 .team-member .bio.expanded { max-height: none !important; overflow: visible; }
 .team-member .bio p { line-height: 1.7; color: var(--text-primary); max-width: var(--max-line-length); }
 .team-member .bio p:last-child { margin-bottom: 0; }
-.see-more-btn { background: none; border: none; color: var(--text-secondary); font-size: 0.9rem; font-weight: 400; cursor: pointer; padding: 0; margin-top: 4px; margin-bottom: var(--space-sm); text-transform: lowercase; transition: color 0.2s ease; }
+.see-more-btn { background: none; border: none; color: var(--wv-white); font-size: 0.9rem; font-weight: 400; cursor: pointer; padding: 0; margin-top: 4px; margin-bottom: var(--space-sm); text-transform: lowercase; transition: color 0.2s ease; }
 .see-more-btn:hover { color: var(--text-primary); }
 .team-member .links { margin-bottom: var(--space-sm); }
-.team-member .links a { font-size: 0.9rem; color: var(--accent); margin-right: var(--space-lg); }
+.team-member .links a { font-size: 0.9rem; color: var(--wv-champagne); margin-right: var(--space-lg); }
 .team-member .links a::before { font-family: "Ionicons"; content: "\f41a"; margin-right: 0.4rem; }
 .member-photo { display: flex; justify-content: center; align-items: flex-start; }
 .member-headshot { width: 300px; height: 300px; border-radius: 150px; object-fit: cover; background-size: cover; background-position: center center; }
