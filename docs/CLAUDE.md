@@ -10,7 +10,15 @@ Read these three files at session start — they are the single source of truth:
 | `docs/creaseworks-backlog-2026-02-28.md` | Consolidated backlog: what's done, what to build next, open questions |
 | This file (`docs/CLAUDE.md`) | Project conventions, commands, deployment, design tokens |
 
-**Design references** (read when working on specific features):
+**Cross-project references**:
+
+| File | When to read |
+|------|-------------|
+| `docs/brand-guidelines.md` | Design work, colour/typography choices, logo usage, voice & tone |
+| `docs/dev-roadmap.md` | Priorities, upcoming work, open decisions across all apps |
+| `docs/collaboration-playbook.md` | How Garrett and Claude work together, session patterns, naming conventions |
+
+**Creaseworks-specific references** (read when working on creaseworks features):
 
 | File | When to read |
 |------|-------------|
@@ -29,12 +37,16 @@ windedvertigo/
 ├── apps/
 │   ├── site/              ← windedvertigo.com static site (HTML/CSS/JS)
 │   ├── creaseworks/       ← creaseworks Next.js app (TypeScript)
-│   └── nordic-sqr-rct/   ← sqr-rct Next.js app (JavaScript)
+│   ├── deep-deck/         ← deep-deck Next.js app
+│   ├── nordic-sqr-rct/    ← sqr-rct Next.js app (JavaScript)
+│   ├── reservoir/         ← reservoir Next.js app
+│   └── vertigo-vault/     ← vertigo-vault Next.js app
 ├── packages/
 │   └── tokens/            ← shared design tokens (CSS + TS)
 ├── scripts/               ← shared Notion sync scripts
 ├── .github/workflows/     ← CI + Notion sync
-└── docs/                  ← design docs, migration plans
+├── docs/                  ← design docs, migration plans
+└── turbo.json             ← Turborepo pipeline config
 ```
 
 ## Mount Instructions
@@ -64,11 +76,23 @@ This monorepo contains all three winded.vertigo projects. No more multi-mount co
 - Repo: `ghandoff/windedvertigo` (this repo), Vercel Root Directory: `apps/creaseworks`
 - Run locally: `npm run dev:creaseworks` (from monorepo root)
 
+### apps/deep-deck — deep-deck app
+- Next.js app
+- Run locally: `npm run dev:deep-deck` (from monorepo root)
+
 ### apps/nordic-sqr-rct — sqr-rct app
 - Next.js 14, JavaScript, React 18, Tailwind CSS 3
 - Uses @anthropic-ai/sdk, openai, recharts, pdfkit, @vercel/blob
 - Auth: bcryptjs + jose (JWT)
 - Run locally: `npm run dev:sqr-rct` (from monorepo root)
+
+### apps/reservoir — reservoir app
+- Next.js app, imports `@windedvertigo/tokens`
+- Run locally: `npm run dev:reservoir` (from monorepo root)
+
+### apps/vertigo-vault — vertigo-vault app
+- Next.js app
+- Run locally: `npm run dev:vault` (from monorepo root)
 
 ## Notion Integration
 
@@ -123,6 +147,11 @@ Maria uploads thumbnail images for portfolio and vertigo vault. Options:
 git pull --rebase                 # sync with remote (run before push)
 git push                          # push commits to origin/main
 
+# ── Turborepo (from monorepo root) ───────────────────────
+npx turbo run build               # build all workspaces (respects dependency graph)
+npx turbo run build --dry         # preview what turbo would build (no actual work)
+npx turbo run build --graph       # visualize the dependency graph
+
 # ── Migrations (from apps/creaseworks/) ──────────────────
 node scripts/apply-migrations-028-032.mjs
 # Applies SQL migrations 028–033 to Neon. Reads POSTGRES_URL from .env.local.
@@ -139,6 +168,9 @@ npm install                       # install/update all workspace deps
 # ── Dev Servers (from monorepo root) ─────────────────────
 npm run dev:creaseworks           # http://localhost:3000
 npm run dev:sqr-rct               # http://localhost:3001
+npm run dev:vault                 # vertigo-vault dev server
+npm run dev:deep-deck             # deep-deck dev server
+npm run dev:reservoir             # reservoir dev server
 
 # ── Notion Sync (from monorepo root) ─────────────────────
 npm run sync                      # fetch all Notion content → data/ + images/
@@ -156,7 +188,11 @@ npm run lint                      # eslint for creaseworks
 - creaseworks: `prj_EoDpRvw1kdAqcGVrcaYclfWFeX7b`
 - windedvertigo-site: `prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx`
 - nordic-sqr-rct: `prj_laAl3qm5w20CrtIjO2klc9dj180z`
+- deep-deck, reservoir, vertigo-vault (project IDs in Vercel dashboard)
 - Team: `team_wrpRda7ZzXdu7nKcEVVXY3th`
+
+**Deployment optimization (Turborepo + turbo-ignore)**:
+Each Vercel project has an `ignoreCommand` in its `vercel.json` that runs `npx turbo-ignore <workspace>`. This checks whether the workspace's files (or its dependencies) changed since the last successful deploy. If nothing changed, the deploy is skipped — saving free-tier quota (100 deploys/day shared across all projects). Before this optimization, every push triggered 6 deploys; now only affected projects build.
 
 Claude also has MCP tool access to Vercel, Stripe, Notion, Cloudflare, Slack, Gmail, and Google Calendar.
 
@@ -193,13 +229,25 @@ Creaseworks renders the footer via `dangerouslySetInnerHTML` — zero reconstruc
 - **Automated audit**: `npm run test:a11y` runs axe-core against the dev server (install deps first: `npm install`).
 - **Contrast**: all text/bg combos tested to WCAG AAA (7:1). Accent-on-dark uses `--color-accent-on-dark` (#e09878, 5.5:1 AA).
 
-## npm Workspaces
+## npm Workspaces & Turborepo
 
-Root `package.json` declares `"workspaces": ["apps/*", "packages/*"]`. Convenience commands:
+Root `package.json` declares `"workspaces": ["apps/*", "packages/*"]`. **Turborepo** (`turbo.json`) orchestrates builds across all 6 apps and the shared `tokens` package. The `build` task uses `"dependsOn": ["^build"]` so dependencies build first.
+
+**Workspace dependency graph** (drives both Turbo caching and `turbo-ignore` selective deploys):
+- `creaseworks` → depends on `@windedvertigo/tokens`
+- `reservoir` → depends on `@windedvertigo/tokens`
+- `deep-deck`, `vertigo-vault`, `nordic-sqr-rct`, `site` → no inter-workspace dependencies
+
+Convenience commands (all from monorepo root):
+- `npm run build` — `turbo run build` (builds all workspaces in dependency order)
+- `npm run dev` — `turbo run dev` (starts all dev servers)
+- `npm run dev:creaseworks` — start creaseworks dev server only
+- `npm run dev:sqr-rct` — start sqr-rct dev server only
+- `npm run dev:vault` — start vertigo-vault dev server only
+- `npm run dev:deep-deck` — start deep-deck dev server only
+- `npm run dev:reservoir` — start reservoir dev server only
 - `npm run sync` — run Notion fetch scripts
 - `npm run sync:footer` — sync canonical footer to static site + TS wrapper
-- `npm run dev:creaseworks` — start creaseworks dev server
-- `npm run dev:sqr-rct` — start sqr-rct dev server
 - `npm run test` — run creaseworks tests (vitest)
 - `npm run test:a11y` — run accessibility audit against dev server
 - `npm run lint` — run creaseworks linter
@@ -208,15 +256,24 @@ Each app keeps its own `package.json` and `node_modules`. Install at root: `npm 
 
 ## Vercel Configuration
 
-Each app is its own Vercel project with monorepo Root Directory settings:
-- **creaseworks**: Root Directory → `apps/creaseworks`
-- **nordic-sqr-rct**: Root Directory → `apps/nordic-sqr-rct`
-- **site**: Root Directory → `apps/site`, framework "Other" (migrated to Vercel Feb 2026)
+Each app is its own Vercel project with monorepo Root Directory settings. Every project has a `vercel.json` with an `ignoreCommand` using `turbo-ignore` to skip deploys when source files haven't changed.
+
+| Project | Root Directory | ignoreCommand |
+|---------|---------------|---------------|
+| creaseworks | `apps/creaseworks` | `npx turbo-ignore creaseworks` |
+| windedvertigo-site | `apps/site` (framework "Other") | `npx turbo-ignore @windedvertigo/site` |
+| nordic-sqr-rct | `apps/nordic-sqr-rct` | `npx turbo-ignore nordic-sqr-rct` |
+| deep-deck | `apps/deep-deck` | `npx turbo-ignore @windedvertigo/deep-deck` |
+| reservoir | `apps/reservoir` | `npx turbo-ignore @windedvertigo/reservoir` |
+| vertigo-vault | `apps/vertigo-vault` | `npx turbo-ignore @windedvertigo/vertigo-vault` |
+
+**How `turbo-ignore` works**: compares `VERCEL_GIT_PREVIOUS_SHA` (last successful deploy) to HEAD, walks the Turborepo dependency graph, and exits 0 (skip) or 1 (build). A change to `packages/tokens` triggers rebuilds for creaseworks and reservoir (its dependents) but skips the other 4 apps.
 
 ## Infrastructure Decisions
 
 - **Supabase evaluation**: Test on the next new project (possibly sqr-rct rebuild). Don't migrate creaseworks mid-flight. If Supabase wins, consolidate later.
-- ~~**Vercel consolidation**: Plan to move static site to Vercel alongside apps.~~ ✅ Done (Feb 2026) — all three projects now deploy from Vercel.
+- ~~**Vercel consolidation**: Plan to move static site to Vercel alongside apps.~~ ✅ Done (Feb 2026) — all six projects now deploy from Vercel.
+- ~~**Deployment quota optimization**: Free tier (100 deploys/day) was getting exhausted by every push triggering all 6 projects.~~ ✅ Done (Mar 2026) — added Turborepo + `turbo-ignore` per-project `ignoreCommand`. Reduced deploys per single-app push from 6 → 1. Also removed a duplicate Vercel project (`windedvertigo`) that was doubling deploy count.
 
 ## Tooling
 
