@@ -51,7 +51,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ── content sections ─────────────────────────────────────────── */
 .hero-title { font-size: 82.8px; font-weight: 700; line-height: 1.4; margin-top: 50px; margin-bottom: var(--space-lg); text-transform: lowercase; }
 .content-section { font-size: 20px; line-height: 28px; }
-.content-section p { margin-bottom: 1em; max-width: var(--max-line-length); }
+.content-section p { margin-bottom: 1em; max-width: var(--max-line-length); font-weight: 300; }
 .content-section p:last-child { margin-bottom: 0; }
 p { margin-bottom: var(--space-md); color: var(--text-primary); font-weight: 400; }
 
