@@ -27,6 +27,8 @@
 - [x] Notion-as-CMS pipeline for `/what/` page (database → JSON → client-side render)
 - [x] Site Content CMS database in Notion (ID: `09a046a556c1455e80073546b8f83297`)
 - [x] Removed orphaned What Page V2 legacy database from sync (Mar 2026) — superseded by Site Content CMS
+- [x] Restored simple `/what/` page with metadata-only CMS overlay (Mar 2026) — redesign moved to `feature/what-redesign` branch
+- [x] Removed `/what-v2/` development URL and stale `what-page.json` (Mar 2026)
 - [x] Standardized all 5 Next.js apps on Next.js 16 + React 19 (Mar 2026) — nordic-sqr-rct from 14/18, deep-deck/reservoir/vertigo-vault from 15/19
 - [x] HSTS + CSP security headers on all apps (Mar 2026) — in both `next.config.ts` and `vercel.json`
 - [x] ESLint 9 flat config migration (Mar 2026) — all apps use `eslint.config.mjs`, lint script uses `eslint` directly
@@ -36,9 +38,8 @@
 
 ### In Progress
 
-- [ ] `/what-v2/` development page — testing CMS integration before replacing live `/what/`
-- [ ] Wire `/we/` and `/do/` pages to Notion CMS (same pattern as `/what-v2/`)
-- [ ] Restore `/what/` page redesign (waiting on backdrop images from Garrett)
+- [ ] Wire `/we/` and `/do/` pages to Notion CMS (metadata overlay pattern)
+- [ ] `/what/` page redesign — lives on `feature/what-redesign` branch, waiting on backdrop images from Garrett
 
 ### Planned
 
@@ -58,7 +59,7 @@
 
 ### Next Up
 
-- [ ] `/what/` page redesign — restore backdrop version once images provided
+- [ ] `/what/` page redesign — develop on `feature/what-redesign` branch, merge once backdrop images provided
 - [ ] `/we/` page CMS wiring (move team bios to Notion)
 - [ ] `/do/` page CMS wiring (move services to Notion)
 - [ ] Maria's image workflow — either GitHub web UI drag-and-drop or Notion-based auto-download

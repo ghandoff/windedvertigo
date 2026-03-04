@@ -6,8 +6,7 @@
 /* GitHub Pages: use local copy since packages/ is outside deployed dir */
 @import url('./tokens.css');
 
-/* Ionicons for link/tag icons */
-@import url('https://unpkg.com/ionicons@4.5.10-0/dist/css/ionicons.min.css');
+/* Icon pseudo-elements now use Font Awesome 6 (loaded per-page via CDN link tag) */
 
 /* ── site-specific variables ──────────────────────────────────────
    override/extend tokens for the dark-background static site.     */
@@ -106,7 +105,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
 .see-more-btn:hover { color: var(--text-primary); }
 .team-member .links { margin-bottom: var(--space-sm); }
 .team-member .links a { font-size: 0.9rem; color: var(--wv-champagne); margin-right: var(--space-lg); }
-.team-member .links a::before { font-family: "Ionicons"; content: "\f41a"; margin-right: 0.4rem; }
+.team-member .links a::before { font-family: "Font Awesome 6 Free"; font-weight: 900; content: "\f0c1"; margin-right: 0.4rem; }
 .member-photo { display: flex; justify-content: center; align-items: flex-start; }
 .member-headshot { width: 300px; height: 300px; border-radius: 150px; object-fit: cover; background-size: cover; background-position: center center; }
 .member-content { flex: 1; }
@@ -114,7 +113,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
 /* ── tags ─────────────────────────────────────────────────────── */
 .tags { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
 .tag { font-size: 0.85rem; padding: 0; background: transparent; border: none; color: var(--text-secondary); font-weight: 400; }
-.tag::before { font-family: "Ionicons"; content: "\f35c"; color: var(--tag-check); margin-right: 0.4rem; font-size: 0.9em; }
+.tag::before { font-family: "Font Awesome 6 Free"; font-weight: 900; content: "\f00c"; color: var(--tag-check); margin-right: 0.4rem; font-size: 0.9em; }
 
 /* ── services ─────────────────────────────────────────────────── */
 .services-intro { margin-bottom: var(--space-lg); font-size: 1.15rem; line-height: 1.5; color: var(--text-primary); font-weight: 700; }

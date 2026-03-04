@@ -60,8 +60,7 @@ synced manually via `npm run sync` from the monorepo root, and automatically via
 | **outcomes** | `b8ff41d2d4ef41559e01c2d952a3a1da` | `package-builder-content.json` (merged) | `/do/` page |
 | **portfolio assets** | `5e27b792adbb4a958779900fb59dd631` | `portfolio-assets.json` | `/portfolio/` pages |
 | **vertigo vault** | `223e4ee74ba4805f8c92cda6e2b8ba00` | `vertigo-vault.json` + cover images | `/vertigo-vault/` (redirects to `/reservoir/vertigo-vault/`) and runtime fetch in vertigo-vault app |
-| **what page** | `311e4ee74ba480268ad9de5a14d6dce4` | `what-page.json` | `/what/` (live page) |
-| **site content CMS** | `09a046a556c1455e80073546b8f83297` | `site-content-{page}.json` per page value | `/what-v2/` (development page); `/we/` and `/do/` planned |
+| **site content CMS** | `09a046a556c1455e80073546b8f83297` | `site-content-{page}.json` per page value | `/what/` (live), `/what-v2/` (dev); `/we/` and `/do/` planned |
 | **members** | `9d0e6ae1d7574503b611a5c289e44f5b` | member images + HTML fragments | `/we/` (currently hardcoded HTML) |
 | **services** | `28fe4ee74ba480869709d4d364d388e5` | services HTML | `/do/` (via standalone sync script) |
 
@@ -69,6 +68,7 @@ synced manually via `npm run sync` from the monorepo root, and automatically via
 
 | database | id | removed | reason |
 |---|---|---|---|
+| ~~what page~~ | `311e4ee74ba480268ad9de5a14d6dce4` | Mar 2026 | retired — `/what/` now reads from Site Content CMS via `site-content-what.json`; `what-page.json` is no longer generated |
 | ~~what page v2~~ | `312e4ee74ba48102aea3e9f1a8828685` | Mar 2026 | superseded by Site Content CMS — the legacy v2 database was an intermediate step; the CMS now generates `site-content-what.json` which the development `/what-v2/` page consumes |
 
 ### CMS migration status
@@ -77,7 +77,7 @@ the Site Content CMS (`09a046a5`) was created to consolidate per-page notion dat
 
 | page | legacy source | CMS file | migration status |
 |---|---|---|---|
-| `/what/` | `what-page.json` (What Page DB) | `site-content-what.json` | **in progress** — `/what-v2/` development page reads CMS data; live `/what/` still uses legacy |
+| `/what/` | ~~`what-page.json`~~ (retired) | `site-content-what.json` | **partial** — live `/what/` uses hardcoded body with CMS metadata overlay only; full CMS-driven redesign on `feature/what-redesign` branch (waiting on backdrop images) |
 | `/we/` | hardcoded HTML + member images | `site-content-we.json` | **planned** — CMS data is generated but page not yet wired |
 | `/do/` | `package-builder-content.json` (Quadrants+Outcomes+Examples) | `site-content-do.json` | **planned** — CMS data is generated but page not yet wired |
 | `/` (home) | n/a | `site-content-home.json` | **planned** — CMS data is generated |
