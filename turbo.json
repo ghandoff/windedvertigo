@@ -1,5 +1,31 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalPassThroughEnv": [
+    "NOTION_TOKEN",
+    "NOTION_API_KEY",
+    "NOTION_REVIEWER_DB",
+    "NOTION_INTAKE_DB",
+    "NOTION_SCORES_DB",
+    "JWT_SECRET",
+    "BLOB_READ_WRITE_TOKEN",
+    "STRIPE_SECRET_KEY",
+    "NEXT_PUBLIC_APP_URL",
+    "NEXT_PUBLIC_BASE_URL",
+    "RESEND_API_KEY",
+    "EMAIL_FROM",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "INITIAL_ADMIN_EMAIL",
+    "POSTGRES_URL",
+    "NEXTAUTH_URL",
+    "NEXTAUTH_SECRET",
+    "VERCEL_URL",
+    "LLM_PROVIDER",
+    "LLM_API_KEY",
+    "LLM_MODEL",
+    "CRON_SECRET",
+    "NODE_ENV"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
