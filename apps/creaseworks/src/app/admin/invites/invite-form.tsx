@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiUrl } from "@/lib/api-url";
 
@@ -14,9 +14,17 @@ interface InviteFormProps {
   packs: Pack[];
 }
 
+/** Parse a raw string of emails separated by commas, newlines, semicolons, or spaces. */
+function parseEmails(raw: string): string[] {
+  return raw
+    .split(/[,;\n\r\s]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter((e) => e.length > 0 && e.includes("@"));
+}
+
 export default function InviteForm({ packs }: InviteFormProps) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [emailText, setEmailText] = useState("");
   const [tier, setTier] = useState<"explorer" | "practitioner">("explorer");
   const [note, setNote] = useState("");
   const [expiresInDays, setExpiresInDays] = useState<string>("");
@@ -26,6 +34,8 @@ export default function InviteForm({ packs }: InviteFormProps) {
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  const parsedEmails = useMemo(() => parseEmails(emailText), [emailText]);
 
   function togglePack(packId: string) {
     setSelectedPackIds((prev) => {
@@ -45,7 +55,7 @@ export default function InviteForm({ packs }: InviteFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.includes("@")) return;
+    if (parsedEmails.length === 0) return;
     if (selectedPackIds.size === 0) {
       setMessage({ type: "error", text: "select at least one pack to grant access to" });
       return;
@@ -59,7 +69,7 @@ export default function InviteForm({ packs }: InviteFormProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: email.trim(),
+          emails: parsedEmails,
           tier,
           note: note.trim() || undefined,
           expiresInDays: expiresInDays ? Number(expiresInDays) : undefined,
@@ -68,11 +78,17 @@ export default function InviteForm({ packs }: InviteFormProps) {
       });
 
       if (res.ok) {
-        setMessage({
-          type: "success",
-          text: `invite sent to ${email} — ${selectedPackIds.size} pack${selectedPackIds.size !== 1 ? "s" : ""} granted`,
-        });
-        setEmail("");
+        const data = await res.json();
+        const results = data.results as { email: string; success: boolean; error?: string }[];
+        const succeeded = results.filter((r) => r.success).length;
+        const failed = results.length - succeeded;
+
+        const text = failed > 0
+          ? `${succeeded} invite${succeeded !== 1 ? "s" : ""} sent, ${failed} failed — ${selectedPackIds.size} pack${selectedPackIds.size !== 1 ? "s" : ""} granted`
+          : `${succeeded} invite${succeeded !== 1 ? "s" : ""} sent — ${selectedPackIds.size} pack${selectedPackIds.size !== 1 ? "s" : ""} granted`;
+
+        setMessage({ type: failed > 0 ? "error" : "success", text });
+        setEmailText("");
         setNote("");
         setExpiresInDays("");
         setSelectedPackIds(new Set());
@@ -96,23 +112,27 @@ export default function InviteForm({ packs }: InviteFormProps) {
       onSubmit={handleSubmit}
       className="rounded-xl border border-cadet/10 bg-white p-6 space-y-4"
     >
-      {/* email */}
+      {/* emails */}
       <div>
         <label
-          htmlFor="invite-email"
+          htmlFor="invite-emails"
           className="block text-xs font-semibold text-cadet/50 uppercase tracking-wide mb-1"
         >
-          email address
+          email addresses
         </label>
-        <input
-          id="invite-email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="colleague@school.edu"
-          required
-          className="w-full rounded-lg border border-cadet/10 px-3 py-2 text-sm text-cadet placeholder:text-cadet/30 focus:border-sienna focus:outline-none"
+        <textarea
+          id="invite-emails"
+          value={emailText}
+          onChange={(e) => setEmailText(e.target.value)}
+          placeholder={"one@school.edu, two@school.edu\nor paste one per line"}
+          rows={3}
+          className="w-full rounded-lg border border-cadet/10 px-3 py-2 text-sm text-cadet placeholder:text-cadet/30 focus:border-sienna focus:outline-none resize-y"
         />
+        <p className="text-xs text-cadet/40 mt-1">
+          {parsedEmails.length > 0
+            ? `${parsedEmails.length} valid email${parsedEmails.length !== 1 ? "s" : ""} found`
+            : "separate with commas, semicolons, or new lines"}
+        </p>
       </div>
 
       {/* tier + expiry row */}
@@ -221,10 +241,12 @@ export default function InviteForm({ packs }: InviteFormProps) {
       <div className="flex items-center gap-4">
         <button
           type="submit"
-          disabled={saving || !email.includes("@") || selectedPackIds.size === 0}
+          disabled={saving || parsedEmails.length === 0 || selectedPackIds.size === 0}
           className="rounded-lg bg-redwood px-5 py-2.5 text-sm font-medium text-white hover:bg-sienna transition-colors disabled:opacity-40"
         >
-          {saving ? "sending..." : "send invite"}
+          {saving
+            ? "sending..."
+            : `send ${parsedEmails.length || ""} invite${parsedEmails.length !== 1 ? "s" : ""}`}
         </button>
 
         {message && (
@@ -242,4 +264,3 @@ export default function InviteForm({ packs }: InviteFormProps) {
     </form>
   );
 }
-

@@ -19,6 +19,7 @@ import { getStripe } from "@/lib/stripe/client";
 import { createPurchase, getPurchaseByStripeSessionId } from "@/lib/queries/purchases";
 import { grantEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
+import { createInAppNotification } from "@/lib/queries/notifications";
 import { sql } from "@/lib/db";
 import type Stripe from "stripe";
 
@@ -141,6 +142,26 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     null, // webhook call — no client IP available
     ["stripe_session_id", "amount_cents", "currency"],
   );
+
+  // In-app notification — let the user know their purchase went through
+  try {
+    const packRow = await sql.query(
+      `SELECT title FROM packs_cache WHERE id = $1`,
+      [packCacheId],
+    );
+    const packTitle = packRow.rows[0]?.title ?? "your pack";
+
+    await createInAppNotification({
+      userId,
+      eventType: "pack_granted",
+      title: `${packTitle} is yours!`,
+      body: "your purchase is complete — dive in whenever you're ready.",
+      href: "/packs",
+    });
+  } catch (notifErr) {
+    // Non-fatal — purchase succeeded, notification is best-effort
+    console.error("webhook: failed to create purchase notification:", notifErr);
+  }
 
   console.log(
     `webhook: purchase ${purchaseId} created, entitlement granted for org ${orgId} pack ${packCacheId}`,

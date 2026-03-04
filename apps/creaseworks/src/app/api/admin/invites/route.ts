@@ -1,7 +1,7 @@
 /**
  * API route: /api/admin/invites
  *
- * POST   — create a complimentary invite
+ * POST   — create complimentary invite(s) and send email(s)
  * DELETE — revoke an invite
  */
 
@@ -13,10 +13,12 @@ import {
   listAllInvites,
   revokeInvite,
 } from "@/lib/queries/invites";
+import { sendInviteEmail } from "@/lib/email/send-invite";
+import { sql } from "@/lib/db";
 
 const VALID_TIERS = ["explorer", "practitioner"];
 
-/* ── POST: create invite ── */
+/* ── POST: create invite(s) ── */
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
 
@@ -24,10 +26,19 @@ export async function POST(req: NextRequest) {
   if (parsed instanceof NextResponse) return parsed;
   const body = parsed as Record<string, unknown>;
 
-  const email = ((body.email as string) ?? "").trim().toLowerCase();
-  if (!email || !email.includes("@")) {
+  // Accept `emails` (array) or `email` (string) for backward compat
+  let rawEmails: string[];
+  if (Array.isArray(body.emails)) {
+    rawEmails = (body.emails as string[]).map((e) => String(e).trim().toLowerCase());
+  } else {
+    rawEmails = [((body.email as string) ?? "").trim().toLowerCase()];
+  }
+
+  // Validate: filter to valid emails
+  const emails = rawEmails.filter((e) => e && e.includes("@"));
+  if (emails.length === 0) {
     return NextResponse.json(
-      { error: "a valid email is required" },
+      { error: "at least one valid email is required" },
       { status: 400 },
     );
   }
@@ -54,16 +65,58 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const invite = await createInviteWithPacks(
-    email,
-    tier,
-    session.userId,
-    packIds,
-    note,
-    expiresAt,
-  );
+  // Look up pack names for the email template
+  let packNames: string[] = [];
+  try {
+    const packRows = await sql.query(
+      `SELECT title FROM packs_cache WHERE id = ANY($1)`,
+      [packIds],
+    );
+    packNames = packRows.rows.map((r: { title: string }) => r.title);
+  } catch {
+    packNames = [`${packIds.length} pack${packIds.length !== 1 ? "s" : ""}`];
+  }
 
-  return NextResponse.json({ success: true, invite });
+  // Get inviter's display name for the email (CWSession has no name field)
+  const inviterName: string | null = null;
+
+  // Process each email: create invite + send email
+  const results: { email: string; success: boolean; error?: string }[] = [];
+
+  for (const email of emails) {
+    try {
+      await createInviteWithPacks(
+        email,
+        tier,
+        session.userId,
+        packIds,
+        note,
+        expiresAt,
+      );
+
+      // Send the invite email (best-effort — invite is created regardless)
+      const emailResult = await sendInviteEmail({
+        to: email,
+        packNames,
+        note: note ?? null,
+        inviterName,
+      });
+
+      results.push({
+        email,
+        success: true,
+        error: emailResult.success ? undefined : `invite created, email failed: ${emailResult.error}`,
+      });
+    } catch (err: any) {
+      results.push({
+        email,
+        success: false,
+        error: err.message || "failed to create invite",
+      });
+    }
+  }
+
+  return NextResponse.json({ success: true, results });
 }
 
 /* ── GET: list all invites ── */
