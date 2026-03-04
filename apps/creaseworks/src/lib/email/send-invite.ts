@@ -65,7 +65,7 @@ function buildInviteHtml({
       </ul>
 
       <a
-        href="${baseUrl}/login"
+        href="${baseUrl}/login?callbackUrl=/onboarding"
         style="display: inline-block; background-color: #b15043; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; text-transform: lowercase;"
       >
         sign in to get started
