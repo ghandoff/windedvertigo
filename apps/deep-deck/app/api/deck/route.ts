@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { AgeBand, PackId } from "@/lib/types";
 import { buildDeck, getDeckSize } from "@/lib/deck";
+import { auth } from "@/lib/auth";
+import { getUserPacks } from "@/lib/queries/entitlements";
 
 const VALID_BANDS: AgeBand[] = ["6-8", "9-10", "11-12", "13-14"];
 const VALID_PACKS: PackId[] = ["sampler", "full"];
@@ -8,6 +10,11 @@ const VALID_PACKS: PackId[] = ["sampler", "full"];
 /**
  * Serve deck data from the server so that full-deck card content
  * is never shipped in the client JS bundle for unpaid users.
+ *
+ * Verification priority:
+ * 1. Auth.js session → check DB entitlements (persistent, cross-device)
+ * 2. x-dd-session header → verify Stripe checkout session (localStorage fallback)
+ * 3. No auth → sampler only
  *
  * GET /api/deck?band=6-8&packs=sampler,full
  */
@@ -23,45 +30,53 @@ export async function GET(request: Request) {
     );
   }
 
-  const requestedPacks = packsParam.split(",").filter((p): p is PackId =>
+  let requestedPacks = packsParam.split(",").filter((p): p is PackId =>
     VALID_PACKS.includes(p as PackId),
   );
 
-  // Always include sampler
   if (!requestedPacks.includes("sampler")) {
     requestedPacks.unshift("sampler");
   }
 
-  // If requesting full pack, verify entitlement via a simple token check.
-  // For now we check the Stripe session stored in the cookie/header.
-  // When Auth.js is added, this will check the DB instead.
+  // Verify entitlements if full pack is requested
   if (requestedPacks.includes("full")) {
-    const authToken = request.headers.get("x-dd-session");
+    let verified = false;
 
-    if (authToken) {
-      // Verify the session is a real paid Stripe session
-      const stripeKey = process.env.STRIPE_SECRET_KEY;
-      if (stripeKey) {
-        try {
-          const Stripe = (await import("stripe")).default;
-          const stripe = new Stripe(stripeKey);
-          const session = await stripe.checkout.sessions.retrieve(authToken);
-
-          if (session.payment_status !== "paid") {
-            // Strip out "full" — only serve sampler cards
-            const idx = requestedPacks.indexOf("full");
-            if (idx !== -1) requestedPacks.splice(idx, 1);
-          }
-        } catch {
-          // Invalid session — fall back to sampler only
-          const idx = requestedPacks.indexOf("full");
-          if (idx !== -1) requestedPacks.splice(idx, 1);
+    // Method 1: Check Auth.js session + DB entitlements
+    try {
+      const session = await auth();
+      if (session?.userId) {
+        const dbPacks = await getUserPacks(session.userId);
+        if (dbPacks.includes("full")) {
+          verified = true;
         }
       }
-    } else {
-      // No auth token — sampler only
-      const idx = requestedPacks.indexOf("full");
-      if (idx !== -1) requestedPacks.splice(idx, 1);
+    } catch {
+      // Auth/DB unavailable — try fallback
+    }
+
+    // Method 2: Fallback to Stripe session header (for non-authenticated users)
+    if (!verified) {
+      const authToken = request.headers.get("x-dd-session");
+      if (authToken) {
+        const stripeKey = process.env.STRIPE_SECRET_KEY;
+        if (stripeKey) {
+          try {
+            const Stripe = (await import("stripe")).default;
+            const stripe = new Stripe(stripeKey);
+            const stripeSession = await stripe.checkout.sessions.retrieve(authToken);
+            if (stripeSession.payment_status === "paid") {
+              verified = true;
+            }
+          } catch {
+            // Invalid session
+          }
+        }
+      }
+    }
+
+    if (!verified) {
+      requestedPacks = requestedPacks.filter((p) => p !== "full");
     }
   }
 

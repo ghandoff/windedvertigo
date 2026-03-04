@@ -9,9 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/core": "^0.41.0",
+    "@vercel/postgres": "^0.10.0",
     "next": "^16.1.6",
+    "next-auth": "^5.0.0-beta.30",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "resend": "^6.9.3",
     "stripe": "^17.5.0"
   },
   "devDependencies": {
