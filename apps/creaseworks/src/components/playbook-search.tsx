@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import CollectionCard from "@/components/ui/collection-card";
 import { apiUrl } from "@/lib/api-url";
 
@@ -205,11 +206,15 @@ export default function PlaybookSearch({
                 className="flex items-center gap-3 rounded-lg border border-cadet/5 px-4 py-3 hover:border-sienna/20 hover:bg-champagne/5 transition-colors"
               >
                 {p.cover_url ? (
-                  <img
-                    src={p.cover_url}
-                    alt=""
-                    className="w-10 h-10 rounded-md object-cover flex-shrink-0"
-                  />
+                  <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+                    <Image
+                      src={p.cover_url}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="40px"
+                    />
+                  </div>
                 ) : (
                   <div className="w-10 h-10 rounded-md bg-champagne/20 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm opacity-40">🎨</span>
