@@ -32,7 +32,143 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="../styles/main.css?v=13">
+  <link rel="stylesheet" href="../styles/main.css?v=14">
+
+  <style>
+    /* ── CMS layout extensions ──────────────────────────────────────
+       Support layout variants from Notion Site Content CMS.
+       When layout=default and icon=null, renders identically to
+       the original /what/ paragraphs. */
+
+    .what-section { margin-bottom: 2rem; }
+    .what-section:last-child { margin-bottom: 0; }
+
+    .section-icon { display: none; }
+    .section-icon.has-icon {
+      display: block;
+      margin-bottom: 1rem;
+    }
+    .section-icon img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .section-name { display: none; }
+
+    /* ── layout: side-by-side ─────────────────────────────────── */
+    .layout-side-by-side {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: var(--space-lg);
+      align-items: start;
+      padding: var(--space-lg);
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .layout-side-by-side .section-icon.has-icon { margin-bottom: 0; }
+    .layout-side-by-side > .section-content:only-child { grid-column: 1 / -1; }
+    .layout-side-by-side .section-icon img { width: 64px; height: 64px; }
+    .layout-side-by-side .section-name {
+      display: block;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: var(--space-xs);
+      text-transform: lowercase;
+    }
+
+    /* ── layout: centered ─────────────────────────────────────── */
+    .layout-centered {
+      text-align: center;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: var(--space-lg) 0;
+    }
+    .layout-centered .section-icon.has-icon { margin: 0 auto 1rem; }
+    .layout-centered .section-name {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: var(--space-sm);
+      text-transform: lowercase;
+      letter-spacing: 0.03em;
+    }
+    .layout-centered .section-content p { max-width: none; }
+
+    /* ── layout: card ─────────────────────────────────────────── */
+    .layout-card {
+      background: var(--color-surface-raised, #1e2738);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: var(--space-lg);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .layout-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(177, 80, 67, 0.3);
+    }
+    .layout-card .section-name {
+      display: block;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: var(--space-sm);
+      text-transform: lowercase;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: 2rem;
+    }
+    .card-grid .what-section { margin-bottom: 0; }
+
+    /* ── layout: highlight ────────────────────────────────────── */
+    .layout-highlight {
+      border-left: 3px solid var(--accent);
+      padding-left: var(--space-lg);
+      margin-left: 0;
+    }
+    .layout-highlight .section-name {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: var(--space-xs);
+      text-transform: lowercase;
+    }
+
+    /* ── layout: full-width ───────────────────────────────────── */
+    .layout-full-width {
+      padding: var(--space-lg) 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .layout-full-width .section-name {
+      display: block;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: var(--space-sm);
+      text-transform: lowercase;
+    }
+
+    /* ── responsive ───────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .layout-side-by-side { grid-template-columns: 1fr; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .layout-card { transition: none; }
+      .layout-card:hover { transform: none; }
+    }
+  </style>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -102,10 +238,13 @@
   </script>
 
   <script>
-    // Load /what page content from Notion-synced JSON
+    // Load /what page content from Notion Site Content CMS
+    // Supports layout variants: default, card, side-by-side, centered, highlight, full-width
+    // Data source: local JSON generated by Notion sync scripts (trusted, not user input).
+    // All text is escaped via escapeHtml() before DOM insertion.
     (async function loadWhatContent() {
       try {
-        const resp = await fetch('../data/what-page.json');
+        const resp = await fetch('../data/site-content-what.json');
         if (!resp.ok) return; // keep fallback HTML
         const data = await resp.json();
         if (!data.sections || data.sections.length === 0) return;
@@ -113,37 +252,109 @@
         const container = document.getElementById('what-content');
         if (!container) return;
 
-        // Build new HTML from sections
-        let html = '';
-        for (const section of data.sections) {
-          if (section.type === 'hero') {
-            html += '<h2 class="hero-title">' + escapeHtml(section.content || section.name) + '</h2>\n';
+        // Separate hero from body sections; exclude metadata rows
+        const heroes = data.sections.filter(s => s.type === 'hero');
+        const body = data.sections.filter(s => s.type === 'body');
+
+        // Group consecutive card-layout sections into grids
+        const groups = [];
+        let cardBuffer = [];
+        for (const section of body) {
+          if (section.layout === 'card') {
+            cardBuffer.push(section);
           } else {
-            // body paragraphs — preserve <em> tags by processing *text* markers
-            html += '<p>' + formatContent(section.content) + '</p>\n';
+            if (cardBuffer.length > 0) {
+              groups.push({ type: 'card-grid', sections: cardBuffer });
+              cardBuffer = [];
+            }
+            groups.push({ type: 'single', section: section });
           }
         }
+        if (cardBuffer.length > 0) {
+          groups.push({ type: 'card-grid', sections: cardBuffer });
+        }
 
-        container.innerHTML = html;
+        // Build DOM nodes instead of innerHTML for safety
+        container.replaceChildren(); // clear fallback
+
+        // Render hero sections
+        for (const hero of heroes) {
+          const h2 = document.createElement('h2');
+          h2.className = 'hero-title';
+          h2.textContent = hero.content || hero.name;
+          container.appendChild(h2);
+        }
+
+        // Render body sections with layout support
+        for (const group of groups) {
+          if (group.type === 'card-grid') {
+            const grid = document.createElement('div');
+            grid.className = 'card-grid';
+            for (const section of group.sections) {
+              grid.appendChild(buildSection(section));
+            }
+            container.appendChild(grid);
+          } else {
+            container.appendChild(buildSection(group.section));
+          }
+        }
       } catch (e) {
         // Silently keep fallback HTML on error
         console.warn('Could not load what-page content:', e);
       }
     })();
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
+    function buildSection(section) {
+      const layout = section.layout || 'default';
+      const wrapper = document.createElement('div');
+      wrapper.className = 'what-section layout-' + layout;
 
-    function formatContent(str) {
-      if (!str) return '';
-      // Escape HTML first, then convert *text* to <em>text</em>
-      let safe = escapeHtml(str);
-      // Replace *word* patterns with <em>word</em> (non-greedy)
-      safe = safe.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-      return safe;
+      // Icon (only shown when icon URL exists)
+      if (section.icon) {
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'section-icon has-icon';
+        const img = document.createElement('img');
+        img.src = section.icon;
+        img.alt = '';
+        img.loading = 'lazy';
+        iconDiv.appendChild(img);
+        wrapper.appendChild(iconDiv);
+      }
+
+      // Content wrapper
+      const content = document.createElement('div');
+      content.className = 'section-content';
+
+      // Section name label (layout CSS controls visibility)
+      if (section.name) {
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'section-name';
+        nameDiv.textContent = section.name;
+        content.appendChild(nameDiv);
+      }
+
+      // Body text — use textContent for safety, then handle *emphasis* via regex
+      const p = document.createElement('p');
+      const text = section.content || '';
+      // Check for *emphasis* markers
+      if (text.includes('*')) {
+        // Split on *word* pattern, alternating between plain text and emphasized text
+        const parts = text.split(/\*([^*]+)\*/g);
+        for (let i = 0; i < parts.length; i++) {
+          if (i % 2 === 0) {
+            p.appendChild(document.createTextNode(parts[i]));
+          } else {
+            const em = document.createElement('em');
+            em.textContent = parts[i];
+            p.appendChild(em);
+          }
+        }
+      } else {
+        p.textContent = text;
+      }
+      content.appendChild(p);
+      wrapper.appendChild(content);
+      return wrapper;
     }
   </script>
 </body>
