@@ -13,7 +13,7 @@ module.exports = {
     examples: 'de0bc6fe83d54d71a91b31d8f1eb73bd',
     portfolioAssets: '5e27b792adbb4a958779900fb59dd631',  // BD multi-database (parent)
     vertigoVault: '223e4ee74ba4805f8c92cda6e2b8ba00',
-    whatPage: '311e4ee74ba480268ad9de5a14d6dce4',
+    // whatPage removed — /what/ now reads from siteContent CMS (Mar 2026)
     // whatPageV2 removed — superseded by siteContent CMS (Mar 2026)
     siteContent: '09a046a556c1455e80073546b8f83297',
   },
@@ -71,14 +71,7 @@ module.exports = {
       skillsDeveloped: 'skills developed',
       filesMedia: 'files & media',
     },
-    whatPage: {
-      name: 'Name',
-      content: 'Content',
-      order: 'Order',
-      type: 'Type',
-      layout: 'Layout',
-      icon: 'Icon',
-    },
+    // whatPage properties removed — /what/ now reads from siteContent CMS (Mar 2026)
     // whatPageV2 properties removed — superseded by siteContent CMS (Mar 2026)
     siteContent: {
       name: 'Name',
@@ -107,7 +100,7 @@ module.exports = {
     examples: ['Quadrant', 'Name'],
     portfolioAssets: ['asset', 'Website Asset Type'],
     vertigoVault: ['name'],
-    whatPage: ['Name'],
+    // whatPage required removed — retired (Mar 2026)
     siteContent: ['Name', 'Page'],
   },
 

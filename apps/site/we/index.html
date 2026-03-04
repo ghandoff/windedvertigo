@@ -231,40 +231,142 @@
 </footer>
 
   <script>
-    // Mobile nav toggle
-    const navToggle = document.querySelector('.nav-toggle');
-    const nav = document.querySelector('.nav');
-    navToggle?.addEventListener('click', () => {
-      const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-      navToggle.setAttribute('aria-expanded', !expanded);
-      nav.classList.toggle('active');
-    });
-
-    // Bio truncation with "see more" functionality
-    const MAX_BIO_HEIGHT = 150;
-    document.querySelectorAll('.team-member .bio').forEach(bio => {
-      const fullHeight = bio.scrollHeight;
-      if (fullHeight > MAX_BIO_HEIGHT) {
-        bio.classList.add('truncated');
-        bio.style.maxHeight = MAX_BIO_HEIGHT + 'px';
-
-        const btn = document.createElement('button');
-        btn.className = 'see-more-btn';
-        btn.textContent = '[see more...]';
-        btn.addEventListener('click', () => {
-          if (bio.classList.contains('expanded')) {
-            bio.classList.remove('expanded');
-            bio.style.maxHeight = MAX_BIO_HEIGHT + 'px';
-            btn.textContent = '[see more...]';
-          } else {
-            bio.classList.add('expanded');
-            bio.style.maxHeight = fullHeight + 'px';
-            btn.textContent = '[see less]';
-          }
+    // ── /we/ page: CMS overlay + bio truncation ──
+    // Hardcoded HTML above serves as SEO content and no-JS fallback.
+    // CMS data (site-content-we.json) overlays metadata and member
+    // details onto the existing DOM — no innerHTML used.
+    (function() {
+      // Mobile nav toggle
+      var navToggle = document.querySelector('.nav-toggle');
+      var nav = document.querySelector('.nav');
+      if (navToggle) {
+        navToggle.addEventListener('click', function() {
+          var expanded = navToggle.getAttribute('aria-expanded') === 'true';
+          navToggle.setAttribute('aria-expanded', String(!expanded));
+          nav.classList.toggle('active');
         });
-        bio.parentNode.insertBefore(btn, bio.nextSibling);
       }
-    });
+
+      // Load /we page data from Site Content CMS
+      fetch('../data/site-content-we.json')
+        .then(function(resp) { return resp.ok ? resp.json() : null; })
+        .then(function(data) {
+          if (!data || !data.sections) return;
+
+          // Update page metadata from CMS
+          var meta;
+          for (var m = 0; m < data.sections.length; m++) {
+            if (data.sections[m].type === 'metadata') { meta = data.sections[m]; break; }
+          }
+          if (meta) {
+            if (meta.tagline) document.title = meta.tagline;
+            if (meta.content) {
+              var desc = document.querySelector('meta[name="description"]');
+              if (desc) desc.setAttribute('content', meta.content);
+            }
+          }
+
+          // Collect CMS team members
+          var members = [];
+          for (var n = 0; n < data.sections.length; n++) {
+            if (data.sections[n].type === 'team-member') members.push(data.sections[n]);
+          }
+          if (members.length === 0) return;
+
+          // Update existing DOM elements with CMS data (role, image, tags, link)
+          var articles = document.querySelectorAll('.team-member');
+          for (var i = 0; i < articles.length; i++) {
+            var article = articles[i];
+            var nameEl = article.querySelector('h2');
+            if (!nameEl) continue;
+            var domName = nameEl.textContent.trim().toLowerCase();
+
+            // Find matching CMS member by name
+            var member = null;
+            for (var j = 0; j < members.length; j++) {
+              if (members[j].name.toLowerCase() === domName) {
+                member = members[j];
+                break;
+              }
+            }
+            if (!member) continue;
+
+            // Update role
+            var roleEl = article.querySelector('.role');
+            if (roleEl && member.tagline) {
+              roleEl.textContent = member.tagline;
+            }
+
+            // Update headshot image
+            var imgEl = article.querySelector('.member-headshot');
+            if (imgEl && member.imageUrl) {
+              imgEl.setAttribute('src', member.imageUrl);
+              imgEl.setAttribute('alt', member.name);
+            }
+
+            // Rebuild tags from CMS features (uses createElement, no innerHTML)
+            if (member.features) {
+              var tagsDiv = article.querySelector('.tags');
+              if (tagsDiv) {
+                var featureList = member.features.split(',');
+                while (tagsDiv.firstChild) tagsDiv.removeChild(tagsDiv.firstChild);
+                for (var k = 0; k < featureList.length; k++) {
+                  var tag = featureList[k].trim();
+                  if (!tag) continue;
+                  var span = document.createElement('span');
+                  span.className = 'tag';
+                  span.textContent = tag;
+                  tagsDiv.appendChild(span);
+                }
+              }
+            }
+
+            // Update external link
+            if (member.link) {
+              var linkEl = article.querySelector('.links a');
+              if (linkEl) linkEl.setAttribute('href', member.link);
+            }
+          }
+
+          // Apply bio truncation after CMS overlay is complete
+          applyBioTruncation();
+        })
+        .catch(function(e) {
+          console.warn('Could not load we-page CMS data:', e);
+          // Still apply bio truncation on fallback HTML
+          applyBioTruncation();
+        });
+
+      function applyBioTruncation() {
+        var MAX_BIO_HEIGHT = 150;
+        var bios = document.querySelectorAll('.team-member .bio');
+        for (var b = 0; b < bios.length; b++) {
+          (function(bio) {
+            var fullHeight = bio.scrollHeight;
+            if (fullHeight > MAX_BIO_HEIGHT) {
+              bio.classList.add('truncated');
+              bio.style.maxHeight = MAX_BIO_HEIGHT + 'px';
+
+              var btn = document.createElement('button');
+              btn.className = 'see-more-btn';
+              btn.textContent = '[see more...]';
+              btn.addEventListener('click', function() {
+                if (bio.classList.contains('expanded')) {
+                  bio.classList.remove('expanded');
+                  bio.style.maxHeight = MAX_BIO_HEIGHT + 'px';
+                  btn.textContent = '[see more...]';
+                } else {
+                  bio.classList.add('expanded');
+                  bio.style.maxHeight = bio.scrollHeight + 'px';
+                  btn.textContent = '[see less]';
+                }
+              });
+              bio.parentNode.insertBefore(btn, bio.nextSibling);
+            }
+          })(bios[b]);
+        }
+      }
+    })();
   </script>
 </body>
 </html>
