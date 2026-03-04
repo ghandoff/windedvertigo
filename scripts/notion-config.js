@@ -14,7 +14,7 @@ module.exports = {
     portfolioAssets: '5e27b792adbb4a958779900fb59dd631',  // BD multi-database (parent)
     vertigoVault: '223e4ee74ba4805f8c92cda6e2b8ba00',
     whatPage: '311e4ee74ba480268ad9de5a14d6dce4',
-    whatPageV2: '312e4ee74ba48102aea3e9f1a8828685',
+    // whatPageV2 removed — superseded by siteContent CMS (Mar 2026)
     siteContent: '09a046a556c1455e80073546b8f83297',
   },
 
@@ -79,14 +79,7 @@ module.exports = {
       layout: 'Layout',
       icon: 'Icon',
     },
-    whatPageV2: {
-      name: 'Name',
-      content: 'Content',
-      order: 'Order',
-      type: 'Type',
-      layout: 'Layout',
-      icon: 'Icon',
-    },
+    // whatPageV2 properties removed — superseded by siteContent CMS (Mar 2026)
     siteContent: {
       name: 'Name',
       content: 'Content',
@@ -115,7 +108,6 @@ module.exports = {
     portfolioAssets: ['asset', 'Website Asset Type'],
     vertigoVault: ['name'],
     whatPage: ['Name'],
-    whatPageV2: ['Name'],
     siteContent: ['Name', 'Page'],
   },
 

@@ -96,14 +96,16 @@ This monorepo contains all three winded.vertigo projects. No more multi-mount co
 
 ## Notion Integration
 
-All editorial content is authored in Notion and synced to the static site:
+All editorial content is authored in Notion and synced to the static site. See `docs/notion-database-map.md` for the full 16-database map, CMS migration status, and sync architecture.
 
+Key sync paths:
 - **Portfolio assets**: Fetched from the BD multi-database (parent ID: `5e27b792adbb4a958779900fb59dd631`) via `notion.search()` — NOT `databases.query()` (doesn't work with multi-databases)
-- **Vertigo Vault**: Activities + cover images from dedicated Notion database
-- **Package Builder**: Pack configurations from Notion
-- **Members** (`/we/` page): Synced via `scripts/sync-notion-members.js`
-- **Services** (`/do/` page): Synced via `scripts/sync-notion-services.js`
-- **What page** (`/what/` page): Content from Notion database (ID: `311e4ee74ba480268ad9de5a14d6dce4`), synced to `apps/site/data/what-page.json` via `scripts/fetch-notion.js`
+- **Vertigo Vault**: Activities + cover images from dedicated Notion database → also served at `/reservoir/vertigo-vault/` (old `/vertigo-vault/` URLs redirect there)
+- **Package Builder**: Quadrants + Outcomes merged from Notion → `package-builder-content.json`
+- **Members** (`/we/` page): Synced via `scripts/sync-notion-members.js` (standalone)
+- **Services** (`/do/` page): Synced via `scripts/sync-notion-services.js` (standalone)
+- **What page** (`/what/` page): Legacy database → `what-page.json` (live)
+- **Site Content CMS** (`09a046a5`): Unified CMS → `site-content-{page}.json` per page. `/what-v2/` development page reads from `site-content-what.json`. Other pages planned.
 
 Scripts output to `apps/site/data/` and `apps/site/images/`. The Notion REST API returns `url` under its actual name, not `userDefined:url` (MCP-only convention).
 
@@ -111,12 +113,12 @@ Notion API rate limit is 3 req/sec — monitor as more projects sync.
 
 ## Notion-as-CMS Roadmap
 
-Long-term, all copy/text across the monorepo should be Notion-authored:
-- creaseworks landing page copy
-- ~~windedvertigo.com `/what/` page text~~ ✅ (synced from Notion "what page content" database)
-- windedvertigo.com `/we/`, `/do/` page text
-- sqr-rct content
-- All synced to JSON or directly into the apps via shared scripts
+The Site Content CMS database consolidates per-page databases into one. Migration is incremental:
+- ~~windedvertigo.com `/what/` page text~~ ✅ CMS data syncs; `/what-v2/` dev page reads it; live `/what/` still uses legacy
+- [ ] windedvertigo.com `/we/` page — wire to `site-content-we.json`
+- [ ] windedvertigo.com `/do/` page — wire to `site-content-do.json`
+- [ ] creaseworks landing page copy
+- [ ] sqr-rct content
 
 ## Maria's Image Workflow
 

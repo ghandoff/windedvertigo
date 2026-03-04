@@ -1,6 +1,6 @@
 # notion database map
 
-the winded.vertigo collective currently authors content across **17 notion databases** that feed into three contexts.
+the winded.vertigo collective currently authors content across **16 notion databases** that feed into three contexts, plus **1 unified CMS** that is progressively replacing page-specific legacy databases.
 
 ---
 
@@ -50,26 +50,63 @@ key files:
 
 ## static site (apps/site)
 
-synced manually via `npm run sync` from the monorepo root. content is fetched from notion, transformed into JSON, and used during the site build.
+synced manually via `npm run sync` from the monorepo root, and automatically via GitHub Actions daily at 06:00 UTC. content is fetched from notion, transformed into JSON, and used during the site build.
 
-| database | id | content | where on site |
+### active databases
+
+| database | id | generates | consumed by |
 |---|---|---|---|
-| **quadrants** | `1c171d25825b418caf94805dc1568352` | package builder framework content | site build tooling |
-| **outcomes** | `b8ff41d2d4ef41559e01c2d952a3a1da` | outcome descriptions | site build tooling |
-| **examples** | `de0bc6fe83d54d71a91b31d8f1eb73bd` | example entries | site build tooling |
-| **portfolio assets** | `5e27b792adbb4a958779900fb59dd631` | portfolio project data (multi-database parent) | `/portfolio/` pages |
-| **vertigo vault** | `223e4ee74ba4805f8c92cda6e2b8ba00` | learning resources | `/vertigo-vault/` |
-| **what page** | `311e4ee74ba480268ad9de5a14d6dce4` | "what we do" page content | `/what/` |
-| **what page v2** | `312e4ee74ba48102aea3e9f1a8828685` | "what we do" page content (revised) | `/what-v2/` |
-| **members** | `9d0e6ae1d7574503b611a5c289e44f5b` | team member names, images, active status | `/we/` |
-| **services** | `28fe4ee74ba480869709d4d364d388e5` | service title + description | `/do/` |
+| **quadrants** | `1c171d25825b418caf94805dc1568352` | `package-builder-content.json` (merged) | `/do/` page |
+| **outcomes** | `b8ff41d2d4ef41559e01c2d952a3a1da` | `package-builder-content.json` (merged) | `/do/` page |
+| **portfolio assets** | `5e27b792adbb4a958779900fb59dd631` | `portfolio-assets.json` | `/portfolio/` pages |
+| **vertigo vault** | `223e4ee74ba4805f8c92cda6e2b8ba00` | `vertigo-vault.json` + cover images | `/vertigo-vault/` (redirects to `/reservoir/vertigo-vault/`) and runtime fetch in vertigo-vault app |
+| **what page** | `311e4ee74ba480268ad9de5a14d6dce4` | `what-page.json` | `/what/` (live page) |
+| **site content CMS** | `09a046a556c1455e80073546b8f83297` | `site-content-{page}.json` per page value | `/what-v2/` (development page); `/we/` and `/do/` planned |
+| **members** | `9d0e6ae1d7574503b611a5c289e44f5b` | member images + HTML fragments | `/we/` (currently hardcoded HTML) |
+| **services** | `28fe4ee74ba480869709d4d364d388e5` | services HTML | `/do/` (via standalone sync script) |
+
+### removed databases
+
+| database | id | removed | reason |
+|---|---|---|---|
+| ~~what page v2~~ | `312e4ee74ba48102aea3e9f1a8828685` | Mar 2026 | superseded by Site Content CMS — the legacy v2 database was an intermediate step; the CMS now generates `site-content-what.json` which the development `/what-v2/` page consumes |
+
+### CMS migration status
+
+the Site Content CMS (`09a046a5`) was created to consolidate per-page notion databases into a single database with a "Page" select property. migration is incremental:
+
+| page | legacy source | CMS file | migration status |
+|---|---|---|---|
+| `/what/` | `what-page.json` (What Page DB) | `site-content-what.json` | **in progress** — `/what-v2/` development page reads CMS data; live `/what/` still uses legacy |
+| `/we/` | hardcoded HTML + member images | `site-content-we.json` | **planned** — CMS data is generated but page not yet wired |
+| `/do/` | `package-builder-content.json` (Quadrants+Outcomes+Examples) | `site-content-do.json` | **planned** — CMS data is generated but page not yet wired |
+| `/` (home) | n/a | `site-content-home.json` | **planned** — CMS data is generated |
+| `/reservoir/` | n/a | `site-content-reservoir.json` | **planned** — reservoir is a separate Next.js app |
+
+once each page is wired to its CMS file, the corresponding legacy database can be retired from `notion-config.js`.
+
+### vertigo vault architecture
+
+the original vertigo vault was built as a standalone learning-resource tool for a client. it now lives at `/reservoir/vertigo-vault/` as part of the monetised reservoir hub.
+
+```
+user visits:  windedvertigo.com/vertigo-vault/activities
+     ↓ 301 permanent redirect (vercel.json)
+canonical:    windedvertigo.com/reservoir/vertigo-vault/activities
+     ↓ rewrite (vercel.json)
+served from:  vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault/activities
+     ↓
+app code:     apps/vertigo-vault/ (Next.js, basePath: /reservoir/vertigo-vault)
+```
+
+the `/vertigo-vault` redirect ensures existing client links remain accessible. the vertigo vault app also fetches `vertigo-vault.json` at runtime for activity data.
 
 ### sync scripts
 
-- `scripts/fetch-notion.js` — main content fetcher with retry logic (3 attempts), generates JSON
+- `scripts/fetch-notion.js` — main content fetcher with retry logic (3 attempts), generates JSON for all databases above
 - `scripts/notion-config.js` — centralised database ID configuration and property mappings
-- `scripts/sync-notion-members.js` — members sync with image download
-- `scripts/sync-notion-services.js` — services sync, generates HTML for the `/do/` page
+- `scripts/sync-notion-members.js` — members sync with image download (standalone)
+- `scripts/sync-notion-services.js` — services sync, generates HTML for the `/do/` page (standalone)
 
 ---
 
@@ -128,6 +165,8 @@ NOTION_TOKEN            — notion integration token (used by fetch-notion.js)
 
 the collective can edit any text property in the five creaseworks notion databases and changes sync automatically. this covers titles, descriptions, headlines, tags, status fields, age ranges, tinkering tiers, and all relation links between databases.
 
+for the static site, the collective can edit content in the Site Content CMS database and it syncs to per-page JSON files. the `/what-v2/` development page already reads from the CMS. other pages will be wired incrementally.
+
 ### needs work (images + rich content)
 
 to enable full visual authoring through notion, the following would need to be built:
@@ -139,4 +178,4 @@ to enable full visual authoring through notion, the following would need to be b
 
 ---
 
-*last updated: 27 february 2026*
+*last updated: 4 march 2026*

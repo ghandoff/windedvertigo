@@ -26,10 +26,12 @@
 - [x] Removed duplicate Vercel project (`windedvertigo`) consuming quota
 - [x] Notion-as-CMS pipeline for `/what/` page (database → JSON → client-side render)
 - [x] Site Content CMS database in Notion (ID: `09a046a556c1455e80073546b8f83297`)
+- [x] Removed orphaned What Page V2 legacy database from sync (Mar 2026) — superseded by Site Content CMS
 
 ### In Progress
 
-- [ ] Wire `/we/` and `/do/` pages to Notion CMS (same pattern as `/what/`)
+- [ ] `/what-v2/` development page — testing CMS integration before replacing live `/what/`
+- [ ] Wire `/we/` and `/do/` pages to Notion CMS (same pattern as `/what-v2/`)
 - [ ] Restore `/what/` page redesign (waiting on backdrop images from Garrett)
 
 ### Planned
