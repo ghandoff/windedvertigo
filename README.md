@@ -7,30 +7,30 @@ Monorepo for [winded.vertigo](https://windedvertigo.com) — a collective of des
 | App | Stack | URL |
 |-----|-------|-----|
 | **site** | Static HTML/CSS/JS | [windedvertigo.com](https://windedvertigo.com) |
-| **creaseworks** | Next.js · TypeScript · Postgres | [windedvertigo.com/reservoir/creaseworks](https://windedvertigo.com/reservoir/creaseworks) |
-| **nordic-sqr-rct** | Next.js · JavaScript | — |
+| **reservoir** | Next.js · TypeScript | [windedvertigo.com/reservoir](https://windedvertigo.com/reservoir) |
+| **creaseworks** | Next.js · TypeScript · Postgres · Stripe | [windedvertigo.com/reservoir/creaseworks](https://windedvertigo.com/reservoir/creaseworks) |
+| **deep-deck** | Next.js · TypeScript | [windedvertigo.com/reservoir/deep-deck](https://windedvertigo.com/reservoir/deep-deck) |
+| **vertigo-vault** | Next.js · TypeScript · Notion API | [windedvertigo.com/reservoir/vertigo-vault](https://windedvertigo.com/reservoir/vertigo-vault) |
+| **nordic-sqr-rct** | Next.js · JavaScript · Notion API | *(Nordic-branded, separate domain)* |
 
 ## Getting Started
 
 ```bash
-# Install root dependencies (Notion sync scripts)
+# Install all workspace dependencies
 npm install
 
-# Start creaseworks
-npm run dev:creaseworks
+# Start individual dev servers
+npm run dev:creaseworks    # http://localhost:3000
+npm run dev:sqr-rct        # http://localhost:3001
+npm run dev:reservoir
+npm run dev:deep-deck
+npm run dev:vault
 
-# Start sqr-rct
-npm run dev:sqr-rct
+# Build all workspaces
+npm run build
 
 # Sync content from Notion
 npm run sync
-```
-
-Each app has its own dependencies. Install them individually if needed:
-
-```bash
-cd apps/creaseworks && npm install
-cd apps/nordic-sqr-rct && npm install
 ```
 
 ## Structure
@@ -38,8 +38,13 @@ cd apps/nordic-sqr-rct && npm install
 ```
 apps/
   site/              Static site (HTML/CSS/JS, Notion-synced content)
-  creaseworks/       Co-design pattern platform
-  nordic-sqr-rct/   SQR-RCT app
+  reservoir/         Reservoir hub — landing page for all tools
+  creaseworks/       Co-design playdate platform
+  deep-deck/         Conversation card game
+  vertigo-vault/     Group activity library
+  nordic-sqr-rct/   Systematic review tool (Nordic-branded)
+packages/
+  tokens/            Shared design tokens (CSS + TS) and footer
 scripts/             Shared Notion sync scripts
-docs/                Design docs and migration plans
+docs/                Design docs, brand guidelines, roadmaps
 ```
