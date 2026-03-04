@@ -43,6 +43,7 @@ function PlayContent() {
 
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Load deck from server API
   useEffect(() => {
@@ -50,6 +51,7 @@ function PlayContent() {
 
     async function loadDeck() {
       setLoading(true);
+      setLoadError(false);
       try {
         const deck = await fetchDeck(band, entitlements, sessionId);
         if (!cancelled) {
@@ -57,7 +59,10 @@ function PlayContent() {
           setLoading(false);
         }
       } catch {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoadError(true);
+          setLoading(false);
+        }
       }
     }
 
@@ -121,6 +126,39 @@ function PlayContent() {
           <span className="text-lg font-bold text-[var(--dd-cadet)]/40">DD</span>
         </div>
         <p className="text-[var(--dd-cadet)]/50 text-sm">Shuffling deck...</p>
+      </div>
+    );
+  }
+
+  // ── Error state ──
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
+        <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
+          <svg className="w-7 h-7 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <h2 className="text-lg font-bold text-[var(--dd-cadet)] mb-2">
+          Couldn&apos;t load the deck
+        </h2>
+        <p className="text-sm text-[var(--dd-cadet)]/60 mb-6 max-w-xs">
+          Something went wrong fetching your cards. Please try again.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={handleRestart}
+            className="px-6 py-3 rounded-xl text-sm font-semibold bg-[var(--dd-redwood)] text-white hover:bg-[var(--dd-redwood)]/90 transition-colors"
+          >
+            Try Again
+          </button>
+          <button
+            onClick={handleNewBand}
+            className="px-6 py-3 rounded-xl text-sm font-medium bg-[var(--dd-cadet)]/10 text-[var(--dd-cadet)] hover:bg-[var(--dd-cadet)]/20 transition-colors"
+          >
+            Pick Age Band
+          </button>
+        </div>
       </div>
     );
   }

@@ -29,7 +29,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* ── Hero ── */}
-      <section className="relative px-4 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center overflow-hidden">
+      <section className="relative px-4 pt-10 pb-16 sm:pt-20 sm:pb-24 text-center overflow-hidden">
         <div
           className="absolute inset-0 opacity-10 pointer-events-none"
           style={{

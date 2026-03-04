@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NavBar } from "@/components/nav-bar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -58,6 +59,7 @@ export default function RootLayout({
         <a href="#main" className="skip-link">
           Skip to content
         </a>
+        <NavBar />
         <main id="main">{children}</main>
       </body>
     </html>
