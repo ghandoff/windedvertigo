@@ -131,6 +131,20 @@
           break;
         }
       }
+      // Nav link overlay — match CMS nav items by order to hero-nav links
+      var navItems = [];
+      for (i = 0; i < data.sections.length; i++) {
+        s = data.sections[i];
+        if (s.type === 'nav' && s.section === 'nav') navItems.push(s);
+      }
+      if (navItems.length > 0) {
+        navItems.sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+        var heroLinks = document.querySelectorAll('.hero-nav a');
+        for (i = 0; i < navItems.length && i < heroLinks.length; i++) {
+          if (navItems[i].tagline) heroLinks[i].textContent = navItems[i].tagline;
+          if (navItems[i].link) heroLinks[i].setAttribute('href', navItems[i].link);
+        }
+      }
       // Social link URL overlay — match CMS "social: {name}" to DOM aria-label
       var socialLinks = document.querySelectorAll('.wv-footer-social a');
       for (i = 0; i < data.sections.length; i++) {

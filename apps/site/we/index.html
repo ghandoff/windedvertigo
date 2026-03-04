@@ -261,8 +261,15 @@
           if (meta) {
             if (meta.tagline) document.title = meta.tagline;
             if (meta.content) {
-              var desc = document.querySelector('meta[name="description"]');
-              if (desc) desc.setAttribute('content', meta.content);
+              var metaSels = [
+                'meta[name="description"]',
+                'meta[property="og:description"]',
+                'meta[name="twitter:description"]'
+              ];
+              for (var d = 0; d < metaSels.length; d++) {
+                var el = document.querySelector(metaSels[d]);
+                if (el) el.setAttribute('content', meta.content);
+              }
             }
           }
 
@@ -273,18 +280,23 @@
           }
           if (members.length === 0) return;
 
+          // Accent-insensitive name normalizer (NFD strips diacritical marks)
+          function normName(str) {
+            return str.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          }
+
           // Update existing DOM elements with CMS data (role, image, tags, link)
           var articles = document.querySelectorAll('.team-member');
           for (var i = 0; i < articles.length; i++) {
             var article = articles[i];
             var nameEl = article.querySelector('h2');
             if (!nameEl) continue;
-            var domName = nameEl.textContent.trim().toLowerCase();
+            var domName = normName(nameEl.textContent);
 
-            // Find matching CMS member by name
+            // Find matching CMS member by name (accent-insensitive)
             var member = null;
             for (var j = 0; j < members.length; j++) {
-              if (members[j].name.toLowerCase() === domName) {
+              if (normName(members[j].name) === domName) {
                 member = members[j];
                 break;
               }

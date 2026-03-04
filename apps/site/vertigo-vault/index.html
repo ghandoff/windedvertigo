@@ -875,20 +875,54 @@
     // LOAD DATA & INIT
     // ========================================
     async function init() {
-      try {
-        const response = await fetch('../data/vertigo-vault.json');
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const data = await response.json();
+      // Fetch activity data and CMS page data in parallel
+      const [vaultResult, cmsResult] = await Promise.allSettled([
+        fetch('../data/vertigo-vault.json').then(r => r.ok ? r.json() : null),
+        fetch('../data/site-content-vertigo-vault.json').then(r => r.ok ? r.json() : null)
+      ]);
 
-        if (!data.activities || data.activities.length === 0) {
-          throw new Error('No activities in JSON');
-        }
-
-        activities = data.activities;
-        console.log('vertigo.vault loaded:', activities.length, 'activities (updated:', data.lastUpdated, ')');
-      } catch (error) {
-        console.warn('Failed to load vertigo.vault data:', error.message);
+      // Apply activity data
+      const vaultData = vaultResult.status === 'fulfilled' ? vaultResult.value : null;
+      if (vaultData && vaultData.activities && vaultData.activities.length > 0) {
+        activities = vaultData.activities;
+        console.log('vertigo.vault loaded:', activities.length, 'activities (updated:', vaultData.lastUpdated, ')');
+      } else {
+        console.warn('Failed to load vertigo.vault data');
         activities = [];
+      }
+
+      // Apply CMS overlay (metadata + hero)
+      const cms = cmsResult.status === 'fulfilled' ? cmsResult.value : null;
+      if (cms && cms.sections) {
+        for (let i = 0; i < cms.sections.length; i++) {
+          const s = cms.sections[i];
+
+          if (s.type === 'metadata') {
+            if (s.tagline) document.title = s.tagline;
+            if (s.content) {
+              const metaSels = [
+                'meta[name="description"]',
+                'meta[property="og:description"]',
+                'meta[name="twitter:description"]'
+              ];
+              metaSels.forEach(sel => {
+                const el = document.querySelector(sel);
+                if (el) el.setAttribute('content', s.content);
+              });
+            }
+          }
+
+          if (s.type === 'hero') {
+            if (s.name) {
+              const titleEl = document.querySelector('.vault-title');
+              if (titleEl) titleEl.textContent = s.name;
+            }
+            if (s.content) {
+              const subtitleEl = document.querySelector('.vault-subtitle');
+              if (subtitleEl) subtitleEl.textContent = s.content;
+            }
+          }
+        }
       }
 
       buildFilters();
