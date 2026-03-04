@@ -94,7 +94,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
 
 /* ── team section ─────────────────────────────────────────────── */
 .team-grid { display: flex; flex-direction: column; gap: var(--space-lg); }
-.team-member { display: grid; grid-template-columns: 400px 1fr; gap: var(--space-lg); }
+.team-member { display: grid; grid-template-columns: 300px 1fr; gap: var(--space-lg); }
 .team-member h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: var(--space-xs); text-transform: lowercase; color: var(--text-primary); }
 .team-member .role { font-size: 20px; color: var(--accent); text-transform: lowercase; margin-bottom: var(--space-lg); font-weight: 400; font-style: italic; }
 .team-member .bio { margin-bottom: var(--space-lg); position: relative; }
@@ -108,7 +108,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
 .team-member .links a { font-size: 0.9rem; color: var(--accent); margin-right: var(--space-lg); }
 .team-member .links a::before { font-family: "Ionicons"; content: "\f41a"; margin-right: 0.4rem; }
 .member-photo { display: flex; justify-content: center; align-items: flex-start; }
-.member-headshot { width: 400px; height: 400px; border-radius: 200px; object-fit: cover; background-size: cover; background-position: center center; }
+.member-headshot { width: 300px; height: 300px; border-radius: 150px; object-fit: cover; background-size: cover; background-position: center center; }
 .member-content { flex: 1; }
 
 /* ── tags ─────────────────────────────────────────────────────── */
@@ -145,8 +145,8 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
 
 @media (max-width: 1024px) {
   :root { --edge-padding: 25px; }
-  .team-member { grid-template-columns: 350px 1fr; }
-  .member-headshot { width: 350px; height: 350px; border-radius: 175px; }
+  .team-member { grid-template-columns: 260px 1fr; }
+  .member-headshot { width: 260px; height: 260px; border-radius: 130px; }
   .hero-title { font-size: 50px; }
 }
 
