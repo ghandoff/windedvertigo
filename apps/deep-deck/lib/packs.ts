@@ -29,7 +29,9 @@ export const PACKS: Record<PackId, PackDefinition> = {
     id: "full",
     name: "Full Deck",
     description: "All 128 cards across every age band, plus the complete set of 32 wild cards",
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_FULL_DECK || null,
+    stripePriceId:
+      process.env.NEXT_PUBLIC_STRIPE_PRICE_FULL_DECK ||
+      "price_1T77cvD50swbC2DgVxutmKNr",
     priceCents: 999,
     features: [
       "72 conversation cards across all 4 age bands",
