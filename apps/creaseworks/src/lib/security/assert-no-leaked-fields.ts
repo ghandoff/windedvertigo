@@ -33,6 +33,8 @@ const ENTITLED_ONLY_FIELDS = new Set([
   "find_again_mode",
   "find_again_prompt",
   "substitutions_notes",
+  "body_html",
+  "illustration_url",
   "connector_modes",
   "shareability",
   "min_qty_size",

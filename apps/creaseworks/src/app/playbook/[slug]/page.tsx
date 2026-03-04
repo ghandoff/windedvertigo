@@ -100,6 +100,18 @@ export default async function CollectionDetailPage({ params }: Props) {
             )}
           </div>
         </div>
+
+        {/* body content — rich HTML from Notion page body */}
+        {collection.body_html && (
+          <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-4">
+            <SafeHtml
+              html={collection.body_html}
+              fallback={null}
+              as="div"
+              className="cms-body text-sm"
+            />
+          </section>
+        )}
         <CollectionExportButton
           collectionSlug={collection.slug}
           collectionTitle={collection.title}

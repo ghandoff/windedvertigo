@@ -18,6 +18,7 @@ export interface Collection {
   title: string;
   description: string | null;
   description_html: string | null;
+  body_html: string | null;
   icon_emoji: string | null;
   slug: string;
   sort_order: number;
@@ -137,7 +138,7 @@ export async function getCollectionBySlug(
 ): Promise<Collection | null> {
   const ccv = await collectionCoverSelect("c");
   const result = await sql.query(
-    `SELECT c.id, c.title, c.description, c.description_html,
+    `SELECT c.id, c.title, c.description, c.description_html, c.body_html,
             c.icon_emoji, c.slug, c.sort_order,
             ${ccv}
             COUNT(cp.playdate_id)::int AS playdate_count

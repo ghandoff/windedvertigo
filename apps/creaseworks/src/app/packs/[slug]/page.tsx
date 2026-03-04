@@ -108,6 +108,18 @@ export default async function PackDetailPage({ params }: Props) {
           />
         )}
 
+        {/* body content — rich HTML from Notion page body */}
+        {pack.body_html && (
+          <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-8">
+            <SafeHtml
+              html={pack.body_html}
+              fallback={null}
+              as="div"
+              className="cms-body text-sm"
+            />
+          </section>
+        )}
+
         {/* draft status warning */}
         {pack.status !== "ready" && (
           <div className="mb-6 rounded-lg border border-sienna/30 bg-sienna/5 px-4 py-2 text-sm text-sienna">
@@ -179,6 +191,18 @@ export default async function PackDetailPage({ params }: Props) {
           fallback={pack.description}
           className="text-lg text-cadet/60 mb-6"
         />
+      )}
+
+      {/* body content — rich HTML from Notion page body */}
+      {pack.body_html && (
+        <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-6">
+          <SafeHtml
+            html={pack.body_html}
+            fallback={null}
+            as="div"
+            className="cms-body text-sm"
+          />
+        </section>
       )}
 
       <p className="text-sm text-cadet/50 mb-8">

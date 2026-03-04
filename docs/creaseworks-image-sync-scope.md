@@ -6,10 +6,10 @@
 |---|---|---|
 | **tier 1** | page covers on playdates + packs | ✅ complete |
 | **tier 2** | page covers on collections | ✅ complete |
-| **tier 3** | file properties on databases | not started — requires notion schema changes |
-| **tier 4** | page body content with inline images | not started — separate initiative |
+| **tier 3** | file properties on databases (illustration_url) | ✅ complete |
+| **tier 4** | page body content with inline images (body_html) | ✅ complete |
 
-tiers 1 and 2 are fully shipped. the sync pipeline extracts notion page covers, downloads them to cloudflare R2, stores deterministic keys in neon postgres, and renders them on all three card components (playdate, pack, collection). both full sync (daily cron) and incremental sync (webhooks) handle covers.
+all four tiers are shipped. the sync pipeline extracts notion page covers, file-property images, and page body content (rendered as HTML with re-uploaded inline images). all content is stored in neon postgres and rendered on user-facing pages with appropriate tier-based access controls.
 
 ---
 
@@ -62,7 +62,7 @@ backwards compatibility is handled via `src/lib/db-compat.ts`:
 | `pack-card.tsx` | accepts `cover_url` in pack object, renders 100px banner image with `object-cover` |
 | `collection-card.tsx` | accepts `coverUrl` prop, renders 100px header image with `object-cover` |
 
-all three use raw `<img>` tags with lazy loading (not next/image).
+all three use `next/image` with a custom Cloudflare loader (`cloudflare-image-loader.ts`).
 
 ### R2 storage key convention
 
@@ -95,43 +95,42 @@ no code changes needed per image. the pipeline handles everything.
 
 ---
 
-## what's next
+## tier 3 — file property images (illustration_url)
 
-### tier 3 — file properties on databases (requires notion schema changes)
+shipped. the sync pipeline extracts `files & media` database properties (e.g. "illustration" on playdates):
 
-if the collective wants to attach images as **database properties** (e.g. a "hero image" files field on playdates, or a "thumbnail" on packs), the notion databases need to be modified first:
+| file | role |
+|---|---|
+| `src/lib/sync/extract.ts` | `extractFileProperty(props, key)` — extracts file URL from a Notion files property |
+| `src/lib/sync/sync-image.ts` | same `syncImageToR2()` utility, key convention `notion-images/{pageId}/illustration.{ext}` |
+| `src/lib/sync/playdates.ts` | extracts illustration file property, syncs to R2, stores `illustration_r2_key` + `illustration_url` |
 
-1. add a `files & media` property to the relevant notion database
-2. add `extractFiles()` to extract.ts:
+frontend rendering:
+- `illustration_url` is in `PLAYDATE_ENTITLED_COLUMNS` (not visible at teaser tier)
+- `EntitledPlaydateView` renders it as a hero image above the headline
+- access logging tracks `illustration_url` when present
 
-```typescript
-export function extractFiles(props: Properties, key: string): NotionImage[] {
-  const prop = props[key];
-  if (!prop || prop.type !== "files") return [];
-  return (prop.files ?? []).map((f: any) => {
-    if (f.type === "external") return { url: f.external.url };
-    if (f.type === "file") return { url: f.file.url, expiry: f.file.expiry_time };
-    return null;
-  }).filter(Boolean);
-}
-```
+### tier 4 — page body content as HTML (body_html)
 
-3. sync each file to R2 using the same `syncImageToR2()` utility (key convention: `notion-images/{pageId}/{propertyName}/{index}.{ext}`)
-4. store an array of R2 keys in a JSONB column
+shipped. the sync pipeline fetches notion page block children and converts them to HTML:
 
-this tier is only needed if the collective wants **multiple images per page** or wants images to be a first-class database column (filterable, sortable in notion). for most use cases, page covers are sufficient.
+| file | role |
+|---|---|
+| `src/lib/sync/blocks.ts` | `fetchPageBodyHtml(pageId)` — fetches block children, recursively traverses nested blocks, converts to semantic HTML, re-uploads inline images to R2 |
+| `src/lib/sync/playdates.ts` | calls `fetchPageBodyHtml()` and stores result in `body_html` |
+| `src/lib/sync/packs.ts` | same pattern |
+| `src/lib/sync/collections.ts` | same pattern |
+| `src/lib/sync/incremental.ts` | `upsertPlaydate()`, `upsertPack()`, `upsertCollection()` all sync body content |
 
-### tier 4 — page body content with inline images (separate initiative)
+database: migration `036_rich_content.sql` added `body_html` to `playdates_cache`, `packs_cache`, and `collections`.
 
-the most complex tier. notion page bodies are made of "blocks" — paragraphs, headings, images, callouts, etc. syncing these requires:
-
-1. fetching block children via `notion.blocks.children.list(pageId)`
-2. recursively traversing nested blocks
-3. converting to HTML or markdown
-4. extracting and re-uploading any `image` blocks to R2
-5. storing the rendered content in a `body_html` or `body_blocks` JSONB column
-
-this is a significant effort (~2–3 days) and changes the sync from "properties only" to "full page content."
+frontend rendering:
+- `body_html` is in `PLAYDATE_ENTITLED_COLUMNS` (not visible at teaser tier)
+- `EntitledPlaydateView` renders it in a section with `.cms-body` styling
+- pack detail page (`/packs/[slug]`) renders `body_html` for both entitled and teaser views
+- collection detail page (`/playbook/[slug]`) renders `body_html` below the description
+- `.cms-body` CSS class in `globals.css` styles all Notion block types (headings, lists, figures, callouts, toggles, tables, code blocks, etc.)
+- access logging tracks `body_html` when present
 
 ---
 
@@ -145,10 +144,10 @@ this is a significant effort (~2–3 days) and changes the sync from "properties
 
 4. **R2 bucket separation:** notion-synced images currently share the `creaseworks-evidence` bucket. worth separating into a dedicated `creaseworks-content` bucket for cleaner access control?
 
-5. **next/image migration:** all three card components use raw `<img>` tags. migrating to next/image would add automatic resizing, format conversion (webp/avif), and lazy loading optimisation — but requires configuring `remotePatterns` for the R2 public URL domain.
+5. **~~next/image migration~~:** ✅ complete — all card components and content images now use `next/image` with a custom Cloudflare loader. see `cloudflare-image-loader.ts`.
 
 6. **materials covers:** materials are the only synced entity type without cover support. is this intentional, or should materials get the same treatment as playdates/packs/collections?
 
 ---
 
-*last updated: 28 february 2026*
+*last updated: 4 march 2026*
