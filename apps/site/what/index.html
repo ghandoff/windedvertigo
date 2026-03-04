@@ -33,175 +33,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="../styles/main.css?v=11">
-
-  <style>
-    /* ── what page styles (wt- prefix) ─────────────────────────── */
-
-    /* hero — centered, large title with trailing period */
-    .wt-hero {
-      text-align: center;
-      padding: var(--space-xl) 0 var(--space-lg);
-    }
-    .wt-hero-title {
-      font-size: 82.8px;
-      font-weight: 700;
-      line-height: 1.4;
-      margin: 50px 0 var(--space-lg);
-      text-transform: lowercase;
-      color: var(--text-primary);
-    }
-    .wt-hero-title::after {
-      content: '.';
-    }
-
-    /* intro paragraph — centered, readable width, lighter weight */
-    .wt-intro {
-      text-align: center;
-      padding: 0 0 var(--space-3xl);
-    }
-    .wt-intro p {
-      max-width: 55ch;
-      margin: 0 auto;
-      font-size: 1.15rem;
-      font-weight: 300;
-      line-height: 1.7;
-      color: var(--wv-white);
-    }
-
-    /* pillars — 3-column grid with vertical dividers */
-    .wt-pillars {
-      padding: var(--space-2xl) 0;
-    }
-    .wt-pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-    }
-    .wt-pillar {
-      text-align: center;
-      padding: var(--space-md) var(--space-xl);
-    }
-    .wt-pillar + .wt-pillar {
-      border-left: 1px solid rgba(255, 235, 210, 0.2);
-    }
-    .wt-pillar h3 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--wv-redwood);
-      text-transform: lowercase;
-      margin-bottom: var(--space-sm);
-    }
-    .wt-pillar p {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: var(--wv-white);
-      max-width: 30ch;
-      margin: 0 auto;
-    }
-
-    /* photo strip — full-width horizontal band */
-    .wt-photo-strip {
-      width: 100vw;
-      margin-left: calc(-50vw + 50%);
-      height: 300px;
-      overflow: hidden;
-      margin-top: var(--space-2xl);
-      margin-bottom: var(--space-2xl);
-    }
-    .wt-photo-strip-inner {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .wt-photo-strip-inner img {
-      height: 100%;
-      width: 100%;
-      object-fit: cover;
-      flex: 1;
-      min-width: 0;
-    }
-    .wt-photo-strip-placeholder {
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #1e2738 0%, #273248 40%, #2d3a52 60%, #1e2738 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .wt-photo-strip-placeholder span {
-      font-style: italic;
-      font-size: 0.9rem;
-      color: rgba(255, 235, 210, 0.35);
-      letter-spacing: 0.05em;
-    }
-
-    /* process — 4-column grid */
-    .wt-process {
-      padding: var(--space-2xl) 0 var(--space-3xl);
-    }
-    .wt-process-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: var(--space-xl);
-    }
-    .wt-step {
-      text-align: center;
-    }
-    .wt-step h3 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--wv-redwood);
-      text-transform: lowercase;
-      margin-bottom: var(--space-sm);
-    }
-    .wt-step p {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: var(--wv-white);
-      max-width: 28ch;
-      margin: 0 auto;
-    }
-
-    /* ── responsive ─────────────────────────────────────────────── */
-    @media (max-width: 1200px) {
-      .wt-hero-title { font-size: 60px; }
-    }
-
-    @media (max-width: 1024px) {
-      .wt-hero-title { font-size: 50px; }
-      .wt-pillar { padding: var(--space-md) var(--space-lg); }
-      .wt-process-grid { gap: var(--space-lg); }
-    }
-
-    @media (max-width: 768px) {
-      .wt-hero-title { font-size: 36px; margin-top: 30px; }
-
-      .wt-intro p { font-size: 1rem; }
-
-      .wt-pillars-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-lg);
-      }
-      .wt-pillar + .wt-pillar {
-        border-left: none;
-        border-top: 1px solid rgba(255, 235, 210, 0.2);
-        padding-top: var(--space-lg);
-      }
-      .wt-pillar { padding: var(--space-md) 0; }
-
-      .wt-photo-strip { height: 200px; }
-
-      .wt-process-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: var(--space-lg);
-      }
-    }
-
-    @media (max-width: 480px) {
-      .wt-process-grid { grid-template-columns: 1fr; }
-    }
-  </style>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -229,63 +60,21 @@
   </header>
 
   <main id="main-content">
-    <div class="container content-narrow" id="what-content">
+    <div class="container content-narrow">
+      <section class="content-section" id="what-content">
+        <!-- Content loaded dynamically from Notion via what-page.json -->
+        <!-- Fallback content shown while loading or if fetch fails -->
+        <h2 class="hero-title">learning is change</h2>
+        <p>change can shake our foundations, and even make us feel dizzy from instability. we love that feeling of vertigo, as it is a signal of growth through change and a call for exploration. we seek this dizzy with vigor and want to support others who do as well by dodging obstacles and conventions that get in our way. we approach the precipice of uncertainty without pause but with breathless excitement: winded.vertigo</p>
 
-      <!-- Fallback content shown while loading or if fetch fails -->
-      <section class="wt-hero">
-        <h2 class="wt-hero-title">learning is change</h2>
+        <p>the winded.vertigo collective is dedicated to fostering human development through experiences with the interconnectedness of everything. we believe that learning through play is a transformative experience that unites individuals and communities. our mission is to support those committed to this holistic approach through the co-creation of playful, innovative, and impactful learning designs.</p>
+
+        <p>we create learning ecosystems that thrive through diversity, as every interaction seeds opportunity for growth, connections, and lifelong learning. we are leaders of an educational transformation from conventional tests to the monitoring of playful learning processes, as it enhances the learning experience through feedback and design.</p>
+
+        <p>we craft compelling stories, design refreshing research, and visualize insights from evidence. everything we do prepares our partners to gain support from their stakeholders&mdash;making a <em>yes</em> easier for administrators and policymakers.</p>
+
+        <p>at winded.vertigo, we redefine learning, ensuring time is spent on engaging, exploring, and evolving together, transforming the educational landscape one playful leap at a time.</p>
       </section>
-
-      <section class="wt-intro">
-        <p>learning lives at the dizzying edge of change&mdash;where vertigo is a signal that growth is happening. we help people move toward uncertainty with curiosity, clearing away conventions that block exploration.</p>
-      </section>
-
-      <section class="wt-pillars" aria-label="three pillars">
-        <div class="wt-pillars-grid">
-          <div class="wt-pillar">
-            <h3>play</h3>
-            <p>a safe space to try new things and make mistakes, shifting thinking with joy and curiosity</p>
-          </div>
-          <div class="wt-pillar">
-            <h3>justice</h3>
-            <p>an embodied sense of wonder, hope, and connection rooted in relationship and regenerative vitality</p>
-          </div>
-          <div class="wt-pillar">
-            <h3>aliveness</h3>
-            <p>structural transformation signals systemic change rather than surface reform</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="wt-photo-strip" aria-label="process imagery">
-        <div class="wt-photo-strip-inner">
-          <div class="wt-photo-strip-placeholder">
-            <span>imagery coming soon</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="wt-process" aria-label="our process">
-        <div class="wt-process-grid">
-          <div class="wt-step">
-            <h3>find</h3>
-            <p>notice what is already here and treat it as a meaningful starting point</p>
-          </div>
-          <div class="wt-step">
-            <h3>fold</h3>
-            <p>shape what you've found into something you can try, turning openness into action</p>
-          </div>
-          <div class="wt-step">
-            <h3>unfold</h3>
-            <p>pause to see what the process revealed, allowing reflection to deepen understanding</p>
-          </div>
-          <div class="wt-step">
-            <h3>find again</h3>
-            <p>recognise the idea returning in new forms, carrying learning forward into life</p>
-          </div>
-        </div>
-      </section>
-
     </div>
   </main>
 
@@ -302,7 +91,6 @@
   </div>
 </footer>
 
-  <!-- Nav toggle (shared) -->
   <script>
     const navToggle = document.querySelector('.nav-toggle');
     const nav = document.querySelector('.nav');
@@ -313,180 +101,33 @@
     });
   </script>
 
-  <!-- CMS content loader -->
   <script>
-    /*
-     * Load /what page content from Notion-synced JSON.
-     * Uses escapeHtml() to sanitise all CMS text before DOM insertion.
-     * Content source: same-origin ../data/site-content-what.json
-     */
+    // Load /what page content from Notion-synced JSON
     (async function loadWhatContent() {
       try {
-        const resp = await fetch('../data/site-content-what.json');
+        const resp = await fetch('../data/what-page.json');
         if (!resp.ok) return; // keep fallback HTML
         const data = await resp.json();
         if (!data.sections || data.sections.length === 0) return;
 
-        // ── group sections by their 'section' field ──
-        const groups = { hero: [], metadata: [], body: [], pillars: [], process: [] };
-        for (const s of data.sections) {
-          const key = s.section || 'body';
-          if (groups[key]) groups[key].push(s);
-        }
-
-        // ── explicit display ordering for peer items ──
-        const PILLAR_ORDER = ['play', 'justice', 'aliveness'];
-        const PROCESS_ORDER = ['find', 'fold', 'unfold', 'find again'];
-
-        function sortByExplicit(items, order) {
-          return items.slice().sort((a, b) => {
-            const ai = order.indexOf(a.name.toLowerCase());
-            const bi = order.indexOf(b.name.toLowerCase());
-            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-          });
-        }
-
-        // ── update page metadata from CMS ──
-        const meta = groups.metadata[0];
-        if (meta) {
-          if (meta.tagline) document.title = meta.tagline;
-          if (meta.content) {
-            const descTag = document.querySelector('meta[name="description"]');
-            if (descTag) descTag.setAttribute('content', meta.content);
-          }
-        }
-
-        // ── build sanitised DOM content ──
         const container = document.getElementById('what-content');
         if (!container) return;
 
-        // Clear fallback
-        container.textContent = '';
-
-        // Helper: create element with text
-        function el(tag, className, text) {
-          const node = document.createElement(tag);
-          if (className) node.className = className;
-          if (text !== undefined) node.textContent = text;
-          return node;
-        }
-
-        // Helper: set formatted content (escapeHtml + *italic* support)
-        function setFormatted(node, str) {
-          if (!str) return;
-          let safe = escapeHtml(str);
-          safe = safe.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-          safe = safe.replace(/—/g, '\u2014');
-          node.innerHTML = safe;
-        }
-
-        // ── brand color map — constrained to palette tokens ──
-        const COLOR_MAP = {
-          cadet:     'var(--wv-cadet)',
-          redwood:   'var(--wv-redwood)',
-          sienna:    'var(--wv-sienna)',
-          champagne: 'var(--wv-champagne)',
-          white:     'var(--wv-white)',
-        };
-        function applyTextColor(node, colorName) {
-          if (colorName && COLOR_MAP[colorName]) {
-            node.style.color = COLOR_MAP[colorName];
+        // Build new HTML from sections
+        let html = '';
+        for (const section of data.sections) {
+          if (section.type === 'hero') {
+            html += '<h2 class="hero-title">' + escapeHtml(section.content || section.name) + '</h2>\n';
+          } else {
+            // body paragraphs — preserve <em> tags by processing *text* markers
+            html += '<p>' + formatContent(section.content) + '</p>\n';
           }
         }
 
-        // ── hero section ──
-        const hero = groups.hero.find(s => s.section === 'hero');
-        if (hero) {
-          const heroSection = el('section', 'wt-hero');
-          const h2 = el('h2', 'wt-hero-title', hero.content || hero.name);
-          applyTextColor(h2, hero.textColor);
-          heroSection.appendChild(h2);
-          container.appendChild(heroSection);
-        }
-
-        // ── intro paragraph(s) ──
-        const bodyItems = groups.body.filter(s => s.type !== 'hero').sort((a, b) => a.order - b.order);
-        if (bodyItems.length > 0) {
-          const introSection = el('section', 'wt-intro');
-          for (const item of bodyItems) {
-            const p = el('p');
-            setFormatted(p, item.content);
-            applyTextColor(p, item.textColor);
-            introSection.appendChild(p);
-          }
-          container.appendChild(introSection);
-        }
-
-        // ── pillars — 3-column grid with dividers ──
-        const pillars = sortByExplicit(groups.pillars, PILLAR_ORDER);
-        if (pillars.length > 0) {
-          const pillarsSection = el('section', 'wt-pillars');
-          pillarsSection.setAttribute('aria-label', 'three pillars');
-          const grid = el('div', 'wt-pillars-grid');
-          for (const p of pillars) {
-            const pillar = el('div', 'wt-pillar');
-            const heading = el('h3', null, p.name);
-            applyTextColor(heading, p.textColor);
-            pillar.appendChild(heading);
-            const desc = el('p');
-            setFormatted(desc, p.content);
-            applyTextColor(desc, p.textColor);
-            pillar.appendChild(desc);
-            grid.appendChild(pillar);
-          }
-          pillarsSection.appendChild(grid);
-          container.appendChild(pillarsSection);
-        }
-
-        // ── photo strip ──
-        const hasImages = groups.process.some(s => s.imageUrl);
-        const stripSection = el('section', 'wt-photo-strip');
-        stripSection.setAttribute('aria-label', 'process imagery');
-        const stripInner = el('div', 'wt-photo-strip-inner');
-        if (hasImages) {
-          const processWithImages = sortByExplicit(
-            groups.process.filter(s => s.imageUrl),
-            PROCESS_ORDER
-          );
-          for (const s of processWithImages) {
-            const img = document.createElement('img');
-            img.src = s.imageUrl;
-            img.alt = s.name;
-            img.loading = 'lazy';
-            stripInner.appendChild(img);
-          }
-        } else {
-          const placeholder = el('div', 'wt-photo-strip-placeholder');
-          placeholder.appendChild(el('span', null, 'imagery coming soon'));
-          stripInner.appendChild(placeholder);
-        }
-        stripSection.appendChild(stripInner);
-        container.appendChild(stripSection);
-
-        // ── process — 4-column grid ──
-        const steps = sortByExplicit(groups.process, PROCESS_ORDER);
-        if (steps.length > 0) {
-          const processSection = el('section', 'wt-process');
-          processSection.setAttribute('aria-label', 'our process');
-          const processGrid = el('div', 'wt-process-grid');
-          for (const s of steps) {
-            const step = el('div', 'wt-step');
-            const heading = el('h3', null, s.name);
-            applyTextColor(heading, s.textColor);
-            step.appendChild(heading);
-            const desc = el('p');
-            setFormatted(desc, s.content);
-            applyTextColor(desc, s.textColor);
-            step.appendChild(desc);
-            processGrid.appendChild(step);
-          }
-          processSection.appendChild(processGrid);
-          container.appendChild(processSection);
-        }
-
+        container.innerHTML = html;
       } catch (e) {
         // Silently keep fallback HTML on error
-        console.warn('Could not load what page content:', e);
+        console.warn('Could not load what-page content:', e);
       }
     })();
 
@@ -494,6 +135,15 @@
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
+    }
+
+    function formatContent(str) {
+      if (!str) return '';
+      // Escape HTML first, then convert *text* to <em>text</em>
+      let safe = escapeHtml(str);
+      // Replace *word* patterns with <em>word</em> (non-greedy)
+      safe = safe.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      return safe;
     }
   </script>
 </body>
