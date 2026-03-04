@@ -18,12 +18,12 @@ const path = require('path');
 const config = require('./notion-config');
 
 // Validate environment
-if (!process.env.NOTION_API_KEY) {
-  console.error('ERROR: NOTION_API_KEY environment variable is not set');
+if (!process.env.NOTION_TOKEN) {
+  console.error('ERROR: NOTION_TOKEN environment variable is not set');
   process.exit(1);
 }
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
+const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
 // ============================================
 // RETRY WRAPPER

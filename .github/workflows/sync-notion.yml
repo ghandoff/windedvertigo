@@ -10,7 +10,7 @@
 # - Schedule: Daily at 6 AM UTC
 #
 # Required secret:
-# - NOTION_API_KEY: Your Notion integration token
+# - NOTION_TOKEN: Your Notion integration token
 #
 # Monorepo note: scripts live at root /scripts/,
 # output goes to apps/site/data/ and apps/site/images/.
@@ -48,7 +48,7 @@ jobs:
 
       - name: Fetch Notion content
         env:
-          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
         run: node scripts/fetch-notion.js
 
       - name: Commit and push if changed

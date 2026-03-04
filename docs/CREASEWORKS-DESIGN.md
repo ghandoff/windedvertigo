@@ -790,11 +790,12 @@ The copy above deliberately protects the IP by never naming the specific find ag
 
 ```
 # Notion
-NOTION_API_KEY=secret_...
-NOTION_DB_PATTERNS=b446ffd5-d166-4a31-b4f5-f6a93aadaab8
+NOTION_TOKEN=ntn_...
+NOTION_DB_PLAYDATES=b446ffd5-d166-4a31-b4f5-f6a93aadaab8
 NOTION_DB_MATERIALS=a6b32bc6-e021-41a4-b6f4-3d528e814d71
 NOTION_DB_PACKS=beb34e7b-86cd-4f20-b9be-641431b99e5f
-NOTION_DB_RUNS=67215537-b307-49f6-b0db-d6ca7a514c78
+NOTION_DB_REFLECTIONS=67215537-b307-49f6-b0db-d6ca7a514c78
+NOTION_DB_COLLECTIONS=...
 
 # database
 POSTGRES_URL=postgresql://...

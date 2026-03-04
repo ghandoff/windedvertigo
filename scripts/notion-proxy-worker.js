@@ -8,7 +8,7 @@
  * 1. Go to https://workers.cloudflare.com
  * 2. Create a new Worker
  * 3. Paste this code
- * 4. Add environment variable: NOTION_API_KEY
+ * 4. Add environment variable: NOTION_TOKEN
  * 5. Deploy and copy the worker URL
  * 6. Update NOTION_PROXY_URL in do-client-side/index.html
  */
@@ -36,7 +36,7 @@ export default {
 
     try {
       const notionHeaders = {
-        'Authorization': 'Bearer ' + env.NOTION_API_KEY,
+        'Authorization': 'Bearer ' + env.NOTION_TOKEN,
         'Notion-Version': '2022-06-28',
         'Content-Type': 'application/json',
       };

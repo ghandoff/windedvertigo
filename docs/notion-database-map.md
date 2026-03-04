@@ -95,7 +95,7 @@ a separate systematic review tool. notion databases are queried in real-time (no
 ### creaseworks
 
 ```
-NOTION_API_KEY          — notion integration token
+NOTION_TOKEN            — notion integration token
 NOTION_DB_PLAYDATES     — playdates database id
 NOTION_DB_MATERIALS     — materials database id
 NOTION_DB_PACKS         — packs database id

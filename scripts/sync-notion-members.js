@@ -2,7 +2,7 @@ const { Client } = require('@notionhq/client');
 const fs = require('fs');
 const path = require('path');
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
+const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
 // Members database ID (from URL: https://www.notion.so/9d0e6ae1d7574503b611a5c289e44f5b)
 const MEMBERS_DATABASE_ID = '9d0e6ae1d7574503b611a5c289e44f5b';
