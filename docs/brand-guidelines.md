@@ -19,6 +19,38 @@ The period is a core identity element — a nod to early internet domain convent
 
 winded.vertigo transforms education through playful, innovative learning experiences that nurture human development and interconnectedness. The collective co-creates impactful learning ecosystems that thrive on diversity, support lifelong growth, and enable communities to evolve together.
 
+## Tagline
+
+**learning is change.** — wv designs the conditions that help people and institutions move toward uncertainty with curiosity and agency.
+
+## Core Values
+
+Three interconnected values guide everything wv does. They are not separate — together, they shape how change becomes possible across people, systems, and the infrastructures that shape them.
+
+| Value | Definition |
+|-------|-----------|
+| **Play** | Protected experimentation — creating space to test ideas and discover new possibilities |
+| **Justice** | Structural transformation — aligning power, resources, and decision-making for equitable, sustainable change |
+| **Aliveness** | The lived experience of curiosity and connection that emerges when systems support meaningful participation |
+
+How they reinforce each other:
+- **Justice** creates the security and shared agency that make experimentation possible
+- **Play** enables adaptation without burnout
+- **Aliveness** signals change that is regenerative rather than extractive
+
+## Methodology — Find, Fold, Unfold, Find Again
+
+wv's service delivery follows a four-phase cycle:
+
+| Phase | Action | Activities |
+|-------|--------|-----------|
+| **Find** | Notice what is already present | Listening sessions, qualitative inquiry, skills mapping |
+| **Fold** | Shape insight into experiment | Programme design, facilitated learning, toolkits |
+| **Unfold** | Reflect and surface what changed | Evaluation, MEL frameworks, impact studies |
+| **Find Again** | Carry learning forward so it travels | Capability building, system refinement, scaling |
+
+The cycle is designed so learning adapts, travels, and continues taking root beyond the initial engagement.
+
 ## Verbal Identity
 
 Three pillars define how winded.vertigo communicates: **playful**, **human**, and **dynamic**. Each pillar has boundaries to prevent the tone from drifting.
