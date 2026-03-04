@@ -51,3 +51,17 @@ export function grantAccess(pack: PackId, sessionId?: string): void {
 export function hasFullDeck(): boolean {
   return hasAccess("full");
 }
+
+/** Get the stored Stripe session ID (used for server-side verification). */
+export function getSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const grant: AccessGrant = JSON.parse(raw);
+    return grant.sessionId || null;
+  } catch {
+    return null;
+  }
+}

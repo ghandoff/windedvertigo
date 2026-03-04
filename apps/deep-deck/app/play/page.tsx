@@ -1,11 +1,11 @@
 "use client";
 
-import { useReducer, useCallback, Suspense } from "react";
+import { useReducer, useCallback, useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import type { AgeBand, DepthLevel } from "@/lib/types";
+import type { AgeBand, Card, DepthLevel } from "@/lib/types";
 import { AGE_BAND_LABELS } from "@/lib/types";
 import { gameReducer, initialState, getCurrentCard } from "@/lib/game-reducer";
-import { buildDeck, getDeckSize } from "@/lib/deck";
+import { getDeckSize } from "@/lib/deck";
 import { useAccess } from "@/lib/use-access";
 import { CardDisplay } from "@/components/card-display";
 import { DepthSelector } from "@/components/depth-selector";
@@ -14,18 +14,58 @@ import { GameControls } from "@/components/game-controls";
 import { UpsellBanner } from "@/components/upsell-banner";
 import { UpsellEndScreen } from "@/components/upsell-end-screen";
 
+/** Fetch a shuffled deck from the server API. */
+async function fetchDeck(
+  band: AgeBand,
+  packs: string[],
+  sessionId: string | null,
+): Promise<Card[]> {
+  const params = new URLSearchParams({
+    band,
+    packs: packs.join(","),
+  });
+
+  const headers: Record<string, string> = {};
+  if (sessionId) {
+    headers["x-dd-session"] = sessionId;
+  }
+
+  const res = await fetch(`/api/deck?${params}`, { headers });
+  const data = await res.json();
+  return data.deck;
+}
+
 function PlayContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const band = (searchParams.get("band") || "6-8") as AgeBand;
-  const { entitlements, isSamplerOnly } = useAccess();
+  const { entitlements, isSamplerOnly, sessionId } = useAccess();
 
-  const [state, dispatch] = useReducer(gameReducer, initialState, () => ({
-    ...initialState,
-    phase: "playing" as const,
-    ageBand: band,
-    deck: buildDeck(band, entitlements),
-  }));
+  const [state, dispatch] = useReducer(gameReducer, initialState);
+  const [loading, setLoading] = useState(true);
+
+  // Load deck from server API
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDeck() {
+      setLoading(true);
+      try {
+        const deck = await fetchDeck(band, entitlements, sessionId);
+        if (!cancelled) {
+          dispatch({ type: "START_GAME", ageBand: band, deck });
+          setLoading(false);
+        }
+      } catch {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadDeck();
+    return () => {
+      cancelled = true;
+    };
+  }, [band, entitlements, sessionId]);
 
   const currentCard = getCurrentCard(state);
 
@@ -58,9 +98,12 @@ function PlayContent() {
     dispatch({ type: "END_GAME" });
   }, []);
 
-  const handleRestart = useCallback(() => {
-    dispatch({ type: "START_GAME", ageBand: band, entitlements });
-  }, [band, entitlements]);
+  const handleRestart = useCallback(async () => {
+    setLoading(true);
+    const deck = await fetchDeck(band, entitlements, sessionId);
+    dispatch({ type: "START_GAME", ageBand: band, deck });
+    setLoading(false);
+  }, [band, entitlements, sessionId]);
 
   const handleNewBand = useCallback(() => {
     router.push("/play/pick");
@@ -70,9 +113,20 @@ function PlayContent() {
     router.push("/checkout");
   }, [router]);
 
+  // ── Loading state ──
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="w-12 h-12 rounded-full bg-[var(--dd-cadet)]/10 flex items-center justify-center mb-4 animate-pulse">
+          <span className="text-lg font-bold text-[var(--dd-cadet)]/40">DD</span>
+        </div>
+        <p className="text-[var(--dd-cadet)]/50 text-sm">Shuffling deck...</p>
+      </div>
+    );
+  }
+
   // ── End screen ──
   if (state.phase === "ended") {
-    // Show upsell end screen for sampler users
     if (isSamplerOnly) {
       return (
         <UpsellEndScreen

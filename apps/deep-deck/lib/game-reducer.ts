@@ -2,7 +2,7 @@ import type { AgeBand, Card, DepthLevel, GameSession, PackId, WildCard } from ".
 import { buildDeck, shuffleWithSpacing } from "./deck";
 
 export type GameAction =
-  | { type: "START_GAME"; ageBand: AgeBand; entitlements?: PackId[] }
+  | { type: "START_GAME"; ageBand: AgeBand; entitlements?: PackId[]; deck?: Card[] }
   | { type: "FLIP_CARD" }
   | { type: "DRAW_NEXT" }
   | { type: "SET_DEPTH"; depth: DepthLevel }
@@ -25,7 +25,7 @@ export const initialState: GameSession = {
 export function gameReducer(state: GameSession, action: GameAction): GameSession {
   switch (action.type) {
     case "START_GAME": {
-      const deck = buildDeck(action.ageBand, action.entitlements);
+      const deck = action.deck || buildDeck(action.ageBand, action.entitlements);
       return {
         ...initialState,
         phase: "playing",
