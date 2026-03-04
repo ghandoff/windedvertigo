@@ -68,6 +68,12 @@ export function extractRelationIds(props: Properties, key: string): string[] {
   return (prop.relation ?? []).map((r: any) => r.id);
 }
 
+export function extractUrl(props: Properties, key: string): string | null {
+  const prop = props[key];
+  if (!prop || prop.type !== "url") return null;
+  return prop.url ?? null;
+}
+
 export function extractNumber(props: Properties, key: string): number | null {
   const prop = props[key];
   if (!prop || prop.type !== "number") return null;
