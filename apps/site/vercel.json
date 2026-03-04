@@ -15,16 +15,6 @@
         ],
         "redirects": [
                     {
-                                    "source": "/what-v2",
-                                    "destination": "/what/",
-                                    "permanent": true
-                    },
-                    {
-                                    "source": "/what-v2/",
-                                    "destination": "/what/",
-                                    "permanent": true
-                    },
-                    {
                                     "source": "/vertigo-vault/:path*",
                                     "destination": "/reservoir/vertigo-vault/:path*",
                                     "permanent": true
