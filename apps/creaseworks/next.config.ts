@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
   basePath: "/reservoir/creaseworks",
   transpilePackages: ["@windedvertigo/tokens"],
 
+  /* Custom loader routes all next/image requests through Cloudflare CDN
+     (cdn.creaseworks.co) instead of Vercel's /_next/image proxy.
+     This avoids consuming the 5 000 transforms/mo Hobby quota. */
+  images: {
+    loader: "custom",
+    loaderFile: "./src/lib/cloudflare-image-loader.ts",
+  },
+
   async headers() {
     return [
       {

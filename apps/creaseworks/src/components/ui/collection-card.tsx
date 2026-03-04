@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 interface CollectionCardProps {
   slug: string;
@@ -39,13 +40,13 @@ export default function CollectionCard({
     >
       {/* cover image header */}
       {coverUrl && (
-        <div className="w-full h-[100px] overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        <div className="relative w-full h-[100px] overflow-hidden">
+          <Image
             src={coverUrl}
             alt=""
-            className="w-full h-full object-cover"
-            loading="lazy"
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 50vw"
           />
         </div>
       )}

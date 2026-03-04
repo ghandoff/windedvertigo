@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { PackIllustration, getPackTheme } from "@/components/pack-illustration";
 
 interface PackCardProps {
@@ -46,13 +47,13 @@ export default function PackCard({ pack }: PackCardProps) {
     >
       {/* visual header: cover image OR generated illustration */}
       {pack.cover_url ? (
-        <div className="h-[100px] overflow-hidden rounded-t-xl">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        <div className="relative h-[100px] overflow-hidden rounded-t-xl">
+          <Image
             src={pack.cover_url}
             alt=""
-            className="w-full h-full object-cover"
-            loading="lazy"
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 50vw"
           />
         </div>
       ) : (

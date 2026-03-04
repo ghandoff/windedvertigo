@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import { apiUrl } from "@/lib/api-url";
 import EvidenceLightbox, {
   type LightboxItem,
@@ -325,12 +326,13 @@ export default function PortfolioGallery({
                 className="w-full text-left"
               >
                 {item.evidence_type === "photo" && item.thumbUrl ? (
-                  <div className="aspect-square bg-cadet/5">
-                    <img
+                  <div className="relative aspect-square bg-cadet/5">
+                    <Image
                       src={item.thumbUrl}
                       alt={`evidence from ${item.run_title}`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
                   </div>
                 ) : item.evidence_type === "quote" ? (
