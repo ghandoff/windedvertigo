@@ -59,7 +59,7 @@ synced manually via `npm run sync` from the monorepo root, and automatically via
 | **quadrants** | `1c171d25825b418caf94805dc1568352` | `package-builder-content.json` (merged) | `/do/` page |
 | **outcomes** | `b8ff41d2d4ef41559e01c2d952a3a1da` | `package-builder-content.json` (merged) | `/do/` page |
 | **portfolio assets** | `5e27b792adbb4a958779900fb59dd631` | `portfolio-assets.json` | `/portfolio/` pages |
-| **vertigo vault** | `223e4ee74ba4805f8c92cda6e2b8ba00` | `vertigo-vault.json` + cover images | `/vertigo-vault/` (redirects to `/reservoir/vertigo-vault/`) and runtime fetch in vertigo-vault app |
+| **vertigo vault** | `223e4ee74ba4805f8c92cda6e2b8ba00` | `vertigo-vault.json` + cover images | `/vertigo-vault/` (redirects to `/harbor/vertigo-vault/`) and runtime fetch in vertigo-vault app |
 | **site content CMS** | `09a046a556c1455e80073546b8f83297` | `site-content-{page}.json` per page value | `/what/` (live), `/what-v2/` (dev); `/we/` and `/do/` planned |
 | **members** | `9d0e6ae1d7574503b611a5c289e44f5b` | member images + HTML fragments | `/we/` (currently hardcoded HTML) |
 | **services** | `28fe4ee74ba480869709d4d364d388e5` | services HTML | `/do/` (via standalone sync script) |
@@ -81,22 +81,22 @@ the Site Content CMS (`09a046a5`) was created to consolidate per-page notion dat
 | `/we/` | hardcoded HTML + member images | `site-content-we.json` | **planned** — CMS data is generated but page not yet wired |
 | `/do/` | `package-builder-content.json` (Quadrants+Outcomes+Examples) | `site-content-do.json` | **planned** — CMS data is generated but page not yet wired |
 | `/` (home) | n/a | `site-content-home.json` | **planned** — CMS data is generated |
-| `/reservoir/` | n/a | `site-content-reservoir.json` | **planned** — reservoir is a separate Next.js app |
+| `/harbor/` | n/a | `site-content-harbor.json` | **planned** — harbor is a separate Next.js app |
 
 once each page is wired to its CMS file, the corresponding legacy database can be retired from `notion-config.js`.
 
 ### vertigo vault architecture
 
-the original vertigo vault was built as a standalone learning-resource tool for a client. it now lives at `/reservoir/vertigo-vault/` as part of the monetised reservoir hub.
+the original vertigo vault was built as a standalone learning-resource tool for a client. it now lives at `/harbor/vertigo-vault/` as part of the monetised harbor hub.
 
 ```
 user visits:  windedvertigo.com/vertigo-vault/activities
      ↓ 301 permanent redirect (vercel.json)
-canonical:    windedvertigo.com/reservoir/vertigo-vault/activities
+canonical:    windedvertigo.com/harbor/vertigo-vault/activities
      ↓ rewrite (vercel.json)
-served from:  vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault/activities
+served from:  vertigo-vault-ghandoffs-projects.vercel.app/harbor/vertigo-vault/activities
      ↓
-app code:     apps/vertigo-vault/ (Next.js, basePath: /reservoir/vertigo-vault)
+app code:     apps/vertigo-vault/ (Next.js, basePath: /harbor/vertigo-vault)
 ```
 
 the `/vertigo-vault` redirect ensures existing client links remain accessible. the vertigo vault app also fetches `vertigo-vault.json` at runtime for activity data.

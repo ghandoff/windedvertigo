@@ -24,7 +24,7 @@ import { getUserTier } from "@/lib/queries/accessibility";
  * module initialisation the config has secret, trustHost etc. filled in.
  */
 export const authConfig: NextAuthConfig = {
-  basePath: "/reservoir/vertigo-vault/api/auth",
+  basePath: "/harbor/vertigo-vault/api/auth",
 
   providers: [
     Resend({

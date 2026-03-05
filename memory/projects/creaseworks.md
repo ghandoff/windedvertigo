@@ -7,8 +7,8 @@
 | Key | Value |
 |-----|-------|
 | **App** | Next.js 16 + React 19 + TypeScript |
-| **URL** | https://windedvertigo.com/reservoir/creaseworks |
-| **basePath** | `/reservoir/creaseworks` (set in next.config.ts) |
+| **URL** | https://windedvertigo.com/harbor/creaseworks |
+| **basePath** | `/harbor/creaseworks` (set in next.config.ts) |
 | **Vercel project** | creaseworks (ghandoffs-projects) |
 | **Neon DB** | creaseworks-db (divine-dust-87453436) |
 | **Branch** | br-green-cherry-air8nyor |

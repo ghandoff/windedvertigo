@@ -19,8 +19,8 @@
     "build:vault": "npm run build -w apps/vertigo-vault",
     "dev:deep-deck": "npm run dev -w apps/deep-deck",
     "build:deep-deck": "npm run build -w apps/deep-deck",
-    "dev:reservoir": "npm run dev -w apps/reservoir",
-    "build:reservoir": "npm run build -w apps/reservoir",
+    "dev:harbor": "npm run dev -w apps/harbor",
+    "build:harbor": "npm run build -w apps/harbor",
     "test": "npm run test -w apps/creaseworks",
     "test:a11y": "npm run test:a11y -w apps/creaseworks",
     "lint": "npm run lint -w apps/creaseworks"

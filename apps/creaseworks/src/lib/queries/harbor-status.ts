@@ -1,8 +1,8 @@
 /**
- * Reservoir status queries — cross-platform health dashboard.
+ * Harbor status queries — cross-platform health dashboard.
  *
  * Admin-only. No visibility scoping — shows the full picture across
- * all reservoir apps: creaseworks, deep-deck, vertigo-vault.
+ * all harbor apps: creaseworks, deep-deck, vertigo-vault.
  */
 
 import { sql } from "@/lib/db";
@@ -79,7 +79,7 @@ export interface DeploymentInfo {
   commitRef: string;
 }
 
-export interface ReservoirStatus {
+export interface HarborStatus {
   content: ContentCounts;
   users: UserStats;
   entitlements: EntitlementStats;
@@ -96,7 +96,7 @@ export interface ReservoirStatus {
 /*  main query                                                         */
 /* ------------------------------------------------------------------ */
 
-export async function getReservoirStatus(): Promise<ReservoirStatus> {
+export async function getHarborStatus(): Promise<HarborStatus> {
   // Run independent queries in parallel for speed
   const [
     contentResult,
@@ -429,7 +429,7 @@ async function queryRevenue(): Promise<RevenueStats> {
 
 const VERCEL_APPS: { name: string; projectId: string }[] = [
   { name: "site", projectId: "prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx" },
-  { name: "reservoir", projectId: "prj_KqjKxyhlGTublMolccOkvLFBZ8Xn" },
+  { name: "harbor", projectId: "prj_KqjKxyhlGTublMolccOkvLFBZ8Xn" },
   { name: "creaseworks", projectId: "prj_EoDpRvw1kdAqcGVrcaYclfWFeX7b" },
   { name: "deep-deck", projectId: "prj_Z2zpJXnsOrVp5hyoJ89ERuQHmOru" },
   { name: "vertigo-vault", projectId: "prj_KHsZ60sQpj3ipSB5lzy9CGVAUYaW" },

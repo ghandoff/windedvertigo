@@ -8,7 +8,7 @@
 |-----|-------|---------------|
 | **site** (windedvertigo.com) | Live, CMS-backed | Wire remaining pages to Notion CMS |
 | **creaseworks** | Live (Phase 3 + Stripe) | Onboarding polish, next/image evaluation |
-| **reservoir** | In development | Wire to CMS JSON, game showcase content |
+| **harbor** | In development | Wire to CMS JSON, game showcase content |
 | **deep-deck** | In development | — |
 | **nordic-sqr-rct** | Live | Potential Supabase migration |
 | **vertigo-vault** | In development | — |
@@ -29,7 +29,7 @@
 - [x] Removed orphaned What Page V2 legacy database from sync (Mar 2026) — superseded by Site Content CMS
 - [x] Restored simple `/what/` page with metadata-only CMS overlay (Mar 2026) — redesign moved to `feature/what-redesign` branch
 - [x] Removed `/what-v2/` development URL and stale `what-page.json` (Mar 2026)
-- [x] Standardized all 5 Next.js apps on Next.js 16 + React 19 (Mar 2026) — nordic-sqr-rct from 14/18, deep-deck/reservoir/vertigo-vault from 15/19
+- [x] Standardized all 5 Next.js apps on Next.js 16 + React 19 (Mar 2026) — nordic-sqr-rct from 14/18, deep-deck/harbor/vertigo-vault from 15/19
 - [x] HSTS + CSP security headers on all apps (Mar 2026) — in both `next.config.ts` and `vercel.json`
 - [x] ESLint 9 flat config migration (Mar 2026) — all apps use `eslint.config.mjs`, lint script uses `eslint` directly
 - [x] Standardized `.gitignore` files and aligned `@types/node` across all apps (Mar 2026)
@@ -43,7 +43,7 @@
 
 ### Planned
 
-- [ ] Wire reservoir Next.js app to CMS JSON (replace hardcoded `GAMES` array in `game-showcase.tsx`)
+- [ ] Wire harbor Next.js app to CMS JSON (replace hardcoded `GAMES` array in `game-showcase.tsx`)
 - [ ] Supabase evaluation — test on next new project (possibly sqr-rct rebuild), don't migrate creaseworks mid-flight
 - [ ] Image hosting consolidation — one R2 bucket, folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`)
 - [ ] Consider Vercel Pro ($20/mo) if deployment quota becomes tight again
@@ -88,7 +88,7 @@ See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all f
 - [ ] Onboarding flow polish
 - [ ] Image sync tiers 3-4 (file properties, body content) — see `docs/creaseworks-image-sync-scope.md`
 
-## apps/reservoir
+## apps/harbor
 
 ### Next Up
 
@@ -103,7 +103,7 @@ See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all f
 - Potential Supabase rebuild candidate
 - Stays platform-branded by Nordic (no wv tokens)
 
-## apps/deep-deck, apps/reservoir & apps/vertigo-vault
+## apps/deep-deck, apps/harbor & apps/vertigo-vault
 
 - All upgraded to Next.js 16, TypeScript, React 19 (Mar 2026)
 - HSTS + CSP security headers, ESLint flat configs

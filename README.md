@@ -7,10 +7,10 @@ Monorepo for [winded.vertigo](https://windedvertigo.com) — a collective of des
 | App | Stack | URL |
 |-----|-------|-----|
 | **site** | Static HTML/CSS/JS | [windedvertigo.com](https://windedvertigo.com) |
-| **reservoir** | Next.js · TypeScript | [windedvertigo.com/reservoir](https://windedvertigo.com/reservoir) |
-| **creaseworks** | Next.js · TypeScript · Postgres · Stripe | [windedvertigo.com/reservoir/creaseworks](https://windedvertigo.com/reservoir/creaseworks) |
-| **deep-deck** | Next.js · TypeScript | [windedvertigo.com/reservoir/deep-deck](https://windedvertigo.com/reservoir/deep-deck) |
-| **vertigo-vault** | Next.js · TypeScript · Notion API | [windedvertigo.com/reservoir/vertigo-vault](https://windedvertigo.com/reservoir/vertigo-vault) |
+| **harbor** | Next.js · TypeScript | [windedvertigo.com/harbor](https://windedvertigo.com/harbor) |
+| **creaseworks** | Next.js · TypeScript · Postgres · Stripe | [windedvertigo.com/harbor/creaseworks](https://windedvertigo.com/harbor/creaseworks) |
+| **deep-deck** | Next.js · TypeScript | [windedvertigo.com/harbor/deep-deck](https://windedvertigo.com/harbor/deep-deck) |
+| **vertigo-vault** | Next.js · TypeScript · Notion API | [windedvertigo.com/harbor/vertigo-vault](https://windedvertigo.com/harbor/vertigo-vault) |
 | **nordic-sqr-rct** | Next.js · JavaScript · Notion API | *(Nordic-branded, separate domain)* |
 
 ## Getting Started
@@ -22,7 +22,7 @@ npm install
 # Start individual dev servers
 npm run dev:creaseworks    # http://localhost:3000
 npm run dev:sqr-rct        # http://localhost:3001
-npm run dev:reservoir
+npm run dev:harbor
 npm run dev:deep-deck
 npm run dev:vault
 
@@ -38,7 +38,7 @@ npm run sync
 ```
 apps/
   site/              Static site (HTML/CSS/JS, Notion-synced content)
-  reservoir/         Reservoir hub — landing page for all tools
+  harbor/         Harbor hub — landing page for all tools
   creaseworks/       Co-design playdate platform
   deep-deck/         Conversation card game
   vertigo-vault/     Group activity library

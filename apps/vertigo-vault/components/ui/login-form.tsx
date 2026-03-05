@@ -14,7 +14,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
 
   async function handleGoogleSignIn() {
     await signIn("google", {
-      callbackUrl: callbackUrl || "/reservoir/vertigo-vault",
+      callbackUrl: callbackUrl || "/harbor/vertigo-vault",
     });
   }
 

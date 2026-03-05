@@ -27,10 +27,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  manifest: "/reservoir/creaseworks/manifest.json",
+  manifest: "/harbor/creaseworks/manifest.json",
   icons: {
     icon: "/favicon.ico",
-    apple: "/reservoir/creaseworks/images/apple-touch-icon.png",
+    apple: "/harbor/creaseworks/images/apple-touch-icon.png",
   },
   appleWebApp: {
     capable: true,
@@ -43,14 +43,14 @@ export const metadata: Metadata = {
   },
   description:
     "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever's on hand.",
-  metadataBase: new URL("https://windedvertigo.com/reservoir/creaseworks"),
+  metadataBase: new URL("https://windedvertigo.com/harbor/creaseworks"),
   openGraph: {
     type: "website",
     siteName: "creaseworks",
     title: "creaseworks — playdates that use what you already have",
     description:
       "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever's on hand.",
-    url: "https://windedvertigo.com/reservoir/creaseworks",
+    url: "https://windedvertigo.com/harbor/creaseworks",
     locale: "en_GB",
   },
   twitter: {
