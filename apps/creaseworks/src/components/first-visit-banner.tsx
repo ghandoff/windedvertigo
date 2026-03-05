@@ -16,7 +16,10 @@ export default function FirstVisitBanner() {
   const [isDismissed, setIsDismissed] = useState(true); // hidden by default to avoid flash
 
   useEffect(() => {
-    setIsDismissed(localStorage.getItem(DISMISS_KEY) === '1');
+    const dismissed = localStorage.getItem(DISMISS_KEY) === '1';
+    if (!dismissed) {
+      setIsDismissed(false);
+    }
   }, []);
 
   function dismiss() {

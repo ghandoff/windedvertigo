@@ -15,10 +15,6 @@ import {
 import { processInvitesOnSignIn } from "@/lib/queries/invites";
 import { getUserTier } from "@/lib/queries/accessibility";
 
-// The verification_token table is created by migration 011.
-// Previously this module ran CREATE TABLE IF NOT EXISTS on every cold
-// start — removed in audit fix #12.
-
 /**
  * Raw auth config — exported so route.ts can call @auth/core's Auth()
  * directly with a plain Request (bypassing NextRequest's basePath stripping
@@ -28,7 +24,7 @@ import { getUserTier } from "@/lib/queries/accessibility";
  * module initialisation the config has secret, trustHost etc. filled in.
  */
 export const authConfig: NextAuthConfig = {
-  basePath: "/reservoir/creaseworks/api/auth",
+  basePath: "/reservoir/vertigo-vault/api/auth",
 
   providers: [
     Resend({
@@ -56,7 +52,7 @@ export const authConfig: NextAuthConfig = {
   session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
 
   /**
-   * Shared cookie config — both creaseworks and vertigo-vault set
+   * Shared cookie config — both vertigo-vault and creaseworks set
    * cookies on .windedvertigo.com with path=/ so signing in on
    * one app authenticates you on the other.
    */
@@ -145,9 +141,6 @@ export const authConfig: NextAuthConfig = {
       provider: string;
       providerAccountId: string;
     }) {
-      // For OAuth providers, match by email stored during linkAccount.
-      // We store provider:providerAccountId → user mapping in a lightweight way
-      // by looking up the account in our accounts table.
       const r = await sql.query(
         `SELECT u.id, u.email, u.email_verified, u.name
          FROM accounts a
@@ -218,7 +211,6 @@ export const authConfig: NextAuthConfig = {
       token: string;
       expires: Date;
     }) {
-
       await sql.query(
         "INSERT INTO verification_token (identifier, token, expires) VALUES ($1, $2, $3)",
         [data.identifier, data.token, data.expires],
@@ -227,7 +219,6 @@ export const authConfig: NextAuthConfig = {
     },
 
     async useVerificationToken(data: { identifier: string; token: string }) {
-
       const r = await sql.query(
         "DELETE FROM verification_token WHERE identifier = $1 AND token = $2 RETURNING identifier, token, expires",
         [data.identifier, data.token],
@@ -238,16 +229,12 @@ export const authConfig: NextAuthConfig = {
 
   callbacks: {
     async signIn({ user }) {
-      // Gate check only — all DB mutations happen in the jwt callback
-      // AFTER NextAuth has created the user row (for new sign-ups).
       if (!user.email) return false;
       return true;
     },
 
     async jwt({ token, user, account, profile }) {
       if (user?.id) {
-        // Initial sign-in — user row is guaranteed to exist in DB at
-        // this point (NextAuth creates it before issuing the JWT).
         token.userId = user.id;
         token.email = user.email;
 
@@ -266,7 +253,6 @@ export const authConfig: NextAuthConfig = {
         }
 
         // Mark email as verified after successful sign-in
-        // (Google OAuth proves email ownership; Resend magic-link proves it too)
         await sql.query(
           "UPDATE users SET email_verified = TRUE, updated_at = NOW() WHERE id = $1 AND email_verified = FALSE",
           [user.id],
@@ -275,8 +261,7 @@ export const authConfig: NextAuthConfig = {
         // Auto-join org based on verified email domains
         await autoJoinOrg(user.id, user.email!);
 
-        // Process any pending invites — grants user-level pack entitlements
-        // for individually invited users (e.g., personal email addresses)
+        // Process any pending invites
         await processInvitesOnSignIn(user.id, user.email!);
 
         // Bootstrap initial admin if configured
@@ -296,12 +281,12 @@ export const authConfig: NextAuthConfig = {
         token.uiTier = await getUserTier(user.id);
         token.refreshedAt = Date.now();
       } else if (token.userId) {
-        // Subsequent requests — refresh org/role data every 5 minutes so
-        // role changes, org joins, and admin revocations take effect without
-        // waiting for the full 7-day session expiry.
+        // Subsequent requests — refresh org/role/entitlement data every 60s.
+        // Short window ensures purchases propagate quickly while avoiding
+        // a DB round-trip on literally every request.
         const refreshedAt = (token.refreshedAt as number) || 0;
-        const fiveMinutes = 5 * 60 * 1000;
-        if (Date.now() - refreshedAt > fiveMinutes) {
+        const refreshInterval = 60 * 1000; // 60 seconds
+        if (Date.now() - refreshedAt > refreshInterval) {
           try {
             const m = await getOrgMembership(token.userId as string);
             token.orgId = m?.org_id ?? null;
@@ -311,8 +296,6 @@ export const authConfig: NextAuthConfig = {
             token.uiTier = await getUserTier(token.userId as string);
             token.refreshedAt = Date.now();
           } catch (err) {
-            // If DB is temporarily unavailable, keep stale token rather
-            // than breaking the session. Will retry on next request.
             console.error("jwt refresh failed, using stale token:", err);
           }
         }

@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { requireAuth, getSession } from "@/lib/auth-helpers";
@@ -9,18 +9,11 @@ import {
   getPackPlaydatesEntitled,
   getPackPlaydatesCollective,
 } from "@/lib/queries/packs";
-import {
-  resolveVaultTier,
-  getVaultActivitiesForPackPage,
-  getVaultActivityCount,
-} from "@/lib/queries/vault";
 import { checkEntitlement } from "@/lib/queries/entitlements";
 import { logAccess } from "@/lib/queries/audit";
 import PurchaseButton from "@/components/ui/purchase-button";
 import PlaydatePeek from "@/components/playdate-peek";
 import SafeHtml from "@/components/ui/safe-html";
-import { VaultActivityCard } from "@/components/ui/vault-activity-card";
-import type { VaultActivity } from "@/components/ui/vault-activity-card";
 
 export const dynamic = "force-dynamic";
 
@@ -28,195 +21,27 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-/* ── vault pack slugs ────────────────────────────────────── */
+/* ── vault pack redirects ────────────────────────────────── */
 
-const VAULT_SLUGS = new Set(["vault-explorer", "vault-practitioner"]);
-
-function isVaultPack(slug: string) {
-  return VAULT_SLUGS.has(slug);
-}
+const VAULT_REDIRECTS: Record<string, string> = {
+  "vault-explorer": "/reservoir/vertigo-vault/explorer",
+  "vault-practitioner": "/reservoir/vertigo-vault/practitioner",
+};
 
 /* ── main page ───────────────────────────────────────────── */
 
 export default async function PackDetailPage({ params }: Props) {
   const { slug } = await params;
 
-  // vault packs use a separate rendering path (no auth required)
-  if (isVaultPack(slug)) {
-    return renderVaultPackPage(slug);
+  // vault packs now live in the standalone vertigo-vault app
+  if (VAULT_REDIRECTS[slug]) {
+    redirect(VAULT_REDIRECTS[slug]);
   }
 
   return renderPlaydatePackPage(slug);
 }
 
-/* ── vault pack renderer ────────────────────────────────── */
-
-async function renderVaultPackPage(slug: string) {
-  const session = await getSession();
-
-  const pack = session?.isInternal
-    ? await getPackBySlugCollective(slug)
-    : await getPackBySlug(slug);
-
-  if (!pack) return notFound();
-
-  const accessTier = await resolveVaultTier(
-    session?.orgId ?? null,
-    session?.userId ?? null,
-    session?.isInternal ?? false,
-  );
-
-  const isEntitled = accessTier !== "teaser";
-  const isCollective = session?.isInternal && !session?.isAdmin;
-
-  const activityCount = await getVaultActivityCount();
-  const activities = await getVaultActivitiesForPackPage();
-
-  // Determine which tier activities this pack unlocks
-  const packTier = slug === "vault-practitioner" ? "practitioner" : "explorer";
-  const otherPackSlug =
-    packTier === "explorer" ? "vault-practitioner" : "vault-explorer";
-
-  return (
-    <main className="min-h-screen px-6 py-16 max-w-4xl mx-auto">
-      <Link
-        href="/vault"
-        className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
-      >
-        &larr; back to vault
-      </Link>
-
-      {/* collective indicator */}
-      {isCollective && (
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cadet/20 bg-cadet/5 px-3 py-1 text-xs text-cadet/60">
-          <span className="inline-block w-2 h-2 rounded-full bg-sienna" />
-          collective view
-        </div>
-      )}
-
-      <h1 className="text-3xl font-semibold tracking-tight mb-2">
-        {pack.title}
-      </h1>
-
-      {(pack.description || pack.description_html) && (
-        <SafeHtml
-          html={pack.description_html}
-          fallback={pack.description}
-          className="text-lg text-cadet/60 mb-4"
-        />
-      )}
-
-      {/* activity count + price */}
-      <div className="flex items-center gap-4 mb-8 text-sm text-cadet/50">
-        <span>{activityCount} activities</span>
-        {pack.price_cents && (
-          <span className="font-medium text-cadet/70">
-            ${(pack.price_cents / 100).toFixed(2)}
-          </span>
-        )}
-      </div>
-
-      {/* body content (from Notion) */}
-      {pack.body_html && (
-        <SafeHtml
-          html={pack.body_html}
-          fallback={null}
-          className="prose prose-sm max-w-none text-cadet/70 mb-10 [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-cadet/80 [&_h1]:mb-3 [&_h1]:mt-6 [&_ul]:list-disc [&_ul]:pl-5 [&_p]:mb-3"
-          as="div"
-        />
-      )}
-
-      {/* purchase CTA for non-entitled users */}
-      {!isEntitled && (
-        <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-champagne/20 to-champagne/5 p-6 mb-10">
-          <div className="flex items-start gap-3 mb-4">
-            <span className="text-lg leading-none mt-0.5">🔓</span>
-            <div>
-              <h2 className="text-sm font-semibold text-cadet/80 mb-1">
-                unlock the {packTier === "practitioner" ? "full" : "expanded"}{" "}
-                vault
-              </h2>
-              <p className="text-sm text-cadet/60 mb-4">
-                {packTier === "explorer"
-                  ? "get access to step-by-step instructions, materials checklists, and age/group guidance for every activity."
-                  : "get everything in explorer, plus facilitator notes, video walkthroughs, and preparation guides for every activity."}
-              </p>
-              {session && session.orgId && pack.price_cents && pack.visible ? (
-                <PurchaseButton
-                  packCacheId={pack.id}
-                  priceCents={pack.price_cents}
-                  currency={pack.currency || "USD"}
-                />
-              ) : session ? (
-                <p className="text-sm text-cadet/50">
-                  to get access, contact{" "}
-                  <a
-                    href="mailto:garrett@windedvertigo.com"
-                    className="text-redwood hover:text-sienna underline"
-                  >
-                    garrett@windedvertigo.com
-                  </a>
-                </p>
-              ) : (
-                <p className="text-sm text-cadet/50">
-                  <Link
-                    href="/login"
-                    className="text-redwood hover:text-sienna underline"
-                  >
-                    sign in
-                  </Link>{" "}
-                  to purchase this pack.
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* upsell from explorer to practitioner */}
-      {accessTier === "entitled" && packTier === "explorer" && (
-        <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-sienna/5 to-sienna/2 p-6 mb-10">
-          <div className="flex items-start gap-3">
-            <span className="text-lg leading-none mt-0.5">🎓</span>
-            <div>
-              <h2 className="text-sm font-semibold text-cadet/80 mb-1">
-                go deeper with practitioner
-              </h2>
-              <p className="text-sm text-cadet/60 mb-3">
-                add facilitator notes, video walkthroughs, and advanced
-                preparation guides for every activity.
-              </p>
-              <Link
-                href={`/packs/${otherPackSlug}`}
-                className="inline-block rounded-lg bg-sienna px-5 py-2.5 text-sm text-white font-medium hover:bg-redwood transition-colors"
-              >
-                see practitioner pack
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* vault activity grid */}
-      <section>
-        <h2 className="text-sm font-semibold text-cadet/80 mb-4">
-          activities in the vault
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {activities.map((a: VaultActivity) => (
-            <VaultActivityCard
-              key={a.id}
-              activity={a}
-              isEntitled={isEntitled}
-            />
-          ))}
-        </div>
-      </section>
-    </main>
-  );
-}
-
-/* ── playdate pack renderer (existing logic) ───────────── */
+/* ── playdate pack renderer ─────────────────────────────── */
 
 interface PlaydateTeaser {
   id: string;
@@ -304,18 +129,6 @@ async function renderPlaydatePackPage(slug: string) {
           />
         )}
 
-        {/* body content — rich HTML from Notion page body */}
-        {pack.body_html && (
-          <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-8">
-            <SafeHtml
-              html={pack.body_html}
-              fallback={null}
-              as="div"
-              className="cms-body text-sm"
-            />
-          </section>
-        )}
-
         {/* draft status warning */}
         {pack.status !== "ready" && (
           <div className="mb-6 rounded-lg border border-sienna/30 bg-sienna/5 px-4 py-2 text-sm text-sienna">
@@ -387,18 +200,6 @@ async function renderPlaydatePackPage(slug: string) {
           fallback={pack.description}
           className="text-lg text-cadet/60 mb-6"
         />
-      )}
-
-      {/* body content — rich HTML from Notion page body */}
-      {pack.body_html && (
-        <section className="rounded-xl border border-cadet/10 bg-white p-6 mb-6">
-          <SafeHtml
-            html={pack.body_html}
-            fallback={null}
-            as="div"
-            className="cms-body text-sm"
-          />
-        </section>
       )}
 
       <p className="text-sm text-cadet/50 mb-8">
