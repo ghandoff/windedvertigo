@@ -1,10 +1,10 @@
 import type { NextConfig } from "next"; // trigger deploy
 
 const nextConfig: NextConfig = {
-  /* creaseworks is served at windedvertigo.com/harbor/creaseworks via Vercel
+  /* creaseworks is served at windedvertigo.com/harbour/creaseworks via Vercel
      multi-zone rewrites (see apps/site/vercel.json). basePath ensures Next.js
      generates correct asset URLs and internal links under that prefix. */
-  basePath: "/harbor/creaseworks",
+  basePath: "/harbour/creaseworks",
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/tokens"],
 

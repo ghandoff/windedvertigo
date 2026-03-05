@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "@windedvertigo/tokens/index.css";
 
-/* ── harbor-specific tokens ───────────────────────────────────── */
+/* ── harbour-specific tokens ───────────────────────────────────── */
 
 :root {
   --rv-section-gap: 6rem;

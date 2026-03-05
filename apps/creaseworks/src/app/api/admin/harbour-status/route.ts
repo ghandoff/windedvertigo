@@ -1,13 +1,13 @@
 /**
- * GET /api/admin/harbor-status
+ * GET /api/admin/harbour-status
  *
- * Returns cross-platform health metrics for the harbor admin dashboard.
+ * Returns cross-platform health metrics for the harbour admin dashboard.
  * Admin-only — no scoped visibility, shows the full picture.
  */
 
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth-helpers";
-import { getHarborStatus } from "@/lib/queries/harbor-status";
+import { getHarbourStatus } from "@/lib/queries/harbour-status";
 
 export async function GET() {
   const session = await getSession();
@@ -16,12 +16,12 @@ export async function GET() {
   }
 
   try {
-    const status = await getHarborStatus();
+    const status = await getHarbourStatus();
     return NextResponse.json(status);
   } catch (err: any) {
-    console.error("[harbor-status] query failed:", err);
+    console.error("[harbour-status] query failed:", err);
     return NextResponse.json(
-      { error: "harbor status query failed" },
+      { error: "harbour status query failed" },
       { status: 500 },
     );
   }

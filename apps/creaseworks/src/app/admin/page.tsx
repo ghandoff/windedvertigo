@@ -65,8 +65,8 @@ const sections = [
     icon: "🔄",
   },
   {
-    title: "harbor status",
-    href: "/admin/harbor-status",
+    title: "harbour status",
+    href: "/admin/harbour-status",
     description: "cross-platform health — content, users, entitlements, and sync freshness",
     icon: "🌊",
   },

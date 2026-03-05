@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   // Set tier cookie for instant CSS rendering on next page load
   const res = NextResponse.json({ success: true, preferences: prefs, tier });
   res.cookies.set("cw-ui-tier", tier, {
-    path: "/harbor/creaseworks",
+    path: "/harbour/creaseworks",
     maxAge: 60 * 60 * 24 * 365, // 1 year
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

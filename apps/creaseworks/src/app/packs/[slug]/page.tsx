@@ -24,8 +24,8 @@ interface Props {
 /* ── vault pack redirects ────────────────────────────────── */
 
 const VAULT_REDIRECTS: Record<string, string> = {
-  "vault-explorer": "/harbor/vertigo-vault/explorer",
-  "vault-practitioner": "/harbor/vertigo-vault/practitioner",
+  "vault-explorer": "/harbour/vertigo-vault/explorer",
+  "vault-practitioner": "/harbour/vertigo-vault/practitioner",
 };
 
 /* ── main page ───────────────────────────────────────────── */

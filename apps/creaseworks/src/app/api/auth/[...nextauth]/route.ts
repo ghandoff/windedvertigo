@@ -2,7 +2,7 @@ import { Auth } from "@auth/core";
 import { authConfig } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
-const BASE_PATH = "/harbor/creaseworks";
+const BASE_PATH = "/harbour/creaseworks";
 
 /**
  * Custom Auth.js route handler that bypasses next-auth's `reqWithEnvURL`.

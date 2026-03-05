@@ -263,9 +263,9 @@ When combining all three weights in a layout, maintain visual balance:
 - Has its own platform branding by Nordic
 - "powered by winded.vertigo" attribution in footer only
 
-### Harbor, Deep-Deck, Vertigo-Vault
+### Harbour, Deep-Deck, Vertigo-Vault
 - Import `packages/tokens` for brand consistency
-- Harbor additionally depends on `@windedvertigo/tokens` for shared design system
+- Harbour additionally depends on `@windedvertigo/tokens` for shared design system
 
 ## Contact
 

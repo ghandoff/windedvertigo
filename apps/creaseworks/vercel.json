@@ -21,15 +21,15 @@
   ],
   "crons": [
     {
-      "path": "/harbor/creaseworks/api/cron/sync-notion",
+      "path": "/harbour/creaseworks/api/cron/sync-notion",
       "schedule": "0 6 * * *"
     },
     {
-      "path": "/harbor/creaseworks/api/cron/send-digests",
+      "path": "/harbour/creaseworks/api/cron/send-digests",
       "schedule": "0 9 * * 1"
     },
     {
-      "path": "/harbor/creaseworks/api/cron/send-nudges",
+      "path": "/harbour/creaseworks/api/cron/send-nudges",
       "schedule": "0 8 * * *"
     }
   ]

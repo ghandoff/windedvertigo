@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: "/harbor/vertigo-vault",
+  basePath: "/harbour/vertigo-vault",
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/tokens"],
 

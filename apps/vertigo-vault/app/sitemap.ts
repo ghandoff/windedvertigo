@@ -9,13 +9,13 @@ import { sql } from "@/lib/db";
  */
 export const revalidate = 3600;
 
-const BASE = "https://windedvertigo.com/harbor/vertigo-vault";
+const BASE = "https://windedvertigo.com/harbour/vertigo-vault";
 
 /**
  * Dynamic sitemap — lists the vault catalog, pack landing pages, and
  * every individual activity page.
  *
- * Next.js serves this at /harbor/vertigo-vault/sitemap.xml.
+ * Next.js serves this at /harbour/vertigo-vault/sitemap.xml.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages

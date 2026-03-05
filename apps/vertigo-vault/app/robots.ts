@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 /**
  * robots.txt — allows all crawlers; points to the sitemap.
  *
- * Next.js serves this at /harbor/vertigo-vault/robots.txt.
+ * Next.js serves this at /harbour/vertigo-vault/robots.txt.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -14,6 +14,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/checkout/"],
       },
     ],
-    sitemap: "https://windedvertigo.com/harbor/vertigo-vault/sitemap.xml",
+    sitemap: "https://windedvertigo.com/harbour/vertigo-vault/sitemap.xml",
   };
 }
