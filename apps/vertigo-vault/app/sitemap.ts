@@ -1,6 +1,14 @@
 import type { MetadataRoute } from "next";
 import { sql } from "@/lib/db";
 
+/**
+ * Revalidate the sitemap every hour so new/updated activities appear
+ * without waiting for a full redeploy. This also tells Next.js not to
+ * prerender the sitemap statically at build time (when the DB isn't
+ * available).
+ */
+export const revalidate = 3600;
+
 const BASE = "https://windedvertigo.com/reservoir/vertigo-vault";
 
 /**
