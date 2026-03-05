@@ -699,7 +699,10 @@ async function main() {
       fetchPortfolioAssets(),
       fetchVertigoVault(),
       fetchSiteContent(),
-      fetchReservoirGames(),
+      fetchReservoirGames().catch(err => {
+        console.warn('  Warning: Reservoir Games sync skipped (' + err.message + ')');
+        return [];
+      }),
     ]);
 
     // Validate we got all 4 quadrants
@@ -779,13 +782,16 @@ async function main() {
     const vaultPath = path.join(__dirname, '..', 'apps', 'site', 'data', 'vertigo-vault.json');
     fs.writeFileSync(vaultPath, JSON.stringify(vaultContent, null, 2));
 
-    // Write Reservoir Games
-    const reservoirDataDir = path.join(__dirname, '..', 'apps', 'reservoir', 'data');
-    if (!fs.existsSync(reservoirDataDir)) {
-      fs.mkdirSync(reservoirDataDir, { recursive: true });
+    // Write Reservoir Games (skip if fetch failed gracefully)
+    let reservoirGamesPath = null;
+    if (reservoirGames.length > 0) {
+      const reservoirDataDir = path.join(__dirname, '..', 'apps', 'reservoir', 'data');
+      if (!fs.existsSync(reservoirDataDir)) {
+        fs.mkdirSync(reservoirDataDir, { recursive: true });
+      }
+      reservoirGamesPath = path.join(reservoirDataDir, 'games.json');
+      fs.writeFileSync(reservoirGamesPath, JSON.stringify(reservoirGames, null, 2));
     }
-    const reservoirGamesPath = path.join(reservoirDataDir, 'games.json');
-    fs.writeFileSync(reservoirGamesPath, JSON.stringify(reservoirGames, null, 2));
 
     // what-page.json write removed — /what/ now reads site-content-what.json from CMS (Mar 2026)
     // what-page-v2.json write removed — superseded by Site Content CMS (Mar 2026)
@@ -808,7 +814,11 @@ async function main() {
     console.log('  Package Builder: ' + Object.keys(packs).length + ' packs → ' + outputPath);
     console.log('  Portfolio: ' + portfolioAssets.length + ' assets → ' + portfolioPath);
     console.log('  Vertigo Vault: ' + vaultActivities.length + ' activities → ' + vaultPath);
-    console.log('  Reservoir Games: ' + reservoirGames.length + ' games → ' + reservoirGamesPath);
+    if (reservoirGamesPath) {
+      console.log('  Reservoir Games: ' + reservoirGames.length + ' games → ' + reservoirGamesPath);
+    } else {
+      console.log('  Reservoir Games: skipped (database not accessible)');
+    }
     // What Page log removed — retired in favour of Site Content CMS
     for (const sp of siteContentPaths) {
       console.log('  Site Content (' + sp.page + '): ' + sp.count + ' sections → ' + sp.path);
