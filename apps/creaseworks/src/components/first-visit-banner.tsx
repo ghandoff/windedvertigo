@@ -1,17 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+
+const DISMISS_KEY = 'cw-first-visit-dismissed';
 
 /**
  * First-Visit Banner
  *
  * Dismissible callout that appears on the playbook page for users with no play contexts.
  * Encourages them to take 30 seconds to tell us about their play style via the onboarding wizard.
- * Uses useState for session-based dismissal (will reappear on page reload).
+ * Persists dismissal in localStorage so it doesn't reappear across sessions.
  */
 export default function FirstVisitBanner() {
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(true); // hidden by default to avoid flash
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem(DISMISS_KEY) === '1';
+    if (!dismissed) {
+      setIsDismissed(false);
+    }
+  }, []);
+
+  function dismiss() {
+    localStorage.setItem(DISMISS_KEY, '1');
+    setIsDismissed(true);
+  }
 
   if (isDismissed) {
     return null;
@@ -43,7 +57,7 @@ export default function FirstVisitBanner() {
             get started &rarr;
           </Link>
           <button
-            onClick={() => setIsDismissed(true)}
+            onClick={dismiss}
             className="text-cadet/40 hover:text-cadet/60 transition-colors text-sm font-medium"
             aria-label="Dismiss banner"
           >

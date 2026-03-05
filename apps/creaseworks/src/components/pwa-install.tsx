@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useSyncExternalStore, useState, useCallback } from "react";
 
 /**
  * PWA service-worker registration + install-prompt banner.
@@ -20,12 +20,44 @@ interface BeforeInstallPromptEvent extends Event {
 
 const BASE = "/reservoir/creaseworks";
 
+/* ------------------------------------------------------------------ */
+/*  Platform detection via useSyncExternalStore                        */
+/*                                                                      */
+/*  These browser-API values are static facts — they never change       */
+/*  during a session. useSyncExternalStore lets us read them safely      */
+/*  during render with an SSR-safe server snapshot.                     */
+/* ------------------------------------------------------------------ */
+
+// No-op subscribe — platform values don't change mid-session
+const subscribeNoop = () => () => {};
+
+function getIsIos() {
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && !("MSStream" in window)
+  );
+}
+
+function getIsStandalone() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    ("standalone" in navigator &&
+      (navigator as unknown as { standalone: boolean }).standalone === true)
+  );
+}
+
+const serverFalse = () => false;
+
 export default function PwaInstall() {
+  const isIos = useSyncExternalStore(subscribeNoop, getIsIos, serverFalse);
+  const isStandalone = useSyncExternalStore(
+    subscribeNoop,
+    getIsStandalone,
+    serverFalse,
+  );
+
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
-  const [isIos, setIsIos] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
 
   /* ---------------------------------------------------------------- */
   /*  Register service worker                                          */
@@ -40,34 +72,26 @@ export default function PwaInstall() {
   }, []);
 
   /* ---------------------------------------------------------------- */
-  /*  Detect platform + standalone mode                                */
+  /*  Show banner logic (dismissal cooldown + iOS delay)               */
   /* ---------------------------------------------------------------- */
 
   useEffect(() => {
-    const ios =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) && !("MSStream" in window);
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      ("standalone" in navigator && (navigator as any).standalone === true);
+    // If already installed, never show
+    if (isStandalone) return;
 
-    setIsIos(ios);
-    setIsStandalone(standalone);
-
-    // If already installed or dismissed recently, don't show
-    if (standalone) return;
+    // Respect 14-day dismissal cooldown
     const dismissed = localStorage.getItem("cw-pwa-dismissed");
     if (dismissed) {
       const ts = parseInt(dismissed, 10);
-      // Don't re-show for 14 days after dismissal
       if (Date.now() - ts < 14 * 24 * 60 * 60 * 1000) return;
     }
 
     // On iOS, show the manual instruction banner after a delay
-    if (ios) {
+    if (isIos) {
       const timer = setTimeout(() => setShowBanner(true), 5000);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isIos, isStandalone]);
 
   /* ---------------------------------------------------------------- */
   /*  Capture beforeinstallprompt (Chrome / Edge / Android)            */

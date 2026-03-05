@@ -58,6 +58,8 @@ export default async function EntitledPlaydatePage({ params, searchParams }: Pro
     "find_again_prompt",
     "slots_notes",
     "substitutions_notes",
+    "body_html",
+    "illustration_url",
     ...(session.isInternal
       ? ["design_rationale", "developmental_notes", "author_notes"]
       : []),

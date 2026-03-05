@@ -2,7 +2,7 @@ const { Client } = require('@notionhq/client');
 const fs = require('fs');
 const path = require('path');
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
+const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const databaseId = '28fe4ee74ba480869709d4d364d388e5';
 
 async function getServices() {

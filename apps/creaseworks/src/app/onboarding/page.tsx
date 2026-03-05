@@ -51,11 +51,28 @@ export default async function OnboardingPage({
     }
   }
 
+  // For first-time users, check if they arrived via invite (have entitlements)
+  let invitePackNames: string[] = [];
+  if (!isEditMode && !user?.onboarding_completed) {
+    const packRows = await sql.query(
+      `SELECT DISTINCT pc.title
+         FROM entitlements e
+         JOIN packs_cache pc ON pc.id = e.pack_cache_id
+        WHERE e.user_id = $1
+          AND e.revoked_at IS NULL
+          AND (e.expires_at IS NULL OR e.expires_at > NOW())
+        ORDER BY pc.title`,
+      [session.userId],
+    );
+    invitePackNames = packRows.rows.map((r: { title: string }) => r.title);
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-champagne/20 px-4 py-12">
       <OnboardingWizard
         editMode={isEditMode}
         initialValues={initialValues}
+        invitePackNames={invitePackNames}
       />
     </main>
   );

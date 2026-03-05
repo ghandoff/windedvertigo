@@ -22,6 +22,7 @@ const publicRoutes = [
   "/packs",
   "/sampler",
   "/matcher",
+  "/vault",
 ];
 
 /**
@@ -61,6 +62,7 @@ const adminRoutes = [
 /** API routes — should return JSON. */
 const apiRoutes = [
   { path: "/api/health", method: "GET", expectStatus: [200, 302, 303, 307] },
+  { path: "/api/vault", method: "GET", expectStatus: [200] },
 ];
 
 /* ── Test runner ──────────────────────────────────────────── */

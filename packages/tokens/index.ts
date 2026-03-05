@@ -63,6 +63,7 @@ export const typography = {
   fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif",
   lineHeight: 1.6,
   letterSpacing: "0.02em",
+  wordSpacing: "0.04em",
   maxLineLength: "70ch",
 } as const;
 

@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   try {
     const users = await getNudgeEligibleUsers();
     let sent = 0;
-    let skipped = 0;
+    const skipped = 0;
     let errors = 0;
 
     // Process up to 50 users per run

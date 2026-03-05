@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-03T07:02:40.586Z",
+  "lastUpdated": "2026-03-05T06:43:30.851Z",
   "note": "Auto-generated from Notion BD Assets. Do not edit directly.",
   "assets": [
     {
@@ -22,7 +22,7 @@
       "showInPackageBuilder": true,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": 2,
       "icon": ""
@@ -47,7 +47,7 @@
       "showInPackageBuilder": true,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": 3,
       "icon": ""
@@ -72,7 +72,7 @@
       "showInPackageBuilder": true,
       "showInPortfolio": false,
       "passwordProtected": true,
-      "password": "udl2024",
+      "passwordHash": "56bbc13d714e02c3ca29881df439844e1d387e4483a965915746cdd133c987b9",
       "client": "",
       "order": 4,
       "icon": ""
@@ -96,7 +96,7 @@
       "showInPackageBuilder": true,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": 5,
       "icon": ""
@@ -121,7 +121,7 @@
       "showInPackageBuilder": true,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": 6,
       "icon": ""
@@ -145,7 +145,7 @@
       "showInPackageBuilder": true,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": 7,
       "icon": ""
@@ -170,7 +170,7 @@
       "showInPackageBuilder": true,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": 8,
       "icon": ""
@@ -196,7 +196,7 @@
       "showInPackageBuilder": true,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": 9,
       "icon": ""
@@ -220,7 +220,7 @@
       "showInPackageBuilder": false,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": null,
       "icon": ""
@@ -244,7 +244,7 @@
       "showInPackageBuilder": false,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": null,
       "icon": ""
@@ -268,7 +268,7 @@
       "showInPackageBuilder": false,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": null,
       "icon": ""
@@ -292,7 +292,7 @@
       "showInPackageBuilder": false,
       "showInPortfolio": true,
       "passwordProtected": false,
-      "password": "",
+      "passwordHash": "",
       "client": "",
       "order": null,
       "icon": ""

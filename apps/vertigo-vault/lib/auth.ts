@@ -1,0 +1,321 @@
+import NextAuth, { type NextAuthConfig } from "next-auth";
+import Resend from "next-auth/providers/resend";
+import Google from "next-auth/providers/google";
+import { sql } from "@/lib/db";
+import {
+  getUserByEmail,
+  createUser,
+  isAdmin,
+  addAdmin,
+} from "@/lib/queries/users";
+import {
+  autoJoinOrg,
+  getOrgMembership,
+} from "@/lib/queries/organisations";
+import { processInvitesOnSignIn } from "@/lib/queries/invites";
+import { getUserTier } from "@/lib/queries/accessibility";
+
+/**
+ * Raw auth config — exported so route.ts can call @auth/core's Auth()
+ * directly with a plain Request (bypassing NextRequest's basePath stripping
+ * that breaks reqWithEnvURL in next-auth's handler wrapper).
+ *
+ * NextAuth() mutates this object in-place via setEnvDefaults(), so after
+ * module initialisation the config has secret, trustHost etc. filled in.
+ */
+export const authConfig: NextAuthConfig = {
+  basePath: "/reservoir/vertigo-vault/api/auth",
+
+  providers: [
+    Resend({
+      apiKey: process.env.RESEND_API_KEY,
+      from: process.env.EMAIL_FROM ?? "noreply@windedvertigo.com",
+    }),
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      /**
+       * Allow users who first signed in via magic link to later sign in
+       * with Google (and vice-versa).  Both providers verify email
+       * ownership, so linking them under one account is safe.
+       */
+      allowDangerousEmailAccountLinking: true,
+    }),
+  ],
+
+  pages: {
+    signIn: "/login",
+    verifyRequest: "/login?verify=1",
+    error: "/login",
+  },
+
+  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
+
+  /**
+   * Shared cookie config — both vertigo-vault and creaseworks set
+   * cookies on .windedvertigo.com with path=/ so signing in on
+   * one app authenticates you on the other.
+   */
+  cookies: {
+    sessionToken: {
+      name: "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".windedvertigo.com"
+            : undefined,
+      },
+    },
+    callbackUrl: {
+      name: "authjs.callback-url",
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".windedvertigo.com"
+            : undefined,
+      },
+    },
+    csrfToken: {
+      name: "authjs.csrf-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".windedvertigo.com"
+            : undefined,
+      },
+    },
+  },
+
+  adapter: {
+    async createUser(data: { email: string; name?: string | null; emailVerified?: Date | null }) {
+      const user = await createUser(data.email!, data.name ?? undefined);
+      return {
+        id: user.id,
+        email: user.email,
+        emailVerified: user.email_verified ? new Date() : null,
+        name: user.name,
+      };
+    },
+
+    async getUser(id: string) {
+      const r = await sql.query(
+        "SELECT id, email, email_verified, name FROM users WHERE id = $1",
+        [id],
+      );
+      const row = r.rows[0];
+      if (!row) return null;
+      return {
+        id: row.id,
+        email: row.email,
+        emailVerified: row.email_verified ? new Date() : null,
+        name: row.name,
+      };
+    },
+
+    async getUserByEmail(email: string) {
+      const row = await getUserByEmail(email);
+      if (!row) return null;
+      return {
+        id: row.id,
+        email: row.email,
+        emailVerified: row.email_verified ? new Date() : null,
+        name: row.name,
+      };
+    },
+
+    async getUserByAccount({
+      provider,
+      providerAccountId,
+    }: {
+      provider: string;
+      providerAccountId: string;
+    }) {
+      const r = await sql.query(
+        `SELECT u.id, u.email, u.email_verified, u.name
+         FROM accounts a
+         JOIN users u ON u.id = a.user_id
+         WHERE a.provider = $1 AND a.provider_account_id = $2
+         LIMIT 1`,
+        [provider, providerAccountId],
+      );
+      const row = r.rows[0];
+      if (!row) return null;
+      return {
+        id: row.id,
+        email: row.email,
+        emailVerified: row.email_verified ? new Date() : null,
+        name: row.name,
+      };
+    },
+
+    async updateUser(data: { id: string; name?: string | null }) {
+      if (data.name) {
+        await sql.query(
+          "UPDATE users SET name = $1, updated_at = NOW() WHERE id = $2",
+          [data.name, data.id],
+        );
+      }
+      const r = await sql.query(
+        "SELECT id, email, email_verified, name FROM users WHERE id = $1",
+        [data.id],
+      );
+      const row = r.rows[0];
+      if (!row) throw new Error(`updateUser: user ${data.id} not found`);
+      return {
+        id: row.id,
+        email: row.email,
+        emailVerified: row.email_verified ? new Date() : null,
+        name: row.name,
+      };
+    },
+
+    async linkAccount(data: {
+      userId: string;
+      provider: string;
+      providerAccountId: string;
+      type: string;
+      [key: string]: unknown;
+    }) {
+      await sql.query(
+        `INSERT INTO accounts (user_id, provider, provider_account_id, type)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (provider, provider_account_id) DO NOTHING`,
+        [data.userId, data.provider, data.providerAccountId, data.type],
+      );
+      return undefined;
+    },
+    async createSession() {
+      throw new Error("not used with jwt strategy");
+    },
+    async getSessionAndUser() {
+      throw new Error("not used with jwt strategy");
+    },
+    async updateSession() {
+      throw new Error("not used with jwt strategy");
+    },
+    async deleteSession() {},
+
+    async createVerificationToken(data: {
+      identifier: string;
+      token: string;
+      expires: Date;
+    }) {
+      await sql.query(
+        "INSERT INTO verification_token (identifier, token, expires) VALUES ($1, $2, $3)",
+        [data.identifier, data.token, data.expires],
+      );
+      return data;
+    },
+
+    async useVerificationToken(data: { identifier: string; token: string }) {
+      const r = await sql.query(
+        "DELETE FROM verification_token WHERE identifier = $1 AND token = $2 RETURNING identifier, token, expires",
+        [data.identifier, data.token],
+      );
+      return r.rows[0] ?? null;
+    },
+  },
+
+  callbacks: {
+    async signIn({ user }) {
+      if (!user.email) return false;
+      return true;
+    },
+
+    async jwt({ token, user, account, profile }) {
+      if (user?.id) {
+        token.userId = user.id;
+        token.email = user.email;
+
+        // Sync name from Google profile if we don't have one yet
+        if (account?.provider === "google" && profile?.name) {
+          const existing = await sql.query(
+            "SELECT name FROM users WHERE id = $1",
+            [user.id],
+          );
+          if (existing.rows[0] && !existing.rows[0].name) {
+            await sql.query(
+              "UPDATE users SET name = $1, email_verified = TRUE, updated_at = NOW() WHERE id = $2",
+              [profile.name, user.id],
+            );
+          }
+        }
+
+        // Mark email as verified after successful sign-in
+        await sql.query(
+          "UPDATE users SET email_verified = TRUE, updated_at = NOW() WHERE id = $1 AND email_verified = FALSE",
+          [user.id],
+        );
+
+        // Auto-join org based on verified email domains
+        await autoJoinOrg(user.id, user.email!);
+
+        // Process any pending invites
+        await processInvitesOnSignIn(user.id, user.email!);
+
+        // Bootstrap initial admin if configured
+        const adm = process.env.INITIAL_ADMIN_EMAIL?.toLowerCase().trim();
+        if (adm && user.email!.toLowerCase().trim() === adm) {
+          if (!(await isAdmin(user.id))) {
+            await addAdmin(user.id);
+            console.log("bootstrapped initial admin:", user.email);
+          }
+        }
+
+        const m = await getOrgMembership(user.id);
+        token.orgId = m?.org_id ?? null;
+        token.orgName = m?.org_name ?? null;
+        token.orgRole = m?.role ?? null;
+        token.isAdmin = await isAdmin(user.id);
+        token.uiTier = await getUserTier(user.id);
+        token.refreshedAt = Date.now();
+      } else if (token.userId) {
+        // Subsequent requests — refresh org/role/entitlement data every 60s.
+        // Short window ensures purchases propagate quickly while avoiding
+        // a DB round-trip on literally every request.
+        const refreshedAt = (token.refreshedAt as number) || 0;
+        const refreshInterval = 60 * 1000; // 60 seconds
+        if (Date.now() - refreshedAt > refreshInterval) {
+          try {
+            const m = await getOrgMembership(token.userId as string);
+            token.orgId = m?.org_id ?? null;
+            token.orgName = m?.org_name ?? null;
+            token.orgRole = m?.role ?? null;
+            token.isAdmin = await isAdmin(token.userId as string);
+            token.uiTier = await getUserTier(token.userId as string);
+            token.refreshedAt = Date.now();
+          } catch (err) {
+            console.error("jwt refresh failed, using stale token:", err);
+          }
+        }
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.userId as string;
+        session.userId = token.userId;
+        session.orgId = token.orgId;
+        session.orgName = token.orgName;
+        session.orgRole = token.orgRole;
+        session.isAdmin = token.isAdmin;
+        session.uiTier = token.uiTier;
+      }
+      return session;
+    },
+  },
+};
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);

@@ -11,7 +11,7 @@
  *   npx tsx scripts/link-packs-to-playdates.ts
  *
  * Prerequisites:
- *   - NOTION_API_KEY in .env.local
+ *   - NOTION_TOKEN in .env.local
  *   - NOTION_DB_PLAYDATES in .env.local
  */
 
@@ -36,7 +36,7 @@ try {
   console.warn("no .env.local found — relying on existing env vars");
 }
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
+const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const PLAYDATES_DB = process.env.NOTION_DB_PLAYDATES!;
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));

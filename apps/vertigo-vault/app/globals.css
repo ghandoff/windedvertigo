@@ -83,6 +83,48 @@ body {
   top: 0;
 }
 
+/* ---- notion rich-text HTML rendering ---- */
+.notion-rich-text a {
+  text-decoration: underline;
+  text-decoration-color: rgba(175, 79, 65, 0.4);
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.15s;
+}
+.notion-rich-text a:hover {
+  text-decoration-color: rgba(175, 79, 65, 0.8);
+}
+.notion-rich-text strong {
+  font-weight: 600;
+}
+.notion-rich-text em {
+  font-style: italic;
+}
+.notion-rich-text ul,
+.notion-rich-text ol {
+  padding-left: 1.4rem;
+  margin-bottom: 0.75rem;
+}
+.notion-rich-text li {
+  margin-bottom: 0.25rem;
+  line-height: 1.65;
+}
+.notion-rich-text p {
+  margin-bottom: 0.6rem;
+  line-height: 1.65;
+}
+.notion-rich-text h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.notion-rich-text h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+}
+
 /* ---- respect reduced-motion preference ---- */
 @media (prefers-reduced-motion: reduce) {
   .animate-slide-in {

@@ -1,3 +1,4 @@
+import gamesData from "@/data/games.json";
 import { ScrollReveal } from "./scroll-reveal";
 
 export interface Game {
@@ -14,63 +15,8 @@ export interface Game {
   badge?: string;         // custom badge text (defaults to "play now")
 }
 
-const GAMES: Game[] = [
-  {
-    slug: "creaseworks",
-    name: "creaseworks",
-    tagline: "co-design playdates",
-    description:
-      "a platform where facilitators and participants co-create playful learning experiences together. run playdates, collect real-time evidence of engagement, and iterate designs based on what actually happens when people play.",
-    color: "from-[#cb7858] to-[#a86244]",
-    accentColor: "bg-[var(--wv-redwood)]",
-    icon: "\uD83C\uDFA8",
-    features: [
-      "guided playdate facilitation",
-      "real-time evidence collection",
-      "co-play reflection tools",
-      "design iteration workflows",
-    ],
-    href: "/reservoir/creaseworks",
-    status: "live",
-  },
-  {
-    slug: "vertigo-vault",
-    name: "vertigo.vault",
-    tagline: "curated group energizers",
-    description:
-      "a growing collection of group activities, ice-breakers, and energizers \u2014 curated from years of facilitation across cultures and contexts. find the right activity for any group size, energy level, or learning goal.",
-    color: "from-[#b15043] to-[#8c3e33]",
-    accentColor: "bg-[var(--wv-sienna)]",
-    icon: "\u26A1",
-    features: [
-      "searchable activity library",
-      "tagged by group size and energy",
-      "field-tested across cultures",
-      "continuously growing collection",
-    ],
-    href: "/reservoir/vertigo-vault",
-    status: "live",
-  },
-  {
-    slug: "deep-deck",
-    name: "deep.deck",
-    tagline: "conversations that connect",
-    description:
-      "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6\u201314 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions. try the free sampler or unlock the full 128-card deck.",
-    color: "from-[#273248] to-[#1c2438]",
-    accentColor: "bg-[var(--wv-redwood)]",
-    icon: "\uD83C\uDCCF",
-    features: [
-      "free sampler with 36 cards across all age bands",
-      "full deck: 128 cards + 32 wild modifiers",
-      "deep \u2192 deeper \u2192 deepest progression",
-      "4 age bands: 6\u20138, 9\u201310, 11\u201312, 13\u201314",
-    ],
-    href: "/reservoir/deep-deck",
-    status: "live",
-    badge: "try free",
-  },
-];
+/** Games loaded from Notion-synced JSON. Sorted by `order` field. */
+export const GAMES: Game[] = gamesData as Game[];
 
 function GameCard({ game, index }: { game: Game; index: number }) {
   // Alternate layout direction for visual rhythm
@@ -79,6 +25,7 @@ function GameCard({ game, index }: { game: Game; index: number }) {
   return (
     <section
       id={game.slug}
+      aria-label={game.name}
       className="flex items-center py-10 sm:py-14"
     >
       <div
@@ -96,26 +43,26 @@ function GameCard({ game, index }: { game: Game; index: number }) {
               <span className="text-5xl sm:text-6xl block mb-4">
                 {game.icon}
               </span>
-              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
+              <h3 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-on-dark)] mb-2 tracking-tight">
                 {game.name}
               </h3>
-              <p className="text-sm font-medium text-white/60 tracking-wider uppercase">
+              <p className="text-sm font-medium text-[var(--color-text-on-dark-muted)] tracking-wider uppercase">
                 {game.tagline}
               </p>
             </div>
             <div className="flex items-center justify-between mt-8">
               {game.status === "live" ? (
                 <span
-                  className={`${game.accentColor} text-white text-xs font-semibold px-3 py-1 rounded-full`}
+                  className={`${game.accentColor} text-[var(--color-text-on-dark)] text-xs font-semibold px-3 py-1 rounded-full`}
                 >
                   {game.badge || "play now"}
                 </span>
               ) : (
-                <span className="bg-white/10 text-white/50 text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="bg-white/10 text-[var(--color-text-on-dark-muted)] text-xs font-semibold px-3 py-1 rounded-full">
                   coming soon
                 </span>
               )}
-              <span className="text-white/40 text-sm">&rarr;</span>
+              <span className="text-[var(--color-text-on-dark-muted)] text-sm">&rarr;</span>
             </div>
           </a>
         </ScrollReveal>
@@ -123,7 +70,7 @@ function GameCard({ game, index }: { game: Game; index: number }) {
         {/* Description */}
         <ScrollReveal className="w-full lg:w-7/12">
           <div className="max-w-lg">
-            <p className="text-lg sm:text-xl leading-relaxed text-white mb-6">
+            <p className="text-lg sm:text-xl leading-relaxed text-[var(--color-text-on-dark)] mb-6">
               {game.description}
             </p>
             <ul className="space-y-3">
@@ -141,7 +88,7 @@ function GameCard({ game, index }: { game: Game; index: number }) {
             </ul>
             <a
               href={game.href}
-              className="inline-flex items-center gap-2 mt-8 px-6 py-3 rounded-full bg-[var(--color-accent)] text-white text-sm font-semibold hover:bg-[var(--color-accent-hover)] transition-colors no-underline"
+              className="inline-flex items-center gap-2 mt-8 px-6 py-3 rounded-full bg-[var(--color-accent)] text-[var(--color-text-on-dark)] text-sm font-semibold hover:bg-[var(--color-accent-hover)] transition-colors no-underline"
             >
               explore {game.name}
               <span aria-hidden="true">&rarr;</span>

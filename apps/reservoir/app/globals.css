@@ -7,6 +7,26 @@
   --rv-section-gap: 6rem;
 }
 
+/* ── skip-link (a11y) ──────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1.5rem;
+  background: var(--wv-champagne);
+  color: var(--wv-cadet);
+  font-weight: 700;
+  border-radius: 0 0 0.5rem 0.5rem;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
 /* ── smooth scrolling ──────────────────────────────────────────── */
 
 html {

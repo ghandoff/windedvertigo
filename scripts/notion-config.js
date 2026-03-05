@@ -13,8 +13,10 @@ module.exports = {
     examples: 'de0bc6fe83d54d71a91b31d8f1eb73bd',
     portfolioAssets: '5e27b792adbb4a958779900fb59dd631',  // BD multi-database (parent)
     vertigoVault: '223e4ee74ba4805f8c92cda6e2b8ba00',
-    whatPage: '311e4ee74ba480268ad9de5a14d6dce4',
-    whatPageV2: '312e4ee74ba48102aea3e9f1a8828685',
+    // whatPage removed — /what/ now reads from siteContent CMS (Mar 2026)
+    // whatPageV2 removed — superseded by siteContent CMS (Mar 2026)
+    siteContent: '09a046a556c1455e80073546b8f83297',
+    reservoirGames: '8e3f3364b2654640a91ed0f38b091a07',
   },
 
   // Property name mappings (Notion column name â internal key)
@@ -70,21 +72,38 @@ module.exports = {
       skillsDeveloped: 'skills developed',
       filesMedia: 'files & media',
     },
-    whatPage: {
+    // whatPage properties removed — /what/ now reads from siteContent CMS (Mar 2026)
+    // whatPageV2 properties removed — superseded by siteContent CMS (Mar 2026)
+    reservoirGames: {
       name: 'Name',
-      content: 'Content',
-      order: 'Order',
-      type: 'Type',
-      layout: 'Layout',
+      slug: 'Slug',
+      tagline: 'Tagline',
+      description: 'Description',
       icon: 'Icon',
+      brandColor: 'Brand Color',
+      accentColor: 'Accent Color',
+      features: 'Features',
+      href: 'Href',
+      status: 'Status',
+      order: 'Order',
     },
-    whatPageV2: {
+    siteContent: {
       name: 'Name',
       content: 'Content',
+      tagline: 'Tagline',
       order: 'Order',
-      type: 'Type',
+      type: 'Content Type',
       layout: 'Layout',
       icon: 'Icon',
+      page: 'Page',
+      section: 'Section',
+      features: 'Features',
+      brandColor: 'Brand Color',
+      accentColor: 'Accent Color',
+      textColor: 'Text Color',
+      link: 'Link',
+      imageUrl: 'Image URL',
+      status: 'Status',
     },
   },
 
@@ -95,8 +114,9 @@ module.exports = {
     examples: ['Quadrant', 'Name'],
     portfolioAssets: ['asset', 'Website Asset Type'],
     vertigoVault: ['name'],
-    whatPage: ['Name'],
-    whatPageV2: ['Name'],
+    // whatPage required removed — retired (Mar 2026)
+    reservoirGames: ['Name', 'Slug'],
+    siteContent: ['Name', 'Page'],
   },
 
   // Retry configuration for API calls

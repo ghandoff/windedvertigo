@@ -1,10 +1,13 @@
 import { SignJWT, jwtVerify } from 'jose';
 
 const rawSecret = process.env.JWT_SECRET;
-if (!rawSecret && process.env.NODE_ENV === 'production') {
-  throw new Error('JWT_SECRET environment variable is required in production');
+if (!rawSecret) {
+  throw new Error(
+    'JWT_SECRET environment variable is required. ' +
+    'Set it in .env.local (dev) or Vercel Environment Variables (preview/production).'
+  );
 }
-const JWT_SECRET = new TextEncoder().encode(rawSecret || 'dev-secret-change-in-production');
+const JWT_SECRET = new TextEncoder().encode(rawSecret);
 
 export async function signToken(payload) {
   return new SignJWT(payload)

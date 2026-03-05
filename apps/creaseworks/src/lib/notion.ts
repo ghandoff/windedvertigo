@@ -13,10 +13,10 @@ let _notion: Client | null = null;
 
 function getNotion(): Client {
   if (!_notion) {
-    if (!process.env.NOTION_API_KEY) {
-      throw new Error("NOTION_API_KEY environment variable is required");
+    if (!process.env.NOTION_TOKEN) {
+      throw new Error("NOTION_TOKEN environment variable is required");
     }
-    _notion = new Client({ auth: process.env.NOTION_API_KEY });
+    _notion = new Client({ auth: process.env.NOTION_TOKEN });
   }
   return _notion;
 }
@@ -29,6 +29,7 @@ export const NOTION_DBS = {
   packs: process.env.NOTION_DB_PACKS ?? "",
   reflections: process.env.NOTION_DB_REFLECTIONS ?? "",
   collections: process.env.NOTION_DB_COLLECTIONS ?? "",
+  vault: process.env.NOTION_DB_VAULT ?? "",
 } as const;
 
 /**

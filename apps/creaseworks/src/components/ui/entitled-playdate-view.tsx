@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import DownloadButton from "@/components/ui/download-button";
 import QuickLogButton from "@/components/ui/quick-log-button";
 import PhotoQuickLogButton from "@/components/ui/photo-quick-log-button";
@@ -31,6 +32,9 @@ interface PlaydateData {
   unfold_html?: string | null;
   find_again_prompt_html?: string | null;
   substitutions_notes_html?: string | null;
+  /* tier 3-4: body content + illustration from Notion */
+  body_html?: string | null;
+  illustration_url?: string | null;
   /* collective-only fields (may be absent for entitled tier) */
   design_rationale?: string | null;
   developmental_notes?: string | null;
@@ -61,6 +65,19 @@ export default function EntitledPlaydateView({
 }: EntitledPlaydateViewProps) {
   return (
     <div className="space-y-8">
+      {/* illustration — hero image from Notion file property */}
+      {playdate.illustration_url && (
+        <div className="relative w-full h-[240px] sm:h-[320px] rounded-xl overflow-hidden bg-cadet/5">
+          <Image
+            src={playdate.illustration_url}
+            alt={`illustration for ${playdate.title}`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 768px"
+          />
+        </div>
+      )}
+
       {/* headline */}
       {playdate.headline && (
         <SafeHtml
@@ -244,6 +261,18 @@ export default function EntitledPlaydateView({
             html={playdate.substitutions_notes_html}
             fallback={playdate.substitutions_notes}
             className="text-sm text-cadet/70 whitespace-pre-line"
+          />
+        </section>
+      )}
+
+      {/* body content — rich HTML from Notion page body */}
+      {playdate.body_html && (
+        <section className="rounded-xl border border-cadet/10 bg-white p-6">
+          <SafeHtml
+            html={playdate.body_html}
+            fallback={null}
+            as="div"
+            className="cms-body text-sm"
           />
         </section>
       )}

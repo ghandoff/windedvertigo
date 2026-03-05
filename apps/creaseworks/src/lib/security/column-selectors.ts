@@ -47,6 +47,8 @@ export const PLAYDATE_ENTITLED_COLUMNS = [
   "find_again_prompt_html",
   "substitutions_notes",
   "substitutions_notes_html",
+  "body_html",
+  "illustration_url",
 ] as const;
 
 /** Collective tier — windedvertigo.com team. Entitled + design context. */
@@ -94,6 +96,56 @@ export const MATERIAL_INTERNAL_COLUMNS = [
   ...MATERIAL_ENTITLED_COLUMNS,
   "do_not_use",
   "do_not_use_reason",
+  "notion_id",
+  "notion_last_edited",
+  "synced_at",
+] as const;
+
+// ── vault activities ─────────────────────────────────────────────────────
+
+/** Teaser tier — browsable catalog, enough to entice but not enough to run. */
+export const VAULT_TEASER_COLUMNS = [
+  "id",
+  "slug",
+  "name",
+  "headline",
+  "headline_html",
+  "duration",
+  "format",
+  "type",
+  "skills_developed",
+  "tags",
+  "tier",
+  "age_range",
+  "group_size",
+  "cover_url",
+] as const;
+
+/**
+ * Entitled tier — user owns the Explorer pack ($9.99).
+ * Adds the full activity body, content, and materials list.
+ */
+export const VAULT_ENTITLED_COLUMNS = [
+  ...VAULT_TEASER_COLUMNS,
+  "body_html",
+  "content_md",
+  "materials_needed",
+] as const;
+
+/**
+ * Practitioner tier — user owns the Practitioner pack ($19.99).
+ * Adds expert-level facilitator notes and video walkthroughs.
+ */
+export const VAULT_PRACTITIONER_COLUMNS = [
+  ...VAULT_ENTITLED_COLUMNS,
+  "facilitator_notes",
+  "facilitator_notes_html",
+  "video_url",
+] as const;
+
+/** Internal-only — admin dashboard. Includes sync metadata. */
+export const VAULT_INTERNAL_COLUMNS = [
+  ...VAULT_PRACTITIONER_COLUMNS,
   "notion_id",
   "notion_last_edited",
   "synced_at",

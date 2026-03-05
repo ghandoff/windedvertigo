@@ -1,11 +1,14 @@
 {
   "name": "windedvertigo",
   "private": true,
+  "packageManager": "npm@11.8.0",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
     "sync": "node scripts/fetch-notion.js",
     "sync:footer": "node scripts/sync-footer.mjs",
     "dev:creaseworks": "npm run dev -w apps/creaseworks",
@@ -28,5 +31,8 @@
   },
   "optionalDependencies": {
     "@next/swc-linux-arm64-gnu": "^16.1.6"
+  },
+  "devDependencies": {
+    "turbo": "^2.8.13"
   }
 }

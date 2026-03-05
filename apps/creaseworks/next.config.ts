@@ -5,7 +5,16 @@ const nextConfig: NextConfig = {
      multi-zone rewrites (see apps/site/vercel.json). basePath ensures Next.js
      generates correct asset URLs and internal links under that prefix. */
   basePath: "/reservoir/creaseworks",
+  poweredByHeader: false,
   transpilePackages: ["@windedvertigo/tokens"],
+
+  /* Custom loader routes all next/image requests through Cloudflare CDN
+     (cdn.creaseworks.co) instead of Vercel's /_next/image proxy.
+     This avoids consuming the 5 000 transforms/mo Hobby quota. */
+  images: {
+    loader: "custom",
+    loaderFile: "./src/lib/cloudflare-image-loader.ts",
+  },
 
   async headers() {
     return [
@@ -16,6 +25,7 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
@@ -24,7 +34,9 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+              // Note: unsafe-inline kept for Next.js hydration scripts/styles.
+              // Dynamic code execution directive removed — not needed by app or Stripe.js.
+              "script-src 'self' 'unsafe-inline' https://js.stripe.com",
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self'",
               "img-src 'self' data: https:",

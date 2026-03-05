@@ -1,7 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { requireAuth } from "@/lib/auth-helpers";
+import { requireAuth, getSession } from "@/lib/auth-helpers";
 import {
   getPackBySlug,
   getPackBySlugCollective,
@@ -20,6 +20,28 @@ export const dynamic = "force-dynamic";
 interface Props {
   params: Promise<{ slug: string }>;
 }
+
+/* ── vault pack redirects ────────────────────────────────── */
+
+const VAULT_REDIRECTS: Record<string, string> = {
+  "vault-explorer": "/reservoir/vertigo-vault/explorer",
+  "vault-practitioner": "/reservoir/vertigo-vault/practitioner",
+};
+
+/* ── main page ───────────────────────────────────────────── */
+
+export default async function PackDetailPage({ params }: Props) {
+  const { slug } = await params;
+
+  // vault packs now live in the standalone vertigo-vault app
+  if (VAULT_REDIRECTS[slug]) {
+    redirect(VAULT_REDIRECTS[slug]);
+  }
+
+  return renderPlaydatePackPage(slug);
+}
+
+/* ── playdate pack renderer ─────────────────────────────── */
 
 interface PlaydateTeaser {
   id: string;
@@ -43,9 +65,8 @@ interface PlaydateCollective extends PlaydateFull {
   author_notes: string | null;
 }
 
-export default async function PackDetailPage({ params }: Props) {
+async function renderPlaydatePackPage(slug: string) {
   const session = await requireAuth();
-  const { slug } = await params;
 
   // collective members can see all packs (including drafts/non-visible)
   const pack = session.isInternal
@@ -188,7 +209,7 @@ export default async function PackDetailPage({ params }: Props) {
       {/* playdate teasers */}
       <section className="mb-10">
         <h2 className="text-sm font-semibold text-cadet/80 mb-4">
-          what's inside
+          what&apos;s inside
         </h2>
         <ul className="space-y-2">
           {playdates.map((p: PlaydateTeaser) => (

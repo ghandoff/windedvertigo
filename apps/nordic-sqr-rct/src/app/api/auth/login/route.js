@@ -1,12 +1,29 @@
 import { NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import bcrypt from 'bcryptjs';
 import { getReviewerByAlias, updateReviewerPassword } from '@/lib/notion';
 import { signToken } from '@/lib/auth';
+import { createRateLimiter } from '@/lib/rate-limit';
 
 const SALT_ROUNDS = 12;
 
+// 5 login attempts per 15-minute window per IP
+const loginLimiter = createRateLimiter({ maxAttempts: 5, windowMs: 15 * 60 * 1000 });
+
 export async function POST(request) {
   try {
+    // Rate-limit before any DB work
+    const rl = loginLimiter(request);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+        },
+      );
+    }
+
     const { alias, password } = await request.json();
     if (!alias || !password) {
       return NextResponse.json({ error: 'Alias and password are required' }, { status: 400 });
@@ -25,7 +42,10 @@ export async function POST(request) {
       passwordValid = await bcrypt.compare(password, storedPassword);
     } else {
       // Legacy plain-text comparison — migrate to hash on successful login
-      passwordValid = storedPassword === password;
+      // Use constant-time comparison to prevent timing attacks
+      const a = Buffer.from(storedPassword, 'utf8');
+      const b = Buffer.from(password, 'utf8');
+      passwordValid = a.length === b.length && timingSafeEqual(a, b);
       if (passwordValid) {
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
         await updateReviewerPassword(reviewer.id, hashedPassword);

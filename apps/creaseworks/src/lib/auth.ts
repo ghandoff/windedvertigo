@@ -38,6 +38,12 @@ export const authConfig: NextAuthConfig = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      /**
+       * Allow users who first signed in via magic link to later sign in
+       * with Google (and vice-versa).  Both providers verify email
+       * ownership, so linking them under one account is safe.
+       */
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
 
@@ -48,6 +54,52 @@ export const authConfig: NextAuthConfig = {
   },
 
   session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
+
+  /**
+   * Shared cookie config — both creaseworks and vertigo-vault set
+   * cookies on .windedvertigo.com with path=/ so signing in on
+   * one app authenticates you on the other.
+   */
+  cookies: {
+    sessionToken: {
+      name: "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".windedvertigo.com"
+            : undefined,
+      },
+    },
+    callbackUrl: {
+      name: "authjs.callback-url",
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".windedvertigo.com"
+            : undefined,
+      },
+    },
+    csrfToken: {
+      name: "authjs.csrf-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".windedvertigo.com"
+            : undefined,
+      },
+    },
+  },
 
   adapter: {
     async createUser(data: { email: string; name?: string | null; emailVerified?: Date | null }) {

@@ -13,7 +13,7 @@
  *   npx tsx scripts/populate-notion-collections.ts
  *
  * Prerequisites:
- *   - NOTION_API_KEY in .env.local
+ *   - NOTION_TOKEN in .env.local
  *   - NOTION_DB_PLAYDATES in .env.local
  *   - NOTION_DB_COLLECTIONS in .env.local (set after first run creates the DB)
  */
@@ -39,7 +39,7 @@ try {
   console.warn("no .env.local found — relying on existing env vars");
 }
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
+const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const PLAYDATES_DB = process.env.NOTION_DB_PLAYDATES!;
 
 // ── parent page: "components" ────────────────────────────────────────

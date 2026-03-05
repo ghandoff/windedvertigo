@@ -2,11 +2,27 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { getReviewerByAlias, createReviewer } from '@/lib/notion';
 import { signToken } from '@/lib/auth';
+import { createRateLimiter } from '@/lib/rate-limit';
 
 const SALT_ROUNDS = 12;
 
+// 3 registration attempts per hour per IP
+const registerLimiter = createRateLimiter({ maxAttempts: 3, windowMs: 60 * 60 * 1000 });
+
 export async function POST(request) {
   try {
+    // Rate-limit before any DB work
+    const rl = registerLimiter(request);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Too many registration attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+        },
+      );
+    }
+
     const data = await request.json();
     const required = ['firstName', 'lastName', 'email', 'alias', 'password'];
     for (const field of required) {

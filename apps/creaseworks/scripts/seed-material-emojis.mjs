@@ -13,7 +13,7 @@
  *
  * Requires:
  *   POSTGRES_URL  — Neon connection string (from .env.local)
- *   NOTION_API_KEY — Notion integration token (from .env.local)
+ *   NOTION_TOKEN — Notion integration token (from .env.local)
  */
 
 import { config } from "dotenv";
@@ -29,9 +29,9 @@ if (!connStr) {
   console.error("❌  No POSTGRES_URL found in .env.local");
   process.exit(1);
 }
-const notionKey = process.env.NOTION_API_KEY;
+const notionKey = process.env.NOTION_TOKEN;
 if (!notionKey) {
-  console.error("❌  No NOTION_API_KEY found in .env.local");
+  console.error("❌  No NOTION_TOKEN found in .env.local");
   process.exit(1);
 }
 

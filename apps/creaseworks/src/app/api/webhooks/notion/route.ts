@@ -24,10 +24,10 @@ import { syncSinglePage, handlePageDeletion } from "@/lib/sync/incremental";
 /* ------------------------------------------------------------------ */
 
 function getNotionClient(): Client {
-  if (!process.env.NOTION_API_KEY) {
-    throw new Error("NOTION_API_KEY not set");
+  if (!process.env.NOTION_TOKEN) {
+    throw new Error("NOTION_TOKEN not set");
   }
-  return new Client({ auth: process.env.NOTION_API_KEY });
+  return new Client({ auth: process.env.NOTION_TOKEN });
 }
 
 /**
