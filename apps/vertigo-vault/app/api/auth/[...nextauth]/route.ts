@@ -23,8 +23,14 @@ async function handler(req: NextRequest) {
     url.pathname = `${BASE_PATH}${url.pathname}`;
   }
 
-  // Replace origin with AUTH_URL if set (replicating what reqWithEnvURL does)
-  const authUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL;
+  // Replace origin so Auth.js constructs callback URLs on the custom domain,
+  // not the Vercel deployment URL.  Falls back through AUTH_URL →
+  // NEXTAUTH_URL → NEXT_PUBLIC_APP_URL (the latter is already used by
+  // Stripe checkout and email links, so it's reliably set).
+  const authUrl =
+    process.env.AUTH_URL ??
+    process.env.NEXTAUTH_URL ??
+    process.env.NEXT_PUBLIC_APP_URL;
   if (authUrl) {
     const envOrigin = new URL(authUrl);
     url.protocol = envOrigin.protocol;
