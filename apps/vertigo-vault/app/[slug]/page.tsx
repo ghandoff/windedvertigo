@@ -13,7 +13,6 @@ import { VaultActivityCard } from "@/components/ui/vault-activity-card";
 import type { VaultActivity as VaultCardActivity } from "@/components/ui/vault-activity-card";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -67,6 +66,10 @@ export default async function VaultActivityPage({ params }: Props) {
     activity.video_url;
 
   return (
+    <>
+    <a href="#activity-content" className="skip-link">
+      Skip to activity content
+    </a>
     <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
       <Link
         href="/"
@@ -100,7 +103,7 @@ export default async function VaultActivityPage({ params }: Props) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={activity.cover_url}
-            alt=""
+            alt={`Cover image for ${activity.name}`}
             className="w-full h-full object-cover"
           />
         </div>
@@ -114,6 +117,7 @@ export default async function VaultActivityPage({ params }: Props) {
 
       {/* header */}
       <h1
+        id="activity-content"
         className="text-3xl font-semibold tracking-tight mb-2"
         style={{ color: "var(--vault-text)" }}
       >
@@ -366,6 +370,7 @@ export default async function VaultActivityPage({ params }: Props) {
         </section>
       )}
     </main>
+    </>
   );
 }
 

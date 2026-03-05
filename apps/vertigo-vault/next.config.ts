@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/tokens"],
 
+  /**
+   * Security headers — non-CSP headers live here as static config.
+   * CSP is set per-request in middleware.ts with a nonce so we can
+   * use `'strict-dynamic'` instead of `'unsafe-inline'` in script-src.
+   */
   async headers() {
     return [
       {
@@ -18,21 +23,6 @@ const nextConfig: NextConfig = {
           {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
-          },
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://js.stripe.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: https:",
-              "connect-src 'self' https://vitals.vercel-insights.com https://api.stripe.com",
-              "frame-src https://js.stripe.com https://hooks.stripe.com",
-              "worker-src 'self'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join("; "),
           },
         ],
       },

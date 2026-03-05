@@ -1,11 +1,17 @@
 /**
- * Development / staging guard that scans API response payloads for
- * fields that should never reach the client at a given vault tier.
+ * Security guard that scans response payloads for fields that should
+ * never reach the client at a given vault tier.
  *
- * Usage (in API routes during dev):
+ * Usage:
  *   assertNoLeakedFields(rows, "vault_teaser");
  *
- * In production this is a no-op so there is zero runtime cost.
+ * Behaviour by environment:
+ *   development / test → throws Error (hard fail, catches leaks early)
+ *   production         → console.error + returns false (never crashes the page)
+ *
+ * Previous versions were a no-op in production, which meant tier-violation
+ * bugs could ship silently. Now production gets observability via logs
+ * while dev/test still gets the fast-fail DX.
  */
 
 const INTERNAL_ONLY_FIELDS = new Set([
@@ -30,13 +36,14 @@ const VAULT_PRACTITIONER_ONLY_FIELDS = new Set([
 
 type VaultTier = "vault_teaser" | "vault_entitled" | "vault_practitioner" | "vault_internal";
 
+/**
+ * Check whether any rows contain fields forbidden for the given tier.
+ * Returns `true` if the payload is clean, `false` if a leak was detected.
+ */
 export function assertNoLeakedFields(
   rows: Record<string, unknown>[],
   tier: VaultTier,
-): void {
-  // only run in development / staging
-  if (process.env.NODE_ENV === "production") return;
-
+): boolean {
   const forbidden = new Set<string>();
 
   if (tier === "vault_teaser") {
@@ -51,16 +58,25 @@ export function assertNoLeakedFields(
   }
   // vault_internal → nothing is forbidden
 
-  if (forbidden.size === 0) return;
+  if (forbidden.size === 0) return true;
 
   for (const row of rows) {
     for (const key of Object.keys(row)) {
       if (forbidden.has(key)) {
-        throw new Error(
+        const msg =
           `[security] leaked field "${key}" in ${tier}-tier response. ` +
-            `Check your column selector.`,
-        );
+          `Check your column selector.`;
+
+        if (process.env.NODE_ENV === "production") {
+          // Log but don't crash — observable in Vercel runtime logs
+          console.error(msg);
+          return false;
+        }
+        // Dev / test — hard fail for fast feedback
+        throw new Error(msg);
       }
     }
   }
+
+  return true;
 }

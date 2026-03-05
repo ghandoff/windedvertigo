@@ -4,7 +4,6 @@ import { resolveVaultTier, getVaultActivities } from "@/lib/queries/vault";
 import VaultActivityGrid from "@/components/vault-activity-grid";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 export default async function VaultCatalogPage() {
   const session = await getSession();
