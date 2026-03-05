@@ -3,6 +3,7 @@ import { Footer } from "@/components/footer";
 import { GameShowcase, GAMES } from "@/components/game-showcase";
 import { CredibilityZone } from "@/components/credibility-zone";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import credibilityData from "@/data/credibility.json";
 
 export default function ReservoirPage() {
   return (
@@ -23,15 +24,13 @@ export default function ReservoirPage() {
 
           <div className="relative z-10 max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--color-accent-on-dark)] mb-6">
-              winded.vertigo presents
+              {credibilityData.hero?.tagline ?? "winded.vertigo presents"}
             </p>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-[var(--color-text-on-dark)] leading-[1.1] tracking-tight mb-6">
-              the reservoir
+              {credibilityData.hero?.title ?? "the reservoir"}
             </h1>
             <p className="text-lg sm:text-xl text-[var(--color-text-on-dark-muted)] leading-relaxed max-w-xl mx-auto mb-10">
-              playful tools for connection, creativity, and growth &mdash;
-              designed by developmental psychologists and learning scientists who
-              believe play is how humans make sense of the world.
+              {credibilityData.hero?.subtitle ?? "playful tools for connection, creativity, and growth."}
             </p>
 
             {/* Scroll hint */}
@@ -87,11 +86,10 @@ export default function ReservoirPage() {
           <ScrollReveal>
             <div className="max-w-2xl mx-auto">
               <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-text-on-dark)] mb-4">
-                ready to play?
+                {credibilityData.cta?.heading ?? "ready to play?"}
               </h2>
               <p className="text-[var(--color-text-on-dark-muted)] text-lg mb-8">
-                pick a tool and start exploring. every experience is designed to
-                be jumped into &mdash; no setup, no accounts, just play.
+                {credibilityData.cta?.body ?? "pick a tool and start exploring."}
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 {GAMES.map((game, i) => (
