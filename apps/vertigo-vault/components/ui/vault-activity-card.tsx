@@ -2,7 +2,7 @@ import Link from "next/link";
 
 /**
  * Accent colours keyed by vault activity type.
- * Ported from the standalone vault app (apps/vertigo-vault/lib/types.ts).
+ * These match the creaseworks palette for visual consistency.
  */
 const TYPE_COLORS: Record<string, string> = {
   Energizer: "#AF4F41",
@@ -44,8 +44,12 @@ export function VaultActivityCard({ activity, isEntitled }: VaultActivityCardPro
 
   return (
     <Link
-      href={`/vault/${activity.slug}`}
-      className="group relative block rounded-xl overflow-hidden bg-white border border-cadet/10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+      href={`/${activity.slug}`}
+      className="group relative block rounded-xl overflow-hidden border transition-all duration-200 hover:-translate-y-0.5"
+      style={{
+        backgroundColor: "var(--vault-card-bg)",
+        borderColor: "var(--vault-border)",
+      }}
     >
       {/* cover image */}
       {activity.cover_url && (
@@ -76,18 +80,26 @@ export function VaultActivityCard({ activity, isEntitled }: VaultActivityCardPro
             </span>
           )}
           {activity.duration && (
-            <span className="text-cadet/40">{activity.duration}</span>
+            <span style={{ color: "var(--vault-text-muted)" }}>
+              {activity.duration}
+            </span>
           )}
         </div>
 
         {/* name */}
-        <h2 className="text-base font-semibold leading-snug text-cadet">
+        <h2
+          className="text-base font-semibold leading-snug"
+          style={{ color: "var(--vault-text)" }}
+        >
           {activity.name}
         </h2>
 
         {/* headline */}
         {activity.headline && (
-          <p className="text-sm text-cadet/55 leading-relaxed line-clamp-2">
+          <p
+            className="text-sm leading-relaxed line-clamp-2"
+            style={{ color: "var(--vault-text-muted)" }}
+          >
             {activity.headline}
           </p>
         )}
@@ -96,17 +108,26 @@ export function VaultActivityCard({ activity, isEntitled }: VaultActivityCardPro
         <div className="flex flex-wrap items-center gap-1.5 mt-auto pt-1">
           {/* tier badge */}
           {activity.tier === "prme" && (
-            <span className="rounded-full bg-cadet/8 px-2 py-0.5 text-[10px] uppercase tracking-wider text-cadet/50 font-medium">
+            <span
+              className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium"
+              style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "var(--vault-text-muted)" }}
+            >
               free
             </span>
           )}
           {activity.tier === "explorer" && !isEntitled && (
-            <span className="rounded-full bg-sienna/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-sienna/70 font-medium">
+            <span
+              className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium"
+              style={{ backgroundColor: "rgba(175,79,65,0.15)", color: "#d4836f" }}
+            >
               explorer
             </span>
           )}
           {activity.tier === "practitioner" && !isEntitled && (
-            <span className="rounded-full bg-redwood/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-redwood/60 font-medium">
+            <span
+              className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium"
+              style={{ backgroundColor: "rgba(155,67,67,0.15)", color: "#c47373" }}
+            >
               practitioner
             </span>
           )}
@@ -115,7 +136,8 @@ export function VaultActivityCard({ activity, isEntitled }: VaultActivityCardPro
           {activity.format.map((f) => (
             <span
               key={f}
-              className="rounded-full border border-cadet/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-cadet/40"
+              className="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider"
+              style={{ borderColor: "var(--vault-border)", color: "var(--vault-text-muted)" }}
             >
               {f}
             </span>
@@ -123,7 +145,7 @@ export function VaultActivityCard({ activity, isEntitled }: VaultActivityCardPro
 
           {/* age range */}
           {activity.age_range && (
-            <span className="text-[10px] text-cadet/35">
+            <span className="text-[10px]" style={{ color: "rgba(232,237,243,0.35)" }}>
               ages {activity.age_range}
             </span>
           )}
