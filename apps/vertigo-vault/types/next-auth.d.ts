@@ -20,5 +20,7 @@ declare module "next-auth/jwt" {
     orgRole: string | null;
     isAdmin: boolean;
     uiTier: string;
+    /** Epoch ms when org/role/entitlement data was last refreshed. */
+    refreshedAt: number;
   }
 }

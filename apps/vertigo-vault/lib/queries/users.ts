@@ -8,14 +8,6 @@ export async function getUserByEmail(email: string) {
   return r.rows[0] ?? null;
 }
 
-export async function getUserById(id: string) {
-  const r = await sql.query(
-    "SELECT id, email, email_verified, name, created_at, updated_at FROM users WHERE id = $1 LIMIT 1",
-    [id],
-  );
-  return r.rows[0] ?? null;
-}
-
 export async function createUser(email: string, name?: string) {
   const r = await sql.query(
     "INSERT INTO users (email, name, email_verified) VALUES ($1, $2, FALSE) ON CONFLICT (email) DO UPDATE SET updated_at = NOW() RETURNING id, email, email_verified, name, created_at, updated_at",

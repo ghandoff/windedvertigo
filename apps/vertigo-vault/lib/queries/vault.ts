@@ -135,32 +135,6 @@ export async function getVaultActivities(tier: VaultAccessTier) {
 }
 
 /**
- * List vault activities filtered by content tier.
- * E.g. "show only PRME activities" or "show only explorer activities".
- * Enforces row-level access — requesting a content tier above the user's
- * access tier returns an empty array.
- */
-export async function getVaultActivitiesByTier(
-  accessTier: VaultAccessTier,
-  contentTier: string,
-) {
-  // Enforce row-level access: don't return activities the user can't see
-  const allowed = visibleContentTiers(accessTier);
-  if (allowed && !allowed.includes(contentTier)) {
-    return [];
-  }
-
-  const cols = columnsForTier(accessTier);
-  const result = await sql.query(
-    `SELECT ${cols} FROM vault_activities_cache
-     WHERE tier = $1
-     ORDER BY name ASC`,
-    [contentTier],
-  );
-  return result.rows;
-}
-
-/**
  * Get a single vault activity by slug.
  * Enforces row-level access: free users can only view PRME activities.
  * Returns null if the activity exists but the user's tier doesn't unlock it.
