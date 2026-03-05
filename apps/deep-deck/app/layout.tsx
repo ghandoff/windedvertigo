@@ -58,6 +58,14 @@ export default function RootLayout({
         <a href="#main" className="skip-link">
           Skip to content
         </a>
+        <nav className="px-6 pt-4">
+          <a
+            href="/reservoir"
+            className="text-xs uppercase tracking-wider opacity-30 hover:opacity-60 transition-opacity inline-block"
+          >
+            &larr; reservoir
+          </a>
+        </nav>
         <main id="main">{children}</main>
       </body>
     </html>

@@ -17,10 +17,10 @@ export default async function VaultPage() {
         {/* header */}
         <header className="mb-10">
           <Link
-            href="https://windedvertigo.com"
+            href="/reservoir"
             className="text-xs uppercase tracking-wider opacity-30 hover:opacity-60 transition-opacity mb-6 inline-block"
           >
-            &larr; winded.vertigo
+            &larr; reservoir
           </Link>
           <h1 className="text-3xl font-bold tracking-tight mb-2">
             vertigo.vault
