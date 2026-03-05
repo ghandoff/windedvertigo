@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
 import { resolveVaultTier, getVaultActivityCount } from "@/lib/queries/vault";
@@ -5,9 +6,27 @@ import PurchaseButton from "@/components/ui/purchase-button";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
+const BASE_URL = "https://windedvertigo.com/reservoir/vertigo-vault";
+
+export const metadata: Metadata = {
   title: "practitioner pack — vertigo.vault",
-  description: "everything in the explorer pack plus facilitator notes, video walkthroughs, and expert guidance.",
+  description:
+    "everything in the explorer pack plus facilitator notes, video walkthroughs, and expert guidance. one-time purchase, $19.99.",
+  alternates: { canonical: `${BASE_URL}/practitioner` },
+  openGraph: {
+    type: "website",
+    title: "practitioner pack — vertigo.vault",
+    description:
+      "everything in the explorer pack plus facilitator notes, video walkthroughs, and expert guidance. one-time purchase, $19.99.",
+    url: `${BASE_URL}/practitioner`,
+    siteName: "winded.vertigo",
+  },
+  twitter: {
+    card: "summary",
+    title: "practitioner pack — vertigo.vault",
+    description:
+      "facilitator notes, video walkthroughs, and expert guidance. one-time purchase, $19.99.",
+  },
 };
 
 export default async function PractitionerPackPage() {
@@ -23,7 +42,44 @@ export default async function PractitionerPackPage() {
   const isAlreadyPractitioner =
     accessTier === "practitioner" || accessTier === "internal";
 
+  /*
+   * JSON-LD Product structured data for the Practitioner pack.
+   * SECURITY NOTE: All values below are hard-coded string literals (trusted).
+   * JSON.stringify escapes special characters (<, >, &, ").
+   * This is the standard Next.js recommended pattern for JSON-LD.
+   */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Practitioner Pack — vertigo.vault",
+    description:
+      "Everything in the explorer pack plus facilitator notes, video walkthroughs, and expert guidance.",
+    url: `${BASE_URL}/practitioner`,
+    brand: {
+      "@type": "Organization",
+      name: "winded.vertigo",
+      url: "https://windedvertigo.com",
+    },
+    offers: {
+      "@type": "Offer",
+      price: "19.99",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      url: `${BASE_URL}/practitioner`,
+    },
+    category: "Educational Resources",
+  };
+
+  /* JSON-LD injection: trusted hard-coded string values only */
+  const jsonLdScript = JSON.stringify(jsonLd);
+
   return (
+    <>
+    <script
+      type="application/ld+json"
+      // eslint-disable-next-line react/no-danger -- trusted static JSON-LD
+      dangerouslySetInnerHTML={{ __html: jsonLdScript }}
+    />
     <main className="min-h-screen px-6 py-16 max-w-2xl mx-auto">
       <Link
         href="/"
@@ -188,6 +244,7 @@ export default async function PractitionerPackPage() {
         </p>
       </footer>
     </main>
+    </>
   );
 }
 

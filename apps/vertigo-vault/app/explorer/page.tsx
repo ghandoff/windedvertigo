@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
 import { resolveVaultTier, getVaultActivityCount } from "@/lib/queries/vault";
@@ -5,9 +6,27 @@ import PurchaseButton from "@/components/ui/purchase-button";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
+const BASE_URL = "https://windedvertigo.com/reservoir/vertigo-vault";
+
+export const metadata: Metadata = {
   title: "explorer pack — vertigo.vault",
-  description: "unlock the full vault with step-by-step activity guides, materials lists, and more.",
+  description:
+    "unlock the full vault with step-by-step activity guides, materials lists, and more. one-time purchase, $9.99.",
+  alternates: { canonical: `${BASE_URL}/explorer` },
+  openGraph: {
+    type: "website",
+    title: "explorer pack — vertigo.vault",
+    description:
+      "unlock the full vault with step-by-step activity guides, materials lists, and more. one-time purchase, $9.99.",
+    url: `${BASE_URL}/explorer`,
+    siteName: "winded.vertigo",
+  },
+  twitter: {
+    card: "summary",
+    title: "explorer pack — vertigo.vault",
+    description:
+      "step-by-step activity guides, materials lists, and more. one-time purchase, $9.99.",
+  },
 };
 
 export default async function ExplorerPackPage() {
@@ -22,7 +41,41 @@ export default async function ExplorerPackPage() {
   const totalActivities = await getVaultActivityCount();
   const isAlreadyEntitled = accessTier !== "teaser";
 
+  /**
+   * JSON-LD Product structured data for the Explorer pack.
+   * SECURITY: All values below are hard-coded string literals (trusted).
+   * JSON.stringify escapes <, >, &, " — safe for script injection.
+   * This is the standard Next.js pattern for JSON-LD structured data.
+   */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Explorer Pack — vertigo.vault",
+    description:
+      "Unlock the full vault with step-by-step activity guides, materials lists, and more.",
+    url: `${BASE_URL}/explorer`,
+    brand: {
+      "@type": "Organization",
+      name: "winded.vertigo",
+      url: "https://windedvertigo.com",
+    },
+    offers: {
+      "@type": "Offer",
+      price: "9.99",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      url: `${BASE_URL}/explorer`,
+    },
+    category: "Educational Resources",
+  };
+
   return (
+    <>
+    {/* JSON-LD: all values are hard-coded literals, serialised safely */}
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
     <main className="min-h-screen px-6 py-16 max-w-2xl mx-auto">
       <Link
         href="/"
@@ -164,6 +217,7 @@ export default async function ExplorerPackPage() {
         </p>
       </footer>
     </main>
+    </>
   );
 }
 
