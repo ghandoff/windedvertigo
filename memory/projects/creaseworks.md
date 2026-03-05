@@ -7,8 +7,8 @@
 | Key | Value |
 |-----|-------|
 | **App** | Next.js 16 + React 19 + TypeScript |
-| **URL** | https://windedvertigo.com/reservoir/creaseworks |
-| **basePath** | `/reservoir/creaseworks` (set in next.config.ts) |
+| **URL** | https://www.windedvertigo.com/harbour/creaseworks |
+| **basePath** | `/harbour/creaseworks` (set in next.config.ts, on main) |
 | **Vercel project** | creaseworks (ghandoffs-projects) |
 | **Neon DB** | creaseworks-db (divine-dust-87453436) |
 | **Branch** | br-green-cherry-air8nyor |
@@ -18,7 +18,7 @@
 | **TypeScript** | compiles clean (zero errors) |
 | **Tests** | 9 suites, 123 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 49 (Mar 4, 2026) |
+| **Last session** | 50 (Mar 5, 2026) |
 
 ## Notion Database IDs
 
@@ -213,6 +213,25 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ `api/admin/invites/route.ts` — accepts `emails[]` array (backward-compat with `email` string), looks up pack names, loops createInviteWithPacks + sendInviteEmail, returns per-email results
 - ✅ `admin/invites/invite-form.tsx` — textarea for bulk email entry (comma/semicolon/newline parser), count display, dynamic "send N invites" button
 - ✅ CMS env vars set in Vercel: `NOTION_CMS_PAGE_WE`, `NOTION_CMS_PAGE_DO` (P2-6 complete)
+
+### Harbour Sync Admin Page (session 50 — IN PROGRESS)
+- ✅ `app/api/admin/harbour-sync/notion/route.ts` — dispatches GitHub Actions `sync-notion.yml` workflow via API, polls for run URL
+- ✅ `app/api/admin/harbour-sync/redeploy/route.ts` — force-redeploys selected Vercel apps (parallel `Promise.all`, per-app results)
+- ✅ `app/admin/harbour-sync/page.tsx` — server page with `requireAdmin()` auth, back-link to admin hub
+- ✅ `app/admin/harbour-sync/harbour-sync-dashboard.tsx` — two-card client component (Notion sync + force redeploy)
+- ✅ Admin hub navigation updated with ⚓ "harbour sync" card
+- ✅ `turbo.json` — added `GITHUB_TOKEN` to `globalPassThroughEnv`
+- ✅ TypeScript compiles clean, build succeeds, routes appear in output
+- ⬜ **NOT YET COMMITTED** — changes are uncommitted on `laughing-pare` worktree
+- ⬜ **MANUAL SETUP REQUIRED**: Create GitHub fine-grained PAT with `actions:write` → add as `GITHUB_TOKEN` env var on creaseworks Vercel project
+- ⬜ Branch needs rebasing onto main (worktree is behind main's harbour rename)
+
+### Harbour Rename (sessions 49–50 — COMPLETE on main)
+- ✅ PR #42: reservoir → harbor — merged to main
+- ✅ PR #43: harbor → harbour (British English spelling correction) — merged to main
+- ✅ Notion CMS updated: Site Content CMS rows, Harbour Games database, all Href fields
+- ✅ All live URLs verified: `/harbour/*` → 200, `/harbor/*` → 404, `/reservoir/*` → 404
+- ⚠️ **Worktree caveat**: `laughing-pare` worktree branched from pre-rename main (`claude/reservoir-admin-dashboard`), so its local files still say "reservoir" in many places. The harbour-sync feature code uses correct `/harbour/` paths via `apiUrl()` which reads `BASE_PATH` at runtime.
 
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)
