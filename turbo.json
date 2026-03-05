@@ -38,6 +38,7 @@
     "LLM_API_KEY",
     "LLM_MODEL",
     "CRON_SECRET",
+    "VERCEL_ACCESS_TOKEN",
     "NODE_ENV"
   ],
   "tasks": {

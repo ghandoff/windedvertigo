@@ -52,6 +52,30 @@ interface TopItem {
   count: number;
 }
 
+interface RevenueStats {
+  totalRevenueCents: number;
+  revenueThisMonthCents: number;
+  revenueLastMonthCents: number;
+  avgOrderCents: number;
+  purchasesByPack: { name: string; count: number; revenueCents: number }[];
+  revenueTrend: { month: string; revenueCents: number; count: number }[];
+  recentPurchases: {
+    pack: string;
+    amountCents: number;
+    currency: string;
+    createdAt: string;
+  }[];
+}
+
+interface DeploymentInfo {
+  app: string;
+  state: string;
+  url: string;
+  createdAt: number;
+  commitMessage: string;
+  commitRef: string;
+}
+
 interface ReservoirStatus {
   content: ContentCounts;
   users: UserStats;
@@ -61,6 +85,8 @@ interface ReservoirStatus {
   topPlaydates: TopItem[];
   topVaultActivities: TopItem[];
   recentSignups: { month: string; count: number }[];
+  revenue: RevenueStats;
+  deployments: DeploymentInfo[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -82,6 +108,36 @@ const BAR_COLOURS = [
   "#8a3d33",
   brand.champagne,
 ];
+
+/* ------------------------------------------------------------------ */
+/*  helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+function formatCents(cents: number, currency = "AUD"): string {
+  const symbol = currency === "USD" ? "$" : currency === "AUD" ? "A$" : "$";
+  return `${symbol}${(cents / 100).toFixed(2)}`;
+}
+
+function formatDeployAge(timestamp: number): string {
+  if (!timestamp) return "unknown";
+  const now = Date.now();
+  const diffMs = now - timestamp;
+  const mins = Math.floor(diffMs / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+const DEPLOY_STATE_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
+  READY: { bg: "bg-green-100", text: "text-green-700", dot: "bg-green-500" },
+  BUILDING: { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
+  QUEUED: { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
+  ERROR: { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500" },
+  CANCELED: { bg: "bg-gray-100", text: "text-gray-600", dot: "bg-gray-400" },
+};
 
 /* ------------------------------------------------------------------ */
 /*  shared components                                                  */
@@ -199,6 +255,102 @@ function Sparkline({
           </span>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  deployment cards                                                   */
+/* ------------------------------------------------------------------ */
+
+function DeploymentCards({ deployments }: { deployments: DeploymentInfo[] }) {
+  if (deployments.length === 0) {
+    return (
+      <p className="text-sm opacity-50 italic">
+        no deployment data — set VERCEL_ACCESS_TOKEN to enable
+      </p>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {deployments.map((d) => {
+        const style = DEPLOY_STATE_STYLES[d.state] ?? DEPLOY_STATE_STYLES.ERROR;
+        return (
+          <div
+            key={d.app}
+            className="rounded-xl p-4 border"
+            style={{ borderColor: "#e8ddd0", backgroundColor: "#fffbf5" }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold" style={{ color: COLOURS.cadet }}>
+                {d.app}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                {d.state.toLowerCase()}
+              </span>
+            </div>
+            {d.commitMessage && (
+              <p className="text-xs opacity-50 truncate" title={d.commitMessage}>
+                {d.commitMessage}
+              </p>
+            )}
+            <div className="flex items-center justify-between mt-2">
+              {d.commitRef && (
+                <span className="text-xs opacity-40 font-mono">{d.commitRef.slice(0, 20)}</span>
+              )}
+              <span className="text-xs opacity-40">{formatDeployAge(d.createdAt)}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  recent purchases table                                             */
+/* ------------------------------------------------------------------ */
+
+function RecentPurchasesTable({
+  purchases,
+}: {
+  purchases: RevenueStats["recentPurchases"];
+}) {
+  if (purchases.length === 0) {
+    return <p className="text-sm opacity-50 italic">no purchases yet</p>;
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left opacity-50">
+            <th className="pb-2 pr-4 font-medium">pack</th>
+            <th className="pb-2 pr-4 font-medium text-right">amount</th>
+            <th className="pb-2 font-medium text-right">date</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y" style={{ borderColor: "#e8ddd0" }}>
+          {purchases.map((p, i) => (
+            <tr key={`${p.createdAt}-${i}`}>
+              <td className="py-2 pr-4">{p.pack}</td>
+              <td className="py-2 pr-4 text-right font-medium">
+                {formatCents(p.amountCents, p.currency)}
+              </td>
+              <td className="py-2 text-right opacity-50">
+                {new Date(p.createdAt).toLocaleDateString("en-AU", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -329,6 +481,14 @@ export default function ReservoirStatusDashboard() {
         ? `${runDelta} from last month`
         : "same as last month";
 
+  const revDelta = data.revenue.revenueThisMonthCents - data.revenue.revenueLastMonthCents;
+  const revDeltaLabel =
+    revDelta > 0
+      ? `+${formatCents(revDelta)} from last month`
+      : revDelta < 0
+        ? `${formatCents(revDelta)} from last month`
+        : "same as last month";
+
   return (
     <div className="space-y-12">
       {/* ── content inventory ────────────────────────────────────── */}
@@ -452,6 +612,81 @@ export default function ReservoirStatusDashboard() {
           </div>
         </section>
       )}
+
+      {/* ── revenue & purchases ───────────────────────────────────── */}
+      <section>
+        <SectionHeading>revenue & purchases</SectionHeading>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard
+            label="total revenue"
+            value={formatCents(data.revenue.totalRevenueCents)}
+          />
+          <StatCard
+            label="this month"
+            value={formatCents(data.revenue.revenueThisMonthCents)}
+            subtitle={revDeltaLabel}
+          />
+          <StatCard
+            label="last month"
+            value={formatCents(data.revenue.revenueLastMonthCents)}
+          />
+          <StatCard
+            label="avg order"
+            value={formatCents(data.revenue.avgOrderCents)}
+          />
+        </div>
+
+        {/* revenue trend */}
+        {data.revenue.revenueTrend.length > 0 && (
+          <div className="mb-8">
+            <h3
+              className="text-sm font-medium mb-3"
+              style={{ color: COLOURS.cadet }}
+            >
+              revenue trend (6 months)
+            </h3>
+            <Sparkline
+              data={data.revenue.revenueTrend.map((t) => ({
+                month: t.month,
+                count: t.revenueCents,
+              }))}
+              colour={COLOURS.redwood}
+            />
+          </div>
+        )}
+
+        {/* revenue by pack */}
+        {data.revenue.purchasesByPack.length > 0 && (
+          <div className="mb-8">
+            <h3
+              className="text-sm font-medium mb-3"
+              style={{ color: COLOURS.cadet }}
+            >
+              revenue by pack
+            </h3>
+            <HorizontalBar
+              items={data.revenue.purchasesByPack}
+              labelKey="name"
+              valueKey="count"
+            />
+          </div>
+        )}
+
+        {/* recent purchases */}
+        <h3
+          className="text-sm font-medium mb-3"
+          style={{ color: COLOURS.cadet }}
+        >
+          recent purchases
+        </h3>
+        <RecentPurchasesTable purchases={data.revenue.recentPurchases} />
+      </section>
+
+      {/* ── deployment health ──────────────────────────────────────── */}
+      <section>
+        <SectionHeading>deployment health</SectionHeading>
+        <DeploymentCards deployments={data.deployments} />
+      </section>
 
       {/* ── content freshness ─────────────────────────────────────── */}
       <section>
