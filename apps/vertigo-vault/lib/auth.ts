@@ -52,9 +52,9 @@ export const authConfig: NextAuthConfig = {
   session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
 
   /**
-   * Shared cookie config — both vertigo-vault and creaseworks set
-   * cookies on .windedvertigo.com with path=/ so signing in on
-   * one app authenticates you on the other.
+   * Cross-app SSO — both vertigo-vault and the main site set cookies
+   * on .windedvertigo.com with path=/ so signing in on one app
+   * authenticates you on the other.
    */
   cookies: {
     sessionToken: {
@@ -284,7 +284,7 @@ export const authConfig: NextAuthConfig = {
         // Subsequent requests — refresh org/role/entitlement data every 60s.
         // Short window ensures purchases propagate quickly while avoiding
         // a DB round-trip on literally every request.
-        const refreshedAt = (token.refreshedAt as number) || 0;
+        const refreshedAt = token.refreshedAt || 0;
         const refreshInterval = 60 * 1000; // 60 seconds
         if (Date.now() - refreshedAt > refreshInterval) {
           try {

@@ -15,6 +15,9 @@ interface Props {
 export default async function CheckoutSuccessPage({ searchParams }: Props) {
   const { pack } = await searchParams;
   const packName = pack || "your vault pack";
+  const packDetailHref = pack?.toLowerCase().includes("practitioner")
+    ? "/practitioner"
+    : "/explorer";
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
@@ -55,7 +58,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
 
         <div className="mt-6">
           <Link
-            href="/explorer"
+            href={packDetailHref}
             className="text-xs underline transition-opacity hover:opacity-80"
             style={{ color: "var(--vault-text-muted)" }}
           >

@@ -18,10 +18,3 @@ export async function parseJsonBody<T = Record<string, unknown>>(
   }
 }
 
-/**
- * Validate a UUID-shaped string.
- */
-export function isValidUuid(value: unknown): boolean {
-  if (typeof value !== "string") return false;
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-}

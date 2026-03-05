@@ -2,7 +2,7 @@ import Link from "next/link";
 
 /**
  * Accent colours keyed by vault activity type.
- * These match the creaseworks palette for visual consistency.
+ * These match the windedvertigo palette for visual consistency.
  */
 const TYPE_COLORS: Record<string, string> = {
   Energizer: "#AF4F41",

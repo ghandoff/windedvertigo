@@ -1,14 +1,12 @@
 /**
- * SafeHtml — render trusted, admin-controlled HTML from Notion.
+ * SafeHtml — render trusted, admin-controlled HTML synced from Notion.
  *
- * Used for rich-text fields that pass through extractRichTextHtml(),
- * which escapes all text content and only adds structural tags
- * (<strong>, <em>, <a>, etc.) based on Notion's annotations API.
- *
- * SECURITY: The HTML comes from Notion's structured rich_text segments,
- * processed by extractRichTextHtml() which escapes all text via
- * escapeHtml() and only emits a fixed set of safe tags. The source
- * is admin-controlled (only windedvertigo team members can edit Notion).
+ * SECURITY: The HTML stored in the database originates from Notion's
+ * structured rich_text segments, pre-processed at sync time by
+ * creaseworks's extractRichTextHtml() which escapes all text via
+ * escapeHtml() and only emits a fixed set of safe tags (<strong>,
+ * <em>, <a>, etc.). The source is admin-controlled (only windedvertigo
+ * team members can edit Notion).
  *
  * Light styling via Tailwind's prose-like utilities keeps rendered
  * HTML consistent with the surrounding brand typography.
