@@ -60,6 +60,18 @@
                                     "destination": "https://deep-deck-ghandoffs-projects.vercel.app/reservoir/deep-deck/:path*"
                     },
                     {
+                                    "source": "/reservoir/admin/login",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/login"
+                    },
+                    {
+                                    "source": "/reservoir/admin",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/admin"
+                    },
+                    {
+                                    "source": "/reservoir/admin/:path*",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/admin/:path*"
+                    },
+                    {
                                     "source": "/reservoir",
                                     "destination": "https://reservoir-ghandoffs-projects.vercel.app/reservoir"
                     },

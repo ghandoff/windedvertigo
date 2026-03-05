@@ -55,6 +55,30 @@ export interface TopItem {
   count: number;
 }
 
+export interface RevenueStats {
+  totalRevenueCents: number;
+  revenueThisMonthCents: number;
+  revenueLastMonthCents: number;
+  avgOrderCents: number;
+  purchasesByPack: { name: string; count: number; revenueCents: number }[];
+  revenueTrend: { month: string; revenueCents: number; count: number }[];
+  recentPurchases: {
+    pack: string;
+    amountCents: number;
+    currency: string;
+    createdAt: string;
+  }[];
+}
+
+export interface DeploymentInfo {
+  app: string;
+  state: string;
+  url: string;
+  createdAt: number;
+  commitMessage: string;
+  commitRef: string;
+}
+
 export interface ReservoirStatus {
   content: ContentCounts;
   users: UserStats;
@@ -64,6 +88,8 @@ export interface ReservoirStatus {
   topPlaydates: TopItem[];
   topVaultActivities: TopItem[];
   recentSignups: { month: string; count: number }[];
+  revenue: RevenueStats;
+  deployments: DeploymentInfo[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -81,6 +107,8 @@ export async function getReservoirStatus(): Promise<ReservoirStatus> {
     topPlaydatesResult,
     topVaultResult,
     signupTrendResult,
+    revenueResult,
+    deploymentsResult,
   ] = await Promise.all([
     queryContentCounts(),
     queryUserStats(),
@@ -90,6 +118,8 @@ export async function getReservoirStatus(): Promise<ReservoirStatus> {
     queryTopPlaydates(),
     queryTopVaultActivities(),
     querySignupTrend(),
+    queryRevenue(),
+    queryDeployments(),
   ]);
 
   return {
@@ -101,6 +131,8 @@ export async function getReservoirStatus(): Promise<ReservoirStatus> {
     topPlaydates: topPlaydatesResult,
     topVaultActivities: topVaultResult,
     recentSignups: signupTrendResult,
+    revenue: revenueResult,
+    deployments: deploymentsResult,
   };
 }
 
@@ -293,4 +325,153 @@ async function querySignupTrend(): Promise<{ month: string; count: number }[]> {
     ORDER BY month ASC
   `);
   return r.rows;
+}
+
+/* ------------------------------------------------------------------ */
+/*  revenue queries                                                    */
+/* ------------------------------------------------------------------ */
+
+async function queryRevenue(): Promise<RevenueStats> {
+  try {
+    const [totalsRes, byPackRes, trendRes, recentRes] = await Promise.all([
+      sql.query(`
+        SELECT
+          COALESCE(SUM(amount_cents), 0)::int AS total,
+          COALESCE(SUM(amount_cents) FILTER (
+            WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)
+          ), 0)::int AS this_month,
+          COALESCE(SUM(amount_cents) FILTER (
+            WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+              AND created_at < DATE_TRUNC('month', CURRENT_DATE)
+          ), 0)::int AS last_month,
+          COALESCE(AVG(amount_cents), 0)::int AS avg_order,
+          COUNT(*)::int AS total_count
+        FROM purchases
+        WHERE status = 'completed'
+      `),
+      sql.query(`
+        SELECT
+          COALESCE(pc.name, 'unknown') AS name,
+          COUNT(*)::int AS count,
+          COALESCE(SUM(p.amount_cents), 0)::int AS revenue_cents
+        FROM purchases p
+        LEFT JOIN packs_catalogue pc ON pc.id = p.pack_catalogue_id
+        WHERE p.status = 'completed'
+        GROUP BY pc.name
+        ORDER BY revenue_cents DESC
+        LIMIT 10
+      `),
+      sql.query(`
+        SELECT
+          TO_CHAR(created_at, 'YYYY-MM') AS month,
+          COALESCE(SUM(amount_cents), 0)::int AS revenue_cents,
+          COUNT(*)::int AS count
+        FROM purchases
+        WHERE status = 'completed'
+          AND created_at >= (CURRENT_DATE - INTERVAL '6 months')
+        GROUP BY month
+        ORDER BY month ASC
+      `),
+      sql.query(`
+        SELECT
+          COALESCE(pc.name, 'unknown') AS pack,
+          p.amount_cents,
+          p.currency,
+          p.created_at::text AS created_at
+        FROM purchases p
+        LEFT JOIN packs_catalogue pc ON pc.id = p.pack_catalogue_id
+        WHERE p.status = 'completed'
+        ORDER BY p.created_at DESC
+        LIMIT 5
+      `),
+    ]);
+
+    const totals = totalsRes.rows[0];
+    return {
+      totalRevenueCents: totals?.total ?? 0,
+      revenueThisMonthCents: totals?.this_month ?? 0,
+      revenueLastMonthCents: totals?.last_month ?? 0,
+      avgOrderCents: totals?.avg_order ?? 0,
+      purchasesByPack: byPackRes.rows.map((r: any) => ({
+        name: r.name,
+        count: r.count,
+        revenueCents: r.revenue_cents,
+      })),
+      revenueTrend: trendRes.rows.map((r: any) => ({
+        month: r.month,
+        revenueCents: r.revenue_cents,
+        count: r.count,
+      })),
+      recentPurchases: recentRes.rows.map((r: any) => ({
+        pack: r.pack,
+        amountCents: r.amount_cents,
+        currency: r.currency,
+        createdAt: r.created_at,
+      })),
+    };
+  } catch {
+    // purchases table may not exist in some environments
+    return {
+      totalRevenueCents: 0,
+      revenueThisMonthCents: 0,
+      revenueLastMonthCents: 0,
+      avgOrderCents: 0,
+      purchasesByPack: [],
+      revenueTrend: [],
+      recentPurchases: [],
+    };
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  deployment queries (Vercel REST API)                               */
+/* ------------------------------------------------------------------ */
+
+const VERCEL_APPS: { name: string; projectId: string }[] = [
+  { name: "site", projectId: "prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx" },
+  { name: "reservoir", projectId: "prj_KqjKxyhlGTublMolccOkvLFBZ8Xn" },
+  { name: "creaseworks", projectId: "prj_EoDpRvw1kdAqcGVrcaYclfWFeX7b" },
+  { name: "deep-deck", projectId: "prj_Z2zpJXnsOrVp5hyoJ89ERuQHmOru" },
+  { name: "vertigo-vault", projectId: "prj_KHsZ60sQpj3ipSB5lzy9CGVAUYaW" },
+  { name: "nordic-sqr-rct", projectId: "prj_laAl3qm5w20CrtIjO2klc9dj180z" },
+];
+
+const VERCEL_TEAM_ID = "team_wrpRda7ZzXdu7nKcEVVXY3th";
+
+async function queryDeployments(): Promise<DeploymentInfo[]> {
+  const token = process.env.VERCEL_ACCESS_TOKEN;
+  if (!token) return [];
+
+  const results: DeploymentInfo[] = [];
+
+  // Fetch latest production deployment for each app in parallel
+  const fetches = VERCEL_APPS.map(async (app) => {
+    try {
+      const url = `https://api.vercel.com/v6/deployments?projectId=${app.projectId}&teamId=${VERCEL_TEAM_ID}&limit=1&target=production`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const d = data.deployments?.[0];
+      if (!d) return null;
+      return {
+        app: app.name,
+        state: d.state ?? "UNKNOWN",
+        url: d.url ?? "",
+        createdAt: d.created ?? 0,
+        commitMessage: (d.meta?.githubCommitMessage ?? "").slice(0, 80),
+        commitRef: d.meta?.githubCommitRef ?? "",
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const settled = await Promise.all(fetches);
+  for (const d of settled) {
+    if (d) results.push(d);
+  }
+  return results;
 }
