@@ -28,7 +28,7 @@ import { getUserTier } from "@/lib/queries/accessibility";
  * module initialisation the config has secret, trustHost etc. filled in.
  */
 export const authConfig: NextAuthConfig = {
-  basePath: "/harbor/creaseworks/api/auth",
+  basePath: "/harbour/creaseworks/api/auth",
 
   providers: [
     Resend({

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: "/harbor/deep-deck",
+  basePath: "/harbour/deep-deck",
   poweredByHeader: false,
 
   async headers() {

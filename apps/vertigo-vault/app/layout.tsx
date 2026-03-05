@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   description:
     "a curated collection of group activities, energizers, and reflective exercises designed to spark curiosity, collaboration, and creative thinking.",
   alternates: {
-    canonical: "/harbor/vertigo-vault",
+    canonical: "/harbour/vertigo-vault",
   },
   openGraph: {
     type: "website",
     title: "vertigo.vault — winded.vertigo",
     description:
       "a curated collection of learning activities, energizers, and reflections designed to spark curiosity, collaboration, and creative thinking.",
-    url: "/harbor/vertigo-vault",
+    url: "/harbour/vertigo-vault",
     siteName: "winded.vertigo",
     images: [{ url: "/images/logo.png", width: 512, height: 512 }],
   },

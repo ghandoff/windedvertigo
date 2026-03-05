@@ -5,7 +5,7 @@ import { brand } from "@windedvertigo/tokens";
 import { apiUrl } from "@/lib/api-url";
 
 /* ------------------------------------------------------------------ */
-/*  types (mirroring server-side HarborStatus)                         */
+/*  types (mirroring server-side HarbourStatus)                         */
 /* ------------------------------------------------------------------ */
 
 interface ContentCounts {
@@ -76,7 +76,7 @@ interface DeploymentInfo {
   commitRef: string;
 }
 
-interface HarborStatus {
+interface HarbourStatus {
   content: ContentCounts;
   users: UserStats;
   entitlements: EntitlementStats;
@@ -427,15 +427,15 @@ function FreshnessTable({ data }: { data: ContentFreshness[] }) {
 /*  main component                                                     */
 /* ------------------------------------------------------------------ */
 
-export default function HarborStatusDashboard() {
-  const [data, setData] = useState<HarborStatus | null>(null);
+export default function HarbourStatusDashboard() {
+  const [data, setData] = useState<HarbourStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(apiUrl("/api/admin/harbor-status"))
+    fetch(apiUrl("/api/admin/harbour-status"))
       .then(async (res) => {
-        if (!res.ok) throw new Error("failed to load harbor status");
+        if (!res.ok) throw new Error("failed to load harbour status");
         return res.json();
       })
       .then(setData)

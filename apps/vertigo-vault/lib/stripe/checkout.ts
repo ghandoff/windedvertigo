@@ -15,7 +15,7 @@ import { sql } from "@/lib/db";
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ||
-  "https://windedvertigo.com/harbor/vertigo-vault";
+  "https://windedvertigo.com/harbour/vertigo-vault";
 
 /**
  * Get or create a Stripe customer for an org.

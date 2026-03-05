@@ -1,6 +1,6 @@
 /**
  * Prefix an API path with the Next.js basePath so client-side `fetch()` calls
- * reach the correct Vercel deployment under the `/harbor/creaseworks` prefix.
+ * reach the correct Vercel deployment under the `/harbour/creaseworks` prefix.
  *
  * Next.js automatically prepends `basePath` to `<Link>`, `router.push()`, and
  * `<Image>` URLs, but plain `fetch()` calls are raw browser requests that need
@@ -9,7 +9,7 @@
  * Usage:
  *   fetch(apiUrl("/api/matcher"), { method: "POST", ... })
  */
-const BASE_PATH = "/harbor/creaseworks";
+const BASE_PATH = "/harbour/creaseworks";
 
 export function apiUrl(path: string): string {
   // Avoid double-prefixing if the path already starts with basePath

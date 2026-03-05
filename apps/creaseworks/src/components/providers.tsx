@@ -5,7 +5,7 @@ import PwaInstall from "@/components/pwa-install";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider basePath="/harbor/creaseworks/api/auth">
+    <SessionProvider basePath="/harbour/creaseworks/api/auth">
       {children}
       <PwaInstall />
     </SessionProvider>

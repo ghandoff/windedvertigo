@@ -11,7 +11,7 @@
  *
  * The <img> src uses apiUrl() to prepend the basePath, because raw
  * <img> tags don't get Next.js basePath treatment like <Image> does.
- * Files in public/ are served under /harbor/creaseworks/ in prod.
+ * Files in public/ are served under /harbour/creaseworks/ in prod.
  */
 
 /* eslint-disable @next/next/no-img-element */
@@ -23,7 +23,7 @@ export default function Footer() {
     <footer className="wv-footer">
       <div className="wv-footer-inner">
         {/* brand logo — links to parent windedvertigo.com homepage.
-            plain <a> escapes Next.js basePath (/harbor/creaseworks). */}
+            plain <a> escapes Next.js basePath (/harbour/creaseworks). */}
         <a href="/" className="wv-footer-brand" aria-label="winded.vertigo home">
           <img
             src={apiUrl("/images/wv-logo.png")}
