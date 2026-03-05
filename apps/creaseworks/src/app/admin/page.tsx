@@ -65,6 +65,12 @@ const sections = [
     icon: "🔄",
   },
   {
+    title: "harbour sync",
+    href: "/admin/harbour-sync",
+    description: "trigger Notion CMS content sync or force-redeploy harbour apps",
+    icon: "⚓",
+  },
+  {
     title: "harbour status",
     href: "/admin/harbour-status",
     description: "cross-platform health — content, users, entitlements, and sync freshness",
