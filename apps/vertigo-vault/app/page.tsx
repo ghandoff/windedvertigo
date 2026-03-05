@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
-import { resolveVaultTier, getVaultActivities } from "@/lib/queries/vault";
+import { resolveVaultTier, getVaultActivities, type VaultAccessTier } from "@/lib/queries/vault";
 import VaultActivityGrid from "@/components/vault-activity-grid";
 
 export const dynamic = "force-dynamic";
@@ -71,15 +71,18 @@ export default async function VaultCatalogPage() {
               </p>
             </div>
 
-            {/* auth actions */}
+            {/* auth + tier info */}
             <div className="flex items-center gap-3">
               {session ? (
-                <span
-                  className="text-xs"
-                  style={{ color: "var(--vault-text-muted)" }}
-                >
-                  signed in as {session.email}
-                </span>
+                <div className="flex items-center gap-3">
+                  <TierBadge tier={accessTier} />
+                  <span
+                    className="text-xs"
+                    style={{ color: "var(--vault-text-muted)" }}
+                  >
+                    {session.email}
+                  </span>
+                </div>
               ) : (
                 <Link
                   href="/login"
@@ -96,34 +99,8 @@ export default async function VaultCatalogPage() {
           </div>
         </header>
 
-        {/* upsell CTA — show only to non-entitled users */}
-        {!isEntitled && (
-          <div
-            className="mb-8 rounded-xl border px-6 py-4 flex items-center justify-between gap-4 flex-wrap"
-            style={{
-              borderColor: "var(--vault-border)",
-              backgroundColor: "rgba(107,142,107,0.08)",
-            }}
-          >
-            <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
-              <span className="font-medium" style={{ color: "var(--vault-text)" }}>
-                unlock the full vault.
-              </span>{" "}
-              get access to step-by-step guides, facilitator notes, video walkthroughs,
-              and more activities.
-            </p>
-            <Link
-              href="/explorer"
-              className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
-              style={{
-                backgroundColor: "rgba(107,142,107,0.25)",
-                color: "rgba(255,255,255,0.85)",
-              }}
-            >
-              explore packs &rarr;
-            </Link>
-          </div>
-        )}
+        {/* tier-aware banner */}
+        <TierBanner tier={accessTier} activityCount={activities.length} />
 
         <div id="vault-gallery">
           <VaultActivityGrid activities={activities} isEntitled={isEntitled} />
@@ -143,5 +120,152 @@ export default async function VaultCatalogPage() {
         </footer>
       </main>
     </>
+  );
+}
+
+/* ── helper components ──────────────────────────────────────────── */
+
+const TIER_LABELS: Record<VaultAccessTier, string> = {
+  teaser: "free",
+  entitled: "explorer pack",
+  practitioner: "practitioner pack",
+  internal: "internal",
+};
+
+const TIER_STYLES: Record<VaultAccessTier, { bg: string; color: string }> = {
+  teaser: { bg: "rgba(255,255,255,0.06)", color: "var(--vault-text-muted)" },
+  entitled: { bg: "rgba(175,79,65,0.15)", color: "#d4836f" },
+  practitioner: { bg: "rgba(155,67,67,0.15)", color: "#c47373" },
+  internal: { bg: "rgba(175,79,65,0.15)", color: "var(--vault-accent)" },
+};
+
+function TierBadge({ tier }: { tier: VaultAccessTier }) {
+  const style = TIER_STYLES[tier];
+  return (
+    <span
+      className="rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider whitespace-nowrap"
+      style={{ backgroundColor: style.bg, color: style.color }}
+    >
+      {TIER_LABELS[tier]}
+    </span>
+  );
+}
+
+function TierBanner({
+  tier,
+  activityCount,
+}: {
+  tier: VaultAccessTier;
+  activityCount: number;
+}) {
+  // teaser → upsell to explore packs
+  if (tier === "teaser") {
+    return (
+      <div
+        className="mb-8 rounded-xl border px-6 py-4 flex items-center justify-between gap-4 flex-wrap"
+        style={{
+          borderColor: "var(--vault-border)",
+          backgroundColor: "rgba(107,142,107,0.08)",
+        }}
+      >
+        <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
+          <span className="font-medium" style={{ color: "var(--vault-text)" }}>
+            unlock the full vault.
+          </span>{" "}
+          get access to step-by-step guides, facilitator notes, video walkthroughs,
+          and more activities.
+        </p>
+        <Link
+          href="/explorer"
+          className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
+          style={{
+            backgroundColor: "rgba(107,142,107,0.25)",
+            color: "rgba(255,255,255,0.85)",
+          }}
+        >
+          explore packs &rarr;
+        </Link>
+      </div>
+    );
+  }
+
+  // entitled → show current pack + upsell to practitioner
+  if (tier === "entitled") {
+    return (
+      <div
+        className="mb-8 rounded-xl border px-6 py-4 flex items-center justify-between gap-4 flex-wrap"
+        style={{
+          borderColor: "rgba(175,79,65,0.2)",
+          backgroundColor: "rgba(175,79,65,0.06)",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-lg leading-none">📖</span>
+          <div>
+            <p className="text-sm font-medium" style={{ color: "var(--vault-text)" }}>
+              explorer pack
+            </p>
+            <p className="text-xs" style={{ color: "var(--vault-text-muted)" }}>
+              you have access to {activityCount} activities with full guides and
+              materials.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/practitioner"
+          className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
+          style={{
+            backgroundColor: "rgba(175,79,65,0.2)",
+            color: "rgba(255,255,255,0.85)",
+          }}
+        >
+          upgrade to practitioner &rarr;
+        </Link>
+      </div>
+    );
+  }
+
+  // practitioner → show current pack, fully unlocked
+  if (tier === "practitioner") {
+    return (
+      <div
+        className="mb-8 rounded-xl border px-6 py-4 flex items-center gap-3"
+        style={{
+          borderColor: "rgba(155,67,67,0.2)",
+          backgroundColor: "rgba(155,67,67,0.06)",
+        }}
+      >
+        <span className="text-lg leading-none">🎓</span>
+        <div>
+          <p className="text-sm font-medium" style={{ color: "var(--vault-text)" }}>
+            practitioner pack
+          </p>
+          <p className="text-xs" style={{ color: "var(--vault-text-muted)" }}>
+            full access to all {activityCount} activities including facilitator
+            notes and video walkthroughs.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // internal → dev indicator
+  return (
+    <div
+      className="mb-8 rounded-xl border px-6 py-4 flex items-center gap-3"
+      style={{
+        borderColor: "var(--vault-border)",
+        backgroundColor: "rgba(255,255,255,0.02)",
+      }}
+    >
+      <span
+        className="inline-block w-2 h-2 rounded-full"
+        style={{ backgroundColor: "var(--vault-accent)" }}
+      />
+      <p className="text-xs" style={{ color: "var(--vault-text-muted)" }}>
+        internal view — all {activityCount} activities visible with full
+        metadata
+      </p>
+    </div>
   );
 }
