@@ -69,6 +69,7 @@ module.exports = {
       duration: 'duration',
       format: 'format',
       type: 'type',
+      tier: 'tier',
       skillsDeveloped: 'skills developed',
       filesMedia: 'files & media',
     },

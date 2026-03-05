@@ -126,15 +126,8 @@
       background: #1e2738;
       border-radius: 10px;
       overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
       display: flex;
       flex-direction: column;
-    }
-
-    .vault-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .card-cover {
@@ -232,199 +225,54 @@
     }
 
     /* ========================================
-       DETAIL MODAL
+       VAULT CTA BANNER
        ======================================== */
 
-    .vault-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+    .vault-cta {
+      text-align: center;
+      margin-top: 48px;
+      margin-bottom: 40px;
+      padding: 40px 24px;
+      background: linear-gradient(135deg, rgba(175, 79, 65, 0.12), rgba(175, 79, 65, 0.04));
+      border: 1px solid rgba(175, 79, 65, 0.25);
+      border-radius: 16px;
     }
 
-    .vault-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .vault-modal {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 100%;
-      max-width: 560px;
-      height: 100vh;
-      background: #1e2738;
-      z-index: 1001;
-      overflow-y: auto;
-      transform: translateX(100%);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .vault-modal.open {
-      transform: translateX(0);
-    }
-
-    .modal-color-bar {
-      height: 6px;
-      width: 100%;
-    }
-
-    .modal-header {
-      padding: 28px 32px 0;
-      position: relative;
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 28px;
-      right: 28px;
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 28px;
-      cursor: pointer;
-      line-height: 1;
-      padding: 4px;
-      transition: color 0.2s ease;
-    }
-
-    .modal-close:hover {
+    .vault-cta-title {
+      font-size: 22px;
+      font-weight: 700;
       color: #ffffff;
+      margin-bottom: 8px;
+      text-transform: lowercase;
     }
 
-    .modal-type-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
+    .vault-cta-text {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      max-width: 420px;
+      margin: 0 auto 20px;
+      line-height: 1.6;
     }
 
-    .modal-type-badge {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--accent, #AF4F41);
-    }
-
-    .modal-duration {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.5);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .modal-duration::before {
-      content: '';
+    .vault-cta-btn {
       display: inline-block;
-      width: 14px;
-      height: 14px;
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E") no-repeat center;
-    }
-
-    .modal-name {
-      font-size: 32px;
-      font-weight: 700;
+      padding: 12px 32px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
       text-transform: lowercase;
+      text-decoration: none;
       color: #ffffff;
-      margin-bottom: 8px;
-      line-height: 1.2;
-      padding-right: 40px;
+      background: var(--accent, #AF4F41);
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
     }
 
-    .modal-headline {
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.6);
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
-
-    .modal-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-
-    .modal-tag {
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.6);
-      white-space: nowrap;
-    }
-
-    .modal-body {
-      padding: 24px 32px 40px;
-    }
-
-    .modal-section-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--accent, #AF4F41);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 16px;
-    }
-
-    .modal-content {
-      font-size: 15px;
-      line-height: 1.8;
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    .modal-content h2 {
-      font-size: 16px;
-      font-weight: 700;
-      color: #ffebd2;
-      margin-top: 28px;
-      margin-bottom: 10px;
-      text-transform: lowercase;
-    }
-
-    .modal-content h2:first-child {
-      margin-top: 0;
-    }
-
-    .modal-content p {
-      margin-bottom: 12px;
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .modal-content ol,
-    .modal-content ul {
-      margin-bottom: 12px;
-      padding-left: 20px;
-    }
-
-    .modal-content li {
-      margin-bottom: 6px;
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .modal-content li li {
-      margin-top: 4px;
-    }
-
-    .modal-skills {
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .modal-skills-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+    .vault-cta-btn:hover {
+      background: #c45a4a;
+      transform: translateY(-1px);
     }
 
     .skill-tag {
@@ -461,27 +309,6 @@
       .vault-grid {
         grid-template-columns: 1fr;
         gap: 14px;
-      }
-
-      .vault-modal {
-        max-width: 100%;
-      }
-
-      .modal-header {
-        padding: 20px 20px 0;
-      }
-
-      .modal-body {
-        padding: 20px 20px 40px;
-      }
-
-      .modal-name {
-        font-size: 26px;
-      }
-
-      .modal-close {
-        top: 20px;
-        right: 16px;
       }
 
       .filter-divider {
@@ -556,24 +383,12 @@
     </div>
   </main>
 
-  <!-- Detail modal -->
-  <div class="vault-overlay" id="vault-overlay"></div>
-  <div class="vault-modal" id="vault-modal" role="dialog" aria-modal="true" aria-label="Activity details">
-    <div class="modal-color-bar" id="modal-color-bar"></div>
-    <div class="modal-header">
-      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
-      <div class="modal-type-row" id="modal-type-row"></div>
-      <h2 class="modal-name" id="modal-name"></h2>
-      <p class="modal-headline" id="modal-headline"></p>
-      <div class="modal-tags" id="modal-format-tags"></div>
-    </div>
-    <div class="modal-body">
-      <div class="modal-section-label">instructions</div>
-      <div class="modal-content" id="modal-content"></div>
-      <div class="modal-skills" id="modal-skills">
-        <div class="modal-section-label">skills developed</div>
-        <div class="modal-skills-grid" id="modal-skills-grid"></div>
-      </div>
+  <!-- Vault CTA banner -->
+  <div class="vault-page">
+    <div class="vault-cta">
+      <h2 class="vault-cta-title">want access to the full vault?</h2>
+      <p class="vault-cta-text">unlock all activities with step-by-step instructions, facilitator notes, and materials.</p>
+      <a class="vault-cta-btn" href="/reservoir/vertigo-vault">explore vertigo.vault</a>
     </div>
   </div>
 
@@ -623,96 +438,6 @@
     let filterDuration = 'all';
 
     // ========================================
-    // MARKDOWN-LITE → HTML
-    // ========================================
-    function markdownToHtml(md) {
-      if (!md) return '';
-      let html = md
-        // Headers
-        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-        // Bold
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        // Italic
-        .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
-        // Smart quotes
-        .replace(/\u201c/g, '\u201c').replace(/\u201d/g, '\u201d')
-        .replace(/\u2019/g, '\u2019');
-
-      // Process lines into paragraphs and lists
-      const lines = html.split('\n');
-      let result = '';
-      let inList = false;
-      let listType = '';
-      let listDepth = 0;
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmed = line.trim();
-
-        if (trimmed === '') {
-          if (inList) {
-            result += '</' + listType + '>';
-            inList = false;
-          }
-          continue;
-        }
-
-        // Already an HTML tag
-        if (trimmed.startsWith('<h2>')) {
-          if (inList) { result += '</' + listType + '>'; inList = false; }
-          result += trimmed;
-          continue;
-        }
-
-        // Numbered list
-        const olMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
-        if (olMatch) {
-          if (!inList || listType !== 'ol') {
-            if (inList) result += '</' + listType + '>';
-            result += '<ol>';
-            inList = true;
-            listType = 'ol';
-          }
-          result += '<li>' + olMatch[2] + '</li>';
-          continue;
-        }
-
-        // Bullet list
-        if (trimmed.startsWith('- ')) {
-          if (!inList || listType !== 'ul') {
-            if (inList) result += '</' + listType + '>';
-            result += '<ul>';
-            inList = true;
-            listType = 'ul';
-          }
-          result += '<li>' + trimmed.substring(2) + '</li>';
-          continue;
-        }
-
-        // Indented sub-items (treat as continuation)
-        if ((line.startsWith('   ') || line.startsWith('\t')) && inList) {
-          const subOl = trimmed.match(/^(\d+)\.\s+(.+)/);
-          const subUl = trimmed.startsWith('- ');
-          if (subOl) {
-            result += '<li>' + subOl[2] + '</li>';
-          } else if (subUl) {
-            result += '<li>' + trimmed.substring(2) + '</li>';
-          } else {
-            result += '<li>' + trimmed + '</li>';
-          }
-          continue;
-        }
-
-        // Regular paragraph
-        if (inList) { result += '</' + listType + '>'; inList = false; }
-        result += '<p>' + trimmed + '</p>';
-      }
-
-      if (inList) result += '</' + listType + '>';
-      return result;
-    }
-
-    // ========================================
     // RENDER GALLERY
     // ========================================
     function getFiltered() {
@@ -745,7 +470,7 @@
           : '';
         const barExtra = a.coverImage ? ' has-cover' : '';
         return `
-          <div class="vault-card" data-id="${a.id}" tabindex="0" role="button" aria-label="View ${a.name}">
+          <div class="vault-card" data-id="${a.id}">
             ${coverHtml}
             <div class="card-color-bar${barExtra} ${tc.cls}"></div>
             <div class="card-body">
@@ -763,16 +488,6 @@
         `;
       }).join('');
 
-      // Attach click listeners
-      grid.querySelectorAll('.vault-card').forEach(card => {
-        card.addEventListener('click', () => openModal(card.dataset.id));
-        card.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            openModal(card.dataset.id);
-          }
-        });
-      });
     }
 
     // ========================================
@@ -824,52 +539,6 @@
         renderGallery();
       });
     }
-
-    // ========================================
-    // MODAL
-    // ========================================
-    function openModal(id) {
-      const a = activities.find(act => act.id === id);
-      if (!a) return;
-
-      const tc = getTypeColor(a.type);
-      const overlay = document.getElementById('vault-overlay');
-      const modal = document.getElementById('vault-modal');
-
-      document.getElementById('modal-color-bar').className = 'modal-color-bar ' + tc.cls;
-      document.getElementById('modal-type-row').innerHTML = `
-        <span class="modal-type-badge">${(a.type || []).join(' / ')}</span>
-        <span class="modal-duration">${a.duration || ''}</span>
-      `;
-      document.getElementById('modal-name').textContent = a.name;
-      document.getElementById('modal-headline').textContent = a.headline || '';
-      document.getElementById('modal-format-tags').innerHTML = (a.format || []).map(f =>
-        `<span class="modal-tag">${f.toLowerCase()}</span>`
-      ).join('');
-      document.getElementById('modal-content').innerHTML = markdownToHtml(a.content);
-      document.getElementById('modal-skills-grid').innerHTML = (a.skillsDeveloped || []).map(s =>
-        `<span class="skill-tag">${s.toLowerCase()}</span>`
-      ).join('');
-
-      overlay.classList.add('open');
-      modal.classList.add('open');
-      document.body.style.overflow = 'hidden';
-
-      // Focus management
-      document.getElementById('modal-close').focus();
-    }
-
-    function closeModal() {
-      document.getElementById('vault-overlay').classList.remove('open');
-      document.getElementById('vault-modal').classList.remove('open');
-      document.body.style.overflow = '';
-    }
-
-    document.getElementById('modal-close').addEventListener('click', closeModal);
-    document.getElementById('vault-overlay').addEventListener('click', closeModal);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
-    });
 
     // ========================================
     // LOAD DATA & INIT
