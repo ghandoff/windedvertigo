@@ -121,6 +121,7 @@ export async function createCheckoutSession(opts: {
       packCacheId: opts.packCacheId,
       catalogueId: opts.catalogueId,
       userId: opts.userId,
+      packTitle: opts.packTitle,
       source: "vertigo-vault",
     },
     allow_promotion_codes: true,

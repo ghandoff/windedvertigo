@@ -4,6 +4,20 @@ import LoginForm from "@/components/ui/login-form";
 
 export const metadata = { title: "sign in — vertigo.vault" };
 
+const ERROR_MESSAGES: Record<string, string> = {
+  Verification:
+    "the magic link has expired or was already used. please request a new one.",
+  OAuthAccountNotLinked:
+    "that email is already linked to a different sign-in method. try using the same method you used before.",
+  AccessDenied:
+    "access was denied. your google workspace may restrict third-party apps.",
+  OAuthCallback: "google sign-in was interrupted. please try again.",
+  OAuthCallbackError: "google sign-in was interrupted. please try again.",
+  OAuthSignin: "could not connect to google. please try again.",
+  Configuration:
+    "sign-in is temporarily unavailable. please try again later.",
+};
+
 export default async function LoginPage({
   searchParams,
 }: {
@@ -46,9 +60,7 @@ export default async function LoginPage({
             className="mb-6 p-3 rounded-lg text-sm text-center"
             style={{ backgroundColor: "rgba(175,79,65,0.15)", color: "#d4836f" }}
           >
-            {error === "Verification"
-              ? "the magic link has expired or was already used. please request a new one."
-              : "something went wrong. please try again."}
+            {ERROR_MESSAGES[error] ?? "something went wrong. please try again."}
           </div>
         )}
 
@@ -58,7 +70,7 @@ export default async function LoginPage({
               className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
               style={{ backgroundColor: "rgba(175,79,65,0.12)" }}
             >
-              <span className="text-2xl">{"✉"}</span>
+              <span className="text-2xl">{"\u2709"}</span>
             </div>
             <h2
               className="text-xl font-bold"
@@ -69,7 +81,7 @@ export default async function LoginPage({
             <p style={{ color: "var(--vault-text-muted)" }}>
               we sent you a magic link.
               <br />
-              click it to sign in — no password needed.
+              click it to sign in &mdash; no password needed.
             </p>
           </div>
         ) : (
@@ -84,7 +96,7 @@ export default async function LoginPage({
             className="text-xs underline"
             style={{ color: "var(--vault-text-muted)" }}
           >
-            ← back to vault
+            &larr; back to vault
           </a>
         </div>
       </div>
