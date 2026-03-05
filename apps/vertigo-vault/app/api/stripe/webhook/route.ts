@@ -3,13 +3,14 @@
  *
  * Processes checkout.session.completed events:
  * 1. Verify webhook signature
- * 2. Check idempotency (no duplicate purchases)
- * 3. Create purchase record
- * 4. Grant entitlement (org-level or user-level)
+ * 2. Confirm payment_status === "paid"
+ * 3. Check idempotency (no duplicate purchases)
+ * 4. Atomically create purchase record + grant entitlement
  */
 
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe/client";
+import { sql } from "@/lib/db";
 import { createPurchase, getPurchaseByStripeSessionId } from "@/lib/queries/purchases";
 import { grantEntitlement, grantUserEntitlement } from "@/lib/queries/entitlements";
 
@@ -39,6 +40,16 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
+    // ── Payment status gate ────────────────────────────────────────
+    // For async payment methods (bank transfer, SEPA, etc.) the session
+    // completes before the money lands. Only grant access when paid.
+    if (session.payment_status !== "paid") {
+      console.log(
+        `[webhook] session ${session.id} payment_status="${session.payment_status}", deferring`,
+      );
+      return NextResponse.json({ received: true });
+    }
+
     // Idempotency check
     const existing = await getPurchaseByStripeSessionId(session.id);
     if (existing) {
@@ -53,30 +64,45 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "missing metadata" }, { status: 400 });
     }
 
-    // Create purchase record
-    const purchaseId = await createPurchase({
-      orgId: orgId || null,
-      packCatalogueId: catalogueId,
-      purchaserId: userId,
-      amountCents: session.amount_total ?? 0,
-      currency: session.currency ?? "usd",
-      paymentProvider: "stripe",
-      paymentRef: session.payment_intent as string | null,
-      stripeSessionId: session.id,
-      stripePaymentIntentId: session.payment_intent as string | null,
-    });
+    // ── Atomic purchase + entitlement grant ─────────────────────────
+    // Wrap in a transaction so we never end up with an orphaned purchase
+    // record without a matching entitlement (or vice versa).
+    try {
+      await sql.query("BEGIN");
 
-    // Grant entitlement — org-level if orgId present, user-level otherwise
-    if (orgId) {
-      await grantEntitlement(orgId, packCacheId, purchaseId);
-    } else {
-      await grantUserEntitlement(userId, packCacheId, null, purchaseId);
+      const purchaseId = await createPurchase({
+        orgId: orgId || null,
+        packCatalogueId: catalogueId,
+        purchaserId: userId,
+        amountCents: session.amount_total ?? 0,
+        currency: session.currency ?? "usd",
+        paymentProvider: "stripe",
+        paymentRef: session.payment_intent as string | null,
+        stripeSessionId: session.id,
+        stripePaymentIntentId: session.payment_intent as string | null,
+      });
+
+      // Grant entitlement — org-level if orgId present, user-level otherwise
+      if (orgId) {
+        await grantEntitlement(orgId, packCacheId, purchaseId);
+      } else {
+        await grantUserEntitlement(userId, packCacheId, null, purchaseId);
+      }
+
+      await sql.query("COMMIT");
+
+      console.log(
+        `[webhook] purchase ${purchaseId} for pack ${packCacheId}`,
+        orgId ? `(org: ${orgId})` : `(user: ${userId})`,
+      );
+    } catch (err) {
+      await sql.query("ROLLBACK");
+      console.error("[webhook] transaction failed, rolled back:", err);
+      return NextResponse.json(
+        { error: "purchase processing failed" },
+        { status: 500 },
+      );
     }
-
-    console.log(
-      `[webhook] purchase ${purchaseId} for pack ${packCacheId}`,
-      orgId ? `(org: ${orgId})` : `(user: ${userId})`,
-    );
   }
 
   return NextResponse.json({ received: true });

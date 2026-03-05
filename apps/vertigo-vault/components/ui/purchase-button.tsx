@@ -5,14 +5,14 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 interface PurchaseButtonProps {
-  packId: string;
+  packSlug: string;
   label: string;
   className?: string;
   style?: React.CSSProperties;
 }
 
 export default function PurchaseButton({
-  packId,
+  packSlug,
   label,
   className = "",
   style,
@@ -36,7 +36,7 @@ export default function PurchaseButton({
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packId }),
+        body: JSON.stringify({ packSlug }),
       });
 
       if (!res.ok) {
