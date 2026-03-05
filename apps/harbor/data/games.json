@@ -1,10 +1,10 @@
 [
   {
     "slug": "creaseworks",
-    "name": "creaseworks",
-    "tagline": "co-design playdates",
+    "name": "crease.works",
+    "tagline": "play within reach",
     "description": "a platform where facilitators and participants co-create playful learning experiences together. run playdates, collect real-time evidence of engagement, and iterate designs based on what actually happens when people play.",
-    "icon": "\ud83c\udfa8",
+    "icon": "",
     "color": "from-[var(--wv-sienna)] to-[var(--wv-redwood)]",
     "accentColor": "bg-[var(--wv-redwood)]",
     "features": [
@@ -21,8 +21,8 @@
     "slug": "vertigo-vault",
     "name": "vertigo.vault",
     "tagline": "curated group energizers",
-    "description": "a growing collection of group activities, ice-breakers, and energizers \u2014 curated from years of facilitation across cultures and contexts. find the right activity for any group size, energy level, or learning goal.",
-    "icon": "\u26a1",
+    "description": "a growing collection of group activities, ice-breakers, and energizers — curated from years of facilitation across cultures and contexts. find the right activity for any group size, energy level, or learning goal.",
+    "icon": "",
     "color": "from-[var(--wv-redwood)] to-[var(--wv-cadet)]",
     "accentColor": "bg-[var(--wv-sienna)]",
     "features": [
@@ -39,15 +39,15 @@
     "slug": "deep-deck",
     "name": "deep.deck",
     "tagline": "conversations that connect",
-    "description": "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6\u201314 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions.",
-    "icon": "\ud83c\udccf",
+    "description": "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6–14 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions.",
+    "icon": "",
     "color": "from-[var(--wv-cadet)] to-[var(--color-surface-raised)]",
     "accentColor": "bg-[var(--wv-redwood)]",
     "features": [
       "128 developmentally-sequenced cards",
-      "deep \u2192 deeper \u2192 deepest progression",
+      "deep → deeper → deepest progression",
       "wild cards that turn hard questions into play",
-      "4 age bands: 6\u20138 9\u201310 11\u201312 13\u201314"
+      "4 age bands: 6–8 9–10 11–12 13–14"
     ],
     "href": "/harbor/deep-deck",
     "status": "live",
