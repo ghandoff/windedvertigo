@@ -38,6 +38,12 @@ export const authConfig: NextAuthConfig = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      /**
+       * Allow users who first signed in via magic link to later sign in
+       * with Google (and vice-versa).  Both providers verify email
+       * ownership, so linking them under one account is safe.
+       */
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
 

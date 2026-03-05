@@ -6,6 +6,7 @@
  * 2. Confirm payment_status === "paid"
  * 3. Check idempotency (no duplicate purchases)
  * 4. Atomically create purchase record + grant entitlement
+ * 5. Send purchase-confirmation email via Resend
  */
 
 import { NextResponse } from "next/server";
@@ -13,6 +14,7 @@ import { getStripe } from "@/lib/stripe/client";
 import { sql } from "@/lib/db";
 import { createPurchase, getPurchaseByStripeSessionId } from "@/lib/queries/purchases";
 import { grantEntitlement, grantUserEntitlement } from "@/lib/queries/entitlements";
+import { sendPurchaseConfirmationEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const stripe = getStripe();
@@ -57,7 +59,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
-    const { orgId, packCacheId, catalogueId, userId } = session.metadata ?? {};
+    const { orgId, packCacheId, catalogueId, userId, packTitle } =
+      session.metadata ?? {};
 
     if (!packCacheId || !catalogueId || !userId) {
       console.error("[webhook] missing metadata on session:", session.id);
@@ -95,6 +98,23 @@ export async function POST(req: Request) {
         `[webhook] purchase ${purchaseId} for pack ${packCacheId}`,
         orgId ? `(org: ${orgId})` : `(user: ${userId})`,
       );
+
+      // ── Confirmation email (fire-and-forget) ───────────────────────
+      // Send after the transaction commits so the user gets a receipt.
+      // Failures are logged but don't affect the webhook response.
+      const customerEmail =
+        session.customer_details?.email ?? session.customer_email;
+
+      if (customerEmail) {
+        sendPurchaseConfirmationEmail({
+          to: customerEmail,
+          packName: packTitle || "Vault Pack",
+          amountCents: session.amount_total ?? 0,
+          currency: session.currency ?? "usd",
+        }).catch((err) => {
+          console.error("[webhook] email send error:", err);
+        });
+      }
     } catch (err) {
       await sql.query("ROLLBACK");
       console.error("[webhook] transaction failed, rolled back:", err);
