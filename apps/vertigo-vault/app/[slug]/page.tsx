@@ -18,7 +18,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-/** Type colour map — same as vault-activity-card.tsx */
+/** Type colour map — matches vault-activity-card.tsx */
 const TYPE_COLORS: Record<string, string> = {
   Energizer: "#AF4F41",
   "Getting to know each other": "#6b8e6b",
@@ -61,16 +61,27 @@ export default async function VaultActivityPage({ params }: Props) {
   return (
     <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
       <Link
-        href="/vault"
-        className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
+        href="/"
+        className="text-sm hover:opacity-80 mb-6 inline-block transition-opacity"
+        style={{ color: "var(--vault-text-muted)" }}
       >
         &larr; back to vault
       </Link>
 
       {/* internal tier indicator */}
       {accessTier === "internal" && (
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cadet/20 bg-cadet/5 px-3 py-1 text-xs text-cadet/60">
-          <span className="inline-block w-2 h-2 rounded-full bg-sienna" />
+        <div
+          className="mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs"
+          style={{
+            borderColor: "var(--vault-border)",
+            backgroundColor: "rgba(255,255,255,0.03)",
+            color: "var(--vault-text-muted)",
+          }}
+        >
+          <span
+            className="inline-block w-2 h-2 rounded-full"
+            style={{ backgroundColor: "var(--vault-accent)" }}
+          />
           internal view
         </div>
       )}
@@ -94,7 +105,10 @@ export default async function VaultActivityPage({ params }: Props) {
       />
 
       {/* header */}
-      <h1 className="text-3xl font-semibold tracking-tight mb-2 text-cadet">
+      <h1
+        className="text-3xl font-semibold tracking-tight mb-2"
+        style={{ color: "var(--vault-text)" }}
+      >
         {activity.name}
       </h1>
 
@@ -102,15 +116,27 @@ export default async function VaultActivityPage({ params }: Props) {
         <SafeHtml
           html={activity.headline_html}
           fallback={activity.headline}
-          className="text-lg text-cadet/60 mb-6"
+          className="text-lg mb-6"
+          as="p"
         />
       ) : activity.headline ? (
-        <p className="text-lg text-cadet/60 mb-6">{activity.headline}</p>
+        <p className="text-lg mb-6" style={{ color: "var(--vault-text-muted)" }}>
+          {activity.headline}
+        </p>
       ) : null}
 
       {/* at a glance */}
-      <section className="rounded-xl border border-cadet/10 bg-champagne/30 p-6 mb-8">
-        <h2 className="text-sm font-semibold text-cadet/80 mb-4">
+      <section
+        className="rounded-xl border p-6 mb-8"
+        style={{
+          borderColor: "var(--vault-border)",
+          backgroundColor: "var(--vault-card-bg)",
+        }}
+      >
+        <h2
+          className="text-sm font-semibold mb-4"
+          style={{ color: "rgba(232,237,243,0.8)" }}
+        >
           at a glance
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -125,19 +151,13 @@ export default async function VaultActivityPage({ params }: Props) {
             </GlanceItem>
           )}
           {activity.duration && (
-            <GlanceItem label="duration">
-              {activity.duration}
-            </GlanceItem>
+            <GlanceItem label="duration">{activity.duration}</GlanceItem>
           )}
           {activity.age_range && (
-            <GlanceItem label="ages">
-              {activity.age_range}
-            </GlanceItem>
+            <GlanceItem label="ages">{activity.age_range}</GlanceItem>
           )}
           {activity.group_size && (
-            <GlanceItem label="group size">
-              {activity.group_size}
-            </GlanceItem>
+            <GlanceItem label="group size">{activity.group_size}</GlanceItem>
           )}
           {activity.format?.length > 0 && (
             <GlanceItem label="format">
@@ -160,14 +180,21 @@ export default async function VaultActivityPage({ params }: Props) {
       {accessTier !== "teaser" &&
         activity.materials_needed?.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-sm font-semibold text-cadet/80 mb-3">
+            <h2
+              className="text-sm font-semibold mb-3"
+              style={{ color: "rgba(232,237,243,0.8)" }}
+            >
               materials needed
             </h2>
             <ul className="flex flex-wrap gap-2">
               {activity.materials_needed.map((m: string) => (
                 <li
                   key={m}
-                  className="rounded-full bg-champagne px-3 py-1 text-xs font-medium text-cadet/70"
+                  className="rounded-full px-3 py-1 text-xs font-medium"
+                  style={{
+                    backgroundColor: "var(--vault-card-bg)",
+                    color: "var(--vault-text-muted)",
+                  }}
                 >
                   {m}
                 </li>
@@ -179,13 +206,16 @@ export default async function VaultActivityPage({ params }: Props) {
       {/* full body content (entitled+) */}
       {hasBody && (
         <section className="mb-8">
-          <h2 className="text-sm font-semibold text-cadet/80 mb-3">
+          <h2
+            className="text-sm font-semibold mb-3"
+            style={{ color: "rgba(232,237,243,0.8)" }}
+          >
             activity guide
           </h2>
           <SafeHtml
             html={activity.body_html}
             fallback={null}
-            className="text-sm text-cadet/80 leading-relaxed"
+            className="text-sm leading-relaxed"
             as="div"
           />
         </section>
@@ -193,14 +223,23 @@ export default async function VaultActivityPage({ params }: Props) {
 
       {/* facilitator notes (practitioner+) */}
       {hasFacilitatorNotes && (
-        <section className="rounded-xl border border-sienna/20 bg-sienna/5 p-6 mb-8">
-          <h2 className="text-sm font-semibold text-sienna/80 mb-3">
+        <section
+          className="rounded-xl border p-6 mb-8"
+          style={{
+            borderColor: "rgba(175,79,65,0.2)",
+            backgroundColor: "rgba(175,79,65,0.05)",
+          }}
+        >
+          <h2
+            className="text-sm font-semibold mb-3"
+            style={{ color: "rgba(175,79,65,0.8)" }}
+          >
             facilitator notes
           </h2>
           <SafeHtml
             html={activity.facilitator_notes_html}
             fallback={activity.facilitator_notes}
-            className="text-sm text-cadet/70 leading-relaxed"
+            className="text-sm leading-relaxed"
             as="div"
           />
         </section>
@@ -209,10 +248,16 @@ export default async function VaultActivityPage({ params }: Props) {
       {/* video walkthrough (practitioner+) */}
       {hasVideo && (
         <section className="mb-8">
-          <h2 className="text-sm font-semibold text-cadet/80 mb-3">
+          <h2
+            className="text-sm font-semibold mb-3"
+            style={{ color: "rgba(232,237,243,0.8)" }}
+          >
             video walkthrough
           </h2>
-          <div className="aspect-video rounded-xl overflow-hidden bg-cadet/5">
+          <div
+            className="aspect-video rounded-xl overflow-hidden"
+            style={{ backgroundColor: "var(--vault-card-bg)" }}
+          >
             <iframe
               src={activity.video_url}
               className="w-full h-full"
@@ -232,21 +277,34 @@ export default async function VaultActivityPage({ params }: Props) {
       {/* entitled but not practitioner — upsell to practitioner */}
       {accessTier === "entitled" &&
         (activity.facilitator_notes || activity.video_url) && (
-          <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-sienna/5 to-sienna/2 p-6 mb-8">
+          <section
+            className="rounded-xl border p-6 mb-8"
+            style={{
+              borderColor: "rgba(175,79,65,0.2)",
+              background: "linear-gradient(to bottom, rgba(175,79,65,0.06), rgba(175,79,65,0.02))",
+            }}
+          >
             <div className="flex items-start gap-3">
               <span className="text-lg leading-none mt-0.5">🎓</span>
               <div>
-                <h2 className="text-sm font-semibold text-cadet/80 mb-1">
+                <h2
+                  className="text-sm font-semibold mb-1"
+                  style={{ color: "rgba(232,237,243,0.8)" }}
+                >
                   practitioner upgrade
                 </h2>
-                <p className="text-sm text-cadet/60 mb-3">
+                <p
+                  className="text-sm mb-3"
+                  style={{ color: "var(--vault-text-muted)" }}
+                >
                   this activity includes facilitator notes
                   {activity.video_url ? " and a video walkthrough" : ""}.
                   upgrade to the practitioner pack for expert-level guidance.
                 </p>
                 <Link
-                  href="/packs/vault-practitioner"
-                  className="inline-block rounded-lg bg-sienna px-5 py-2.5 text-sm text-white font-medium hover:bg-redwood transition-colors"
+                  href="/practitioner"
+                  className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
+                  style={{ backgroundColor: "var(--vault-accent)" }}
                 >
                   see practitioner pack
                 </Link>
@@ -258,7 +316,10 @@ export default async function VaultActivityPage({ params }: Props) {
       {/* related activities */}
       {related.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-sm font-semibold text-cadet/80 mb-4">
+          <h2
+            className="text-sm font-semibold mb-4"
+            style={{ color: "rgba(232,237,243,0.8)" }}
+          >
             related activities
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -275,8 +336,17 @@ export default async function VaultActivityPage({ params }: Props) {
 
       {/* internal sync metadata */}
       {accessTier === "internal" && (
-        <section className="mt-12 rounded-xl border border-cadet/10 bg-cadet/3 p-4 text-xs text-cadet/40">
-          <h2 className="font-semibold text-cadet/50 mb-2">sync metadata</h2>
+        <section
+          className="mt-12 rounded-xl border p-4 text-xs"
+          style={{
+            borderColor: "var(--vault-border)",
+            backgroundColor: "rgba(255,255,255,0.02)",
+            color: "var(--vault-text-muted)",
+          }}
+        >
+          <h2 className="font-semibold mb-2" style={{ color: "rgba(232,237,243,0.5)" }}>
+            sync metadata
+          </h2>
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
             <dt>notion id</dt>
             <dd className="font-mono">{activity.notion_id}</dd>
@@ -303,8 +373,10 @@ function GlanceItem({
   return (
     <div className="flex items-start gap-2.5">
       <div>
-        <p className="text-cadet/45 text-xs font-medium">{label}</p>
-        <div className="text-cadet/80">{children}</div>
+        <p className="text-xs font-medium" style={{ color: "rgba(232,237,243,0.45)" }}>
+          {label}
+        </p>
+        <div style={{ color: "rgba(232,237,243,0.8)" }}>{children}</div>
       </div>
     </div>
   );
@@ -314,25 +386,37 @@ function TierBadge({ tier }: { tier: string }) {
   switch (tier) {
     case "prme":
       return (
-        <span className="rounded-full bg-cadet/10 px-2.5 py-0.5 text-xs font-medium text-cadet/60">
+        <span
+          className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+          style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "var(--vault-text-muted)" }}
+        >
           free (PRME)
         </span>
       );
     case "explorer":
       return (
-        <span className="rounded-full bg-sienna/15 px-2.5 py-0.5 text-xs font-medium text-sienna">
+        <span
+          className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+          style={{ backgroundColor: "rgba(175,79,65,0.15)", color: "#d4836f" }}
+        >
           explorer pack
         </span>
       );
     case "practitioner":
       return (
-        <span className="rounded-full bg-redwood/10 px-2.5 py-0.5 text-xs font-medium text-redwood">
+        <span
+          className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+          style={{ backgroundColor: "rgba(155,67,67,0.15)", color: "#c47373" }}
+        >
           practitioner pack
         </span>
       );
     default:
       return (
-        <span className="rounded-full bg-cadet/8 px-2.5 py-0.5 text-xs text-cadet/50">
+        <span
+          className="rounded-full px-2.5 py-0.5 text-xs"
+          style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "var(--vault-text-muted)" }}
+        >
           {tier}
         </span>
       );
@@ -343,14 +427,23 @@ function LockedContentTeaser({ activityTier }: { activityTier: string }) {
   const isFreeTier = activityTier === "prme";
 
   return (
-    <section className="rounded-xl border border-sienna/20 bg-gradient-to-b from-champagne/20 to-champagne/5 p-6 mb-8">
+    <section
+      className="rounded-xl border p-6 mb-8"
+      style={{
+        borderColor: "rgba(175,79,65,0.2)",
+        background: "linear-gradient(to bottom, rgba(175,79,65,0.08), rgba(175,79,65,0.02))",
+      }}
+    >
       <div className="flex items-start gap-3 mb-4">
         <span className="text-lg leading-none mt-0.5">🔒</span>
         <div>
-          <h2 className="text-sm font-semibold text-cadet/80 mb-1">
+          <h2
+            className="text-sm font-semibold mb-1"
+            style={{ color: "rgba(232,237,243,0.8)" }}
+          >
             {isFreeTier ? "full activity guide" : "unlock this activity"}
           </h2>
-          <p className="text-sm text-cadet/60">
+          <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
             {isFreeTier
               ? "the full guide includes step-by-step instructions, materials list, and facilitator tips."
               : `this is an ${activityTier}-tier activity. get the ${activityTier} pack to unlock the full guide, materials, and more.`}
@@ -358,23 +451,35 @@ function LockedContentTeaser({ activityTier }: { activityTier: string }) {
         </div>
       </div>
 
-      <div className="ml-8 space-y-2 text-sm text-cadet/50 mb-5">
+      <div className="ml-8 space-y-2 text-sm mb-5" style={{ color: "var(--vault-text-muted)" }}>
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-sienna/40" />
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: "rgba(175,79,65,0.4)" }}
+          />
           <span>step-by-step activity instructions</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-cadet/30" />
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+          />
           <span>materials needed checklist</span>
         </div>
         {(activityTier === "practitioner" || isFreeTier) && (
           <>
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-redwood/40" />
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: "rgba(155,67,67,0.4)" }}
+              />
               <span>facilitator notes and tips</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-redwood/60" />
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: "rgba(155,67,67,0.6)" }}
+              />
               <span>video walkthrough</span>
             </div>
           </>
@@ -384,10 +489,11 @@ function LockedContentTeaser({ activityTier }: { activityTier: string }) {
       <Link
         href={
           activityTier === "practitioner"
-            ? "/packs/vault-practitioner"
-            : "/packs/vault-explorer"
+            ? "/practitioner"
+            : "/explorer"
         }
-        className="inline-block rounded-lg bg-redwood px-5 py-2.5 text-sm text-white font-medium hover:bg-sienna transition-colors"
+        className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
+        style={{ backgroundColor: "var(--vault-accent)" }}
       >
         {isFreeTier
           ? "explore vault packs"

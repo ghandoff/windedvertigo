@@ -47,11 +47,11 @@ export default function VaultActivityGrid({
         {/* type filters */}
         <button
           onClick={() => setActiveType(null)}
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            activeType === null
-              ? "bg-cadet text-white"
-              : "bg-cadet/8 text-cadet/60 hover:bg-cadet/15"
-          }`}
+          className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+          style={{
+            backgroundColor: activeType === null ? "var(--vault-accent)" : "rgba(175,79,65,0.1)",
+            color: activeType === null ? "#fff" : "rgba(175,79,65,0.7)",
+          }}
         >
           all types
         </button>
@@ -59,11 +59,11 @@ export default function VaultActivityGrid({
           <button
             key={t}
             onClick={() => setActiveType(activeType === t ? null : t)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              activeType === t
-                ? "bg-cadet text-white"
-                : "bg-cadet/8 text-cadet/60 hover:bg-cadet/15"
-            }`}
+            className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+            style={{
+              backgroundColor: activeType === t ? "var(--vault-accent)" : "rgba(175,79,65,0.1)",
+              color: activeType === t ? "#fff" : "rgba(175,79,65,0.7)",
+            }}
           >
             {t.toLowerCase()}
           </button>
@@ -71,7 +71,7 @@ export default function VaultActivityGrid({
 
         {/* duration separator */}
         {durations.length > 0 && (
-          <span className="text-cadet/20 mx-1">|</span>
+          <span style={{ color: "rgba(255,255,255,0.15)" }} className="mx-1">|</span>
         )}
 
         {/* duration filters */}
@@ -79,11 +79,11 @@ export default function VaultActivityGrid({
           <button
             key={d}
             onClick={() => setActiveDuration(activeDuration === d ? null : d)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              activeDuration === d
-                ? "bg-sienna text-white"
-                : "bg-sienna/8 text-sienna/60 hover:bg-sienna/15"
-            }`}
+            className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+            style={{
+              backgroundColor: activeDuration === d ? "#6b8e6b" : "rgba(107,142,107,0.1)",
+              color: activeDuration === d ? "#fff" : "rgba(107,142,107,0.7)",
+            }}
           >
             {d}
           </button>
@@ -91,12 +91,16 @@ export default function VaultActivityGrid({
       </div>
 
       {/* result count */}
-      <p className="text-xs text-cadet/30 mb-5" aria-live="polite">
+      <p
+        className="text-xs mb-5"
+        style={{ color: "var(--vault-text-muted)" }}
+        aria-live="polite"
+      >
         {filtered.length} {filtered.length === 1 ? "activity" : "activities"}
       </p>
 
       {/* grid */}
-      <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))] wv-stagger">
+      <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
         {filtered.map((a) => (
           <VaultActivityCard
             key={a.id}
@@ -109,7 +113,7 @@ export default function VaultActivityGrid({
       {filtered.length === 0 && (
         <div className="text-center py-20">
           <p className="text-3xl mb-3" aria-hidden>🎭</p>
-          <p className="text-cadet/50 text-sm">
+          <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
             no activities match the current filters.
           </p>
         </div>
