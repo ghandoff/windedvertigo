@@ -33,6 +33,13 @@ export function useSession() {
           setLoading(false);
           return;
         }
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("json")) {
+          // Auth endpoint returned non-JSON (auth not configured)
+          setSession(null);
+          setLoading(false);
+          return;
+        }
         const data = await res.json();
         if (!cancelled) {
           // Auth.js returns {} for unauthenticated
