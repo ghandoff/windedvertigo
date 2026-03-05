@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   const countOnly = url.searchParams.get("countOnly") === "1";
 
   if (countOnly) {
-    const count = await getUnreadCount(session.userId);
+    const count = await getUnreadCount(session.userId, session.uiTier);
     return NextResponse.json({ unreadCount: count });
   }
 
@@ -40,8 +40,8 @@ export async function GET(request: Request) {
   const offset = parseInt(url.searchParams.get("offset") ?? "0", 10) || 0;
 
   const [notifications, unreadCount] = await Promise.all([
-    getUserNotifications(session.userId, { limit, offset, unreadOnly }),
-    getUnreadCount(session.userId),
+    getUserNotifications(session.userId, { limit, offset, unreadOnly, userTier: session.uiTier }),
+    getUnreadCount(session.userId, session.uiTier),
   ]);
 
   return NextResponse.json({ notifications, unreadCount });

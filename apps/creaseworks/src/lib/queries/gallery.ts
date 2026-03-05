@@ -228,7 +228,7 @@ export async function approveGalleryItem(
         console.error("gallery approval email failed:", err),
       );
 
-      // In-app notification
+      // In-app notification (collaborator-only — gallery submissions require collaborator tier)
       createInAppNotification({
         userId: row.user_id,
         eventType: "gallery_approved",
@@ -238,6 +238,7 @@ export async function approveGalleryItem(
           : undefined,
         href: "/gallery",
         actorId: session.userId,
+        minTier: "collaborator",
       }).catch(() => {});
     }
   } catch (err) {
@@ -283,7 +284,7 @@ export async function rejectGalleryItem(
     [evidenceId],
   );
 
-  // In-app notification for rejection
+  // In-app notification for rejection (collaborator-only)
   const row = info.rows[0];
   if (row?.user_id) {
     createInAppNotification({
@@ -294,6 +295,7 @@ export async function rejectGalleryItem(
         ? `from "${row.playdate_title}" — you can always re-submit`
         : "you can always re-submit",
       href: "/reflections/new",
+      minTier: "collaborator",
     }).catch(() => {});
   }
 

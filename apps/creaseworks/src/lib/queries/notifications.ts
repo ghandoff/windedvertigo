@@ -5,6 +5,7 @@
  */
 
 import { sql } from "@/lib/db";
+import type { UiTier } from "@/lib/auth-helpers";
 
 /* ------------------------------------------------------------------ */
 /*  types                                                              */
@@ -350,6 +351,7 @@ export async function updateLastActive(userId: string): Promise<void> {
 /* ================================================================== */
 /*  IN-APP NOTIFICATION CENTER                                         */
 /*  Session 47: bell icon + dropdown notifications                      */
+/*  Session 50: P3-6 tier-aware filtering (min_tier column)             */
 /* ================================================================== */
 
 export type NotificationEventType =
@@ -361,6 +363,13 @@ export type NotificationEventType =
   | "co_play_invite"
   | "org_joined"
   | "system";
+
+/**
+ * Tier ordering for SQL comparison. Uses array_position() so
+ * casual=1, curious=2, collaborator=3. A notification with
+ * min_tier='curious' is visible to curious + collaborator users.
+ */
+const TIER_ORDER_SQL = `array_position(ARRAY['casual','curious','collaborator'], `;
 
 export interface InAppNotification {
   id: string;
@@ -377,15 +386,22 @@ export interface InAppNotification {
 /**
  * Fetch recent notifications for a user (paginated, newest first).
  * Includes actor name via a left join on users.
+ * When userTier is provided, filters out notifications above that tier.
  */
 export async function getUserNotifications(
   userId: string,
-  opts: { limit?: number; offset?: number; unreadOnly?: boolean } = {},
+  opts: { limit?: number; offset?: number; unreadOnly?: boolean; userTier?: UiTier } = {},
 ): Promise<InAppNotification[]> {
   const limit = Math.min(opts.limit ?? 20, 50);
   const offset = opts.offset ?? 0;
 
   const unreadClause = opts.unreadOnly ? "AND n.read_at IS NULL" : "";
+  const tierClause = opts.userTier
+    ? `AND ${TIER_ORDER_SQL}n.min_tier) <= ${TIER_ORDER_SQL}$4::text)`
+    : "";
+
+  const params: any[] = [userId, limit, offset];
+  if (opts.userTier) params.push(opts.userTier);
 
   const r = await sql.query(
     `SELECT
@@ -394,10 +410,10 @@ export async function getUserNotifications(
        n.read_at, n.created_at
      FROM in_app_notifications n
      LEFT JOIN users u ON u.id = n.actor_id
-     WHERE n.user_id = $1 ${unreadClause}
+     WHERE n.user_id = $1 ${unreadClause} ${tierClause}
      ORDER BY n.created_at DESC
      LIMIT $2 OFFSET $3`,
-    [userId, limit, offset],
+    params,
   );
 
   return r.rows.map((row: any) => ({
@@ -416,13 +432,23 @@ export async function getUserNotifications(
 /**
  * Count unread notifications for a user.
  * Used for the badge number on the bell icon.
+ * When userTier is provided, only counts notifications at or below that tier.
  */
-export async function getUnreadCount(userId: string): Promise<number> {
+export async function getUnreadCount(
+  userId: string,
+  userTier?: UiTier,
+): Promise<number> {
+  const tierClause = userTier
+    ? `AND ${TIER_ORDER_SQL}min_tier) <= ${TIER_ORDER_SQL}$2::text)`
+    : "";
+  const params: any[] = [userId];
+  if (userTier) params.push(userTier);
+
   const r = await sql.query(
     `SELECT COUNT(*)::int AS count
      FROM in_app_notifications
-     WHERE user_id = $1 AND read_at IS NULL`,
-    [userId],
+     WHERE user_id = $1 AND read_at IS NULL ${tierClause}`,
+    params,
   );
   return r.rows[0]?.count ?? 0;
 }
@@ -462,6 +488,11 @@ export async function markAllNotificationsRead(
 /**
  * Create an in-app notification. Uses ON CONFLICT to deduplicate
  * (same user + event_type + href won't create duplicates).
+ *
+ * minTier controls which user tiers can see this notification:
+ *   - "casual" (default) → visible to all tiers
+ *   - "curious" → visible to curious + collaborator
+ *   - "collaborator" → visible only to collaborators
  */
 export async function createInAppNotification(opts: {
   userId: string;
@@ -470,11 +501,12 @@ export async function createInAppNotification(opts: {
   body?: string;
   href?: string;
   actorId?: string;
+  minTier?: UiTier;
 }): Promise<string | null> {
   try {
     const r = await sql.query(
-      `INSERT INTO in_app_notifications (user_id, event_type, title, body, href, actor_id)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO in_app_notifications (user_id, event_type, title, body, href, actor_id, min_tier)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (user_id, event_type, href)
          WHERE href IS NOT NULL
          DO NOTHING
@@ -486,6 +518,7 @@ export async function createInAppNotification(opts: {
         opts.body ?? null,
         opts.href ?? null,
         opts.actorId ?? null,
+        opts.minTier ?? "casual",
       ],
     );
     return r.rows[0]?.id ?? null;

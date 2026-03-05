@@ -149,7 +149,7 @@ verified session 35: all engagement features are fully wired into user flows.
 | P3-3 | ~~tier-aware profile page~~ | ✅ done | Journey/credits gated to collaborator. Tier badge with distinct colors. TierSwitcher in manage section. |
 | P3-4 | ~~upgrade path UX~~ | ✅ done | TierSwitcher component — 3 radio cards, optimistic UI + CSS class swap + session refresh. Always available in profile manage. |
 | P3-5 | ~~migration for existing users~~ | ✅ done | Migration 042: `ui_tier` column with CHECK constraint. Existing onboarded users backfilled to collaborator. New users default to casual. |
-| P3-6 | **tier-aware notification events** | 🟡 deferred | Low priority. All notifications currently sent to all users. Can add `minTier` filter to `createInAppNotification` later. |
+| P3-6 | ~~tier-aware notification events~~ | ✅ done | Migration 044: `min_tier` column on `in_app_notifications`. Read-time filtering via `array_position()`. Gallery emitters set `minTier: "collaborator"`. API passes `session.uiTier` to queries. |
 | P3-7 | ~~gallery submission gating~~ | ✅ done | `gallery-share-toggle.tsx` returns null for non-collaborator. API route returns 403 as safety net. |
 | P3-8 | ~~JWT + session pipeline~~ | ✅ done | `uiTier` loaded on sign-in + 5-min refresh, flows through JWT → session → `CWSession`. |
 | P3-9 | ~~cookie-first rendering~~ | ✅ done | `cw-ui-tier` cookie → `tier-{value}` CSS class on `<html>` before hydration. `/api/preferences` PATCH sets cookie. |
@@ -160,7 +160,7 @@ verified session 35: all engagement features are fully wired into user flows.
 
 ## open questions / future work
 
-1. **next/image migration** — DEFERRED. cover images use raw `<img>` tags. migration to `<Image>` with R2 custom loader would give: responsive srcset (saves mobile bandwidth), lazy loading, WebP/AVIF format negotiation (30-50% smaller), CLS prevention (reserved layout space). **cost implications:** Next.js image optimization can either run through Vercel Functions (adds latency + function invocations to bill) or via Cloudflare Image Resizing (separate paid product). evaluate when image volume grows. decision: hold off for now.
+1. ~~next/image migration~~ — ✅ DONE (session 50). all card components + CMS body images use `next/image` with a custom Cloudflare loader (`cloudflare-image-loader.ts`). no Vercel image optimization cost — images served directly from R2 public URL.
 2. **R2 bucket structure** — DECIDED: one bucket for all apps with folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`). rationale: simpler CORS/token management, shared assets don't need duplication, per-app storage visibility via R2 prefix metrics. re-evaluate if access control needs diverge.
 3. ~~URL redirect for old subdomain~~ — SKIPPED. not enough people have the old `creaseworks.windedvertigo.com` link.
 4. **shared header across apps** — NOT WORTH IT. header needs differ too much between apps (auth, icons, bottom tab bar in creaseworks vs hero nav in parent site). footer is shared via tokens, header CSS classes are shared, but the component structure stays app-specific.
@@ -173,12 +173,12 @@ verified session 35: all engagement features are fully wired into user flows.
 |--------|-------|
 | TypeScript | compiles clean (zero errors) |
 | Tests | 9 suites, 123 tests, all passing |
-| Migrations | 042 (all applied to Neon) |
+| Migrations | 044 (043 applied to Neon; 044 pending) |
 | Smoke test | 28/29 pass |
 | Source files | ~299 (.ts + .tsx) |
 | Features A–Y | all implemented |
-| Phase 2 | ✅ ALL CODE COMPLETE (P2-1 through P2-7). P2-6 pending (manual env vars in Vercel). |
-| Phase 3 | ✅ COMPLETE — progressive disclosure user tiers (casual/curious/collaborator). P3-6 deferred (notification tier filtering). |
+| Phase 2 | ✅ ALL COMPLETE (P2-1 through P2-7). P2-6 env vars set (session 49). |
+| Phase 3 | ✅ ALL COMPLETE — progressive disclosure user tiers (casual/curious/collaborator) + tier-aware notifications. |
 | Engagement system | fully wired — credits, photo consent, redemption, pack finder all live |
 | Material emoji CMS | Notion-managed via `emoji` rich_text property, hard-coded map as fallback |
 

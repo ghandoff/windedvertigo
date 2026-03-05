@@ -7,7 +7,7 @@
 | App | Stage | Next Milestone |
 |-----|-------|---------------|
 | **site** (windedvertigo.com) | Live, CMS-backed | Wire remaining pages to Notion CMS |
-| **creaseworks** | Live (Phase 3 + Stripe) | Onboarding polish, next/image evaluation |
+| **creaseworks** | Live (Phase 3 complete + Stripe) | Launch polish, apply migration 044 |
 | **reservoir** | In development | Wire to CMS JSON, game showcase content |
 | **deep-deck** | In development | — |
 | **nordic-sqr-rct** | Live | Potential Supabase migration |
@@ -67,7 +67,7 @@
 
 See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all feature items.
 
-### Recently Completed (sessions 44–49)
+### Recently Completed (sessions 44–50)
 
 - [x] Profile page consolidation (removed duplicate stat/pack displays)
 - [x] Analytics dashboard (sparklines, conversion funnel, credit economy)
@@ -80,12 +80,15 @@ See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all f
 - [x] Purchase notification in webhook handler (session 49)
 - [x] Pilot email invites with bulk entry via Resend (session 49)
 - [x] CMS env vars for /we/ and /do/ pages set in Vercel (P2-6, session 49)
+- [x] Onboarding flow polish (session 50)
+- [x] next/image migration with Cloudflare custom loader (session 50)
+- [x] Image sync tiers 3-4 frontend wiring — body_html + illustration_url (session 50)
+- [x] Tier-aware notification filtering — P3-6 complete (session 51)
 
 ### Next Up
 
-- [ ] next/image migration (document cost implications for budgeting first)
-- [ ] Onboarding flow polish
-- [ ] Image sync tiers 3-4 (file properties, body content) — see `docs/creaseworks-image-sync-scope.md`
+- [ ] Apply migration 044 to Neon (tier-aware notifications)
+- [ ] Launch polish — final smoke test, production deploy
 
 ## apps/reservoir
 
@@ -113,6 +116,6 @@ See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all f
 | Decision | Options | Status |
 |----------|---------|--------|
 | Supabase vs Neon | Test on next new project, don't migrate creaseworks | Decided — deferred |
-| next/image migration | Evaluate Vercel image optimization cost | Needs budgeting |
+| next/image migration | Cloudflare custom loader (no Vercel optimization cost) | ✅ Done — session 50 |
 | Shared header template | Each app's nav needs differ too much | Decided — skip |
 | Vercel Pro upgrade | $20/mo for 6,000 deploys/day | Monitor quota usage first |
