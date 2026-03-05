@@ -42,17 +42,35 @@ const ENTITLED_ONLY_FIELDS = new Set([
   "source",
 ]);
 
+// ── vault-specific tier fields ─────────────────────────────────────────
+
+/** Vault fields that require at least the Explorer pack. */
+const VAULT_ENTITLED_ONLY_FIELDS = new Set([
+  "body_html",
+  "content_md",
+  "materials_needed",
+]);
+
+/** Vault fields that require the Practitioner pack. */
+const VAULT_PRACTITIONER_ONLY_FIELDS = new Set([
+  "facilitator_notes",
+  "facilitator_notes_html",
+  "video_url",
+]);
+
 type Tier = "teaser" | "entitled" | "collective" | "internal";
+type VaultTier = "vault_teaser" | "vault_entitled" | "vault_practitioner" | "vault_internal";
 
 export function assertNoLeakedFields(
   rows: Record<string, unknown>[],
-  tier: Tier,
+  tier: Tier | VaultTier,
 ): void {
   // only run in development / staging
   if (process.env.NODE_ENV === "production") return;
 
   const forbidden = new Set<string>();
 
+  // ── playdate / material tiers ──
   if (tier === "teaser") {
     INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
     COLLECTIVE_ONLY_FIELDS.forEach((f) => forbidden.add(f));
@@ -63,7 +81,19 @@ export function assertNoLeakedFields(
   } else if (tier === "collective") {
     INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
   }
-  // internal tier → nothing is forbidden
+
+  // ── vault tiers ──
+  if (tier === "vault_teaser") {
+    INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+    VAULT_ENTITLED_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+    VAULT_PRACTITIONER_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+  } else if (tier === "vault_entitled") {
+    INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+    VAULT_PRACTITIONER_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+  } else if (tier === "vault_practitioner") {
+    INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+  }
+  // internal / vault_internal → nothing is forbidden
 
   if (forbidden.size === 0) return;
 

@@ -37,10 +37,10 @@ export default async function VaultPage() {
              style={{ backgroundColor: "rgba(107,142,107,0.08)" }}>
           <p className="text-sm opacity-70">
             <span className="font-medium opacity-100">new activities are being added to the expanded vault.</span>{" "}
-            get access to facilitator notes, video walkthroughs, and 200+ activities.
+            get access to facilitator notes, video walkthroughs, and more activities.
           </p>
           <a
-            href="https://windedvertigo.com/vertigo-vault"
+            href="https://windedvertigo.com/reservoir/creaseworks/vault"
             className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
             style={{ backgroundColor: "rgba(107,142,107,0.25)", color: "rgba(255,255,255,0.85)" }}
           >
