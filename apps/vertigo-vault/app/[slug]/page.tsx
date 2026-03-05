@@ -20,7 +20,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-const BASE_URL = "https://windedvertigo.com/reservoir/vertigo-vault";
+const BASE_URL = "https://windedvertigo.com/harbor/vertigo-vault";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

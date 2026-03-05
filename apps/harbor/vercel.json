@@ -1,5 +1,5 @@
 {
-  "ignoreCommand": "npx turbo-ignore @windedvertigo/reservoir",
+  "ignoreCommand": "npx turbo-ignore @windedvertigo/harbor",
   "headers": [
     {
       "source": "/(.*)",

@@ -6,7 +6,7 @@ import PurchaseButton from "@/components/ui/purchase-button";
 
 export const dynamic = "force-dynamic";
 
-const BASE_URL = "https://windedvertigo.com/reservoir/vertigo-vault";
+const BASE_URL = "https://windedvertigo.com/harbor/vertigo-vault";
 
 export const metadata: Metadata = {
   title: "practitioner pack — vertigo.vault",

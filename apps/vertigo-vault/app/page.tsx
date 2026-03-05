@@ -7,7 +7,7 @@ import UserMenu from "@/components/ui/user-menu";
 
 export const dynamic = "force-dynamic";
 
-const BASE_URL = "https://windedvertigo.com/reservoir/vertigo-vault";
+const BASE_URL = "https://windedvertigo.com/harbor/vertigo-vault";
 
 export const metadata: Metadata = {
   title: "vertigo.vault — group activities, energizers & reflective exercises",
@@ -52,10 +52,10 @@ export default async function VaultCatalogPage() {
         {/* header */}
         <header className="mb-10">
           <a
-            href="/reservoir"
+            href="/harbor"
             className="text-xs tracking-wider opacity-30 hover:opacity-60 transition-opacity mb-6 inline-block"
           >
-            &larr; reservoir
+            &larr; harbor
           </a>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>

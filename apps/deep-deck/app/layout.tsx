@@ -7,14 +7,14 @@ export const metadata: Metadata = {
   description:
     "a digital card game that helps teachers and parents connect with children through conversation, play, and reflection.",
   alternates: {
-    canonical: "/reservoir/deep-deck",
+    canonical: "/harbor/deep-deck",
   },
   openGraph: {
     type: "website",
     title: "deep.deck — winded.vertigo",
     description:
       "a digital card game that helps teachers and parents connect with children through conversation, play, and reflection.",
-    url: "/reservoir/deep-deck",
+    url: "/harbor/deep-deck",
     siteName: "winded.vertigo",
     images: [{ url: "/images/logo.png", width: 512, height: 512 }],
   },
@@ -60,10 +60,10 @@ export default function RootLayout({
         </a>
         <nav className="px-6 pt-4">
           <a
-            href="/reservoir"
+            href="/harbor"
             className="text-xs uppercase tracking-wider opacity-30 hover:opacity-60 transition-opacity inline-block"
           >
-            &larr; reservoir
+            &larr; harbor
           </a>
         </nav>
         <main id="main">{children}</main>
