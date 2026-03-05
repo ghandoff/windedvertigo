@@ -68,10 +68,17 @@ interface WizardProps {
     energy: string;
     contextName: string;
   } | null;
+  /** Pack names the user already has access to (via invite). Triggers a welcome message. */
+  invitePackNames?: string[];
 }
 
-export default function OnboardingWizard({ editMode = false, initialValues }: WizardProps) {
+export default function OnboardingWizard({
+  editMode = false,
+  initialValues,
+  invitePackNames = [],
+}: WizardProps) {
   const router = useRouter();
+  const isInvitedUser = invitePackNames.length > 0;
   // New flow: tier → ages → contexts → energy (+ name in edit mode)
   // Edit mode skips tier step — users change tier from profile instead
   const totalSteps = editMode ? 4 : 4;
@@ -82,6 +89,7 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
   const [energy, setEnergy] = useState<string>(initialValues?.energy ?? "any");
   const [contextName, setContextName] = useState<string>(initialValues?.contextName ?? "");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const toggle = useCallback(
     (list: string[], setList: (v: string[]) => void, val: string) => {
@@ -92,6 +100,7 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
 
   async function finish() {
     setSaving(true);
+    setError(null);
     try {
       const endpoint = apiUrl(editMode ? "/api/onboarding/context" : "/api/onboarding");
       const res = await fetch(endpoint, {
@@ -109,12 +118,15 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
         }),
       });
       if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "something went wrong — please try again");
         setSaving(false);
         return;
       }
       router.push(editMode ? "/profile?manage=true" : "/sampler");
       router.refresh();
     } catch {
+      setError("couldn't reach the server — check your connection");
       setSaving(false);
     }
   }
@@ -152,6 +164,21 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-cadet/10 p-8">
+        {/* welcome banner for invited users — only on step 0 */}
+        {step === 0 && !editMode && isInvitedUser && (
+          <div className="mb-6 rounded-xl border border-sienna/20 bg-sienna/[0.04] px-5 py-4">
+            <p className="text-sm font-semibold text-cadet mb-1">
+              welcome to creaseworks!
+            </p>
+            <p className="text-xs text-cadet/50 leading-relaxed">
+              {invitePackNames.length === 1
+                ? `${invitePackNames[0]} is ready and waiting for you.`
+                : `${invitePackNames.join(", ")} are ready and waiting for you.`}
+              {" "}let&apos;s personalise your experience first.
+            </p>
+          </div>
+        )}
+
         {/* step 0: tier selection (new users only) */}
         {step === 0 && !editMode && (
           <>
@@ -310,6 +337,11 @@ export default function OnboardingWizard({ editMode = false, initialValues }: Wi
                 ))}
             </div>
           </>
+        )}
+
+        {/* error message */}
+        {error && (
+          <p className="mt-4 text-sm text-redwood text-center">{error}</p>
         )}
 
         {/* nav buttons */}

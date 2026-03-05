@@ -16,6 +16,7 @@
  */
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import SafeHtml from "@/components/ui/safe-html";
 import { apiUrl } from "@/lib/api-url";
 
@@ -348,11 +349,15 @@ function AdminPlaydateCard({
       >
         {/* cover thumbnail */}
         {p.cover_url ? (
-          <img
-            src={p.cover_url}
-            alt=""
-            className="w-10 h-10 rounded object-cover flex-shrink-0"
-          />
+          <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
+            <Image
+              src={p.cover_url}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="40px"
+            />
+          </div>
         ) : (
           <div className="w-10 h-10 rounded bg-cadet/5 flex-shrink-0" />
         )}
@@ -465,10 +470,12 @@ function PlaydateDetailPanel({ detail: d }: { detail: PlaydateDetail }) {
       {/* ── illustration ─────────────────────────────────────── */}
       {d.illustration_url && (
         <ContentSection label="illustration">
-          <img
+          <Image
             src={d.illustration_url}
             alt="playdate illustration"
-            className="max-w-xs rounded-lg border border-cadet/10"
+            width={320}
+            height={200}
+            className="rounded-lg border border-cadet/10"
           />
         </ContentSection>
       )}

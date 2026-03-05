@@ -55,7 +55,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
-          git add apps/site/data/ apps/site/images/vertigo-vault/
+          git add apps/site/data/ apps/site/images/vertigo-vault/ apps/reservoir/data/
 
           # Exit early if nothing changed
           if git diff --staged --quiet; then

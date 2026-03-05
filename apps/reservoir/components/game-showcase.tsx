@@ -1,3 +1,4 @@
+import gamesData from "@/data/games.json";
 import { ScrollReveal } from "./scroll-reveal";
 
 export interface Game {
@@ -13,62 +14,8 @@ export interface Game {
   status: "live" | "coming-soon";
 }
 
-const GAMES: Game[] = [
-  {
-    slug: "creaseworks",
-    name: "creaseworks",
-    tagline: "co-design playdates",
-    description:
-      "a platform where facilitators and participants co-create playful learning experiences together. run playdates, collect real-time evidence of engagement, and iterate designs based on what actually happens when people play.",
-    color: "from-[var(--wv-sienna)] to-[var(--wv-redwood)]",
-    accentColor: "bg-[var(--wv-redwood)]",
-    icon: "\uD83C\uDFA8",
-    features: [
-      "guided playdate facilitation",
-      "real-time evidence collection",
-      "co-play reflection tools",
-      "design iteration workflows",
-    ],
-    href: "/reservoir/creaseworks",
-    status: "live",
-  },
-  {
-    slug: "vertigo-vault",
-    name: "vertigo.vault",
-    tagline: "curated group energizers",
-    description:
-      "a growing collection of group activities, ice-breakers, and energizers \u2014 curated from years of facilitation across cultures and contexts. find the right activity for any group size, energy level, or learning goal.",
-    color: "from-[var(--wv-redwood)] to-[var(--wv-cadet)]",
-    accentColor: "bg-[var(--wv-sienna)]",
-    icon: "\u26A1",
-    features: [
-      "searchable activity library",
-      "tagged by group size and energy",
-      "field-tested across cultures",
-      "continuously growing collection",
-    ],
-    href: "/reservoir/vertigo-vault",
-    status: "live",
-  },
-  {
-    slug: "deep-deck",
-    name: "deep.deck",
-    tagline: "conversations that connect",
-    description:
-      "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6\u201314 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions.",
-    color: "from-[var(--wv-cadet)] to-[var(--color-surface-raised)]",
-    accentColor: "bg-[var(--wv-redwood)]",
-    icon: "\uD83C\uDCCF",
-    features: [
-      "128 developmentally-sequenced cards",
-      "deep \u2192 deeper \u2192 deepest progression",
-      "wild cards that turn hard questions into play",
-      "4 age bands: 6\u20138, 9\u201310, 11\u201312, 13\u201314",
-    ],
-    href: "/reservoir/deep-deck",
-    status: "live",
-  },
-];
+/** Games loaded from Notion-synced JSON. Sorted by `order` field. */
+export const GAMES: Game[] = gamesData as Game[];
 
 function GameCard({ game, index }: { game: Game; index: number }) {
   // Alternate layout direction for visual rhythm

@@ -1,6 +1,6 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { GameShowcase } from "@/components/game-showcase";
+import { GameShowcase, GAMES } from "@/components/game-showcase";
 import { CredibilityZone } from "@/components/credibility-zone";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
@@ -62,24 +62,15 @@ export default function ReservoirPage() {
           <div className="max-w-4xl mx-auto px-6">
             <ScrollReveal>
               <div className="scroll-shelf justify-start sm:justify-center">
-                <a
-                  href="#creaseworks"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-sm text-[var(--color-text-on-dark)] no-underline whitespace-nowrap"
-                >
-                  <span aria-hidden="true">&#127912;</span> creaseworks
-                </a>
-                <a
-                  href="#vertigo-vault"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-sm text-[var(--color-text-on-dark)] no-underline whitespace-nowrap"
-                >
-                  <span aria-hidden="true">&#9889;</span> vertigo.vault
-                </a>
-                <a
-                  href="#deep-deck"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-sm text-[var(--color-text-on-dark)] no-underline whitespace-nowrap"
-                >
-                  <span aria-hidden="true">&#127183;</span> deep.deck
-                </a>
+                {GAMES.map((game) => (
+                  <a
+                    key={game.slug}
+                    href={`#${game.slug}`}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-sm text-[var(--color-text-on-dark)] no-underline whitespace-nowrap"
+                  >
+                    <span aria-hidden="true">{game.icon}</span> {game.name}
+                  </a>
+                ))}
               </div>
             </ScrollReveal>
           </div>
@@ -103,24 +94,19 @@ export default function ReservoirPage() {
                 be jumped into &mdash; no setup, no accounts, just play.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <a
-                  href="/reservoir/creaseworks"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-accent)] text-[var(--color-text-on-dark)] text-sm font-semibold hover:bg-[var(--color-accent-hover)] transition-colors no-underline"
-                >
-                  &#127912; explore creaseworks
-                </a>
-                <a
-                  href="/reservoir/vertigo-vault"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 text-[var(--color-text-on-dark)] text-sm font-semibold hover:bg-white/15 transition-colors no-underline"
-                >
-                  &#9889; browse vertigo.vault
-                </a>
-                <a
-                  href="/reservoir/deep-deck"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 text-[var(--color-text-on-dark)] text-sm font-semibold hover:bg-white/15 transition-colors no-underline"
-                >
-                  &#127183; play deep.deck
-                </a>
+                {GAMES.map((game, i) => (
+                  <a
+                    key={game.slug}
+                    href={game.href}
+                    className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-[var(--color-text-on-dark)] text-sm font-semibold transition-colors no-underline ${
+                      i === 0
+                        ? "bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)]"
+                        : "bg-white/10 hover:bg-white/15"
+                    }`}
+                  >
+                    {game.icon} explore {game.name}
+                  </a>
+                ))}
               </div>
             </div>
           </ScrollReveal>

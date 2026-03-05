@@ -51,10 +51,10 @@ export default async function VaultCatalogPage() {
         {/* header */}
         <header className="mb-10">
           <Link
-            href="https://windedvertigo.com"
+            href="/reservoir"
             className="text-xs uppercase tracking-wider opacity-30 hover:opacity-60 transition-opacity mb-6 inline-block"
           >
-            &larr; winded.vertigo
+            &larr; reservoir
           </Link>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>

@@ -15,6 +15,7 @@
  */
 
 import { useEffect, useCallback } from "react";
+import Image from "next/image";
 
 export interface LightboxItem {
   id: string;
@@ -99,11 +100,13 @@ export default function EvidenceLightbox({
         {/* main content area */}
         <div className="flex-1 overflow-y-auto">
           {item.evidence_type === "photo" && item.photoUrl ? (
-            <div className="bg-black/5 flex items-center justify-center min-h-[300px]">
-              <img
+            <div className="relative bg-black/5 flex items-center justify-center min-h-[300px] max-h-[60vh]">
+              <Image
                 src={item.photoUrl}
                 alt={`evidence from ${item.run_title}`}
-                className="max-w-full max-h-[60vh] object-contain"
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 768px"
               />
             </div>
           ) : item.evidence_type === "quote" ? (

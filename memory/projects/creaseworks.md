@@ -14,11 +14,11 @@
 | **Branch** | br-green-cherry-air8nyor |
 | **Repo path** | `apps/creaseworks/` |
 | **Source files** | ~297 (.ts + .tsx) |
-| **Migrations** | 042 (latest: user_tiers) — all applied to Neon |
+| **Migrations** | 043 (latest: stripe_live_prices) — all applied to Neon |
 | **TypeScript** | compiles clean (zero errors) |
 | **Tests** | 9 suites, 123 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 48 (Mar 2, 2026) |
+| **Last session** | 49 (Mar 4, 2026) |
 
 ## Notion Database IDs
 
@@ -54,7 +54,7 @@ src/
 └── lib/
     ├── auth.ts             # Auth.js session helpers
     ├── db.ts               # Neon serverless client
-    ├── email/              # Resend templates (digest, nudge)
+    ├── email/              # Resend templates (digest, nudge, gallery-approved, invite)
     ├── queries/            # Database query layers
     │   ├── runs/           # Directory module (6 files + index.ts)
     │   ├── matcher/        # Directory module (6 files + index.ts)
@@ -202,6 +202,18 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - ✅ `/api/onboarding` POST accepts `tier` field, saves to DB + sets cookie
 - ✅ 14 files changed (12 modified + 2 new), TypeScript clean, 123 tests passing
 
+### Stripe Price Update + Purchase Notifications (session 49)
+- ✅ 5 new Stripe products + prices created (Classroom Starter, New Baby Sibling, Rainy Day Rescue, Summer Play Camp, The Whole Collection)
+- ✅ Migration 043: updated `packs_catalogue.stripe_price_id` for all 5 active packs — applied to Neon
+- ✅ Webhook handler: `createInAppNotification()` after `grantEntitlement()` — queries pack title, creates `pack_granted` notification (non-fatal try/catch)
+- ✅ Co-Design Essentials pack confirmed stale — excluded from updates
+
+### Pilot Email Invites with Bulk Entry (session 49)
+- ✅ `lib/email/send-invite.ts` — invite email template via Resend (brand-styled, pack list, personal note, CTA to /login)
+- ✅ `api/admin/invites/route.ts` — accepts `emails[]` array (backward-compat with `email` string), looks up pack names, loops createInviteWithPacks + sendInviteEmail, returns per-email results
+- ✅ `admin/invites/invite-form.tsx` — textarea for bulk email entry (comma/semicolon/newline parser), count display, dynamic "send N invites" button
+- ✅ CMS env vars set in Vercel: `NOTION_CMS_PAGE_WE`, `NOTION_CMS_PAGE_DO` (P2-6 complete)
+
 ### Open Questions Resolved (session 43)
 - Q1: next/image migration — DEFERRED (document cost implications for budgeting)
 - Q2: R2 bucket — DECIDED: one bucket, folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`)
@@ -236,17 +248,18 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 | 040 | calm-theme | `calm_theme BOOLEAN` on users — low-stimulation dark theme |
 | 041 | in-app-notifications | `in_app_notifications` table — event_type, title, body, href, actor_id, read_at. partial indexes for unread + dedup |
 | 042 | user-tiers | `ui_tier TEXT NOT NULL DEFAULT 'casual'` on users — progressive disclosure. CHECK constraint (casual/curious/collaborator). backfill existing onboarded users to collaborator |
+| 043 | stripe-live-prices | Update `packs_catalogue.stripe_price_id` for 5 active packs to new Stripe price IDs (session 49) |
 
-## Stripe Price IDs (Test Mode)
+## Stripe Price IDs (Session 49 — Updated)
 
 | Pack | Pack UUID | Stripe Price ID | Amount |
 |------|-----------|-----------------|--------|
-| classroom starter | `91753e91-54eb-43ad-a9ab-e4fdc015ae08` | `price_1T5EZ2D50swbC2DglU1gwqio` | $4.99 |
-| new baby sibling | `36f5e2d2-39f8-4fa5-8419-8435a19f5023` | `price_1T5EZ3D50swbC2Dgl1hyJoy5` | $4.99 |
-| rainy day rescue | `9419aa6d-7fc2-4699-a78d-cbf8547c0fee` | `price_1T5EZ4D50swbC2DgddSTnMgt` | $4.99 |
-| summer play camp | `03eaa0b6-c4fa-4fb2-b16e-69970e4f9910` | `price_1T5EZ5D50swbC2DglQtrSnbg` | $4.99 |
-| the whole collection | `9f5e9e28-4ab9-4553-8697-88eb80656a91` | `price_1T5EZ6D50swbC2DgpaTfaJ3N` | $14.99 |
-| co-design essentials | `b535a022-90c0-4e14-b92b-54a43e7aac76` | `price_1T5bqmD50swbC2DgkKdiEHwH` | $49.99 |
+| classroom starter | `91753e91-54eb-43ad-a9ab-e4fdc015ae08` | `price_1T7Cr3D50swbC2DgZ1821EuG` | $4.99 |
+| new baby sibling | `36f5e2d2-39f8-4fa5-8419-8435a19f5023` | `price_1T7Cr6D50swbC2DgLYnzdlh5` | $4.99 |
+| rainy day rescue | `9419aa6d-7fc2-4699-a78d-cbf8547c0fee` | `price_1T7Cr8D50swbC2DgDfJdCjWz` | $4.99 |
+| summer play camp | `03eaa0b6-c4fa-4fb2-b16e-69970e4f9910` | `price_1T7Cr9D50swbC2Dg5loVo2nU` | $4.99 |
+| the whole collection | `9f5e9e28-4ab9-4553-8697-88eb80656a91` | `price_1T7CrAD50swbC2Dg1omLIHV9` | $14.99 |
+| co-design essentials (stale) | `b535a022-90c0-4e14-b92b-54a43e7aac76` | `price_1T5bqmD50swbC2DgkKdiEHwH` | $49.99 |
 
 ## SEO & Error Boundary Coverage
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import CardActionSlot from "./card-action-slot";
 import { PlaydateIllustration } from "../playdate-illustration";
@@ -140,13 +141,13 @@ export function PlaydateCard({
     >
       {/* cover / illustration header */}
       {showIllustration && coverUrl ? (
-        <div className="w-full h-[120px] overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        <div className="relative w-full h-[120px] overflow-hidden">
+          <Image
             src={coverUrl}
             alt=""
-            className="w-full h-full object-cover"
-            loading="lazy"
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         </div>
       ) : showIllustration ? (

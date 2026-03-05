@@ -7,7 +7,7 @@
 | App | Stage | Next Milestone |
 |-----|-------|---------------|
 | **site** (windedvertigo.com) | Live, CMS-backed | Wire remaining pages to Notion CMS |
-| **creaseworks** | Live (Phase 3) | Stripe live-mode launch, onboarding polish |
+| **creaseworks** | Live (Phase 3 + Stripe) | Onboarding polish, next/image evaluation |
 | **reservoir** | In development | Wire to CMS JSON, game showcase content |
 | **deep-deck** | In development | — |
 | **nordic-sqr-rct** | Live | Potential Supabase migration |
@@ -38,7 +38,7 @@
 
 ### In Progress
 
-- [ ] Wire `/we/` and `/do/` pages to Notion CMS (metadata overlay pattern)
+- [x] Wire `/we/` and `/do/` pages to Notion CMS — code done (tier 4 #16), env vars set (session 49)
 - [ ] `/what/` page redesign — lives on `feature/what-redesign` branch, waiting on backdrop images from Garrett
 
 ### Planned
@@ -68,7 +68,7 @@
 
 See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all feature items.
 
-### Recently Completed (sessions 44–48)
+### Recently Completed (sessions 44–49)
 
 - [x] Profile page consolidation (removed duplicate stat/pack displays)
 - [x] Analytics dashboard (sparklines, conversion funnel, credit economy)
@@ -77,10 +77,13 @@ See `docs/creaseworks-backlog-2026-02-28.md` for the detailed backlog with all f
 - [x] PWA mobile install support
 - [x] In-app notification center
 - [x] Progressive disclosure / user tiers (casual → curious → collaborator)
+- [x] Stripe products/prices + migration 043 (session 49)
+- [x] Purchase notification in webhook handler (session 49)
+- [x] Pilot email invites with bulk entry via Resend (session 49)
+- [x] CMS env vars for /we/ and /do/ pages set in Vercel (P2-6, session 49)
 
 ### Next Up
 
-- [ ] Stripe live-mode activation
 - [ ] next/image migration (document cost implications for budgeting first)
 - [ ] Onboarding flow polish
 - [ ] Image sync tiers 3-4 (file properties, body content) — see `docs/creaseworks-image-sync-scope.md`

@@ -47,6 +47,8 @@ export const PLAYDATE_ENTITLED_COLUMNS = [
   "find_again_prompt_html",
   "substitutions_notes",
   "substitutions_notes_html",
+  "body_html",
+  "illustration_url",
 ] as const;
 
 /** Collective tier — windedvertigo.com team. Entitled + design context. */
