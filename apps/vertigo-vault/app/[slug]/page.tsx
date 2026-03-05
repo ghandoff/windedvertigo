@@ -357,43 +357,42 @@ export default async function VaultActivityPage({ params }: Props) {
       )}
 
       {/* entitled but not practitioner — upsell to practitioner */}
-      {accessTier === "entitled" &&
-        (activity.facilitator_notes || activity.video_url) && (
-          <section
-            className="rounded-xl border p-6 mb-8"
-            style={{
-              borderColor: "rgba(175,79,65,0.2)",
-              background: "linear-gradient(to bottom, rgba(175,79,65,0.06), rgba(175,79,65,0.02))",
-            }}
-          >
-            <div className="flex items-start gap-3">
-              <span className="text-lg leading-none mt-0.5">🎓</span>
-              <div>
-                <h2
-                  className="text-sm font-semibold mb-1"
-                  style={{ color: "rgba(232,237,243,0.8)" }}
-                >
-                  practitioner upgrade
-                </h2>
-                <p
-                  className="text-sm mb-3"
-                  style={{ color: "var(--vault-text-muted)" }}
-                >
-                  this activity includes facilitator notes
-                  {activity.video_url ? " and a video walkthrough" : ""}.
-                  upgrade to the practitioner pack for expert-level guidance.
-                </p>
-                <Link
-                  href="/practitioner"
-                  className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
-                  style={{ backgroundColor: "var(--vault-accent)" }}
-                >
-                  see practitioner pack
-                </Link>
-              </div>
+      {accessTier === "entitled" && (
+        <section
+          className="rounded-xl border p-6 mb-8"
+          style={{
+            borderColor: "rgba(175,79,65,0.2)",
+            background: "linear-gradient(to bottom, rgba(175,79,65,0.06), rgba(175,79,65,0.02))",
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <span className="text-lg leading-none mt-0.5">🎓</span>
+            <div>
+              <h2
+                className="text-sm font-semibold mb-1"
+                style={{ color: "rgba(232,237,243,0.8)" }}
+              >
+                practitioner upgrade
+              </h2>
+              <p
+                className="text-sm mb-3"
+                style={{ color: "var(--vault-text-muted)" }}
+              >
+                upgrade to the practitioner pack for facilitator notes,
+                video walkthroughs, and expert-level guidance on every
+                activity.
+              </p>
+              <Link
+                href="/practitioner"
+                className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
+                style={{ backgroundColor: "var(--vault-accent)" }}
+              >
+                see practitioner pack
+              </Link>
             </div>
-          </section>
-        )}
+          </div>
+        </section>
+      )}
 
       {/* related activities */}
       {related.length > 0 && (
@@ -433,9 +432,17 @@ export default async function VaultActivityPage({ params }: Props) {
             <dt>notion id</dt>
             <dd className="font-mono">{activity.notion_id}</dd>
             <dt>last edited</dt>
-            <dd>{activity.notion_last_edited}</dd>
+            <dd>
+              {activity.notion_last_edited instanceof Date
+                ? activity.notion_last_edited.toISOString()
+                : String(activity.notion_last_edited ?? "—")}
+            </dd>
             <dt>synced at</dt>
-            <dd>{activity.synced_at}</dd>
+            <dd>
+              {activity.synced_at instanceof Date
+                ? activity.synced_at.toISOString()
+                : String(activity.synced_at ?? "—")}
+            </dd>
           </dl>
         </section>
       )}
