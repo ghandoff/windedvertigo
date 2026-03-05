@@ -422,9 +422,16 @@ async function fetchVertigoVault() {
   const propMap = config.properties.vertigoVault;
   const required = config.required.vertigoVault;
 
+  // Only fetch PRME-tier activities for the static sampler page.
+  // Full vault content (explorer/practitioner tiers) is served by the
+  // standalone vertigo-vault Next.js app from the PostgreSQL cache.
   const response = await withRetry(
     () => notion.databases.query({
       database_id: config.databases.vertigoVault,
+      filter: {
+        property: propMap.tier,
+        select: { equals: 'prme' },
+      },
     }),
     'fetchVertigoVault'
   );
@@ -447,17 +454,9 @@ async function fetchVertigoVault() {
 
     const props = page.properties;
 
-    // Fetch page content (block children)
-    let contentText = '';
-    try {
-      const blocks = await withRetry(
-        () => notion.blocks.children.list({ block_id: page.id }),
-        'fetchBlocks:' + page.id
-      );
-      contentText = blocksToMarkdown(blocks.results);
-    } catch (err) {
-      console.warn('  Warning: Could not fetch content for ' + getTitleValue(props[propMap.name]) + ': ' + err.message);
-    }
+    // NOTE: Block content is intentionally NOT fetched for the static sampler.
+    // Full activity instructions are gated behind auth/entitlements in the
+    // standalone vertigo-vault app at /reservoir/vertigo-vault.
 
     // Extract and download page cover image
     let coverImage = '';
@@ -491,11 +490,10 @@ async function fetchVertigoVault() {
       type: getMultiSelectValue(props[propMap.type]),
       skillsDeveloped: getMultiSelectValue(props[propMap.skillsDeveloped]),
       coverImage: coverImage,
-      content: contentText,
     });
   }
 
-  console.log('  OK Vertigo Vault: ' + activities.length + ' activities loaded, ' + coversDownloaded + ' covers downloaded, ' + skipped + ' skipped');
+  console.log('  OK Vertigo Vault: ' + activities.length + ' PRME activities loaded, ' + coversDownloaded + ' covers downloaded, ' + skipped + ' skipped');
   return activities;
 }
 
@@ -775,7 +773,7 @@ async function main() {
     // Write Vertigo Vault
     const vaultContent = {
       lastUpdated: new Date().toISOString(),
-      note: 'Auto-generated from Notion vertigo.vault database. Do not edit directly.',
+      note: 'Auto-generated from Notion vertigo.vault database. PRME activities only. Do not edit directly.',
       notionDatabaseId: config.databases.vertigoVault,
       activities: vaultActivities,
     };
