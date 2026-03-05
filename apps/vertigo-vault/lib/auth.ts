@@ -275,10 +275,12 @@ export const authConfig: NextAuthConfig = {
         token.uiTier = await getUserTier(user.id);
         token.refreshedAt = Date.now();
       } else if (token.userId) {
-        // Subsequent requests — refresh org/role data every 5 minutes
+        // Subsequent requests — refresh org/role/entitlement data every 60s.
+        // Short window ensures purchases propagate quickly while avoiding
+        // a DB round-trip on literally every request.
         const refreshedAt = (token.refreshedAt as number) || 0;
-        const fiveMinutes = 5 * 60 * 1000;
-        if (Date.now() - refreshedAt > fiveMinutes) {
+        const refreshInterval = 60 * 1000; // 60 seconds
+        if (Date.now() - refreshedAt > refreshInterval) {
           try {
             const m = await getOrgMembership(token.userId as string);
             token.orgId = m?.org_id ?? null;

@@ -43,10 +43,11 @@ export default function VaultActivityGrid({
   return (
     <>
       {/* filter bar */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-4" role="toolbar" aria-label="Filter activities">
         {/* type filters */}
         <button
           onClick={() => setActiveType(null)}
+          aria-pressed={activeType === null}
           className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
           style={{
             backgroundColor: activeType === null ? "var(--vault-accent)" : "rgba(175,79,65,0.1)",
@@ -59,6 +60,7 @@ export default function VaultActivityGrid({
           <button
             key={t}
             onClick={() => setActiveType(activeType === t ? null : t)}
+            aria-pressed={activeType === t}
             className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
             style={{
               backgroundColor: activeType === t ? "var(--vault-accent)" : "rgba(175,79,65,0.1)",
@@ -79,6 +81,7 @@ export default function VaultActivityGrid({
           <button
             key={d}
             onClick={() => setActiveDuration(activeDuration === d ? null : d)}
+            aria-pressed={activeDuration === d}
             className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
             style={{
               backgroundColor: activeDuration === d ? "#6b8e6b" : "rgba(107,142,107,0.1)",
