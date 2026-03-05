@@ -220,16 +220,36 @@ export async function getVaultActivityCount(contentTier?: string) {
 
 /**
  * Get related activities for a vault activity.
- * Always returns teaser-level columns (related activities are shown as cards).
+ * Returns teaser-level columns (related activities are shown as cards).
+ * Enforces row-level access — free users only see related PRME activities.
  */
-export async function getRelatedActivities(activityId: string) {
+export async function getRelatedActivities(
+  activityId: string,
+  tier: VaultAccessTier = "teaser",
+) {
   const cols = columnsToSql(VAULT_TEASER_COLUMNS);
+  const allowed = visibleContentTiers(tier);
+
+  if (!allowed) {
+    // practitioner / internal → show all related
+    const result = await sql.query(
+      `SELECT ${cols} FROM vault_activities_cache vac
+       JOIN vault_related_activities vra ON vra.related_activity_id = vac.id
+       WHERE vra.vault_activity_id = $1
+       ORDER BY vac.name ASC`,
+      [activityId],
+    );
+    return result.rows;
+  }
+
+  // Filter related activities by the user's visible content tiers
+  const placeholders = allowed.map((_, i) => `$${i + 2}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols} FROM vault_activities_cache vac
      JOIN vault_related_activities vra ON vra.related_activity_id = vac.id
-     WHERE vra.vault_activity_id = $1
+     WHERE vra.vault_activity_id = $1 AND vac.tier IN (${placeholders})
      ORDER BY vac.name ASC`,
-    [activityId],
+    [activityId, ...allowed],
   );
   return result.rows;
 }

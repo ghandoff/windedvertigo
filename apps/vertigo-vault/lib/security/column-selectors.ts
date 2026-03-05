@@ -62,10 +62,25 @@ export const VAULT_INTERNAL_COLUMNS = [
 
 // ── helper ──────────────────────────────────────────────────────────────
 
+/** Safe SQL identifier pattern — lowercase letters, digits, underscores. */
+const SAFE_IDENTIFIER = /^[a-z_][a-z0-9_]*$/;
+
 /**
  * Build a SQL column list string from a selector array.
  * E.g. `columnsToSql(VAULT_TEASER_COLUMNS)` → `"id, slug, name, …"`
+ *
+ * Validates every column name against a safe identifier regex as a
+ * defense-in-depth measure. The column arrays above are compile-time
+ * constants, but this guard protects against accidental misuse if
+ * the function is ever called with dynamic input.
  */
 export function columnsToSql(columns: readonly string[]): string {
+  for (const col of columns) {
+    if (!SAFE_IDENTIFIER.test(col)) {
+      throw new Error(
+        `[security] unsafe column identifier "${col}" — expected lowercase snake_case`,
+      );
+    }
+  }
   return columns.join(", ");
 }

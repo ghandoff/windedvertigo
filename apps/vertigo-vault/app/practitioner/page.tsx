@@ -80,7 +80,7 @@ export default async function PractitionerPackPage() {
           </div>
         ) : (
           <PurchaseButton
-            packId="vault-practitioner"
+            packSlug="vault-practitioner"
             label="get the practitioner pack"
             className="w-full rounded-lg px-5 py-3 text-sm font-medium text-white"
             style={{ backgroundColor: "var(--vault-accent)" }}

@@ -53,7 +53,7 @@ export default async function VaultActivityPage({ params }: Props) {
     `vault_${accessTier}` as "vault_teaser" | "vault_entitled" | "vault_practitioner" | "vault_internal",
   );
 
-  const related = await getRelatedActivities(activity.id);
+  const related = await getRelatedActivities(activity.id, accessTier);
 
   const primaryType = activity.type?.[0] ?? null;
   const accent = TYPE_COLORS[primaryType ?? ""] ?? "#6b7b8d";

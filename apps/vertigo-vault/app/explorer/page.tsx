@@ -76,7 +76,7 @@ export default async function ExplorerPackPage() {
           </div>
         ) : (
           <PurchaseButton
-            packId="vault-explorer"
+            packSlug="vault-explorer"
             label="get the explorer pack"
             className="w-full rounded-lg px-5 py-3 text-sm font-medium text-white"
             style={{ backgroundColor: "#6b8e6b" }}
