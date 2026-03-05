@@ -793,6 +793,37 @@ async function main() {
       fs.writeFileSync(reservoirGamesPath, JSON.stringify(reservoirGames, null, 2));
     }
 
+    // Write Reservoir Credibility data (extracted from Site Content CMS "reservoir" page)
+    const reservoirSections = siteContent.reservoir || [];
+    if (reservoirSections.length > 0) {
+      const credentials = reservoirSections
+        .filter(s => s.type === 'credential' && s.section === 'why')
+        .sort((a, b) => a.order - b.order)
+        .map(s => ({ icon: s.icon, label: s.name, detail: s.content }));
+      const principles = reservoirSections
+        .filter(s => s.type === 'principle' && s.section === 'principles')
+        .sort((a, b) => a.order - b.order)
+        .map(s => ({ heading: s.name, body: s.content }));
+      const bioSection = reservoirSections.find(s => s.type === 'body' && s.section === 'bio');
+      const heroSection = reservoirSections.find(s => s.section === 'hero' && s.type === 'hero');
+      const whyHeader = reservoirSections.find(s => s.section === 'why-header');
+      const ctaSection = reservoirSections.find(s => s.section === 'closing-cta' && s.type === 'cta');
+
+      const credibilityData = {
+        sectionLabel: whyHeader ? whyHeader.tagline : 'why these tools',
+        sectionHeading: whyHeader ? whyHeader.content : 'built by people who study how humans grow',
+        credentials,
+        principles,
+        bio: bioSection ? { text: bioSection.content, link: bioSection.link } : null,
+        hero: heroSection ? { title: heroSection.name, subtitle: heroSection.content, tagline: heroSection.tagline } : null,
+        cta: ctaSection ? { heading: ctaSection.name, body: ctaSection.content } : null,
+      };
+
+      const credibilityPath = path.join(__dirname, '..', 'apps', 'reservoir', 'data', 'credibility.json');
+      fs.writeFileSync(credibilityPath, JSON.stringify(credibilityData, null, 2));
+      console.log('  Reservoir Credibility: ' + credentials.length + ' credentials, ' + principles.length + ' principles → ' + credibilityPath);
+    }
+
     // what-page.json write removed — /what/ now reads site-content-what.json from CMS (Mar 2026)
     // what-page-v2.json write removed — superseded by Site Content CMS (Mar 2026)
 
