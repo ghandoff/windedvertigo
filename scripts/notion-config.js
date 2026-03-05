@@ -16,6 +16,7 @@ module.exports = {
     // whatPage removed — /what/ now reads from siteContent CMS (Mar 2026)
     // whatPageV2 removed — superseded by siteContent CMS (Mar 2026)
     siteContent: '09a046a556c1455e80073546b8f83297',
+    reservoirGames: '8e3f3364b2654640a91ed0f38b091a07',
   },
 
   // Property name mappings (Notion column name â internal key)
@@ -73,6 +74,19 @@ module.exports = {
     },
     // whatPage properties removed — /what/ now reads from siteContent CMS (Mar 2026)
     // whatPageV2 properties removed — superseded by siteContent CMS (Mar 2026)
+    reservoirGames: {
+      name: 'Name',
+      slug: 'Slug',
+      tagline: 'Tagline',
+      description: 'Description',
+      icon: 'Icon',
+      brandColor: 'Brand Color',
+      accentColor: 'Accent Color',
+      features: 'Features',
+      href: 'Href',
+      status: 'Status',
+      order: 'Order',
+    },
     siteContent: {
       name: 'Name',
       content: 'Content',
@@ -101,6 +115,7 @@ module.exports = {
     portfolioAssets: ['asset', 'Website Asset Type'],
     vertigoVault: ['name'],
     // whatPage required removed — retired (Mar 2026)
+    reservoirGames: ['Name', 'Slug'],
     siteContent: ['Name', 'Page'],
   },
 
