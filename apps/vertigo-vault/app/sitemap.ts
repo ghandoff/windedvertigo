@@ -22,12 +22,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let activityRoutes: MetadataRoute.Sitemap = [];
   try {
     const result = await sql.query(
-      `SELECT slug, updated_at FROM vault_activities_cache ORDER BY name ASC`,
+      `SELECT slug, synced_at FROM vault_activities_cache ORDER BY name ASC`,
     );
     activityRoutes = result.rows.map(
-      (row: { slug: string; updated_at: string | Date }) => ({
+      (row: { slug: string; synced_at: string | Date }) => ({
         url: `${BASE}/${row.slug}`,
-        lastModified: new Date(row.updated_at),
+        lastModified: new Date(row.synced_at),
         changeFrequency: "weekly" as const,
         priority: 0.6,
       }),
