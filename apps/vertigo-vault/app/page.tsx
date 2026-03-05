@@ -42,9 +42,9 @@ export default async function VaultCatalogPage() {
                 className="max-w-lg text-sm leading-relaxed"
                 style={{ color: "var(--vault-text-muted)" }}
               >
-                a curated collection of group activities, energizers, and reflective
-                exercises. filter by type or duration, then click any card to see the
-                full instructions.
+                {isEntitled
+                  ? "a curated collection of group activities, energizers, and reflective exercises. filter by type or duration, then click any card to see the full instructions."
+                  : `browse ${activities.length} free activities from our PRME collection. unlock 50+ more with an explorer or practitioner pack.`}
               </p>
             </div>
 

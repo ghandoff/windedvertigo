@@ -1,10 +1,11 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
 import {
   resolveVaultTier,
   getVaultActivityBySlug,
   getRelatedActivities,
+  getActivityContentTier,
 } from "@/lib/queries/vault";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
 import SafeHtml from "@/components/ui/safe-html";
@@ -37,7 +38,14 @@ export default async function VaultActivityPage({ params }: Props) {
   );
 
   const activity = await getVaultActivityBySlug(slug, accessTier);
-  if (!activity) return notFound();
+
+  if (!activity) {
+    // Activity exists but user's tier doesn't include it → redirect to pack page
+    const contentTier = await getActivityContentTier(slug);
+    if (contentTier === "explorer") redirect("/explorer");
+    if (contentTier === "practitioner") redirect("/practitioner");
+    return notFound();
+  }
 
   // Dev guard
   assertNoLeakedFields(
