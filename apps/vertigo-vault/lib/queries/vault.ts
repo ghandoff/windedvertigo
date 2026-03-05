@@ -82,16 +82,54 @@ function columnsForTier(tier: VaultAccessTier): string {
 }
 
 /**
- * List all vault activities at the specified tier level.
+ * Resolve which content tiers a given access tier can see.
  *
- * All activities are returned regardless of content tier —
- * the tier column selection controls what fields are exposed,
- * not which rows are returned.
+ * Tier hierarchy (cumulative):
+ *   teaser       → only "prme" activities
+ *   entitled     → "prme" + "explorer"
+ *   practitioner → "prme" + "explorer" + "practitioner"
+ *   internal     → everything (no filter)
+ */
+function visibleContentTiers(tier: VaultAccessTier): string[] | null {
+  switch (tier) {
+    case "teaser":
+      return ["prme"];
+    case "entitled":
+      return ["prme", "explorer"];
+    case "practitioner":
+    case "internal":
+      return null; // no row filter — show all
+  }
+}
+
+/**
+ * List vault activities filtered by both:
+ *   1. Column selection (tier-based field visibility)
+ *   2. Row filtering (only show activities the user's tier unlocks)
+ *
+ * Free users see only the 22 PRME activities.
+ * Explorer users see PRME + Explorer (47).
+ * Practitioner/internal users see all (72).
  */
 export async function getVaultActivities(tier: VaultAccessTier) {
   const cols = columnsForTier(tier);
+  const allowed = visibleContentTiers(tier);
+
+  if (!allowed) {
+    // practitioner / internal → all rows
+    const result = await sql.query(
+      `SELECT ${cols} FROM vault_activities_cache ORDER BY name ASC`,
+    );
+    return result.rows;
+  }
+
+  // Build parameterised IN clause for allowed content tiers
+  const placeholders = allowed.map((_, i) => `$${i + 1}`).join(", ");
   const result = await sql.query(
-    `SELECT ${cols} FROM vault_activities_cache ORDER BY name ASC`,
+    `SELECT ${cols} FROM vault_activities_cache
+     WHERE tier IN (${placeholders})
+     ORDER BY name ASC`,
+    allowed,
   );
   return result.rows;
 }
@@ -99,11 +137,19 @@ export async function getVaultActivities(tier: VaultAccessTier) {
 /**
  * List vault activities filtered by content tier.
  * E.g. "show only PRME activities" or "show only explorer activities".
+ * Enforces row-level access — requesting a content tier above the user's
+ * access tier returns an empty array.
  */
 export async function getVaultActivitiesByTier(
   accessTier: VaultAccessTier,
   contentTier: string,
 ) {
+  // Enforce row-level access: don't return activities the user can't see
+  const allowed = visibleContentTiers(accessTier);
+  if (allowed && !allowed.includes(contentTier)) {
+    return [];
+  }
+
   const cols = columnsForTier(accessTier);
   const result = await sql.query(
     `SELECT ${cols} FROM vault_activities_cache
@@ -116,18 +162,45 @@ export async function getVaultActivitiesByTier(
 
 /**
  * Get a single vault activity by slug.
- * Caller determines the access tier via resolveVaultTier().
+ * Enforces row-level access: free users can only view PRME activities.
+ * Returns null if the activity exists but the user's tier doesn't unlock it.
  */
 export async function getVaultActivityBySlug(
   slug: string,
   tier: VaultAccessTier,
 ) {
   const cols = columnsForTier(tier);
+  const allowed = visibleContentTiers(tier);
+
+  if (!allowed) {
+    // practitioner / internal → no row filter
+    const result = await sql.query(
+      `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
+      [slug],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  const placeholders = allowed.map((_, i) => `$${i + 2}`).join(", ");
   const result = await sql.query(
-    `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
-    [slug],
+    `SELECT ${cols} FROM vault_activities_cache
+     WHERE slug = $1 AND tier IN (${placeholders})`,
+    [slug, ...allowed],
   );
   return result.rows[0] ?? null;
+}
+
+/**
+ * Look up just the content tier for a slug (no access check).
+ * Used by the detail page to redirect gated activities to the
+ * correct pack page instead of showing a raw 404.
+ */
+export async function getActivityContentTier(slug: string): Promise<string | null> {
+  const result = await sql.query(
+    `SELECT tier FROM vault_activities_cache WHERE slug = $1`,
+    [slug],
+  );
+  return (result.rows[0]?.tier as string) ?? null;
 }
 
 /**
