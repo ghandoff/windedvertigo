@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
 import {
   resolveVaultTier,
   getVaultActivityBySlug,
+  getVaultActivityMeta,
   getRelatedActivities,
   getActivityContentTier,
 } from "@/lib/queries/vault";
@@ -16,6 +18,45 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+const BASE_URL = "https://windedvertigo.com/reservoir/vertigo-vault";
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const activity = await getVaultActivityMeta(slug);
+
+  if (!activity) {
+    return { title: "activity not found — vertigo.vault" };
+  }
+
+  const title = `${activity.name} — vertigo.vault`;
+  const description =
+    activity.headline
+      ?? `${activity.type?.[0] ?? "Activity"} · ${activity.duration ?? ""} · vertigo.vault`.trim();
+  const url = `${BASE_URL}/${activity.slug}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url,
+      siteName: "winded.vertigo",
+      ...(activity.cover_url
+        ? { images: [{ url: activity.cover_url, width: 1200, height: 630, alt: activity.name }] }
+        : {}),
+    },
+    twitter: {
+      card: activity.cover_url ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(activity.cover_url ? { images: [activity.cover_url] } : {}),
+    },
+  };
 }
 
 /** Type colour map — matches vault-activity-card.tsx */
@@ -65,8 +106,37 @@ export default async function VaultActivityPage({ params }: Props) {
     (accessTier === "practitioner" || accessTier === "internal") &&
     activity.video_url;
 
+  /**
+   * JSON-LD structured data — LearningResource schema for search engines.
+   * All values come from our own database (trusted), serialised via
+   * JSON.stringify which escapes any special characters.
+   */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    name: activity.name,
+    description: activity.headline ?? undefined,
+    url: `${BASE_URL}/${slug}`,
+    ...(activity.cover_url ? { image: activity.cover_url } : {}),
+    provider: {
+      "@type": "Organization",
+      name: "winded.vertigo",
+      url: "https://windedvertigo.com",
+    },
+    educationalLevel: "professional development",
+    learningResourceType: primaryType ?? "Activity",
+    ...(activity.duration ? { timeRequired: `PT${activity.duration.replace(/\s*min(utes?)?/i, "M")}` } : {}),
+    isAccessibleForFree: activity.tier === "prme",
+    inLanguage: "en",
+  };
+
   return (
     <>
+    {/* JSON-LD: all values from our DB, serialised safely via JSON.stringify */}
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
     <a href="#activity-content" className="skip-link">
       Skip to activity content
     </a>

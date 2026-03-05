@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "purchase confirmed — vertigo.vault",
+  description: "your vault pack purchase is confirmed. you now have full access.",
+  robots: { index: false, follow: false },
+};
 
 interface Props {
   searchParams: Promise<{ pack?: string; session_id?: string }>;

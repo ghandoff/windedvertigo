@@ -1,9 +1,33 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
 import { resolveVaultTier, getVaultActivities } from "@/lib/queries/vault";
 import VaultActivityGrid from "@/components/vault-activity-grid";
 
 export const dynamic = "force-dynamic";
+
+const BASE_URL = "https://windedvertigo.com/reservoir/vertigo-vault";
+
+export const metadata: Metadata = {
+  title: "vertigo.vault — group activities, energizers & reflective exercises",
+  description:
+    "browse a curated collection of group activities, energizers, and reflective exercises. filter by type or duration, then unlock step-by-step guides.",
+  alternates: { canonical: BASE_URL },
+  openGraph: {
+    type: "website",
+    title: "vertigo.vault — group activities, energizers & reflective exercises",
+    description:
+      "browse a curated collection of group activities, energizers, and reflective exercises. filter by type or duration, then unlock step-by-step guides.",
+    url: BASE_URL,
+    siteName: "winded.vertigo",
+  },
+  twitter: {
+    card: "summary",
+    title: "vertigo.vault — group activities & energizers",
+    description:
+      "browse a curated collection of group activities, energizers, and reflective exercises.",
+  },
+};
 
 export default async function VaultCatalogPage() {
   const session = await getSession();
