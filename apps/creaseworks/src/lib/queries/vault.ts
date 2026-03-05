@@ -163,6 +163,40 @@ export async function getVaultActivitiesForPackPage() {
 }
 
 /**
+ * Lightweight metadata-only query — fetches just what generateMetadata()
+ * needs without column-level access checks. All fields here are teaser-safe.
+ */
+export async function getVaultActivityMeta(slug: string) {
+  const result = await sql.query(
+    `SELECT name, headline, cover_url, type, duration, tier, slug
+     FROM vault_activities_cache WHERE slug = $1`,
+    [slug],
+  );
+  return result.rows[0] as {
+    name: string;
+    headline: string | null;
+    cover_url: string | null;
+    type: string[];
+    duration: string | null;
+    tier: string;
+    slug: string;
+  } | undefined;
+}
+
+/**
+ * Look up just the content tier for a slug (no access check).
+ * Used by the detail page to redirect gated activities to the
+ * correct pack page instead of showing a raw 404.
+ */
+export async function getActivityContentTier(slug: string): Promise<string | null> {
+  const result = await sql.query(
+    `SELECT tier FROM vault_activities_cache WHERE slug = $1`,
+    [slug],
+  );
+  return (result.rows[0]?.tier as string) ?? null;
+}
+
+/**
  * Get related activities for a vault activity.
  * Always returns teaser-level columns (related activities are shown as cards).
  */
