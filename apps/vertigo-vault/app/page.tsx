@@ -51,12 +51,12 @@ export default async function VaultCatalogPage() {
       <main className="min-h-screen px-6 pt-12 pb-20 max-w-6xl mx-auto">
         {/* header */}
         <header className="mb-10">
-          <Link
+          <a
             href="/reservoir"
-            className="text-xs uppercase tracking-wider opacity-30 hover:opacity-60 transition-opacity mb-6 inline-block"
+            className="text-xs tracking-wider opacity-30 hover:opacity-60 transition-opacity mb-6 inline-block"
           >
             &larr; reservoir
-          </Link>
+          </a>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight mb-2">
