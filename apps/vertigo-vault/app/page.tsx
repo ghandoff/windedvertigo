@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth-helpers";
 import { resolveVaultTier, getVaultActivities, type VaultAccessTier } from "@/lib/queries/vault";
 import VaultActivityGrid from "@/components/vault-activity-grid";
+import UserMenu from "@/components/ui/user-menu";
 
 export const dynamic = "force-dynamic";
 
@@ -74,15 +75,7 @@ export default async function VaultCatalogPage() {
             {/* auth + tier info */}
             <div className="flex items-center gap-3">
               {session ? (
-                <div className="flex items-center gap-3">
-                  <TierBadge tier={accessTier} />
-                  <span
-                    className="text-xs"
-                    style={{ color: "var(--vault-text-muted)" }}
-                  >
-                    {session.email}
-                  </span>
-                </div>
+                <UserMenu email={session.email ?? ""} tier={accessTier} />
               ) : (
                 <Link
                   href="/login"
@@ -124,32 +117,6 @@ export default async function VaultCatalogPage() {
 }
 
 /* ── helper components ──────────────────────────────────────────── */
-
-const TIER_LABELS: Record<VaultAccessTier, string> = {
-  teaser: "free",
-  entitled: "explorer pack",
-  practitioner: "practitioner pack",
-  internal: "internal",
-};
-
-const TIER_STYLES: Record<VaultAccessTier, { bg: string; color: string }> = {
-  teaser: { bg: "rgba(255,255,255,0.06)", color: "var(--vault-text-muted)" },
-  entitled: { bg: "rgba(175,79,65,0.15)", color: "#d4836f" },
-  practitioner: { bg: "rgba(155,67,67,0.15)", color: "#c47373" },
-  internal: { bg: "rgba(175,79,65,0.15)", color: "var(--vault-accent)" },
-};
-
-function TierBadge({ tier }: { tier: VaultAccessTier }) {
-  const style = TIER_STYLES[tier];
-  return (
-    <span
-      className="rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider whitespace-nowrap"
-      style={{ backgroundColor: style.bg, color: style.color }}
-    >
-      {TIER_LABELS[tier]}
-    </span>
-  );
-}
 
 function TierBanner({
   tier,
