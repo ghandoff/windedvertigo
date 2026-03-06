@@ -23,7 +23,7 @@
     "tagline": "curated group energizers",
     "description": "a growing collection of group activities, ice-breakers, and energizers — curated from years of facilitation across cultures and contexts. find the right activity for any group size, energy level, or learning goal.",
     "icon": "",
-    "color": "from-[var(--wv-redwood)] to-[var(--wv-cadet)]",
+    "color": "from-[var(--wv-redwood)] to-[var(--wv-champagne)]",
     "accentColor": "bg-[var(--wv-sienna)]",
     "features": [
       "searchable activity library",
@@ -41,7 +41,7 @@
     "tagline": "conversations that connect",
     "description": "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6–14 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions.",
     "icon": "",
-    "color": "from-[var(--wv-cadet)] to-[var(--color-surface-raised)]",
+    "color": "from-[var(--wv-champagne)] to-[var(--color-surface-raised)]",
     "accentColor": "bg-[var(--wv-redwood)]",
     "features": [
       "128 developmentally-sequenced cards",
