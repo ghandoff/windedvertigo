@@ -1,25 +1,25 @@
 {
-  "lastUpdated": "2026-03-06T07:00:26.865Z",
+  "lastUpdated": "2026-03-06T19:00:41.002Z",
   "note": "Auto-generated from Notion. Do not edit directly.",
   "packs": {
     "product-design": {
       "title": "product × design",
-      "promise": "build learning products people actually use.",
-      "quadrantStory": "you're in the product × design quadrant—where learning science meets rapid prototyping. this is where we build the tools, games, and experiences that teach through doing - and are designed to flex around the inherent variability of how humans learn.",
-      "story": "we kick off with a concept sprint—exploring the problem space, sketching multiple approaches, and converging on the strongest direction. then we prototype rapidly, building just enough to test our core assumptions. playtests happen early and often, with real users in realistic contexts. we synthesise findings after each round and iterate. by the end of sprint two, you have a validated concept and a clear path to production.",
-      "crossover": "great products don't just emerge from intuition—they're shaped by evidence. we bake research into every sprint, testing assumptions with users and measuring learning outcomes. design and research aren't separate phases; they're intertwined throughout.",
+      "promise": "you're building something that teaches through doing — and you want it to work for real people, not just look good on paper.",
+      "quadrantStory": "your curiosity landed here — where learning science meets making things. this is the space where we build tools, games, and experiences that teach through play — designed to flex around the beautiful variability of how humans actually learn.",
+      "story": "we kick off with a concept sprint — exploring the problem space together, sketching multiple approaches, and converging on the strongest direction. then we prototype rapidly, building just enough to test core assumptions. playtests happen early and often, with real people in real contexts. we synthesise what we learn after each round and iterate. by the end of sprint two, you have a validated concept and a clear path forward.",
+      "crossover": "great products aren't born from intuition alone — they're shaped by evidence. we weave research into every sprint, testing assumptions with users and measuring whether learning is actually happening. design and research aren't separate phases here; they're the same conversation.",
       "outcomes": [
         {
-          "title": "working prototype in 2 sprints",
-          "detail": "not wireframes or mockups—a functional prototype you can put in front of real users and learn from immediately."
+          "title": "a working prototype in 2 sprints",
+          "detail": "not wireframes or mockups — a functional prototype you can put in front of real people and learn from immediately."
         },
         {
-          "title": "playtest insights",
-          "detail": "we run structured playtests with your target users, capturing what delights, what confuses, and what needs to change."
+          "title": "playtest insights you can act on",
+          "detail": "structured playtests with your target users — capturing what delights, what confuses, and what needs to change."
         },
         {
-          "title": "implementation specification",
-          "detail": "a detailed handoff document that lets your dev team build with confidence—including edge cases, accessibility requirements, and content guidelines that bake in flexibility needed to reflect the different ways we all think, feel and learn."
+          "title": "a spec your team can build from",
+          "detail": "a detailed handoff that lets your dev team build with confidence — including edge cases, accessibility requirements, and the flexibility real humans need."
         }
       ],
       "examples": [
@@ -43,22 +43,22 @@
     },
     "people-research": {
       "title": "people × research",
-      "promise": "understand what's really happening with your people.",
-      "quadrantStory": "you're in the people × research quadrant—where rigorous measurement meets human complexity. this is where we prove that your interventions actually change how people think, feel, and act.",
-      "story": "we begin by mapping your theory of change to measurable outcomes. then we design a lightweight evaluation approach—selecting validated instruments or creating custom measures that fit your context. we collect baseline data, observe your intervention in action, and gather post-programme responses. the analysis goes beyond simple comparisons to explore moderators and mechanisms. you receive a findings deck that tells the story of your impact in language your stakeholders understand.",
-      "crossover": "research without design is just measurement. we bring a designer's eye to how we collect data—making surveys engaging, interviews conversational, and dashboards actionable. the best evidence comes from participants who actually want to engage with your evaluation.",
+      "promise": "you need to understand what's really happening with your people — and you want evidence that holds up.",
+      "quadrantStory": "your curiosity landed here — where rigorous measurement meets human complexity. this is the space where we figure out whether your interventions actually change how people think, feel, and act. we won't just hand you numbers — we'll help you tell the story of what's changing and why.",
+      "story": "we begin by mapping your theory of change to things we can actually see and measure. then we design a lightweight evaluation approach — selecting validated instruments or creating custom measures that fit your context. we collect baseline data, observe your work in action, and gather responses. the analysis goes beyond simple comparisons to explore what's driving change, for whom, and under what conditions. you receive a findings story your stakeholders will understand.",
+      "crossover": "research without design is just measurement. we bring a designer's eye to how we collect data — making surveys engaging, interviews conversational, and dashboards something people actually want to look at. the best evidence comes from people who want to participate.",
       "outcomes": [
         {
-          "title": "pinpoint what's working",
-          "detail": "we identify the specific mechanisms driving change—not just whether something worked, but why and for whom."
+          "title": "clarity on what's working",
+          "detail": "we identify the specific mechanisms driving change — not just whether something worked, but why and for whom."
         },
         {
-          "title": "credible evidence of change",
-          "detail": "you get pre-post data, effect sizes, and confidence intervals that satisfy funders, boards, and skeptics."
+          "title": "evidence your stakeholders trust",
+          "detail": "pre-post data, effect sizes, and confidence intervals — the kind of evidence that satisfies funders, boards, and sceptics."
         },
         {
-          "title": "actionable insights for scale",
-          "detail": "we don't just measure—we tell you what to amplify, what to adjust, and what to drop as you grow."
+          "title": "a path to scale",
+          "detail": "we don't just measure — we tell you what to amplify, what to adjust, and what to let go of as you grow."
         }
       ],
       "examples": [
@@ -74,22 +74,22 @@
     },
     "product-research": {
       "title": "product × research",
-      "promise": "prove your product meets accessibility and learning standards—before you ship.",
-      "quadrantStory": "you're in the product × research quadrant—where user experience meets rigorous validation. this is where we make sure your products and experiences actually works for the people it's meant to serve.",
-      "story": "we start with a heuristic review—our team looks at your product or experience through established usability and access lenses.  then we recruit real users for moderated testing sessions, working alongside them as they move through realistic task and share what's helping or getting in the way. we agree with the participants how to capture their experiences, missing numbers and stories, notes, visuals and recordings, so what we gather is authentic and meaningful.  the analysis identifies patterns across experiences and prioritises issues by impact and feasibility. you receive a findings report with specific, actionable recommendations and examples of what participants found easy, hard or valuable.",
-      "crossover": "validation isn't the end of the story—it's the beginning of better design. our research always points toward solutions, not just problems. we work closely with your design and dev teams to translate findings into improvements that ship.",
+      "promise": "you've built something and you need to know — does it actually work for the people it's meant to serve?",
+      "quadrantStory": "your curiosity landed here — where user experience meets rigorous validation. this is the space where we help you see your product through the eyes of the people using it, especially the ones it might be quietly leaving out.",
+      "story": "we start with a structured review — looking at your product through established usability and access lenses. then we sit alongside real users as they move through realistic tasks, learning what helps, what gets in the way, and what matters most to them. we capture experiences authentically — numbers and stories, notes and recordings — so what we gather is meaningful, not just measurable. the analysis identifies patterns and prioritises by impact and feasibility. you receive clear, specific recommendations with examples of what people found easy, hard, or valuable.",
+      "crossover": "validation isn't the end of the story — it's the beginning of better design. our research always points toward solutions, not just problems. we work alongside your team to translate what we learn into improvements that actually ship.",
       "outcomes": [
         {
-          "title": "access and inclusion snapshot",
-          "detail": "a structured view of who your product or experience currently works well for, and who it quietly leaves out, with clear ratings across key steps of the journey and a focussed set of viable changes that take into account your real constraints."
+          "title": "an access and inclusion snapshot",
+          "detail": "a clear view of who your product works well for and who it quietly leaves out — with ratings across key steps and a focused set of changes that respect your real constraints."
         },
         {
           "title": "usability issues mapped",
-          "detail": "a prioritised list of friction points, dead ends, and confusion—categorised by severity and linked to specific user sessions."
+          "detail": "a prioritised list of friction points, dead ends, and confusion — categorised by severity and linked to specific user sessions so you can see exactly what happened."
         },
         {
-          "title": "stakeholder-ready brief",
-          "detail": "a clear, visual summary that communicates findings to leadership, with recommended fixes and estimated impact."
+          "title": "a brief your stakeholders can use",
+          "detail": "a clear, visual summary that communicates findings to leadership — with recommended fixes and estimated impact, ready to share."
         }
       ],
       "examples": [
@@ -105,22 +105,22 @@
     },
     "people-design": {
       "title": "people × design",
-      "promise": "transform how your people learn, engage, and grow.",
-      "quadrantStory": "you're in the people × design quadrant—where behaviour change meets creative craft. this is where we build the tools and working frameworks that shift mindsets, not just transfer information.",
-      "story": "we start with a discovery session to understand your learning goals and audience. then we move into rapid prototyping—sketching session flows, testing activities, and iterating based on what we learn. we pilot the experience with a real cohort, gather structured feedback, and refine the design. by the end, you have a learning experience that's been tested in the field and is ready to scale. when it's the right move for the project, we'll propose co-creation sessions with the people most affected - and handle the design and facilitation for you.",
-      "crossover": "our design work is always informed by research—we build in feedback loops and measurement from day one, so you're not just launching something that feels good, but something you can prove works. justice and inclusion are threaded through everything we do: we use frameworks like Universal Design for Learning as tools, and we don’t claim lived‑experience expertise we don’t have—we make space for it where we can and signpost or partner where others are better placed.",
+      "promise": "you want to change how people learn, connect, or grow — and you know it needs to be designed, not just delivered.",
+      "quadrantStory": "your curiosity landed here — where behaviour change meets creative craft. this is the space where we build experiences that shift how people think and relate, not just what they know. we'll sit with you, listen to what you're noticing, and design something together that actually fits.",
+      "story": "we start by listening — what are you noticing? what's not working? then we move into rapid co-design, sketching session flows and testing activities with you. we pilot with a real group, gather honest feedback, and refine until it feels right. when it makes sense, we'll bring the people most affected into the design process too. by the end, you have something tested in the field and ready to grow.",
+      "crossover": "our design work is always informed by evidence — we build in feedback loops from day one so you're not just launching something that feels right, but something you can show works. justice and inclusion are threaded through everything: we use frameworks like universal design for learning as tools, and we don't claim expertise we don't have — we make space for it.",
       "outcomes": [
         {
-          "title": "co-designed session kit",
-          "detail": "we work alongside your team to build a facilitation toolkit that reflects your culture, your language, and your goals—not an off-the-shelf template."
+          "title": "a session kit you co-designed",
+          "detail": "we build it alongside your team — a facilitation toolkit that reflects your culture, your language, and your goals. not a template. yours."
         },
         {
-          "title": "live pilot with real feedback",
-          "detail": "we run the first session with you, capturing participant responses in real-time to see what lands and what needs refinement."
+          "title": "a live pilot with real feedback",
+          "detail": "we run the first session with you, capturing what lands and what doesn't in real time — so refinement starts immediately, not after a report."
         },
         {
-          "title": "production-ready handoff",
-          "detail": "you get a polished kit with facilitator notes, participant materials, and a train-the-trainer guide so your team can run it independently."
+          "title": "a handoff your team can run",
+          "detail": "a polished kit with facilitator notes, participant materials, and a train-the-trainer guide — so your team can carry it forward independently."
         }
       ],
       "examples": [
