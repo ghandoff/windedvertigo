@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>pocket.prompts</title>
+  <link rel="manifest" href="/pwa/manifest.json" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #111;
+      color: #eee;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-user-select: none;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    #status {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 2rem;
+      text-align: center;
+      padding: 0 2rem;
+      min-height: 1.2em;
+    }
+
+    #transcript {
+      font-size: 1rem;
+      color: #aaa;
+      text-align: center;
+      padding: 0 2rem;
+      max-width: 90vw;
+      min-height: 3em;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+
+    #mic-btn {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid #333;
+      background: #1a1a1a;
+      color: #eee;
+      font-size: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #mic-btn:active,
+    #mic-btn.listening {
+      background: #222;
+      border-color: #4a9eff;
+      box-shadow: 0 0 30px rgba(74, 158, 255, 0.3);
+    }
+
+    #mic-btn.listening {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    #mic-btn.speaking {
+      border-color: #4aff7f;
+      box-shadow: 0 0 30px rgba(74, 255, 127, 0.2);
+    }
+
+    #mic-btn.processing {
+      border-color: #ffa94a;
+      box-shadow: 0 0 30px rgba(255, 169, 74, 0.2);
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    #response {
+      font-size: 1.1rem;
+      color: #eee;
+      text-align: center;
+      padding: 0 2rem;
+      max-width: 90vw;
+      margin-top: 2rem;
+      line-height: 1.6;
+      min-height: 3em;
+    }
+
+    #user-id {
+      position: fixed;
+      bottom: 1.5rem;
+      font-size: 0.75rem;
+      color: #444;
+    }
+
+    .hint {
+      position: fixed;
+      bottom: 3rem;
+      font-size: 0.75rem;
+      color: #555;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="status"></div>
+  <div id="transcript"></div>
+
+  <button id="mic-btn" aria-label="start listening">🎙</button>
+
+  <div id="response"></div>
+
+  <div class="hint">tap to talk — tap again to stop</div>
+  <div id="user-id"></div>
+
+  <script>
+    const VOICE_API = '/api/voice';
+    const USER_ID = localStorage.getItem('pocket_user_id') || 'garrett';
+
+    const mic_btn = document.getElementById('mic-btn');
+    const status_el = document.getElementById('status');
+    const transcript_el = document.getElementById('transcript');
+    const response_el = document.getElementById('response');
+    const user_id_el = document.getElementById('user-id');
+
+    user_id_el.textContent = USER_ID;
+
+    let recognition = null;
+    let synth = window.speechSynthesis;
+    let is_listening = false;
+    let is_speaking = false;
+    let conversation_active = false;
+
+    // --- speech recognition setup ---
+
+    function setup_recognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        status_el.textContent = 'speech recognition not supported on this browser';
+        mic_btn.disabled = true;
+        return null;
+      }
+
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.lang = 'en-US';
+      rec.maxAlternatives = 1;
+
+      rec.onstart = () => {
+        is_listening = true;
+        mic_btn.classList.add('listening');
+        mic_btn.classList.remove('speaking', 'processing');
+        status_el.textContent = 'listening...';
+        transcript_el.textContent = '';
+      };
+
+      rec.onresult = (event) => {
+        let interim = '';
+        let final_text = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            final_text += event.results[i][0].transcript;
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+
+        transcript_el.textContent = final_text || interim;
+
+        if (final_text) {
+          stop_listening();
+          send_to_voice(final_text.trim());
+        }
+      };
+
+      rec.onerror = (event) => {
+        console.error('recognition error:', event.error);
+
+        if (event.error === 'no-speech') {
+          status_el.textContent = 'no speech detected — tap to try again';
+        } else if (event.error === 'not-allowed') {
+          status_el.textContent = 'microphone access denied — check settings';
+        } else {
+          status_el.textContent = `error: ${event.error}`;
+        }
+
+        stop_listening();
+      };
+
+      rec.onend = () => {
+        is_listening = false;
+        mic_btn.classList.remove('listening');
+      };
+
+      return rec;
+    }
+
+    // --- core actions ---
+
+    function start_listening() {
+      if (is_speaking) {
+        synth.cancel();
+        is_speaking = false;
+      }
+
+      if (!recognition) {
+        recognition = setup_recognition();
+      }
+
+      if (recognition && !is_listening) {
+        try {
+          recognition.start();
+        } catch (e) {
+          // already started
+          console.log('recognition already active');
+        }
+      }
+    }
+
+    function stop_listening() {
+      if (recognition && is_listening) {
+        recognition.stop();
+      }
+      is_listening = false;
+      mic_btn.classList.remove('listening');
+    }
+
+    async function send_to_voice(text) {
+      status_el.textContent = 'thinking...';
+      mic_btn.classList.add('processing');
+      mic_btn.classList.remove('listening');
+      response_el.textContent = '';
+
+      try {
+        const res = await fetch(VOICE_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, user_id: USER_ID })
+        });
+
+        const data = await res.json();
+        const spoken = data.spoken_response || 'no response';
+
+        response_el.textContent = spoken;
+        mic_btn.classList.remove('processing');
+
+        // speak the response, then auto-listen for the next command
+        speak_response(spoken, () => {
+          // auto-listen after speaking if the conversation is active
+          if (conversation_active) {
+            status_el.textContent = 'your turn...';
+            setTimeout(() => start_listening(), 300);
+          } else {
+            status_el.textContent = 'tap to continue';
+          }
+        });
+      } catch (err) {
+        console.error('voice api error:', err);
+        status_el.textContent = 'connection error — tap to retry';
+        mic_btn.classList.remove('processing');
+        response_el.textContent = 'something went wrong — try again in a moment.';
+      }
+    }
+
+    function speak_response(text, on_done) {
+      if (!synth) {
+        if (on_done) on_done();
+        return;
+      }
+
+      synth.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.lang = 'en-US';
+
+      // prefer a natural-sounding voice
+      const voices = synth.getVoices();
+      const preferred = voices.find(v =>
+        v.name.includes('Samantha') ||
+        v.name.includes('Google US English') ||
+        v.name.includes('English United States')
+      );
+      if (preferred) utterance.voice = preferred;
+
+      is_speaking = true;
+      mic_btn.classList.add('speaking');
+      status_el.textContent = 'speaking...';
+
+      utterance.onend = () => {
+        is_speaking = false;
+        mic_btn.classList.remove('speaking');
+        if (on_done) on_done();
+      };
+
+      utterance.onerror = () => {
+        is_speaking = false;
+        mic_btn.classList.remove('speaking');
+        if (on_done) on_done();
+      };
+
+      synth.speak(utterance);
+    }
+
+    // --- button handler ---
+
+    mic_btn.addEventListener('click', () => {
+      if (is_speaking) {
+        // tap while speaking = stop and listen
+        synth.cancel();
+        is_speaking = false;
+        mic_btn.classList.remove('speaking');
+        conversation_active = true;
+        start_listening();
+      } else if (is_listening) {
+        // tap while listening = stop
+        stop_listening();
+        conversation_active = false;
+        status_el.textContent = 'stopped — tap to start again';
+      } else {
+        // tap while idle = start conversation loop
+        conversation_active = true;
+        start_listening();
+      }
+    });
+
+    // load voices (some browsers need this)
+    if (synth) {
+      synth.getVoices();
+      synth.onvoiceschanged = () => synth.getVoices();
+    }
+
+    // register service worker for installable pwa
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/pwa/sw.js').catch((err) =>
+        console.log('sw registration failed:', err)
+      );
+    }
+
+    // prompt to set user id on first visit
+    if (!localStorage.getItem('pocket_user_id')) {
+      const name = prompt('what\'s your name? (garrett, jamie, lamis, maria, payton)');
+      if (name) {
+        localStorage.setItem('pocket_user_id', name.toLowerCase().trim());
+        location.reload();
+      }
+    }
+
+    // init
+    recognition = setup_recognition();
+    status_el.textContent = 'tap the mic to start';
+  </script>
+</body>
+</html>

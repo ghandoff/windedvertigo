@@ -1,0 +1,18 @@
+{
+  "ignoreCommand": "npx turbo-ignore pocket.prompts",
+  "rewrites": [
+    { "source": "/voice", "destination": "/api/voice" },
+    { "source": "/auth/:path*", "destination": "/api/auth" },
+    { "source": "/setup", "destination": "/api/setup" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "POST, GET, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    }
+  ]
+}
