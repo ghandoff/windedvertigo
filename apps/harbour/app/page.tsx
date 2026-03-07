@@ -36,7 +36,7 @@ export default function HarbourPage() {
             {/* Scroll hint */}
             <div className="flex flex-col items-center gap-2 text-[var(--color-text-on-dark-muted)]" aria-hidden="true">
               <span className="text-xs uppercase tracking-widest">
-                scroll to explore
+                come in
               </span>
               <svg
                 className="w-5 h-5 animate-bounce"
@@ -56,27 +56,10 @@ export default function HarbourPage() {
           </div>
         </section>
 
-        {/* ── Quick shelf — mini nav for games ────────────────── */}
-        <section id="games" aria-label="games" className="py-6 border-y border-white/5">
-          <div className="max-w-4xl mx-auto px-6">
-            <ScrollReveal>
-              <div className="scroll-shelf justify-start sm:justify-center">
-                {GAMES.map((game) => (
-                  <a
-                    key={game.slug}
-                    href={`#${game.slug}`}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-sm text-[var(--color-text-on-dark)] no-underline whitespace-nowrap"
-                  >
-                    <span aria-hidden="true">{game.icon}</span> {game.name}
-                  </a>
-                ))}
-              </div>
-            </ScrollReveal>
-          </div>
-        </section>
-
-        {/* ── Game showcases — one at a time, alternating ──────── */}
-        <GameShowcase />
+        {/* ── play. — games and toys ─────────────────────────── */}
+        <div id="play">
+          <GameShowcase />
+        </div>
 
         {/* ── Credibility zone ─────────────────────────────────── */}
         <CredibilityZone />

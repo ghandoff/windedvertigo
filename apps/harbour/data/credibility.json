@@ -1,59 +1,59 @@
 {
-  "sectionLabel": "reveal",
-  "sectionHeading": "what's underneath the play",
+  "sectionLabel": "finds",
+  "sectionHeading": "the thinking underneath everything here",
   "credentials": [
     {
       "icon": "🧠",
-      "label": "how children grow",
-      "detail": "we pay attention to development, not just engagement"
+      "label": "developmental psychology",
+      "detail": "every tool here is shaped by how people actually grow — not how curricula assume they do"
     },
     {
       "icon": "🎯",
-      "label": "what play actually does",
-      "detail": "five years of research into play as a mechanism for change"
+      "label": "learning design",
+      "detail": "play is the medium, not the reward — everything here is designed to work through play, not around it"
     },
     {
       "icon": "🌍",
-      "label": "who gets to play",
-      "detail": "designed with communities across cultures and contexts"
+      "label": "global context",
+      "detail": "these tools have been played in classrooms, living rooms, and workshops across four continents"
     },
     {
       "icon": "🔬",
-      "label": "what we notice",
-      "detail": "real-time evidence of learning, woven into every experience"
+      "label": "stealth assessment",
+      "detail": "learning shows itself when the stakes are low enough — we design for that, then watch carefully"
     }
   ],
   "principles": [
     {
-      "heading": "children don't need to be tricked into learning",
-      "body": "when the design is right, play is the learning. every tool in the harbour meets children exactly where they are — not where a curriculum says they should be. age-appropriate challenge, emotional safety, and progressive depth aren't add-ons. they're the architecture."
+      "heading": "development, not just engagement",
+      "body": "fun is easy to manufacture. growth is harder. every tool here is built to meet people exactly where they are and invite them further — through age-appropriate challenge, emotional safety, and progressive depth. the engagement you see on the surface is load-bearing."
     },
     {
-      "heading": "play is how humans make sense of the world",
-      "body": "we didn't bolt play onto education as a reward. play is the engine — of connection, creativity, and resilience. this conviction comes from five years of research at the LEGO foundation and decades of sitting on floors with children, watching what happens when adults stop directing and start listening."
+      "heading": "play is the mechanism, not the reward",
+      "body": "play isn't what you earn after the real work. play is the real work. it's how humans make sense of what they don't yet understand — the engine of connection, creativity, and resilience. five years of research at the LEGO foundation and decades of facilitation practice live underneath every tool here."
     },
     {
-      "heading": "good intuition still needs evidence",
-      "body": "experienced educators have strong instincts. we trust those instincts — and we also build tools that let you see what's actually happening. real-time documentation and reflection are woven into every experience, so you can check your gut against what children are really doing."
+      "heading": "evidence checks intuition",
+      "body": "good design starts with curiosity and gets checked by evidence. real-time documentation and reflection are woven into every experience — not as assessment, but as care. you see what's actually happening, not what anyone hoped would happen."
     }
   ],
-  "connection": {
-    "heading": "who holds the harbour",
-    "body": "winded.vertigo is garrett jaeger — developmental psychologist, educator, and former evidence specialist at the LEGO foundation. these tools come from years of sitting in classrooms and community spaces, watching what happens when play is taken seriously. they're built for the teachers, parents, and facilitators who already know that the best conversations happen sideways.",
-    "link": "https://windedvertigo.com/what/",
-    "linkLabel": "more about garrett and winded.vertigo"
-  },
   "bio": {
-    "text": "winded.vertigo is garrett jaeger — developmental psychologist, educator, and former evidence specialist at the LEGO foundation. these tools come from years of sitting in classrooms and community spaces, watching what happens when play is taken seriously. they're built for the teachers, parents, and facilitators who already know that the best conversations happen sideways.",
+    "text": "the harbour is held by winded.vertigo — and by everyone who picks something up and plays. garrett jaeger and a collective of educators, designers, and researchers built what's here. three convictions shape everything we make: play. aliveness. justice. the harbour is where they become something you can hold.",
     "link": "https://windedvertigo.com/what/"
   },
   "hero": {
     "title": "the harbour",
-    "subtitle": "toys and games for the adults who care about how children grow — built by a developmental psychologist who believes play is how humans make sense of the world.",
+    "subtitle": "come in, rest your bearings, pick something up. the harbour is protected water — a still place where play is already happening and nothing needs to be proved.",
     "tagline": "winded.vertigo presents"
   },
   "cta": {
-    "heading": "come in, the water's fine.",
-    "body": "every tool here is designed to be picked up and played with — no accounts, no onboarding, no hoops. just open something and see what happens."
+    "heading": "you're already here.",
+    "body": "pick something up and play. no setup, no accounts — just the thing and you. the harbour is always open."
+  },
+  "connection": {
+    "heading": "how the harbour stays safe",
+    "body": "the harbour is held by winded.vertigo — and by everyone who picks something up and plays. garrett jaeger and a collective of educators, designers, and researchers built what's here. three convictions shape everything we make: play. aliveness. justice. the harbour is where they become something you can hold.",
+    "link": "https://windedvertigo.com/what/",
+    "linkLabel": "there is more water beyond this harbour"
   }
 }

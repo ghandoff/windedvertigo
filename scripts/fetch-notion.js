@@ -815,6 +815,12 @@ async function main() {
         bio: bioSection ? { text: bioSection.content, link: bioSection.link } : null,
         hero: heroSection ? { title: heroSection.name, subtitle: heroSection.content, tagline: heroSection.tagline } : null,
         cta: ctaSection ? { heading: ctaSection.name, body: ctaSection.content } : null,
+        connection: bioSection ? {
+          heading: whyHeader ? whyHeader.name : 'who holds the harbour',
+          body: bioSection.content,
+          link: bioSection.link,
+          linkLabel: 'there is more water beyond this harbour',
+        } : null,
       };
 
       const credibilityPath = path.join(__dirname, '..', 'apps', 'harbour', 'data', 'credibility.json');

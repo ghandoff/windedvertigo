@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://windedvertigo.com"),
   title: "the harbour — winded.vertigo",
   description:
-    "toys and games for the adults who care about how children grow — built by a developmental psychologist who believes play is how humans make sense of the world.",
+    "the harbour is protected water — a still place where play is already happening and nothing needs to be proved. playful tools for connection, creativity, and growth from winded.vertigo.",
   alternates: {
     canonical: "/harbour",
   },
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     type: "website",
     title: "the harbour — winded.vertigo",
     description:
-      "toys and games for the adults who care about how children grow — built by a developmental psychologist who believes play is how humans make sense of the world.",
+      "the harbour is protected water — a still place where play is already happening and nothing needs to be proved. playful tools for connection, creativity, and growth from winded.vertigo.",
     url: "/harbour",
     siteName: "winded.vertigo",
     images: [{ url: "/images/logo.png", width: 512, height: 512 }],
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "the harbour — winded.vertigo",
     description:
-      "toys and games for the adults who care about how children grow — built by a developmental psychologist who believes play is how humans make sense of the world.",
+      "the harbour is protected water — a still place where play is already happening and nothing needs to be proved. playful tools for connection, creativity, and growth from winded.vertigo.",
     images: ["/images/logo.png"],
   },
   icons: {

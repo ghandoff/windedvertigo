@@ -19,8 +19,8 @@ export function CredibilityZone() {
   return (
     <>
     <section
-      id="reveal"
-      aria-label="reveal"
+      id="finds"
+      aria-label="finds"
       className="py-20 sm:py-32 bg-gradient-to-b from-[var(--wv-cadet)] via-[var(--color-surface-raised)] to-[var(--wv-cadet)]"
     >
       <div className="max-w-5xl mx-auto px-6">
@@ -90,7 +90,7 @@ export function CredibilityZone() {
         <ScrollReveal>
           <div className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-accent-on-dark)] mb-4">
-              connection
+              us
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-on-dark)] leading-tight max-w-2xl mx-auto">
               {credibilityData.connection?.heading ?? "who holds the harbour"}

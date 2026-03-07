@@ -89,7 +89,7 @@ function GameCard({ game, index }: { game: Game; index: number }) {
               href={game.href}
               className="inline-flex items-center gap-2 mt-8 px-6 py-3 rounded-full bg-[var(--color-accent)] text-[var(--color-text-on-dark)] text-sm font-semibold hover:bg-[var(--color-accent-hover)] transition-colors no-underline"
             >
-              explore {game.name}
+              play {game.name}
               <span aria-hidden="true">&rarr;</span>
             </a>
           </div>

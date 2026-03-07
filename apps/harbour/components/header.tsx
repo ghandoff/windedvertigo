@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 const NAV_LINKS = [
-  { href: "#games", label: "games." },
-  { href: "#reveal", label: "reveal." },
-  { href: "#connection", label: "connection." },
+  { href: "#play", label: "play." },
+  { href: "#finds", label: "finds." },
+  { href: "https://windedvertigo.com/what/", label: "us.", external: true },
 ];
 
 const navLinkStyle = {
