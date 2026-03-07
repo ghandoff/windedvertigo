@@ -274,11 +274,10 @@
       document.getElementById('notIos').style.display = 'block';
     }
 
-    // build the install link
-    const shortcutFileURL = window.location.origin + '/shortcuts/pocket-prompts.shortcut';
-    const installURL = 'shortcuts://import-shortcut?url=' + encodeURIComponent(shortcutFileURL) + '&name=pocket.prompts&silent=true';
-
-    document.getElementById('installBtn').href = installURL;
+    // direct download link — safari on ios automatically opens .shortcut files
+    // in the shortcuts app for import. more reliable than shortcuts:// url scheme.
+    const shortcutFileURL = window.location.origin + '/api/shortcut';
+    document.getElementById('installBtn').href = shortcutFileURL;
   </script>
 </body>
 </html>

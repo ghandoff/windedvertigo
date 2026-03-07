@@ -24,14 +24,56 @@ REPEAT_COUNT = 20
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, "pocket-prompts-unsigned.shortcut")
 
+# unicode object replacement character — placeholder for variables in text
+OBJECT_REPLACEMENT = "\uFFFC"
+
+
+def make_uuid():
+    """generate an uppercase UUID"""
+    return str(uuid.uuid4()).upper()
+
 
 def make_action(identifier, parameters=None):
     """create a shortcut action dict"""
-    action = {
+    return {
         "WFWorkflowActionIdentifier": identifier,
         "WFWorkflowActionParameters": parameters or {}
     }
-    return action
+
+
+def make_text_token_string(text, attachments=None):
+    """build a WFTextTokenString serialization"""
+    value = {
+        "attachmentsByRange": attachments or {},
+        "string": text
+    }
+    return {
+        "Value": value,
+        "WFSerializationType": "WFTextTokenString"
+    }
+
+
+def make_text_token_attachment(type_name, **kwargs):
+    """build a WFTextTokenAttachment serialization"""
+    value = {"Type": type_name}
+    value.update(kwargs)
+    return {
+        "Value": value,
+        "WFSerializationType": "WFTextTokenAttachment"
+    }
+
+
+def make_dict_field_item(key_str, value_str=None, value_attachment=None, item_type=0):
+    """build a single WFDictionaryFieldValueItem"""
+    item = {
+        "WFItemType": item_type,
+        "WFKey": make_text_token_string(key_str)
+    }
+    if value_attachment:
+        item["WFValue"] = value_attachment
+    elif value_str is not None:
+        item["WFValue"] = make_text_token_string(value_str)
+    return item
 
 
 def build_shortcut():
@@ -39,41 +81,56 @@ def build_shortcut():
 
     actions = []
 
-    # --- action 1: set user_id variable ---
+    # UUIDs for actions that produce output (magic variables)
+    text_uuid = make_uuid()       # text action for user_id
+    dictate_uuid = make_uuid()    # dictate text action
+    api_uuid = make_uuid()        # get contents of url (POST)
+    dict_val_uuid = make_uuid()   # get dictionary value
+
+    # grouping UUIDs for control flow
+    repeat_group = make_uuid()
+    if_stop_group = make_uuid()
+    if_nevermind_group = make_uuid()
+    if_thatsall_group = make_uuid()
+
+    # === action 1: Text (set the user_id string) ===
+    actions.append(make_action(
+        "is.workflow.actions.gettext",
+        {
+            "UUID": text_uuid,
+            "WFTextActionText": make_text_token_string(DEFAULT_USER_ID)
+        }
+    ))
+
+    # === action 2: Set Variable (store user_id) ===
     actions.append(make_action(
         "is.workflow.actions.setvariable",
         {
-            "WFInput": {
-                "Value": {
-                    "attachmentsByRange": {},
-                    "string": DEFAULT_USER_ID
-                },
-                "WFSerializationType": "WFTextTokenString"
-            },
             "WFVariableName": "user_id"
         }
     ))
 
-    # --- action 2: start repeat loop ---
-    repeat_uuid = str(uuid.uuid4()).upper()
+    # === action 3: Repeat start ===
     actions.append(make_action(
         "is.workflow.actions.repeat.count",
         {
-            "WFRepeatCount": REPEAT_COUNT,
-            "GroupingIdentifier": repeat_uuid
+            "GroupingIdentifier": repeat_group,
+            "WFControlFlowMode": 0,
+            "WFRepeatCount": REPEAT_COUNT
         }
     ))
 
-    # --- action 3: dictate text ---
+    # === action 4: Dictate Text ===
     actions.append(make_action(
         "is.workflow.actions.dictatetext",
         {
+            "UUID": dictate_uuid,
             "WFDictateTextStopListening": "After Short Pause",
-            "WFSpeechLanguage": "en_US"
+            "WFSpeechLanguage": "en-US"
         }
     ))
 
-    # --- action 3b: save dictated text to variable ---
+    # === action 5: Set Variable (store spoken_text) ===
     actions.append(make_action(
         "is.workflow.actions.setvariable",
         {
@@ -81,195 +138,186 @@ def build_shortcut():
         }
     ))
 
-    # --- action 4: check for exit phrases ---
-    # if spoken_text contains "stop"
-    if_uuid = str(uuid.uuid4()).upper()
+    # === action 6: If "stop" — exit ===
+    # if start
     actions.append(make_action(
         "is.workflow.actions.conditional",
         {
-            "GroupingIdentifier": if_uuid,
-            "WFInput": {
-                "Type": "Variable",
-                "Variable": {
-                    "Value": {
-                        "Type": "Variable",
-                        "VariableName": "spoken_text"
-                    },
-                    "WFSerializationType": "WFTextTokenAttachment"
-                }
-            },
-            "WFCondition": 99,  # contains
+            "GroupingIdentifier": if_stop_group,
+            "WFControlFlowMode": 0,
+            "WFInput": make_text_token_attachment(
+                "ActionOutput",
+                OutputName="Dictated Text",
+                OutputUUID=dictate_uuid
+            ),
+            "WFCondition": 1,  # contains
             "WFConditionalActionString": "stop"
         }
     ))
 
-    # then: exit shortcut
+    # exit
+    actions.append(make_action("is.workflow.actions.exit", {}))
+
+    # otherwise (mode 1) — skip for just if/end
     actions.append(make_action(
-        "is.workflow.actions.exit",
-        {}
+        "is.workflow.actions.conditional",
+        {
+            "GroupingIdentifier": if_stop_group,
+            "WFControlFlowMode": 1
+        }
     ))
 
     # end if
     actions.append(make_action(
         "is.workflow.actions.conditional",
         {
-            "GroupingIdentifier": if_uuid,
-            "WFControlFlowMode": 2  # end if
+            "GroupingIdentifier": if_stop_group,
+            "WFControlFlowMode": 2
         }
     ))
 
-    # second if: check for "never mind"
-    if_uuid2 = str(uuid.uuid4()).upper()
+    # === action 7: If "never mind" — exit ===
     actions.append(make_action(
         "is.workflow.actions.conditional",
         {
-            "GroupingIdentifier": if_uuid2,
-            "WFInput": {
-                "Type": "Variable",
-                "Variable": {
-                    "Value": {
-                        "Type": "Variable",
-                        "VariableName": "spoken_text"
-                    },
-                    "WFSerializationType": "WFTextTokenAttachment"
-                }
-            },
-            "WFCondition": 99,
+            "GroupingIdentifier": if_nevermind_group,
+            "WFControlFlowMode": 0,
+            "WFInput": make_text_token_attachment(
+                "ActionOutput",
+                OutputName="Dictated Text",
+                OutputUUID=dictate_uuid
+            ),
+            "WFCondition": 1,
             "WFConditionalActionString": "never mind"
         }
     ))
 
+    actions.append(make_action("is.workflow.actions.exit", {}))
+
     actions.append(make_action(
-        "is.workflow.actions.exit",
-        {}
+        "is.workflow.actions.conditional",
+        {
+            "GroupingIdentifier": if_nevermind_group,
+            "WFControlFlowMode": 1
+        }
     ))
 
     actions.append(make_action(
         "is.workflow.actions.conditional",
         {
-            "GroupingIdentifier": if_uuid2,
+            "GroupingIdentifier": if_nevermind_group,
             "WFControlFlowMode": 2
         }
     ))
 
-    # third if: check for "that's all"
-    if_uuid3 = str(uuid.uuid4()).upper()
+    # === action 8: If "that's all" — exit ===
     actions.append(make_action(
         "is.workflow.actions.conditional",
         {
-            "GroupingIdentifier": if_uuid3,
-            "WFInput": {
-                "Type": "Variable",
-                "Variable": {
-                    "Value": {
-                        "Type": "Variable",
-                        "VariableName": "spoken_text"
-                    },
-                    "WFSerializationType": "WFTextTokenAttachment"
-                }
-            },
-            "WFCondition": 99,
+            "GroupingIdentifier": if_thatsall_group,
+            "WFControlFlowMode": 0,
+            "WFInput": make_text_token_attachment(
+                "ActionOutput",
+                OutputName="Dictated Text",
+                OutputUUID=dictate_uuid
+            ),
+            "WFCondition": 1,
             "WFConditionalActionString": "that's all"
         }
     ))
 
+    actions.append(make_action("is.workflow.actions.exit", {}))
+
     actions.append(make_action(
-        "is.workflow.actions.exit",
-        {}
+        "is.workflow.actions.conditional",
+        {
+            "GroupingIdentifier": if_thatsall_group,
+            "WFControlFlowMode": 1
+        }
     ))
 
     actions.append(make_action(
         "is.workflow.actions.conditional",
         {
-            "GroupingIdentifier": if_uuid3,
+            "GroupingIdentifier": if_thatsall_group,
             "WFControlFlowMode": 2
         }
     ))
 
-    # --- action 5: POST to pocket api ---
-    # build the json body with variables
+    # === action 9: Get Variable (spoken_text for API body) ===
+    actions.append(make_action(
+        "is.workflow.actions.getvariable",
+        {
+            "WFVariable": make_text_token_attachment(
+                "Variable",
+                VariableName="spoken_text"
+            )
+        }
+    ))
+
+    # === action 10: URL (set the API endpoint) ===
+    actions.append(make_action(
+        "is.workflow.actions.url",
+        {
+            "WFURLActionURL": API_URL
+        }
+    ))
+
+    # === action 11: Get Contents of URL (POST to API) ===
+    # build the JSON body with variable references
+    text_value_with_var = make_text_token_string(
+        OBJECT_REPLACEMENT,
+        {
+            "{0, 1}": {
+                "OutputName": "Dictated Text",
+                "OutputUUID": dictate_uuid,
+                "Type": "ActionOutput"
+            }
+        }
+    )
+
+    user_id_value_with_var = make_text_token_string(
+        OBJECT_REPLACEMENT,
+        {
+            "{0, 1}": {
+                "Type": "Variable",
+                "VariableName": "user_id"
+            }
+        }
+    )
+
     actions.append(make_action(
         "is.workflow.actions.downloadurl",
         {
-            "WFURL": {
-                "Value": {
-                    "attachmentsByRange": {},
-                    "string": API_URL
-                },
-                "WFSerializationType": "WFTextTokenString"
-            },
+            "UUID": api_uuid,
+            "Advanced": True,
             "WFHTTPMethod": "POST",
-            "WFHTTPHeaders": {
-                "Value": {
-                    "WFDictionaryFieldValueItems": [
-                        {
-                            "WFItemType": 0,
-                            "WFKey": {
-                                "Value": {
-                                    "attachmentsByRange": {},
-                                    "string": "Content-Type"
-                                },
-                                "WFSerializationType": "WFTextTokenString"
-                            },
-                            "WFValue": {
-                                "Value": {
-                                    "attachmentsByRange": {},
-                                    "string": "application/json"
-                                },
-                                "WFSerializationType": "WFTextTokenString"
-                            }
-                        }
-                    ]
-                },
-                "WFSerializationType": "WFDictionaryFieldValue"
-            },
             "WFHTTPBodyType": "JSON",
             "WFJSONValues": {
                 "Value": {
                     "WFDictionaryFieldValueItems": [
                         {
                             "WFItemType": 0,
-                            "WFKey": {
-                                "Value": {
-                                    "attachmentsByRange": {},
-                                    "string": "text"
-                                },
-                                "WFSerializationType": "WFTextTokenString"
-                            },
-                            "WFValue": {
-                                "Value": {
-                                    "attachmentsByRange": {
-                                        "{0, 1}": {
-                                            "Type": "Variable",
-                                            "VariableName": "spoken_text"
-                                        }
-                                    },
-                                    "string": "\uFFFC"
-                                },
-                                "WFSerializationType": "WFTextTokenString"
-                            }
+                            "WFKey": make_text_token_string("text"),
+                            "WFValue": text_value_with_var
                         },
                         {
                             "WFItemType": 0,
-                            "WFKey": {
-                                "Value": {
-                                    "attachmentsByRange": {},
-                                    "string": "user_id"
-                                },
-                                "WFSerializationType": "WFTextTokenString"
-                            },
-                            "WFValue": {
-                                "Value": {
-                                    "attachmentsByRange": {
-                                        "{0, 1}": {
-                                            "Type": "Variable",
-                                            "VariableName": "user_id"
-                                        }
-                                    },
-                                    "string": "\uFFFC"
-                                },
-                                "WFSerializationType": "WFTextTokenString"
-                            }
+                            "WFKey": make_text_token_string("user_id"),
+                            "WFValue": user_id_value_with_var
+                        }
+                    ]
+                },
+                "WFSerializationType": "WFDictionaryFieldValue"
+            },
+            "ShowHeaders": True,
+            "WFHTTPHeaders": {
+                "Value": {
+                    "WFDictionaryFieldValueItems": [
+                        {
+                            "WFItemType": 0,
+                            "WFKey": make_text_token_string("Content-Type"),
+                            "WFValue": make_text_token_string("application/json")
                         }
                     ]
                 },
@@ -278,67 +326,30 @@ def build_shortcut():
         }
     ))
 
-    # --- action 5b: save api response to variable ---
-    actions.append(make_action(
-        "is.workflow.actions.setvariable",
-        {
-            "WFVariableName": "api_response"
-        }
-    ))
-
-    # --- action 6: get dictionary value (spoken_response) ---
+    # === action 12: Get Dictionary Value (extract spoken_response) ===
     actions.append(make_action(
         "is.workflow.actions.getvalueforkey",
         {
-            "WFInput": {
-                "Type": "Variable",
-                "Variable": {
-                    "Value": {
-                        "Type": "Variable",
-                        "VariableName": "api_response"
-                    },
-                    "WFSerializationType": "WFTextTokenAttachment"
-                }
-            },
+            "UUID": dict_val_uuid,
+            "WFGetDictionaryValueType": "Value",
             "WFDictionaryKey": "spoken_response"
         }
     ))
 
-    # --- action 6b: save response text to variable ---
-    actions.append(make_action(
-        "is.workflow.actions.setvariable",
-        {
-            "WFVariableName": "response_text"
-        }
-    ))
-
-    # --- action 7: speak the response ---
+    # === action 13: Speak Text ===
     actions.append(make_action(
         "is.workflow.actions.speaktext",
         {
-            "WFText": {
-                "Value": {
-                    "attachmentsByRange": {
-                        "{0, 1}": {
-                            "Type": "Variable",
-                            "VariableName": "response_text"
-                        }
-                    },
-                    "string": "\uFFFC"
-                },
-                "WFSerializationType": "WFTextTokenString"
-            },
-            "WFSpeakTextLanguage": "en-US",
             "WFSpeakTextWait": True
         }
     ))
 
-    # --- action 8: end repeat ---
+    # === action 14: Repeat end ===
     actions.append(make_action(
         "is.workflow.actions.repeat.count",
         {
-            "GroupingIdentifier": repeat_uuid,
-            "WFControlFlowMode": 2  # end repeat
+            "GroupingIdentifier": repeat_group,
+            "WFControlFlowMode": 2
         }
     ))
 
@@ -356,16 +367,17 @@ def main():
             "WFWorkflowIconStartColor": 4282601983,  # blue
             "WFWorkflowIconGlyphNumber": 59771  # microphone glyph
         },
-        "WFWorkflowClientVersion": "2612.0.4",
-        "WFWorkflowClientRelease": "2612.0.4",
-        "WFWorkflowTypes": ["NCWidget", "WatchKit", "ActionExtension"],
+        "WFWorkflowClientVersion": "2302.0.4",
+        "WFWorkflowClientRelease": "2302.0.4",
+        "WFWorkflowTypes": ["NCWidget", "WatchKit"],
         "WFWorkflowInputContentItemClasses": [
-            "WFStringContentItem",
-            "WFGenericFileContentItem"
+            "WFStringContentItem"
         ],
+        "WFWorkflowOutputContentItemClasses": [],
         "WFWorkflowImportQuestions": [],
         "WFWorkflowActions": actions,
-        "WFWorkflowHasShortcutInputVariables": False
+        "WFWorkflowHasShortcutInputVariables": False,
+        "WFWorkflowHasOutputFallback": False
     }
 
     # write the binary plist
