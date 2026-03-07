@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pocket.prompts — install</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      background: #0a0a0a;
+      color: #fafafa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem;
+    }
+
+    .logo {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo span {
+      color: #5b8def;
+    }
+
+    .tagline {
+      color: #888;
+      font-size: 1rem;
+      margin-bottom: 3rem;
+      text-align: center;
+      max-width: 300px;
+      line-height: 1.5;
+    }
+
+    .install-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+
+    .mic-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #5b8def, #3d6dd8);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2rem;
+    }
+
+    .install-card h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .install-card p {
+      color: #999;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .install-btn {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #5b8def, #3d6dd8);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .install-btn:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+
+    .steps {
+      margin-top: 3rem;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .steps h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #5b8def;
+    }
+
+    .step-text {
+      font-size: 0.9rem;
+      color: #ccc;
+      line-height: 1.5;
+    }
+
+    .step-text strong {
+      color: #fafafa;
+    }
+
+    .triggers {
+      margin-top: 2.5rem;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .triggers h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+
+    .trigger {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 0.9rem 1.1rem;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .trigger-icon {
+      font-size: 1.3rem;
+    }
+
+    .trigger-label {
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    .trigger-label strong {
+      color: #fafafa;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      color: #444;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .footer a {
+      color: #5b8def;
+      text-decoration: none;
+    }
+
+    /* non-ios warning */
+    .not-ios {
+      display: none;
+      background: #2a1a1a;
+      border: 1px solid #442222;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #ff8888;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">pocket<span>.</span>prompts</div>
+  <p class="tagline">speak it. hear it. done. hands-free voice commands for your team.</p>
+
+  <div class="not-ios" id="notIos">
+    this shortcut requires an iphone with ios 16+. open this page on your iphone to install.
+  </div>
+
+  <div class="install-card">
+    <div class="mic-icon">🎙</div>
+    <h2>install the shortcut</h2>
+    <p>adds pocket.prompts to your shortcuts app. speak a command, hear a response in your airpods. no screen needed.</p>
+    <a class="install-btn" id="installBtn" href="#">add to shortcuts</a>
+  </div>
+
+  <div class="steps">
+    <h3>how it works</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text"><strong>speak</strong> — say a command into your airpods or phone mic</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text"><strong>route</strong> — claude detects your intent and acts on it</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text"><strong>hear</strong> — a conversational response plays in your ears</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text"><strong>repeat</strong> — keep talking or say "that's all" to exit</div>
+    </div>
+  </div>
+
+  <div class="triggers">
+    <h3>ways to launch</h3>
+    <div class="trigger">
+      <span class="trigger-icon">🗣</span>
+      <span class="trigger-label"><strong>"hey siri, pocket prompts"</strong></span>
+    </div>
+    <div class="trigger">
+      <span class="trigger-icon">👆</span>
+      <span class="trigger-label"><strong>back tap</strong> — double-tap the back of your phone</span>
+    </div>
+    <div class="trigger">
+      <span class="trigger-icon">⚡</span>
+      <span class="trigger-label"><strong>action button</strong> — iphone 15 pro+</span>
+    </div>
+    <div class="trigger">
+      <span class="trigger-icon">📱</span>
+      <span class="trigger-label"><strong>home screen</strong> — add as a one-tap icon</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    built by <a href="https://windedvertigo.com">winded.vertigo</a>
+  </div>
+
+  <script>
+    // detect non-ios devices
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (!isIOS) {
+      document.getElementById('notIos').style.display = 'block';
+    }
+
+    // build the install link
+    const shortcutFileURL = window.location.origin + '/shortcuts/pocket-prompts.shortcut';
+    const installURL = 'shortcuts://import-shortcut?url=' + encodeURIComponent(shortcutFileURL) + '&name=pocket.prompts&silent=true';
+
+    document.getElementById('installBtn').href = installURL;
+  </script>
+</body>
+</html>
