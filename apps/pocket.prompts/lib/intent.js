@@ -43,7 +43,7 @@ export async function detect_intent(utterance) {
     console.log(`[intent] classifying: "${utterance}"`);
 
     const response = await client.messages.create({
-      model: 'claude-opus-4-5-20250414',
+      model: 'claude-opus-4-6',
       max_tokens: 500,
       system: INTENT_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: utterance }]
