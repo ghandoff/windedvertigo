@@ -2,16 +2,16 @@
   {
     "slug": "creaseworks",
     "name": "crease.works",
-    "tagline": "play within reach",
-    "description": "a platform where facilitators and participants co-create playful learning experiences together. run playdates, collect real-time evidence of engagement, and iterate designs based on what actually happens when people play.",
+    "tagline": "where play meets evidence",
+    "description": "a platform for facilitators who want to take play seriously. design playful learning experiences, run them with real groups, and collect evidence of what actually happens — not just what you hoped would happen. iterate your designs based on what children and participants really do when they play.",
     "icon": "",
     "color": "from-[var(--wv-sienna)] to-[var(--wv-redwood)]",
     "accentColor": "bg-[var(--wv-redwood)]",
     "features": [
-      "guided playdate facilitation",
-      "real-time evidence collection",
-      "co-play reflection tools",
-      "design iteration workflows"
+      "guided playdate design and facilitation",
+      "real-time evidence collection during play",
+      "co-play reflection for facilitators and participants",
+      "iteration workflows that learn from what happened"
     ],
     "href": "/harbour/creaseworks",
     "status": "live",
@@ -20,16 +20,16 @@
   {
     "slug": "vertigo-vault",
     "name": "vertigo.vault",
-    "tagline": "curated group energizers",
-    "description": "a growing collection of group activities, ice-breakers, and energizers — curated from years of facilitation across cultures and contexts. find the right activity for any group size, energy level, or learning goal.",
+    "tagline": "wake up your group",
+    "description": "a growing library of group activities, ice-breakers, and energisers — gathered from years of facilitation across cultures, classrooms, and community spaces. find the right game for any group size, energy level, or moment. every activity has been tested with real humans in real rooms.",
     "icon": "",
     "color": "from-[var(--wv-redwood)] to-[var(--wv-champagne)]",
     "accentColor": "bg-[var(--wv-sienna)]",
     "features": [
-      "searchable activity library",
-      "tagged by group size and energy",
-      "field-tested across cultures",
-      "continuously growing collection"
+      "searchable by group size, energy, and purpose",
+      "field-tested across cultures and age groups",
+      "new activities added regularly",
+      "no signup required — just browse and play"
     ],
     "href": "/harbour/vertigo-vault",
     "status": "live",
@@ -38,16 +38,16 @@
   {
     "slug": "deep-deck",
     "name": "deep.deck",
-    "tagline": "conversations that connect",
-    "description": "a digital card game that helps teachers and parents break through \"today was fine\" and connect with children ages 6–14 through layered conversation prompts, playful mini-games, and wild-card modifiers that lower the stakes of vulnerable questions.",
+    "tagline": "past 'today was fine'",
+    "description": "a card game for teachers and parents who want to actually connect with children ages 6–14. layered conversation prompts move from light to deep, wild-card modifiers lower the stakes of vulnerable questions, and playful mini-games keep everyone in the room. designed so the hard conversations happen sideways.",
     "icon": "",
     "color": "from-[var(--wv-champagne)] to-[var(--color-surface-raised)]",
     "accentColor": "bg-[var(--wv-redwood)]",
     "features": [
-      "128 developmentally-sequenced cards",
+      "128 developmentally-sequenced conversation cards",
       "deep → deeper → deepest progression",
-      "wild cards that turn hard questions into play",
-      "4 age bands: 6–8 9–10 11–12 13–14"
+      "wild cards that make hard questions feel safe",
+      "four age bands: 6–8, 9–10, 11–12, 13–14"
     ],
     "href": "/harbour/deep-deck",
     "status": "live",

@@ -1,53 +1,59 @@
 {
-  "sectionLabel": "why these tools",
-  "sectionHeading": "built by people who study human development",
+  "sectionLabel": "reveal",
+  "sectionHeading": "what's underneath the play",
   "credentials": [
     {
       "icon": "🧠",
-      "label": "developmental psychology",
-      "detail": "grounded in how children actually develop"
+      "label": "how children grow",
+      "detail": "we pay attention to development, not just engagement"
     },
     {
       "icon": "🎯",
-      "label": "learning design",
-      "detail": "evidence-based, play-forward pedagogy"
+      "label": "what play actually does",
+      "detail": "five years of research into play as a mechanism for change"
     },
     {
       "icon": "🌍",
-      "label": "global context",
-      "detail": "tested across cultures and communities"
+      "label": "who gets to play",
+      "detail": "designed with communities across cultures and contexts"
     },
     {
       "icon": "🔬",
-      "label": "stealth assessment",
-      "detail": "documenting learning as it happens"
+      "label": "what we notice",
+      "detail": "real-time evidence of learning, woven into every experience"
     }
   ],
   "principles": [
     {
-      "heading": "designed for development, not just engagement",
-      "body": "every tool in the harbour is built on developmental science. we don’t just make things fun — we design experiences that meet children exactly where they are and invite them to grow. age-appropriate challenge, emotional safety, and progressive depth are baked into every interaction."
+      "heading": "children don't need to be tricked into learning",
+      "body": "when the design is right, play is the learning. every tool in the harbour meets children exactly where they are — not where a curriculum says they should be. age-appropriate challenge, emotional safety, and progressive depth aren't add-ons. they're the architecture."
     },
     {
-      "heading": "play is the mechanism, not the reward",
-      "body": "we don’t bolt play onto learning as a treat. play is how humans make sense of the world — it’s the engine of connection, creativity, and resilience. our tools use play as the primary medium for growth, drawing on five years of research at the LEGO foundation and decades of facilitation practice."
+      "heading": "play is how humans make sense of the world",
+      "body": "we didn't bolt play onto education as a reward. play is the engine — of connection, creativity, and resilience. this conviction comes from five years of research at the LEGO foundation and decades of sitting on floors with children, watching what happens when adults stop directing and start listening."
     },
     {
-      "heading": "evidence checks intuition",
-      "body": "good design starts with curiosity and gets validated by evidence. we weave real-time documentation and reflection into every experience, so educators and parents can see what’s actually happening — not just what we hoped would happen."
+      "heading": "good intuition still needs evidence",
+      "body": "experienced educators have strong instincts. we trust those instincts — and we also build tools that let you see what's actually happening. real-time documentation and reflection are woven into every experience, so you can check your gut against what children are really doing."
     }
   ],
+  "connection": {
+    "heading": "who holds the harbour",
+    "body": "winded.vertigo is garrett jaeger — developmental psychologist, educator, and former evidence specialist at the LEGO foundation. these tools come from years of sitting in classrooms and community spaces, watching what happens when play is taken seriously. they're built for the teachers, parents, and facilitators who already know that the best conversations happen sideways.",
+    "link": "https://windedvertigo.com/what/",
+    "linkLabel": "more about garrett and winded.vertigo"
+  },
   "bio": {
-    "text": "winded.vertigo is a learning design collective founded by garrett jaeger, phd — former evidence specialist at the LEGO foundation, educator, and developmental psychologist. we craft experiences where children inspire adults, ideas lead logistics, and evidence checks intuition.",
+    "text": "winded.vertigo is garrett jaeger — developmental psychologist, educator, and former evidence specialist at the LEGO foundation. these tools come from years of sitting in classrooms and community spaces, watching what happens when play is taken seriously. they're built for the teachers, parents, and facilitators who already know that the best conversations happen sideways.",
     "link": "https://windedvertigo.com/what/"
   },
   "hero": {
     "title": "the harbour",
-    "subtitle": "playful tools for connection, creativity, and growth — designed by developmental psychologists and learning scientists who believe play is how humans make sense of the world.",
+    "subtitle": "toys and games for the adults who care about how children grow — built by a developmental psychologist who believes play is how humans make sense of the world.",
     "tagline": "winded.vertigo presents"
   },
   "cta": {
-    "heading": "ready to play?",
-    "body": "pick a tool and start exploring. every experience is designed to be jumped into — no setup, no accounts, just play."
+    "heading": "come in, the water's fine.",
+    "body": "every tool here is designed to be picked up and played with — no accounts, no onboarding, no hoops. just open something and see what happens."
   }
 }

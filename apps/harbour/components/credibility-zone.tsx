@@ -17,9 +17,10 @@ const PRINCIPLES: Principle[] = credibilityData.principles;
 
 export function CredibilityZone() {
   return (
+    <>
     <section
-      id="why"
-      aria-label="why these tools"
+      id="reveal"
+      aria-label="reveal"
       className="py-20 sm:py-32 bg-gradient-to-b from-[var(--wv-cadet)] via-[var(--color-surface-raised)] to-[var(--wv-cadet)]"
     >
       <div className="max-w-5xl mx-auto px-6">
@@ -76,26 +77,44 @@ export function CredibilityZone() {
           ))}
         </div>
 
-        {/* Closing statement */}
-        {credibilityData.bio && (
-          <ScrollReveal className="mt-20 sm:mt-24">
-            <div className="text-center max-w-xl mx-auto">
-              <p className="text-sm text-[var(--color-text-on-dark-muted)] leading-relaxed mb-6">
-                {credibilityData.bio.text}
-              </p>
-              {credibilityData.bio.link && (
-                <a
-                  href={credibilityData.bio.link}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-accent-on-dark)] hover:opacity-80 transition-opacity no-underline"
-                >
-                  learn more about winded.vertigo
-                  <span aria-hidden="true">&rarr;</span>
-                </a>
-              )}
-            </div>
-          </ScrollReveal>
-        )}
       </div>
     </section>
+
+    {/* ── Connection ──────────────────────────────────────── */}
+    <section
+      id="connection"
+      aria-label="connection"
+      className="py-20 sm:py-28 bg-[var(--wv-cadet)]"
+    >
+      <div className="max-w-5xl mx-auto px-6">
+        <ScrollReveal>
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-accent-on-dark)] mb-4">
+              connection
+            </p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-on-dark)] leading-tight max-w-2xl mx-auto">
+              {credibilityData.connection?.heading ?? "who holds the harbour"}
+            </h2>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal>
+          <div className="text-center max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg leading-relaxed text-[var(--color-text-on-dark-muted)] mb-8">
+              {credibilityData.connection?.body ?? credibilityData.bio?.text}
+            </p>
+            {(credibilityData.connection?.link ?? credibilityData.bio?.link) && (
+              <a
+                href={credibilityData.connection?.link ?? credibilityData.bio?.link}
+                className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-accent-on-dark)] hover:opacity-80 transition-opacity no-underline"
+              >
+                {credibilityData.connection?.linkLabel ?? "more about garrett and winded.vertigo"}
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+            )}
+          </div>
+        </ScrollReveal>
+      </div>
+    </section>
+    </>
   );
 }

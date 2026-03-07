@@ -81,8 +81,8 @@ export default function HarbourPage() {
         {/* ── Credibility zone ─────────────────────────────────── */}
         <CredibilityZone />
 
-        {/* ── Closing CTA ──────────────────────────────────────── */}
-        <section aria-label="get started" className="py-20 sm:py-28 text-center px-6">
+        {/* ── Invitation ───────────────────────────────────────── */}
+        <section aria-label="invitation" className="py-20 sm:py-28 text-center px-6">
           <ScrollReveal>
             <div className="max-w-2xl mx-auto">
               <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-text-on-dark)] mb-4">
@@ -102,7 +102,7 @@ export default function HarbourPage() {
                         : "bg-white/10 hover:bg-white/15"
                     }`}
                   >
-                    {game.icon} explore {game.name}
+                    {game.icon} play {game.name}
                   </a>
                 ))}
               </div>
