@@ -141,7 +141,7 @@ async function summarize_messages(messages) {
     console.log(`[slack] summarizing ${messages.length} messages via claude`);
 
     const response = await anthropic.messages.create({
-      model: 'claude-opus-4-5-20250514',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 400,
       system: `you are a voice assistant summarizing slack messages for someone listening through airpods. they can't see a screen.
 
