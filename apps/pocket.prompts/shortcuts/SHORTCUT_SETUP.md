@@ -46,7 +46,7 @@
 ### 5. send to pocket api (inside loop)
 
 - **action:** `Get Contents of URL`
-- **url:** `https://pocket.windedvertigo.com/voice`
+- **url:** `https://pocket-prompts-five.vercel.app/api/voice`
 - **method:** `POST`
 - **headers:**
   - `Content-Type` → `application/json`
