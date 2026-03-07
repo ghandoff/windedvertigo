@@ -49,8 +49,13 @@ export async function detect_intent(utterance) {
       messages: [{ role: 'user', content: utterance }]
     });
 
-    const raw = response.content[0].text.trim();
+    let raw = response.content[0].text.trim();
     console.log(`[intent] raw response: ${raw}`);
+
+    // strip markdown code fences if present (```json ... ``` or ``` ... ```)
+    if (raw.startsWith('```')) {
+      raw = raw.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+    }
 
     const result = JSON.parse(raw);
 
