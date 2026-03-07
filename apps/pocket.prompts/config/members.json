@@ -1,0 +1,27 @@
+{
+  "garrett": {
+    "notion_user_id": "16ed872b-594c-8148-a446-000287a90f4c",
+    "slack_user_id": "U06Q4UN4PKR",
+    "email": "garrett@windedvertigo.com"
+  },
+  "jamie": {
+    "notion_user_id": "215d872b-594c-814a-b6da-0002393cd347",
+    "slack_user_id": null,
+    "email": "jamie@windedvertigo.com"
+  },
+  "lamis": {
+    "notion_user_id": "215d872b-594c-81c4-ba2e-0002fe89c370",
+    "slack_user_id": null,
+    "email": "lamis@windedvertigo.com"
+  },
+  "maria": {
+    "notion_user_id": "219d872b-594c-8172-93c7-00025ed1751f",
+    "slack_user_id": null,
+    "email": "maria@windedvertigo.com"
+  },
+  "payton": {
+    "notion_user_id": "219d872b-594c-81a0-b0e8-0002503fdf93",
+    "slack_user_id": null,
+    "email": "payton@windedvertigo.com"
+  }
+}
