@@ -6,49 +6,12 @@ import { get_recent_messages, send_message, find_dm_channel } from '../lib/slack
 import { log_voice_interaction } from '../lib/voice-log.js';
 import * as tts from '../lib/tts.js';
 
-// --- dedup guard ---
-// iOS Shortcuts sometimes double-fires the POST. We keep a short-lived
-// in-memory cache keyed on utterance+user so the second hit within 60s
-// returns the first response without re-processing.
-const DEDUP_TTL_MS = 60_000;
-const recent_requests = new Map(); // key → { response, timestamp }
-
-function dedup_key(text, user_id) {
-  return `${(user_id || '').toLowerCase()}::${text.toLowerCase().trim()}`;
-}
-
-function check_dedup(text, user_id) {
-  const key = dedup_key(text, user_id);
-  const cached = recent_requests.get(key);
-  if (cached && Date.now() - cached.timestamp < DEDUP_TTL_MS) {
-    console.log(`[voice] dedup hit — returning cached response for "${text.substring(0, 40)}..."`);
-    return cached.response;
-  }
-  return null;
-}
-
-function store_dedup(text, user_id, response_body) {
-  const key = dedup_key(text, user_id);
-  recent_requests.set(key, { response: response_body, timestamp: Date.now() });
-
-  // housekeeping: evict stale entries every 50 requests
-  if (recent_requests.size > 50) {
-    const now = Date.now();
-    for (const [k, v] of recent_requests) {
-      if (now - v.timestamp > DEDUP_TTL_MS) recent_requests.delete(k);
-    }
-  }
-}
-
 /**
  * Send a JSON response AND fire-and-forget log the interaction.
  * The log never blocks or delays the spoken response.
  */
 function respond(res, status, body, ctx) {
   const duration_ms = Date.now() - ctx.start_time;
-
-  // cache this response for dedup
-  store_dedup(ctx.utterance, ctx.user_id, body);
 
   // fire-and-forget: log but don't await
   log_voice_interaction({
@@ -85,12 +48,6 @@ export default async function handler(req, res) {
       spoken_response: "i didn't catch anything — try speaking again.",
       action_taken: 'none'
     }, ctx);
-  }
-
-  // dedup: if we've already processed this exact utterance recently, return cached response
-  const cached = check_dedup(text, user_id);
-  if (cached) {
-    return res.status(200).json(cached);
   }
 
   console.log(`[voice] received from ${user_id || 'unknown'}: "${text}"`);
