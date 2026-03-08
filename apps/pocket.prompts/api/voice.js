@@ -1,5 +1,6 @@
 import { detect_intent } from '../lib/intent.js';
 import { create_capture } from '../lib/notion.js';
+import { create_task } from '../lib/notion-tasks.js';
 import { resolve_member, get_slack_user_id } from '../lib/users.js';
 import { get_recent_messages, send_message, find_dm_channel } from '../lib/slack.js';
 import { log_voice_interaction } from '../lib/voice-log.js';
@@ -87,7 +88,7 @@ export default async function handler(req, res) {
         return await handle_slack_reply(intent, ctx, res);
 
       case 'code_conversation':
-        return handle_code_stub(intent, ctx, res);
+        return handle_code_conversation(intent, ctx, res);
 
       case 'build_approval':
         return handle_build_stub(intent, ctx, res);
@@ -159,16 +160,12 @@ async function handle_task(intent, ctx, res) {
   const assignee = resolve_member(intent.assignee);
   const assignee_name = assignee?.name || intent.assignee || 'unassigned';
 
-  // include assignee in content for now (no assignee column in db yet)
-  const task_content = assignee
-    ? `[assigned to ${assignee_name}] ${intent.content}`
-    : intent.content;
-
-  const result = await create_capture({
-    type: 'task',
-    content: task_content,
+  const result = await create_task({
+    content: intent.content,
     priority: intent.priority || 'medium',
-    assignee_notion_id: assignee?.notion_user_id
+    assignee_notion_id: assignee?.notion_user_id,
+    due_date: intent.due_date,
+    task_type: intent.task_type
   });
 
   if (!result.success) {
@@ -330,13 +327,16 @@ async function handle_slack_reply(intent, ctx, res) {
   }
 }
 
-// --- phase 3 stubs ---
+// --- code & build handlers ---
 
-function handle_code_stub(intent, ctx, res) {
-  console.log(`[voice] code conversation stub`);
+function handle_code_conversation(intent, ctx, res) {
+  // the voice log already captures this interaction with intent=code_conversation.
+  // claude code's scheduled task polls the voice history for code_conversation intents
+  // and starts working on them. so all we need to do here is confirm it's queued.
+  console.log(`[voice] code conversation queued: "${intent.content?.substring(0, 80)}..."`);
   return respond(res, 200, {
-    spoken_response: "code conversations aren't wired up yet — coming soon. want to do something else?",
-    action_taken: 'stub_code',
+    spoken_response: tts.code_conversation_queued(),
+    action_taken: 'code_conversation',
     intent_result: intent
   }, ctx);
 }

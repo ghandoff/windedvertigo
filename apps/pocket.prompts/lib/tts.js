@@ -31,6 +31,10 @@ export function slack_no_messages() {
   return `all clear — no new messages right now. want to capture a note or idea instead?`;
 }
 
+export function code_conversation_queued() {
+  return `queued — claude code will pick that up next time it checks in. anything else?`;
+}
+
 export function code_conversation_started() {
   return `started — primed message is in your slack dms. grab it when you're at your desk. anything else?`;
 }

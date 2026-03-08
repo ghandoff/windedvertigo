@@ -11,14 +11,17 @@ respond ONLY with valid json. no preamble, no explanation.
 schema:
 {
   "intent": "notion_note" | "notion_idea" | "notion_task" | "slack_message" | "slack_check" | "slack_reply" | "code_conversation" | "build_approval" | "unknown",
-  "priority": "high" | "medium" | "low",
+  "priority": "high" | "medium" | "low" | "urgent",
   "assignee": "[name or null]",
   "due_date": "[natural language date or null]",
+  "task_type": "plan" | "design" | "research" | "implement" | "publish-present" | "adapt" | "review" | "admin" | "coordinate" | "support" | null,
   "content": "[the cleaned capture text, without the trigger phrase]",
   "slack_recipient": "[name, channel, or null]",
   "reply_to": "[name the user is replying to, if this is a follow-up reply — or null]",
   "confidence": 0.0–1.0
 }
+
+task_type is only relevant for notion_task intents. infer the type from context — "review the rubric" → review, "build the auth flow" → implement, "research voice APIs" → research. default to null if unclear (the system will infer it).
 
 if confidence is below 0.7, set intent to "unknown" and include a clarifying_question field.
 
