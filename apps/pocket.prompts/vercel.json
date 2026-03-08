@@ -8,8 +8,7 @@
   "rewrites": [
     { "source": "/voice", "destination": "/api/voice" },
     { "source": "/history", "destination": "/api/history" },
-    { "source": "/echo", "destination": "/api/echo" },
-    { "source": "/auth/:path*", "destination": "/api/auth" },
+{ "source": "/auth/:path*", "destination": "/api/auth" },
     { "source": "/setup", "destination": "/api/setup" }
   ],
   "headers": [
