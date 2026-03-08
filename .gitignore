@@ -14,6 +14,9 @@ out/
 .DS_Store
 Thumbs.db
 
+# Claude Code MCP config (contains token refs)
+.mcp.json
+
 # IDE
 .vscode/
 .idea/
