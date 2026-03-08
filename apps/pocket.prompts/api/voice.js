@@ -340,7 +340,7 @@ function handle_code_conversation(intent, ctx, res) {
   // and starts working on them. so all we need to do here is confirm it's queued.
   console.log(`[voice] code conversation queued: "${intent.content?.substring(0, 80)}..."`);
   return respond(res, 200, {
-    spoken_response: tts.code_conversation_queued(),
+    spoken_response: tts.code_conversation_started(),
     action_taken: 'code_conversation',
     intent_result: intent
   }, ctx);

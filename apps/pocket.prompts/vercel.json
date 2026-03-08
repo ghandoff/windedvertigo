@@ -8,8 +8,9 @@
   "rewrites": [
     { "source": "/voice", "destination": "/api/voice" },
     { "source": "/history", "destination": "/api/history" },
-{ "source": "/auth/:path*", "destination": "/api/auth" },
-    { "source": "/setup", "destination": "/api/setup" }
+    { "source": "/auth/:path*", "destination": "/api/auth" },
+    { "source": "/setup", "destination": "/api/setup" },
+    { "source": "/slack-dm", "destination": "/api/slack-dm" }
   ],
   "headers": [
     {

@@ -164,6 +164,51 @@ server.tool(
   }
 );
 
+// Tool 4: send_slack_dm
+server.tool(
+  'send_slack_dm',
+  'Send a Slack DM to a team member through the pocket.prompts API. Use this to send build proposals, status updates, or any message to a team member via Slack DM.',
+  {
+    user: z.string().describe('Team member name (e.g. "garrett", "lamis", "jamie")'),
+    text: z.string().describe('The message text to send (supports Slack mrkdwn formatting)'),
+    thread_ts: z.string().optional().describe('Thread timestamp to reply in an existing thread'),
+  },
+  async ({ user, text, thread_ts }) => {
+    try {
+      const url = new URL('/api/slack-dm', API_BASE);
+      const body = { user, text };
+      if (thread_ts) body.thread_ts = thread_ts;
+
+      const res = await fetch(url.toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SLACK_DM_SECRET}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `API error ${res.status}`);
+      }
+
+      const data = await res.json();
+      return {
+        content: [{
+          type: 'text',
+          text: `Slack DM sent to ${user}. Thread timestamp: ${data.ts} (use this for follow-up replies in the same thread).`
+        }]
+      };
+    } catch (err) {
+      return {
+        content: [{ type: 'text', text: `Error sending Slack DM: ${err.message}` }],
+        isError: true
+      };
+    }
+  }
+);
+
 // --- start ---
 
 const transport = new StdioServerTransport();
