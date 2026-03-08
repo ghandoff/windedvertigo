@@ -1,18 +1,29 @@
 /**
- * Diagnostic endpoint — simulates the voice endpoint's processing time
- * to reproduce the duplicate-request issue.
+ * Diagnostic endpoint — detects double invocation by writing to Notion.
  *
- * ?delay=4000 (default 4000ms) controls how long the endpoint waits
- * before responding, matching voice.js's ~3-4 second intent detection.
+ * Previous echo tests were INCONCLUSIVE: if Vercel routes one request
+ * to two separate function instances, each has its own call_count=1,
+ * and the Shortcut only receives one response. We can't detect double
+ * invocation from the response alone.
+ *
+ * FIX: Write an entry to the Voice Log Notion database for each
+ * invocation, with a unique request_id. After each test, count
+ * how many "echo_test" entries appeared:
+ *   - 1 entry → single invocation (no bug)
+ *   - 2 entries → double invocation (bug confirmed!)
  *
  * TEST PLAN:
- *   1. /api/echo  — direct path, no rewrite       ✅ fires once
- *   2. /api/echo  — direct path, 4s delay          ✅ fires once
- *   3. /echo      — through rewrite, 4s delay      ← TEST THIS NEXT
- *
- * Point the iOS Shortcut at /echo (not /api/echo) to test
- * whether the Vercel rewrite causes duplication.
+ *   1. Point Shortcut at /echo (rewrite path, matching /voice behavior)
+ *   2. Speak anything
+ *   3. Check Notion Voice Log for "echo_test" entries
+ *   4. If 2 entries appear for one test → rewrite causes duplication
+ *   5. Point Shortcut at /api/echo (direct path, no rewrite)
+ *   6. Speak anything
+ *   7. Check Notion Voice Log again
+ *   8. If only 1 entry → confirms rewrite is the culprit
  */
+
+import { log_voice_interaction } from '../lib/voice-log.js';
 
 let call_count = 0;
 
@@ -28,7 +39,6 @@ export default async function handler(req, res) {
   console.log(`[echo] x-vercel-id: ${req.headers['x-vercel-id']}`);
   console.log(`[echo] x-forwarded-for: ${req.headers['x-forwarded-for']}`);
   console.log(`[echo] x-matched-path: ${req.headers['x-matched-path']}`);
-  console.log(`[echo] x-vercel-proxy-signature: ${req.headers['x-vercel-proxy-signature'] ? 'present' : 'absent'}`);
   console.log(`[echo] body: ${JSON.stringify(req.body)}`);
   console.log(`[echo] waiting ${delay}ms ...`);
 
@@ -37,8 +47,33 @@ export default async function handler(req, res) {
 
   console.log(`[echo] --- responding to request ${my_count} after ${delay}ms ---`);
 
+  const spoken_response = `echo received. request number ${my_count}. path was ${req.url}. id is ${request_id}.`;
+
+  // Log to Notion Voice Log — the SAME mechanism voice.js uses.
+  // This is the only reliable way to detect double invocation,
+  // because each function instance has isolated memory.
+  // We AWAIT this (unlike voice.js fire-and-forget) so the log
+  // is guaranteed to complete before we respond.
+  try {
+    await log_voice_interaction({
+      utterance: `[echo-test] ${req.body?.text || '(no text)'}`,
+      intent_result: {
+        intent: 'echo_test',
+        confidence: 1.0,
+        content: `request_id=${request_id} call_count=${my_count} delay=${delay}ms path=${req.url}`
+      },
+      action_taken: 'echo_test',
+      spoken_response,
+      user_id: req.body?.user_id || 'echo-diag',
+      duration_ms: delay
+    });
+    console.log(`[echo] logged to Notion Voice Log`);
+  } catch (err) {
+    console.error(`[echo] Notion log failed: ${err.message}`);
+  }
+
   return res.status(200).json({
-    spoken_response: `echo received. request number ${my_count}. path was ${req.url}.`,
+    spoken_response,
     request_id,
     call_count: my_count,
     delay_ms: delay,
