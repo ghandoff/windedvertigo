@@ -14,7 +14,8 @@ export async function log_voice_interaction({
   entry_url,
   user_id,
   error,
-  duration_ms
+  duration_ms,
+  request_id
 }) {
   if (!log_db_id) {
     console.log('[voice-log] NOTION_VOICE_LOG_DB_ID not set, skipping');
@@ -56,9 +57,11 @@ export async function log_voice_interaction({
     if (entry_url) {
       properties.entry_url = { url: entry_url };
     }
-    if (user_id) {
+    if (user_id || request_id) {
+      // append request_id to user_id field for dedup diagnosis
+      const user_str = [user_id, request_id].filter(Boolean).join(' | ');
       properties.user_id = {
-        rich_text: [{ text: { content: user_id } }]
+        rich_text: [{ text: { content: user_str } }]
       };
     }
     if (error) {

@@ -22,7 +22,8 @@ function respond(res, status, body, ctx) {
     entry_url: body.entry_url,
     user_id: ctx.user_id,
     error: body.error,
-    duration_ms
+    duration_ms,
+    request_id: ctx.request_id
   }).catch(() => {}); // swallow logging errors
 
   return res.status(status).json(body);
@@ -41,7 +42,11 @@ export default async function handler(req, res) {
   }
 
   const { text, user_id } = req.body || {};
-  const ctx = { utterance: text, user_id, start_time, intent_result: null };
+  // capture vercel request ID + a unique invocation ID for dedup diagnosis
+  const vercel_id = req.headers['x-vercel-id'] || 'no-vercel-id';
+  const invocation_id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const request_id = `v:${vercel_id} i:${invocation_id}`;
+  const ctx = { utterance: text, user_id, start_time, intent_result: null, request_id };
 
   if (!text) {
     return respond(res, 400, {
