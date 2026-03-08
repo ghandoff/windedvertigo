@@ -220,7 +220,7 @@
     <div class="mic-icon">🎙</div>
     <h2>install the shortcut</h2>
     <p>adds pocket.prompts to your shortcuts app. speak a command, hear a response in your airpods. no screen needed.</p>
-    <a class="install-btn" id="installBtn" href="#">add to shortcuts</a>
+    <a class="install-btn" id="installBtn" href="https://www.icloud.com/shortcuts/3d40b3e409664eb0b34cd6a7f1cb8157">add to shortcuts</a>
   </div>
 
   <div class="steps">
@@ -273,28 +273,6 @@
     if (!isIOS) {
       document.getElementById('notIos').style.display = 'block';
     }
-
-    // two install approaches:
-    // 1. direct download — safari on ios opens .shortcut files in the shortcuts app
-    // 2. shortcuts:// url scheme — explicit import intent
-    // try both with a fallback: primary button uses shortcuts:// scheme,
-    // secondary uses direct download
-    const fileURL = window.location.origin + '/shortcuts/pocket-prompts.shortcut';
-    const schemeURL = 'shortcuts://import-shortcut?url=' + encodeURIComponent(fileURL) + '&name=pocket.prompts';
-
-    const btn = document.getElementById('installBtn');
-    btn.href = schemeURL;
-
-    // if the scheme URL fails (older iOS or permissions), offer direct download
-    btn.addEventListener('click', function(e) {
-      // give the scheme URL a chance to work
-      setTimeout(function() {
-        // if we're still on the page after 2 seconds, try direct download
-        if (document.visibilityState === 'visible') {
-          window.location.href = fileURL;
-        }
-      }, 2000);
-    });
   </script>
 </body>
 </html>
