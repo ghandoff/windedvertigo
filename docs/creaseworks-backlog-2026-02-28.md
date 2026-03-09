@@ -1,8 +1,7 @@
-# creaseworks backlog — 1 march 2026
+# creaseworks backlog — 28 february 2026
 
-consolidated from 14 docs. cross-referenced against live codebase + production smoke test.
-
-last audit: 1 march 2026 (claude code session 36 — tier 4 content & sync all complete)
+consolidated from 14 docs in `docs/`. duplicates merged, completed work removed, stale references flagged.
+last verified against codebase: **1 march 2026** (session 34).
 
 ---
 
@@ -10,6 +9,7 @@ last audit: 1 march 2026 (claude code session 36 — tier 4 content & sync all c
 
 | tag | meaning |
 |-----|---------|
+| ✅ | done — verified in codebase |
 | 🔴 | bug or broken — fix before shipping |
 | 🟡 | ready to build — code change, no blockers |
 | 🟢 | data or config task — no code needed |
@@ -18,170 +18,129 @@ last audit: 1 march 2026 (claude code session 36 — tier 4 content & sync all c
 
 ---
 
-## completed since last backlog (verified in codebase)
-
-these items were listed as "not started" in the previous backlog but are now implemented:
-
-| old # | item | status |
-|-------|------|--------|
-| 1 | garbled emoji across 3 files | ✅ fixed — all emoji correct in playdate-card.tsx, entitled-playdate-view.tsx, sampler/[slug]/page.tsx |
-| 2 | apply migrations 030–035 to neon | ✅ applied — 031-035 applied 1 march 2026. verification passed. |
-| 3 | run smoke test against production | ✅ 28/29 pass (root `/` returns 308 redirect — expected for authed redirect). base URL: `https://windedvertigo.com/harbour/creaseworks` |
-| 4 | packs nav link hidden for authed users | ✅ fixed — packs visible in desktop nav (publicLinks) and mobile bottom tab bar |
-| 6 | pack preview badges on sampler cards | ✅ built — `PlaydateCard` accepts `packInfo: PackBadgeInfo` prop, renders 🔒 badge |
-| 7 | post-reflection upsell CTA | ✅ built — `RunForm` success state shows pack upsell with `ReflectionPackInfo` |
-| 11 | credit system queries + API | ✅ built — `lib/queries/credits.ts` (awardCredit, getUserCredits, spendCredits, checkAndAwardStreakBonus) |
-| 12 | credit progress bar on playbook | ✅ built — `credit-progress-bar.tsx` integrated on playbook page |
-| 13 | playbook "unlock more" upsell section | ✅ built — `pack-upsell-section.tsx` shows up to 2 unowned packs |
-| 14 | photo consent classification UI | ✅ built — `photo-consent-classifier.tsx` with 3-tier COPPA flow |
-| — | dual-scope entitlements (user + org) | ✅ built — migration 038, `checkEntitlement` accepts userId, `grantUserEntitlement`, partial indexes |
-| — | per-pack individual invites | ✅ built — `createInviteWithPacks`, `processInvitesOnSignIn`, pack selector UI on admin invites |
-| — | org member cap safety valve | ✅ built — `autoJoinOrg` checks `member_cap` before INSERT |
-| — | invite link on admin profile | ✅ built — manage section links to `/admin/invites` |
-| — | profile pack fetch for org-less users | ✅ built — `getOrgPacksWithProgress` accepts null orgId |
-
----
-
-## tier 1 — quick wins (high impact, low effort) — ✅ ALL COMPLETE
-
-| # | item | status | notes |
-|---|------|--------|-------|
-| 1 | **breadcrumb context from sampler** | ✅ done | `?from=sampler` redirect + dynamic breadcrumb in pack playdate page |
-| 2 | **quick-log photo toast enhancement** | ✅ done | expandable 5s toast with photo nudge + dismiss, hover pauses timer |
-| 3 | **tag playdates with campaign_tags in notion** | ✅ done | session 34 — seed script + commit c5a1605 |
-| 4 | **lowercase violations in dynamic content** | ✅ done | session 34 — commit c6255c1 |
-| 5 | **smoke test base URL fix** | ✅ done | default already includes `/harbour/creaseworks` prefix |
-
----
-
-## tier 2 — engagement wiring — ✅ ALL COMPLETE
-
-verified session 35: all engagement features are fully wired into user flows.
-
-| # | item | status | notes |
-|---|------|--------|-------|
-| 6 | **wire credit earning into run submission** | ✅ done | `api/runs/route.ts` L115-119: quick_log, find_again, streak_bonus. `api/runs/[id]/evidence/route.ts` L114: photo_added. `api/photo-consents/route.ts` L63: marketing_consent. |
-| 7 | **wire photo consent into evidence upload** | ✅ done | `PhotoConsentClassifier` integrated in `evidence-capture-section.tsx`. consent saved via `api/photo-consents` endpoint. |
-| 8 | **credit redemption UI** | ✅ done | `credit-redemption.tsx` on playbook page — 3 reward tiers (sampler=10, playdate=25, pack=50). |
-| 9 | **photo-first quick reflection button** | ✅ done | `photo-quick-log-button.tsx` — "snap it" camera button in `EntitledPlaydateView`. |
-| 10 | **pack finder improvements** | ✅ done | `pack-finder.tsx` — situation picker, social proof, comparison table, seasonal nudges. |
-
----
-
-## tier 3 — wave 3 features
-
-| # | item | effort | notes |
-|---|------|--------|-------|
-| 11 | ~~admin playdate preview with pack filter toggles~~ | ✅ done | expandable content preview — completeness badges (find/fold/unfold/body/illustration), lazy-loaded detail via `/api/admin/playdates/[id]`, materials list, design notes. commit abb7640. |
-| 12 | ~~profile "your journey" redesign~~ | ✅ done | consolidated: removed duplicate StatPills + recent runs from page.tsx (Dashboard has richer versions), removed duplicate pack exploration from ProfileJourney (YourPacks has richer per-pack cards). each data point now has one canonical home. -167 lines. commit 767333f. |
-
----
-
-## tier 4 — content & sync improvements — ✅ ALL COMPLETE (except #17)
-
-| # | item | effort | notes |
-|---|------|--------|-------|
-| 13 | ~~image sync tier 3 — file property extraction~~ | ✅ done | playdate illustrations synced via `extractFiles()` → R2. materials don't have image properties in Notion. all cover images (playdates, packs, collections) synced in tiers 1+2. |
-| 14 | ~~image sync tier 4 — body content / blocks~~ | ✅ done | `fetchPageBodyHtml()` in `blocks.ts` — recursive block fetch, renders all block types to HTML, syncs inline images to R2. integrated in playdates, packs, collections. |
-| 15 | ~~rich text formatting in sync~~ | ✅ done | `extractRichTextHtml()` preserves bold, italic, links, colors, code annotations. HTML columns added to playdates (6), packs (1), collections (1). `SafeHtml` component for progressive enhancement. commit 31a0111. |
-| 16 | ~~notion-as-CMS for /we/ and /do/ page text~~ | ✅ done | `syncCmsPages()` fetches individual Notion pages by ID, renders body HTML. `/we/` and `/do/` routes with ISR. `.cms-body` CSS for all block types. commit 48c0725. TODO: add env vars to Vercel. |
-| 17 | 🟢 **notion-as-CMS for sqr-rct content** | ~4 hr | longer-term. sqr-rct currently queries notion in real-time. |
-
----
-
-## tier 5 — UI/UX polish
-
-| # | item | effort | notes |
-|---|------|--------|-------|
-| 18 | ~~pack cards — visual differentiation~~ | ✅ done | `pack-illustration.tsx` — 6 themed SVG patterns, per-pack color accents, emojis, cover_url support |
-| 19 | ~~matcher page — more playful treatment~~ | ✅ done | gradient bg, floating shapes, animated emoji heading, playful copy |
-| 20 | ~~custom empty-state illustrations/copy~~ | ✅ done | `empty-state.tsx` — 4 brand-aligned SVG illustrations (bookshelf, journal, magnifier, seedling) |
-| 21 | ~~DRAFT badge uses non-brand orange~~ | ✅ done | already uses sienna/30 border + sienna/5 bg + sienna text |
-| 22 | ~~footer "let's play." tagline~~ | ✅ done | already in `packages/tokens/footer.html` |
-| 23 | ~~typography scale audit~~ | ✅ done | session 34 — commit f3023fe |
-| 24 | ~~parent site vs creaseworks visual bridge~~ | ✅ done | winded.vertigo logo wordmark in footer left side, linking to parent homepage. header shows just "creaseworks". footer rendered in JSX for layout control. calm theme dims logo with opacity+filter. |
-
----
-
-## tier 6 — accessibility & neurodiversity
-
-| # | item | effort | notes |
-|---|------|--------|-------|
-| 25 | ~~dyslexia-friendly font toggle~~ | ✅ done | `accessibility-prefs.tsx` toggle — Atkinson Hyperlegible via `next/font/google`, `.dyslexia-font` class on `<html>`, cookie-first for instant CSS |
-| 26 | ~~animation toggle in app settings~~ | ✅ done | combined with #25 — `.reduce-motion` class, suppresses all animations/transitions via `!important` overrides |
-| 27 | ~~dark/low-colour theme~~ | ✅ done | "calm mode" — warm dark backgrounds (#1c2536), desaturated accents, CSS custom property cascade. migration 040, cookie-first toggle in accessibility prefs. |
-| 28 | ~~progress bars with labels on multi-step flows~~ | ✅ done | `step-progress.tsx` shared component with ARIA progressbar, dot indicators, "step X of Y · label" text. integrated in onboarding wizard. |
-
----
-
-## phase 2 — post-launch enhancements
+## tier 1 — fix now (bugs + blockers)
 
 | # | item | effort | status | notes |
 |---|------|--------|--------|-------|
-| P2-1 | **mount analytics dashboard** | ~30 min | ✅ done | replaced dead redirect with admin-gated page at `/analytics`, renders `AnalyticsDashboard` |
-| P2-3 | **enrich analytics with admin metrics** | ~3 hr | ✅ done | `getAdminAnalytics()` with 5 SQL queries: user growth, conversion funnel, pack adoption, credit economy, platform overview. new chart components: FunnelChart, PackAdoptionChart. fixed `source` → `purchase_id` bug. |
-| P2-6 | **set Vercel env vars for CMS pages** | ~10 min | 🟡 manual | `NOTION_CMS_PAGE_WE=316e4ee7-4ba4-8181-9935-e6887e8273dd`, `NOTION_CMS_PAGE_DO=316e4ee7-4ba4-81b1-a34c-da9a4b8e1016`. add via Vercel dashboard → creaseworks → Settings → Environment Variables. |
-| P2-2 | **server-side playdate search API** | ~2 hr | ✅ done | `lib/queries/search.ts` — ILIKE across title, headline, rails_sentence, material titles with ranked deduplication. `GET /api/search?q=...` endpoint (auth, 2-100 chars). `playbook-search.tsx` — debounced (300ms) fetch with AbortController, shows playdate results above collection grid with match-field badges. |
-| P2-4 | **notification center** | ~4 hr | ✅ done | migration 041: `in_app_notifications` table with partial indexes (unread, dedup). query layer: getUserNotifications, getUnreadCount, markRead/markAllRead, createInAppNotification (dedup via UNIQUE index). API: `GET /api/notifications/in-app` (list + countOnly polling), `POST` (mark-all-read), `POST /[id]/read`. bell icon in nav bar with badge (60s polling), dropdown with unread dots + time-ago. emitters: gallery approve/reject, invite accepted (notifies inviter + invitee), pack grants, org auto-join. |
-| P2-5 | **PWA / mobile install** | ~2 hr | ✅ done | manifest.json with basePath-aware scope. service worker: cache-first statics, network-first navigation, offline fallback. PwaInstall component with beforeinstallprompt capture + iOS manual instructions. icons from square "W" mark (512, 192, 180). CSP worker-src, apple-web-app-capable, 14-day dismiss cooldown. |
-| P2-7 | **test coverage expansion** | ~6 hr | ✅ done (phase 1) | 5 → 9 suites, 53 → 123 tests. added: entitlements (19), credits (20), search (11), auth guards (20). mock sql.query() pattern. remaining: API route tests, matcher orchestrator, gallery/evidence queries. |
+| 1 | ~~garbled emoji across 3 files~~ | ~30 min | ✅ done | all emoji verified clean in playdate-card.tsx, entitled-playdate-view.tsx, sampler/[slug]/page.tsx |
+| 2 | ~~apply migrations 030–033 to neon~~ | ~5 min | ✅ done | session 31 applied 028–033, session 33 applied 034–035, session 34 applied 038 |
+| 3 | ~~run smoke test against production~~ | ~5 min | ✅ done | session 33: 28/29 pass |
+| 4 | ~~packs nav link hidden for authed users~~ | ~15 min | ✅ done | packs link now unconditional in publicLinks; present in both mobile tab bars |
+
+**tier 1 is clear.** ✅
 
 ---
 
-## phase 3 — progressive disclosure & user tiers — ✅ COMPLETE (sessions 47–48)
+## tier 2 — quick wins (high impact, low effort)
 
-**Rationale:** The full suite of features can overwhelm first-time caregivers. Progressive disclosure shows each user only the features that match their engagement level.
+| # | item | effort | status | notes |
+|---|------|--------|--------|-------|
+| 5 | ~~breadcrumb context from sampler~~ | ~30 min | ✅ done | `?from=sampler` param wired; playdate page shows "← back to playdates" |
+| 6 | ~~pack preview badges on sampler cards~~ | ~1 hr | ✅ done | PlaydateCard accepts `packInfo` prop, renders 🔒 chip |
+| 7 | ~~post-reflection upsell CTA~~ | ~1 hr | ✅ done | pack upsell renders after run submission in RunForm |
+| 8 | ~~quick-log photo toast enhancement~~ | ~1 hr | ✅ done | 📸 toast with 5s auto-dismiss, hover to keep, +2 credit nudge |
+| 9 | 🟢 **tag playdates with campaign_tags in notion** | ~30 min | ⬜ open | data entry — tag 4-6 playdates per season. zero code needed. |
+| 10 | 🟡 **lowercase violations in dynamic content** | ~1 hr | ⚠️ partial | gallery uses lowercase; profile dashboard labels + badge names may still have title case violations |
 
-### User tiers
+---
 
-| Tier | Who | Features visible | Nav items |
-|------|-----|-----------------|-----------|
-| **Casual** | Caregivers who just want play ideas | Playdates (sampler), matcher, packs, gallery (view-only) | sampler, matcher, packs, gallery |
-| **Curious** | Caregivers who want to understand the "why" | + Playbook (collections with developmental context) | + playbook |
-| **Collaborator** | Educators, therapists, deep engagers | + Reflections, evidence capture, credits, community, gallery submissions | + reflections, community, profile journey |
+## tier 3 — engagement & conversion system
 
-### Implementation status
+these items build on each other. recommended order: schema → progress bar → upsell section → photo features → pack finder.
 
-| # | Item | Status | Notes |
+| # | item | effort | status | notes |
+|---|------|--------|--------|-------|
+| 11 | 🟡 **credit system — queries + API** | ~2 hr | ⬜ open | DB table exists (migration 028). `earnCredits()`, `getBalance()`, `redeemCredits()` NOT YET BUILT. |
+| 12 | 🟡 **credit progress bar on playbook** | ~1 hr | ⚠️ partial | component exists + imported in playbook, but depends on credit queries (#11) which don't exist yet |
+| 13 | 🟡 **playbook "unlock more" upsell section** | ~2 hr | ⬜ open | show 1-2 unowned packs below collections grid |
+| 14 | 🟡 **photo consent classification UI** | ~2 hr | ⬜ open | three-tier classification. COPPA 2025. photo_consents table exists (migration 029). |
+| 15 | 🟡 **photo-first quick reflection button** | ~2 hr | ⬜ open | camera icon → device camera → auto-creates run with photo |
+| 16 | 🟡 **pack finder page improvements** | ~3 hr | ⬜ open | playdate count per pack, social proof, seasonal callouts |
+
+---
+
+## tier 4 — wave 3 features (from session status)
+
+| # | item | effort | status | notes |
+|---|------|--------|--------|-------|
+| 17 | 🔵 **admin playdate preview with pack filter toggles** | ~4 hr | ⬜ open | admin-only content review |
+| 18 | 🔵 **profile "your journey" redesign** | ~4 hr | ⚠️ partial | ProfileJourney component exists with milestones, badges, credits; may overlap with #19 |
+| 19 | 🔵 **engagement sprint 1 — credits foundation** | ~6 hr | ⬜ open | earn on reflection, earn on photo, progress display, redemption flow |
+| 20 | 🔵 **engagement sprint 2 — photo consent + upsells** | ~6 hr | ⬜ open | COPPA waiver flow, marketing pool, consent revocation |
+
+---
+
+## tier 5 — content & sync improvements
+
+| # | item | effort | status | notes |
+|---|------|--------|--------|-------|
+| 21 | 🟡 **image sync tier 3 — file property extraction** | ~4 hr | ⬜ open | materials covers, pack illustrations → R2 → postgres |
+| 22 | 🟡 **image sync tier 4 — body content / blocks** | ~8 hr | ⬜ open | fetch notion block children for full page content |
+| 23 | ~~rich text formatting in sync~~ | ~3 hr | ✅ done | `extractRichTextHtml()` in sync/extract.ts; HTML columns on playdates_cache, packs_cache, collections; SafeHtml rendering |
+| 24 | ~~notion-as-CMS for /we/ and /do/~~ | ~2 hr | ✅ done | /we/ and /do/ pages render from cms_pages table via getCmsPage(); sync scripts exist |
+| 25 | 🟢 **notion-as-CMS for sqr-rct content** | ~4 hr | ⬜ open | sqr-rct currently queries notion in real-time |
+
+---
+
+## tier 6 — UI/UX polish (from brand critique)
+
+| # | item | effort | status | notes |
+|---|------|--------|--------|-------|
+| 26 | 🟡 **pack cards — visual differentiation** | ~2 hr | ⬜ open | add illustration, icon, or colour accent per pack |
+| 27 | 🟡 **matcher page — more playful treatment** | ~2 hr | ⬜ open | larger material pills, playful heading, hover animation |
+| 28 | 🟡 **custom empty-state illustrations/copy** | ~2 hr | ⬜ open | gallery and community pages show generic empty states |
+| 29 | 🟡 **DRAFT badge uses non-brand orange** | ~15 min | ⬜ open | currently `bg-sienna/80 text-white`; should be `bg-sienna/10 text-sienna` |
+| 30 | ~~footer "let's play." tagline~~ | ~15 min | ✅ done | present in packages/tokens/footer.html; rendered via footer.tsx |
+| 31 | 🔵 **typography scale audit** | ~1 hr | ⬜ open | brand guidelines specify 50% ratio hierarchy |
+| 32 | 🔵 **parent site vs creaseworks visual bridge** | ~2 hr | ⬜ open | the two apps feel disconnected |
+
+---
+
+## tier 7 — accessibility & neurodiversity
+
+most foundations are in place (tokens, reduced-motion, focus-visible, contrast). remaining gaps:
+
+| # | item | effort | status | notes |
+|---|------|--------|--------|-------|
+| 33 | 🔵 **dyslexia-friendly font toggle** | ~2 hr | ⬜ open | Atkinson Hyperlegible as user option |
+| 34 | 🔵 **animation toggle in app settings** | ~1 hr | ⬜ open | separate from OS prefers-reduced-motion |
+| 35 | 🔵 **dark/low-colour theme** | ~4 hr | ⬜ open | autism spectrum + sensory sensitivity support |
+| 36 | 🟡 **progress bars with labels on multi-step flows** | ~1 hr | ⬜ open | "Step 2 of 5" for onboarding, checkout, reflection |
+
+---
+
+## housekeeping — stale docs
+
+| # | item | status | notes |
 |---|------|--------|-------|
-| P3-1 | ~~tier selection during onboarding~~ | ✅ done | Step 0 in wizard with 3 visual cards ("just play", "play + learn", "play + grow"). POST saves tier + sets `cw-ui-tier` cookie. |
-| P3-2 | ~~tier-aware nav bar~~ | ✅ done | Desktop + mobile bottom tabs filter links by tier. Session-driven via `useSession()`. |
-| P3-3 | ~~tier-aware profile page~~ | ✅ done | Journey/credits gated to collaborator. Tier badge with distinct colors. TierSwitcher in manage section. |
-| P3-4 | ~~upgrade path UX~~ | ✅ done | TierSwitcher component — 3 radio cards, optimistic UI + CSS class swap + session refresh. Always available in profile manage. |
-| P3-5 | ~~migration for existing users~~ | ✅ done | Migration 042: `ui_tier` column with CHECK constraint. Existing onboarded users backfilled to collaborator. New users default to casual. |
-| P3-6 | **tier-aware notification events** | 🟡 deferred | Low priority. All notifications currently sent to all users. Can add `minTier` filter to `createInAppNotification` later. |
-| P3-7 | ~~gallery submission gating~~ | ✅ done | `gallery-share-toggle.tsx` returns null for non-collaborator. API route returns 403 as safety net. |
-| P3-8 | ~~JWT + session pipeline~~ | ✅ done | `uiTier` loaded on sign-in + 5-min refresh, flows through JWT → session → `CWSession`. |
-| P3-9 | ~~cookie-first rendering~~ | ✅ done | `cw-ui-tier` cookie → `tier-{value}` CSS class on `<html>` before hydration. `/api/preferences` PATCH sets cookie. |
-
-**Key design constraint:** Tiers are purely cosmetic/UX — not a permission system. All features remain accessible via direct URL.
+| 37 | ~~INFRASTRUCTURE-MIGRATION.md~~ | ✅ done | session 33 archived stale docs |
+| 38 | ~~NOTION-INTEGRATION.md~~ | ✅ done | session 33 archived |
+| 39 | ~~PLAN-monorepo.md~~ | ✅ done | session 33 archived |
+| 40 | ~~CREASEWORKS-DESIGN.md~~ | ✅ done | session 33 updated |
 
 ---
 
-## open questions / future work
+## completed outside original backlog
 
-1. **next/image migration** — DEFERRED. cover images use raw `<img>` tags. migration to `<Image>` with R2 custom loader would give: responsive srcset (saves mobile bandwidth), lazy loading, WebP/AVIF format negotiation (30-50% smaller), CLS prevention (reserved layout space). **cost implications:** Next.js image optimization can either run through Vercel Functions (adds latency + function invocations to bill) or via Cloudflare Image Resizing (separate paid product). evaluate when image volume grows. decision: hold off for now.
-2. **R2 bucket structure** — DECIDED: one bucket for all apps with folder convention (`/creaseworks/`, `/sqr-rct/`, `/site/`). rationale: simpler CORS/token management, shared assets don't need duplication, per-app storage visibility via R2 prefix metrics. re-evaluate if access control needs diverge.
-3. ~~URL redirect for old subdomain~~ — SKIPPED. not enough people have the old `creaseworks.windedvertigo.com` link.
-4. **shared header across apps** — NOT WORTH IT. header needs differ too much between apps (auth, icons, bottom tab bar in creaseworks vs hero nav in parent site). footer is shared via tokens, header CSS classes are shared, but the component structure stays app-specific.
-
----
-
-## codebase health (2 march 2026)
-
-| metric | value |
-|--------|-------|
-| TypeScript | compiles clean (zero errors) |
-| Tests | 9 suites, 123 tests, all passing |
-| Migrations | 042 (all applied to Neon) |
-| Smoke test | 28/29 pass |
-| Source files | ~299 (.ts + .tsx) |
-| Features A–Y | all implemented |
-| Phase 2 | ✅ ALL CODE COMPLETE (P2-1 through P2-7). P2-6 pending (manual env vars in Vercel). |
-| Phase 3 | ✅ COMPLETE — progressive disclosure user tiers (casual/curious/collaborator). P3-6 deferred (notification tier filtering). |
-| Engagement system | fully wired — credits, photo consent, redemption, pack finder all live |
-| Material emoji CMS | Notion-managed via `emoji` rich_text property, hard-coded map as fallback |
+| session | item | notes |
+|---------|------|-------|
+| 34 | ✅ **dual-scope entitlements (user + org)** | migration 038, checkEntitlement dual-scope, grantUserEntitlement |
+| 34 | ✅ **per-pack individual invites** | createInviteWithPacks, processInvitesOnSignIn, pack selector UI |
+| 34 | ✅ **org member cap safety valve** | autoJoinOrg checks member_cap before INSERT |
+| 34 | ✅ **invite link on admin profile** | manage section shows link to /admin/invites |
+| 34 | ✅ **profile pack fetch for org-less users** | getOrgPacksWithProgress now accepts null orgId |
 
 ---
 
-*source docs: CLAUDE.md, CREASEWORKS-DESIGN.md, creaseworks-audit-2026-02-27.md, creaseworks-paywall-strategy.md, creaseworks-engagement-system.md, creaseworks-image-sync-scope.md, creaseworks-session-status-2026-02-28.md, notion-database-map.md, memory/projects/creaseworks.md, Creaseworks-Neurodiversity-Design-Guide.docx, creaseworks-ui-ux-critique.docx*
+## open questions (need decisions before building)
+
+1. **next/image migration** — should cover images use `<Image>` component with R2 as a custom loader, or continue with `<img>` + CDN URLs?
+2. **R2 bucket separation** — one bucket for all apps or separate per app?
+3. **supabase evaluation** — planned for next new project. is sqr-rct the candidate?
+4. **vercel pro pricing** — needed for commercial use. is the team on pro yet?
+5. **URL structure** — creaseworks now lives at windedvertigo.com/reservoir/creaseworks. should old creaseworks.windedvertigo.com subdomain redirect?
+6. **shared header/footer across apps** — packages/tokens/footer.html exists. should this extend to a shared header?
+
+---
+
+*collated from: CLAUDE.md, CREASEWORKS-DESIGN.md, INFRASTRUCTURE-MIGRATION.md, NOTION-INTEGRATION.md, PLAN-monorepo.md, session-notes.md, creaseworks-audit-2026-02-27.md, creaseworks-paywall-strategy.md, creaseworks-engagement-system.md, creaseworks-image-sync-scope.md, creaseworks-session-status-2026-02-28.md, notion-database-map.md, Creaseworks-Neurodiversity-Design-Guide.docx, creaseworks-ui-ux-critique.docx*
