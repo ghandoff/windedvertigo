@@ -6,6 +6,7 @@
     { "source": "/", "destination": "/pwa/" }
   ],
   "rewrites": [
+    { "source": "/voice/:member", "destination": "/api/voice/:member" },
     { "source": "/voice", "destination": "/api/voice" },
     { "source": "/history", "destination": "/api/history" },
     { "source": "/auth/:path*", "destination": "/api/auth" },
