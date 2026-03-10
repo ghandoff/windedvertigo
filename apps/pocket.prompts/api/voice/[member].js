@@ -11,8 +11,10 @@ const members = require('../../config/members.json');
  * containing just the spoken_response — the shortcut pipes it straight to
  * Speak Text with no dictionary extraction needed.
  *
- * Accepts raw text POST body (pipeline content via "File" body type) or
- * JSON body for compatibility with other clients.
+ * Accepts voice text via (in priority order):
+ *   1. GET  ?text=...  — v9 shortcut (simple GET, avoids POST/File signing issues)
+ *   2. POST raw body   — v8 shortcut (pipeline content via "File" body type)
+ *   3. POST JSON body  — programmatic clients ({ "text": "..." })
  *
  * JSON clients can add ?format=json to get the full response object.
  */
@@ -40,21 +42,30 @@ export default async function member_handler(req, res) {
     return res.status(404).json({ error: `unknown member: ${member}` });
   }
 
-  // read raw body (bypasses vercel's default body parser)
-  const raw = await read_body(req);
-
-  console.log(`[voice/${member}] content-type: ${req.headers['content-type'] || 'none'}`);
-  console.log(`[voice/${member}] body length: ${raw.length}`);
-  console.log(`[voice/${member}] body preview: "${raw.substring(0, 120)}"`);
-
-  // parse text from body — try JSON first, then raw text
+  // resolve text from query param (v9 GET) or body (v8 POST)
   let text = '';
-  try {
-    const parsed = JSON.parse(raw);
-    text = parsed.text || '';
-  } catch {
-    // raw text body from iOS Shortcut (WFHTTPBodyType: File)
-    text = raw.trim();
+
+  if (req.query.text) {
+    // v9: GET with ?text= query param (avoids POST/File signing issues on iOS)
+    text = req.query.text;
+    console.log(`[voice/${member}] source: GET ?text= (${text.length} chars)`);
+    console.log(`[voice/${member}] text preview: "${text.substring(0, 120)}"`);
+  } else {
+    // v8: read raw POST body (bypasses vercel's default body parser)
+    const raw = await read_body(req);
+
+    console.log(`[voice/${member}] content-type: ${req.headers['content-type'] || 'none'}`);
+    console.log(`[voice/${member}] body length: ${raw.length}`);
+    console.log(`[voice/${member}] body preview: "${raw.substring(0, 120)}"`);
+
+    // parse text from body — try JSON first, then raw text
+    try {
+      const parsed = JSON.parse(raw);
+      text = parsed.text || '';
+    } catch {
+      // raw text body from iOS Shortcut (WFHTTPBodyType: File)
+      text = raw.trim();
+    }
   }
 
   // synthesize JSON body and delegate to main voice handler
