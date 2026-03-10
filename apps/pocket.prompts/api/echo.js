@@ -16,8 +16,8 @@ export default function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  if (req.method === 'GET') {
-    // plain text response — simplest possible test
+  // ?format=text forces plain text response (for POST testing)
+  if (req.method === 'GET' || req.query.format === 'text') {
     res.setHeader('Content-Type', 'text/plain');
     return res.end('echo test successful. the pipeline works.');
   }

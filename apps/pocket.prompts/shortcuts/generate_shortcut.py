@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-generate_shortcut.py — builds per-member pocket.prompts iOS shortcuts (v7)
+generate_shortcut.py — builds per-member pocket.prompts iOS shortcuts (v8)
 
-v7 architecture: zero variable references in action parameters.
-the shortcut sends dictated text as a raw POST body to a per-member
-URL endpoint. all intelligence lives on the server.
+v8 architecture: two critical fixes from v7 diagnostics:
+  1. sign with --mode people-who-know-me (not "anyone" — that strips HTTP params)
+  2. API returns plain text (not JSON) — Get Dictionary Value hangs after signing
 
-previous versions failed because `shortcuts sign` strips complex nested
-parameters (WFJSONValues, WFInput, WFConditionalActionString). v7 uses
-only static string/bool parameters and the implicit pipeline for data flow.
-
-shortcut structure (6 actions):
+shortcut structure (5 actions):
   1. Repeat 20x (start)
-  2. Dictate Text → pipeline
-  3. Get Contents of URL (POST, static WFURL, body from pipeline via "File" type)
-  4. Get Dictionary Value "spoken_response" → pipeline
-  5. Speak Text (reads from pipeline, waits for completion)
-  6. Repeat (end)
+  2. Dictate Text → pipeline (text)
+  3. Get Contents of URL (POST with File body — sends dictated text to server)
+  4. Speak Text (response is already plain text — no dict extraction needed)
+  5. Repeat (end)
+
+the per-member API endpoint (/api/voice/:member) handles:
+  - member identification via URL path (no user_id in body)
+  - raw text body parsing (no JSON encoding needed)
+  - plain text response containing just the spoken_response
 
 usage:
   python3 shortcuts/generate_shortcut.py
@@ -30,6 +30,7 @@ import uuid
 import os
 import subprocess
 import json
+import urllib.parse
 
 
 # --- config ---
@@ -64,11 +65,13 @@ def tts(text):
 
 def build_shortcut(member_name):
     """
-    build the v7 shortcut action list for a specific member.
+    build the v8 shortcut action list for a specific member.
 
-    key design constraint: NO variable references in any action parameter.
-    all data flows through the implicit pipeline between chained actions.
-    all parameter values are static strings/bools that survive code-signing.
+    key design decisions (from v5-v7 diagnostic testing):
+    - use --mode people-who-know-me (anyone mode strips Advanced/HTTP params)
+    - API returns plain text, not JSON (Get Dictionary Value hangs after signing)
+    - WFHTTPBodyType "File" sends pipeline content as POST body
+    - all parameter values are static strings/bools that survive code-signing
     """
 
     actions = []
@@ -90,11 +93,9 @@ def build_shortcut(member_name):
     }))
 
     # === action 3: Get Contents of URL (POST raw body) ===
-    # WFURL: static string (survives signing — confirmed in v6)
-    # WFHTTPMethod: static string (survives signing)
-    # WFHTTPBodyType: "File" — tells Shortcuts to use the pipeline input as the body
-    # Advanced: bool (survives signing)
-    # NO WFJSONValues, NO variable references, NO nested dictionaries
+    # WFURL: static string (survives signing)
+    # WFHTTPBodyType "File": sends pipeline content (dictated text) as POST body
+    # Advanced: True — needed for method/body options (survives people-who-know-me signing)
     actions.append(act("is.workflow.actions.downloadurl", {
         "WFURL": tts(api_url),
         "Advanced": True,
@@ -102,22 +103,15 @@ def build_shortcut(member_name):
         "WFHTTPBodyType": "File"
     }))
 
-    # === action 4: Get Dictionary Value ===
-    # extracts "spoken_response" from the JSON response (auto-parsed by Shortcuts)
-    # WFDictionaryKey: static string (survives signing)
-    actions.append(act("is.workflow.actions.getvalueforkey", {
-        "WFGetDictionaryValueType": "Value",
-        "WFDictionaryKey": "spoken_response"
-    }))
-
-    # === action 5: Speak Text ===
-    # reads from pipeline (Get Dictionary Value output)
+    # === action 4: Speak Text ===
+    # the API now returns plain text (just the spoken_response)
+    # so we can pipe directly to Speak Text — no dictionary extraction needed
     # WFSpeakTextWait: True — waits for speech to finish before next loop iteration
     actions.append(act("is.workflow.actions.speaktext", {
         "WFSpeakTextWait": True
     }))
 
-    # === action 6: Repeat end ===
+    # === action 5: Repeat end ===
     actions.append(act("is.workflow.actions.repeat.count", {
         "GroupingIdentifier": repeat_group,
         "WFControlFlowMode": 2    # 2 = end
@@ -168,11 +162,13 @@ def main():
         with open(unsigned, "wb") as f:
             plistlib.dump(plist, f, fmt=plistlib.FMT_BINARY)
 
-        # sign (retry once on transient Apple signing server errors)
+        # sign with people-who-know-me mode (NOT "anyone")
+        # "anyone" mode strips Advanced/WFHTTPMethod/WFHTTPBodyType params
+        # "people-who-know-me" preserves all params (fine for 6-person collective)
         signed_ok = False
         for attempt in range(2):
             result = subprocess.run(
-                ["shortcuts", "sign", "--mode", "anyone",
+                ["shortcuts", "sign", "--mode", "people-who-know-me",
                  "--input", unsigned, "--output", signed],
                 capture_output=True, text=True
             )
@@ -193,16 +189,17 @@ def main():
             print(f"  x {member_name}: sign failed — {result.stderr.strip()[:200]}")
 
     print()
-    print(f"[shortcut] generated {success_count}/{len(members)} shortcuts (v7)")
-    print(f"[shortcut] architecture: raw POST body, per-member URL, 6 actions")
+    print(f"[shortcut] generated {success_count}/{len(members)} shortcuts (v8)")
+    print(f"[shortcut] signing: people-who-know-me | response: plain text | 5 actions")
     print(f"[shortcut] api base: {API_BASE}/{{member}}")
     print()
 
-    # show install URLs
+    # show install URLs (properly URL-encoded)
     base_url = "https://pocket-prompts-five.vercel.app/shortcuts"
     for member_name in members:
         shortcut_url = f"{base_url}/pocket-prompts-{member_name}.shortcut"
-        install_url = f"shortcuts://import-shortcut?url={shortcut_url}&name=pocket.prompts"
+        encoded_url = urllib.parse.quote(shortcut_url, safe='')
+        install_url = f"shortcuts://import-shortcut?url={encoded_url}&name=pocket.prompts"
         print(f"  {member_name}: {install_url}")
 
 

@@ -6,12 +6,15 @@ const members = require('../../config/members.json');
 /**
  * Per-member voice endpoint — /api/voice/:member
  *
- * iOS Shortcuts can't reliably send JSON bodies after code-signing strips
- * complex parameters. This endpoint extracts the member from the URL path
- * and accepts raw text as the POST body (via Shortcuts' "File" body type,
- * which sends the pipeline content as-is).
+ * iOS Shortcuts can't use Get Dictionary Value on HTTP responses after
+ * code-signing (the action hangs). Instead, this endpoint returns PLAIN TEXT
+ * containing just the spoken_response — the shortcut pipes it straight to
+ * Speak Text with no dictionary extraction needed.
  *
- * Falls back to JSON body parsing for compatibility with other clients.
+ * Accepts raw text POST body (pipeline content via "File" body type) or
+ * JSON body for compatibility with other clients.
+ *
+ * JSON clients can add ?format=json to get the full response object.
  */
 
 export const config = {
@@ -58,5 +61,37 @@ export default async function member_handler(req, res) {
   req.method = 'POST';
   req.body = { text, user_id: member };
 
-  return handler(req, res);
+  // capture the response from voice.js instead of sending it directly
+  const want_json = req.query.format === 'json';
+
+  if (want_json) {
+    // pass through the full JSON response for non-shortcut clients
+    return handler(req, res);
+  }
+
+  // intercept the response — capture what voice.js sends
+  const mock_res = {
+    _status: 200,
+    _json: null,
+    _ended: false,
+    status(code) { this._status = code; return this; },
+    setHeader() { return this; },
+    json(data) {
+      this._json = data;
+      this._ended = true;
+    },
+    end() { this._ended = true; },
+    getHeader() { return null; },
+  };
+
+  await handler(req, mock_res);
+
+  // extract just the spoken_response and return as plain text
+  const spoken = mock_res._json?.spoken_response || 'something went wrong. try again.';
+
+  console.log(`[voice/${member}] responding plain text: "${spoken.substring(0, 80)}"`);
+
+  res.status(mock_res._status);
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  return res.end(spoken);
 }
