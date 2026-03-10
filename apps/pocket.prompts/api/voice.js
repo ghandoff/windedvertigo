@@ -73,6 +73,19 @@ export default async function handler(req, res) {
 
   console.log(`[voice] received from ${user_id || 'unknown'}: "${text}"`);
 
+  // step 0: check for exit words (handled server-side since iOS Shortcuts
+  // can't reliably use If/Contains actions after signing)
+  const exit_words = ['stop', 'never mind', 'nevermind', "that's all", 'thats all', 'goodbye', 'bye'];
+  const normalized = text.toLowerCase().trim();
+  if (exit_words.some(w => normalized === w || normalized === `${w}.`)) {
+    console.log(`[voice] exit word detected: "${text}"`);
+    return respond(res, 200, {
+      spoken_response: tts.goodbye(),
+      action_taken: 'exit',
+      exit: true
+    }, ctx);
+  }
+
   // step 1: detect intent
   const intent = await detect_intent(text);
   ctx.intent_result = intent;

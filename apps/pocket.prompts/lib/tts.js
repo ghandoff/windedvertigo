@@ -47,6 +47,10 @@ export function clarifying(question) {
   return question || "i'm not sure what you meant — could you say that again, or try a different way?";
 }
 
+export function goodbye() {
+  return "okay, we're done — talk to you later!";
+}
+
 export function error_fallback() {
   return "something went wrong — want me to try again, or do something else?";
 }
