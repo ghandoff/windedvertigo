@@ -51,7 +51,8 @@ export default async function handler(req, res) {
 
     const entries = response.results.map(page => ({
       id: page.id,
-      timestamp: page.created_time,
+      timestamp: page.properties.timestamp?.date?.start || page.created_time,
+      created_time: page.created_time,
       utterance: page.properties.utterance?.title?.[0]?.plain_text || null,
       intent: page.properties.intent?.select?.name || null,
       confidence: page.properties.confidence?.number ?? null,
@@ -63,6 +64,7 @@ export default async function handler(req, res) {
       user_id: page.properties.user_id?.rich_text?.[0]?.plain_text || null,
       error: page.properties.error?.rich_text?.[0]?.plain_text || null,
       duration_ms: page.properties.duration_ms?.number ?? null,
+      platform: page.properties.platform?.select?.name || null,
     }));
 
     return res.status(200).json({

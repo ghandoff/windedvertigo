@@ -15,7 +15,9 @@ export async function log_voice_interaction({
   user_id,
   error,
   duration_ms,
-  request_id
+  request_id,
+  timestamp,
+  platform
 }) {
   if (!log_db_id) {
     console.log('[voice-log] NOTION_VOICE_LOG_DB_ID not set, skipping');
@@ -71,6 +73,12 @@ export async function log_voice_interaction({
     }
     if (duration_ms != null) {
       properties.duration_ms = { number: duration_ms };
+    }
+    if (timestamp) {
+      properties.timestamp = { date: { start: timestamp } };
+    }
+    if (platform) {
+      properties.platform = { select: { name: platform } };
     }
 
     await notion.pages.create({

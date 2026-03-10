@@ -24,7 +24,9 @@ function respond(res, status, body, ctx) {
     user_id: ctx.user_id,
     error: body.error,
     duration_ms,
-    request_id: ctx.request_id
+    request_id: ctx.request_id,
+    timestamp: new Date().toISOString(),
+    platform: ctx.platform
   }).catch(() => {}); // swallow logging errors
 
   return res.status(status).json(body);
@@ -53,7 +55,14 @@ export default async function handler(req, res) {
     get_token(user_id, 'notion'),
     get_token(user_id, 'slack')
   ]);
-  const ctx = { utterance: text, user_id, start_time, intent_result: null, request_id, notion_token, slack_token };
+  // detect platform from user-agent (ios shortcut vs android pwa vs web)
+  const ua = (req.headers['user-agent'] || '').toLowerCase();
+  const platform = ua.includes('darwin') || ua.includes('cfnetwork') ? 'ios_shortcut'
+    : ua.includes('android') ? 'android_pwa'
+    : ua.includes('mozilla') || ua.includes('chrome') ? 'web'
+    : 'unknown';
+
+  const ctx = { utterance: text, user_id, start_time, intent_result: null, request_id, notion_token, slack_token, platform };
 
   if (!text) {
     return respond(res, 400, {
