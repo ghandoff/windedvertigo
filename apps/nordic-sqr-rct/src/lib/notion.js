@@ -10,7 +10,7 @@ const _notion = new Client({
  * Retries on 429 (rate limit) and 5xx (server errors)
  * Notion rate limit: 3 requests/sec per integration token
  */
-async function withRetry(fn, maxRetries = 3) {
+export async function withRetry(fn, maxRetries = 3) {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
