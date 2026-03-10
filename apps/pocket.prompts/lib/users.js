@@ -9,7 +9,10 @@ const name_aliases = {
   lamis: 'lamis',
   maria: 'maria',
   payton: 'payton',
-  pay: 'payton'
+  pay: 'payton',
+  august: 'august',
+  aug: 'august',
+  ak: 'august'
 };
 
 export function resolve_member(name) {

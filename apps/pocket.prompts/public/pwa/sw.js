@@ -1,8 +1,10 @@
-const CACHE_NAME = 'pocket-prompts-v1';
+const CACHE_NAME = 'pocket-prompts-v2';
 const PRECACHE = [
   '/pwa/',
   '/pwa/index.html',
-  '/pwa/manifest.json'
+  '/pwa/manifest.json',
+  '/pwa/icon-192.png',
+  '/pwa/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {

@@ -6,22 +6,27 @@
   },
   "jamie": {
     "notion_user_id": "215d872b-594c-814a-b6da-0002393cd347",
-    "slack_user_id": null,
+    "slack_user_id": "U08HDLVDTJ5",
     "email": "jamie@windedvertigo.com"
   },
   "lamis": {
     "notion_user_id": "215d872b-594c-81c4-ba2e-0002fe89c370",
-    "slack_user_id": null,
+    "slack_user_id": "U08H6CRB29J",
     "email": "lamis@windedvertigo.com"
   },
   "maria": {
     "notion_user_id": "219d872b-594c-8172-93c7-00025ed1751f",
-    "slack_user_id": null,
+    "slack_user_id": "U08ANKF3E3U",
     "email": "maria@windedvertigo.com"
   },
   "payton": {
     "notion_user_id": "219d872b-594c-81a0-b0e8-0002503fdf93",
-    "slack_user_id": null,
+    "slack_user_id": "U08CAS3PFHQ",
     "email": "payton@windedvertigo.com"
+  },
+  "august": {
+    "notion_user_id": "60a269a9-a623-4656-906b-ff7f1922b1de",
+    "slack_user_id": "U08MEKDCXK4",
+    "email": "clients@augustkinloch.com"
   }
 }

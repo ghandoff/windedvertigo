@@ -356,7 +356,7 @@
 
     // prompt to set user id on first visit
     if (!localStorage.getItem('pocket_user_id')) {
-      const name = prompt('what\'s your name? (garrett, jamie, lamis, maria, payton)');
+      const name = prompt('what\'s your name? (garrett, jamie, lamis, maria, payton, august)');
       if (name) {
         localStorage.setItem('pocket_user_id', name.toLowerCase().trim());
         location.reload();

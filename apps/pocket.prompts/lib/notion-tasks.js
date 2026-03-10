@@ -2,8 +2,8 @@ import { Client } from '@notionhq/client';
 
 const tasks_db_id = process.env.NOTION_TASKS_DB_ID;
 
-function get_client() {
-  return new Client({ auth: process.env.NOTION_API_KEY });
+function get_client(token) {
+  return new Client({ auth: token || process.env.NOTION_API_KEY });
 }
 
 /**
@@ -115,14 +115,14 @@ function infer_task_type(content) {
  * @param {string} [opts.task_type] — plan | design | research | implement | etc.
  * @returns {{ success: boolean, page_id?: string, url?: string, error?: string }}
  */
-export async function create_task({ content, priority, assignee_notion_id, due_date, task_type }) {
+export async function create_task({ content, priority, assignee_notion_id, due_date, task_type, token }) {
   if (!tasks_db_id) {
     console.error('[notion-tasks] NOTION_TASKS_DB_ID not set');
     return { success: false, error: 'NOTION_TASKS_DB_ID not configured' };
   }
 
   try {
-    const notion = get_client();
+    const notion = get_client(token);
 
     const properties = {
       task: {

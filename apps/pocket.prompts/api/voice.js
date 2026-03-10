@@ -4,6 +4,7 @@ import { create_task } from '../lib/notion-tasks.js';
 import { resolve_member, get_slack_user_id } from '../lib/users.js';
 import { get_recent_messages, send_message, find_dm_channel } from '../lib/slack.js';
 import { log_voice_interaction } from '../lib/voice-log.js';
+import { get_token } from '../lib/kv.js';
 import * as tts from '../lib/tts.js';
 
 /**
@@ -46,7 +47,13 @@ export default async function handler(req, res) {
   const vercel_id = req.headers['x-vercel-id'] || 'no-vercel-id';
   const invocation_id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   const request_id = `v:${vercel_id} i:${invocation_id}`;
-  const ctx = { utterance: text, user_id, start_time, intent_result: null, request_id };
+
+  // resolve per-user tokens (falls back to shared tokens if not connected)
+  const [notion_token, slack_token] = await Promise.all([
+    get_token(user_id, 'notion'),
+    get_token(user_id, 'slack')
+  ]);
+  const ctx = { utterance: text, user_id, start_time, intent_result: null, request_id, notion_token, slack_token };
 
   if (!text) {
     return respond(res, 400, {
@@ -96,7 +103,7 @@ export default async function handler(req, res) {
         return handle_code_conversation(intent, ctx, res);
 
       case 'build_approval':
-        return handle_build_stub(intent, ctx, res);
+        return await handle_build_approval(intent, ctx, res);
 
       default:
         return respond(res, 200, {
@@ -121,7 +128,8 @@ async function handle_note(intent, ctx, res) {
   const result = await create_capture({
     type: 'note',
     content: intent.content,
-    priority: intent.priority || 'medium'
+    priority: intent.priority || 'medium',
+    token: ctx.notion_token
   });
 
   if (!result.success) {
@@ -143,7 +151,8 @@ async function handle_idea(intent, ctx, res) {
   const result = await create_capture({
     type: 'idea',
     content: intent.content,
-    priority: intent.priority || 'medium'
+    priority: intent.priority || 'medium',
+    token: ctx.notion_token
   });
 
   if (!result.success) {
@@ -170,7 +179,8 @@ async function handle_task(intent, ctx, res) {
     priority: intent.priority || 'medium',
     assignee_notion_id: assignee?.notion_user_id,
     due_date: intent.due_date,
-    task_type: intent.task_type
+    task_type: intent.task_type,
+    token: ctx.notion_token
   });
 
   if (!result.success) {
@@ -192,8 +202,7 @@ async function handle_task(intent, ctx, res) {
 
 async function handle_slack_check(intent, ctx, res) {
   try {
-    // phase 1: use bot token. phase 4: use per-user oauth token from kv.
-    const token = process.env.SLACK_BOT_TOKEN;
+    const token = ctx.slack_token || process.env.SLACK_BOT_TOKEN;
     const slack_user_id = get_slack_user_id(ctx.user_id);
 
     const { messages, summary } = await get_recent_messages({
@@ -229,7 +238,7 @@ async function handle_slack_check(intent, ctx, res) {
 
 async function handle_slack_message(intent, ctx, res) {
   try {
-    const token = process.env.SLACK_BOT_TOKEN;
+    const token = ctx.slack_token || process.env.SLACK_BOT_TOKEN;
     const recipient = resolve_member(intent.slack_recipient);
 
     if (!recipient?.slack_user_id) {
@@ -282,7 +291,7 @@ async function handle_slack_message(intent, ctx, res) {
 
 async function handle_slack_reply(intent, ctx, res) {
   try {
-    const token = process.env.SLACK_BOT_TOKEN;
+    const token = ctx.slack_token || process.env.SLACK_BOT_TOKEN;
     const reply_to = resolve_member(intent.reply_to);
 
     if (!reply_to?.slack_user_id) {
@@ -346,11 +355,41 @@ function handle_code_conversation(intent, ctx, res) {
   }, ctx);
 }
 
-function handle_build_stub(intent, ctx, res) {
-  console.log(`[voice] build approval stub`);
-  return respond(res, 200, {
-    spoken_response: "build approvals aren't wired up yet — that's phase 3. anything else?",
-    action_taken: 'stub_build',
-    intent_result: intent
-  }, ctx);
+async function handle_build_approval(intent, ctx, res) {
+  const webhook_url = process.env.BUILD_WEBHOOK_URL;
+
+  if (!webhook_url) {
+    console.log(`[voice] build approval — no BUILD_WEBHOOK_URL configured`);
+    return respond(res, 200, {
+      spoken_response: "build approvals aren't configured yet — the deploy hook needs to be set up in vercel. anything else?",
+      action_taken: 'build_not_configured',
+      intent_result: intent
+    }, ctx);
+  }
+
+  try {
+    console.log(`[voice] firing build webhook`);
+    const result = await fetch(webhook_url, { method: 'POST' });
+
+    if (!result.ok) {
+      console.error(`[voice] build webhook failed: ${result.status}`);
+      return respond(res, 200, {
+        spoken_response: "the build webhook returned an error — want me to try again?",
+        action_taken: 'build_failed',
+        error: `webhook returned ${result.status}`
+      }, ctx);
+    }
+
+    return respond(res, 200, {
+      spoken_response: tts.build_approval_sent(),
+      action_taken: 'build_approval'
+    }, ctx);
+  } catch (err) {
+    console.error(`[voice] build webhook error: ${err.message}`);
+    return respond(res, 500, {
+      spoken_response: tts.error_fallback(),
+      action_taken: 'error',
+      error: err.message
+    }, ctx);
+  }
 }

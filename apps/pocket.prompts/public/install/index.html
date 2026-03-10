@@ -192,6 +192,65 @@
       text-decoration: none;
     }
 
+    .setup-guide {
+      margin-top: 2.5rem;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .setup-guide h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+
+    .guide-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .guide-card h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #5b8def;
+      margin-bottom: 0.75rem;
+    }
+
+    .guide-steps {
+      list-style: none;
+      counter-reset: guide;
+      padding: 0;
+    }
+
+    .guide-steps li {
+      counter-increment: guide;
+      font-size: 0.85rem;
+      color: #bbb;
+      line-height: 1.6;
+      padding-left: 1.5rem;
+      position: relative;
+      margin-bottom: 0.4rem;
+    }
+
+    .guide-steps li::before {
+      content: counter(guide);
+      position: absolute;
+      left: 0;
+      color: #555;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .guide-steps li strong {
+      color: #eee;
+    }
+
     /* non-ios warning */
     .not-ios {
       display: none;
@@ -263,12 +322,47 @@
     </div>
   </div>
 
+  <div class="setup-guide" id="setupGuide">
+    <h3>setup guides</h3>
+
+    <div class="guide-card">
+      <h4>ios back tap</h4>
+      <ol class="guide-steps">
+        <li>open <strong>settings → accessibility → touch → back tap</strong></li>
+        <li>choose <strong>double tap</strong> or <strong>triple tap</strong></li>
+        <li>scroll down to <strong>shortcuts</strong> and select <strong>pocket.prompts</strong></li>
+        <li>done — tap the back of your phone to start talking</li>
+      </ol>
+    </div>
+
+    <div class="guide-card">
+      <h4>ios action button (iphone 15 pro+)</h4>
+      <ol class="guide-steps">
+        <li>open <strong>settings → action button</strong></li>
+        <li>swipe to <strong>shortcut</strong></li>
+        <li>tap <strong>choose a shortcut</strong> and pick <strong>pocket.prompts</strong></li>
+        <li>press and hold the action button to start talking</li>
+      </ol>
+    </div>
+
+    <div class="guide-card">
+      <h4>android (pwa)</h4>
+      <ol class="guide-steps">
+        <li>visit <strong>pocket-prompts-five.vercel.app</strong> in chrome</li>
+        <li>tap the <strong>menu (⋮) → install app</strong> or <strong>add to home screen</strong></li>
+        <li>open the app from your home screen — it runs fullscreen</li>
+        <li><strong>pixel phones:</strong> go to <strong>settings → system → gestures → quick tap</strong> and assign the app</li>
+        <li><strong>samsung:</strong> use <strong>good lock → routines</strong> or <strong>bixby routines</strong> to map a gesture</li>
+      </ol>
+    </div>
+  </div>
+
   <div class="footer">
     built by <a href="https://windedvertigo.com">winded.vertigo</a>
   </div>
 
   <script>
-    // detect non-ios devices
+    // detect non-ios devices and show android instructions
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     if (!isIOS) {
       document.getElementById('notIos').style.display = 'block';

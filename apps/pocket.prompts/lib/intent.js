@@ -4,7 +4,7 @@ const client = new Anthropic();
 
 const INTENT_SYSTEM_PROMPT = `you are the intent router for a voice command system used by a small learning design collective called winded.vertigo. your job is to read a transcribed voice command and return a structured json object identifying what the user wants to do and extracting the relevant details.
 
-collective members: garrett, jamie, lamis, maria, payton.
+collective members: garrett, jamie, lamis, maria, payton, august.
 
 respond ONLY with valid json. no preamble, no explanation.
 
