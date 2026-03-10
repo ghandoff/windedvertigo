@@ -27,9 +27,16 @@ export async function log_voice_interaction({
   try {
     const notion = new Client({ auth: process.env.NOTION_API_KEY });
 
+    // privacy: sanitize title to hide raw utterance from shared database.
+    // personal content lives in the notion entries themselves (notes, tasks, etc.)
+    const sanitized_title = [
+      intent_result?.intent || 'unknown',
+      user_id || 'anonymous'
+    ].join(' — ');
+
     const properties = {
       utterance: {
-        title: [{ text: { content: (utterance || '(empty)').substring(0, 2000) } }]
+        title: [{ text: { content: sanitized_title } }]
       }
     };
 
@@ -43,18 +50,11 @@ export async function log_voice_interaction({
     if (action_taken) {
       properties.action_taken = { select: { name: action_taken } };
     }
-    if (intent_result?.content) {
-      properties.content = {
-        rich_text: [{ text: { content: intent_result.content.substring(0, 2000) } }]
-      };
-    }
+    // NOTE: content and spoken_response intentionally omitted from shared log
+    // for privacy. the actual content is accessible via the created notion
+    // entries (entry_url) or slack messages.
     if (intent_result?.priority) {
       properties.priority = { select: { name: intent_result.priority } };
-    }
-    if (spoken_response) {
-      properties.spoken_response = {
-        rich_text: [{ text: { content: spoken_response.substring(0, 2000) } }]
-      };
     }
     if (entry_url) {
       properties.entry_url = { url: entry_url };

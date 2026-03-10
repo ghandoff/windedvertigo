@@ -49,6 +49,8 @@ export default async function handler(req, res) {
 
     const response = await notion.databases.query(query_params);
 
+    // content and spoken_response omitted from shared log for privacy.
+    // personal content is accessible via entry_url (the notion entry itself).
     const entries = response.results.map(page => ({
       id: page.id,
       timestamp: page.properties.timestamp?.date?.start || page.created_time,
@@ -57,9 +59,7 @@ export default async function handler(req, res) {
       intent: page.properties.intent?.select?.name || null,
       confidence: page.properties.confidence?.number ?? null,
       action_taken: page.properties.action_taken?.select?.name || null,
-      content: page.properties.content?.rich_text?.[0]?.plain_text || null,
       priority: page.properties.priority?.select?.name || null,
-      spoken_response: page.properties.spoken_response?.rich_text?.[0]?.plain_text || null,
       entry_url: page.properties.entry_url?.url || null,
       user_id: page.properties.user_id?.rich_text?.[0]?.plain_text || null,
       error: page.properties.error?.rich_text?.[0]?.plain_text || null,
