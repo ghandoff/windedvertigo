@@ -49,7 +49,7 @@ export async function resolveVaultTier(
     SELECT id, slug FROM packs_cache
     WHERE slug IN (${VAULT_PACK_SLUGS.explorer}, ${VAULT_PACK_SLUGS.practitioner})
   `;
-  const packMap = new Map(packs.rows.map((r: any) => [r.slug as string, r.id as string]));
+  const packMap = new Map<string, string>(packs.rows.map((r: any) => [r.slug, r.id]));
 
   // Check practitioner first (supersedes explorer)
   const practitionerPackId = packMap.get(VAULT_PACK_SLUGS.practitioner);
