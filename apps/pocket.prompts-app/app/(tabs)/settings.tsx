@@ -6,11 +6,48 @@ import { get_member_id, set_member_id } from '@/src/lib/storage';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
+// --- voice commands reference ---
+
+const command_groups = [
+  {
+    title: 'capture',
+    commands: [
+      { intent: 'note', emoji: '📝', examples: ['"note that the API uses v3 endpoints"', '"remember to check the deploy logs"'] },
+      { intent: 'idea', emoji: '💡', examples: ['"i have an idea for a voice-controlled deploy flow"', '"idea: what if we add a daily standup summary"'] },
+      { intent: 'task', emoji: '✅', examples: ['"assign a task to lamis: review the PR"', '"create a high priority task: fix the auth bug"'] },
+    ],
+  },
+  {
+    title: 'slack',
+    commands: [
+      { intent: 'check messages', emoji: '💬', examples: ['"check slack"', '"any new messages?"'] },
+      { intent: 'send message', emoji: '📨', examples: ['"message garrett: the deploy is ready"', '"tell lamis the branch is merged"'] },
+      { intent: 'reply', emoji: '↩️', examples: ['"reply to garrett: sounds good, let\'s ship it"'] },
+    ],
+  },
+  {
+    title: 'code & deploy',
+    commands: [
+      { intent: 'code request', emoji: '💻', examples: ['"tell claude to add error handling to the voice endpoint"', '"code request: refactor the intent router"'] },
+      { intent: 'deploy', emoji: '🔨', examples: ['"approve the build"', '"deploy to production"'] },
+    ],
+  },
+  {
+    title: 'control',
+    commands: [
+      { intent: 'exit', emoji: '👋', examples: ['"stop"', '"goodbye"', '"that\'s all"'] },
+    ],
+  },
+];
+
+// --- component ---
+
 export default function SettingsScreen() {
   const scheme = useColorScheme() ?? 'dark';
   const colors = Colors[scheme];
 
   const [selected, set_selected] = useState<string | null>(null);
+  const [show_commands, set_show_commands] = useState(false);
 
   useEffect(() => {
     get_member_id().then(set_selected);
@@ -26,7 +63,8 @@ export default function SettingsScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
     >
-      <Text style={[styles.section_title, { color: colors.textSecondary }]}>
+      {/* member selection */}
+      <Text style={[styles.section_label, { color: colors.textSecondary }]}>
         member
       </Text>
       <Text style={[styles.section_desc, { color: colors.textSecondary }]}>
@@ -68,6 +106,65 @@ export default function SettingsScreen() {
         })}
       </View>
 
+      {/* voice commands cheat sheet */}
+      <View style={styles.commands_section}>
+        <Pressable
+          style={styles.commands_header}
+          onPress={() => set_show_commands(!show_commands)}
+        >
+          <View>
+            <Text style={[styles.section_label, { color: colors.textSecondary }]}>
+              voice commands
+            </Text>
+            <Text style={[styles.section_desc, { color: colors.textSecondary, marginBottom: 0 }]}>
+              things you can say to pocket.prompts
+            </Text>
+          </View>
+          <SymbolView
+            name={{
+              ios: show_commands ? 'chevron.up' : 'chevron.down',
+              android: show_commands ? 'expand_less' : 'expand_more',
+              web: show_commands ? 'expand_less' : 'expand_more',
+            }}
+            tintColor={colors.textSecondary}
+            size={18}
+          />
+        </Pressable>
+
+        {show_commands && (
+          <View style={styles.commands_body}>
+            {command_groups.map((group) => (
+              <View key={group.title} style={styles.cmd_group}>
+                <Text style={[styles.cmd_group_title, { color: colors.accent }]}>
+                  {group.title}
+                </Text>
+                {group.commands.map((cmd) => (
+                  <View
+                    key={cmd.intent}
+                    style={[styles.cmd_item, { borderColor: colors.surfaceBorder }]}
+                  >
+                    <View style={styles.cmd_label_row}>
+                      <Text style={styles.cmd_emoji}>{cmd.emoji}</Text>
+                      <Text style={[styles.cmd_intent, { color: colors.text }]}>
+                        {cmd.intent}
+                      </Text>
+                    </View>
+                    {cmd.examples.map((ex, i) => (
+                      <Text
+                        key={i}
+                        style={[styles.cmd_example, { color: colors.textSecondary }]}
+                      >
+                        {ex}
+                      </Text>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+
       <View style={styles.footer}>
         <Text style={[styles.footer_text, { color: colors.textSecondary }]}>
           pocket.prompts v1.0.0
@@ -82,8 +179,10 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20 },
-  section_title: {
+  content: { padding: 20, paddingBottom: 40 },
+
+  // shared section labels
+  section_label: {
     fontSize: 13,
     fontWeight: '600',
     textTransform: 'uppercase',
@@ -94,6 +193,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 16,
   },
+
+  // member list
   member_list: {
     gap: 8,
   },
@@ -116,6 +217,56 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
   },
+
+  // commands section
+  commands_section: {
+    marginTop: 32,
+  },
+  commands_header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  commands_body: {
+    marginTop: 12,
+    gap: 20,
+  },
+  cmd_group: {
+    gap: 6,
+  },
+  cmd_group_title: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  cmd_item: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: 10,
+    marginBottom: 4,
+  },
+  cmd_label_row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  cmd_emoji: {
+    fontSize: 14,
+  },
+  cmd_intent: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  cmd_example: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 20,
+    paddingLeft: 22,
+  },
+
+  // footer
   footer: {
     marginTop: 40,
     alignItems: 'center',

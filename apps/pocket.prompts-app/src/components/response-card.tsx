@@ -21,7 +21,7 @@ const action_labels: Record<string, { label: string; emoji: string; color_key: '
   slack_check: { label: 'slack checked', emoji: '\u{1F4AC}', color_key: 'accent' },
   slack_message: { label: 'message sent', emoji: '\u{1F4E8}', color_key: 'success' },
   slack_reply: { label: 'reply sent', emoji: '\u21A9\uFE0F', color_key: 'success' },
-  code_conversation: { label: 'code queued', emoji: '\u{1F4BB}', color_key: 'accent' },
+  code_conversation: { label: 'code started', emoji: '\u{1F4BB}', color_key: 'accent' },
   build_approval: { label: 'build approved', emoji: '\u{1F528}', color_key: 'success' },
   clarification_needed: { label: 'clarification', emoji: '\u2753', color_key: 'accent' },
   exit: { label: 'goodbye', emoji: '\u{1F44B}', color_key: 'accent' },
