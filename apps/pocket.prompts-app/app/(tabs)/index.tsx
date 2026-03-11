@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useSpeech } from '@/src/hooks/use-speech';
 import { useTts } from '@/src/hooks/use-tts';
@@ -30,14 +30,6 @@ export default function VoiceScreen() {
     get_member_id().then(set_member_id);
   }, []);
 
-  // when speech recognition stops, send the transcript to the API
-  useEffect(() => {
-    if (phase === 'listening' && !speech.is_listening && speech.transcript) {
-      // mic stopped — send to API
-      handle_send(speech.transcript);
-    }
-  }, [speech.is_listening, phase]);
-
   const handle_send = useCallback(async (text: string) => {
     if (!text.trim()) {
       set_phase('idle');
@@ -61,6 +53,20 @@ export default function VoiceScreen() {
       set_phase('idle');
     }
   }, [member_id, tts]);
+
+  // keep a ref to handle_send so the effect below always calls the latest
+  // version without needing handle_send in its dependency array (which would
+  // re-subscribe every time member_id changes).
+  const send_ref = useRef(handle_send);
+  send_ref.current = handle_send;
+
+  // when speech recognition stops, send the transcript to the API
+  useEffect(() => {
+    if (phase === 'listening' && !speech.is_listening && speech.transcript) {
+      // mic stopped — send to API
+      send_ref.current(speech.transcript);
+    }
+  }, [speech.is_listening, phase]);
 
   // transition from speaking back to idle when TTS finishes
   useEffect(() => {

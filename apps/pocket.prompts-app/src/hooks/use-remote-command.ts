@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import RemoteCommandModule from '../../modules/remote-command';
+import RemoteCommandModule from '@/modules/remote-command';
 
 export type RemoteCommand =
   | 'togglePlayPause'   // single AirPod tap

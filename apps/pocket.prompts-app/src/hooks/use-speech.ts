@@ -23,12 +23,17 @@ export function useSpeech(): UseSpeechResult {
   // check availability on mount
   useEffect(() => {
     async function check() {
-      const status = await ExpoSpeechRecognitionModule.getPermissionsAsync();
-      if (status.granted) {
-        set_is_available(true);
-      } else {
-        const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-        set_is_available(result.granted);
+      try {
+        const status = await ExpoSpeechRecognitionModule.getPermissionsAsync();
+        if (status.granted) {
+          set_is_available(true);
+        } else {
+          const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+          set_is_available(result.granted);
+        }
+      } catch (err) {
+        console.warn('[speech] permission check failed:', err);
+        set_is_available(false);
       }
     }
     check();

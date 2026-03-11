@@ -2,11 +2,15 @@ import { Platform } from 'react-native';
 
 // remote-command is iOS-only. on android/web, every call is a safe no-op.
 
+type RemoteCommandEvent = {
+  command: 'togglePlayPause' | 'play' | 'pause' | 'nextTrack' | 'previousTrack';
+};
+
 type RemoteCommandModule = {
   enable(): void;
   disable(): void;
   isEnabled(): boolean;
-  addListener(event: string, handler: (data: any) => void): { remove(): void };
+  addListener(event: string, handler: (data: RemoteCommandEvent) => void): { remove(): void };
 };
 
 const stub: RemoteCommandModule = {
