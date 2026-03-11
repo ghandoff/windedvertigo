@@ -263,6 +263,8 @@ async function handle_slack_message(intent, ctx, res) {
     const token = ctx.slack_token || process.env.SLACK_BOT_TOKEN;
     const recipient = resolve_member(intent.slack_recipient);
 
+    console.log(`[voice] slack_message — recipient: "${intent.slack_recipient}", resolved: ${recipient?.name || 'NONE'}, slack_id: ${recipient?.slack_user_id || 'NONE'}, token: ${token ? 'present' : 'MISSING'}`);
+
     if (!recipient?.slack_user_id) {
       return respond(res, 200, {
         spoken_response: `i don't have a slack id for ${intent.slack_recipient || 'that person'} yet. want me to note this instead?`,

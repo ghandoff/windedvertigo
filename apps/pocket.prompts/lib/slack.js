@@ -78,6 +78,9 @@ export async function get_recent_messages({ token, user_id, limit = 10 }) {
 export async function send_message({ token, channel_id, text, thread_ts }) {
   try {
     const slack = get_client(token);
+    const token_source = token ? 'per-user' : 'bot';
+
+    console.log(`[slack] posting to ${channel_id} (token: ${token_source}, text: ${text?.length || 0} chars)`);
 
     const result = await slack.chat.postMessage({
       channel: channel_id,
@@ -85,11 +88,12 @@ export async function send_message({ token, channel_id, text, thread_ts }) {
       thread_ts: thread_ts || undefined
     });
 
-    console.log(`[slack] message sent to ${channel_id}`);
+    console.log(`[slack] sent ok — channel: ${channel_id}, ts: ${result.ts}`);
     return { success: true, ts: result.ts, channel: channel_id };
   } catch (err) {
-    console.error(`[slack] send failed: ${err.message}`);
-    return { success: false, error: err.message };
+    const api_error = err.data?.error || err.code || 'unknown';
+    console.error(`[slack] send failed: ${err.message} (api: ${api_error})`);
+    return { success: false, error: `${err.message} (${api_error})` };
   }
 }
 
@@ -97,10 +101,14 @@ export async function send_message({ token, channel_id, text, thread_ts }) {
 export async function find_dm_channel({ token, user_id }) {
   try {
     const slack = get_client(token);
+    console.log(`[slack] opening DM with user ${user_id}`);
     const result = await slack.conversations.open({ users: user_id });
-    return result.channel?.id || null;
+    const channel_id = result.channel?.id || null;
+    console.log(`[slack] DM channel: ${channel_id || 'FAILED — no channel returned'}`);
+    return channel_id;
   } catch (err) {
-    console.error(`[slack] find_dm failed: ${err.message}`);
+    const api_error = err.data?.error || err.code || 'unknown';
+    console.error(`[slack] find_dm failed for ${user_id}: ${err.message} (api: ${api_error})`);
     return null;
   }
 }
