@@ -89,6 +89,7 @@ export default async function VaultActivityPage({ params }: Props) {
 
   // PRME activities get elevated columns — use the effective tier for guards
   const effectiveTier: string = activity._effectiveTier ?? accessTier;
+  delete activity._effectiveTier;
 
   // Dev guard — use effective tier so PRME elevation doesn't trip the assertion
   assertNoLeakedFields(
