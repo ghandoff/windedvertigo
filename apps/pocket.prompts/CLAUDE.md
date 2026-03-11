@@ -5,7 +5,7 @@
 
 ## What This Is
 
-Hands-free voice command pipeline for the winded.vertigo collective. User speaks via AirPods → iOS Shortcut transcribes → POST /voice → Claude Opus detects intent → routes to Notion/Slack/code → speaks response back.
+Hands-free voice command pipeline for the winded.vertigo collective. User speaks via AirPods → Expo app captures + transcribes on-device → POST /voice → Claude Opus detects intent → routes to Notion/Slack/code → speaks response back via TTS. Native client at `../pocket.prompts-app/`.
 
 ## Stack
 
@@ -22,8 +22,7 @@ api/          → Vercel serverless functions (each file = an endpoint)
 lib/          → Shared utilities (intent, notion, slack, tts, users, voice-log)
 config/       → members.json (collective member IDs)
 mcp/          → MCP server for Claude Code integration
-public/       → Static assets (PWA, install page, shortcut files)
-shortcuts/    → iOS Shortcut generation scripts
+public/       → Static assets (PWA, install page)
 files/        → Reference docs (CLAUDE.md spec, SYSTEM_PROMPT.md)
 ```
 
@@ -62,4 +61,4 @@ cd apps/pocket.prompts && npx vercel dev
 
 ## Current Phase
 
-Phase 4 (Polish + Distribution) — code complete, pending Vercel env config (KV store, OAuth credentials, SETUP_SECRET). See `memory/pocket-prompts.md` for detailed status.
+Phase 5 (Native App) — Expo app scaffolded at `../pocket.prompts-app/`, backend cleanup in progress. iOS Shortcuts abandoned (signing breaks variable refs). See `memory/pocket-prompts.md` for detailed status.
