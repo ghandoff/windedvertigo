@@ -138,30 +138,55 @@ export async function getVaultActivities(tier: VaultAccessTier) {
  * Get a single vault activity by slug.
  * Enforces row-level access: free users can only view PRME activities.
  * Returns null if the activity exists but the user's tier doesn't unlock it.
+ *
+ * PRME elevation: PRME activities are contractually free, so teaser-tier
+ * viewers get entitled-level columns (body_html, materials, etc.) for PRME
+ * activities. The returned `_effectiveTier` field tells the caller which
+ * column set was actually used.
  */
 export async function getVaultActivityBySlug(
   slug: string,
   tier: VaultAccessTier,
 ) {
-  const cols = columnsForTier(tier);
   const allowed = visibleContentTiers(tier);
 
   if (!allowed) {
-    // practitioner / internal → no row filter
+    // practitioner / internal → no row filter, full columns
+    const cols = columnsForTier(tier);
     const result = await sql.query(
       `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
       [slug],
     );
-    return result.rows[0] ?? null;
+    const row = result.rows[0] ?? null;
+    if (row) row._effectiveTier = tier;
+    return row;
   }
 
+  // PRME activities are free — elevate teaser viewers to entitled columns
+  if (tier === "teaser") {
+    const contentTier = await getActivityContentTier(slug);
+    if (contentTier === "prme") {
+      const cols = columnsForTier("entitled");
+      const result = await sql.query(
+        `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1 AND tier = 'prme'`,
+        [slug],
+      );
+      const row = result.rows[0] ?? null;
+      if (row) row._effectiveTier = "entitled";
+      return row;
+    }
+  }
+
+  const cols = columnsForTier(tier);
   const placeholders = allowed.map((_, i) => `$${i + 2}`).join(", ");
   const result = await sql.query(
     `SELECT ${cols} FROM vault_activities_cache
      WHERE slug = $1 AND tier IN (${placeholders})`,
     [slug, ...allowed],
   );
-  return result.rows[0] ?? null;
+  const row = result.rows[0] ?? null;
+  if (row) row._effectiveTier = tier;
+  return row;
 }
 
 /**

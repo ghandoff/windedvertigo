@@ -34,5 +34,8 @@ export async function GET(
 
   const related = await getRelatedActivities(activity.id);
 
-  return NextResponse.json({ activity, related, tier });
+  const effectiveTier = activity._effectiveTier ?? tier;
+  delete activity._effectiveTier;
+
+  return NextResponse.json({ activity, related, tier: effectiveTier });
 }

@@ -117,17 +117,41 @@ export async function getVaultActivitiesByTier(
 /**
  * Get a single vault activity by slug.
  * Caller determines the access tier via resolveVaultTier().
+ *
+ * PRME elevation: PRME activities are contractually free, so teaser-tier
+ * viewers get entitled-level columns (body_html, materials, etc.).
+ * The returned `_effectiveTier` tells the caller which column set was used.
  */
 export async function getVaultActivityBySlug(
   slug: string,
   tier: VaultAccessTier,
 ) {
+  // For teaser tier, check if this is a PRME activity and elevate columns
+  if (tier === "teaser") {
+    const check = await sql.query(
+      `SELECT tier FROM vault_activities_cache WHERE slug = $1`,
+      [slug],
+    );
+    if (check.rows[0]?.tier === "prme") {
+      const cols = columnsForTier("entitled");
+      const result = await sql.query(
+        `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
+        [slug],
+      );
+      const row = result.rows[0] ?? null;
+      if (row) row._effectiveTier = "entitled";
+      return row;
+    }
+  }
+
   const cols = columnsForTier(tier);
   const result = await sql.query(
     `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
     [slug],
   );
-  return result.rows[0] ?? null;
+  const row = result.rows[0] ?? null;
+  if (row) row._effectiveTier = tier;
+  return row;
 }
 
 /**

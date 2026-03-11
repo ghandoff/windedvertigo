@@ -87,10 +87,13 @@ export default async function VaultActivityPage({ params }: Props) {
     return notFound();
   }
 
-  // Dev guard
+  // PRME activities get elevated columns — use the effective tier for guards
+  const effectiveTier: string = activity._effectiveTier ?? accessTier;
+
+  // Dev guard — use effective tier so PRME elevation doesn't trip the assertion
   assertNoLeakedFields(
     [activity] as Record<string, unknown>[],
-    `vault_${accessTier}` as "vault_teaser" | "vault_entitled" | "vault_practitioner" | "vault_internal",
+    `vault_${effectiveTier}` as "vault_teaser" | "vault_entitled" | "vault_practitioner" | "vault_internal",
   );
 
   const related = await getRelatedActivities(activity.id, accessTier);
@@ -98,12 +101,12 @@ export default async function VaultActivityPage({ params }: Props) {
   const primaryType = activity.type?.[0] ?? null;
   const accent = TYPE_COLORS[primaryType ?? ""] ?? "#6b7b8d";
 
-  const hasBody = accessTier !== "teaser" && activity.body_html;
+  const hasBody = effectiveTier !== "teaser" && activity.body_html;
   const hasFacilitatorNotes =
-    (accessTier === "practitioner" || accessTier === "internal") &&
+    (effectiveTier === "practitioner" || effectiveTier === "internal") &&
     activity.facilitator_notes_html;
   const hasVideo =
-    (accessTier === "practitioner" || accessTier === "internal") &&
+    (effectiveTier === "practitioner" || effectiveTier === "internal") &&
     activity.video_url;
 
   /**
@@ -351,8 +354,8 @@ export default async function VaultActivityPage({ params }: Props) {
         </section>
       )}
 
-      {/* locked content teaser — only for teaser tier */}
-      {accessTier === "teaser" && (
+      {/* locked content teaser — only for teaser tier, skip PRME (free) activities */}
+      {accessTier === "teaser" && activity.tier !== "prme" && (
         <LockedContentTeaser activityTier={activity.tier} />
       )}
 
