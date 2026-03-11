@@ -21,67 +21,78 @@
                                     ]
                     }
         ],
-        "redirects": [],
+        "redirects": [
+                    {
+                                    "source": "/vertigo-vault/:path*",
+                                    "destination": "/harbour/vertigo-vault/:path*",
+                                    "permanent": true
+                    },
+                    {
+                                    "source": "/vertigo-vault",
+                                    "destination": "/harbour/vertigo-vault",
+                                    "permanent": true
+                    }
+        ],
         "rewrites": [
                     {
-                                    "source": "/reservoir/creaseworks",
-                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks"
+                                    "source": "/harbour/creaseworks",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks"
                     },
                     {
-                                    "source": "/reservoir/creaseworks/",
-                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks"
+                                    "source": "/harbour/creaseworks/",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks"
                     },
                     {
-                                    "source": "/reservoir/creaseworks/:path*",
-                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/:path*"
+                                    "source": "/harbour/creaseworks/:path*",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/:path*"
                     },
                     {
-                                    "source": "/reservoir/vertigo-vault",
-                                    "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault"
+                                    "source": "/harbour/vertigo-vault",
+                                    "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/harbour/vertigo-vault"
                     },
                     {
-                                    "source": "/reservoir/vertigo-vault/",
-                                    "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault"
+                                    "source": "/harbour/vertigo-vault/",
+                                    "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/harbour/vertigo-vault"
                     },
                     {
-                                    "source": "/reservoir/vertigo-vault/:path*",
-                                    "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/reservoir/vertigo-vault/:path*"
+                                    "source": "/harbour/vertigo-vault/:path*",
+                                    "destination": "https://vertigo-vault-ghandoffs-projects.vercel.app/harbour/vertigo-vault/:path*"
                     },
                     {
-                                    "source": "/reservoir/deep-deck",
-                                    "destination": "https://deep-deck-ghandoffs-projects.vercel.app/reservoir/deep-deck"
+                                    "source": "/harbour/deep-deck",
+                                    "destination": "https://deep-deck-ghandoffs-projects.vercel.app/harbour/deep-deck"
                     },
                     {
-                                    "source": "/reservoir/deep-deck/",
-                                    "destination": "https://deep-deck-ghandoffs-projects.vercel.app/reservoir/deep-deck"
+                                    "source": "/harbour/deep-deck/",
+                                    "destination": "https://deep-deck-ghandoffs-projects.vercel.app/harbour/deep-deck"
                     },
                     {
-                                    "source": "/reservoir/deep-deck/:path*",
-                                    "destination": "https://deep-deck-ghandoffs-projects.vercel.app/reservoir/deep-deck/:path*"
+                                    "source": "/harbour/deep-deck/:path*",
+                                    "destination": "https://deep-deck-ghandoffs-projects.vercel.app/harbour/deep-deck/:path*"
                     },
                     {
-                                    "source": "/reservoir/admin/login",
-                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/login"
+                                    "source": "/harbour/admin/login",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/login?callbackUrl=%2Fadmin"
                     },
                     {
-                                    "source": "/reservoir/admin",
-                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/admin"
+                                    "source": "/harbour/admin",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/admin"
                     },
                     {
-                                    "source": "/reservoir/admin/:path*",
-                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/reservoir/creaseworks/admin/:path*"
+                                    "source": "/harbour/admin/:path*",
+                                    "destination": "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/admin/:path*"
                     },
                     {
-                                    "source": "/reservoir",
-                                    "destination": "https://reservoir-ghandoffs-projects.vercel.app/reservoir"
+                                    "source": "/harbour",
+                                    "destination": "https://harbour-ghandoffs-projects.vercel.app/harbour"
                     },
                     {
-                                    "source": "/reservoir/",
-                                    "destination": "https://reservoir-ghandoffs-projects.vercel.app/reservoir"
+                                    "source": "/harbour/",
+                                    "destination": "https://harbour-ghandoffs-projects.vercel.app/harbour"
                     },
                     {
-                                    "source": "/reservoir/:path*",
-                                    "destination": "https://reservoir-ghandoffs-projects.vercel.app/reservoir/:path*"
+                                    "source": "/harbour/:path*",
+                                    "destination": "https://harbour-ghandoffs-projects.vercel.app/harbour/:path*"
                     }
         ]
 }
