@@ -48,6 +48,7 @@ export default async function handler(req, res) {
   const slack_team_id = process.env.SLACK_TEAM_ID;
   const slack_redirect = process.env.SLACK_OAUTH_REDIRECT_URI || `${base_url}/auth/slack/callback`;
   const slack_scopes = 'channels:history,channels:read,chat:write,im:history,im:read,im:write,users:read';
+  const slack_user_scopes = 'chat:write';
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -168,7 +169,7 @@ export default async function handler(req, res) {
 
   ${statuses.map(m => {
     const slack_url = slack_client_id
-      ? `https://slack.com/oauth/v2/authorize?client_id=${slack_client_id}&scope=${slack_scopes}&redirect_uri=${encodeURIComponent(slack_redirect)}&state=${m.name}${slack_team_id ? '&team=' + slack_team_id : ''}`
+      ? `https://slack.com/oauth/v2/authorize?client_id=${slack_client_id}&scope=${slack_scopes}&user_scope=${slack_user_scopes}&redirect_uri=${encodeURIComponent(slack_redirect)}&state=${m.name}${slack_team_id ? '&team=' + slack_team_id : ''}`
       : '#';
 
     return `

@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Pressable, ScrollView } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, View, Text, Pressable, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { SymbolView } from 'expo-symbols';
+import { useFocusEffect } from 'expo-router';
 import { members, type Member } from '@/src/lib/members';
 import { get_member_id, set_member_id } from '@/src/lib/storage';
+import { get_status, get_oauth_url, type ConnectionStatus } from '@/src/api/status';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -48,14 +50,53 @@ export default function SettingsScreen() {
 
   const [selected, set_selected] = useState<string | null>(null);
   const [show_commands, set_show_commands] = useState(false);
+  const [status, set_status] = useState<ConnectionStatus | null>(null);
+  const [status_loading, set_status_loading] = useState(false);
+  const [connecting, set_connecting] = useState(false);
 
   useEffect(() => {
     get_member_id().then(set_selected);
   }, []);
 
+  // fetch connection status when member changes or screen regains focus
+  const load_status = useCallback(async (member_id: string | null) => {
+    if (!member_id) { set_status(null); return; }
+    set_status_loading(true);
+    try {
+      const s = await get_status(member_id);
+      set_status(s);
+    } catch (err) {
+      console.warn('[settings] status fetch failed:', err);
+      set_status(null);
+    } finally {
+      set_status_loading(false);
+    }
+  }, []);
+
+  // re-check status every time the tab comes into focus (after returning from browser oauth)
+  useFocusEffect(
+    useCallback(() => {
+      if (selected) load_status(selected);
+    }, [selected, load_status])
+  );
+
   const handle_select = async (member: Member) => {
     set_selected(member.id);
     await set_member_id(member.id);
+    load_status(member.id);
+  };
+
+  const handle_connect_slack = async () => {
+    if (!selected) return;
+    set_connecting(true);
+    try {
+      const url = await get_oauth_url(selected);
+      await Linking.openURL(url);
+    } catch (err) {
+      console.warn('[settings] oauth url failed:', err);
+    } finally {
+      set_connecting(false);
+    }
   };
 
   return (
@@ -105,6 +146,75 @@ export default function SettingsScreen() {
           );
         })}
       </View>
+
+      {/* connections */}
+      {selected && (
+        <View style={styles.connections_section}>
+          <Text style={[styles.section_label, { color: colors.textSecondary }]}>
+            connections
+          </Text>
+          <Text style={[styles.section_desc, { color: colors.textSecondary }]}>
+            connect accounts so voice commands act as you
+          </Text>
+
+          <View style={[styles.conn_card, { backgroundColor: colors.surface, borderColor: colors.surfaceBorder }]}>
+            {/* slack row */}
+            <View style={styles.conn_row}>
+              <View style={styles.conn_info}>
+                <Text style={[styles.conn_provider, { color: colors.text }]}>slack</Text>
+                {status_loading ? (
+                  <ActivityIndicator size="small" color={colors.accent} style={{ marginTop: 2 }} />
+                ) : status?.slack ? (
+                  <Text style={[styles.conn_detail, { color: colors.success }]}>
+                    {status.slack_token_type === 'user'
+                      ? 'connected — messages as you'
+                      : 'connected — messages as bot'}
+                  </Text>
+                ) : (
+                  <Text style={[styles.conn_detail, { color: colors.textSecondary }]}>
+                    not connected
+                  </Text>
+                )}
+              </View>
+
+              {status?.slack && status.slack_token_type === 'user' ? (
+                <SymbolView
+                  name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }}
+                  tintColor={colors.success}
+                  size={22}
+                />
+              ) : (
+                <Pressable
+                  style={[styles.conn_btn, { backgroundColor: colors.accent }]}
+                  onPress={handle_connect_slack}
+                  disabled={connecting}
+                >
+                  {connecting ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.conn_btn_text}>
+                      {status?.slack ? 'reconnect' : 'connect'}
+                    </Text>
+                  )}
+                </Pressable>
+              )}
+            </View>
+
+            {/* notion row */}
+            <View style={[styles.conn_row, { borderTopWidth: StyleSheet.hairlineWidth, borderColor: colors.surfaceBorder }]}>
+              <View style={styles.conn_info}>
+                <Text style={[styles.conn_provider, { color: colors.text }]}>notion</Text>
+                <Text style={[styles.conn_detail, { color: colors.success }]}>shared token</Text>
+              </View>
+              <SymbolView
+                name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }}
+                tintColor={colors.success}
+                size={22}
+              />
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* voice commands cheat sheet */}
       <View style={styles.commands_section}>
@@ -216,6 +326,45 @@ const styles = StyleSheet.create({
   member_email: {
     fontSize: 13,
     marginTop: 2,
+  },
+
+  // connections section
+  connections_section: {
+    marginTop: 32,
+  },
+  conn_card: {
+    borderWidth: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  conn_row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+  },
+  conn_info: {
+    flex: 1,
+    gap: 2,
+  },
+  conn_provider: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  conn_detail: {
+    fontSize: 12,
+  },
+  conn_btn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  conn_btn_text: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   // commands section

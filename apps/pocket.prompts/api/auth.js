@@ -54,19 +54,32 @@ export default async function handler(req, res) {
   }
 
   try {
-    let access_token;
-
     if (provider === 'notion') {
-      access_token = await exchange_notion_code(code);
+      const access_token = await exchange_notion_code(code);
+      const result = await set_token(member_name, 'notion', access_token);
+      if (!result.success) {
+        console.error(`[auth] kv store failed: ${result.error}`);
+        return res.redirect(302, `/setup?secret=${setup_secret}&error=storage_failed`);
+      }
     } else {
-      access_token = await exchange_slack_code(code);
-    }
-
-    // store in kv
-    const result = await set_token(member_name, provider, access_token);
-    if (!result.success) {
-      console.error(`[auth] kv store failed: ${result.error}`);
-      return res.redirect(302, `/setup?secret=${setup_secret}&error=storage_failed`);
+      // slack: store user token (xoxp-) for sending as-user,
+      // and bot token (xoxb-) separately for reading messages
+      const tokens = await exchange_slack_code(code);
+      const primary = tokens.user_token || tokens.bot_token;
+      const r1 = await set_token(member_name, 'slack', primary);
+      if (!r1.success) {
+        console.error(`[auth] kv store failed (slack): ${r1.error}`);
+        return res.redirect(302, `/setup?secret=${setup_secret}&error=storage_failed`);
+      }
+      // store bot token separately so read operations still work
+      if (tokens.user_token && tokens.bot_token) {
+        const r2 = await set_token(member_name, 'slack_bot', tokens.bot_token);
+        if (!r2.success) {
+          console.error(`[auth] kv store failed (slack_bot): ${r2.error}`);
+          // non-fatal: user token was stored, bot token is a fallback
+        }
+      }
+      console.log(`[auth] slack token type: ${tokens.user_token ? 'user+bot' : 'bot-only'}`);
     }
 
     console.log(`[auth] ${member_name} connected ${provider}`);
@@ -131,5 +144,8 @@ async function exchange_slack_code(code) {
     throw new Error(`slack oauth error: ${data.error}`);
   }
 
-  return data.access_token;
+  return {
+    bot_token: data.access_token,
+    user_token: data.authed_user?.access_token || null
+  };
 }

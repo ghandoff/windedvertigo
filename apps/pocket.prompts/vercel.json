@@ -11,7 +11,9 @@
     { "source": "/history", "destination": "/api/history" },
     { "source": "/auth/:path*", "destination": "/api/auth" },
     { "source": "/setup", "destination": "/api/setup" },
-    { "source": "/slack-dm", "destination": "/api/slack-dm" }
+    { "source": "/slack-dm", "destination": "/api/slack-dm" },
+    { "source": "/status", "destination": "/api/status" },
+    { "source": "/oauth-url", "destination": "/api/oauth-url" }
   ],
   "headers": [
     {

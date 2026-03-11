@@ -51,9 +51,12 @@ export default async function handler(req, res) {
   const request_id = `v:${vercel_id} i:${invocation_id}`;
 
   // resolve per-user tokens (falls back to shared tokens if not connected)
-  const [notion_token, slack_token] = await Promise.all([
+  // slack_token = user token (xoxp-) for sending as-user
+  // slack_bot_token = bot token (xoxb-) for reading channels/messages
+  const [notion_token, slack_token, slack_bot_token] = await Promise.all([
     get_token(user_id, 'notion'),
-    get_token(user_id, 'slack')
+    get_token(user_id, 'slack'),
+    get_token(user_id, 'slack_bot')
   ]);
   // detect platform from user-agent (ios shortcut vs android pwa vs web)
   const ua = (req.headers['user-agent'] || '').toLowerCase();
@@ -62,7 +65,7 @@ export default async function handler(req, res) {
     : ua.includes('mozilla') || ua.includes('chrome') ? 'web'
     : 'unknown';
 
-  const ctx = { utterance: text, user_id, start_time, intent_result: null, request_id, notion_token, slack_token, platform };
+  const ctx = { utterance: text, user_id, start_time, intent_result: null, request_id, notion_token, slack_token, slack_bot_token, platform };
 
   if (!text) {
     return respond(res, 400, {
@@ -224,7 +227,8 @@ async function handle_task(intent, ctx, res) {
 
 async function handle_slack_check(intent, ctx, res) {
   try {
-    const token = ctx.slack_token || process.env.SLACK_BOT_TOKEN;
+    // prefer bot token for reads — user tokens with only chat:write can't list channels
+    const token = ctx.slack_bot_token || ctx.slack_token || process.env.SLACK_BOT_TOKEN;
     const slack_user_id = get_slack_user_id(ctx.user_id);
 
     const { messages, summary } = await get_recent_messages({
