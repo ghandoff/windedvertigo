@@ -262,8 +262,8 @@ export default async function VaultActivityPage({ params }: Props) {
         </div>
       </section>
 
-      {/* materials needed (entitled+) */}
-      {accessTier !== "teaser" &&
+      {/* materials needed (entitled+, or PRME-elevated teaser) */}
+      {effectiveTier !== "teaser" &&
         activity.materials_needed?.length > 0 && (
           <section className="mb-8">
             <h2
