@@ -26,28 +26,36 @@ export default async function handler(req, res) {
   const error = url.searchParams.get('error');
   const setup_secret = process.env.SETUP_SECRET;
 
-  // determine provider from path
-  let provider = null;
-  if (path.includes('/notion')) provider = 'notion';
-  else if (path.includes('/slack')) provider = 'slack';
-
-  if (!provider) {
-    return res.redirect(302, `/setup?secret=${setup_secret}&error=unknown_provider`);
-  }
-
   // handle errors from oauth provider
   if (error) {
-    console.error(`[auth] ${provider} oauth error: ${error}`);
+    console.error(`[auth] oauth error: ${error}`);
     return res.redirect(302, `/setup?secret=${setup_secret}&error=${encodeURIComponent(error)}`);
   }
 
   if (!code || !state) {
-    console.error(`[auth] missing code or state for ${provider}`);
+    console.error(`[auth] missing code or state`);
     return res.redirect(302, `/setup?secret=${setup_secret}&error=missing_params`);
   }
 
-  // validate member name
-  const member_name = state.toLowerCase().trim();
+  // provider is encoded in state as "provider:member" (e.g. "slack:garrett")
+  // falls back to URL path detection for backward compatibility
+  let provider = null;
+  let member_name = state.toLowerCase().trim();
+
+  if (member_name.includes(':')) {
+    const [p, ...rest] = member_name.split(':');
+    provider = p;
+    member_name = rest.join(':');
+  } else {
+    // legacy: try to detect from URL path
+    if (path.includes('/notion')) provider = 'notion';
+    else if (path.includes('/slack')) provider = 'slack';
+  }
+
+  if (!provider) {
+    console.error(`[auth] unknown provider — state: "${state}", path: "${path}"`);
+    return res.redirect(302, `/setup?secret=${setup_secret}&error=unknown_provider`);
+  }
   if (!valid_members.has(member_name)) {
     console.error(`[auth] invalid member in state: ${state}`);
     return res.redirect(302, `/setup?secret=${setup_secret}&error=invalid_member`);

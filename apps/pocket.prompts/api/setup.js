@@ -169,7 +169,7 @@ export default async function handler(req, res) {
 
   ${statuses.map(m => {
     const slack_url = slack_client_id
-      ? `https://slack.com/oauth/v2/authorize?client_id=${slack_client_id}&scope=${slack_scopes}&user_scope=${slack_user_scopes}&redirect_uri=${encodeURIComponent(slack_redirect)}&state=${m.name}${slack_team_id ? '&team=' + slack_team_id : ''}`
+      ? `https://slack.com/oauth/v2/authorize?client_id=${slack_client_id}&scope=${slack_scopes}&user_scope=${slack_user_scopes}&redirect_uri=${encodeURIComponent(slack_redirect)}&state=slack:${m.name}${slack_team_id ? '&team=' + slack_team_id : ''}`
       : '#';
 
     return `

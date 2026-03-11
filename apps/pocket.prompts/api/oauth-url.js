@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     scope: bot_scopes,
     user_scope: user_scopes,
     redirect_uri,
-    state: member
+    state: `slack:${member}`
   });
   if (team_id) params.set('team', team_id);
 
