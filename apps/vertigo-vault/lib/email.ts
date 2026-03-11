@@ -20,7 +20,7 @@ function getResend(): Resend {
 const FROM = process.env.EMAIL_FROM ?? "noreply@windedvertigo.com";
 const VAULT_URL =
   process.env.NEXT_PUBLIC_APP_URL ??
-  "https://windedvertigo.com/reservoir/vertigo-vault";
+  "https://windedvertigo.com/harbour/vertigo-vault";
 
 /**
  * Send a purchase-confirmation email after a successful Stripe checkout.
