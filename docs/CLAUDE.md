@@ -28,6 +28,14 @@ Read these three files at session start — they are the single source of truth:
 | `docs/notion-database-map.md` | Notion DB IDs, sync architecture, env vars |
 | `docs/CREASEWORKS-DESIGN.md` | Full technical design (v0.3) — architecture, data models, visibility |
 
+**pocket.prompts-specific references** (read when working on the voice pipeline):
+
+| File | When to read |
+|------|-------------|
+| `apps/pocket.prompts/CLAUDE.md` | Conventions, stack, coding rules, spoken response design |
+| `apps/pocket.prompts/files/CLAUDE.md` | Full project spec — architecture, build phases, commercial potential |
+| `apps/pocket.prompts/files/SYSTEM_PROMPT.md` | Claude Code system prompt for voice pipeline sessions |
+
 **At session end**: update `memory/projects/creaseworks.md` with new migration numbers, file counts, feature status, and latest commit hash.
 
 ## Repository Structure
@@ -40,7 +48,8 @@ windedvertigo/
 │   ├── deep-deck/         ← deep-deck Next.js app
 │   ├── nordic-sqr-rct/    ← sqr-rct Next.js app (JavaScript)
 │   ├── harbour/         ← harbour Next.js app
-│   └── vertigo-vault/     ← vertigo-vault Next.js app
+│   ├── vertigo-vault/     ← vertigo-vault Next.js app
+│   └── pocket.prompts/    ← voice pipeline serverless app (Node.js)
 ├── packages/
 │   └── tokens/            ← shared design tokens (CSS + TS)
 ├── scripts/               ← shared Notion sync scripts
@@ -94,6 +103,15 @@ This monorepo contains all three winded.vertigo projects. No more multi-mount co
 - Next.js 16, TypeScript, React 19, Tailwind CSS 4, fetches from Notion API
 - Requires `NOTION_TOKEN` env var at build time (set in Vercel, not available locally)
 - Run locally: `npm run dev:vault` (from monorepo root)
+
+### apps/pocket.prompts — hands-free voice command pipeline
+- Node.js serverless on Vercel (no build step, no framework)
+- `@anthropic-ai/sdk` (Claude Opus intent detection), `@notionhq/client`, `@slack/web-api`
+- Captures voice commands → routes to Notion (notes/ideas/tasks) or Slack (DM/check/reply)
+- iOS Shortcut + Android PWA entry points
+- MCP server at `mcp/` provides voice history + Slack DM tools for Claude Code
+- Full project spec: `apps/pocket.prompts/files/CLAUDE.md`
+- Run locally: `cd apps/pocket.prompts && npx vercel dev`
 
 ## Notion Integration
 
@@ -193,6 +211,7 @@ npm run lint --workspace=@windedvertigo/deep-deck     # lint a single app
 - creaseworks: `prj_EoDpRvw1kdAqcGVrcaYclfWFeX7b`
 - windedvertigo-site: `prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx`
 - nordic-sqr-rct: `prj_laAl3qm5w20CrtIjO2klc9dj180z`
+- pocket.prompts: deployed at `pocket-prompts-five.vercel.app`
 - deep-deck, harbour, vertigo-vault (project IDs in Vercel dashboard)
 - Team: `team_wrpRda7ZzXdu7nKcEVVXY3th`
 
@@ -271,6 +290,7 @@ Each app is its own Vercel project with monorepo Root Directory settings. Every 
 | deep-deck | `apps/deep-deck` | `npx turbo-ignore @windedvertigo/deep-deck` |
 | harbour | `apps/harbour` | `npx turbo-ignore @windedvertigo/harbour` |
 | vertigo-vault | `apps/vertigo-vault` | `npx turbo-ignore @windedvertigo/vertigo-vault` |
+| pocket.prompts | `apps/pocket.prompts` | `npx turbo-ignore pocket.prompts` |
 
 **How `turbo-ignore` works**: compares `VERCEL_GIT_PREVIOUS_SHA` (last successful deploy) to HEAD, walks the Turborepo dependency graph, and exits 0 (skip) or 1 (build). A change to `packages/tokens` triggers rebuilds for creaseworks and harbour (its dependents) but skips the other 4 apps.
 
