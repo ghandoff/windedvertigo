@@ -68,6 +68,56 @@ export async function updateEvidenceEntry(pageId, { score, riskOfBias, reviewDat
   return notion.pages.update({ page_id: pageId, properties });
 }
 
+// ─── Ingredient Backfill ─────────────────────────────────────────────
+
+/**
+ * Fetch Evidence Library entries that have no Ingredient tags.
+ * Returns text fields needed for keyword detection.
+ */
+export async function getUntaggedEvidence() {
+  let allResults = [];
+  let cursor = undefined;
+  do {
+    const res = await notion.databases.query({
+      database_id: PCS_EVIDENCE_DB,
+      filter: {
+        property: 'Ingredient',
+        multi_select: { is_empty: true },
+      },
+      start_cursor: cursor,
+    });
+    allResults = allResults.concat(res.results);
+    cursor = res.has_more ? res.next_cursor : undefined;
+  } while (cursor);
+  return allResults.map(parseEvidenceForBackfill);
+}
+
+function parseEvidenceForBackfill(page) {
+  const p = page.properties;
+  return {
+    id: page.id,
+    name: extractTitle(p['Name']),
+    citation: extractRichText(p['Citation']),
+    summary: extractRichText(p['Canonical research summary']),
+  };
+}
+
+/**
+ * Set Ingredient multi-select on an Evidence Library entry.
+ * @param {string} pageId
+ * @param {string[]} ingredients — array of option names, e.g. ['EPA', 'DHA']
+ */
+export async function updateEvidenceIngredients(pageId, ingredients) {
+  return notion.pages.update({
+    page_id: pageId,
+    properties: {
+      Ingredient: {
+        multi_select: ingredients.map(name => ({ name })),
+      },
+    },
+  });
+}
+
 // ─── Evidence Packets ────────────────────────────────────────────────
 
 export async function getPacketsForEvidence(evidencePageId) {
