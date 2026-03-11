@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useSpeech } from '@/src/hooks/use-speech';
 import { useTts } from '@/src/hooks/use-tts';
+import { useRemoteCommand } from '@/src/hooks/use-remote-command';
 import { send_voice, type VoiceResponse } from '@/src/api/voice';
 import { get_member_id } from '@/src/lib/storage';
 import { MicButton } from '@/src/components/mic-button';
@@ -83,6 +84,21 @@ export default function VoiceScreen() {
       await speech.start();
     }
   }, [phase, speech, tts]);
+
+  // AirPod / Bluetooth headphone remote commands → same as tapping the mic
+  useRemoteCommand(useCallback((cmd) => {
+    if (cmd === 'togglePlayPause') {
+      // single tap — toggle recording
+      handle_mic_press();
+    } else if (cmd === 'play') {
+      // explicit play — start recording if idle
+      if (phase === 'idle') handle_mic_press();
+    } else if (cmd === 'pause') {
+      // explicit pause — stop recording if listening
+      if (phase === 'listening') handle_mic_press();
+    }
+    // nextTrack / previousTrack reserved for future use
+  }, [handle_mic_press, phase]));
 
   const status_text = {
     idle: member_id ? `signed in as ${member_id}` : 'tap to speak',

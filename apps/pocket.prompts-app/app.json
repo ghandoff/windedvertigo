@@ -17,7 +17,8 @@
       "bundleIdentifier": "com.windedvertigo.pocketprompts",
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "pocket.prompts uses speech recognition to transcribe your voice commands.",
-        "NSMicrophoneUsageDescription": "pocket.prompts needs microphone access to capture your voice."
+        "NSMicrophoneUsageDescription": "pocket.prompts needs microphone access to capture your voice.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -45,10 +46,17 @@
           "microphonePermission": "pocket.prompts needs microphone access to capture your voice.",
           "speechRecognitionPermission": "pocket.prompts uses speech recognition to transcribe your voice commands."
         }
-      ]
+      ],
+      "./plugins/with-remote-command"
     ],
     "experiments": {
       "typedRoutes": false
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f8a19b8a-5d48-4dbe-9f8b-048dcb0a83a6"
+      }
     }
   }
 }
