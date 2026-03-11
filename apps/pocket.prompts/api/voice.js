@@ -122,7 +122,7 @@ export default async function handler(req, res) {
         return await handle_slack_reply(intent, ctx, res);
 
       case 'code_conversation':
-        return handle_code_conversation(intent, ctx, res);
+        return await handle_code_conversation(intent, ctx, res);
 
       case 'build_approval':
         return await handle_build_approval(intent, ctx, res);
@@ -367,11 +367,32 @@ async function handle_slack_reply(intent, ctx, res) {
 
 // --- code & build handlers ---
 
-function handle_code_conversation(intent, ctx, res) {
-  // the voice log already captures this interaction with intent=code_conversation.
-  // claude code's scheduled task polls the voice history for code_conversation intents
-  // and starts working on them. so all we need to do here is confirm it's queued.
-  console.log(`[voice] code conversation queued: "${intent.content?.substring(0, 80)}..."`);
+async function handle_code_conversation(intent, ctx, res) {
+  // 1. send a slack dm to the user with the code request (so they have it at their desk)
+  // 2. the voice log captures this with intent=code_conversation for scheduled task pickup
+  const content = intent.content || ctx.utterance;
+  console.log(`[voice] code conversation: "${content.substring(0, 80)}..."`);
+
+  try {
+    const token = ctx.slack_token || process.env.SLACK_BOT_TOKEN;
+    const slack_user_id = get_slack_user_id(ctx.user_id);
+
+    if (slack_user_id && token) {
+      const channel_id = await find_dm_channel({ token, user_id: slack_user_id });
+      if (channel_id) {
+        await send_message({
+          token,
+          channel_id,
+          text: `🤖 *Code request* from pocket.prompts:\n> ${content}\n\n_Paste this into Claude Code when you're at your desk._`
+        });
+        console.log(`[voice] code conversation dm sent to ${ctx.user_id}`);
+      }
+    }
+  } catch (err) {
+    // dm is a nice-to-have — don't fail the whole request
+    console.error(`[voice] code conversation dm failed: ${err.message}`);
+  }
+
   return respond(res, 200, {
     spoken_response: tts.code_conversation_started(),
     action_taken: 'code_conversation',
