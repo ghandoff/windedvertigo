@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   const redirect_uri = (process.env.SLACK_OAUTH_REDIRECT_URI || '').trim();
   const team_id = (process.env.SLACK_TEAM_ID || '').trim();
   const bot_scopes = 'channels:history,channels:read,chat:write,im:history,im:read,im:write,users:read';
-  const user_scopes = 'chat:write';
+  const user_scopes = 'chat:write,im:write';
 
   const params = new URLSearchParams({
     client_id,

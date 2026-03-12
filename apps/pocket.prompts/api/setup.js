@@ -50,7 +50,7 @@ export default async function handler(req, res) {
   const slack_team_id = (process.env.SLACK_TEAM_ID || '').trim();
   const slack_redirect = (process.env.SLACK_OAUTH_REDIRECT_URI || '').trim() || `${base_url}/auth/slack/callback`;
   const slack_scopes = 'channels:history,channels:read,chat:write,im:history,im:read,im:write,users:read';
-  const slack_user_scopes = 'chat:write';
+  const slack_user_scopes = 'chat:write,im:write';
 
   const html = `<!DOCTYPE html>
 <html lang="en">
