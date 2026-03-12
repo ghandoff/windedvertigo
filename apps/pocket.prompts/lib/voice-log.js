@@ -1,6 +1,6 @@
 import { Client } from '@notionhq/client';
 
-const log_db_id = process.env.NOTION_VOICE_LOG_DB_ID;
+const log_db_id = (process.env.NOTION_VOICE_LOG_DB_ID || '').trim();
 
 /**
  * Log a voice interaction to the Notion Voice Log database.
@@ -25,7 +25,7 @@ export async function log_voice_interaction({
   }
 
   try {
-    const notion = new Client({ auth: process.env.NOTION_API_KEY });
+    const notion = new Client({ auth: (process.env.NOTION_API_KEY || '').trim() });
 
     // privacy: sanitize title to hide raw utterance from shared database.
     // personal content lives in the notion entries themselves (notes, tasks, etc.)

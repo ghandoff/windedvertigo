@@ -228,7 +228,7 @@ async function handle_task(intent, ctx, res) {
 async function handle_slack_check(intent, ctx, res) {
   try {
     // prefer bot token for reads — user tokens with only chat:write can't list channels
-    const token = ctx.slack_bot_token || ctx.slack_token || process.env.SLACK_BOT_TOKEN;
+    const token = ctx.slack_bot_token || ctx.slack_token || (process.env.SLACK_BOT_TOKEN || '').trim();
     const slack_user_id = get_slack_user_id(ctx.user_id);
 
     const { messages, summary } = await get_recent_messages({
@@ -264,7 +264,7 @@ async function handle_slack_check(intent, ctx, res) {
 
 async function handle_slack_message(intent, ctx, res) {
   try {
-    const token = ctx.slack_token || process.env.SLACK_BOT_TOKEN;
+    const token = ctx.slack_token || (process.env.SLACK_BOT_TOKEN || '').trim();
     const recipient = resolve_member(intent.slack_recipient);
 
     console.log(`[voice] slack_message — recipient: "${intent.slack_recipient}", resolved: ${recipient?.name || 'NONE'}, slack_id: ${recipient?.slack_user_id || 'NONE'}, token: ${token ? 'present' : 'MISSING'}`);
@@ -319,7 +319,7 @@ async function handle_slack_message(intent, ctx, res) {
 
 async function handle_slack_reply(intent, ctx, res) {
   try {
-    const token = ctx.slack_token || process.env.SLACK_BOT_TOKEN;
+    const token = ctx.slack_token || (process.env.SLACK_BOT_TOKEN || '').trim();
     const reply_to = resolve_member(intent.reply_to);
 
     if (!reply_to?.slack_user_id) {
@@ -378,7 +378,7 @@ async function handle_code_conversation(intent, ctx, res) {
   console.log(`[voice] code conversation: "${content.substring(0, 80)}..."`);
 
   try {
-    const token = ctx.slack_token || process.env.SLACK_BOT_TOKEN;
+    const token = ctx.slack_token || (process.env.SLACK_BOT_TOKEN || '').trim();
     const slack_user_id = get_slack_user_id(ctx.user_id);
 
     if (slack_user_id && token) {
@@ -405,7 +405,7 @@ async function handle_code_conversation(intent, ctx, res) {
 }
 
 async function handle_build_approval(intent, ctx, res) {
-  const webhook_url = process.env.BUILD_WEBHOOK_URL;
+  const webhook_url = (process.env.BUILD_WEBHOOK_URL || '').trim();
 
   if (!webhook_url) {
     console.log(`[voice] build approval — no BUILD_WEBHOOK_URL configured`);

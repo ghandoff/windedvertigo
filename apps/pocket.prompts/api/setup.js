@@ -5,11 +5,12 @@ const require = createRequire(import.meta.url);
 const members = require('../config/members.json');
 
 function get_base_url() {
-  const slack_redirect = process.env.SLACK_OAUTH_REDIRECT_URI;
+  const slack_redirect = (process.env.SLACK_OAUTH_REDIRECT_URI || '').trim();
   if (slack_redirect) {
     return new URL(slack_redirect).origin;
   }
-  return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+  const vercel_url = (process.env.VERCEL_URL || '').trim();
+  return vercel_url ? `https://${vercel_url}` : 'http://localhost:3000';
 }
 
 function esc(str) {
@@ -25,7 +26,8 @@ export default async function handler(req, res) {
   const url = new URL(req.url, get_base_url());
   const secret = url.searchParams.get('secret');
 
-  if (!process.env.SETUP_SECRET || secret !== process.env.SETUP_SECRET.trim()) {
+  const setup_secret = (process.env.SETUP_SECRET || '').trim();
+  if (!setup_secret || secret !== setup_secret) {
     return res.status(401).send('unauthorized — include ?secret= in the url');
   }
 
@@ -44,9 +46,9 @@ export default async function handler(req, res) {
     }))
   );
 
-  const slack_client_id = process.env.SLACK_OAUTH_CLIENT_ID;
-  const slack_team_id = process.env.SLACK_TEAM_ID;
-  const slack_redirect = process.env.SLACK_OAUTH_REDIRECT_URI || `${base_url}/auth/slack/callback`;
+  const slack_client_id = (process.env.SLACK_OAUTH_CLIENT_ID || '').trim();
+  const slack_team_id = (process.env.SLACK_TEAM_ID || '').trim();
+  const slack_redirect = (process.env.SLACK_OAUTH_REDIRECT_URI || '').trim() || `${base_url}/auth/slack/callback`;
   const slack_scopes = 'channels:history,channels:read,chat:write,im:history,im:read,im:write,users:read';
   const slack_user_scopes = 'chat:write';
 

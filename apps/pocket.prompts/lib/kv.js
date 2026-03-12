@@ -4,11 +4,10 @@ let kv = null;
 
 function get_kv() {
   if (kv) return kv;
-  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) return null;
-  kv = createClient({
-    url: process.env.KV_REST_API_URL,
-    token: process.env.KV_REST_API_TOKEN
-  });
+  const kv_url = (process.env.KV_REST_API_URL || '').trim();
+  const kv_token = (process.env.KV_REST_API_TOKEN || '').trim();
+  if (!kv_url || !kv_token) return null;
+  kv = createClient({ url: kv_url, token: kv_token });
   return kv;
 }
 

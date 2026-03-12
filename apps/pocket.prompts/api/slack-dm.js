@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
   // simple shared-secret auth to prevent abuse
   const auth = req.headers['authorization'];
-  if (auth !== `Bearer ${process.env.SLACK_DM_SECRET}`) {
+  if (auth !== `Bearer ${(process.env.SLACK_DM_SECRET || '').trim()}`) {
     return res.status(401).json({ error: 'unauthorized' });
   }
 
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'user and text required' });
   }
 
-  const token = process.env.SLACK_BOT_TOKEN;
+  const token = (process.env.SLACK_BOT_TOKEN || '').trim();
   const slack_user_id = get_slack_user_id(user);
 
   if (!slack_user_id) {

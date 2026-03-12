@@ -14,7 +14,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 
-const API_BASE = process.env.POCKET_PROMPTS_API_URL || 'https://pocket-prompts-five.vercel.app';
+const API_BASE = (process.env.POCKET_PROMPTS_API_URL || 'https://pocket-prompts-five.vercel.app').trim();
 
 // --- helpers ---
 
@@ -183,7 +183,7 @@ server.tool(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SLACK_DM_SECRET}`,
+          'Authorization': `Bearer ${(process.env.SLACK_DM_SECRET || '').trim()}`,
         },
         body: JSON.stringify(body),
       });

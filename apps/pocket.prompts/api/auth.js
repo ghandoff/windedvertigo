@@ -10,11 +10,12 @@ const valid_members = new Set(Object.keys(members));
 
 // derive base url from redirect URIs in env
 function get_base_url() {
-  const slack_redirect = process.env.SLACK_OAUTH_REDIRECT_URI;
+  const slack_redirect = (process.env.SLACK_OAUTH_REDIRECT_URI || '').trim();
   if (slack_redirect) {
     return new URL(slack_redirect).origin;
   }
-  return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+  const vercel_url = (process.env.VERCEL_URL || '').trim();
+  return vercel_url ? `https://${vercel_url}` : 'http://localhost:3000';
 }
 
 // use manual redirect instead of res.redirect() — vercel helper may not be injected
@@ -110,7 +111,7 @@ export default async function handler(req, res) {
     // top-level catch — surfaces the real crash reason instead of FUNCTION_INVOCATION_FAILED
     console.error(`[auth] FATAL: ${fatal.message}\n${fatal.stack}`);
     res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: fatal.message, stack: fatal.stack }));
+    res.end(JSON.stringify({ error: fatal.message }));
   }
 }
 

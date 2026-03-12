@@ -1,9 +1,9 @@
 import { Client } from '@notionhq/client';
 
-const tasks_db_id = process.env.NOTION_TASKS_DB_ID;
+const tasks_db_id = (process.env.NOTION_TASKS_DB_ID || '').trim();
 
 function get_client(token) {
-  return new Client({ auth: token || process.env.NOTION_API_KEY });
+  return new Client({ auth: token || (process.env.NOTION_API_KEY || '').trim() });
 }
 
 /**

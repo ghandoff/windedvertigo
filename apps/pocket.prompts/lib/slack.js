@@ -4,7 +4,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const anthropic = new Anthropic();
 
 function get_client(token) {
-  return new WebClient(token || process.env.SLACK_BOT_TOKEN);
+  return new WebClient(token || (process.env.SLACK_BOT_TOKEN || '').trim());
 }
 
 // fetch recent dms and channel messages for the user

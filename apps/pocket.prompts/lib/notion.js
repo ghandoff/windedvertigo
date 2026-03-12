@@ -1,9 +1,9 @@
 import { Client } from '@notionhq/client';
 
-const database_id = process.env.NOTION_INBOX_DATABASE_ID;
+const database_id = (process.env.NOTION_INBOX_DATABASE_ID || '').trim();
 
 function get_client(token) {
-  return new Client({ auth: token || process.env.NOTION_API_KEY });
+  return new Client({ auth: token || (process.env.NOTION_API_KEY || '').trim() });
 }
 
 export async function create_capture({ type, content, priority, assignee_notion_id, token }) {

@@ -1,6 +1,6 @@
 import { Client } from '@notionhq/client';
 
-const log_db_id = process.env.NOTION_VOICE_LOG_DB_ID;
+const log_db_id = (process.env.NOTION_VOICE_LOG_DB_ID || '').trim();
 
 export default async function handler(req, res) {
   // cors preflight
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const notion = new Client({ auth: process.env.NOTION_API_KEY });
+    const notion = new Client({ auth: (process.env.NOTION_API_KEY || '').trim() });
 
     const {
       limit = '20',
