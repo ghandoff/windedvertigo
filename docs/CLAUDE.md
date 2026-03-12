@@ -17,6 +17,7 @@ Read these three files at session start — they are the single source of truth:
 | `docs/brand-guidelines.md` | Design work, colour/typography choices, logo usage, voice & tone |
 | `docs/dev-roadmap.md` | Priorities, upcoming work, open decisions across all apps |
 | `docs/collaboration-playbook.md` | How Garrett and Claude work together, session patterns, naming conventions |
+| `docs/version-management.md` | Dependency updates, version audits, CLI/MCP checks, update procedures |
 
 **Creaseworks-specific references** (read when working on creaseworks features):
 
