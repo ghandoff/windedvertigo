@@ -5,13 +5,13 @@
  *
  * Usage:
  *   node scripts/smoke-test.mjs                     # defaults to localhost:3000
- *   node scripts/smoke-test.mjs https://windedvertigo.com/reservoir/creaseworks
+ *   node scripts/smoke-test.mjs https://windedvertigo.com/harbour/creaseworks
  *
  * Requires: Node 18+ (uses native fetch).
  * No extra dependencies.
  */
 
-const BASE = process.argv[2] || "http://localhost:3000/reservoir/creaseworks";
+const BASE = process.argv[2] || "http://localhost:3000/harbour/creaseworks";
 
 /* ── Route definitions ────────────────────────────────────── */
 

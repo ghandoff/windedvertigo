@@ -6,7 +6,7 @@ version 0.3 · 2026-02-16 · all questions resolved, ready to build
 
 ## 1. architecture overview and request flow
 
-creaseworks is a Next.js App Router application deployed on Vercel at `windedvertigo.com/reservoir/creaseworks` (basePath: `/reservoir/creaseworks`). Notion is the editorial CMS; Neon Postgres is the system of record for users, organisations, entitlements, and access control. Content flows one direction: Notion → Postgres cache → app. Entitlement and identity data lives exclusively in Postgres.
+creaseworks is a Next.js App Router application deployed on Vercel at `windedvertigo.com/harbour/creaseworks` (basePath: `/harbour/creaseworks`). Notion is the editorial CMS; Neon Postgres is the system of record for users, organisations, entitlements, and access control. Content flows one direction: Notion → Postgres cache → app. Entitlement and identity data lives exclusively in Postgres.
 
 ### high-level component map
 
@@ -38,7 +38,7 @@ creaseworks is a Next.js App Router application deployed on Vercel at `windedver
                ▼
 ┌───────────────────────────────────────────────────────┐
 │  Next.js App Router (Vercel)                          │
-│  windedvertigo.com/reservoir/creaseworks               │
+│  windedvertigo.com/harbour/creaseworks               │
 │                                                       │
 │  server components & route handlers                   │
 │  ┌────────────┐ ┌──────────┐ ┌──────────────────────┐│
@@ -681,7 +681,7 @@ deliverables:
 - Brand theming: Inter font, w.v colour palette, lowercase UI convention
 - Environment variables documented
 - Seed for domain blocklist
-- Deploy to `windedvertigo.com/reservoir/creaseworks`
+- Deploy to `windedvertigo.com/harbour/creaseworks`
 
 ### MVP 1: authentication and org model (week 2)
 
@@ -813,7 +813,7 @@ EMAIL_FROM=noreply@windedvertigo.com
 CRON_SECRET=...
 
 # app
-NEXT_PUBLIC_APP_URL=https://windedvertigo.com/reservoir/creaseworks
+NEXT_PUBLIC_APP_URL=https://windedvertigo.com/harbour/creaseworks
 ```
 
 ## appendix B: Notion field → cache column mapping (patterns)

@@ -7,8 +7,8 @@
 | Key | Value |
 |-----|-------|
 | **App** | Next.js 16 + React 19 + TypeScript |
-| **URL** | https://windedvertigo.com/reservoir/creaseworks |
-| **basePath** | `/reservoir/creaseworks` (set in next.config.ts) |
+| **URL** | https://windedvertigo.com/harbour/creaseworks |
+| **basePath** | `/harbour/creaseworks` (set in next.config.ts) |
 | **Vercel project** | creaseworks (ghandoffs-projects) |
 | **Neon DB** | creaseworks-db (divine-dust-87453436) |
 | **Branch** | br-green-cherry-air8nyor |
@@ -18,7 +18,7 @@
 | **TypeScript** | compiles clean (zero errors) |
 | **Tests** | 9 suites, 123 tests, all passing |
 | **Smoke test** | 28/29 pass (root `/` returns 308 redirect — expected for authed redirect) |
-| **Last session** | 49 (Mar 4, 2026) |
+| **Last session** | 50 (Mar 12, 2026) |
 
 ## Notion Database IDs
 
@@ -271,6 +271,37 @@ All core features A–Y are implemented. See `docs/creaseworks-backlog-2026-02-2
 - 30 playdates (5 sampler, 3 campaign, 22 internal-only)
 - 12 collections (original 6 + story builders, nature detectives, color lab, body movers, quiet makers, fix-it shop)
 - 6 packs (co-design essentials, rainy day rescue, classroom starter, summer play camp, the whole collection, new baby sibling)
+
+### Reservoir → Harbour Rename (session 50)
+- ✅ `apps/reservoir/` directory renamed to `apps/harbour/`
+- ✅ All URL paths changed: `/reservoir/` → `/harbour/` across all apps (creaseworks, deep-deck, harbour, site)
+- ✅ Product name changed: "the reservoir" → "the harbour" everywhere
+- ✅ `reservoir-status` admin pages/queries → `harbour-status`
+- ✅ `site-content-reservoir.json` → `site-content-harbour.json`
+- ✅ Package name: `@windedvertigo/reservoir` → `@windedvertigo/harbour`
+- ✅ basePath in creaseworks: `/harbour/creaseworks` (was `/reservoir/creaseworks`)
+- ✅ basePath in deep-deck: `/harbour/deep-deck` (was `/reservoir/deep-deck`)
+- ✅ basePath in harbour: `/harbour` (was `/reservoir`)
+- ✅ Auth basePath: `/harbour/creaseworks/api/auth`
+- ✅ Vercel cron paths updated in vercel.json
+- ✅ GitHub Actions workflow updated (apps/harbour/data/ output path)
+- ⚠️ **Vercel env vars** may need updating: `NEXTAUTH_URL`, `AUTH_URL` if they reference `/reservoir/`
+- ⚠️ **Vercel project root directories** may need updating in dashboard if they reference `apps/reservoir`
+
+### Vertigo Vault PRME Fix (session 50)
+- ✅ Fixed materials guard: `accessTier !== "teaser"` → `effectiveTier !== "teaser"` in `[slug]/page.tsx:266`
+- ✅ PRME activities now correctly show materials for teaser users (PRME elevation to entitled columns)
+
+### Post-Login Redirect Fix (session 50)
+- ✅ `login-form.tsx` default callbackUrl: `"/"` → `"/harbour/creaseworks/"` (was redirecting to site root)
+- ✅ `nav-bar.tsx` signOut callbackUrl: `"/"` → `"/harbour/creaseworks/"`
+
+### Notion Sync
+- Two sync paths exist:
+  1. **Static site** (`npm run sync` / GitHub Actions): generates JSON files in `apps/site/data/` — needs `NOTION_TOKEN` env var
+  2. **Creaseworks Postgres** (admin UI at `/harbour/creaseworks/admin/sync`): syncs Notion → Neon DB for vertigo-vault
+- GitHub Actions workflow has `NOTION_TOKEN` as a secret — trigger manually via Actions tab
+- `NOTION_TOKEN` is NOT checked into the repo (correctly)
 
 ## Session-Start Checklist
 

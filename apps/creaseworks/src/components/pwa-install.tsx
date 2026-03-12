@@ -5,7 +5,7 @@ import { useEffect, useSyncExternalStore, useState, useCallback } from "react";
 /**
  * PWA service-worker registration + install-prompt banner.
  *
- * - Registers /reservoir/creaseworks/sw.js on mount
+ * - Registers /harbour/creaseworks/sw.js on mount
  * - Captures the `beforeinstallprompt` event (Chrome/Edge/Android)
  * - Shows a dismissible banner offering to "add to home screen"
  * - On iOS Safari, shows manual instructions instead (no prompt API)
@@ -18,7 +18,7 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-const BASE = "/reservoir/creaseworks";
+const BASE = "/harbour/creaseworks";
 
 /* ------------------------------------------------------------------ */
 /*  Platform detection via useSyncExternalStore                        */

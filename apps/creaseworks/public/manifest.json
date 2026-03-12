@@ -2,8 +2,8 @@
   "name": "creaseworks — playdates that use what you already have",
   "short_name": "creaseworks",
   "description": "simple, tested playdates for parents, teachers, and kids. notice the world around you, see possibility everywhere, and make things with whatever's on hand.",
-  "start_url": "/reservoir/creaseworks/",
-  "scope": "/reservoir/creaseworks/",
+  "start_url": "/harbour/creaseworks/",
+  "scope": "/harbour/creaseworks/",
   "display": "standalone",
   "background_color": "#273248",
   "theme_color": "#273248",
@@ -11,19 +11,19 @@
   "categories": ["education", "kids"],
   "icons": [
     {
-      "src": "/reservoir/creaseworks/images/icon-192x192.png",
+      "src": "/harbour/creaseworks/images/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/reservoir/creaseworks/images/icon-512x512.png",
+      "src": "/harbour/creaseworks/images/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/reservoir/creaseworks/images/icon-512x512.png",
+      "src": "/harbour/creaseworks/images/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

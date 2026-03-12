@@ -3,24 +3,24 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://windedvertigo.com"),
-  title: "the reservoir — winded.vertigo",
+  title: "the harbour — winded.vertigo",
   description:
     "playful tools for connection, creativity, and growth — designed by developmental psychologists and learning scientists.",
   alternates: {
-    canonical: "/reservoir",
+    canonical: "/harbour",
   },
   openGraph: {
     type: "website",
-    title: "the reservoir — winded.vertigo",
+    title: "the harbour — winded.vertigo",
     description:
       "playful tools for connection, creativity, and growth — designed by developmental psychologists and learning scientists.",
-    url: "/reservoir",
+    url: "/harbour",
     siteName: "winded.vertigo",
     images: [{ url: "/images/logo.png", width: 512, height: 512 }],
   },
   twitter: {
     card: "summary",
-    title: "the reservoir — winded.vertigo",
+    title: "the harbour — winded.vertigo",
     description:
       "playful tools for connection, creativity, and growth — designed by developmental psychologists and learning scientists.",
     images: ["/images/logo.png"],

@@ -3,7 +3,7 @@
 > **Audience:** Anyone editing winded.vertigo website content in Notion.
 > **Last updated:** 2026-03-03
 
-The winded.vertigo website and reservoir apps are powered by a Notion database called **Site Content CMS**. Editing a row in Notion changes what appears on the live site after a sync. This guide explains every field, how they interact, and what to expect when you make changes.
+The winded.vertigo website and harbour apps are powered by a Notion database called **Site Content CMS**. Editing a row in Notion changes what appears on the live site after a sync. This guide explains every field, how they interact, and what to expect when you make changes.
 
 ---
 
@@ -20,7 +20,7 @@ The winded.vertigo website and reservoir apps are powered by a Notion database c
 2. **A sync script runs** — `scripts/fetch-notion.js` reads Notion and writes JSON files
 3. **The website loads JSON at runtime** — each page fetches its data file and renders content
 
-The JSON files live at `apps/site/data/site-content-{page}.json`. One file per page value (e.g., `what`, `we`, `do`, `home`, `reservoir`).
+The JSON files live at `apps/site/data/site-content-{page}.json`. One file per page value (e.g., `what`, `we`, `do`, `home`, `harbour`).
 
 ---
 
@@ -33,7 +33,7 @@ Every row in the CMS has these fields. Here's what each one does:
 | Field | Type | What It Does |
 |-------|------|-------------|
 | **Name** | Title | The identifier for this content piece. Often displayed as a heading (h2/h3) on the page. Keep it short, lowercase, descriptive. |
-| **Page** | Select | Which page this content belongs to: `home`, `what`, `we`, `do`, or `reservoir`. This is how the sync groups content into separate JSON files. |
+| **Page** | Select | Which page this content belongs to: `home`, `what`, `we`, `do`, or `harbour`. This is how the sync groups content into separate JSON files. |
 
 ### Content Fields
 
@@ -57,7 +57,7 @@ Every row in the CMS has these fields. Here's what each one does:
 | Field | Type | What It Does |
 |-------|------|-------------|
 | **Icon** | Text | An emoji or image URL. When present, it displays alongside the content. Examples: `🎨`, `📷`, `🔬` |
-| **Brand Color** | Select | A named brand color (`sienna`, `redwood`, `cadet`). Currently used on reservoir game cards to set the primary color. |
+| **Brand Color** | Select | A named brand color (`sienna`, `redwood`, `cadet`). Currently used on harbour game cards to set the primary color. |
 | **Accent Color** | Select | A secondary named color. Used alongside Brand Color for two-tone styling on game cards. |
 | **Text Color** | Select | Overrides the text color for this content item. Pick from the brand palette: `cadet`, `redwood`, `sienna`, `champagne`, or `white`. When empty, the page's default text color applies. See "Text Color Options" below. |
 | **Image URL** | URL | A link to an image. Used for photo strips, hero backgrounds, or content imagery. Paste a full URL — not a Notion file upload. |
@@ -77,15 +77,15 @@ The **Content Type** field tells the page what kind of content this row represen
 
 | Type | Used On | What It Renders As |
 |------|---------|-------------------|
-| `hero` | what, do, reservoir | Large centered heading text — the page's main statement |
+| `hero` | what, do, harbour | Large centered heading text — the page's main statement |
 | `body` | what, do | Standard paragraph content. Combined with `layout` for different visual treatments |
 | `metadata` | all pages | Not visible on page — provides the page `<title>` (via Tagline) and `<meta description>` (via Content) for SEO |
 | `nav` | home | Navigation links. Name = internal label, Tagline = display text, Link = destination URL |
 | `footer` | home | Footer content. Used for social links and copyright text |
 | `team-member` | we | A person card with Name as their name, Tagline as their role, Content as bio, Features as skill tags |
-| `game-card` | reservoir | An interactive game card with Name, Content (description), Brand/Accent Colors, Icon, and Link |
-| `credential` | reservoir | A credential or qualification badge with Name and Icon |
-| `principle` | reservoir | A design principle with Name (title) and Content (explanation) |
+| `game-card` | harbour | An interactive game card with Name, Content (description), Brand/Accent Colors, Icon, and Link |
+| `credential` | harbour | A credential or qualification badge with Name and Icon |
+| `principle` | harbour | A design principle with Name (title) and Content (explanation) |
 | `cta` | do | A call-to-action block with Name, Content, Link, and Features (as bullet points) |
 | `package-pack` | do | A service package with Name, Content (description), and Features (as included items) |
 
@@ -179,7 +179,7 @@ The **Text Color** field lets you override the default text color for any conten
 | Social media links | Rows where section = `social` | **Name** = platform name, **Icon** = emoji, **Link** = profile URL |
 | SEO metadata | Row where section = `metadata` | **Tagline** = page title, **Content** = meta description |
 
-### `/reservoir` — Game Platform Landing
+### `/harbour` — Game Platform Landing
 
 **Sections used:** `hero`, `metadata`, `nav`, `games`, `why`, `principles`, `bio`, `closing-cta`
 
@@ -254,8 +254,8 @@ This regenerates all `apps/site/data/site-content-*.json` files. The changes wil
 1. Set the **Status** field to `draft` or `archived`
 2. Run the sync script — the row will be excluded from the JSON
 
-### Add a new game to the reservoir
-1. Create a new row with **Page** = `reservoir`, **Content Type** = `game-card`, **Section** = `games`
+### Add a new game to the harbour
+1. Create a new row with **Page** = `harbour`, **Content Type** = `game-card`, **Section** = `games`
 2. Fill in **Name**, **Content**, **Icon**, **Link**, **Brand Color**, **Accent Color**
 3. Set **Order** to position it relative to other games
 4. Run the sync script

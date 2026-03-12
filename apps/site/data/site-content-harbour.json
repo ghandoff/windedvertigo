@@ -1,7 +1,7 @@
 {
   "lastUpdated": "2026-03-05T08:05:52.406Z",
   "note": "Auto-generated from Notion Site Content CMS. Do not edit directly.",
-  "page": "reservoir",
+  "page": "harbour",
   "sections": [
     {
       "name": "why these tools",
@@ -20,7 +20,7 @@
       "imageUrl": ""
     },
     {
-      "name": "reservoir nav: games",
+      "name": "harbour nav: games",
       "content": "",
       "tagline": "games.",
       "order": 1,
@@ -36,9 +36,9 @@
       "imageUrl": ""
     },
     {
-      "name": "reservoir page",
+      "name": "harbour page",
       "content": "playful tools for connection, creativity, and growth — designed by developmental psychologists and learning scientists.",
-      "tagline": "the reservoir – winded.vertigo",
+      "tagline": "the harbour – winded.vertigo",
       "order": 1,
       "type": "metadata",
       "layout": "default",
@@ -69,7 +69,7 @@
     },
     {
       "name": "designed for development, not just engagement",
-      "content": "every tool in the reservoir is built on developmental science. we don’t just make things fun — we design experiences that meet children exactly where they are and invite them to grow. age-appropriate challenge, emotional safety, and progressive depth are baked into every interaction.",
+      "content": "every tool in the harbour is built on developmental science. we don’t just make things fun — we design experiences that meet children exactly where they are and invite them to grow. age-appropriate challenge, emotional safety, and progressive depth are baked into every interaction.",
       "tagline": "",
       "order": 1,
       "type": "principle",
@@ -116,7 +116,7 @@
       "imageUrl": ""
     },
     {
-      "name": "the reservoir",
+      "name": "the harbour",
       "content": "playful tools for connection, creativity, and growth — designed by developmental psychologists and learning scientists who believe play is how humans make sense of the world.",
       "tagline": "winded.vertigo presents",
       "order": 1,
@@ -144,11 +144,11 @@
       "brandColor": "sienna",
       "accentColor": "redwood",
       "textColor": "",
-      "link": "https://windedvertigo.com/reservoir/creaseworks",
+      "link": "https://windedvertigo.com/harbour/creaseworks",
       "imageUrl": ""
     },
     {
-      "name": "reservoir nav: why us",
+      "name": "harbour nav: why us",
       "content": "",
       "tagline": "why us.",
       "order": 2,
@@ -208,11 +208,11 @@
       "brandColor": "redwood",
       "accentColor": "sienna",
       "textColor": "",
-      "link": "https://windedvertigo.com/reservoir/vertigo-vault",
+      "link": "https://windedvertigo.com/harbour/vertigo-vault",
       "imageUrl": ""
     },
     {
-      "name": "reservoir nav: about",
+      "name": "harbour nav: about",
       "content": "",
       "tagline": "about.",
       "order": 3,
@@ -272,7 +272,7 @@
       "brandColor": "cadet",
       "accentColor": "redwood",
       "textColor": "",
-      "link": "https://windedvertigo.com/reservoir/deep-deck",
+      "link": "https://windedvertigo.com/harbour/deep-deck",
       "imageUrl": ""
     },
     {

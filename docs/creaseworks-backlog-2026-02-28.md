@@ -26,7 +26,7 @@ these items were listed as "not started" in the previous backlog but are now imp
 |-------|------|--------|
 | 1 | garbled emoji across 3 files | ✅ fixed — all emoji correct in playdate-card.tsx, entitled-playdate-view.tsx, sampler/[slug]/page.tsx |
 | 2 | apply migrations 030–035 to neon | ✅ applied — 031-035 applied 1 march 2026. verification passed. |
-| 3 | run smoke test against production | ✅ 28/29 pass (root `/` returns 308 redirect — expected for authed redirect). base URL: `https://windedvertigo.com/reservoir/creaseworks` |
+| 3 | run smoke test against production | ✅ 28/29 pass (root `/` returns 308 redirect — expected for authed redirect). base URL: `https://windedvertigo.com/harbour/creaseworks` |
 | 4 | packs nav link hidden for authed users | ✅ fixed — packs visible in desktop nav (publicLinks) and mobile bottom tab bar |
 | 6 | pack preview badges on sampler cards | ✅ built — `PlaydateCard` accepts `packInfo: PackBadgeInfo` prop, renders 🔒 badge |
 | 7 | post-reflection upsell CTA | ✅ built — `RunForm` success state shows pack upsell with `ReflectionPackInfo` |
@@ -50,7 +50,7 @@ these items were listed as "not started" in the previous backlog but are now imp
 | 2 | **quick-log photo toast enhancement** | ✅ done | expandable 5s toast with photo nudge + dismiss, hover pauses timer |
 | 3 | **tag playdates with campaign_tags in notion** | ✅ done | session 34 — seed script + commit c5a1605 |
 | 4 | **lowercase violations in dynamic content** | ✅ done | session 34 — commit c6255c1 |
-| 5 | **smoke test base URL fix** | ✅ done | default already includes `/reservoir/creaseworks` prefix |
+| 5 | **smoke test base URL fix** | ✅ done | default already includes `/harbour/creaseworks` prefix |
 
 ---
 

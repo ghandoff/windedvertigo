@@ -5,7 +5,7 @@ import { CredibilityZone } from "@/components/credibility-zone";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import credibilityData from "@/data/credibility.json";
 
-export default function ReservoirPage() {
+export default function HarbourPage() {
   return (
     <>
       <Header />
@@ -27,7 +27,7 @@ export default function ReservoirPage() {
               {credibilityData.hero?.tagline ?? "winded.vertigo presents"}
             </p>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-[var(--color-text-on-dark)] leading-[1.1] tracking-tight mb-6">
-              {credibilityData.hero?.title ?? "the reservoir"}
+              {credibilityData.hero?.title ?? "the harbour"}
             </h1>
             <p className="text-lg sm:text-xl text-[var(--color-text-on-dark-muted)] leading-relaxed max-w-xl mx-auto mb-10">
               {credibilityData.hero?.subtitle ?? "playful tools for connection, creativity, and growth."}

@@ -56,10 +56,10 @@
 ### Don't Assume — Verify
 - Always check the actual codebase before assuming file locations or content
 - The monorepo has 6 apps — make sure you're editing the right one
-- Package names in `package.json` don't always match directory names (e.g., `creaseworks` vs `@windedvertigo/reservoir`)
+- Package names in `package.json` don't always match directory names (e.g., `creaseworks` vs `@windedvertigo/harbour`)
 
 ### Dependency Awareness
-- Changes to `packages/tokens` affect creaseworks AND reservoir (Turborepo graph)
+- Changes to `packages/tokens` affect creaseworks AND harbour (Turborepo graph)
 - Changes to root config (`turbo.json`, root `package.json`) trigger ALL projects
 - Run `npx turbo run build --dry` to verify what would rebuild
 

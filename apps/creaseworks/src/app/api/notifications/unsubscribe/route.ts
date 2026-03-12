@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyUnsubscribeToken } from "@/lib/email/unsubscribe-token";
 import { updatePrefs } from "@/lib/queries/notifications";
 
-const BASE_PATH = "/reservoir/creaseworks";
+const BASE_PATH = "/harbour/creaseworks";
 
 /**
  * GET /api/notifications/unsubscribe?token=...

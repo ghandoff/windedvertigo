@@ -39,7 +39,7 @@ windedvertigo/
 │   ├── creaseworks/       ← creaseworks Next.js app (TypeScript)
 │   ├── deep-deck/         ← deep-deck Next.js app
 │   ├── nordic-sqr-rct/    ← sqr-rct Next.js app (JavaScript)
-│   ├── reservoir/         ← reservoir Next.js app
+│   ├── harbour/         ← harbour Next.js app
 │   └── vertigo-vault/     ← vertigo-vault Next.js app
 ├── packages/
 │   └── tokens/            ← shared design tokens (CSS + TS)
@@ -70,7 +70,7 @@ This monorepo contains all three winded.vertigo projects. No more multi-mount co
 - Data files in `apps/site/data/` are auto-generated — do not edit directly
 - Images in `apps/site/images/vertigo-vault/` are auto-downloaded from Notion
 
-### apps/creaseworks — windedvertigo.com/reservoir/creaseworks
+### apps/creaseworks — windedvertigo.com/harbour/creaseworks
 - Next.js 16, TypeScript, React 19, Tailwind CSS 4
 - Auth.js + Neon Postgres + Stripe + Resend
 - Repo: `ghandoff/windedvertigo` (this repo), Vercel Root Directory: `apps/creaseworks`
@@ -86,9 +86,9 @@ This monorepo contains all three winded.vertigo projects. No more multi-mount co
 - Auth: bcryptjs + jose (JWT)
 - Run locally: `npm run dev:sqr-rct` (from monorepo root)
 
-### apps/reservoir — reservoir app
+### apps/harbour — harbour app
 - Next.js 16, TypeScript, React 19, Tailwind CSS 4, imports `@windedvertigo/tokens`
-- Run locally: `npm run dev:reservoir` (from monorepo root)
+- Run locally: `npm run dev:harbour` (from monorepo root)
 
 ### apps/vertigo-vault — vertigo-vault app
 - Next.js 16, TypeScript, React 19, Tailwind CSS 4, fetches from Notion API
@@ -101,7 +101,7 @@ All editorial content is authored in Notion and synced to the static site. See `
 
 Key sync paths:
 - **Portfolio assets**: Fetched from the BD multi-database (parent ID: `5e27b792adbb4a958779900fb59dd631`) via `notion.search()` — NOT `databases.query()` (doesn't work with multi-databases)
-- **Vertigo Vault**: Activities + cover images from dedicated Notion database → also served at `/reservoir/vertigo-vault/` (old `/vertigo-vault/` URLs redirect there)
+- **Vertigo Vault**: Activities + cover images from dedicated Notion database → also served at `/harbour/vertigo-vault/` (old `/vertigo-vault/` URLs redirect there)
 - **Package Builder**: Quadrants + Outcomes merged from Notion → `package-builder-content.json`
 - **Members** (`/we/` page): Synced via `scripts/sync-notion-members.js` (standalone)
 - **Services** (`/do/` page): Synced via `scripts/sync-notion-services.js` (standalone)
@@ -161,7 +161,7 @@ node scripts/apply-migrations-028-032.mjs
 # Skips already-applied migrations. Safe to re-run.
 
 # ── Smoke Test (from apps/creaseworks/) ──────────────────
-node scripts/smoke-test.mjs https://windedvertigo.com/reservoir/creaseworks
+node scripts/smoke-test.mjs https://windedvertigo.com/harbour/creaseworks
 # Hits all 29 routes, checks HTTP status, title/og:title presence.
 # No auth — tests public + redirect behavior for protected routes.
 
@@ -173,7 +173,7 @@ npm run dev:creaseworks           # http://localhost:3000
 npm run dev:sqr-rct               # http://localhost:3001
 npm run dev:vault                 # vertigo-vault dev server
 npm run dev:deep-deck             # deep-deck dev server
-npm run dev:reservoir             # reservoir dev server
+npm run dev:harbour             # harbour dev server
 
 # ── Notion Sync (from monorepo root) ─────────────────────
 npm run sync                      # fetch all Notion content → data/ + images/
@@ -193,7 +193,7 @@ npm run lint --workspace=@windedvertigo/deep-deck     # lint a single app
 - creaseworks: `prj_EoDpRvw1kdAqcGVrcaYclfWFeX7b`
 - windedvertigo-site: `prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx`
 - nordic-sqr-rct: `prj_laAl3qm5w20CrtIjO2klc9dj180z`
-- deep-deck, reservoir, vertigo-vault (project IDs in Vercel dashboard)
+- deep-deck, harbour, vertigo-vault (project IDs in Vercel dashboard)
 - Team: `team_wrpRda7ZzXdu7nKcEVVXY3th`
 
 **Deployment optimization (Turborepo + turbo-ignore)**:
@@ -240,7 +240,7 @@ Root `package.json` declares `"workspaces": ["apps/*", "packages/*"]`. **Turbore
 
 **Workspace dependency graph** (drives both Turbo caching and `turbo-ignore` selective deploys):
 - `creaseworks` → depends on `@windedvertigo/tokens`
-- `reservoir` → depends on `@windedvertigo/tokens`
+- `harbour` → depends on `@windedvertigo/tokens`
 - `deep-deck`, `vertigo-vault`, `nordic-sqr-rct`, `site` → no inter-workspace dependencies
 
 Convenience commands (all from monorepo root):
@@ -250,7 +250,7 @@ Convenience commands (all from monorepo root):
 - `npm run dev:sqr-rct` — start sqr-rct dev server only
 - `npm run dev:vault` — start vertigo-vault dev server only
 - `npm run dev:deep-deck` — start deep-deck dev server only
-- `npm run dev:reservoir` — start reservoir dev server only
+- `npm run dev:harbour` — start harbour dev server only
 - `npm run sync` — run Notion fetch scripts
 - `npm run sync:footer` — sync canonical footer to static site + TS wrapper
 - `npm run test` — run creaseworks tests (vitest)
@@ -269,10 +269,10 @@ Each app is its own Vercel project with monorepo Root Directory settings. Every 
 | windedvertigo-site | `apps/site` (framework "Other") | `npx turbo-ignore @windedvertigo/site` |
 | nordic-sqr-rct | `apps/nordic-sqr-rct` | `npx turbo-ignore nordic-sqr-rct` |
 | deep-deck | `apps/deep-deck` | `npx turbo-ignore @windedvertigo/deep-deck` |
-| reservoir | `apps/reservoir` | `npx turbo-ignore @windedvertigo/reservoir` |
+| harbour | `apps/harbour` | `npx turbo-ignore @windedvertigo/harbour` |
 | vertigo-vault | `apps/vertigo-vault` | `npx turbo-ignore @windedvertigo/vertigo-vault` |
 
-**How `turbo-ignore` works**: compares `VERCEL_GIT_PREVIOUS_SHA` (last successful deploy) to HEAD, walks the Turborepo dependency graph, and exits 0 (skip) or 1 (build). A change to `packages/tokens` triggers rebuilds for creaseworks and reservoir (its dependents) but skips the other 4 apps.
+**How `turbo-ignore` works**: compares `VERCEL_GIT_PREVIOUS_SHA` (last successful deploy) to HEAD, walks the Turborepo dependency graph, and exits 0 (skip) or 1 (build). A change to `packages/tokens` triggers rebuilds for creaseworks and harbour (its dependents) but skips the other 4 apps.
 
 ## Infrastructure Decisions
 

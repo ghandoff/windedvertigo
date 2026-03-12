@@ -13,7 +13,7 @@ import {
   setOrgStripeCustomerId,
 } from "@/lib/queries/organisations";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://windedvertigo.com/reservoir/creaseworks";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://windedvertigo.com/harbour/creaseworks";
 
 /**
  * Get or create a Stripe customer for an organisation.

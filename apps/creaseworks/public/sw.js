@@ -6,11 +6,11 @@
  *  - Navigation requests (HTML): network-first with offline fallback
  *  - API calls: network-only (no caching)
  *
- * The SW is scoped to /reservoir/creaseworks/ via the manifest.
+ * The SW is scoped to /harbour/creaseworks/ via the manifest.
  */
 
 const CACHE_NAME = "cw-v1";
-const BASE = "/reservoir/creaseworks";
+const BASE = "/harbour/creaseworks";
 
 // App shell assets to pre-cache on install
 const PRECACHE_URLS = [

@@ -74,7 +74,7 @@ export async function PATCH(req: NextRequest) {
     // HttpOnly=false so client JS can also read them for optimistic UI.
     const res = NextResponse.json({ ...prefs, uiTier });
     const cookieOpts = {
-      path: "/reservoir/creaseworks",
+      path: "/harbour/creaseworks",
       maxAge: 60 * 60 * 24 * 365, // 1 year
       sameSite: "lax" as const,
       secure: process.env.NODE_ENV === "production",

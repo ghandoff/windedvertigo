@@ -1,13 +1,13 @@
 /**
- * GET /api/admin/reservoir-status
+ * GET /api/admin/harbour-status
  *
- * Returns cross-platform health metrics for the reservoir admin dashboard.
+ * Returns cross-platform health metrics for the harbour admin dashboard.
  * Admin-only — no scoped visibility, shows the full picture.
  */
 
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth-helpers";
-import { getReservoirStatus } from "@/lib/queries/reservoir-status";
+import { getHarbourStatus } from "@/lib/queries/harbour-status";
 
 export async function GET() {
   const session = await getSession();
@@ -16,12 +16,12 @@ export async function GET() {
   }
 
   try {
-    const status = await getReservoirStatus();
+    const status = await getHarbourStatus();
     return NextResponse.json(status);
   } catch (err: any) {
-    console.error("[reservoir-status] query failed:", err);
+    console.error("[harbour-status] query failed:", err);
     return NextResponse.json(
-      { error: "reservoir status query failed" },
+      { error: "harbour status query failed" },
       { status: 500 },
     );
   }

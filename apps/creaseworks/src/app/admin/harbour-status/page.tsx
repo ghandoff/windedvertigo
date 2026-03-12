@@ -1,24 +1,24 @@
 /**
- * Admin — Reservoir Status
+ * Admin — Harbour Status
  *
  * Cross-platform health dashboard showing content counts, user stats,
  * entitlements, reflection activity, and content freshness across
- * all reservoir apps.
+ * all harbour apps.
  */
 
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/auth-helpers";
 import Link from "next/link";
-import ReservoirStatusDashboard from "./reservoir-status-dashboard";
+import HarbourStatusDashboard from "./harbour-status-dashboard";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "reservoir status",
-  description: "cross-platform health dashboard for the reservoir",
+  title: "harbour status",
+  description: "cross-platform health dashboard for the harbour",
 };
 
-export default async function ReservoirStatusPage() {
+export default async function HarbourStatusPage() {
   await requireAdmin();
 
   return (
@@ -32,13 +32,13 @@ export default async function ReservoirStatusPage() {
         </Link>
       </div>
       <h1 className="text-3xl font-semibold tracking-tight mb-2">
-        reservoir status
+        harbour status
       </h1>
       <p className="text-sm text-cadet/50 mb-10">
         cross-platform health across creaseworks, deep-deck, and vertigo-vault
       </p>
 
-      <ReservoirStatusDashboard />
+      <HarbourStatusDashboard />
     </main>
   );
 }

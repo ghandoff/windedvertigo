@@ -42,7 +42,7 @@ migrations/                 # sql schema
 
 ## deployment
 
-hosted on vercel at `windedvertigo.com/reservoir/creaseworks`.
+hosted on vercel at `windedvertigo.com/harbour/creaseworks`.
 
 docs/                       # design documentation
 
