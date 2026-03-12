@@ -11,7 +11,7 @@ Hands-free voice command pipeline for the winded.vertigo collective. User speaks
 
 - **Runtime**: Node.js serverless on Vercel (no build step, no framework)
 - **AI**: `claude-opus-4-6` via `@anthropic-ai/sdk` — never use sonnet for this project
-- **Data**: Notion API (`@notionhq/client`) — 3 databases (inbox, voice log, @tasks)
+- **Data**: Notion API (`@notionhq/client`) — 4 databases (inbox, voice log, @tasks, code tasks)
 - **Messaging**: Slack Web API (`@slack/web-api`)
 - **Auth**: Per-user OAuth via `api/auth.js` + Vercel KV (`lib/kv.js`). Falls back to shared bot tokens.
 
@@ -50,6 +50,7 @@ Responses are read aloud via TTS. Design them to be:
 NOTION_INBOX_DATABASE_ID=7fdb708708e942f89e033de3690790c9
 NOTION_VOICE_LOG_DB_ID=a93a805b13ba4826aec3c29d47f680f5
 NOTION_TASKS_DB_ID=224e4ee74ba48121ac6ecb9664f5dfc4
+NOTION_CODE_TASKS_DB_ID=1f803f345a324142aba971b86d626220
 ```
 
 ## Running Locally

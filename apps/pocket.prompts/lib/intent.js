@@ -10,7 +10,7 @@ respond ONLY with valid json. no preamble, no explanation.
 
 schema:
 {
-  "intent": "notion_note" | "notion_idea" | "notion_task" | "slack_message" | "slack_check" | "slack_reply" | "code_conversation" | "build_approval" | "unknown",
+  "intent": "notion_note" | "notion_idea" | "notion_task" | "slack_message" | "slack_check" | "slack_reply" | "code_conversation" | "code_approve" | "code_status" | "build_approval" | "unknown",
   "priority": "high" | "medium" | "low" | "urgent",
   "assignee": "[name or null]",
   "due_date": "[natural language date or null]",
@@ -72,7 +72,21 @@ if confidence is below 0.7, set intent to "unknown" and include a clarifying_que
 - "debug the failing test in the auth module" → code_conversation
 - "code review the latest PR" → code_conversation
 
-**build_approval** — deploying or approving a build.
+**code_approve** — approving a pending code plan so claude code can proceed with implementation. this is specifically about approving a code plan that was generated, NOT about approving a build deploy.
+- "approve the plan" → code_approve
+- "looks good, go ahead" → code_approve (only if a code plan was recently discussed)
+- "proceed with the code request" → code_approve
+- "yes, implement that" → code_approve
+- "approve the code task" → code_approve
+
+**code_status** — checking on the status of a code request or plan.
+- "what's the code status?" → code_status
+- "how's my code request going?" → code_status
+- "is the plan ready?" → code_status
+- "check on the code task" → code_status
+- "any updates on the code?" → code_status
+
+**build_approval** — deploying or approving a build (NOT approving a code plan — that's code_approve).
 - "ship it" or "approve the build" → build_approval
 - "deploy to production" → build_approval
 
@@ -82,7 +96,9 @@ if confidence is below 0.7, set intent to "unknown" and include a clarifying_que
 2. slack_message requires a real team member name (garrett, jamie, lamis, maria, payton, august). if no valid member is named, it's probably a different intent.
 3. when ambiguous between note and task: if there's no assignee, deadline, or action verb → note. if there's a clear owner or deadline → task.
 4. after a slack summary, the next utterance is likely a reply. "reply to her" or "tell him yes" = slack_reply.
-5. default to notion_note when genuinely unsure — capturing something is always better than losing it.`;
+5. default to notion_note when genuinely unsure — capturing something is always better than losing it.
+6. "approve the plan" or "go ahead with the plan" = code_approve (code plan approval). "ship it" or "deploy" = build_approval (production deploy). these are different intents.
+7. "code status", "plan status", "how's the code task" = code_status. "check slack" = slack_check. don't confuse them.`;
 
 export async function detect_intent(utterance) {
   try {

@@ -47,7 +47,8 @@
           "speechRecognitionPermission": "pocket.prompts uses speech recognition to transcribe your voice commands."
         }
       ],
-      "./plugins/with-remote-command"
+      "./plugins/with-remote-command",
+      "./plugins/with-gradle-fix"
     ],
     "experiments": {
       "typedRoutes": false

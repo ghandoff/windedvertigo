@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-// remote-command is iOS-only. on android/web, every call is a safe no-op.
+// remote-command is native on iOS + Android. on web, every call is a safe no-op.
 
 type RemoteCommandEvent = {
   command: 'togglePlayPause' | 'play' | 'pause' | 'nextTrack' | 'previousTrack';
@@ -22,7 +22,7 @@ const stub: RemoteCommandModule = {
 
 let mod: RemoteCommandModule;
 
-if (Platform.OS === 'ios') {
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
   try {
     // expo autolinking registers the native module at build time
     const { requireNativeModule } = require('expo-modules-core');

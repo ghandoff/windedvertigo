@@ -31,6 +31,48 @@ export function slack_no_messages() {
   return `all clear — no new messages right now. want to capture a note or idea instead?`;
 }
 
+export function code_task_created(project) {
+  const proj = project ? ` for ${project}` : '';
+  return `queued — i've created a code task${proj}. claude code will generate a plan and send you a summary. anything else?`;
+}
+
+export function code_approved() {
+  return `approved — claude code will start implementing. i'll message you on slack when it's done. anything else?`;
+}
+
+export function code_status_update(request_preview, status, plan_summary) {
+  const preview = request_preview ? `"${request_preview}"` : 'your code request';
+
+  if (status === 'pending') {
+    return `${preview} is queued and waiting for claude code to generate a plan. i'll send you a summary when it's ready. anything else?`;
+  }
+  if (status === 'planning') {
+    return `claude code is working on a plan for ${preview} right now. i'll message you when the plan is ready. anything else?`;
+  }
+  if (status === 'plan ready' && plan_summary) {
+    return `plan ready for ${preview}. ${plan_summary} say "approve the plan" to proceed, or ask me to check something else.`;
+  }
+  if (status === 'plan ready') {
+    return `there's a plan ready for ${preview}. say "approve the plan" to proceed, or check the details in notion. anything else?`;
+  }
+  if (status === 'approved' || status === 'implementing') {
+    return `claude code is implementing ${preview} right now. i'll send you a slack message when it's done. anything else?`;
+  }
+  if (status === 'complete') {
+    return `${preview} is complete. check your slack for the details, or start a new code task.`;
+  }
+  if (status === 'failed') {
+    return `the code task for ${preview} ran into an issue. check your slack for details, or try again with a new request.`;
+  }
+
+  return `${preview} is currently ${status}. anything else?`;
+}
+
+export function code_no_tasks() {
+  return `no active code tasks right now. want to start one? just say what you need built.`;
+}
+
+// legacy — kept for backward compatibility
 export function code_conversation_queued() {
   return `queued — claude code will pick that up next time it checks in. anything else?`;
 }

@@ -1,6 +1,7 @@
 import { detect_intent } from '../lib/intent.js';
 import { create_capture } from '../lib/notion.js';
 import { create_task } from '../lib/notion-tasks.js';
+import { create_code_task, get_latest_code_task, update_code_task } from '../lib/notion-code-tasks.js';
 import { resolve_member, get_slack_user_id } from '../lib/users.js';
 import { get_recent_messages, send_message, find_dm_channel } from '../lib/slack.js';
 import { log_voice_interaction } from '../lib/voice-log.js';
@@ -126,6 +127,12 @@ export default async function handler(req, res) {
 
       case 'code_conversation':
         return await handle_code_conversation(intent, ctx, res);
+
+      case 'code_approve':
+        return await handle_code_approve(intent, ctx, res);
+
+      case 'code_status':
+        return await handle_code_status(intent, ctx, res);
 
       case 'build_approval':
         return await handle_build_approval(intent, ctx, res);
@@ -378,14 +385,43 @@ async function handle_slack_reply(intent, ctx, res) {
 
 // --- code & build handlers ---
 
-async function handle_code_conversation(intent, ctx, res) {
-  // 1. send a slack dm to the user with the code request (so they have it at their desk)
-  // 2. the voice log captures this with intent=code_conversation for scheduled task pickup
-  const content = intent.content || ctx.utterance;
-  console.log(`[voice] code conversation: "${content.substring(0, 80)}..."`);
+/**
+ * Infer which monorepo project a code request is about from keywords.
+ * Returns a valid project select value or null.
+ */
+function infer_project(content) {
+  const lower = (content || '').toLowerCase();
+  if (lower.includes('creaseworks')) return 'creaseworks';
+  if (lower.includes('pocket prompts') || lower.includes('pocket.prompts') || lower.includes('voice pipeline') || lower.includes('voice command')) return 'pocket.prompts';
+  if (lower.includes('expo') || lower.includes('react native') || lower.includes('mobile app') || lower.includes('prompts-app') || lower.includes('prompts app')) return 'pocket.prompts-app';
+  if (lower.includes('landing') || lower.includes('marketing site') || lower.includes('winded.vertigo site')) return 'site';
+  if (lower.includes('deep deck') || lower.includes('deep-deck') || lower.includes('deepdeck')) return 'deep-deck';
+  return null;
+}
 
+async function handle_code_conversation(intent, ctx, res) {
+  const content = intent.content || ctx.utterance;
+  const project = infer_project(content);
+  console.log(`[voice] code task: "${content.substring(0, 80)}..." project: ${project || 'auto'}`);
+
+  // create notion code task (this is the primary action)
+  const result = await create_code_task({
+    content,
+    project,
+    requested_by: ctx.user_id,
+    token: ctx.notion_token
+  });
+
+  if (!result.success) {
+    return respond(res, 500, {
+      spoken_response: tts.error_fallback(),
+      action_taken: 'error',
+      error: result.error
+    }, ctx);
+  }
+
+  // send slack dm as notification (fire-and-forget — don't block the response)
   try {
-    // user token handles both: conversations.open (im:write) + postMessage (chat:write)
     const token = ctx.slack_token || ctx.slack_bot_token || (process.env.SLACK_BOT_TOKEN || '').trim();
     const slack_user_id = get_slack_user_id(ctx.user_id);
 
@@ -395,21 +431,92 @@ async function handle_code_conversation(intent, ctx, res) {
         await send_message({
           token,
           channel_id,
-          text: `🤖 *Code request* from pocket.prompts:\n> ${content}\n\n_Paste this into Claude Code when you're at your desk._`
+          text: `🤖 *Code task created* — "${content.substring(0, 100)}"\nStatus: Pending → Claude Code will generate a plan.`
         });
-        console.log(`[voice] code conversation dm sent to ${ctx.user_id}`);
+        console.log(`[voice] code task dm sent to ${ctx.user_id}`);
       }
     }
   } catch (err) {
-    // dm is a nice-to-have — don't fail the whole request
-    console.error(`[voice] code conversation dm failed: ${err.message}`);
+    console.error(`[voice] code task dm failed: ${err.message}`);
   }
 
   return respond(res, 200, {
-    spoken_response: tts.code_conversation_started(),
+    spoken_response: tts.code_task_created(project),
     action_taken: 'code_conversation',
-    intent_result: intent
+    entry_url: result.url
   }, ctx);
+}
+
+async function handle_code_approve(intent, ctx, res) {
+  try {
+    const task = await get_latest_code_task({
+      requested_by: ctx.user_id,
+      status: 'plan ready',
+      token: ctx.notion_token
+    });
+
+    if (!task) {
+      return respond(res, 200, {
+        spoken_response: "i don't see a plan waiting for approval. want to check the code status instead?",
+        action_taken: 'code_approve_no_task',
+        intent_result: intent
+      }, ctx);
+    }
+
+    await update_code_task({
+      page_id: task.page_id,
+      status: 'approved',
+      token: ctx.notion_token
+    });
+
+    console.log(`[voice] code task approved: ${task.page_id}`);
+
+    return respond(res, 200, {
+      spoken_response: tts.code_approved(),
+      action_taken: 'code_approve',
+      entry_url: task.url
+    }, ctx);
+  } catch (err) {
+    console.error(`[voice] code approve failed: ${err.message}`);
+    return respond(res, 500, {
+      spoken_response: tts.error_fallback(),
+      action_taken: 'error',
+      error: err.message
+    }, ctx);
+  }
+}
+
+async function handle_code_status(intent, ctx, res) {
+  try {
+    const task = await get_latest_code_task({
+      requested_by: ctx.user_id,
+      token: ctx.notion_token
+    });
+
+    if (!task) {
+      return respond(res, 200, {
+        spoken_response: tts.code_no_tasks(),
+        action_taken: 'code_status_empty',
+        intent_result: intent
+      }, ctx);
+    }
+
+    const preview = task.request ? task.request.substring(0, 60) : null;
+    console.log(`[voice] code status: "${preview}" → ${task.status}`);
+
+    return respond(res, 200, {
+      spoken_response: tts.code_status_update(preview, task.status, task.plan_summary),
+      action_taken: 'code_status',
+      entry_url: task.url
+    }, ctx);
+  } catch (err) {
+    console.error(`[voice] code status failed: ${err.message}`);
+    return respond(res, 500, {
+      spoken_response: tts.error_fallback(),
+      action_taken: 'error',
+      error: err.message
+    }, ctx);
+  }
 }
 
 async function handle_build_approval(intent, ctx, res) {
