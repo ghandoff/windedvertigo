@@ -33,14 +33,14 @@ This document is the single source of truth for all dependency versions, update 
 
 | Dependency | Current | Latest | Used by | Tier | Constraint |
 |------------|---------|--------|---------|------|------------|
-| @anthropic-ai/sdk | **0.39.0** | 0.78.0 | pocket.prompts | P2 | **OUTDATED — test voice pipeline before bumping** |
+| @anthropic-ai/sdk | 0.78.0 | 0.78.0 | pocket.prompts | P2 | — |
 | @anthropic-ai/sdk | 0.73.0 | 0.78.0 | sqr-rct | P2 | — |
 | @notionhq/client | 2.3.0 | 5.12.0 | root, creaseworks, pocket.prompts | P2 | Major version jump — evaluate breaking changes |
-| @notionhq/client | 2.2.15 | 5.12.0 | sqr-rct | P2 | Align to 2.3.0 first, then evaluate v5 |
+| @notionhq/client | 2.3.0 | 5.12.0 | sqr-rct | P2 | Aligned — evaluate v5 when ready |
 | stripe | ^17.7.0 | — | creaseworks, vault | P2 | — |
 | @slack/web-api | ^7.9.1 | — | pocket.prompts | P2 | — |
-| @aws-sdk/client-s3 | 3.998.0 | 3.1007.0 | creaseworks | P2 | Auto-updateable (patch) |
-| @aws-sdk/s3-request-presigner | 3.998.0 | 3.1007.0 | creaseworks | P2 | Keep in sync with client-s3 |
+| @aws-sdk/client-s3 | 3.1007.0 | 3.1007.0 | creaseworks | P2 | — |
+| @aws-sdk/s3-request-presigner | 3.1007.0 | 3.1007.0 | creaseworks | P2 | Keep in sync with client-s3 |
 | resend | ^6.9.2 | — | creaseworks, vault | P2 | — |
 | openai | 6.25.0 | 6.27.0 | sqr-rct | P2 | — |
 | @vercel/postgres | ^0.10.0 | — | creaseworks, vault | P2 | — |
@@ -269,7 +269,7 @@ Is it a CLI or MCP server?
 | Dependency | Constraint | Reason |
 |------------|-----------|--------|
 | next-auth | **Hold at 5.0.0-beta.30** | Waiting for v5 stable. Do NOT downgrade to v4. Do NOT blindly bump beta. |
-| @anthropic-ai/sdk (pocket.prompts) | **Test voice pipeline before bumping** | pocket.prompts uses opus-4-6 intent detection. SDK changes can break prompt format or streaming. Run full voice→intent→action→TTS cycle. |
+| @anthropic-ai/sdk (pocket.prompts) | **Confirmed safe** as of 0.78.0 | No breaking changes for `messages.create()` patterns. Only additive optional params (`output_config`, new stop reasons). Safe to auto-update. |
 | @notionhq/client | **Hold at ^2.3.0** | v5.x is a major rewrite. Evaluate breaking changes before migrating. |
 | tailwindcss (sqr-rct) | **v3→v4 requires migration** | Not a simple version bump. Needs config rewrite, class name changes. Separate task. |
 | Node.js | **Standardizing on 22 LTS** | `.nvmrc` pins 22. CI workflows updated. Local may still run 25 — `nvm use` before dev work. |
@@ -304,13 +304,13 @@ Both `.github/workflows/ci.yml` and `.github/workflows/sync-notion.yml` use Node
 
 ## 7. Current Audit Findings (2026-03-11)
 
-These issues exist today and should be addressed:
+Resolved on 2026-03-12 unless noted otherwise:
 
-| # | Issue | Severity | Action |
+| # | Issue | Severity | Status |
 |---|-------|----------|--------|
-| 1 | `@anthropic-ai/sdk` 0.39.0 in pocket.prompts (latest: 0.78.0) | Medium | Update + test voice pipeline |
-| 2 | `@notionhq/client` 2.2.15 in sqr-rct (others: 2.3.0) | Low | Align to 2.3.0 |
-| 3 | `tailwindcss` v3 in sqr-rct (others: v4) | Low | Separate migration task |
-| 4 | `@aws-sdk/*` 3.998.0 (latest: 3.1007.0) | Low | Patch update, safe to bump |
-| 5 | `npm audit`: 6 high, 8 moderate vulnerabilities | Medium | Run `npm audit fix` |
-| 6 | Node 20 in CI vs 25 local | Medium | Standardize on 22 LTS (in progress) |
+| 1 | `@anthropic-ai/sdk` 0.39.0 → 0.78.0 in pocket.prompts | Medium | **Resolved** — no breaking changes for messages.create() patterns |
+| 2 | `@notionhq/client` 2.2.15 → 2.3.0 in sqr-rct | Low | **Resolved** — aligned via `npm update` |
+| 3 | `tailwindcss` v3 in sqr-rct (others: v4) | Low | **Deferred** — requires full migration (config rewrite, class changes). Separate task. |
+| 4 | `@aws-sdk/*` 3.998.0 → 3.1007.0 in creaseworks | Low | **Resolved** — patch bump |
+| 5 | `npm audit`: 15 remaining vulns (undici transitive in @vercel/node) | Medium | **Accepted** — requires breaking @vercel/node upgrade. Monitor for upstream fix. |
+| 6 | Node 20 in CI → 22 LTS | Medium | **Resolved** — .nvmrc, CI workflows, engines field all set to 22 |
