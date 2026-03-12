@@ -69,7 +69,7 @@ function LandingContent() {
                 ].map((item) => (
                   <div key={item.title} className={`card p-6 border-l-4 border-l-${item.color}-500 backdrop-blur-sm bg-white/95`}>
                     <div className="flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-lg bg-${item.color}-50 flex items-center justify-center flex-shrink-0`}>
+                      <div className={`w-10 h-10 rounded-lg bg-${item.color}-50 flex items-center justify-center shrink-0`}>
                         <svg className={`w-5 h-5 text-${item.color}-600`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d={item.icon} /></svg>
                       </div>
                       <div>

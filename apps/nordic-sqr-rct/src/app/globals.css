@@ -1,6 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-pacific-50:  #f0f7fc;
+  --color-pacific-100: #dfecf8;
+  --color-pacific-200: #b8d7f0;
+  --color-pacific-300: #84bce5;
+  --color-pacific-400: #4a9bd6;
+  --color-pacific-500: #2480c4;
+  --color-pacific-600: #1466a8;
+  --color-pacific-700: #024a87;
+  --color-pacific:     #024a87;
+  --color-pacific-800: #053d6e;
+  --color-pacific-900: #08335b;
+  --color-pacific-950: #0a2240;
+
+  --color-nordic-50:  #f0fafb;
+  --color-nordic-100: #d9f2f4;
+  --color-nordic-200: #b7e5ea;
+  --color-nordic-300: #85d1da;
+  --color-nordic-400: #4db5c2;
+  --color-nordic-500: #2e99a8;
+  --color-nordic-600: #287b8e;
+  --color-nordic-700: #266474;
+  --color-nordic-800: #265361;
+  --color-nordic-900: #244653;
+  --color-nordic-950: #132d37;
+
+  --color-gold-50:  #fefbe8;
+  --color-gold-100: #fef5c3;
+  --color-gold-200: #fee88a;
+  --color-gold-300: #fed447;
+  --color-gold-400: #fcc015;
+  --color-gold-500: #eca708;
+  --color-gold-600: #cc8004;
+  --color-gold-700: #a35a07;
+  --color-gold-800: #86470e;
+  --color-gold-900: #723b12;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+}
 
 @layer base {
   body {
@@ -30,13 +69,13 @@
   }
   .input-field {
     @apply w-full px-4 py-3 rounded-lg border border-gray-300
-           bg-white text-gray-900 placeholder-gray-400
+           bg-white text-gray-900 placeholder:text-gray-400
            focus:outline-none focus:ring-2 focus:ring-pacific-500 focus:border-transparent
            transition-shadow duration-150;
   }
   .textarea-field {
     @apply w-full px-4 py-3 rounded-lg border border-gray-300
-           bg-white text-gray-900 placeholder-gray-400
+           bg-white text-gray-900 placeholder:text-gray-400
            focus:outline-none focus:ring-2 focus:ring-pacific-500 focus:border-transparent
            transition-shadow duration-150 resize-y;
   }

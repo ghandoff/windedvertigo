@@ -79,8 +79,8 @@
       "allowedVersions": "<5.0.0"
     },
     {
-      "description": "HOLD — tailwindcss in sqr-rct: needs manual v3→v4 migration",
-      "matchPackageNames": ["tailwindcss"],
+      "description": "HOLD — autoprefixer removed from sqr-rct (now built into tailwindcss v4)",
+      "matchPackageNames": ["autoprefixer"],
       "matchFileNames": ["apps/nordic-sqr-rct/package.json"],
       "enabled": false
     }

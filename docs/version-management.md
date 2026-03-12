@@ -25,7 +25,7 @@ This document is the single source of truth for all dependency versions, update 
 | react | 19.2.3 | creaseworks, deep-deck, harbour, sqr-rct, vault | P1 | Tied to Next.js compatibility |
 | react-dom | 19.2.3 | creaseworks, deep-deck, harbour, sqr-rct, vault | P1 | Tied to React |
 | tailwindcss | ^4.0.0 | creaseworks, deep-deck, harbour, vault | P1 | — |
-| tailwindcss | ^3.4.3 | **sqr-rct only** | P1 | **Needs v3→v4 migration (not a simple bump)** |
+| tailwindcss | ^4.x | sqr-rct | P1 | Migrated from v3 on 2026-03-12 |
 | next-auth | 5.0.0-beta.30 | creaseworks, vault | P1 | **HOLD — wait for v5 stable release** |
 | @auth/core | ^0.41.0 | creaseworks, vault | P1 | Tied to next-auth |
 
@@ -271,7 +271,7 @@ Is it a CLI or MCP server?
 | next-auth | **Hold at 5.0.0-beta.30** | Waiting for v5 stable. Do NOT downgrade to v4. Do NOT blindly bump beta. |
 | @anthropic-ai/sdk (pocket.prompts) | **Confirmed safe** as of 0.78.0 | No breaking changes for `messages.create()` patterns. Only additive optional params (`output_config`, new stop reasons). Safe to auto-update. |
 | @notionhq/client | **Hold at ^2.3.0** | v5.x is a major rewrite. Evaluate breaking changes before migrating. |
-| tailwindcss (sqr-rct) | **v3→v4 requires migration** | Not a simple version bump. Needs config rewrite, class name changes. Separate task. |
+| tailwindcss (sqr-rct) | **Migrated to v4** on 2026-03-12 | CSS-first config via `@theme`, `tailwind.config.js` removed, `flex-shrink-0` → `shrink-0`, `placeholder-*` → `placeholder:text-*` |
 | Node.js | **Standardizing on 22 LTS** | `.nvmrc` pins 22. CI workflows updated. Local may still run 25 — `nvm use` before dev work. |
 | @auth/core | **Tied to next-auth** | Don't update independently. Updates come through next-auth. |
 
@@ -310,7 +310,7 @@ Resolved on 2026-03-12 unless noted otherwise:
 |---|-------|----------|--------|
 | 1 | `@anthropic-ai/sdk` 0.39.0 → 0.78.0 in pocket.prompts | Medium | **Resolved** — no breaking changes for messages.create() patterns |
 | 2 | `@notionhq/client` 2.2.15 → 2.3.0 in sqr-rct | Low | **Resolved** — aligned via `npm update` |
-| 3 | `tailwindcss` v3 in sqr-rct (others: v4) | Low | **Deferred** — requires full migration (config rewrite, class changes). Separate task. |
+| 3 | `tailwindcss` v3 → v4 in sqr-rct | Low | **Resolved** — migrated config to CSS-first @theme, updated deprecated utilities |
 | 4 | `@aws-sdk/*` 3.998.0 → 3.1007.0 in creaseworks | Low | **Resolved** — patch bump |
 | 5 | `npm audit`: 15 remaining vulns (undici transitive in @vercel/node) | Medium | **Accepted** — requires breaking @vercel/node upgrade. Monitor for upstream fix. |
 | 6 | Node 20 in CI → 22 LTS | Medium | **Resolved** — .nvmrc, CI workflows, engines field all set to 22 |

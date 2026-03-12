@@ -44,7 +44,7 @@ export function ToastProvider({ children }) {
             }`}
           >
             {/* Icon */}
-            <span className="mt-0.5 flex-shrink-0">
+            <span className="mt-0.5 shrink-0">
               {t.type === 'success' && (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -64,7 +64,7 @@ export function ToastProvider({ children }) {
             <span className="flex-1">{t.message}</span>
             <button
               onClick={() => removeToast(t.id)}
-              className="flex-shrink-0 text-current opacity-50 hover:opacity-100 transition"
+              className="shrink-0 text-current opacity-50 hover:opacity-100 transition"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

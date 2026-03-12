@@ -168,7 +168,7 @@ const ScorePageContent = () => {
         }`}
       >
         <div className="flex items-start gap-3">
-          <div className="mt-1 flex-shrink-0">
+          <div className="mt-1 shrink-0">
             <div
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                 selected ? tc.radioSelected : tc.radioUnselected

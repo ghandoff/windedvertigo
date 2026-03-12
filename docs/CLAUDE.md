@@ -91,7 +91,7 @@ This monorepo contains all three winded.vertigo projects. No more multi-mount co
 - Run locally: `npm run dev:deep-deck` (from monorepo root)
 
 ### apps/nordic-sqr-rct — sqr-rct app
-- Next.js 16, JavaScript, React 19, Tailwind CSS 3
+- Next.js 16, JavaScript, React 19, Tailwind CSS 4
 - Uses @anthropic-ai/sdk, openai, recharts, pdfkit, @vercel/blob
 - Auth: bcryptjs + jose (JWT)
 - Run locally: `npm run dev:sqr-rct` (from monorepo root)
