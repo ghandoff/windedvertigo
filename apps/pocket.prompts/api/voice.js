@@ -290,6 +290,9 @@ async function handle_slack_message(intent, ctx, res) {
       }, ctx);
     }
 
+    const token_prefix = token?.substring(0, 5) || 'none';
+    console.log(`[voice] slack_message — sending to channel ${channel_id}, token prefix: ${token_prefix}`);
+
     const result = await send_message({
       token,
       channel_id,
@@ -300,7 +303,8 @@ async function handle_slack_message(intent, ctx, res) {
       return respond(res, 500, {
         spoken_response: tts.error_fallback(),
         action_taken: 'error',
-        error: result.error
+        error: result.error,
+        debug: { token_type: ctx.slack_token ? 'user' : 'bot', channel_id, token_prefix }
       }, ctx);
     }
 
