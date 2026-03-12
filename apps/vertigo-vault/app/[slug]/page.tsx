@@ -87,10 +87,16 @@ export default async function VaultActivityPage({ params }: Props) {
     return notFound();
   }
 
-  // Dev guard
+  // Dev guard — PRME activities use the expanded prme_free assertion tier
+  // since they expose body + facilitator notes to all users.
+  const isPrme = activity.tier === "prme";
+  const assertTier =
+    isPrme && (accessTier === "teaser" || accessTier === "entitled")
+      ? "vault_prme_free"
+      : (`vault_${accessTier}` as "vault_teaser" | "vault_entitled" | "vault_practitioner" | "vault_internal");
   assertNoLeakedFields(
     [activity] as Record<string, unknown>[],
-    `vault_${accessTier}` as "vault_teaser" | "vault_entitled" | "vault_practitioner" | "vault_internal",
+    assertTier,
   );
 
   const related = await getRelatedActivities(activity.id, accessTier);
@@ -98,13 +104,11 @@ export default async function VaultActivityPage({ params }: Props) {
   const primaryType = activity.type?.[0] ?? null;
   const accent = TYPE_COLORS[primaryType ?? ""] ?? "#6b7b8d";
 
-  const hasBody = accessTier !== "teaser" && activity.body_html;
-  const hasFacilitatorNotes =
-    (accessTier === "practitioner" || accessTier === "internal") &&
-    activity.facilitator_notes_html;
-  const hasVideo =
-    (accessTier === "practitioner" || accessTier === "internal") &&
-    activity.video_url;
+  // Column selection is now content-tier-aware: if a field was fetched,
+  // the data will be present. If not, it'll be undefined/null.
+  const hasBody = !!activity.body_html;
+  const hasFacilitatorNotes = !!activity.facilitator_notes_html;
+  const hasVideo = !!activity.video_url;
 
   /**
    * JSON-LD structured data — LearningResource schema for search engines.
@@ -258,9 +262,8 @@ export default async function VaultActivityPage({ params }: Props) {
         </div>
       </section>
 
-      {/* materials needed (entitled+) */}
-      {accessTier !== "teaser" &&
-        activity.materials_needed?.length > 0 && (
+      {/* materials needed — shown when column was fetched (PRME free or entitled+) */}
+      {activity.materials_needed?.length > 0 && (
           <section className="mb-8">
             <h2
               className="text-sm font-semibold mb-3"
@@ -351,9 +354,14 @@ export default async function VaultActivityPage({ params }: Props) {
         </section>
       )}
 
-      {/* locked content teaser — only for teaser tier */}
-      {accessTier === "teaser" && (
+      {/* locked content teaser — only for teaser users viewing non-PRME activities */}
+      {accessTier === "teaser" && !isPrme && (
         <LockedContentTeaser activityTier={activity.tier} />
+      )}
+
+      {/* PRME video upsell — teaser/entitled users viewing PRME activities */}
+      {isPrme && !hasVideo && (accessTier === "teaser" || accessTier === "entitled") && (
+        <PrmeVideoUpsell />
       )}
 
       {/* entitled but not practitioner — upsell to practitioner */}
@@ -514,8 +522,6 @@ function TierBadge({ tier }: { tier: string }) {
 }
 
 function LockedContentTeaser({ activityTier }: { activityTier: string }) {
-  const isFreeTier = activityTier === "prme";
-
   return (
     <section
       className="rounded-xl border p-6 mb-8"
@@ -531,12 +537,11 @@ function LockedContentTeaser({ activityTier }: { activityTier: string }) {
             className="text-sm font-semibold mb-1"
             style={{ color: "rgba(232,237,243,0.8)" }}
           >
-            {isFreeTier ? "full activity guide" : "unlock this activity"}
+            unlock this activity
           </h2>
           <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
-            {isFreeTier
-              ? "the full guide includes step-by-step instructions, materials list, and facilitator tips."
-              : `this is an ${activityTier}-tier activity. get the ${activityTier} pack to unlock the full guide, materials, and more.`}
+            this is an {activityTier}-tier activity. get the {activityTier} pack
+            to unlock the full guide, materials, and more.
           </p>
         </div>
       </div>
@@ -556,7 +561,7 @@ function LockedContentTeaser({ activityTier }: { activityTier: string }) {
           />
           <span>materials needed checklist</span>
         </div>
-        {(activityTier === "practitioner" || isFreeTier) && (
+        {activityTier === "practitioner" && (
           <>
             <div className="flex items-center gap-2">
               <span
@@ -585,9 +590,38 @@ function LockedContentTeaser({ activityTier }: { activityTier: string }) {
         className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
         style={{ backgroundColor: "var(--vault-accent)" }}
       >
-        {isFreeTier
-          ? "explore vault packs"
-          : `get the ${activityTier} pack`}
+        get the {activityTier} pack
+      </Link>
+    </section>
+  );
+}
+
+/** Subtle upsell for PRME activities — content is free, video is the add-on. */
+function PrmeVideoUpsell() {
+  return (
+    <section
+      className="rounded-xl border p-5 mb-8 flex items-center justify-between gap-4 flex-wrap"
+      style={{
+        borderColor: "rgba(155,67,67,0.15)",
+        backgroundColor: "rgba(155,67,67,0.04)",
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-base leading-none">🎬</span>
+        <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
+          want a <span style={{ color: "var(--vault-text)" }}>video walkthrough</span> for
+          this activity? upgrade to the practitioner pack.
+        </p>
+      </div>
+      <Link
+        href="/practitioner"
+        className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
+        style={{
+          backgroundColor: "rgba(155,67,67,0.2)",
+          color: "rgba(255,255,255,0.85)",
+        }}
+      >
+        practitioner pack &rarr;
       </Link>
     </section>
   );

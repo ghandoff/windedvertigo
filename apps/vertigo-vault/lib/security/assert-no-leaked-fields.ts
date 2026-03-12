@@ -34,7 +34,15 @@ const VAULT_PRACTITIONER_ONLY_FIELDS = new Set([
   "video_url",
 ]);
 
-type VaultTier = "vault_teaser" | "vault_entitled" | "vault_practitioner" | "vault_internal";
+/** Video-only: the practitioner-only add-on for PRME free content. */
+const VAULT_VIDEO_ONLY_FIELDS = new Set(["video_url"]);
+
+type VaultTier =
+  | "vault_teaser"
+  | "vault_prme_free"
+  | "vault_entitled"
+  | "vault_practitioner"
+  | "vault_internal";
 
 /**
  * Check whether any rows contain fields forbidden for the given tier.
@@ -50,6 +58,11 @@ export function assertNoLeakedFields(
     INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
     VAULT_ENTITLED_ONLY_FIELDS.forEach((f) => forbidden.add(f));
     VAULT_PRACTITIONER_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+  } else if (tier === "vault_prme_free") {
+    // PRME activities expose body + facilitator notes for free;
+    // only video and internal metadata remain forbidden.
+    INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+    VAULT_VIDEO_ONLY_FIELDS.forEach((f) => forbidden.add(f));
   } else if (tier === "vault_entitled") {
     INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
     VAULT_PRACTITIONER_ONLY_FIELDS.forEach((f) => forbidden.add(f));

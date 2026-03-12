@@ -31,6 +31,20 @@ export const VAULT_TEASER_COLUMNS = [
 ] as const;
 
 /**
+ * PRME free tier — all PRME activities expose full content for free.
+ * Includes body, materials, and facilitator notes. Video remains
+ * behind the practitioner paywall.
+ */
+export const VAULT_PRME_FREE_COLUMNS = [
+  ...VAULT_TEASER_COLUMNS,
+  "body_html",
+  "content_md",
+  "materials_needed",
+  "facilitator_notes",
+  "facilitator_notes_html",
+] as const;
+
+/**
  * Entitled tier — user owns the Explorer pack ($9.99).
  * Adds the full activity body, content, and materials list.
  */

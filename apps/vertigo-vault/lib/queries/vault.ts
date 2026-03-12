@@ -12,6 +12,7 @@ import { sql } from "@/lib/db";
 import {
   columnsToSql,
   VAULT_TEASER_COLUMNS,
+  VAULT_PRME_FREE_COLUMNS,
   VAULT_ENTITLED_COLUMNS,
   VAULT_PRACTITIONER_COLUMNS,
   VAULT_INTERNAL_COLUMNS,
@@ -135,19 +136,50 @@ export async function getVaultActivities(tier: VaultAccessTier) {
 }
 
 /**
+ * Resolve which columns to fetch for a single activity detail view.
+ *
+ * PRME activities are free content — they always expose body, materials,
+ * and facilitator notes regardless of the user's access tier. The only
+ * paid add-on for PRME activities is the video walkthrough (practitioner).
+ *
+ * Non-PRME activities use the standard tier-based column selection.
+ */
+function columnsForDetail(userTier: VaultAccessTier, contentTier: string): string {
+  if (contentTier === "prme") {
+    // Practitioner/internal already supersede PRME free columns
+    if (userTier === "practitioner" || userTier === "internal") {
+      return columnsForTier(userTier);
+    }
+    return columnsToSql(VAULT_PRME_FREE_COLUMNS);
+  }
+  return columnsForTier(userTier);
+}
+
+/**
  * Get a single vault activity by slug.
  * Enforces row-level access: free users can only view PRME activities.
  * Returns null if the activity exists but the user's tier doesn't unlock it.
+ *
+ * Uses a two-phase query: first resolves the activity's content tier,
+ * then fetches with the appropriate columns (PRME activities get expanded
+ * columns regardless of user tier).
  */
 export async function getVaultActivityBySlug(
   slug: string,
   tier: VaultAccessTier,
 ) {
-  const cols = columnsForTier(tier);
   const allowed = visibleContentTiers(tier);
 
   if (!allowed) {
-    // practitioner / internal → no row filter
+    // practitioner / internal → no row filter, but still need content tier for columns
+    const meta = await sql.query(
+      `SELECT tier FROM vault_activities_cache WHERE slug = $1`,
+      [slug],
+    );
+    const contentTier = meta.rows[0]?.tier as string | undefined;
+    if (!contentTier) return null;
+
+    const cols = columnsForDetail(tier, contentTier);
     const result = await sql.query(
       `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
       [slug],
@@ -155,11 +187,22 @@ export async function getVaultActivityBySlug(
     return result.rows[0] ?? null;
   }
 
-  const placeholders = allowed.map((_, i) => `$${i + 2}`).join(", ");
+  // Phase 1: check row access + get content tier
+  const meta = await sql.query(
+    `SELECT tier FROM vault_activities_cache WHERE slug = $1`,
+    [slug],
+  );
+  const contentTier = meta.rows[0]?.tier as string | undefined;
+  if (!contentTier) return null;
+
+  // Row-level check: is this content tier visible to the user?
+  if (!allowed.includes(contentTier)) return null;
+
+  // Phase 2: fetch with content-tier-aware columns
+  const cols = columnsForDetail(tier, contentTier);
   const result = await sql.query(
-    `SELECT ${cols} FROM vault_activities_cache
-     WHERE slug = $1 AND tier IN (${placeholders})`,
-    [slug, ...allowed],
+    `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
+    [slug],
   );
   return result.rows[0] ?? null;
 }
