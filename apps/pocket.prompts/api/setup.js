@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   const url = new URL(req.url, get_base_url());
   const secret = url.searchParams.get('secret');
 
-  if (!process.env.SETUP_SECRET || secret !== process.env.SETUP_SECRET) {
+  if (!process.env.SETUP_SECRET || secret !== process.env.SETUP_SECRET.trim()) {
     return res.status(401).send('unauthorized — include ?secret= in the url');
   }
 
