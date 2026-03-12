@@ -127,14 +127,10 @@ export async function create_summary_page(data) {
     block_chunks.push(blocks.slice(i, i + 100));
   }
 
-  const parent = summaries_parent_id
-    ? { page_id: summaries_parent_id }
-    : { page_id: summaries_parent_id }; // will fail if not set — intentional
-
   console.log(`[weekly-summary] creating page: "${title}" with ${blocks.length} blocks`);
 
   const page = await notion.pages.create({
-    parent,
+    parent: { page_id: summaries_parent_id },
     properties: {
       title: {
         title: [{ type: 'text', text: { content: title } }]

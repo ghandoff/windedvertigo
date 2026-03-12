@@ -2,12 +2,6 @@
   "buildCommand": "echo 'no build step'",
   "outputDirectory": "public",
   "ignoreCommand": "npx turbo-ignore pocket.prompts",
-  "crons": [
-    {
-      "path": "/api/weekly-summary",
-      "schedule": "0 20 * * 5"
-    }
-  ],
   "redirects": [
     { "source": "/", "destination": "/pwa/" }
   ],

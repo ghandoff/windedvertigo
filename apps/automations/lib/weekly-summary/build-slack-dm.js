@@ -1,5 +1,9 @@
 import { find_dm_channel, send_message } from '../slack.js';
-import members from '../../config/members.json' with { type: 'json' };
+
+const members = {
+  garrett: { slack_user_id: 'U06Q4UN4PKR' },
+  maria: { slack_user_id: 'U08ANKF3E3U' }
+};
 
 const recipients = ['garrett', 'maria'];
 
@@ -19,10 +23,10 @@ function format_slack_message(data, page_url) {
     lines.push('*Done this week:*');
     for (const t of tasks.completed.slice(0, 5)) {
       const owner = t.owner.length > 0 ? ` (${t.owner.join(', ')})` : '';
-      lines.push(`  ✓ ${t.title}${owner}`);
+      lines.push(`  completed: ${t.title}${owner}`);
     }
     if (tasks.completed.length > 5) {
-      lines.push(`  …and ${tasks.completed.length - 5} more`);
+      lines.push(`  ...and ${tasks.completed.length - 5} more`);
     }
     lines.push('');
   }
@@ -33,10 +37,10 @@ function format_slack_message(data, page_url) {
     lines.push('*Needs attention:*');
     for (const t of attention.slice(0, 5)) {
       const due = t.due_date ? ` (due ${t.due_date})` : '';
-      lines.push(`  → ${t.title}${due}`);
+      lines.push(`  > ${t.title}${due}`);
     }
     if (attention.length > 5) {
-      lines.push(`  …and ${attention.length - 5} more`);
+      lines.push(`  ...and ${attention.length - 5} more`);
     }
     lines.push('');
   }
@@ -46,7 +50,7 @@ function format_slack_message(data, page_url) {
     lines.push('*Events:*');
     for (const e of events.slice(0, 3)) {
       const date = e.date ? ` — ${e.date}` : '';
-      lines.push(`  📅 ${e.title}${date}`);
+      lines.push(`  ${e.title}${date}`);
     }
     lines.push('');
   }
@@ -55,7 +59,7 @@ function format_slack_message(data, page_url) {
   if (meetings.length > 0) {
     lines.push('*Meetings:*');
     for (const m of meetings.slice(0, 3)) {
-      lines.push(`  💬 ${m.title}`);
+      lines.push(`  ${m.title}`);
     }
     lines.push('');
   }
@@ -65,8 +69,8 @@ function format_slack_message(data, page_url) {
   if (active_goals.length > 0) {
     lines.push('*Goals:*');
     for (const g of active_goals) {
-      const icon = g.status === 'in progress' ? '🔄' : '⏳';
-      lines.push(`  ${icon} ${g.title} — ${g.status}`);
+      const status_label = g.status === 'in progress' ? 'in progress' : 'not started';
+      lines.push(`  ${g.title} — ${status_label}`);
     }
     lines.push('');
   }
