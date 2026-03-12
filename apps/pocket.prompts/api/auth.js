@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     const error = url.searchParams.get('error');
-    const setup_secret = process.env.SETUP_SECRET;
+    const setup_secret = encodeURIComponent((process.env.SETUP_SECRET || '').trim());
 
     // handle errors from oauth provider
     if (error) {
