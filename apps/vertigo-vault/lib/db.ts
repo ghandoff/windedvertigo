@@ -1,3 +1,3 @@
-import { sql } from "@vercel/postgres";
+import { sql, db } from "@vercel/postgres";
 
-export { sql };
+export { sql, db };

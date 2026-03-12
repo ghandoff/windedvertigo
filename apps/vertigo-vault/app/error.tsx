@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * Global error boundary — catches unhandled runtime errors in pages/components.
+ * Segment error boundary — catches unhandled runtime errors in pages/components.
  *
  * Uses the vault dark theme colour palette.  Offers a retry button that calls
  * Next.js reset() to re-render the errored segment.
  */
-export default function GlobalError({
+export default function SegmentError({
   error,
   reset,
 }: {

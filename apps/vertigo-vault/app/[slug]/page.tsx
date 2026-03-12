@@ -10,6 +10,7 @@ import {
   getActivityContentTier,
 } from "@/lib/queries/vault";
 import { assertNoLeakedFields } from "@/lib/security/assert-no-leaked-fields";
+import { typeColor } from "@/lib/ui-constants";
 import SafeHtml from "@/components/ui/safe-html";
 import { VaultActivityCard } from "@/components/ui/vault-activity-card";
 import type { VaultActivity as VaultCardActivity } from "@/components/ui/vault-activity-card";
@@ -59,14 +60,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-/** Type colour map — matches vault-activity-card.tsx */
-const TYPE_COLORS: Record<string, string> = {
-  Energizer: "#AF4F41",
-  "Getting to know each other": "#6b8e6b",
-  "Playful reflections": "#8b6fb0",
-  "RME Related": "#4a7fb5",
-};
-
 export default async function VaultActivityPage({ params }: Props) {
   const { slug } = await params;
   const session = await getSession();
@@ -100,9 +93,11 @@ export default async function VaultActivityPage({ params }: Props) {
   );
 
   const related = await getRelatedActivities(activity.id, accessTier);
+  // Related activities use teaser columns regardless of tier (card display only)
+  assertNoLeakedFields(related as Record<string, unknown>[], "vault_teaser");
 
   const primaryType = activity.type?.[0] ?? null;
-  const accent = TYPE_COLORS[primaryType ?? ""] ?? "#6b7b8d";
+  const accent = typeColor(primaryType);
 
   // Column selection is now content-tier-aware: if a field was fetched,
   // the data will be present. If not, it'll be undefined/null.

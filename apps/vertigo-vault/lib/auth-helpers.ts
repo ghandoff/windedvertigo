@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import type { UiTier } from "@/lib/queries/accessibility";
 
-export type UiTier = "casual" | "curious" | "collaborator";
+export type { UiTier };
 
 export interface VaultSession {
   userId: string;

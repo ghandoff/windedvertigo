@@ -3,23 +3,31 @@
  */
 
 import { sql } from "@/lib/db";
+import type { VercelPoolClient } from "@vercel/postgres";
+
+/** Queryable interface shared by the pool-level `sql` and a dedicated client. */
+type Queryable = { query: (text: string, values?: unknown[]) => Promise<{ rows: any[] }> };
 
 /**
  * Create a purchase record.
  * orgId is optional — null for individual (no-org) purchases.
+ * Pass a `client` when running inside a transaction.
  */
-export async function createPurchase(opts: {
-  orgId: string | null;
-  packCatalogueId: string;
-  purchaserId: string;
-  amountCents: number;
-  currency: string;
-  paymentProvider: string;
-  paymentRef: string | null;
-  stripeSessionId: string | null;
-  stripePaymentIntentId: string | null;
-}): Promise<string> {
-  const result = await sql.query(
+export async function createPurchase(
+  opts: {
+    orgId: string | null;
+    packCatalogueId: string;
+    purchaserId: string;
+    amountCents: number;
+    currency: string;
+    paymentProvider: string;
+    paymentRef: string | null;
+    stripeSessionId: string | null;
+    stripePaymentIntentId: string | null;
+  },
+  client: Queryable = sql,
+): Promise<string> {
+  const result = await client.query(
     `INSERT INTO purchases
        (org_id, pack_catalogue_id, purchaser_id, amount_cents, currency,
         payment_provider, payment_ref, status,

@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
 
   /**
    * Security headers — non-CSP headers live here as static config.
-   * CSP is set per-request in middleware.ts with a nonce so we can
+   * CSP is set per-request in proxy.ts with a nonce so we can
    * use `'strict-dynamic'` instead of `'unsafe-inline'` in script-src.
    */
   async headers() {

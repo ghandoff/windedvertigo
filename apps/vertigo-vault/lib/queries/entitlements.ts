@@ -7,6 +7,9 @@
 
 import { sql } from "@/lib/db";
 
+/** Queryable interface shared by the pool-level `sql` and a dedicated client. */
+type Queryable = { query: (text: string, values?: unknown[]) => Promise<{ rows: any[] }> };
+
 /**
  * Check whether an org or user has an active entitlement for a pack.
  * Active = granted, not revoked, not expired.
@@ -39,15 +42,17 @@ export async function checkEntitlement(
 /**
  * Grant an entitlement to an organisation for a pack.
  * Uses upsert logic to handle re-grants (clears revoked_at).
+ * Pass a `client` when running inside a transaction.
  */
 export async function grantEntitlement(
   orgId: string,
   packCacheId: string,
   purchaseId?: string | null,
   expiresAt?: string | null,
+  client: Queryable = sql,
 ) {
   // ensure packs_catalogue row exists (visible=false by default)
-  await sql.query(
+  await client.query(
     `INSERT INTO packs_catalogue (pack_cache_id, visible)
      VALUES ($1, false)
      ON CONFLICT (pack_cache_id) DO NOTHING`,
@@ -55,7 +60,7 @@ export async function grantEntitlement(
   );
 
   // Try to revive a revoked row, then insert if needed
-  const existing = await sql.query(
+  const existing = await client.query(
     `UPDATE entitlements
      SET revoked_at = NULL,
          purchase_id = COALESCE($3, entitlements.purchase_id),
@@ -69,7 +74,7 @@ export async function grantEntitlement(
   );
   if (existing.rows.length > 0) return existing.rows[0];
 
-  const result = await sql.query(
+  const result = await client.query(
     `INSERT INTO entitlements (org_id, pack_cache_id, purchase_id, granted_at, expires_at)
      VALUES ($1, $2, $3, NOW(), $4)
      RETURNING id`,
@@ -81,15 +86,17 @@ export async function grantEntitlement(
 /**
  * Grant an entitlement to an individual user for a pack.
  * Used for invite-based access and individual (no-org) purchases.
+ * Pass a `client` when running inside a transaction.
  */
 export async function grantUserEntitlement(
   userId: string,
   packCacheId: string,
   expiresAt?: string | null,
   purchaseId?: string | null,
+  client: Queryable = sql,
 ) {
   // ensure packs_catalogue row exists
-  await sql.query(
+  await client.query(
     `INSERT INTO packs_catalogue (pack_cache_id, visible)
      VALUES ($1, false)
      ON CONFLICT (pack_cache_id) DO NOTHING`,
@@ -97,7 +104,7 @@ export async function grantUserEntitlement(
   );
 
   // Try to revive an existing user-level entitlement
-  const existing = await sql.query(
+  const existing = await client.query(
     `UPDATE entitlements
      SET revoked_at = NULL,
          granted_at = COALESCE(entitlements.granted_at, NOW()),
@@ -111,7 +118,7 @@ export async function grantUserEntitlement(
   );
   if (existing.rows.length > 0) return existing.rows[0];
 
-  const result = await sql.query(
+  const result = await client.query(
     `INSERT INTO entitlements (user_id, pack_cache_id, granted_at, expires_at, purchase_id)
      VALUES ($1, $2, NOW(), $3, $4)
      RETURNING id`,

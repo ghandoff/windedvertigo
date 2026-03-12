@@ -1,19 +1,5 @@
 import Link from "next/link";
-
-/**
- * Accent colours keyed by vault activity type.
- * These match the windedvertigo palette for visual consistency.
- */
-const TYPE_COLORS: Record<string, string> = {
-  Energizer: "#AF4F41",
-  "Getting to know each other": "#6b8e6b",
-  "Playful reflections": "#8b6fb0",
-  "RME Related": "#4a7fb5",
-};
-
-function typeColor(type: string | undefined): string {
-  return TYPE_COLORS[type ?? ""] ?? "#6b7b8d";
-}
+import { typeColor } from "@/lib/ui-constants";
 
 export interface VaultActivity {
   id: string;

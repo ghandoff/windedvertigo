@@ -11,7 +11,7 @@
 
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe/client";
-import { sql } from "@/lib/db";
+import { db } from "@/lib/db";
 import { createPurchase, getPurchaseByStripeSessionId } from "@/lib/queries/purchases";
 import { grantEntitlement, grantUserEntitlement } from "@/lib/queries/entitlements";
 import { sendPurchaseConfirmationEmail } from "@/lib/email";
@@ -68,10 +68,12 @@ export async function POST(req: Request) {
     }
 
     // ── Atomic purchase + entitlement grant ─────────────────────────
-    // Wrap in a transaction so we never end up with an orphaned purchase
-    // record without a matching entitlement (or vice versa).
+    // Acquire a dedicated client so BEGIN/COMMIT/ROLLBACK all run on the
+    // same connection. The pool-level sql.query() can dispatch each call
+    // to a different connection, breaking transaction isolation.
+    const client = await db.connect();
     try {
-      await sql.query("BEGIN");
+      await client.query("BEGIN");
 
       const purchaseId = await createPurchase({
         orgId: orgId || null,
@@ -83,16 +85,16 @@ export async function POST(req: Request) {
         paymentRef: session.payment_intent as string | null,
         stripeSessionId: session.id,
         stripePaymentIntentId: session.payment_intent as string | null,
-      });
+      }, client);
 
       // Grant entitlement — org-level if orgId present, user-level otherwise
       if (orgId) {
-        await grantEntitlement(orgId, packCacheId, purchaseId);
+        await grantEntitlement(orgId, packCacheId, purchaseId, null, client);
       } else {
-        await grantUserEntitlement(userId, packCacheId, null, purchaseId);
+        await grantUserEntitlement(userId, packCacheId, null, purchaseId, client);
       }
 
-      await sql.query("COMMIT");
+      await client.query("COMMIT");
 
       console.log(
         `[webhook] purchase ${purchaseId} for pack ${packCacheId}`,
@@ -116,12 +118,14 @@ export async function POST(req: Request) {
         });
       }
     } catch (err) {
-      await sql.query("ROLLBACK");
+      await client.query("ROLLBACK");
       console.error("[webhook] transaction failed, rolled back:", err);
       return NextResponse.json(
         { error: "purchase processing failed" },
         { status: 500 },
       );
+    } finally {
+      client.release();
     }
   }
 

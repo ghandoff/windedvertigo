@@ -160,9 +160,10 @@ function columnsForDetail(userTier: VaultAccessTier, contentTier: string): strin
  * Enforces row-level access: free users can only view PRME activities.
  * Returns null if the activity exists but the user's tier doesn't unlock it.
  *
- * Uses a two-phase query: first resolves the activity's content tier,
- * then fetches with the appropriate columns (PRME activities get expanded
- * columns regardless of user tier).
+ * Practitioner/internal users get a single-query fast path since their
+ * column set always supersedes PRME free columns. Lower tiers need a
+ * two-phase query: first resolve the content tier, then fetch with the
+ * appropriate columns (PRME activities get expanded columns for free).
  */
 export async function getVaultActivityBySlug(
   slug: string,
@@ -171,15 +172,9 @@ export async function getVaultActivityBySlug(
   const allowed = visibleContentTiers(tier);
 
   if (!allowed) {
-    // practitioner / internal → no row filter, but still need content tier for columns
-    const meta = await sql.query(
-      `SELECT tier FROM vault_activities_cache WHERE slug = $1`,
-      [slug],
-    );
-    const contentTier = meta.rows[0]?.tier as string | undefined;
-    if (!contentTier) return null;
-
-    const cols = columnsForDetail(tier, contentTier);
+    // Practitioner / internal → no row filter, column set supersedes PRME free.
+    // Single query: `tier` is in every column set so we can read it from the result.
+    const cols = columnsForTier(tier);
     const result = await sql.query(
       `SELECT ${cols} FROM vault_activities_cache WHERE slug = $1`,
       [slug],
