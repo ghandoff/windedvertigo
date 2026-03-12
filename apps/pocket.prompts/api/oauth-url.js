@@ -16,13 +16,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'missing ?member= param' });
   }
 
-  const client_id = process.env.SLACK_OAUTH_CLIENT_ID;
+  const client_id = (process.env.SLACK_OAUTH_CLIENT_ID || '').trim();
   if (!client_id) {
     return res.status(503).json({ error: 'slack oauth not configured' });
   }
 
-  const redirect_uri = process.env.SLACK_OAUTH_REDIRECT_URI;
-  const team_id = process.env.SLACK_TEAM_ID;
+  const redirect_uri = (process.env.SLACK_OAUTH_REDIRECT_URI || '').trim();
+  const team_id = (process.env.SLACK_TEAM_ID || '').trim();
   const bot_scopes = 'channels:history,channels:read,chat:write,im:history,im:read,im:write,users:read';
   const user_scopes = 'chat:write';
 

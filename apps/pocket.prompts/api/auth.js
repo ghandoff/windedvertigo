@@ -115,9 +115,9 @@ export default async function handler(req, res) {
 }
 
 async function exchange_notion_code(code) {
-  const client_id = process.env.NOTION_OAUTH_CLIENT_ID;
-  const client_secret = process.env.NOTION_OAUTH_CLIENT_SECRET;
-  const redirect_uri = process.env.NOTION_OAUTH_REDIRECT_URI;
+  const client_id = (process.env.NOTION_OAUTH_CLIENT_ID || '').trim();
+  const client_secret = (process.env.NOTION_OAUTH_CLIENT_SECRET || '').trim();
+  const redirect_uri = (process.env.NOTION_OAUTH_REDIRECT_URI || '').trim();
 
   const credentials = Buffer.from(`${client_id}:${client_secret}`).toString('base64');
 
@@ -144,9 +144,9 @@ async function exchange_notion_code(code) {
 }
 
 async function exchange_slack_code(code) {
-  const client_id = process.env.SLACK_OAUTH_CLIENT_ID;
-  const client_secret = process.env.SLACK_OAUTH_CLIENT_SECRET;
-  const redirect_uri = process.env.SLACK_OAUTH_REDIRECT_URI;
+  const client_id = (process.env.SLACK_OAUTH_CLIENT_ID || '').trim();
+  const client_secret = (process.env.SLACK_OAUTH_CLIENT_SECRET || '').trim();
+  const redirect_uri = (process.env.SLACK_OAUTH_REDIRECT_URI || '').trim();
 
   const response = await fetch('https://slack.com/api/oauth.v2.access', {
     method: 'POST',
