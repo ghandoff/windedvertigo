@@ -1,3 +1,4 @@
 {
-  "ignoreCommand": "npx turbo-ignore @windedvertigo/vertigo-vault"
+  "ignoreCommand": "npx turbo-ignore @windedvertigo/vertigo-vault",
+  "crons": [{ "path": "/api/cron/sync", "schedule": "0 6 * * *" }]
 }
