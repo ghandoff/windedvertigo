@@ -264,10 +264,12 @@ async function handle_slack_check(intent, ctx, res) {
 
 async function handle_slack_message(intent, ctx, res) {
   try {
-    const token = ctx.slack_token || (process.env.SLACK_BOT_TOKEN || '').trim();
+    // bot token for channel ops (needs im:write), user token for sending (as-user)
+    const bot_token = ctx.slack_bot_token || (process.env.SLACK_BOT_TOKEN || '').trim();
+    const send_token = ctx.slack_token || bot_token;
     const recipient = resolve_member(intent.slack_recipient);
 
-    console.log(`[voice] slack_message — recipient: "${intent.slack_recipient}", resolved: ${recipient?.name || 'NONE'}, slack_id: ${recipient?.slack_user_id || 'NONE'}, token: ${token ? 'present' : 'MISSING'}`);
+    console.log(`[voice] slack_message — recipient: "${intent.slack_recipient}", resolved: ${recipient?.name || 'NONE'}, slack_id: ${recipient?.slack_user_id || 'NONE'}, bot_token: ${bot_token ? 'present' : 'MISSING'}, send_token: ${send_token ? 'present' : 'MISSING'}`);
 
     if (!recipient?.slack_user_id) {
       return respond(res, 200, {
@@ -277,8 +279,8 @@ async function handle_slack_message(intent, ctx, res) {
       }, ctx);
     }
 
-    // open or find the dm channel
-    const channel_id = await find_dm_channel({ token, user_id: recipient.slack_user_id });
+    // open or find the dm channel — uses bot token (needs im:write scope)
+    const channel_id = await find_dm_channel({ token: bot_token, user_id: recipient.slack_user_id });
 
     if (!channel_id) {
       return respond(res, 200, {
@@ -288,8 +290,9 @@ async function handle_slack_message(intent, ctx, res) {
       }, ctx);
     }
 
+    // send with user token so message appears as-user (needs chat:write scope)
     const result = await send_message({
-      token,
+      token: send_token,
       channel_id,
       text: intent.content
     });
@@ -319,7 +322,9 @@ async function handle_slack_message(intent, ctx, res) {
 
 async function handle_slack_reply(intent, ctx, res) {
   try {
-    const token = ctx.slack_token || (process.env.SLACK_BOT_TOKEN || '').trim();
+    // bot token for channel ops (needs im:write), user token for sending (as-user)
+    const bot_token = ctx.slack_bot_token || (process.env.SLACK_BOT_TOKEN || '').trim();
+    const send_token = ctx.slack_token || bot_token;
     const reply_to = resolve_member(intent.reply_to);
 
     if (!reply_to?.slack_user_id) {
@@ -330,7 +335,7 @@ async function handle_slack_reply(intent, ctx, res) {
       }, ctx);
     }
 
-    const channel_id = await find_dm_channel({ token, user_id: reply_to.slack_user_id });
+    const channel_id = await find_dm_channel({ token: bot_token, user_id: reply_to.slack_user_id });
 
     if (!channel_id) {
       return respond(res, 200, {
@@ -341,7 +346,7 @@ async function handle_slack_reply(intent, ctx, res) {
     }
 
     const result = await send_message({
-      token,
+      token: send_token,
       channel_id,
       text: intent.content
     });
@@ -378,14 +383,16 @@ async function handle_code_conversation(intent, ctx, res) {
   console.log(`[voice] code conversation: "${content.substring(0, 80)}..."`);
 
   try {
-    const token = ctx.slack_token || (process.env.SLACK_BOT_TOKEN || '').trim();
+    // bot token for channel ops (needs im:write), user token for sending (as-user)
+    const bot_token = ctx.slack_bot_token || (process.env.SLACK_BOT_TOKEN || '').trim();
+    const send_token = ctx.slack_token || bot_token;
     const slack_user_id = get_slack_user_id(ctx.user_id);
 
-    if (slack_user_id && token) {
-      const channel_id = await find_dm_channel({ token, user_id: slack_user_id });
+    if (slack_user_id && bot_token) {
+      const channel_id = await find_dm_channel({ token: bot_token, user_id: slack_user_id });
       if (channel_id) {
         await send_message({
-          token,
+          token: send_token,
           channel_id,
           text: `🤖 *Code request* from pocket.prompts:\n> ${content}\n\n_Paste this into Claude Code when you're at your desk._`
         });
