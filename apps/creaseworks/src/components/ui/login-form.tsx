@@ -13,7 +13,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
   const [errorMsg, setErrorMsg] = useState("");
 
   async function handleGoogleSignIn() {
-    await signIn("google", { callbackUrl: callbackUrl || "/" });
+    await signIn("google", { callbackUrl: callbackUrl || "/harbour/creaseworks" });
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -23,7 +23,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
     try {
       const r = await signIn("resend", {
         email: email.toLowerCase().trim(),
-        callbackUrl: callbackUrl || "/",
+        callbackUrl: callbackUrl || "/harbour/creaseworks",
         redirect: false,
       });
       if (r?.error) {

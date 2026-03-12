@@ -37,5 +37,24 @@ export default function SafeHtml({
     );
   }
 
+  // If fallback is a string with newlines, convert to <br> so paragraph
+  // breaks render. Content is escaped first — safe for dangerouslySetInnerHTML
+  // because the source is our own database (admin-controlled Notion content).
+  if (typeof fallback === "string" && fallback.includes("\n")) {
+    const escaped = fallback
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br>");
+    return (
+      <Tag
+        className={className}
+        // Safe: text is escaped above — only <br> tags are injected
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: escaped }}
+      />
+    );
+  }
+
   return <Tag className={className}>{fallback}</Tag>;
 }

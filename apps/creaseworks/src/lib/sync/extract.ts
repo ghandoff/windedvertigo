@@ -112,31 +112,29 @@ export function extractRichTextHtml(
   const segments: any[] = prop.rich_text ?? [];
   if (segments.length === 0) return null;
 
-  let hasFormatting = false;
   const parts = segments.map((seg: any) => {
     const text = seg.plain_text ?? "";
     if (!text) return "";
 
     const ann = seg.annotations ?? {};
-    let html = escapeHtml(text);
+    // Escape text then convert newlines to <br> to preserve paragraph breaks
+    let html = escapeHtml(text).replace(/\n/g, "<br>");
 
     // Wrap in formatting tags (innermost first)
-    if (ann.code) { html = `<code>${html}</code>`; hasFormatting = true; }
-    if (ann.strikethrough) { html = `<s>${html}</s>`; hasFormatting = true; }
-    if (ann.underline) { html = `<u>${html}</u>`; hasFormatting = true; }
-    if (ann.italic) { html = `<em>${html}</em>`; hasFormatting = true; }
-    if (ann.bold) { html = `<strong>${html}</strong>`; hasFormatting = true; }
+    if (ann.code) html = `<code>${html}</code>`;
+    if (ann.strikethrough) html = `<s>${html}</s>`;
+    if (ann.underline) html = `<u>${html}</u>`;
+    if (ann.italic) html = `<em>${html}</em>`;
+    if (ann.bold) html = `<strong>${html}</strong>`;
 
     // Color annotation — only non-default colors
     if (ann.color && ann.color !== "default") {
       html = `<span data-color="${ann.color}">${html}</span>`;
-      hasFormatting = true;
     }
 
     // Links
     if (seg.href) {
       html = `<a href="${escapeAttr(seg.href)}">${html}</a>`;
-      hasFormatting = true;
     }
 
     return html;
@@ -145,9 +143,7 @@ export function extractRichTextHtml(
   const result = parts.join("");
   if (!result.trim()) return null;
 
-  // If no formatting was found, return null so callers fall back to plain text
-  if (!hasFormatting) return null;
-
+  // Always return HTML so callers get <br> line breaks at minimum
   return result;
 }
 

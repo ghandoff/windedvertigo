@@ -68,7 +68,9 @@ export default async function VaultCatalogPage() {
               >
                 {isEntitled
                   ? "a curated collection of group activities, energizers, and reflective exercises. filter by type or duration, then click any card to see the full instructions."
-                  : `browse ${activities.length} free activities from our PRME collection. unlock 50+ more with an explorer or practitioner pack.`}
+                  : session
+                    ? `browse ${activities.length} free activities from our PRME collection. unlock 50+ more with an explorer or practitioner pack.`
+                    : `browse ${activities.length} free activities — no account needed. sign in to unlock 50+ more with an explorer or practitioner pack.`}
               </p>
             </div>
 
@@ -142,16 +144,25 @@ function TierBanner({
           get access to step-by-step guides, facilitator notes, video walkthroughs,
           and more activities.
         </p>
-        <Link
-          href="/explorer"
-          className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
-          style={{
-            backgroundColor: "rgba(107,142,107,0.25)",
-            color: "rgba(255,255,255,0.85)",
-          }}
-        >
-          explore packs &rarr;
-        </Link>
+        <div className="flex items-center gap-3 shrink-0">
+          <Link
+            href="/explorer"
+            className="rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
+            style={{
+              backgroundColor: "rgba(107,142,107,0.25)",
+              color: "rgba(255,255,255,0.85)",
+            }}
+          >
+            explore packs &rarr;
+          </Link>
+          <Link
+            href="/teams"
+            className="text-xs transition-opacity hover:opacity-80"
+            style={{ color: "var(--vault-text-muted)" }}
+          >
+            team access
+          </Link>
+        </div>
       </div>
     );
   }

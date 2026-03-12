@@ -102,7 +102,8 @@ export default async function VaultActivityPage({ params }: Props) {
   // Column selection is now content-tier-aware: if a field was fetched,
   // the data will be present. If not, it'll be undefined/null.
   const hasBody = !!activity.body_html;
-  const hasFacilitatorNotes = !!activity.facilitator_notes_html;
+  const hasFacilitatorNotes =
+    !!activity.facilitator_notes_html || !!activity.facilitator_notes;
   const hasVideo = !!activity.video_url;
 
   /**
@@ -140,13 +141,28 @@ export default async function VaultActivityPage({ params }: Props) {
       Skip to activity content
     </a>
     <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
-      <Link
-        href="/"
-        className="text-sm hover:opacity-80 mb-6 inline-block transition-opacity"
-        style={{ color: "var(--vault-text-muted)" }}
-      >
-        &larr; back to vault
-      </Link>
+      {/* mini nav — back link + sign-in for unauthenticated users */}
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          href="/"
+          className="text-sm hover:opacity-80 inline-block transition-opacity"
+          style={{ color: "var(--vault-text-muted)" }}
+        >
+          &larr; back to vault
+        </Link>
+        {!session && (
+          <Link
+            href={`/login?callbackUrl=/${slug}`}
+            className="rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
+            style={{
+              backgroundColor: "rgba(175,79,65,0.2)",
+              color: "rgba(255,255,255,0.85)",
+            }}
+          >
+            sign in
+          </Link>
+        )}
+      </div>
 
       {/* internal tier indicator */}
       {accessTier === "internal" && (
@@ -351,12 +367,42 @@ export default async function VaultActivityPage({ params }: Props) {
 
       {/* locked content teaser — only for teaser users viewing non-PRME activities */}
       {accessTier === "teaser" && !isPrme && (
-        <LockedContentTeaser activityTier={activity.tier} />
+        <LockedContentTeaser activityTier={activity.tier} slug={slug} isSignedIn={!!session} />
       )}
 
       {/* PRME video upsell — teaser/entitled users viewing PRME activities */}
       {isPrme && !hasVideo && (accessTier === "teaser" || accessTier === "entitled") && (
         <PrmeVideoUpsell />
+      )}
+
+      {/* sign-in prompt for unauthenticated users on free content */}
+      {!session && isPrme && (
+        <section
+          className="rounded-xl border p-5 mb-8 flex items-center justify-between gap-4 flex-wrap"
+          style={{
+            borderColor: "var(--vault-border)",
+            backgroundColor: "rgba(107,142,107,0.06)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-base leading-none">👤</span>
+            <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
+              <span style={{ color: "var(--vault-text)" }}>sign in</span> to
+              save your favourites and unlock 50+ more activities with an
+              explorer or practitioner pack.
+            </p>
+          </div>
+          <Link
+            href={`/login?callbackUrl=/${slug}`}
+            className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
+            style={{
+              backgroundColor: "rgba(107,142,107,0.25)",
+              color: "rgba(255,255,255,0.85)",
+            }}
+          >
+            sign in &rarr;
+          </Link>
+        </section>
       )}
 
       {/* entitled but not practitioner — upsell to practitioner */}
@@ -516,7 +562,15 @@ function TierBadge({ tier }: { tier: string }) {
   }
 }
 
-function LockedContentTeaser({ activityTier }: { activityTier: string }) {
+function LockedContentTeaser({
+  activityTier,
+  slug,
+  isSignedIn,
+}: {
+  activityTier: string;
+  slug: string;
+  isSignedIn: boolean;
+}) {
   return (
     <section
       className="rounded-xl border p-6 mb-8"
@@ -576,17 +630,28 @@ function LockedContentTeaser({ activityTier }: { activityTier: string }) {
         )}
       </div>
 
-      <Link
-        href={
-          activityTier === "practitioner"
-            ? "/practitioner"
-            : "/explorer"
-        }
-        className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
-        style={{ backgroundColor: "var(--vault-accent)" }}
-      >
-        get the {activityTier} pack
-      </Link>
+      <div className="flex items-center gap-3 flex-wrap">
+        <Link
+          href={
+            activityTier === "practitioner"
+              ? "/practitioner"
+              : "/explorer"
+          }
+          className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
+          style={{ backgroundColor: "var(--vault-accent)" }}
+        >
+          get the {activityTier} pack
+        </Link>
+        {!isSignedIn && (
+          <Link
+            href={`/login?callbackUrl=/${slug}`}
+            className="text-xs transition-opacity hover:opacity-80"
+            style={{ color: "var(--vault-text-muted)" }}
+          >
+            already have access? <span className="underline">sign in</span>
+          </Link>
+        )}
+      </div>
     </section>
   );
 }

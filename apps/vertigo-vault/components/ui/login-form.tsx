@@ -25,6 +25,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
     try {
       const r = await signIn("resend", {
         email: email.toLowerCase().trim(),
+        callbackUrl: callbackUrl || "/harbour/vertigo-vault",
         redirect: false,
       });
       if (r?.error) {
