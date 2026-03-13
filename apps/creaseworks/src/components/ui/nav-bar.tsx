@@ -219,7 +219,7 @@ export default function NavBar() {
   const authAction =
     status === "loading" ? null : session?.user ? (
       <button
-        onClick={() => { close(); signOut({ callbackUrl: "/" }); }}
+        onClick={() => { close(); signOut({ callbackUrl: "/harbour" }); }}
         className="wv-header-signout"
       >
         sign out
