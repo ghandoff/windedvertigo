@@ -101,6 +101,7 @@ async function writeToNotion(
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes("--dry-run");
+  const force = args.includes("--force");
   const onlyIdx = args.indexOf("--only");
   const onlySlug = onlyIdx !== -1 ? args[onlyIdx + 1] : null;
 
@@ -113,19 +114,26 @@ async function main() {
   const anthropic = new Anthropic();
   const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
-  // Fetch activities — only those missing catalyst content
-  let query = `
-    SELECT notion_id, slug, name, type, skills_developed, body_html
-    FROM vault_activities_cache
-    WHERE warmup_prompt IS NULL
-       OR connection_prompt IS NULL
-       OR transfer_prompt IS NULL
-  `;
+  // Fetch activities — only those missing catalyst content (unless --force)
+  let query: string;
   if (onlySlug) {
     query = `
       SELECT notion_id, slug, name, type, skills_developed, body_html
       FROM vault_activities_cache
       WHERE slug = '${onlySlug}'
+    `;
+  } else if (force) {
+    query = `
+      SELECT notion_id, slug, name, type, skills_developed, body_html
+      FROM vault_activities_cache
+    `;
+  } else {
+    query = `
+      SELECT notion_id, slug, name, type, skills_developed, body_html
+      FROM vault_activities_cache
+      WHERE warmup_prompt IS NULL
+         OR connection_prompt IS NULL
+         OR transfer_prompt IS NULL
     `;
   }
 
