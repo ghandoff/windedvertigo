@@ -32,7 +32,7 @@ export const VAULT_TEASER_COLUMNS = [
 
 /**
  * PRME free tier — all PRME activities expose full content for free.
- * Includes body, materials, and play catalyst prompts. Video remains
+ * Includes body and materials. Play catalyst prompts and video remain
  * behind the practitioner paywall.
  */
 export const VAULT_PRME_FREE_COLUMNS = [
@@ -40,12 +40,6 @@ export const VAULT_PRME_FREE_COLUMNS = [
   "body_html",
   "content_md",
   "materials_needed",
-  "warmup_prompt",
-  "warmup_prompt_html",
-  "connection_prompt",
-  "connection_prompt_html",
-  "transfer_prompt",
-  "transfer_prompt_html",
 ] as const;
 
 /**

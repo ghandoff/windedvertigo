@@ -184,8 +184,8 @@ export default async function ExplorerPackPage() {
               want more?
             </h2>
             <p className="text-sm mb-3" style={{ color: "var(--vault-text-muted)" }}>
-              the practitioner pack adds facilitator notes and video walkthroughs —
-              everything in the explorer pack, plus expert-level guidance.
+              the practitioner pack adds play catalyst coaching prompts and video
+              walkthroughs — everything in the explorer pack, plus expert-level guidance.
             </p>
             <Link
               href="/practitioner"

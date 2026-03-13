@@ -139,8 +139,8 @@ export async function getVaultActivities(tier: VaultAccessTier) {
  * Resolve which columns to fetch for a single activity detail view.
  *
  * PRME activities are free content — they always expose body, materials,
- * and facilitator notes regardless of the user's access tier. The only
- * paid add-on for PRME activities is the video walkthrough (practitioner).
+ * and materials regardless of the user's access tier. Play catalyst prompts
+ * and video walkthroughs remain behind the practitioner paywall.
  *
  * Non-PRME activities use the standard tier-based column selection.
  */

@@ -11,13 +11,13 @@ const BASE_URL = "https://windedvertigo.com/harbour/vertigo-vault";
 export const metadata: Metadata = {
   title: "practitioner pack — vertigo.vault",
   description:
-    "everything in the explorer pack plus facilitator notes, video walkthroughs, and expert guidance. one-time purchase, $19.99.",
+    "everything in the explorer pack plus play catalyst coaching prompts, video walkthroughs, and expert guidance. one-time purchase, $19.99.",
   alternates: { canonical: `${BASE_URL}/practitioner` },
   openGraph: {
     type: "website",
     title: "practitioner pack — vertigo.vault",
     description:
-      "everything in the explorer pack plus facilitator notes, video walkthroughs, and expert guidance. one-time purchase, $19.99.",
+      "everything in the explorer pack plus play catalyst coaching prompts, video walkthroughs, and expert guidance. one-time purchase, $19.99.",
     url: `${BASE_URL}/practitioner`,
     siteName: "winded.vertigo",
   },
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "practitioner pack — vertigo.vault",
     description:
-      "facilitator notes, video walkthroughs, and expert guidance. one-time purchase, $19.99.",
+      "play catalyst coaching prompts, video walkthroughs, and expert guidance. one-time purchase, $19.99.",
   },
 };
 
@@ -53,7 +53,7 @@ export default async function PractitionerPackPage() {
     "@type": "Product",
     name: "Practitioner Pack — vertigo.vault",
     description:
-      "Everything in the explorer pack plus facilitator notes, video walkthroughs, and expert guidance.",
+      "everything in the explorer pack plus play catalyst coaching prompts, video walkthroughs, and expert guidance.",
     url: `${BASE_URL}/practitioner`,
     brand: {
       "@type": "Organization",
@@ -102,8 +102,8 @@ export default async function PractitionerPackPage() {
           practitioner pack
         </h1>
         <p className="text-lg" style={{ color: "var(--vault-text-muted)" }}>
-          everything in the explorer pack, plus facilitator notes and video
-          walkthroughs for expert-level facilitation.
+          everything in the explorer pack, plus play catalyst coaching prompts
+          and video walkthroughs for expert-level facilitation.
         </p>
       </div>
 
@@ -153,9 +153,9 @@ export default async function PractitionerPackPage() {
           everything in the explorer pack, plus:
         </h2>
         <div className="space-y-3">
-          <FeatureItem emoji="🎯" title="facilitator notes" highlight>
-            expert tips for timing, group dynamics, common pitfalls, and how to
-            adapt each activity to your specific context.
+          <FeatureItem emoji="🎯" title="play catalyst prompts" highlight>
+            warm up, connect, and take it home — three coaching prompts to help
+            you facilitate each activity with confidence.
           </FeatureItem>
           <FeatureItem emoji="🎬" title="video walkthroughs" highlight>
             watch each activity being facilitated to see pacing, energy, and
@@ -218,7 +218,7 @@ export default async function PractitionerPackPage() {
               <ComparisonRow feature="step-by-step guides" explorer practitioner />
               <ComparisonRow feature="materials checklist" explorer practitioner />
               <ComparisonRow feature="filters & search" explorer practitioner />
-              <ComparisonRow feature="facilitator notes" practitioner />
+              <ComparisonRow feature="play catalyst prompts" practitioner />
               <ComparisonRow feature="video walkthroughs" practitioner />
             </tbody>
           </table>

@@ -189,7 +189,7 @@ export default async function TeamsPage() {
             >
               <li>everything in explorer, plus:</li>
               <li className="font-medium" style={{ color: "var(--vault-text)" }}>
-                facilitator notes &amp; tips
+                play catalyst prompts
               </li>
               <li className="font-medium" style={{ color: "var(--vault-text)" }}>
                 video walkthroughs
@@ -323,7 +323,7 @@ export default async function TeamsPage() {
           </FaqItem>
           <FaqItem question="can I upgrade from explorer to practitioner later?">
             yes — purchase the practitioner pack at any time. your team will get
-            access to facilitator notes and video walkthroughs right away.
+            access to play catalyst coaching prompts and video walkthroughs right away.
           </FaqItem>
           <FaqItem question="what if I don't have an organisation?">
             individual purchases work too. visit the{" "}

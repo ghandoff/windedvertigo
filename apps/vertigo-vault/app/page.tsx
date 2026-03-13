@@ -141,8 +141,8 @@ function TierBanner({
           <span className="font-medium" style={{ color: "var(--vault-text)" }}>
             unlock the full vault.
           </span>{" "}
-          get access to step-by-step guides, facilitator notes, video walkthroughs,
-          and more activities.
+          get access to step-by-step guides, play catalyst prompts, video
+          walkthroughs, and more activities.
         </p>
         <div className="flex items-center gap-3 shrink-0">
           <Link
@@ -219,8 +219,8 @@ function TierBanner({
             practitioner pack
           </p>
           <p className="text-xs" style={{ color: "var(--vault-text-muted)" }}>
-            full access to all {activityCount} activities including facilitator
-            notes and video walkthroughs.
+            full access to all {activityCount} activities including play catalyst
+            coaching prompts and video walkthroughs.
           </p>
         </div>
       </div>

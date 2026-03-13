@@ -38,9 +38,6 @@ const VAULT_PRACTITIONER_ONLY_FIELDS = new Set([
   "video_url",
 ]);
 
-/** Video-only: the practitioner-only add-on for PRME free content. */
-const VAULT_VIDEO_ONLY_FIELDS = new Set(["video_url"]);
-
 type VaultTier =
   | "vault_teaser"
   | "vault_prme_free"
@@ -63,10 +60,10 @@ export function assertNoLeakedFields(
     VAULT_ENTITLED_ONLY_FIELDS.forEach((f) => forbidden.add(f));
     VAULT_PRACTITIONER_ONLY_FIELDS.forEach((f) => forbidden.add(f));
   } else if (tier === "vault_prme_free") {
-    // PRME activities expose body + catalyst prompts for free;
-    // only video and internal metadata remain forbidden.
+    // PRME activities expose body + materials for free;
+    // catalyst prompts and video remain behind practitioner paywall.
     INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
-    VAULT_VIDEO_ONLY_FIELDS.forEach((f) => forbidden.add(f));
+    VAULT_PRACTITIONER_ONLY_FIELDS.forEach((f) => forbidden.add(f));
   } else if (tier === "vault_entitled") {
     INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
     VAULT_PRACTITIONER_ONLY_FIELDS.forEach((f) => forbidden.add(f));

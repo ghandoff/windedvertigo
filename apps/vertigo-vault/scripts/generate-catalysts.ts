@@ -49,7 +49,7 @@ function buildPrompt(activity: Activity): string {
 2. CONNECT: How to be present during this activity and make meaningful connections with others. Reference specific moments or dynamics this activity creates.
 3. TAKE IT HOME: How insights from this play experience transfer to work and home life. Connect the skills developed to real-world situations.
 
-Be warm, encouraging, specific to this activity. Use "you" voice. No bullet lists — flowing prose. No headers or labels in the output.
+Be warm, encouraging, specific to this activity. Use "you" voice. No bullet lists — flowing prose. No headers or labels in the output. Use all lowercase (no capital letters except acronyms like PRME or AI).
 
 Return ONLY a JSON object with keys "warmup", "connection", "transfer". Each value is a string of 50-80 words.`;
 }
