@@ -81,7 +81,7 @@ export default async function VaultActivityPage({ params }: Props) {
   }
 
   // Dev guard — PRME activities use the expanded prme_free assertion tier
-  // since they expose body + catalyst prompts to all users.
+  // since they expose body + materials to all users (catalysts remain practitioner+).
   const isPrme = activity.tier === "prme";
   const assertTier =
     isPrme && (accessTier === "teaser" || accessTier === "entitled")
