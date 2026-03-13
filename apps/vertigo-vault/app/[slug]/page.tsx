@@ -81,7 +81,7 @@ export default async function VaultActivityPage({ params }: Props) {
   }
 
   // Dev guard — PRME activities use the expanded prme_free assertion tier
-  // since they expose body + facilitator notes to all users.
+  // since they expose body + catalyst prompts to all users.
   const isPrme = activity.tier === "prme";
   const assertTier =
     isPrme && (accessTier === "teaser" || accessTier === "entitled")
@@ -102,8 +102,10 @@ export default async function VaultActivityPage({ params }: Props) {
   // Column selection is now content-tier-aware: if a field was fetched,
   // the data will be present. If not, it'll be undefined/null.
   const hasBody = !!activity.body_html;
-  const hasFacilitatorNotes =
-    !!activity.facilitator_notes_html || !!activity.facilitator_notes;
+  const hasWarmup = !!activity.warmup_prompt_html || !!activity.warmup_prompt;
+  const hasConnection = !!activity.connection_prompt_html || !!activity.connection_prompt;
+  const hasTransfer = !!activity.transfer_prompt_html || !!activity.transfer_prompt;
+  const hasCatalysts = hasWarmup || hasConnection || hasTransfer;
   const hasVideo = !!activity.video_url;
 
   /**
@@ -317,28 +319,43 @@ export default async function VaultActivityPage({ params }: Props) {
         </section>
       )}
 
-      {/* facilitator notes (practitioner+) */}
-      {hasFacilitatorNotes && (
-        <section
-          className="rounded-xl border p-6 mb-8"
-          style={{
-            borderColor: "rgba(175,79,65,0.2)",
-            backgroundColor: "rgba(175,79,65,0.05)",
-          }}
-        >
-          <h2
-            className="text-sm font-semibold mb-3"
-            style={{ color: "rgba(175,79,65,0.8)" }}
-          >
-            facilitator notes
-          </h2>
-          <SafeHtml
-            html={activity.facilitator_notes_html}
-            fallback={activity.facilitator_notes}
-            className="text-sm leading-relaxed"
-            as="div"
-          />
-        </section>
+      {/* play catalyst tiles (practitioner+) */}
+      {hasCatalysts && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          {hasWarmup && (
+            <CatalystTile
+              icon="🔥"
+              title="warm up"
+              accentColor="rgba(210,130,80,0.8)"
+              borderColor="rgba(210,130,80,0.2)"
+              bgColor="rgba(210,130,80,0.06)"
+              html={activity.warmup_prompt_html}
+              fallback={activity.warmup_prompt}
+            />
+          )}
+          {hasConnection && (
+            <CatalystTile
+              icon="🤝"
+              title="connect"
+              accentColor="rgba(107,142,107,0.9)"
+              borderColor="rgba(107,142,107,0.2)"
+              bgColor="rgba(107,142,107,0.06)"
+              html={activity.connection_prompt_html}
+              fallback={activity.connection_prompt}
+            />
+          )}
+          {hasTransfer && (
+            <CatalystTile
+              icon="🏠"
+              title="take it home"
+              accentColor="rgba(130,130,190,0.9)"
+              borderColor="rgba(130,130,190,0.2)"
+              bgColor="rgba(130,130,190,0.06)"
+              html={activity.transfer_prompt_html}
+              fallback={activity.transfer_prompt}
+            />
+          )}
+        </div>
       )}
 
       {/* video walkthrough (practitioner+) */}
@@ -427,9 +444,9 @@ export default async function VaultActivityPage({ params }: Props) {
                 className="text-sm mb-3"
                 style={{ color: "var(--vault-text-muted)" }}
               >
-                upgrade to the practitioner pack for facilitator notes,
-                video walkthroughs, and expert-level guidance on every
-                activity.
+                upgrade to the practitioner pack for play catalyst coaching
+                prompts, video walkthroughs, and expert-level guidance on
+                every activity.
               </p>
               <Link
                 href="/practitioner"
@@ -617,7 +634,7 @@ function LockedContentTeaser({
                 className="w-1.5 h-1.5 rounded-full"
                 style={{ backgroundColor: "rgba(155,67,67,0.4)" }}
               />
-              <span>facilitator notes and tips</span>
+              <span>play catalyst coaching prompts</span>
             </div>
             <div className="flex items-center gap-2">
               <span
@@ -652,6 +669,45 @@ function LockedContentTeaser({
           </Link>
         )}
       </div>
+    </section>
+  );
+}
+
+/** Play catalyst tile — warm-up, connect, or take-it-home coaching prompt. */
+function CatalystTile({
+  icon,
+  title,
+  accentColor,
+  borderColor,
+  bgColor,
+  html,
+  fallback,
+}: {
+  icon: string;
+  title: string;
+  accentColor: string;
+  borderColor: string;
+  bgColor: string;
+  html: string | null;
+  fallback: string | null;
+}) {
+  return (
+    <section
+      className="rounded-xl border p-5"
+      style={{ borderColor, backgroundColor: bgColor }}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-base leading-none">{icon}</span>
+        <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: accentColor }}>
+          {title}
+        </h3>
+      </div>
+      <SafeHtml
+        html={html}
+        fallback={fallback}
+        className="text-sm leading-relaxed"
+        as="div"
+      />
     </section>
   );
 }

@@ -31,8 +31,12 @@ interface VaultActivityRow {
   tier: string | null;
   ageRange: string | null;
   groupSize: string | null;
-  facilitatorNotes: string | null;
-  facilitatorNotesHtml: string | null;
+  warmupPrompt: string | null;
+  warmupPromptHtml: string | null;
+  connectionPrompt: string | null;
+  connectionPromptHtml: string | null;
+  transferPrompt: string | null;
+  transferPromptHtml: string | null;
   materialsNeeded: string[];
   videoUrl: string | null;
   coverSourceUrl: string | null;
@@ -55,8 +59,12 @@ function parseVaultActivityPage(page: NotionPage): VaultActivityRow {
     tier: extractSelect(props, "tier"),
     ageRange: extractSelect(props, "age range"),
     groupSize: extractSelect(props, "group size"),
-    facilitatorNotes: extractRichText(props, "facilitator notes"),
-    facilitatorNotesHtml: extractRichTextHtml(props, "facilitator notes"),
+    warmupPrompt: extractRichText(props, "warm-up prompt"),
+    warmupPromptHtml: extractRichTextHtml(props, "warm-up prompt"),
+    connectionPrompt: extractRichText(props, "connection prompt"),
+    connectionPromptHtml: extractRichTextHtml(props, "connection prompt"),
+    transferPrompt: extractRichText(props, "transfer prompt"),
+    transferPromptHtml: extractRichTextHtml(props, "transfer prompt"),
     materialsNeeded: extractMultiSelect(props, "materials needed"),
     videoUrl: extractUrl(props, "video url"),
     coverSourceUrl: extractCover(page)?.url ?? null,
@@ -105,7 +113,9 @@ export async function syncVaultActivities() {
           notion_id, slug, name, headline, headline_html,
           duration, format, type, skills_developed, tags,
           tier, age_range, group_size,
-          facilitator_notes, facilitator_notes_html,
+          warmup_prompt, warmup_prompt_html,
+          connection_prompt, connection_prompt_html,
+          transfer_prompt, transfer_prompt_html,
           materials_needed, video_url,
           cover_r2_key, cover_url,
           body_html, content_md,
@@ -117,7 +127,9 @@ export async function syncVaultActivities() {
           ${JSON.stringify(row.type)}, ${JSON.stringify(row.skillsDeveloped)},
           ${JSON.stringify(row.tags)},
           ${row.tier ?? "prme"}, ${row.ageRange}, ${row.groupSize},
-          ${row.facilitatorNotes}, ${row.facilitatorNotesHtml},
+          ${row.warmupPrompt}, ${row.warmupPromptHtml},
+          ${row.connectionPrompt}, ${row.connectionPromptHtml},
+          ${row.transferPrompt}, ${row.transferPromptHtml},
           ${JSON.stringify(row.materialsNeeded)}, ${row.videoUrl},
           ${coverR2Key}, ${coverUrl},
           ${bodyHtml}, ${contentMd},
@@ -135,8 +147,12 @@ export async function syncVaultActivities() {
           tier = EXCLUDED.tier,
           age_range = EXCLUDED.age_range,
           group_size = EXCLUDED.group_size,
-          facilitator_notes = EXCLUDED.facilitator_notes,
-          facilitator_notes_html = EXCLUDED.facilitator_notes_html,
+          warmup_prompt = EXCLUDED.warmup_prompt,
+          warmup_prompt_html = EXCLUDED.warmup_prompt_html,
+          connection_prompt = EXCLUDED.connection_prompt,
+          connection_prompt_html = EXCLUDED.connection_prompt_html,
+          transfer_prompt = EXCLUDED.transfer_prompt,
+          transfer_prompt_html = EXCLUDED.transfer_prompt_html,
           materials_needed = EXCLUDED.materials_needed,
           video_url = EXCLUDED.video_url,
           cover_r2_key = EXCLUDED.cover_r2_key,

@@ -4,7 +4,7 @@
  * Access tiers:
  *   teaser       — browsable catalog (name, headline, duration, etc.)
  *   entitled     — Explorer pack ($9.99): full body + materials
- *   practitioner — Practitioner pack ($19.99): + facilitator notes + video
+ *   practitioner — Practitioner pack ($19.99): + play catalyst prompts + video
  *   internal     — admin/collective: + sync metadata
  */
 

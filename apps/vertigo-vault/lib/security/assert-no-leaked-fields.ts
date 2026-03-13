@@ -29,8 +29,12 @@ const VAULT_ENTITLED_ONLY_FIELDS = new Set([
 
 /** Vault fields that require the Practitioner pack. */
 const VAULT_PRACTITIONER_ONLY_FIELDS = new Set([
-  "facilitator_notes",
-  "facilitator_notes_html",
+  "warmup_prompt",
+  "warmup_prompt_html",
+  "connection_prompt",
+  "connection_prompt_html",
+  "transfer_prompt",
+  "transfer_prompt_html",
   "video_url",
 ]);
 
@@ -59,7 +63,7 @@ export function assertNoLeakedFields(
     VAULT_ENTITLED_ONLY_FIELDS.forEach((f) => forbidden.add(f));
     VAULT_PRACTITIONER_ONLY_FIELDS.forEach((f) => forbidden.add(f));
   } else if (tier === "vault_prme_free") {
-    // PRME activities expose body + facilitator notes for free;
+    // PRME activities expose body + catalyst prompts for free;
     // only video and internal metadata remain forbidden.
     INTERNAL_ONLY_FIELDS.forEach((f) => forbidden.add(f));
     VAULT_VIDEO_ONLY_FIELDS.forEach((f) => forbidden.add(f));

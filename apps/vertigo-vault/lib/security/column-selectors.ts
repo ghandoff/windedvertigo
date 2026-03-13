@@ -8,7 +8,7 @@
  * Access tiers:
  *   teaser       — browsable catalog (name, headline, duration, etc.)
  *   entitled     — Explorer pack ($9.99): full body + materials
- *   practitioner — Practitioner pack ($19.99): + facilitator notes + video
+ *   practitioner — Practitioner pack ($19.99): + play catalyst prompts + video
  *   internal     — admin/collective: + sync metadata
  */
 
@@ -32,7 +32,7 @@ export const VAULT_TEASER_COLUMNS = [
 
 /**
  * PRME free tier — all PRME activities expose full content for free.
- * Includes body, materials, and facilitator notes. Video remains
+ * Includes body, materials, and play catalyst prompts. Video remains
  * behind the practitioner paywall.
  */
 export const VAULT_PRME_FREE_COLUMNS = [
@@ -40,8 +40,12 @@ export const VAULT_PRME_FREE_COLUMNS = [
   "body_html",
   "content_md",
   "materials_needed",
-  "facilitator_notes",
-  "facilitator_notes_html",
+  "warmup_prompt",
+  "warmup_prompt_html",
+  "connection_prompt",
+  "connection_prompt_html",
+  "transfer_prompt",
+  "transfer_prompt_html",
 ] as const;
 
 /**
@@ -57,12 +61,16 @@ export const VAULT_ENTITLED_COLUMNS = [
 
 /**
  * Practitioner tier — user owns the Practitioner pack ($19.99).
- * Adds expert-level facilitator notes and video walkthroughs.
+ * Adds play catalyst coaching prompts and video walkthroughs.
  */
 export const VAULT_PRACTITIONER_COLUMNS = [
   ...VAULT_ENTITLED_COLUMNS,
-  "facilitator_notes",
-  "facilitator_notes_html",
+  "warmup_prompt",
+  "warmup_prompt_html",
+  "connection_prompt",
+  "connection_prompt_html",
+  "transfer_prompt",
+  "transfer_prompt_html",
   "video_url",
 ] as const;
 
