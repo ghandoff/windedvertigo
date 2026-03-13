@@ -50,7 +50,7 @@ export default function UserMenu({
 
       {/* sign out */}
       <button
-        onClick={() => signOut({ callbackUrl: "/" })}
+        onClick={() => signOut({ callbackUrl: "/harbour" })}
         className="rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-wider transition-colors cursor-pointer"
         style={{
           color: "var(--vault-text-muted)",
