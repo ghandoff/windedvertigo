@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { syncVaultActivities } from "@/lib/sync/vault-activities";
 
-/** Allow up to 60 s on Hobby, 300 s on Pro. */
+/** Allow up to 60s on Hobby, 300s on Pro. */
 export const maxDuration = 300;
 
 /**
