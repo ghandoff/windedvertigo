@@ -143,7 +143,7 @@ export default async function VaultActivityPage({ params }: Props) {
       Skip to activity content
     </a>
     <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
-      {/* mini nav — back link + sign-in for unauthenticated users */}
+      {/* mini nav — back link */}
       <div className="flex items-center justify-between mb-6">
         <Link
           href="/"
@@ -152,18 +152,6 @@ export default async function VaultActivityPage({ params }: Props) {
         >
           &larr; back to vault
         </Link>
-        {!session && (
-          <Link
-            href={`/login?callbackUrl=/${slug}`}
-            className="rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
-            style={{
-              backgroundColor: "rgba(175,79,65,0.2)",
-              color: "rgba(255,255,255,0.85)",
-            }}
-          >
-            sign in
-          </Link>
-        )}
       </div>
 
       {/* internal tier indicator */}
@@ -395,30 +383,59 @@ export default async function VaultActivityPage({ params }: Props) {
       {/* sign-in prompt for unauthenticated users on free content */}
       {!session && isPrme && (
         <section
-          className="rounded-xl border p-5 mb-8 flex items-center justify-between gap-4 flex-wrap"
+          className="rounded-xl border p-6 mb-8"
           style={{
-            borderColor: "var(--vault-border)",
-            backgroundColor: "rgba(107,142,107,0.06)",
+            borderColor: "rgba(175,79,65,0.2)",
+            background: "linear-gradient(to bottom, rgba(175,79,65,0.06), rgba(175,79,65,0.02))",
           }}
         >
-          <div className="flex items-center gap-3">
-            <span className="text-base leading-none">👤</span>
-            <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
-              <span style={{ color: "var(--vault-text)" }}>sign in</span> to
-              save your favourites and unlock 50+ more activities with an
-              explorer or practitioner pack.
-            </p>
+          <div className="flex items-start gap-3 mb-4">
+            <span className="text-lg leading-none mt-0.5">✨</span>
+            <div>
+              <h2
+                className="text-sm font-semibold mb-1"
+                style={{ color: "rgba(232,237,243,0.8)" }}
+              >
+                there&apos;s more in the vault
+              </h2>
+              <p className="text-sm" style={{ color: "var(--vault-text-muted)" }}>
+                sign in to save favourites and unlock 50+ more activities.
+                upgrade to practitioner for the full toolkit:
+              </p>
+            </div>
           </div>
-          <Link
-            href={`/login?callbackUrl=/${slug}`}
-            className="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors"
-            style={{
-              backgroundColor: "rgba(107,142,107,0.25)",
-              color: "rgba(255,255,255,0.85)",
-            }}
-          >
-            sign in &rarr;
-          </Link>
+
+          <div className="ml-8 space-y-2 text-sm mb-5" style={{ color: "var(--vault-text-muted)" }}>
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none">🔥</span>
+              <span>play catalyst coaching prompts for every activity</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none">🎬</span>
+              <span>video walkthroughs from experienced facilitators</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none">📋</span>
+              <span>50+ additional activities across all skill areas</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            <Link
+              href={`/login?callbackUrl=/${slug}`}
+              className="inline-block rounded-lg px-5 py-2.5 text-sm text-white font-medium transition-colors"
+              style={{ backgroundColor: "var(--vault-accent)" }}
+            >
+              sign in &rarr;
+            </Link>
+            <Link
+              href="/practitioner"
+              className="text-xs transition-opacity hover:opacity-80"
+              style={{ color: "var(--vault-text-muted)" }}
+            >
+              learn about the <span className="underline">practitioner pack</span>
+            </Link>
+          </div>
         </section>
       )}
 
