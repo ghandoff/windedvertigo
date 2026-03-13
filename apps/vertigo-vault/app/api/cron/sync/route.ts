@@ -19,6 +19,9 @@ export async function POST(request: Request) {
 
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${cronSecret}`) {
+    console.error(
+      `[cron/sync] auth mismatch: header_len=${authHeader?.length ?? "null"} expected_len=${("Bearer " + cronSecret).length}`,
+    );
     return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   }
 
