@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 
 const NAV_LINKS = [
-  { href: "#play", label: "play." },
-  { href: "#finds", label: "finds." },
+  { href: "#play", label: "play.", external: false },
+  { href: "#finds", label: "finds.", external: false },
   { href: "https://windedvertigo.com/what/", label: "us.", external: true },
 ];
 
@@ -18,12 +18,21 @@ const navLinkStyle = {
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeHash, setActiveHash] = useState("");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll(); // initial check
+    onScroll();
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // track active hash for nav highlighting
+  useEffect(() => {
+    const update = () => setActiveHash(window.location.hash);
+    update();
+    window.addEventListener("hashchange", update);
+    return () => window.removeEventListener("hashchange", update);
   }, []);
 
   // close mobile menu on hash navigation
@@ -87,16 +96,23 @@ export function Header() {
           style={{ gap: 30 }}
           aria-label="site navigation"
         >
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-[var(--color-text-on-dark)] hover:text-[var(--wv-champagne)] no-underline transition-colors"
-              style={navLinkStyle}
-            >
-              {link.label}
-            </a>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const isActive = !link.external && activeHash === link.href;
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                className={`no-underline transition-colors ${
+                  isActive
+                    ? "text-[var(--wv-redwood)]"
+                    : "text-[var(--color-text-on-dark)] hover:text-[var(--wv-champagne)]"
+                }`}
+                style={navLinkStyle}
+              >
+                {link.label}
+              </a>
+            );
+          })}
         </nav>
       </div>
 
@@ -107,17 +123,24 @@ export function Header() {
           className="md:hidden flex flex-col items-center gap-6 pb-8 bg-[var(--wv-cadet)]/95 backdrop-blur-sm"
           aria-label="site navigation"
         >
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className="text-[var(--color-text-on-dark)] hover:text-[var(--wv-champagne)] no-underline transition-colors"
-              style={{ ...navLinkStyle, fontSize: 24 }}
-            >
-              {link.label}
-            </a>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const isActive = !link.external && activeHash === link.href;
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className={`no-underline transition-colors ${
+                  isActive
+                    ? "text-[var(--wv-redwood)]"
+                    : "text-[var(--color-text-on-dark)] hover:text-[var(--wv-champagne)]"
+                }`}
+                style={{ ...navLinkStyle, fontSize: 24 }}
+              >
+                {link.label}
+              </a>
+            );
+          })}
         </nav>
       )}
     </header>
