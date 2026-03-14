@@ -12,17 +12,8 @@ export default function HarbourPage() {
 
       <main id="main">
         {/* ── Hero ────────────────────────────────────────────── */}
-        <section aria-label="hero" className="min-h-[90vh] flex flex-col items-center justify-center text-center px-6 pt-20 relative overflow-hidden">
-          {/* Subtle gradient orb behind text */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-15 blur-3xl pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(circle, var(--wv-redwood) 0%, transparent 70%)",
-            }}
-          />
-
-          <div className="relative z-10 max-w-3xl">
+        <section aria-label="hero" className="min-h-[90vh] flex flex-col items-center justify-center text-center px-6 pt-20">
+          <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--color-accent-on-dark)] mb-6">
               {credibilityData.hero?.tagline ?? "winded.vertigo presents"}
             </p>
@@ -71,24 +62,9 @@ export default function HarbourPage() {
               <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-text-on-dark)] mb-4">
                 {credibilityData.cta?.heading ?? "ready to play?"}
               </h2>
-              <p className="text-[var(--color-text-on-dark-muted)] text-lg mb-8">
+              <p className="text-[var(--color-text-on-dark-muted)] text-lg">
                 {credibilityData.cta?.body ?? "pick a tool and start exploring."}
               </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                {GAMES.map((game, i) => (
-                  <a
-                    key={game.slug}
-                    href={game.href}
-                    className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-[var(--color-text-on-dark)] text-sm font-semibold transition-colors no-underline ${
-                      i === 0
-                        ? "bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)]"
-                        : "bg-white/10 hover:bg-white/15"
-                    }`}
-                  >
-                    {game.icon} play {game.name}
-                  </a>
-                ))}
-              </div>
             </div>
           </ScrollReveal>
         </section>
