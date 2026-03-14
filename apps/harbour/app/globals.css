@@ -5,6 +5,10 @@
 
 :root {
   --rv-section-gap: 6rem;
+
+  /* override shared tokens — harbour uses white text to match windedvertigo.com */
+  --color-text-on-dark:       #ffffff;
+  --color-text-on-dark-muted: rgba(255, 255, 255, 0.7);
 }
 
 /* ── skip-link (a11y) ──────────────────────────────────────────── */
@@ -117,7 +121,7 @@ html {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 235, 210, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.04);
   font-size: 0.8125rem;
   color: var(--color-text-on-dark-muted);
