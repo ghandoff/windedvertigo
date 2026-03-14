@@ -49,23 +49,34 @@ export default async function handler(req, res) {
 
     const response = await notion.databases.query(query_params);
 
-    // content and spoken_response omitted from shared log for privacy.
-    // personal content is accessible via entry_url (the notion entry itself).
-    const entries = response.results.map(page => ({
-      id: page.id,
-      timestamp: page.properties.timestamp?.date?.start || page.created_time,
-      created_time: page.created_time,
-      utterance: page.properties.utterance?.title?.[0]?.plain_text || null,
-      intent: page.properties.intent?.select?.name || null,
-      confidence: page.properties.confidence?.number ?? null,
-      action_taken: page.properties.action_taken?.select?.name || null,
-      priority: page.properties.priority?.select?.name || null,
-      entry_url: page.properties.entry_url?.url || null,
-      user_id: page.properties.user_id?.rich_text?.[0]?.plain_text || null,
-      error: page.properties.error?.rich_text?.[0]?.plain_text || null,
-      duration_ms: page.properties.duration_ms?.number ?? null,
-      platform: page.properties.platform?.select?.name || null,
-    }));
+    // when filtered by user, include content + spoken_response for chat view.
+    // without user filter, these are omitted for privacy.
+    const include_chat = !!user;
+
+    const entries = response.results.map(page => {
+      const entry = {
+        id: page.id,
+        timestamp: page.properties.timestamp?.date?.start || page.created_time,
+        created_time: page.created_time,
+        utterance: page.properties.utterance?.title?.[0]?.plain_text || null,
+        intent: page.properties.intent?.select?.name || null,
+        confidence: page.properties.confidence?.number ?? null,
+        action_taken: page.properties.action_taken?.select?.name || null,
+        priority: page.properties.priority?.select?.name || null,
+        entry_url: page.properties.entry_url?.url || null,
+        user_id: page.properties.user_id?.rich_text?.[0]?.plain_text || null,
+        error: page.properties.error?.rich_text?.[0]?.plain_text || null,
+        duration_ms: page.properties.duration_ms?.number ?? null,
+        platform: page.properties.platform?.select?.name || null,
+      };
+
+      if (include_chat) {
+        entry.content = page.properties.content?.rich_text?.[0]?.plain_text || null;
+        entry.spoken_response = page.properties.spoken_response?.rich_text?.[0]?.plain_text || null;
+      }
+
+      return entry;
+    });
 
     return res.status(200).json({
       entries,

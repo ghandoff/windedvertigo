@@ -27,10 +27,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Voice',
+          title: 'Chat',
           tabBarIcon: ({ color }) => (
             <SymbolView
-              name={{ ios: 'mic.fill', android: 'mic', web: 'mic' }}
+              name={{ ios: 'bubble.left.and.bubble.right.fill', android: 'chat', web: 'chat' }}
               tintColor={color}
               size={24}
             />
@@ -40,14 +40,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: 'History',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'clock.fill', android: 'history', web: 'history' }}
-              tintColor={color}
-              size={24}
-            />
-          ),
+          href: null, // hidden — replaced by chat
         }}
       />
       <Tabs.Screen
