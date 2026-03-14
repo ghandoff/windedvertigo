@@ -36,6 +36,7 @@ function withRemoteCommand(config) {
     const needed = [
       'android.permission.FOREGROUND_SERVICE',
       'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+      'android.permission.VIBRATE',
     ];
 
     for (const perm of needed) {

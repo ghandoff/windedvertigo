@@ -16,7 +16,7 @@ export default async function LoginPage({
   if (session?.user) {
     const cb = params.callbackUrl;
     // Only allow relative paths to prevent open-redirect attacks
-    const target = cb && cb.startsWith("/") ? cb : "/harbour/creaseworks";
+    const target = cb && cb.startsWith("/") ? cb : "/";
     redirect(target);
   }
 

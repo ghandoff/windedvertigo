@@ -9,6 +9,9 @@ import android.media.MediaPlayer
 import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.view.KeyEvent
 
 import expo.modules.kotlin.modules.Module
@@ -45,10 +48,11 @@ class RemoteCommandModule : Module() {
     Events("onRemoteCommand")
 
     Function("enable") {
-      if (isModuleEnabled) return@Function
-      isModuleEnabled = true
-      setupMediaSession()
-      startSilentPlayback()
+      if (!isModuleEnabled) {
+        isModuleEnabled = true
+        setupMediaSession()
+        startSilentPlayback()
+      }
     }
 
     Function("disable") {
@@ -67,7 +71,23 @@ class RemoteCommandModule : Module() {
   // ── helpers ──────────────────────────────────────────────────────
 
   private fun emitCommand(command: String) {
+    pulseHaptic()
     sendEvent("onRemoteCommand", mapOf("command" to command))
+  }
+
+  /** short haptic tick so the user feels "pocket.prompts is listening" */
+  private fun pulseHaptic() {
+    val context = appContext.reactContext ?: return
+    try {
+      val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val mgr = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        mgr.defaultVibrator
+      } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+      }
+      vibrator.vibrate(VibrationEffect.createOneShot(60, VibrationEffect.DEFAULT_AMPLITUDE))
+    } catch (_: Exception) { /* non-critical */ }
   }
 
   // ── media session ────────────────────────────────────────────────
@@ -134,11 +154,12 @@ class RemoteCommandModule : Module() {
     val context = appContext.reactContext ?: return
     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-    // request transient audio focus with ducking — this lowers the volume
-    // of other audio (music, podcasts) instead of pausing it, so the user's
-    // media keeps playing while we hold "now playing" status for headphone
-    // button capture. matches the iOS module's .mixWithOthers behavior.
-    audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+    // request transient audio focus — this PAUSES other audio (music,
+    // podcasts) rather than ducking. user feedback showed ducking wasn't
+    // enough: the background audio made it feel rushed and unclear whether
+    // pocket.prompts had taken over. pausing gives a clear "mode switch"
+    // signal. the other app auto-resumes when we release focus on teardown.
+    audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
       .setAudioAttributes(
         AudioAttributes.Builder()
           .setUsage(AudioAttributes.USAGE_MEDIA)

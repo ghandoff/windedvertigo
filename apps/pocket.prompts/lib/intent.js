@@ -10,7 +10,7 @@ respond ONLY with valid json. no preamble, no explanation.
 
 schema:
 {
-  "intent": "notion_note" | "notion_idea" | "notion_task" | "slack_message" | "slack_check" | "slack_reply" | "code_conversation" | "code_approve" | "code_status" | "build_approval" | "unknown",
+  "intent": "notion_note" | "notion_idea" | "notion_task" | "slack_message" | "slack_check" | "slack_reply" | "code_conversation" | "code_approve" | "code_revise" | "code_status" | "build_approval" | "unknown",
   "priority": "high" | "medium" | "low" | "urgent",
   "assignee": "[name or null]",
   "due_date": "[natural language date or null]",
@@ -79,6 +79,13 @@ if confidence is below 0.7, set intent to "unknown" and include a clarifying_que
 - "yes, implement that" → code_approve
 - "approve the code task" → code_approve
 
+**code_revise** — providing revision feedback on a code plan. the user has seen the plan and wants changes before approving.
+- "revise the plan: use a webhook instead of polling" → code_revise
+- "change the plan to use postgres instead of sqlite" → code_revise
+- "i want to tweak the plan — skip the migration step" → code_revise
+- "no, redo it — focus on the api layer first" → code_revise
+- "update the plan: add error handling for timeouts" → code_revise
+
 **code_status** — checking on the status of a code request or plan.
 - "what's the code status?" → code_status
 - "how's my code request going?" → code_status
@@ -98,7 +105,8 @@ if confidence is below 0.7, set intent to "unknown" and include a clarifying_que
 4. after a slack summary, the next utterance is likely a reply. "reply to her" or "tell him yes" = slack_reply.
 5. default to notion_note when genuinely unsure — capturing something is always better than losing it.
 6. "approve the plan" or "go ahead with the plan" = code_approve (code plan approval). "ship it" or "deploy" = build_approval (production deploy). these are different intents.
-7. "code status", "plan status", "how's the code task" = code_status. "check slack" = slack_check. don't confuse them.`;
+7. "code status", "plan status", "how's the code task" = code_status. "check slack" = slack_check. don't confuse them.
+8. "revise the plan", "change the plan", "redo it" = code_revise. the content field should contain the revision feedback/instructions, NOT the original request.`;
 
 export async function detect_intent(utterance) {
   try {

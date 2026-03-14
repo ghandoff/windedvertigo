@@ -50,10 +50,13 @@ export function code_status_update(request_preview, status, plan_summary) {
     return `claude code is working on a plan for ${preview} right now. i'll message you when the plan is ready. anything else?`;
   }
   if (status === 'plan ready' && plan_summary) {
-    return `plan ready for ${preview}. ${plan_summary} say "approve the plan" to proceed, or ask me to check something else.`;
+    return `plan ready for ${preview}. ${plan_summary} say "approve the plan" to proceed, or "revise the plan" with feedback.`;
   }
   if (status === 'plan ready') {
-    return `there's a plan ready for ${preview}. say "approve the plan" to proceed, or check the details in notion. anything else?`;
+    return `there's a plan ready for ${preview}. say "approve the plan" to proceed, or "revise the plan" with feedback.`;
+  }
+  if (status === 'revision') {
+    return `claude code is revising the plan for ${preview} based on your feedback. i'll send you the updated plan. anything else?`;
   }
   if (status === 'approved' || status === 'implementing') {
     return `claude code is implementing ${preview} right now. i'll send you a slack message when it's done. anything else?`;
@@ -66,6 +69,18 @@ export function code_status_update(request_preview, status, plan_summary) {
   }
 
   return `${preview} is currently ${status}. anything else?`;
+}
+
+export function code_revision_sent() {
+  return `got it — revision notes saved. claude code will update the plan on the next cycle. anything else?`;
+}
+
+export function code_revision_limit() {
+  return `this task has hit the 20-message limit. you can approve the current plan or start a fresh code task. what would you like?`;
+}
+
+export function code_no_plan_to_revise() {
+  return `i don't see a plan waiting for revision. want to check the code status instead?`;
 }
 
 export function code_no_tasks() {

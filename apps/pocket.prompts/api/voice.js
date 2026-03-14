@@ -131,6 +131,9 @@ export default async function handler(req, res) {
       case 'code_approve':
         return await handle_code_approve(intent, ctx, res);
 
+      case 'code_revise':
+        return await handle_code_revise(intent, ctx, res);
+
       case 'code_status':
         return await handle_code_status(intent, ctx, res);
 
@@ -478,6 +481,60 @@ async function handle_code_approve(intent, ctx, res) {
     }, ctx);
   } catch (err) {
     console.error(`[voice] code approve failed: ${err.message}`);
+    return respond(res, 500, {
+      spoken_response: tts.error_fallback(),
+      action_taken: 'error',
+      error: err.message
+    }, ctx);
+  }
+}
+
+async function handle_code_revise(intent, ctx, res) {
+  try {
+    // find user's most recent "plan ready" task to revise
+    const task = await get_latest_code_task({
+      requested_by: ctx.user_id,
+      status: 'plan ready',
+      token: ctx.notion_token
+    });
+
+    if (!task) {
+      return respond(res, 200, {
+        spoken_response: tts.code_no_plan_to_revise(),
+        action_taken: 'code_revise_no_task',
+        intent_result: intent
+      }, ctx);
+    }
+
+    // check 20-message limit
+    const current_count = task.message_count || 0;
+    if (current_count >= 20) {
+      return respond(res, 200, {
+        spoken_response: tts.code_revision_limit(),
+        action_taken: 'code_revise_limit',
+        entry_url: task.url
+      }, ctx);
+    }
+
+    // save revision notes and set status back to "revision" for next scheduled scan
+    const revision_feedback = intent.content || ctx.utterance;
+    await update_code_task({
+      page_id: task.page_id,
+      status: 'revision',
+      revision_notes: revision_feedback,
+      message_count: current_count + 1,
+      token: ctx.notion_token
+    });
+
+    console.log(`[voice] code task revision: ${task.page_id} (msg ${current_count + 1}/20)`);
+
+    return respond(res, 200, {
+      spoken_response: tts.code_revision_sent(),
+      action_taken: 'code_revise',
+      entry_url: task.url
+    }, ctx);
+  } catch (err) {
+    console.error(`[voice] code revise failed: ${err.message}`);
     return respond(res, 500, {
       spoken_response: tts.error_fallback(),
       action_taken: 'error',

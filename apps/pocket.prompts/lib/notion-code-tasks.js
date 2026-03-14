@@ -163,7 +163,7 @@ export async function get_code_tasks_by_status({ status, token } = {}) {
  * @param {string} [opts.token] — per-user Notion token
  * @returns {{ success: boolean, error?: string }}
  */
-export async function update_code_task({ page_id, status, plan, plan_summary, token }) {
+export async function update_code_task({ page_id, status, plan, plan_summary, revision_notes, message_count, token }) {
   if (!page_id) return { success: false, error: 'missing page_id' };
 
   try {
@@ -185,6 +185,19 @@ export async function update_code_task({ page_id, status, plan, plan_summary, to
     if (plan_summary) {
       properties['plan summary'] = {
         rich_text: [{ text: { content: plan_summary } }]
+      };
+    }
+
+    if (revision_notes) {
+      const notes = revision_notes.length > 2000 ? revision_notes.substring(0, 1997) + '...' : revision_notes;
+      properties['revision notes'] = {
+        rich_text: [{ text: { content: notes } }]
+      };
+    }
+
+    if (message_count !== undefined) {
+      properties['message count'] = {
+        number: message_count
       };
     }
 
@@ -212,7 +225,9 @@ function extract_task(page) {
     plan_summary: extract_rich_text(props['plan summary']),
     project: props.project?.select?.name || null,
     requested_by: extract_rich_text(props['requested by']),
-    requested_at: props['requested at']?.date?.start || null
+    requested_at: props['requested at']?.date?.start || null,
+    revision_notes: extract_rich_text(props['revision notes']),
+    message_count: props['message count']?.number || 0
   };
 }
 
