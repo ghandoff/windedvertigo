@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 
 const DISMISS_KEY = 'cw-first-visit-dismissed';
@@ -13,14 +13,10 @@ const DISMISS_KEY = 'cw-first-visit-dismissed';
  * Persists dismissal in localStorage so it doesn't reappear across sessions.
  */
 export default function FirstVisitBanner() {
-  const [isDismissed, setIsDismissed] = useState(true); // hidden by default to avoid flash
-
-  useEffect(() => {
-    const dismissed = localStorage.getItem(DISMISS_KEY) === '1';
-    if (!dismissed) {
-      setIsDismissed(false);
-    }
-  }, []);
+  const [isDismissed, setIsDismissed] = useState(() => {
+    if (typeof window === 'undefined') return true; // SSR: hidden to avoid flash
+    return localStorage.getItem(DISMISS_KEY) === '1';
+  });
 
   function dismiss() {
     localStorage.setItem(DISMISS_KEY, '1');
