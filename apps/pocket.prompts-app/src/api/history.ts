@@ -17,6 +17,8 @@ export interface HistoryEntry {
   error: string | null;
   duration_ms: number | null;
   platform: string | null;
+  content: string | null;           // raw user utterance (only when filtered by user)
+  spoken_response: string | null;   // AI response text (only when filtered by user)
 }
 
 export interface HistoryResponse {

@@ -40,6 +40,21 @@ export async function log_voice_interaction({
       }
     };
 
+    // store raw utterance + spoken response for chat view
+    // (title field stays sanitized for shared DB browsing)
+    if (utterance) {
+      const raw = utterance.length > 2000 ? utterance.substring(0, 1997) + '...' : utterance;
+      properties.content = {
+        rich_text: [{ text: { content: raw } }]
+      };
+    }
+    if (spoken_response) {
+      const sr = spoken_response.length > 2000 ? spoken_response.substring(0, 1997) + '...' : spoken_response;
+      properties.spoken_response = {
+        rich_text: [{ text: { content: sr } }]
+      };
+    }
+
     // only add properties that have values (Notion rejects null selects)
     if (intent_result?.intent) {
       properties.intent = { select: { name: intent_result.intent } };
