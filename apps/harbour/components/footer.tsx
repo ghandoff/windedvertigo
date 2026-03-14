@@ -9,7 +9,7 @@ export function Footer() {
           <a
             href="https://windedvertigo.com/portfolio/"
             aria-label="Portfolio"
-            style={{ color: "var(--wv-champagne)" }}
+            style={{ color: "var(--color-text-on-dark)" }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
