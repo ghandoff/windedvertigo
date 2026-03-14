@@ -15,7 +15,7 @@ import { requireAdmin } from "@/lib/auth-helpers";
 import { logAccess } from "@/lib/queries/audit";
 import { parseJsonBody } from "@/lib/api-helpers";
 
-/* ── Vercel project IDs (mirrors reservoir-status.ts) ── */
+/* ── Vercel project IDs (mirrors harbour-status.ts) ── */
 const VERCEL_APPS: Record<string, string> = {
   site: "prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx",
   harbour: "prj_KqjKxyhlGTublMolccOkvLFBZ8Xn",

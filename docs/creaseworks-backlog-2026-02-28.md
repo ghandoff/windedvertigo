@@ -138,7 +138,7 @@ most foundations are in place (tokens, reduced-motion, focus-visible, contrast).
 2. **R2 bucket separation** — one bucket for all apps or separate per app?
 3. **supabase evaluation** — planned for next new project. is sqr-rct the candidate?
 4. **vercel pro pricing** — needed for commercial use. is the team on pro yet?
-5. **URL structure** — creaseworks now lives at windedvertigo.com/reservoir/creaseworks. should old creaseworks.windedvertigo.com subdomain redirect?
+5. **URL structure** — creaseworks now lives at windedvertigo.com/harbour/creaseworks. should old creaseworks.windedvertigo.com subdomain redirect?
 6. **shared header/footer across apps** — packages/tokens/footer.html exists. should this extend to a shared header?
 
 ---
