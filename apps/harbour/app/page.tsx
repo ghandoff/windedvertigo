@@ -14,7 +14,7 @@ export default function HarbourPage() {
         {/* ── Hero ────────────────────────────────────────────── */}
         <section aria-label="hero" className="min-h-[90vh] flex flex-col items-center justify-center text-center px-6 pt-20">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--color-accent-on-dark)] mb-6">
+            <p className="text-xs font-semibold tracking-[0.25em] text-[var(--color-accent-on-dark)] mb-6">
               {credibilityData.hero?.tagline ?? "winded.vertigo presents"}
             </p>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-[var(--color-text-on-dark)] leading-[1.1] tracking-tight mb-6">
@@ -26,7 +26,7 @@ export default function HarbourPage() {
 
             {/* Scroll hint */}
             <div className="flex flex-col items-center gap-2 text-[var(--color-text-on-dark-muted)]" aria-hidden="true">
-              <span className="text-xs uppercase tracking-widest">
+              <span className="text-xs tracking-widest">
                 come in
               </span>
               <svg

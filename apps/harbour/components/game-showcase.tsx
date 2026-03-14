@@ -45,7 +45,7 @@ function GameCard({ game, index }: { game: Game; index: number }) {
               <h3 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-on-dark)] mb-2 tracking-tight">
                 {game.name}
               </h3>
-              <p className="text-sm font-medium text-[var(--color-text-on-dark-muted)] tracking-wider uppercase">
+              <p className="text-sm font-medium text-[var(--color-text-on-dark-muted)] tracking-wider">
                 {game.tagline}
               </p>
             </div>
