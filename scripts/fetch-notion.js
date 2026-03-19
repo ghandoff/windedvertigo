@@ -2,7 +2,7 @@
  * NOTION CONTENT FETCHER
  *
  * Fetches content from Notion databases and generates
- * a JSON file for the Package Builder.
+ * JSON files for the Package Builder and static site.
  *
  * Features:
  * - Centralized config (see notion-config.js)
@@ -12,17 +12,18 @@
  */
 
 const { Client } = require('@notionhq/client');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const config = require('./notion-config');
 
 // Validate environment
-if (!process.env.NOTION_API_KEY) {
-  console.error('ERROR: NOTION_API_KEY environment variable is not set');
+if (!process.env.NOTION_TOKEN) {
+  console.error('ERROR: NOTION_TOKEN environment variable is not set');
   process.exit(1);
 }
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
+const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
 // ============================================
 // RETRY WRAPPER
@@ -59,6 +60,22 @@ function getTextValue(prop) {
 function getTitleValue(prop) {
   if (!prop) return '';
   if (prop.type === 'title') return prop.title.map(t => t.plain_text).join('');
+  return '';
+}
+
+// Rich text with formatting preserved as markdown-style markers
+// e.g. Notion italic "yes" → "*yes*", bold → "**bold**"
+function getRichTextAsMarkdown(prop) {
+  if (!prop) return '';
+  if (prop.type === 'rich_text') {
+    return prop.rich_text.map(t => {
+      let text = t.plain_text;
+      if (t.annotations?.bold) text = '**' + text + '**';
+      if (t.annotations?.italic) text = '*' + text + '*';
+      if (t.text?.link?.url) text = '[' + text + '](' + t.text.link.url + ')';
+      return text;
+    }).join('');
+  }
   return '';
 }
 
@@ -277,48 +294,6 @@ async function fetchOutcomes() {
   return byQuadrant;
 }
 
-async function fetchExamples() {
-  const propMap = config.properties.examples;
-  const required = config.required.examples;
-
-  const response = await withRetry(
-    () => notion.databases.query({
-      database_id: config.databases.examples,
-      sorts: [{ property: propMap.order, direction: 'ascending' }],
-    }),
-    'fetchExamples'
-  );
-
-  const byQuadrant = {};
-  let total = 0;
-  let skipped = 0;
-
-  for (const page of response.results) {
-    if (!validatePage(page, required, 'Examples')) {
-      skipped++;
-      continue;
-    }
-
-    const props = page.properties;
-    const quadrant = getSelectValue(props[propMap.quadrant]);
-
-    if (quadrant) {
-      if (!byQuadrant[quadrant]) byQuadrant[quadrant] = [];
-      byQuadrant[quadrant].push({
-        title: getTitleValue(props[propMap.name]),
-        type: getTextValue(props[propMap.type]),
-        icon: getTextValue(props[propMap.icon]),
-        url: getUrlWithFallback(props, propMap.url),
-        detail: getTextValue(props[propMap.detail]),
-      });
-      total++;
-    }
-  }
-
-  console.log('  OK Examples: ' + total + ' loaded across ' + Object.keys(byQuadrant).length + ' quadrants, ' + skipped + ' skipped');
-  return byQuadrant;
-}
-
 // ============================================
 // PORTFOLIO ASSETS (from BD multi-database)
 //
@@ -424,7 +399,10 @@ async function fetchPortfolioAssets() {
       showInPackageBuilder: getCheckboxValue(props[propMap.showInPackageBuilder]),
       showInPortfolio: getCheckboxValue(props[propMap.showInPortfolio]),
       passwordProtected: getCheckboxValue(props[propMap.passwordProtected]),
-      password: getTextValue(props[propMap.password]),
+      passwordHash: (() => {
+        const pw = getTextValue(props[propMap.password]);
+        return pw ? crypto.createHash('sha256').update(pw).digest('hex') : '';
+      })(),
       client: getTextValue(props[propMap.client]),
       order: getNumberValue(props[propMap.order]),
       icon: getIconValue(props[propMap.icon]),
@@ -445,15 +423,22 @@ async function fetchVertigoVault() {
   const propMap = config.properties.vertigoVault;
   const required = config.required.vertigoVault;
 
+  // Only fetch PRME-tier activities for the static sampler page.
+  // Full vault content (explorer/practitioner tiers) is served by the
+  // standalone vertigo-vault Next.js app from the PostgreSQL cache.
   const response = await withRetry(
     () => notion.databases.query({
       database_id: config.databases.vertigoVault,
+      filter: {
+        property: propMap.tier,
+        select: { equals: 'prme' },
+      },
     }),
     'fetchVertigoVault'
   );
 
   // Ensure cover image directory exists
-  const coverDir = path.join(__dirname, '..', 'images', 'vertigo-vault');
+  const coverDir = path.join(__dirname, '..', 'site', 'images', 'vertigo-vault');
   if (!fs.existsSync(coverDir)) {
     fs.mkdirSync(coverDir, { recursive: true });
   }
@@ -470,17 +455,9 @@ async function fetchVertigoVault() {
 
     const props = page.properties;
 
-    // Fetch page content (block children)
-    let contentText = '';
-    try {
-      const blocks = await withRetry(
-        () => notion.blocks.children.list({ block_id: page.id }),
-        'fetchBlocks:' + page.id
-      );
-      contentText = blocksToMarkdown(blocks.results);
-    } catch (err) {
-      console.warn('  Warning: Could not fetch content for ' + getTitleValue(props[propMap.name]) + ': ' + err.message);
-    }
+    // NOTE: Block content is intentionally NOT fetched for the static sampler.
+    // Full activity instructions are gated behind auth/entitlements in the
+    // standalone vertigo-vault app at /harbour/vertigo-vault.
 
     // Extract and download page cover image
     let coverImage = '';
@@ -514,11 +491,10 @@ async function fetchVertigoVault() {
       type: getMultiSelectValue(props[propMap.type]),
       skillsDeveloped: getMultiSelectValue(props[propMap.skillsDeveloped]),
       coverImage: coverImage,
-      content: contentText,
     });
   }
 
-  console.log('  OK Vertigo Vault: ' + activities.length + ' activities loaded, ' + coversDownloaded + ' covers downloaded, ' + skipped + ' skipped');
+  console.log('  OK Vertigo Vault: ' + activities.length + ' PRME activities loaded, ' + coversDownloaded + ' covers downloaded, ' + skipped + ' skipped');
   return activities;
 }
 
@@ -579,6 +555,211 @@ function richTextToPlain(richText) {
   }).join('');
 }
 
+// fetchWhatPageContent removed — /what/ now reads from Site Content CMS (Mar 2026).
+// whatPageV2 fetch removed — superseded by Site Content CMS (Mar 2026).
+// Both pages now read from site-content-what.json generated by fetchSiteContent() below.
+
+// ============================================
+// DEPTH CHART (holistic skills framework)
+// ============================================
+async function fetchDepthChart() {
+  const propMap = config.properties.depthChart;
+  const required = config.required.depthChart;
+  const dbId = config.databases.depthChart;
+
+  if (!dbId || dbId === 'DEPTH_CHART_DB_ID') {
+    throw new Error('depth.chart database not configured — set NOTION_DEPTH_CHART_DB_ID or update notion-config.js');
+  }
+
+  const response = await withRetry(
+    () => notion.databases.query({
+      database_id: dbId,
+      sorts: [{ property: propMap.order, direction: 'ascending' }],
+    }),
+    'fetchDepthChart'
+  );
+
+  const skills = [];
+  let skipped = 0;
+
+  for (const page of response.results) {
+    if (!validatePage(page, required, 'DepthChart')) {
+      skipped++;
+      continue;
+    }
+
+    const props = page.properties;
+    const status = getSelectValue(props[propMap.status]);
+    if (status && status !== 'live') continue;
+
+    const name = getTitleValue(props[propMap.name]);
+    skills.push({
+      slug: getTextValue(props[propMap.slug]) || toSlug(name),
+      name,
+      domain: getSelectValue(props[propMap.domain]),
+      skillsets: getMultiSelectValue(props[propMap.skillset]),
+      description: getTextValue(props[propMap.description]),
+      icon: getTextValue(props[propMap.icon]),
+      howToPractice: getTextValue(props[propMap.howToPractice]),
+      order: getNumberValue(props[propMap.order]) || 0,
+    });
+  }
+
+  console.log('  OK depth.chart: ' + skills.length + ' skills' + (skipped ? ' (' + skipped + ' skipped)' : ''));
+  return skills;
+}
+
+// ============================================
+// HARBOUR GAMES
+// ============================================
+async function fetchHarbourGames() {
+  const propMap = config.properties.harbourGames;
+  const required = config.required.harbourGames;
+
+  const response = await withRetry(
+    () => notion.databases.query({
+      database_id: config.databases.harbourGames,
+      sorts: [{ property: propMap.order, direction: 'ascending' }],
+    }),
+    'fetchHarbourGames'
+  );
+
+  // Ensure tile image directory exists
+  const imageDir = path.join(__dirname, '..', 'harbour', 'public', 'images');
+  if (!fs.existsSync(imageDir)) {
+    fs.mkdirSync(imageDir, { recursive: true });
+  }
+
+  const games = [];
+  let skipped = 0;
+  let imagesDownloaded = 0;
+
+  for (const page of response.results) {
+    if (!validatePage(page, required, 'Harbour Games')) {
+      skipped++;
+      continue;
+    }
+
+    const props = page.properties;
+    const featuresRaw = getTextValue(props[propMap.features]);
+    const slug = getTextValue(props[propMap.slug]);
+
+    // Download tile image from Notion (signed URLs expire, so we cache locally)
+    let image = '';
+    const tileImageUrl = getFilesValue(props[propMap.tileImage]);
+    if (tileImageUrl) {
+      try {
+        const ext = getCoverExtension(tileImageUrl);
+        const filename = slug + ext;
+        const filepath = path.join(imageDir, filename);
+        await downloadFile(tileImageUrl, filepath);
+        image = '/harbour/images/' + filename;
+        imagesDownloaded++;
+      } catch (err) {
+        console.warn('  Warning: Could not download tile image for ' + slug + ': ' + err.message);
+      }
+    }
+
+    games.push({
+      slug,
+      name: getTitleValue(props[propMap.name]),
+      tagline: getTextValue(props[propMap.tagline]),
+      description: getTextValue(props[propMap.description]),
+      icon: getTextValue(props[propMap.icon]),
+      image,
+      color: getTextValue(props[propMap.brandColor]),
+      accentColor: getTextValue(props[propMap.accentColor]),
+      features: featuresRaw ? featuresRaw.split(',').map(f => f.trim()).filter(Boolean) : [],
+      href: getUrlValue(props[propMap.href]),
+      status: getSelectValue(props[propMap.status]) || 'live',
+      order: getNumberValue(props[propMap.order]) || 0,
+    });
+  }
+
+  console.log('  OK Harbour Games: ' + games.length + ' games, ' + imagesDownloaded + ' tile images' + (skipped ? ', ' + skipped + ' skipped' : ''));
+  return games;
+}
+
+// ============================================
+// SITE CONTENT (unified CMS for all pages)
+// ============================================
+// Fetches from the single Site Content CMS database and groups
+// results by Page value (what, we, do, home, harbour, etc.).
+// Includes pagination to handle >100 rows across all pages.
+async function fetchSiteContent() {
+  const propMap = config.properties.siteContent;
+  const required = config.required.siteContent;
+
+  // Paginated query — the CMS holds content for ALL pages
+  let allPages = [];
+  let startCursor = undefined;
+  let round = 0;
+  const MAX_ROUNDS = 10;
+
+  do {
+    round++;
+    const queryOpts = {
+      database_id: config.databases.siteContent,
+      sorts: [
+        { property: propMap.page, direction: 'ascending' },
+        { property: propMap.order, direction: 'ascending' },
+      ],
+      page_size: 100,
+    };
+    if (startCursor) queryOpts.start_cursor = startCursor;
+
+    const response = await withRetry(
+      () => notion.databases.query(queryOpts),
+      'fetchSiteContent:round' + round
+    );
+
+    allPages = allPages.concat(response.results);
+    startCursor = response.has_more ? response.next_cursor : undefined;
+  } while (startCursor && round < MAX_ROUNDS);
+
+  // Group by page value
+  const byPage = {};
+  let total = 0;
+  let skipped = 0;
+
+  for (const page of allPages) {
+    if (!validatePage(page, required, 'SiteContent')) {
+      skipped++;
+      continue;
+    }
+
+    const props = page.properties;
+    const pageKey = getSelectValue(props[propMap.page]);
+    if (!pageKey) continue;
+
+    // Only include rows with status "live" (or no status set)
+    const status = getSelectValue(props[propMap.status]);
+    if (status && status !== 'live') continue;
+
+    if (!byPage[pageKey]) byPage[pageKey] = [];
+    byPage[pageKey].push({
+      name: getTitleValue(props[propMap.name]),
+      content: getRichTextAsMarkdown(props[propMap.content]),
+      tagline: getTextValue(props[propMap.tagline]),
+      order: getNumberValue(props[propMap.order]),
+      type: getSelectValue(props[propMap.type]),
+      layout: getSelectValue(props[propMap.layout]) || 'default',
+      icon: getTextValue(props[propMap.icon]),
+      section: getTextValue(props[propMap.section]),
+      features: getTextValue(props[propMap.features]),
+      brandColor: getSelectValue(props[propMap.brandColor]),
+      accentColor: getSelectValue(props[propMap.accentColor]),
+      textColor: getSelectValue(props[propMap.textColor]),
+      link: getUrlValue(props[propMap.link]),
+      imageUrl: getUrlValue(props[propMap.imageUrl]),
+    });
+    total++;
+  }
+
+  console.log('  OK Site Content: ' + total + ' items across ' + Object.keys(byPage).length + ' pages, ' + skipped + ' skipped');
+  return byPage;
+}
+
 // ============================================
 // MAIN
 // ============================================
@@ -586,11 +767,23 @@ async function main() {
   console.log('Fetching content from Notion...');
 
   try {
-    const [quadrants, outcomes, portfolioAssets, vaultActivities] = await Promise.all([
+    const [quadrants, outcomes, portfolioAssets, vaultActivities, siteContent, harbourGames, depthChart] = await Promise.all([
       fetchQuadrants(),
       fetchOutcomes(),
       fetchPortfolioAssets(),
       fetchVertigoVault(),
+      fetchSiteContent().catch(err => {
+        console.warn('  Warning: Site Content CMS sync skipped (' + err.message + ')');
+        return {};
+      }),
+      fetchHarbourGames().catch(err => {
+        console.warn('  Warning: Harbour Games sync skipped (' + err.message + ')');
+        return [];
+      }),
+      fetchDepthChart().catch(err => {
+        console.warn('  Warning: depth.chart sync skipped (' + err.message + ')');
+        return [];
+      }),
     ]);
 
     // Validate we got all 4 quadrants
@@ -648,7 +841,7 @@ async function main() {
     };
 
     // Write Package Builder content
-    const outputPath = path.join(__dirname, '..', 'data', 'package-builder-content.json');
+    const outputPath = path.join(__dirname, '..', 'site', 'data', 'package-builder-content.json');
     fs.writeFileSync(outputPath, JSON.stringify(content, null, 2));
 
     // Write Portfolio Assets (sourced from BD Assets database)
@@ -657,23 +850,113 @@ async function main() {
       note: 'Auto-generated from Notion BD Assets. Do not edit directly.',
       assets: portfolioAssets,
     };
-    const portfolioPath = path.join(__dirname, '..', 'data', 'portfolio-assets.json');
+    const portfolioPath = path.join(__dirname, '..', 'site', 'data', 'portfolio-assets.json');
     fs.writeFileSync(portfolioPath, JSON.stringify(portfolioContent, null, 2));
 
     // Write Vertigo Vault
     const vaultContent = {
       lastUpdated: new Date().toISOString(),
-      note: 'Auto-generated from Notion vertigo.vault database. Do not edit directly.',
+      note: 'Auto-generated from Notion vertigo.vault database. PRME activities only. Do not edit directly.',
       notionDatabaseId: config.databases.vertigoVault,
       activities: vaultActivities,
     };
-    const vaultPath = path.join(__dirname, '..', 'data', 'vertigo-vault.json');
+    const vaultPath = path.join(__dirname, '..', 'site', 'data', 'vertigo-vault.json');
     fs.writeFileSync(vaultPath, JSON.stringify(vaultContent, null, 2));
+
+    // Write Harbour Games (skip if fetch failed gracefully)
+    let harbourGamesPath = null;
+    if (harbourGames.length > 0) {
+      const harbourDataDir = path.join(__dirname, '..', 'harbour', 'data');
+      if (!fs.existsSync(harbourDataDir)) {
+        fs.mkdirSync(harbourDataDir, { recursive: true });
+      }
+      harbourGamesPath = path.join(harbourDataDir, 'games.json');
+      fs.writeFileSync(harbourGamesPath, JSON.stringify(harbourGames, null, 2));
+    }
+
+    // Write depth.chart (skip if fetch failed gracefully)
+    let depthChartPath = null;
+    if (depthChart.length > 0) {
+      const harbourDataDir = path.join(__dirname, '..', 'harbour', 'data');
+      if (!fs.existsSync(harbourDataDir)) {
+        fs.mkdirSync(harbourDataDir, { recursive: true });
+      }
+      depthChartPath = path.join(harbourDataDir, 'depth-chart.json');
+      fs.writeFileSync(depthChartPath, JSON.stringify(depthChart, null, 2));
+    }
+
+    // Write Harbour Credibility data (extracted from Site Content CMS "harbour" page)
+    const harbourSections = siteContent.harbour || [];
+    if (harbourSections.length > 0) {
+      const credentials = harbourSections
+        .filter(s => s.type === 'credential' && s.section === 'why')
+        .sort((a, b) => a.order - b.order)
+        .map(s => ({ icon: s.icon, label: s.name, detail: s.content }));
+      const principles = harbourSections
+        .filter(s => s.type === 'principle' && s.section === 'principles')
+        .sort((a, b) => a.order - b.order)
+        .map(s => ({ heading: s.name, body: s.content }));
+      const bioSection = harbourSections.find(s => s.type === 'body' && s.section === 'bio');
+      const heroSection = harbourSections.find(s => s.section === 'hero' && s.type === 'hero');
+      const whyHeader = harbourSections.find(s => s.section === 'why-header');
+      const ctaSection = harbourSections.find(s => s.section === 'closing-cta' && s.type === 'cta');
+
+      const credibilityData = {
+        sectionLabel: whyHeader ? whyHeader.tagline : 'why these tools',
+        sectionHeading: whyHeader ? whyHeader.content : 'built by people who study how humans grow',
+        credentials,
+        principles,
+        bio: bioSection ? { text: bioSection.content, link: bioSection.link } : null,
+        hero: heroSection ? { title: heroSection.name, subtitle: heroSection.content, tagline: heroSection.tagline } : null,
+        cta: ctaSection ? { heading: ctaSection.name, body: ctaSection.content } : null,
+        connection: bioSection ? {
+          heading: whyHeader ? whyHeader.name : 'who holds the harbour',
+          body: bioSection.content,
+          link: bioSection.link,
+          linkLabel: 'there is more water beyond this harbour',
+        } : null,
+      };
+
+      const credibilityPath = path.join(__dirname, '..', 'harbour', 'data', 'credibility.json');
+      fs.writeFileSync(credibilityPath, JSON.stringify(credibilityData, null, 2));
+      console.log('  Harbour Credibility: ' + credentials.length + ' credentials, ' + principles.length + ' principles → ' + credibilityPath);
+    }
+
+    // what-page.json write removed — /what/ now reads site-content-what.json from CMS (Mar 2026)
+    // what-page-v2.json write removed — superseded by Site Content CMS (Mar 2026)
+
+    // Write Site Content per-page JSON files
+    const siteContentPaths = [];
+    for (const [pageKey, sections] of Object.entries(siteContent)) {
+      const sitePageContent = {
+        lastUpdated: new Date().toISOString(),
+        note: 'Auto-generated from Notion Site Content CMS. Do not edit directly.',
+        page: pageKey,
+        sections,
+      };
+      const sitePagePath = path.join(__dirname, '..', 'site', 'data', 'site-content-' + pageKey + '.json');
+      fs.writeFileSync(sitePagePath, JSON.stringify(sitePageContent, null, 2));
+      siteContentPaths.push({ page: pageKey, count: sections.length, path: sitePagePath });
+    }
 
     console.log('Success!');
     console.log('  Package Builder: ' + Object.keys(packs).length + ' packs → ' + outputPath);
     console.log('  Portfolio: ' + portfolioAssets.length + ' assets → ' + portfolioPath);
     console.log('  Vertigo Vault: ' + vaultActivities.length + ' activities → ' + vaultPath);
+    if (harbourGamesPath) {
+      console.log('  Harbour Games: ' + harbourGames.length + ' games → ' + harbourGamesPath);
+    } else {
+      console.log('  Harbour Games: skipped (database not accessible)');
+    }
+    if (depthChartPath) {
+      console.log('  depth.chart: ' + depthChart.length + ' skills → ' + depthChartPath);
+    } else {
+      console.log('  depth.chart: skipped (database not configured or not accessible)');
+    }
+    // What Page log removed — retired in favour of Site Content CMS
+    for (const sp of siteContentPaths) {
+      console.log('  Site Content (' + sp.page + '): ' + sp.count + ' sections → ' + sp.path);
+    }
 
   } catch (err) {
     console.error('Sync failed:', err.message);

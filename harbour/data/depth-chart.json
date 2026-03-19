@@ -1,0 +1,283 @@
+[
+  {
+    "slug": "openness",
+    "name": "openness",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "creative thinking",
+      "collaboration",
+      "self-directed learning"
+    ],
+    "description": "willingness to engage with novel ideas, perspectives, and situations. curiosity about the world, appreciation for diverse viewpoints, and comfort with exploration beyond familiar boundaries.",
+    "icon": "💭",
+    "howToPractice": "seek out a perspective this week that genuinely challenges your own. sit with it long enough to find what’s useful in it.",
+    "order": 1
+  },
+  {
+    "slug": "adaptability",
+    "name": "adaptability",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "problem-solving",
+      "collaboration",
+      "self-directed learning"
+    ],
+    "description": "capacity to adjust thoughts, behaviors, and strategies in response to changing conditions. cognitive flexibility, tolerance for uncertainty, and willingness to revise plans when circumstances shift.",
+    "icon": "🌀",
+    "howToPractice": "next time a plan falls apart, notice your first reaction. then ask: what does this new situation make possible that the old plan didn’t?",
+    "order": 2
+  },
+  {
+    "slug": "agency",
+    "name": "agency",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "self-directed learning",
+      "problem-solving"
+    ],
+    "description": "sense that one can influence outcomes through intentional action. self-efficacy, internal locus of control, and belief in capacity to shape learning and work.",
+    "icon": "✨",
+    "howToPractice": "identify one thing you’ve been waiting for permission to do. take the smallest possible step toward it today.",
+    "order": 3
+  },
+  {
+    "slug": "curiosity",
+    "name": "curiosity",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "creative thinking",
+      "critical thinking",
+      "self-directed learning"
+    ],
+    "description": "intrinsic drive to seek new information and experiences. asking questions, exploring unknowns, finding joy in discovery.",
+    "icon": "🔍",
+    "howToPractice": "ask three genuine questions today where you don’t already know the answer. notice which ones surprise you.",
+    "order": 4
+  },
+  {
+    "slug": "intellectual-humility",
+    "name": "intellectual humility",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "critical thinking",
+      "collaboration",
+      "self-directed learning"
+    ],
+    "description": "recognition that one’s beliefs and knowledge are fallible. openness to being wrong, respect for others’ viewpoints, and willingness to revise judgments based on evidence.",
+    "icon": "🧘",
+    "howToPractice": "in your next disagreement, try saying ‘i might be wrong about this — help me see what i’m missing.’ notice what shifts.",
+    "order": 5
+  },
+  {
+    "slug": "intellectual-risk-taking",
+    "name": "willingness to take intellectual risks",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "creative thinking",
+      "self-directed learning"
+    ],
+    "description": "willingness to try new approaches, share tentative ideas, and persist despite uncertainty. risk-taking supports creative thinking and deep learning.",
+    "icon": "🎲",
+    "howToPractice": "share an unfinished idea in your next meeting. frame it as ‘this is rough, but...’ and see what develops.",
+    "order": 6
+  },
+  {
+    "slug": "tolerance-for-ambiguity",
+    "name": "tolerance for ambiguity",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "creative thinking",
+      "problem-solving",
+      "critical thinking"
+    ],
+    "description": "ability to function effectively in situations lacking clear structure, answers, or outcomes. comfort with complexity, patience with not-knowing, capacity to hold multiple possibilities simultaneously.",
+    "icon": "🌫️",
+    "howToPractice": "next time you feel the urge to resolve something prematurely, try sitting with the uncertainty for one more day. notice what clarity emerges on its own.",
+    "order": 7
+  },
+  {
+    "slug": "perspective-taking",
+    "name": "perspective-taking & empathic concern",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "collaboration",
+      "critical thinking",
+      "problem-solving"
+    ],
+    "description": "cognitive capacity to understand another person’s viewpoint combined with emotional response to others’ experiences. enables consideration of stakeholder impacts, navigation of difference, and compassionate action.",
+    "icon": "🪞",
+    "howToPractice": "before reacting to someone’s behavior, spend 30 seconds imagining three possible reasons behind it that have nothing to do with you.",
+    "order": 8
+  },
+  {
+    "slug": "self-regulation",
+    "name": "self-regulation",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "self-directed learning",
+      "problem-solving"
+    ],
+    "description": "monitoring and managing one’s emotions, attention, and behaviors to achieve goals. impulse control, emotional awareness, stress management, and strategic resource allocation.",
+    "icon": "🌊",
+    "howToPractice": "when you feel a spike of reactivity, put one hand on your chest and take three slow breaths. not to suppress the feeling — to expand the space around it.",
+    "order": 9
+  },
+  {
+    "slug": "abundance-mindset",
+    "name": "abundance mindset",
+    "domain": "social & behavioral",
+    "skillsets": [
+      "creative thinking",
+      "collaboration",
+      "self-directed learning"
+    ],
+    "description": "belief that opportunities, resources, and success are plentiful rather than zero-sum. generosity, collaboration over competition, and confidence that enough exists for all.",
+    "icon": "☀️",
+    "howToPractice": "next time you feel competitive or guarded, ask: what would i do differently if i believed there was enough for everyone? try that.",
+    "order": 10
+  },
+  {
+    "slug": "inquiry",
+    "name": "inquiry",
+    "domain": "cognitive",
+    "skillsets": [
+      "critical thinking",
+      "self-directed learning"
+    ],
+    "description": "asking questions, seeking evidence, and investigating phenomena with systematic curiosity. formulating meaningful questions, designing investigations, and pursuing answers through research or experimentation.",
+    "icon": "❓",
+    "howToPractice": "take a claim you’ve accepted at face value. spend 10 minutes investigating it. notice whether the evidence matches your assumption.",
+    "order": 11
+  },
+  {
+    "slug": "analysis-evaluation",
+    "name": "analysis & evaluation",
+    "domain": "cognitive",
+    "skillsets": [
+      "critical thinking",
+      "problem-solving"
+    ],
+    "description": "breaking down complex information into components to understand relationships, patterns, and structures. judging quality, validity, or significance based on criteria.",
+    "icon": "🔬",
+    "howToPractice": "read an argument you agree with and identify its weakest point. read one you disagree with and find its strongest.",
+    "order": 12
+  },
+  {
+    "slug": "synthesis",
+    "name": "synthesis",
+    "domain": "cognitive",
+    "skillsets": [
+      "critical thinking",
+      "creative thinking",
+      "problem-solving"
+    ],
+    "description": "integration of ideas from multiple sources into coherent new understanding. identifying connections, building frameworks, and creating unified perspectives from diverse inputs.",
+    "icon": "🧩",
+    "howToPractice": "after reading or learning from two different sources on a topic, write one paragraph that connects them in a way neither source does alone.",
+    "order": 13
+  },
+  {
+    "slug": "extending-ideas",
+    "name": "extending ideas",
+    "domain": "cognitive",
+    "skillsets": [
+      "creative thinking",
+      "problem-solving"
+    ],
+    "description": "taking existing concepts or solutions and pushing them further. applying them to new contexts, elaborating their implications, and building upon them incrementally.",
+    "icon": "🚀",
+    "howToPractice": "take a solution that works in one domain and ask: where else could this apply? what would need to change to make it work there?",
+    "order": 14
+  },
+  {
+    "slug": "conventional-ideas",
+    "name": "conventional ideas",
+    "domain": "cognitive",
+    "skillsets": [
+      "creative thinking",
+      "problem-solving"
+    ],
+    "description": "common, established, or standard approaches within a domain. provides necessary grounding — you must know the norms to meaningfully innovate beyond them.",
+    "icon": "📚",
+    "howToPractice": "before trying to innovate in an area, spend time understanding the established approach. ask: why does this convention exist? what problem did it solve?",
+    "order": 15
+  },
+  {
+    "slug": "generating-diverse-ideas",
+    "name": "generating diverse ideas",
+    "domain": "cognitive",
+    "skillsets": [
+      "creative thinking"
+    ],
+    "description": "producing many different kinds of ideas across categories, domains, or perspectives. emphasis on breadth and variety over depth or refinement.",
+    "icon": "🌈",
+    "howToPractice": "set a timer for 5 minutes and generate ideas for a current challenge. aim for quantity and variety — no filtering allowed until the timer ends.",
+    "order": 16
+  },
+  {
+    "slug": "generating-creative-ideas",
+    "name": "generating creative ideas",
+    "domain": "cognitive",
+    "skillsets": [
+      "creative thinking"
+    ],
+    "description": "producing original, novel, or unusual ideas that break from conventional patterns. divergent thinking, remote association, and willingness to propose unexpected possibilities.",
+    "icon": "💡",
+    "howToPractice": "combine two unrelated concepts from your work and ask: what would this look like if they merged? follow the weird ones.",
+    "order": 17
+  },
+  {
+    "slug": "improving-ideas",
+    "name": "improving ideas",
+    "domain": "cognitive",
+    "skillsets": [
+      "creative thinking",
+      "problem-solving",
+      "critical thinking"
+    ],
+    "description": "taking initial concepts and refining, elaborating, or enhancing them through iteration. giving and receiving feedback, recognizing limitations, and making strategic revisions.",
+    "icon": "🔧",
+    "howToPractice": "take your most recent piece of work and ask three people for one specific improvement each. implement the one that surprises you most.",
+    "order": 18
+  },
+  {
+    "slug": "planning",
+    "name": "planning",
+    "domain": "cognitive",
+    "skillsets": [
+      "problem-solving",
+      "self-directed learning"
+    ],
+    "description": "setting goals, anticipating steps, allocating resources, and organizing action toward desired outcomes. strategic thinking, time management, and breaking complex goals into manageable parts.",
+    "icon": "🗓️",
+    "howToPractice": "take your biggest current goal and break it into three phases. for each phase, identify the single most important next action.",
+    "order": 19
+  },
+  {
+    "slug": "executing",
+    "name": "executing",
+    "domain": "cognitive",
+    "skillsets": [
+      "problem-solving",
+      "self-directed learning"
+    ],
+    "description": "implementation of plans. taking action, managing resources, coordinating efforts, and maintaining momentum toward goals. involves persistence, task management, and adaptive implementation when plans meet reality.",
+    "icon": "⚡",
+    "howToPractice": "identify the task you’ve been avoiding longest. commit to 15 minutes on it right now — nothing else. momentum follows motion.",
+    "order": 20
+  },
+  {
+    "slug": "monitoring",
+    "name": "monitoring",
+    "domain": "cognitive",
+    "skillsets": [
+      "self-directed learning",
+      "problem-solving",
+      "critical thinking"
+    ],
+    "description": "tracking progress toward goals, assessing whether strategies are working, and recognizing when adjustments are needed. metacognitive awareness, self-assessment, and use of feedback.",
+    "icon": "📊",
+    "howToPractice": "at the end of today, ask: what worked? what didn’t? what will i do differently tomorrow? write it down in three sentences.",
+    "order": 21
+  }
+]

@@ -1,6 +1,6 @@
-# macOS
+node_modules/
+.next/
 .DS_Store
-
-# nested project repos (have their own git repos)
-creaseworks/
-creaseworks-project/
+.vercel/
+.turbo/
+*.env.local

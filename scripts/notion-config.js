@@ -13,9 +13,14 @@ module.exports = {
     examples: 'de0bc6fe83d54d71a91b31d8f1eb73bd',
     portfolioAssets: '5e27b792adbb4a958779900fb59dd631',  // BD multi-database (parent)
     vertigoVault: '223e4ee74ba4805f8c92cda6e2b8ba00',
+    // whatPage removed — /what/ now reads from siteContent CMS (Mar 2026)
+    // whatPageV2 removed — superseded by siteContent CMS (Mar 2026)
+    siteContent: '09a046a556c1455e80073546b8f83297',
+    harbourGames: '8e3f3364b2654640a91ed0f38b091a07',
+    depthChart: process.env.NOTION_DEPTH_CHART_DB_ID || '38873e53f36f4b2885552fdf6cdc98cb',
   },
 
-  // Property name mappings (Notion column name → internal key)
+  // Property name mappings (Notion column name â internal key)
   // If Notion column names change, update them here only
   properties: {
     quadrants: {
@@ -65,8 +70,54 @@ module.exports = {
       duration: 'duration',
       format: 'format',
       type: 'type',
+      tier: 'tier',
       skillsDeveloped: 'skills developed',
       filesMedia: 'files & media',
+    },
+    // whatPage properties removed — /what/ now reads from siteContent CMS (Mar 2026)
+    // whatPageV2 properties removed — superseded by siteContent CMS (Mar 2026)
+    depthChart: {
+      name: 'Name',
+      slug: 'Slug',
+      domain: 'Domain',
+      skillset: 'Skillset',
+      description: 'Description',
+      icon: 'Icon',
+      howToPractice: 'How to Practice',
+      order: 'Order',
+      status: 'Status',
+    },
+    harbourGames: {
+      name: 'Name',
+      slug: 'Slug',
+      tagline: 'Tagline',
+      description: 'Description',
+      icon: 'Icon',
+      tileImage: 'Tile Image',
+      brandColor: 'Brand Color',
+      accentColor: 'Accent Color',
+      features: 'Features',
+      href: 'Href',
+      status: 'Status',
+      order: 'Order',
+    },
+    siteContent: {
+      name: 'Name',
+      content: 'Content',
+      tagline: 'Tagline',
+      order: 'Order',
+      type: 'Content Type',
+      layout: 'Layout',
+      icon: 'Icon',
+      page: 'Page',
+      section: 'Section',
+      features: 'Features',
+      brandColor: 'Brand Color',
+      accentColor: 'Accent Color',
+      textColor: 'Text Color',
+      link: 'Link',
+      imageUrl: 'Image URL',
+      status: 'Status',
     },
   },
 
@@ -77,6 +128,10 @@ module.exports = {
     examples: ['Quadrant', 'Name'],
     portfolioAssets: ['asset', 'Website Asset Type'],
     vertigoVault: ['name'],
+    // whatPage required removed — retired (Mar 2026)
+    depthChart: ['Name', 'Domain'],
+    harbourGames: ['Name', 'Slug'],
+    siteContent: ['Name', 'Page'],
   },
 
   // Retry configuration for API calls

@@ -1,0 +1,3339 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>horizons in learning summit 2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cadet: #5F9EA0;
+  --redwood: #A0522D;
+  --sienna: #E97451;
+  --champagne: #F7E7CE;
+  --grey1: #2a2a2a;
+  --grey2: #4a4a4a;
+  --grey3: #6a6a6a;
+  --grey4: #8a8a8a;
+  --grey5: #aaa;
+  --grey6: #ccc;
+  --grey7: #e0e0e0;
+  --grey8: #f0f0f0;
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; }
+body { font-family: var(--font-body); font-size: 16px; color: var(--grey1); }
+
+.screen {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.6s ease;
+  z-index: 0;
+}
+.screen.active { opacity: 1; pointer-events: auto; z-index: 10; }
+.screen.beneath { opacity: 1; pointer-events: none; z-index: 5; }
+
+/* ── SCREEN 0 ── */
+#screen-0 { background: var(--grey7); }
+.room {
+  position: relative; width: 1100px; height: 650px;
+  background: var(--grey7);
+  border-radius: 8px; overflow: hidden;
+  flex-shrink: 0;
+}
+.room-coloured {
+  position: absolute; inset: 0; z-index: 1;
+}
+.room-coloured .wall {
+  position: absolute; top: 0; left: 0; right: 0; height: 65%;
+  background: linear-gradient(180deg, var(--champagne) 0%, #f5e6c8 100%);
+}
+.room-coloured .floor-area {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
+  background: linear-gradient(180deg, #c4a882 0%, #b8996f 100%);
+}
+.room-grey {
+  position: absolute; inset: 0; z-index: 1;
+}
+.room-grey .wall {
+  position: absolute; top: 0; left: 0; right: 0; height: 65%;
+  background: linear-gradient(180deg, var(--grey7) 0%, #d8d8d8 100%);
+}
+.room-grey .floor-area {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
+  background: linear-gradient(180deg, #b0b0b0 0%, #a0a0a0 100%);
+}
+.grey-overlay {
+  position: absolute; inset: 0; z-index: 2;
+  backdrop-filter: grayscale(1) contrast(0.9);
+  -webkit-backdrop-filter: grayscale(1) contrast(0.9);
+  pointer-events: none;
+}
+
+.room-object {
+  position: absolute; z-index: 3; cursor: pointer;
+  transition: transform 0.15s ease;
+  user-select: none;
+}
+.room-object:hover { transform: scale(1.02); }
+.speaker-area:hover { transform: translateX(-50%) scale(1.00); }
+
+/* motivational poster */
+.poster {
+  top: 8%; left: 5%; width: 180px; height: 130px;
+  background: var(--grey8); border: 6px solid var(--grey5);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 16px;
+  font-family: var(--font-display); font-size: 14px;
+  color: var(--grey4); line-height: 1.4;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.15);
+}
+.poster.coloured {
+  border-color: var(--redwood);
+  color: var(--redwood);
+  background: var(--champagne);
+}
+
+/* speaker area */
+.speaker-area {
+  top: 5%; left: 50%; transform: translateX(-50%);
+  width: 420px; height: 280px;
+}
+.slide-screen {
+  width: 100%; height: 230px;
+  background: var(--grey8); border: 3px solid var(--grey5);
+  border-radius: 4px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.slide-screen.coloured {
+  border-color: var(--cadet);
+  background: #fff;
+}
+.slide-title {
+  font-family: var(--font-display); font-size: 18px;
+  color: var(--grey4); margin-bottom: 12px; line-height: 1.3;
+}
+.slide-screen.coloured .slide-title { color: var(--grey1); }
+.slide-bullets {
+  font-size: 13px; color: var(--grey4); line-height: 1.8;
+}
+.slide-screen.coloured .slide-bullets { color: var(--grey3); }
+.slide-counter {
+  margin-top: 12px; font-size: 12px; color: var(--grey4);
+  font-family: var(--font-body); letter-spacing: 0.5px;
+}
+.speaker-figure {
+  width: 60px; height: 20px; margin: 8px auto 0;
+  background: var(--grey5); border-radius: 10px 10px 0 0;
+  position: relative;
+}
+.speaker-figure.coloured { background: var(--sienna); }
+.speaker-figure::before {
+  content: ''; position: absolute;
+  top: -18px; left: 50%; transform: translateX(-50%);
+  width: 16px; height: 16px; border-radius: 50%;
+  background: inherit;
+}
+
+/* clock */
+.clock {
+  top: 6%; right: 6%; width: 80px; height: 80px;
+}
+.clock svg { width: 100%; height: 100%; }
+
+/* agenda */
+.agenda {
+  top: 40%; left: 4%; width: 210px;
+  background: var(--grey8); padding: 16px;
+  border-left: 3px solid var(--grey5);
+  font-size: 12px; line-height: 2;
+  color: var(--grey4);
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.1);
+  transform: rotate(-1deg);
+}
+.agenda.coloured {
+  background: #fff;
+  border-left-color: var(--sienna);
+  color: var(--grey2);
+}
+.agenda-header {
+  font-family: var(--font-display); font-size: 12px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--grey3); margin-bottom: 8px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--grey6);
+}
+.agenda.coloured .agenda-header { color: var(--redwood); border-bottom-color: var(--sienna); }
+.agenda-item { padding: 2px 0; }
+.alive-word {
+  font-weight: 600;
+  cursor: pointer; position: relative; z-index: 10;
+  pointer-events: auto;
+}
+.alive-word::after {
+  content: 'want to add some colour to this conference?';
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  background: var(--grey1); color: #fff; padding: 6px 12px;
+  border-radius: 6px; font-size: 11px; font-weight: 400;
+  font-style: italic; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease; z-index: 100;
+}
+.alive-word:hover::after { opacity: 1; }
+.alive-word.pulsing {
+  animation: alivePulse 2.5s ease-in-out infinite;
+  text-decoration: underline;
+  text-decoration-color: rgba(95,158,160,0.4);
+  text-underline-offset: 3px;
+}
+@keyframes roomShake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(1px); }
+  100% { transform: translateX(0); }
+}
+@keyframes alivePulse {
+  0%, 100% { text-shadow: 0 0 0px transparent; opacity: 0.7; }
+  50% { text-shadow: 0 0 18px rgba(95,158,160,0.6), 0 0 4px rgba(95,158,160,0.3); opacity: 1; }
+}
+
+/* name badge */
+.badge {
+  bottom: 8%; right: 8%; width: 170px; height: 100px;
+  background: var(--grey8); border: 2px solid var(--grey6);
+  border-radius: 6px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px;
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.1);
+}
+.badge.coloured {
+  background: #fff; border-color: var(--cadet);
+}
+.badge-hello {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 2px; color: var(--grey3); margin-bottom: 4px;
+}
+.badge.coloured .badge-hello { color: var(--cadet); }
+.badge-name {
+  font-family: var(--font-display); font-size: 20px;
+  color: var(--grey4);
+}
+.badge.coloured .badge-name { color: var(--grey1); }
+.badge-name-input {
+  font-family: var(--font-display); font-size: 20px;
+  color: var(--grey4); background: transparent;
+  border: none; border-bottom: 1px dashed var(--grey5);
+  text-align: center; width: 100%; outline: none;
+  padding: 2px 0;
+}
+.badge-name-input:focus { border-bottom-color: var(--cadet); color: var(--grey1); }
+.badge.coloured .badge-name-input { color: var(--grey1); border-bottom-color: var(--cadet); }
+
+/* people (hidden in grey, visible in colour) */
+.people-group {
+  position: absolute; z-index: 3;
+  opacity: 0; transition: opacity 0.8s ease;
+}
+.people-group.visible { opacity: 1; }
+.person-dot {
+  display: inline-block; width: 28px; height: 28px;
+  border-radius: 50%; margin: 0 4px;
+}
+
+/* conference banner */
+.conf-banner {
+  position: absolute; z-index: 3;
+  top: 2%; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-display); font-size: 12px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--grey3);
+  white-space: nowrap;
+}
+.conf-banner.coloured { color: var(--redwood); }
+
+/* floating responses */
+.float-text {
+  position: absolute; z-index: 100;
+  font-family: var(--font-body); font-size: 13px;
+  font-style: italic; color: var(--grey3);
+  pointer-events: none; white-space: nowrap;
+  animation: floatUp 2.2s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { opacity: 0; transform: translateY(0); }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-40px); }
+}
+
+/* ink spread mask */
+.ink-mask {
+  position: absolute; inset: 0; z-index: 4;
+  background: var(--grey7);
+  pointer-events: none;
+}
+
+/* ── SCREEN 1 ── */
+#screen-1 {
+  background: var(--champagne);
+  flex-direction: column;
+}
+.s1-text {
+  font-family: var(--font-body); font-size: 18px;
+  color: var(--grey1); opacity: 0;
+  transition: opacity 1s ease;
+  cursor: pointer;
+  margin-top: 40px;
+  background: #fff;
+  padding: 20px 32px;
+  border-radius: 12px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 20;
+}
+.s1-text.visible { opacity: 1; }
+.s1-text::after {
+  content: ' →'; font-size: 14px; opacity: 0.4;
+}
+.s1-text::before {
+  content: ''; position: absolute;
+  bottom: -10px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #fff;
+}
+
+/* ── SCREEN 2 ── */
+#screen-2 {
+  background: var(--champagne);
+  padding: 30px 40px;
+  overflow-y: auto;
+}
+.hunt-container {
+  width: 100%; max-width: 1200px; min-height: 100%;
+  display: flex; gap: 20px; position: relative;
+}
+.conference-map {
+  flex: 1; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.conference-map svg#venue-map {
+  width: 100%; max-width: 740px; height: auto;
+  max-height: calc(100vh - 100px);
+}
+.hunt-sidebar {
+  width: 180px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 16px;
+  padding-top: 10px;
+}
+/* map zones */
+.map-zone { cursor: pointer; transition: all 0.3s ease; }
+.map-zone:hover .zone-bg { filter: brightness(1.08); }
+.map-zone.alive .zone-bg { filter: brightness(1.05); }
+.zone-check { opacity: 0; transition: opacity 0.5s ease; }
+.map-zone.alive .zone-check { opacity: 1; }
+@keyframes zonePulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+#map-avatar { transition: transform 0.8s ease; }
+/* zone modal */
+.zone-modal {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(26,26,26,0.6);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.zone-modal.visible { opacity: 1; pointer-events: auto; }
+.zone-modal-card {
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 12px 60px rgba(0,0,0,0.2);
+  max-width: 560px; width: 92%; max-height: 85vh; overflow-y: auto;
+  position: relative;
+}
+.zone-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px 0; font-family: var(--font-display);
+  font-size: 18px; color: var(--grey1);
+}
+.zone-modal-close {
+  width: 28px; height: 28px; border: none; background: var(--grey8);
+  border-radius: 50%; cursor: pointer; font-size: 16px; color: var(--grey3);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.zone-modal-close:hover { background: var(--grey7); }
+.zone-modal-tabs {
+  display: flex; gap: 0; margin: 14px 24px 0; border-bottom: 2px solid var(--grey7);
+}
+.zone-modal-tab {
+  padding: 8px 18px; font-family: var(--font-body); font-size: 13px;
+  color: var(--grey4); cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+}
+.zone-modal-tab:hover { color: var(--grey2); }
+.zone-modal-tab.active { color: var(--grey1); border-bottom-color: var(--cadet); font-weight: 500; }
+.zone-modal-tab.locked { color: var(--grey5); }
+.zone-modal-tab .lock-icon { font-size: 11px; }
+.zone-modal-body { padding: 20px 24px 24px; }
+.zone-scene {
+  width: 100%; border-radius: 8px; overflow: hidden;
+  margin-bottom: 16px; background: var(--grey8);
+}
+.zone-scene svg { width: 100%; display: block; }
+.zone-text {
+  font-family: var(--font-body); font-size: 14px;
+  color: var(--grey2); font-style: italic; line-height: 1.6;
+  margin-bottom: 16px;
+}
+.zone-challenge-btn {
+  display: inline-block; padding: 10px 20px;
+  background: var(--cadet); color: #fff; border: none;
+  border-radius: 6px; font-family: var(--font-body);
+  font-size: 13px; cursor: pointer; transition: all 0.2s;
+}
+.zone-challenge-btn:hover { background: #4e8a8c; }
+.zone-lock-msg {
+  text-align: center; padding: 40px 20px;
+  color: var(--grey4); font-style: italic; font-size: 14px;
+}
+.zone-lock-msg .lock-big { font-size: 28px; display: block; margin-bottom: 12px; }
+/* hint card on map */
+.map-hint {
+  position: absolute; bottom: 16px; left: 50%;
+  transform: translateX(-50%); z-index: 10;
+  background: #fff; border-radius: 8px; padding: 10px 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  font-family: var(--font-body); font-size: 12px;
+  color: var(--grey3); font-style: italic;
+  display: flex; align-items: center; gap: 8px;
+  opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+}
+.map-hint.visible { opacity: 1; pointer-events: auto; }
+.map-hint-dismiss {
+  background: none; border: none; color: var(--grey4);
+  cursor: pointer; font-size: 14px; padding: 0 2px;
+}
+.map-show-clue {
+  position: absolute; top: 12px; left: 12px; z-index: 10;
+  background: #fff; border: 1px solid var(--grey7);
+  border-radius: 6px; padding: 5px 10px;
+  font-family: var(--font-body); font-size: 11px;
+  color: var(--grey3); cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.map-show-clue:hover { background: var(--champagne); border-color: var(--sienna); color: var(--grey1); }
+/* celebration overlay */
+.map-celebration {
+  position: absolute; inset: 0; z-index: 15;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(247,231,206,0.92);
+  opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+}
+.map-celebration.visible { opacity: 1; pointer-events: auto; }
+.hunt-narration {
+  font-family: var(--font-body); font-size: 17px;
+  font-style: italic; color: var(--grey2);
+  line-height: 1.7; margin-bottom: 28px;
+  opacity: 0; transform: translateY(12px);
+  transition: all 0.6s ease;
+}
+.hunt-narration.visible { opacity: 1; transform: translateY(0); }
+
+.hunt-interaction {
+  opacity: 0; transform: translateY(16px);
+  transition: all 0.5s ease 0.3s;
+}
+.hunt-interaction.visible { opacity: 1; transform: translateY(0); }
+.hunt-modal .hunt-interaction { opacity: 1; transform: none; }
+
+/* QR card */
+.qr-card {
+  width: 280px; padding: 24px; background: #fff;
+  border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  cursor: pointer; transition: transform 0.2s;
+  text-align: center;
+}
+.qr-card:hover { transform: translateY(-2px); }
+.qr-graphic {
+  width: 100px; height: 100px; margin: 0 auto 12px;
+  background: repeating-conic-gradient(var(--grey1) 0% 25%, #fff 0% 50%) 0 0 / 10px 10px;
+  border-radius: 4px;
+}
+.qr-label { font-size: 12px; color: var(--grey4); }
+
+/* SJT */
+.sjt-card {
+  width: 100%; max-width: 480px; padding: 24px; background: #fff;
+  border-radius: 10px; box-shadow: 0 6px 30px rgba(0,0,0,0.08);
+  border-left: 4px solid var(--cadet);
+}
+.sjt-question {
+  font-family: var(--font-display); font-size: 16px;
+  color: var(--grey1); line-height: 1.6; margin-bottom: 20px;
+  font-style: italic;
+}
+.sjt-options { list-style: none; }
+.sjt-options li {
+  padding: 12px 16px; margin: 6px 0;
+  background: var(--grey8); border-radius: 6px;
+  cursor: pointer; font-size: 14px; color: var(--grey2);
+  transition: all 0.2s ease; border: 2px solid transparent;
+}
+.sjt-options li:hover {
+  background: #e8f4f4; border-color: var(--cadet);
+}
+.sjt-options li.selected {
+  background: var(--cadet); color: #fff;
+  border-color: var(--cadet);
+}
+.sjt-response {
+  margin-top: 16px; padding: 14px;
+  background: #f0f8f8; border-radius: 6px;
+  font-size: 14px; color: var(--grey2);
+  line-height: 1.6; opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.sjt-response.visible { opacity: 1; }
+.sjt-clue {
+  margin-top: 12px; font-style: italic;
+  color: var(--sienna); font-weight: 500;
+}
+
+/* coffee card */
+.coffee-card {
+  width: 260px; height: 80px; background: #fff;
+  border-radius: 8px; box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px; color: var(--grey3);
+  font-style: italic; transition: transform 0.4s ease;
+  perspective: 600px;
+}
+.coffee-card:hover { transform: rotateY(-5deg); }
+
+/* session board */
+.session-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; width: 420px;
+}
+.session-card {
+  padding: 14px; background: #fff; border-radius: 6px;
+  border: 1px solid var(--grey6); font-size: 12px;
+  color: var(--grey3); cursor: pointer; text-align: center;
+  transition: all 0.2s; position: relative; line-height: 1.4;
+}
+.session-card:hover { border-color: var(--cadet); transform: translateY(-2px); }
+.session-card.starred::after {
+  content: '★'; position: absolute; top: 4px; right: 6px;
+  font-size: 10px; color: var(--sienna);
+}
+.session-card.easter-egg { position: relative; }
+.session-card.easter-egg::before {
+  content: '◆'; position: absolute; bottom: 3px; left: 6px;
+  font-size: 7px; color: var(--grey5); opacity: 0.5;
+}
+
+/* personal badge */
+.personal-badge {
+  width: 340px; padding: 28px; background: #fff;
+  border-radius: 10px; border-top: 5px solid var(--cadet);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  text-align: center; opacity: 0; transform: translateY(20px) scale(0.95);
+  transition: all 0.6s ease;
+}
+.personal-badge.visible { opacity: 1; transform: translateY(0) scale(1); }
+.pb-conf {
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--grey3); margin-bottom: 12px;
+}
+.pb-name {
+  font-family: var(--font-display); font-size: 26px;
+  color: var(--grey1); margin-bottom: 8px;
+}
+.pb-session {
+  font-size: 13px; color: var(--cadet); font-weight: 500;
+}
+
+/* group panel */
+.group-panel {
+  width: 100%;
+}
+.group-title {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--grey3);
+  margin-bottom: 12px;
+}
+.avatar-circle {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 14px; color: #fff;
+  font-weight: 600;
+}
+.avatar-name { font-size: 13px; color: var(--grey2); }
+
+.hunt-line {
+  font-family: var(--font-body); font-size: 15px;
+  font-style: italic; color: var(--grey2);
+  margin-top: 20px; opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.hunt-line.visible { opacity: 1; }
+
+.hunt-continue {
+  display: inline-block; margin-top: 20px; padding: 10px 24px;
+  background: var(--cadet); color: #fff; border: none;
+  border-radius: 6px; font-family: var(--font-body);
+  font-size: 14px; cursor: pointer; opacity: 0;
+  transition: opacity 0.5s ease, transform 0.2s;
+}
+.hunt-continue.visible { opacity: 1; }
+.hunt-continue:hover { transform: translateY(-1px); }
+
+/* easter egg tooltip */
+.easter-tooltip {
+  position: absolute; z-index: 20;
+  background: var(--champagne); border: 1px solid var(--sienna);
+  border-radius: 6px; padding: 10px 14px;
+  font-size: 12px; font-style: italic;
+  color: var(--redwood); max-width: 220px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  opacity: 0; transform: translateY(4px);
+  transition: all 0.3s ease; pointer-events: none;
+}
+.easter-tooltip.visible { opacity: 1; transform: translateY(0); }
+
+/* ── SCREEN 3 ── */
+#screen-3 {
+  background: #1a1a1a; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+.keynote-stage-bg {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 100%; pointer-events: none; z-index: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.keynote-speaker-silhouette {
+  width: 260px; height: 380px; opacity: 0.15;
+  position: absolute; bottom: 0; left: 6%;
+}
+.keynote-podium {
+  width: 140px; height: 90px;
+  position: absolute; bottom: 0; left: calc(6% + 60px);
+  opacity: 0.12;
+}
+.keynote-audience-row {
+  position: absolute; bottom: 0; width: 100%;
+  display: flex; justify-content: center; gap: 6px;
+  opacity: 0.07;
+}
+.keynote-audience-row.row-1 { bottom: 0; }
+.keynote-audience-row.row-2 { bottom: 30px; opacity: 0.05; }
+.keynote-container {
+  width: 100%; max-width: 900px;
+  display: flex; flex-direction: column;
+  align-items: center;
+  position: relative; z-index: 1;
+}
+.keynote-slide {
+  width: 100%; max-width: 750px; aspect-ratio: 16/9;
+  background: linear-gradient(145deg, #0f0f0f 0%, #1a1a1a 50%, #111 100%);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 60px; text-align: center;
+  box-shadow: 0 10px 60px rgba(0,0,0,0.5), 0 0 120px rgba(95,158,160,0.05);
+  opacity: 0; transform: scale(0.97);
+  transition: all 0.8s ease;
+  position: relative;
+}
+.keynote-slide::before {
+  content: ''; position: absolute; top: 12px; left: 12px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--cadet); opacity: 0.3;
+}
+.keynote-slide.visible { opacity: 1; transform: scale(1); }
+.keynote-slide-text {
+  font-family: var(--font-display); font-size: 30px;
+  color: var(--champagne); line-height: 1.6;
+  font-weight: 400;
+}
+.keynote-slide-cite {
+  font-family: var(--font-body); font-size: 12px;
+  color: var(--grey4); margin-top: 16px;
+  font-style: italic; letter-spacing: 0.3px;
+}
+.keynote-message {
+  color: var(--grey5); font-size: 16px;
+  margin-top: 30px; font-style: italic;
+  opacity: 0; transition: opacity 0.8s ease;
+  text-align: center;
+}
+.keynote-message.visible { opacity: 1; }
+
+/* drawing canvas */
+.canvas-area {
+  width: 100%; max-width: 900px;
+  display: flex; flex-direction: column; align-items: center;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+.canvas-area.visible { opacity: 1; }
+.canvas-prompt {
+  font-family: var(--font-display); font-size: 18px;
+  color: var(--champagne); margin-bottom: 16px;
+  text-align: center; font-style: italic;
+}
+.canvas-wrapper {
+  position: relative; background: #fff;
+  border-radius: 8px; overflow: hidden;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.3);
+}
+#draw-canvas { display: block; cursor: crosshair; }
+.canvas-tools {
+  display: flex; gap: 8px; margin-top: 12px;
+  align-items: center; flex-wrap: wrap;
+  justify-content: center;
+}
+.colour-swatch {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  transition: transform 0.15s;
+}
+.colour-swatch:hover { transform: scale(1.15); }
+.colour-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px var(--cadet); }
+.canvas-btn {
+  padding: 6px 16px; background: rgba(255,255,255,0.1);
+  color: #fff; border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px; font-family: var(--font-body);
+  font-size: 13px; cursor: pointer; transition: all 0.2s;
+}
+.canvas-btn:hover { background: rgba(255,255,255,0.2); }
+.canvas-btn.primary { background: var(--cadet); border-color: var(--cadet); }
+
+/* shared wall */
+.shared-wall {
+  width: 100%; max-width: 1000px;
+  display: flex; flex-wrap: wrap; gap: 16px;
+  justify-content: center; padding: 20px;
+  opacity: 0; transition: opacity 0.8s ease;
+}
+.shared-wall.visible { opacity: 1; }
+.wall-drawing {
+  width: 140px; height: 110px; background: #fff;
+  border-radius: 6px; padding: 8px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(var(--rot, 0deg));
+}
+.wall-drawing svg { width: 100%; height: 100%; }
+.wall-drawing.user-drawing { border: 2px solid var(--cadet); }
+.wall-drawing.user-drawing canvas { width: 100%; height: 100%; border-radius: 4px; }
+.wall-count {
+  color: var(--grey5); font-size: 14px;
+  margin-top: 16px; font-style: italic;
+  opacity: 0; transition: opacity 0.8s ease;
+  text-align: center;
+}
+.wall-count.visible { opacity: 1; }
+
+/* polaroid + wordcloud */
+.activity-area {
+  width: 100%; max-width: 1000px;
+  display: flex; gap: 40px; align-items: flex-start;
+  justify-content: center; padding: 20px;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+.activity-area.visible { opacity: 1; }
+.polaroid-grid {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  width: 480px;
+}
+.polaroid {
+  width: 110px; background: #fff; padding: 8px 8px 24px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  transform: rotate(var(--rot, 0deg));
+}
+.polaroid-img {
+  width: 100%; height: 70px; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+}
+.polaroid-img svg { width: 60%; height: 60%; }
+.polaroid-caption {
+  font-size: 12px; color: var(--grey3);
+  margin-top: 6px; text-align: center;
+  font-style: italic;
+}
+.wordcloud {
+  width: 380px; min-height: 280px;
+  position: relative; display: flex;
+  flex-wrap: wrap; align-items: center;
+  justify-content: center; gap: 6px 10px;
+  padding: 20px;
+}
+.wc-word {
+  font-family: var(--font-display);
+  color: var(--cadet); transition: all 0.4s ease;
+  opacity: 0; transform: scale(0.8);
+}
+.wc-word.visible { opacity: 1; transform: scale(1); }
+.wc-word.user-word { color: var(--sienna); }
+.caption-input-area {
+  width: 100%; max-width: 400px;
+  margin-top: 16px;
+}
+.caption-input-area label {
+  font-size: 13px; color: var(--grey5);
+  font-style: italic; display: block; margin-bottom: 6px;
+}
+.caption-input {
+  width: 100%; padding: 10px 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px; color: #fff;
+  font-family: var(--font-body); font-size: 14px;
+  outline: none;
+}
+.caption-input:focus { border-color: var(--cadet); }
+
+/* ── SCREEN 4 ── */
+#screen-4 {
+  background: var(--champagne);
+  flex-direction: column;
+  overflow-y: auto;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 40px;
+}
+.s4-container {
+  width: 100%; max-width: 800px;
+  padding: 30px 40px;
+  display: flex; flex-direction: column;
+  align-items: center;
+}
+.s4-section {
+  width: 100%; opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.7s ease;
+  margin-bottom: 40px;
+}
+.s4-section.visible { opacity: 1; transform: translateY(0); }
+
+/* workshop payoff */
+.cohort-reveal {
+  display: flex; flex-direction: column; gap: 16px;
+  align-items: center;
+}
+.cohort-card {
+  display: flex; align-items: center; gap: 14px;
+  background: #fff; padding: 16px 20px;
+  border-radius: 8px; width: 100%; max-width: 500px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  opacity: 0; transform: translateX(-10px);
+  transition: all 0.5s ease;
+}
+.cohort-card.visible { opacity: 1; transform: translateX(0); }
+.cohort-detail {
+  font-size: 14px; color: var(--grey2); font-style: italic;
+}
+
+/* debrief cards */
+.debrief-cards {
+  display: flex; gap: 20px; justify-content: center;
+  width: 100%; flex-wrap: wrap;
+}
+.debrief-card {
+  width: 240px; min-height: 200px;
+  perspective: 800px; cursor: pointer;
+}
+.debrief-inner {
+  position: relative; width: 100%; min-height: 200px;
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+}
+.debrief-card.flipped .debrief-inner { transform: rotateY(180deg); }
+.debrief-front, .debrief-back {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  border-radius: 10px; padding: 24px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+}
+.debrief-front {
+  background: var(--cadet); color: #fff;
+  font-family: var(--font-display); font-size: 40px;
+}
+.debrief-back {
+  background: #fff; transform: rotateY(180deg);
+  flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  position: relative; min-height: 200px;
+}
+.debrief-prompt {
+  font-family: var(--font-display); font-size: 15px;
+  color: var(--grey1); line-height: 1.5; margin-bottom: 14px;
+  font-style: italic;
+}
+.debrief-input {
+  width: 100%; padding: 10px;
+  border: 1px solid var(--grey6); border-radius: 6px;
+  font-family: var(--font-body); font-size: 13px;
+  outline: none; resize: none; min-height: 50px;
+}
+.debrief-input:focus { border-color: var(--cadet); }
+.debrief-mc-option {
+  width: 100%; padding: 10px; margin: 4px 0;
+  background: var(--grey8); border: 1px solid transparent;
+  border-radius: 6px; font-size: 12px;
+  cursor: pointer; text-align: left;
+  transition: all 0.2s;
+}
+.debrief-mc-option:hover { border-color: var(--cadet); }
+.debrief-mc-option.selected { background: var(--cadet); color: #fff; }
+
+/* shared response wall */
+.response-wall {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; margin-top: 16px;
+  max-width: 600px;
+}
+.response-bubble {
+  padding: 8px 14px; background: #fff;
+  border-radius: 20px; font-size: 12px;
+  color: var(--grey2); font-style: italic;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  opacity: 0; transform: scale(0.9);
+  transition: all 0.4s ease;
+}
+.response-bubble.visible { opacity: 1; transform: scale(1); }
+.response-bubble.user-response {
+  background: var(--cadet); color: #fff;
+}
+
+/* dashboard */
+.dashboard {
+  width: 100%; max-width: 700px;
+  background: #fff; border-radius: 12px;
+  padding: 36px; box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+}
+.dash-title {
+  font-family: var(--font-display); font-size: 22px;
+  color: var(--grey1); margin-bottom: 30px;
+  text-align: center; font-style: italic;
+  opacity: 0; transition: opacity 0.8s ease;
+}
+.dash-title.visible { opacity: 1; }
+.dash-metric {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 18px 0; border-bottom: 1px solid var(--grey7);
+  opacity: 0; transform: translateY(10px);
+  transition: all 0.5s ease;
+}
+.dash-metric.visible { opacity: 1; transform: translateY(0); }
+.dash-metric:last-child { border-bottom: none; }
+.dash-metric-label {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--grey3);
+  width: 140px; flex-shrink: 0;
+  font-weight: 500;
+}
+.dash-metric-value {
+  flex: 1;
+}
+.dash-big-number {
+  font-family: var(--font-display); font-size: 36px;
+  color: var(--cadet); font-weight: 700;
+}
+.dash-desc {
+  font-size: 13px; color: var(--grey3); margin-top: 4px;
+}
+.dash-bar-chart {
+  display: flex; gap: 6px; align-items: flex-end;
+  height: 60px; margin-top: 6px;
+  max-width: 100%; flex-wrap: nowrap;
+}
+.dash-bar-chart .dash-bar { width: 36px; min-width: 28px; }
+.dash-bar {
+  width: 50px; background: var(--cadet);
+  border-radius: 3px 3px 0 0;
+  transition: height 0.8s ease;
+  position: relative;
+}
+.dash-bar-label {
+  position: absolute; bottom: -18px; left: 50%;
+  transform: translateX(-50%); font-size: 12px;
+  color: var(--grey3); white-space: nowrap;
+}
+.dash-check {
+  font-size: 13px; color: var(--grey2); line-height: 1.8;
+}
+.dash-check span { color: var(--cadet); font-weight: 600; }
+.dash-tagline {
+  text-align: center; margin-top: 24px;
+  font-family: var(--font-display); font-style: italic;
+  color: var(--grey1); font-size: 20px;
+  opacity: 0; transition: opacity 0.8s ease;
+}
+.dash-tagline.visible { opacity: 1; }
+.dash-tagline.big {
+  font-size: 28px; color: var(--grey1);
+  margin-top: 16px; font-style: normal;
+  opacity: 0; transform: scale(0.95);
+  transition: all 0.8s ease;
+}
+.dash-tagline.big.visible { opacity: 1; transform: scale(1); }
+
+/* ── SCREEN 5 ── */
+#screen-5 {
+  background: #fff; flex-direction: column;
+  gap: 20px;
+}
+.s5-line1 {
+  font-family: var(--font-display); font-size: 28px;
+  color: var(--grey1); max-width: 650px;
+  text-align: center; line-height: 1.5;
+  opacity: 0; transform: translateY(12px);
+  transition: all 0.8s ease;
+}
+.s5-line1.visible { opacity: 1; transform: translateY(0); }
+.s5-line2 {
+  font-size: 18px; color: var(--grey2);
+  text-align: center; margin-top: 8px;
+  opacity: 0; transition: opacity 0.8s ease 0.4s;
+}
+.s5-line2.visible { opacity: 1; }
+.s5-buttons {
+  display: flex; gap: 16px; margin-top: 32px;
+  opacity: 0; transition: opacity 0.6s ease 0.8s;
+}
+.s5-buttons.visible { opacity: 1; }
+.btn-secondary {
+  padding: 12px 28px; border: 2px solid var(--grey2);
+  background: transparent; color: var(--grey2);
+  border-radius: 6px; font-family: var(--font-body);
+  font-size: 15px; cursor: pointer;
+  transition: all 0.2s; text-decoration: none;
+}
+.btn-secondary:hover { background: var(--grey8); }
+.btn-primary {
+  padding: 12px 28px; border: 2px solid var(--cadet);
+  background: var(--cadet); color: #fff;
+  border-radius: 6px; font-family: var(--font-body);
+  font-size: 15px; cursor: pointer;
+  transition: all 0.2s; text-decoration: none;
+}
+.btn-primary:hover { background: #4e8a8c; }
+.btn-primary:focus, .btn-secondary:focus {
+  outline: 2px solid var(--cadet); outline-offset: 2px;
+}
+
+/* ── PROGRESS INDICATOR (AGENDA STYLE) ── */
+.progress-dots {
+  position: fixed; bottom: 16px; left: 50%;
+  transform: translateX(-50%); z-index: 40;
+  display: flex; flex-direction: column; gap: 0;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 10px;
+  border-left: 3px solid var(--cadet);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  min-width: 220px;
+}
+.progress-header {
+  font-family: var(--font-display); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--grey3); margin-bottom: 6px;
+  padding-bottom: 4px; border-bottom: 1px solid var(--grey7);
+}
+.progress-step {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; padding: 3px 4px; border-radius: 4px;
+  transition: background 0.3s ease;
+  position: relative;
+}
+.progress-step:hover { background: rgba(0,0,0,0.04); }
+.progress-step.locked { cursor: default; opacity: 0.4; }
+.progress-step.locked:hover { background: none; }
+.progress-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--grey6);
+  transition: all 0.4s ease;
+  flex-shrink: 0;
+}
+.progress-dot.active { background: var(--cadet); transform: scale(1.3); }
+.progress-dot.done { background: var(--redwood); }
+.progress-label {
+  font-family: var(--font-body); font-size: 11px; font-weight: 400;
+  color: var(--grey3); white-space: nowrap;
+  transition: all 0.3s ease;
+}
+.progress-step.active .progress-label {
+  font-weight: 600; color: var(--grey1);
+}
+.progress-step.done-step .progress-label {
+  text-decoration: line-through;
+  text-decoration-color: var(--redwood);
+  color: var(--grey4);
+}
+.progress-time {
+  font-size: 10px; color: var(--grey4);
+  min-width: 36px; font-variant-numeric: tabular-nums;
+}
+
+/* ── NARRATOR MODE ── */
+.narrator-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 60;
+  padding: 6px 14px; border-radius: 20px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--grey4); font-family: var(--font-body);
+  font-size: 12px; cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex; align-items: center; gap: 6px;
+}
+.narrator-toggle:hover { background: rgba(255,255,255,0.25); }
+.narrator-toggle.active {
+  background: var(--cadet); color: #fff;
+  border-color: var(--cadet);
+}
+.narrator-toggle .narrator-icon {
+  width: 14px; height: 14px; opacity: 0.7;
+}
+
+/* ── GREY/COLOUR TOGGLE ── */
+.grey-toggle {
+  position: fixed; top: 16px; right: 120px; z-index: 60;
+  display: flex; align-items: center; gap: 0;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 20px; padding: 3px 4px;
+  cursor: pointer; user-select: none;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.grey-toggle.visible { opacity: 1; pointer-events: auto; }
+.grey-toggle-label {
+  font-family: var(--font-body); font-size: 11px;
+  color: var(--grey4); padding: 4px 10px;
+  transition: color 0.3s ease, font-weight 0.3s ease;
+  white-space: nowrap;
+}
+.grey-toggle-label.active { color: var(--grey1); font-weight: 600; }
+.grey-toggle-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--grey5);
+  transition: transform 0.3s ease, background 0.3s ease;
+  flex-shrink: 0;
+}
+.grey-toggle.on .grey-toggle-thumb {
+  transform: translateX(0);
+  background: var(--cadet);
+}
+.grey-toggle:not(.on) .grey-toggle-thumb {
+  transform: translateX(0);
+  background: var(--grey4);
+}
+.grey-toggle-tooltip {
+  position: absolute; top: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--grey1); color: #fff;
+  padding: 5px 10px; border-radius: 5px;
+  font-family: var(--font-body); font-size: 11px;
+  font-style: italic; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.grey-toggle:hover .grey-toggle-tooltip { opacity: 1; }
+.room-greyscale { transition: filter 0.4s ease; }
+
+.narrator-overlay {
+  position: fixed; bottom: 70px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 55; max-width: 480px; width: 90%;
+  padding: 16px 20px;
+  background: rgba(26,26,26,0.92);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85); font-family: var(--font-body);
+  font-size: 13px; line-height: 1.6;
+  opacity: 0; transform: translateX(-50%) translateY(8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+.narrator-overlay.visible {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+.narrator-overlay .narrator-stage-label {
+  font-family: var(--font-display); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--cadet); margin-bottom: 6px;
+}
+.narrator-dismiss-hint {
+  margin-top: 10px; padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 11px; color: rgba(255,255,255,0.4);
+  transition: opacity 0.4s ease;
+}
+.narrator-dismiss-hint strong { color: rgba(255,255,255,0.6); }
+
+/* ── COLD-START HINT ── */
+.cold-start-hint {
+  position: absolute; z-index: 50;
+  bottom: 5%; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-body); font-size: 13px;
+  color: var(--grey4); font-style: italic;
+  opacity: 0; transition: opacity 1s ease;
+  pointer-events: none;
+}
+.cold-start-hint.visible { opacity: 1; }
+
+/* ── AVATAR SILHOUETTE + FOUND STATES ── */
+.avatar-slot {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px 0; opacity: 1;
+  transition: all 0.5s ease;
+}
+.avatar-slot .avatar-circle {
+  position: relative; overflow: hidden;
+}
+.avatar-slot:not(.found) .avatar-circle {
+  background: var(--grey6) !important;
+}
+.avatar-slot:not(.found) .avatar-circle svg { opacity: 0; }
+.avatar-slot:not(.found) .avatar-circle::after {
+  content: '?'; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 16px; color: var(--grey4);
+}
+.avatar-slot:not(.found) .avatar-name { color: var(--grey5); }
+.avatar-slot.found .avatar-circle { animation: avatarPop 0.4s ease; }
+@keyframes avatarPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.avatar-found-at {
+  font-size: 10px; color: var(--grey4); font-style: italic; margin-top: -2px;
+}
+
+/* ── COHORT TOAST ── */
+.cohort-toast {
+  position: fixed; bottom: 80px; right: 20px; z-index: 110;
+  background: rgba(26,26,26,0.92); color: rgba(255,255,255,0.88);
+  font-family: var(--font-body); font-size: 13px; line-height: 1.5;
+  padding: 12px 16px; border-radius: 10px; max-width: 300px;
+  opacity: 0; transform: translateY(8px);
+  transition: all 0.4s ease; pointer-events: none;
+}
+.cohort-toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+/* ── GROUP COMPLETE CARD ── */
+.group-complete-card {
+  position: fixed; inset: 0; z-index: 120;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(26,26,26,0.6);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+}
+.group-complete-card.visible { opacity: 1; pointer-events: auto; }
+.group-complete-inner {
+  background: #fff; border-radius: 14px; padding: 32px 36px;
+  max-width: 420px; width: 90%; text-align: center;
+  box-shadow: 0 12px 60px rgba(0,0,0,0.2);
+}
+.group-complete-inner h3 {
+  font-family: var(--font-display); font-size: 20px;
+  color: var(--grey1); margin-bottom: 16px;
+}
+.group-complete-inner p {
+  font-family: var(--font-body); font-size: 14px;
+  color: var(--grey2); line-height: 1.7; margin: 8px 0;
+  font-style: italic;
+}
+
+/* ── CLUE LOG ── */
+.clue-log-btn {
+  position: absolute; top: 12px; left: 12px; z-index: 10;
+  padding: 5px 10px; border-radius: 16px;
+  background: rgba(255,255,255,0.85); border: 1px solid var(--grey6);
+  font-family: var(--font-body); font-size: 11px; color: var(--grey3);
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
+  transition: all 0.2s;
+}
+.clue-log-btn:hover { background: #fff; border-color: var(--sienna); color: var(--grey1); }
+.clue-log-panel {
+  position: absolute; top: 44px; left: 12px; z-index: 10;
+  background: #fff; border-radius: 10px; padding: 14px 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.12); max-width: 280px;
+  font-family: var(--font-body); font-size: 12px; color: var(--grey2);
+  opacity: 0; transform: translateY(-4px);
+  transition: all 0.3s ease; pointer-events: none;
+}
+.clue-log-panel.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.clue-log-item {
+  padding: 6px 0; border-bottom: 1px solid var(--grey8);
+  font-style: italic; line-height: 1.5;
+}
+.clue-log-item:last-child { border-bottom: none; }
+.clue-log-empty { color: var(--grey5); font-style: italic; }
+
+/* ── BADGE HANDOVER ANIMATION ── */
+.badge-handover {
+  position: fixed; inset: 0; z-index: 150;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(247,231,206,0.95);
+  opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+}
+.badge-handover.visible { opacity: 1; pointer-events: auto; }
+.badge-hands {
+  width: 200px; height: 160px; position: relative; margin-bottom: 20px;
+}
+.badge-lanyard {
+  width: 4px; height: 60px; background: var(--sienna); margin: 0 auto 0;
+  border-radius: 2px;
+}
+.badge-reveal {
+  background: #fff; border-radius: 10px; padding: 20px 28px;
+  text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+  border: 2px solid var(--cadet);
+  transform: rotateY(90deg); transition: transform 0.8s ease;
+}
+.badge-reveal.flipped { transform: rotateY(0deg); }
+@keyframes badgeGlow {
+  0%, 100% { box-shadow: 0 8px 40px rgba(0,0,0,0.12); }
+  50% { box-shadow: 0 8px 40px rgba(95,158,160,0.35), 0 0 20px rgba(95,158,160,0.15); }
+}
+.badge-reveal.glowing { animation: badgeGlow 1.5s ease-in-out 2; }
+
+/* ── PERSISTENT CORNER BADGE ── */
+.corner-badge {
+  position: fixed; top: 16px; left: 16px; z-index: 45;
+  background: #fff; border-radius: 8px; padding: 6px 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  border: 1px solid var(--cadet);
+  font-family: var(--font-body); font-size: 11px; color: var(--grey2);
+  display: flex; align-items: center; gap: 8px;
+  opacity: 0; transform: scale(0.5);
+  transition: all 0.5s ease; pointer-events: none;
+}
+.corner-badge.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+.corner-badge-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--cadet); flex-shrink: 0;
+}
+
+/* ── DEBRIEF LOCK LABEL ── */
+.debrief-lock {
+  position: absolute; bottom: 8px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px; color: rgba(255,255,255,0.7);
+  white-space: nowrap; pointer-events: none;
+}
+
+/* ── FOCUS STATES ── */
+.sjt-options li:focus-visible,
+.session-card:focus-visible,
+.debrief-card:focus-visible,
+.debrief-mc-option:focus-visible,
+.canvas-btn:focus-visible,
+.colour-swatch:focus-visible,
+.hunt-continue:focus-visible,
+.qr-card:focus-visible,
+.coffee-card:focus-visible {
+  outline: 2px solid var(--cadet); outline-offset: 2px;
+}
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.2s !important;
+  }
+  .float-text { animation: none; opacity: 1; }
+  .alive-word.pulsing { animation: none; text-decoration: underline; text-decoration-color: var(--cadet); }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ SCREEN 0 — THE GREY CONFERENCE ════════ -->
+<div id="screen-0" class="screen active">
+  <div class="room" id="room">
+    <!-- coloured layer (beneath) -->
+    <div class="room-coloured">
+      <div class="wall"></div>
+      <div class="floor-area"></div>
+    </div>
+    <!-- grey layer -->
+    <div class="room-grey" id="room-grey">
+      <div class="wall"></div>
+      <div class="floor-area"></div>
+    </div>
+
+    <!-- conference banner -->
+    <div class="conf-banner" id="conf-banner">horizons in learning summit 2025</div>
+
+    <!-- motivational poster -->
+    <div class="room-object poster" id="poster" data-response="believe in the process." role="button" aria-label="motivational poster" tabindex="0">
+      dream.<br>believe.<br>achieve.<br><span style="font-size:12px;margin-top:6px;display:block;color:inherit;opacity:0.6;">— every conference ever</span>
+    </div>
+
+    <!-- speaker area -->
+    <div class="room-object speaker-area" id="speaker" data-response="you've seen this deck before. everyone has." role="button" aria-label="presentation slide" tabindex="0">
+      <div class="slide-screen" id="slide-screen">
+        <div class="slide-title">evidence-based<br>pedagogical frameworks</div>
+        <div class="slide-bullets">
+          • assessment for learning<br>
+          • differentiated instruction<br>
+          • equity-centred design
+        </div>
+        <div class="slide-counter">slide 47 of 112</div>
+      </div>
+      <div class="speaker-figure" id="speaker-figure"></div>
+    </div>
+
+    <!-- clock -->
+    <div class="room-object clock" id="clock" data-response="8:47. still." role="button" aria-label="wall clock" tabindex="0">
+      <svg viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="36" fill="none" stroke="#999" stroke-width="2.5"/>
+        <line x1="40" y1="40" x2="40" y2="16" stroke="#666" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="40" y1="40" x2="58" y2="46" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="40" cy="40" r="2.5" fill="#666"/>
+        <!-- hour markers -->
+        <circle cx="40" cy="8" r="1.5" fill="#999"/>
+        <circle cx="72" cy="40" r="1.5" fill="#999"/>
+        <circle cx="40" cy="72" r="1.5" fill="#999"/>
+        <circle cx="8" cy="40" r="1.5" fill="#999"/>
+      </svg>
+    </div>
+
+    <!-- agenda -->
+    <div class="room-object agenda" id="agenda">
+      <div class="agenda-header">agenda</div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">09:00 — registration &amp; scavenger hunt</div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">10:30 — opening keynote</div>
+      <div class="agenda-item" data-response="innovation. synergy. disruption. lunch.">11:30 — keeping learning <span class="alive-word" id="alive-word" role="button" tabindex="0" aria-label="alive — click to explore"><span style="color:var(--cadet)">a</span><span style="color:var(--sienna)">l</span><span style="color:var(--redwood)">i</span><span style="color:var(--cadet)">v</span><span style="color:var(--sienna)">e</span></span></div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">12:00 — lunch</div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">14:00 — workshop: designing for belonging</div>
+      <div class="agenda-item" data-response="pedagogy. assessment. equity. lunch.">16:00 — debrief &amp; close</div>
+    </div>
+
+    <!-- name badge (editable) -->
+    <div class="room-object badge" id="badge" aria-label="name badge" tabindex="0">
+      <div class="badge-hello">hello my name is</div>
+      <input class="badge-name-input" id="badge-name-input" type="text" value="attendee" placeholder="your name" autocomplete="off" aria-label="enter your name" maxlength="20">
+    </div>
+
+    <!-- people (hidden in grey state) -->
+    <div class="people-group" id="people" style="bottom:38%;right:10%;display:flex;gap:4px;">
+      <div class="person-dot" style="background:var(--cadet);"></div>
+      <div class="person-dot" style="background:var(--sienna);"></div>
+      <div class="person-dot" style="background:var(--redwood);width:24px;height:24px;"></div>
+      <div class="person-dot" style="background:var(--cadet);width:22px;height:22px;"></div>
+    </div>
+    <div class="people-group" id="people2" style="bottom:42%;left:28%;display:flex;gap:5px;">
+      <div class="person-dot" style="background:var(--redwood);width:26px;height:26px;"></div>
+      <div class="person-dot" style="background:var(--sienna);width:24px;height:24px;"></div>
+      <div class="person-dot" style="background:var(--cadet);"></div>
+    </div>
+
+    <!-- grey overlay for desaturation -->
+    <div class="grey-overlay" id="grey-overlay"></div>
+
+    <!-- ink mask for reveal animation -->
+    <div class="ink-mask" id="ink-mask" style="display:none;"></div>
+
+    <!-- cold-start hint -->
+    <div class="cold-start-hint" id="cold-start-hint">this is a typical conference. click around.</div>
+  </div>
+</div>
+
+<!-- progress indicator (generated dynamically from STAGES) -->
+<div class="progress-dots" id="progress-dots" role="navigation" aria-label="experience progress"></div>
+
+<!-- narrator mode -->
+<button class="narrator-toggle" id="narrator-toggle" aria-label="toggle narrator mode">
+  <svg class="narrator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  narrator
+</button>
+<div class="narrator-overlay" id="narrator-overlay">
+  <div class="narrator-stage-label" id="narrator-stage-label"></div>
+  <div id="narrator-text"></div>
+  <div class="narrator-dismiss-hint" id="narrator-dismiss-hint">tap the <strong>narrator</strong> button (top-right) to hide this overlay</div>
+</div>
+
+<!-- grey/colour toggle -->
+<div class="grey-toggle" id="grey-toggle" role="switch" aria-checked="true" aria-label="toggle between grey and colour view" tabindex="0">
+  <span class="grey-toggle-label left" id="gt-left">the usual</span>
+  <span class="grey-toggle-thumb"></span>
+  <span class="grey-toggle-label right active" id="gt-right">alive</span>
+  <span class="grey-toggle-tooltip">see the difference design makes.</span>
+</div>
+
+<!-- ════════ SCREEN 1 — TRANSFORMATION LINGER ════════ -->
+<div id="screen-1" class="screen">
+  <div class="s1-text" id="s1-text">want to see what just happened?</div>
+</div>
+
+<!-- ════════ SCREEN 2 — THE HUNT ════════ -->
+<div id="screen-2" class="screen">
+  <div class="hunt-container">
+    <!-- interactive conference map -->
+    <div class="conference-map" id="conference-map">
+      <svg id="venue-map" viewBox="0 0 740 500" xmlns="http://www.w3.org/2000/svg">
+        <rect width="740" height="500" rx="16" fill="#f5ead4" stroke="#c4a882" stroke-width="2"/>
+        <text x="370" y="28" text-anchor="middle" font-size="11" fill="#A0522D" font-family="Fraunces,serif" letter-spacing="2">LEARNING FORWARD SUMMIT 2025 — VENUE MAP</text>
+        <rect x="220" y="45" width="30" height="405" rx="4" fill="#ede3d0"/>
+        <rect x="20" y="230" width="700" height="30" rx="4" fill="#ede3d0"/>
+        <circle cx="235" cy="225" r="8" fill="#b8c9a0" opacity="0.5"/>
+        <circle cx="235" cy="275" r="8" fill="#b8c9a0" opacity="0.5"/>
+        <circle cx="500" cy="245" r="6" fill="#b8c9a0" opacity="0.4"/>
+
+        <g id="zone-registration" class="map-zone" data-zone="registration">
+          <rect class="zone-bg" x="20" y="45" width="195" height="175" rx="10" fill="#F7E7CE" stroke="#A0522D" stroke-width="1.5"/>
+          <rect x="60" y="100" width="110" height="20" rx="3" fill="#d4c4a8" stroke="#c4a882" stroke-width="0.8"/>
+          <circle cx="115" cy="82" r="8" fill="#E97451" opacity="0.6"/>
+          <rect x="110" y="91" width="10" height="8" rx="2" fill="#E97451" opacity="0.4"/>
+          <rect x="70" y="140" width="12" height="12" rx="2" fill="#d4c4a8" opacity="0.6"/>
+          <rect x="100" y="140" width="12" height="12" rx="2" fill="#d4c4a8" opacity="0.6"/>
+          <rect x="130" y="140" width="12" height="12" rx="2" fill="#d4c4a8" opacity="0.6"/>
+          <rect x="30" y="55" width="14" height="18" rx="2" fill="none" stroke="#A0522D" stroke-width="1.2"/>
+          <line x1="34" y1="62" x2="40" y2="62" stroke="#A0522D" stroke-width="0.8"/>
+          <line x1="34" y1="66" x2="40" y2="66" stroke="#A0522D" stroke-width="0.8"/>
+          <text x="108" y="195" text-anchor="middle" font-size="10" fill="#A0522D" font-family="Inter,sans-serif" font-weight="500">registration</text>
+          <circle class="zone-check" cx="195" cy="60" r="10" fill="#5F9EA0"/>
+          <path class="zone-check" d="M189 60 L193 64 L201 56" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <g id="zone-coffee" class="map-zone" data-zone="coffee">
+          <rect class="zone-bg" x="255" y="45" width="220" height="175" rx="10" fill="#fce8db" stroke="#E97451" stroke-width="1.5"/>
+          <circle cx="310" cy="110" r="16" fill="#ede3d0" stroke="#d4c4a8" stroke-width="0.8"/>
+          <circle cx="370" cy="130" r="14" fill="#ede3d0" stroke="#d4c4a8" stroke-width="0.8"/>
+          <circle cx="430" cy="105" r="16" fill="#ede3d0" stroke="#d4c4a8" stroke-width="0.8"/>
+          <rect x="265" y="55" width="12" height="14" rx="2" fill="none" stroke="#E97451" stroke-width="1.2"/>
+          <path d="M277 59 Q283 59 283 65 Q283 69 277 69" fill="none" stroke="#E97451" stroke-width="0.8"/>
+          <text x="365" y="195" text-anchor="middle" font-size="10" fill="#E97451" font-family="Inter,sans-serif" font-weight="500">coffee station</text>
+          <circle class="zone-check" cx="455" cy="60" r="10" fill="#5F9EA0"/>
+          <path class="zone-check" d="M449 60 L453 64 L461 56" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <g id="zone-lounge" class="map-zone" data-zone="lounge">
+          <rect class="zone-bg" x="480" y="45" width="240" height="175" rx="10" fill="#f0e8d8" stroke="#c4a882" stroke-width="1.5"/>
+          <rect x="510" y="90" width="40" height="14" rx="6" fill="#d4c4a8" opacity="0.7"/>
+          <rect x="590" y="85" width="40" height="14" rx="6" fill="#d4c4a8" opacity="0.7"/>
+          <ellipse cx="550" cy="150" rx="12" ry="8" fill="none" stroke="#c4a882" stroke-width="0.8"/>
+          <ellipse cx="640" cy="145" rx="10" ry="7" fill="none" stroke="#c4a882" stroke-width="0.8"/>
+          <text x="600" y="195" text-anchor="middle" font-size="10" fill="#8a7a6a" font-family="Inter,sans-serif" font-weight="500">networking lounge</text>
+          <circle class="zone-check" cx="700" cy="60" r="10" fill="#5F9EA0"/>
+          <path class="zone-check" d="M694 60 L698 64 L706 56" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <g id="zone-board" class="map-zone" data-zone="board">
+          <rect class="zone-bg" x="20" y="270" width="195" height="210" rx="10" fill="#f2e6dc" stroke="#A0522D" stroke-width="1.5"/>
+          <rect x="40" y="290" width="155" height="100" rx="4" fill="#ede3d0" stroke="#c4a882" stroke-width="0.8"/>
+          <rect x="50" y="300" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="95" y="300" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="140" y="300" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="50" y="334" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="95" y="334" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <rect x="140" y="334" width="40" height="24" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <text x="115" y="348" text-anchor="middle" font-size="5" fill="#A0522D">★</text>
+          <rect x="30" y="280" width="14" height="14" rx="1" fill="none" stroke="#A0522D" stroke-width="1"/>
+          <text x="108" y="460" text-anchor="middle" font-size="10" fill="#A0522D" font-family="Inter,sans-serif" font-weight="500">session board</text>
+          <circle class="zone-check" cx="195" cy="285" r="10" fill="#5F9EA0"/>
+          <path class="zone-check" d="M189 285 L193 289 L201 281" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <g id="zone-keynote" class="map-zone" data-zone="keynote">
+          <rect class="zone-bg" x="255" y="270" width="235" height="210" rx="10" fill="#e0eded" stroke="#5F9EA0" stroke-width="1.5"/>
+          <rect x="345" y="268" width="15" height="8" rx="1" fill="#5F9EA0" opacity="0.4"/>
+          <rect x="362" y="268" width="15" height="8" rx="1" fill="#5F9EA0" opacity="0.4"/>
+          <rect x="350" y="320" width="40" height="18" rx="3" fill="#5F9EA0" opacity="0.25"/>
+          <rect x="300" y="370" width="140" height="8" rx="3" fill="#c4d8d8" opacity="0.4"/>
+          <rect x="310" y="390" width="120" height="8" rx="3" fill="#c4d8d8" opacity="0.3"/>
+          <rect x="330" y="290" width="60" height="22" rx="2" fill="#fff" stroke="#5F9EA0" stroke-width="0.8" opacity="0.5"/>
+          <text x="372" y="460" text-anchor="middle" font-size="10" fill="#5F9EA0" font-family="Inter,sans-serif" font-weight="500">keynote hall</text>
+          <circle class="zone-check" cx="470" cy="285" r="10" fill="#5F9EA0"/>
+          <path class="zone-check" d="M464 285 L468 289 L476 281" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <g id="zone-workshop" class="map-zone" data-zone="workshop">
+          <rect class="zone-bg" x="495" y="270" width="225" height="210" rx="10" fill="#f5eed8" stroke="#c4a882" stroke-width="1.5"/>
+          <rect x="510" y="310" width="50" height="40" rx="4" fill="#ede3d0" stroke="#c4a882" stroke-width="0.8"/>
+          <text x="535" y="335" text-anchor="middle" font-size="7" fill="#8a7a6a">4a</text>
+          <rect x="570" y="310" width="50" height="40" rx="4" fill="#ede3d0" stroke="#c4a882" stroke-width="0.8"/>
+          <text x="595" y="335" text-anchor="middle" font-size="7" fill="#A0522D" font-weight="600">4b</text>
+          <rect x="630" y="310" width="50" height="40" rx="4" fill="#ede3d0" stroke="#c4a882" stroke-width="0.8"/>
+          <text x="655" y="335" text-anchor="middle" font-size="7" fill="#8a7a6a">4c</text>
+          <rect x="505" y="280" width="10" height="14" rx="1" fill="none" stroke="#A0522D" stroke-width="1"/>
+          <circle cx="513" cy="287" r="1.5" fill="#A0522D"/>
+          <text x="607" y="460" text-anchor="middle" font-size="10" fill="#8a7a6a" font-family="Inter,sans-serif" font-weight="500">workshop rooms</text>
+          <circle class="zone-check" cx="700" cy="285" r="10" fill="#5F9EA0"/>
+          <path class="zone-check" d="M694 285 L698 289 L706 281" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <g id="map-avatar" transform="translate(108,120)">
+          <circle r="14" fill="#E97451" stroke="#fff" stroke-width="2"/>
+          <circle r="6" cy="-5" fill="#fff" opacity="0.3"/>
+          <rect x="-5" y="2" width="10" height="6" rx="2" fill="#fff" opacity="0.3"/>
+          <text text-anchor="middle" y="4" font-size="8" fill="#fff" font-family="Inter,sans-serif" font-weight="600">#47</text>
+        </g>
+      </svg>
+
+      <!-- hint card -->
+      <div class="map-hint" id="map-hint"></div>
+      <!-- show clue button (persistent) -->
+      <button class="map-show-clue" id="map-show-clue" title="show current clue">🔍 clue</button>
+      <!-- celebration overlay -->
+      <div class="map-celebration" id="map-celebration"></div>
+    </div>
+
+    <!-- sidebar -->
+    <div class="hunt-sidebar">
+      <div class="group-panel">
+        <div class="group-title">your afternoon group</div>
+        <div class="group-subtitle" style="font-size:11px;color:var(--grey4);font-style:italic;margin:-6px 0 10px;">matched by your scenario answers</div>
+        <div class="avatar-slot" id="avatar-1">
+          <div class="avatar-circle" style="background:var(--sienna);">
+            <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">J</text></svg>
+          </div>
+          <div><div class="avatar-name">jamie</div><div class="avatar-found-at" id="avatar-1-loc"></div></div>
+        </div>
+        <div class="avatar-slot" id="avatar-2">
+          <div class="avatar-circle" style="background:var(--cadet);">
+            <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">S</text></svg>
+          </div>
+          <div><div class="avatar-name">sam</div><div class="avatar-found-at" id="avatar-2-loc"></div></div>
+        </div>
+        <div class="avatar-slot" id="avatar-3">
+          <div class="avatar-circle" style="background:var(--redwood);">
+            <svg viewBox="0 0 36 36" width="36" height="36"><circle cx="18" cy="13" r="7" fill="#fff" opacity="0.3"/><path d="M6 36 Q6 24, 18 22 Q30 24, 30 36" fill="#fff" opacity="0.3"/><text x="18" y="17" text-anchor="middle" font-size="11" fill="#fff" font-family="Fraunces,serif" font-weight="600">P</text></svg>
+          </div>
+          <div><div class="avatar-name">priya</div><div class="avatar-found-at" id="avatar-3-loc"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- zone modal (shared, content injected via JS) -->
+<div class="zone-modal" id="zone-modal">
+  <div class="zone-modal-card" id="zone-modal-card"></div>
+</div>
+
+<!-- cohort toast -->
+<div class="cohort-toast" id="cohort-toast"></div>
+
+<!-- group complete card -->
+<div class="group-complete-card" id="group-complete-card">
+  <div class="group-complete-inner">
+    <h3>your group is complete.</h3>
+    <p>jamie, sam, and priya are real people at this conference.</p>
+    <p>you were matched based on how you think, not just what you do.</p>
+    <p>most conference groups are formed by chance. this one wasn't.</p>
+    <button class="zone-challenge-btn" id="group-complete-continue" style="margin-top:20px;">continue →</button>
+  </div>
+</div>
+
+<!-- badge handover animation -->
+<div class="badge-handover" id="badge-handover">
+  <div class="badge-hands">
+    <div class="badge-lanyard"></div>
+    <div class="badge-reveal" id="badge-reveal">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--grey4);margin-bottom:8px;">learning forward summit 2025</div>
+      <div style="font-family:var(--font-display);font-size:22px;color:var(--grey1);margin-bottom:6px;" id="badge-name"></div>
+      <div style="font-size:12px;color:var(--cadet);">designing for belonging · room 4b · 14:00</div>
+    </div>
+  </div>
+  <div style="font-family:var(--font-body);font-size:16px;color:var(--grey2);font-style:italic;margin-top:16px;opacity:0;transition:opacity 0.6s ease 0.8s;" id="badge-line">there you are.</div>
+  <button class="zone-challenge-btn" id="badge-keep" style="margin-top:20px;opacity:0;transition:opacity 0.5s ease;">keep it →</button>
+</div>
+
+<!-- persistent corner badge -->
+<div class="corner-badge" id="corner-badge">
+  <span class="corner-badge-dot"></span>
+  <span id="corner-badge-text"></span>
+</div>
+
+<!-- ════════ SCREEN 3 — THE KEYNOTE ════════ -->
+<div id="screen-3" class="screen">
+  <!-- ambient stage background -->
+  <div class="keynote-stage-bg">
+    <svg class="keynote-speaker-silhouette" viewBox="0 0 220 340" fill="currentColor" style="color:white;">
+      <ellipse cx="110" cy="45" rx="28" ry="32"/>
+      <path d="M60 90 Q60 70, 110 70 Q160 70, 160 90 L170 220 Q170 240, 150 250 L150 340 L130 340 L125 260 L110 260 L95 260 L90 340 L70 340 L70 250 Q50 240, 50 220Z"/>
+    </svg>
+    <svg class="keynote-podium" viewBox="0 0 120 80" fill="currentColor" style="color:white;">
+      <path d="M10 0 L110 0 L120 80 L0 80Z"/>
+    </svg>
+    <div class="keynote-audience-row row-1">
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="18" height="18" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="22" height="22" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="19" height="19" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="21" height="21" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+    </div>
+    <div class="keynote-audience-row row-2">
+      <svg viewBox="0 0 20 20" width="18" height="18" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="17" height="17" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+      <svg viewBox="0 0 20 20" width="21" height="21" fill="white"><ellipse cx="10" cy="8" rx="6" ry="7"/><ellipse cx="10" cy="22" rx="9" ry="8"/></svg>
+    </div>
+  </div>
+  <div class="keynote-container" id="keynote-container"></div>
+</div>
+
+<!-- ════════ SCREEN 4 — WORKSHOP + DEBRIEF + DASHBOARD ════════ -->
+<div id="screen-4" class="screen">
+  <div class="s4-container" id="s4-container"></div>
+</div>
+
+<!-- ════════ SCREEN 5 — FINAL ════════ -->
+<div id="screen-5" class="screen">
+  <div class="s5-line1" id="s5-line1">winded.vertigo designs playful learning experiences that make human growth visible.</div>
+  <div class="s5-line2" id="s5-line2">this is what's possible. what are you trying to change?</div>
+  <div class="s5-buttons" id="s5-buttons">
+    <a href="https://windedvertigo.com/do" class="btn-secondary" tabindex="0">see what we do</a>
+    <a href="https://calendly.com/windedvertigo" class="btn-primary" tabindex="0" target="_blank" rel="noopener">book a call with us</a>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   CANONICAL STAGE DEFINITION
+   ═══════════════════════════════════════════ */
+const STAGES = [
+  { id: 0, key: 'grey-conference', label: 'Arrival', time: '08:30', showDot: true, init: null,
+    narration: 'You\'ve just arrived at a conference. It feels... familiar. Click around — everything looks the same as every conference you\'ve been to. But look closely at the agenda. There\'s a word that doesn\'t belong.',
+    designIntent: 'This is the "before" state — a deliberately grey, lifeless conference. Every object is clickable but unrewarding, mirroring the passive attendee experience. The word "alive" is the only real affordance.' },
+  { id: 1, key: 'transformation', label: 'Transformation', time: '', showDot: false, init: null,
+    narration: 'One click and the whole room changed. Colour, warmth, people — the same space, redesigned with intention. That\'s the gap between a typical event and a designed experience.',
+    designIntent: 'The colour reveal is the first emotional beat — showing what the same space looks like when it\'s designed with intention. The pause lets the contrast land before asking the user to opt in.' },
+  { id: 2, key: 'hunt', label: 'Registration & Scavenger Hunt', time: '09:00', showDot: true, init: () => initHunt(),
+    narration: 'Registration isn\'t a queue — it\'s a scavenger hunt. At each stop, you\'ll face a real teaching scenario from the conference topics (equity, facilitation, inclusion). Your answers reveal your instincts as an educator — and they\'re quietly matching you with people who think differently. That\'s how your afternoon group forms. Solve all three to earn your badge and meet your cohort.',
+    designIntent: 'Registration reimagined as exploration. SJTs use real conference content (not event logistics) to surface facilitation instincts. Answers silently build cohorts — people matched by complementary approaches, not identical ones. The group panel shows this forming in real time.' },
+  { id: 3, key: 'keynote', label: 'Opening Keynote', time: '10:30', showDot: true, init: () => initKeynote(),
+    narration: 'This isn\'t a sit-and-listen keynote. The speaker shares research-backed provocations, then asks the whole room to draw, build, and name what they\'re making. 47 people respond at once — participation at scale.',
+    designIntent: 'A keynote that makes the audience create, not just consume. The drawing prompt and shared wall demonstrate that participation scales. The build activity turns inspiration into artefact.' },
+  { id: 4, key: 'workshop', label: 'Workshop & Debrief', time: '14:00', showDot: true, init: () => initWorkshop(),
+    narration: 'You walk into room 4b and your cohort is already there — jamie, sam, and priya. You were matched by how you answered the scavenger hunt scenarios. The workshop hasn\'t started yet, but you already have something to talk about.',
+    subNarrations: {
+      workshop: 'You walk into room 4b and your cohort is already there — jamie, sam, and priya. You were matched by how you answered the scavenger hunt scenarios. The workshop hasn\'t started yet, but you already have something to talk about.',
+      documentation: 'This is the journaling moment. Each card scaffolds a different depth of reflection: card 1 is private (just for you), card 2 is shared (the room sees your answer), and card 3 is a choice about what comes next. Imagine a printed journal on the table and a companion app on your phone — a physical-digital record that travels home with you.',
+      dashboard: 'Everything the attendee just did — the scenarios, the drawing, the reflections, the choices — becomes measurable learning data. This is what the conference buyer sees: engagement scores, learning signals, connection metrics. They had fun. You have evidence.',
+    },
+    designIntent: 'The debrief uses progressive disclosure to scaffold reflection depth. Private → shared → choice. The dashboard reframes all of this as measurable learning data for the buyer.' },
+  { id: 5, key: 'final', label: 'Close & Next Steps', time: '16:00', showDot: true, init: () => initFinal(),
+    narration: 'You\'ve just experienced what a conference can feel like when every touchpoint is intentionally designed. The question isn\'t "did you like it?" — it\'s "what are you trying to change?"',
+    designIntent: 'The sell without selling. After experiencing the product, the CTA lands differently.' },
+];
+
+const state = {
+  screen: 0,
+  maxStageReached: 0,
+  narratorOn: true,
+  attendeeName: 'attendee',
+  sjt1: null,
+  sjt2: null,
+  card3: null,
+  easterEggs: 0,
+  idleTimer: null,
+  hintTimer: null,
+  zoneAlive: {},
+  badgeFound: false,
+  allHuntDone: false,
+  drawingData: null,
+  userCaption: '',
+  debriefStep: 0,
+  privateReflection: '',
+  socialShare: '',
+  greyMode: false,
+  transformDone: false,
+};
+
+const sjtResponses = {
+  1: {
+    a: "you value what's usable. that's not small — it's honest about how busy the job is.",
+    b: "connection first. you know that learning is relational before it's intellectual.",
+    c: "you came here to be unsettled. not everyone does. that takes a certain kind of courage.",
+    d: "that's more common than people admit. and it says something about what most PD asks of you."
+  },
+  2: {
+    a: "time and practise. it's the most intuitive answer — and the one most worth examining.",
+    b: "measurement as truth. that belief runs deep in education. it's worth sitting with.",
+    c: "engagement as evidence. it feels obvious — until you think about the quiet learners.",
+    d: "that's a heavy belief to carry. and a generous one. but is it fair — to you?"
+  }
+};
+const sjtPostResponse = {
+  1: "every one of those answers is in this room right now. that's who you're spending the day with.",
+  2: "the fact that you paused before answering — that's the point. today is about that pause."
+};
+
+/* ═══════════════════════════════════════════
+   SCREEN MANAGEMENT
+   ═══════════════════════════════════════════ */
+function goToScreen(n, transition) {
+  const prev = document.querySelector('.screen.active');
+  const next = document.getElementById('screen-' + n);
+  if (!next || next === prev) return;
+  state.screen = n;
+  if (n > state.maxStageReached) state.maxStageReached = n;
+
+  if (transition === 'dissolve') {
+    prev.style.transition = 'opacity 0.8s ease';
+    prev.classList.remove('active');
+    setTimeout(() => { next.classList.add('active'); }, 100);
+  } else if (transition === 'slide-left') {
+    next.style.transform = 'translateX(100%)';
+    next.style.transition = 'transform 0.7s ease, opacity 0.5s ease';
+    next.classList.add('active');
+    requestAnimationFrame(() => { next.style.transform = 'translateX(0)'; });
+    setTimeout(() => { prev.classList.remove('active'); prev.style.transform = ''; }, 700);
+  } else if (transition === 'build') {
+    prev.classList.remove('active');
+    next.style.opacity = '0';
+    next.classList.add('active');
+    requestAnimationFrame(() => { next.style.transition = 'opacity 0.6s ease'; next.style.opacity = '1'; });
+  } else {
+    prev.classList.remove('active');
+    next.classList.add('active');
+  }
+
+  // init screen
+  setTimeout(() => initScreen(n), 200);
+
+  // update progress dots + narrator
+  updateProgress(n);
+  updateNarrator();
+
+  // grey/colour toggle visibility (only screens 0-1)
+  const greyToggle = document.getElementById('grey-toggle');
+  if (n > 1) greyToggle.classList.remove('visible');
+  else if (state.transformDone) greyToggle.classList.add('visible');
+}
+
+function updateProgress(n) {
+  const dotStages = STAGES.filter(s => s.showDot);
+  const steps = document.querySelectorAll('.progress-step');
+  const activeDotScreen = (n === 1) ? 0 : n;
+  steps.forEach((step, i) => {
+    const stage = dotStages[i];
+    if (!stage) return;
+    const dot = step.querySelector('.progress-dot');
+    dot.classList.remove('active', 'done');
+    step.classList.remove('active', 'locked', 'done-step');
+    if (stage.id < n) { dot.classList.add('done'); step.classList.add('done-step'); }
+    if (stage.id === activeDotScreen) { dot.classList.add('active'); step.classList.add('active'); }
+    if (stage.id > state.maxStageReached) { step.classList.add('locked'); }
+  });
+  // adjust colours for dark screens
+  const dotsContainer = document.getElementById('progress-dots');
+  if (n === 3) { dotsContainer.style.background = 'rgba(0,0,0,0.3)'; }
+  else { dotsContainer.style.background = ''; }
+}
+
+function initScreen(n) {
+  const stage = STAGES.find(s => s.id === n);
+  if (stage && stage.init) stage.init();
+}
+
+/* ── BUILD PROGRESS BAR FROM STAGES ── */
+function buildProgressBar() {
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  // header
+  const header = document.createElement('div');
+  header.className = 'progress-header';
+  header.textContent = 'today\'s agenda';
+  container.appendChild(header);
+
+  const dotStages = STAGES.filter(s => s.showDot);
+  dotStages.forEach((stage) => {
+    const step = document.createElement('div');
+    step.className = 'progress-step' + (stage.id === 0 ? ' active' : ' locked');
+    step.setAttribute('data-screen', stage.id);
+    step.innerHTML = `<span class="progress-time">${stage.time}</span><div class="progress-dot${stage.id === 0 ? ' active' : ''}"></div><span class="progress-label">${stage.label}</span>`;
+    step.addEventListener('click', () => {
+      if (stage.id <= state.maxStageReached && stage.id !== state.screen) {
+        goToScreen(stage.id, 'dissolve');
+      }
+    });
+    container.appendChild(step);
+  });
+}
+buildProgressBar();
+
+/* ── NARRATOR MODE ── */
+function updateNarrator(subKey) {
+  const overlay = document.getElementById('narrator-overlay');
+  const label = document.getElementById('narrator-stage-label');
+  const text = document.getElementById('narrator-text');
+  const stage = STAGES.find(s => s.id === state.screen);
+  if (!stage) return;
+  label.textContent = stage.label;
+  if (subKey && stage.subNarrations && stage.subNarrations[subKey]) {
+    text.textContent = stage.subNarrations[subKey];
+  } else {
+    text.textContent = stage.narration;
+  }
+  if (state.narratorOn) overlay.classList.add('visible');
+  else overlay.classList.remove('visible');
+}
+
+document.getElementById('narrator-toggle').addEventListener('click', () => {
+  state.narratorOn = !state.narratorOn;
+  document.getElementById('narrator-toggle').classList.toggle('active', state.narratorOn);
+  updateNarrator();
+  // hide dismiss hint after first toggle
+  const hint = document.getElementById('narrator-dismiss-hint');
+  if (hint) hint.style.display = 'none';
+});
+// start with narrator on
+document.getElementById('narrator-toggle').classList.add('active');
+updateNarrator();
+
+/* ── GREY/COLOUR TOGGLE ── */
+document.getElementById('grey-toggle').addEventListener('click', () => {
+  if (!state.transformDone) return;
+  state.greyMode = !state.greyMode;
+  const toggle = document.getElementById('grey-toggle');
+  const room = document.getElementById('room');
+  toggle.classList.toggle('on', !state.greyMode);
+  document.getElementById('gt-left').classList.toggle('active', state.greyMode);
+  document.getElementById('gt-right').classList.toggle('active', !state.greyMode);
+  room.classList.add('room-greyscale');
+  room.style.filter = state.greyMode ? 'grayscale(100%)' : 'none';
+});
+document.getElementById('grey-toggle').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('grey-toggle').click(); }
+});
+
+/* ═══════════════════════════════════════════
+   SCREEN 0 — THE GREY CONFERENCE
+   ═══════════════════════════════════════════ */
+function floatResponse(el, text) {
+  const rect = el.getBoundingClientRect();
+  const room = document.getElementById('room').getBoundingClientRect();
+  const ft = document.createElement('div');
+  ft.className = 'float-text';
+  ft.textContent = text;
+  ft.style.left = (rect.left - room.left + rect.width / 2 - 60) + 'px';
+  ft.style.top = (rect.top - room.top - 10) + 'px';
+  document.getElementById('room').appendChild(ft);
+  setTimeout(() => ft.remove(), 2400);
+  resetIdleTimer();
+}
+
+// editable badge name
+document.getElementById('badge-name-input').addEventListener('input', (e) => {
+  state.attendeeName = e.target.value.trim() || 'attendee';
+  // update map avatar letter
+  const avatarText = document.querySelector('#map-avatar text');
+  if (avatarText) {
+    const letter = state.attendeeName.charAt(0).toUpperCase();
+    avatarText.textContent = letter === 'A' && state.attendeeName === 'attendee' ? '#47' : letter;
+  }
+});
+document.getElementById('badge-name-input').addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+// click handlers for room objects
+document.querySelectorAll('.room-object[data-response]').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (state.screen !== 0) return;
+    e.stopPropagation();
+    floatResponse(el, el.dataset.response);
+  });
+});
+
+// agenda items
+document.querySelectorAll('.agenda-item').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (state.screen !== 0) return;
+    if (e.target.id === 'alive-word') return;
+    e.stopPropagation();
+    floatResponse(el, el.dataset.response || 'innovation. synergy. disruption. lunch.');
+  });
+});
+
+// the word "alive"
+document.getElementById('alive-word').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (state.screen !== 0) return;
+  clearTimeout(state.idleTimer);
+  clearTimeout(state.hintTimer);
+  document.getElementById('cold-start-hint').classList.remove('visible');
+  triggerTransformation(e);
+});
+
+// idle pulse — reduced to 5s for sales context
+function resetIdleTimer() {
+  clearTimeout(state.idleTimer);
+  clearTimeout(state.hintTimer);
+  document.getElementById('alive-word').classList.remove('pulsing');
+  document.getElementById('cold-start-hint').classList.remove('visible');
+  // show cold-start hint after 3s
+  state.hintTimer = setTimeout(() => {
+    if (state.screen === 0) document.getElementById('cold-start-hint').classList.add('visible');
+  }, 3000);
+  // pulse alive after 5s
+  state.idleTimer = setTimeout(() => {
+    if (state.screen === 0) document.getElementById('alive-word').classList.add('pulsing');
+  }, 5000);
+}
+resetIdleTimer();
+
+// keyboard support for room objects
+document.querySelectorAll('.room-object[tabindex]').forEach(el => {
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+  });
+});
+document.getElementById('alive-word').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('alive-word').click(); }
+});
+
+/* ═══════════════════════════════════════════
+   SCREEN 0→1 — TRANSFORMATION
+   ═══════════════════════════════════════════ */
+function triggerTransformation(e) {
+  const word = document.getElementById('alive-word');
+  const room = document.getElementById('room');
+  const roomRect = room.getBoundingClientRect();
+  const wordRect = word.getBoundingClientRect();
+  const cx = wordRect.left - roomRect.left + wordRect.width / 2;
+  const cy = wordRect.top - roomRect.top + wordRect.height / 2;
+
+  // slide counter text changes
+  const counter = document.querySelector('.slide-counter');
+  if (counter) { counter.textContent = 'slide 1 of ∞'; }
+  // poster text changes
+  const poster = document.getElementById('poster');
+  if (poster) { poster.innerHTML = 'learn.<br>create.<br>belong.<br><span style="font-size:12px;margin-top:6px;display:block;color:inherit;opacity:0.6;">— this conference</span>'; }
+  // clock hand jumps
+  const minuteHand = document.querySelector('.clock line:nth-of-type(2)');
+  if (minuteHand) { minuteHand.setAttribute('x2', '52'); minuteHand.setAttribute('y2', '28'); }
+
+  // brief room shake to signal something is happening
+  room.style.animation = 'roomShake 0.3s ease';
+  room.addEventListener('animationend', () => { room.style.animation = ''; }, { once: true });
+
+  // hide grey layer with expanding circle mask
+  const greyLayer = document.getElementById('room-grey');
+  const overlay = document.getElementById('grey-overlay');
+
+  let size = 0;
+  const maxSize = 1800;
+  let revealDone = false;
+
+  function finishReveal() {
+    if (revealDone) return;
+    revealDone = true;
+    greyLayer.style.display = 'none';
+    overlay.style.display = 'none';
+    onTransformComplete();
+  }
+
+  function animateReveal() {
+    size += 30;
+    const mask = `radial-gradient(circle ${size}px at ${cx}px ${cy}px, transparent ${size - 5}px, white ${size}px)`;
+    greyLayer.style.maskImage = mask;
+    greyLayer.style.webkitMaskImage = mask;
+    overlay.style.maskImage = mask;
+    overlay.style.webkitMaskImage = mask;
+
+    if (size < maxSize) {
+      requestAnimationFrame(animateReveal);
+    } else {
+      finishReveal();
+    }
+  }
+  requestAnimationFrame(animateReveal);
+  // safety fallback in case rAF stalls
+  setTimeout(finishReveal, 4000);
+
+  // colour the objects
+  setTimeout(() => {
+    document.getElementById('poster').classList.add('coloured');
+    document.getElementById('slide-screen').classList.add('coloured');
+    document.getElementById('speaker-figure').classList.add('coloured');
+    document.getElementById('badge').classList.add('coloured');
+    document.getElementById('agenda').classList.add('coloured');
+    document.getElementById('conf-banner').classList.add('coloured');
+    document.getElementById('people').classList.add('visible');
+    document.getElementById('people2').classList.add('visible');
+  }, 600);
+}
+
+function onTransformComplete() {
+  state.transformDone = true;
+  const gt = document.getElementById('grey-toggle');
+  gt.classList.add('visible', 'on');
+  // linger for 3s, then show invitation
+  setTimeout(() => {
+    // transition to screen 1 but show the coloured room beneath
+    const s0 = document.getElementById('screen-0');
+    const s1 = document.getElementById('screen-1');
+    s1.style.background = 'transparent';
+    s0.classList.add('beneath');
+    s0.classList.remove('active');
+    s1.classList.add('active');
+    setTimeout(() => {
+      document.getElementById('s1-text').classList.add('visible');
+    }, 600);
+  }, 3000);
+
+  // click anywhere on screen 1 to continue
+  document.getElementById('screen-1').addEventListener('click', () => {
+    if (state.screen === 0) {
+      state.screen = 1;
+    }
+    if (state.screen <= 1) {
+      document.getElementById('screen-0').classList.remove('beneath');
+      goToScreen(2, 'slide-left');
+    }
+  });
+  document.addEventListener('keydown', function s1Key(e) {
+    if ((e.key === 'ArrowRight' || e.key === 'Enter') && state.screen <= 1) {
+      document.getElementById('screen-0').classList.remove('beneath');
+      goToScreen(2, 'slide-left');
+      document.removeEventListener('keydown', s1Key);
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 2 — NON-LINEAR EXPLORATION MAP
+   ═══════════════════════════════════════════ */
+const zonePositions = {
+  registration: { x: 108, y: 120 },
+  coffee: { x: 365, y: 120 },
+  board: { x: 108, y: 370 },
+  keynote: { x: 372, y: 370 },
+  workshop: { x: 607, y: 370 },
+  lounge: { x: 600, y: 120 }
+};
+
+const ZONES = {
+  registration: {
+    label: 'Registration & Welcome', icon: '📋',
+    boringText: 'you\'ve been standing here for 11 minutes. your badge says "attendant."',
+    boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#e8e8e8"/><rect x="100" y="60" width="200" height="24" rx="3" fill="#ccc"/><circle cx="200" cy="40" r="12" fill="#aaa"/><rect x="195" y="53" width="10" height="6" rx="1" fill="#aaa"/><text x="200" y="130" text-anchor="middle" font-size="9" fill="#999" font-family="Inter">WELCOME — PLEASE TAKE A NUMBER.</text><rect x="60" y="80" width="30" height="8" rx="1" fill="#bbb" opacity="0.5"/><rect x="62" y="72" width="26" height="6" rx="1" fill="#bbb" opacity="0.4"/><rect x="310" y="70" width="30" height="20" rx="2" fill="#ddd"/><text x="325" y="84" text-anchor="middle" font-size="6" fill="#aaa">attendant</text></svg>`,
+    aliveText: 'that took 45 seconds. you already have a connection and a direction.',
+    aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#F7E7CE"/><rect x="100" y="60" width="200" height="24" rx="3" fill="#d4c4a8" stroke="#c4a882" stroke-width="0.5"/><circle cx="200" cy="38" r="12" fill="#E97451" opacity="0.7"/><rect x="195" y="51" width="10" height="6" rx="1" fill="#E97451" opacity="0.5"/><circle cx="310" cy="65" r="5" fill="#b8c9a0" opacity="0.6"/><rect x="307" y="71" width="6" height="12" rx="1" fill="#8aaa6a" opacity="0.4"/><rect x="50" y="55" width="30" height="40" rx="3" fill="#fff" stroke="#5F9EA0" stroke-width="0.8"/><text x="65" y="80" text-anchor="middle" font-size="6" fill="#5F9EA0">QR</text></svg>`,
+    sjtNarrator: 'the person at the table slides a card towards you. "we start the day with a question," they say. "not to test you — to know how you\'re arriving."',
+    sjt: { num: 1,
+      question: 'before today, how would you have described a "successful" professional development session?',
+      options: [
+        { key: 'a', text: 'one where i left with practical tools i could use immediately' },
+        { key: 'b', text: 'one where i connected with other educators who get it' },
+        { key: 'c', text: 'one where i was challenged to rethink something i took for granted' },
+        { key: 'd', text: 'honestly? one that ended on time' },
+      ],
+      clue: 'your next clue is somewhere warm. follow the smell of coffee. ☕'
+    },
+    avatar: { slot: 1 }, hint: 'start at the registration table — a volunteer has your first clue.',
+  },
+  coffee: {
+    label: 'Coffee Station', icon: '☕',
+    boringText: 'someone asks what you do. you say your job title. they nod.',
+    boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#e8e8e8"/><circle cx="120" cy="70" r="20" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><circle cx="200" cy="60" r="18" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><circle cx="280" cy="75" r="20" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><circle cx="130" cy="50" r="6" fill="#bbb"/><rect x="128" y="57" width="4" height="3" rx="1" fill="#bbb"/><circle cx="210" cy="40" r="6" fill="#bbb"/><rect x="208" y="47" width="4" height="3" rx="1" fill="#bbb"/><circle cx="270" cy="48" r="6" fill="#bbb"/><rect x="268" y="55" width="4" height="3" rx="1" fill="#bbb"/><rect x="150" y="110" width="80" height="12" rx="2" fill="#ddd"/><text x="190" y="120" text-anchor="middle" font-size="6" fill="#aaa">sad fruit platter</text></svg>`,
+    aliveText: 'the conversation started before the session did.',
+    aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#fce8db"/><circle cx="120" cy="70" r="20" fill="#ede3d0" stroke="#E97451" stroke-width="0.5"/><circle cx="200" cy="60" r="18" fill="#ede3d0" stroke="#E97451" stroke-width="0.5"/><circle cx="280" cy="75" r="20" fill="#ede3d0" stroke="#E97451" stroke-width="0.5"/><rect x="112" y="64" width="16" height="10" rx="1" fill="#fff" opacity="0.6"/><rect x="192" y="54" width="16" height="10" rx="1" fill="#fff" opacity="0.6"/><rect x="272" y="69" width="16" height="10" rx="1" fill="#fff" opacity="0.6"/><circle cx="130" cy="45" r="6" fill="#E97451" opacity="0.6"/><circle cx="210" cy="38" r="6" fill="#5F9EA0" opacity="0.6"/><circle cx="268" cy="50" r="6" fill="#A0522D" opacity="0.6"/><rect x="100" y="110" width="200" height="16" rx="2" fill="#1a1a1a" opacity="0.06"/><text x="200" y="122" text-anchor="middle" font-size="7" fill="#A0522D" font-style="italic">today's question: what brought you here that isn't on your CV?</text></svg>`,
+    sjtNarrator: 'there\'s a card propped against the coffee urn. summit logo. one question. apparently this is that kind of conference.',
+    sjt: { num: 2,
+      question: 'what\'s the belief about learning you\'ve held the longest — and questioned the least?',
+      options: [
+        { key: 'a', text: 'that students who struggle just need more time and practise' },
+        { key: 'b', text: 'that rigorous assessment is the most honest measure of growth' },
+        { key: 'c', text: 'that engagement is a sign of learning' },
+        { key: 'd', text: 'that good teaching can compensate for a broken system' },
+      ],
+      clue: 'something on the session board has your name on it. look carefully. 📌'
+    },
+    avatar: { slot: 2 }, hint: 'head to the coffee station — someone with a red-dot badge is waiting.',
+  },
+  board: {
+    label: 'Session Board', icon: '📌',
+    boringText: 'there are 14 sessions. you are qualified for none of them or all of them. unclear.',
+    boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#e8e8e8"/><rect x="50" y="15" width="300" height="110" rx="4" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><rect x="60" y="25" width="60" height="28" rx="2" fill="#eee" stroke="#ccc" stroke-width="0.3" transform="rotate(-2,90,39)"/><rect x="130" y="22" width="60" height="28" rx="2" fill="#eee" stroke="#ccc" stroke-width="0.3" transform="rotate(1,160,36)"/><rect x="200" y="27" width="60" height="28" rx="2" fill="#eee" stroke="#ccc" stroke-width="0.3" transform="rotate(-1,230,41)"/><rect x="270" y="24" width="60" height="28" rx="2" fill="#eee" stroke="#ccc" stroke-width="0.3"/><rect x="60" y="60" width="60" height="28" rx="2" fill="#eee" stroke="#ccc" stroke-width="0.3"/><rect x="130" y="65" width="60" height="28" rx="2" fill="#eee" stroke="#ccc" stroke-width="0.3" transform="rotate(2,160,79)"/><text x="160" y="82" text-anchor="middle" font-size="5" fill="#aaa">TBD</text><rect x="200" y="62" width="60" height="28" rx="2" fill="#eee" stroke="#ccc" stroke-width="0.3"/></svg>`,
+    aliveText: 'the right session found you.',
+    aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#f2e6dc"/><rect x="50" y="15" width="300" height="110" rx="4" fill="#fff" stroke="#A0522D" stroke-width="0.5"/><rect x="60" y="25" width="85" height="28" rx="2" fill="#e8f4f4" stroke="#5F9EA0" stroke-width="0.5"/><rect x="155" y="25" width="85" height="28" rx="2" fill="#fce8db" stroke="#E97451" stroke-width="0.5"/><rect x="250" y="25" width="85" height="28" rx="2" fill="#F7E7CE" stroke="#A0522D" stroke-width="0.5"/><rect x="60" y="62" width="85" height="28" rx="2" fill="#e8f4f4" stroke="#5F9EA0" stroke-width="0.5"/><rect x="155" y="62" width="85" height="28" rx="2" fill="#fce8db" stroke="#E97451" stroke-width="0.5"/><text x="197" y="80" text-anchor="middle" font-size="5" fill="#A0522D" font-weight="600">★ designing for belonging</text><rect x="250" y="62" width="85" height="28" rx="2" fill="#F7E7CE" stroke="#A0522D" stroke-width="0.5"/></svg>`,
+    badge: true, avatar: { slot: 3 }, hint: 'the session board has something with your name on it.',
+  },
+  keynote: {
+    label: 'Keynote Hall', icon: '🎤',
+    boringText: 'slide 47 of 112. the speaker has not made eye contact with the room since slide 12.',
+    boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#2a2a2a"/><rect x="120" y="15" width="160" height="50" rx="3" fill="#333" stroke="#444" stroke-width="0.5"/><text x="200" y="42" text-anchor="middle" font-size="5" fill="#666">INNOVATION: A FRAMEWORK FOR FRAMEWORKS</text><rect x="100" y="90" width="200" height="6" rx="2" fill="#333"/><rect x="110" y="102" width="180" height="6" rx="2" fill="#333" opacity="0.7"/><rect x="120" y="114" width="160" height="6" rx="2" fill="#333" opacity="0.5"/><circle cx="70" cy="75" r="8" fill="#444"/><rect x="66" y="84" width="8" height="4" rx="1" fill="#444"/></svg>`,
+    aliveText: 'the keynote became a conversation.',
+    aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#1a1a1a"/><rect x="120" y="10" width="160" height="50" rx="3" fill="#222" stroke="#5F9EA0" stroke-width="0.5"/><text x="200" y="38" text-anchor="middle" font-size="6" fill="#F7E7CE" font-style="italic">what does belonging feel like in your context?</text><circle cx="80" cy="80" r="8" fill="#E97451" opacity="0.5"/><circle cx="150" cy="100" r="7" fill="#5F9EA0" opacity="0.4"/><circle cx="250" cy="95" r="8" fill="#A0522D" opacity="0.4"/><circle cx="320" cy="85" r="7" fill="#E97451" opacity="0.3"/><rect x="60" y="100" width="30" height="20" rx="2" fill="#333" opacity="0.3"/><rect x="140" y="110" width="30" height="20" rx="2" fill="#333" opacity="0.3"/><rect x="240" y="105" width="30" height="20" rx="2" fill="#333" opacity="0.3"/></svg>`,
+    unlockWhen: 'allHuntDone', usesCanvas: true,
+  },
+  workshop: {
+    label: 'Workshop Rooms', icon: '🏗️',
+    boringText: 'the workshop is 90 minutes. the slides are 74 pages.',
+    boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#e8e8e8"/><rect x="50" y="20" width="300" height="8" rx="2" fill="#ddd"/><rect x="50" y="35" width="300" height="8" rx="2" fill="#ddd"/><rect x="50" y="50" width="300" height="8" rx="2" fill="#ddd"/><rect x="130" y="75" width="140" height="50" rx="3" fill="#ddd" stroke="#ccc" stroke-width="0.5"/><text x="200" y="95" text-anchor="middle" font-size="5" fill="#aaa">LEARNING OBJECTIVES:</text><text x="200" y="105" text-anchor="middle" font-size="4" fill="#bbb">1. UNDERSTAND  2. APPLY  3. EVALUATE</text><circle cx="80" cy="100" r="8" fill="#bbb"/><rect x="76" y="109" width="8" height="4" rx="1" fill="#bbb"/></svg>`,
+    aliveText: 'you knew these people before the workshop began.',
+    aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#F7E7CE"/><rect x="80" y="40" width="240" height="60" rx="4" fill="#fff" stroke="#c4a882" stroke-width="0.5"/><rect x="90" y="50" width="20" height="12" rx="1" fill="#E97451" opacity="0.3"/><rect x="115" y="48" width="16" height="14" rx="1" fill="#5F9EA0" opacity="0.3"/><rect x="140" y="52" width="22" height="10" rx="1" fill="#A0522D" opacity="0.3"/><circle cx="250" cy="60" r="8" fill="#E97451" opacity="0.5"/><text x="250" y="63" text-anchor="middle" font-size="6" fill="#fff">J</text><circle cx="280" cy="65" r="8" fill="#5F9EA0" opacity="0.5"/><text x="280" y="68" text-anchor="middle" font-size="6" fill="#fff">S</text><circle cx="305" cy="58" r="8" fill="#A0522D" opacity="0.5"/><text x="305" y="61" text-anchor="middle" font-size="6" fill="#fff">P</text><rect x="170" y="55" width="8" height="8" rx="1" fill="#F7E7CE" stroke="#c4a882" stroke-width="0.3"/></svg>`,
+    unlockWhen: 'badgeFound',
+  },
+  lounge: {
+    label: 'Networking Lounge', icon: '💬',
+    boringText: 'you have a stack of business cards. you will throw most of them away on tuesday.',
+    boringScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#e8e8e8"/><circle cx="100" cy="60" r="7" fill="#bbb"/><circle cx="115" cy="55" r="7" fill="#bbb"/><circle cx="250" cy="50" r="7" fill="#bbb"/><circle cx="265" cy="55" r="7" fill="#bbb"/><circle cx="258" cy="70" r="7" fill="#bbb"/><circle cx="180" cy="90" r="7" fill="#ccc"/><rect x="176" y="98" width="8" height="4" rx="1" fill="#ccc"/><circle cx="320" cy="80" r="12" fill="#ddd" opacity="0.4"/><rect x="316" y="74" width="8" height="12" rx="1" fill="#b8c9a0" opacity="0.3"/><text x="200" y="130" text-anchor="middle" font-size="7" fill="#aaa">NETWORKING HOUR — MAKE CONNECTIONS!</text></svg>`,
+    aliveText: 'networking works better when it has a reason.',
+    aliveScene: `<svg viewBox="0 0 400 140"><rect width="400" height="140" fill="#f0e8d8"/><circle cx="100" cy="55" r="20" fill="#ede3d0" stroke="#c4a882" stroke-width="0.5"/><rect x="90" y="49" width="20" height="12" rx="1" fill="#fff" opacity="0.7"/><circle cx="260" cy="60" r="20" fill="#ede3d0" stroke="#c4a882" stroke-width="0.5"/><rect x="250" y="54" width="20" height="12" rx="1" fill="#fff" opacity="0.7"/><rect x="140" y="95" width="120" height="30" rx="3" fill="#fff" stroke="#E97451" stroke-width="0.5"/><rect x="150" y="100" width="40" height="8" rx="1" fill="#F7E7CE"/><rect x="195" y="100" width="40" height="8" rx="1" fill="#F7E7CE"/><rect x="150" y="112" width="40" height="8" rx="1" fill="#F7E7CE"/><line x1="170" y1="104" x2="215" y2="104" stroke="#E97451" stroke-width="0.5" stroke-dasharray="2 2"/></svg>`,
+    unlockWhen: 'badgeFound', easterEggs: [
+      'find someone who has never eaten at a conference buffet by choice.',
+      'your afternoon co-conspirator is wearing something yellow.'
+    ],
+  },
+};
+
+function initHunt() {
+  state.zoneAlive = {};
+  state.badgeFound = false;
+  state.allHuntDone = false;
+  state.clueLog = [];
+  initMap();
+  updateClueLogBtn();
+}
+
+function initMap() {
+  updateMapState();
+  // show initial hint
+  setTimeout(() => showMapHint(ZONES.registration.hint), 600);
+  // click handlers
+  document.querySelectorAll('.map-zone').forEach(g => {
+    g.addEventListener('click', () => {
+      const zone = g.dataset.zone;
+      moveAvatar(zone);
+      openZoneModal(zone);
+    });
+  });
+}
+
+function updateMapState() {
+  document.querySelectorAll('.map-zone').forEach(g => {
+    const zone = g.dataset.zone;
+    g.classList.toggle('alive', !!state.zoneAlive[zone]);
+  });
+}
+
+function moveAvatar(zoneKey, cb) {
+  const pos = zonePositions[zoneKey];
+  if (!pos) return cb && cb();
+  document.getElementById('map-avatar').setAttribute('transform', `translate(${pos.x},${pos.y})`);
+  setTimeout(() => cb && cb(), 850);
+}
+
+function isZoneUnlockable(zone) {
+  const z = ZONES[zone];
+  if (!z) return false;
+  if (z.sjt || z.badge) return true; // always can attempt
+  if (z.unlockWhen === 'allHuntDone') return state.allHuntDone;
+  if (z.unlockWhen === 'badgeFound') return state.badgeFound;
+  return false;
+}
+
+function unlockZone(zone) {
+  state.zoneAlive[zone] = true;
+  if (zone === 'registration') unlockAvatar(1);
+  if (zone === 'coffee') unlockAvatar(2);
+  if (zone === 'board') { unlockAvatar(3); state.badgeFound = true; }
+  // check if all 3 hunt zones done
+  if (state.zoneAlive.registration && state.zoneAlive.coffee && state.zoneAlive.board) {
+    state.allHuntDone = true;
+  }
+  updateMapState();
+  checkAllComplete();
+}
+
+function unlockAvatar(n) {
+  const slot = document.getElementById('avatar-' + n);
+  if (slot) slot.classList.add('found');
+  const locEl = document.getElementById('avatar-' + n + '-loc');
+  const locs = { 1: 'found at: registration & welcome', 2: 'found at: coffee station', 3: 'found at: session board' };
+  if (locEl) locEl.textContent = locs[n] || '';
+}
+
+function showCohortToast(zoneKey) {
+  const toasts = {
+    registration: 'you and jamie will be in the same workshop this afternoon. you just don\'t know each other yet.',
+    coffee: 'sam answered that question differently to you. that\'s exactly why you\'re in the same group.',
+    board: 'priya is also looking for their badge. you\'re closer than you think.',
+  };
+  const msg = toasts[zoneKey];
+  if (!msg) return;
+  const el = document.getElementById('cohort-toast');
+  el.textContent = msg;
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 5000);
+}
+
+function showGroupCompleteCard() {
+  const el = document.getElementById('group-complete-card');
+  el.classList.add('visible');
+  document.getElementById('group-complete-continue').addEventListener('click', () => {
+    el.classList.remove('visible');
+  });
+}
+
+function triggerBadgeHandover(onComplete) {
+  const name = state.attendeeName || 'attendee';
+  document.getElementById('badge-name').textContent = name;
+  const handover = document.getElementById('badge-handover');
+  handover.classList.add('visible');
+  // step 1: flip badge face-up
+  setTimeout(() => {
+    const badge = document.getElementById('badge-reveal');
+    badge.classList.add('flipped');
+    console.log('[hunt] badge flipped');
+    // step 2: glow
+    setTimeout(() => {
+      badge.classList.add('glowing');
+      document.getElementById('badge-line').style.opacity = '1';
+      // step 3: show keep button
+      setTimeout(() => {
+        const keepBtn = document.getElementById('badge-keep');
+        keepBtn.style.opacity = '1';
+        keepBtn.addEventListener('click', () => {
+          console.log('[hunt] badge kept');
+          handover.classList.remove('visible');
+          // pin corner badge
+          const corner = document.getElementById('corner-badge');
+          document.getElementById('corner-badge-text').textContent = `${name} · room 4b · 14:00`;
+          corner.classList.add('visible');
+          if (onComplete) onComplete();
+        });
+      }, 2000);
+    }, 800);
+  }, 600);
+}
+
+function updateClueLogBtn() {
+  let btn = document.getElementById('clue-log-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'clue-log-btn';
+    btn.className = 'clue-log-btn';
+    btn.innerHTML = '🔍 clues';
+    document.getElementById('conference-map').appendChild(btn);
+
+    const panel = document.createElement('div');
+    panel.id = 'clue-log-panel';
+    panel.className = 'clue-log-panel';
+    document.getElementById('conference-map').appendChild(panel);
+
+    btn.addEventListener('click', () => {
+      const p = document.getElementById('clue-log-panel');
+      p.classList.toggle('visible');
+      if (p.classList.contains('visible')) {
+        if (!state.clueLog || state.clueLog.length === 0) {
+          p.innerHTML = '<div class="clue-log-empty">no clues found yet.</div>';
+        } else {
+          p.innerHTML = state.clueLog.map(c => `<div class="clue-log-item"><strong>${c.zone}:</strong> "${c.clue}"</div>`).join('');
+        }
+      }
+    });
+  }
+  const count = (state.clueLog || []).length;
+  btn.innerHTML = `🔍 clues (${count})`;
+}
+
+function showMapHint(text) {
+  const el = document.getElementById('map-hint');
+  state.lastHint = text;
+  el.innerHTML = `<span>${text}</span><button class="map-hint-dismiss" onclick="this.parentElement.classList.remove('visible')">✕</button>`;
+  el.classList.add('visible');
+}
+
+function getCurrentHint() {
+  if (!state.zoneAlive.registration) return ZONES.registration.hint;
+  if (!state.zoneAlive.coffee) return ZONES.coffee.hint;
+  if (!state.zoneAlive.board) return ZONES.board.hint;
+  if (state.allHuntDone && !state.zoneAlive.keynote) return 'all hunt zones complete — the keynote hall is now alive.';
+  if (state.badgeFound && !state.zoneAlive.workshop) return 'your badge is found — check the workshop rooms.';
+  if (state.badgeFound && !state.zoneAlive.lounge) return 'try the networking lounge — your badge unlocks it.';
+  return 'explore any zone you haven\'t unlocked yet.';
+}
+
+document.getElementById('map-show-clue').addEventListener('click', () => {
+  showMapHint(getCurrentHint());
+});
+
+function checkAllComplete() {
+  const allAlive = Object.keys(ZONES).every(z => state.zoneAlive[z]);
+  if (allAlive) {
+    setTimeout(() => {
+      const cel = document.getElementById('map-celebration');
+      cel.innerHTML = `
+        <div style="font-family:var(--font-display);font-size:24px;color:var(--grey1);margin-bottom:12px;">you've seen what's possible.</div>
+        <div style="font-size:14px;color:var(--grey3);font-style:italic;margin-bottom:24px;">every zone, reimagined.</div>
+        <button class="zone-challenge-btn" id="cel-continue">continue to the keynote →</button>
+      `;
+      cel.classList.add('visible');
+      document.getElementById('cel-continue').addEventListener('click', () => {
+        cel.classList.remove('visible');
+        goToScreen(3, 'dissolve');
+      });
+    }, 800);
+  }
+}
+
+/* ── ZONE MODAL ── */
+function openZoneModal(zoneKey) {
+  const z = ZONES[zoneKey];
+  if (!z) return;
+  const alive = !!state.zoneAlive[zoneKey];
+  const unlockable = isZoneUnlockable(zoneKey);
+
+  const card = document.getElementById('zone-modal-card');
+  card.innerHTML = `
+    <div class="zone-modal-header">
+      <span>${z.icon} ${z.label}</span>
+      <button class="zone-modal-close" id="zm-close">✕</button>
+    </div>
+    <div class="zone-modal-tabs">
+      <button class="zone-modal-tab active" id="zm-tab-boring">the usual</button>
+      <button class="zone-modal-tab ${alive ? '' : 'locked'}" id="zm-tab-alive">
+        alive ${alive ? '' : '<span class="lock-icon">🔒</span>'}
+      </button>
+    </div>
+    <div class="zone-modal-body" id="zm-body"></div>
+  `;
+
+  // show boring by default
+  renderBoringTab(zoneKey);
+
+  document.getElementById('zm-close').addEventListener('click', closeZoneModal);
+  document.getElementById('zm-tab-boring').addEventListener('click', () => {
+    setActiveTab('boring');
+    renderBoringTab(zoneKey);
+  });
+  document.getElementById('zm-tab-alive').addEventListener('click', () => {
+    if (alive) {
+      setActiveTab('alive');
+      renderAliveTab(zoneKey);
+    } else if (unlockable) {
+      setActiveTab('alive');
+      renderChallenge(zoneKey);
+    } else {
+      // show lock message
+      setActiveTab('alive');
+      document.getElementById('zm-body').innerHTML = `
+        <div class="zone-lock-msg">
+          <span class="lock-big">🔒</span>
+          ${z.unlockWhen === 'allHuntDone' ? 'complete all three hunt zones to unlock.' : 'find your badge to unlock.'}
+        </div>
+      `;
+    }
+  });
+
+  document.getElementById('zone-modal').classList.add('visible');
+}
+
+function closeZoneModal() {
+  document.getElementById('zone-modal').classList.remove('visible');
+}
+
+function setActiveTab(which) {
+  document.getElementById('zm-tab-boring').classList.toggle('active', which === 'boring');
+  document.getElementById('zm-tab-alive').classList.toggle('active', which === 'alive');
+}
+
+function renderBoringTab(zoneKey) {
+  const z = ZONES[zoneKey];
+  const unlockable = isZoneUnlockable(zoneKey);
+  const alive = !!state.zoneAlive[zoneKey];
+  document.getElementById('zm-body').innerHTML = `
+    <div class="zone-scene">${z.boringScene}</div>
+    <div class="zone-text">${z.boringText}</div>
+    ${!alive && unlockable ? '<button class="zone-challenge-btn" id="zm-challenge">unlock the alive version →</button>' : ''}
+  `;
+  if (!alive && unlockable) {
+    document.getElementById('zm-challenge').addEventListener('click', () => {
+      setActiveTab('alive');
+      renderChallenge(zoneKey);
+    });
+  }
+}
+
+function renderAliveTab(zoneKey) {
+  const z = ZONES[zoneKey];
+  const body = document.getElementById('zm-body');
+  let extra = '';
+
+  // easter eggs for lounge
+  if (zoneKey === 'lounge' && z.easterEggs) {
+    extra = '<div style="display:flex;gap:12px;margin-top:16px;">';
+    z.easterEggs.forEach((egg, i) => {
+      const id = 'ee-card-' + i;
+      extra += `<div class="qr-card" style="width:auto;flex:1;padding:14px;cursor:pointer;" id="${id}">${i === 0 ? '🃏 card 1' : '🃏 card 2'}<div style="font-size:11px;color:var(--grey4);margin-top:4px;">tap to flip</div></div>`;
+    });
+    extra += '</div>';
+  }
+
+  // keynote alive: offer to open drawing canvas
+  if (zoneKey === 'keynote') {
+    extra = '<button class="zone-challenge-btn" id="zm-keynote-draw" style="margin-top:8px;">open the sketchpad →</button>';
+  }
+
+  // workshop alive: show cohort + artefact prompt
+  if (zoneKey === 'workshop') {
+    extra = `<p style="font-size:14px;color:var(--grey2);margin-top:8px;">jamie, sam, and priya are already here. you're not starting from scratch — you started at the registration table.</p>`;
+  }
+
+  body.innerHTML = `
+    <div class="zone-scene">${z.aliveScene}</div>
+    <div class="zone-text">${z.aliveText}</div>
+    ${extra}
+  `;
+
+  // wire easter egg clicks
+  if (zoneKey === 'lounge' && z.easterEggs) {
+    z.easterEggs.forEach((egg, i) => {
+      const el = document.getElementById('ee-card-' + i);
+      if (el) el.addEventListener('click', () => {
+        el.innerHTML = `<div style="font-style:italic;color:var(--sienna);font-size:13px;">${egg}</div>`;
+        state.easterEggs = Math.min(state.easterEggs + 1, 2);
+      });
+    });
+  }
+
+  // wire keynote canvas
+  if (zoneKey === 'keynote') {
+    const btn = document.getElementById('zm-keynote-draw');
+    if (btn) btn.addEventListener('click', () => {
+      closeZoneModal();
+      goToScreen(3, 'dissolve');
+    });
+  }
+}
+
+function renderChallenge(zoneKey) {
+  const z = ZONES[zoneKey];
+  const body = document.getElementById('zm-body');
+
+  if (z.sjt) {
+    console.log('[hunt] renderChallenge:', zoneKey, '— showing SJT');
+    // show narrator framing if available
+    const narratorIntro = z.sjtNarrator ? `<div style="font-style:italic;color:var(--grey3);font-size:13px;line-height:1.7;margin-bottom:16px;padding:10px 14px;background:rgba(95,158,160,0.06);border-radius:8px;">${z.sjtNarrator}</div>` : '';
+    body.innerHTML = `
+      <div class="zone-scene">${z.aliveScene}</div>
+      ${narratorIntro}
+      <div class="sjt-card" style="border:none;box-shadow:none;padding:0;">
+        <div class="sjt-question">${z.sjt.question}</div>
+        <ul class="sjt-options" id="sjt-opts"></ul>
+        <div class="sjt-response" id="sjt-resp"></div>
+      </div>
+    `;
+    const optsList = document.getElementById('sjt-opts');
+    z.sjt.options.forEach(opt => {
+      const li = document.createElement('li');
+      li.textContent = `${opt.key}) ${opt.text}`;
+      li.addEventListener('click', () => {
+        if (document.querySelector('.sjt-options li.selected')) return;
+        li.classList.add('selected');
+        if (z.sjt.num === 1) state.sjt1 = opt.key;
+        else state.sjt2 = opt.key;
+        console.log('[hunt] SJT', z.sjt.num, 'answered:', opt.key);
+
+        const resp = document.getElementById('sjt-resp');
+        // Step 1: show non-judgmental response
+        resp.innerHTML = `<p style="margin-bottom:6px;">${sjtResponses[z.sjt.num][opt.key]}</p><p style="font-size:13px;color:var(--grey3);margin-top:8px;">${sjtPostResponse[z.sjt.num]}</p>`;
+        resp.classList.add('visible');
+        console.log('[hunt] step 1: response shown');
+
+        // Step 2: after 2s, show clue card
+        setTimeout(() => {
+          console.log('[hunt] step 2: revealing clue');
+          resp.innerHTML += `
+            <div class="sjt-clue" style="font-size:15px;padding:14px 18px;background:var(--champagne);border-radius:8px;border-left:3px solid var(--sienna);margin:16px 0;">"${z.sjt.clue}"</div>
+            <button class="zone-challenge-btn" id="sjt-continue" style="margin-top:12px;">got it →</button>
+          `;
+          // save clue to log
+          if (!state.clueLog) state.clueLog = [];
+          state.clueLog.push({ zone: z.label, clue: z.sjt.clue });
+          updateClueLogBtn();
+
+          // unlock zone + avatar
+          unlockZone(zoneKey);
+          document.getElementById('zm-tab-alive').innerHTML = 'alive';
+          document.getElementById('zm-tab-alive').classList.remove('locked');
+          console.log('[hunt] step 3: zone unlocked, clue saved');
+
+          // Step 3: highlight next zone on map
+          const nextZone = { registration: 'coffee', coffee: 'board' };
+          if (nextZone[zoneKey]) {
+            const nz = document.getElementById('zone-' + nextZone[zoneKey]);
+            if (nz) nz.querySelector('.zone-bg').style.animation = 'zonePulse 1.5s ease-in-out infinite';
+          }
+
+          // show cohort toast
+          showCohortToast(zoneKey);
+
+          document.getElementById('sjt-continue').addEventListener('click', () => {
+            console.log('[hunt] step 4: user dismissed clue, closing modal');
+            closeZoneModal();
+            const nextHints = { registration: ZONES.coffee.hint, coffee: ZONES.board.hint };
+            if (nextHints[zoneKey]) setTimeout(() => showMapHint(nextHints[zoneKey]), 400);
+          });
+        }, 2000);
+      });
+      optsList.appendChild(li);
+    });
+  } else if (z.badge) {
+    // session board badge reveal
+    console.log('[hunt] renderChallenge: board — session grid');
+    const sessions = [
+      'assessment for equity', 'trauma-informed pedagogy', 'student voice in curriculum', 'culturally responsive teaching',
+      'designing for belonging', 'neurodiversity in the classroom', 'formative feedback loops', 'restorative practices',
+      'ai in education', 'project-based learning', 'inclusive design', 'community partnerships'
+    ];
+    let gridHTML = '<div class="session-grid" id="session-grid">';
+    sessions.forEach((s, i) => {
+      const cls = i === 4 ? ' starred' : '';
+      gridHTML += `<div class="session-card${cls}" data-idx="${i}">${s}</div>`;
+    });
+    gridHTML += '</div>';
+    body.innerHTML = `
+      <div class="zone-scene">${z.aliveScene}</div>
+      <p style="font-size:14px;color:var(--grey2);font-style:italic;margin-bottom:12px;">find the workshop that matches your clues. <em>(hint: look for the ★)</em></p>
+      ${gridHTML}
+    `;
+    setTimeout(() => {
+      document.querySelectorAll('.session-card').forEach(card => {
+        if (parseInt(card.dataset.idx) === 4) {
+          card.addEventListener('click', () => {
+            console.log('[hunt] badge card clicked — starting handover');
+            closeZoneModal();
+            triggerBadgeHandover(() => {
+              unlockZone(zoneKey);
+              document.getElementById('zm-tab-alive').innerHTML = 'alive';
+              document.getElementById('zm-tab-alive').classList.remove('locked');
+              showCohortToast('board');
+              // check if group is complete
+              if (state.zoneAlive.registration && state.zoneAlive.coffee && state.zoneAlive.board) {
+                setTimeout(showGroupCompleteCard, 1200);
+              }
+            });
+          });
+        }
+      });
+    }, 100);
+  } else if (isZoneUnlockable(zoneKey)) {
+    // auto-unlock zones (keynote, workshop, lounge) — unlock and show alive
+    unlockZone(zoneKey);
+    document.getElementById('zm-tab-alive').innerHTML = 'alive';
+    document.getElementById('zm-tab-alive').classList.remove('locked');
+    renderAliveTab(zoneKey);
+  } else {
+    body.innerHTML = `
+      <div class="zone-lock-msg">
+        <span class="lock-big">🔒</span>
+        ${z.unlockWhen === 'allHuntDone' ? 'complete all three hunt zones to unlock.' : 'find your badge to unlock.'}
+      </div>
+    `;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 3 — THE KEYNOTE
+   ═══════════════════════════════════════════ */
+const keynoteSlides = [
+  { text: '"belonging is not a feeling. it is a design decision."', cite: 'Walton & Cohen (2011). "A Brief Social-Belonging Intervention Improves Academic Outcomes." Science, 331(6023), 1447–1451.' },
+  { text: '"what does your learning environment signal to the people in it?"', cite: 'Steele & Aronson (1995). "Stereotype Threat and the Intellectual Test Performance of African Americans." Journal of Personality and Social Psychology, 69(5), 797–811.' },
+  { text: '"the most important question you can ask is: who is this for?"', cite: 'Costanza-Chock, S. (2020). Design Justice: Community-Led Practices to Build the Worlds We Need. MIT Press.' },
+];
+
+function initKeynote() {
+  const container = document.getElementById('keynote-container');
+  container.innerHTML = '<div class="keynote-slide" id="ks"><div class="keynote-slide-text" id="ks-text"></div><div class="keynote-slide-cite" id="ks-cite"></div></div>';
+  showKeynoteSlide(0);
+}
+
+function showKeynoteSlide(i) {
+  const slide = document.getElementById('ks');
+  const text = document.getElementById('ks-text');
+  const cite = document.getElementById('ks-cite');
+  slide.classList.remove('visible');
+
+  setTimeout(() => {
+    text.textContent = keynoteSlides[i].text;
+    cite.textContent = keynoteSlides[i].cite;
+    slide.classList.add('visible');
+  }, 300);
+
+  if (i < keynoteSlides.length - 1) {
+    setTimeout(() => showKeynoteSlide(i + 1), 4000);
+  } else {
+    setTimeout(showDrawingPrompt, 4000);
+  }
+}
+
+function showDrawingPrompt() {
+  const container = document.getElementById('keynote-container');
+  const slide = document.getElementById('ks');
+  slide.classList.remove('visible');
+
+  setTimeout(() => {
+    const msg = document.createElement('div');
+    msg.className = 'keynote-message';
+    msg.id = 'km';
+    msg.textContent = 'the speaker just asked everyone to draw something. open your sketchpad.';
+    container.appendChild(msg);
+    setTimeout(() => msg.classList.add('visible'), 100);
+    setTimeout(showCanvas, 2000);
+  }, 500);
+}
+
+function showCanvas() {
+  const container = document.getElementById('keynote-container');
+  const msg = document.getElementById('km');
+  if (msg) msg.style.display = 'none';
+  document.getElementById('ks').style.display = 'none';
+
+  const area = document.createElement('div');
+  area.className = 'canvas-area';
+  area.id = 'canvas-area';
+  area.innerHTML = `
+    <div class="canvas-prompt">draw what belonging feels like in your learning context. anything goes — literal, abstract, symbolic.</div>
+    <div class="canvas-wrapper">
+      <canvas id="draw-canvas" width="600" height="340"></canvas>
+    </div>
+    <div class="canvas-tools" id="canvas-tools"></div>
+  `;
+  container.appendChild(area);
+  setTimeout(() => area.classList.add('visible'), 100);
+  initCanvas();
+}
+
+function initCanvas() {
+  const canvas = document.getElementById('draw-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 600, 340);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 3;
+  let drawing = false;
+  let colour = '#5F9EA0';
+  let erasing = false;
+
+  function getPos(e) {
+    if (e.touches) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+    return { x: e.offsetX, y: e.offsetY };
+  }
+  function startDraw(e) { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+  function moveDraw(e) {
+    if (!drawing) return; e.preventDefault();
+    ctx.strokeStyle = erasing ? '#fff' : colour;
+    ctx.lineWidth = erasing ? 20 : 3;
+    const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke();
+  }
+  function endDraw() { drawing = false; }
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', moveDraw);
+  canvas.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('mouseleave', endDraw);
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove', moveDraw, { passive: false });
+  canvas.addEventListener('touchend', endDraw);
+
+  const tools = document.getElementById('canvas-tools');
+  const colours = ['#5F9EA0', '#A0522D', '#E97451', '#F7E7CE', '#222', '#fff'];
+  colours.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'colour-swatch' + (c === colour ? ' active' : '');
+    sw.style.background = c;
+    if (c === '#fff') sw.style.border = '2px solid #ccc';
+    sw.addEventListener('click', () => {
+      erasing = false;
+      colour = c;
+      document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+    });
+    tools.appendChild(sw);
+  });
+
+  const eraserBtn = document.createElement('button');
+  eraserBtn.className = 'canvas-btn';
+  eraserBtn.textContent = 'eraser';
+  eraserBtn.addEventListener('click', () => { erasing = !erasing; eraserBtn.classList.toggle('active'); });
+  tools.appendChild(eraserBtn);
+
+  const doneBtn = document.createElement('button');
+  doneBtn.className = 'canvas-btn primary';
+  doneBtn.textContent = 'done';
+  doneBtn.addEventListener('click', () => {
+    state.drawingData = canvas.toDataURL();
+    showSharedWall();
+  });
+  tools.appendChild(doneBtn);
+
+  // auto-advance after 45s
+  setTimeout(() => {
+    if (!state.drawingData) {
+      state.drawingData = canvas.toDataURL();
+      showSharedWall();
+    }
+  }, 45000);
+}
+
+const wallSVGs = [
+  `<svg viewBox="0 0 100 80"><path d="M50 10 C30 15, 15 40, 50 70 C85 40, 70 15, 50 10Z" fill="none" stroke="#5F9EA0" stroke-width="2"/></svg>`,
+  `<svg viewBox="0 0 100 80"><circle cx="30" cy="40" r="15" fill="none" stroke="#E97451" stroke-width="2"/><circle cx="55" cy="30" r="12" fill="none" stroke="#A0522D" stroke-width="2"/><circle cx="65" cy="55" r="10" fill="none" stroke="#5F9EA0" stroke-width="2"/></svg>`,
+  `<svg viewBox="0 0 100 80"><path d="M50 75 L50 30 M50 30 L30 15 M50 30 L70 15 M50 45 L35 35 M50 45 L65 35" stroke="#A0522D" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="0 0 100 80"><path d="M10 60 Q25 20, 40 50 Q55 10, 70 45 Q85 15, 95 55" fill="none" stroke="#E97451" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="0 0 100 80"><circle cx="50" cy="40" r="20" fill="none" stroke="#F7E7CE" stroke-width="6"/><line x1="50" y1="15" x2="50" y2="5" stroke="#E97451" stroke-width="2"/><line x1="70" y1="25" x2="78" y2="18" stroke="#E97451" stroke-width="2"/><line x1="75" y1="40" x2="85" y2="40" stroke="#E97451" stroke-width="2"/><line x1="25" y1="40" x2="15" y2="40" stroke="#E97451" stroke-width="2"/><line x1="30" y1="25" x2="22" y2="18" stroke="#E97451" stroke-width="2"/></svg>`,
+  `<svg viewBox="0 0 100 80"><circle cx="20" cy="20" r="3" fill="#5F9EA0"/><circle cx="45" cy="15" r="2" fill="#A0522D"/><circle cx="70" cy="25" r="4" fill="#E97451"/><circle cx="30" cy="45" r="3" fill="#A0522D"/><circle cx="60" cy="50" r="2" fill="#5F9EA0"/><circle cx="80" cy="55" r="3" fill="#E97451"/><circle cx="40" cy="65" r="4" fill="#5F9EA0"/><circle cx="75" cy="40" r="2" fill="#A0522D"/></svg>`,
+  `<svg viewBox="0 0 100 80"><path d="M15 60 Q30 20, 50 40 Q70 20, 85 60" fill="none" stroke="#A0522D" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="0 0 100 80"><path d="M50 15 L55 30 L70 30 L58 40 L63 55 L50 46 L37 55 L42 40 L30 30 L45 30Z" fill="none" stroke="#5F9EA0" stroke-width="1.5"/></svg>`,
+];
+
+function showSharedWall() {
+  const container = document.getElementById('keynote-container');
+  const canvasArea = document.getElementById('canvas-area');
+  if (canvasArea) canvasArea.style.display = 'none';
+
+  const wall = document.createElement('div');
+  wall.className = 'shared-wall';
+  wall.id = 'shared-wall';
+
+  // add pre-illustrated drawings
+  const rotations = [-3, 2, -1, 3, -2, 1, -3, 2];
+  wallSVGs.forEach((svg, i) => {
+    const d = document.createElement('div');
+    d.className = 'wall-drawing';
+    d.style.setProperty('--rot', rotations[i] + 'deg');
+    d.innerHTML = svg;
+    wall.appendChild(d);
+  });
+
+  // add user's drawing
+  if (state.drawingData) {
+    const ud = document.createElement('div');
+    ud.className = 'wall-drawing user-drawing';
+    ud.style.setProperty('--rot', '1deg');
+    const img = document.createElement('img');
+    img.src = state.drawingData;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:4px;';
+    ud.appendChild(img);
+    wall.appendChild(ud);
+  }
+
+  container.appendChild(wall);
+  setTimeout(() => wall.classList.add('visible'), 100);
+
+  const count = document.createElement('div');
+  count.className = 'wall-count';
+  count.textContent = '47 educators just answered that question at the same time. none of the drawings are the same.';
+  container.appendChild(count);
+  setTimeout(() => count.classList.add('visible'), 1200);
+
+  setTimeout(showBuildActivity, 3500);
+}
+
+const polaroidSVGs = [
+  { svg: `<svg viewBox="0 0 60 50"><rect x="5" y="5" width="50" height="40" rx="4" fill="none" stroke="#5F9EA0" stroke-width="1.5"/><circle cx="30" cy="25" r="10" fill="#F7E7CE"/></svg>`, caption: 'a safe circle' },
+  { svg: `<svg viewBox="0 0 60 50"><path d="M10 40 L20 15 L30 30 L40 10 L50 40Z" fill="none" stroke="#E97451" stroke-width="1.5"/></svg>`, caption: 'mountains of curiosity' },
+  { svg: `<svg viewBox="0 0 60 50"><path d="M30 5 Q50 25, 30 45 Q10 25, 30 5Z" fill="none" stroke="#A0522D" stroke-width="1.5"/></svg>`, caption: 'the messy middle' },
+  { svg: `<svg viewBox="0 0 60 50"><line x1="10" y1="40" x2="50" y2="40" stroke="#5F9EA0" stroke-width="1.5"/><circle cx="20" cy="30" r="6" fill="none" stroke="#E97451" stroke-width="1.5"/><circle cx="40" cy="30" r="6" fill="none" stroke="#A0522D" stroke-width="1.5"/><line x1="26" y1="30" x2="34" y2="30" stroke="#ccc" stroke-width="1"/></svg>`, caption: 'connected' },
+  { svg: `<svg viewBox="0 0 60 50"><path d="M30 10 C10 10, 10 40, 30 40 C50 40, 50 10, 30 10" fill="none" stroke="#5F9EA0" stroke-width="1.5" stroke-dasharray="3 3"/></svg>`, caption: 'room to breathe' },
+  { svg: `<svg viewBox="0 0 60 50"><path d="M15 40 Q15 15, 30 15 Q45 15, 45 40" fill="none" stroke="#A0522D" stroke-width="2"/><circle cx="30" cy="12" r="3" fill="#E97451"/></svg>`, caption: 'a doorway' },
+];
+
+function showBuildActivity() {
+  const container = document.getElementById('keynote-container');
+  const wall = document.getElementById('shared-wall');
+  if (wall) wall.style.display = 'none';
+  document.querySelectorAll('.wall-count').forEach(el => el.style.display = 'none');
+
+  // creation backdrop — people making things
+  const backdrop = document.createElement('div');
+  backdrop.style.cssText = 'text-align:center;margin-bottom:20px;opacity:0;transition:opacity 1s ease;';
+  backdrop.innerHTML = `<svg viewBox="0 0 400 100" width="400" height="100" style="opacity:0.12;">
+    <circle cx="60" cy="40" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="48" y="55" width="24" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="35" y="70" width="50" height="25" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+    <circle cx="160" cy="35" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="148" y="50" width="24" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="135" y="65" width="50" height="30" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/><path d="M175 70 L185 55 L195 70" fill="none" stroke="currentColor" stroke-width="0.8"/>
+    <circle cx="260" cy="40" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="248" y="55" width="24" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="280" cy="75" r="8" fill="none" stroke="currentColor" stroke-width="0.8"/>
+    <circle cx="340" cy="38" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="328" y="53" width="24" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="320" y="68" width="40" height="28" rx="2" fill="none" stroke="currentColor" stroke-width="0.8"/>
+    <text x="200" y="98" text-anchor="middle" font-size="7" fill="currentColor" font-family="Inter">people creating artefacts from what they've learned</text>
+  </svg>`;
+  container.appendChild(backdrop);
+  setTimeout(() => backdrop.style.opacity = '1', 100);
+
+  const msg = document.createElement('div');
+  msg.className = 'keynote-message';
+  msg.textContent = 'now it\'s your turn to build something.';
+  container.appendChild(msg);
+  setTimeout(() => msg.classList.add('visible'), 300);
+
+  setTimeout(() => {
+    msg.style.display = 'none';
+    backdrop.style.display = 'none';
+
+    const prompt = document.createElement('div');
+    prompt.className = 'keynote-message';
+    prompt.style.marginBottom = '20px';
+    prompt.textContent = 'you have 5 minutes and whatever\'s on your table. make something that represents your ideal learning environment.';
+    container.appendChild(prompt);
+    setTimeout(() => prompt.classList.add('visible'), 100);
+
+    const area = document.createElement('div');
+    area.className = 'activity-area';
+    area.id = 'activity-area';
+
+    // polaroids
+    let pgHTML = '<div class="polaroid-grid">';
+    const pRots = [-2, 3, -1, 2, -3, 1];
+    polaroidSVGs.forEach((p, i) => {
+      pgHTML += `<div class="polaroid" style="--rot:${pRots[i]}deg"><div class="polaroid-img">${p.svg}</div><div class="polaroid-caption">${p.caption}</div></div>`;
+    });
+    pgHTML += '</div>';
+
+    // wordcloud + input
+    const seedWords = ['trust', 'risk', 'belonging', 'curiosity', 'voice', 'agency', 'equity', 'safety', 'play', 'rigour', 'mess', 'growth', 'inclusion', 'wonder', 'design'];
+    let wcHTML = '<div style="display:flex;flex-direction:column;align-items:center;">';
+    wcHTML += '<div class="wordcloud" id="wordcloud">';
+    const sizes = [28, 22, 18, 26, 20, 24, 16, 22, 20];
+    seedWords.forEach((w, i) => {
+      wcHTML += `<span class="wc-word" style="font-size:${sizes[i]}px;" id="wc-${i}">${w}</span>`;
+    });
+    wcHTML += '</div>';
+    wcHTML += `<div class="caption-input-area">
+      <label>what did you make — and what does it stand for?</label>
+      <input type="text" class="caption-input" id="caption-input" placeholder="name your artefact..." autocomplete="off">
+    </div>`;
+    wcHTML += `<button class="hunt-continue" id="build-done" style="opacity:1;margin-top:16px;">continue →</button>`;
+    wcHTML += '</div>';
+
+    area.innerHTML = pgHTML + wcHTML;
+    container.appendChild(area);
+    setTimeout(() => area.classList.add('visible'), 200);
+
+    // animate seed words appearing
+    seedWords.forEach((_, i) => {
+      setTimeout(() => {
+        const el = document.getElementById('wc-' + i);
+        if (el) el.classList.add('visible');
+      }, 300 + i * 150);
+    });
+
+    // handle caption input
+    const input = document.getElementById('caption-input');
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && input.value.trim()) {
+        addUserWords(input.value.trim());
+        input.value = '';
+      }
+    });
+
+    document.getElementById('build-done').addEventListener('click', () => {
+      if (input.value.trim()) addUserWords(input.value.trim());
+      showKeynoteTransition();
+    });
+
+  }, 2500);
+}
+
+function addUserWords(text) {
+  const cloud = document.getElementById('wordcloud');
+  const words = text.split(/\s+/);
+  words.forEach(w => {
+    if (w.length < 2) return;
+    const span = document.createElement('span');
+    span.className = 'wc-word user-word';
+    span.style.fontSize = (16 + Math.random() * 14) + 'px';
+    span.textContent = w.toLowerCase();
+    cloud.appendChild(span);
+    state.userCaption += ' ' + w;
+    requestAnimationFrame(() => span.classList.add('visible'));
+  });
+}
+
+function showKeynoteTransition() {
+  const container = document.getElementById('keynote-container');
+  container.innerHTML = '';
+  const msg = document.createElement('div');
+  msg.className = 'keynote-message';
+  msg.textContent = 'room 4b. 14:00. your group is already there.';
+  container.appendChild(msg);
+  setTimeout(() => msg.classList.add('visible'), 100);
+  setTimeout(() => goToScreen(4, 'dissolve'), 2500);
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 4 — WORKSHOP + DEBRIEF + DASHBOARD
+   ═══════════════════════════════════════════ */
+function initWorkshop() {
+  const container = document.getElementById('s4-container');
+  container.innerHTML = '';
+  showPartA(container);
+}
+
+function showPartA(container) {
+  updateNarrator('workshop');
+  const optLabels = { a: 'option a', b: 'option b', c: 'option c', d: 'option d' };
+  const sjtTexts = {
+    a: 'also chose to let them observe first',
+    b: 'also chose to give them a solo role',
+    c: 'also chose to pause and address it',
+    d: 'also chose to check in privately'
+  };
+  const sjtTexts2 = {
+    a: 'answered: the speaker answers their own question.',
+    b: 'answered: someone in the audience breaks the silence.',
+    c: 'answered: the speaker reframes the question.',
+    d: 'answered: the silence is allowed to last a little longer.'
+  };
+
+  const section = document.createElement('div');
+  section.className = 's4-section';
+  section.id = 's4a';
+  section.innerHTML = `
+    <div class="cohort-reveal">
+      <div class="cohort-card" id="cc1">
+        <div class="avatar-circle" style="background:var(--sienna);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-family:var(--font-display);font-weight:600;">J</div>
+        <div class="cohort-detail">jamie ${sjtTexts[state.sjt1] || 'also chose option b'}.</div>
+      </div>
+      <div class="cohort-card" id="cc2">
+        <div class="avatar-circle" style="background:var(--cadet);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-family:var(--font-display);font-weight:600;">S</div>
+        <div class="cohort-detail">sam ${sjtTexts2[state.sjt2] || 'answered: the silence is allowed to last a little longer.'}</div>
+      </div>
+      <div class="cohort-card" id="cc3">
+        <div class="avatar-circle" style="background:var(--redwood);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-family:var(--font-display);font-weight:600;">P</div>
+        <div class="cohort-detail">priya is also going to designing for belonging.</div>
+      </div>
+      <div class="hunt-line" id="s4a-line">you already have something in common. the workshop hasn't even started.</div>
+    </div>
+  `;
+  container.appendChild(section);
+  setTimeout(() => section.classList.add('visible'), 200);
+  setTimeout(() => document.getElementById('cc1').classList.add('visible'), 600);
+  setTimeout(() => document.getElementById('cc2').classList.add('visible'), 1100);
+  setTimeout(() => document.getElementById('cc3').classList.add('visible'), 1600);
+  setTimeout(() => document.getElementById('s4a-line').classList.add('visible'), 2200);
+  setTimeout(() => {
+    // fade out Part A before showing Part B
+    const s4a = document.getElementById('s4a');
+    s4a.style.transition = 'opacity 0.8s ease';
+    s4a.style.opacity = '0';
+    setTimeout(() => {
+      s4a.style.display = 'none';
+      showPartB(container);
+    }, 800);
+  }, 5500);
+}
+
+function showPartB(container) {
+  updateNarrator('documentation');
+  const section = document.createElement('div');
+  section.className = 's4-section';
+  section.id = 's4b';
+  state.debriefStep = 0;
+
+  section.innerHTML = `
+    <div style="text-align:center;margin-bottom:16px;font-size:13px;color:var(--grey3);max-width:540px;line-height:1.7;">
+      <strong style="color:var(--redwood);font-style:normal;">documentation & journaling</strong><br>
+      <span style="font-style:italic;">this is where participants make sense of what they learned — a physical-digital experience that bridges the conference and their practice. imagine a printed journal on the table and a companion app on their phone. each card builds on the last: private reflection → shared insight → a choice about what comes next. the record they create here travels home with them.</span>
+    </div>
+    <div class="debrief-cards" id="debrief-cards">
+      <div class="debrief-card" id="dc1">
+        <div class="debrief-inner">
+          <div class="debrief-front">1<span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">private</span></div>
+          <div class="debrief-back">
+            <div class="debrief-prompt">what did you come here hoping to change — about your practise, your context, or yourself?</div>
+            <textarea class="debrief-input" id="di1" placeholder="this stays with you. no one else sees it."></textarea>
+            <button class="hunt-continue" style="opacity:1;margin-top:10px;font-size:12px;padding:6px 14px;" id="di1-done">done</button>
+          </div>
+        </div>
+      </div>
+      <div class="debrief-card" id="dc2" style="pointer-events:none;opacity:0.5;">
+        <div class="debrief-inner">
+          <div class="debrief-front">2<span class="debrief-lock" id="lock2">complete card 1 first</span><span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">shared</span></div>
+          <div class="debrief-back">
+            <div class="debrief-prompt">finish this sentence: i used to think ______, but today ______.</div>
+            <textarea class="debrief-input" id="di2" placeholder="this joins the room's collective memory."></textarea>
+            <button class="hunt-continue" style="opacity:1;margin-top:10px;font-size:12px;padding:6px 14px;" id="di2-done">share</button>
+          </div>
+        </div>
+      </div>
+      <div class="debrief-card" id="dc3" style="pointer-events:none;opacity:0.5;">
+        <div class="debrief-inner">
+          <div class="debrief-front">3<span class="debrief-lock" id="lock3">complete card 2 first</span><span style="display:block;font-size:10px;font-family:var(--font-body);margin-top:6px;opacity:0.7;">next steps</span></div>
+          <div class="debrief-back">
+            <div class="debrief-prompt">what do you want to keep exploring after today?</div>
+            <div class="debrief-mc-option" data-val="Learning Design & Pedagogy">🔵 <strong>learning design & pedagogy</strong> — how we design experiences that actually transfer beyond the room</div>
+            <div class="debrief-mc-option" data-val="Belonging & Inclusion">🟠 <strong>belonging & inclusion</strong> — building environments where every learner can take risks</div>
+            <div class="debrief-mc-option" data-val="Play & Facilitation">🟡 <strong>play & facilitation</strong> — methods that make learning feel alive without losing rigour</div>
+            <div class="debrief-mc-option" data-val="Measurement & Evidence">🟢 <strong>measurement & evidence</strong> — tracking growth without flattening what matters</div>
+            <div class="debrief-mc-option" data-val="Systems & Scale">🔴 <strong>systems & scale</strong> — taking good ideas from the classroom to the institution</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="response-wall" id="response-wall" style="display:none;"></div>
+  `;
+
+  container.appendChild(section);
+  setTimeout(() => section.classList.add('visible'), 200);
+
+  // card 1 flip
+  document.getElementById('dc1').addEventListener('click', function handler() {
+    this.classList.add('flipped');
+    this.removeEventListener('click', handler);
+  });
+  document.getElementById('di1-done').addEventListener('click', (e) => {
+    e.stopPropagation();
+    state.privateReflection = document.getElementById('di1').value;
+    document.getElementById('dc2').style.pointerEvents = 'auto';
+    document.getElementById('dc2').style.opacity = '1';
+    const lock2 = document.getElementById('lock2');
+    if (lock2) lock2.remove();
+  });
+
+  // card 2 flip
+  document.getElementById('dc2').addEventListener('click', function handler() {
+    this.classList.add('flipped');
+    this.removeEventListener('click', handler);
+  });
+  document.getElementById('di2-done').addEventListener('click', (e) => {
+    e.stopPropagation();
+    state.socialShare = document.getElementById('di2').value;
+    showResponseWall();
+    document.getElementById('dc3').style.pointerEvents = 'auto';
+    document.getElementById('dc3').style.opacity = '1';
+    const lock3 = document.getElementById('lock3');
+    if (lock3) lock3.remove();
+  });
+
+  // card 3 flip
+  document.getElementById('dc3').addEventListener('click', function handler() {
+    this.classList.add('flipped');
+    this.removeEventListener('click', handler);
+  });
+
+  // MC options for card 3
+  setTimeout(() => {
+    document.querySelectorAll('.debrief-mc-option').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.debrief-mc-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        state.card3 = opt.dataset.val;
+        setTimeout(() => showPartC(container), 1200);
+      });
+    });
+  }, 100);
+}
+
+function showResponseWall() {
+  const wall = document.getElementById('response-wall');
+  wall.style.display = 'flex';
+  const seeded = [
+    'i used to think belonging was about warmth. but today i realised it\'s about design.',
+    'i used to think assessment had to be separate from learning. but today i\'m not so sure.',
+    'i used to think i needed to fix engagement. but today i think i need to fix the conditions.',
+    'i used to think professional development was something done to me. but today i built something.',
+    'i used to think play was for children. but today i forgot that for about forty minutes.',
+    'i used to think i knew what my students needed. but today i questioned that.',
+  ];
+  if (state.socialShare) seeded.push(state.socialShare);
+  seeded.forEach((r, i) => {
+    const bubble = document.createElement('div');
+    bubble.className = 'response-bubble' + (i === seeded.length - 1 && state.socialShare ? ' user-response' : '');
+    bubble.textContent = r;
+    wall.appendChild(bubble);
+    setTimeout(() => bubble.classList.add('visible'), 200 + i * 150);
+  });
+}
+
+function showPartC(container) {
+  updateNarrator('dashboard');
+  // fold away debrief
+  const debrief = document.getElementById('s4b');
+  debrief.style.transition = 'all 0.8s ease';
+  debrief.style.opacity = '0';
+  debrief.style.transform = 'scale(0.95) translateY(-20px)';
+
+  setTimeout(() => {
+    debrief.style.display = 'none';
+    const section = document.createElement('div');
+    section.className = 's4-section';
+    section.id = 's4c';
+    section.innerHTML = `
+      <div class="dashboard" id="dashboard">
+        <div class="dash-title" id="dt">here's what ${state.attendeeName || 'attendee'} generated today.</div>
+        <div class="dash-metric" id="dm1">
+          <div class="dash-metric-label">engagement score</div>
+          <div class="dash-metric-value">
+            <div class="dash-big-number">94%</div>
+            <div class="dash-desc">interactions completed across all touchpoints</div>
+          </div>
+        </div>
+        <div class="dash-metric" id="dm2">
+          <div class="dash-metric-label">learning signal</div>
+          <div class="dash-metric-value">
+            <div class="dash-desc">sjt response distribution by scenario</div>
+            <div class="dash-bar-chart" id="bar-chart"></div>
+          </div>
+        </div>
+        <div class="dash-metric" id="dm3">
+          <div class="dash-metric-label">connection index</div>
+          <div class="dash-metric-value">
+            <div class="dash-check">
+              <span>✓</span> cohort found<br>
+              <span>✓</span> workshop attended<br>
+              <span>✓</span> ${state.easterEggs} networking clue${state.easterEggs !== 1 ? 's' : ''} discovered
+            </div>
+          </div>
+        </div>
+        <div class="dash-metric" id="dm4">
+          <div class="dash-metric-label">transfer intent</div>
+          <div class="dash-metric-value">
+            <div class="dash-desc">what they want to explore next:</div>
+            <div style="font-family:var(--font-display);font-size:16px;color:var(--cadet);margin-top:4px;">${state.card3 || 'playful facilitation methods'}</div>
+          </div>
+        </div>
+        <div class="dash-tagline" id="dt1">they had fun. you have evidence.</div>
+        <div class="dash-tagline big" id="dt2">now imagine 200 attendees.</div>
+      </div>
+      <button class="hunt-continue" id="dash-continue" style="opacity:0;margin-top:24px;">continue →</button>
+    `;
+    container.appendChild(section);
+    setTimeout(() => section.classList.add('visible'), 200);
+
+    // animate dashboard pieces
+    setTimeout(() => document.getElementById('dt').classList.add('visible'), 400);
+    setTimeout(() => document.getElementById('dm1').classList.add('visible'), 1200);
+    setTimeout(() => {
+      document.getElementById('dm2').classList.add('visible');
+      buildBarChart();
+    }, 2000);
+    setTimeout(() => document.getElementById('dm3').classList.add('visible'), 2800);
+    setTimeout(() => document.getElementById('dm4').classList.add('visible'), 3600);
+    setTimeout(() => document.getElementById('dt1').classList.add('visible'), 4600);
+    setTimeout(() => document.getElementById('dt2').classList.add('visible'), 6000);
+    setTimeout(() => {
+      const btn = document.getElementById('dash-continue');
+      btn.style.opacity = '1';
+      btn.addEventListener('click', () => goToScreen(5, 'dissolve'));
+    }, 7000);
+  }, 800);
+}
+
+function buildBarChart() {
+  const chart = document.getElementById('bar-chart');
+  if (!chart) return;
+  const labels = ['a', 'b', 'c', 'd'];
+  const userChoice1 = state.sjt1 || 'b';
+  const userChoice2 = state.sjt2 || 'd';
+  // simulated group distribution
+  const data1 = { a: 28, b: 35, c: 18, d: 19 };
+  const data2 = { a: 15, b: 22, c: 30, d: 33 };
+  // highlight user's choice
+  data1[userChoice1] = Math.max(data1[userChoice1], 40);
+  data2[userChoice2] = Math.max(data2[userChoice2], 40);
+
+  labels.forEach(l => {
+    const bar = document.createElement('div');
+    bar.className = 'dash-bar';
+    bar.style.height = '0px';
+    bar.style.background = l === userChoice1 ? 'var(--sienna)' : 'var(--cadet)';
+    bar.innerHTML = `<div class="dash-bar-label">${l}</div>`;
+    chart.appendChild(bar);
+    setTimeout(() => { bar.style.height = data1[l] + 'px'; }, 300);
+  });
+
+  // small gap
+  const gap = document.createElement('div');
+  gap.style.width = '16px';
+  chart.appendChild(gap);
+
+  labels.forEach(l => {
+    const bar = document.createElement('div');
+    bar.className = 'dash-bar';
+    bar.style.height = '0px';
+    bar.style.background = l === userChoice2 ? 'var(--sienna)' : 'var(--cadet)';
+    bar.innerHTML = `<div class="dash-bar-label">${l}</div>`;
+    chart.appendChild(bar);
+    setTimeout(() => { bar.style.height = data2[l] + 'px'; }, 500);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 5 — FINAL
+   ═══════════════════════════════════════════ */
+function initFinal() {
+  setTimeout(() => document.getElementById('s5-line1').classList.add('visible'), 300);
+  setTimeout(() => document.getElementById('s5-line2').classList.add('visible'), 600);
+  setTimeout(() => document.getElementById('s5-buttons').classList.add('visible'), 800);
+}
+
+/* ═══════════════════════════════════════════
+   FIRST-RUN GUIDANCE
+   ═══════════════════════════════════════════ */
+(function initOnboarding() {
+  const ONBOARD_KEY = 'conf-exp-onboarded';
+  if (localStorage.getItem(ONBOARD_KEY)) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'onboard-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;transition:opacity 0.5s ease;
+  `;
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:32px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 12px 60px rgba(0,0,0,0.3);">
+      <div style="font-family:var(--font-display);font-size:20px;color:var(--grey1);margin-bottom:12px;">welcome to the simulator</div>
+      <div style="font-size:14px;color:var(--grey3);line-height:1.7;margin-bottom:20px;">
+        this is a walkthrough of what a conference day could feel like.<br><br>
+        <strong style="color:var(--grey1);">click</strong> objects on screen to interact.<br>
+        <strong style="color:var(--grey1);">the agenda</strong> at the bottom tracks your progress — click completed items to revisit.<br>
+        <strong style="color:var(--grey1);">narrator mode</strong> (top right) explains what's happening and why.
+      </div>
+      <button id="onboard-go" style="padding:10px 28px;background:var(--cadet);color:#fff;border:none;border-radius:6px;font-family:var(--font-body);font-size:14px;cursor:pointer;">got it — let's start</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+
+  document.getElementById('onboard-go').addEventListener('click', () => {
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 500);
+    localStorage.setItem(ONBOARD_KEY, '1');
+  });
+})();
+
+// replay onboarding
+document.getElementById('narrator-toggle').addEventListener('dblclick', () => {
+  localStorage.removeItem('conf-exp-onboarded');
+  location.reload();
+});
+</script>
+</body>
+</html>

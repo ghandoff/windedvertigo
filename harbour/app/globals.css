@@ -1,0 +1,174 @@
+@import "tailwindcss";
+@import "@windedvertigo/tokens/index.css";
+
+/* ── harbour-specific tokens ───────────────────────────────────── */
+
+:root {
+  --rv-section-gap: 6rem;
+
+  /* override shared tokens — harbour uses white text to match windedvertigo.com */
+  --color-text-on-dark:       #ffffff;
+  --color-text-on-dark-muted: rgba(255, 255, 255, 0.7);
+}
+
+/* ── skip-link (a11y) ──────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1.5rem;
+  background: var(--wv-champagne);
+  color: var(--wv-cadet);
+  font-weight: 700;
+  border-radius: 0 0 0.5rem 0.5rem;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ── smooth scrolling ──────────────────────────────────────────── */
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ── scroll-driven fade-up animation ───────────────────────────── */
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(2rem);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.fade-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── stacked card entrance ─────────────────────────────────────── */
+
+.card-stagger {
+  opacity: 0;
+  transform: translateY(3rem) rotate(-2deg);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.card-stagger.is-visible {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg);
+}
+
+.card-stagger:nth-child(2) {
+  transition-delay: 0.12s;
+}
+.card-stagger:nth-child(3) {
+  transition-delay: 0.24s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-stagger {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── horizontal scroll shelf ───────────────────────────────────── */
+
+.scroll-shelf {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;       /* firefox */
+  padding-bottom: 0.5rem;
+}
+
+.scroll-shelf::-webkit-scrollbar {
+  display: none;               /* webkit  */
+}
+
+.scroll-shelf > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ── credential pill ───────────────────────────────────────────── */
+
+.credential-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.8125rem;
+  color: var(--color-text-on-dark-muted);
+  white-space: nowrap;
+}
+
+/* ── dock entrance (staggered card appear) ────────────────────── */
+
+.dock-entrance .dock-card {
+  opacity: 0;
+  transform: translateY(1.5rem) scale(0.95);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.5s ease-out,
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+
+.dock-entrance.is-visible .dock-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-entrance .dock-card {
+    opacity: 1;
+    transform: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+}
+
+/* ── game card hover tilt ──────────────────────────────────────── */
+
+.game-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-4px) rotate(0.5deg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-card {
+    transition: none;
+  }
+  .game-card:hover {
+    transform: none;
+  }
+}

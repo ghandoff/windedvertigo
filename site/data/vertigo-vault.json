@@ -1,0 +1,555 @@
+{
+  "lastUpdated": "2026-03-19T01:33:54.581Z",
+  "note": "Auto-generated from Notion vertigo.vault database. PRME activities only. Do not edit directly.",
+  "notionDatabaseId": "223e4ee74ba4805f8c92cda6e2b8ba00",
+  "activities": [
+    {
+      "id": "223e4ee7-4ba4-8001-a966-e904bf93295d",
+      "name": "cheerleader  ",
+      "headline": "from rivals to raving fans",
+      "duration": "10 min",
+      "format": [
+        "In-person",
+        "large group"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Collaboration",
+        "Communication",
+        "Perspective Taking & Empathic Concern",
+        "Self-Directed Learning",
+        "Openness",
+        "Adaptability",
+        "Creative Thinking"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba48001a966e904bf93295d.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-8004-806d-ff46ac6409e3",
+      "name": "game of assumptions",
+      "headline": "play with bias and gain insights",
+      "duration": "30 min",
+      "format": [
+        "In-person",
+        "Online",
+        "Small groups"
+      ],
+      "type": [
+        "RME Related"
+      ],
+      "skillsDeveloped": [
+        "Critical Thinking",
+        "Analysis & Evaluation",
+        "Intellectual Humility",
+        "Perspective Taking & Empathic Concern",
+        "Openness",
+        "Self-Regulation",
+        "Tolerance for Ambiguity",
+        "Communication",
+        "Collaboration"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba48004806dff46ac6409e3.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-8008-8e6f-f5f2f87febd0",
+      "name": "mystery box",
+      "headline": "build stories from the unknown",
+      "duration": "15 min",
+      "format": [
+        "In-person",
+        "Online",
+        "Pairs",
+        "Small groups"
+      ],
+      "type": [
+        "Playful reflections"
+      ],
+      "skillsDeveloped": [
+        "Creative Thinking",
+        "Generating Diverse Ideas",
+        "Extending Ideas",
+        "Perspective Taking & Empathic Concern",
+        "Self-Directed Learning",
+        "Openness",
+        "Collaboration",
+        "Communication",
+        "Tolerance for Ambiguity"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480088e6ff5f2f87febd0.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-8014-9204-e9719247c231",
+      "name": "build a bridge",
+      "headline": "strengthen teams through creative engineering",
+      "duration": "25 min",
+      "format": [
+        "In-person",
+        "large or small group"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Collaboration",
+        "Communication",
+        "Generating Creative Ideas",
+        "Creative Thinking",
+        "Self-Directed Learning",
+        "Adaptability",
+        "Analysis & Evaluation",
+        "Planning",
+        "Executing",
+        "Monitoring"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480149204e9719247c231.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-8033-8435-d3184ff61b65",
+      "name": "ball relay",
+      "headline": "team coordination meets paper frenzy",
+      "duration": "10 min",
+      "format": [
+        "In-person",
+        "large group"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Collaboration",
+        "Perspective Taking & Empathic Concern",
+        "Self-Directed Learning",
+        "Adaptability",
+        "Agency",
+        "Problem Solving",
+        "Planning",
+        "Executing",
+        "Monitoring"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480338435d3184ff61b65.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-8035-8166-cfc7aa7ed2ff",
+      "name": "solution mashup",
+      "headline": "fuse concepts to spark innovation",
+      "duration": "30 min",
+      "format": [
+        "In-person",
+        "Online",
+        "Small groups"
+      ],
+      "type": [
+        "RME Related"
+      ],
+      "skillsDeveloped": [
+        "Self-Directed Learning",
+        "Analysis & Evaluation",
+        "Synthesis",
+        "Inquiry",
+        "Collaboration",
+        "Communication",
+        "Critical Thinking"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480358166cfc7aa7ed2ff.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-8039-a004-c745be991b6d",
+      "name": "soundscapes of the future",
+      "headline": "conduct tomorrow’s ideas through sound",
+      "duration": "15 min",
+      "format": [
+        "In-person",
+        "large group"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Creative Thinking",
+        "Generating Creative Ideas",
+        "Generating Diverse Ideas",
+        "Collaboration",
+        "Perspective Taking & Empathic Concern",
+        "Communication",
+        "Self-Directed Learning",
+        "Adaptability",
+        "Openness"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba48039a004c745be991b6d.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-803c-9418-dbf60413fcd5",
+      "name": "whispers from another world",
+      "headline": "step into someone else’s imagination",
+      "duration": "15 min",
+      "format": [
+        "In-person",
+        "Online",
+        "Pairs",
+        "Small groups"
+      ],
+      "type": [
+        "Playful reflections"
+      ],
+      "skillsDeveloped": [
+        "Creative Thinking",
+        "Generating Diverse Ideas",
+        "Extending Ideas",
+        "Perspective Taking & Empathic Concern",
+        "Self-Directed Learning",
+        "Openness",
+        "Curiosity",
+        "Collaboration",
+        "Communication"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba4803c9418dbf60413fcd5.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-804b-8e1f-dfc99a09ea9e",
+      "name": "fortune cookie",
+      "headline": "stretch your thinking with playful roles",
+      "duration": "15 min",
+      "format": [
+        "In-person",
+        "Online",
+        "Pairs",
+        "Small groups"
+      ],
+      "type": [
+        "Playful reflections"
+      ],
+      "skillsDeveloped": [
+        "Creative Thinking",
+        "Generating Diverse Ideas",
+        "Self-Directed Learning",
+        "Openness",
+        "Curiosity",
+        "Collaboration",
+        "Perspective Taking & Empathic Concern",
+        "Communication"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba4804b8e1fdfc99a09ea9e.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-8072-bed7-f938bc884fc6",
+      "name": "massive mingle",
+      "headline": "move, meet, share, repeat",
+      "duration": "15 min",
+      "format": [
+        "In-person",
+        "large group"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Collaboration",
+        "Perspective Taking & Empathic Concern",
+        "Communication",
+        "Critical Thinking",
+        "Inquiry",
+        "Analysis & Evaluation",
+        "Self-Directed Learning",
+        "Openness",
+        "Curiosity"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba48072bed7f938bc884fc6.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-8080-93b6-e7a579a28ebd",
+      "name": "curiosity undercover",
+      "headline": "uncover meaning and dig deeper",
+      "duration": "15 min",
+      "format": [
+        "In-person",
+        "Online",
+        "Pairs"
+      ],
+      "type": [
+        "Playful reflections"
+      ],
+      "skillsDeveloped": [
+        "Critical Thinking",
+        "Inquiry",
+        "Analysis & Evaluation",
+        "Creative Thinking",
+        "Generating Diverse Ideas",
+        "Extending Ideas",
+        "Self-Directed Learning",
+        "Openness",
+        "Curiosity"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba4808093b6e7a579a28ebd.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-8096-80ef-ef5483ed22a0",
+      "name": "world map",
+      "headline": "shape ideas into living models",
+      "duration": "15 min",
+      "format": [
+        "In-person",
+        "large group"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Collaboration",
+        "Perspective Taking & Empathic Concern",
+        "Communication",
+        "Self-Directed Learning",
+        "Openness",
+        "Agency",
+        "Intellectual Humility",
+        "Critical Thinking",
+        "Inquiry"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba4809680efef5483ed22a0.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-809a-9151-d80018bc8292",
+      "name": "human spectrum",
+      "headline": "move your beliefs into the room",
+      "duration": "15 min",
+      "format": [
+        "In-person",
+        "large or small group"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Self-Directed Learning",
+        "Openness",
+        "Adaptability",
+        "Agency",
+        "Intellectual Humility",
+        "Tolerance for Ambiguity",
+        "Critical Thinking",
+        "Inquiry",
+        "Extending Ideas",
+        "Collaboration",
+        "Perspective Taking & Empathic Concern"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba4809a9151d80018bc8292.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-80a0-909f-dbadc9abf6d5",
+      "name": "story threads",
+      "headline": "weave metaphors into shared meaning",
+      "duration": "20 min",
+      "format": [
+        "In-person",
+        "Online"
+      ],
+      "type": [
+        "Getting to know each other"
+      ],
+      "skillsDeveloped": [
+        "Self-Directed Learning",
+        "Openness",
+        "Agency",
+        "Curiosity",
+        "Collaboration",
+        "Communication",
+        "Perspective Taking & Empathic Concern",
+        "Creative Thinking",
+        "Generating Creative Ideas"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480a0909fdbadc9abf6d5.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-80b6-8edf-ff17a679c195",
+      "name": "emoji charades",
+      "headline": "embody ideas with just faces",
+      "duration": "10 min",
+      "format": [
+        "In-person",
+        "medium to large group"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Collaboration",
+        "Communication",
+        "Perspective Taking & Empathic Concern",
+        "Creative Thinking",
+        "Self-Directed Learning",
+        "Openness"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480b68edfff17a679c195.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-80b7-ba02-e4e6e6eada1c",
+      "name": "character roll call",
+      "headline": "playful introduction to turn your voice up",
+      "duration": "10 min",
+      "format": [
+        "In-person",
+        "Online"
+      ],
+      "type": [
+        "Getting to know each other"
+      ],
+      "skillsDeveloped": [
+        "Collaboration",
+        "Communication",
+        "Perspective Taking & Empathic Concern",
+        "Generating Creative Ideas",
+        "Creative Thinking",
+        "Self-Directed Learning",
+        "Openness",
+        "Agency"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480b7ba02e4e6e6eada1c.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-80ba-a02e-febaa5d01c79",
+      "name": "question storm",
+      "headline": "fuel curiosity before finding answers                                           ",
+      "duration": "25 min",
+      "format": [
+        "Small groups",
+        "Online",
+        "In-person"
+      ],
+      "type": [
+        "RME Related"
+      ],
+      "skillsDeveloped": [
+        "Curiosity",
+        "Self-Directed Learning",
+        "Inquiry",
+        "Critical Thinking",
+        "Creative Thinking",
+        "Collaboration",
+        "Communication"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480baa02efebaa5d01c79.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-80c7-8bbd-e44a7b415838",
+      "name": "animal herding",
+      "headline": "non-verbal teamwork in motion",
+      "duration": "15 min",
+      "format": [
+        "In-person",
+        "large group"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Collaboration",
+        "Communication",
+        "Perspective Taking & Empathic Concern",
+        "Self-Directed Learning",
+        "Adaptability",
+        "Creative Thinking",
+        "Generating Diverse Ideas"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480c78bbde44a7b415838.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-80ca-ae54-d71197bb9122",
+      "name": "how has play shaped you?",
+      "headline": "explore identity through playful reflection",
+      "duration": "10 min",
+      "format": [
+        "In-person",
+        "Online"
+      ],
+      "type": [
+        "Getting to know each other"
+      ],
+      "skillsDeveloped": [
+        "Communication",
+        "Collaboration",
+        "Perspective Taking & Empathic Concern",
+        "Self-Directed Learning",
+        "Openness",
+        "Curiosity",
+        "Creative Thinking",
+        "Generating Diverse Ideas"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480caae54d71197bb9122.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-80ee-8253-fe03e9ec88a7",
+      "name": "swap perspectives",
+      "headline": "see decisions from all angles",
+      "duration": "20 min",
+      "format": [
+        "In-person",
+        "Online",
+        "Small groups"
+      ],
+      "type": [
+        "RME Related"
+      ],
+      "skillsDeveloped": [
+        "Collaboration",
+        "Perspective Taking & Empathic Concern",
+        "Communication",
+        "Critical Thinking",
+        "Tolerance for Ambiguity",
+        "Analysis & Evaluation",
+        "Self-Directed Learning",
+        "Agency",
+        "Intellectual Humility"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480ee8253fe03e9ec88a7.png"
+    },
+    {
+      "id": "223e4ee7-4ba4-80fc-9990-c8c782897d87",
+      "name": "memory game",
+      "headline": "challenge your brain with rapid recall",
+      "duration": "10 min",
+      "format": [
+        "In-person",
+        "Online"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Self-Directed Learning",
+        "Self-Regulation",
+        "Curiosity",
+        "Critical Thinking",
+        "Analysis & Evaluation",
+        "Extending Ideas",
+        "Problem Solving",
+        "Monitoring"
+      ],
+      "coverImage": "images/vertigo-vault/223e4ee74ba480fc9990c8c782897d87.png"
+    },
+    {
+      "id": "231e4ee7-4ba4-800c-bc83-cf0060ce63a6",
+      "name": "mirror match",
+      "headline": "find your twin without words",
+      "duration": "15 min",
+      "format": [
+        "large or small group",
+        "Online"
+      ],
+      "type": [
+        "Energizer"
+      ],
+      "skillsDeveloped": [
+        "Creative Thinking",
+        "Perspective Taking & Empathic Concern",
+        "Openness",
+        "Communication",
+        "Curiosity",
+        "Self-Regulation",
+        "Self-Directed Learning",
+        "Critical Thinking"
+      ],
+      "coverImage": "images/vertigo-vault/231e4ee74ba4800cbc83cf0060ce63a6.png"
+    }
+  ]
+}

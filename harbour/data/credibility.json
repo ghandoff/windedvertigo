@@ -1,0 +1,59 @@
+{
+  "sectionLabel": "finds",
+  "sectionHeading": "the thinking underneath everything here",
+  "credentials": [
+    {
+      "icon": "🧠",
+      "label": "developmental psychology",
+      "detail": "every tool here is shaped by how people actually grow — not how curricula assume they do"
+    },
+    {
+      "icon": "🎯",
+      "label": "learning design",
+      "detail": "play is the medium, not the reward — everything here is designed to work through play, not around it"
+    },
+    {
+      "icon": "🌍",
+      "label": "global context",
+      "detail": "these tools have been played in classrooms, living rooms, and workshops across four continents"
+    },
+    {
+      "icon": "🔬",
+      "label": "stealth assessment",
+      "detail": "learning shows itself when the stakes are low enough — we design for that, then watch carefully"
+    }
+  ],
+  "principles": [
+    {
+      "heading": "development, not just engagement",
+      "body": "fun is easy to manufacture. growth is harder. every tool here is built to meet people exactly where they are and invite them further — through age-appropriate challenge, emotional safety, and progressive depth. the engagement you see on the surface is load-bearing."
+    },
+    {
+      "heading": "play is the mechanism, not the reward",
+      "body": "play isn't what you earn after the real work. play is the real work. it's how humans make sense of what they don't yet understand — the engine of connection, creativity, and resilience. five years of research at the LEGO foundation and decades of facilitation practice live underneath every tool here."
+    },
+    {
+      "heading": "evidence checks intuition",
+      "body": "good design starts with curiosity and gets checked by evidence. real-time documentation and reflection are woven into every experience — not as assessment, but as care. you see what's actually happening, not what anyone hoped would happen."
+    }
+  ],
+  "bio": {
+    "text": "the harbour is held by winded.vertigo — and by everyone who picks something up and plays. garrett jaeger and a collective of educators, designers, and researchers built what's here. three convictions shape everything we make: play. aliveness. justice. the harbour is where they become something you can hold.",
+    "link": "https://windedvertigo.com/what/"
+  },
+  "hero": {
+    "title": "the harbour",
+    "subtitle": "come in, rest your bearings, pick something up. the harbour is protected water — a still place where play is already happening and nothing needs to be proved.",
+    "tagline": "winded.vertigo presents"
+  },
+  "cta": {
+    "heading": "you're already here.",
+    "body": "pick something up and play. no setup, no accounts — just the thing and you. the harbour is always open."
+  },
+  "connection": {
+    "heading": "how the harbour stays safe",
+    "body": "the harbour is held by winded.vertigo — and by everyone who picks something up and plays. garrett jaeger and a collective of educators, designers, and researchers built what's here. three convictions shape everything we make: play. aliveness. justice. the harbour is where they become something you can hold.",
+    "link": "https://windedvertigo.com/what/",
+    "linkLabel": "there is more water beyond this harbour"
+  }
+}

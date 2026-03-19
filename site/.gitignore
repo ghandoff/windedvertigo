@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+
+# nested project repos (have their own git repos)
+creaseworks/
+creaseworks-project/
