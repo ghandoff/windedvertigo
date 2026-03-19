@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEDAL Conference 2026 — Experience Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal: #4A7C7E;
+  --teal-light: #6a9fa1;
+  --teal-dark: #3a6264;
+  --red: #C4745A;
+  --red-light: #d4947e;
+  --gold: #C49A6C;
+  --gold-light: #dbb990;
+  --cream: #F5F0E8;
+  --cream-dark: #e8dfd3;
+  --dark: #2D2D2D;
+  --grey: #666666;
+  --light: #D4C9B8;
+  --white: #FAFAF8;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); background: #1a1a1a; cursor: default; }
+
+/* ── Screens ── */
+.sc {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 1s ease;
+  z-index: 0;
+  overflow: hidden;
+}
+.sc.active { opacity: 1; pointer-events: auto; z-index: 10; }
+
+/* ── Progress ── */
+#progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--gold); z-index: 200; transition: width 0.8s ease; }
+
+/* ── Nav ── */
+#nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  display: none; align-items: center; justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(26,26,26,0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+#nav .n-time { font-family: 'EB Garamond', serif; font-size: 14px; color: var(--gold-light); min-width: 60px; }
+#nav .n-label { font-size: 12px; color: rgba(255,255,255,0.4); text-align: center; flex: 1; }
+.n-btn {
+  background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7);
+  padding: 7px 16px; font: 13px 'Inter', sans-serif; cursor: pointer; border-radius: 3px;
+  transition: all 0.2s;
+}
+.n-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.n-btn:disabled { opacity: 0.2; cursor: default; }
+.n-btn:disabled:hover { background: none; color: rgba(255,255,255,0.7); }
+
+/* ── Typography ── */
+.serif { font-family: 'EB Garamond', Georgia, serif; }
+.sans { font-family: 'Inter', sans-serif; }
+
+/* ════════════════════════════════
+   SCREEN 0 — COVER
+   ════════════════════════════════ */
+#S0 { background: #1a1a1a; cursor: pointer; }
+#S0 .label { font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+#S0 h1 { font-family: 'EB Garamond', serif; font-weight: 700; font-size: clamp(38px,7vw,72px); color: var(--cream); line-height: 1.08; margin: 20px 0 32px; }
+#S0 .sub { font-family: 'EB Garamond', serif; font-size: clamp(16px,2.2vw,21px); color: rgba(255,255,255,0.45); line-height: 1.7; }
+#S0 .sub em { color: var(--red); font-style: normal; }
+#S0 .foot { position: absolute; bottom: 28px; font-size: 11px; color: rgba(255,255,255,0.18); }
+#S0 .enter { margin-top: 52px; background: var(--teal); color: #fff; border: none; padding: 14px 40px; font: 500 14px 'Inter',sans-serif; letter-spacing: 0.03em; cursor: pointer; border-radius: 3px; transition: background 0.3s; }
+#S0 .enter:hover { background: var(--teal-light); }
+.cover-fade { opacity: 0; transform: translateY(14px); animation: fadeUp 0.8s ease forwards; }
+.cover-fade:nth-child(2) { animation-delay: 0.3s; }
+.cover-fade:nth-child(3) { animation-delay: 0.6s; }
+.cover-fade:nth-child(4) { animation-delay: 0.9s; }
+.cover-fade:nth-child(5) { animation-delay: 1.3s; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+/* ════════════════════════════════
+   SCREEN 1 — QUESTION WALL (9:00)
+   ════════════════════════════════ */
+#S1 { background: var(--cream); }
+#S1 .wall-surface {
+  position: absolute; inset: 0;
+  display: flex; flex-wrap: wrap; align-content: flex-start;
+  padding: 20px; gap: 10px;
+  overflow: hidden;
+}
+.wc {
+  background: #fff; border-radius: 4px; padding: 14px 16px;
+  width: 190px; min-height: 80px;
+  font-family: 'EB Garamond', serif; font-size: 15px; line-height: 1.4; color: var(--dark);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  opacity: 0; transform: scale(0.92) rotate(var(--r, 0deg));
+  animation: wcIn 0.5s ease forwards;
+  animation-delay: var(--d, 0s);
+  position: relative;
+}
+.wc.child { border-left: 3px solid var(--red-light); font-style: italic; }
+.wc .wc-attr { font: normal 10px 'Inter', sans-serif; color: var(--grey); margin-top: 8px; }
+@keyframes wcIn { to { opacity: 1; transform: scale(1) rotate(var(--r, 0deg)); } }
+
+#S1 .wall-prompt {
+  position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+  z-index: 20; display: flex; gap: 10px; width: 90%; max-width: 500px;
+}
+#S1 .wall-prompt textarea {
+  flex: 1; border: 1px solid var(--light); border-radius: 4px; padding: 12px 14px;
+  font: 15px 'EB Garamond', serif; color: var(--dark); background: #fff; resize: none; height: 56px; outline: none;
+}
+#S1 .wall-prompt textarea:focus { border-color: var(--teal); }
+#S1 .wall-prompt textarea::placeholder { color: var(--light); }
+#S1 .wall-prompt button {
+  background: var(--teal); color: #fff; border: none; border-radius: 4px;
+  padding: 0 20px; font: 500 13px 'Inter', sans-serif; cursor: pointer;
+}
+#S1 .wall-time {
+  position: absolute; top: 20px; right: 24px; z-index: 20;
+  font: 14px 'EB Garamond', serif; color: var(--grey);
+}
+#S1 .wall-hint {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 15;
+  font: italic 22px/1.5 'EB Garamond', serif; color: var(--teal-dark);
+  text-align: center; max-width: 480px; opacity: 0;
+  animation: fadeUp 1s 0.5s ease forwards;
+}
+
+/* ════════════════════════════════
+   SCREEN 2 — MORGAN (9:40)
+   ════════════════════════════════ */
+#S2 { background: var(--cream-dark); }
+#S2 .moment {
+  text-align: center; max-width: 560px; padding: 40px;
+}
+.moment-time { font: 14px 'EB Garamond', serif; color: var(--gold); margin-bottom: 12px; }
+.moment-speaker { font: 700 clamp(28px,4vw,42px)/1.15 'EB Garamond', serif; color: var(--dark); margin-bottom: 24px; }
+.moment-note { font: 16px/1.65 'Inter', sans-serif; color: var(--grey); max-width: 440px; margin: 0 auto; }
+.moment-note strong { color: var(--dark); font-weight: 500; }
+
+/* ════════════════════════════════
+   SCREEN 3 — MAKING SPACE (10:10)
+   ════════════════════════════════ */
+#S3 { background: #e8e0d2; }
+#S3 .bench {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.material {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  transition: box-shadow 0.3s;
+}
+.material:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+.material.dragging { cursor: grabbing; z-index: 50; box-shadow: 0 12px 40px rgba(0,0,0,0.18); }
+.mat-card {
+  width: 160px; padding: 16px;
+  background: #fff; border-radius: 6px;
+  font: italic 14px/1.45 'EB Garamond', serif; color: var(--red);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.mat-card .mc-attr { font: normal 10px 'Inter', sans-serif; color: var(--grey); margin-top: 6px; }
+.mat-block {
+  width: 80px; height: 50px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.mat-tube { width: 120px; height: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+#S3 .bench-brief {
+  position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 20; text-align: center;
+  font: italic 18px/1.5 'EB Garamond', serif; color: var(--teal-dark);
+  background: rgba(232,224,210,0.9); padding: 12px 28px; border-radius: 4px;
+  backdrop-filter: blur(8px);
+}
+#S3 .bench-note {
+  position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%);
+  z-index: 20; text-align: center;
+  font: 13px/1.6 'Inter', sans-serif; color: var(--grey);
+  max-width: 500px;
+}
+
+/* ════════════════════════════════
+   SCREEN 4 — HALL OF MIRRORS (10:40)
+   ════════════════════════════════ */
+#S4 { background: var(--cream); }
+.table-scene {
+  position: relative; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.table-top {
+  width: 340px; height: 340px; border-radius: 50%;
+  background: #d4c4a0; box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 60px;
+}
+.table-question {
+  font: italic 22px/1.45 'EB Garamond', serif; color: var(--dark);
+}
+.table-lens {
+  position: absolute;
+  background: #fff; border-radius: 8px; padding: 16px 20px;
+  max-width: 200px;
+  box-shadow: 0 3px 16px rgba(0,0,0,0.07);
+  opacity: 0;
+  animation: lensIn 0.6s ease forwards;
+}
+.table-lens .lens-role { font: 600 10px 'Inter', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
+.table-lens .lens-text { font: 14px/1.5 'EB Garamond', serif; color: var(--dark); }
+@keyframes lensIn { to { opacity: 1; } }
+
+/* ════════════════════════════════
+   SCREEN 5 — DRAPER (11:10)
+   ════════════════════════════════ */
+#S5 { background: var(--cream-dark); }
+.split-screen { display: flex; width: 100%; height: 100%; }
+.split-left {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px;
+}
+.split-right {
+  width: 340px; background: rgba(196,116,90,0.06);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 32px; gap: 20px;
+  border-left: 1px solid rgba(196,116,90,0.12);
+}
+.child-voice {
+  font: italic 16px/1.5 'EB Garamond', serif; color: var(--red);
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(196,116,90,0.1);
+  opacity: 0; animation: fadeUp 0.6s ease forwards;
+}
+.child-voice:last-child { border-bottom: none; }
+.child-voice .cv-age { font: normal 10px 'Inter', sans-serif; color: var(--grey); margin-top: 4px; }
+
+/* ════════════════════════════════
+   SCREEN 6 — NEURODIVERSITY (11:45)
+   ════════════════════════════════ */
+#S6 { background: var(--cream); }
+.door-choice {
+  display: flex; width: 100%; height: 100%;
+}
+.door {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px; cursor: pointer;
+  transition: all 0.4s;
+  position: relative;
+}
+.door::after {
+  content: ''; position: absolute; inset: 0;
+  transition: background 0.4s;
+}
+.door:hover::after { background: rgba(74,124,126,0.04); }
+.door-divider {
+  width: 1px; background: var(--light); align-self: stretch;
+}
+.door .d-label { font: 500 10px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 20px; z-index: 1; }
+.door h3 { font: 700 clamp(24px,3.5vw,34px)/1.2 'EB Garamond', serif; color: var(--red); margin-bottom: 16px; z-index: 1; }
+.door p { font: 15px/1.6 'Inter', sans-serif; color: var(--grey); max-width: 300px; text-align: center; z-index: 1; }
+.door .d-foot { font: italic 15px 'EB Garamond', serif; color: var(--teal); margin-top: 24px; z-index: 1; }
+
+/* ════════════════════════════════
+   SCREEN 7 — LUNCH COLLAGE (12:25)
+   ════════════════════════════════ */
+#S7 { background: #fff; cursor: crosshair; }
+.collage-surface { position: absolute; inset: 0; overflow: hidden; }
+.c-fragment {
+  position: absolute; pointer-events: none;
+  animation: cfIn 0.8s ease forwards;
+  opacity: 0;
+}
+@keyframes cfIn { to { opacity: var(--o, 0.85); } }
+.c-text {
+  font-family: 'EB Garamond', serif;
+  padding: 8px 14px; border-radius: 3px;
+  max-width: 200px; line-height: 1.4;
+}
+.c-strip {
+  height: 6px; border-radius: 3px;
+}
+.c-circle {
+  border-radius: 50%;
+}
+#S7 .collage-prompt {
+  position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%);
+  z-index: 20; display: flex; gap: 10px; width: 90%; max-width: 460px;
+}
+#S7 .collage-prompt input {
+  flex: 1; border: 1px solid var(--light); border-radius: 4px; padding: 12px 14px;
+  font: 15px 'EB Garamond', serif; color: var(--dark); background: rgba(255,255,255,0.9); outline: none;
+  backdrop-filter: blur(8px);
+}
+#S7 .collage-prompt input:focus { border-color: var(--teal); }
+#S7 .collage-prompt input::placeholder { color: var(--light); }
+#S7 .collage-prompt button {
+  background: var(--teal); color: #fff; border: none; border-radius: 4px;
+  padding: 0 18px; font: 500 13px 'Inter', sans-serif; cursor: pointer;
+}
+#S7 .collage-instruct {
+  position: absolute; top: 24px; left: 50%; transform: translateX(-50%); z-index: 20;
+  font: italic 15px 'EB Garamond', serif; color: var(--grey);
+  background: rgba(255,255,255,0.85); padding: 8px 20px; border-radius: 3px;
+  backdrop-filter: blur(6px);
+}
+
+/* ════════════════════════════════
+   SCREEN 8 — SANDSETER / RISKY PLAY (13:30)
+   ════════════════════════════════ */
+#S8 { background: #000; }
+#S8 .dark-moment {
+  text-align: center; max-width: 600px; padding: 40px;
+}
+#S8 .breath-text {
+  font: italic clamp(20px,3vw,30px)/1.5 'EB Garamond', serif;
+  color: rgba(255,255,255,0.6);
+  opacity: 0;
+  animation: breathe 3s ease-in-out forwards;
+}
+@keyframes breathe {
+  0% { opacity: 0; }
+  40% { opacity: 0.8; }
+  70% { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+#S8 .speaker-reveal {
+  opacity: 0;
+  animation: fadeUp 1s 3.5s ease forwards;
+}
+#S8 .speaker-reveal .moment-speaker { color: var(--cream); }
+#S8 .speaker-reveal .moment-note { color: rgba(255,255,255,0.45); }
+
+/* ════════════════════════════════
+   SCREEN 9 — QUIET ROOM (14:15)
+   ════════════════════════════════ */
+#S9 { background: #1a1a1a; }
+#S9 .quiet-space {
+  text-align: center; max-width: 500px; padding: 40px;
+}
+#S9 .quiet-text {
+  font: italic clamp(18px,2.5vw,24px)/1.6 'EB Garamond', serif;
+  color: rgba(255,255,255,0.25);
+  animation: quietPulse 6s ease-in-out infinite;
+}
+@keyframes quietPulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.4; }
+}
+#S9 .quiet-exit {
+  position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+  font: 13px 'Inter', sans-serif; color: rgba(255,255,255,0.15);
+  cursor: pointer; transition: color 0.3s;
+}
+#S9 .quiet-exit:hover { color: rgba(255,255,255,0.4); }
+
+/* ════════════════════════════════
+   SCREEN 10 — MAPPING (15:15)
+   ════════════════════════════════ */
+#S10 { background: var(--cream); }
+.map-surface {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  max-width: 640px; width: 90%; padding: 20px;
+}
+.map-cell {
+  background: #fff; border: 1px solid var(--light); border-radius: 6px;
+  padding: 20px;
+}
+.map-cell label {
+  display: block; font: 500 14px 'EB Garamond', serif; color: var(--teal-dark);
+  margin-bottom: 10px;
+}
+.map-cell textarea {
+  width: 100%; height: 64px; border: none; outline: none; resize: none;
+  font: 14px/1.5 'Inter', sans-serif; color: var(--dark); background: transparent;
+}
+.map-cell textarea::placeholder { color: var(--light); }
+.map-timer {
+  font: 500 13px 'Inter', sans-serif; color: var(--grey);
+  margin-top: 16px; text-align: center;
+}
+
+/* ════════════════════════════════
+   SCREEN 11 — CLOSING / GIBSON (16:15)
+   ════════════════════════════════ */
+#S11 { background: var(--cream-dark); }
+.closing-room {
+  text-align: center; max-width: 600px; padding: 40px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+.closing-artifacts {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  margin: 12px 0;
+}
+.artifact-tag {
+  font: 12px 'Inter', sans-serif; color: var(--teal);
+  background: rgba(74,124,126,0.08); padding: 6px 14px; border-radius: 20px;
+  opacity: 0; animation: fadeUp 0.5s ease forwards;
+}
+
+/* ════════════════════════════════
+   SCREEN 12 — CARD ON CHAIR
+   ════════════════════════════════ */
+#S12 { background: var(--cream); }
+.card-object {
+  background: #fff; border-radius: 8px; padding: 40px;
+  max-width: 420px; width: 88%;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  text-align: center;
+  transform: rotate(-1deg);
+}
+.card-object .card-q {
+  font: italic 18px/1.55 'EB Garamond', serif; color: var(--dark);
+  margin-bottom: 24px;
+}
+.card-object textarea {
+  width: 100%; height: 80px; border: none; border-bottom: 1px solid var(--light);
+  font: 16px/1.5 'EB Garamond', serif; color: var(--dark); resize: none; outline: none;
+  text-align: center; background: transparent;
+}
+.card-object textarea::placeholder { color: var(--light); }
+.card-object .card-sub {
+  font: 12px 'Inter', sans-serif; color: var(--grey); margin-top: 16px; line-height: 1.6;
+}
+.card-flip {
+  font: italic 13px 'EB Garamond', serif; color: var(--gold);
+  margin-top: 20px;
+}
+
+/* ════════════════════════════════
+   SCREEN 13 — WHAT THIS DOES / CLOSE
+   ════════════════════════════════ */
+#S13 { background: #1a1a1a; }
+#S13 .final-text {
+  text-align: center; max-width: 580px; padding: 40px;
+}
+#S13 .ft-body {
+  font: 17px/1.7 'Inter', sans-serif; color: rgba(255,255,255,0.5);
+  margin-bottom: 28px;
+}
+#S13 .ft-quote {
+  font: italic clamp(20px,3vw,26px)/1.45 'EB Garamond', serif;
+  color: var(--cream); border-left: 3px solid var(--gold);
+  padding-left: 24px; text-align: left;
+  margin: 32px 0;
+}
+#S13 .ft-wv { font: 13px 'Inter', sans-serif; color: rgba(255,255,255,0.2); margin-top: 48px; }
+#S13 .ft-cta { font: italic 18px 'EB Garamond', serif; color: var(--gold); margin-top: 12px; }
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+  .split-screen { flex-direction: column; }
+  .split-right { width: 100%; border-left: none; border-top: 1px solid rgba(196,116,90,0.12); }
+  .door-choice { flex-direction: column; }
+  .door-divider { width: auto; height: 1px; }
+  .map-surface { grid-template-columns: 1fr; }
+  .table-top { width: 260px; height: 260px; padding: 40px; }
+  .table-lens { max-width: 160px; padding: 12px 14px; }
+  #nav .n-label { display: none; }
+  .wc { width: 150px; min-height: 60px; padding: 10px 12px; font-size: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- ═══ S0 COVER ═══ -->
+<div class="sc active" id="S0">
+  <div class="cover-fade label sans">Experience Design Concept</div>
+  <h1 class="cover-fade">PEDAL Conference 2026</h1>
+  <div class="cover-fade sub">Same speakers. Same themes. Same venue.<br><em>Different architecture around them.</em></div>
+  <button class="cover-fade enter" onclick="go(1)">Enter the day</button>
+  <div class="foot sans">winded.vertigo · PEDAL Centre, University of Cambridge · 2026</div>
+</div>
+
+<!-- ═══ S1 QUESTION WALL ═══ -->
+<div class="sc" id="S1">
+  <div class="wall-time">9:00</div>
+  <div class="wall-hint" id="wallHint">What do children understand<br>about play that adults have forgotten?</div>
+  <div class="wall-surface" id="wallSurface"></div>
+  <div class="wall-prompt">
+    <textarea id="wallIn" placeholder="Add yours to the wall…"></textarea>
+    <button onclick="addToWall()">Pin</button>
+  </div>
+</div>
+
+<!-- ═══ S2 MORGAN ═══ -->
+<div class="sc" id="S2">
+  <div class="moment">
+    <div class="moment-time">9:40</div>
+    <div class="moment-speaker">Stephen Morgan MP</div>
+    <div class="moment-note">The Minister walked through the same question wall as everyone else.</div>
+  </div>
+</div>
+
+<!-- ═══ S3 MAKING SPACE ═══ -->
+<div class="sc" id="S3">
+  <div class="bench-brief">Using only what is here, make something a child could learn from.</div>
+  <div class="bench" id="bench"></div>
+  <div class="bench-note">Pick up the cardboard. Read the children's cards. Or just watch. All of these are the activity.</div>
+</div>
+
+<!-- ═══ S4 HALL OF MIRRORS ═══ -->
+<div class="sc" id="S4">
+  <div class="table-scene" id="tableScene">
+    <div class="table-top">
+      <div class="table-question">How do children learn what risk means?</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ S5 DRAPER ═══ -->
+<div class="sc" id="S5">
+  <div class="split-screen">
+    <div class="split-left">
+      <div class="moment-time">11:10</div>
+      <div class="moment-speaker">Dr Catherine Draper</div>
+      <div class="moment-note" style="margin-top:16px;">What the data shows.</div>
+    </div>
+    <div class="split-right" id="draperVoices">
+    </div>
+  </div>
+</div>
+
+<!-- ═══ S6 NEURODIVERSITY ═══ -->
+<div class="sc" id="S6">
+  <div class="door-choice">
+    <div class="door" onclick="go(7)">
+      <div class="d-label">Session A</div>
+      <h3>Building a Community for Policy Change</h3>
+      <p>How research moves into the rooms where decisions are made.</p>
+      <div class="d-foot">Both rooms are the right room.</div>
+    </div>
+    <div class="door-divider"></div>
+    <div class="door" onclick="go(7)">
+      <div class="d-label">Session B</div>
+      <h3>Neurodiversity-Affirming Play</h3>
+      <p>Multiple ways in. Watching treated as participation. No single mode privileged.</p>
+      <div class="d-foot">Both rooms are the right room.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ S7 LUNCH COLLAGE ═══ -->
+<div class="sc" id="S7">
+  <div class="collage-instruct">Add something from this morning that is still with you.</div>
+  <div class="collage-surface" id="collageSurface"></div>
+  <div class="collage-prompt">
+    <input type="text" id="collageIn" placeholder="A word, a thought, a fragment…">
+    <button onclick="addToCollage()">Place</button>
+  </div>
+</div>
+
+<!-- ═══ S8 SANDSETER / RISKY PLAY ═══ -->
+<div class="sc" id="S8">
+  <div class="dark-moment">
+    <div class="breath-text">Thirty seconds of unedited footage.<br>Children in risky play.<br>Sound on. No commentary.</div>
+    <div class="speaker-reveal">
+      <div class="moment-time" style="color:var(--gold-light)">13:30</div>
+      <div class="moment-speaker" style="margin-top:12px">Prof Ellen Beate Hansen Sandseter</div>
+      <div class="moment-note" style="color:rgba(255,255,255,0.4); margin-top:16px">The audience has just seen what she is about to analyse, from the children's perspective, before the adult interpretation arrives.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ S9 QUIET ROOM ═══ -->
+<div class="sc" id="S9">
+  <div class="quiet-space">
+    <div class="quiet-text">Low light. No task. No facilitation.<br><br>A place to sit with what the day has produced so far.</div>
+  </div>
+  <div class="quiet-exit" onclick="go(10)">Needing quiet is not opting out. It is a different way of being in. →</div>
+</div>
+
+<!-- ═══ S10 MAPPING ═══ -->
+<div class="sc" id="S10">
+  <div style="text-align:center; margin-bottom:8px;">
+    <div class="moment-time">15:15</div>
+    <div class="moment-speaker" style="font-size:clamp(22px,3vw,30px);">Map your own context.</div>
+  </div>
+  <div class="map-surface">
+    <div class="map-cell">
+      <label>What assets already exist where you work?</label>
+      <textarea placeholder="Write here…"></textarea>
+    </div>
+    <div class="map-cell">
+      <label>Who is already doing something?</label>
+      <textarea placeholder="Write here…"></textarea>
+    </div>
+    <div class="map-cell">
+      <label>What have you built that has not been named yet?</label>
+      <textarea placeholder="Write here…"></textarea>
+    </div>
+    <div class="map-cell" style="display:flex;align-items:center;justify-content:center;">
+      <div class="map-timer">Ten minutes.<br>No debrief required.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ S11 CLOSING ═══ -->
+<div class="sc" id="S11">
+  <div class="closing-room">
+    <div class="moment-time">16:15</div>
+    <div class="moment-speaker">Prof Jenny Gibson</div>
+    <div class="moment-note" style="margin-top:8px;">The room produced these today.</div>
+    <div class="closing-artifacts" id="closingArtifacts"></div>
+    <div class="moment-note" style="margin-top:16px;">The conference ends by acknowledging that the people it is most about were not in the room, and asking what that means for next year.</div>
+  </div>
+</div>
+
+<!-- ═══ S12 CARD ON CHAIR ═══ -->
+<div class="sc" id="S12">
+  <div class="card-object">
+    <div class="card-q">What is one thing you want to try, change, or pay attention to in the next two weeks, however small?</div>
+    <textarea placeholder="Write here, or don't."></textarea>
+    <div class="card-sub">Take it with you or leave it on the table.</div>
+    <div class="card-flip">The garden party invitation is on the back.</div>
+  </div>
+</div>
+
+<!-- ═══ S13 FINAL ═══ -->
+<div class="sc" id="S13">
+  <div class="final-text">
+    <div class="ft-body">The day's content stays intact. What changes is that the day accumulates. People arrive with something, do something, encounter something that surprises them, and leave with a trace they can return to.</div>
+    <div class="ft-quote">That is what the PEDAL programme argues for, in every session, all day. This design lets the format say the same thing.</div>
+    <div class="ft-wv">winded.vertigo · windedvertigo.com · hello@windedvertigo.com</div>
+    <div class="ft-cta">This is what's possible. What are you trying to change?</div>
+  </div>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<div id="nav">
+  <button class="n-btn" id="btnP" onclick="go(cur-1)">← Back</button>
+  <div>
+    <span class="n-time" id="nTime"></span>
+    <span class="n-label" id="nLabel"></span>
+  </div>
+  <button class="n-btn" id="btnN" onclick="go(cur+1)">Next →</button>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════ */
+const META = [
+  { t:'', l:'PEDAL Conference 2026', nav:false },
+  { t:'9:00', l:'The Question Wall' },
+  { t:'9:40', l:'Stephen Morgan MP' },
+  { t:'10:10', l:'The Making Space' },
+  { t:'10:40', l:'Hall of Mirrors' },
+  { t:'11:10', l:'Dr Catherine Draper' },
+  { t:'11:45', l:'Choose Your Room' },
+  { t:'12:25', l:'The Collage' },
+  { t:'13:30', l:'Risky Play' },
+  { t:'14:15', l:'The Quiet Room' },
+  { t:'15:15', l:'Map Your Context' },
+  { t:'16:15', l:'Closing — Prof Gibson' },
+  { t:'', l:'The Card on the Chair' },
+  { t:'', l:'What This Does' },
+];
+
+const screens = document.querySelectorAll('.sc');
+const nav = document.getElementById('nav');
+const nTime = document.getElementById('nTime');
+const nLabel = document.getElementById('nLabel');
+const btnP = document.getElementById('btnP');
+const btnN = document.getElementById('btnN');
+const prog = document.getElementById('progress');
+let cur = 0;
+let transitioning = false;
+
+function go(i) {
+  if (i < 0 || i >= screens.length || i === cur || transitioning) return;
+  transitioning = true;
+  // Reset all screens
+  screens.forEach(s => { s.classList.remove('active'); s.style.zIndex = '0'; });
+  cur = i;
+  screens[cur].classList.add('active');
+  screens[cur].style.zIndex = '10';
+
+  const m = META[i];
+  if (m.nav === false) { nav.style.display = 'none'; }
+  else { nav.style.display = 'flex'; nTime.textContent = m.t; nLabel.textContent = m.l; }
+  btnP.disabled = i === 0;
+  btnN.disabled = i === screens.length - 1;
+  prog.style.width = (i / (screens.length - 1) * 100) + '%';
+
+  // trigger screen-specific initialisers
+  if (i === 1) initWall();
+  if (i === 3) initBench();
+  if (i === 4) initTable();
+  if (i === 5) initDraper();
+  if (i === 7) initCollage();
+  if (i === 11) initClosing();
+
+  setTimeout(() => { transitioning = false; }, 600);
+}
+
+// Keys
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
+});
+// Swipe
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 60) { dx < 0 ? go(cur+1) : go(cur-1); }
+}, {passive:true});
+
+/* ══════════════════════════════════════
+   QUESTION WALL
+   ══════════════════════════════════════ */
+const WALL_CARDS = [
+  {t:"They know that play doesn't need a reason.", c:false, a:"Policy researcher"},
+  {t:"Playing is how I find out what things do.", c:true, a:"Age 6"},
+  {t:"That losing is part of it. That you try again.", c:true, a:"Age 7"},
+  {t:"Children know play is serious work — we've just decided it isn't.", c:false, a:"Early years teacher"},
+  {t:"When I play with my friend we make a world and it's real.", c:true, a:"Age 5"},
+  {t:"The freedom to be bad at something without consequence.", c:false, a:"Developmental psychologist"},
+  {t:"You don't have to win. You just have to play.", c:true, a:"Age 6"},
+  {t:"That boredom is where the best play starts.", c:false, a:"Architect"},
+  {t:"I think grown-ups forgot how to pretend.", c:true, a:"Age 5"},
+  {t:"Play is how children rehearse agency.", c:false, a:"Community researcher"},
+  {t:"My mum says I play too much but I think she doesn't play enough.", c:true, a:"Age 7"},
+  {t:"Risk assessment happens naturally in play — children are better at it than we think.", c:false, a:"Professor of Education"},
+  {t:"When you play you can be anyone.", c:true, a:"Age 6"},
+  {t:"The moment a child looks up and says \u2018watch this\u2019 — that is the moment.", c:false, a:"Paediatrician"},
+  {t:"I like making houses for beetles. You have to think about what beetles want.", c:true, a:"Age 5"},
+  {t:"We keep asking what children learn from play. We never ask what play learns from children.", c:false, a:"PhD researcher"},
+];
+let wallInit = false;
+function initWall() {
+  if (wallInit) return; wallInit = true;
+  const s = document.getElementById('wallSurface');
+  WALL_CARDS.forEach((c, i) => {
+    const el = document.createElement('div');
+    el.className = 'wc' + (c.c ? ' child' : '');
+    el.style.setProperty('--d', (i * 0.18) + 's');
+    el.style.setProperty('--r', (Math.random()*4-2) + 'deg');
+    el.innerHTML = c.t + '<div class="wc-attr">— ' + c.a + '</div>';
+    s.appendChild(el);
+  });
+  // fade out the hint after cards appear
+  setTimeout(() => { document.getElementById('wallHint').style.opacity = '0'; document.getElementById('wallHint').style.transition = 'opacity 1s'; }, 2000);
+}
+function addToWall() {
+  const inp = document.getElementById('wallIn');
+  const t = inp.value.trim(); if (!t) return;
+  const s = document.getElementById('wallSurface');
+  const el = document.createElement('div');
+  el.className = 'wc';
+  el.style.setProperty('--d', '0s');
+  el.style.setProperty('--r', (Math.random()*4-2) + 'deg');
+  el.innerHTML = t + '<div class="wc-attr">— You</div>';
+  s.prepend(el);
+  inp.value = '';
+}
+
+/* ══════════════════════════════════════
+   MAKING SPACE — draggable materials
+   ══════════════════════════════════════ */
+let benchInit = false;
+function initBench() {
+  if (benchInit) return; benchInit = true;
+  const b = document.getElementById('bench');
+  const W = b.offsetWidth, H = b.offsetHeight;
+
+  const children_cards = [
+    {t:"I like making houses for beetles. You have to think about what beetles want.", a:"Age 5"},
+    {t:"My best thing is when I make something and it works and nobody told me how.", a:"Age 6"},
+    {t:"I made a rocket from a box and it went to the moon in my head.", a:"Age 5"},
+  ];
+  const colours = ['#C4745A','#4A7C7E','#C49A6C','#d4947e','#6a9fa1','#dbb990','#8B6F4E','#A0522D'];
+  const items = [];
+
+  // Scatter children's cards
+  children_cards.forEach((c, i) => {
+    const el = document.createElement('div');
+    el.className = 'material mat-card';
+    el.innerHTML = '"' + c.t + '"<div class="mc-attr">— ' + c.a + '</div>';
+    el.style.left = (100 + i * 260) + 'px';
+    el.style.top = (80 + Math.random() * 100) + 'px';
+    el.style.transform = 'rotate(' + (Math.random()*8-4) + 'deg)';
+    b.appendChild(el);
+    items.push(el);
+  });
+
+  // Scatter blocks
+  for (let i = 0; i < 8; i++) {
+    const el = document.createElement('div');
+    el.className = 'material mat-block';
+    el.style.background = colours[i % colours.length];
+    el.style.left = (50 + Math.random() * (W - 150)) + 'px';
+    el.style.top = (200 + Math.random() * (H - 360)) + 'px';
+    el.style.transform = 'rotate(' + (Math.random()*20-10) + 'deg)';
+    el.textContent = ['✂️','📐','🖍️','🧱','📎','🪵','🔩','🧶'][i];
+    b.appendChild(el);
+    items.push(el);
+  }
+
+  // Scatter tubes/strips
+  for (let i = 0; i < 5; i++) {
+    const el = document.createElement('div');
+    el.className = 'material mat-tube';
+    el.style.background = colours[(i+3) % colours.length];
+    el.style.opacity = '0.6';
+    el.style.left = (80 + Math.random() * (W - 200)) + 'px';
+    el.style.top = (160 + Math.random() * (H - 320)) + 'px';
+    el.style.transform = 'rotate(' + (Math.random()*30-15) + 'deg)';
+    b.appendChild(el);
+    items.push(el);
+  }
+
+  // Make draggable
+  items.forEach(el => makeDraggable(el));
+}
+
+function makeDraggable(el) {
+  let ox, oy, sx, sy;
+  const down = (ex, ey) => {
+    el.classList.add('dragging');
+    const r = el.getBoundingClientRect();
+    ox = ex - r.left; oy = ey - r.top;
+    sx = r.left; sy = r.top;
+  };
+  const move = (ex, ey) => {
+    if (!el.classList.contains('dragging')) return;
+    el.style.left = (ex - ox) + 'px';
+    el.style.top = (ey - oy) + 'px';
+    el.style.transform = 'rotate(0deg)';
+  };
+  const up = () => { el.classList.remove('dragging'); };
+
+  el.addEventListener('mousedown', e => { e.preventDefault(); down(e.clientX, e.clientY); });
+  document.addEventListener('mousemove', e => move(e.clientX, e.clientY));
+  document.addEventListener('mouseup', up);
+  el.addEventListener('touchstart', e => { const t = e.touches[0]; down(t.clientX, t.clientY); }, {passive:true});
+  document.addEventListener('touchmove', e => { if (el.classList.contains('dragging')) { const t = e.touches[0]; move(t.clientX, t.clientY); } }, {passive:true});
+  document.addEventListener('touchend', up);
+}
+
+/* ══════════════════════════════════════
+   HALL OF MIRRORS — lenses appear around table
+   ══════════════════════════════════════ */
+let tableInit = false;
+function initTable() {
+  if (tableInit) return; tableInit = true;
+  const scene = document.getElementById('tableScene');
+  const lenses = [
+    {role:'Architect', text:'Children test structural limits every time they stack. They already understand load-bearing.'},
+    {role:'Games Developer', text:'Play without failure states is not play. The best games let you fail safely a hundred times.'},
+    {role:'Chef', text:'A child cooking is a child doing chemistry with their hands. Mess is methodology.'},
+    {role:'Product Designer', text:'Children prototype constantly. They just don\u2019t call it that.'},
+  ];
+  const positions = [
+    {left:'8%',top:'15%'}, {right:'8%',top:'18%'},
+    {left:'6%',bottom:'25%'}, {right:'6%',bottom:'22%'},
+  ];
+  lenses.forEach((l, i) => {
+    const el = document.createElement('div');
+    el.className = 'table-lens';
+    el.style.animationDelay = (1 + i * 0.8) + 's';
+    Object.assign(el.style, positions[i]);
+    el.innerHTML = '<div class="lens-role">' + l.role + '</div><div class="lens-text">' + l.text + '</div>';
+    scene.appendChild(el);
+  });
+}
+
+/* ══════════════════════════════════════
+   DRAPER — children's voices panel
+   ══════════════════════════════════════ */
+let draperInit = false;
+function initDraper() {
+  if (draperInit) return; draperInit = true;
+  const panel = document.getElementById('draperVoices');
+  const voices = [
+    {t:"When I run really fast my legs go tingly and I like it.", a:"Age 5"},
+    {t:"The playground is too small. We need more space for hiding.", a:"Age 7"},
+    {t:"My favourite thing is when nobody tells me what to play.", a:"Age 6"},
+    {t:"I don't like sitting. I want to move all the time.", a:"Age 5"},
+    {t:"When it rains we play better because the teachers go inside.", a:"Age 7"},
+  ];
+  voices.forEach((v, i) => {
+    const el = document.createElement('div');
+    el.className = 'child-voice';
+    el.style.animationDelay = (0.5 + i * 0.4) + 's';
+    el.innerHTML = '"' + v.t + '"<div class="cv-age">— ' + v.a + '</div>';
+    panel.appendChild(el);
+  });
+}
+
+/* ══════════════════════════════════════
+   COLLAGE
+   ══════════════════════════════════════ */
+let collageInit = false;
+function initCollage() {
+  if (collageInit) return; collageInit = true;
+  const s = document.getElementById('collageSurface');
+  const W = s.offsetWidth, H = s.offsetHeight;
+
+  // Seed fragments
+  const texts = [
+    {t:'the gap between what we study and how we gather', color:'var(--teal-dark)', bg:'rgba(74,124,126,0.08)'},
+    {t:'beetles need houses too', color:'var(--red)', bg:'rgba(196,116,90,0.06)', italic:true},
+    {t:'the minister and the teacher', color:'var(--dark)', bg:'rgba(45,45,45,0.04)'},
+    {t:'what if boredom is the beginning', color:'var(--gold)', bg:'rgba(196,154,108,0.08)'},
+    {t:'children prototype constantly', color:'var(--teal)', bg:'rgba(74,124,126,0.06)'},
+  ];
+  texts.forEach((f, i) => {
+    const el = document.createElement('div');
+    el.className = 'c-fragment c-text';
+    el.style.left = (8 + Math.random() * 65) + '%';
+    el.style.top = (6 + Math.random() * 60) + '%';
+    el.style.color = f.color;
+    el.style.background = f.bg;
+    el.style.fontSize = (13 + Math.random() * 6) + 'px';
+    el.style.transform = 'rotate(' + (Math.random()*8-4) + 'deg)';
+    el.style.animationDelay = (i * 0.3) + 's';
+    if (f.italic) el.style.fontStyle = 'italic';
+    el.textContent = f.t;
+    s.appendChild(el);
+  });
+
+  // Colour strips
+  const stripColours = ['var(--teal)','var(--red)','var(--gold)','var(--teal-light)','var(--red-light)'];
+  for (let i = 0; i < 8; i++) {
+    const el = document.createElement('div');
+    el.className = 'c-fragment c-strip';
+    el.style.left = (5 + Math.random() * 80) + '%';
+    el.style.top = (5 + Math.random() * 80) + '%';
+    el.style.width = (40 + Math.random() * 120) + 'px';
+    el.style.background = stripColours[i % stripColours.length];
+    el.style.setProperty('--o', (0.2 + Math.random() * 0.4).toString());
+    el.style.transform = 'rotate(' + (Math.random()*40-20) + 'deg)';
+    el.style.animationDelay = (0.2 + i * 0.15) + 's';
+    s.appendChild(el);
+  }
+
+  // Small circles
+  for (let i = 0; i < 6; i++) {
+    const el = document.createElement('div');
+    el.className = 'c-fragment c-circle';
+    const sz = 10 + Math.random() * 30;
+    el.style.width = sz + 'px'; el.style.height = sz + 'px';
+    el.style.left = (10 + Math.random() * 75) + '%';
+    el.style.top = (10 + Math.random() * 70) + '%';
+    el.style.background = stripColours[i % stripColours.length];
+    el.style.setProperty('--o', (0.15 + Math.random() * 0.3).toString());
+    el.style.animationDelay = (0.5 + i * 0.2) + 's';
+    s.appendChild(el);
+  }
+}
+
+function addToCollage() {
+  const inp = document.getElementById('collageIn');
+  const t = inp.value.trim(); if (!t) return;
+  const s = document.getElementById('collageSurface');
+  const el = document.createElement('div');
+  el.className = 'c-fragment c-text';
+  el.style.left = (10 + Math.random() * 60) + '%';
+  el.style.top = (10 + Math.random() * 55) + '%';
+  el.style.color = 'var(--teal-dark)';
+  el.style.background = 'rgba(74,124,126,0.08)';
+  el.style.fontSize = '15px';
+  el.style.transform = 'rotate(' + (Math.random()*6-3) + 'deg)';
+  el.textContent = t;
+  s.appendChild(el);
+  inp.value = '';
+}
+
+/* ══════════════════════════════════════
+   CLOSING — gather artifacts
+   ══════════════════════════════════════ */
+let closingInit = false;
+function initClosing() {
+  if (closingInit) return; closingInit = true;
+  const c = document.getElementById('closingArtifacts');
+  const tags = ['The Question Wall','Making Space','Hall of Mirrors','Bumper Cars','The Collage','Children\'s Voices','Curiosity Display','The Mapping Exercise'];
+  tags.forEach((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'artifact-tag';
+    el.style.animationDelay = (0.3 + i * 0.15) + 's';
+    el.textContent = t;
+    c.appendChild(el);
+  });
+}
+
+</script>
+</body>
+</html>
