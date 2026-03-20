@@ -55,11 +55,15 @@
   "rewrites": [
     {
       "source": "/portfolio/assets/pedal-conference-experience",
-      "destination": "https://conference-experience-seven.vercel.app/"
+      "destination": "/portfolio/assets/conference-experience/index.html"
     },
     {
       "source": "/portfolio/assets/pedal-conference-experience/",
-      "destination": "https://conference-experience-seven.vercel.app/"
+      "destination": "/portfolio/assets/conference-experience/index.html"
+    },
+    {
+      "source": "/portfolio/assets/pedal-conference-experience/:path*",
+      "destination": "/portfolio/assets/conference-experience/:path*"
     },
     {
       "source": "/harbour/creaseworks",
