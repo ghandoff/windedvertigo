@@ -55,11 +55,11 @@
   "rewrites": [
     {
       "source": "/portfolio/assets/pedal-conference-experience",
-      "destination": "https://conference-experience.vercel.app/"
+      "destination": "https://conference-experience-seven.vercel.app/"
     },
     {
       "source": "/portfolio/assets/pedal-conference-experience/",
-      "destination": "https://conference-experience.vercel.app/"
+      "destination": "https://conference-experience-seven.vercel.app/"
     },
     {
       "source": "/harbour/creaseworks",
