@@ -3,29 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PEDAL Conference 2026 — Experience Design</title>
+<title>PEDAL conference 2026 — experience design</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --teal: #4A7C7E;
-  --teal-light: #6a9fa1;
-  --teal-dark: #3a6264;
-  --red: #C4745A;
-  --red-light: #d4947e;
-  --gold: #C49A6C;
-  --gold-light: #dbb990;
-  --cream: #F5F0E8;
-  --cream-dark: #e8dfd3;
-  --dark: #2D2D2D;
+  --cadet: #273248;
+  --redwood: #b15043;
+  --sienna: #cb7858;
+  --champagne: #ffebd2;
+  --white: #ffffff;
+  --dark: #273248;
   --grey: #666666;
-  --light: #D4C9B8;
-  --white: #FAFAF8;
+  --light: #d4c9b8;
+  /* complementary accents — sparingly */
+  --mint: #58cbb2;
+  --lavender: #d5d2ff;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 100%; height: 100%; overflow: hidden; }
-body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); background: #1a1a1a; }
+body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); background: var(--cadet); }
 
 /* ── Screens ── */
 .sc {
@@ -36,51 +34,37 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   overflow: hidden;
   transition: opacity 0.8s ease, transform 0.8s ease;
 }
-.sc.active {
-  opacity: 1; pointer-events: auto; z-index: 10;
-}
+.sc.active { opacity: 1; pointer-events: auto; z-index: 10; }
 .sc.enter-right { transform: translateX(40px); }
 .sc.enter-left { transform: translateX(-40px); }
-.sc.exit-left {
-  opacity: 0; transform: translateX(-40px); z-index: 5;
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.sc.exit-right {
-  opacity: 0; transform: translateX(40px); z-index: 5;
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
+.sc.exit-left { opacity: 0; transform: translateX(-40px); z-index: 5; transition: opacity 0.6s ease, transform 0.6s ease; }
+.sc.exit-right { opacity: 0; transform: translateX(40px); z-index: 5; transition: opacity 0.6s ease, transform 0.6s ease; }
 
 /* ── Progress ── */
-#progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--gold); z-index: 200; transition: width 0.8s ease; }
+#progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--sienna); z-index: 200; transition: width 0.8s ease; }
 
 /* ── Nav ── */
 #nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
   display: none; align-items: center; justify-content: space-between;
   padding: 10px 20px;
-  background: rgba(26,26,26,0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  background: rgba(39,50,72,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
 }
-#nav .n-time { font-family: 'EB Garamond', serif; font-size: 14px; color: var(--gold-light); min-width: 60px; }
-#nav .n-label { font-size: 12px; color: rgba(255,255,255,0.4); text-align: center; flex: 1; }
+#nav .n-time { font: 300 14px 'Inter', sans-serif; color: var(--sienna); min-width: 60px; }
+#nav .n-label { font: 300 12px 'Inter', sans-serif; color: rgba(255,255,255,0.4); text-align: center; flex: 1; }
 .n-btn {
   background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7);
-  padding: 7px 16px; font: 13px 'Inter', sans-serif; cursor: pointer; border-radius: 3px;
+  padding: 7px 16px; font: 400 13px 'Inter', sans-serif; cursor: pointer; border-radius: 3px;
   transition: all 0.2s;
 }
 .n-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
 .n-btn:disabled { opacity: 0.2; cursor: default; }
 .n-btn:disabled:hover { background: none; color: rgba(255,255,255,0.7); }
 
-/* ── Typography ── */
-.serif { font-family: 'EB Garamond', Georgia, serif; }
-
 /* ── Ambient particles ── */
-.particles {
-  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
-}
+.particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .particle {
-  position: absolute; border-radius: 50%;
-  opacity: 0;
+  position: absolute; border-radius: 50%; opacity: 0;
   animation: particleDrift linear infinite;
 }
 @keyframes particleDrift {
@@ -93,11 +77,9 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 /* ── Floating whisper (children's voices) ── */
 .whisper {
   position: absolute;
-  font: italic 15px/1.4 'EB Garamond', serif;
-  color: var(--red-light);
-  opacity: 0;
-  pointer-events: none;
-  white-space: nowrap;
+  font: 300 italic 15px/1.4 'Inter', sans-serif;
+  color: var(--sienna);
+  opacity: 0; pointer-events: none; white-space: nowrap;
   animation: whisperFloat linear forwards;
 }
 @keyframes whisperFloat {
@@ -110,49 +92,46 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 /* ════════════════════════════════
    SCREEN 0 — COVER
    ════════════════════════════════ */
-#S0 { background: #1a1a1a; cursor: pointer; }
-#S0 .label { font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
-#S0 h1 { font-family: 'EB Garamond', serif; font-weight: 700; font-size: clamp(38px,7vw,72px); color: var(--cream); line-height: 1.08; margin: 20px 0 32px; }
-#S0 .sub { font-family: 'EB Garamond', serif; font-size: clamp(16px,2.2vw,21px); color: rgba(255,255,255,0.45); line-height: 1.7; }
-#S0 .sub em { color: var(--red); font-style: normal; }
-#S0 .foot { position: absolute; bottom: 28px; font-size: 11px; color: rgba(255,255,255,0.18); }
+#S0 { background: var(--cadet); }
+#S0 .label { font: 500 10px/1 'Inter', sans-serif; letter-spacing: 0.18em; text-transform: lowercase; color: var(--sienna); }
+#S0 h1 { font: 700 clamp(36px,7vw,68px)/1.08 'Inter', sans-serif; color: var(--champagne); margin: 20px 0 32px; }
+#S0 .sub { font: 300 clamp(16px,2.2vw,20px)/1.7 'Inter', sans-serif; color: rgba(255,255,255,0.45); }
+#S0 .sub em { color: var(--redwood); font-style: normal; }
+#S0 .foot { position: absolute; bottom: 28px; font: 300 11px 'Inter', sans-serif; color: rgba(255,255,255,0.18); }
 #S0 .enter {
-  margin-top: 52px; background: var(--teal); color: #fff; border: none;
-  padding: 14px 40px; font: 500 14px 'Inter',sans-serif; letter-spacing: 0.03em;
+  margin-top: 52px; background: var(--redwood); color: #fff; border: none;
+  padding: 14px 40px; font: 500 14px 'Inter', sans-serif; letter-spacing: 0.03em;
   cursor: pointer; border-radius: 3px; transition: background 0.3s;
   animation: gentlePulse 3s ease-in-out infinite;
+  /* visible immediately — no fade delay */
+  opacity: 1 !important; transform: none !important;
 }
-#S0 .enter:hover { background: var(--teal-light); animation: none; }
+#S0 .enter:hover { background: var(--sienna); animation: none; }
 @keyframes gentlePulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(74,124,126,0); }
-  50% { box-shadow: 0 0 0 12px rgba(74,124,126,0.15); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(177,80,67,0); }
+  50% { box-shadow: 0 0 0 12px rgba(177,80,67,0.15); }
 }
 .cover-fade { opacity: 0; transform: translateY(14px); animation: fadeUp 0.8s ease forwards; }
-.cover-fade:nth-child(2) { animation-delay: 0.3s; }
-.cover-fade:nth-child(3) { animation-delay: 0.6s; }
-.cover-fade:nth-child(4) { animation-delay: 0.9s; }
-.cover-fade:nth-child(5) { animation-delay: 1.3s; }
+.cover-fade:nth-child(2) { animation-delay: 0.2s; }
+.cover-fade:nth-child(3) { animation-delay: 0.4s; }
+.cover-fade:nth-child(4) { animation-delay: 0.6s; }
 @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
 /* ════════════════════════════════
-   SCREEN 1 — QUESTION WALL (9:00)
+   SCREEN 1 — QUESTION WALL (9:00 a.m.)
    ════════════════════════════════ */
 #S1 {
-  background: #e8e0d4;
+  background: var(--champagne);
   background-image:
     repeating-linear-gradient(90deg, transparent, transparent 199px, rgba(0,0,0,0.03) 199px, rgba(0,0,0,0.03) 200px),
     repeating-linear-gradient(0deg, transparent, transparent 199px, rgba(0,0,0,0.03) 199px, rgba(0,0,0,0.03) 200px);
 }
-#S1 .wall-surface {
-  position: absolute; inset: 0;
-  padding: 60px 20px 140px;
-  overflow: hidden;
-}
+#S1 .wall-surface { position: absolute; inset: 0; padding: 60px 20px 140px; overflow: hidden; }
 .wc {
   position: absolute;
   background: #fff; border-radius: 2px; padding: 14px 16px;
   width: 180px;
-  font-family: 'EB Garamond', serif; font-size: 15px; line-height: 1.4; color: var(--dark);
+  font: 400 14px/1.4 'Inter', sans-serif; color: var(--dark);
   box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03);
   opacity: 0; transform: scale(0.9) rotate(var(--r, 0deg));
   animation: wcPin 0.4s ease forwards;
@@ -161,15 +140,15 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .wc::before {
   content: ''; position: absolute; top: -4px; left: 50%;
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--teal); transform: translateX(-50%);
+  background: var(--cadet); transform: translateX(-50%);
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .wc.child {
-  background: #fff9f5; border-left: 3px solid var(--red-light);
+  background: #fff9f5; border-left: 3px solid var(--sienna);
   font-style: italic;
 }
-.wc.child::before { background: var(--red); }
-.wc .wc-attr { font: normal 10px 'Inter', sans-serif; color: var(--grey); margin-top: 8px; }
+.wc.child::before { background: var(--redwood); }
+.wc .wc-attr { font: 400 10px 'Inter', sans-serif; color: var(--grey); margin-top: 8px; }
 @keyframes wcPin {
   0% { opacity: 0; transform: scale(0.9) rotate(var(--r, 0deg)) translateY(-20px); }
   70% { transform: scale(1.02) rotate(var(--r, 0deg)) translateY(2px); }
@@ -182,68 +161,65 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 }
 #S1 .wall-prompt textarea {
   flex: 1; border: 1px solid var(--light); border-radius: 4px; padding: 12px 14px;
-  font: 15px 'EB Garamond', serif; color: var(--dark); background: rgba(255,255,255,0.9); resize: none; height: 56px; outline: none;
+  font: 400 14px 'Inter', sans-serif; color: var(--dark); background: rgba(255,255,255,0.9); resize: none; height: 56px; outline: none;
   backdrop-filter: blur(8px);
 }
-#S1 .wall-prompt textarea:focus { border-color: var(--teal); }
+#S1 .wall-prompt textarea:focus { border-color: var(--cadet); }
 #S1 .wall-prompt textarea::placeholder { color: var(--light); }
 #S1 .wall-prompt button {
-  background: var(--teal); color: #fff; border: none; border-radius: 4px;
+  background: var(--cadet); color: #fff; border: none; border-radius: 4px;
   padding: 0 20px; font: 500 13px 'Inter', sans-serif; cursor: pointer;
 }
 #S1 .wall-time {
   position: absolute; top: 20px; left: 24px; z-index: 20;
-  font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
+  font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em;
   color: var(--grey); background: rgba(255,255,255,0.7); padding: 6px 14px; border-radius: 3px;
   backdrop-filter: blur(6px);
 }
 #S1 .wall-question {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 15;
-  font: italic 26px/1.5 'EB Garamond', serif; color: var(--teal-dark);
+  font: 300 clamp(20px,3vw,26px)/1.5 'Inter', sans-serif; color: var(--cadet);
   text-align: center; max-width: 500px; opacity: 0;
   animation: fadeUp 1s 0.5s ease forwards;
   pointer-events: none;
-  text-shadow: 0 0 40px rgba(232,224,212,1), 0 0 80px rgba(232,224,212,0.8);
+  text-shadow: 0 0 40px rgba(255,235,210,1), 0 0 80px rgba(255,235,210,0.8);
 }
 
 /* ════════════════════════════════
-   SCREEN 2 — MORGAN (9:40)
+   SCREEN 2 — MORGAN (9:40 a.m.)
    ════════════════════════════════ */
 #S2 {
-  background: linear-gradient(135deg, #e8e0d4 0%, var(--cream-dark) 50%, var(--cream) 100%);
+  background: linear-gradient(135deg, var(--champagne) 0%, #f5e6d0 50%, #ffebd2 100%);
 }
 #S2 .morgan-scene {
   position: relative; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
 }
-/* Ghost wall cards visible in the background */
 .ghost-card {
   position: absolute;
   width: 140px; padding: 10px 12px;
-  background: rgba(255,255,255,0.25);
-  border-radius: 2px;
-  font: italic 12px/1.3 'EB Garamond', serif;
-  color: rgba(45,45,45,0.2);
+  background: rgba(255,255,255,0.25); border-radius: 2px;
+  font: 300 italic 12px/1.3 'Inter', sans-serif;
+  color: rgba(39,50,72,0.2);
   transform: rotate(var(--r, 0deg));
 }
 #S2 .morgan-center {
   text-align: center; z-index: 10;
-  background: rgba(245,240,232,0.85);
+  background: rgba(255,235,210,0.85);
   padding: 48px 60px; border-radius: 4px;
-  backdrop-filter: blur(20px);
-  max-width: 540px;
+  backdrop-filter: blur(20px); max-width: 540px;
 }
-.moment-time { font: 14px 'EB Garamond', serif; color: var(--gold); margin-bottom: 12px; }
-.moment-speaker { font: 700 clamp(28px,4vw,42px)/1.15 'EB Garamond', serif; color: var(--dark); margin-bottom: 24px; }
-.moment-note { font: 16px/1.65 'Inter', sans-serif; color: var(--grey); max-width: 440px; margin: 0 auto; }
+.moment-time { font: 300 14px 'Inter', sans-serif; color: var(--sienna); margin-bottom: 12px; }
+.moment-speaker { font: 700 clamp(28px,4vw,42px)/1.15 'Inter', sans-serif; color: var(--dark); margin-bottom: 24px; }
+.moment-note { font: 400 15px/1.65 'Inter', sans-serif; color: var(--grey); max-width: 440px; margin: 0 auto; }
 .moment-detail {
-  font: italic 15px/1.5 'EB Garamond', serif; color: var(--teal-dark);
+  font: 300 italic 15px/1.5 'Inter', sans-serif; color: var(--cadet);
   margin-top: 20px; opacity: 0;
   animation: fadeUp 0.8s 1.2s ease forwards;
 }
 
 /* ════════════════════════════════
-   SCREEN 3 — MAKING SPACE (10:10)
+   SCREEN 3 — MAKING SPACE (10:10 a.m.)
    ════════════════════════════════ */
 #S3 {
   background: #d4c4a8;
@@ -254,13 +230,9 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
     radial-gradient(ellipse at 70% 30%, rgba(200,180,150,0.15) 0%, transparent 60%);
   background-size: 80px 80px, 80px 80px, 100% 100%, 100% 100%;
 }
-#S3 .bench {
-  position: absolute; inset: 0;
-}
+#S3 .bench { position: absolute; inset: 0; }
 .material {
-  position: absolute;
-  cursor: grab;
-  user-select: none;
+  position: absolute; cursor: grab; user-select: none;
   transition: box-shadow 0.3s, transform 0.15s;
 }
 .material:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.12); transform: scale(1.03) !important; }
@@ -268,29 +240,26 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .mat-card {
   width: 170px; padding: 16px;
   background: #fffcf5; border-radius: 2px;
-  font: italic 14px/1.45 'EB Garamond', serif; color: var(--red);
+  font: 300 italic 14px/1.45 'Inter', sans-serif; color: var(--redwood);
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
   transform: rotate(var(--r, 0deg));
 }
 .mat-card::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: var(--red-light); border-radius: 2px 2px 0 0;
+  background: var(--sienna); border-radius: 2px 2px 0 0;
 }
-.mat-card .mc-attr { font: normal 10px 'Inter', sans-serif; color: var(--grey); margin-top: 6px; }
+.mat-card .mc-attr { font: 400 10px 'Inter', sans-serif; color: var(--grey); margin-top: 6px; }
 .mat-block {
   border-radius: 4px;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 3px 12px rgba(0,0,0,0.1);
   transition: transform 0.15s, box-shadow 0.3s;
 }
-.mat-tube {
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
+.mat-tube { border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 #S3 .bench-brief {
   position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
   z-index: 20; text-align: center;
-  font: italic 19px/1.5 'EB Garamond', serif; color: var(--teal-dark);
+  font: 300 italic 18px/1.5 'Inter', sans-serif; color: var(--cadet);
   background: rgba(212,196,168,0.92); padding: 14px 32px; border-radius: 4px;
   backdrop-filter: blur(12px); max-width: 90%;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
@@ -298,83 +267,64 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S3 .bench-note {
   position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%);
   z-index: 20; text-align: center;
-  font: 13px/1.6 'Inter', sans-serif; color: rgba(58,98,100,0.7);
+  font: 400 13px/1.6 'Inter', sans-serif; color: rgba(39,50,72,0.6);
   max-width: 500px;
   background: rgba(212,196,168,0.8); padding: 10px 20px; border-radius: 4px;
   backdrop-filter: blur(8px);
 }
-#S3 .time-badge {
+.time-badge {
   position: absolute; top: 20px; left: 20px; z-index: 20;
-  font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
+  font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em;
   color: var(--grey); background: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 3px;
 }
 
 /* ════════════════════════════════
-   SCREEN 4 — HALL OF MIRRORS (10:40)
+   SCREEN 4 — HALL OF MIRRORS (10:40 a.m.)
    ════════════════════════════════ */
-#S4 { background: var(--cream); }
-.table-scene {
-  position: relative; width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-}
+#S4 { background: var(--champagne); }
+.table-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .table-top {
   width: 300px; height: 300px; border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%, #e0d6c2, #c8ba9e);
+  background: radial-gradient(circle at 40% 40%, #e8dcc8, #d4c4a8);
   box-shadow: 0 4px 30px rgba(0,0,0,0.08), inset 0 2px 10px rgba(255,255,255,0.3);
   display: flex; align-items: center; justify-content: center;
   text-align: center; padding: 50px;
 }
-.table-question {
-  font: italic 20px/1.45 'EB Garamond', serif; color: var(--dark);
-}
+.table-question { font: 300 italic 19px/1.45 'Inter', sans-serif; color: var(--dark); }
 .table-lens {
-  position: absolute;
-  background: #fff; border-radius: 8px; padding: 18px 22px;
-  max-width: 210px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-  opacity: 0;
-  animation: lensFloat 8s ease-in-out infinite, lensIn 0.8s ease forwards;
+  position: absolute; background: #fff; border-radius: 8px; padding: 18px 22px;
+  max-width: 210px; box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  opacity: 0; animation: lensFloat 8s ease-in-out infinite, lensIn 0.8s ease forwards;
 }
 .table-lens .lens-role {
   font: 600 9px 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--teal); margin-bottom: 8px;
+  color: var(--cadet); margin-bottom: 8px;
 }
-.table-lens .lens-text { font: 15px/1.5 'EB Garamond', serif; color: var(--dark); }
+.table-lens .lens-text { font: 400 14px/1.5 'Inter', sans-serif; color: var(--dark); }
 @keyframes lensIn { to { opacity: 1; } }
 @keyframes lensFloat {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-8px) rotate(1deg); }
 }
-#S4 .time-badge {
-  position: absolute; top: 20px; left: 20px; z-index: 20;
-  font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--grey); background: rgba(255,255,255,0.7); padding: 6px 14px; border-radius: 3px;
-}
 #S4 .scene-label {
   position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-  font: 13px 'Inter', sans-serif; color: var(--grey);
+  font: 400 13px 'Inter', sans-serif; color: var(--grey);
   text-align: center; max-width: 480px;
 }
 
 /* ════════════════════════════════
-   SCREEN 5 — DRAPER (11:10)
+   SCREEN 5 — DRAPER (11:10 a.m.)
    ════════════════════════════════ */
-#S5 {
-  background: linear-gradient(160deg, var(--cream-dark) 0%, var(--cream) 60%, #f0e8dc 100%);
-}
-#S5 .draper-scene {
-  position: relative; width: 100%; height: 100%;
-}
+#S5 { background: linear-gradient(160deg, var(--champagne) 0%, #ffebd2 60%, #f5e0c8 100%); }
+#S5 .draper-scene { position: relative; width: 100%; height: 100%; }
 #S5 .draper-center {
   position: absolute; top: 50%; left: 38%; transform: translate(-50%, -50%);
   text-align: left; z-index: 5;
 }
-/* Voices float across the full screen */
 .floating-voice {
   position: absolute;
-  font: italic 16px/1.4 'EB Garamond', serif;
-  color: var(--red);
-  opacity: 0;
+  font: 300 italic 15px/1.4 'Inter', sans-serif;
+  color: var(--redwood); opacity: 0;
   animation: voiceAppear 6s ease-in-out forwards;
   pointer-events: none;
 }
@@ -384,104 +334,73 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   75% { opacity: 0.7; }
   100% { opacity: 0; transform: translateX(-20px); }
 }
-.floating-voice .fv-age {
-  font: normal 10px 'Inter', sans-serif; color: rgba(196,116,90,0.5); margin-top: 4px;
-}
+.floating-voice .fv-age { font: 400 10px 'Inter', sans-serif; color: rgba(177,80,67,0.5); margin-top: 4px; }
 
 /* ════════════════════════════════
-   SCREEN 6 — NEURODIVERSITY (11:45)
+   SCREEN 6 — NEURODIVERSITY (11:45 a.m.)
    ════════════════════════════════ */
-#S6 { background: var(--cream); }
+#S6 { background: var(--champagne); }
 .door-choice { display: flex; width: 100%; height: 100%; }
 .door {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 40px; cursor: pointer;
-  transition: all 0.5s;
-  position: relative; overflow: hidden;
+  padding: 40px; cursor: pointer; transition: all 0.5s; position: relative; overflow: hidden;
 }
-.door::before {
-  content: ''; position: absolute; inset: 0;
-  transition: background 0.5s;
-}
-.door:hover::before { background: rgba(74,124,126,0.06); }
+.door::before { content: ''; position: absolute; inset: 0; transition: background 0.5s; }
+.door:hover::before { background: rgba(39,50,72,0.04); }
 .door:hover { transform: scale(1.01); }
 .door-divider { width: 1px; background: var(--light); align-self: stretch; }
 .door .d-label { font: 500 10px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 20px; z-index: 1; }
-.door h3 { font: 700 clamp(22px,3vw,32px)/1.2 'EB Garamond', serif; color: var(--red); margin-bottom: 16px; z-index: 1; text-align: center; }
-.door p { font: 15px/1.6 'Inter', sans-serif; color: var(--grey); max-width: 300px; text-align: center; z-index: 1; }
-.door .d-foot { font: italic 15px 'EB Garamond', serif; color: var(--teal); margin-top: 24px; z-index: 1; opacity: 0; transition: opacity 0.5s; }
+.door h3 { font: 700 clamp(22px,3vw,32px)/1.2 'Inter', sans-serif; color: var(--redwood); margin-bottom: 16px; z-index: 1; text-align: center; }
+.door p { font: 400 15px/1.6 'Inter', sans-serif; color: var(--grey); max-width: 300px; text-align: center; z-index: 1; }
+.door .d-foot { font: 300 italic 15px 'Inter', sans-serif; color: var(--cadet); margin-top: 24px; z-index: 1; opacity: 0; transition: opacity 0.5s; }
 .door:hover .d-foot { opacity: 1; }
 
 /* ════════════════════════════════
-   SCREEN 7 — LUNCH COLLAGE (12:25)
+   SCREEN 7 — LUNCH COLLAGE (12:25 p.m.)
    ════════════════════════════════ */
 #S7 {
   background: #fff;
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(196,154,108,0.06) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(74,124,126,0.04) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(196,116,90,0.03) 0%, transparent 60%);
+    radial-gradient(circle at 20% 30%, rgba(203,120,88,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(39,50,72,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(177,80,67,0.03) 0%, transparent 60%);
   cursor: crosshair;
 }
 .collage-surface { position: absolute; inset: 0; overflow: hidden; }
-.c-fragment {
-  position: absolute; pointer-events: none;
-  animation: cfIn 1.2s ease forwards;
-  opacity: 0;
-}
+.c-fragment { position: absolute; pointer-events: none; animation: cfIn 1.2s ease forwards; opacity: 0; }
 @keyframes cfIn {
   0% { opacity: 0; transform: translate(var(--fx, 0), var(--fy, 0)) rotate(var(--fr, 0deg)); }
   100% { opacity: var(--o, 0.85); transform: translate(0, 0) rotate(var(--fr, 0deg)); }
 }
-.c-text {
-  font-family: 'EB Garamond', serif;
-  padding: 8px 14px; border-radius: 3px;
-  max-width: 220px; line-height: 1.4;
-}
+.c-text { font: 400 14px/1.4 'Inter', sans-serif; padding: 8px 14px; border-radius: 3px; max-width: 220px; }
 .c-strip { height: 6px; border-radius: 3px; }
 .c-circle { border-radius: 50%; }
-.c-drawing {
-  border: 2px solid;
-  border-radius: 40%;
-  opacity: 0.15;
-}
+.c-drawing { border: 2px solid; border-radius: 40%; opacity: 0.15; }
 .c-user {
   animation: userPlace 0.4s ease forwards !important;
-  font: 16px/1.4 'EB Garamond', serif;
-  color: var(--teal-dark);
-  background: rgba(74,124,126,0.06);
-  padding: 10px 16px; border-radius: 3px;
-  pointer-events: none;
+  font: 400 15px/1.4 'Inter', sans-serif; color: var(--cadet);
+  background: rgba(39,50,72,0.06); padding: 10px 16px; border-radius: 3px; pointer-events: none;
 }
-@keyframes userPlace {
-  0% { opacity: 0; transform: scale(0.8); }
-  100% { opacity: 0.9; transform: scale(1); }
-}
+@keyframes userPlace { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 0.9; transform: scale(1); } }
 #S7 .collage-instruct {
   position: absolute; top: 24px; left: 50%; transform: translateX(-50%); z-index: 20;
-  font: italic 16px 'EB Garamond', serif; color: var(--grey);
+  font: 300 italic 15px 'Inter', sans-serif; color: var(--grey);
   background: rgba(255,255,255,0.88); padding: 10px 24px; border-radius: 3px;
   backdrop-filter: blur(8px);
 }
 #S7 .collage-hint {
   position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%); z-index: 20;
-  font: 12px 'Inter', sans-serif; color: var(--light);
-  text-align: center;
+  font: 400 12px 'Inter', sans-serif; color: var(--light); text-align: center;
 }
 
 /* ════════════════════════════════
-   SCREEN 8 — SANDSETER / RISKY PLAY (13:30)
+   SCREEN 8 — SANDSETER / RISKY PLAY (1:30 p.m.)
    ════════════════════════════════ */
 #S8 { background: #000; }
-#S8 .dark-scene {
-  position: relative; width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-}
+#S8 .dark-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .breath-line {
-  font: italic clamp(18px,2.8vw,28px)/1.7 'EB Garamond', serif;
-  color: rgba(255,255,255,0.6);
-  text-align: center;
-  opacity: 0;
+  font: 300 italic clamp(18px,2.8vw,26px)/1.7 'Inter', sans-serif;
+  color: rgba(255,255,255,0.6); text-align: center; opacity: 0;
 }
 .breath-1 { animation: breathIn 2s 0.5s ease forwards; }
 .breath-2 { animation: breathIn 2s 1.5s ease forwards; }
@@ -491,242 +410,153 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   40% { opacity: 0.8; transform: translateY(0); }
   100% { opacity: 0.4; transform: translateY(0); }
 }
-.dark-hold {
-  position: absolute; inset: 0;
-  background: #000;
-  opacity: 0;
-  animation: holdDark 1s 5s ease forwards;
-  pointer-events: none;
-}
+.dark-hold { position: absolute; inset: 0; background: #000; opacity: 0; animation: holdDark 1s 5s ease forwards; pointer-events: none; }
 @keyframes holdDark { to { opacity: 1; } }
 .speaker-emerge {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; padding: 40px;
-  opacity: 0;
+  text-align: center; padding: 40px; opacity: 0;
   animation: emergeReveal 1.5s 6.5s ease forwards;
 }
-@keyframes emergeReveal {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-.speaker-emerge .moment-speaker { color: var(--cream); }
+@keyframes emergeReveal { 0% { opacity: 0; } 100% { opacity: 1; } }
+.speaker-emerge .moment-speaker { color: var(--champagne); }
 .speaker-emerge .moment-note { color: rgba(255,255,255,0.4); max-width: 480px; }
-.speaker-emerge .moment-time { color: var(--gold-light); }
+.speaker-emerge .moment-time { color: var(--sienna); }
 
 /* ════════════════════════════════
-   SCREEN 9 — QUIET ROOM (14:15)
+   SCREEN 9 — QUIET ROOM (2:15 p.m.)
    ════════════════════════════════ */
 #S9 { background: #111; }
 #S9 .quiet-glow {
-  position: absolute;
-  width: 300px; height: 300px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(196,154,108,0.08) 0%, transparent 70%);
+  position: absolute; width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(203,120,88,0.08) 0%, transparent 70%);
   top: 50%; left: 50%; transform: translate(-50%, -50%);
-  transition: width 0.8s, height 0.8s, opacity 0.8s;
-  pointer-events: none;
+  transition: width 0.8s, height 0.8s, opacity 0.8s; pointer-events: none;
 }
 #S9 .quiet-text {
-  font: italic clamp(17px,2.2vw,22px)/1.7 'EB Garamond', serif;
-  color: rgba(255,255,255,0.18);
-  text-align: center; max-width: 460px; padding: 40px;
-  z-index: 5;
-  animation: quietBreathe 8s ease-in-out infinite;
+  font: 300 italic clamp(17px,2.2vw,22px)/1.7 'Inter', sans-serif;
+  color: rgba(255,255,255,0.18); text-align: center; max-width: 460px; padding: 40px;
+  z-index: 5; animation: quietBreathe 8s ease-in-out infinite;
 }
-@keyframes quietBreathe {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.35; }
-}
+@keyframes quietBreathe { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.35; } }
 #S9 .quiet-aside {
   position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-  font: 13px 'Inter', sans-serif; color: rgba(255,255,255,0.1);
-  text-align: center; z-index: 5;
-  transition: color 0.5s;
+  font: 400 13px 'Inter', sans-serif; color: rgba(255,255,255,0.1);
+  text-align: center; z-index: 5; transition: color 0.5s;
 }
 #S9:hover .quiet-aside { color: rgba(255,255,255,0.2); }
 
 /* ════════════════════════════════
-   SCREEN 10 — CURIOSITY (14:50)
+   SCREEN 10 — CURIOSITY (2:50 p.m.)
    ════════════════════════════════ */
-#S10 { background: var(--cream); }
-#S10 .curiosity-scene {
-  position: relative; width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-}
+#S10 { background: var(--champagne); }
+#S10 .curiosity-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .curiosity-q {
-  position: absolute;
-  font: italic 16px/1.4 'EB Garamond', serif;
-  color: var(--dark);
-  background: rgba(255,255,255,0.7);
-  padding: 12px 18px; border-radius: 4px;
-  backdrop-filter: blur(6px);
-  max-width: 240px;
-  opacity: 0;
-  animation: curiosityIn 0.8s ease forwards;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  position: absolute; font: 300 italic 15px/1.4 'Inter', sans-serif; color: var(--dark);
+  background: rgba(255,255,255,0.7); padding: 12px 18px; border-radius: 4px;
+  backdrop-filter: blur(6px); max-width: 240px; opacity: 0;
+  animation: curiosityIn 0.8s ease forwards; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
 }
-.curiosity-q.child-q {
-  color: var(--red);
-  font-style: italic;
-}
-@keyframes curiosityIn {
-  0% { opacity: 0; transform: translateY(12px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
+.curiosity-q.child-q { color: var(--redwood); }
+@keyframes curiosityIn { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
 #S10 .curiosity-center {
   z-index: 10; text-align: center;
-  background: rgba(245,240,232,0.9); padding: 32px 44px; border-radius: 4px;
+  background: rgba(255,235,210,0.9); padding: 32px 44px; border-radius: 4px;
   backdrop-filter: blur(16px);
 }
-#S10 .curiosity-note {
-  font: 13px 'Inter', sans-serif; color: var(--grey);
-  margin-top: 12px; max-width: 380px;
-}
+#S10 .curiosity-note { font: 400 13px 'Inter', sans-serif; color: var(--grey); margin-top: 12px; max-width: 380px; }
 
 /* ════════════════════════════════
-   SCREEN 11 — MAPPING (15:15)
+   SCREEN 11 — MAPPING (3:15 p.m.)
    ════════════════════════════════ */
 #S11 {
-  background: var(--cream);
-  background-image: radial-gradient(circle at 50% 50%, rgba(74,124,126,0.03) 0%, transparent 70%);
+  background: var(--champagne);
+  background-image: radial-gradient(circle at 50% 50%, rgba(39,50,72,0.03) 0%, transparent 70%);
 }
-.map-canvas {
-  position: relative; width: 100%; height: 100%;
-}
+.map-canvas { position: relative; width: 100%; height: 100%; }
 .map-prompt {
-  position: absolute;
-  background: rgba(255,255,255,0.9);
-  border: 1px solid var(--light); border-radius: 6px;
-  padding: 20px 24px;
-  backdrop-filter: blur(8px);
-  max-width: 280px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-  opacity: 0;
+  position: absolute; background: rgba(255,255,255,0.9);
+  border: 1px solid var(--light); border-radius: 6px; padding: 20px 24px;
+  backdrop-filter: blur(8px); max-width: 280px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04); opacity: 0;
   animation: mapIn 0.6s ease forwards;
 }
-.map-prompt label {
-  display: block; font: 500 15px 'EB Garamond', serif; color: var(--teal-dark);
-  margin-bottom: 10px;
-}
+.map-prompt label { display: block; font: 500 14px 'Inter', sans-serif; color: var(--cadet); margin-bottom: 10px; }
 .map-prompt textarea {
   width: 100%; height: 56px; border: none; border-bottom: 1px solid var(--light); outline: none; resize: none;
-  font: 14px/1.5 'Inter', sans-serif; color: var(--dark); background: transparent;
+  font: 400 14px/1.5 'Inter', sans-serif; color: var(--dark); background: transparent;
 }
 .map-prompt textarea::placeholder { color: var(--light); }
-@keyframes mapIn {
-  0% { opacity: 0; transform: translateY(10px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
+@keyframes mapIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
 .map-timer {
   position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-  font: italic 18px 'EB Garamond', serif; color: var(--grey);
-  text-align: center;
-}
-#S11 .time-badge {
-  position: absolute; top: 20px; left: 20px; z-index: 20;
-  font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--grey); background: rgba(255,255,255,0.7); padding: 6px 14px; border-radius: 3px;
+  font: 300 italic 17px 'Inter', sans-serif; color: var(--grey); text-align: center;
 }
 
 /* ════════════════════════════════
-   SCREEN 12 — CLOSING / GIBSON (16:15)
+   SCREEN 12 — CLOSING / GIBSON (4:15 p.m.)
    ════════════════════════════════ */
-#S12 { background: var(--cream-dark); overflow: hidden; }
-#S12 .closing-scene {
-  position: relative; width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-}
-/* Artifacts cascade in the background */
+#S12 { background: var(--champagne); overflow: hidden; }
+#S12 .closing-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .cascade-item {
-  position: absolute;
-  font: 12px 'Inter', sans-serif;
-  color: var(--teal);
-  background: rgba(74,124,126,0.06);
-  padding: 6px 14px; border-radius: 20px;
-  opacity: 0;
-  animation: cascadeIn 0.6s ease forwards;
+  position: absolute; font: 400 12px 'Inter', sans-serif; color: var(--cadet);
+  background: rgba(39,50,72,0.06); padding: 6px 14px; border-radius: 20px;
+  opacity: 0; animation: cascadeIn 0.6s ease forwards;
 }
-@keyframes cascadeIn {
-  0% { opacity: 0; transform: translateY(20px) scale(0.9); }
-  100% { opacity: 0.6; transform: translateY(0) scale(1); }
-}
-.cascade-voice {
-  font: italic 13px 'EB Garamond', serif;
-  color: var(--red-light);
-  background: rgba(196,116,90,0.04);
-}
+@keyframes cascadeIn { 0% { opacity: 0; transform: translateY(20px) scale(0.9); } 100% { opacity: 0.6; transform: translateY(0) scale(1); } }
+.cascade-voice { font: 300 italic 13px 'Inter', sans-serif; color: var(--sienna); background: rgba(203,120,88,0.04); }
 #S12 .closing-center {
   z-index: 10; text-align: center; max-width: 560px; padding: 48px;
-  background: rgba(232,223,211,0.9);
-  border-radius: 4px;
-  backdrop-filter: blur(20px);
+  background: rgba(255,235,210,0.9); border-radius: 4px; backdrop-filter: blur(20px);
 }
 #S12 .closing-final {
-  font: italic 15px/1.6 'EB Garamond', serif; color: var(--teal-dark);
-  margin-top: 20px; opacity: 0;
-  animation: fadeUp 0.8s 2s ease forwards;
+  font: 300 italic 15px/1.6 'Inter', sans-serif; color: var(--cadet);
+  margin-top: 20px; opacity: 0; animation: fadeUp 0.8s 2s ease forwards;
 }
 
 /* ════════════════════════════════
    SCREEN 13 — CARD ON CHAIR
    ════════════════════════════════ */
-#S13 { background: var(--cream); }
+#S13 { background: var(--champagne); }
 .card-object {
   background: #fff; border-radius: 6px; padding: 44px;
   max-width: 420px; width: 88%;
   box-shadow: 0 8px 48px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
-  text-align: center;
-  transform: rotate(-1.5deg);
-  transition: transform 0.4s, box-shadow 0.4s;
-  position: relative;
+  text-align: center; transform: rotate(-1.5deg);
+  transition: transform 0.4s, box-shadow 0.4s; position: relative;
 }
 .card-object:hover {
   transform: rotate(0deg) translateY(-4px);
   box-shadow: 0 16px 64px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
 }
-.card-object .card-q {
-  font: italic 19px/1.55 'EB Garamond', serif; color: var(--dark);
-  margin-bottom: 28px;
-}
+.card-object .card-q { font: 300 italic 18px/1.55 'Inter', sans-serif; color: var(--dark); margin-bottom: 28px; }
 .card-object textarea {
   width: 100%; height: 80px; border: none; border-bottom: 1px solid var(--light);
-  font: 16px/1.5 'EB Garamond', serif; color: var(--dark); resize: none; outline: none;
+  font: 400 15px/1.5 'Inter', sans-serif; color: var(--dark); resize: none; outline: none;
   text-align: center; background: transparent;
 }
 .card-object textarea::placeholder { color: var(--light); }
-.card-object .card-sub {
-  font: 13px 'Inter', sans-serif; color: var(--grey); margin-top: 20px; line-height: 1.6;
-}
+.card-object .card-sub { font: 400 13px 'Inter', sans-serif; color: var(--grey); margin-top: 20px; line-height: 1.6; }
 .card-flip {
-  font: italic 13px 'EB Garamond', serif; color: var(--gold);
-  margin-top: 24px; cursor: pointer;
-  transition: color 0.3s;
+  font: 300 italic 13px 'Inter', sans-serif; color: var(--sienna);
+  margin-top: 24px; cursor: pointer; transition: color 0.3s;
 }
-.card-flip:hover { color: var(--gold-light); }
+.card-flip:hover { color: var(--redwood); }
 
 /* ════════════════════════════════
    SCREEN 14 — WHAT THIS DOES / CLOSE
    ════════════════════════════════ */
-#S14 { background: #1a1a1a; }
-#S14 .final-scene {
-  position: relative; width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-}
-#S14 .final-text {
-  text-align: center; max-width: 580px; padding: 40px; z-index: 5;
-}
-#S14 .ft-body {
-  font: 17px/1.7 'Inter', sans-serif; color: rgba(255,255,255,0.45);
-  margin-bottom: 28px;
-}
+#S14 { background: var(--cadet); }
+#S14 .final-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+#S14 .final-text { text-align: center; max-width: 580px; padding: 40px; z-index: 5; }
+#S14 .ft-body { font: 400 16px/1.7 'Inter', sans-serif; color: rgba(255,255,255,0.45); margin-bottom: 28px; }
 #S14 .ft-quote {
-  font: italic clamp(20px,3vw,26px)/1.45 'EB Garamond', serif;
-  color: var(--cream); border-left: 3px solid var(--gold);
-  padding-left: 24px; text-align: left;
-  margin: 32px 0;
+  font: 300 italic clamp(18px,3vw,24px)/1.45 'Inter', sans-serif;
+  color: var(--champagne); border-left: 3px solid var(--sienna);
+  padding-left: 24px; text-align: left; margin: 32px 0;
 }
-#S14 .ft-wv { font: 13px 'Inter', sans-serif; color: rgba(255,255,255,0.2); margin-top: 48px; }
-#S14 .ft-cta { font: italic 18px 'EB Garamond', serif; color: var(--gold); margin-top: 12px; }
+#S14 .ft-wv { font: 400 13px 'Inter', sans-serif; color: rgba(255,255,255,0.2); margin-top: 48px; }
+#S14 .ft-cta { font: 300 italic 17px 'Inter', sans-serif; color: var(--sienna); margin-top: 12px; }
 
 /* ── Responsive ── */
 @media (max-width: 700px) {
@@ -750,21 +580,21 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 <!-- ═══ S0 COVER ═══ -->
 <div class="sc active" id="S0">
   <div class="particles" id="coverParticles"></div>
-  <div class="cover-fade label" style="font-family:'Inter',sans-serif">Experience Design Concept</div>
+  <div class="cover-fade label">experience design concept</div>
   <h1 class="cover-fade">PEDAL Conference 2026</h1>
-  <div class="cover-fade sub">Same speakers. Same themes. Same venue.<br><em>Different architecture around them.</em></div>
-  <button class="cover-fade enter" onclick="go(1)">Enter the day</button>
-  <div class="foot" style="font-family:'Inter',sans-serif">winded.vertigo · PEDAL Centre, University of Cambridge · 2026</div>
+  <div class="cover-fade sub">same speakers. same themes. same venue.<br><em>different architecture around them.</em></div>
+  <button class="enter" onclick="go(1)">enter the day</button>
+  <div class="foot">winded.vertigo · PEDAL Centre, University of Cambridge · 2026</div>
 </div>
 
 <!-- ═══ S1 QUESTION WALL ═══ -->
 <div class="sc" id="S1">
-  <div class="wall-time">9:00 — Registration</div>
-  <div class="wall-question" id="wallQ">What do children understand about play<br>that adults have forgotten?</div>
+  <div class="wall-time">9:00 a.m. — registration</div>
+  <div class="wall-question" id="wallQ">what do children understand about play<br>that adults have forgotten?</div>
   <div class="wall-surface" id="wallSurface"></div>
   <div class="wall-prompt">
-    <textarea id="wallIn" placeholder="Add yours to the wall…" rows="2"></textarea>
-    <button onclick="addToWall()">Pin</button>
+    <textarea id="wallIn" placeholder="add yours to the wall…" rows="2"></textarea>
+    <button onclick="addToWall()">pin</button>
   </div>
 </div>
 
@@ -772,40 +602,40 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 <div class="sc" id="S2">
   <div class="morgan-scene" id="morganScene">
     <div class="morgan-center">
-      <div class="moment-time">9:40</div>
+      <div class="moment-time">9:40 a.m.</div>
       <div class="moment-speaker">Stephen Morgan MP</div>
-      <div class="moment-note">Keynote. Runs as planned.</div>
-      <div class="moment-detail">The Minister walked through the same question wall as everyone else.</div>
+      <div class="moment-note">keynote. runs as planned.</div>
+      <div class="moment-detail">the minister walked through the same question wall as everyone else.</div>
     </div>
   </div>
 </div>
 
 <!-- ═══ S3 MAKING SPACE ═══ -->
 <div class="sc" id="S3">
-  <div class="time-badge">10:10 — Dr Bo Stjerne Thomsen / LEGO</div>
-  <div class="bench-brief">Using only what is here, make something a child could learn from.</div>
+  <div class="time-badge">10:10 a.m. — Dr Bo Stjerne Thomsen / LEGO</div>
+  <div class="bench-brief">using only what is here, make something a child could learn from.</div>
   <div class="bench" id="bench"></div>
-  <div class="bench-note">Pick up the cardboard. Read the children's cards. Or just watch. All of these are the activity.</div>
+  <div class="bench-note">pick up the cardboard. read the children's cards. or just watch. all of these are the activity.</div>
 </div>
 
 <!-- ═══ S4 HALL OF MIRRORS ═══ -->
 <div class="sc" id="S4">
-  <div class="time-badge">10:40 — Refreshments</div>
+  <div class="time-badge">10:40 a.m. — refreshments</div>
   <div class="table-scene" id="tableScene">
     <div class="table-top">
-      <div class="table-question">How do children learn what risk means?</div>
+      <div class="table-question">how do children learn what risk means?</div>
     </div>
   </div>
-  <div class="scene-label">People from outside the play research field sit at tables with a question from the morning. Ideas refracted through a different lens.</div>
+  <div class="scene-label">people from outside the play research field sit at tables with a question from the morning. ideas refracted through a different lens.</div>
 </div>
 
 <!-- ═══ S5 DRAPER ═══ -->
 <div class="sc" id="S5">
   <div class="draper-scene" id="draperScene">
     <div class="draper-center">
-      <div class="moment-time">11:10</div>
+      <div class="moment-time">11:10 a.m.</div>
       <div class="moment-speaker">Dr Catherine Draper</div>
-      <div class="moment-note">What the data shows.<br>Alongside what children said.</div>
+      <div class="moment-note">what the data shows.<br>alongside what children said.</div>
     </div>
   </div>
 </div>
@@ -814,41 +644,41 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 <div class="sc" id="S6">
   <div class="door-choice">
     <div class="door" onclick="go(7)">
-      <div class="d-label">Session A · 11:45</div>
-      <h3>Building a Community for Policy Change</h3>
-      <p>How research moves into the rooms where decisions are made.</p>
-      <div class="d-foot">Both rooms are the right room.</div>
+      <div class="d-label">session a · 11:45 a.m.</div>
+      <h3>building a community for policy change</h3>
+      <p>how research moves into the rooms where decisions are made.</p>
+      <div class="d-foot">both rooms are the right room.</div>
     </div>
     <div class="door-divider"></div>
     <div class="door" onclick="go(7)">
-      <div class="d-label">Session B · 11:45</div>
-      <h3>Neurodiversity-Affirming Play</h3>
-      <p>Multiple ways in. Watching treated as participation. No single mode privileged.</p>
-      <div class="d-foot">Both rooms are the right room.</div>
+      <div class="d-label">session b · 11:45 a.m.</div>
+      <h3>neurodiversity-affirming play</h3>
+      <p>multiple ways in. watching treated as participation. no single mode privileged.</p>
+      <div class="d-foot">both rooms are the right room.</div>
     </div>
   </div>
 </div>
 
 <!-- ═══ S7 LUNCH COLLAGE ═══ -->
 <div class="sc" id="S7">
-  <div class="collage-instruct">12:25 — Add something from this morning that is still with you.</div>
+  <div class="collage-instruct">12:25 p.m. — add something from this morning that is still with you.</div>
   <div class="collage-surface" id="collageSurface"></div>
-  <div class="collage-hint">Click anywhere on the surface, or type below and press enter.</div>
+  <div class="collage-hint">click anywhere on the surface, or type below and press enter.</div>
 </div>
 
 <!-- ═══ S8 SANDSETER / RISKY PLAY ═══ -->
 <div class="sc" id="S8">
   <div class="dark-scene" id="darkScene">
     <div style="text-align:center">
-      <div class="breath-line breath-1">Thirty seconds of unedited footage.</div>
-      <div class="breath-line breath-2">Children in risky play. Sound on.</div>
-      <div class="breath-line breath-3">No framing. No commentary.</div>
+      <div class="breath-line breath-1">thirty seconds of unedited footage.</div>
+      <div class="breath-line breath-2">children in risky play. sound on.</div>
+      <div class="breath-line breath-3">no framing. no commentary.</div>
     </div>
     <div class="dark-hold"></div>
     <div class="speaker-emerge">
-      <div class="moment-time">13:30</div>
+      <div class="moment-time">1:30 p.m.</div>
       <div class="moment-speaker" style="margin-top:12px">Prof Ellen Beate Hansen Sandseter</div>
-      <div class="moment-note" style="margin-top:20px">The audience has just seen what she is about to analyse, from the children's perspective, before the adult interpretation arrives.</div>
+      <div class="moment-note" style="margin-top:20px">the audience has just seen what she is about to analyse, from the children's perspective, before the adult interpretation arrives.</div>
     </div>
   </div>
 </div>
@@ -856,26 +686,26 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 <!-- ═══ S9 QUIET ROOM ═══ -->
 <div class="sc" id="S9">
   <div class="quiet-glow" id="quietGlow"></div>
-  <div class="quiet-text">Low light. No task. No facilitation.<br><br>A place to sit with what the day<br>has produced so far.</div>
-  <div class="quiet-aside">Needing quiet is not opting out. It is a different way of being in.</div>
+  <div class="quiet-text">low light. no task. no facilitation.<br><br>a place to sit with what the day<br>has produced so far.</div>
+  <div class="quiet-aside">needing quiet is not opting out. it is a different way of being in.</div>
 </div>
 
 <!-- ═══ S10 CURIOSITY ═══ -->
 <div class="sc" id="S10">
   <div class="curiosity-scene" id="curiosityScene">
     <div class="curiosity-center">
-      <div class="moment-time">14:50 — Refreshments</div>
-      <div class="moment-speaker" style="font-size:clamp(22px,3vw,30px)">The Curiosity Display</div>
-      <div class="curiosity-note">What questions has the day opened that were not there this morning?</div>
+      <div class="moment-time">2:50 p.m. — refreshments</div>
+      <div class="moment-speaker" style="font-size:clamp(22px,3vw,30px)">the curiosity display</div>
+      <div class="curiosity-note">what questions has the day opened that were not there this morning?</div>
     </div>
   </div>
 </div>
 
 <!-- ═══ S11 MAPPING ═══ -->
 <div class="sc" id="S11">
-  <div class="time-badge">15:15 — D'Sa & Grenier</div>
+  <div class="time-badge">3:15 p.m. — D'Sa & Grenier</div>
   <div class="map-canvas" id="mapCanvas">
-    <div class="map-timer">Ten minutes. No debrief required.</div>
+    <div class="map-timer">ten minutes. no debrief required.</div>
   </div>
 </div>
 
@@ -883,10 +713,10 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 <div class="sc" id="S12">
   <div class="closing-scene" id="closingScene">
     <div class="closing-center">
-      <div class="moment-time">16:15</div>
+      <div class="moment-time">4:15 p.m.</div>
       <div class="moment-speaker">Prof Jenny Gibson</div>
-      <div class="moment-note" style="margin-top:12px">The collage is displayed at the front. The room produced these today.</div>
-      <div class="closing-final">The conference ends by acknowledging that the people it is most about were not in the room, and asking what that means for next year.</div>
+      <div class="moment-note" style="margin-top:12px">the collage is displayed at the front. the room produced these today.</div>
+      <div class="closing-final">the conference ends by acknowledging that the people it is most about were not in the room, and asking what that means for next year.</div>
     </div>
   </div>
 </div>
@@ -894,10 +724,10 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 <!-- ═══ S13 CARD ON CHAIR ═══ -->
 <div class="sc" id="S13">
   <div class="card-object">
-    <div class="card-q">What is one thing you want to try, change, or pay attention to in the next two weeks, however small?</div>
-    <textarea placeholder="Write here, or don't."></textarea>
-    <div class="card-sub">Take it with you or leave it on the table.</div>
-    <div class="card-flip">The garden party invitation is on the back.</div>
+    <div class="card-q">what is one thing you want to try, change, or pay attention to in the next two weeks, however small?</div>
+    <textarea placeholder="write here, or don't."></textarea>
+    <div class="card-sub">take it with you or leave it on the table.</div>
+    <div class="card-flip">the garden party invitation is on the back.</div>
   </div>
 </div>
 
@@ -906,44 +736,41 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   <div class="final-scene">
     <div class="particles" id="finalParticles"></div>
     <div class="final-text">
-      <div class="ft-body">The day's content stays intact. What changes is that the day accumulates. People arrive with something, do something, encounter something that surprises them, and leave with a trace they can return to.</div>
-      <div class="ft-quote">That is what the PEDAL programme argues for, in every session, all day. This design lets the format say the same thing.</div>
+      <div class="ft-body">the day's content stays intact. what changes is that the day accumulates. people arrive with something, do something, encounter something that surprises them, and leave with a trace they can return to.</div>
+      <div class="ft-quote">that is what the PEDAL programme argues for, in every session, all day. this design lets the format say the same thing.</div>
       <div class="ft-wv">winded.vertigo · windedvertigo.com · hello@windedvertigo.com</div>
-      <div class="ft-cta">This is what's possible. What are you trying to change?</div>
+      <div class="ft-cta">this is what's possible. what are you trying to change?</div>
     </div>
   </div>
 </div>
 
 <!-- ═══ NAV ═══ -->
 <div id="nav">
-  <button class="n-btn" id="btnP" onclick="go(cur-1)">← Back</button>
+  <button class="n-btn" id="btnP" onclick="go(cur-1)">← back</button>
   <div>
     <span class="n-time" id="nTime"></span>
     <span class="n-label" id="nLabel"></span>
   </div>
-  <button class="n-btn" id="btnN" onclick="go(cur+1)">Next →</button>
+  <button class="n-btn" id="btnN" onclick="go(cur+1)">next →</button>
 </div>
 
 <script>
-/* ══════════════════════════════════════
-   NAVIGATION
-   ══════════════════════════════════════ */
 const META = [
-  { t:'', l:'PEDAL Conference 2026', nav:false },
-  { t:'9:00', l:'The Question Wall' },
-  { t:'9:40', l:'Stephen Morgan MP' },
-  { t:'10:10', l:'The Making Space' },
-  { t:'10:40', l:'Hall of Mirrors & Bumper Cars' },
-  { t:'11:10', l:'Dr Catherine Draper' },
-  { t:'11:45', l:'Choose Your Room' },
-  { t:'12:25', l:'The Collage' },
-  { t:'13:30', l:'Risky Play' },
-  { t:'14:15', l:'The Quiet Room' },
-  { t:'14:50', l:'The Curiosity Display' },
-  { t:'15:15', l:'Map Your Context' },
-  { t:'16:15', l:'Closing — Prof Gibson' },
-  { t:'', l:'The Card on the Chair' },
-  { t:'', l:'What This Does' },
+  { t:'', l:'PEDAL conference 2026', nav:false },
+  { t:'9:00 a.m.', l:'the question wall' },
+  { t:'9:40 a.m.', l:'Stephen Morgan MP' },
+  { t:'10:10 a.m.', l:'the making space' },
+  { t:'10:40 a.m.', l:'hall of mirrors & bumper cars' },
+  { t:'11:10 a.m.', l:'Dr Catherine Draper' },
+  { t:'11:45 a.m.', l:'choose your room' },
+  { t:'12:25 p.m.', l:'the collage' },
+  { t:'1:30 p.m.', l:'risky play' },
+  { t:'2:15 p.m.', l:'the quiet room' },
+  { t:'2:50 p.m.', l:'the curiosity display' },
+  { t:'3:15 p.m.', l:'map your context' },
+  { t:'4:15 p.m.', l:'closing — Prof Gibson' },
+  { t:'', l:'the card on the chair' },
+  { t:'', l:'what this does' },
 ];
 
 const screens = document.querySelectorAll('.sc');
@@ -963,13 +790,11 @@ function go(i) {
   const prev = screens[cur];
   const next = screens[i];
 
-  // Exit current
   prev.classList.remove('active');
   prev.classList.add(forward ? 'exit-left' : 'exit-right');
 
-  // Prep incoming: place it offscreen instantly, then animate in
   next.classList.add(forward ? 'enter-right' : 'enter-left');
-  next.offsetHeight; // force reflow
+  next.offsetHeight;
   next.classList.remove('enter-right', 'enter-left');
   next.classList.add('active');
 
@@ -981,7 +806,6 @@ function go(i) {
   btnN.disabled = i === screens.length - 1;
   prog.style.width = (i / (screens.length - 1) * 100) + '%';
 
-  // triggers
   if (i === 1) initWall();
   if (i === 2) initMorgan();
   if (i === 3) initBench();
@@ -992,19 +816,14 @@ function go(i) {
   if (i === 11) initMap();
   if (i === 12) initClosing();
 
-  setTimeout(() => {
-    prev.classList.remove('exit-left', 'exit-right');
-    transitioning = false;
-  }, 800);
+  setTimeout(() => { prev.classList.remove('exit-left', 'exit-right'); transitioning = false; }, 800);
 }
 
-// Keys
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
   if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
   if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
 });
-// Swipe
 let tx = 0;
 document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
 document.addEventListener('touchend', e => {
@@ -1013,19 +832,16 @@ document.addEventListener('touchend', e => {
   if (Math.abs(dx) > 60) { dx < 0 ? go(cur+1) : go(cur-1); }
 }, {passive:true});
 
-/* ══════════════════════════════════════
-   PARTICLES
-   ══════════════════════════════════════ */
+/* ── PARTICLES ── */
 function spawnParticles(container, count, opts) {
   for (let i = 0; i < count; i++) {
     const p = document.createElement('div');
     p.className = 'particle';
     const size = opts.minSize + Math.random() * (opts.maxSize - opts.minSize);
-    p.style.width = size + 'px';
-    p.style.height = size + 'px';
+    p.style.width = size + 'px'; p.style.height = size + 'px';
     p.style.left = Math.random() * 100 + '%';
     p.style.top = (40 + Math.random() * 60) + '%';
-    p.style.background = opts.color || 'rgba(196,154,108,0.3)';
+    p.style.background = opts.color || 'rgba(203,120,88,0.3)';
     p.style.setProperty('--po', (0.1 + Math.random() * 0.25).toString());
     p.style.setProperty('--py', -(100 + Math.random() * 300) + 'px');
     p.style.setProperty('--px', (Math.random() * 60 - 30) + 'px');
@@ -1034,58 +850,47 @@ function spawnParticles(container, count, opts) {
     container.appendChild(p);
   }
 }
-spawnParticles(document.getElementById('coverParticles'), 20, { minSize: 2, maxSize: 5, color: 'rgba(196,154,108,0.3)' });
-spawnParticles(document.getElementById('finalParticles'), 15, { minSize: 2, maxSize: 4, color: 'rgba(196,154,108,0.25)' });
+spawnParticles(document.getElementById('coverParticles'), 20, { minSize: 2, maxSize: 5, color: 'rgba(203,120,88,0.3)' });
+spawnParticles(document.getElementById('finalParticles'), 15, { minSize: 2, maxSize: 4, color: 'rgba(203,120,88,0.25)' });
 
-/* ══════════════════════════════════════
-   QUESTION WALL
-   ══════════════════════════════════════ */
+/* ── QUESTION WALL ── */
 const WALL_CARDS = [
-  {t:"They know that play doesn't need a reason.", c:false, a:"Policy researcher"},
-  {t:"Playing is how I find out what things do.", c:true, a:"Age 6"},
-  {t:"That losing is part of it. That you try again.", c:true, a:"Age 7"},
-  {t:"Children know play is serious work — we've just decided it isn't.", c:false, a:"Early years teacher"},
-  {t:"When I play with my friend we make a world and it's real.", c:true, a:"Age 5"},
-  {t:"The freedom to be bad at something without consequence.", c:false, a:"Developmental psychologist"},
-  {t:"You don't have to win. You just have to play.", c:true, a:"Age 6"},
-  {t:"That boredom is where the best play starts.", c:false, a:"Architect"},
-  {t:"I think grown-ups forgot how to pretend.", c:true, a:"Age 5"},
-  {t:"Play is how children rehearse agency.", c:false, a:"Community researcher"},
-  {t:"My mum says I play too much but I think she doesn't play enough.", c:true, a:"Age 7"},
-  {t:"Risk assessment happens naturally in play — children are better at it than we think.", c:false, a:"Professor of Education"},
-  {t:"When you play you can be anyone.", c:true, a:"Age 6"},
-  {t:"The moment a child looks up and says \u2018watch this\u2019 — that is the moment.", c:false, a:"Paediatrician"},
-  {t:"I like making houses for beetles. You have to think about what beetles want.", c:true, a:"Age 5"},
-  {t:"We keep asking what children learn from play. We never ask what play learns from children.", c:false, a:"PhD researcher"},
+  {t:"they know that play doesn't need a reason.", c:false, a:"policy researcher"},
+  {t:"playing is how I find out what things do.", c:true, a:"age 6"},
+  {t:"that losing is part of it. that you try again.", c:true, a:"age 7"},
+  {t:"children know play is serious work — we've just decided it isn't.", c:false, a:"early years teacher"},
+  {t:"when I play with my friend we make a world and it's real.", c:true, a:"age 5"},
+  {t:"the freedom to be bad at something without consequence.", c:false, a:"developmental psychologist"},
+  {t:"you don't have to win. you just have to play.", c:true, a:"age 6"},
+  {t:"that boredom is where the best play starts.", c:false, a:"architect"},
+  {t:"I think grown-ups forgot how to pretend.", c:true, a:"age 5"},
+  {t:"play is how children rehearse agency.", c:false, a:"community researcher"},
+  {t:"my mum says I play too much but I think she doesn't play enough.", c:true, a:"age 7"},
+  {t:"risk assessment happens naturally in play — children are better at it than we think.", c:false, a:"Professor of Education"},
+  {t:"when you play you can be anyone.", c:true, a:"age 6"},
+  {t:"the moment a child looks up and says \u2018watch this\u2019 — that is the moment.", c:false, a:"paediatrician"},
+  {t:"I like making houses for beetles. you have to think about what beetles want.", c:true, a:"age 5"},
+  {t:"we keep asking what children learn from play. we never ask what play learns from children.", c:false, a:"PhD researcher"},
 ];
 let wallInit = false;
 function initWall() {
   if (wallInit) return; wallInit = true;
   const s = document.getElementById('wallSurface');
-  const W = s.offsetWidth, H = s.offsetHeight;
+  const W = s.offsetWidth;
   const cols = Math.floor(W / 210);
-  const rows = Math.ceil(WALL_CARDS.length / cols);
-
   WALL_CARDS.forEach((c, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
     const el = document.createElement('div');
     el.className = 'wc' + (c.c ? ' child' : '');
-    const baseX = col * (W / cols) + 15 + Math.random() * 20;
-    const baseY = 40 + row * 160 + Math.random() * 30;
-    el.style.left = baseX + 'px';
-    el.style.top = baseY + 'px';
+    el.style.left = (col * (W / cols) + 15 + Math.random() * 20) + 'px';
+    el.style.top = (40 + row * 160 + Math.random() * 30) + 'px';
     el.style.setProperty('--d', (i * 0.15) + 's');
     el.style.setProperty('--r', (Math.random()*5-2.5) + 'deg');
     el.innerHTML = c.t + '<div class="wc-attr">— ' + c.a + '</div>';
     s.appendChild(el);
   });
-  // fade question after cards populate
-  setTimeout(() => {
-    const q = document.getElementById('wallQ');
-    q.style.opacity = '0';
-    q.style.transition = 'opacity 1.5s';
-  }, 2500);
+  setTimeout(() => { const q = document.getElementById('wallQ'); q.style.opacity = '0'; q.style.transition = 'opacity 1.5s'; }, 2500);
 }
 function addToWall() {
   const inp = document.getElementById('wallIn');
@@ -1098,7 +903,7 @@ function addToWall() {
   el.style.setProperty('--d', '0s');
   el.style.setProperty('--r', (Math.random()*5-2.5) + 'deg');
   el.style.zIndex = '10';
-  el.innerHTML = t + '<div class="wc-attr">— You</div>';
+  el.innerHTML = t + '<div class="wc-attr">— you</div>';
   s.appendChild(el);
   inp.value = '';
 }
@@ -1106,9 +911,7 @@ document.getElementById('wallIn').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addToWall(); }
 });
 
-/* ══════════════════════════════════════
-   MORGAN — ghost wall behind
-   ══════════════════════════════════════ */
+/* ── MORGAN ── */
 let morganInit = false;
 function initMorgan() {
   if (morganInit) return; morganInit = true;
@@ -1131,31 +934,25 @@ function initMorgan() {
     el.className = 'ghost-card';
     el.textContent = g;
     el.style.setProperty('--r', positions[i].r);
-    Object.keys(positions[i]).forEach(k => {
-      if (k !== 'r') el.style[k] = positions[i][k];
-    });
+    Object.keys(positions[i]).forEach(k => { if (k !== 'r') el.style[k] = positions[i][k]; });
     scene.insertBefore(el, scene.firstChild);
   });
 }
 
-/* ══════════════════════════════════════
-   MAKING SPACE — draggable materials
-   ══════════════════════════════════════ */
+/* ── MAKING SPACE ── */
 let benchInit = false;
 function initBench() {
   if (benchInit) return; benchInit = true;
   const b = document.getElementById('bench');
   const W = b.offsetWidth, H = b.offsetHeight;
-
   const children_cards = [
-    {t:"I like making houses for beetles. You have to think about what beetles want.", a:"Age 5"},
-    {t:"My best thing is when I make something and it works and nobody told me how.", a:"Age 6"},
-    {t:"I made a rocket from a box and it went to the moon in my head.", a:"Age 5"},
-    {t:"You can make anything if you have tape.", a:"Age 7"},
+    {t:"I like making houses for beetles. you have to think about what beetles want.", a:"age 5"},
+    {t:"my best thing is when I make something and it works and nobody told me how.", a:"age 6"},
+    {t:"I made a rocket from a box and it went to the moon in my head.", a:"age 5"},
+    {t:"you can make anything if you have tape.", a:"age 7"},
   ];
-  const colours = ['#C4745A','#4A7C7E','#C49A6C','#d4947e','#6a9fa1','#dbb990','#8B6F4E','#A0522D','#7a9e7e','#b8860b'];
+  const colours = ['#b15043','#273248','#cb7858','#b15043','#273248','#cb7858','#43b187','#436db1','#58cbb2','#5872cb'];
   const items = [];
-
   children_cards.forEach((c, i) => {
     const el = document.createElement('div');
     el.className = 'material mat-card';
@@ -1163,33 +960,22 @@ function initBench() {
     el.innerHTML = '\u201c' + c.t + '\u201d<div class="mc-attr">\u2014 ' + c.a + '</div>';
     el.style.left = (40 + i * 220) + 'px';
     el.style.top = (60 + Math.random() * 80) + 'px';
-    b.appendChild(el);
-    items.push(el);
+    b.appendChild(el); items.push(el);
   });
-
-  // Scattered blocks of varying sizes
-  const blockSizes = [
-    {w:80,h:50}, {w:100,h:40}, {w:60,h:60}, {w:120,h:35},
-    {w:70,h:70}, {w:90,h:45}, {w:55,h:55}, {w:110,h:30},
-    {w:65,h:80}, {w:85,h:50},
-  ];
+  const blockSizes = [{w:80,h:50},{w:100,h:40},{w:60,h:60},{w:120,h:35},{w:70,h:70},{w:90,h:45},{w:55,h:55},{w:110,h:30},{w:65,h:80},{w:85,h:50}];
   for (let i = 0; i < 10; i++) {
     const el = document.createElement('div');
     el.className = 'material mat-block';
     const sz = blockSizes[i];
-    el.style.width = sz.w + 'px';
-    el.style.height = sz.h + 'px';
+    el.style.width = sz.w + 'px'; el.style.height = sz.h + 'px';
     el.style.background = colours[i % colours.length];
     el.style.borderRadius = (2 + Math.random() * 6) + 'px';
     el.style.left = (30 + Math.random() * (W - 180)) + 'px';
     el.style.top = (180 + Math.random() * (H - 380)) + 'px';
     el.style.transform = 'rotate(' + (Math.random()*25-12) + 'deg)';
     el.style.opacity = (0.7 + Math.random() * 0.3).toString();
-    b.appendChild(el);
-    items.push(el);
+    b.appendChild(el); items.push(el);
   }
-
-  // Strips/tubes
   for (let i = 0; i < 6; i++) {
     const el = document.createElement('div');
     el.className = 'material mat-tube';
@@ -1200,28 +986,15 @@ function initBench() {
     el.style.left = (60 + Math.random() * (W - 250)) + 'px';
     el.style.top = (200 + Math.random() * (H - 400)) + 'px';
     el.style.transform = 'rotate(' + (Math.random()*40-20) + 'deg)';
-    b.appendChild(el);
-    items.push(el);
+    b.appendChild(el); items.push(el);
   }
-
   items.forEach(el => makeDraggable(el));
 }
-
 function makeDraggable(el) {
   let ox, oy;
-  const down = (ex, ey) => {
-    el.classList.add('dragging');
-    const r = el.getBoundingClientRect();
-    ox = ex - r.left; oy = ey - r.top;
-  };
-  const move = (ex, ey) => {
-    if (!el.classList.contains('dragging')) return;
-    el.style.left = (ex - ox) + 'px';
-    el.style.top = (ey - oy) + 'px';
-    el.style.transform = 'rotate(0deg)';
-  };
+  const down = (ex, ey) => { el.classList.add('dragging'); const r = el.getBoundingClientRect(); ox = ex - r.left; oy = ey - r.top; };
+  const move = (ex, ey) => { if (!el.classList.contains('dragging')) return; el.style.left = (ex - ox) + 'px'; el.style.top = (ey - oy) + 'px'; el.style.transform = 'rotate(0deg)'; };
   const up = () => { el.classList.remove('dragging'); };
-
   el.addEventListener('mousedown', e => { e.preventDefault(); down(e.clientX, e.clientY); });
   document.addEventListener('mousemove', e => move(e.clientX, e.clientY));
   document.addEventListener('mouseup', up);
@@ -1230,23 +1003,18 @@ function makeDraggable(el) {
   document.addEventListener('touchend', up);
 }
 
-/* ══════════════════════════════════════
-   HALL OF MIRRORS
-   ══════════════════════════════════════ */
+/* ── HALL OF MIRRORS ── */
 let tableInit = false;
 function initTable() {
   if (tableInit) return; tableInit = true;
   const scene = document.getElementById('tableScene');
   const lenses = [
-    {role:'Architect', text:'Children test structural limits every time they stack. They already understand load-bearing.'},
-    {role:'Games Developer', text:'Play without failure states is not play. The best games let you fail safely a hundred times.'},
-    {role:'Chef', text:'A child cooking is a child doing chemistry with their hands. Mess is methodology.'},
-    {role:'Product Designer', text:'Children prototype constantly. They just don\u2019t call it that.'},
+    {role:'architect', text:'children test structural limits every time they stack. they already understand load-bearing.'},
+    {role:'games developer', text:'play without failure states is not play. the best games let you fail safely a hundred times.'},
+    {role:'chef', text:'a child cooking is a child doing chemistry with their hands. mess is methodology.'},
+    {role:'product designer', text:'children prototype constantly. they just don\u2019t call it that.'},
   ];
-  const positions = [
-    {left:'6%',top:'12%'}, {right:'6%',top:'16%'},
-    {left:'4%',bottom:'28%'}, {right:'4%',bottom:'24%'},
-  ];
+  const positions = [{left:'6%',top:'12%'},{right:'6%',top:'16%'},{left:'4%',bottom:'28%'},{right:'4%',bottom:'24%'}];
   lenses.forEach((l, i) => {
     const el = document.createElement('div');
     el.className = 'table-lens';
@@ -1257,26 +1025,23 @@ function initTable() {
   });
 }
 
-/* ══════════════════════════════════════
-   DRAPER — floating voices across full screen
-   ══════════════════════════════════════ */
+/* ── DRAPER ── */
 let draperInit = false;
 function initDraper() {
   if (draperInit) return; draperInit = true;
   const scene = document.getElementById('draperScene');
   const voices = [
-    {t:"When I run really fast my legs go tingly and I like it.", a:"Age 5"},
-    {t:"The playground is too small. We need more space for hiding.", a:"Age 7"},
-    {t:"My favourite thing is when nobody tells me what to play.", a:"Age 6"},
-    {t:"I don't like sitting. I want to move all the time.", a:"Age 5"},
-    {t:"When it rains we play better because the teachers go inside.", a:"Age 7"},
+    {t:"when I run really fast my legs go tingly and I like it.", a:"age 5"},
+    {t:"the playground is too small. we need more space for hiding.", a:"age 7"},
+    {t:"my favourite thing is when nobody tells me what to play.", a:"age 6"},
+    {t:"I don't like sitting. I want to move all the time.", a:"age 5"},
+    {t:"when it rains we play better because the teachers go inside.", a:"age 7"},
   ];
   const yPositions = [15, 30, 50, 65, 82];
   voices.forEach((v, i) => {
     const el = document.createElement('div');
     el.className = 'floating-voice';
-    el.style.right = '8%';
-    el.style.top = yPositions[i] + '%';
+    el.style.right = '8%'; el.style.top = yPositions[i] + '%';
     el.style.animationDelay = (1 + i * 1.2) + 's';
     el.style.animationDuration = (7 + i * 0.5) + 's';
     el.style.setProperty('--wx', -(20 + Math.random() * 40) + 'px');
@@ -1285,156 +1050,111 @@ function initDraper() {
   });
 }
 
-/* ══════════════════════════════════════
-   COLLAGE — click to place
-   ══════════════════════════════════════ */
+/* ── COLLAGE ── */
 let collageInit = false;
 function initCollage() {
   if (collageInit) return; collageInit = true;
   const s = document.getElementById('collageSurface');
-  const W = s.offsetWidth, H = s.offsetHeight;
-
   const fragments = [
-    {t:'the gap between what we study and how we gather', color:'var(--teal-dark)', bg:'rgba(74,124,126,0.07)'},
-    {t:'beetles need houses too', color:'var(--red)', bg:'rgba(196,116,90,0.05)', italic:true},
-    {t:'the minister and the teacher', color:'var(--dark)', bg:'rgba(45,45,45,0.04)'},
-    {t:'what if boredom is the beginning', color:'var(--gold)', bg:'rgba(196,154,108,0.07)'},
-    {t:'children prototype constantly', color:'var(--teal)', bg:'rgba(74,124,126,0.05)'},
-    {t:'watch this', color:'var(--red-light)', bg:'rgba(196,116,90,0.04)', italic:true},
-    {t:'mess is methodology', color:'var(--teal-dark)', bg:'rgba(74,124,126,0.05)'},
+    {t:'the gap between what we study and how we gather', color:'var(--cadet)', bg:'rgba(39,50,72,0.07)'},
+    {t:'beetles need houses too', color:'var(--redwood)', bg:'rgba(177,80,67,0.05)', italic:true},
+    {t:'the minister and the teacher', color:'var(--dark)', bg:'rgba(39,50,72,0.04)'},
+    {t:'what if boredom is the beginning', color:'var(--sienna)', bg:'rgba(203,120,88,0.07)'},
+    {t:'children prototype constantly', color:'var(--cadet)', bg:'rgba(39,50,72,0.05)'},
+    {t:'watch this', color:'var(--redwood)', bg:'rgba(177,80,67,0.04)', italic:true},
+    {t:'mess is methodology', color:'var(--cadet)', bg:'rgba(39,50,72,0.05)'},
   ];
   fragments.forEach((f, i) => {
     const el = document.createElement('div');
     el.className = 'c-fragment c-text';
-    el.style.left = (5 + Math.random() * 70) + '%';
-    el.style.top = (5 + Math.random() * 65) + '%';
-    el.style.color = f.color;
-    el.style.background = f.bg;
+    el.style.left = (5 + Math.random() * 70) + '%'; el.style.top = (5 + Math.random() * 65) + '%';
+    el.style.color = f.color; el.style.background = f.bg;
     el.style.fontSize = (13 + Math.random() * 5) + 'px';
     el.style.setProperty('--fr', (Math.random()*6-3) + 'deg');
     el.style.setProperty('--fx', (Math.random() > 0.5 ? '' : '-') + (40 + Math.random() * 60) + 'px');
     el.style.setProperty('--fy', (Math.random() > 0.5 ? '' : '-') + (20 + Math.random() * 40) + 'px');
     el.style.animationDelay = (i * 0.4) + 's';
     if (f.italic) el.style.fontStyle = 'italic';
-    el.textContent = f.t;
-    s.appendChild(el);
+    el.textContent = f.t; s.appendChild(el);
   });
-
-  // Colour strips from the edges
-  const stripColours = ['var(--teal)','var(--red)','var(--gold)','var(--teal-light)','var(--red-light)'];
+  const stripColours = ['var(--cadet)','var(--redwood)','var(--sienna)','var(--mint)','var(--lavender)'];
   for (let i = 0; i < 10; i++) {
     const el = document.createElement('div');
     el.className = 'c-fragment c-strip';
-    el.style.left = (3 + Math.random() * 85) + '%';
-    el.style.top = (3 + Math.random() * 85) + '%';
+    el.style.left = (3 + Math.random() * 85) + '%'; el.style.top = (3 + Math.random() * 85) + '%';
     el.style.width = (30 + Math.random() * 120) + 'px';
     el.style.background = stripColours[i % stripColours.length];
     el.style.setProperty('--o', (0.15 + Math.random() * 0.3).toString());
     el.style.setProperty('--fr', (Math.random()*40-20) + 'deg');
     el.style.setProperty('--fx', (Math.random() > 0.5 ? '80' : '-80') + 'px');
     el.style.setProperty('--fy', '0px');
-    el.style.animationDelay = (0.2 + i * 0.15) + 's';
-    s.appendChild(el);
+    el.style.animationDelay = (0.2 + i * 0.15) + 's'; s.appendChild(el);
   }
-
-  // Circles
   for (let i = 0; i < 8; i++) {
     const el = document.createElement('div');
     el.className = 'c-fragment c-circle';
     const sz = 8 + Math.random() * 35;
     el.style.width = sz + 'px'; el.style.height = sz + 'px';
-    el.style.left = (8 + Math.random() * 80) + '%';
-    el.style.top = (8 + Math.random() * 75) + '%';
+    el.style.left = (8 + Math.random() * 80) + '%'; el.style.top = (8 + Math.random() * 75) + '%';
     el.style.background = stripColours[i % stripColours.length];
     el.style.setProperty('--o', (0.1 + Math.random() * 0.25).toString());
-    el.style.setProperty('--fr', '0deg');
-    el.style.setProperty('--fx', '0px');
+    el.style.setProperty('--fr', '0deg'); el.style.setProperty('--fx', '0px');
     el.style.setProperty('--fy', (30 + Math.random() * 50) + 'px');
-    el.style.animationDelay = (0.5 + i * 0.2) + 's';
-    s.appendChild(el);
+    el.style.animationDelay = (0.5 + i * 0.2) + 's'; s.appendChild(el);
   }
-
-  // Children's archive drawings (abstract shapes)
   for (let i = 0; i < 4; i++) {
     const el = document.createElement('div');
     el.className = 'c-fragment c-drawing';
     const sz = 30 + Math.random() * 50;
     el.style.width = sz + 'px'; el.style.height = (sz * 0.7 + Math.random() * 20) + 'px';
-    el.style.left = (15 + Math.random() * 60) + '%';
-    el.style.top = (15 + Math.random() * 55) + '%';
+    el.style.left = (15 + Math.random() * 60) + '%'; el.style.top = (15 + Math.random() * 55) + '%';
     el.style.borderColor = stripColours[i % stripColours.length];
     el.style.setProperty('--o', '0.15');
     el.style.setProperty('--fr', (Math.random()*20-10) + 'deg');
-    el.style.setProperty('--fx', '0px');
-    el.style.setProperty('--fy', '20px');
-    el.style.animationDelay = (1 + i * 0.3) + 's';
-    s.appendChild(el);
+    el.style.setProperty('--fx', '0px'); el.style.setProperty('--fy', '20px');
+    el.style.animationDelay = (1 + i * 0.3) + 's'; s.appendChild(el);
   }
 }
-
-// Click-to-place on collage
 document.getElementById('collageSurface').addEventListener('click', function(e) {
   if (cur !== 7) return;
-  const text = prompt('Add something from this morning that is still with you:');
+  const text = prompt('add something from this morning that is still with you:');
   if (!text || !text.trim()) return;
   const el = document.createElement('div');
   el.className = 'c-fragment c-user';
-  el.style.left = e.clientX + 'px';
-  el.style.top = e.clientY + 'px';
-  el.style.position = 'absolute';
-  el.style.setProperty('--o', '0.9');
-  el.style.setProperty('--fr', (Math.random()*4-2) + 'deg');
-  el.style.setProperty('--fx', '0px');
-  el.style.setProperty('--fy', '0px');
-  el.textContent = text.trim();
-  this.appendChild(el);
+  el.style.left = e.clientX + 'px'; el.style.top = e.clientY + 'px'; el.style.position = 'absolute';
+  el.style.setProperty('--o', '0.9'); el.style.setProperty('--fr', (Math.random()*4-2) + 'deg');
+  el.style.setProperty('--fx', '0px'); el.style.setProperty('--fy', '0px');
+  el.textContent = text.trim(); this.appendChild(el);
 });
 
-/* ══════════════════════════════════════
-   QUIET ROOM — mouse-responsive glow
-   ══════════════════════════════════════ */
+/* ── QUIET ROOM ── */
 document.getElementById('S9').addEventListener('mousemove', function(e) {
   const glow = document.getElementById('quietGlow');
-  const x = e.clientX, y = e.clientY;
-  glow.style.left = x + 'px';
-  glow.style.top = y + 'px';
-  glow.style.transform = 'translate(-50%, -50%)';
-  glow.style.width = '400px';
-  glow.style.height = '400px';
-  glow.style.opacity = '1';
+  glow.style.left = e.clientX + 'px'; glow.style.top = e.clientY + 'px';
+  glow.style.transform = 'translate(-50%, -50%)'; glow.style.width = '400px'; glow.style.height = '400px'; glow.style.opacity = '1';
 });
 document.getElementById('S9').addEventListener('mouseleave', function() {
   const glow = document.getElementById('quietGlow');
-  glow.style.left = '50%';
-  glow.style.top = '50%';
-  glow.style.transform = 'translate(-50%, -50%)';
-  glow.style.width = '300px';
-  glow.style.height = '300px';
+  glow.style.left = '50%'; glow.style.top = '50%';
+  glow.style.transform = 'translate(-50%, -50%)'; glow.style.width = '300px'; glow.style.height = '300px';
 });
 
-/* ══════════════════════════════════════
-   CURIOSITY DISPLAY
-   ══════════════════════════════════════ */
+/* ── CURIOSITY ── */
 let curiosityInit = false;
 function initCuriosity() {
   if (curiosityInit) return; curiosityInit = true;
   const scene = document.getElementById('curiosityScene');
   const questions = [
-    {t:"What happens to play when screens are always available?", child:false},
-    {t:"Why do grown-ups only let us play at certain times?", child:true},
-    {t:"How do we measure something that resists measurement?", child:false},
-    {t:"Can you play wrong?", child:true},
-    {t:"What would a city designed by children actually look like?", child:false},
-    {t:"Why don't teachers play with us more?", child:true},
-    {t:"Is risk a thing we manage or a thing we need?", child:false},
-    {t:"What counts as outside?", child:true},
+    {t:"what happens to play when screens are always available?", child:false},
+    {t:"why do grown-ups only let us play at certain times?", child:true},
+    {t:"how do we measure something that resists measurement?", child:false},
+    {t:"can you play wrong?", child:true},
+    {t:"what would a city designed by children actually look like?", child:false},
+    {t:"why don't teachers play with us more?", child:true},
+    {t:"is risk a thing we manage or a thing we need?", child:false},
+    {t:"what counts as outside?", child:true},
   ];
-  const positions = [
-    {left:'5%',top:'8%'}, {right:'8%',top:'15%'},
-    {left:'3%',top:'38%'}, {right:'5%',top:'42%'},
-    {left:'8%',bottom:'30%'}, {right:'3%',bottom:'35%'},
-    {left:'12%',bottom:'12%'}, {right:'10%',bottom:'8%'},
-  ];
+  const positions = [{left:'5%',top:'8%'},{right:'8%',top:'15%'},{left:'3%',top:'38%'},{right:'5%',top:'42%'},{left:'8%',bottom:'30%'},{right:'3%',bottom:'35%'},{left:'12%',bottom:'12%'},{right:'10%',bottom:'8%'}];
   questions.forEach((q, i) => {
     const el = document.createElement('div');
     el.className = 'curiosity-q' + (q.child ? ' child-q' : '');
@@ -1445,57 +1165,45 @@ function initCuriosity() {
   });
 }
 
-/* ══════════════════════════════════════
-   MAPPING
-   ══════════════════════════════════════ */
+/* ── MAPPING ── */
 let mapInit = false;
 function initMap() {
   if (mapInit) return; mapInit = true;
   const canvas = document.getElementById('mapCanvas');
   const prompts = [
-    {label:'What assets already exist where you work?', left:'10%', top:'15%'},
-    {label:'Who is already doing something?', right:'10%', top:'20%'},
-    {label:'What have you built that has not been named yet?', left:'25%', top:'55%'},
+    {label:'what assets already exist where you work?', left:'10%', top:'15%'},
+    {label:'who is already doing something?', right:'10%', top:'20%'},
+    {label:'what have you built that has not been named yet?', left:'25%', top:'55%'},
   ];
   prompts.forEach((p, i) => {
     const el = document.createElement('div');
     el.className = 'map-prompt';
     el.style.animationDelay = (0.3 + i * 0.4) + 's';
-    if (p.left) el.style.left = p.left;
-    if (p.right) el.style.right = p.right;
+    if (p.left) el.style.left = p.left; if (p.right) el.style.right = p.right;
     el.style.top = p.top;
-    el.innerHTML = '<label>' + p.label + '</label><textarea placeholder="Write here\u2026"></textarea>';
+    el.innerHTML = '<label>' + p.label + '</label><textarea placeholder="write here\u2026"></textarea>';
     canvas.appendChild(el);
   });
 }
 
-/* ══════════════════════════════════════
-   CLOSING — cascade of artifacts
-   ══════════════════════════════════════ */
+/* ── CLOSING ── */
 let closingInit = false;
 function initClosing() {
   if (closingInit) return; closingInit = true;
   const scene = document.getElementById('closingScene');
   const artifacts = [
-    {t:'The Question Wall', type:'artifact'},
-    {t:'Making Space', type:'artifact'},
-    {t:'Hall of Mirrors', type:'artifact'},
-    {t:'beetles need houses', type:'voice'},
-    {t:'The Collage', type:'artifact'},
-    {t:'watch this', type:'voice'},
-    {t:'Bumper Cars', type:'artifact'},
-    {t:'I think grown-ups forgot how to pretend', type:'voice'},
-    {t:'Curiosity Display', type:'artifact'},
-    {t:'The Mapping Exercise', type:'artifact'},
-    {t:'you can be anyone', type:'voice'},
-    {t:'Children\'s Voices', type:'artifact'},
+    {t:'the question wall', type:'artifact'}, {t:'making space', type:'artifact'},
+    {t:'hall of mirrors', type:'artifact'}, {t:'beetles need houses', type:'voice'},
+    {t:'the collage', type:'artifact'}, {t:'watch this', type:'voice'},
+    {t:'bumper cars', type:'artifact'}, {t:'I think grown-ups forgot how to pretend', type:'voice'},
+    {t:'curiosity display', type:'artifact'}, {t:'the mapping exercise', type:'artifact'},
+    {t:'you can be anyone', type:'voice'}, {t:'children\'s voices', type:'artifact'},
   ];
   artifacts.forEach((a, i) => {
     const el = document.createElement('div');
     el.className = 'cascade-item' + (a.type === 'voice' ? ' cascade-voice' : '');
     el.textContent = a.t;
     el.style.animationDelay = (0.2 + i * 0.18) + 's';
-    // Scatter around the center
     const angle = (i / artifacts.length) * Math.PI * 2 + Math.random() * 0.5;
     const radius = 180 + Math.random() * 160;
     el.style.left = 'calc(50% + ' + Math.cos(angle) * radius + 'px)';
@@ -1504,7 +1212,6 @@ function initClosing() {
     scene.insertBefore(el, scene.firstChild);
   });
 }
-
 </script>
 </body>
 </html>
