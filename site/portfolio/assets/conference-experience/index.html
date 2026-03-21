@@ -786,21 +786,73 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 }
 
 @media (max-width: 768px) {
+  /* allow touch scroll on screens with overflow content */
+  .sc.active { overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .tracks-container { flex-direction: column; padding: 60px 20px; gap: 16px; }
   .before-day { flex-direction: column; gap: 32px; padding: 20px; }
   .before-text { text-align: center; }
-  #narrator-overlay { width: 95%; max-width: none; bottom: 10px; padding: 16px 20px; }
+  #narrator-overlay { width: 95%; max-width: none; bottom: 54px; padding: 12px 16px; font-size: 12px; line-height: 1.5; max-height: 25vh; overflow-y: auto; }
+  #narrator-overlay .narrator-scene { font-size: 9px; }
+  #narrator-overlay .narrator-hint { display: none; }
   #agenda-card { display: none !important; }
   #agenda-mobile { display: flex; }
   .services-grid { grid-template-columns: 1fr; }
   .directory-mockup { padding: 20px; }
   .dir-phone { width: 100%; max-width: 360px; }
+
+  /* S0 cover — ensure enter button visible */
+  #S0 { padding: 40px 24px; }
+  #S0 .foot { font-size: 9px; position: absolute; bottom: 56px; }
+
+  /* S1 before the day — stack and fit */
+  .phone-mockup { max-width: 280px; margin: 0 auto; }
+
+  /* S2 question wall — scale notes */
+  .note-card { max-width: 180px !important; }
+
+  /* S5 hall of mirrors — fit table and lens cards */
+  .table-top { width: 200px; height: 200px; padding: 30px; }
+  .table-top .table-question { font-size: 15px; }
+  .table-lens { max-width: 160px; padding: 12px 14px; }
+  .table-lens .lens-text { font-size: 12px; }
+  #S5 .scene-label { bottom: 56px; font-size: 12px; padding: 8px 16px; max-width: 90%; }
+
+  /* S7 session choice — stack doors */
+  .door-choice { flex-direction: column; padding: 20px; }
+  .door { padding: 28px 20px; }
+  .door-divider { width: 60px; height: 1px; margin: 0 auto; }
+
+  /* S9 — fit all text */
+  .speaker-emerge { padding: 20px; }
+  .speaker-emerge .moment-speaker { font-size: clamp(22px,5vw,32px); }
+  .post-activity { font-size: 13px; margin-top: 16px; }
+
+  /* S11 mapping — flow instead of absolute */
+  .map-canvas { display: flex; flex-direction: column; align-items: center; padding: 60px 20px 80px; gap: 16px; }
+  .map-description { position: static; transform: none; max-width: 100%; }
+  .map-prompt { position: static !important; transform: none !important; max-width: 100%; width: 100%; opacity: 1; animation: none; }
+  .map-timer { position: static; transform: none; margin-top: 8px; }
+  .map-output { position: static; transform: none; opacity: 1; animation: none; margin-top: 8px; font-size: 12px; }
+
+  /* S13 card flip — scale down */
+  .card-flip-container { width: 90%; max-width: 340px; height: auto; min-height: 400px; }
+
+  /* S15 directory — scrollable phone */
+  .dir-screen { max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  /* S16 CTA — ensure scrollable, add bottom padding */
+  #S16 { padding-bottom: 80px; }
+  .services-cta { padding-bottom: 40px; }
 }
 @media (max-width: 480px) {
   .track { padding: 20px 16px; }
   .card-front, .card-back { padding: 28px 20px; }
   #S0 h1 { font-size: clamp(28px,8vw,42px); }
   .moment-speaker { font-size: clamp(22px,5vw,32px); }
+  .time-badge { font-size: 11px; padding: 6px 14px; }
+  .bench-brief { font-size: 14px !important; padding: 10px 20px !important; }
+  .bench-note { font-size: 11px !important; bottom: 56px !important; }
+  .mat-card { width: 170px !important; padding: 14px !important; font-size: 13px !important; }
 }
 
 /* ── Reduced motion ── */
@@ -1235,7 +1287,9 @@ const agendaToggle = document.getElementById('agendaToggle');
 const agendaMobileLabel = document.getElementById('agendaMobileLabel');
 let cur = 0;
 let transitioning = false;
-let narratorOn = true;
+let narratorOn = window.innerWidth > 768;
+narratorToggle.setAttribute('aria-pressed', narratorOn);
+if (!narratorOn) narratorOverlay.setAttribute('aria-hidden', 'true');
 
 /* ── Build agenda ── */
 function buildAgenda() {
@@ -1374,12 +1428,13 @@ document.addEventListener('keydown', function(e) {
 });
 
 /* ── Touch nav ── */
-let tx = 0;
-document.addEventListener('touchstart', function(e) { tx = e.touches[0].clientX; }, {passive:true});
+let tx = 0, ty = 0;
+document.addEventListener('touchstart', function(e) { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
 document.addEventListener('touchend', function(e) {
   if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
   var dx = e.changedTouches[0].clientX - tx;
-  if (Math.abs(dx) > 60) { dx < 0 ? go(cur+1) : go(cur-1); }
+  var dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) { dx < 0 ? go(cur+1) : go(cur-1); }
 }, {passive:true});
 
 /* ── Card flip ── */
