@@ -1568,15 +1568,7 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-/* ── Touch nav ── */
-let tx = 0, ty = 0;
-document.addEventListener('touchstart', function(e) { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
-document.addEventListener('touchend', function(e) {
-  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-  var dx = e.changedTouches[0].clientX - tx;
-  var dy = e.changedTouches[0].clientY - ty;
-  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) { dx < 0 ? go(cur+1) : go(cur-1); }
-}, {passive:true});
+/* ── Touch nav (disabled — navigation via buttons only) ── */
 
 /* ── Card flip ── */
 var flipCard = document.getElementById('flipCard');
