@@ -208,16 +208,45 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 
 /* ── Agenda mobile ── */
 #agenda-mobile {
-  display: none; position: fixed; bottom: 48px; left: 0; right: 0; z-index: 250;
-  background: rgba(255,255,255,0.95); backdrop-filter: blur(12px);
-  padding: 8px 16px; justify-content: center; align-items: center; gap: 8px;
+  display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+  background: rgba(255,255,255,0.96); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
   font: 500 12px 'Inter', sans-serif; color: var(--dark);
+  flex-direction: column;
 }
 #agenda-mobile .paul-avatar-m {
-  width: 18px; height: 18px; border-radius: 50%; background: var(--mint);
+  width: 22px; height: 22px; border-radius: 50%; background: var(--mint);
   display: flex; align-items: center; justify-content: center;
-  font: 600 8px 'Inter', sans-serif; color: #fff; flex-shrink: 0;
+  font: 600 9px 'Inter', sans-serif; color: #fff; flex-shrink: 0;
 }
+.agenda-mobile-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 12px 16px; min-height: 48px;
+  background: none; border: none; cursor: pointer;
+  font: 500 13px 'Inter', sans-serif; color: var(--dark);
+}
+.agenda-mobile-current {
+  display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+}
+.agenda-mobile-current span {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.agenda-mobile-chevron {
+  font-size: 14px; color: var(--grey); transition: transform 0.2s; flex-shrink: 0;
+  width: 24px; text-align: center;
+}
+#agenda-mobile.expanded .agenda-mobile-chevron { transform: rotate(90deg); }
+.agenda-mobile-body {
+  display: none; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 0 16px 12px; border-top: 1px solid rgba(0,0,0,0.06);
+}
+#agenda-mobile.expanded .agenda-mobile-body { display: block; }
+.agenda-mobile-list { list-style: none; padding: 8px 0; }
+.agenda-mobile-list .agenda-item {
+  min-height: 44px; padding: 8px 6px; font-size: 13px;
+  display: flex; align-items: center; gap: 10px;
+}
+.agenda-mobile-list .agenda-item + .agenda-item { border-top: 1px solid rgba(0,0,0,0.04); }
 
 /* ════════════════════════════════
    SCREEN 0 — COVER
@@ -772,87 +801,129 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .cta-primary:hover { background: var(--sienna); }
 
 /* ── Responsive ── */
-@media (max-width: 700px) {
-  .door-choice { flex-direction: column; }
-  .door-divider { width: auto; height: 1px; }
-  .table-top { width: 220px; height: 220px; padding: 36px; }
-  .table-lens { max-width: 150px; padding: 12px 14px; font-size: 13px; }
-  #nav .n-label { display: none; }
-  .wc { width: 140px; padding: 10px 12px; font-size: 13px; }
-  #S3 .morgan-center { padding: 32px; }
-  .ghost-card { display: none; }
-  .map-prompt { max-width: 220px; padding: 14px; }
-  .floating-voice { font-size: 14px; }
-}
+/* 700px rules merged into 768px below */
 
 @media (max-width: 768px) {
-  /* allow touch scroll on screens with overflow content */
+  /* ── Global mobile layout ── */
   .sc.active { overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .tracks-container { flex-direction: column; padding: 60px 20px; gap: 16px; }
-  .before-day { flex-direction: column; gap: 32px; padding: 20px; }
-  .before-text { text-align: center; }
-  #narrator-overlay { width: 95%; max-width: none; bottom: 54px; padding: 12px 16px; font-size: 12px; line-height: 1.5; max-height: 25vh; overflow-y: auto; }
-  #narrator-overlay .narrator-scene { font-size: 9px; }
+  .sc.active { padding-top: 52px; } /* clear top agenda bar */
+
+  /* ── Narrator pull-up drawer ── */
+  #narrator-overlay {
+    width: 100%; max-width: none; left: 0; transform: none;
+    bottom: 48px; border-radius: 12px 12px 0 0;
+    padding: 0; font-size: 13px; line-height: 1.5;
+    max-height: 30vh; overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+  }
+  #narrator-overlay.narrator-collapsed { max-height: 42px; }
+  #narrator-overlay .narrator-scene {
+    font-size: 10px; padding: 12px 16px; cursor: pointer;
+    min-height: 42px; display: flex; align-items: center;
+  }
+  #narrator-overlay .narrator-text { padding: 0 16px 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; max-height: calc(30vh - 42px); }
   #narrator-overlay .narrator-hint { display: none; }
+  #narrator-overlay:not(.hidden) { pointer-events: auto; }
+  #narrator-toggle { top: auto; bottom: 52px; right: 8px; z-index: 260; padding: 8px 12px; min-height: 44px; min-width: 44px; font-size: 11px; }
+
+  /* ── Agenda ── */
   #agenda-card { display: none !important; }
   #agenda-mobile { display: flex; }
-  .services-grid { grid-template-columns: 1fr; }
-  .directory-mockup { padding: 20px; }
-  .dir-phone { width: 100%; max-width: 360px; }
 
-  /* S0 cover — ensure enter button visible */
-  #S0 { padding: 40px 24px; }
+  /* ── Nav bar ── */
+  #nav { padding: 8px 12px; }
+  #nav .n-label { display: none; }
+  .n-btn { padding: 8px 14px; min-height: 44px; min-width: 44px; font-size: 12px; }
+
+  /* ── Typography — ensure readability ── */
+  .moment-note, .moment-detail { font-size: 15px; line-height: 1.6; }
+  .garden-note, .garden-aside { font-size: 14px; }
+  .floating-voice { font-size: 14px; }
+
+  /* ── S0 cover ── */
+  #S0 { padding: 40px 24px; padding-top: 52px; }
   #S0 .foot { font-size: 9px; position: absolute; bottom: 56px; }
+  #S0 .enter { width: 80%; max-width: 320px; text-align: center; padding: 16px 24px; font-size: 15px; }
 
-  /* S1 before the day — stack and fit */
+  /* ── S1 before the day — stack ── */
+  .before-day { flex-direction: column; gap: 32px; padding: 20px; }
+  .before-text { text-align: center; }
   .phone-mockup { max-width: 280px; margin: 0 auto; }
 
-  /* S2 question wall — scale notes */
+  /* ── S2 question wall ── */
+  .wc { width: 140px; padding: 10px 12px; font-size: 13px; }
   .note-card { max-width: 180px !important; }
+  #S2 .wall-prompt { flex-direction: row; width: 95%; max-width: none; bottom: 56px; }
+  #S2 .wall-prompt textarea { font-size: 16px; height: 48px; } /* 16px prevents iOS zoom */
+  #S2 .wall-prompt button { min-width: 56px; min-height: 48px; }
 
-  /* S5 hall of mirrors — fit table and lens cards */
+  /* ── S3 keynote ── */
+  #S3 .morgan-center { padding: 32px; }
+
+  /* ── S5 hall of mirrors ── */
   .table-top { width: 200px; height: 200px; padding: 30px; }
   .table-top .table-question { font-size: 15px; }
   .table-lens { max-width: 160px; padding: 12px 14px; }
   .table-lens .lens-text { font-size: 12px; }
   #S5 .scene-label { bottom: 56px; font-size: 12px; padding: 8px 16px; max-width: 90%; }
 
-  /* S7 session choice — stack doors */
+  /* ── S7 session choice — stack vertically ── */
   .door-choice { flex-direction: column; padding: 20px; }
-  .door { padding: 28px 20px; }
+  .door { padding: 28px 20px; min-height: 44px; }
   .door-divider { width: 60px; height: 1px; margin: 0 auto; }
 
-  /* S9 — fit all text */
+  /* ── S8 collage ── */
+  .collage-instruct { font-size: 13px; padding: 0 20px; }
+  .collage-hint { font-size: 12px; padding: 0 20px; }
+
+  /* ── S9 speaker ── */
   .speaker-emerge { padding: 20px; }
   .speaker-emerge .moment-speaker { font-size: clamp(22px,5vw,32px); }
   .post-activity { font-size: 13px; margin-top: 16px; }
+  .ghost-card { display: none; }
 
-  /* S11 mapping — flow instead of absolute */
+  /* ── S10 tracks — stack ── */
+  .tracks-container { flex-direction: column; padding: 60px 20px; gap: 16px; }
+
+  /* ── S11 mapping — flow instead of absolute ── */
   .map-canvas { display: flex; flex-direction: column; align-items: center; padding: 60px 20px 80px; gap: 16px; }
   .map-description { position: static; transform: none; max-width: 100%; }
-  .map-prompt { position: static !important; transform: none !important; max-width: 100%; width: 100%; opacity: 1; animation: none; }
+  .map-prompt { position: static !important; transform: none !important; max-width: 100%; width: 100%; opacity: 1; animation: none; padding: 14px; }
   .map-timer { position: static; transform: none; margin-top: 8px; }
   .map-output { position: static; transform: none; opacity: 1; animation: none; margin-top: 8px; font-size: 12px; }
 
-  /* S13 card flip — scale down */
+  /* ── S13 card flip ── */
   .card-flip-container { width: 90%; max-width: 340px; height: auto; min-height: 400px; }
 
-  /* S15 directory — scrollable phone */
+  /* ── S14 garden party ── */
+  #S14 .garden-center { padding: 28px 20px; max-width: 90%; }
+
+  /* ── S15 directory ── */
+  .directory-mockup { padding: 20px; }
+  .dir-phone { width: 100%; max-width: 360px; }
   .dir-screen { max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-  /* S16 CTA — ensure scrollable, add bottom padding */
+  /* ── S16 CTA ── */
   #S16 { padding-bottom: 80px; }
-  .services-cta { padding-bottom: 40px; }
+  .services-grid { grid-template-columns: 1fr; }
+  .services-cta { padding-bottom: 40px; flex-direction: column; align-items: center; }
+  .cta-btn { width: 100%; max-width: 320px; }
 }
+
 @media (max-width: 480px) {
   .track { padding: 20px 16px; }
   .card-front, .card-back { padding: 28px 20px; }
   #S0 h1 { font-size: clamp(28px,8vw,42px); }
+  #S0 .sub { font-size: 15px; }
   .moment-speaker { font-size: clamp(22px,5vw,32px); }
   .time-badge { font-size: 11px; padding: 6px 14px; }
   .bench-brief { font-size: 14px !important; padding: 10px 20px !important; }
   .bench-note { font-size: 11px !important; bottom: 56px !important; }
   .mat-card { width: 170px !important; padding: 14px !important; font-size: 13px !important; }
+  .before-day { padding: 16px; gap: 24px; }
+  .door { padding: 24px 16px; }
+  #S14 .garden-center { padding: 24px 16px; }
+  #S16 .final-text { padding: 24px 16px; }
 }
 
 /* ── Reduced motion ── */
@@ -894,10 +965,18 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 </nav>
 
 <!-- ═══ AGENDA MOBILE ═══ -->
-<div id="agenda-mobile" aria-hidden="true">
-  <div class="paul-avatar-m">P</div>
-  <span id="agendaMobileLabel"></span>
-</div>
+<nav id="agenda-mobile" role="navigation" aria-label="conference agenda (mobile)" aria-hidden="true">
+  <button class="agenda-mobile-toggle" id="agendaMobileToggle" aria-expanded="false">
+    <div class="agenda-mobile-current">
+      <div class="paul-avatar-m">P</div>
+      <span id="agendaMobileLabel"></span>
+    </div>
+    <span class="agenda-mobile-chevron" id="agendaMobileChevron">▸</span>
+  </button>
+  <div class="agenda-mobile-body" id="agendaMobileBody">
+    <ul class="agenda-mobile-list" id="agendaMobileList"></ul>
+  </div>
+</nav>
 
 <!-- ═══ S0 COVER ═══ -->
 <section class="sc active" id="S0" aria-label="cover — reimagining PEDAL Conference 2025">
@@ -1285,6 +1364,10 @@ const agendaCard = document.getElementById('agenda-card');
 const agendaList = document.getElementById('agendaList');
 const agendaToggle = document.getElementById('agendaToggle');
 const agendaMobileLabel = document.getElementById('agendaMobileLabel');
+const agendaMobileToggle = document.getElementById('agendaMobileToggle');
+const agendaMobileBody = document.getElementById('agendaMobileBody');
+const agendaMobileList = document.getElementById('agendaMobileList');
+const agendaMobileEl = document.getElementById('agenda-mobile');
 let cur = 0;
 let transitioning = false;
 let narratorOn = window.innerWidth > 768;
@@ -1311,6 +1394,42 @@ function buildAgenda() {
 }
 buildAgenda();
 
+/* ── Build mobile agenda ── */
+function buildMobileAgenda() {
+  agendaMobileList.innerHTML = '';
+  AGENDA.forEach(function(a, i) {
+    var li = document.createElement('li');
+    var btn = document.createElement('button');
+    btn.className = 'agenda-item';
+    btn.setAttribute('tabindex', '0');
+    btn.innerHTML =
+      '<span class="agenda-dot"></span>' +
+      '<span class="agenda-time">' + a.time + '</span>' +
+      '<span class="agenda-label">' + a.label + '</span>';
+    btn.addEventListener('click', function() {
+      go(a.screen);
+      agendaMobileEl.classList.remove('expanded');
+      agendaMobileToggle.setAttribute('aria-expanded', 'false');
+    });
+    li.appendChild(btn);
+    agendaMobileList.appendChild(li);
+  });
+}
+buildMobileAgenda();
+
+agendaMobileToggle.addEventListener('click', function() {
+  var isExpanded = agendaMobileEl.classList.toggle('expanded');
+  agendaMobileToggle.setAttribute('aria-expanded', isExpanded);
+});
+
+/* close mobile agenda when tapping outside */
+document.addEventListener('click', function(e) {
+  if (agendaMobileEl.classList.contains('expanded') && !agendaMobileEl.contains(e.target)) {
+    agendaMobileEl.classList.remove('expanded');
+    agendaMobileToggle.setAttribute('aria-expanded', 'false');
+  }
+});
+
 let agendaExpanded = true;
 agendaToggle.addEventListener('click', function() {
   agendaExpanded = !agendaExpanded;
@@ -1335,9 +1454,17 @@ function updateAgenda() {
     /* all items visible when body is open; whole body hides when collapsed */
   });
 
+  // mobile agenda items
+  var mItems = agendaMobileList.querySelectorAll('.agenda-item');
+  mItems.forEach(function(item, i) {
+    item.classList.remove('done', 'current');
+    if (AGENDA[i].screen < cur) item.classList.add('done');
+    else if (i === currentAgendaIdx) item.classList.add('current');
+  });
+
   // mobile label
   if (currentAgendaIdx >= 0) {
-    agendaMobileLabel.textContent = AGENDA[currentAgendaIdx].time + ' ' + AGENDA[currentAgendaIdx].label;
+    agendaMobileLabel.textContent = AGENDA[currentAgendaIdx].time + ' — ' + AGENDA[currentAgendaIdx].label;
   }
 
   // hide on S0 and S16
@@ -1375,6 +1502,20 @@ narratorToggle.addEventListener('click', function() {
   narratorToggle.setAttribute('aria-pressed', narratorOn);
   updateNarrator();
 });
+
+/* ── Narrator drawer toggle on mobile ── */
+var narratorDrawerExpanded = true;
+narratorScene.addEventListener('click', function() {
+  if (window.innerWidth > 768) return;
+  narratorDrawerExpanded = !narratorDrawerExpanded;
+  narratorOverlay.classList.toggle('narrator-collapsed', !narratorDrawerExpanded);
+});
+
+/* Start narrator collapsed on mobile */
+if (window.innerWidth <= 768) {
+  narratorDrawerExpanded = false;
+  narratorOverlay.classList.add('narrator-collapsed');
+}
 
 /* ── GO ── */
 function go(i) {
@@ -1449,6 +1590,17 @@ flipCard.addEventListener('keydown', function(e) {
     this.classList.toggle('flipped');
   }
 });
+
+/* ── Touch-aware text swaps ── */
+var isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+if (isTouch) {
+  flipCard.setAttribute('aria-label', 'card on your chair — tap to flip');
+  document.querySelectorAll('.card-flip-hint').forEach(function(el) {
+    el.textContent = el.textContent.replace('click', 'tap');
+  });
+  var collageHint = document.querySelector('.collage-hint');
+  if (collageHint) collageHint.textContent = 'tap anywhere on the surface, or type below and press enter.';
+}
 
 /* ── PARTICLES ── */
 function spawnParticles(container, count, opts) {
