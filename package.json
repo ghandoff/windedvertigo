@@ -3,14 +3,12 @@
   "private": true,
   "workspaces": ["harbour", "packages/*"],
   "scripts": {
-    "sync": "node scripts/fetch-notion.js",
     "sync:footer": "node scripts/sync-footer.mjs",
     "dev:harbour": "npm run dev -w harbour",
     "build:harbour": "npm run build -w harbour"
   },
   "dependencies": {
-    "@notionhq/client": "^2.3.0",
-    "node-fetch": "^3.3.2"
+    "@notionhq/client": "^2.3.0"
   },
   "engines": {
     "node": ">=22"
