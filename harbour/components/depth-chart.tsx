@@ -1,20 +1,7 @@
-import skillsData from "@/data/depth-chart.json";
 import { ScrollReveal } from "./scroll-reveal";
+import type { Skill } from "@/lib/notion";
 
-export interface Skill {
-  slug: string;
-  name: string;
-  domain: string;
-  skillsets: string[];
-  description: string;
-  icon: string;
-  howToPractice: string;
-  order: number;
-}
-
-export const SKILLS: Skill[] = (skillsData as Skill[]).sort(
-  (a, b) => a.order - b.order,
-);
+export type { Skill };
 
 const DOMAIN_META: Record<
   string,
@@ -99,12 +86,12 @@ function SkillCard({ skill }: { skill: Skill }) {
   );
 }
 
-export function DepthChart() {
+export function DepthChart({ skills }: { skills: Skill[] }) {
   // Group skills by domain in natural order of first appearance
   const domains: string[] = [];
   const byDomain: Record<string, Skill[]> = {};
 
-  for (const skill of SKILLS) {
+  for (const skill of skills) {
     if (!byDomain[skill.domain]) {
       domains.push(skill.domain);
       byDomain[skill.domain] = [];

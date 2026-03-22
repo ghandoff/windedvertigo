@@ -2,6 +2,10 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { DepthChart } from "@/components/depth-chart";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { fetchSkills } from "@/lib/notion";
+
+/** ISR: revalidate every hour so Notion edits appear without a redeploy. */
+export const revalidate = 3600;
 
 export const metadata = {
   title: "depth.chart — the harbour",
@@ -9,7 +13,9 @@ export const metadata = {
     "21 social, behavioral, and cognitive skills for navigating complexity, creativity, and connection — charting the skills beneath the surface.",
 };
 
-export default function SkillsPage() {
+export default async function SkillsPage() {
+  const skills = await fetchSkills();
+
   return (
     <>
       <Header />
@@ -40,7 +46,7 @@ export default function SkillsPage() {
           aria-label="skills"
           className="max-w-6xl mx-auto px-6 pb-24"
         >
-          <DepthChart />
+          <DepthChart skills={skills} />
         </section>
 
         {/* ── Attribution ──────────────────────────────────────── */}

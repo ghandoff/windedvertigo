@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@notionhq/client": "^2.3.0",
     "@windedvertigo/tokens": "*",
     "next": "^16.1.6",
     "react": "^19.2.3",

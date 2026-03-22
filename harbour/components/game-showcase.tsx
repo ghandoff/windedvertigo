@@ -1,22 +1,7 @@
-import gamesData from "@/data/games.json";
 import { ScrollReveal } from "./scroll-reveal";
+import type { Game } from "@/lib/notion";
 
-export interface Game {
-  slug: string;
-  name: string;
-  tagline: string;
-  description: string;
-  color: string;          // tailwind bg gradient from
-  accentColor: string;    // pill/badge color
-  icon: string;           // emoji or short text for the card icon
-  image?: string;         // optional background image path (relative to public/)
-  features: string[];
-  href: string;
-  status: "live" | "coming-soon";
-}
-
-/** Games loaded from Notion-synced JSON. Sorted by `order` field. */
-export const GAMES: Game[] = gamesData as Game[];
+export type { Game };
 
 function GameCard({ game, index }: { game: Game; index: number }) {
   // Alternate layout direction for visual rhythm
@@ -93,10 +78,10 @@ function GameCard({ game, index }: { game: Game; index: number }) {
   );
 }
 
-export function GameShowcase() {
+export function GameShowcase({ games }: { games: Game[] }) {
   return (
     <div className="divide-y divide-white/5">
-      {GAMES.map((game, i) => (
+      {games.map((game, i) => (
         <GameCard key={game.slug} game={game} index={i} />
       ))}
     </div>

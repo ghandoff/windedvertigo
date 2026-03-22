@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>reimagining PEDAL Conference 2025 — experience design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cadet: #273248;
+  --redwood: #b15043;
+  --sienna: #cb7858;
+  --champagne: #ffebd2;
+  --white: #ffffff;
+  --dark: #273248;
+  --grey: #666666;
+  --light: #d4c9b8;
+  /* complementary accents — sparingly */
+  --mint: #58cbb2;
+  --lavender: #d5d2ff;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); background: var(--cadet); }
+
+/* ── Screens ── */
+.sc {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.sc.active { opacity: 1; pointer-events: auto; z-index: 10; }
+.sc.enter-right { transform: translateX(40px); }
+.sc.enter-left { transform: translateX(-40px); }
+.sc.exit-left { opacity: 0; transform: translateX(-40px); z-index: 5; transition: opacity 0.6s ease, transform 0.6s ease; }
+.sc.exit-right { opacity: 0; transform: translateX(40px); z-index: 5; transition: opacity 0.6s ease, transform 0.6s ease; }
+
+/* ── Screen background images ── */
+.sc-bg { background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; }
+.sc-bg::before {
+  content: ''; position: absolute; inset: 0;
+  z-index: 0;
+}
+.sc-bg > * { position: relative; z-index: 1; }
+
+/* per-screen backgrounds */
+#S2.sc-bg { background-image: url('/portfolio/assets/conference-experience/arrival_question_wall.png'); }
+#S2.sc-bg::before { background: rgba(255,235,210,0.88); }
+#S3.sc-bg { background-image: url('/portfolio/assets/conference-experience/sketches_behind_keynote.png'); }
+#S3.sc-bg::before { background: rgba(39,50,72,0.75); }
+#S4.sc-bg { background-image: url('/portfolio/assets/conference-experience/making_space.png'); }
+#S4.sc-bg::before { background: rgba(255,235,210,0.82); }
+#S5.sc-bg { background-image: url('/portfolio/assets/conference-experience/hall_of_mirrors.png'); }
+#S5.sc-bg::before { background: rgba(255,235,210,0.80); }
+#S6.sc-bg { background-image: url('/portfolio/assets/conference-experience/childrens_voices_thread.png'); }
+#S6.sc-bg::before { background: rgba(39,50,72,0.78); }
+#S9.sc-bg { background-image: url('/portfolio/assets/conference-experience/30_seconds_of_risky_play.png'); }
+#S9.sc-bg::before { background: rgba(0,0,0,0.82); }
+#S10.sc-bg { background-image: url('/portfolio/assets/conference-experience/creaseworks_table.png'); }
+#S10.sc-bg::before { background: rgba(255,235,210,0.85); }
+#S12.sc-bg { background-image: url('/portfolio/assets/conference-experience/closing_collage.png'); }
+#S12.sc-bg::before { background: rgba(39,50,72,0.75); }
+#S14.sc-bg { background-image: url('/portfolio/assets/conference-experience/garden_party.png'); }
+#S14.sc-bg::before { background: rgba(39,50,72,0.65); }
+
+/* ── Progress ── */
+#progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--sienna); z-index: 200; transition: width 0.8s ease; }
+
+/* ── Nav ── */
+#nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  display: none; align-items: center; justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(39,50,72,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+#nav .n-time { font: 300 14px 'Inter', sans-serif; color: var(--sienna); min-width: 60px; }
+#nav .n-label { font: 300 12px 'Inter', sans-serif; color: rgba(255,255,255,0.4); text-align: center; flex: 1; }
+.n-btn {
+  background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7);
+  padding: 7px 16px; font: 400 13px 'Inter', sans-serif; cursor: pointer; border-radius: 3px;
+  transition: all 0.2s; min-height: 48px; min-width: 48px;
+  display: flex; align-items: center; justify-content: center;
+}
+.n-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.n-btn:disabled { opacity: 0.2; cursor: default; }
+.n-btn:disabled:hover { background: none; color: rgba(255,255,255,0.7); }
+
+/* ── Focus visible ── */
+:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+
+/* ── Ambient particles ── */
+.particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.particle {
+  position: absolute; border-radius: 50%; opacity: 0;
+  animation: particleDrift linear infinite;
+}
+@keyframes particleDrift {
+  0% { opacity: 0; transform: translateY(0) translateX(0); }
+  15% { opacity: var(--po, 0.3); }
+  85% { opacity: var(--po, 0.3); }
+  100% { opacity: 0; transform: translateY(var(--py, -200px)) translateX(var(--px, 20px)); }
+}
+
+/* ── Floating whisper (children's voices) ── */
+.whisper {
+  position: absolute;
+  font: 600 15px/1.4 'Inter', sans-serif;
+  color: var(--champagne);
+  opacity: 0; pointer-events: none; white-space: nowrap;
+  animation: whisperFloat linear forwards; z-index: 2;
+}
+@keyframes whisperFloat {
+  0% { opacity: 0; transform: translateX(0); }
+  10% { opacity: 0.85; }
+  80% { opacity: 0.85; }
+  100% { opacity: 0; transform: translateX(var(--wx, -300px)); }
+}
+
+/* ── Narrator ── */
+#narrator-toggle {
+  position: fixed; top: 20px; right: 20px; z-index: 300;
+  background: rgba(39,50,72,0.85); color: #fff; border: none; border-radius: 4px;
+  padding: 10px 16px; font: 500 12px 'Inter', sans-serif; cursor: pointer;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  min-height: 48px; min-width: 48px;
+  display: flex; align-items: center; gap: 6px;
+  transition: background 0.2s;
+}
+#narrator-toggle:hover { background: rgba(39,50,72,0.95); }
+#narrator-toggle .eye-icon { font-size: 14px; }
+#narrator-overlay {
+  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
+  max-width: 600px; width: 90%; z-index: 250;
+  background: rgba(39,50,72,0.92); color: #fff; border-radius: 8px;
+  padding: 24px 28px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+#narrator-overlay.hidden { opacity: 0; transform: translateX(-50%) translateY(8px); }
+#narrator-overlay .narrator-scene {
+  font: 500 10px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--sienna); margin-bottom: 10px;
+}
+#narrator-overlay .narrator-text {
+  font: 400 14px/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.7);
+}
+#narrator-overlay .narrator-hint {
+  font: 300 11px 'Inter', sans-serif; color: rgba(255,255,255,0.25); margin-top: 14px;
+}
+
+/* ── Agenda Card ── */
+#agenda-card {
+  position: fixed; top: 16px; left: 16px;
+  z-index: 250; background: rgba(255,255,255,0.95); border-radius: 8px;
+  padding: 0; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  max-height: 420px; overflow: hidden; width: 260px;
+  transition: opacity 0.3s;
+}
+#agenda-card[aria-hidden="true"] { opacity: 0; pointer-events: none; }
+#agenda-card.collapsed .agenda-body { display: none; }
+#agenda-card .agenda-toggle {
+  font: 500 10px 'Inter', sans-serif; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--grey); cursor: pointer; background: none; border: none;
+  padding: 14px 20px; display: flex; align-items: center; width: 100%;
+  min-height: 48px; border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+#agenda-card.collapsed .agenda-toggle { border-bottom: none; }
+.agenda-body { padding: 8px 20px 16px; max-height: 340px; overflow-y: auto; }
+.agenda-list { list-style: none; }
+.agenda-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 5px 0; cursor: pointer; border: none; background: none; width: 100%;
+  text-align: left; font: 400 12px 'Inter', sans-serif; color: var(--grey);
+  min-height: 32px; border-radius: 3px; transition: background 0.2s;
+}
+.agenda-item:hover { background: rgba(39,50,72,0.04); }
+.agenda-item.collapsed { display: none; }
+.agenda-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid var(--light); background: transparent;
+  transition: all 0.3s;
+}
+.agenda-item.done .agenda-dot { background: var(--mint); border-color: var(--mint); }
+.agenda-item.current .agenda-dot {
+  border-color: var(--mint); background: transparent;
+  animation: agendaPulse 2s ease-in-out infinite;
+}
+@keyframes agendaPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(88,203,178,0); }
+  50% { box-shadow: 0 0 0 4px rgba(88,203,178,0.25); }
+}
+.agenda-item.current { font-weight: 600; color: var(--dark); }
+.agenda-time { min-width: 40px; font: 400 11px 'Inter', sans-serif; color: var(--sienna); }
+.agenda-label { flex: 1; }
+.paul-avatar {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--mint);
+  display: flex; align-items: center; justify-content: center;
+  font: 600 9px 'Inter', sans-serif; color: #fff; flex-shrink: 0;
+  opacity: 0; transition: opacity 0.3s;
+}
+.agenda-item.current .paul-avatar { opacity: 1; }
+
+/* ── Agenda mobile ── */
+#agenda-mobile {
+  display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+  background: rgba(255,255,255,0.96); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  font: 500 12px 'Inter', sans-serif; color: var(--dark);
+  flex-direction: column;
+}
+#agenda-mobile .paul-avatar-m {
+  width: 22px; height: 22px; border-radius: 50%; background: var(--mint);
+  display: flex; align-items: center; justify-content: center;
+  font: 600 9px 'Inter', sans-serif; color: #fff; flex-shrink: 0;
+}
+.agenda-mobile-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 12px 16px; min-height: 48px;
+  background: none; border: none; cursor: pointer;
+  font: 500 13px 'Inter', sans-serif; color: var(--dark);
+}
+.agenda-mobile-current {
+  display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+}
+.agenda-mobile-current span {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.agenda-mobile-chevron {
+  font-size: 14px; color: var(--grey); transition: transform 0.2s; flex-shrink: 0;
+  width: 24px; text-align: center;
+}
+#agenda-mobile.expanded .agenda-mobile-chevron { transform: rotate(90deg); }
+.agenda-mobile-body {
+  display: none; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 0 16px 12px; border-top: 1px solid rgba(0,0,0,0.06);
+}
+#agenda-mobile.expanded .agenda-mobile-body { display: block; }
+.agenda-mobile-list { list-style: none; padding: 8px 0; }
+.agenda-mobile-list .agenda-item {
+  min-height: 44px; padding: 8px 6px; font-size: 13px;
+  display: flex; align-items: center; gap: 10px;
+}
+.agenda-mobile-list .agenda-item + .agenda-item { border-top: 1px solid rgba(0,0,0,0.04); }
+
+/* ════════════════════════════════
+   SCREEN 0 — COVER
+   ════════════════════════════════ */
+#S0 { background: var(--cadet); }
+#S0 .label { font: 500 10px/1 'Inter', sans-serif; letter-spacing: 0.18em; text-transform: lowercase; color: var(--sienna); }
+#S0 h1 { font: 700 clamp(36px,7vw,68px)/1.08 'Inter', sans-serif; color: var(--champagne); margin: 20px 0 32px; text-align: center; padding: 0 20px; }
+#S0 .sub { font: 300 clamp(16px,2.2vw,20px)/1.7 'Inter', sans-serif; color: rgba(255,255,255,0.45); text-align: center; padding: 0 20px; }
+#S0 .sub em { color: var(--redwood); font-style: normal; }
+#S0 .foot { position: absolute; bottom: 28px; font: 300 11px 'Inter', sans-serif; color: rgba(255,255,255,0.18); }
+#S0 .enter {
+  margin-top: 52px; background: var(--redwood); color: #fff; border: none;
+  padding: 14px 40px; font: 500 14px 'Inter', sans-serif; letter-spacing: 0.03em;
+  cursor: pointer; border-radius: 3px; transition: background 0.3s;
+  animation: gentlePulse 3s ease-in-out infinite;
+  opacity: 1 !important; transform: none !important;
+  min-height: 48px; position: relative; z-index: 260;
+}
+#S0 .enter:hover { background: var(--sienna); animation: none; }
+@keyframes gentlePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(177,80,67,0); }
+  50% { box-shadow: 0 0 0 12px rgba(177,80,67,0.15); }
+}
+.cover-fade { opacity: 0; transform: translateY(14px); animation: fadeUp 0.8s ease forwards; }
+.cover-fade:nth-child(2) { animation-delay: 0.2s; }
+.cover-fade:nth-child(3) { animation-delay: 0.4s; }
+.cover-fade:nth-child(4) { animation-delay: 0.6s; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+/* ════════════════════════════════
+   SCREEN 1 — BEFORE THE DAY / COMPANION APP
+   ════════════════════════════════ */
+#S1 { background: var(--champagne); }
+.before-day { display: flex; align-items: center; justify-content: center; gap: 60px; padding: 40px; width: 100%; height: 100%; }
+.before-text { max-width: 440px; }
+.phone-mockup { width: 220px; height: 420px; background: #111; border-radius: 28px; padding: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.15); flex-shrink: 0; }
+.phone-screen { width: 100%; height: 100%; background: var(--champagne); border-radius: 18px; padding: 20px 16px; overflow: hidden; }
+.app-header { font: 600 11px 'Inter', sans-serif; color: var(--cadet); text-align: center; padding-bottom: 12px; border-bottom: 1px solid var(--light); margin-bottom: 16px; }
+.app-badge { text-align: center; margin-bottom: 20px; }
+.app-badge-circle { width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--sienna); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font: 600 11px 'Inter', sans-serif; color: var(--sienna); }
+.app-badge-name { font: 400 11px 'Inter', sans-serif; color: var(--grey); }
+.app-features { display: flex; flex-direction: column; gap: 10px; }
+.app-feature { font: 400 10px/1.4 'Inter', sans-serif; color: var(--dark); display: flex; align-items: flex-start; gap: 8px; }
+.app-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); flex-shrink: 0; margin-top: 4px; }
+
+/* ════════════════════════════════
+   SCREEN 2 — QUESTION WALL (9:00 a.m.)
+   ════════════════════════════════ */
+#S2 {
+  background: var(--champagne);
+  background-image:
+    repeating-linear-gradient(90deg, transparent, transparent 199px, rgba(0,0,0,0.03) 199px, rgba(0,0,0,0.03) 200px),
+    repeating-linear-gradient(0deg, transparent, transparent 199px, rgba(0,0,0,0.03) 199px, rgba(0,0,0,0.03) 200px);
+}
+#S2 .wall-surface { position: absolute; inset: 0; padding: 60px 20px 140px; overflow: hidden; }
+.wc {
+  position: absolute;
+  background: #fff; border-radius: 2px; padding: 14px 16px;
+  width: 180px;
+  font: 400 14px/1.4 'Inter', sans-serif; color: var(--dark);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03);
+  opacity: 0; transform: scale(0.9) rotate(var(--r, 0deg));
+  animation: wcPin 0.4s ease forwards;
+  animation-delay: var(--d, 0s);
+}
+.wc::before {
+  content: ''; position: absolute; top: -4px; left: 50%;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--cadet); transform: translateX(-50%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.wc.child {
+  background: #fff9f5; border-left: 3px solid var(--sienna);
+  font-style: italic;
+}
+.wc.child::before { background: var(--redwood); }
+.wc .wc-attr { font: 400 10px 'Inter', sans-serif; color: var(--grey); margin-top: 8px; }
+@keyframes wcPin {
+  0% { opacity: 0; transform: scale(0.9) rotate(var(--r, 0deg)) translateY(-20px); }
+  70% { transform: scale(1.02) rotate(var(--r, 0deg)) translateY(2px); }
+  100% { opacity: 1; transform: scale(1) rotate(var(--r, 0deg)) translateY(0); }
+}
+
+#S2 .wall-prompt {
+  position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+  z-index: 20; display: flex; gap: 10px; width: 90%; max-width: 500px;
+}
+#S2 .wall-prompt textarea {
+  flex: 1; border: 1px solid var(--light); border-radius: 4px; padding: 12px 14px;
+  font: 400 14px 'Inter', sans-serif; color: var(--dark); background: rgba(255,255,255,0.9); resize: none; height: 56px; outline: none;
+  backdrop-filter: blur(8px);
+}
+#S2 .wall-prompt textarea:focus { border-color: var(--cadet); }
+#S2 .wall-prompt textarea::placeholder { color: var(--light); }
+#S2 .wall-prompt button {
+  background: var(--cadet); color: #fff; border: none; border-radius: 4px;
+  padding: 0 20px; font: 500 13px 'Inter', sans-serif; cursor: pointer;
+  min-height: 48px;
+}
+#S2 .wall-time {
+  position: absolute; top: 20px; left: 24px; z-index: 20;
+  font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em;
+  color: var(--grey); background: rgba(255,255,255,0.7); padding: 6px 14px; border-radius: 3px;
+  backdrop-filter: blur(6px);
+}
+#S2 .wall-question {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 15;
+  font: 300 clamp(20px,3vw,26px)/1.5 'Inter', sans-serif; color: var(--cadet);
+  text-align: center; max-width: 500px; opacity: 0;
+  animation: fadeUp 1s 0.5s ease forwards;
+  pointer-events: none;
+  text-shadow: 0 0 40px rgba(255,235,210,1), 0 0 80px rgba(255,235,210,0.8);
+}
+
+/* ════════════════════════════════
+   SCREEN 3 — MORGAN (9:40 a.m.)
+   ════════════════════════════════ */
+#S3 {
+  background: linear-gradient(135deg, var(--champagne) 0%, #f5e6d0 50%, #ffebd2 100%);
+}
+#S3 .morgan-scene {
+  position: relative; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.ghost-card {
+  position: absolute;
+  width: 160px; padding: 10px 14px;
+  background: rgba(255,235,210,0.15); border-radius: 2px;
+  font: 600 12px/1.4 'Inter', sans-serif;
+  color: var(--champagne);
+  transform: rotate(var(--r, 0deg));
+  z-index: 1;
+}
+#S3 .morgan-center {
+  text-align: center; z-index: 10;
+  background: rgba(255,235,210,0.85);
+  padding: 48px 60px; border-radius: 4px;
+  backdrop-filter: blur(20px); max-width: 540px;
+}
+.moment-time { font: 300 14px 'Inter', sans-serif; color: var(--sienna); margin-bottom: 12px; }
+.moment-speaker { font: 700 clamp(28px,4vw,42px)/1.15 'Inter', sans-serif; color: var(--dark); margin-bottom: 24px; }
+.moment-note { font: 400 15px/1.65 'Inter', sans-serif; color: var(--grey); max-width: 440px; margin: 0 auto; }
+.moment-detail {
+  font: 300 italic 15px/1.5 'Inter', sans-serif; color: var(--cadet);
+  margin-top: 20px; opacity: 0;
+  animation: fadeUp 0.8s 1.2s ease forwards;
+}
+
+/* ════════════════════════════════
+   SCREEN 4 — MAKING SPACE (10:10 a.m.)
+   ════════════════════════════════ */
+#S4 {
+  background: #d4c4a8;
+  background-image:
+    linear-gradient(rgba(180,160,130,0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180,160,130,0.3) 1px, transparent 1px),
+    radial-gradient(ellipse at 30% 70%, rgba(160,140,110,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 30%, rgba(200,180,150,0.15) 0%, transparent 60%);
+  background-size: 80px 80px, 80px 80px, 100% 100%, 100% 100%;
+}
+#S4 .bench { position: absolute; inset: 0; }
+.material {
+  position: absolute; cursor: grab; user-select: none;
+  transition: box-shadow 0.3s, transform 0.15s;
+}
+.material:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.12); transform: scale(1.03) !important; }
+.material.dragging { cursor: grabbing; z-index: 50; box-shadow: 0 16px 48px rgba(0,0,0,0.2); }
+.mat-card {
+  width: 220px; padding: 20px;
+  background: #fffcf5; border-radius: 2px;
+  font: 300 italic 15px/1.5 'Inter', sans-serif; color: var(--redwood);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  transform: rotate(var(--r, 0deg));
+}
+.mat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--sienna); border-radius: 2px 2px 0 0;
+}
+.mat-card .mc-attr { font: 400 10px 'Inter', sans-serif; color: var(--grey); margin-top: 6px; }
+.mat-block {
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+  transition: transform 0.15s, box-shadow 0.3s;
+}
+.mat-tube { border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+#S4 .bench-brief {
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 20; text-align: center;
+  font: 300 italic 18px/1.5 'Inter', sans-serif; color: var(--cadet);
+  background: rgba(212,196,168,0.92); padding: 14px 32px; border-radius: 4px;
+  backdrop-filter: blur(12px); max-width: 90%;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+#S4 .bench-note {
+  position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%);
+  z-index: 20; text-align: center;
+  font: 400 13px/1.6 'Inter', sans-serif; color: rgba(39,50,72,0.6);
+  max-width: 500px;
+  background: rgba(212,196,168,0.8); padding: 10px 20px; border-radius: 4px;
+  backdrop-filter: blur(8px);
+}
+.time-badge {
+  position: absolute; top: 20px; left: 20px; z-index: 20;
+  font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em;
+  color: var(--grey); background: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 3px;
+}
+
+/* ════════════════════════════════
+   SCREEN 5 — HALL OF MIRRORS (10:40 a.m.)
+   ════════════════════════════════ */
+#S5 { background: var(--champagne); }
+.table-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.table-top {
+  width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #e8dcc8, #d4c4a8);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.08), inset 0 2px 10px rgba(255,255,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 50px;
+}
+.table-question { font: 300 italic 19px/1.45 'Inter', sans-serif; color: var(--dark); }
+.table-lens {
+  position: absolute; background: #fff; border-radius: 8px; padding: 18px 22px;
+  max-width: 210px; box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  opacity: 0; animation: lensFloat 8s ease-in-out infinite, lensIn 0.8s ease forwards;
+}
+.table-lens .lens-role {
+  font: 600 9px 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--cadet); margin-bottom: 8px;
+}
+.table-lens .lens-text { font: 400 14px/1.5 'Inter', sans-serif; color: var(--dark); }
+@keyframes lensIn { to { opacity: 1; } }
+@keyframes lensFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
+}
+#S5 .scene-label {
+  position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+  font: 400 13px/1.6 'Inter', sans-serif; color: var(--dark);
+  text-align: center; max-width: 480px;
+  background: rgba(255,235,210,0.9); padding: 12px 24px; border-radius: 4px;
+  backdrop-filter: blur(8px);
+}
+
+/* ════════════════════════════════
+   SCREEN 6 — DRAPER (11:10 a.m.)
+   ════════════════════════════════ */
+#S6 { background: linear-gradient(160deg, var(--champagne) 0%, #ffebd2 60%, #f5e0c8 100%); }
+#S6 .draper-scene { position: relative; width: 100%; height: 100%; }
+#S6 .draper-center {
+  position: absolute; top: 50%; left: 38%; transform: translate(-50%, -50%);
+  text-align: left; z-index: 5;
+  background: rgba(255,235,210,0.92); padding: 36px 40px; border-radius: 8px;
+  backdrop-filter: blur(12px); box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+.floating-voice {
+  position: absolute;
+  font: 600 15px/1.4 'Inter', sans-serif;
+  color: var(--champagne); opacity: 0;
+  animation: voiceAppear 6s ease-in-out forwards;
+  pointer-events: none; z-index: 2;
+}
+@keyframes voiceAppear {
+  0% { opacity: 0; transform: translateX(30px); }
+  15% { opacity: 0.9; }
+  75% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateX(-20px); }
+}
+.floating-voice .fv-age { font: 500 10px 'Inter', sans-serif; color: rgba(255,235,210,0.6); margin-top: 4px; }
+
+/* ════════════════════════════════
+   SCREEN 7 — SESSION CHOICE (11:45 a.m.)
+   ════════════════════════════════ */
+#S7 { background: var(--champagne); }
+.door-choice { display: flex; width: 100%; height: 100%; }
+.door {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px; cursor: pointer; transition: all 0.5s; position: relative; overflow: hidden;
+  background: none; border: none; font-family: inherit; min-height: 48px;
+}
+.door::before { content: ''; position: absolute; inset: 0; transition: background 0.5s; }
+.door:hover::before { background: rgba(39,50,72,0.04); }
+.door:hover { transform: scale(1.01); }
+.door-divider { width: 1px; background: var(--light); align-self: stretch; }
+.door .d-label { font: 500 10px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 20px; z-index: 1; }
+.door h3 { font: 700 clamp(22px,3vw,32px)/1.2 'Inter', sans-serif; color: var(--redwood); margin-bottom: 16px; z-index: 1; text-align: center; }
+.door p { font: 400 15px/1.6 'Inter', sans-serif; color: var(--grey); max-width: 300px; text-align: center; z-index: 1; }
+.door .d-foot { font: 300 italic 15px 'Inter', sans-serif; color: var(--cadet); margin-top: 24px; z-index: 1; opacity: 0; transition: opacity 0.5s; }
+.door:hover .d-foot { opacity: 1; }
+
+/* ════════════════════════════════
+   SCREEN 8 — LUNCH COLLAGE (12:25 p.m.)
+   ════════════════════════════════ */
+#S8 {
+  background: #fff;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(203,120,88,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(39,50,72,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(177,80,67,0.03) 0%, transparent 60%);
+  cursor: crosshair;
+}
+.collage-surface { position: absolute; inset: 0; overflow: hidden; }
+.c-fragment { position: absolute; pointer-events: none; animation: cfIn 1.2s ease forwards; opacity: 0; }
+@keyframes cfIn {
+  0% { opacity: 0; transform: translate(var(--fx, 0), var(--fy, 0)) rotate(var(--fr, 0deg)); }
+  100% { opacity: var(--o, 0.85); transform: translate(0, 0) rotate(var(--fr, 0deg)); }
+}
+.c-text { font: 400 14px/1.4 'Inter', sans-serif; padding: 8px 14px; border-radius: 3px; max-width: 220px; }
+.c-strip { height: 6px; border-radius: 3px; }
+.c-circle { border-radius: 50%; }
+.c-drawing { border: 2px solid; border-radius: 40%; opacity: 0.15; }
+.c-user {
+  animation: userPlace 0.4s ease forwards !important;
+  font: 400 15px/1.4 'Inter', sans-serif; color: var(--cadet);
+  background: rgba(39,50,72,0.06); padding: 10px 16px; border-radius: 3px; pointer-events: none;
+}
+@keyframes userPlace { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 0.9; transform: scale(1); } }
+#S8 .collage-instruct {
+  position: absolute; top: 24px; left: 50%; transform: translateX(-50%); z-index: 20;
+  font: 300 italic 15px 'Inter', sans-serif; color: var(--grey);
+  background: rgba(255,255,255,0.88); padding: 10px 24px; border-radius: 3px;
+  backdrop-filter: blur(8px);
+}
+#S8 .collage-hint {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 20;
+  font: 400 12px 'Inter', sans-serif; color: var(--grey); text-align: center;
+  background: rgba(255,255,255,0.88); padding: 8px 20px; border-radius: 3px;
+  backdrop-filter: blur(8px);
+}
+
+/* ════════════════════════════════
+   SCREEN 9 — SANDSETER / RISKY PLAY (1:30 p.m.)
+   ════════════════════════════════ */
+#S9 { background: #000; }
+#S9 .dark-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.breath-line {
+  font: 300 italic clamp(18px,2.8vw,26px)/1.7 'Inter', sans-serif;
+  color: rgba(255,255,255,0.6); text-align: center; opacity: 0;
+}
+.breath-1 { animation: breathIn 2s 0.5s ease forwards; }
+.breath-2 { animation: breathIn 2s 1.5s ease forwards; }
+.breath-3 { animation: breathIn 2s 2.5s ease forwards; font-size: clamp(14px,2vw,18px); color: rgba(255,255,255,0.3); }
+@keyframes breathIn {
+  0% { opacity: 0; transform: translateY(8px); }
+  40% { opacity: 0.8; transform: translateY(0); }
+  100% { opacity: 0.4; transform: translateY(0); }
+}
+.dark-hold { position: absolute; inset: 0; background: #000; opacity: 0; animation: holdDark 1s 5s ease forwards; pointer-events: none; }
+@keyframes holdDark { to { opacity: 1; } }
+.speaker-emerge {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 40px; opacity: 0;
+  animation: emergeReveal 1.5s 6.5s ease forwards;
+}
+@keyframes emergeReveal { 0% { opacity: 0; } 100% { opacity: 1; } }
+.speaker-emerge .moment-speaker { color: var(--champagne); }
+.speaker-emerge .moment-note { color: rgba(255,255,255,0.7); max-width: 480px; }
+.speaker-emerge .moment-time { color: var(--sienna); }
+
+.post-activity {
+  font: 400 14px/1.65 'Inter', sans-serif; color: rgba(255,255,255,0.6);
+  max-width: 480px; margin-top: 28px; text-align: center;
+  opacity: 0; animation: fadeUp 0.8s 8s ease forwards;
+}
+
+/* ════════════════════════════════
+   SCREEN 10 — THREE TRACKS (2:15 p.m.)
+   ════════════════════════════════ */
+#S10 { background: var(--champagne); }
+.tracks-container { display: flex; gap: 20px; padding: 80px 40px; width: 100%; height: 100%; align-items: stretch; }
+.track { flex: 1; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 32px 28px; backdrop-filter: blur(8px); display: flex; flex-direction: column; }
+.track-label { font: 600 9px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 16px; }
+.track h3 { font: 700 clamp(20px,2.5vw,26px)/1.2 'Inter', sans-serif; color: var(--dark); margin-bottom: 16px; }
+.track p { font: 400 15px/1.65 'Inter', sans-serif; color: var(--grey); }
+.track-aside { font: 300 italic 14px/1.6 'Inter', sans-serif; color: var(--cadet); margin-top: 16px; }
+.track-quiet { background: rgba(17,17,17,0.92); }
+.track-quiet h3, .track-quiet .track-label { color: rgba(255,255,255,0.8); }
+.track-quiet p { color: rgba(255,255,255,0.65); }
+.track-quiet .track-aside { color: rgba(255,255,255,0.5); }
+
+/* ════════════════════════════════
+   SCREEN 11 — MAPPING (3:15 p.m.)
+   ════════════════════════════════ */
+#S11 {
+  background: var(--champagne);
+  background-image: radial-gradient(circle at 50% 50%, rgba(39,50,72,0.03) 0%, transparent 70%);
+}
+.map-canvas { position: relative; width: 100%; height: 100%; }
+.map-description {
+  position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+  z-index: 20; text-align: center; max-width: 500px;
+}
+.map-description h2 { font: 700 clamp(22px,3vw,30px)/1.2 'Inter', sans-serif; color: var(--dark); margin-bottom: 12px; }
+.map-description p { font: 400 15px/1.6 'Inter', sans-serif; color: var(--grey); }
+.map-prompt {
+  position: absolute; background: rgba(255,255,255,0.9);
+  border: 1px solid var(--light); border-radius: 6px; padding: 20px 24px;
+  backdrop-filter: blur(8px); max-width: 280px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04); opacity: 0;
+  animation: mapIn 0.6s ease forwards;
+}
+.map-prompt label { display: block; font: 500 14px 'Inter', sans-serif; color: var(--cadet); margin-bottom: 10px; }
+.map-prompt textarea {
+  width: 100%; height: 56px; border: none; border-bottom: 1px solid var(--light); outline: none; resize: none;
+  font: 400 14px/1.5 'Inter', sans-serif; color: var(--dark); background: transparent;
+}
+.map-prompt textarea::placeholder { color: var(--light); }
+@keyframes mapIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+.map-timer {
+  position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+  font: 300 italic 17px 'Inter', sans-serif; color: var(--grey); text-align: center;
+}
+.map-output {
+  position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%);
+  font: 400 13px/1.6 'Inter', sans-serif; color: var(--cadet); text-align: center;
+  max-width: 480px; opacity: 0; animation: fadeUp 0.8s 1.5s ease forwards;
+}
+
+/* ════════════════════════════════
+   SCREEN 12 — CLOSING / GIBSON (4:15 p.m.)
+   ════════════════════════════════ */
+#S12 { background: var(--champagne); overflow: hidden; }
+#S12 .closing-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.cascade-item {
+  position: absolute; font: 400 12px 'Inter', sans-serif; color: var(--cadet);
+  background: rgba(39,50,72,0.06); padding: 6px 14px; border-radius: 20px;
+  opacity: 0; animation: cascadeIn 0.6s ease forwards;
+}
+@keyframes cascadeIn { 0% { opacity: 0; transform: translateY(20px) scale(0.9); } 100% { opacity: 0.85; transform: translateY(0) scale(1); } }
+.cascade-voice { font: 600 14px 'Inter', sans-serif; color: var(--champagne); background: rgba(255,235,210,0.15); }
+#S12 .closing-center {
+  z-index: 10; text-align: center; max-width: 560px; padding: 48px;
+  background: rgba(255,235,210,0.9); border-radius: 4px; backdrop-filter: blur(20px);
+}
+#S12 .closing-final {
+  font: 300 italic 15px/1.6 'Inter', sans-serif; color: var(--cadet);
+  margin-top: 20px; opacity: 0; animation: fadeUp 0.8s 2s ease forwards;
+}
+
+/* ════════════════════════════════
+   SCREEN 13 — CARD ON CHAIR (3D flip)
+   ════════════════════════════════ */
+#S13 { background: var(--champagne); }
+.card-flip-container { perspective: 1000px; width: 88%; max-width: 420px; cursor: pointer; outline: none; }
+.card-flip-container:focus-visible { outline: 2px solid var(--mint); outline-offset: 4px; border-radius: 6px; }
+.card-inner { position: relative; width: 100%; transition: transform 0.7s ease; transform-style: preserve-3d; }
+.card-flip-container.flipped .card-inner { transform: rotateY(180deg); }
+.card-front, .card-back {
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: #fff; border-radius: 6px; padding: 44px;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.06); text-align: center;
+}
+.card-front .card-q { font: 300 italic 18px/1.55 'Inter', sans-serif; color: var(--dark); margin-bottom: 28px; }
+.card-front textarea {
+  width: 100%; height: 80px; border: none; border-bottom: 1px solid var(--light);
+  font: 400 15px/1.5 'Inter', sans-serif; color: var(--dark); resize: none; outline: none;
+  text-align: center; background: transparent;
+}
+.card-front textarea::placeholder { color: var(--light); }
+.card-front .card-sub { font: 400 13px 'Inter', sans-serif; color: var(--grey); margin-top: 20px; line-height: 1.6; }
+.card-back {
+  position: absolute; inset: 0; transform: rotateY(180deg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--cadet);
+}
+.card-back-label { font: 600 10px 'Inter', sans-serif; letter-spacing: 0.16em; color: var(--sienna); margin-bottom: 16px; }
+.card-back-time { font: 700 clamp(20px,3vw,28px)/1.2 'Inter', sans-serif; color: var(--champagne); margin-bottom: 24px; }
+.card-back-body { font: 400 15px/1.65 'Inter', sans-serif; color: rgba(255,255,255,0.5); max-width: 300px; }
+.card-flip-hint { font: 300 italic 12px 'Inter', sans-serif; color: var(--light); margin-top: 20px; }
+
+/* ════════════════════════════════
+   SCREEN 14 — GARDEN PARTY (4:30 p.m.)
+   ════════════════════════════════ */
+#S14 { background: var(--champagne); }
+#S14 .garden-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+#S14 .garden-center {
+  text-align: center; max-width: 500px; padding: 40px; z-index: 5;
+  background: rgba(255,235,210,0.92); border-radius: 8px;
+  backdrop-filter: blur(12px); box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+#S14 .garden-label { font: 600 10px 'Inter', sans-serif; letter-spacing: 0.16em; color: var(--sienna); margin-bottom: 16px; }
+#S14 .garden-title { font: 700 clamp(28px,4vw,42px)/1.15 'Inter', sans-serif; color: var(--dark); margin-bottom: 24px; }
+#S14 .garden-note { font: 400 15px/1.65 'Inter', sans-serif; color: var(--dark); }
+#S14 .garden-aside { font: 300 italic 14px/1.6 'Inter', sans-serif; color: var(--cadet); margin-top: 20px; }
+
+/* ════════════════════════════════
+   SCREEN 15 — DIRECTORY MOCKUP
+   ════════════════════════════════ */
+#S15 { background: var(--cadet); }
+.directory-mockup { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 40px; }
+.dir-phone {
+  width: 380px; max-width: 100%; height: 85vh; max-height: 700px;
+  background: #111; border-radius: 28px; padding: 12px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+}
+.dir-screen {
+  width: 100%; height: 100%; background: var(--champagne); border-radius: 18px;
+  padding: 24px 20px; overflow-y: auto; overflow-x: hidden;
+}
+.dir-header {
+  font: 600 12px 'Inter', sans-serif; color: var(--cadet); text-align: center;
+  padding-bottom: 14px; border-bottom: 1px solid var(--light); margin-bottom: 18px;
+}
+.dir-section { margin-bottom: 18px; }
+.dir-section-label {
+  font: 600 9px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--sienna); margin-bottom: 8px;
+}
+.dir-item { font: 300 italic 13px/1.5 'Inter', sans-serif; color: var(--dark); margin-bottom: 6px; }
+.dir-prompt {
+  font: 400 12px 'Inter', sans-serif; color: var(--grey); text-align: center;
+  padding: 12px 0; border-top: 1px solid var(--light); border-bottom: 1px solid var(--light);
+  margin: 16px 0;
+}
+.dir-person { font: 400 11px/1.5 'Inter', sans-serif; color: var(--dark); margin-bottom: 6px; padding-left: 12px; border-left: 2px solid var(--light); }
+.dir-children { margin-top: 18px; }
+
+/* ════════════════════════════════
+   SCREEN 16 — CTA + SUB-SERVICES
+   ════════════════════════════════ */
+#S16 { background: var(--cadet); }
+#S16.active { overflow-y: auto; }
+#S16 .final-scene { position: relative; width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
+#S16 .final-text { text-align: center; max-width: 580px; padding: 40px; z-index: 5; }
+#S16 .ft-body { font: 400 16px/1.7 'Inter', sans-serif; color: rgba(255,255,255,0.45); margin-bottom: 28px; }
+#S16 .ft-quote {
+  font: 300 italic clamp(18px,3vw,24px)/1.45 'Inter', sans-serif;
+  color: var(--champagne); border-left: 3px solid var(--sienna);
+  padding-left: 24px; text-align: left; margin: 32px 0;
+}
+#S16 .ft-wv { font: 400 13px 'Inter', sans-serif; color: rgba(255,255,255,0.2); margin-top: 48px; }
+#S16 .ft-cta { font: 300 italic 17px 'Inter', sans-serif; color: var(--sienna); margin-top: 12px; }
+
+.services-section { width: 100%; max-width: 800px; margin-top: 60px; padding: 0 20px; }
+.services-label { font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em; color: rgba(255,255,255,0.3); text-align: center; margin-bottom: 32px; }
+.services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.service-card {
+  background: rgba(255,255,255,0.06); border-radius: 8px; padding: 28px 24px;
+  backdrop-filter: blur(8px);
+}
+.service-card h4 { font: 600 15px/1.3 'Inter', sans-serif; color: var(--champagne); margin-bottom: 12px; }
+.service-card p { font: 400 13px/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.4); }
+.services-cta { display: flex; gap: 12px; justify-content: center; margin-top: 40px; padding-bottom: 40px; flex-wrap: wrap; }
+.cta-btn {
+  display: inline-block; padding: 14px 32px; border-radius: 4px; font: 500 13px 'Inter', sans-serif;
+  text-decoration: none; transition: all 0.2s; min-height: 48px;
+  display: flex; align-items: center; justify-content: center;
+}
+.cta-btn:not(.cta-primary) { border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); }
+.cta-btn:not(.cta-primary):hover { background: rgba(255,255,255,0.06); color: #fff; }
+.cta-primary { background: var(--redwood); color: #fff; border: none; }
+.cta-primary:hover { background: var(--sienna); }
+
+/* ── Responsive ── */
+/* 700px rules merged into 768px below */
+
+@media (max-width: 768px) {
+  /* ── Global mobile layout ── */
+  .sc.active {
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding-top: 52px; /* clear top agenda bar */
+    align-items: flex-start; /* allow content to grow beyond viewport for scroll */
+  }
+  .sc.active > * { flex-shrink: 0; } /* prevent content from squishing */
+
+  /* ── Narrator pull-up drawer ── */
+  #narrator-overlay {
+    width: 100%; max-width: none; left: 0; transform: none;
+    bottom: 48px; border-radius: 12px 12px 0 0;
+    padding: 0; font-size: 13px; line-height: 1.5;
+    max-height: 30vh; overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+  }
+  #narrator-overlay.narrator-collapsed { max-height: 42px; }
+  #narrator-overlay .narrator-scene {
+    font-size: 10px; padding: 12px 16px; cursor: pointer;
+    min-height: 42px; display: flex; align-items: center;
+  }
+  #narrator-overlay .narrator-text { padding: 0 16px 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; max-height: calc(30vh - 42px); }
+  #narrator-overlay .narrator-hint { display: none; }
+  #narrator-overlay:not(.hidden) { pointer-events: auto; }
+  #narrator-toggle { top: auto; bottom: 52px; right: 8px; z-index: 260; padding: 8px 12px; min-height: 44px; min-width: 44px; font-size: 11px; }
+
+  /* ── Agenda ── */
+  #agenda-card { display: none !important; }
+  #agenda-mobile { display: flex; }
+
+  /* ── Nav bar ── */
+  #nav { padding: 8px 12px; }
+  #nav .n-label { display: none; }
+  .n-btn { padding: 8px 14px; min-height: 44px; min-width: 44px; font-size: 12px; }
+
+  /* ── Typography — ensure readability ── */
+  .moment-note, .moment-detail { font-size: 15px; line-height: 1.6; }
+  .garden-note, .garden-aside { font-size: 14px; }
+  .floating-voice { font-size: 14px; }
+
+  /* ── S0 cover ── */
+  #S0 { padding: 40px 24px; padding-top: 52px; }
+  #S0 .foot { font-size: 9px; position: absolute; bottom: 56px; }
+  #S0 .enter { width: 80%; max-width: 320px; text-align: center; padding: 16px 24px; font-size: 15px; }
+
+  /* ── S1 before the day — stack ── */
+  .before-day { flex-direction: column; gap: 32px; padding: 20px; }
+  .before-text { text-align: center; }
+  .phone-mockup { max-width: 280px; margin: 0 auto; }
+
+  /* ── S2 question wall ── */
+  #S2 .wall-time { top: 60px !important; }
+  .wc { width: 140px; padding: 10px 12px; font-size: 13px; }
+  .note-card { max-width: 180px !important; }
+  #S2 .wall-prompt { flex-direction: row; width: 95%; max-width: none; bottom: 56px; }
+  #S2 .wall-prompt textarea { font-size: 16px; height: 48px; } /* 16px prevents iOS zoom */
+  #S2 .wall-prompt button { min-width: 56px; min-height: 48px; }
+
+  /* ── S3 keynote ── */
+  #S3 .morgan-center { padding: 32px; }
+
+  /* ── S5 hall of mirrors ── */
+  .table-top { width: 200px; height: 200px; padding: 30px; }
+  .table-top .table-question { font-size: 15px; }
+  .table-lens { max-width: 160px; padding: 12px 14px; }
+  .table-lens .lens-text { font-size: 12px; }
+  #S5 .scene-label { bottom: 56px; font-size: 12px; padding: 8px 16px; max-width: 90%; }
+
+  /* ── S7 session choice — stack vertically ── */
+  .door-choice { flex-direction: column; padding: 20px; }
+  .door { padding: 28px 20px; min-height: 44px; }
+  .door-divider { width: 60px; height: 1px; margin: 0 auto; }
+
+  /* ── S8 collage ── */
+  .collage-instruct { font-size: 13px; padding: 8px 16px; top: 60px !important; }
+  .collage-hint { font-size: 12px; padding: 0 20px; bottom: 56px !important; }
+  .c-text:not(.c-user) { display: none; }
+  .c-strip, .c-circle, .c-drawing { transform: scale(0.7); }
+
+  /* ── S9 speaker ── */
+  .speaker-emerge { padding: 20px; }
+  .speaker-emerge .moment-speaker { font-size: clamp(22px,5vw,32px); }
+  .post-activity { font-size: 13px; margin-top: 16px; }
+  .ghost-card { display: none; }
+
+  /* ── S10 tracks — stack ── */
+  .tracks-container { flex-direction: column; padding: 60px 20px; gap: 16px; height: auto; }
+
+  /* ── S11 mapping — flow instead of absolute ── */
+  .map-canvas { display: flex; flex-direction: column; align-items: center; padding: 60px 20px 80px; gap: 16px; }
+  .map-description { position: static; transform: none; max-width: 100%; }
+  .map-prompt { position: static !important; transform: none !important; max-width: 100%; width: 100%; opacity: 1; animation: none; padding: 14px; }
+  .map-timer { position: static; transform: none; margin-top: 8px; }
+  .map-output { position: static; transform: none; opacity: 1; animation: none; margin-top: 8px; font-size: 12px; }
+
+  /* ── S12 closing — hide cascade items to prevent overlap ── */
+  .cascade-item { display: none; }
+
+  /* ── S13 card flip ── */
+  .card-flip-container { width: 90%; max-width: 340px; height: auto; min-height: 400px; }
+
+  /* ── S14 garden party ── */
+  #S14 .garden-center { padding: 28px 20px; max-width: 90%; }
+
+  /* ── S15 directory ── */
+  .directory-mockup { padding: 20px; }
+  .dir-phone { width: 100%; max-width: 360px; }
+  .dir-screen { max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ── S16 CTA ── */
+  #S16 { padding-bottom: 80px; }
+  .services-grid { grid-template-columns: 1fr; }
+  .services-cta { padding-bottom: 40px; flex-direction: column; align-items: center; }
+  .cta-btn { width: 100%; max-width: 320px; }
+}
+
+@media (max-width: 480px) {
+  .track { padding: 20px 16px; }
+  .card-front, .card-back { padding: 28px 20px; }
+  #S0 h1 { font-size: clamp(28px,8vw,42px); }
+  #S0 .sub { font-size: 15px; }
+  .moment-speaker { font-size: clamp(22px,5vw,32px); }
+  .time-badge { font-size: 11px; padding: 6px 14px; }
+  .bench-brief { font-size: 14px !important; padding: 10px 20px !important; }
+  .bench-note { font-size: 11px !important; bottom: 56px !important; }
+  .mat-card { width: 170px !important; padding: 14px !important; font-size: 13px !important; }
+  .before-day { padding: 16px; gap: 24px; }
+  .door { padding: 24px 16px; }
+  #S14 .garden-center { padding: 24px 16px; }
+  #S16 .final-text { padding: 24px 16px; }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .card-inner { transition: none; }
+  .card-flip-container.flipped .card-inner { transform: none; }
+  .card-flip-container .card-front { transition: opacity 0.3s; }
+  .card-flip-container.flipped .card-front { opacity: 0; }
+  .card-flip-container .card-back { transform: none; opacity: 0; transition: opacity 0.3s; }
+  .card-flip-container.flipped .card-back { opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- ═══ NARRATOR ═══ -->
+<button id="narrator-toggle" aria-pressed="true" aria-label="toggle narrator overlay">
+  <span class="eye-icon">&#9673;</span> narrator
+</button>
+<div id="narrator-overlay" aria-live="polite">
+  <div class="narrator-scene" id="narratorScene"></div>
+  <div class="narrator-text" id="narratorText"></div>
+  <div class="narrator-hint">tap narrator (top-right) to hide this</div>
+</div>
+
+<!-- ═══ AGENDA CARD ═══ -->
+<nav id="agenda-card" role="navigation" aria-label="conference agenda" aria-hidden="true">
+  <button class="agenda-toggle" id="agendaToggle" aria-expanded="true">▾ agenda</button>
+  <div class="agenda-body">
+    <ul class="agenda-list" id="agendaList"></ul>
+  </div>
+</nav>
+
+<!-- ═══ AGENDA MOBILE ═══ -->
+<nav id="agenda-mobile" role="navigation" aria-label="conference agenda (mobile)" aria-hidden="true">
+  <button class="agenda-mobile-toggle" id="agendaMobileToggle" aria-expanded="false">
+    <div class="agenda-mobile-current">
+      <div class="paul-avatar-m">P</div>
+      <span id="agendaMobileLabel"></span>
+    </div>
+    <span class="agenda-mobile-chevron" id="agendaMobileChevron">▸</span>
+  </button>
+  <div class="agenda-mobile-body" id="agendaMobileBody">
+    <ul class="agenda-mobile-list" id="agendaMobileList"></ul>
+  </div>
+</nav>
+
+<!-- ═══ S0 COVER ═══ -->
+<section class="sc active" id="S0" aria-label="cover — reimagining PEDAL Conference 2025">
+  <div class="particles" id="coverParticles"></div>
+  <div class="cover-fade label">experience design concept</div>
+  <h1 class="cover-fade">reimagining PEDAL Conference 2025</h1>
+  <div class="cover-fade sub">same speakers. same themes. same venue.<br><em>different architecture around them.</em></div>
+  <button class="enter" onclick="go(1)">enter the day</button>
+  <div class="foot">winded.vertigo · PEDAL Centre, University of Cambridge · 2025</div>
+</section>
+
+<!-- ═══ S1 BEFORE THE DAY ═══ -->
+<section class="sc" id="S1" aria-label="before the day">
+  <div class="before-day">
+    <div class="before-text">
+      <div class="moment-time">two weeks before</div>
+      <h2 class="moment-speaker" style="font-size:clamp(24px,3.5vw,36px)">before the day</h2>
+      <p class="moment-note">every attendee receives a question to sit with, a note about the day's design, and a name badge with a QR code linking to a personal conference page.</p>
+      <p class="moment-detail" style="opacity:1;animation:none">this is not a standard conference. there are moments that ask something of you. all of them are optional. none of them are difficult.</p>
+    </div>
+    <div class="phone-mockup">
+      <div class="phone-screen">
+        <div class="app-header">PEDAL Conference 2025</div>
+        <div class="app-badge">
+          <div class="app-badge-circle">QR</div>
+          <div class="app-badge-name">your conference page</div>
+        </div>
+        <div class="app-features">
+          <div class="app-feature">
+            <span class="app-dot"></span> question wall — add from your phone
+          </div>
+          <div class="app-feature">
+            <span class="app-dot"></span> curiosity display — live updates
+          </div>
+          <div class="app-feature">
+            <span class="app-dot"></span> post-conference: what the room produced
+          </div>
+          <div class="app-feature">
+            <span class="app-dot"></span> one-week directory of who was there
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S2 QUESTION WALL ═══ -->
+<section class="sc sc-bg" id="S2" aria-label="9:00 a.m. — the question wall">
+  <div class="wall-time">9:00 a.m. — registration</div>
+  <div class="wall-question" id="wallQ">what do children understand about play<br>that adults have forgotten?</div>
+  <div class="wall-surface" id="wallSurface"></div>
+  <div class="wall-prompt">
+    <textarea id="wallIn" placeholder="add yours to the wall…" rows="2"></textarea>
+    <button onclick="addToWall()">pin</button>
+  </div>
+</section>
+
+<!-- ═══ S3 MORGAN ═══ -->
+<section class="sc sc-bg" id="S3" aria-label="9:40 a.m. — Stephen Morgan MP">
+  <div class="morgan-scene" id="morganScene">
+    <div class="morgan-center">
+      <div class="moment-time">9:40 a.m.</div>
+      <div class="moment-speaker">Stephen Morgan MP</div>
+      <div class="moment-note">keynote. ran as planned.</div>
+      <div class="moment-detail">the minister walked through the same question wall as everyone else.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S4 MAKING SPACE ═══ -->
+<section class="sc sc-bg" id="S4" aria-label="10:10 a.m. — the making space">
+  <div class="time-badge">10:10 a.m. — Dr Bo Stjerne Thomsen / LEGO</div>
+  <div class="bench-brief">using only what is here, make something a child could learn from.</div>
+  <div class="bench" id="bench"></div>
+  <div class="bench-note">pick up the cardboard. read the children's cards. or just watch. all of these are the activity.</div>
+</section>
+
+<!-- ═══ S5 HALL OF MIRRORS ═══ -->
+<section class="sc sc-bg" id="S5" aria-label="10:40 a.m. — hall of mirrors and bumper cars">
+  <div class="time-badge">10:40 a.m. — refreshments</div>
+  <div class="table-scene" id="tableScene">
+    <div class="table-top">
+      <div class="table-question">how do children learn what risk means?</div>
+    </div>
+  </div>
+  <div class="scene-label">people from outside the play research field sit at tables with a question from the morning. ideas refracted through a different lens.</div>
+</section>
+
+<!-- ═══ S6 DRAPER ═══ -->
+<section class="sc sc-bg" id="S6" aria-label="11:10 a.m. — Dr Catherine Draper">
+  <div class="draper-scene" id="draperScene">
+    <div class="draper-center">
+      <div class="moment-time">11:10 a.m.</div>
+      <div class="moment-speaker">Dr Catherine Draper</div>
+      <div class="moment-note">what the data showed.<br>alongside what children said.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S7 SESSION CHOICE ═══ -->
+<section class="sc" id="S7" aria-label="11:45 a.m. — choose your room">
+  <div class="door-choice">
+    <button class="door" onclick="go(8)">
+      <div class="d-label">session a · 11:45 a.m.</div>
+      <h3>building a community for policy change</h3>
+      <p>how research moves into the rooms where decisions are made.</p>
+      <div class="d-foot">both rooms are the right room.</div>
+    </button>
+    <div class="door-divider"></div>
+    <button class="door" onclick="go(8)">
+      <div class="d-label">session b · 11:45 a.m.</div>
+      <h3>neurodiversity-affirming play</h3>
+      <p>multiple ways in. watching treated as participation. no single mode privileged.</p>
+      <div class="d-foot">both rooms are the right room.</div>
+    </button>
+  </div>
+</section>
+
+<!-- ═══ S8 LUNCH COLLAGE ═══ -->
+<section class="sc" id="S8" aria-label="12:25 p.m. — the collage">
+  <div class="collage-instruct">12:25 p.m. — add something from this morning that is still with you.</div>
+  <div class="collage-surface" id="collageSurface"></div>
+  <div class="collage-hint">click anywhere on the surface, or type below and press enter.</div>
+</section>
+
+<!-- ═══ S9 SANDSETER / RISKY PLAY ═══ -->
+<section class="sc sc-bg" id="S9" aria-label="1:30 p.m. — risky play">
+  <div class="dark-scene" id="darkScene">
+    <div style="text-align:center">
+      <div class="breath-line breath-1">thirty seconds of unedited footage.</div>
+      <div class="breath-line breath-2">children in risky play. sound on.</div>
+      <div class="breath-line breath-3">no framing. no commentary.</div>
+    </div>
+    <div class="dark-hold"></div>
+    <div class="speaker-emerge">
+      <div class="moment-time">1:30 p.m.</div>
+      <div class="moment-speaker" style="margin-top:12px">Prof Ellen Beate Hansen Sandseter</div>
+      <div class="moment-note" style="margin-top:20px">the audience had just seen what she was about to analyse, from the children's perspective, before the adult interpretation arrived.</div>
+      <div class="post-activity">after the keynote, the Boulind offers a short opt-in activity with genuine uncertainty in it. something where the outcome is not known before you try. available in physical and non-physical forms. the brief is the same for everyone. the entry point is not.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S10 THREE TRACKS ═══ -->
+<section class="sc sc-bg" id="S10" aria-label="2:15 p.m. — three simultaneous tracks">
+  <div class="time-badge">2:15 p.m. — three tracks running simultaneously</div>
+  <div class="tracks-container">
+    <div class="track track-panel">
+      <div class="track-label">MAIN HALL</div>
+      <h3>AI panel</h3>
+      <p>a panel discussion on AI, toys, and the future of play. ran in the main hall as planned.</p>
+    </div>
+    <div class="track track-quiet">
+      <div class="track-label">THE BOULIND</div>
+      <h3>the quiet room</h3>
+      <p>low light. no task. no facilitation. a place to sit with what the day had produced so far.</p>
+      <p class="track-aside">some people need noise and conversation to process. some need stillness. both are legitimate. both were available. needing quiet is not opting out. it is a different way of being in.</p>
+    </div>
+    <div class="track track-network">
+      <div class="track-label">NETWORKING SPACE</div>
+      <h3>connecting play networks</h3>
+      <p>each table opened with one question, drawn from children's responses to being asked what they wish adults understood about play.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S11 MAPPING ═══ -->
+<section class="sc" id="S11" aria-label="3:15 p.m. — map your context">
+  <div class="time-badge">3:15 p.m. — Dr Jermaine D'Sa & Dr Andrea Grenier</div>
+  <div class="map-canvas" id="mapCanvas">
+    <div class="map-description">
+      <h2>a short paired exercise. map your own context.</h2>
+      <p>the template is there for people who think better with a structure in front of them. the conversation option is there for people who think better out loud.</p>
+    </div>
+    <div class="map-output">you leave with a map of your own context — named assets, named people, named gaps.</div>
+    <div class="map-timer">ten minutes. no debrief required.</div>
+  </div>
+</section>
+
+<!-- ═══ S12 CLOSING ═══ -->
+<section class="sc sc-bg" id="S12" aria-label="4:15 p.m. — closing">
+  <div class="closing-scene" id="closingScene">
+    <div class="closing-center">
+      <div class="moment-time">4:15 p.m.</div>
+      <div class="moment-speaker">Prof Jenny Gibson</div>
+      <div class="moment-note" style="margin-top:12px">the collage was displayed at the front. the room produced these today.</div>
+      <div class="closing-final">the conference ended by naming the children whose voices ran through the day and asking what their absence means for next year.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S13 CARD ON CHAIR ═══ -->
+<section class="sc" id="S13" aria-label="the card on the chair">
+  <div class="card-flip-container" tabindex="0" role="button" aria-label="card on your chair — press enter or click to flip" id="flipCard">
+    <div class="card-inner">
+      <div class="card-front">
+        <div class="card-q">what is one thing you want to try, change, or pay attention to in the next two weeks, however small?</div>
+        <textarea placeholder="write here, or don't." aria-label="your response"></textarea>
+        <div class="card-sub">take it with you or leave it on the table.</div>
+        <div class="card-flip-hint">click to turn over</div>
+      </div>
+      <div class="card-back">
+        <div class="card-back-label">GARDEN PARTY</div>
+        <div class="card-back-time">4:30 p.m. · the garden</div>
+        <div class="card-back-body">if you want to stay in touch with people from today, the badge QR will have a simple directory in one week.</div>
+        <div class="card-flip-hint">click to turn back</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S14 GARDEN PARTY ═══ -->
+<section class="sc sc-bg" id="S14" aria-label="4:30 p.m. — garden party">
+  <div class="garden-scene">
+    <div class="garden-center">
+      <div class="garden-label">4:30 P.M.</div>
+      <div class="garden-title">the garden</div>
+      <div class="garden-note">opt-in. if you want to stay in touch with people from today, the badge QR will have a simple directory in one week.</div>
+      <div class="garden-aside">the conference does not end when people leave the building.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S15 DIRECTORY MOCKUP ═══ -->
+<section class="sc" id="S15" aria-label="after the day — what the room produced">
+  <div class="directory-mockup">
+    <div class="dir-phone">
+      <div class="dir-screen">
+        <div class="dir-header">PEDAL Conference 2025 — what the room produced</div>
+        <div class="dir-section">
+          <div class="dir-section-label">FROM THE QUESTION WALL</div>
+          <div class="dir-item">"they know that play doesn't need a reason."</div>
+          <div class="dir-item">"I think grown-ups forgot how to pretend."</div>
+          <div class="dir-item">"the freedom to be bad at something without consequence."</div>
+        </div>
+        <div class="dir-section">
+          <div class="dir-section-label">FROM THE COLLAGE</div>
+          <div class="dir-item">beetles need houses too · mess is methodology · watch this</div>
+        </div>
+        <div class="dir-section">
+          <div class="dir-section-label">THE CURIOSITY DISPLAY AT CLOSE</div>
+          <div class="dir-item">"what happens to play when screens are always available?"</div>
+          <div class="dir-item">"is risk a thing we manage or a thing we need?"</div>
+        </div>
+        <div class="dir-prompt">return to something from the day</div>
+        <div class="dir-section">
+          <div class="dir-section-label">WHO WAS THERE</div>
+          <div class="dir-person">Dr Sarah Chen · University of Bristol — risky play in urban settings</div>
+          <div class="dir-person">James Okoro · Save the Children — play-based assessment in Nigeria</div>
+          <div class="dir-person">Priya Sharma · Tata Trusts — community play spaces in Gujarat</div>
+          <div class="dir-person">Dr Lena Müller · Humboldt University — neurodiversity and outdoor play</div>
+          <div class="dir-person">Tomás Reyes · UNICEF LAC — play policy in post-conflict settings</div>
+          <div class="dir-person">Kate Bridges · Natural England — nature play and planning regulation</div>
+        </div>
+        <div class="dir-section dir-children">
+          <div class="dir-section-label">CHILDREN'S VOICES</div>
+          <div class="dir-item">"when you play you can be anyone." — age 6</div>
+          <div class="dir-item">"I like making houses for beetles." — age 5</div>
+          <div class="dir-item">"you don't have to win. you just have to play." — age 6</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S16 CTA + SUB-SERVICES ═══ -->
+<section class="sc" id="S16" aria-label="what this does">
+  <div class="final-scene">
+    <div class="particles" id="finalParticles"></div>
+    <div class="final-text">
+      <div class="ft-body">the day's content stayed intact. what changed was that the day accumulated. people arrived with something, did something, encountered something that surprised them, and left with a trace they could return to.</div>
+      <div class="ft-quote">that is what the PEDAL programme argues for, in every session, all day. this design lets the format say the same thing.</div>
+      <div class="ft-wv">winded.vertigo · windedvertigo.com · hello@windedvertigo.com</div>
+      <div class="ft-cta">this is what's possible. what are you trying to change?</div>
+    </div>
+    <div class="services-section">
+      <div class="services-label">some of the ways we work with conferences and events</div>
+      <div class="services-grid">
+        <div class="service-card">
+          <h4>helping speakers maximise their messaging</h4>
+          <p>working with your keynote speakers to redesign their sessions so the format matches their content.</p>
+        </div>
+        <div class="service-card">
+          <h4>adding meaning to your content</h4>
+          <p>designing the architecture between and around presentations so the day accumulates rather than just proceeds.</p>
+        </div>
+        <div class="service-card">
+          <h4>co-creating games with your keynote speakers</h4>
+          <p>designing interactive, play-based activities that connect directly to the research being presented.</p>
+        </div>
+        <div class="service-card">
+          <h4>aligning your event to Universal Design for Learning</h4>
+          <p>making sure the day works for every person in the room, with multiple ways into every activity and no single mode privileged.</p>
+        </div>
+      </div>
+      <div class="services-cta">
+        <a href="https://windedvertigo.com" class="cta-btn">see what we do</a>
+        <a href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2RGf5v1tbCsUuJ4vvcsKr0gh2tdEU3TuCerg198j-hbxXzHMvhznWxigtvx5glXGh9Pj4diiFb" class="cta-btn cta-primary" target="_blank" rel="noopener">book a playdate</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ NAV ═══ -->
+<nav id="nav" aria-label="screen navigation">
+  <button class="n-btn" id="btnP" onclick="go(cur-1)" aria-label="previous screen">&larr; back</button>
+  <div>
+    <span class="n-time" id="nTime"></span>
+    <span class="n-label" id="nLabel"></span>
+  </div>
+  <button class="n-btn" id="btnN" onclick="go(cur+1)" aria-label="next screen">next &rarr;</button>
+</nav>
+
+<script>
+/* ── META ── */
+const META = [
+  { t:'', l:'reimagining PEDAL Conference 2025', nav:false },
+  { t:'', l:'before the day' },
+  { t:'9:00 a.m.', l:'the question wall' },
+  { t:'9:40 a.m.', l:'Stephen Morgan MP' },
+  { t:'10:10 a.m.', l:'the making space' },
+  { t:'10:40 a.m.', l:'hall of mirrors & bumper cars' },
+  { t:'11:10 a.m.', l:'Dr Catherine Draper' },
+  { t:'11:45 a.m.', l:'choose your room' },
+  { t:'12:25 p.m.', l:'the collage' },
+  { t:'1:30 p.m.', l:'risky play' },
+  { t:'2:15 p.m.', l:'three tracks' },
+  { t:'3:15 p.m.', l:'map your context' },
+  { t:'4:15 p.m.', l:'closing — Prof Gibson' },
+  { t:'', l:'the card on the chair' },
+  { t:'4:30 p.m.', l:'garden party' },
+  { t:'', l:'after the day' },
+  { t:'', l:'what this does', nav:false },
+];
+
+/* ── NARRATOR TEXT ── */
+const NARRATOR = [
+  {scene:'cover', text:"the PEDAL Conference brings together researchers, policymakers, and educators who care about play. the content is strong. the opportunity is to redesign the architecture around it so the format says the same thing the research does."},
+  {scene:'before the day', text:"two weeks before, every attendee receives a question to sit with. a note about the day's design. and a companion app linked to their badge QR — threading the digital layer through the whole day."},
+  {scene:'the question wall', text:"the question wall builds in real time. children's responses are already there. by 09:30 it holds sixty to seventy cards. it stays up all day."},
+  {scene:'Stephen Morgan MP', text:"runs as planned. the minister walked through the same question wall as everyone else on the way in."},
+  {scene:'the making space', text:"the Boulind opens as a making space. cardboard, tape, children's prompt cards, coloured blocks. the brief: using only what is here, make something a child could learn from. pick up the cardboard. read the children's cards. or just watch. all of these are the activity."},
+  {scene:'hall of mirrors & bumper cars', text:"two formats running together. hall of mirrors: people from outside the play research field sit at tables with a question from the morning. ideas refracted through a different lens. bumper cars: a deliberate collision of perspectives. short, timed conversations between people who would not normally sit together. the format produces friction. that is the point."},
+  {scene:'Dr Catherine Draper', text:"the children's quotes appear not as illustration but as counterpoint — a second voice running through the presentation that the audience holds alongside the research findings."},
+  {scene:'session choice', text:"both sessions run simultaneously. both rooms are the right room."},
+  {scene:'the collage', text:"a collage station runs through lunch. add something from this morning that is still with you. a phrase, a sketch, a question. it grows through the break. it will be displayed at the close."},
+  {scene:'risky play', text:"the session opens with thirty seconds of unedited footage. children in risky play. no framing. the audience sees what Sandseter is about to analyse — from the children's perspective — before the adult interpretation arrives. after the keynote, a short opt-in activity with genuine uncertainty in it."},
+  {scene:'three tracks', text:"three things running at once. the AI panel in the main hall. the quiet room in the Boulind — low light, no task, no facilitation. and connecting play networks, where each table opens with a question drawn from children's responses. some people need noise to process. some need stillness. both are legitimate."},
+  {scene:'map your context', text:"a short paired exercise: map your own context. what assets already exist where you work? who is already doing something? what have you built that has not been named yet? the template is there for people who think better with a structure in front of them. the conversation option is there for people who think better out loud."},
+  {scene:'closing', text:"the collage is displayed at the front. the room produced these today. the conference ends by naming the children whose voices ran through the day and asking what their absence means for next year."},
+  {scene:'the card', text:"on every chair: a card. a question to take with you. the garden party invitation is on the back."},
+  {scene:'garden party', text:"opt-in. the garden. if you want to stay in touch with people from today, the badge QR will have a simple directory in one week."},
+  {scene:'after the day', text:"one week later, the badge QR resolves to this: what the room produced, who was there, and the children's quotes that ran through the day. the conference does not end when people leave the building."},
+  null,
+];
+
+/* ── AGENDA ── */
+const AGENDA = [
+  {time:'08:30', label:'arrival', screen:2},
+  {time:'09:00', label:'registration & question wall', screen:2},
+  {time:'09:40', label:'Stephen Morgan MP', screen:3},
+  {time:'10:10', label:'Thomsen keynote & making space', screen:4},
+  {time:'10:40', label:'hall of mirrors & bumper cars', screen:5},
+  {time:'11:10', label:'Draper keynote', screen:6},
+  {time:'12:25', label:'lunch & collage', screen:8},
+  {time:'13:30', label:'Sandseter keynote & risky play', screen:9},
+  {time:'14:15', label:'AI panel & quiet room', screen:10},
+  {time:'15:15', label:"D'Sa & Grenier + mapping", screen:11},
+  {time:'16:15', label:'Gibson closing & the card', screen:12},
+  {time:'16:30', label:'garden party', screen:14},
+];
+
+const screens = document.querySelectorAll('.sc');
+const nav = document.getElementById('nav');
+const nTime = document.getElementById('nTime');
+const nLabel = document.getElementById('nLabel');
+const btnP = document.getElementById('btnP');
+const btnN = document.getElementById('btnN');
+const prog = document.getElementById('progress');
+const narratorToggle = document.getElementById('narrator-toggle');
+const narratorOverlay = document.getElementById('narrator-overlay');
+const narratorScene = document.getElementById('narratorScene');
+const narratorText = document.getElementById('narratorText');
+const agendaCard = document.getElementById('agenda-card');
+const agendaList = document.getElementById('agendaList');
+const agendaToggle = document.getElementById('agendaToggle');
+const agendaMobileLabel = document.getElementById('agendaMobileLabel');
+const agendaMobileToggle = document.getElementById('agendaMobileToggle');
+const agendaMobileBody = document.getElementById('agendaMobileBody');
+const agendaMobileList = document.getElementById('agendaMobileList');
+const agendaMobileEl = document.getElementById('agenda-mobile');
+let cur = 0;
+let transitioning = false;
+let narratorOn = window.innerWidth > 768;
+narratorToggle.setAttribute('aria-pressed', narratorOn);
+if (!narratorOn) narratorOverlay.setAttribute('aria-hidden', 'true');
+
+/* ── Build agenda ── */
+function buildAgenda() {
+  agendaList.innerHTML = '';
+  AGENDA.forEach((a, i) => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.className = 'agenda-item';
+    btn.setAttribute('tabindex', '0');
+    btn.innerHTML =
+      '<span class="agenda-dot"></span>' +
+      '<span class="agenda-time">' + a.time + '</span>' +
+      '<span class="agenda-label">' + a.label + '</span>' +
+      '<span class="paul-avatar">P</span>';
+    btn.addEventListener('click', function() { go(a.screen); });
+    li.appendChild(btn);
+    agendaList.appendChild(li);
+  });
+}
+buildAgenda();
+
+/* ── Build mobile agenda ── */
+function buildMobileAgenda() {
+  agendaMobileList.innerHTML = '';
+  AGENDA.forEach(function(a, i) {
+    var li = document.createElement('li');
+    var btn = document.createElement('button');
+    btn.className = 'agenda-item';
+    btn.setAttribute('tabindex', '0');
+    btn.innerHTML =
+      '<span class="agenda-dot"></span>' +
+      '<span class="agenda-time">' + a.time + '</span>' +
+      '<span class="agenda-label">' + a.label + '</span>';
+    btn.addEventListener('click', function() {
+      go(a.screen);
+      agendaMobileEl.classList.remove('expanded');
+      agendaMobileToggle.setAttribute('aria-expanded', 'false');
+    });
+    li.appendChild(btn);
+    agendaMobileList.appendChild(li);
+  });
+}
+buildMobileAgenda();
+
+agendaMobileToggle.addEventListener('click', function() {
+  var isExpanded = agendaMobileEl.classList.toggle('expanded');
+  agendaMobileToggle.setAttribute('aria-expanded', isExpanded);
+});
+
+/* close mobile agenda when tapping outside */
+document.addEventListener('click', function(e) {
+  if (agendaMobileEl.classList.contains('expanded') && !agendaMobileEl.contains(e.target)) {
+    agendaMobileEl.classList.remove('expanded');
+    agendaMobileToggle.setAttribute('aria-expanded', 'false');
+  }
+});
+
+let agendaExpanded = true;
+agendaToggle.addEventListener('click', function() {
+  agendaExpanded = !agendaExpanded;
+  agendaToggle.setAttribute('aria-expanded', agendaExpanded);
+  agendaCard.classList.toggle('collapsed', !agendaExpanded);
+  agendaToggle.textContent = agendaExpanded ? '▾ agenda' : '▸ agenda';
+  updateAgenda();
+});
+
+function updateAgenda() {
+  const currentAgendaIdx = findCurrentAgendaIdx();
+  const items = agendaList.querySelectorAll('.agenda-item');
+
+  items.forEach((item, i) => {
+    item.classList.remove('done', 'current', 'collapsed');
+    if (AGENDA[i].screen < cur) {
+      item.classList.add('done');
+    } else if (i === currentAgendaIdx) {
+      item.classList.add('current');
+    }
+
+    /* all items visible when body is open; whole body hides when collapsed */
+  });
+
+  // mobile agenda items
+  var mItems = agendaMobileList.querySelectorAll('.agenda-item');
+  mItems.forEach(function(item, i) {
+    item.classList.remove('done', 'current');
+    if (AGENDA[i].screen < cur) item.classList.add('done');
+    else if (i === currentAgendaIdx) item.classList.add('current');
+  });
+
+  // mobile label
+  if (currentAgendaIdx >= 0) {
+    agendaMobileLabel.textContent = AGENDA[currentAgendaIdx].time + ' — ' + AGENDA[currentAgendaIdx].label;
+  }
+
+  // hide on S0 and S16
+  if (cur === 0 || cur === 16) {
+    agendaCard.setAttribute('aria-hidden', 'true');
+    document.getElementById('agenda-mobile').setAttribute('aria-hidden', 'true');
+  } else {
+    agendaCard.setAttribute('aria-hidden', 'false');
+    document.getElementById('agenda-mobile').setAttribute('aria-hidden', 'false');
+  }
+}
+
+function findCurrentAgendaIdx() {
+  let best = 0;
+  for (let i = AGENDA.length - 1; i >= 0; i--) {
+    if (AGENDA[i].screen <= cur) { best = i; break; }
+  }
+  return best;
+}
+
+/* ── Narrator ── */
+function updateNarrator() {
+  const n = NARRATOR[cur];
+  if (!n || !narratorOn) {
+    narratorOverlay.classList.add('hidden');
+    return;
+  }
+  narratorScene.textContent = n.scene;
+  narratorText.textContent = n.text;
+  narratorOverlay.classList.remove('hidden');
+}
+
+narratorToggle.addEventListener('click', function() {
+  narratorOn = !narratorOn;
+  narratorToggle.setAttribute('aria-pressed', narratorOn);
+  updateNarrator();
+});
+
+/* ── Narrator drawer toggle on mobile ── */
+var narratorDrawerExpanded = true;
+narratorScene.addEventListener('click', function() {
+  if (window.innerWidth > 768) return;
+  narratorDrawerExpanded = !narratorDrawerExpanded;
+  narratorOverlay.classList.toggle('narrator-collapsed', !narratorDrawerExpanded);
+});
+
+/* Start narrator collapsed on mobile */
+if (window.innerWidth <= 768) {
+  narratorDrawerExpanded = false;
+  narratorOverlay.classList.add('narrator-collapsed');
+}
+
+/* ── GO ── */
+function go(i) {
+  if (i < 0 || i >= screens.length || i === cur || transitioning) return;
+  transitioning = true;
+  const forward = i > cur;
+  const prev = screens[cur];
+  const next = screens[i];
+
+  prev.classList.remove('active');
+  prev.classList.add(forward ? 'exit-left' : 'exit-right');
+
+  next.classList.add(forward ? 'enter-right' : 'enter-left');
+  next.offsetHeight;
+  next.classList.remove('enter-right', 'enter-left');
+  next.classList.add('active');
+
+  cur = i;
+  const m = META[i];
+  if (m.nav === false) { nav.style.display = 'none'; }
+  else { nav.style.display = 'flex'; nTime.textContent = m.t; nLabel.textContent = m.l; }
+  btnP.disabled = i === 0;
+  btnN.disabled = i === screens.length - 1;
+  prog.style.width = (i / (screens.length - 1) * 100) + '%';
+
+  if (i === 2) initWall();
+  if (i === 3) initMorgan();
+  if (i === 4) initBench();
+  if (i === 5) initTable();
+  if (i === 6) initDraper();
+  if (i === 8) initCollage();
+  if (i === 11) initMap();
+  if (i === 12) initClosing();
+
+  updateNarrator();
+  updateAgenda();
+
+  setTimeout(function() { prev.classList.remove('exit-left', 'exit-right'); transitioning = false; }, 800);
+}
+
+/* ── Keyboard nav ── */
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
+  if (e.key === 'n' || e.key === 'N') {
+    narratorOn = !narratorOn;
+    narratorToggle.setAttribute('aria-pressed', narratorOn);
+    updateNarrator();
+  }
+});
+
+/* ── Touch nav (disabled — navigation via buttons only) ── */
+
+/* ── Card flip ── */
+var flipCard = document.getElementById('flipCard');
+flipCard.addEventListener('click', function(e) {
+  if (e.target.tagName === 'TEXTAREA') return;
+  this.classList.toggle('flipped');
+});
+flipCard.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    this.classList.toggle('flipped');
+  }
+});
+
+/* ── Touch-aware text swaps ── */
+var isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+if (isTouch) {
+  flipCard.setAttribute('aria-label', 'card on your chair — tap to flip');
+  document.querySelectorAll('.card-flip-hint').forEach(function(el) {
+    el.textContent = el.textContent.replace('click', 'tap');
+  });
+  var collageHint = document.querySelector('.collage-hint');
+  if (collageHint) collageHint.textContent = 'tap anywhere on the surface, or type below and press enter.';
+}
+
+/* ── PARTICLES ── */
+function spawnParticles(container, count, opts) {
+  for (var i = 0; i < count; i++) {
+    var p = document.createElement('div');
+    p.className = 'particle';
+    var size = opts.minSize + Math.random() * (opts.maxSize - opts.minSize);
+    p.style.width = size + 'px'; p.style.height = size + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = (40 + Math.random() * 60) + '%';
+    p.style.background = opts.color || 'rgba(203,120,88,0.3)';
+    p.style.setProperty('--po', (0.1 + Math.random() * 0.25).toString());
+    p.style.setProperty('--py', -(100 + Math.random() * 300) + 'px');
+    p.style.setProperty('--px', (Math.random() * 60 - 30) + 'px');
+    p.style.animationDuration = (8 + Math.random() * 12) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    container.appendChild(p);
+  }
+}
+spawnParticles(document.getElementById('coverParticles'), 20, { minSize: 2, maxSize: 5, color: 'rgba(203,120,88,0.3)' });
+spawnParticles(document.getElementById('finalParticles'), 15, { minSize: 2, maxSize: 4, color: 'rgba(203,120,88,0.25)' });
+
+/* ── QUESTION WALL ── */
+var WALL_CARDS = [
+  {t:"they know that play doesn't need a reason.", c:false, a:"policy researcher"},
+  {t:"playing is how I find out what things do.", c:true, a:"age 6"},
+  {t:"that losing is part of it. that you try again.", c:true, a:"age 7"},
+  {t:"children know play is serious work — we've just decided it isn't.", c:false, a:"early years teacher"},
+  {t:"when I play with my friend we make a world and it's real.", c:true, a:"age 5"},
+  {t:"the freedom to be bad at something without consequence.", c:false, a:"developmental psychologist"},
+  {t:"you don't have to win. you just have to play.", c:true, a:"age 6"},
+  {t:"that boredom is where the best play starts.", c:false, a:"architect"},
+  {t:"I think grown-ups forgot how to pretend.", c:true, a:"age 5"},
+  {t:"play is how children rehearse agency.", c:false, a:"community researcher"},
+  {t:"my mum says I play too much but I think she doesn't play enough.", c:true, a:"age 7"},
+  {t:"risk assessment happens naturally in play — children are better at it than we think.", c:false, a:"Professor of Education"},
+  {t:"when you play you can be anyone.", c:true, a:"age 6"},
+  {t:"the moment a child looks up and says \u2018watch this\u2019 — that is the moment.", c:false, a:"paediatrician"},
+  {t:"I like making houses for beetles. you have to think about what beetles want.", c:true, a:"age 5"},
+  {t:"we keep asking what children learn from play. we never ask what play learns from children.", c:false, a:"PhD researcher"},
+];
+var wallInit = false;
+function initWall() {
+  if (wallInit) return; wallInit = true;
+  var s = document.getElementById('wallSurface');
+  var W = s.offsetWidth;
+  var cols = Math.floor(W / 210);
+  WALL_CARDS.forEach(function(c, i) {
+    var col = i % cols;
+    var row = Math.floor(i / cols);
+    var el = document.createElement('div');
+    el.className = 'wc' + (c.c ? ' child' : '');
+    el.style.left = (col * (W / cols) + 15 + Math.random() * 20) + 'px';
+    el.style.top = (40 + row * 160 + Math.random() * 30) + 'px';
+    el.style.setProperty('--d', (i * 0.15) + 's');
+    el.style.setProperty('--r', (Math.random()*5-2.5) + 'deg');
+    el.innerHTML = c.t + '<div class="wc-attr">\u2014 ' + c.a + '</div>';
+    s.appendChild(el);
+  });
+  setTimeout(function() { var q = document.getElementById('wallQ'); q.style.opacity = '0'; q.style.transition = 'opacity 1.5s'; }, 2500);
+}
+function addToWall() {
+  var inp = document.getElementById('wallIn');
+  var t = inp.value.trim(); if (!t) return;
+  var s = document.getElementById('wallSurface');
+  var el = document.createElement('div');
+  el.className = 'wc';
+  el.style.left = (20 + Math.random() * 60) + '%';
+  el.style.top = (10 + Math.random() * 50) + '%';
+  el.style.setProperty('--d', '0s');
+  el.style.setProperty('--r', (Math.random()*5-2.5) + 'deg');
+  el.style.zIndex = '10';
+  el.innerHTML = t + '<div class="wc-attr">\u2014 you</div>';
+  s.appendChild(el);
+  inp.value = '';
+}
+document.getElementById('wallIn').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addToWall(); }
+});
+
+/* ── MORGAN ── */
+var morganInit = false;
+function initMorgan() {
+  if (morganInit) return; morganInit = true;
+  var scene = document.getElementById('morganScene');
+  var ghosts = [
+    "play doesn't need a reason", "when you play you can be anyone",
+    "beetles need houses", "I think grown-ups forgot", "serious work",
+    "the moment a child looks up", "you just have to play",
+    "boredom is where it starts", "make a world and it's real",
+  ];
+  var positions = [
+    {left:'5%',top:'8%',r:'-2deg'}, {right:'8%',top:'12%',r:'1deg'},
+    {left:'3%',top:'40%',r:'-1deg'}, {right:'4%',top:'55%',r:'3deg'},
+    {left:'10%',bottom:'20%',r:'-3deg'}, {right:'12%',bottom:'25%',r:'2deg'},
+    {left:'60%',top:'5%',r:'1deg'}, {right:'30%',bottom:'10%',r:'-1deg'},
+    {left:'25%',bottom:'8%',r:'2deg'},
+  ];
+  ghosts.forEach(function(g, i) {
+    var el = document.createElement('div');
+    el.className = 'ghost-card';
+    el.textContent = g;
+    el.style.setProperty('--r', positions[i].r);
+    Object.keys(positions[i]).forEach(function(k) { if (k !== 'r') el.style[k] = positions[i][k]; });
+    scene.insertBefore(el, scene.firstChild);
+  });
+}
+
+/* ── MAKING SPACE ── */
+var benchInit = false;
+function initBench() {
+  if (benchInit) return; benchInit = true;
+  var b = document.getElementById('bench');
+  var W = b.offsetWidth, H = b.offsetHeight;
+  var children_cards = [
+    {t:"I like making houses for beetles. you have to think about what beetles want.", a:"age 5"},
+    {t:"my best thing is when I make something and it works and nobody told me how.", a:"age 6"},
+    {t:"I made a rocket from a box and it went to the moon in my head.", a:"age 5"},
+    {t:"you can make anything if you have tape.", a:"age 7"},
+  ];
+  var colours = ['#b15043','#273248','#cb7858','#b15043','#273248','#cb7858','#43b187','#436db1','#58cbb2','#5872cb'];
+  var items = [];
+  children_cards.forEach(function(c, i) {
+    var el = document.createElement('div');
+    el.className = 'material mat-card';
+    el.style.setProperty('--r', (Math.random()*10-5) + 'deg');
+    el.innerHTML = '\u201c' + c.t + '\u201d<div class="mc-attr">\u2014 ' + c.a + '</div>';
+    el.style.left = (40 + i * 220) + 'px';
+    el.style.top = (60 + Math.random() * 80) + 'px';
+    b.appendChild(el); items.push(el);
+  });
+  var blockSizes = [{w:110,h:70},{w:130,h:55},{w:85,h:85},{w:150,h:50},{w:95,h:95},{w:120,h:60},{w:80,h:80},{w:140,h:45},{w:90,h:100},{w:115,h:70}];
+  for (var i = 0; i < 10; i++) {
+    var el = document.createElement('div');
+    el.className = 'material mat-block';
+    var sz = blockSizes[i];
+    el.style.width = sz.w + 'px'; el.style.height = sz.h + 'px';
+    el.style.background = colours[i % colours.length];
+    el.style.borderRadius = (2 + Math.random() * 6) + 'px';
+    el.style.left = (30 + Math.random() * (W - 180)) + 'px';
+    el.style.top = (180 + Math.random() * (H - 380)) + 'px';
+    el.style.transform = 'rotate(' + (Math.random()*25-12) + 'deg)';
+    el.style.opacity = (0.7 + Math.random() * 0.3).toString();
+    b.appendChild(el); items.push(el);
+  }
+  for (var i = 0; i < 6; i++) {
+    var el = document.createElement('div');
+    el.className = 'material mat-tube';
+    el.style.width = (80 + Math.random() * 100) + 'px';
+    el.style.height = (10 + Math.random() * 14) + 'px';
+    el.style.background = colours[(i+3) % colours.length];
+    el.style.opacity = (0.4 + Math.random() * 0.3).toString();
+    el.style.left = (60 + Math.random() * (W - 250)) + 'px';
+    el.style.top = (200 + Math.random() * (H - 400)) + 'px';
+    el.style.transform = 'rotate(' + (Math.random()*40-20) + 'deg)';
+    b.appendChild(el); items.push(el);
+  }
+  items.forEach(function(el) { makeDraggable(el); });
+}
+function makeDraggable(el) {
+  var ox, oy;
+  var down = function(ex, ey) { el.classList.add('dragging'); var r = el.getBoundingClientRect(); ox = ex - r.left; oy = ey - r.top; };
+  var move = function(ex, ey) { if (!el.classList.contains('dragging')) return; el.style.left = (ex - ox) + 'px'; el.style.top = (ey - oy) + 'px'; el.style.transform = 'rotate(0deg)'; };
+  var up = function() { el.classList.remove('dragging'); };
+  el.addEventListener('mousedown', function(e) { e.preventDefault(); down(e.clientX, e.clientY); });
+  document.addEventListener('mousemove', function(e) { move(e.clientX, e.clientY); });
+  document.addEventListener('mouseup', up);
+  el.addEventListener('touchstart', function(e) { var t = e.touches[0]; down(t.clientX, t.clientY); }, {passive:true});
+  document.addEventListener('touchmove', function(e) { if (el.classList.contains('dragging')) { var t = e.touches[0]; move(t.clientX, t.clientY); } }, {passive:true});
+  document.addEventListener('touchend', up);
+}
+
+/* ── HALL OF MIRRORS ── */
+var tableInit = false;
+function initTable() {
+  if (tableInit) return; tableInit = true;
+  var scene = document.getElementById('tableScene');
+  var lenses = [
+    {role:'architect', text:'children test structural limits every time they stack. they already understand load-bearing.'},
+    {role:'games developer', text:'play without failure states is not play. the best games let you fail safely a hundred times.'},
+    {role:'chef', text:'a child cooking is a child doing chemistry with their hands. mess is methodology.'},
+    {role:'product designer', text:'children prototype constantly. they just don\u2019t call it that.'},
+  ];
+  var positions = [{left:'6%',top:'12%'},{right:'6%',top:'16%'},{left:'4%',bottom:'28%'},{right:'4%',bottom:'24%'}];
+  lenses.forEach(function(l, i) {
+    var el = document.createElement('div');
+    el.className = 'table-lens';
+    el.style.animationDelay = (0.8 + i * 0.6) + 's';
+    Object.assign(el.style, positions[i]);
+    el.innerHTML = '<div class="lens-role">' + l.role + '</div><div class="lens-text">' + l.text + '</div>';
+    scene.appendChild(el);
+  });
+}
+
+/* ── DRAPER ── */
+var draperInit = false;
+function initDraper() {
+  if (draperInit) return; draperInit = true;
+  var scene = document.getElementById('draperScene');
+  var voices = [
+    {t:"when I run really fast my legs go tingly and I like it.", a:"age 5"},
+    {t:"the playground is too small. we need more space for hiding.", a:"age 7"},
+    {t:"my favourite thing is when nobody tells me what to play.", a:"age 6"},
+    {t:"I don't like sitting. I want to move all the time.", a:"age 5"},
+    {t:"when it rains we play better because the teachers go inside.", a:"age 7"},
+  ];
+  var yPositions = [15, 30, 50, 65, 82];
+  voices.forEach(function(v, i) {
+    var el = document.createElement('div');
+    el.className = 'floating-voice';
+    el.style.right = '8%'; el.style.top = yPositions[i] + '%';
+    el.style.animationDelay = (1 + i * 1.2) + 's';
+    el.style.animationDuration = (7 + i * 0.5) + 's';
+    el.style.setProperty('--wx', -(20 + Math.random() * 40) + 'px');
+    el.innerHTML = '\u201c' + v.t + '\u201d<div class="fv-age">\u2014 ' + v.a + '</div>';
+    scene.appendChild(el);
+  });
+}
+
+/* ── COLLAGE ── */
+var collageInit = false;
+function initCollage() {
+  if (collageInit) return; collageInit = true;
+  var s = document.getElementById('collageSurface');
+  var fragments = [
+    {t:'the gap between what we study and how we gather', color:'var(--cadet)', bg:'rgba(39,50,72,0.07)'},
+    {t:'beetles need houses too', color:'var(--redwood)', bg:'rgba(177,80,67,0.05)', italic:true},
+    {t:'the minister and the teacher', color:'var(--dark)', bg:'rgba(39,50,72,0.04)'},
+    {t:'what if boredom is the beginning', color:'var(--sienna)', bg:'rgba(203,120,88,0.07)'},
+    {t:'children prototype constantly', color:'var(--cadet)', bg:'rgba(39,50,72,0.05)'},
+    {t:'watch this', color:'var(--redwood)', bg:'rgba(177,80,67,0.04)', italic:true},
+    {t:'mess is methodology', color:'var(--cadet)', bg:'rgba(39,50,72,0.05)'},
+  ];
+  var positions = [
+    {l:3, t:8}, {l:55, t:5}, {l:30, t:30}, {l:70, t:35},
+    {l:5, t:55}, {l:50, t:60}, {l:75, t:65}
+  ];
+  fragments.forEach(function(f, i) {
+    var el = document.createElement('div');
+    el.className = 'c-fragment c-text';
+    var pos = positions[i];
+    el.style.left = pos.l + '%'; el.style.top = pos.t + '%';
+    el.style.color = f.color; el.style.background = f.bg;
+    el.style.fontSize = (13 + Math.random() * 5) + 'px';
+    el.style.setProperty('--fr', (Math.random()*6-3) + 'deg');
+    el.style.setProperty('--fx', (Math.random() > 0.5 ? '' : '-') + (40 + Math.random() * 60) + 'px');
+    el.style.setProperty('--fy', (Math.random() > 0.5 ? '' : '-') + (20 + Math.random() * 40) + 'px');
+    el.style.animationDelay = (i * 0.4) + 's';
+    if (f.italic) el.style.fontStyle = 'italic';
+    el.textContent = f.t; s.appendChild(el);
+  });
+  var stripColours = ['var(--cadet)','var(--redwood)','var(--sienna)','var(--mint)','var(--lavender)'];
+  for (var i = 0; i < 10; i++) {
+    var el = document.createElement('div');
+    el.className = 'c-fragment c-strip';
+    el.style.left = (3 + Math.random() * 85) + '%'; el.style.top = (3 + Math.random() * 85) + '%';
+    el.style.width = (30 + Math.random() * 120) + 'px';
+    el.style.background = stripColours[i % stripColours.length];
+    el.style.setProperty('--o', (0.15 + Math.random() * 0.3).toString());
+    el.style.setProperty('--fr', (Math.random()*40-20) + 'deg');
+    el.style.setProperty('--fx', (Math.random() > 0.5 ? '80' : '-80') + 'px');
+    el.style.setProperty('--fy', '0px');
+    el.style.animationDelay = (0.2 + i * 0.15) + 's'; s.appendChild(el);
+  }
+  for (var i = 0; i < 8; i++) {
+    var el = document.createElement('div');
+    el.className = 'c-fragment c-circle';
+    var sz = 8 + Math.random() * 35;
+    el.style.width = sz + 'px'; el.style.height = sz + 'px';
+    el.style.left = (8 + Math.random() * 80) + '%'; el.style.top = (8 + Math.random() * 75) + '%';
+    el.style.background = stripColours[i % stripColours.length];
+    el.style.setProperty('--o', (0.1 + Math.random() * 0.25).toString());
+    el.style.setProperty('--fr', '0deg'); el.style.setProperty('--fx', '0px');
+    el.style.setProperty('--fy', (30 + Math.random() * 50) + 'px');
+    el.style.animationDelay = (0.5 + i * 0.2) + 's'; s.appendChild(el);
+  }
+  for (var i = 0; i < 4; i++) {
+    var el = document.createElement('div');
+    el.className = 'c-fragment c-drawing';
+    var sz = 30 + Math.random() * 50;
+    el.style.width = sz + 'px'; el.style.height = (sz * 0.7 + Math.random() * 20) + 'px';
+    el.style.left = (15 + Math.random() * 60) + '%'; el.style.top = (15 + Math.random() * 55) + '%';
+    el.style.borderColor = stripColours[i % stripColours.length];
+    el.style.setProperty('--o', '0.15');
+    el.style.setProperty('--fr', (Math.random()*20-10) + 'deg');
+    el.style.setProperty('--fx', '0px'); el.style.setProperty('--fy', '20px');
+    el.style.animationDelay = (1 + i * 0.3) + 's'; s.appendChild(el);
+  }
+}
+document.getElementById('collageSurface').addEventListener('click', function(e) {
+  if (cur !== 8) return;
+  var text = prompt('add something from this morning that is still with you:');
+  if (!text || !text.trim()) return;
+  var el = document.createElement('div');
+  el.className = 'c-fragment c-user';
+  el.style.left = e.clientX + 'px'; el.style.top = e.clientY + 'px'; el.style.position = 'absolute';
+  el.style.setProperty('--o', '0.9'); el.style.setProperty('--fr', (Math.random()*4-2) + 'deg');
+  el.style.setProperty('--fx', '0px'); el.style.setProperty('--fy', '0px');
+  el.textContent = text.trim(); this.appendChild(el);
+});
+
+/* ── MAPPING ── */
+var mapInit = false;
+function initMap() {
+  if (mapInit) return; mapInit = true;
+  var canvas = document.getElementById('mapCanvas');
+  var prompts = [
+    {label:'what assets already exist where you work?', left:'10%', top:'35%'},
+    {label:'who is already doing something?', right:'10%', top:'40%'},
+    {label:'what have you built that has not been named yet?', left:'25%', top:'65%'},
+  ];
+  prompts.forEach(function(p, i) {
+    var el = document.createElement('div');
+    el.className = 'map-prompt';
+    el.style.animationDelay = (0.3 + i * 0.4) + 's';
+    if (p.left) el.style.left = p.left; if (p.right) el.style.right = p.right;
+    el.style.top = p.top;
+    el.innerHTML = '<label>' + p.label + '</label><textarea placeholder="write here\u2026" aria-label="' + p.label + '"></textarea>';
+    canvas.appendChild(el);
+  });
+}
+
+/* ── CLOSING ── */
+var closingInit = false;
+function initClosing() {
+  if (closingInit) return; closingInit = true;
+  var scene = document.getElementById('closingScene');
+  var artifacts = [
+    {t:'the question wall', type:'artifact'}, {t:'making space', type:'artifact'},
+    {t:'hall of mirrors', type:'artifact'}, {t:'beetles need houses', type:'voice'},
+    {t:'the collage', type:'artifact'}, {t:'watch this', type:'voice'},
+    {t:'bumper cars', type:'artifact'}, {t:'I think grown-ups forgot how to pretend', type:'voice'},
+    {t:'the quiet room', type:'artifact'}, {t:'the mapping exercise', type:'artifact'},
+    {t:'you can be anyone', type:'voice'}, {t:'children\'s voices', type:'artifact'},
+  ];
+  artifacts.forEach(function(a, i) {
+    var el = document.createElement('div');
+    el.className = 'cascade-item' + (a.type === 'voice' ? ' cascade-voice' : '');
+    el.textContent = a.t;
+    el.style.animationDelay = (0.2 + i * 0.18) + 's';
+    var angle = (i / artifacts.length) * Math.PI * 2 + Math.random() * 0.5;
+    var radius = 180 + Math.random() * 160;
+    el.style.left = 'calc(50% + ' + Math.cos(angle) * radius + 'px)';
+    el.style.top = 'calc(50% + ' + Math.sin(angle) * radius + 'px)';
+    el.style.transform = 'translate(-50%, -50%)';
+    scene.insertBefore(el, scene.firstChild);
+  });
+}
+
+/* ── Init narrator + agenda on load ── */
+updateNarrator();
+updateAgenda();
+</script>
+</body>
+</html>

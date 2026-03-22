@@ -1,14 +1,14 @@
-import credibilityData from "@/data/credibility.json";
 import { ScrollReveal } from "./scroll-reveal";
+import type { CredibilityData } from "@/lib/notion";
 
 interface Principle {
   heading: string;
   body: string;
 }
 
-const PRINCIPLES: Principle[] = credibilityData.principles;
-
-export function CredibilityZone() {
+export function CredibilityZone({ data }: { data: CredibilityData }) {
+  const credibilityData = data;
+  const PRINCIPLES: Principle[] = credibilityData.principles;
   return (
     <>
     <section

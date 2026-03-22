@@ -1,12 +1,20 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { GAMES } from "@/components/game-showcase";
+import { GameShowcase } from "@/components/game-showcase";
 import { GameDock } from "@/components/game-dock";
 import { CredibilityZone } from "@/components/credibility-zone";
 import { ScrollReveal } from "@/components/scroll-reveal";
-import credibilityData from "@/data/credibility.json";
+import { fetchGames, fetchCredibility } from "@/lib/notion";
 
-export default function HarbourPage() {
+/** ISR: revalidate every hour so Notion edits appear without a redeploy. */
+export const revalidate = 3600;
+
+export default async function HarbourPage() {
+  const [games, credibilityData] = await Promise.all([
+    fetchGames(),
+    fetchCredibility(),
+  ]);
+
   return (
     <>
       <Header />
@@ -50,11 +58,11 @@ export default function HarbourPage() {
 
         {/* ── play. — games and toys ─────────────────────────── */}
         <div id="play" className="scroll-mt-24">
-          <GameDock games={GAMES} />
+          <GameDock games={games} />
         </div>
 
         {/* ── Credibility zone ─────────────────────────────────── */}
-        <CredibilityZone />
+        <CredibilityZone data={credibilityData} />
 
         {/* ── Invitation ───────────────────────────────────────── */}
         <section aria-label="invitation" className="py-20 sm:py-28 text-center px-6">

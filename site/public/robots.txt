@@ -1,0 +1,12 @@
+# robots.txt for windedvertigo.com
+# Updated: 2026-02-28 — migrated to Vercel
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.windedvertigo.com/sitemap.xml
+
+# Disallow admin/data directories
+Disallow: /data/
+Disallow: /scripts/
+Disallow: /node_modules/
