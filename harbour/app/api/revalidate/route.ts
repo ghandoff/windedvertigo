@@ -73,13 +73,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid JSON" }, { status: 400 });
   }
 
-  // Handle Notion's verification handshake (no signature on this one)
+  // Handle Notion's verification handshake (no signature on this one).
+  // Accept verification tokens to allow webhook re-registration.
   if (payload.verification_token && !payload.type) {
-    if (process.env.NOTION_WEBHOOK_SECRET) {
-      console.warn("[revalidate] verification rejected — secret already set");
-      return NextResponse.json({ error: "already configured" }, { status: 409 });
-    }
-    console.log("[revalidate] verification token received");
+    console.log("[revalidate] verification token received (re-registration ok)");
     return NextResponse.json({ ok: true });
   }
 
