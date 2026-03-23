@@ -251,7 +251,7 @@ function ResultPage({
   );
 
   return (
-    <div style={{ paddingTop: 10, paddingBottom: 40 }}>
+    <div style={{ paddingTop: 10, paddingBottom: 40, maxWidth: 540, margin: "0 auto" }}>
       <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 10, textTransform: "lowercase" }}>
         {pack.title}
       </h1>
@@ -369,7 +369,7 @@ function ResultPage({
           {pack.examples.map((ex) => (
             <a
               key={ex.id}
-              href={ex.url ? `/portfolio/?asset=${encodeURIComponent(ex.id)}` : "#"}
+              href={`/portfolio/?asset=${encodeURIComponent(ex.id)}`}
               className={styles.exampleCard}
             >
               <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
@@ -471,9 +471,10 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
 
       <ProgressDots step={state.step} />
 
-      <div style={{ width: "100%", maxWidth: 420, padding: "0 20px" }}>
-        {/* Question + choices */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 32 }}>
+      {/* Two-zone layout: top zone flexes, bottom zone (matrix) stays pinned */}
+      <div style={{ width: "100%", maxWidth: 420, padding: "0 20px", display: "flex", flexDirection: "column", minHeight: 420 }}>
+        {/* Top zone: question + choices */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", textTransform: "lowercase", lineHeight: 1.3, marginBottom: 24 }}>
             {QUESTIONS[state.step]}
           </h2>
@@ -549,8 +550,8 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
           </div>
         </div>
 
-        {/* Matrix */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        {/* Bottom zone: matrix pinned to bottom via marginTop auto */}
+        <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 24 }}>
           <Matrix state={state} />
 
           {/* Nav buttons */}

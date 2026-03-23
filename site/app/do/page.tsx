@@ -36,8 +36,6 @@ export default async function DoPage() {
 
       <main id="main-content">
         <div className="container content-narrow">
-          <h2 className="hero-title">do.</h2>
-
           <PackageBuilderWizard packs={packs} ctaLink={cta?.link} />
         </div>
       </main>
