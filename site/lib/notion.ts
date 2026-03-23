@@ -22,6 +22,9 @@ const DB = {
   quadrants: "1c171d25825b418caf94805dc1568352",
   outcomes: "b8ff41d2d4ef41559e01c2d952a3a1da",
   vertigoVault: "223e4ee74ba4805f8c92cda6e2b8ba00",
+  conferenceScreens: "66b266f68a664524829d39a3621a0754",
+  conferenceItems: "6beb2d506e604b898a2232b510a432bb",
+  conferenceAgenda: "bd92b25081344df79021bd5888d22806",
 } as const;
 
 // ── property names ────────────────────────────────────────
@@ -70,6 +73,41 @@ const PROPS = {
     quadrant: "Quadrant",
     name: "Name",
     detail: "Detail",
+    order: "Order",
+  },
+  conferenceScreens: {
+    screenId: "Screen ID",
+    order: "Order",
+    screenType: "Screen Type",
+    timeLabel: "Time Label",
+    heading: "Heading",
+    body: "Body",
+    secondaryBody: "Secondary Body",
+    backgroundImageUrl: "Background Image URL",
+    backgroundOverlay: "Background Overlay",
+    navTime: "Nav Time",
+    navLabel: "Nav Label",
+    showNav: "Show Nav",
+    narratorScene: "Narrator Scene",
+    narratorText: "Narrator Text",
+    ariaLabel: "Aria Label",
+    status: "Status",
+  },
+  conferenceItems: {
+    name: "Name",
+    screen: "Screen",
+    itemType: "Item Type",
+    order: "Order",
+    text: "Text",
+    secondaryText: "Secondary Text",
+    isChildVoice: "Is Child Voice",
+    variant: "Variant",
+    url: "URL",
+  },
+  conferenceAgenda: {
+    label: "Label",
+    time: "Time",
+    screenNumber: "Screen Number",
     order: "Order",
   },
 } as const;
@@ -639,4 +677,178 @@ export function extractTeamMembers(
         : [],
       link: s.link,
     }));
+}
+
+// ── conference experience types ──────────────────────────
+
+export interface ConferenceItem {
+  id: string;
+  name: string;
+  screenId: string; // resolved from relation
+  itemType: string;
+  order: number | null;
+  text: string;
+  secondaryText: string;
+  isChildVoice: boolean;
+  variant: string;
+  url: string;
+}
+
+export interface ConferenceScreen {
+  id: string;
+  screenId: string;
+  order: number;
+  screenType: string;
+  timeLabel: string;
+  heading: string;
+  body: string;
+  secondaryBody: string;
+  backgroundImageUrl: string;
+  backgroundOverlay: string;
+  navTime: string;
+  navLabel: string;
+  showNav: boolean;
+  narratorScene: string;
+  narratorText: string;
+  ariaLabel: string;
+  items: ConferenceItem[];
+}
+
+export interface ConferenceAgendaItem {
+  label: string;
+  time: string;
+  screenNumber: number;
+  order: number;
+}
+
+export interface ConferenceExperienceData {
+  screens: ConferenceScreen[];
+  agenda: ConferenceAgendaItem[];
+}
+
+// ── conference experience fetcher ────────────────────────
+
+export async function fetchConferenceExperience(): Promise<ConferenceExperienceData> {
+  return withFallback(
+    () => _fetchConferenceExperience(),
+    "conference-experience.json",
+    "fetchConferenceExperience",
+  );
+}
+
+async function _fetchConferenceExperience(): Promise<ConferenceExperienceData> {
+  const sp = PROPS.conferenceScreens;
+  const ip = PROPS.conferenceItems;
+  const ap = PROPS.conferenceAgenda;
+
+  // Fetch all three databases in parallel
+  const [screensRes, itemsRes, agendaRes] = await Promise.all([
+    withRetry(
+      () =>
+        notion.databases.query({
+          database_id: DB.conferenceScreens,
+          sorts: [{ property: sp.order, direction: "ascending" }],
+        }),
+      "conferenceScreens",
+    ),
+    withRetry(
+      () =>
+        notion.databases.query({
+          database_id: DB.conferenceItems,
+          sorts: [{ property: ip.order, direction: "ascending" }],
+        }),
+      "conferenceItems",
+    ),
+    withRetry(
+      () =>
+        notion.databases.query({
+          database_id: DB.conferenceAgenda,
+          sorts: [{ property: ap.order, direction: "ascending" }],
+        }),
+      "conferenceAgenda",
+    ),
+  ]);
+
+  // Build screen map: page ID → screen
+  const screenMap = new Map<string, ConferenceScreen>();
+  const screens: ConferenceScreen[] = [];
+
+  for (const page of screensRes.results) {
+    if (!("properties" in page)) continue;
+    const props = page.properties;
+    const status = getSelect(props[sp.status]);
+    if (status && status !== "live") continue;
+
+    const screen: ConferenceScreen = {
+      id: page.id,
+      screenId: getTitle(props[sp.screenId]),
+      order: getNumber(props[sp.order]) ?? 0,
+      screenType: getSelect(props[sp.screenType]),
+      timeLabel: getText(props[sp.timeLabel]),
+      heading: getText(props[sp.heading]),
+      body: getText(props[sp.body]),
+      secondaryBody: getText(props[sp.secondaryBody]),
+      backgroundImageUrl: getUrl(props[sp.backgroundImageUrl]),
+      backgroundOverlay: getText(props[sp.backgroundOverlay]),
+      navTime: getText(props[sp.navTime]),
+      navLabel: getText(props[sp.navLabel]),
+      showNav: getCheckbox(props[sp.showNav]),
+      narratorScene: getText(props[sp.narratorScene]),
+      narratorText: getText(props[sp.narratorText]),
+      ariaLabel: getText(props[sp.ariaLabel]),
+      items: [],
+    };
+    screenMap.set(page.id, screen);
+    screens.push(screen);
+  }
+
+  // Attach items to their screens via relation
+  for (const page of itemsRes.results) {
+    if (!("properties" in page)) continue;
+    const props = page.properties;
+    const relationIds = getRelationIds(props[ip.screen]);
+    const parentId = relationIds[0];
+    if (!parentId) continue;
+
+    // Normalize ID format (dashed vs undashed)
+    const normalizedId = parentId.includes("-")
+      ? parentId
+      : parentId.replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, "$1-$2-$3-$4-$5");
+
+    const screen = screenMap.get(normalizedId) ?? screenMap.get(parentId);
+    if (!screen) continue;
+
+    screen.items.push({
+      id: page.id,
+      name: getTitle(props[ip.name]),
+      screenId: screen.screenId,
+      itemType: getSelect(props[ip.itemType]),
+      order: getNumber(props[ip.order]),
+      text: getText(props[ip.text]),
+      secondaryText: getText(props[ip.secondaryText]),
+      isChildVoice: getCheckbox(props[ip.isChildVoice]),
+      variant: getSelect(props[ip.variant]),
+      url: getUrl(props[ip.url]),
+    });
+  }
+
+  // Sort items within each screen by order
+  for (const screen of screens) {
+    screen.items.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+  }
+
+  // Build agenda
+  const agenda: ConferenceAgendaItem[] = [];
+  for (const page of agendaRes.results) {
+    if (!("properties" in page)) continue;
+    const props = page.properties;
+    agenda.push({
+      label: getTitle(props[ap.label]),
+      time: getText(props[ap.time]),
+      screenNumber: getNumber(props[ap.screenNumber]) ?? 0,
+      order: getNumber(props[ap.order]) ?? 0,
+    });
+  }
+
+  return { screens, agenda };
 }

@@ -29,6 +29,15 @@ const DB_PATH_MAP: Record<string, string[]> = {
   // depth.chart skills
   "38873e53f36f4b2885552fdf6cdc98cb": ["/harbour/skills"],
   "38873e53-f36f-4b28-8555-2fdf6cdc98cb": ["/harbour/skills"],
+  // conference experience — screens
+  "66b266f68a664524829d39a3621a0754": ["/portfolio/conference-experience"],
+  "66b266f6-8a66-4524-829d-39a3621a0754": ["/portfolio/conference-experience"],
+  // conference experience — items
+  "6beb2d506e604b898a2232b510a432bb": ["/portfolio/conference-experience"],
+  "6beb2d50-6e60-4b89-8a22-32b510a432bb": ["/portfolio/conference-experience"],
+  // conference experience — agenda
+  "bd92b25081344df79021bd5888d22806": ["/portfolio/conference-experience"],
+  "bd92b250-8134-4df7-9021-bd5888d22806": ["/portfolio/conference-experience"],
 };
 
 /* ------------------------------------------------------------------ */

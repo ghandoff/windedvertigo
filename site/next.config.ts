@@ -6,20 +6,6 @@ const nextConfig: NextConfig = {
   // External rewrites — proxy harbour apps to their Vercel deployments
   async rewrites() {
     return [
-      // conference experience — local static files
-      {
-        source: "/portfolio/assets/pedal-conference-experience",
-        destination: "/portfolio/assets/conference-experience/index.html",
-      },
-      {
-        source: "/portfolio/assets/pedal-conference-experience/",
-        destination: "/portfolio/assets/conference-experience/index.html",
-      },
-      {
-        source: "/portfolio/assets/pedal-conference-experience/:path*",
-        destination: "/portfolio/assets/conference-experience/:path*",
-      },
-
       // creaseworks
       {
         source: "/harbour/creaseworks",
@@ -133,6 +119,17 @@ const nextConfig: NextConfig = {
       {
         source: "/vertigo-vault",
         destination: "/harbour/vertigo-vault",
+        permanent: true,
+      },
+      // conference experience — old static path → new Next.js page
+      {
+        source: "/portfolio/assets/pedal-conference-experience",
+        destination: "/portfolio/conference-experience",
+        permanent: true,
+      },
+      {
+        source: "/portfolio/assets/pedal-conference-experience/",
+        destination: "/portfolio/conference-experience",
         permanent: true,
       },
     ];
