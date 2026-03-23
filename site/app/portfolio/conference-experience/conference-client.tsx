@@ -1165,7 +1165,10 @@ export function ConferenceClient({ data }: { data: ConferenceExperienceData }) {
     return best;
   })();
 
-  const showNav = currentScreen?.showNav !== false;
+  // Show nav on all screens except cover (first screen)
+  // The Notion "Show Nav" checkbox defaults to unchecked (false), so we derive
+  // visibility from screen position rather than relying on the checkbox value.
+  const showNav = cur > 0;
   const narrator = currentScreen?.narratorText
     ? { scene: currentScreen.narratorScene, text: currentScreen.narratorText }
     : null;
