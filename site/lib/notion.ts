@@ -108,6 +108,7 @@ const PROPS = {
     label: "Label",
     time: "Time",
     screenNumber: "Screen Number",
+    screen: "Screen",
     order: "Order",
   },
 } as const;
@@ -837,15 +838,34 @@ async function _fetchConferenceExperience(): Promise<ConferenceExperienceData> {
     screen.items.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
   }
 
-  // Build agenda
+  // Build agenda — resolve Screen relation to screen order, fall back to Screen Number
   const agenda: ConferenceAgendaItem[] = [];
   for (const page of agendaRes.results) {
     if (!("properties" in page)) continue;
     const props = page.properties;
+
+    // Prefer the Screen relation (structural link) over the legacy Screen Number field
+    let screenNumber = getNumber(props[ap.screenNumber]) ?? 0;
+    const screenRelIds = getRelationIds(props[ap.screen]);
+    if (screenRelIds.length > 0) {
+      const linkedId = screenRelIds[0];
+      const normalizedId = linkedId.includes("-")
+        ? linkedId
+        : linkedId.replace(
+            /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
+            "$1-$2-$3-$4-$5",
+          );
+      const linkedScreen =
+        screenMap.get(normalizedId) ?? screenMap.get(linkedId);
+      if (linkedScreen) {
+        screenNumber = linkedScreen.order;
+      }
+    }
+
     agenda.push({
       label: getTitle(props[ap.label]),
       time: getText(props[ap.time]),
-      screenNumber: getNumber(props[ap.screenNumber]) ?? 0,
+      screenNumber,
       order: getNumber(props[ap.order]) ?? 0,
     });
   }
