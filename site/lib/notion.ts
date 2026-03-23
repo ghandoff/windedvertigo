@@ -11,6 +11,7 @@ import { Client } from "@notionhq/client";
 import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 import fs from "fs";
 import path from "path";
+import { syncImageToR2, imageUrl } from "@/lib/sync-image";
 
 // ── client ────────────────────────────────────────────────
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
@@ -517,6 +518,14 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
     const quadrantKey = quadrantKeys[0] ?? "";
     const assetName = getTitle(props[p.name]);
 
+    // Sync thumbnail to R2 so the URL never expires
+    const rawThumbnailUrl = getUrl(props[p.thumbnailUrl]);
+    let thumbnailUrl = rawThumbnailUrl;
+    if (rawThumbnailUrl) {
+      const r2Key = await syncImageToR2(rawThumbnailUrl, page.id, "thumbnail");
+      thumbnailUrl = imageUrl(r2Key) ?? rawThumbnailUrl;
+    }
+
     assets.push({
       id: page.id,
       name: assetName,
@@ -525,7 +534,7 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
       quadrants: quadrantKey ? [quadrantKey] : [],
       quadrantKey,
       url: getUrl(props[p.url]),
-      thumbnailUrl: getUrl(props[p.thumbnailUrl]),
+      thumbnailUrl,
       description: getText(props[p.description]),
       tags: getMultiSelect(props[p.tags]),
       featured: getCheckbox(props[p.featured]),
