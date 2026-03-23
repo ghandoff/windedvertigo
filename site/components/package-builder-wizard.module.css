@@ -1,0 +1,190 @@
+/* Scoped styles for CYOA wizard — pseudo-elements and hover states
+   that can't be done with inline styles */
+
+.choiceBtn {
+  position: relative;
+  width: 100%;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  color: #ffffff;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 400;
+  text-transform: lowercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.choiceBtn.large {
+  height: 56px;
+  padding: 12px 16px;
+}
+
+.choiceBtn.small {
+  height: 48px;
+  padding: 12px 16px;
+}
+
+@media (hover: hover) {
+  .choiceBtn:hover {
+    background: var(--accent, #b15043);
+    border-color: var(--accent, #b15043);
+  }
+}
+
+.choiceBtn.selected {
+  background: var(--accent, #b15043);
+  border-color: var(--accent, #b15043);
+}
+
+.tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #3a4459;
+  font-size: 11px;
+  color: var(--wv-champagne, #ffebd2);
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #3a4459;
+}
+
+.choiceBtn:hover .tooltip {
+  opacity: 1;
+}
+
+.choiceBtn.selected .tooltip {
+  opacity: 0;
+}
+
+/* Progress dots */
+.progressDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--surface, #3a4459);
+  transition: all 0.3s ease;
+}
+
+.progressDot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: var(--accent, #b15043);
+}
+
+.progressDot.complete {
+  background: var(--wv-sienna, #cb7858);
+}
+
+/* Nav buttons */
+.navBtn {
+  padding: 10px 20px;
+  font-size: 13px;
+  font-family: inherit;
+  text-transform: lowercase;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+}
+
+.navBtn.primary {
+  background: var(--accent, #b15043);
+  border-color: var(--accent, #b15043);
+  color: #ffffff;
+}
+
+/* Example cards */
+.exampleCard {
+  padding: 18px 20px;
+  background: #3a4459;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+
+.exampleCard:hover {
+  transform: translateX(4px);
+}
+
+/* CTA buttons */
+.ctaBtn {
+  flex: 1;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 700;
+  text-transform: lowercase;
+  cursor: pointer;
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+  border: none;
+}
+
+.ctaBtn.primary {
+  background: var(--accent, #b15043);
+  color: #ffffff;
+}
+
+.ctaBtn.secondary {
+  background: #cb7858;
+  color: #ffffff;
+}
+
+.ctaBtn.outline {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  color: #ffffff;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .ctaRow {
+    flex-direction: column;
+  }
+  .ctaBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .pbIntro {
+    display: none;
+  }
+  .choiceBtn {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  .choiceBtn.large {
+    height: 44px;
+  }
+  .choiceBtn.small {
+    height: 38px;
+  }
+}

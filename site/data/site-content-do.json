@@ -1,0 +1,25 @@
+{
+  "sections": [
+    {
+      "type": "metadata",
+      "section": "metadata",
+      "name": "do.",
+      "tagline": "do. – winded.vertigo",
+      "content": "build your custom learning experience package with our interactive package builder."
+    },
+    {
+      "type": "hero",
+      "section": "hero",
+      "name": "what are you trying to change?",
+      "content": "get to know us by building your custom learning experience package"
+    },
+    {
+      "type": "cta",
+      "section": "cta",
+      "name": "ready to play?",
+      "tagline": "book a playdate",
+      "content": "let's explore what we can build together. book a free 30-minute playdate to talk through your challenge.",
+      "link": "https://calendar.app.google/ZXVqJLdprmUZk1DW6"
+    }
+  ]
+}

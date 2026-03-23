@@ -1,0 +1,57 @@
+{
+  "lastUpdated": "2026-03-23T00:00:00Z",
+  "packs": {
+    "people-design": {
+      "title": "design & deploy",
+      "promise": "build learning experiences your team actually wants to use.",
+      "quadrantStory": "you're in the people × design quadrant — where behaviour change meets creative craft.",
+      "story": "we'll work together to design and deploy effective learning experiences that stick. from workshops to full programmes, we combine learning science with creative design to make training people actually engage with.",
+      "crossover": "our design work is always informed by research — we measure what matters so your investment pays off.",
+      "outcomes": [
+        { "title": "custom learning experience", "detail": "tailored to your needs, context, and audience." },
+        { "title": "facilitator toolkit", "detail": "everything your team needs to deliver independently." },
+        { "title": "engagement metrics", "detail": "know what's working and what needs iteration." }
+      ],
+      "examples": []
+    },
+    "people-research": {
+      "title": "pinpoint & prove",
+      "promise": "show exactly where your approach moves the needle.",
+      "quadrantStory": "you're in the people × research quadrant — where rigorous measurement meets human complexity.",
+      "story": "we'll help you measure and prove the impact of your learning programmes, training initiatives, and behaviour change efforts. real evidence, not just feedback forms.",
+      "crossover": "research without design is just measurement — we help you act on what we find.",
+      "outcomes": [
+        { "title": "evidence of impact", "detail": "credible data that satisfies stakeholders and funders." },
+        { "title": "evaluation framework", "detail": "a reusable system for ongoing measurement." },
+        { "title": "actionable insights", "detail": "clear next steps based on what the data tells us." }
+      ],
+      "examples": []
+    },
+    "product-design": {
+      "title": "build & iterate",
+      "promise": "launch a polished, tested product in two sprints.",
+      "quadrantStory": "you're in the product × design quadrant — where learning science meets rapid prototyping.",
+      "story": "we'll prototype and test your product with real users, iterating fast until it works. whether it's a learning tool, a toy, or an interactive experience, we build things people love to use.",
+      "crossover": "great products are shaped by evidence — we test with users, not assumptions.",
+      "outcomes": [
+        { "title": "working prototype", "detail": "functional and tested with real users." },
+        { "title": "UDL-informed design", "detail": "accessible and inclusive from the start." },
+        { "title": "iteration roadmap", "detail": "prioritised improvements based on user feedback." }
+      ],
+      "examples": []
+    },
+    "product-research": {
+      "title": "test & validate",
+      "promise": "prove your product meets accessibility and learning standards.",
+      "quadrantStory": "you're in the product × research quadrant — where user experience meets rigorous validation.",
+      "story": "we'll validate your product against UDL and usability standards, giving you the evidence you need to ship with confidence.",
+      "crossover": "validation is the beginning of better design — every finding becomes a design opportunity.",
+      "outcomes": [
+        { "title": "validation report", "detail": "actionable findings and clear recommendations." },
+        { "title": "accessibility audit", "detail": "UDL compliance and inclusive design assessment." },
+        { "title": "user research insights", "detail": "what real users think, feel, and struggle with." }
+      ],
+      "examples": []
+    }
+  }
+}
