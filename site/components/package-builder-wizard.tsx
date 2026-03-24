@@ -556,8 +556,9 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
         <div className={styles.matrixZone}>
           <Matrix state={state} />
 
-          {/* Nav buttons */}
-          <div style={{ marginTop: 20, display: "flex", justifyContent: "center", gap: 12 }}>
+          {/* Nav buttons — fixed-height slot so buttons appearing/disappearing
+              don't shift the matrix above. 50px fits the tallest button state. */}
+          <div style={{ marginTop: 24, display: "flex", justifyContent: "center", gap: 12, minHeight: 50 }}>
             {state.step > 1 && (
               <button className={styles.navBtn} onClick={goBack}>
                 back
