@@ -1,22 +1,10 @@
 "use client";
 
 import { useMemo, useEffect } from "react";
+import type { ModalAsset } from "@/lib/notion";
 import styles from "./asset-modal.module.css";
 
-/* ── Types ── */
-
-/** Lightweight asset shape for the modal — a superset of PackData examples. */
-export interface ModalAsset {
-  id: string;
-  title: string;
-  type: string;
-  icon: string;
-  url: string;
-  detail: string;
-  thumbnailUrl: string;
-  tags: string[];
-  quadrants: string[];
-}
+export type { ModalAsset };
 
 /* ── Quadrant display ── */
 

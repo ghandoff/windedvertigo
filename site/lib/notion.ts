@@ -150,6 +150,19 @@ export interface PortfolioAsset {
   order: number | null;
 }
 
+/** Asset shape shared between PackData examples and the AssetModal component. */
+export interface ModalAsset {
+  id: string;
+  title: string;
+  type: string;
+  icon: string;
+  url: string;
+  detail: string;
+  thumbnailUrl: string;
+  tags: string[];
+  quadrants: string[];
+}
+
 export interface PackData {
   title: string;
   promise: string;
@@ -157,17 +170,7 @@ export interface PackData {
   story: string;
   crossover: string;
   outcomes: { title: string; detail: string }[];
-  examples: {
-    id: string;
-    title: string;
-    type: string;
-    icon: string;
-    url: string;
-    detail: string;
-    thumbnailUrl: string;
-    tags: string[];
-    quadrants: string[];
-  }[];
+  examples: ModalAsset[];
 }
 
 export interface TeamMember {

@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import type { PackData } from "@/lib/notion";
+import type { PackData, ModalAsset } from "@/lib/notion";
 import styles from "./package-builder-wizard.module.css";
 import { AssetModal } from "./asset-modal";
-import type { ModalAsset } from "./asset-modal";
 
 /* ── Quadrant colors ── */
 
@@ -280,6 +279,7 @@ function ResultPage({
   allExamples: ModalAsset[];
 }) {
   const [activeExample, setActiveExample] = useState<ModalAsset | null>(null);
+  const closeModal = useCallback(() => setActiveExample(null), []);
   const qc = quadrantColor(getQuadrant(state));
   // Champagne is light — tags/accents need dark text
   const isLightQuadrant = getQuadrant(state) === "product-research";
@@ -402,7 +402,7 @@ function ResultPage({
             <button
               key={ex.id}
               className={styles.exampleCard}
-              onClick={() => setActiveExample(ex as ModalAsset)}
+              onClick={() => setActiveExample(ex )}
             >
               <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
                 <span style={{ fontSize: 28, lineHeight: 1 }}>{ex.icon}</span>
@@ -452,7 +452,7 @@ function ResultPage({
         <AssetModal
           asset={activeExample}
           allAssets={allExamples}
-          onClose={() => setActiveExample(null)}
+          onClose={closeModal}
           onOpenRelated={(a) => setActiveExample(a)}
         />
       )}
@@ -478,7 +478,14 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
   }, []);
 
   const goBack = useCallback(() => {
-    setState((prev) => ({ ...prev, step: prev.step - 1 }));
+    setState((prev) => {
+      const next = { ...prev, step: prev.step - 1 };
+      // Clear downstream selections so stale picks from a previous
+      // quadrant don't carry into the result when the user re-advances
+      if (prev.step === 3) next.focus = [];
+      if (prev.step === 4) next.goals = [];
+      return next;
+    });
   }, []);
 
   const goNext = useCallback(() => {
@@ -497,7 +504,7 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
       for (const ex of pack.examples) {
         if (!seen.has(ex.id)) {
           seen.add(ex.id);
-          result.push(ex as ModalAsset);
+          result.push(ex );
         }
       }
     }
@@ -509,9 +516,20 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
   }
 
   /* Step 5: Result */
-  if (state.step === 5 && quadrant && packs[quadrant]) {
+  if (state.step === 5) {
+    if (quadrant && packs[quadrant]) {
+      return (
+        <ResultPage state={state} pack={packs[quadrant]} ctaLink={ctaLink} onStartOver={startOver} allExamples={allExamples} />
+      );
+    }
+    // Graceful fallback — pack data missing for this quadrant
     return (
-      <ResultPage state={state} pack={packs[quadrant]} ctaLink={ctaLink} onStartOver={startOver} allExamples={allExamples} />
+      <div style={{ textAlign: "center", padding: "var(--space-2xl) 0" }}>
+        <p style={{ color: "var(--text-secondary)", marginBottom: "var(--space-lg)" }}>
+          something went wrong loading your package.
+        </p>
+        <button className={styles.navBtn} onClick={startOver}>start over</button>
+      </div>
     );
   }
 

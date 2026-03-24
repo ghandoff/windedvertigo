@@ -36,7 +36,7 @@ export default async function DoPage() {
 
       <main id="main-content">
         <div className="container content-narrow">
-          <PackageBuilderWizard packs={packs} ctaLink={cta?.link} />
+          <PackageBuilderWizard packs={packs} {...(cta?.link ? { ctaLink: cta.link } : {})} />
         </div>
       </main>
 
