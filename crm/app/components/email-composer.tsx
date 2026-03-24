@@ -1,0 +1,292 @@
+"use client";
+
+import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Send, Search, Building2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "./status-badge";
+import type { Organization } from "@/lib/notion/types";
+
+interface EmailComposerProps {
+  preselectedOrgId?: string;
+}
+
+export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  // Org search + selection
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Organization[]>([]);
+  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [showResults, setShowResults] = useState(false);
+
+  // Email fields
+  const [to, setTo] = useState("");
+  const [subject, setSubject] = useState("From Winded Vertigo");
+  const [body, setBody] = useState("");
+  const [senderName, setSenderName] = useState("");
+
+  // Send state
+  const [sendStatus, setSendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [sendMessage, setSendMessage] = useState("");
+
+  // Load preselected org
+  useEffect(() => {
+    if (preselectedOrgId) {
+      fetch(`/crm/api/organizations/${preselectedOrgId}`)
+        .then((res) => res.json())
+        .then((org) => {
+          if (org.id) selectOrg(org);
+        })
+        .catch(() => {});
+    }
+  }, [preselectedOrgId]);
+
+  // Search orgs
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      fetch(`/crm/api/organizations?search=${encodeURIComponent(searchQuery)}`)
+        .then((res) => res.json())
+        .then((data) => setSearchResults(data.data ?? []))
+        .catch(() => setSearchResults([]));
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
+
+  function selectOrg(org: Organization) {
+    setSelectedOrg(org);
+    setTo(org.email || "");
+    setBody(org.bespokeEmailCopy || "");
+    setSearchQuery("");
+    setShowResults(false);
+  }
+
+  async function handleSend() {
+    if (!selectedOrg || !to || !body) return;
+    setSendStatus("sending");
+    setSendMessage("");
+
+    try {
+      const res = await fetch("/crm/api/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          organizationId: selectedOrg.id,
+          to,
+          subject,
+          body,
+          senderName: senderName || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSendStatus("sent");
+        setSendMessage(`Sent! Message ID: ${data.messageId}`);
+        startTransition(() => router.refresh());
+      } else {
+        setSendStatus("error");
+        setSendMessage(data.error || "Send failed");
+      }
+    } catch {
+      setSendStatus("error");
+      setSendMessage("Network error");
+    }
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main — compose area */}
+      <div className="lg:col-span-2 space-y-4">
+        {/* Org search */}
+        <div className="relative">
+          <Label className="mb-1.5 block">Organization</Label>
+          {selectedOrg ? (
+            <div className="flex items-center gap-2 p-2 rounded-md border bg-muted/50">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium text-sm">{selectedOrg.organization}</span>
+              <button
+                onClick={() => { setSelectedOrg(null); setTo(""); setBody(""); }}
+                className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+              >
+                Change
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search organizations..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setShowResults(true); }}
+                onFocus={() => setShowResults(true)}
+                className="pl-8"
+              />
+              {showResults && searchResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-auto">
+                  {searchResults.map((org) => (
+                    <button
+                      key={org.id}
+                      onClick={() => selectOrg(org)}
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
+                    >
+                      <span className="font-medium">{org.organization}</span>
+                      {org.priority && (
+                        <Badge variant="outline" className="text-[10px] ml-2">
+                          {org.priority.replace(/ – .+/, "")}
+                        </Badge>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* To */}
+        <div>
+          <Label className="mb-1.5 block">To</Label>
+          <Input
+            type="email"
+            placeholder="recipient@example.com"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+          />
+        </div>
+
+        {/* Subject */}
+        <div>
+          <Label className="mb-1.5 block">Subject</Label>
+          <Input
+            placeholder="Email subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+          />
+        </div>
+
+        {/* Sender name */}
+        <div>
+          <Label className="mb-1.5 block">Sender Name (optional)</Label>
+          <Input
+            placeholder="e.g. Garrett"
+            value={senderName}
+            onChange={(e) => setSenderName(e.target.value)}
+          />
+        </div>
+
+        {/* Body */}
+        <div>
+          <Label className="mb-1.5 block">
+            Body
+            {selectedOrg?.bespokeEmailCopy && (
+              <span className="text-muted-foreground font-normal ml-2">
+                (pre-filled from bespoke copy)
+              </span>
+            )}
+          </Label>
+          <Textarea
+            placeholder="Email body..."
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={12}
+            className="font-mono text-sm"
+          />
+        </div>
+
+        {/* Send button */}
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleSend}
+            disabled={!selectedOrg || !to || !body || sendStatus === "sending"}
+            size="lg"
+          >
+            {sendStatus === "sending" ? (
+              "Sending..."
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-1.5" />
+                Send Email
+              </>
+            )}
+          </Button>
+          {sendStatus === "sent" && (
+            <span className="flex items-center gap-1.5 text-sm text-green-600">
+              <CheckCircle2 className="h-4 w-4" />
+              {sendMessage}
+            </span>
+          )}
+          {sendStatus === "error" && (
+            <span className="flex items-center gap-1.5 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4" />
+              {sendMessage}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Sidebar — org context */}
+      <div className="space-y-4">
+        {selectedOrg ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{selectedOrg.organization}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex flex-wrap gap-1.5">
+                <StatusBadge value={selectedOrg.connection} type="connection" />
+                <StatusBadge value={selectedOrg.outreachStatus} type="outreach" />
+              </div>
+              {selectedOrg.email && (
+                <div>
+                  <span className="text-muted-foreground">Email</span>
+                  <p className="font-medium">{selectedOrg.email}</p>
+                </div>
+              )}
+              {selectedOrg.friendship && (
+                <div>
+                  <span className="text-muted-foreground">Friendship</span>
+                  <p className="font-medium">{selectedOrg.friendship}</p>
+                </div>
+              )}
+              {selectedOrg.priority && (
+                <div>
+                  <span className="text-muted-foreground">Priority</span>
+                  <p className="font-medium">{selectedOrg.priority}</p>
+                </div>
+              )}
+              {selectedOrg.outreachSuggestion && (
+                <div>
+                  <span className="text-muted-foreground">Outreach Suggestion</span>
+                  <p className="font-medium">{selectedOrg.outreachSuggestion}</p>
+                </div>
+              )}
+              {selectedOrg.outreachTarget && (
+                <div>
+                  <span className="text-muted-foreground">Outreach Target</span>
+                  <p className="font-medium">{selectedOrg.outreachTarget}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center text-muted-foreground">
+              <Building2 className="h-8 w-8 mx-auto mb-3 opacity-40" />
+              <p className="text-sm">Select an organization to see context and pre-fill email copy</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}
