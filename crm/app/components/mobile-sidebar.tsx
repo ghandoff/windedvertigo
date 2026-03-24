@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
@@ -40,16 +41,25 @@ export function MobileSidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="md:hidden flex h-14 items-center px-4 border-b bg-sidebar text-sidebar-foreground">
+    <div className="md:hidden flex h-14 items-center px-4 border-b bg-sidebar text-white">
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger className="inline-flex items-center justify-center rounded-md p-2 text-sidebar-foreground hover:bg-sidebar-accent transition-colors">
+        <SheetTrigger className="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-white/10 transition-colors">
           <Menu className="h-5 w-5" />
         </SheetTrigger>
-        <SheetContent side="left" className="w-60 bg-sidebar text-sidebar-foreground p-0">
-          <SheetTitle className="flex h-14 items-center px-5 border-b border-sidebar-border text-sidebar-foreground">
-            w.v. CRM
+        <SheetContent side="left" className="w-60 bg-sidebar text-white p-0">
+          <SheetTitle className="flex h-16 items-center px-5 border-b border-sidebar-border">
+            <Image
+              src="/images/wordmark.png"
+              alt="winded vertigo"
+              width={120}
+              height={64}
+              className="brightness-0 invert"
+            />
           </SheetTitle>
-          <nav className="py-4 px-3 space-y-1">
+          <div className="px-5 pt-3 pb-1">
+            <span className="text-xs font-medium tracking-wider text-white/50 uppercase">CRM</span>
+          </div>
+          <nav className="py-2 px-3 space-y-0.5">
             {NAV_ITEMS.map((item) => {
               const isActive =
                 item.href === "/"
@@ -63,8 +73,8 @@ export function MobileSidebar() {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50"
+                      ? "bg-white/15 text-white"
+                      : "text-white/70 hover:bg-white/10 hover:text-white"
                   )}
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
@@ -75,7 +85,13 @@ export function MobileSidebar() {
           </nav>
         </SheetContent>
       </Sheet>
-      <span className="ml-3 text-lg font-semibold">w.v. CRM</span>
+      <Image
+        src="/images/wordmark.png"
+        alt="winded vertigo"
+        width={100}
+        height={53}
+        className="ml-3 brightness-0 invert"
+      />
     </div>
   );
 }

@@ -19,7 +19,7 @@ export default async function LoginPage({
       <div className="w-full max-w-sm space-y-8 text-center">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--wv-cadet)]">
-            w.v. CRM
+            w.v CRM
           </h1>
           <p className="text-sm text-[var(--wv-cadet)]/60 mt-2">
             sign in with your winded.vertigo google account

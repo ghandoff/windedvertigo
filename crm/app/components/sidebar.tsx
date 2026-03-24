@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -31,11 +32,23 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 bg-sidebar text-sidebar-foreground">
-      <div className="flex h-14 items-center px-5 border-b border-sidebar-border">
-        <span className="text-lg font-semibold tracking-tight">w.v. CRM</span>
+    <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 bg-sidebar text-white">
+      <div className="flex h-16 items-center px-5 border-b border-sidebar-border">
+        <Link href="/" className="block">
+          <Image
+            src="/images/wordmark.png"
+            alt="winded vertigo"
+            width={140}
+            height={74}
+            className="brightness-0 invert"
+            priority
+          />
+        </Link>
       </div>
-      <nav className="flex-1 py-4 px-3 space-y-1">
+      <div className="px-5 pt-3 pb-1">
+        <span className="text-xs font-medium tracking-wider text-white/50 uppercase">CRM</span>
+      </div>
+      <nav className="flex-1 py-2 px-3 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.href === "/"
@@ -48,8 +61,8 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                  ? "bg-white/15 text-white"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
               )}
             >
               <item.icon className="h-4 w-4 shrink-0" />

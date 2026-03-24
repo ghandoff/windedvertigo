@@ -63,7 +63,7 @@ function CompetitorCard({ comp }: { comp: Competitor }) {
 
         {comp.whereWvWins && (
           <div className="bg-green-50 border border-green-200 rounded-md p-2">
-            <span className="text-green-700 text-xs font-medium">where w.v. wins</span>
+            <span className="text-green-700 text-xs font-medium">where w.v wins</span>
             <p className="text-xs text-green-800 line-clamp-2">{comp.whereWvWins}</p>
           </div>
         )}
