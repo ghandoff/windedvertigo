@@ -570,78 +570,26 @@ export async function fetchPackageBuilderData(): Promise<
   }
 }
 
-/** Fetch package builder examples from the multi-source BD database.
- *  Uses notion.search (required for multi-source DBs) but skips the
- *  R2 thumbnail sync to keep it fast. */
-async function _fetchPackageBuilderExamples(): Promise<
-  Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]>
-> {
-  const p = PROPS.portfolioAssets;
-  const parentDbId = DB.portfolioAssets;
-  const parentDashed = parentDbId.replace(
-    /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
-    "$1-$2-$3-$4-$5",
-  );
-
-  // Use notion.search to find pages in the multi-source BD database
-  let allPages: PageObjectResponse[] = [];
-  let startCursor: string | undefined;
-  let round = 0;
-
-  do {
-    round++;
-    const response = await withRetry(
-      () =>
-        notion.search({
-          filter: { property: "object", value: "page" },
-          page_size: 100,
-          ...(startCursor ? { start_cursor: startCursor } : {}),
-        }),
-      `fetchPBExamples:round${round}`,
-    );
-
-    for (const page of response.results) {
-      if (!("properties" in page)) continue;
-      const pid = (page as PageObjectResponse).parent;
-      if (
-        "database_id" in pid &&
-        (pid.database_id === parentDbId || pid.database_id === parentDashed)
-      ) {
-        allPages.push(page as PageObjectResponse);
-      }
-    }
-
-    startCursor = response.has_more
-      ? (response.next_cursor ?? undefined)
-      : undefined;
-  } while (startCursor && round < 30);
-
-  // Filter for Show in Package Builder and build examples by quadrant
+/** Build package builder examples from already-fetched portfolio assets.
+ *  Avoids a second notion.search() round-trip by reusing the shared fetch. */
+function buildPackageBuilderExamples(
+  assets: PortfolioAsset[],
+): Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]> {
   const examples: Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]> = {};
-
-  for (const page of allPages) {
-    const props = page.properties;
-    if (!getCheckbox(props[p.showInPackageBuilder])) continue;
-
-    const quadrantRelIds = getRelationIds(props[p.quadrantRel]);
-    const quadrantKeys = await hydrateQuadrantRel(quadrantRelIds);
-    if (quadrantKeys.length === 0) continue;
-
-    const example = {
-      id: page.id,
-      title: getTitle(props[p.name]),
-      type: getSelect(props[p.assetType]) || getText(props["asset type"]),
-      icon: getIconValue(props[p.icon]),
-      url: getUrl(props[p.url]),
-      detail: getText(props[p.description]),
-    };
-
-    for (const q of quadrantKeys) {
+  for (const asset of assets) {
+    if (!asset.showInPackageBuilder) continue;
+    for (const q of asset.quadrants) {
       if (!examples[q]) examples[q] = [];
-      examples[q].push(example);
+      examples[q].push({
+        id: asset.id,
+        title: asset.name,
+        type: asset.assetType,
+        icon: asset.icon,
+        url: asset.url,
+        detail: asset.description,
+      });
     }
   }
-
   return examples;
 }
 
@@ -651,8 +599,9 @@ async function _fetchPackageBuilderData(): Promise<
   const qp = PROPS.quadrants;
   const op = PROPS.outcomes;
 
-  // Fetch quadrants, outcomes, and package builder examples in parallel
-  const [quadrantsRes, outcomesRes, pbExamples] = await Promise.all([
+  // Fetch quadrants, outcomes, and portfolio assets in parallel
+  // (portfolio assets are shared — we derive PB examples from them)
+  const [quadrantsRes, outcomesRes, portfolioAssets] = await Promise.all([
     withRetry(
       () => notion.databases.query({ database_id: DB.quadrants }),
       "fetchQuadrants",
@@ -665,8 +614,10 @@ async function _fetchPackageBuilderData(): Promise<
         }),
       "fetchOutcomes",
     ),
-    _fetchPackageBuilderExamples(),
+    _fetchPortfolioAssets(),
   ]);
+
+  const pbExamples = buildPackageBuilderExamples(portfolioAssets);
 
   // Build quadrants
   const quadrants: Record<

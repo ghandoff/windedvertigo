@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
 
+  // Notion search for multi-source DB assets can take 30+ rounds (~90s)
+  staticPageGenerationTimeout: 180,
+
   // External rewrites — proxy harbour apps to their Vercel deployments
   async rewrites() {
     return [
