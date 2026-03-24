@@ -4,6 +4,21 @@ import { useState, useCallback } from "react";
 import type { PackData } from "@/lib/notion";
 import styles from "./package-builder-wizard.module.css";
 
+/* ── Quadrant colors ── */
+
+const QUADRANT_COLORS: Record<string, { css: string; hex: string }> = {
+  "people-design":    { css: "var(--wv-cadet, #273248)",    hex: "#273248" },
+  "people-research":  { css: "var(--wv-sienna, #cb7858)",   hex: "#cb7858" },
+  "product-design":   { css: "var(--wv-redwood, #b15043)",  hex: "#b15043" },
+  "product-research": { css: "var(--wv-champagne, #ffebd2)", hex: "#ffebd2" },
+};
+
+/** Get the color for a quadrant, falling back to a neutral default. */
+function quadrantColor(quadrantId: string | null): { css: string; hex: string } {
+  if (!quadrantId) return { css: "#3a4459", hex: "#3a4459" };
+  return QUADRANT_COLORS[quadrantId] ?? { css: "#3a4459", hex: "#3a4459" };
+}
+
 /* ── Static content (UI choices — these don't come from Notion) ── */
 
 const INSIGHTS: Record<string, string> = {
@@ -150,31 +165,45 @@ function Matrix({ state, expanded = false }: { state: WizardState; expanded?: bo
       }
     : {};
 
-  const cellStyle = (id: string): React.CSSProperties => ({
-    width: cellSize,
-    height: cellSize,
-    background:
-      getClass(id) === "active"
-        ? "var(--accent, #b15043)"
-        : getClass(id) === "highlight"
-          ? "var(--wv-sienna, #cb7858)"
-          : "#3a4459",
-    borderRadius: 3,
-    transition: "all 0.3s ease",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 4,
-  });
+  const cellStyle = (id: string): React.CSSProperties => {
+    const cls = getClass(id);
+    const qc = QUADRANT_COLORS[id] ?? { css: "#3a4459", hex: "#3a4459" };
+    let background = "#3a4459";
+    if (cls === "active") background = qc.css;
+    else if (cls === "highlight") background = `color-mix(in srgb, ${qc.hex} 50%, #3a4459)`;
 
-  const cellLabelStyle = (id: string): React.CSSProperties => ({
-    fontSize: labelFontSize,
-    color: getClass(id) === "active" ? "#ffffff" : "rgba(255,255,255,0.7)",
-    textAlign: "center",
-    lineHeight: 1.2,
-    textTransform: "lowercase",
-    whiteSpace: "pre-line",
-  });
+    return {
+      width: cellSize,
+      height: cellSize,
+      background,
+      borderRadius: 3,
+      transition: "all 0.3s ease",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 4,
+      // Cadet is close to page background — add border so it reads as selected
+      border: cls === "active" && id === "people-design"
+        ? "1.5px solid rgba(255,255,255,0.4)"
+        : "1.5px solid transparent",
+    };
+  };
+
+  const cellLabelStyle = (id: string): React.CSSProperties => {
+    const isActive = getClass(id) === "active";
+    // Champagne (#ffebd2) is light — use dark text; all others use white
+    const needsDarkText = isActive && id === "product-research";
+    return {
+      fontSize: labelFontSize,
+      color: isActive
+        ? needsDarkText ? "var(--wv-cadet, #273248)" : "#ffffff"
+        : "rgba(255,255,255,0.7)",
+      textAlign: "center",
+      lineHeight: 1.2,
+      textTransform: "lowercase",
+      whiteSpace: "pre-line",
+    };
+  };
 
   const cells = ["people-design", "people-research", "product-design", "product-research"];
 
@@ -246,13 +275,18 @@ function ResultPage({
   ctaLink: string;
   onStartOver: () => void;
 }) {
+  const qc = quadrantColor(getQuadrant(state));
+  // Champagne is light — tags/accents need dark text
+  const isLightQuadrant = getQuadrant(state) === "product-research";
+  const tagTextColor = isLightQuadrant ? "var(--wv-cadet, #273248)" : "#ffffff";
+
   const emailBody = encodeURIComponent(
     `I'm interested in the "${pack.title}" package from winded.vertigo.\n\nQuadrant: ${state.audience} × ${state.mode}\nServices: ${state.focus.join(", ")}\nGoals: ${state.goals.join(", ")}\n\n${pack.promise}\n\nLearn more at windedvertigo.com`,
   );
 
   return (
     <div style={{ paddingTop: 10, paddingBottom: 40, maxWidth: 540, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 10, textTransform: "lowercase" }}>
+      <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 10, textTransform: "lowercase", color: qc.css }}>
         {pack.title}
       </h1>
       <p style={{ fontSize: 16, color: "#ffffff", marginBottom: 20, lineHeight: 1.5 }}>
@@ -261,18 +295,11 @@ function ResultPage({
 
       {/* Tags */}
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
-        <span style={{ background: "var(--accent, #b15043)", padding: "6px 14px", fontSize: 12, fontWeight: 700, textTransform: "lowercase" }}>
-          {state.audience}
-        </span>
-        <span style={{ background: "var(--accent, #b15043)", padding: "6px 14px", fontSize: 12, fontWeight: 700, textTransform: "lowercase" }}>
-          {state.mode}
-        </span>
-        <span style={{ background: "var(--accent, #b15043)", padding: "6px 14px", fontSize: 12, fontWeight: 700, textTransform: "lowercase" }}>
-          {state.focus.length} service{state.focus.length > 1 ? "s" : ""}
-        </span>
-        <span style={{ background: "var(--accent, #b15043)", padding: "6px 14px", fontSize: 12, fontWeight: 700, textTransform: "lowercase" }}>
-          {state.goals.length} goal{state.goals.length > 1 ? "s" : ""}
-        </span>
+        {[state.audience, state.mode, `${state.focus.length} service${state.focus.length > 1 ? "s" : ""}`, `${state.goals.length} goal${state.goals.length > 1 ? "s" : ""}`].map((label, i) => (
+          <span key={i} style={{ background: qc.css, color: tagTextColor, padding: "6px 14px", fontSize: 12, fontWeight: 700, textTransform: "lowercase" }}>
+            {label}
+          </span>
+        ))}
       </div>
 
       {/* Quadrant context */}
@@ -298,7 +325,7 @@ function ResultPage({
       {/* Outcomes */}
       {pack.outcomes.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--wv-champagne, #ffebd2)", marginBottom: 16, textTransform: "lowercase", letterSpacing: 0.5 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: qc.css, marginBottom: 16, textTransform: "lowercase", letterSpacing: 0.5 }}>
             what you&apos;ll get
           </div>
           {pack.outcomes.map((o, i) => (
@@ -308,7 +335,7 @@ function ResultPage({
                 padding: "16px 20px",
                 background: "#3a4459",
                 marginBottom: 8,
-                borderLeft: "3px solid var(--wv-sienna, #cb7858)",
+                borderLeft: `3px solid ${qc.css}`,
                 borderRadius: "0 6px 6px 0",
               }}
             >
@@ -323,7 +350,7 @@ function ResultPage({
 
       {/* Story + crossover */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--wv-champagne, #ffebd2)", marginBottom: 16, textTransform: "lowercase", letterSpacing: 0.5 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: qc.css, marginBottom: 16, textTransform: "lowercase", letterSpacing: 0.5 }}>
           how we&apos;ll work together
         </div>
         {pack.story && (
@@ -346,8 +373,8 @@ function ResultPage({
           <div
             style={{
               padding: 16,
-              background: "rgba(203,120,88,0.15)",
-              borderLeft: "3px solid var(--wv-sienna, #cb7858)",
+              background: `color-mix(in srgb, ${qc.hex} 15%, transparent)`,
+              borderLeft: `3px solid ${qc.css}`,
               borderRadius: "0 6px 6px 0",
               fontSize: 13,
               lineHeight: 1.7,
@@ -363,7 +390,7 @@ function ResultPage({
       {/* Examples */}
       {pack.examples.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--wv-champagne, #ffebd2)", marginBottom: 16, textTransform: "lowercase", letterSpacing: 0.5 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: qc.css, marginBottom: 16, textTransform: "lowercase", letterSpacing: 0.5 }}>
             see it in action
           </div>
           {pack.examples.map((ex) => (
@@ -379,7 +406,7 @@ function ResultPage({
                     {ex.title}
                   </div>
                   {ex.type && (
-                    <div style={{ fontSize: 11, color: "var(--wv-sienna, #cb7858)", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    <div style={{ fontSize: 11, color: qc.css, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
                       {ex.type}
                     </div>
                   )}
@@ -387,7 +414,7 @@ function ResultPage({
                     <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.6 }}>{ex.detail}</div>
                   )}
                 </div>
-                <span style={{ color: "var(--accent, #b15043)", fontSize: 20, fontWeight: 700 }}>→</span>
+                <span style={{ color: qc.css, fontSize: 20, fontWeight: 700 }}>→</span>
               </div>
             </a>
           ))}
