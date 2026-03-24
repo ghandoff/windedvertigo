@@ -570,14 +570,59 @@ export async function fetchPackageBuilderData(): Promise<
   }
 }
 
+/** Fetch only assets with Show in Package Builder checked, using databases.query
+ *  (faster and more reliable than notion.search which can miss results). */
+async function _fetchPackageBuilderExamples(): Promise<
+  Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]>
+> {
+  const p = PROPS.portfolioAssets;
+  const res = await withRetry(
+    () =>
+      notion.databases.query({
+        database_id: DB.portfolioAssets,
+        filter: {
+          property: p.showInPackageBuilder,
+          checkbox: { equals: true },
+        },
+      }),
+    "fetchPBExamples",
+  );
+
+  const examples: Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]> = {};
+
+  for (const page of res.results) {
+    if (!("properties" in page)) continue;
+    const props = (page as PageObjectResponse).properties;
+    const quadrantRelIds = getRelationIds(props[p.quadrantRel]);
+    const quadrantKeys = await hydrateQuadrantRel(quadrantRelIds);
+    if (quadrantKeys.length === 0) continue;
+
+    const example = {
+      id: page.id,
+      title: getTitle(props[p.name]),
+      type: getSelect(props[p.assetType]) || getText(props["asset type"]),
+      icon: getIconValue(props[p.icon]),
+      url: getUrl(props[p.url]),
+      detail: getText(props[p.description]),
+    };
+
+    for (const q of quadrantKeys) {
+      if (!examples[q]) examples[q] = [];
+      examples[q].push(example);
+    }
+  }
+
+  return examples;
+}
+
 async function _fetchPackageBuilderData(): Promise<
   Record<string, PackData>
 > {
   const qp = PROPS.quadrants;
   const op = PROPS.outcomes;
 
-  // Fetch quadrants and outcomes in parallel
-  const [quadrantsRes, outcomesRes, portfolioAssets] = await Promise.all([
+  // Fetch quadrants, outcomes, and package builder examples in parallel
+  const [quadrantsRes, outcomesRes, pbExamples] = await Promise.all([
     withRetry(
       () => notion.databases.query({ database_id: DB.quadrants }),
       "fetchQuadrants",
@@ -590,7 +635,7 @@ async function _fetchPackageBuilderData(): Promise<
         }),
       "fetchOutcomes",
     ),
-    _fetchPortfolioAssets(),
+    _fetchPackageBuilderExamples(),
   ]);
 
   // Build quadrants
@@ -632,33 +677,13 @@ async function _fetchPackageBuilderData(): Promise<
     });
   }
 
-  // Build examples from portfolio assets
-  const examples: Record<
-    string,
-    { id: string; title: string; type: string; icon: string; url: string; detail: string }[]
-  > = {};
-  for (const asset of portfolioAssets) {
-    if (!asset.showInPackageBuilder) continue;
-    for (const q of asset.quadrants) {
-      if (!examples[q]) examples[q] = [];
-      examples[q].push({
-        id: asset.id,
-        title: asset.name,
-        type: asset.assetType,
-        icon: asset.icon,
-        url: asset.url,
-        detail: asset.description,
-      });
-    }
-  }
-
-  // Assemble packs
+  // Assemble packs (examples already grouped by quadrant from _fetchPackageBuilderExamples)
   const packs: Record<string, PackData> = {};
   for (const [key, q] of Object.entries(quadrants)) {
     packs[key] = {
       ...q,
       outcomes: outcomes[key] ?? [],
-      examples: examples[key] ?? [],
+      examples: pbExamples[key] ?? [],
     };
   }
 
