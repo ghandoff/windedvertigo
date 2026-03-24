@@ -256,6 +256,21 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S0 h1 { font: 700 clamp(36px,7vw,68px)/1.08 'Inter', sans-serif; color: var(--champagne); margin: 20px 0 32px; text-align: center; padding: 0 20px; }
 #S0 .sub { font: 300 clamp(16px,2.2vw,20px)/1.7 'Inter', sans-serif; color: rgba(255,255,255,0.45); text-align: center; padding: 0 20px; }
 #S0 .sub em { color: var(--redwood); font-style: normal; }
+/* ── Onboarding hints ── */
+.onboard-hint {
+  position: fixed; z-index: 310;
+  display: flex; align-items: flex-start; gap: 6px;
+  animation: fadeUp 0.6s ease forwards, hintPulse 2s 1.5s ease-in-out 3;
+  pointer-events: none;
+}
+#agendaHint {
+  top: 420px; left: 20px;
+}
+#agendaHint .onboard-arrow { font-size: 22px; color: var(--sienna); }
+.onboard-text {
+  font: 400 12px/1.4 'Inter', sans-serif; color: var(--grey);
+  max-width: 200px;
+}
 #S0 .cover-context { font: 400 12px 'Inter', sans-serif; color: rgba(255,255,255,0.25); margin-top: 16px; }
 #S0 .narrator-hint {
   position: absolute; top: 20px; right: 120px; z-index: 300;
@@ -263,7 +278,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   animation: fadeUp 0.8s 1s ease forwards, hintPulse 2s 2s ease-in-out 3;
 }
 #S0 .narrator-hint-text {
-  font: 400 12px/1.4 'Inter', sans-serif; color: rgba(255,255,255,0.5);
+  font: 400 12px/1.4 'Inter', sans-serif; color: rgba(255,255,255,0.5) !important;
   max-width: 200px; text-align: right;
 }
 #S0 .narrator-hint-arrow {
@@ -885,6 +900,9 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   #S0 .narrator-hint { top: auto; bottom: 100px; right: 20px; flex-direction: row-reverse; }
   #S0 .narrator-hint-text { text-align: left; font-size: 11px; max-width: 180px; }
   #S0 .narrator-hint-arrow { transform: rotate(90deg); }
+  #agendaHint { top: 52px; left: 20px; }
+  #agendaHint .onboard-arrow { transform: rotate(-90deg); }
+  #agendaHint .onboard-text { font-size: 11px; }
 
   /* ── Agenda ── */
   #agenda-card { display: none !important; }
@@ -1044,6 +1062,12 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
     <ul class="agenda-mobile-list" id="agendaMobileList"></ul>
   </div>
 </nav>
+
+<!-- ═══ ONBOARDING HINTS ═══ -->
+<div class="onboard-hint" id="agendaHint" style="display:none">
+  <span class="onboard-arrow">&#8593;</span>
+  <span class="onboard-text">click any item to jump ahead. click "agenda" to collapse.</span>
+</div>
 
 <!-- ═══ S0 COVER ═══ -->
 <section class="sc active" id="S0" aria-label="cover — reimagining PEDAL Conference 2025">
@@ -1621,6 +1645,15 @@ function go(i) {
 
   var nh = document.getElementById('narratorHint');
   if (nh) nh.style.display = 'none';
+
+  // Show agenda hint on first visit to S1
+  var ah = document.getElementById('agendaHint');
+  if (i === 1 && ah && !ah.dataset.shown) {
+    ah.style.display = 'flex'; ah.dataset.shown = '1';
+    setTimeout(function() { ah.style.display = 'none'; }, 10000);
+  } else if (ah && i !== 1) {
+    ah.style.display = 'none';
+  }
 
   cur = i;
   const m = META[i];

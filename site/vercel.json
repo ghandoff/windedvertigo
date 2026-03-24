@@ -1,4 +1,18 @@
 {
+  "rewrites": [
+    {
+      "source": "/portfolio/assets/pedal-conference-experience",
+      "destination": "/portfolio/assets/conference-experience/index.html"
+    },
+    {
+      "source": "/portfolio/assets/pedal-conference-experience/",
+      "destination": "/portfolio/assets/conference-experience/index.html"
+    },
+    {
+      "source": "/portfolio/assets/pedal-conference-experience/:path*",
+      "destination": "/portfolio/assets/conference-experience/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
