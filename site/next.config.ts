@@ -9,6 +9,21 @@ const nextConfig: NextConfig = {
   // External rewrites — proxy harbour apps to their Vercel deployments
   async rewrites() {
     return [
+      // CRM
+      {
+        source: "/crm",
+        destination: "https://wv-crm-ghandoffs-projects.vercel.app/crm",
+      },
+      {
+        source: "/crm/",
+        destination: "https://wv-crm-ghandoffs-projects.vercel.app/crm",
+      },
+      {
+        source: "/crm/:path*",
+        destination:
+          "https://wv-crm-ghandoffs-projects.vercel.app/crm/:path*",
+      },
+
       // creaseworks
       {
         source: "/harbour/creaseworks",
@@ -167,7 +182,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com",
+              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app",
               "frame-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
