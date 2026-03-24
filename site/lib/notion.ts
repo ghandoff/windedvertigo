@@ -164,6 +164,9 @@ export interface PackData {
     icon: string;
     url: string;
     detail: string;
+    thumbnailUrl: string;
+    tags: string[];
+    quadrants: string[];
   }[];
 }
 
@@ -571,11 +574,12 @@ export async function fetchPackageBuilderData(): Promise<
 }
 
 /** Build package builder examples from already-fetched portfolio assets.
- *  Avoids a second notion.search() round-trip by reusing the shared fetch. */
+ *  Includes full asset metadata so the in-page modal can show thumbnails,
+ *  tags, quadrant badges, and related work. */
 function buildPackageBuilderExamples(
   assets: PortfolioAsset[],
-): Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]> {
-  const examples: Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]> = {};
+): Record<string, PackData["examples"]> {
+  const examples: Record<string, PackData["examples"]> = {};
   for (const asset of assets) {
     if (!asset.showInPackageBuilder) continue;
     for (const q of asset.quadrants) {
@@ -587,6 +591,9 @@ function buildPackageBuilderExamples(
         icon: asset.icon,
         url: asset.url,
         detail: asset.description,
+        thumbnailUrl: asset.thumbnailUrl,
+        tags: asset.tags,
+        quadrants: asset.quadrants,
       });
     }
   }

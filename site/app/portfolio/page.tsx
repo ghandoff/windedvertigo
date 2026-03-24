@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { fetchPortfolioAssets, fetchSiteContent } from "@/lib/notion";
@@ -26,7 +25,6 @@ export default async function PortfolioPage() {
     fetchSiteContent("home"),
   ]);
 
-  // Only show assets marked for portfolio display
   const portfolioAssets = assets.filter((a) => a.showInPortfolio);
 
   return (
@@ -36,9 +34,7 @@ export default async function PortfolioPage() {
       <main id="main-content">
         <div className="container content-narrow">
           <h2 className="hero-title">portfolio</h2>
-          <Suspense>
-            <PortfolioGallery assets={portfolioAssets} allAssets={assets} />
-          </Suspense>
+          <PortfolioGallery assets={portfolioAssets} />
         </div>
       </main>
 

@@ -1,4 +1,4 @@
-/* Portfolio modal overlay + content */
+/* Asset preview modal — used by the package builder wizard */
 
 .modalOverlay {
   position: fixed;
@@ -105,28 +105,6 @@
 .relatedCard:hover {
   border-color: rgba(255, 235, 210, 0.2);
   transform: translateY(-2px);
-}
-
-/* Asset card override: make it a clickable card instead of a link */
-.assetCard {
-  display: block;
-  background: var(--color-surface-raised);
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 235, 210, 0.08);
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.2s, border-color 0.2s;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  padding: 0;
-  font-family: inherit;
-}
-
-.assetCard:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 235, 210, 0.2);
 }
 
 /* Mobile responsive */

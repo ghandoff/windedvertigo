@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { PackData } from "@/lib/notion";
 import styles from "./package-builder-wizard.module.css";
+import { AssetModal } from "./asset-modal";
+import type { ModalAsset } from "./asset-modal";
 
 /* ── Quadrant colors ── */
 
@@ -269,12 +271,15 @@ function ResultPage({
   pack,
   ctaLink,
   onStartOver,
+  allExamples,
 }: {
   state: WizardState;
   pack: PackData;
   ctaLink: string;
   onStartOver: () => void;
+  allExamples: ModalAsset[];
 }) {
+  const [activeExample, setActiveExample] = useState<ModalAsset | null>(null);
   const qc = quadrantColor(getQuadrant(state));
   // Champagne is light — tags/accents need dark text
   const isLightQuadrant = getQuadrant(state) === "product-research";
@@ -394,10 +399,10 @@ function ResultPage({
             see it in action
           </div>
           {pack.examples.map((ex) => (
-            <a
+            <button
               key={ex.id}
-              href={`/portfolio/?asset=${encodeURIComponent(ex.id)}`}
               className={styles.exampleCard}
+              onClick={() => setActiveExample(ex as ModalAsset)}
             >
               <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
                 <span style={{ fontSize: 28, lineHeight: 1 }}>{ex.icon}</span>
@@ -416,7 +421,7 @@ function ResultPage({
                 </div>
                 <span style={{ color: qc.css, fontSize: 20, fontWeight: 700 }}>→</span>
               </div>
-            </a>
+            </button>
           ))}
         </div>
       )}
@@ -441,6 +446,16 @@ function ResultPage({
           start over
         </button>
       </div>
+
+      {/* Asset preview modal */}
+      {activeExample && (
+        <AssetModal
+          asset={activeExample}
+          allAssets={allExamples}
+          onClose={() => setActiveExample(null)}
+          onOpenRelated={(a) => setActiveExample(a)}
+        />
+      )}
     </div>
   );
 }
@@ -474,6 +489,21 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
     setState({ step: 1, audience: null, mode: null, focus: [], goals: [] });
   }, []);
 
+  // Flatten all examples across all packs for the modal's "related work" pool
+  const allExamples = useMemo<ModalAsset[]>(() => {
+    const seen = new Set<string>();
+    const result: ModalAsset[] = [];
+    for (const pack of Object.values(packs)) {
+      for (const ex of pack.examples) {
+        if (!seen.has(ex.id)) {
+          seen.add(ex.id);
+          result.push(ex as ModalAsset);
+        }
+      }
+    }
+    return result;
+  }, [packs]);
+
   if (Object.keys(packs).length === 0) {
     return <p style={{ color: "var(--text-secondary)" }}>loading packages…</p>;
   }
@@ -481,7 +511,7 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
   /* Step 5: Result */
   if (state.step === 5 && quadrant && packs[quadrant]) {
     return (
-      <ResultPage state={state} pack={packs[quadrant]} ctaLink={ctaLink} onStartOver={startOver} />
+      <ResultPage state={state} pack={packs[quadrant]} ctaLink={ctaLink} onStartOver={startOver} allExamples={allExamples} />
     );
   }
 
