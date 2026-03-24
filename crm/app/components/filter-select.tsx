@@ -7,7 +7,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 
 interface FilterSelectProps {
@@ -34,10 +33,14 @@ export function FilterSelect({ paramKey, placeholder, options }: FilterSelectPro
     });
   }
 
+  const displayText = current || `All ${placeholder}`;
+
   return (
     <Select value={current || "__all__"} onValueChange={onChange}>
       <SelectTrigger className="w-44 text-sm">
-        <SelectValue placeholder={placeholder} />
+        <span className={`flex flex-1 text-left truncate ${!current ? "text-muted-foreground" : ""}`}>
+          {displayText}
+        </span>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="__all__">All {placeholder}</SelectItem>

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { queryOrganizations } from "@/lib/notion/organizations";
+import { ClickableRow } from "@/app/components/clickable-row";
 import { PageHeader } from "@/app/components/page-header";
 import { StatusBadge } from "@/app/components/status-badge";
 import { PriorityBadge, FitBadge } from "@/app/components/priority-badge";
@@ -78,14 +78,9 @@ async function OrganizationsTable({ searchParams }: Props) {
         </TableHeader>
         <TableBody>
           {organizations.map((org) => (
-            <TableRow key={org.id} className="cursor-pointer hover:bg-muted/50">
-              <TableCell>
-                <Link
-                  href={`/organizations/${org.id}`}
-                  className="font-medium hover:underline"
-                >
-                  {org.organization}
-                </Link>
+            <ClickableRow key={org.id} href={`/organizations/${org.id}`}>
+              <TableCell className="font-medium">
+                {org.organization}
               </TableCell>
               <TableCell>
                 <StatusBadge value={org.connection} type="connection" />
@@ -109,7 +104,7 @@ async function OrganizationsTable({ searchParams }: Props) {
               <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate">
                 {org.marketSegment}
               </TableCell>
-            </TableRow>
+            </ClickableRow>
           ))}
         </TableBody>
       </Table>
