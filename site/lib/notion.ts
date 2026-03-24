@@ -521,8 +521,16 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
     const quadrantKey = quadrantKeys[0] ?? "";
     const assetName = getTitle(props[p.name]);
 
-    // Sync thumbnail to R2 so the URL never expires
-    const rawThumbnailUrl = getUrl(props[p.thumbnailUrl]);
+    // Thumbnail: prefer Notion page cover (easier to author), fall back to
+    // the explicit Thumbnail URL property. Sync to R2 because Notion-hosted
+    // file URLs expire after ~1 hour.
+    const coverUrl =
+      page.cover?.type === "external"
+        ? page.cover.external.url
+        : page.cover?.type === "file"
+          ? page.cover.file.url
+          : "";
+    const rawThumbnailUrl = coverUrl || getUrl(props[p.thumbnailUrl]);
     let thumbnailUrl = rawThumbnailUrl;
     if (rawThumbnailUrl) {
       const r2Key = await syncImageToR2(rawThumbnailUrl, page.id, "thumbnail");
