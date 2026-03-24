@@ -1,0 +1,19 @@
+{
+  "name": "@windedvertigo/notion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared Notion API utilities — property extractors, builders, retry, pagination for all winded.vertigo apps.",
+  "scripts": {
+    "build": "echo 'notion: no build step'"
+  },
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "files": [
+    "*.ts"
+  ],
+  "peerDependencies": {
+    "@notionhq/client": "^2.3.0"
+  }
+}
