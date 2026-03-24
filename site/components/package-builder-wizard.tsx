@@ -473,13 +473,15 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
 
       {/* Two-zone layout: top content flows normally, matrix is absolutely pinned (desktop) / flows (mobile) */}
       <div className={styles.wizardBody}>
-        {/* Top zone: question + choices (flows normally from top) */}
+        {/* Top zone: question + choices — fixed heights so nothing shifts */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", textTransform: "lowercase", lineHeight: 1.3, marginBottom: 24 }}>
+          {/* Question: fixed height for 2 lines (24px * 1.3 line-height * 2 lines + 24px margin) */}
+          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", textTransform: "lowercase", lineHeight: 1.3, marginBottom: 24, minHeight: "3.6em", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
             {QUESTIONS[state.step]}
           </h2>
 
-          <div style={{ width: "100%", maxWidth: 340 }}>
+          {/* Button area: fixed height for 3 rows of buttons + helper text */}
+          <div style={{ width: "100%", maxWidth: 340, minHeight: 195 }}>
             {state.step === 1 && (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {["people", "product"].map((v) => (
