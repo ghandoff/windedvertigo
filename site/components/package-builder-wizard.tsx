@@ -471,8 +471,8 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
 
       <ProgressDots step={state.step} />
 
-      {/* Two-zone layout: top content flows normally, matrix is absolutely pinned */}
-      <div style={{ width: "100%", maxWidth: 420, padding: "0 20px", position: "relative", height: 480 }}>
+      {/* Two-zone layout: top content flows normally, matrix is absolutely pinned (desktop) / flows (mobile) */}
+      <div className={styles.wizardBody}>
         {/* Top zone: question + choices (flows normally from top) */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", textTransform: "lowercase", lineHeight: 1.3, marginBottom: 24 }}>
@@ -550,8 +550,8 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
           </div>
         </div>
 
-        {/* Bottom zone: matrix absolutely pinned to bottom of container */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        {/* Bottom zone: matrix pinned on desktop, flows on mobile */}
+        <div className={styles.matrixZone}>
           <Matrix state={state} />
 
           {/* Nav buttons */}
