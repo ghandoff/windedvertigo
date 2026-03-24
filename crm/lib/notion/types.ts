@@ -341,6 +341,7 @@ export type RfpStatus =
   | "radar"
   | "reviewing"
   | "pursuing"
+  | "interviewing"
   | "submitted"
   | "won"
   | "lost"

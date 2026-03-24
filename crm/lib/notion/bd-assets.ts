@@ -31,8 +31,19 @@ import { buildTitleSearch, buildCompoundFilter } from "./filters";
 
 const P = BD_ASSET_PROPS;
 
+/** Extract cover image URL from a Notion page (external or file-hosted). */
+function getCoverUrl(page: PageObjectResponse): string {
+  const cover = (page as unknown as { cover: { type: string; external?: { url: string }; file?: { url: string } } | null }).cover;
+  if (!cover) return "";
+  if (cover.type === "external") return cover.external?.url ?? "";
+  if (cover.type === "file") return cover.file?.url ?? "";
+  return "";
+}
+
 function mapPageToBdAsset(page: PageObjectResponse): BdAsset {
   const props = page.properties;
+  // Prefer page cover image, fall back to Thumbnail URL property
+  const coverUrl = getCoverUrl(page);
   return {
     id: page.id,
     asset: getTitle(props[P.asset]),
@@ -42,7 +53,7 @@ function mapPageToBdAsset(page: PageObjectResponse): BdAsset {
     slug: getText(props[P.slug]),
     tags: getMultiSelect(props[P.tags]),
     url: getUrl(props[P.url]),
-    thumbnailUrl: getUrl(props[P.thumbnailUrl]),
+    thumbnailUrl: coverUrl || getUrl(props[P.thumbnailUrl]),
     icon: getText(props[P.icon]),
     featured: getCheckbox(props[P.featured]),
     showInPortfolio: getCheckbox(props[P.showInPortfolio]),
