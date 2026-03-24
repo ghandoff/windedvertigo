@@ -57,7 +57,7 @@ async function OrganizationsTable({ searchParams }: Props) {
   if (organizations.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        No organizations found. Try adjusting your filters.
+        no organizations found. try adjusting your filters.
       </div>
     );
   }
@@ -67,13 +67,13 @@ async function OrganizationsTable({ searchParams }: Props) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[250px]">Organization</TableHead>
-            <TableHead>Connection</TableHead>
-            <TableHead>Outreach</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Fit</TableHead>
-            <TableHead>Segment</TableHead>
+            <TableHead className="w-[250px]">organization</TableHead>
+            <TableHead>connection</TableHead>
+            <TableHead>outreach</TableHead>
+            <TableHead>type</TableHead>
+            <TableHead>priority</TableHead>
+            <TableHead>fit</TableHead>
+            <TableHead>segment</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -116,19 +116,19 @@ export default async function OrganizationsPage(props: Props) {
   return (
     <>
       <PageHeader
-        title="Organizations"
-        description={`Browse and filter all organizations in the pipeline`}
+        title="organizations"
+        description="browse and filter all organizations in the pipeline"
       />
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Suspense>
-          <SearchInput placeholder="Search organizations..." />
-          <FilterSelect paramKey="connection" placeholder="Connection" options={CONNECTION_OPTIONS} />
-          <FilterSelect paramKey="outreachStatus" placeholder="Outreach" options={OUTREACH_OPTIONS} />
-          <FilterSelect paramKey="type" placeholder="Type" options={TYPE_OPTIONS} />
-          <FilterSelect paramKey="priority" placeholder="Priority" options={PRIORITY_OPTIONS} />
+          <SearchInput placeholder="search organizations..." />
+          <FilterSelect paramKey="connection" placeholder="connection" options={CONNECTION_OPTIONS} />
+          <FilterSelect paramKey="outreachStatus" placeholder="outreach" options={OUTREACH_OPTIONS} />
+          <FilterSelect paramKey="type" placeholder="type" options={TYPE_OPTIONS} />
+          <FilterSelect paramKey="priority" placeholder="priority" options={PRIORITY_OPTIONS} />
         </Suspense>
       </div>
-      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">Loading...</div>}>
+      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
         <OrganizationsTable searchParams={props.searchParams} />
       </Suspense>
     </>

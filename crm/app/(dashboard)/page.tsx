@@ -13,8 +13,8 @@ export default async function PipelinePage() {
   return (
     <>
       <PageHeader
-        title="Pipeline"
-        description="Track organizations through your relationship and outreach funnels"
+        title="pipeline"
+        description="track organizations through your relationship and outreach funnels"
       />
       <PipelineBoard organizations={organizations} />
     </>

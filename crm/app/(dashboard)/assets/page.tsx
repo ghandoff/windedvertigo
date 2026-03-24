@@ -74,7 +74,7 @@ function AssetCard({ asset }: { asset: BdAsset }) {
             className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
           >
             <ExternalLink className="h-3 w-3" />
-            View asset
+            view asset
           </a>
         )}
       </CardContent>
@@ -113,7 +113,7 @@ async function AssetGrid({ searchParams }: Props) {
   if (assets.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        No assets found.
+        no assets found.
       </div>
     );
   }
@@ -121,10 +121,10 @@ async function AssetGrid({ searchParams }: Props) {
   return (
     <Tabs defaultValue="all">
       <TabsList className="mb-4">
-        <TabsTrigger value="all">All ({assets.length})</TabsTrigger>
-        <TabsTrigger value="ready">Ready ({filterByReadiness(assets, "ready").length})</TabsTrigger>
-        <TabsTrigger value="in-progress">In Progress ({filterByReadiness(assets, "in-progress").length})</TabsTrigger>
-        <TabsTrigger value="needs-work">Needs Work ({filterByReadiness(assets, "needs-work").length})</TabsTrigger>
+        <TabsTrigger value="all">all ({assets.length})</TabsTrigger>
+        <TabsTrigger value="ready">ready ({filterByReadiness(assets, "ready").length})</TabsTrigger>
+        <TabsTrigger value="in-progress">in progress ({filterByReadiness(assets, "in-progress").length})</TabsTrigger>
+        <TabsTrigger value="needs-work">needs work ({filterByReadiness(assets, "needs-work").length})</TabsTrigger>
       </TabsList>
       {["all", "ready", "in-progress", "needs-work"].map((tab) => (
         <TabsContent key={tab} value={tab}>
@@ -143,15 +143,15 @@ export default async function AssetsPage(props: Props) {
   return (
     <>
       <PageHeader
-        title="BD Assets"
-        description="Case studies, decks, tools, and templates for business development"
+        title="BD assets"
+        description="case studies, decks, tools, and templates for business development"
       />
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Suspense>
-          <SearchInput placeholder="Search assets..." />
+          <SearchInput placeholder="search assets..." />
         </Suspense>
       </div>
-      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">Loading...</div>}>
+      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
         <AssetGrid searchParams={props.searchParams} />
       </Suspense>
     </>

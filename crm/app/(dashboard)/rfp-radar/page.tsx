@@ -16,10 +16,10 @@ import type { RfpOpportunity, RfpFilters } from "@/lib/notion/types";
 export const revalidate = 300;
 
 const STATUS_COLUMNS = [
-  { key: "radar", label: "Radar", color: "bg-blue-500" },
-  { key: "reviewing", label: "Reviewing", color: "bg-yellow-500" },
-  { key: "pursuing", label: "Pursuing", color: "bg-orange-500" },
-  { key: "submitted", label: "Submitted", color: "bg-purple-500" },
+  { key: "radar", label: "radar", color: "bg-blue-500" },
+  { key: "reviewing", label: "reviewing", color: "bg-yellow-500" },
+  { key: "pursuing", label: "pursuing", color: "bg-orange-500" },
+  { key: "submitted", label: "submitted", color: "bg-purple-500" },
 ] as const;
 
 const FIT_COLORS: Record<string, string> = {
@@ -91,7 +91,7 @@ function RfpCard({ rfp }: { rfp: RfpOpportunity }) {
           <div className={`flex items-center gap-1.5 text-xs ${overdue ? "text-destructive" : deadlineUrgent ? "text-destructive font-medium" : "text-muted-foreground"}`}>
             <CalendarDays className="h-3 w-3" />
             <span>
-              {overdue ? "Overdue" : formatDate(rfp.dueDate.start)}
+              {overdue ? "overdue" : formatDate(rfp.dueDate.start)}
               {deadlineDays !== null && deadlineDays >= 0 && ` (${deadlineDays}d)`}
             </span>
           </div>
@@ -158,13 +158,13 @@ async function RfpBoard({ searchParams }: Props) {
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{activeRfps.length}</p>
-            <p className="text-xs text-muted-foreground">Active Pipeline</p>
+            <p className="text-xs text-muted-foreground">active pipeline</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{formatCurrency(totalValue)}</p>
-            <p className="text-xs text-muted-foreground">Pipeline Value</p>
+            <p className="text-xs text-muted-foreground">pipeline value</p>
           </CardContent>
         </Card>
         <Card>
@@ -172,13 +172,13 @@ async function RfpBoard({ searchParams }: Props) {
             <p className="text-2xl font-bold text-green-600">
               {completedRfps.filter((r) => r.status === "won").length}
             </p>
-            <p className="text-xs text-muted-foreground">Won</p>
+            <p className="text-xs text-muted-foreground">won</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-green-600">{formatCurrency(wonValue)}</p>
-            <p className="text-xs text-muted-foreground">Revenue Won</p>
+            <p className="text-xs text-muted-foreground">revenue won</p>
           </CardContent>
         </Card>
       </div>
@@ -210,7 +210,7 @@ async function RfpBoard({ searchParams }: Props) {
                   ))}
                   {items.length === 0 && (
                     <p className="text-xs text-muted-foreground text-center py-8">
-                      No opportunities
+                      no opportunities
                     </p>
                   )}
                 </div>
@@ -224,17 +224,17 @@ async function RfpBoard({ searchParams }: Props) {
       {completedRfps.length > 0 && (
         <div className="mt-8">
           <h3 className="text-sm font-medium text-muted-foreground mb-3">
-            Completed ({completedRfps.length})
+            completed ({completedRfps.length})
           </h3>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Opportunity</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Decision</TableHead>
+                  <TableHead>opportunity</TableHead>
+                  <TableHead>status</TableHead>
+                  <TableHead>type</TableHead>
+                  <TableHead>value</TableHead>
+                  <TableHead>decision</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -271,18 +271,18 @@ export default async function RfpRadarPage(props: Props) {
   return (
     <>
       <PageHeader
-        title="RFP Radar"
-        description="Track opportunities from discovery through submission to outcome"
+        title="RFP radar"
+        description="track opportunities from discovery through submission to outcome"
       />
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Suspense>
-          <SearchInput placeholder="Search opportunities..." />
-          <FilterSelect paramKey="opportunityType" placeholder="Type" options={TYPE_OPTIONS} />
-          <FilterSelect paramKey="wvFitScore" placeholder="Fit" options={FIT_OPTIONS} />
-          <FilterSelect paramKey="source" placeholder="Source" options={SOURCE_OPTIONS} />
+          <SearchInput placeholder="search opportunities..." />
+          <FilterSelect paramKey="opportunityType" placeholder="type" options={TYPE_OPTIONS} />
+          <FilterSelect paramKey="wvFitScore" placeholder="fit" options={FIT_OPTIONS} />
+          <FilterSelect paramKey="source" placeholder="source" options={SOURCE_OPTIONS} />
         </Suspense>
       </div>
-      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">Loading...</div>}>
+      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
         <RfpBoard searchParams={props.searchParams} />
       </Suspense>
     </>

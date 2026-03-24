@@ -9,9 +9,9 @@ import type { SocialDraft } from "@/lib/notion/types";
 export const revalidate = 300;
 
 const STATUS_COLUMNS = [
-  { key: "draft", label: "Draft" },
-  { key: "scheduled", label: "Scheduled" },
-  { key: "posted", label: "Posted" },
+  { key: "draft", label: "draft" },
+  { key: "scheduled", label: "scheduled" },
+  { key: "posted", label: "posted" },
 ] as const;
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -63,8 +63,8 @@ export default async function SocialPage() {
   return (
     <>
       <PageHeader
-        title="Social Queue"
-        description="Draft, schedule, and track social media posts"
+        title="social queue"
+        description="draft, schedule, and track social media posts"
       >
         <SocialDraftForm />
       </PageHeader>

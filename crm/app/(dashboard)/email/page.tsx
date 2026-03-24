@@ -14,10 +14,10 @@ export default async function EmailPage(props: Props) {
   return (
     <>
       <PageHeader
-        title="Email"
-        description="Compose and send outreach emails with pre-written bespoke copy"
+        title="email"
+        description="compose and send outreach emails with pre-written bespoke copy"
       />
-      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">Loading...</div>}>
+      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
         <EmailComposer preselectedOrgId={params.org} />
       </Suspense>
     </>

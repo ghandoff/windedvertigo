@@ -92,7 +92,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
       const data = await res.json();
       if (res.ok) {
         setSendStatus("sent");
-        setSendMessage(`Sent! Message ID: ${data.messageId}`);
+        setSendMessage(`sent! message ID: ${data.messageId}`);
         startTransition(() => router.refresh());
       } else {
         setSendStatus("error");
@@ -110,7 +110,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
       <div className="lg:col-span-2 space-y-4">
         {/* Org search */}
         <div className="relative">
-          <Label className="mb-1.5 block">Organization</Label>
+          <Label className="mb-1.5 block">organization</Label>
           {selectedOrg ? (
             <div className="flex items-center gap-2 p-2 rounded-md border bg-muted/50">
               <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -119,14 +119,14 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
                 onClick={() => { setSelectedOrg(null); setTo(""); setBody(""); }}
                 className="ml-auto text-xs text-muted-foreground hover:text-foreground"
               >
-                Change
+                change
               </button>
             </div>
           ) : (
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search organizations..."
+                placeholder="search organizations..."
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setShowResults(true); }}
                 onFocus={() => setShowResults(true)}
@@ -156,7 +156,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
 
         {/* To */}
         <div>
-          <Label className="mb-1.5 block">To</Label>
+          <Label className="mb-1.5 block">to</Label>
           <Input
             type="email"
             placeholder="recipient@example.com"
@@ -167,7 +167,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
 
         {/* Subject */}
         <div>
-          <Label className="mb-1.5 block">Subject</Label>
+          <Label className="mb-1.5 block">subject</Label>
           <Input
             placeholder="Email subject"
             value={subject}
@@ -177,7 +177,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
 
         {/* Sender name */}
         <div>
-          <Label className="mb-1.5 block">Sender Name (optional)</Label>
+          <Label className="mb-1.5 block">sender name (optional)</Label>
           <Input
             placeholder="e.g. Garrett"
             value={senderName}
@@ -188,7 +188,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
         {/* Body */}
         <div>
           <Label className="mb-1.5 block">
-            Body
+            body
             {selectedOrg?.bespokeEmailCopy && (
               <span className="text-muted-foreground font-normal ml-2">
                 (pre-filled from bespoke copy)
@@ -212,11 +212,11 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
             size="lg"
           >
             {sendStatus === "sending" ? (
-              "Sending..."
+              "sending..."
             ) : (
               <>
                 <Send className="h-4 w-4 mr-1.5" />
-                Send Email
+                send email
               </>
             )}
           </Button>
@@ -249,31 +249,31 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
               </div>
               {selectedOrg.email && (
                 <div>
-                  <span className="text-muted-foreground">Email</span>
+                  <span className="text-muted-foreground">email</span>
                   <p className="font-medium">{selectedOrg.email}</p>
                 </div>
               )}
               {selectedOrg.friendship && (
                 <div>
-                  <span className="text-muted-foreground">Friendship</span>
+                  <span className="text-muted-foreground">friendship</span>
                   <p className="font-medium">{selectedOrg.friendship}</p>
                 </div>
               )}
               {selectedOrg.priority && (
                 <div>
-                  <span className="text-muted-foreground">Priority</span>
+                  <span className="text-muted-foreground">priority</span>
                   <p className="font-medium">{selectedOrg.priority}</p>
                 </div>
               )}
               {selectedOrg.outreachSuggestion && (
                 <div>
-                  <span className="text-muted-foreground">Outreach Suggestion</span>
+                  <span className="text-muted-foreground">outreach suggestion</span>
                   <p className="font-medium">{selectedOrg.outreachSuggestion}</p>
                 </div>
               )}
               {selectedOrg.outreachTarget && (
                 <div>
-                  <span className="text-muted-foreground">Outreach Target</span>
+                  <span className="text-muted-foreground">outreach target</span>
                   <p className="font-medium">{selectedOrg.outreachTarget}</p>
                 </div>
               )}
@@ -283,7 +283,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <Building2 className="h-8 w-8 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">Select an organization to see context and pre-fill email copy</p>
+              <p className="text-sm">select an organization to see context and pre-fill email copy</p>
             </CardContent>
           </Card>
         )}

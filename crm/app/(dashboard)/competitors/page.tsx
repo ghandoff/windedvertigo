@@ -17,9 +17,9 @@ const TYPE_OPTIONS = [
 ] as const;
 
 const THREAT_CONFIG = {
-  "🔴 High": { label: "High Threat", color: "text-red-600", border: "border-red-200 bg-red-50/50" },
-  "🟡 Medium": { label: "Medium Threat", color: "text-yellow-600", border: "border-yellow-200 bg-yellow-50/50" },
-  "🟢 Low": { label: "Low Threat", color: "text-green-600", border: "border-green-200 bg-green-50/50" },
+  "🔴 High": { label: "high threat", color: "text-red-600", border: "border-red-200 bg-red-50/50" },
+  "🟡 Medium": { label: "medium threat", color: "text-yellow-600", border: "border-yellow-200 bg-yellow-50/50" },
+  "🟢 Low": { label: "low threat", color: "text-green-600", border: "border-green-200 bg-green-50/50" },
 } as const;
 
 interface Props {
@@ -56,14 +56,14 @@ function CompetitorCard({ comp }: { comp: Competitor }) {
 
         {comp.whatTheyOffer && (
           <div>
-            <span className="text-muted-foreground text-xs">What they offer</span>
+            <span className="text-muted-foreground text-xs">what they offer</span>
             <p className="text-xs line-clamp-2">{comp.whatTheyOffer}</p>
           </div>
         )}
 
         {comp.whereWvWins && (
           <div className="bg-green-50 border border-green-200 rounded-md p-2">
-            <span className="text-green-700 text-xs font-medium">Where w.v. wins</span>
+            <span className="text-green-700 text-xs font-medium">where w.v. wins</span>
             <p className="text-xs text-green-800 line-clamp-2">{comp.whereWvWins}</p>
           </div>
         )}
@@ -98,7 +98,7 @@ async function CompetitorsList({ searchParams }: Props) {
   if (competitors.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        No competitors found.
+        no competitors found.
       </div>
     );
   }
@@ -138,16 +138,16 @@ export default async function CompetitorsPage(props: Props) {
   return (
     <>
       <PageHeader
-        title="Competitive Landscape"
-        description="Competitors, adjacent players, and networks grouped by threat level"
+        title="competitive landscape"
+        description="competitors, adjacent players, and networks grouped by threat level"
       />
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Suspense>
-          <SearchInput placeholder="Search competitors..." />
-          <FilterSelect paramKey="type" placeholder="Type" options={TYPE_OPTIONS} />
+          <SearchInput placeholder="search competitors..." />
+          <FilterSelect paramKey="type" placeholder="type" options={TYPE_OPTIONS} />
         </Suspense>
       </div>
-      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">Loading...</div>}>
+      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
         <CompetitorsList searchParams={props.searchParams} />
       </Suspense>
     </>

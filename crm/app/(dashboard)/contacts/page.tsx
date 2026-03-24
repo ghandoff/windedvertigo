@@ -44,7 +44,7 @@ async function ContactsTable({ searchParams }: Props) {
   if (contacts.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        No contacts found.
+        no contacts found.
       </div>
     );
   }
@@ -54,13 +54,13 @@ async function ContactsTable({ searchParams }: Props) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[200px]">Name</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Warmth</TableHead>
-            <TableHead>Responsiveness</TableHead>
-            <TableHead>Referral</TableHead>
-            <TableHead>Email</TableHead>
+            <TableHead className="w-[200px]">name</TableHead>
+            <TableHead>role</TableHead>
+            <TableHead>type</TableHead>
+            <TableHead>warmth</TableHead>
+            <TableHead>responsiveness</TableHead>
+            <TableHead>referral</TableHead>
+            <TableHead>email</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -86,7 +86,7 @@ async function ContactsTable({ searchParams }: Props) {
               </TableCell>
               <TableCell>
                 {c.referralPotential && (
-                  <Badge variant="secondary" className="text-xs">Referral</Badge>
+                  <Badge variant="secondary" className="text-xs">referral</Badge>
                 )}
               </TableCell>
               <TableCell className="text-xs">
@@ -108,17 +108,17 @@ export default async function ContactsPage(props: Props) {
   return (
     <>
       <PageHeader
-        title="Contacts"
-        description="People linked to organizations in the pipeline"
+        title="contacts"
+        description="people linked to organizations in the pipeline"
       />
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Suspense>
-          <SearchInput placeholder="Search contacts..." />
-          <FilterSelect paramKey="contactType" placeholder="Type" options={TYPE_OPTIONS} />
-          <FilterSelect paramKey="contactWarmth" placeholder="Warmth" options={WARMTH_OPTIONS} />
+          <SearchInput placeholder="search contacts..." />
+          <FilterSelect paramKey="contactType" placeholder="type" options={TYPE_OPTIONS} />
+          <FilterSelect paramKey="contactWarmth" placeholder="warmth" options={WARMTH_OPTIONS} />
         </Suspense>
       </div>
-      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">Loading...</div>}>
+      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
         <ContactsTable searchParams={props.searchParams} />
       </Suspense>
     </>

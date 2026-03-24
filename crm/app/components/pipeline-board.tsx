@@ -48,8 +48,8 @@ export function PipelineBoard({ organizations }: PipelineBoardProps) {
     <div className="space-y-4">
       <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as "connection" | "outreach")}>
         <TabsList>
-          <TabsTrigger value="connection">Connection Status</TabsTrigger>
-          <TabsTrigger value="outreach">Outreach Status</TabsTrigger>
+          <TabsTrigger value="connection">connection status</TabsTrigger>
+          <TabsTrigger value="outreach">outreach status</TabsTrigger>
         </TabsList>
       </Tabs>
       <KanbanBoard columns={columns} />

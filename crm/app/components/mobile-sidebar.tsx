@@ -24,15 +24,15 @@ import {
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Pipeline", href: "/", icon: LayoutDashboard },
-  { label: "Organizations", href: "/organizations", icon: Building2 },
-  { label: "Contacts", href: "/contacts", icon: Users },
-  { label: "Email", href: "/email", icon: Mail },
-  { label: "Events", href: "/events", icon: CalendarDays },
-  { label: "RFP Radar", href: "/rfp-radar", icon: Radar },
-  { label: "Competitors", href: "/competitors", icon: Shield },
-  { label: "Social", href: "/social", icon: Share2 },
-  { label: "Assets", href: "/assets", icon: FolderOpen },
+  { label: "pipeline", href: "/", icon: LayoutDashboard },
+  { label: "organizations", href: "/organizations", icon: Building2 },
+  { label: "contacts", href: "/contacts", icon: Users },
+  { label: "email", href: "/email", icon: Mail },
+  { label: "events", href: "/events", icon: CalendarDays },
+  { label: "RFP radar", href: "/rfp-radar", icon: Radar },
+  { label: "competitors", href: "/competitors", icon: Shield },
+  { label: "social", href: "/social", icon: Share2 },
+  { label: "assets", href: "/assets", icon: FolderOpen },
 ] as const;
 
 export function MobileSidebar() {

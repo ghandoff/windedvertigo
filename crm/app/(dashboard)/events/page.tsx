@@ -51,7 +51,7 @@ async function EventCards({ searchParams, upcoming }: Props & { upcoming: boolea
   if (events.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        No events found.
+        no events found.
       </div>
     );
   }
@@ -87,7 +87,7 @@ async function EventCards({ searchParams, upcoming }: Props & { upcoming: boolea
                 <div className={`flex items-center gap-2 ${deadlineUrgent ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                   <Clock className="h-3.5 w-3.5" />
                   <span>
-                    Deadline: {formatDate(evt.proposalDeadline.start)}
+                    deadline: {formatDate(evt.proposalDeadline.start)}
                     {deadlineDays !== null && deadlineDays >= 0 && (
                       <span className="ml-1">({deadlineDays}d)</span>
                     )}
@@ -136,7 +136,7 @@ async function EventCards({ searchParams, upcoming }: Props & { upcoming: boolea
                   rel="noopener noreferrer"
                   className="text-xs text-accent hover:underline"
                 >
-                  Event website
+                  event website
                 </a>
               )}
             </CardContent>
@@ -151,28 +151,28 @@ export default async function EventsPage(props: Props) {
   return (
     <>
       <PageHeader
-        title="Events & Conferences"
-        description="Track upcoming events, proposal deadlines, and who should attend"
+        title="events & conferences"
+        description="track upcoming events, proposal deadlines, and who should attend"
       />
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Suspense>
-          <SearchInput placeholder="Search events..." />
-          <FilterSelect paramKey="type" placeholder="Type" options={TYPE_OPTIONS} />
-          <FilterSelect paramKey="whoShouldAttend" placeholder="Attendee" options={TEAM_OPTIONS} />
+          <SearchInput placeholder="search events..." />
+          <FilterSelect paramKey="type" placeholder="type" options={TYPE_OPTIONS} />
+          <FilterSelect paramKey="whoShouldAttend" placeholder="attendee" options={TEAM_OPTIONS} />
         </Suspense>
       </div>
       <Tabs defaultValue="upcoming">
         <TabsList className="mb-4">
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="all">All Events</TabsTrigger>
+          <TabsTrigger value="upcoming">upcoming</TabsTrigger>
+          <TabsTrigger value="all">all events</TabsTrigger>
         </TabsList>
         <TabsContent value="upcoming">
-          <Suspense fallback={<div className="text-muted-foreground py-8 text-center">Loading...</div>}>
+          <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
             <EventCards searchParams={props.searchParams} upcoming={true} />
           </Suspense>
         </TabsContent>
         <TabsContent value="all">
-          <Suspense fallback={<div className="text-muted-foreground py-8 text-center">Loading...</div>}>
+          <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
             <EventCards searchParams={props.searchParams} upcoming={false} />
           </Suspense>
         </TabsContent>

@@ -47,13 +47,13 @@ export function SocialDraftForm() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 transition-colors">
         <Plus className="h-4 w-4" />
-        New Draft
+        new draft
       </SheetTrigger>
       <SheetContent side="right" className="w-96">
-        <SheetTitle>New Social Draft</SheetTitle>
+        <SheetTitle>new social draft</SheetTitle>
         <div className="mt-6 space-y-4">
           <div>
-            <Label className="mb-1.5 block">Platform</Label>
+            <Label className="mb-1.5 block">platform</Label>
             <Select value={platform ?? "linkedin"} onValueChange={setPlatform}>
               <SelectTrigger>
                 <SelectValue />
@@ -80,7 +80,7 @@ export function SocialDraftForm() {
             />
           </div>
           <Button onClick={handleSave} disabled={!content.trim() || saving} className="w-full">
-            {saving ? "Saving..." : "Save Draft"}
+            {saving ? "Saving..." : "save draft"}
           </Button>
         </div>
       </SheetContent>

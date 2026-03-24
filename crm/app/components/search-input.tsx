@@ -10,7 +10,7 @@ interface SearchInputProps {
   paramKey?: string;
 }
 
-export function SearchInput({ placeholder = "Search...", paramKey = "search" }: SearchInputProps) {
+export function SearchInput({ placeholder = "search...", paramKey = "search" }: SearchInputProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(searchParams.get(paramKey) ?? "");
