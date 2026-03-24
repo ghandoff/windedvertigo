@@ -570,29 +570,59 @@ export async function fetchPackageBuilderData(): Promise<
   }
 }
 
-/** Fetch only assets with Show in Package Builder checked, using databases.query
- *  (faster and more reliable than notion.search which can miss results). */
+/** Fetch package builder examples from the multi-source BD database.
+ *  Uses notion.search (required for multi-source DBs) but skips the
+ *  R2 thumbnail sync to keep it fast. */
 async function _fetchPackageBuilderExamples(): Promise<
   Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]>
 > {
   const p = PROPS.portfolioAssets;
-  const res = await withRetry(
-    () =>
-      notion.databases.query({
-        database_id: DB.portfolioAssets,
-        filter: {
-          property: p.showInPackageBuilder,
-          checkbox: { equals: true },
-        },
-      }),
-    "fetchPBExamples",
+  const parentDbId = DB.portfolioAssets;
+  const parentDashed = parentDbId.replace(
+    /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
+    "$1-$2-$3-$4-$5",
   );
 
+  // Use notion.search to find pages in the multi-source BD database
+  let allPages: PageObjectResponse[] = [];
+  let startCursor: string | undefined;
+  let round = 0;
+
+  do {
+    round++;
+    const response = await withRetry(
+      () =>
+        notion.search({
+          filter: { property: "object", value: "page" },
+          page_size: 100,
+          ...(startCursor ? { start_cursor: startCursor } : {}),
+        }),
+      `fetchPBExamples:round${round}`,
+    );
+
+    for (const page of response.results) {
+      if (!("properties" in page)) continue;
+      const pid = (page as PageObjectResponse).parent;
+      if (
+        "database_id" in pid &&
+        (pid.database_id === parentDbId || pid.database_id === parentDashed)
+      ) {
+        allPages.push(page as PageObjectResponse);
+      }
+    }
+
+    startCursor = response.has_more
+      ? (response.next_cursor ?? undefined)
+      : undefined;
+  } while (startCursor && round < 20);
+
+  // Filter for Show in Package Builder and build examples by quadrant
   const examples: Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]> = {};
 
-  for (const page of res.results) {
-    if (!("properties" in page)) continue;
-    const props = (page as PageObjectResponse).properties;
+  for (const page of allPages) {
+    const props = page.properties;
+    if (!getCheckbox(props[p.showInPackageBuilder])) continue;
+
     const quadrantRelIds = getRelationIds(props[p.quadrantRel]);
     const quadrantKeys = await hydrateQuadrantRel(quadrantRelIds);
     if (quadrantKeys.length === 0) continue;
