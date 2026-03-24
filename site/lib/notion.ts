@@ -521,16 +521,18 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
     const quadrantKey = quadrantKeys[0] ?? "";
     const assetName = getTitle(props[p.name]);
 
-    // Thumbnail: prefer Notion page cover (easier to author), fall back to
-    // the explicit Thumbnail URL property. Sync to R2 because Notion-hosted
-    // file URLs expire after ~1 hour.
-    const coverUrl =
-      page.cover?.type === "external"
-        ? page.cover.external.url
-        : page.cover?.type === "file"
-          ? page.cover.file.url
-          : "";
-    const rawThumbnailUrl = coverUrl || getUrl(props[p.thumbnailUrl]);
+    // Thumbnail priority:
+    // 1. External cover URL (permanent, no expiry)
+    // 2. Explicit Thumbnail URL property (self-hosted, stable)
+    // 3. Notion-hosted cover file (expires ~1h, needs R2 sync)
+    // We avoid using Notion file covers directly because if R2 sync fails
+    // the expired S3 URL gets baked into the static page.
+    const externalCoverUrl =
+      page.cover?.type === "external" ? page.cover.external.url : "";
+    const propertyUrl = getUrl(props[p.thumbnailUrl]);
+    const notionFileCoverUrl =
+      page.cover?.type === "file" ? page.cover.file.url : "";
+    const rawThumbnailUrl = externalCoverUrl || propertyUrl || notionFileCoverUrl;
     let thumbnailUrl = rawThumbnailUrl;
     if (rawThumbnailUrl) {
       const r2Key = await syncImageToR2(rawThumbnailUrl, page.id, "thumbnail");
