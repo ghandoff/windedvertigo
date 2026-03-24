@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const to = body.to ?? org.email;
     if (!to) return error("No email address found for this organization");
 
-    const subject = body.subject ?? `From Winded Vertigo`;
+    const subject = body.subject ?? org.subject ?? `From winded.vertigo`;
     const rawBody = body.body ?? org.bespokeEmailCopy;
     if (!rawBody) return error("No email body provided and no bespoke email copy on file");
 

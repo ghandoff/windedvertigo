@@ -30,7 +30,7 @@ export interface SendEmailParams {
 
 export async function sendOutreachEmail(params: SendEmailParams) {
   return getResend().emails.send({
-    from: params.from ?? `Winded Vertigo <hello@${DOMAIN}>`,
+    from: params.from ?? `winded.vertigo <hello@${DOMAIN}>`,
     to: params.to,
     subject: params.subject,
     html: params.html,

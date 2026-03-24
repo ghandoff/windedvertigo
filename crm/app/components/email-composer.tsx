@@ -28,7 +28,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
 
   // Email fields
   const [to, setTo] = useState("");
-  const [subject, setSubject] = useState("From Winded Vertigo");
+  const [subject, setSubject] = useState("From winded.vertigo");
   const [body, setBody] = useState("");
   const [senderName, setSenderName] = useState("");
 
@@ -66,6 +66,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
   function selectOrg(org: Organization) {
     setSelectedOrg(org);
     setTo(org.email || "");
+    setSubject(org.subject || "From winded.vertigo");
     setBody(org.bespokeEmailCopy || "");
     setSearchQuery("");
     setShowResults(false);

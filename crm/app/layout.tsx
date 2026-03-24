@@ -7,7 +7,7 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "w.v. CRM",
-  description: "Winded Vertigo — relationship management",
+  description: "winded.vertigo — relationship management",
 };
 
 export default function RootLayout({

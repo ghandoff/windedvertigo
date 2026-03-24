@@ -49,6 +49,7 @@ export const ORG_PROPS = {
   targetServices: "target service(s)",
   buyingTrigger: "buying trigger",
   buyerRole: "buyer role",
+  subject: "subject",
   bespokeEmailCopy: "bespoke email copy",
   outreachSuggestion: "outreach suggestion",
   notes: "notes",

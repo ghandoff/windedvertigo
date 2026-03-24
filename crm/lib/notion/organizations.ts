@@ -73,6 +73,7 @@ function mapPageToOrganization(page: PageObjectResponse): Organization {
     targetServices: getText(props[P.targetServices]),
     buyingTrigger: getText(props[P.buyingTrigger]),
     buyerRole: getText(props[P.buyerRole]),
+    subject: getText(props[P.subject]),
     bespokeEmailCopy: getText(props[P.bespokeEmailCopy]),
     outreachSuggestion: getText(props[P.outreachSuggestion]),
     outreachStatus: getSelect(props[P.outreachStatus]) as Organization["outreachStatus"],
@@ -171,6 +172,7 @@ export async function createOrganization(
   if (fields.targetServices) properties[P.targetServices] = buildRichText(fields.targetServices);
   if (fields.buyingTrigger) properties[P.buyingTrigger] = buildRichText(fields.buyingTrigger);
   if (fields.buyerRole) properties[P.buyerRole] = buildRichText(fields.buyerRole);
+  if (fields.subject) properties[P.subject] = buildRichText(fields.subject);
   if (fields.bespokeEmailCopy) properties[P.bespokeEmailCopy] = buildRichText(fields.bespokeEmailCopy);
   if (fields.outreachSuggestion) properties[P.outreachSuggestion] = buildRichText(fields.outreachSuggestion);
   if (fields.outreachStatus) properties[P.outreachStatus] = buildSelect(fields.outreachStatus);
@@ -215,6 +217,7 @@ export async function updateOrganization(
   if (fields.targetServices !== undefined) properties[P.targetServices] = buildRichText(fields.targetServices);
   if (fields.buyingTrigger !== undefined) properties[P.buyingTrigger] = buildRichText(fields.buyingTrigger);
   if (fields.buyerRole !== undefined) properties[P.buyerRole] = buildRichText(fields.buyerRole);
+  if (fields.subject !== undefined) properties[P.subject] = buildRichText(fields.subject);
   if (fields.bespokeEmailCopy !== undefined) properties[P.bespokeEmailCopy] = buildRichText(fields.bespokeEmailCopy);
   if (fields.outreachSuggestion !== undefined) properties[P.outreachSuggestion] = buildRichText(fields.outreachSuggestion);
   if (fields.outreachStatus !== undefined) properties[P.outreachStatus] = buildSelect(fields.outreachStatus);

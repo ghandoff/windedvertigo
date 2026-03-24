@@ -121,6 +121,7 @@ export interface Organization {
   targetServices: string;
   buyingTrigger: string;
   buyerRole: string;
+  subject: string;
   bespokeEmailCopy: string;
   outreachSuggestion: string;
   outreachStatus: OutreachStatus;

@@ -25,7 +25,7 @@ export function buildEmailHtml(
       ${body}
     </td></tr>
     <tr><td style="padding-top:24px; border-top:1px solid #e5e7eb; margin-top:24px; font-size:14px; color:#6b7280;">
-      ${senderName} &middot; Winded Vertigo
+      ${senderName} &middot; winded.vertigo
     </td></tr>
   </table>
 </body>
