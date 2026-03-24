@@ -501,7 +501,7 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
     startCursor = response.has_more
       ? (response.next_cursor ?? undefined)
       : undefined;
-  } while (startCursor && round < 20);
+  } while (startCursor && round < 30);
 
   const assets: PortfolioAsset[] = [];
 
@@ -614,7 +614,7 @@ async function _fetchPackageBuilderExamples(): Promise<
     startCursor = response.has_more
       ? (response.next_cursor ?? undefined)
       : undefined;
-  } while (startCursor && round < 20);
+  } while (startCursor && round < 30);
 
   // Filter for Show in Package Builder and build examples by quadrant
   const examples: Record<string, { id: string; title: string; type: string; icon: string; url: string; detail: string }[]> = {};
