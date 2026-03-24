@@ -20,6 +20,7 @@ const DB_PATH_MAP: Record<string, string[]> = {
   [CRM_DB.events]: ["/"],
   [CRM_DB.socialQueue]: ["/"],
   [CRM_DB.emailDrafts]: ["/"],
+  [CRM_DB.rfpRadar]: ["/"],
 };
 
 function verifySignature(body: string, signature: string | null): boolean {

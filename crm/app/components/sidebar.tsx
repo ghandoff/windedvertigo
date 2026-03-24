@@ -11,6 +11,7 @@ import {
   Shield,
   Share2,
   FolderOpen,
+  Radar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { label: "Contacts", href: "/contacts", icon: Users },
   { label: "Email", href: "/email", icon: Mail },
   { label: "Events", href: "/events", icon: CalendarDays },
+  { label: "RFP Radar", href: "/rfp-radar", icon: Radar },
   { label: "Competitors", href: "/competitors", icon: Shield },
   { label: "Social", href: "/social", icon: Share2 },
   { label: "Assets", href: "/assets", icon: FolderOpen },

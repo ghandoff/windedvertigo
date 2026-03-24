@@ -335,6 +335,83 @@ export interface SocialDraft {
   lastEditedTime: string;
 }
 
+// ── RFP radar ────────────────────────────────────────────
+
+export type RfpStatus =
+  | "radar"
+  | "reviewing"
+  | "pursuing"
+  | "submitted"
+  | "won"
+  | "lost"
+  | "no-go"
+  | "missed deadline";
+
+export type OpportunityType =
+  | "RFP"
+  | "RFQ"
+  | "RFI"
+  | "Grant"
+  | "EOI"
+  | "Cold Lead"
+  | "Warm Intro"
+  | "Conference Contact"
+  | "Direct Outreach";
+
+export type WvFitScore = "high fit" | "medium fit" | "low fit" | "TBD";
+
+export type RfpServiceMatch =
+  | "MEL & Evaluation"
+  | "Curriculum Design"
+  | "Play-Based Learning"
+  | "Professional Learning & PD"
+  | "Learning Design"
+  | "Assessment & Research"
+  | "Facilitation"
+  | "Dashboards & Tech"
+  | "Strategic Planning";
+
+export type RfpSource =
+  | "RFP Platform"
+  | "Google Alert"
+  | "RSS Feed"
+  | "Cold Research"
+  | "Conference"
+  | "Direct Network"
+  | "Partner Referral"
+  | "Email Alert"
+  | "Manual Entry";
+
+export interface RfpOpportunity {
+  id: string;
+  opportunityName: string;
+  status: RfpStatus;
+  opportunityType: OpportunityType;
+  organizationIds: string[];
+  relatedProjectIds: string[];
+  ownerIds: string[];
+  dueDate: DateRange | null;
+  estimatedValue: number | null;
+  wvFitScore: WvFitScore;
+  serviceMatch: RfpServiceMatch[];
+  category: string[];
+  geography: string[];
+  source: RfpSource;
+  requirementsSnapshot: string;
+  decisionNotes: string;
+  url: string;
+  createdTime: string;
+  lastEditedTime: string;
+}
+
+export interface RfpFilters {
+  status?: RfpStatus;
+  opportunityType?: OpportunityType;
+  wvFitScore?: WvFitScore;
+  source?: RfpSource;
+  search?: string;
+}
+
 // ── query helpers ─────────────────────────────────────────
 
 export interface PaginationParams {

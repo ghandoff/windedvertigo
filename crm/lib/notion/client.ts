@@ -22,6 +22,7 @@ export const CRM_DB = {
   events: "bf0a6679-50ea-4bc1-9156-d023872be931",
   socialQueue: "076f97a5-88b8-4bca-8b26-47d26e75f516",
   emailDrafts: "084cb580-aaa2-4129-9fbc-f0435debcb33",
+  rfpRadar: "685b0a16-d861-4380-b04a-f6ac276b9319",
 } as const;
 
 // ── property name maps ────────────────────────────────────
@@ -143,6 +144,25 @@ export const EMAIL_DRAFT_PROPS = {
   resendMessageId: "resend message id",
   opens: "opens",
   clicks: "clicks",
+} as const;
+
+export const RFP_PROPS = {
+  opportunityName: "opportunity name",
+  status: "status",
+  opportunityType: "opportunity type",
+  organization: "organization",
+  relatedProject: "related project",
+  owner: "owner",
+  dueDate: "due date",
+  estimatedValue: "estimated value",
+  wvFitScore: "wv fit score",
+  serviceMatch: "service match",
+  category: "category",
+  geography: "geography",
+  source: "source",
+  requirementsSnapshot: "requirements snapshot",
+  decisionNotes: "decision notes",
+  url: "userDefined:url",
 } as const;
 
 export const SOCIAL_PROPS = {
