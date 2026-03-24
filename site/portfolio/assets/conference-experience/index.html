@@ -256,6 +256,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S0 h1 { font: 700 clamp(36px,7vw,68px)/1.08 'Inter', sans-serif; color: var(--champagne); margin: 20px 0 32px; text-align: center; padding: 0 20px; }
 #S0 .sub { font: 300 clamp(16px,2.2vw,20px)/1.7 'Inter', sans-serif; color: rgba(255,255,255,0.45); text-align: center; padding: 0 20px; }
 #S0 .sub em { color: var(--redwood); font-style: normal; }
+#S0 .cover-context { font: 400 12px 'Inter', sans-serif; color: rgba(255,255,255,0.25); margin-top: 16px; }
 #S0 .foot { position: absolute; bottom: 28px; font: 300 11px 'Inter', sans-serif; color: rgba(255,255,255,0.18); }
 #S0 .enter {
   margin-top: 52px; background: var(--redwood); color: #fff; border: none;
@@ -353,12 +354,19 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   backdrop-filter: blur(6px);
 }
 #S2 .wall-question {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 15;
-  font: 300 clamp(20px,3vw,26px)/1.5 'Inter', sans-serif; color: var(--cadet);
-  text-align: center; max-width: 500px; opacity: 0;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 25;
+  font: 500 clamp(22px,3.5vw,30px)/1.45 'Inter', sans-serif; color: var(--cadet);
+  text-align: center; max-width: 520px; opacity: 0;
   animation: fadeUp 1s 0.5s ease forwards;
   pointer-events: none;
-  text-shadow: 0 0 40px rgba(255,235,210,1), 0 0 80px rgba(255,235,210,0.8);
+  background: rgba(255,235,210,0.92); padding: 24px 36px; border-radius: 6px;
+  backdrop-filter: blur(12px); box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  transition: all 1.5s ease;
+}
+#S2 .wall-question.wall-q-mini {
+  top: 20px; left: 50%; transform: translateX(-50%);
+  font-size: 13px; padding: 10px 20px; opacity: 0.85;
+  max-width: none; width: auto;
 }
 
 /* ════════════════════════════════
@@ -393,6 +401,10 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   font: 300 italic 15px/1.5 'Inter', sans-serif; color: var(--cadet);
   margin-top: 20px; opacity: 0;
   animation: fadeUp 0.8s 1.2s ease forwards;
+}
+.moment-context {
+  font: 400 13px/1.6 'Inter', sans-serif; color: var(--grey);
+  margin-top: 16px; max-width: 440px;
 }
 
 /* ════════════════════════════════
@@ -570,12 +582,24 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   background: rgba(255,255,255,0.88); padding: 10px 24px; border-radius: 3px;
   backdrop-filter: blur(8px);
 }
-#S8 .collage-hint {
-  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 20;
-  font: 400 12px 'Inter', sans-serif; color: var(--grey); text-align: center;
-  background: rgba(255,255,255,0.88); padding: 8px 20px; border-radius: 3px;
-  backdrop-filter: blur(8px);
+#S8 .collage-paper {
+  position: absolute; bottom: 64px; left: 50%; transform: translateX(-50%) rotate(-1deg); z-index: 20;
+  background: #fffdf9; padding: 16px 20px; border-radius: 2px; width: 320px; max-width: 90%;
+  box-shadow: 2px 3px 14px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
+  display: flex; gap: 10px; align-items: flex-end;
 }
+#S8 .collage-paper textarea {
+  flex: 1; border: none; border-bottom: 1px solid var(--light); background: transparent;
+  font: 400 15px/1.5 'Inter', sans-serif; color: var(--dark); resize: none; outline: none;
+  min-height: 40px;
+}
+#S8 .collage-paper textarea::placeholder { color: var(--grey); font-style: italic; }
+#S8 .collage-paper button {
+  background: var(--cadet); color: #fff; border: none; border-radius: 3px;
+  font: 500 12px 'Inter', sans-serif; padding: 8px 16px; cursor: pointer;
+  white-space: nowrap; min-height: 36px;
+}
+#S8 .collage-paper button:hover { background: var(--dark); }
 
 /* ════════════════════════════════
    SCREEN 9 — SANDSETER / RISKY PLAY (1:30 p.m.)
@@ -623,8 +647,14 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .track h3 { font: 700 clamp(20px,2.5vw,26px)/1.2 'Inter', sans-serif; color: var(--dark); margin-bottom: 16px; }
 .track p { font: 400 15px/1.65 'Inter', sans-serif; color: var(--grey); }
 .track-aside { font: 300 italic 14px/1.6 'Inter', sans-serif; color: var(--cadet); margin-top: 16px; }
-.track-quiet { background: rgba(17,17,17,0.92); }
-.track-quiet h3, .track-quiet .track-label { color: rgba(255,255,255,0.8); }
+.track-quiet { background: rgba(17,17,17,0.92); animation: quietDim 6s ease-in-out infinite alternate; }
+@keyframes quietDim {
+  0% { background: rgba(17,17,17,0.88); box-shadow: inset 0 0 40px rgba(0,0,0,0); }
+  100% { background: rgba(17,17,17,0.96); box-shadow: inset 0 0 60px rgba(0,0,0,0.3); }
+}
+.track-quiet h3 { color: rgba(255,255,255,0.8); animation: quietGlow 6s ease-in-out infinite alternate; }
+@keyframes quietGlow { 0% { text-shadow: none; } 100% { text-shadow: 0 0 20px rgba(255,255,255,0.06); } }
+.track-quiet .track-label { color: rgba(255,255,255,0.8); }
 .track-quiet p { color: rgba(255,255,255,0.65); }
 .track-quiet .track-aside { color: rgba(255,255,255,0.5); }
 
@@ -686,6 +716,11 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   font: 300 italic 15px/1.6 'Inter', sans-serif; color: var(--cadet);
   margin-top: 20px; opacity: 0; animation: fadeUp 0.8s 2s ease forwards;
 }
+#S12 .closing-monday {
+  font: 600 clamp(16px,2.5vw,22px)/1.3 'Inter', sans-serif;
+  color: var(--sienna); margin-top: 28px;
+  opacity: 0; animation: fadeUp 0.8s 3s ease forwards;
+}
 
 /* ════════════════════════════════
    SCREEN 13 — CARD ON CHAIR (3D flip)
@@ -700,6 +735,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   background: #fff; border-radius: 6px; padding: 44px;
   box-shadow: 0 8px 48px rgba(0,0,0,0.06); text-align: center;
 }
+.card-commitment-label { font: 500 10px 'Inter', sans-serif; letter-spacing: 0.12em; color: var(--sienna); margin-bottom: 16px; }
 .card-front .card-q { font: 300 italic 18px/1.55 'Inter', sans-serif; color: var(--dark); margin-bottom: 28px; }
 .card-front textarea {
   width: 100%; height: 80px; border: none; border-bottom: 1px solid var(--light);
@@ -771,18 +807,18 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S16 { background: var(--cadet); }
 #S16.active { overflow-y: auto; }
 #S16 .final-scene { position: relative; width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
-#S16 .final-text { text-align: center; max-width: 580px; padding: 40px; z-index: 5; }
-#S16 .ft-body { font: 400 16px/1.7 'Inter', sans-serif; color: rgba(255,255,255,0.45); margin-bottom: 28px; }
-#S16 .ft-quote {
-  font: 300 italic clamp(18px,3vw,24px)/1.45 'Inter', sans-serif;
-  color: var(--champagne); border-left: 3px solid var(--sienna);
-  padding-left: 24px; text-align: left; margin: 32px 0;
-}
-#S16 .ft-wv { font: 400 13px 'Inter', sans-serif; color: rgba(255,255,255,0.2); margin-top: 48px; }
-#S16 .ft-cta { font: 300 italic 17px 'Inter', sans-serif; color: var(--sienna); margin-top: 12px; }
+#S16 .final-text { text-align: center; max-width: 620px; padding: 40px; z-index: 5; }
+#S16 .ft-stat { font: 700 clamp(24px,4vw,38px)/1.2 'Inter', sans-serif; color: var(--champagne); }
+#S16 .ft-stat-follow { font: 700 clamp(24px,4vw,38px)/1.2 'Inter', sans-serif; color: var(--sienna); margin-top: 8px; }
+#S16 .ft-value { font: 400 clamp(16px,2.5vw,20px)/1.65 'Inter', sans-serif; color: rgba(255,255,255,0.6); margin-top: 28px; }
+#S16 .ft-tldr { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 16px; margin-top: 28px; }
+.tldr-item { font: 500 13px 'Inter', sans-serif; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.06); padding: 8px 16px; border-radius: 20px; }
+.tldr-sep { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+#S16 .ft-hook { font: 300 italic clamp(16px,2.5vw,20px)/1.5 'Inter', sans-serif; color: var(--sienna); text-align: center; margin-top: 40px; margin-bottom: 8px; }
+#S16 .ft-wv { font: 400 13px 'Inter', sans-serif; color: rgba(255,255,255,0.2); margin-top: 40px; text-align: center; }
 
 .services-section { width: 100%; max-width: 800px; margin-top: 60px; padding: 0 20px; }
-.services-label { font: 500 11px 'Inter', sans-serif; letter-spacing: 0.12em; color: rgba(255,255,255,0.3); text-align: center; margin-bottom: 32px; }
+.services-label { font: 600 clamp(14px,2vw,18px)/1.3 'Inter', sans-serif; letter-spacing: 0.04em; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 32px; }
 .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .service-card {
   background: rgba(255,255,255,0.06); border-radius: 8px; padding: 28px 24px;
@@ -880,7 +916,8 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 
   /* ── S8 collage ── */
   .collage-instruct { font-size: 13px; padding: 8px 16px; top: 60px !important; }
-  .collage-hint { font-size: 12px; padding: 0 20px; bottom: 56px !important; }
+  .collage-paper { bottom: 100px !important; transform: translateX(-50%) rotate(0deg); width: 90%; }
+  .collage-paper textarea { font-size: 16px; }
   .c-text:not(.c-user) { display: none; }
   .c-strip, .c-circle, .c-drawing { transform: scale(0.7); }
 
@@ -995,6 +1032,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   <div class="cover-fade label">experience design concept</div>
   <h1 class="cover-fade">reimagining PEDAL Conference 2025</h1>
   <div class="cover-fade sub">same speakers. same themes. same venue.<br><em>different architecture around them.</em></div>
+  <div class="cover-fade cover-context">designed by winded.vertigo for the PEDAL Centre, University of Cambridge</div>
   <button class="enter" onclick="go(1)">enter the day</button>
   <div class="foot">winded.vertigo · PEDAL Centre, University of Cambridge · 2025</div>
 </section>
@@ -1007,6 +1045,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
       <h2 class="moment-speaker" style="font-size:clamp(24px,3.5vw,36px)">before the day</h2>
       <p class="moment-note">every attendee receives a question to sit with, a note about the day's design, and a name badge with a QR code linking to a personal conference page.</p>
       <p class="moment-detail" style="opacity:1;animation:none">this is not a standard conference. there are moments that ask something of you. all of them are optional. none of them are difficult.</p>
+      <p class="moment-context">PEDAL (Play, Education, Development And Learning) is a research centre at the University of Cambridge. what follows shows how the format of their annual conference could be redesigned to embody the same principles the research advocates.</p>
     </div>
     <div class="phone-mockup">
       <div class="phone-screen">
@@ -1110,7 +1149,10 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 <section class="sc" id="S8" aria-label="12:25 p.m. — the collage">
   <div class="collage-instruct">12:25 p.m. — add something from this morning that is still with you.</div>
   <div class="collage-surface" id="collageSurface"></div>
-  <div class="collage-hint">click anywhere on the surface, or type below and press enter.</div>
+  <div class="collage-paper" id="collagePaper">
+    <textarea id="collageText" placeholder="something from this morning that is still with you..." rows="2"></textarea>
+    <button id="collagePinBtn" onclick="addCollageNote()">pin to collage</button>
+  </div>
 </section>
 
 <!-- ═══ S9 SANDSETER / RISKY PLAY ═══ -->
@@ -1175,6 +1217,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
       <div class="moment-speaker">Prof Jenny Gibson</div>
       <div class="moment-note" style="margin-top:12px">the collage was displayed at the front. the room produced these today.</div>
       <div class="closing-final">the conference ended by naming the children whose voices ran through the day and asking what their absence means for next year.</div>
+      <div class="closing-monday">what happens on Monday?</div>
     </div>
   </div>
 </section>
@@ -1184,6 +1227,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   <div class="card-flip-container" tabindex="0" role="button" aria-label="card on your chair — press enter or click to flip" id="flipCard">
     <div class="card-inner">
       <div class="card-front">
+        <div class="card-commitment-label">YOUR MONDAY COMMITMENT</div>
         <div class="card-q">what is one thing you want to try, change, or pay attention to in the next two weeks, however small?</div>
         <textarea placeholder="write here, or don't." aria-label="your response"></textarea>
         <div class="card-sub">take it with you or leave it on the table.</div>
@@ -1258,13 +1302,19 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   <div class="final-scene">
     <div class="particles" id="finalParticles"></div>
     <div class="final-text">
-      <div class="ft-body">the day's content stayed intact. what changed was that the day accumulated. people arrived with something, did something, encountered something that surprised them, and left with a trace they could return to.</div>
-      <div class="ft-quote">that is what the PEDAL programme argues for, in every session, all day. this design lets the format say the same thing.</div>
-      <div class="ft-wv">winded.vertigo · windedvertigo.com · hello@windedvertigo.com</div>
-      <div class="ft-cta">this is what's possible. what are you trying to change?</div>
+      <div class="ft-stat">93% of conference content is forgotten within a week.</div>
+      <div class="ft-stat-follow">this changes that.</div>
+      <div class="ft-value">want an immersive, hands-on conference but don't have the time or capacity? we do this so you don't have to.</div>
+      <div class="ft-tldr">
+        <span class="tldr-item">first conversation: 30 minutes</span>
+        <span class="tldr-sep"></span>
+        <span class="tldr-item">full design: 8–12 weeks</span>
+        <span class="tldr-sep"></span>
+        <span class="tldr-item">on-site: we handle everything</span>
+      </div>
     </div>
     <div class="services-section">
-      <div class="services-label">some of the ways we work with conferences and events</div>
+      <h3 class="services-label">some of the ways we work with conferences and events</h3>
       <div class="services-grid">
         <div class="service-card">
           <h4>helping speakers maximise their messaging</h4>
@@ -1283,10 +1333,12 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
           <p>making sure the day works for every person in the room, with multiple ways into every activity and no single mode privileged.</p>
         </div>
       </div>
+      <div class="ft-hook">do you have 60 seconds to play with us?</div>
       <div class="services-cta">
-        <a href="https://windedvertigo.com" class="cta-btn">see what we do</a>
+        <a href="https://windedvertigo.com/do" class="cta-btn">see what we do</a>
         <a href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2RGf5v1tbCsUuJ4vvcsKr0gh2tdEU3TuCerg198j-hbxXzHMvhznWxigtvx5glXGh9Pj4diiFb" class="cta-btn cta-primary" target="_blank" rel="noopener">book a playdate</a>
       </div>
+      <div class="ft-wv">winded.vertigo · windedvertigo.com · hello@windedvertigo.com</div>
     </div>
   </div>
 </section>
@@ -1601,8 +1653,8 @@ if (isTouch) {
   document.querySelectorAll('.card-flip-hint').forEach(function(el) {
     el.textContent = el.textContent.replace('click', 'tap');
   });
-  var collageHint = document.querySelector('.collage-hint');
-  if (collageHint) collageHint.textContent = 'tap anywhere on the surface, or type below and press enter.';
+  var collagePaper = document.querySelector('.collage-paper textarea');
+  if (collagePaper) collagePaper.placeholder = 'something from this morning that is still with you...';
 }
 
 /* ── PARTICLES ── */
@@ -1663,7 +1715,7 @@ function initWall() {
     el.innerHTML = c.t + '<div class="wc-attr">\u2014 ' + c.a + '</div>';
     s.appendChild(el);
   });
-  setTimeout(function() { var q = document.getElementById('wallQ'); q.style.opacity = '0'; q.style.transition = 'opacity 1.5s'; }, 2500);
+  setTimeout(function() { document.getElementById('wallQ').classList.add('wall-q-mini'); }, 3500);
 }
 function addToWall() {
   var inp = document.getElementById('wallIn');
@@ -1895,14 +1947,25 @@ function initCollage() {
 }
 document.getElementById('collageSurface').addEventListener('click', function(e) {
   if (cur !== 8) return;
-  var text = prompt('add something from this morning that is still with you:');
-  if (!text || !text.trim()) return;
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
+  document.getElementById('collageText').focus();
+});
+function addCollageNote() {
+  var ta = document.getElementById('collageText');
+  var text = ta.value.trim();
+  if (!text) return;
+  var s = document.getElementById('collageSurface');
   var el = document.createElement('div');
   el.className = 'c-fragment c-user';
-  el.style.left = e.clientX + 'px'; el.style.top = e.clientY + 'px'; el.style.position = 'absolute';
+  var x = 15 + Math.random() * 60, y = 15 + Math.random() * 50;
+  el.style.left = x + '%'; el.style.top = y + '%'; el.style.position = 'absolute';
   el.style.setProperty('--o', '0.9'); el.style.setProperty('--fr', (Math.random()*4-2) + 'deg');
   el.style.setProperty('--fx', '0px'); el.style.setProperty('--fy', '0px');
-  el.textContent = text.trim(); this.appendChild(el);
+  el.textContent = text; s.appendChild(el);
+  ta.value = '';
+}
+document.getElementById('collageText').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addCollageNote(); }
 });
 
 /* ── MAPPING ── */
