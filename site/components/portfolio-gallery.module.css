@@ -1,0 +1,147 @@
+/* Portfolio modal overlay + content */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.modalContent {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--color-surface-raised, #1e2738);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 235, 210, 0.1);
+}
+
+.modalClose {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.modalClose:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.modalMedia {
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #151d2a;
+  border-radius: 12px 12px 0 0;
+}
+
+.modalMedia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modalMedia .iconFallback {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.modalCta {
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--accent, #b15043);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  text-transform: lowercase;
+  text-decoration: none;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.modalCta:hover {
+  opacity: 0.85;
+}
+
+/* Related assets cards */
+.relatedCard {
+  padding: 14px 16px;
+  background: #3a4459;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: border-color 0.2s, transform 0.2s;
+  text-align: left;
+  color: inherit;
+  font-family: inherit;
+  width: 100%;
+}
+
+.relatedCard:hover {
+  border-color: rgba(255, 235, 210, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Asset card override: make it a clickable card instead of a link */
+.assetCard {
+  display: block;
+  background: var(--color-surface-raised);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 235, 210, 0.08);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, border-color 0.2s;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+  font-family: inherit;
+}
+
+.assetCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 235, 210, 0.2);
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .modalOverlay {
+    padding: 0;
+    align-items: flex-start;
+  }
+  .modalContent {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  .modalMedia {
+    height: 200px;
+    border-radius: 0;
+  }
+}
