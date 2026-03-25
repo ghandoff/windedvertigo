@@ -13,15 +13,15 @@ export async function GET(
   return withNotionError(async () => {
     const campaign = await getCampaign(id);
     if (!campaign.audienceFilters || Object.keys(campaign.audienceFilters).length === 0) {
-      return json({ count: 0, organizations: [] });
+      return { count: 0, organizations: [] };
     }
 
     if (preview) {
       const result = await previewAudience(campaign.audienceFilters, 10);
-      return json({ count: result.count, organizations: result.preview });
+      return { count: result.count, organizations: result.preview };
     }
 
     const orgs = await resolveAudience(campaign.audienceFilters);
-    return json({ count: orgs.length, organizations: orgs });
+    return { count: orgs.length, organizations: orgs };
   });
 }

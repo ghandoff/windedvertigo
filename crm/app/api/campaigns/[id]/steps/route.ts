@@ -9,7 +9,7 @@ export async function GET(
   const { id } = await params;
   return withNotionError(async () => {
     const steps = await getStepsForCampaign(id);
-    return json({ data: steps });
+    return { data: steps };
   });
 }
 

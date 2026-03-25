@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
   if (!body) return error("filter rules are required");
 
   return withNotionError(async () => {
-    const result = await previewAudience(body, 10);
-    return json(result);
+    return await previewAudience(body, 10);
   });
 }
