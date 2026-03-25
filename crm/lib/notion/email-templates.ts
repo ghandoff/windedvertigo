@@ -36,6 +36,7 @@ function mapPageToTemplate(page: PageObjectResponse): EmailTemplate {
     subject: getText(props[P.subject]),
     body: getText(props[P.body]),
     category: getSelect(props[P.category]) as EmailTemplate["category"],
+    channel: (getSelect(props[P.channel]) as EmailTemplate["channel"]) || "email",
     notes: getText(props[P.notes]),
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
@@ -51,6 +52,7 @@ export async function queryEmailTemplates(
 
   if (filters) {
     if (filters.category) nf.push(buildSelectFilter(P.category, filters.category));
+    if (filters.channel) nf.push(buildSelectFilter(P.channel, filters.channel));
     if (filters.search) nf.push(buildTitleSearch(P.name, filters.search));
   }
 

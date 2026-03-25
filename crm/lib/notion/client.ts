@@ -28,6 +28,8 @@ export const CRM_DB = {
   emailTemplates: "9e57d0c9-1477-4af6-aa9d-772de010774e",
   activities: "f61e3d25-72d6-482c-a595-ff1236dcc8c6",
   members: "cc118d3a-960e-4cb6-b78e-f2709f3c64b7",
+  blueprints: "8c5fa843-c9de-4746-b312-4a1222bcb2b3",
+  blueprintSteps: "aa1497c5-16e0-4ba7-98f8-36938dacaa98",
 } as const;
 
 // ── property name maps ────────────────────────────────────
@@ -235,5 +237,27 @@ export const EMAIL_TEMPLATE_PROPS = {
   subject: "subject",
   body: "body",
   category: "category",
+  channel: "channel",
+  notes: "notes",
+} as const;
+
+export const BLUEPRINT_PROPS = {
+  name: "name",
+  description: "description",
+  channels: "channels",
+  category: "category",
+  stepCount: "step count",
+  totalDays: "total days",
+  notes: "notes",
+} as const;
+
+export const BLUEPRINT_STEP_PROPS = {
+  name: "name",
+  blueprint: "blueprint",
+  stepNumber: "step number",
+  channel: "channel",
+  template: "template",
+  delayDays: "delay days",
+  delayReference: "delay reference",
   notes: "notes",
 } as const;

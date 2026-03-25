@@ -552,6 +552,7 @@ export interface EmailTemplate {
   subject: string;
   body: string;
   category: TemplateCategory;
+  channel: StepChannel;
   notes: string;
   createdTime: string;
   lastEditedTime: string;
@@ -559,6 +560,42 @@ export interface EmailTemplate {
 
 export interface EmailTemplateFilters {
   category?: TemplateCategory;
+  channel?: StepChannel;
+  search?: string;
+}
+
+// ── campaign blueprints ───────────────────────────────────
+
+export type BlueprintCategory = "event-based" | "outreach" | "nurture" | "social" | "follow-up";
+export type DelayReference = "after previous step" | "before event" | "after event";
+
+export interface Blueprint {
+  id: string;
+  name: string;
+  description: string;
+  channels: StepChannel[];
+  category: BlueprintCategory;
+  stepCount: number;
+  totalDays: number;
+  notes: string;
+  createdTime: string;
+}
+
+export interface BlueprintStep {
+  id: string;
+  name: string;
+  blueprintIds: string[];
+  stepNumber: number;
+  channel: StepChannel;
+  templateIds: string[];
+  delayDays: number;
+  delayReference: DelayReference;
+  notes: string;
+}
+
+export interface BlueprintFilters {
+  category?: BlueprintCategory;
+  channel?: StepChannel;
   search?: string;
 }
 
