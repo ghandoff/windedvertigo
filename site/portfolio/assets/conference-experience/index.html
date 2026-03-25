@@ -686,6 +686,15 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .track-quiet h3 { color: rgba(255,255,255,0.8); animation: quietGlow 6s ease-in-out infinite alternate; }
 @keyframes quietGlow { 0% { text-shadow: none; } 100% { text-shadow: 0 0 20px rgba(255,255,255,0.06); } }
 .track-quiet .track-label { color: rgba(255,255,255,0.8); }
+.quiet-tap-hint { font: 300 italic 11px 'Inter', sans-serif; color: rgba(255,255,255,0.25); margin-top: 12px; transition: opacity 0.5s; }
+#S10.quiet-dimmed { background: #0a0a0a !important; background-image: none !important; transition: background 2s ease; }
+#S10.quiet-dimmed::before { background: rgba(0,0,0,0.98) !important; transition: background 2s ease; }
+#S10.quiet-dimmed .track:not(.track-quiet) { opacity: 0.05; transition: opacity 2s ease; pointer-events: none; }
+#S10.quiet-dimmed .track-quiet { box-shadow: 0 0 60px rgba(255,255,255,0.03); transition: box-shadow 2s ease; }
+#S10.quiet-dimmed .time-badge { opacity: 0.05; transition: opacity 2s ease; }
+#S10.quiet-dimmed .track-quiet .quiet-tap-hint { opacity: 0; }
+#S10:not(.quiet-dimmed) .track { transition: opacity 1.5s ease; }
+#S10:not(.quiet-dimmed) .time-badge { transition: opacity 1.5s ease; }
 .track-quiet p { color: rgba(255,255,255,0.65); }
 .track-quiet .track-aside { color: rgba(255,255,255,0.5); }
 
@@ -1229,11 +1238,12 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
       <h3>AI panel</h3>
       <p>a panel discussion on AI, toys, and the future of play. ran in the main hall as planned.</p>
     </div>
-    <div class="track track-quiet">
+    <div class="track track-quiet" id="quietRoom" role="button" tabindex="0" style="cursor:pointer">
       <div class="track-label">THE BOULIND</div>
       <h3>the quiet room</h3>
       <p>low light. no task. no facilitation. a place to sit with what the day had produced so far.</p>
       <p class="track-aside">some people need noise and conversation to process. some need stillness. both are legitimate. both were available. needing quiet is not opting out. it is a different way of being in.</p>
+      <p class="quiet-tap-hint">click to dim the lights</p>
     </div>
     <div class="track track-network">
       <div class="track-label">NETWORKING SPACE</div>
@@ -2025,6 +2035,11 @@ function addCollageNote() {
 }
 document.getElementById('collageText').addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addCollageNote(); }
+});
+
+/* ── QUIET ROOM DIM ── */
+document.getElementById('quietRoom').addEventListener('click', function() {
+  document.getElementById('S10').classList.toggle('quiet-dimmed');
 });
 
 /* ── MAPPING ── */
