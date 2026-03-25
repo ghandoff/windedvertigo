@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DraggableKanban, type KanbanColumn } from "./draggable-kanban";
 import { OrgCard } from "./org-card";
+import { AiPipelineNudges } from "./ai-pipeline-nudges";
 import type { Organization, ConnectionStatus, OutreachStatus } from "@/lib/notion/types";
 
 const CONNECTION_COLUMNS: KanbanColumn[] = [
@@ -64,6 +65,7 @@ export function PipelineBoard({ organizations }: PipelineBoardProps) {
 
   return (
     <div className="space-y-4">
+      <AiPipelineNudges />
       <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as "connection" | "outreach")}>
         <TabsList>
           <TabsTrigger value="connection">connection status</TabsTrigger>

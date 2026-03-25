@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +25,7 @@ export function TemplateForm() {
   const [body, setBody] = useState("");
   const [category, setCategory] = useState<string | null>("outreach");
   const [saving, setSaving] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   async function handleSave() {
     if (!name.trim()) return;
@@ -48,6 +49,30 @@ export function TemplateForm() {
       startTransition(() => router.refresh());
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleAiGenerate() {
+    if (!name.trim() && !category) return;
+    setAiGenerating(true);
+    try {
+      const res = await fetch("/crm/api/ai/email-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          organizationId: "template", // signal this is a template generation
+          additionalContext: `Generate a reusable ${category || "outreach"} email template for a learning design consultancy. Template name: "${name || "untitled"}". Use {{orgName}}, {{contactName}}, {{senderName}} variables where appropriate. Make it a template, not a specific email.`,
+          tone: "professional",
+          purpose: category === "follow-up" ? "follow-up" : "intro",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSubject(data.subject);
+        setBody(data.body);
+      }
+    } catch {} finally {
+      setAiGenerating(false);
     }
   }
 
@@ -134,9 +159,20 @@ export function TemplateForm() {
               className="text-sm font-mono"
             />
           </div>
-          <Button onClick={handleSave} disabled={!name.trim() || saving} className="w-full">
-            {saving ? "saving..." : "save template"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleAiGenerate}
+              disabled={aiGenerating}
+              className="flex-1"
+            >
+              <Sparkles className="h-4 w-4 mr-1.5" />
+              {aiGenerating ? "generating..." : "AI generate"}
+            </Button>
+            <Button onClick={handleSave} disabled={!name.trim() || saving} className="flex-1">
+              {saving ? "saving..." : "save template"}
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

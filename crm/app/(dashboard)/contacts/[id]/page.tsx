@@ -10,6 +10,8 @@ import { ContactEditDialog } from "@/app/components/contact-edit-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AiHealthBadge } from "@/app/components/ai-health-badge";
+import { AiActivityInsight } from "@/app/components/ai-activity-insight";
 
 export const revalidate = 300;
 
@@ -162,6 +164,7 @@ export default async function ContactDetailPage({ params }: Props) {
             </CardHeader>
             <CardContent>
               <ActivityTimeline activities={activities} />
+              <AiActivityInsight activities={activities} />
             </CardContent>
           </Card>
         </div>
@@ -187,6 +190,13 @@ export default async function ContactDetailPage({ params }: Props) {
               <div>
                 <span className="text-muted-foreground">next action</span>
                 <p className="font-medium">{contact.nextAction || "—"}</p>
+              </div>
+              <Separator />
+              <div>
+                <span className="text-muted-foreground">health</span>
+                <div className="mt-1">
+                  <AiHealthBadge contactId={contact.id} />
+                </div>
               </div>
             </CardContent>
           </Card>

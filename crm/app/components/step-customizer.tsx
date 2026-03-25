@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { AiSubjectScore } from "./ai-subject-score";
 import type { StepChannel } from "@/lib/notion/types";
 
 const CHANNEL_ICONS: Record<string, React.ElementType> = {
@@ -156,6 +157,7 @@ export function StepCustomizer({ steps, onChange }: StepCustomizerProps) {
                       placeholder="{{orgName}} + winded.vertigo — ..."
                       className="text-xs"
                     />
+                    <AiSubjectScore subject={step.subject} />
                   </div>
                 )}
                 <div>

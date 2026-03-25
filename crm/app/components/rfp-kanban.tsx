@@ -6,6 +6,7 @@ import { DraggableKanban, type KanbanColumn } from "./draggable-kanban";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays, DollarSign, ExternalLink } from "lucide-react";
+import { computeWinProbability, WinProbabilityBadge } from "./ai-win-probability";
 import type { RfpOpportunity } from "@/lib/notion/types";
 
 const STATUS_COLUMNS: KanbanColumn[] = [
@@ -66,6 +67,7 @@ function RfpCard({ rfp }: { rfp: RfpKanbanItem }) {
               {rfp.wvFitScore}
             </Badge>
           )}
+          <WinProbabilityBadge probability={computeWinProbability(rfp)} />
         </div>
         {rfp.dueDate?.start && (
           <div className={`flex items-center gap-1.5 text-xs ${overdue ? "text-destructive" : deadlineUrgent ? "text-destructive font-medium" : "text-muted-foreground"}`}>

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AiOutreachCard } from "@/app/components/ai-outreach-card";
 
 export const revalidate = 300;
 
@@ -272,6 +273,9 @@ export default async function OrganizationDetailPage({ params }: Props) {
               )}
             </CardContent>
           </Card>
+
+          {/* AI outreach suggestions */}
+          <AiOutreachCard organizationId={org.id} />
 
           {/* Other linked records */}
           <Card>

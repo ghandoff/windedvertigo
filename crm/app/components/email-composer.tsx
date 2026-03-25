@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "./status-badge";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import type { Organization } from "@/lib/notion/types";
 
 interface EmailComposerProps {
@@ -36,6 +39,8 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
   const [aiDrafting, setAiDrafting] = useState(false);
   const [aiCost, setAiCost] = useState<number | null>(null);
   const [aiError, setAiError] = useState("");
+  const [aiTone, setAiTone] = useState<string>("warm");
+  const [aiPurpose, setAiPurpose] = useState<string>("intro");
 
   // Send state
   const [sendStatus, setSendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -92,8 +97,8 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           organizationId: selectedOrg.id,
-          tone: "warm",
-          purpose: "intro",
+          tone: aiTone,
+          purpose: aiPurpose,
           senderName: senderName || undefined,
         }),
       });
@@ -246,6 +251,29 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
                   AI cost: ${aiCost.toFixed(4)}
                 </span>
               )}
+              <Select value={aiTone} onValueChange={setAiTone}>
+                <SelectTrigger className="w-[100px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="warm" className="text-xs">warm</SelectItem>
+                  <SelectItem value="professional" className="text-xs">professional</SelectItem>
+                  <SelectItem value="casual" className="text-xs">casual</SelectItem>
+                  <SelectItem value="formal" className="text-xs">formal</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={aiPurpose} onValueChange={setAiPurpose}>
+                <SelectTrigger className="w-[110px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="intro" className="text-xs">intro</SelectItem>
+                  <SelectItem value="follow-up" className="text-xs">follow-up</SelectItem>
+                  <SelectItem value="proposal" className="text-xs">proposal</SelectItem>
+                  <SelectItem value="check-in" className="text-xs">check-in</SelectItem>
+                  <SelectItem value="event-invite" className="text-xs">event invite</SelectItem>
+                </SelectContent>
+              </Select>
               <Button
                 type="button"
                 variant="outline"

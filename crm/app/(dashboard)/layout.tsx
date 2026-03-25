@@ -1,5 +1,6 @@
 import { Sidebar } from "@/app/components/sidebar";
 import { MobileSidebar } from "@/app/components/mobile-sidebar";
+import { AiSearchBar } from "@/app/components/ai-search-bar";
 import { UserProvider } from "@/app/components/user-provider";
 import { auth } from "@/lib/auth";
 
@@ -25,6 +26,9 @@ export default async function DashboardLayout({
         <Sidebar />
         <MobileSidebar />
         <main className="md:pl-60">
+          <div className="hidden md:flex items-center justify-end px-8 pt-4 pb-0">
+            <AiSearchBar />
+          </div>
           <div className="p-6 md:p-8 max-w-7xl">{children}</div>
         </main>
       </div>
