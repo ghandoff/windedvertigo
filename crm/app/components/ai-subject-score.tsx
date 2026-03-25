@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 export function AiSubjectScore({ subject }: { subject: string }) {
   const [score, setScore] = useState<{ score: number; tip: string } | null>(null);
   const [loading, setLoading] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     if (!subject || subject.length < 5) {

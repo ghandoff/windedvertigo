@@ -138,7 +138,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
       const data = await res.json();
       if (res.ok) {
         setSendStatus("sent");
-        setSendMessage(`sent! message ID: ${data.messageId}`);
+        setSendMessage(`sent to ${to}`);
         startTransition(() => router.refresh());
       } else {
         setSendStatus("error");
@@ -251,7 +251,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
                   AI cost: ${aiCost.toFixed(4)}
                 </span>
               )}
-              <Select value={aiTone} onValueChange={setAiTone}>
+              <Select value={aiTone} onValueChange={(v) => v && setAiTone(v)}>
                 <SelectTrigger className="w-[100px] h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
@@ -262,7 +262,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
                   <SelectItem value="formal" className="text-xs">formal</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={aiPurpose} onValueChange={setAiPurpose}>
+              <Select value={aiPurpose} onValueChange={(v) => v && setAiPurpose(v)}>
                 <SelectTrigger className="w-[110px] h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>

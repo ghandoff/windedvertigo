@@ -35,6 +35,7 @@ export function NewContactDialog({ organizationId, compact }: NewContactDialogPr
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -46,8 +47,9 @@ export function NewContactDialog({ organizationId, compact }: NewContactDialogPr
   async function handleSave() {
     if (!name.trim()) return;
     setSaving(true);
+    setError("");
     try {
-      await fetch("/crm/api/contacts", {
+      const res = await fetch("/crm/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -60,14 +62,23 @@ export function NewContactDialog({ organizationId, compact }: NewContactDialogPr
         }),
       });
 
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "creation failed" }));
+        setError(data.error || `failed (${res.status})`);
+        return;
+      }
+
       // Reset
       setName("");
       setEmail("");
       setRole("");
       setContactType(null);
       setRelationshipStage("stranger");
+      setError("");
       setOpen(false);
       startTransition(() => router.refresh());
+    } catch {
+      setError("network error — try again");
     } finally {
       setSaving(false);
     }
@@ -122,6 +133,9 @@ export function NewContactDialog({ organizationId, compact }: NewContactDialogPr
             <Label className="mb-1.5 block">organization</Label>
             <OrgSearchField value={orgIds} onChange={setOrgIds} multiple={false} />
           </div>
+          {error && (
+            <p className="text-xs text-destructive">{error}</p>
+          )}
           <Button onClick={handleSave} disabled={!name.trim() || saving} className="w-full">
             {saving ? "creating..." : "create contact"}
           </Button>

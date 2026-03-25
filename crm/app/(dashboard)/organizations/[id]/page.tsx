@@ -52,15 +52,13 @@ export default async function OrganizationDetailPage({ params }: Props) {
       </Link>
 
       <PageHeader title={org.organization}>
-        {org.email && (
-          <Link
-            href={`/email?org=${org.id}`}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 transition-colors"
-          >
-            <Mail className="h-4 w-4" />
-            compose email
-          </Link>
-        )}
+        <Link
+          href={`/email?org=${org.id}`}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <Mail className="h-4 w-4" />
+          compose email
+        </Link>
         {org.website && (
           <a
             href={org.website}
@@ -256,17 +254,24 @@ export default async function OrganizationDetailPage({ params }: Props) {
             <CardContent className="space-y-2 text-sm">
               {linkedContacts.length > 0 ? (
                 linkedContacts.map((c) => (
-                  <Link
-                    key={c.id}
-                    href={`/contacts/${c.id}`}
-                    className="flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-muted transition-colors"
-                  >
-                    <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <div className="min-w-0">
-                      <p className="font-medium text-xs truncate">{c.name}</p>
-                      {c.role && <p className="text-[10px] text-muted-foreground truncate">{c.role}</p>}
-                    </div>
-                  </Link>
+                  <div key={c.id} className="flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-muted transition-colors">
+                    <Link href={`/contacts/${c.id}`} className="flex items-center gap-2 min-w-0 flex-1">
+                      <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-medium text-xs truncate">{c.name}</p>
+                        {c.role && <p className="text-[10px] text-muted-foreground truncate">{c.role}</p>}
+                      </div>
+                    </Link>
+                    {c.email && (
+                      <a
+                        href={`mailto:${c.email}`}
+                        className="text-[10px] text-accent hover:underline shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {c.email}
+                      </a>
+                    )}
+                  </div>
                 ))
               ) : (
                 <p className="text-muted-foreground text-xs py-2">no contacts linked yet</p>

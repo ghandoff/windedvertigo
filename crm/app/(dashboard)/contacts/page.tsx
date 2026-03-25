@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { queryContacts } from "@/lib/notion/contacts";
+import { ClickableRow } from "@/app/components/clickable-row";
 import { NewContactDialog } from "@/app/components/new-contact-dialog";
 import { PageHeader } from "@/app/components/page-header";
 import { ContactPipeline } from "@/app/components/contact-pipeline";
@@ -60,7 +60,7 @@ async function ContactsTable({ searchParams }: Props) {
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -75,11 +75,9 @@ async function ContactsTable({ searchParams }: Props) {
         </TableHeader>
         <TableBody>
           {contacts.map((c) => (
-            <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50">
-              <TableCell>
-                <Link href={`/contacts/${c.id}`} className="font-medium hover:underline">
-                  {c.name}
-                </Link>
+            <ClickableRow key={c.id} href={`/contacts/${c.id}`}>
+              <TableCell className="font-medium">
+                {c.name}
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">{c.role}</TableCell>
               <TableCell>
@@ -112,7 +110,7 @@ async function ContactsTable({ searchParams }: Props) {
                   </a>
                 )}
               </TableCell>
-            </TableRow>
+            </ClickableRow>
           ))}
         </TableBody>
       </Table>

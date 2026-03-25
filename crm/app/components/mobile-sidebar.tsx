@@ -47,7 +47,7 @@ export function MobileSidebar() {
   return (
     <div className="md:hidden flex h-14 items-center px-4 border-b bg-sidebar text-white">
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger className="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-white/10 transition-colors">
+        <SheetTrigger aria-label="open navigation menu" className="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-white/10 transition-colors">
           <Menu className="h-5 w-5" />
         </SheetTrigger>
         <SheetContent side="left" className="w-60 bg-sidebar text-white p-0">

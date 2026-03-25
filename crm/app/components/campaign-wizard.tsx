@@ -84,6 +84,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
   const [owner, setOwner] = useState("");
   const [startDate, setStartDate] = useState("");
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
 
   function toggleChannel(ch: StepChannel) {
     setSelectedChannels((prev) =>
@@ -178,6 +179,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
       startTransition(() => router.push(`/campaigns/${campaign.id}`));
     } catch (err) {
       console.error("campaign creation failed:", err);
+      setCreateError(err instanceof Error ? err.message : "campaign creation failed — try again");
       setCreating(false);
     }
   }
@@ -412,6 +414,9 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
                 "create campaign"
               )}
             </Button>
+            {createError && (
+              <p className="text-xs text-destructive mt-2">{createError}</p>
+            )}
           </div>
         </div>
       )}

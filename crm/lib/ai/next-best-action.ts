@@ -7,7 +7,7 @@ import { callClaude, parseJsonResponse } from "./client";
 import { queryContacts } from "../notion/contacts";
 import { queryOrganizations } from "../notion/organizations";
 import { queryActivities } from "../notion/activities";
-import type { NextActionResponse } from "./types";
+import type { NextAction, NextActionResponse } from "./types";
 
 export async function getNextBestActions(
   userId: string,
@@ -117,7 +117,7 @@ Return at most ${limit ?? 10} recommendations, sorted by priority.`;
     temperature: 0.5,
   });
 
-  const parsed = parseJsonResponse<unknown[]>(result.text);
+  const parsed = parseJsonResponse<NextAction[]>(result.text);
 
   return {
     actions: Array.isArray(parsed) ? parsed : [],

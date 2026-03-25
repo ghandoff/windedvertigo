@@ -58,8 +58,8 @@ export async function naturalLanguageSearch(
 
   const response: NlSearchResponse = {
     filters: {
-      contacts: parsed.contacts,
-      organizations: parsed.organizations,
+      contacts: parsed.contacts ?? undefined,
+      organizations: parsed.organizations ?? undefined,
       explanation: parsed.explanation,
     },
     results: {

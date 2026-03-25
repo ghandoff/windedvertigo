@@ -29,7 +29,7 @@ export default async function DashboardLayout({
           <div className="hidden md:flex items-center justify-end px-8 pt-4 pb-0">
             <AiSearchBar />
           </div>
-          <div className="p-6 md:p-8 max-w-7xl">{children}</div>
+          <div className="p-6 md:p-8 max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </UserProvider>

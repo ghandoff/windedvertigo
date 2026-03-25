@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { queryEvents } from "@/lib/notion/events";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
@@ -129,16 +130,24 @@ async function EventCards({ searchParams, upcoming }: Props & { upcoming: boolea
                 </p>
               )}
 
-              {evt.url && (
-                <a
-                  href={evt.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              <div className="flex items-center gap-3 pt-1 border-t">
+                <Link
+                  href={`/campaigns/new?event=${evt.id}`}
                   className="text-xs text-accent hover:underline"
                 >
-                  event website
-                </a>
-              )}
+                  start campaign
+                </Link>
+                {evt.url && (
+                  <a
+                    href={evt.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-muted-foreground hover:text-accent hover:underline"
+                  >
+                    event website
+                  </a>
+                )}
+              </div>
             </CardContent>
           </Card>
         );
