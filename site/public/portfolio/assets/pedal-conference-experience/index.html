@@ -9,17 +9,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --cadet: #0171B9;
-  --redwood: #1A5D66;
-  --sienna: #00A6B6;
+  --cadet: #036BB4;
+  --redwood: #016692;
+  --sienna: #00A0B8;
   --champagne: #DAF4F5;
   --white: #ffffff;
   --dark: #0C2340;
   --grey: #666666;
   --light: #CCEFF3;
   /* complementary accents — sparingly */
-  --mint: #7BC67E;
-  --lavender: #B39DDB;
+  --mint: #00883E;
+  --lavender: #942180;
+  /* PEDAL extended palette */
+  --olive: #AFB316;
+  --magenta: #78196A;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 100%; height: 100%; overflow: hidden; }
@@ -33,6 +36,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   z-index: 0;
   overflow: hidden;
   padding-top: 52px; /* clear agenda bar on all viewports */
+  padding-bottom: 52px; /* clear nav bar */
   transition: opacity 0.8s ease, transform 0.8s ease;
 }
 .sc.active { opacity: 1; pointer-events: auto; z-index: 10; }
@@ -53,21 +57,21 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S2.sc-bg { background-image: url('/portfolio/assets/conference-experience/arrival_question_wall.png'); }
 #S2.sc-bg::before { background: rgba(218,244,245,0.88); }
 #S3.sc-bg { background-image: url('/portfolio/assets/conference-experience/sketches_behind_keynote.png'); }
-#S3.sc-bg::before { background: rgba(1,113,185,0.75); }
+#S3.sc-bg::before { background: rgba(3,107,180,0.75); }
 #S4.sc-bg { background-image: url('/portfolio/assets/conference-experience/making_space.png'); }
 #S4.sc-bg::before { background: rgba(218,244,245,0.82); }
 #S5.sc-bg { background-image: url('/portfolio/assets/conference-experience/hall_of_mirrors.png'); }
 #S5.sc-bg::before { background: rgba(218,244,245,0.80); }
 #S6.sc-bg { background-image: url('/portfolio/assets/conference-experience/childrens_voices_thread.png'); }
-#S6.sc-bg::before { background: rgba(1,113,185,0.78); }
+#S6.sc-bg::before { background: rgba(3,107,180,0.78); }
 #S9.sc-bg { background-image: url('/portfolio/assets/conference-experience/30_seconds_of_risky_play.png'); }
 #S9.sc-bg::before { background: rgba(0,0,0,0.82); }
 #S10.sc-bg { background-image: url('/portfolio/assets/conference-experience/creaseworks_table.png'); }
 #S10.sc-bg::before { background: rgba(218,244,245,0.85); }
 #S12.sc-bg { background-image: url('/portfolio/assets/conference-experience/closing_collage.png'); }
-#S12.sc-bg::before { background: rgba(1,113,185,0.75); }
+#S12.sc-bg::before { background: rgba(3,107,180,0.75); }
 #S14.sc-bg { background-image: url('/portfolio/assets/conference-experience/garden_party.png'); }
-#S14.sc-bg::before { background: rgba(1,113,185,0.65); }
+#S14.sc-bg::before { background: rgba(3,107,180,0.65); }
 
 /* ── Progress ── */
 #progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--sienna); z-index: 200; transition: width 0.8s ease; }
@@ -77,7 +81,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
   display: none; align-items: center; justify-content: space-between;
   padding: 10px 20px;
-  background: rgba(1,113,185,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  background: rgba(3,107,180,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
 }
 #nav .n-time { font: 300 14px 'Quicksand', sans-serif; color: var(--sienna); min-width: 60px; }
 #nav .n-label { font: 300 12px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); text-align: center; flex: 1; }
@@ -125,23 +129,24 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ── Narrator ── */
 #narrator-toggle {
   position: fixed; top: 20px; right: 20px; z-index: 300;
-  background: rgba(1,42,74,0.8); color: #fff; border: 1px solid rgba(1,42,74,0.3); border-radius: 4px;
-  padding: 10px 16px; font: 500 12px 'Quicksand', sans-serif; cursor: pointer;
+  background: rgba(255,255,255,0.95); color: var(--dark); border: 1px solid rgba(0,0,0,0.08); border-radius: 4px;
+  padding: 10px 16px; font: 600 12px 'Quicksand', sans-serif; cursor: pointer;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   min-height: 48px; min-width: 48px;
   display: flex; align-items: center; gap: 6px;
   transition: background 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
 }
-#narrator-toggle:hover { background: rgba(1,42,74,0.95); }
+#narrator-toggle:hover { background: #fff; }
 #narrator-toggle .eye-icon { font-size: 14px; }
 #narrator-overlay {
-  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
-  max-width: 600px; width: 90%; z-index: 250;
-  background: rgba(1,42,74,0.92); color: #fff; border-radius: 8px;
-  padding: 24px 28px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+  max-width: 560px; width: 88%; z-index: 250;
+  background: rgba(1,42,74,0.94); color: #fff; border-radius: 8px;
+  padding: 18px 24px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   transition: opacity 0.3s ease, transform 0.3s ease;
   pointer-events: none;
+  max-height: 28vh; overflow-y: auto;
 }
 #narrator-overlay.hidden { opacity: 0; transform: translateX(-50%) translateY(8px); }
 #narrator-overlay .narrator-scene {
@@ -181,7 +186,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   text-align: left; font: 400 12px 'Quicksand', sans-serif; color: var(--grey);
   min-height: 32px; border-radius: 3px; transition: background 0.2s;
 }
-.agenda-item:hover { background: rgba(1,113,185,0.04); }
+.agenda-item:hover { background: rgba(3,107,180,0.04); }
 .agenda-item.collapsed { display: none; }
 .agenda-dot {
   width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
@@ -495,7 +500,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S4 .bench-note {
   position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%);
   z-index: 20; text-align: center;
-  font: 400 13px/1.6 'Quicksand', sans-serif; color: rgba(1,113,185,0.6);
+  font: 400 13px/1.6 'Quicksand', sans-serif; color: rgba(3,107,180,0.6);
   max-width: 500px;
   background: rgba(212,196,168,0.8); padding: 10px 20px; border-radius: 4px;
   backdrop-filter: blur(8px);
@@ -579,7 +584,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   background: none; border: none; font-family: inherit; min-height: 48px;
 }
 .door::before { content: ''; position: absolute; inset: 0; transition: background 0.5s; }
-.door:hover::before { background: rgba(1,113,185,0.04); }
+.door:hover::before { background: rgba(3,107,180,0.04); }
 .door:hover { transform: scale(1.01); }
 .door-divider { width: 1px; background: var(--light); align-self: stretch; }
 .door .d-label { font: 500 10px 'Quicksand', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 20px; z-index: 1; }
@@ -595,7 +600,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   background: #fff;
   background-image:
     radial-gradient(circle at 20% 30%, rgba(0,166,182,0.06) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(1,113,185,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(3,107,180,0.04) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(26,93,102,0.03) 0%, transparent 60%);
   cursor: crosshair;
 }
@@ -612,7 +617,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .c-user {
   animation: userPlace 0.4s ease forwards !important;
   font: 400 15px/1.4 'Quicksand', sans-serif; color: var(--cadet);
-  background: rgba(1,113,185,0.06); padding: 10px 16px; border-radius: 3px; pointer-events: none;
+  background: rgba(3,107,180,0.06); padding: 10px 16px; border-radius: 3px; pointer-events: none;
 }
 @keyframes userPlace { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 0.9; transform: scale(1); } }
 #S8 .collage-instruct {
@@ -711,7 +716,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
    ════════════════════════════════ */
 #S11 {
   background: var(--champagne);
-  background-image: radial-gradient(circle at 50% 50%, rgba(1,113,185,0.03) 0%, transparent 70%);
+  background-image: radial-gradient(circle at 50% 50%, rgba(3,107,180,0.03) 0%, transparent 70%);
 }
 .map-canvas { position: relative; width: 100%; height: 100%; }
 .map-description {
@@ -751,7 +756,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S12 .closing-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .cascade-item {
   position: absolute; font: 400 12px 'Quicksand', sans-serif; color: var(--cadet);
-  background: rgba(1,113,185,0.06); padding: 6px 14px; border-radius: 20px;
+  background: rgba(3,107,180,0.06); padding: 6px 14px; border-radius: 20px;
   opacity: 0; animation: cascadeIn 0.6s ease forwards;
 }
 @keyframes cascadeIn { 0% { opacity: 0; transform: translateY(20px) scale(0.9); } 100% { opacity: 0.85; transform: translateY(0) scale(1); } }
@@ -867,7 +872,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 
 .services-section { width: 100%; max-width: 800px; margin-top: 60px; margin-bottom: auto; padding: 0 20px; }
 .services-label { font: 600 clamp(14px,2vw,18px)/1.3 'Quicksand', sans-serif; letter-spacing: 0.04em; color: rgba(255,255,255,0.75); text-align: center; margin-bottom: 32px; }
-.services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .service-card {
   background: rgba(255,255,255,0.06); border-radius: 8px; padding: 28px 24px;
   backdrop-filter: blur(8px);
@@ -886,7 +891,9 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .cta-primary:hover { background: var(--sienna); }
 
 /* ── Responsive ── */
-/* 700px rules merged into 768px below */
+@media (max-width: 960px) {
+  .services-grid { grid-template-columns: 1fr 1fr; }
+}
 
 @media (max-width: 768px) {
   /* ── Global mobile layout ── */
@@ -913,10 +920,10 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   #narrator-overlay .narrator-text { padding: 0 16px 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; max-height: calc(30vh - 42px); }
   #narrator-overlay .narrator-hint { display: none; }
   #narrator-overlay:not(.hidden) { pointer-events: auto; }
-  #narrator-toggle { top: auto; bottom: 52px; right: 8px; z-index: 260; padding: 8px 12px; min-height: 44px; min-width: 44px; font-size: 11px; }
-  #S0 .narrator-hint { position: fixed; top: auto; bottom: 100px; right: 8px; flex-direction: row-reverse; }
-  #S0 .narrator-hint-text { text-align: left; font-size: 11px; max-width: 180px; }
-  #S0 .narrator-hint-arrow { transform: rotate(90deg); }
+  #narrator-toggle { top: 60px; bottom: auto; right: 8px; z-index: 310; padding: 8px 12px; min-height: 44px; min-width: 44px; font-size: 11px; }
+  #S0 .narrator-hint { position: fixed; top: 108px; bottom: auto; right: 8px; flex-direction: column; align-items: flex-end; }
+  #S0 .narrator-hint-text { text-align: right; font-size: 11px; max-width: 180px; }
+  #S0 .narrator-hint-arrow { transform: none; }
   #agendaHint { top: 52px; left: 20px; }
   #agendaHint .onboard-arrow { transform: rotate(-90deg); }
   #agendaHint .onboard-arrow { transform: rotate(-90deg); }
@@ -1383,23 +1390,31 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       </div>
     </div>
     <div class="services-section">
-      <h3 class="services-label">some of the ways we work with conferences and events</h3>
+      <h3 class="services-label">what we offer conferences and events</h3>
       <div class="services-grid">
         <div class="service-card">
-          <h4>helping speakers maximise their messaging</h4>
-          <p>working with your keynote speakers to redesign their sessions so the format matches their content.</p>
+          <h4>the architecture between sessions</h4>
+          <p>redesigning registration, breaks, lunch, and close so the day accumulates rather than just proceeds.</p>
         </div>
         <div class="service-card">
-          <h4>adding meaning to your content</h4>
-          <p>designing the architecture between and around presentations so the day accumulates rather than just proceeds.</p>
+          <h4>helping your speakers walk their talk</h4>
+          <p>working with keynote speakers to redesign their sessions so the format matches their content.</p>
         </div>
         <div class="service-card">
-          <h4>co-creating games with your keynote speakers</h4>
-          <p>designing interactive, play-based activities that connect directly to the research being presented.</p>
+          <h4>the digital thread</h4>
+          <p>a companion app linked to badge QR codes that threads the experience before, during, and after the day.</p>
         </div>
         <div class="service-card">
-          <h4>aligning your event to Universal Design for Learning</h4>
-          <p>making sure the day works for every person in the room, with multiple ways into every activity and no single mode privileged.</p>
+          <h4>the complete reimagining</h4>
+          <p>full experience design from first email to post-conference follow-up — everything you just walked through.</p>
+        </div>
+        <div class="service-card">
+          <h4>building your team's capacity</h4>
+          <p>a train-the-trainer programme so your organising team can design engaging conferences independently.</p>
+        </div>
+        <div class="service-card">
+          <h4>proving it worked</h4>
+          <p>pre/post measurement, real-time pulse data, and impact briefs — the same rigour we bring to programme evaluation.</p>
         </div>
       </div>
       <div class="ft-hook">do you have 60 seconds to play with us?</div>
@@ -1962,13 +1977,13 @@ function initCollage() {
   if (collageInit) return; collageInit = true;
   var s = document.getElementById('collageSurface');
   var fragments = [
-    {t:'the gap between what we study and how we gather', color:'var(--cadet)', bg:'rgba(1,113,185,0.07)'},
+    {t:'the gap between what we study and how we gather', color:'var(--cadet)', bg:'rgba(3,107,180,0.07)'},
     {t:'beetles need houses too', color:'var(--redwood)', bg:'rgba(26,93,102,0.05)', italic:true},
-    {t:'the minister and the teacher', color:'var(--dark)', bg:'rgba(1,113,185,0.04)'},
+    {t:'the minister and the teacher', color:'var(--dark)', bg:'rgba(3,107,180,0.04)'},
     {t:'what if boredom is the beginning', color:'var(--sienna)', bg:'rgba(0,166,182,0.07)'},
-    {t:'children prototype constantly', color:'var(--cadet)', bg:'rgba(1,113,185,0.05)'},
+    {t:'children prototype constantly', color:'var(--cadet)', bg:'rgba(3,107,180,0.05)'},
     {t:'watch this', color:'var(--redwood)', bg:'rgba(26,93,102,0.04)', italic:true},
-    {t:'mess is methodology', color:'var(--cadet)', bg:'rgba(1,113,185,0.05)'},
+    {t:'mess is methodology', color:'var(--cadet)', bg:'rgba(3,107,180,0.05)'},
   ];
   var positions = [
     {l:3, t:8}, {l:55, t:5}, {l:30, t:30}, {l:70, t:35},
