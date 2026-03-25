@@ -285,9 +285,6 @@ function ResultPage({
   const isLightQuadrant = getQuadrant(state) === "product-research";
   const tagTextColor = isLightQuadrant ? "var(--wv-cadet, #273248)" : "#ffffff";
 
-  const emailBody = encodeURIComponent(
-    `I'm interested in the "${pack.title}" package from winded.vertigo.\n\nQuadrant: ${state.audience} × ${state.mode}\nServices: ${state.focus.join(", ")}\nGoals: ${state.goals.join(", ")}\n\n${pack.promise}\n\nLearn more at windedvertigo.com`,
-  );
 
   return (
     <div style={{ paddingTop: 10, paddingBottom: 40, maxWidth: 540, margin: "0 auto" }}>
@@ -437,10 +434,11 @@ function ResultPage({
           book a playdate
         </a>
         <a
-          href={`mailto:?subject=My winded.vertigo package: ${encodeURIComponent(pack.title)}&body=${emailBody}`}
+          href={`https://pub-c685a810f5794314a106e0f249c740c9.r2.dev/package-pdfs/${getQuadrant(state)}.pdf`}
+          download={`winded-vertigo-${getQuadrant(state)}.pdf`}
           className={`${styles.ctaBtn} ${styles.secondary}`}
         >
-          email package
+          download package
         </a>
         <button className={`${styles.ctaBtn} ${styles.outline}`} onClick={onStartOver}>
           start over

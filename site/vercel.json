@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/generate-pdfs?token=${CRON_SECRET}",
+      "schedule": "0 6 * * 1"
+    }
+  ],
   "rewrites": [
     {
       "source": "/portfolio/assets/pedal-conference-experience",
