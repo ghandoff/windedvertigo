@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Mail, ExternalLink } from "lucide-react";
+import { ArrowLeft, Mail, ExternalLink, Users } from "lucide-react";
 import { getOrganization } from "@/lib/notion/organizations";
+import { getContact } from "@/lib/notion/contacts";
+import { NewContactDialog } from "@/app/components/new-contact-dialog";
 import { PageHeader } from "@/app/components/page-header";
 import { StatusBadge } from "@/app/components/status-badge";
 import { PriorityBadge, FitBadge } from "@/app/components/priority-badge";
@@ -25,6 +27,18 @@ export default async function OrganizationDetailPage({ params }: Props) {
   } catch {
     notFound();
   }
+
+  // Resolve linked contact names
+  const linkedContacts = await Promise.all(
+    (org.contactIds ?? []).slice(0, 10).map(async (cId) => {
+      try {
+        const c = await getContact(cId);
+        return { id: c.id, name: c.name, role: c.role, email: c.email };
+      } catch {
+        return { id: cId, name: cId.slice(0, 8) + "...", role: "", email: "" };
+      }
+    }),
+  );
 
   return (
     <>
@@ -232,19 +246,39 @@ export default async function OrganizationDetailPage({ params }: Props) {
             </CardContent>
           </Card>
 
-          {/* Linked records */}
+          {/* Contacts */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">contacts</CardTitle>
+              <NewContactDialog organizationId={org.id} compact />
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {linkedContacts.length > 0 ? (
+                linkedContacts.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/contacts/${c.id}`}
+                    className="flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-muted transition-colors"
+                  >
+                    <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-xs truncate">{c.name}</p>
+                      {c.role && <p className="text-[10px] text-muted-foreground truncate">{c.role}</p>}
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-muted-foreground text-xs py-2">no contacts linked yet</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Other linked records */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">linked records</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div>
-                <span className="text-muted-foreground">contacts</span>
-                <p className="font-medium">
-                  {org.contactIds.length > 0 ? `${org.contactIds.length} linked` : "None"}
-                </p>
-              </div>
-              <Separator />
               <div>
                 <span className="text-muted-foreground">projects</span>
                 <p className="font-medium">

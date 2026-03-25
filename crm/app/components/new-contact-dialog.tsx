@@ -6,6 +6,7 @@ import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OrgSearchField } from "./org-search-field";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -40,6 +41,7 @@ export function NewContactDialog({ organizationId, compact }: NewContactDialogPr
   const [role, setRole] = useState("");
   const [contactType, setContactType] = useState<string | null>(null);
   const [relationshipStage, setRelationshipStage] = useState<string | null>("stranger");
+  const [orgIds, setOrgIds] = useState<string[]>(organizationId ? [organizationId] : []);
 
   async function handleSave() {
     if (!name.trim()) return;
@@ -54,7 +56,7 @@ export function NewContactDialog({ organizationId, compact }: NewContactDialogPr
           role: role.trim() || undefined,
           contactType: contactType || undefined,
           relationshipStage: relationshipStage || "stranger",
-          organizationIds: organizationId ? [organizationId] : undefined,
+          organizationIds: orgIds.length > 0 ? orgIds : undefined,
         }),
       });
 
@@ -115,6 +117,10 @@ export function NewContactDialog({ organizationId, compact }: NewContactDialogPr
                 {STAGE_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+          <div>
+            <Label className="mb-1.5 block">organization</Label>
+            <OrgSearchField value={orgIds} onChange={setOrgIds} multiple={false} />
           </div>
           <Button onClick={handleSave} disabled={!name.trim() || saving} className="w-full">
             {saving ? "creating..." : "create contact"}

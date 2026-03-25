@@ -6,6 +6,7 @@ import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { OrgSearchField } from "./org-search-field";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -47,6 +48,7 @@ export function ContactEditDialog({ contact, trigger }: ContactEditDialogProps) 
   const [relationshipStage, setRelationshipStage] = useState<string | null>(contact.relationshipStage);
   const [responsiveness, setResponsiveness] = useState<string | null>(contact.responsiveness);
   const [nextAction, setNextAction] = useState(contact.nextAction);
+  const [organizationIds, setOrganizationIds] = useState(contact.organizationIds);
   const [linkedin, setLinkedin] = useState(contact.linkedin);
   const [phoneNumber, setPhoneNumber] = useState(contact.phoneNumber);
 
@@ -65,6 +67,7 @@ export function ContactEditDialog({ contact, trigger }: ContactEditDialogProps) 
           relationshipStage: relationshipStage || undefined,
           responsiveness: responsiveness || undefined,
           nextAction: nextAction || undefined,
+          organizationIds,
           linkedin: linkedin || undefined,
           phoneNumber: phoneNumber || undefined,
         }),
@@ -132,6 +135,10 @@ export function ContactEditDialog({ contact, trigger }: ContactEditDialogProps) 
                 {RESPONSIVENESS_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+          <div>
+            <Label className="mb-1.5 block">organizations</Label>
+            <OrgSearchField value={organizationIds} onChange={setOrganizationIds} />
           </div>
           <div>
             <Label className="mb-1.5 block">next action</Label>
