@@ -16,7 +16,10 @@ export default auth((req) => {
     pathname.startsWith("/crm/api/auth") ||
     pathname === "/crm/login" ||
     pathname.startsWith("/crm/_next") ||
-    pathname.startsWith("/crm/favicon")
+    pathname.startsWith("/crm/favicon") ||
+    pathname === "/crm/sw.js" ||
+    pathname === "/crm/manifest.json" ||
+    pathname.startsWith("/crm/images/")
   ) {
     return NextResponse.next();
   }
