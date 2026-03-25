@@ -22,6 +22,8 @@ const ACTIVITY_TYPES = [
 
 const OUTCOMES = ["positive", "neutral", "no response", "declined"] as const;
 
+const TEAM_MEMBERS = ["garrett", "maría", "jamie", "lamis", "yigal"] as const;
+
 interface LogActivityDialogProps {
   contactId?: string;
   contactName?: string;
@@ -162,11 +164,16 @@ export function LogActivityDialog({
 
           <div>
             <Label className="mb-1.5 block">logged by</Label>
-            <Input
-              placeholder="your name"
-              value={loggedBy}
-              onChange={(e) => setLoggedBy(e.target.value)}
-            />
+            <Select value={loggedBy || ""} onValueChange={(v) => setLoggedBy(v ?? "")}>
+              <SelectTrigger>
+                <SelectValue placeholder="who are you?" />
+              </SelectTrigger>
+              <SelectContent>
+                {TEAM_MEMBERS.map((m) => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Button onClick={handleSave} disabled={!activity.trim() || saving} className="w-full">

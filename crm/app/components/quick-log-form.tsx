@@ -23,6 +23,8 @@ const ACTIVITY_TYPES = [
   "proposal shared", "other",
 ] as const;
 
+const TEAM_MEMBERS = ["garrett", "maría", "jamie", "lamis", "yigal"] as const;
+
 const OUTCOMES = ["positive", "neutral", "no response", "declined"] as const;
 
 export function QuickLogForm() {
@@ -248,12 +250,16 @@ export function QuickLogForm() {
       {/* Logged by */}
       <div>
         <Label className="mb-1.5 block text-xs">logged by</Label>
-        <Input
-          placeholder="your name"
-          value={loggedBy}
-          onChange={(e) => setLoggedBy(e.target.value)}
-          className="text-sm"
-        />
+        <Select value={loggedBy || ""} onValueChange={(v) => setLoggedBy(v ?? "")}>
+          <SelectTrigger className="text-sm">
+            <SelectValue placeholder="who are you?" />
+          </SelectTrigger>
+          <SelectContent>
+            {TEAM_MEMBERS.map((m) => (
+              <SelectItem key={m} value={m} className="text-sm">{m}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Save */}
