@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { StepTimeline } from "@/app/components/step-timeline";
 import { AudiencePanel } from "@/app/components/audience-panel";
+import { DeleteCampaignButton } from "@/app/components/delete-campaign-button";
 
 export const revalidate = 300;
 
@@ -67,6 +68,7 @@ export default async function CampaignDetailPage({ params }: Props) {
           >
             analytics
           </Link>
+          <DeleteCampaignButton campaignId={id} campaignName={campaign.name} redirect />
           <Badge variant="outline" className={STATUS_COLORS[campaign.status] ?? ""}>
             {campaign.status}
           </Badge>

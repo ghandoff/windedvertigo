@@ -7,6 +7,7 @@ import { DraggableKanban, type KanbanColumn } from "./draggable-kanban";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays, Users } from "lucide-react";
+import { DeleteCampaignButton } from "./delete-campaign-button";
 import type { Campaign } from "@/lib/notion/types";
 
 const STATUS_COLUMNS: KanbanColumn[] = [
@@ -29,7 +30,10 @@ function CampaignCard({ campaign }: { campaign: CampaignKanbanItem }) {
     <Link href={`/campaigns/${campaign.id}`}>
       <Card className="hover:shadow-md transition-shadow cursor-pointer">
         <CardContent className="p-3 space-y-2">
-          <p className="text-sm font-medium leading-tight">{campaign.name}</p>
+          <div className="flex items-start justify-between gap-1">
+            <p className="text-sm font-medium leading-tight">{campaign.name}</p>
+            <DeleteCampaignButton campaignId={campaign.id} campaignName={campaign.name} variant="compact" />
+          </div>
           <div className="flex flex-wrap gap-1.5">
             {campaign.type && (
               <Badge variant="outline" className={`text-[10px] ${TYPE_COLORS[campaign.type] ?? ""}`}>

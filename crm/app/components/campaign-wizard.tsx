@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { BlueprintPicker } from "./blueprint-picker";
 import { StepCustomizer, type WizardStep } from "./step-customizer";
 import { AudienceBuilderInline } from "./audience-builder-inline";
+import { AudienceList } from "./audience-list";
+import { LaunchChecklist } from "./launch-checklist";
 import { useMembers } from "@/lib/pwa/use-members";
 import type { Blueprint, StepChannel, AudienceFilter } from "@/lib/notion/types";
 
@@ -75,6 +77,8 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
   // Step 3: audience
   const [audienceFilters, setAudienceFilters] = useState<AudienceFilter>({});
   const [audienceCount, setAudienceCount] = useState(0);
+  const [addedOrgIds, setAddedOrgIds] = useState<string[]>([]);
+  const [removedOrgIds, setRemovedOrgIds] = useState<string[]>([]);
 
   // Step 4: steps
   const [steps, setSteps] = useState<WizardStep[]>([]);
@@ -297,6 +301,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
             value={audienceFilters}
             onChange={(f) => {
               setAudienceFilters(f);
+              setRemovedOrgIds([]); // reset exclusions when filters change
               // Fetch count
               fetch("/crm/api/audience/preview", {
                 method: "POST",
@@ -308,15 +313,22 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
                 .catch(() => {});
             }}
           />
-          {audienceCount > 0 && (
-            <p className="text-sm font-medium">{audienceCount} organizations match</p>
-          )}
+
+          {/* Full audience list with add/remove */}
+          <AudienceList
+            filters={audienceFilters}
+            addedIds={addedOrgIds}
+            removedIds={removedOrgIds}
+            onAddedChange={setAddedOrgIds}
+            onRemovedChange={setRemovedOrgIds}
+          />
+
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => setCurrentStep(2)}>
               <ArrowLeft className="h-4 w-4 mr-1.5" /> back
             </Button>
             <Button onClick={() => setCurrentStep(4)}>
-              next ({audienceCount} orgs) <ArrowRight className="h-4 w-4 ml-1.5" />
+              next ({audienceCount - removedOrgIds.length + addedOrgIds.length} orgs) <ArrowRight className="h-4 w-4 ml-1.5" />
             </Button>
           </div>
         </div>
@@ -383,28 +395,30 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
             </div>
           </div>
 
-          <Card>
-            <CardContent className="p-4 space-y-2 text-sm">
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">{campaignType}</Badge>
-                {selectedChannels.map((ch) => (
-                  <Badge key={ch} variant="secondary" className="text-xs">{ch}</Badge>
-                ))}
-              </div>
-              <p>{steps.length} steps · {audienceCount} organizations</p>
-              {selectedBlueprint && (
-                <p className="text-muted-foreground text-xs">
-                  based on: {selectedBlueprint.name}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          {/* Launch checklist gate */}
+          <LaunchChecklist
+            name={name}
+            campaignType={campaignType}
+            selectedChannels={selectedChannels}
+            blueprintName={selectedBlueprint?.name}
+            audienceFilters={audienceFilters}
+            audienceCount={audienceCount - removedOrgIds.length}
+            addedCount={addedOrgIds.length}
+            removedCount={removedOrgIds.length}
+            stepCount={steps.length}
+            steps={steps.map((s) => ({ channel: s.channel, subject: s.subject, body: s.body }))}
+            owner={owner}
+            startDate={startDate}
+          />
 
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => setCurrentStep(4)}>
               <ArrowLeft className="h-4 w-4 mr-1.5" /> back
             </Button>
-            <Button onClick={handleCreate} disabled={!name.trim() || creating}>
+            <Button
+              onClick={handleCreate}
+              disabled={!name.trim() || steps.length === 0 || creating}
+            >
               {creating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />

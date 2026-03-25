@@ -1,0 +1,99 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface DeleteCampaignButtonProps {
+  campaignId: string;
+  campaignName: string;
+  /** compact = icon-only button (for kanban cards), full = labeled button (for detail page) */
+  variant?: "compact" | "full";
+  /** redirect to /campaigns after delete (for detail page) */
+  redirect?: boolean;
+}
+
+export function DeleteCampaignButton({
+  campaignId,
+  campaignName,
+  variant = "full",
+  redirect = false,
+}: DeleteCampaignButtonProps) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/crm/api/campaigns/${campaignId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        startTransition(() => {
+          if (redirect) {
+            router.push("/campaigns");
+          } else {
+            router.refresh();
+          }
+        });
+      }
+    } finally {
+      setDeleting(false);
+      setConfirming(false);
+    }
+  }
+
+  if (confirming) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-destructive">
+          delete &ldquo;{campaignName}&rdquo;?
+        </span>
+        <Button
+          size="sm"
+          variant="destructive"
+          onClick={handleDelete}
+          disabled={deleting}
+          className="h-7 text-xs"
+        >
+          {deleting ? "deleting..." : "yes, delete"}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setConfirming(false)}
+          className="h-7 text-xs"
+        >
+          cancel
+        </Button>
+      </div>
+    );
+  }
+
+  if (variant === "compact") {
+    return (
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirming(true); }}
+        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+        title="delete campaign"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    );
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setConfirming(true)}
+      className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+    >
+      <Trash2 className="h-4 w-4 mr-1.5" />
+      delete campaign
+    </Button>
+  );
+}

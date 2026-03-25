@@ -49,12 +49,22 @@ export function boolParam(
   return v === "true" || v === "1";
 }
 
-/** Wrap a handler with Notion error handling. */
+/**
+ * Wrap a handler with Notion error handling.
+ *
+ * The callback can return either:
+ *  - A plain object → gets wrapped in json() with status 200
+ *  - A NextResponse (e.g., from calling json(data, 201)) → passed through as-is
+ *
+ * This prevents the double-wrapping bug where json() is called twice.
+ */
 export async function withNotionError<T>(
   fn: () => Promise<T>,
 ): Promise<NextResponse> {
   try {
     const result = await fn();
+    // If the callback already returned a NextResponse, pass it through
+    if (result instanceof NextResponse) return result;
     return json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
