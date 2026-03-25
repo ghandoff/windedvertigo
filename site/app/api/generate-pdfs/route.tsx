@@ -13,7 +13,7 @@ import { fetchPackageBuilderData } from "@/lib/notion";
 import { uploadBuffer, getPublicUrl } from "@/lib/r2";
 import { PackagePDF } from "@/lib/pdf/package-template";
 
-export const maxDuration = 30; // seconds — generous for 4 PDF renders + uploads
+export const maxDuration = 120; // seconds — Notion search + 4 PDF renders + 4 R2 uploads
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
