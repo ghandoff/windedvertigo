@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>play for all accelerator — winded.vertigo × LEGO Foundation</title>
+<meta name="description" content="How winded.vertigo supported the LEGO Foundation's $20M Play for All Accelerator across all four quadrants of our practice — pedagogy, evidence, inclusion, and product design for neurodivergent children.">
+<link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="play for all accelerator — winded.vertigo × LEGO Foundation">
+<meta property="og:description" content="A $20M global accelerator for neurodivergent children. One project. All four quadrants.">
+<meta property="og:image" content="https://www.littlejourney.health/hs-fs/hubfs/DSC07992.jpg?width=7054&name=DSC07992.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cadet: #273248;
+  --cadet-light: #1e2738;
+  --redwood: #b15043;
+  --sienna: #cb7858;
+  --champagne: #ffebd2;
+  --white: #ffffff;
+  --mint: #58cbb2;
+
+  /* quadrant accent colours */
+  --q-people-design: #5b8dd9;
+  --q-people-research: #e0a050;
+  --q-product-design: #c95045;
+  --q-product-research: #8a8fa0;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  word-spacing: 0.04em;
+  color: var(--champagne);
+  background: var(--cadet);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--sienna); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--champagne); }
+:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+
+img { max-width: 100%; height: auto; display: block; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+/* ── back nav ── */
+.back-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(39,50,72,0.92);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  padding: 12px 24px;
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.back-nav a { color: rgba(255,235,210,0.6); }
+.back-nav a:hover { color: var(--champagne); }
+.back-nav span { color: rgba(255,235,210,0.3); margin: 0 6px; }
+
+/* ── hero ── */
+.hero {
+  min-height: 70vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url('https://www.littlejourney.health/hs-fs/hubfs/DSC07992.jpg?width=7054&name=DSC07992.jpg') center/cover no-repeat;
+  opacity: 0.12;
+}
+.hero > * { position: relative; z-index: 1; }
+
+.hero-eyebrow {
+  font-size: 13px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: var(--sienna);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: 700; line-height: 1.15;
+  text-transform: lowercase;
+  max-width: 700px;
+  margin-bottom: 24px;
+}
+.hero-sub {
+  font-size: 18px; font-weight: 300; line-height: 1.6;
+  max-width: 560px;
+  color: rgba(255,235,210,0.8);
+  margin-bottom: 32px;
+}
+.hero-stats {
+  display: flex; gap: 32px; flex-wrap: wrap; justify-content: center;
+}
+.stat { text-align: center; }
+.stat-value {
+  font-size: 28px; font-weight: 700; color: var(--white);
+  line-height: 1.2;
+}
+.stat-label {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+  color: rgba(255,235,210,0.5);
+  text-transform: lowercase;
+}
+
+/* ── section shared ── */
+section { padding: 80px 0; }
+section h2 {
+  font-size: clamp(22px, 3.5vw, 32px);
+  font-weight: 700; line-height: 1.3;
+  text-transform: lowercase;
+  margin-bottom: 24px;
+}
+
+.section-lead {
+  font-size: 17px; font-weight: 300; line-height: 1.7;
+  color: rgba(255,235,210,0.8);
+  max-width: 65ch;
+  margin-bottom: 48px;
+}
+
+/* ── quadrant infographic ── */
+.infographic { padding: 60px 0 80px; }
+.infographic h2 { text-align: center; margin-bottom: 12px; }
+.infographic .section-lead { text-align: center; margin: 0 auto 48px; }
+
+.quad-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 3px;
+  max-width: 720px;
+  margin: 0 auto 16px;
+  position: relative;
+}
+
+/* axis labels */
+.axis-labels { max-width: 720px; margin: 0 auto; position: relative; }
+.axis-x {
+  display: flex; justify-content: space-around;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+  color: rgba(255,235,210,0.35);
+  text-transform: lowercase;
+  margin-bottom: 12px;
+}
+.axis-y {
+  position: absolute;
+  left: -48px; top: 0; bottom: 0;
+  display: flex; flex-direction: column; justify-content: space-around;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+  color: rgba(255,235,210,0.35);
+  text-transform: lowercase;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+}
+
+.quad-card {
+  background: var(--cadet-light);
+  padding: 28px 24px;
+  cursor: pointer;
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex; flex-direction: column;
+}
+.quad-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  transition: height 0.35s ease;
+}
+.quad-card:hover { transform: scale(1.02); z-index: 2; }
+.quad-card:hover::before { height: 5px; }
+
+.quad-card[data-q="people-design"]::before { background: var(--q-people-design); }
+.quad-card[data-q="people-research"]::before { background: var(--q-people-research); }
+.quad-card[data-q="product-design"]::before { background: var(--q-product-design); }
+.quad-card[data-q="product-research"]::before { background: var(--q-product-research); }
+
+.quad-card .q-name {
+  font-size: 14px; font-weight: 700;
+  text-transform: lowercase;
+  margin-bottom: 4px;
+}
+.quad-card[data-q="people-design"] .q-name { color: var(--q-people-design); }
+.quad-card[data-q="people-research"] .q-name { color: var(--q-people-research); }
+.quad-card[data-q="product-design"] .q-name { color: var(--q-product-design); }
+.quad-card[data-q="product-research"] .q-name { color: var(--q-product-research); }
+
+.quad-card .q-tagline {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
+  color: rgba(255,235,210,0.4);
+  text-transform: lowercase;
+  margin-bottom: 12px;
+}
+
+.quad-card .q-who {
+  font-size: 12px; font-weight: 600;
+  color: rgba(255,235,210,0.7);
+  margin-bottom: 8px;
+}
+
+.quad-card .q-brief {
+  font-size: 13px; font-weight: 300; line-height: 1.55;
+  color: rgba(255,235,210,0.6);
+  flex: 1;
+}
+
+.quad-card .q-detail {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.5s ease, opacity 0.4s ease;
+  opacity: 0;
+  font-size: 13px; font-weight: 300; line-height: 1.6;
+  color: rgba(255,235,210,0.65);
+  margin-top: 0;
+}
+.quad-card.expanded .q-detail {
+  max-height: 400px; opacity: 1; margin-top: 12px;
+}
+
+.quad-card .q-toggle {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
+  color: var(--sienna);
+  margin-top: 10px;
+  transition: color 0.2s;
+}
+.quad-card:hover .q-toggle { color: var(--champagne); }
+
+/* center label */
+.interstice-label {
+  text-align: center;
+  font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
+  color: rgba(255,235,210,0.35);
+  text-transform: lowercase;
+  margin-top: 20px;
+  max-width: 720px; margin-left: auto; margin-right: auto;
+}
+.interstice-label em {
+  font-style: normal;
+  color: var(--sienna);
+}
+
+/* ── deep sections ── */
+.deep-section {
+  padding: 64px 0;
+  border-top: 1px solid rgba(255,235,210,0.06);
+}
+.deep-section .q-header {
+  display: flex; align-items: baseline; gap: 12px;
+  margin-bottom: 8px;
+}
+.deep-section .q-header h3 {
+  font-size: 22px; font-weight: 700;
+  text-transform: lowercase;
+  line-height: 1.3;
+}
+.deep-section .q-header .q-subtitle {
+  font-size: 13px; font-weight: 400;
+  color: rgba(255,235,210,0.45);
+  font-style: italic;
+}
+.deep-section .q-team {
+  font-size: 14px; font-weight: 500;
+  color: var(--sienna);
+  margin-bottom: 20px;
+}
+.deep-section p {
+  font-size: 15px; font-weight: 300; line-height: 1.7;
+  color: rgba(255,235,210,0.8);
+  max-width: 65ch;
+  margin-bottom: 16px;
+}
+.deep-section .sig-output {
+  background: rgba(255,235,210,0.04);
+  border-left: 3px solid var(--sienna);
+  padding: 16px 20px;
+  margin: 24px 0;
+  font-size: 14px; font-weight: 400;
+  color: rgba(255,235,210,0.7);
+}
+
+.deep-section[data-q="people-design"] .q-header h3 { color: var(--q-people-design); }
+.deep-section[data-q="people-research"] .q-header h3 { color: var(--q-people-research); }
+.deep-section[data-q="product-design"] .q-header h3 { color: var(--q-product-design); }
+.deep-section[data-q="product-research"] .q-header h3 { color: var(--q-product-research); }
+
+/* ── image row ── */
+.img-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  margin: 32px 0;
+}
+.img-row img { border-radius: 6px; width: 100%; object-fit: cover; }
+.img-row figcaption {
+  font-size: 11px; font-weight: 400;
+  color: rgba(255,235,210,0.4);
+  margin-top: 6px;
+  text-transform: lowercase;
+}
+
+.img-full {
+  margin: 32px 0;
+}
+.img-full img { border-radius: 6px; width: 100%; }
+.img-full figcaption {
+  font-size: 11px; font-weight: 400;
+  color: rgba(255,235,210,0.4);
+  margin-top: 6px;
+  text-transform: lowercase;
+}
+
+/* ── interstices narrative ── */
+.interstices {
+  padding: 80px 0;
+  border-top: 1px solid rgba(255,235,210,0.06);
+  text-align: center;
+}
+.interstices h2 { margin-bottom: 16px; }
+.interstices .section-lead { margin: 0 auto 40px; }
+
+.interstices-bullets {
+  display: grid; grid-template-columns: 1fr; gap: 20px;
+  max-width: 640px; margin: 0 auto;
+  text-align: left;
+}
+.interstices-bullets .bullet {
+  padding: 20px 24px;
+  background: rgba(255,235,210,0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255,235,210,0.06);
+  font-size: 14px; font-weight: 300; line-height: 1.65;
+  color: rgba(255,235,210,0.75);
+}
+
+/* ── outcomes ── */
+.outcomes { padding: 80px 0; border-top: 1px solid rgba(255,235,210,0.06); }
+.outcomes-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.outcome-card {
+  background: var(--cadet-light);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,235,210,0.06);
+}
+.outcome-card h4 {
+  font-size: 14px; font-weight: 600;
+  text-transform: lowercase;
+  color: var(--champagne);
+  margin-bottom: 6px;
+}
+.outcome-card p {
+  font-size: 13px; font-weight: 300; line-height: 1.55;
+  color: rgba(255,235,210,0.6);
+}
+
+/* ── key facts ── */
+.facts {
+  padding: 64px 0;
+  border-top: 1px solid rgba(255,235,210,0.06);
+}
+.facts-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 24px;
+}
+.fact-item .fact-label {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+  color: rgba(255,235,210,0.4);
+  text-transform: lowercase;
+  margin-bottom: 4px;
+}
+.fact-item .fact-value {
+  font-size: 16px; font-weight: 500;
+  color: var(--champagne);
+}
+
+/* ── footer ── */
+footer {
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,235,210,0.3);
+  border-top: 1px solid rgba(255,235,210,0.06);
+}
+footer a { color: rgba(255,235,210,0.5); }
+
+/* ── responsive ── */
+@media (max-width: 768px) {
+  .quad-grid { grid-template-columns: 1fr; gap: 8px; }
+  .quad-card { min-height: auto; }
+  .axis-x, .axis-y { display: none; }
+  .hero-stats { gap: 20px; }
+  .img-row { grid-template-columns: 1fr; }
+  .hero { min-height: 60vh; padding: 100px 20px 60px; }
+  section { padding: 60px 0; }
+  .deep-section .q-header { flex-direction: column; gap: 2px; }
+}
+
+@media (max-width: 480px) {
+  .hero-stats { flex-direction: column; gap: 12px; }
+  .facts-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- back nav -->
+<nav class="back-nav">
+  <a href="/portfolio">portfolio</a>
+  <span>/</span>
+  <a href="#" style="color: var(--champagne); pointer-events: none;">play for all accelerator</a>
+</nav>
+
+<!-- hero -->
+<header class="hero">
+  <p class="hero-eyebrow">the lego foundation · 2022–2024 · global</p>
+  <h1>play for all accelerator</h1>
+  <p class="hero-sub">a $20M programme supporting neurodivergent children through play-based innovation. winded.vertigo provided integrated support across pedagogy, evidence, and inclusion — one project that activated all four quadrants.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-value">$20M</div>
+      <div class="stat-label">programme value</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">25</div>
+      <div class="stat-label">organizations</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">5</div>
+      <div class="stat-label">long-term partners</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">3</div>
+      <div class="stat-label">w.v. team members</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">4</div>
+      <div class="stat-label">quadrants activated</div>
+    </div>
+  </div>
+</header>
+
+<!-- quadrant infographic -->
+<section class="infographic">
+  <div class="container">
+    <h2>one project. four quadrants.</h2>
+    <p class="section-lead">the Play for All Accelerator is one of w.v.'s clearest examples of cross-quadrant integration — a single engagement that required simultaneous work across all four modes.</p>
+
+    <div class="axis-labels">
+      <div class="axis-x">
+        <span>design</span>
+        <span>research</span>
+      </div>
+    </div>
+
+    <div class="quad-grid">
+      <div class="quad-card" data-q="people-design" onclick="toggleCard(this)">
+        <div class="q-name">people × design</div>
+        <div class="q-tagline">design & deploy</div>
+        <div class="q-who">led by maria + jamie</div>
+        <div class="q-brief">designed and facilitated learning experiences for accelerator participants — training organizations to internalize play-based and inclusive approaches.</div>
+        <div class="q-detail">
+          maria designed pedagogical training sessions grounded in learning through play. jamie delivered hands-on workshops on participatory design and neurodiversity. facilitation sequences were designed so each organization could adapt approaches to their own product context.
+        </div>
+        <div class="q-toggle">tap to expand ↓</div>
+      </div>
+
+      <div class="quad-card" data-q="people-research" onclick="toggleCard(this)">
+        <div class="q-name">people × research</div>
+        <div class="q-tagline">measure & map</div>
+        <div class="q-who">led by garrett</div>
+        <div class="q-brief">measured how participating organizations were developing capacity — tracking growth in inclusive design practice and play-based learning literacy.</div>
+        <div class="q-detail">
+          garrett designed evidence frameworks to assess organizational learning across the 25 participating organizations. psychometric approaches informed how skill development was tracked — not just satisfaction surveys, but rigorous assessment of new capabilities.
+        </div>
+        <div class="q-toggle">tap to expand ↓</div>
+      </div>
+
+      <div class="quad-card" data-q="product-design" onclick="toggleCard(this)">
+        <div class="q-name">product × design</div>
+        <div class="q-tagline">build & iterate</div>
+        <div class="q-who">led by maria + jamie</div>
+        <div class="q-brief">helped organizations build and refine products that serve neurodivergent children — embedding play-based learning and inclusive design directly into tools and platforms.</div>
+        <div class="q-detail">
+          maria guided Social Cipher in strengthening their video game platform (resulting in World Builder) and supported Kahoot in developing Kahoot Sparks. jamie embedded UDL principles into product architecture. both Social Cipher and Kahoot ended up with significantly more open-ended play alternatives.
+        </div>
+        <div class="q-toggle">tap to expand ↓</div>
+      </div>
+
+      <div class="quad-card" data-q="product-research" onclick="toggleCard(this)">
+        <div class="q-name">product × research</div>
+        <div class="q-tagline">test & validate</div>
+        <div class="q-who">led by garrett</div>
+        <div class="q-brief">evaluated whether products and programmes created through the accelerator actually deliver on their developmental promises for neurodivergent children.</div>
+        <div class="q-detail">
+          garrett led evidence reviews assessing product efficacy — his work with Little Journey was particularly strong. MEL frameworks were designed for the programme at scale with continuous feedback loops, not just accountability metrics.
+        </div>
+        <div class="q-toggle">tap to expand ↓</div>
+      </div>
+    </div>
+
+    <p class="interstice-label">↑ <em>the interstices</em> — where the real work happens ↑</p>
+  </div>
+</section>
+
+<!-- deep dive: people × design -->
+<div class="container">
+  <section class="deep-section" data-q="people-design" id="people-design">
+    <div class="q-header">
+      <h3>people × design</h3>
+      <span class="q-subtitle">learning experience design and facilitation</span>
+    </div>
+    <div class="q-team">maria (pedagogy) · jamie (inclusion)</div>
+
+    <p>maria designed pedagogical training sessions grounded in learning through play, helping organizations move from surface-level play references to developmentally grounded design. she brought deep experience from prior LEGO Foundation programme management in Mexico — where she trained 100,000+ teachers — to guide accelerator participants.</p>
+
+    <p>jamie delivered hands-on workshops on participatory design and neurodiversity, building organizational capacity for co-creation with neurodivergent communities. facilitation sequences were designed so each organization could adapt approaches to their own product context — not one-size-fits-all delivery, but responsive learning experience design.</p>
+
+    <div class="sig-output">
+      <strong>signature output:</strong> training sessions and facilitation guides enabling organizations to run inclusive, play-based design processes independently.
+    </div>
+  </section>
+
+  <!-- deep dive: people × research -->
+  <section class="deep-section" data-q="people-research" id="people-research">
+    <div class="q-header">
+      <h3>people × research</h3>
+      <span class="q-subtitle">research and measurement of individual learning</span>
+    </div>
+    <div class="q-team">garrett (evidence & measurement)</div>
+
+    <p>garrett designed evidence frameworks to assess organizational learning and capacity development across the 25 participating organizations. psychometric approaches informed how skill development was tracked — not just satisfaction surveys, but rigorous assessment of whether organizations were genuinely building new capabilities.</p>
+
+    <p>qualitative research captured the lived experience of organizations navigating the shift toward neurodivergent-centered design.</p>
+
+    <div class="sig-output">
+      <strong>signature output:</strong> evidence frameworks and capacity assessments tracking organizational growth across the accelerator cohort.
+    </div>
+  </section>
+
+  <!-- deep dive: product × design -->
+  <section class="deep-section" data-q="product-design" id="product-design">
+    <div class="q-header">
+      <h3>product × design</h3>
+      <span class="q-subtitle">tools, curricula, and learning ecosystems</span>
+    </div>
+    <div class="q-team">maria (pedagogy) · jamie (inclusion & co-creation)</div>
+
+    <p>maria guided organizations in translating play-based learning science into concrete product features — helping Social Cipher strengthen the learning design of their video game platform (resulting in their World Builder feature), supporting Kokoro Kids in grounding their early learning app in developmental evidence, and helping Kahoot embed play-based learning into what became Kahoot Sparks.</p>
+
+    <p>jamie's co-design processes ensured products were built with neurodivergent children and families, not just for them — embedding UDL principles into product architecture, interaction patterns, and content design. jamie's ongoing work with Mom's Belief continues to shape their inclusive play toolkit. maria helped Mom's Belief redesign their play facilitation approaches in clinic settings.</p>
+
+    <p>both Social Cipher and Kahoot ended up with significantly more open-ended play alternatives integrated into their existing solutions — a concrete, visible shift in product direction.</p>
+
+    <div class="sig-output">
+      <strong>signature output:</strong> products and services with play-based learning and inclusive design embedded from the ground up.
+    </div>
+
+    <div class="img-row">
+      <figure>
+        <img src="https://cdn.prod.website-files.com/66709c21e57c80bc5f9f1681/668301716fac30db720e9dbd_643fecbacfa8eaeefb7b3818_World%2520Builder_House.png" alt="Social Cipher World Builder — house creation in the video game platform">
+        <figcaption>social cipher — world builder</figcaption>
+      </figure>
+      <figure>
+        <img src="https://kahoot.com/files/2023/12/Sparks02-300x169.png" alt="Kahoot Sparks feature for play-based learning">
+        <figcaption>kahoot — sparks</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- deep dive: product × research -->
+  <section class="deep-section" data-q="product-research" id="product-research">
+    <div class="q-header">
+      <h3>product × research</h3>
+      <span class="q-subtitle">evidence for products, programs, and systems</span>
+    </div>
+    <div class="q-team">garrett (evidence & measurement lead + advisory)</div>
+
+    <p>garrett led evidence reviews assessing whether organizations' products supported the developmental outcomes they claimed — bringing the same rigor to a learning app's claims as to a physical toy's. his work with Little Journey was particularly strong, helping validate their approach to reducing anxiety in children during healthcare interactions.</p>
+
+    <p>programme-level evaluation of the $20M accelerator itself: did this model of support actually produce better products for neurodivergent children? MEL frameworks designed for the programme at scale — not just accountability metrics for funders, but continuous feedback loops that informed the next iteration of support.</p>
+
+    <div class="sig-output">
+      <strong>signature output:</strong> programme evaluation and evidence briefs assessing product efficacy and accelerator impact.
+    </div>
+  </section>
+</div>
+
+<!-- interstices -->
+<section class="interstices">
+  <div class="container">
+    <h2>the interstices: why this matters</h2>
+    <p class="section-lead">a typical consultancy would have staffed these strands separately. the strands would have operated in silos, producing reports that didn't talk to each other. instead, the same team held all four quadrants simultaneously.</p>
+
+    <div class="interstices-bullets">
+      <div class="bullet">when jamie's inclusion work revealed that organizations were struggling with co-design, maria adapted the pedagogical training in real time.</div>
+      <div class="bullet">when garrett's evidence showed that certain product approaches weren't landing for neurodivergent users, that fed directly back into jamie's co-creation workshops and maria's pedagogical guidance.</div>
+      <div class="bullet">the evaluation didn't happen after the design — it was woven into the design from day one, because the people doing the research were the same people doing the facilitation.</div>
+    </div>
+  </div>
+</section>
+
+<!-- cohort images -->
+<section style="padding: 0 0 80px;">
+  <div class="container">
+    <div class="img-row">
+      <figure>
+        <img src="https://www.littlejourney.health/hs-fs/hubfs/DSC07763.jpg?width=7952&name=DSC07763.jpg" alt="Play for All Accelerator cohort session">
+        <figcaption>play for all — cohort session</figcaption>
+      </figure>
+      <figure>
+        <img src="https://www.littlejourney.health/hs-fs/hubfs/DSC07785.jpg?width=7952&name=DSC07785.jpg" alt="Play for All Accelerator hands-on co-design">
+        <figcaption>play for all — co-design workshop</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- visible outcomes -->
+<section class="outcomes">
+  <div class="container">
+    <h2>visible outcomes</h2>
+    <div class="outcomes-grid">
+      <div class="outcome-card">
+        <h4>social cipher</h4>
+        <p>world builder — a video game-based social-emotional learning platform for neurodivergent youth.</p>
+      </div>
+      <div class="outcome-card">
+        <h4>kahoot</h4>
+        <p>kahoot sparks — play-based learning features embedded into the existing platform.</p>
+      </div>
+      <div class="outcome-card">
+        <h4>mom's belief</h4>
+        <p>redesigned play facilitation approaches in clinic settings. jamie's ongoing collaboration.</p>
+      </div>
+      <div class="outcome-card">
+        <h4>little journey</h4>
+        <p>validated approach to reducing anxiety in children during healthcare interactions.</p>
+      </div>
+      <div class="outcome-card">
+        <h4>kokoro kids</h4>
+        <p>early learning platform grounded in developmental evidence.</p>
+      </div>
+      <div class="outcome-card">
+        <h4>onebillion</h4>
+        <p>accelerated learning content development projected to benefit 450,000+ neurodivergent children.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- key facts -->
+<section class="facts">
+  <div class="container">
+    <h2>key facts</h2>
+    <div class="facts-grid">
+      <div class="fact-item">
+        <div class="fact-label">client</div>
+        <div class="fact-value">the LEGO Foundation</div>
+      </div>
+      <div class="fact-item">
+        <div class="fact-label">programme value</div>
+        <div class="fact-value">$20M USD</div>
+      </div>
+      <div class="fact-item">
+        <div class="fact-label">duration</div>
+        <div class="fact-value">2022–2024</div>
+      </div>
+      <div class="fact-item">
+        <div class="fact-label">geography</div>
+        <div class="fact-value">global</div>
+      </div>
+      <div class="fact-item">
+        <div class="fact-label">organizations</div>
+        <div class="fact-value">25 (5 long-term)</div>
+      </div>
+      <div class="fact-item">
+        <div class="fact-label">focus</div>
+        <div class="fact-value">neurodivergent children</div>
+      </div>
+      <div class="fact-item">
+        <div class="fact-label">collaborators</div>
+        <div class="fact-value">nasen, Founders Intelligence</div>
+      </div>
+      <div class="fact-item">
+        <div class="fact-label">w.v. team</div>
+        <div class="fact-value">maria · garrett · jamie</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- footer -->
+<footer>
+  <div class="container">
+    <p><a href="/portfolio">← back to portfolio</a> · <a href="/do">explore how we work</a></p>
+    <p style="margin-top: 8px;">© winded.vertigo</p>
+  </div>
+</footer>
+
+<script>
+function toggleCard(el) {
+  const wasExpanded = el.classList.contains('expanded');
+  document.querySelectorAll('.quad-card').forEach(c => c.classList.remove('expanded'));
+  if (!wasExpanded) {
+    el.classList.add('expanded');
+    el.querySelector('.q-toggle').textContent = 'tap to collapse ↑';
+  } else {
+    el.querySelector('.q-toggle').textContent = 'tap to expand ↓';
+  }
+}
+</script>
+</body>
+</html>
