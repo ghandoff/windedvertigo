@@ -49,6 +49,21 @@ export function buildRelationContains(property: string, id: string): NotionFilte
 }
 
 /**
+ * Build an OR group from multiple values for the same property.
+ * If only one value, returns a single filter (no OR wrapper).
+ */
+export function buildSelectOrGroup(
+  property: string,
+  values: string | string[],
+  builder: (prop: string, val: string) => NotionFilter = buildSelectFilter,
+): NotionFilter | undefined {
+  const arr = Array.isArray(values) ? values : [values];
+  if (arr.length === 0) return undefined;
+  if (arr.length === 1) return builder(property, arr[0]);
+  return { or: arr.map((v) => builder(property, v)) };
+}
+
+/**
  * Combine an array of filter objects into a Notion compound AND filter.
  * Returns undefined if no filters are provided (no filtering).
  */

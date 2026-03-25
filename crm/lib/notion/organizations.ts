@@ -41,6 +41,7 @@ import {
   buildStatusFilter,
   buildMultiSelectContains,
   buildTitleSearch,
+  buildSelectOrGroup,
   buildCompoundFilter,
 } from "./filters";
 
@@ -97,24 +98,17 @@ export async function queryOrganizations(
   const notionFilters: ReturnType<typeof buildSelectFilter>[] = [];
 
   if (filters) {
-    if (filters.connection) {
-      const values = Array.isArray(filters.connection)
-        ? filters.connection
-        : [filters.connection];
-      for (const v of values) {
-        notionFilters.push(buildStatusFilter(P.connection, v));
-      }
-    }
-    if (filters.outreachStatus) notionFilters.push(buildSelectFilter(P.outreachStatus, filters.outreachStatus));
-    if (filters.type) notionFilters.push(buildSelectFilter(P.type, filters.type));
-    if (filters.category) notionFilters.push(buildMultiSelectContains(P.category, filters.category));
-    if (filters.region) notionFilters.push(buildMultiSelectContains(P.regions, filters.region));
-    if (filters.source) notionFilters.push(buildSelectFilter(P.source, filters.source));
-    if (filters.priority) notionFilters.push(buildSelectFilter(P.priority, filters.priority));
-    if (filters.fitRating) notionFilters.push(buildSelectFilter(P.fitRating, filters.fitRating));
-    if (filters.friendship) notionFilters.push(buildSelectFilter(P.friendship, filters.friendship));
-    if (filters.marketSegment) notionFilters.push(buildSelectFilter(P.marketSegment, filters.marketSegment));
-    if (filters.quadrant) notionFilters.push(buildSelectFilter(P.quadrant, filters.quadrant));
+    if (filters.connection) notionFilters.push(buildSelectOrGroup(P.connection, filters.connection, buildStatusFilter));
+    if (filters.outreachStatus) notionFilters.push(buildSelectOrGroup(P.outreachStatus, filters.outreachStatus));
+    if (filters.type) notionFilters.push(buildSelectOrGroup(P.type, filters.type));
+    if (filters.category) notionFilters.push(buildSelectOrGroup(P.category, filters.category, buildMultiSelectContains));
+    if (filters.region) notionFilters.push(buildSelectOrGroup(P.regions, filters.region, buildMultiSelectContains));
+    if (filters.source) notionFilters.push(buildSelectOrGroup(P.source, filters.source));
+    if (filters.priority) notionFilters.push(buildSelectOrGroup(P.priority, filters.priority));
+    if (filters.fitRating) notionFilters.push(buildSelectOrGroup(P.fitRating, filters.fitRating));
+    if (filters.friendship) notionFilters.push(buildSelectOrGroup(P.friendship, filters.friendship));
+    if (filters.marketSegment) notionFilters.push(buildSelectOrGroup(P.marketSegment, filters.marketSegment));
+    if (filters.quadrant) notionFilters.push(buildSelectOrGroup(P.quadrant, filters.quadrant));
     if (filters.search) notionFilters.push(buildTitleSearch(P.organization, filters.search));
   }
 

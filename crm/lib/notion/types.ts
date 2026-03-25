@@ -478,17 +478,17 @@ export type CampaignType = "event-based" | "recurring cadence" | "one-off blast"
 export type CampaignStatus = "draft" | "active" | "paused" | "complete";
 
 export interface AudienceFilter {
-  priority?: Priority;
-  fitRating?: FitRating;
-  friendship?: Friendship;
-  outreachStatus?: OutreachStatus;
+  priority?: Priority | Priority[];
+  fitRating?: FitRating | FitRating[];
+  friendship?: Friendship | Friendship[];
+  outreachStatus?: OutreachStatus | OutreachStatus[];
   connection?: ConnectionStatus | ConnectionStatus[];
-  quadrant?: Quadrant;
-  marketSegment?: string;
-  type?: OrgType;
-  category?: OrgCategory;
-  region?: Region;
-  source?: OrgSource;
+  quadrant?: Quadrant | Quadrant[];
+  marketSegment?: string | string[];
+  type?: OrgType | OrgType[];
+  category?: OrgCategory | OrgCategory[];
+  region?: Region | Region[];
+  source?: OrgSource | OrgSource[];
 }
 
 export interface Campaign {
@@ -613,16 +613,16 @@ export interface SortParams {
 
 export interface OrganizationFilters {
   connection?: ConnectionStatus | ConnectionStatus[];
-  outreachStatus?: OutreachStatus;
-  type?: OrgType;
-  category?: OrgCategory;
-  region?: Region;
-  source?: OrgSource;
-  priority?: Priority;
-  fitRating?: FitRating;
-  friendship?: Friendship;
-  marketSegment?: string;
-  quadrant?: Quadrant;
+  outreachStatus?: OutreachStatus | OutreachStatus[];
+  type?: OrgType | OrgType[];
+  category?: OrgCategory | OrgCategory[];
+  region?: Region | Region[];
+  source?: OrgSource | OrgSource[];
+  priority?: Priority | Priority[];
+  fitRating?: FitRating | FitRating[];
+  friendship?: Friendship | Friendship[];
+  marketSegment?: string | string[];
+  quadrant?: Quadrant | Quadrant[];
   search?: string;
 }
 
