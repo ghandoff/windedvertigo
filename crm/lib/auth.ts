@@ -27,6 +27,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
 
+  session: {
+    strategy: "jwt",
+    maxAge: 90 * 24 * 60 * 60, // 90 days — persistent across app reopens
+    updateAge: 24 * 60 * 60,   // refresh token silently every 24 hours
+  },
+
   callbacks: {
     signIn({ profile }) {
       // Server-side domain check — hd param only restricts the picker UI
@@ -36,7 +42,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
 
-    session({ session }) {
+    jwt({ token, profile }) {
+      // Store first name from Google profile for "logged by" auto-fill
+      if (profile?.given_name) {
+        token.firstName = profile.given_name.toLowerCase();
+      }
+      if (profile?.email) {
+        token.email = profile.email;
+      }
+      return token;
+    },
+
+    session({ session, token }) {
+      // Expose first name + email to client session
+      if (token.firstName) {
+        (session as unknown as Record<string, unknown>).firstName = token.firstName;
+      }
       return session;
     },
   },

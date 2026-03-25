@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   Sheet, SheetContent, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { useMembers } from "@/lib/pwa/use-members";
+import { useCurrentUser } from "@/lib/pwa/use-current-user";
 
 const ACTIVITY_TYPES = [
   "email sent", "email received", "meeting", "call",
@@ -41,6 +42,7 @@ export function LogActivityDialog({
 }: LogActivityDialogProps) {
   const router = useRouter();
   const members = useMembers();
+  const currentUser = useCurrentUser();
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
 
@@ -50,6 +52,13 @@ export function LogActivityDialog({
   const [notes, setNotes] = useState("");
   const [outcome, setOutcome] = useState<string | null>(null);
   const [loggedBy, setLoggedBy] = useState("");
+
+  // Auto-fill logged by from authenticated user
+  useEffect(() => {
+    if (currentUser?.firstName && !loggedBy) {
+      setLoggedBy(currentUser.firstName);
+    }
+  }, [currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {

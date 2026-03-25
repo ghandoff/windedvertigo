@@ -17,6 +17,7 @@ import { queueActivity } from "@/lib/pwa/offline-store";
 import { syncQueue, requestBackgroundSync } from "@/lib/pwa/sync-manager";
 import type { CachedContact } from "@/lib/pwa/offline-store";
 import { useMembers } from "@/lib/pwa/use-members";
+import { useCurrentUser } from "@/lib/pwa/use-current-user";
 
 const ACTIVITY_TYPES = [
   "conference encounter", "meeting", "call", "intro made",
@@ -32,6 +33,7 @@ export function QuickLogForm() {
   const router = useRouter();
   const isOnline = useOnlineStatus();
   const members = useMembers();
+  const currentUser = useCurrentUser();
   const { search: searchContacts } = useContactsCache();
   const [, startTransition] = useTransition();
 
@@ -45,6 +47,13 @@ export function QuickLogForm() {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
   const [loggedBy, setLoggedBy] = useState("");
+
+  // Auto-fill logged by from authenticated user
+  useEffect(() => {
+    if (currentUser?.firstName && !loggedBy) {
+      setLoggedBy(currentUser.firstName);
+    }
+  }, [currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
 
   // UI state
