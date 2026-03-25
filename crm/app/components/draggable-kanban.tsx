@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -118,6 +118,11 @@ export function DraggableKanban<T extends KanbanItem>({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
 
+  // Sync with server data after refresh (only when not mid-save)
+  useEffect(() => {
+    if (!saving) setItems(initialItems);
+  }, [initialItems, saving]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor),
@@ -142,9 +147,9 @@ export function DraggableKanban<T extends KanbanItem>({
       const item = items.find((i) => i.id === itemId);
       if (!item || item.kanbanStatus === newStatus) return;
 
-      // Optimistic update
+      // Optimistic update — move card immediately
       setItems((prev) =>
-        prev.map((i) => (i.id === itemId ? { ...i, status: newStatus } : i)),
+        prev.map((i) => (i.id === itemId ? { ...i, kanbanStatus: newStatus } : i)),
       );
 
       // Persist to Notion
@@ -155,7 +160,7 @@ export function DraggableKanban<T extends KanbanItem>({
         // Revert on error
         setItems((prev) =>
           prev.map((i) =>
-            i.id === itemId ? { ...i, status: item.kanbanStatus } : i,
+            i.id === itemId ? { ...i, kanbanStatus: item.kanbanStatus } : i,
           ),
         );
       } finally {

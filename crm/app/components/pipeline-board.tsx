@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DraggableKanban, type KanbanColumn } from "./draggable-kanban";
 import { OrgCard } from "./org-card";
@@ -35,10 +37,21 @@ type OrgKanbanItem = Organization & { kanbanStatus: string };
 
 export function PipelineBoard({ organizations }: PipelineBoardProps) {
   const [groupBy, setGroupBy] = useState<"connection" | "outreach">("connection");
+  const [search, setSearch] = useState("");
   const router = useRouter();
 
-  // Map organizations to kanban items with the correct "status" field
-  const items: OrgKanbanItem[] = organizations.map((org) => ({
+  // Filter by search, then map to kanban items
+  const filtered = useMemo(() => {
+    if (!search.trim()) return organizations;
+    const q = search.toLowerCase();
+    return organizations.filter((org) =>
+      org.organization.toLowerCase().includes(q) ||
+      (org.marketSegment ?? "").toLowerCase().includes(q) ||
+      (org.type ?? "").toLowerCase().includes(q)
+    );
+  }, [organizations, search]);
+
+  const items: OrgKanbanItem[] = filtered.map((org) => ({
     ...org,
     kanbanStatus: groupBy === "connection" ? org.connection : org.outreachStatus,
   }));
@@ -66,12 +79,28 @@ export function PipelineBoard({ organizations }: PipelineBoardProps) {
   return (
     <div className="space-y-4">
       <AiPipelineNudges />
-      <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as "connection" | "outreach")}>
-        <TabsList>
-          <TabsTrigger value="connection">connection status</TabsTrigger>
-          <TabsTrigger value="outreach">outreach status</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="flex flex-wrap items-center gap-3">
+        <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as "connection" | "outreach")}>
+          <TabsList>
+            <TabsTrigger value="connection">connection status</TabsTrigger>
+            <TabsTrigger value="outreach">outreach status</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="search pipeline..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 w-56 h-9"
+          />
+        </div>
+        {search && (
+          <span className="text-xs text-muted-foreground">
+            {filtered.length} of {organizations.length} organizations
+          </span>
+        )}
+      </div>
       <DraggableKanban
         columns={columns}
         items={items}

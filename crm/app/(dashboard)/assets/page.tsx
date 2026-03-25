@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { queryBdAssets } from "@/lib/notion/bd-assets";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
+import { FilterSelect } from "@/app/components/filter-select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +10,11 @@ import { ExternalLink } from "lucide-react";
 import type { BdAsset } from "@/lib/notion/types";
 
 export const revalidate = 300;
+
+const ASSET_TYPE_OPTIONS = [
+  "case study", "deck", "tool", "template", "report",
+  "one-pager", "video", "interactive", "workshop",
+] as const;
 
 const READINESS_COLORS: Record<string, string> = {
   ready: "bg-green-50 text-green-700 border-green-200",
@@ -105,10 +111,15 @@ interface Props {
 
 async function AssetGrid({ searchParams }: Props) {
   const params = await searchParams;
-  const { data: assets } = await queryBdAssets(
+  const { data: allAssets } = await queryBdAssets(
     params.search ? { search: params.search } : undefined,
     { pageSize: 100 },
   );
+
+  // Filter by asset type if specified
+  const assets = params.assetType
+    ? allAssets.filter((a) => a.assetType === params.assetType)
+    : allAssets;
 
   if (assets.length === 0) {
     return (
@@ -149,6 +160,7 @@ export default async function AssetsPage(props: Props) {
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Suspense>
           <SearchInput placeholder="search assets..." />
+          <FilterSelect paramKey="assetType" placeholder="type" options={ASSET_TYPE_OPTIONS} />
         </Suspense>
       </div>
       <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
