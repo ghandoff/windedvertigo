@@ -10,7 +10,16 @@ export default function MobileLayout({
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between px-4 h-12 border-b border-border bg-background sticky top-0 z-40">
-        <span className="text-sm font-semibold tracking-tight">w.v CRM</span>
+        <div className="flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/crm/images/wordmark.png"
+            alt="winded vertigo"
+            width={80}
+            height={42}
+          />
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">CRM</span>
+        </div>
         <SyncIndicator />
       </header>
 
