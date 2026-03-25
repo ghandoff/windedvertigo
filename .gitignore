@@ -4,3 +4,5 @@ node_modules/
 .vercel/
 .turbo/
 *.env.local
+*.tsbuildinfo
+.ai-usage/
