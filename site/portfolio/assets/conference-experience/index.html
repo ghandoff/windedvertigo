@@ -151,7 +151,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   font: 400 14px/1.6 'Quicksand', sans-serif; color: rgba(255,255,255,0.7);
 }
 #narrator-overlay .narrator-hint {
-  font: 300 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.55); margin-top: 14px;
+  font: 300 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); margin-top: 14px;
 }
 
 /* ── Agenda Card ── */
@@ -271,21 +271,21 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 }
 #agendaHint .onboard-arrow { font-size: 28px; color: var(--sienna); line-height: 1; }
 .onboard-text {
-  font: 500 13px/1.4 'Quicksand', sans-serif; color: var(--champagne);
+  font: 500 13px/1.4 'Quicksand', sans-serif; color: #fff;
   max-width: 220px;
-  background: rgba(0,166,182,0.15); padding: 8px 12px; border-radius: 6px;
+  background: rgba(1,42,74,0.85); padding: 8px 12px; border-radius: 6px;
   backdrop-filter: blur(8px);
 }
-#S0 .cover-context { font: 400 12px 'Quicksand', sans-serif; color: rgba(255,255,255,0.55); margin-top: 16px; }
+#S0 .cover-context { font: 400 12px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); margin-top: 16px; }
 #S0 .narrator-hint {
   position: fixed; top: 52px; right: 20px; z-index: 300;
   display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
   animation: fadeUp 0.8s 1s ease forwards, hintPulse 2s 2s ease-in-out 3;
 }
 #S0 .narrator-hint-text {
-  font: 500 13px/1.4 'Quicksand', sans-serif; color: var(--champagne) !important;
+  font: 500 13px/1.4 'Quicksand', sans-serif; color: #fff !important;
   max-width: 220px; text-align: right;
-  background: rgba(0,166,182,0.15); padding: 8px 12px; border-radius: 6px;
+  background: rgba(1,42,74,0.85); padding: 8px 12px; border-radius: 6px;
   backdrop-filter: blur(8px);
 }
 #S0 .narrator-hint-arrow {
@@ -295,7 +295,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
-#S0 .foot { position: absolute; bottom: 28px; font: 300 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.5); }
+#S0 .foot { position: absolute; bottom: 28px; font: 300 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); }
 #S0 .enter {
   margin-top: 52px; background: var(--redwood); color: #fff; border: none;
   padding: 14px 40px; font: 500 14px 'Quicksand', sans-serif; letter-spacing: 0.03em;
@@ -646,11 +646,11 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S9 .dark-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .breath-line {
   font: 300 italic clamp(18px,2.8vw,26px)/1.7 'Quicksand', sans-serif;
-  color: rgba(255,255,255,0.6); text-align: center; opacity: 0;
+  color: rgba(255,255,255,0.8); text-align: center; opacity: 0;
 }
 .breath-1 { animation: breathIn 2s 0.5s ease forwards; }
 .breath-2 { animation: breathIn 2s 1.5s ease forwards; }
-.breath-3 { animation: breathIn 2s 2.5s ease forwards; font-size: clamp(14px,2vw,18px); color: rgba(255,255,255,0.6); }
+.breath-3 { animation: breathIn 2s 2.5s ease forwards; font-size: clamp(14px,2vw,18px); color: rgba(255,255,255,0.7); }
 @keyframes breathIn {
   0% { opacity: 0; transform: translateY(8px); }
   40% { opacity: 0.8; transform: translateY(0); }
@@ -670,7 +670,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .speaker-emerge .moment-time { color: var(--sienna); }
 
 .post-activity {
-  font: 400 14px/1.65 'Quicksand', sans-serif; color: rgba(255,255,255,0.6);
+  font: 400 14px/1.65 'Quicksand', sans-serif; color: rgba(255,255,255,0.8);
   max-width: 480px; margin-top: 28px; text-align: center;
   opacity: 0; animation: fadeUp 0.8s 8s ease forwards;
 }
@@ -693,7 +693,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .track-quiet h3 { color: rgba(255,255,255,0.8); animation: quietGlow 6s ease-in-out infinite alternate; }
 @keyframes quietGlow { 0% { text-shadow: none; } 100% { text-shadow: 0 0 20px rgba(255,255,255,0.06); } }
 .track-quiet .track-label { color: rgba(255,255,255,0.8); }
-.quiet-tap-hint { font: 300 italic 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.55); margin-top: 12px; transition: opacity 0.5s; }
+.quiet-tap-hint { font: 300 italic 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); margin-top: 12px; transition: opacity 0.5s; }
 #S10.quiet-dimmed { background: #012a4a !important; background-image: none !important; transition: background 2s ease; }
 #S10.quiet-dimmed::before { background: rgba(1,42,74,0.98) !important; transition: background 2s ease; }
 #S10.quiet-dimmed .track:not(.track-quiet) { opacity: 0.05; transition: opacity 2s ease; pointer-events: none; }
@@ -702,7 +702,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S10.quiet-dimmed .track-quiet .quiet-tap-hint { opacity: 0; }
 #S10:not(.quiet-dimmed) .track { transition: opacity 1.5s ease; }
 #S10:not(.quiet-dimmed) .time-badge { transition: opacity 1.5s ease; }
-.track-quiet p { color: rgba(255,255,255,0.65); }
+.track-quiet p { color: rgba(255,255,255,0.8); }
 .track-quiet .track-aside { color: rgba(255,255,255,0.7); }
 
 /* ════════════════════════════════
@@ -862,7 +862,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .tldr-item { font: 500 13px 'Quicksand', sans-serif; color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; }
 .tldr-sep { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.35); }
 #S16 .ft-hook { font: 300 italic clamp(16px,2.5vw,20px)/1.5 'Quicksand', sans-serif; color: var(--sienna); text-align: center; margin-top: 40px; margin-bottom: 8px; }
-#S16 .ft-wv { font: 400 13px 'Quicksand', sans-serif; color: rgba(255,255,255,0.55); margin-top: 40px; text-align: center; }
+#S16 .ft-wv { font: 400 13px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); margin-top: 40px; text-align: center; }
 
 .services-section { width: 100%; max-width: 800px; margin-top: 60px; margin-bottom: auto; padding: 0 20px; }
 .services-label { font: 600 clamp(14px,2vw,18px)/1.3 'Quicksand', sans-serif; letter-spacing: 0.04em; color: rgba(255,255,255,0.75); text-align: center; margin-bottom: 32px; }
