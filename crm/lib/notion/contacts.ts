@@ -9,6 +9,7 @@ import {
   getEmail,
   getPhone,
   getUrl,
+  getDate,
   getCheckbox,
   getRelation,
   getPerson,
@@ -20,6 +21,7 @@ import {
   buildPhone,
   buildUrl,
   buildCheckbox,
+  buildDate,
   buildRelation,
   buildPerson,
   type PageObjectResponse,
@@ -47,6 +49,9 @@ function mapPageToContact(page: PageObjectResponse): Contact {
     contactWarmth: getSelect(props[P.contactWarmth]) as Contact["contactWarmth"],
     responsiveness: getSelect(props[P.responsiveness]) as Contact["responsiveness"],
     referralPotential: getCheckbox(props[P.referralPotential]),
+    relationshipStage: getSelect(props[P.relationshipStage]) as Contact["relationshipStage"],
+    lastContacted: getDate(props[P.lastContacted]),
+    nextAction: getText(props[P.nextAction]),
     linkedin: getUrl(props[P.linkedin]),
     phoneNumber: getPhone(props[P.phoneNumber]),
     organizationIds: getRelation(props[P.organization]),
@@ -68,6 +73,7 @@ export async function queryContacts(
     if (filters.contactWarmth) nf.push(buildSelectFilter(P.contactWarmth, filters.contactWarmth));
     if (filters.responsiveness) nf.push(buildSelectFilter(P.responsiveness, filters.responsiveness));
     if (filters.referralPotential !== undefined) nf.push(buildCheckboxFilter(P.referralPotential, filters.referralPotential));
+    if (filters.relationshipStage) nf.push(buildSelectFilter(P.relationshipStage, filters.relationshipStage));
     if (filters.search) nf.push(buildTitleSearch(P.name, filters.search));
   }
 
@@ -108,6 +114,9 @@ export async function createContact(
   if (fields.contactWarmth) properties[P.contactWarmth] = buildSelect(fields.contactWarmth);
   if (fields.responsiveness) properties[P.responsiveness] = buildSelect(fields.responsiveness);
   if (fields.referralPotential !== undefined) properties[P.referralPotential] = buildCheckbox(fields.referralPotential);
+  if (fields.relationshipStage) properties[P.relationshipStage] = buildSelect(fields.relationshipStage);
+  if (fields.lastContacted) properties[P.lastContacted] = buildDate(fields.lastContacted);
+  if (fields.nextAction) properties[P.nextAction] = buildRichText(fields.nextAction);
   if (fields.linkedin) properties[P.linkedin] = buildUrl(fields.linkedin);
   if (fields.phoneNumber) properties[P.phoneNumber] = buildPhone(fields.phoneNumber);
   if (fields.organizationIds) properties[P.organization] = buildRelation(fields.organizationIds);
@@ -135,6 +144,9 @@ export async function updateContact(
   if (fields.contactWarmth !== undefined) properties[P.contactWarmth] = buildSelect(fields.contactWarmth);
   if (fields.responsiveness !== undefined) properties[P.responsiveness] = buildSelect(fields.responsiveness);
   if (fields.referralPotential !== undefined) properties[P.referralPotential] = buildCheckbox(fields.referralPotential);
+  if (fields.relationshipStage !== undefined) properties[P.relationshipStage] = buildSelect(fields.relationshipStage);
+  if (fields.lastContacted !== undefined) properties[P.lastContacted] = buildDate(fields.lastContacted);
+  if (fields.nextAction !== undefined) properties[P.nextAction] = buildRichText(fields.nextAction);
   if (fields.linkedin !== undefined) properties[P.linkedin] = buildUrl(fields.linkedin);
   if (fields.phoneNumber !== undefined) properties[P.phoneNumber] = buildPhone(fields.phoneNumber);
   if (fields.organizationIds !== undefined) properties[P.organization] = buildRelation(fields.organizationIds);

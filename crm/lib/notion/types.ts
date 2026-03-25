@@ -148,6 +148,14 @@ export type ContactType =
 
 export type ContactWarmth = "cold" | "lukewarm" | "warm" | "hot";
 
+export type RelationshipStage =
+  | "stranger"
+  | "introduced"
+  | "in conversation"
+  | "warm connection"
+  | "active collaborator"
+  | "inner circle";
+
 export type Responsiveness =
   | "very responsive"
   | "usually responsive"
@@ -165,10 +173,61 @@ export interface Contact {
   referralPotential: boolean;
   linkedin: string;
   phoneNumber: string;
+  relationshipStage: RelationshipStage;
+  lastContacted: DateRange | null;
+  nextAction: string;
   organizationIds: string[];
   nodeUserIds: string[];
   createdTime: string;
   lastEditedTime: string;
+}
+
+export interface ContactFilters {
+  contactType?: ContactType;
+  contactWarmth?: ContactWarmth;
+  responsiveness?: Responsiveness;
+  relationshipStage?: RelationshipStage;
+  referralPotential?: boolean;
+  search?: string;
+}
+
+// ── activities ────────────────────────────────────────────
+
+export type ActivityType =
+  | "email sent"
+  | "email received"
+  | "meeting"
+  | "call"
+  | "conference encounter"
+  | "intro made"
+  | "linkedin message"
+  | "proposal shared"
+  | "other";
+
+export type ActivityOutcome = "positive" | "neutral" | "no response" | "declined";
+
+export interface Activity {
+  id: string;
+  activity: string;
+  type: ActivityType;
+  contactIds: string[];
+  organizationIds: string[];
+  eventIds: string[];
+  date: DateRange | null;
+  outcome: ActivityOutcome;
+  notes: string;
+  loggedBy: string;
+  createdTime: string;
+  lastEditedTime: string;
+}
+
+export interface ActivityFilters {
+  type?: ActivityType;
+  outcome?: ActivityOutcome;
+  contactId?: string;
+  orgId?: string;
+  eventId?: string;
+  search?: string;
 }
 
 // ── projects ──────────────────────────────────────────────
@@ -530,13 +589,7 @@ export interface OrganizationFilters {
   search?: string;
 }
 
-export interface ContactFilters {
-  contactType?: ContactType;
-  contactWarmth?: ContactWarmth;
-  responsiveness?: Responsiveness;
-  referralPotential?: boolean;
-  search?: string;
-}
+
 
 export interface ProjectFilters {
   status?: ProjectStatus;

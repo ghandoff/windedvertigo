@@ -1,9 +1,12 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { queryContacts } from "@/lib/notion/contacts";
 import { PageHeader } from "@/app/components/page-header";
+import { ContactPipeline } from "@/app/components/contact-pipeline";
 import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -25,6 +28,11 @@ const TYPE_OPTIONS = [
 
 const WARMTH_OPTIONS = ["cold", "lukewarm", "warm", "hot"] as const;
 
+const STAGE_OPTIONS = [
+  "stranger", "introduced", "in conversation", "warm connection",
+  "active collaborator", "inner circle",
+] as const;
+
 interface Props {
   searchParams: Promise<Record<string, string | undefined>>;
 }
@@ -34,6 +42,7 @@ async function ContactsTable({ searchParams }: Props) {
   const filters: ContactFilters = {};
   if (params.contactType) filters.contactType = params.contactType as ContactFilters["contactType"];
   if (params.contactWarmth) filters.contactWarmth = params.contactWarmth as ContactFilters["contactWarmth"];
+  if (params.relationshipStage) filters.relationshipStage = params.relationshipStage as ContactFilters["relationshipStage"];
   if (params.search) filters.search = params.search;
 
   const { data: contacts } = await queryContacts(
@@ -58,15 +67,19 @@ async function ContactsTable({ searchParams }: Props) {
             <TableHead>role</TableHead>
             <TableHead>type</TableHead>
             <TableHead>warmth</TableHead>
-            <TableHead>responsiveness</TableHead>
+            <TableHead>stage</TableHead>
             <TableHead>referral</TableHead>
             <TableHead>email</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {contacts.map((c) => (
-            <TableRow key={c.id}>
-              <TableCell className="font-medium">{c.name}</TableCell>
+            <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50">
+              <TableCell>
+                <Link href={`/contacts/${c.id}`} className="font-medium hover:underline">
+                  {c.name}
+                </Link>
+              </TableCell>
               <TableCell className="text-sm text-muted-foreground">{c.role}</TableCell>
               <TableCell>
                 {c.contactType && (
@@ -81,8 +94,10 @@ async function ContactsTable({ searchParams }: Props) {
                   </div>
                 )}
               </TableCell>
-              <TableCell className="text-xs text-muted-foreground">
-                {c.responsiveness}
+              <TableCell>
+                {c.relationshipStage && (
+                  <Badge variant="secondary" className="text-xs">{c.relationshipStage}</Badge>
+                )}
               </TableCell>
               <TableCell>
                 {c.referralPotential && (
@@ -104,6 +119,11 @@ async function ContactsTable({ searchParams }: Props) {
   );
 }
 
+async function PipelineView() {
+  const { data: contacts } = await queryContacts(undefined, { pageSize: 200 });
+  return <ContactPipeline contacts={contacts} />;
+}
+
 export default async function ContactsPage(props: Props) {
   return (
     <>
@@ -116,11 +136,25 @@ export default async function ContactsPage(props: Props) {
           <SearchInput placeholder="search contacts..." />
           <FilterSelect paramKey="contactType" placeholder="type" options={TYPE_OPTIONS} />
           <FilterSelect paramKey="contactWarmth" placeholder="warmth" options={WARMTH_OPTIONS} />
+          <FilterSelect paramKey="relationshipStage" placeholder="stage" options={STAGE_OPTIONS} />
         </Suspense>
       </div>
-      <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
-        <ContactsTable searchParams={props.searchParams} />
-      </Suspense>
+      <Tabs defaultValue="pipeline">
+        <TabsList className="mb-4">
+          <TabsTrigger value="pipeline">pipeline</TabsTrigger>
+          <TabsTrigger value="all">all contacts</TabsTrigger>
+        </TabsList>
+        <TabsContent value="pipeline">
+          <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading pipeline...</div>}>
+            <PipelineView />
+          </Suspense>
+        </TabsContent>
+        <TabsContent value="all">
+          <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>
+            <ContactsTable searchParams={props.searchParams} />
+          </Suspense>
+        </TabsContent>
+      </Tabs>
     </>
   );
 }

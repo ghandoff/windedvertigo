@@ -26,6 +26,7 @@ export const CRM_DB = {
   campaigns: "2a797407-75fc-409b-a93a-7311c884dc91",
   campaignSteps: "31aa2804-d803-4af9-91bd-bdad5dd9996e",
   emailTemplates: "9e57d0c9-1477-4af6-aa9d-772de010774e",
+  activities: "f61e3d25-72d6-482c-a595-ff1236dcc8c6",
 } as const;
 
 // ── property name maps ────────────────────────────────────
@@ -76,6 +77,9 @@ export const CONTACT_PROPS = {
   phoneNumber: "Phone Number",
   organization: "organization",
   node: "node",
+  relationshipStage: "relationship stage",
+  lastContacted: "last contacted",
+  nextAction: "next action",
 } as const;
 
 export const PROJECT_PROPS = {
@@ -203,6 +207,18 @@ export const CAMPAIGN_STEP_PROPS = {
   variantBSubject: "variant b subject",
   variantBBody: "variant b body",
   condition: "condition",
+} as const;
+
+export const ACTIVITY_PROPS = {
+  activity: "activity",
+  type: "type",
+  contact: "contact",
+  organization: "organization",
+  event: "event",
+  date: "date",
+  outcome: "outcome",
+  notes: "notes",
+  loggedBy: "logged by",
 } as const;
 
 export const EMAIL_TEMPLATE_PROPS = {
