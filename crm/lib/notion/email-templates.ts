@@ -6,10 +6,12 @@ import {
   getTitle,
   getText,
   getSelect,
+  getNumber,
   queryDatabase,
   buildTitle,
   buildRichText,
   buildSelect,
+  buildNumber,
   type PageObjectResponse,
 } from "@windedvertigo/notion";
 
@@ -38,6 +40,7 @@ function mapPageToTemplate(page: PageObjectResponse): EmailTemplate {
     category: getSelect(props[P.category]) as EmailTemplate["category"],
     channel: (getSelect(props[P.channel]) as EmailTemplate["channel"]) || "email",
     notes: getText(props[P.notes]),
+    timesUsed: getNumber(props[P.timesUsed]) ?? 0,
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };
@@ -90,6 +93,7 @@ export async function createEmailTemplate(
   if (fields.subject) properties[P.subject] = buildRichText(fields.subject);
   if (fields.body) properties[P.body] = buildRichText(fields.body);
   if (fields.category) properties[P.category] = buildSelect(fields.category);
+  if (fields.channel) properties[P.channel] = buildSelect(fields.channel);
   if (fields.notes) properties[P.notes] = buildRichText(fields.notes);
 
   const page = (await notion.pages.create({
@@ -111,6 +115,7 @@ export async function updateEmailTemplate(
   if (fields.subject !== undefined) properties[P.subject] = buildRichText(fields.subject);
   if (fields.body !== undefined) properties[P.body] = buildRichText(fields.body);
   if (fields.category !== undefined) properties[P.category] = buildSelect(fields.category);
+  if (fields.channel !== undefined) properties[P.channel] = buildSelect(fields.channel);
   if (fields.notes !== undefined) properties[P.notes] = buildRichText(fields.notes);
 
   const page = (await notion.pages.update({
@@ -123,4 +128,15 @@ export async function updateEmailTemplate(
 
 export async function archiveEmailTemplate(id: string): Promise<void> {
   await notion.pages.update({ page_id: id, archived: true });
+}
+
+/** Increment the times-used counter. Fire-and-forget safe. */
+export async function incrementTimesUsed(id: string): Promise<void> {
+  const template = await getEmailTemplate(id);
+  await notion.pages.update({
+    page_id: id,
+    properties: {
+      [P.timesUsed]: buildNumber((template.timesUsed ?? 0) + 1),
+    },
+  });
 }

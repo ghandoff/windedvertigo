@@ -554,6 +554,7 @@ export interface EmailTemplate {
   category: TemplateCategory;
   channel: StepChannel;
   notes: string;
+  timesUsed: number;
   createdTime: string;
   lastEditedTime: string;
 }

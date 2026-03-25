@@ -6,7 +6,7 @@ import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Mail, Globe, Hash, Cloud, Plus } from "lucide-react";
+import { ArrowRight, Mail, Globe, Hash, Cloud, Plus, Bookmark } from "lucide-react";
 import type { EmailTemplate, EmailTemplateFilters } from "@/lib/notion/types";
 
 export const revalidate = 300;
@@ -40,10 +40,12 @@ const CATEGORY_PRIORITY: Record<string, number> = {
 
 function sortByLikelyUse(templates: EmailTemplate[]): EmailTemplate[] {
   return [...templates].sort((a, b) => {
+    // Sort by usage first (most used = first)
+    if ((b.timesUsed ?? 0) !== (a.timesUsed ?? 0)) return (b.timesUsed ?? 0) - (a.timesUsed ?? 0);
+    // Then by category priority
     const aPri = CATEGORY_PRIORITY[a.category] ?? 99;
     const bPri = CATEGORY_PRIORITY[b.category] ?? 99;
     if (aPri !== bPri) return aPri - bPri;
-    // Within same category, sort alphabetically
     return a.name.localeCompare(b.name);
   });
 }
@@ -102,6 +104,11 @@ async function TemplateGrid({ searchParams }: Props) {
                       {t.channel}
                     </Badge>
                   )}
+                  {(t.timesUsed ?? 0) > 0 && (
+                    <Badge variant="secondary" className="text-[10px] text-muted-foreground">
+                      used {t.timesUsed}x
+                    </Badge>
+                  )}
                 </div>
                 {t.subject && (
                   <div>
@@ -131,6 +138,13 @@ export default async function TemplatesPage(props: Props) {
         title="templates"
         description="click any template to start a new campaign with it"
       >
+        <Link
+          href="/campaigns/templates/new"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
+        >
+          <Bookmark className="h-4 w-4" />
+          new template
+        </Link>
         <Link
           href="/campaigns/new"
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 transition-colors"

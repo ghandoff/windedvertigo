@@ -239,6 +239,7 @@ export const EMAIL_TEMPLATE_PROPS = {
   category: "category",
   channel: "channel",
   notes: "notes",
+  timesUsed: "times used",
 } as const;
 
 export const BLUEPRINT_PROPS = {

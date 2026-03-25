@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "./status-badge";
+import { SaveAsTemplate } from "./save-as-template";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -301,7 +302,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
           />
         </div>
 
-        {/* Send button */}
+        {/* Send button + save as template */}
         <div className="flex items-center gap-3">
           <Button
             onClick={handleSend}
@@ -317,6 +318,9 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
               </>
             )}
           </Button>
+          {body && (
+            <SaveAsTemplate subject={subject} body={body} channel="email" />
+          )}
           {sendStatus === "sent" && (
             <span className="flex items-center gap-1.5 text-sm text-green-600">
               <CheckCircle2 className="h-4 w-4" />
