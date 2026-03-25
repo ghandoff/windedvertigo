@@ -84,7 +84,7 @@ const s = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: "Helvetica-Bold",
-    marginBottom: 4,
+    marginBottom: 10,
   },
   promise: {
     fontSize: 10,
