@@ -114,7 +114,7 @@ export async function createActivity(
   if (fields.loggedBy) properties[P.loggedBy] = buildRichText(fields.loggedBy);
 
   const page = (await notion.pages.create({
-    parent: { database_id: CRM_DB.activities },
+    parent: { data_source_id: CRM_DB.activities },
     properties,
   })) as PageObjectResponse;
 

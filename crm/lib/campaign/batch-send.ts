@@ -8,6 +8,7 @@
 import { sendOutreachEmail } from "@/lib/email/resend";
 import { buildEmailHtml } from "@/lib/email/templates";
 import { createEmailDraft, queryEmailDrafts } from "@/lib/notion/email-drafts";
+import { createActivity } from "@/lib/notion/activities";
 import { createSocialDraft } from "@/lib/notion/social";
 import { updateOutreachStatus, updateConnection } from "@/lib/notion/organizations";
 import { resolveTemplateVars, type TemplateContext } from "./template-vars";
@@ -128,6 +129,23 @@ async function sendSingleEmail(
   // Advance connection if unengaged/exploring
   if (org.connection === "unengaged" || org.connection === "exploring") {
     await updateConnection(org.id, "in progress");
+  }
+
+  // Auto-log activity for linked contacts
+  if (org.contactIds?.length) {
+    try {
+      await createActivity({
+        activity: `campaign email: ${resolvedSubject}`,
+        type: "email sent",
+        contactIds: [org.contactIds[0]],
+        organizationIds: [org.id],
+        date: { start: new Date().toISOString().split("T")[0], end: null },
+        notes: `batch campaign send to ${org.email}`,
+        loggedBy: senderName,
+      });
+    } catch {
+      // non-critical
+    }
   }
 
   return "sent";

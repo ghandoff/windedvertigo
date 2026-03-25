@@ -10,6 +10,7 @@
 import { NextRequest } from "next/server";
 import { getOrganization, updateConnection, updateOutreachStatus } from "@/lib/notion/organizations";
 import { createEmailDraft } from "@/lib/notion/email-drafts";
+import { createActivity } from "@/lib/notion/activities";
 import { sendOutreachEmail } from "@/lib/email/resend";
 import { buildEmailHtml } from "@/lib/email/templates";
 import { json, error } from "@/lib/api-helpers";
@@ -71,6 +72,23 @@ export async function POST(req: NextRequest) {
       opens: 0,
       clicks: 0,
     });
+
+    // Auto-log activity for linked contacts
+    if (org.contactIds?.length) {
+      try {
+        await createActivity({
+          activity: `email sent: ${subject}`,
+          type: "email sent",
+          contactIds: [org.contactIds[0]],
+          organizationIds: [org.id],
+          date: { start: new Date().toISOString().split("T")[0], end: null },
+          notes: `sent via CRM to ${to}`,
+          loggedBy: body.senderName || "CRM",
+        });
+      } catch {
+        // non-critical — don't fail the send
+      }
+    }
 
     return json({ messageId: resendMessageId, status: "sent" }, 200);
   } catch (err) {
