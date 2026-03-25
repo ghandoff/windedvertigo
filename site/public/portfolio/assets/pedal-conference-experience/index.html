@@ -264,25 +264,29 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   pointer-events: none;
 }
 #agendaHint {
-  top: 420px; left: 20px;
+  top: 440px; left: 20px;
 }
-#agendaHint .onboard-arrow { font-size: 22px; color: var(--sienna); }
+#agendaHint .onboard-arrow { font-size: 28px; color: var(--sienna); line-height: 1; }
 .onboard-text {
-  font: 400 12px/1.4 'Inter', sans-serif; color: var(--grey);
-  max-width: 200px;
+  font: 500 13px/1.4 'Inter', sans-serif; color: var(--champagne);
+  max-width: 220px;
+  background: rgba(203,120,88,0.15); padding: 8px 12px; border-radius: 6px;
+  backdrop-filter: blur(8px);
 }
 #S0 .cover-context { font: 400 12px 'Inter', sans-serif; color: rgba(255,255,255,0.25); margin-top: 16px; }
 #S0 .narrator-hint {
-  position: absolute; top: 20px; right: 120px; z-index: 300;
-  display: flex; align-items: center; gap: 8px;
+  position: fixed; top: 52px; right: 20px; z-index: 300;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
   animation: fadeUp 0.8s 1s ease forwards, hintPulse 2s 2s ease-in-out 3;
 }
 #S0 .narrator-hint-text {
-  font: 400 12px/1.4 'Inter', sans-serif; color: rgba(255,255,255,0.5) !important;
-  max-width: 200px; text-align: right;
+  font: 500 13px/1.4 'Inter', sans-serif; color: var(--champagne) !important;
+  max-width: 220px; text-align: right;
+  background: rgba(203,120,88,0.15); padding: 8px 12px; border-radius: 6px;
+  backdrop-filter: blur(8px);
 }
 #S0 .narrator-hint-arrow {
-  font-size: 24px; color: var(--sienna);
+  font-size: 28px; color: var(--sienna); line-height: 1;
 }
 @keyframes hintPulse {
   0%, 100% { opacity: 1; }
@@ -906,10 +910,11 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   #narrator-overlay .narrator-hint { display: none; }
   #narrator-overlay:not(.hidden) { pointer-events: auto; }
   #narrator-toggle { top: auto; bottom: 52px; right: 8px; z-index: 260; padding: 8px 12px; min-height: 44px; min-width: 44px; font-size: 11px; }
-  #S0 .narrator-hint { top: auto; bottom: 100px; right: 20px; flex-direction: row-reverse; }
+  #S0 .narrator-hint { position: fixed; top: auto; bottom: 100px; right: 8px; flex-direction: row-reverse; }
   #S0 .narrator-hint-text { text-align: left; font-size: 11px; max-width: 180px; }
   #S0 .narrator-hint-arrow { transform: rotate(90deg); }
   #agendaHint { top: 52px; left: 20px; }
+  #agendaHint .onboard-arrow { transform: rotate(-90deg); }
   #agendaHint .onboard-arrow { transform: rotate(-90deg); }
   #agendaHint .onboard-text { font-size: 11px; }
 
@@ -1086,8 +1091,8 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   <div class="cover-fade sub">same speakers. same themes. same venue.<br><em>different architecture around them.</em></div>
   <div class="cover-fade cover-context">designed by winded.vertigo for the PEDAL Centre, University of Cambridge</div>
   <div class="narrator-hint cover-fade" id="narratorHint">
+    <span class="narrator-hint-arrow">&#8593;</span>
     <span class="narrator-hint-text">click here to cover/uncover the narrator for this experience</span>
-    <span class="narrator-hint-arrow">&#8599;</span>
   </div>
   <button class="enter" onclick="go(1)">enter the day</button>
   <div class="foot">winded.vertigo · PEDAL Centre, University of Cambridge · 2025</div>
