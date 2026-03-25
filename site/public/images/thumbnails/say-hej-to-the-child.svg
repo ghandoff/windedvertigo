@@ -1,0 +1,28 @@
+<svg viewBox="0 0 480 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="480" height="260" fill="#fafaf8"/>
+  <!-- ground -->
+  <rect x="0" y="190" width="480" height="70" fill="#f2f1ed"/>
+  <!-- blocks -->
+  <rect x="200" y="150" width="40" height="40" rx="3" fill="#3b82f6" opacity="0.7"/>
+  <rect x="240" y="150" width="40" height="40" rx="3" fill="#22c55e" opacity="0.7"/>
+  <rect x="220" y="110" width="40" height="40" rx="3" fill="#f59e0b" opacity="0.7"/>
+  <rect x="160" y="150" width="40" height="40" rx="3" fill="#ef4444" opacity="0.5"/>
+  <rect x="280" y="150" width="40" height="40" rx="3" fill="#14b8a6" opacity="0.5"/>
+  <!-- scattered blocks -->
+  <rect x="340" y="165" width="25" height="25" rx="3" fill="#3b82f6" opacity="0.3" transform="rotate(15 352 177)"/>
+  <rect x="110" y="168" width="22" height="22" rx="3" fill="#f59e0b" opacity="0.3" transform="rotate(-10 121 179)"/>
+  <!-- child (minimal/abstract) -->
+  <circle cx="220" cy="60" r="18" fill="#273248" opacity="0.12"/>
+  <rect x="210" y="78" width="20" height="30" rx="8" fill="#273248" opacity="0.1"/>
+  <!-- reaching arms -->
+  <line x1="230" y1="88" x2="258" y2="115" stroke="#273248" stroke-width="3" stroke-linecap="round" opacity="0.1"/>
+  <line x1="210" y1="90" x2="185" y2="110" stroke="#273248" stroke-width="3" stroke-linecap="round" opacity="0.1"/>
+  <!-- label -->
+  <text x="240" y="220" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="500" fill="#999" letter-spacing="0.06em">what most adults see: a child stacking blocks</text>
+  <!-- domain dots row -->
+  <circle cx="155" cy="245" r="4" fill="#3b82f6"/>
+  <circle cx="195" cy="245" r="4" fill="#ef4444"/>
+  <circle cx="235" cy="245" r="4" fill="#22c55e"/>
+  <circle cx="275" cy="245" r="4" fill="#f59e0b"/>
+  <circle cx="315" cy="245" r="4" fill="#14b8a6"/>
+</svg>

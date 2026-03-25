@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>say hej to the child — winded.vertigo</title>
+<meta name="description" content="an interactive portfolio piece from winded.vertigo — how we taught toy designers to truly see what happens when a child plays.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf8;
+  --bg-alt: #f2f1ed;
+  --text: #1a1a1a;
+  --text-muted: #6b6b6b;
+  --text-light: #999;
+  --border: #e0dfdb;
+
+  --cadet: #273248;
+  --redwood: #b15043;
+  --sienna: #cb7858;
+  --champagne: #ffebd2;
+
+  /* holistic skill domains */
+  --physical: #3b82f6;
+  --social: #ef4444;
+  --cognitive: #22c55e;
+  --emotional: #f59e0b;
+  --creative: #14b8a6;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 40px; }
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  word-spacing: 0.04em;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--redwood); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--sienna); }
+:focus-visible { outline: 2px solid var(--redwood); outline-offset: 2px; }
+
+.container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+
+/* ── section shared ── */
+section { padding: 80px 0; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+h1, h2, h3 {
+  text-transform: lowercase;
+  font-weight: 700;
+  line-height: 1.25;
+}
+h1 { font-size: clamp(28px, 5vw, 48px); margin-bottom: 16px; color: var(--cadet); }
+h2 { font-size: clamp(22px, 3.5vw, 32px); margin-bottom: 20px; color: var(--cadet); }
+h3 { font-size: 18px; margin-bottom: 8px; }
+
+.eyebrow {
+  font-size: 12px; font-weight: 500; letter-spacing: 0.1em;
+  text-transform: lowercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.lead {
+  font-size: 17px; font-weight: 300; line-height: 1.75;
+  color: var(--text-muted);
+}
+
+.section-footer {
+  margin-top: 48px;
+  font-size: 14px; font-weight: 300; line-height: 1.7;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* ── hero / intro ── */
+.intro { padding: 100px 0 60px; }
+.intro p { margin-bottom: 20px; }
+.intro .body-copy {
+  font-size: 16px; font-weight: 300; line-height: 1.8;
+  color: #3a3a3a;
+  max-width: 640px;
+}
+
+/* ── cta cards ── */
+.cta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 40px;
+}
+.cta-card {
+  background: var(--cadet);
+  color: var(--champagne);
+  padding: 28px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cta-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(39,50,72,0.15);
+  color: var(--champagne);
+}
+.cta-card .cta-number {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+  color: rgba(255,235,210,0.4);
+}
+.cta-card .cta-title {
+  font-size: 17px; font-weight: 600;
+  text-transform: lowercase;
+}
+.cta-card .cta-desc {
+  font-size: 13px; font-weight: 300; line-height: 1.55;
+  color: rgba(255,235,210,0.65);
+}
+
+/* ── scene illustration ── */
+.scene-wrapper {
+  margin: 0 auto 40px;
+  max-width: 480px;
+  position: relative;
+}
+.scene-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* ── domain filter pills ── */
+.domain-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+.domain-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.domain-pill .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.domain-pill.active {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+.domain-pill:hover:not(.active) {
+  border-color: var(--text-muted);
+}
+
+/* ── milestone grid ── */
+.milestone-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.milestone-node {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.milestone-node:hover {
+  border-color: var(--text-muted);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.milestone-node.expanded {
+  grid-column: 1 / -1;
+  background: var(--bg-alt);
+  border-color: var(--text-muted);
+}
+.milestone-node.hidden {
+  opacity: 0.15;
+  pointer-events: none;
+  transform: scale(0.97);
+}
+
+.milestone-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.milestone-name {
+  font-size: 14px; font-weight: 600;
+  text-transform: lowercase;
+  color: var(--cadet);
+  line-height: 1.35;
+}
+.milestone-age {
+  font-size: 11px; font-weight: 500;
+  color: var(--text-light);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.milestone-dots {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+.milestone-dots .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+}
+
+.milestone-detail {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+  margin-top: 0;
+}
+.milestone-node.expanded .milestone-detail {
+  max-height: 600px;
+  opacity: 1;
+  margin-top: 16px;
+}
+
+.detail-block {
+  margin-bottom: 14px;
+}
+.detail-block:last-child { margin-bottom: 0; }
+.detail-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 3px;
+}
+.detail-text {
+  font-size: 13px; font-weight: 300; line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ── toy autopsy ── */
+.autopsy-header-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.toy-column {
+  padding: 20px;
+  border-radius: 6px;
+  text-align: center;
+}
+.toy-column.fail {
+  background: #fdf2f2;
+  border: 1.5px solid #fecaca;
+}
+.toy-column.pass {
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+}
+.toy-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+.toy-name {
+  font-size: 15px; font-weight: 600;
+  text-transform: lowercase;
+  margin-bottom: 4px;
+}
+.toy-desc {
+  font-size: 12px; font-weight: 300; line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* autopsy lens rows */
+.lens-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lens-row {
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+.lens-row:hover { border-color: var(--text-muted); }
+.lens-row.expanded { border-color: var(--text-muted); }
+
+.lens-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  gap: 12px;
+}
+.lens-label {
+  font-size: 14px; font-weight: 600;
+  text-transform: lowercase;
+  color: var(--cadet);
+}
+.lens-age {
+  font-size: 11px; font-weight: 500;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+.lens-chevron {
+  width: 16px; height: 16px;
+  color: var(--text-light);
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+.lens-row.expanded .lens-chevron { transform: rotate(180deg); }
+
+.lens-comparison {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+.lens-row.expanded .lens-comparison {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid var(--border);
+}
+.comparison-cell {
+  padding: 16px 18px;
+  font-size: 13px; font-weight: 300; line-height: 1.6;
+}
+.comparison-cell.fail {
+  background: #fdf8f8;
+  color: #7f1d1d;
+  border-right: 1px solid var(--border);
+}
+.comparison-cell.pass {
+  background: #f8fdf9;
+  color: #14532d;
+}
+.comparison-cell .verdict {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+/* ── interstice ── */
+.interstice {
+  background: var(--cadet);
+  color: var(--champagne);
+  padding: 80px 0;
+}
+.interstice h2 { color: var(--champagne); }
+.interstice .lead { color: rgba(255,235,210,0.7); }
+.interstice p {
+  font-size: 15px; font-weight: 300; line-height: 1.8;
+  color: rgba(255,235,210,0.75);
+  margin-bottom: 20px;
+}
+
+/* ── key facts ── */
+.key-facts { padding: 60px 0 80px; }
+.facts-list {
+  font-size: 14px; font-weight: 300; line-height: 2;
+  color: var(--text-muted);
+}
+.facts-list strong {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.quadrant-list {
+  margin-top: 16px;
+  padding-left: 0;
+  list-style: none;
+}
+.quadrant-list li {
+  font-size: 13px; font-weight: 300; line-height: 1.7;
+  color: var(--text-muted);
+  padding: 4px 0;
+  padding-left: 16px;
+  position: relative;
+}
+.quadrant-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--text-light);
+}
+
+/* ── footer ── */
+.site-footer {
+  padding: 40px 0;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.site-footer a {
+  font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
+  color: var(--text-light);
+}
+.site-footer a:hover { color: var(--cadet); }
+
+/* ── fade-in observer ── */
+.fade-in {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── responsive ── */
+@media (max-width: 640px) {
+  .cta-row { grid-template-columns: 1fr; }
+  .milestone-grid { grid-template-columns: 1fr; }
+  .milestone-node.expanded { grid-column: 1; }
+  .autopsy-header-row { grid-template-columns: 1fr; }
+  .comparison-grid { grid-template-columns: 1fr; }
+  .comparison-cell.fail { border-right: none; border-bottom: 1px solid var(--border); }
+  section { padding: 60px 0; }
+  .intro { padding: 80px 0 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+  .fade-in { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SECTION 1: INTRO ═══════════════ -->
+<section class="intro">
+  <div class="container">
+    <div class="eyebrow">a major international toy company · 2022–2024 · global</div>
+    <h1>say hej to the child</h1>
+    <div class="body-copy">
+      <p>what does it mean to say hello to a child?</p>
+      <p>most adults watching a child play see activity. they see a kid stacking blocks, sorting colours, pretending to cook. what they miss is development — the invisible, intricate work happening underneath.</p>
+      <p><em>say hej</em> (danish for "hello") was a workshop series we co-designed and co-led for a major toy company. it taught toy designers to truly see what's happening when a child plays — and to design products worthy of that complexity.</p>
+      <p>below are two interactive experiences drawn from the workshop. they won't teach you everything we covered — but they'll show you how we think.</p>
+    </div>
+
+    <div class="cta-row">
+      <a href="#milestones" class="cta-card">
+        <span class="cta-number">01</span>
+        <span class="cta-title">the milestones map</span>
+        <span class="cta-desc">see what most adults miss when a child plays</span>
+      </a>
+      <a href="#autopsy" class="cta-card">
+        <span class="cta-number">02</span>
+        <span class="cta-title">the toy autopsy</span>
+        <span class="cta-desc">examine a toy through a child's developmental reality</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════ SECTION 2: MILESTONES MAP ═══════════════ -->
+<section id="milestones">
+  <div class="container">
+    <div class="eyebrow fade-in">interactive · developmental phenomena</div>
+    <h2 class="fade-in">the milestones map</h2>
+    <p class="lead fade-in" style="margin-bottom: 40px;">a child stacking blocks is not just stacking blocks. click any milestone to see the hidden developmental work inside an ordinary moment of play.</p>
+
+    <!-- play scene illustration -->
+    <div class="scene-wrapper fade-in">
+      <svg class="scene-svg" viewBox="0 0 480 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a child building with blocks — the surface layer of play">
+        <!-- ground -->
+        <rect x="0" y="180" width="480" height="40" fill="#f2f1ed" rx="0"/>
+        <!-- blocks -->
+        <rect x="200" y="140" width="40" height="40" rx="3" fill="#3b82f6" opacity="0.7"/>
+        <rect x="240" y="140" width="40" height="40" rx="3" fill="#22c55e" opacity="0.7"/>
+        <rect x="220" y="100" width="40" height="40" rx="3" fill="#f59e0b" opacity="0.7"/>
+        <rect x="160" y="140" width="40" height="40" rx="3" fill="#ef4444" opacity="0.5"/>
+        <rect x="280" y="140" width="40" height="40" rx="3" fill="#14b8a6" opacity="0.5"/>
+        <!-- scattered blocks -->
+        <rect x="340" y="155" width="25" height="25" rx="3" fill="#3b82f6" opacity="0.3" transform="rotate(15 352 167)"/>
+        <rect x="110" y="158" width="22" height="22" rx="3" fill="#f59e0b" opacity="0.3" transform="rotate(-10 121 169)"/>
+        <!-- child (minimal/abstract) -->
+        <circle cx="220" cy="50" r="18" fill="#273248" opacity="0.12"/>
+        <rect x="210" y="68" width="20" height="30" rx="8" fill="#273248" opacity="0.1"/>
+        <!-- reaching arm -->
+        <line x1="230" y1="78" x2="258" y2="105" stroke="#273248" stroke-width="3" stroke-linecap="round" opacity="0.1"/>
+        <line x1="210" y1="80" x2="185" y2="100" stroke="#273248" stroke-width="3" stroke-linecap="round" opacity="0.1"/>
+        <!-- surface label -->
+        <text x="240" y="210" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="500" fill="#999" letter-spacing="0.08em">what most adults see: a child stacking blocks</text>
+      </svg>
+    </div>
+
+    <!-- domain filter pills -->
+    <div class="domain-filters fade-in" role="group" aria-label="filter milestones by developmental domain">
+      <button class="domain-pill active" data-domain="all">
+        <span class="dot" style="background: var(--cadet);"></span> all domains
+      </button>
+      <button class="domain-pill" data-domain="Physical">
+        <span class="dot" style="background: var(--physical);"></span> physical
+      </button>
+      <button class="domain-pill" data-domain="Social">
+        <span class="dot" style="background: var(--social);"></span> social
+      </button>
+      <button class="domain-pill" data-domain="Cognitive">
+        <span class="dot" style="background: var(--cognitive);"></span> cognitive
+      </button>
+      <button class="domain-pill" data-domain="Emotional">
+        <span class="dot" style="background: var(--emotional);"></span> emotional
+      </button>
+      <button class="domain-pill" data-domain="Creative">
+        <span class="dot" style="background: var(--creative);"></span> creative
+      </button>
+    </div>
+
+    <!-- milestone nodes (populated by JS) -->
+    <div class="milestone-grid" id="milestoneGrid"></div>
+
+    <div class="section-footer fade-in">
+      the milestones map is how we taught designers to see the child — to move from observing activity to understanding development. this is the foundation that every design decision should rest on.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════ SECTION 3: TOY AUTOPSY ═══════════════ -->
+<section id="autopsy">
+  <div class="container">
+    <div class="eyebrow fade-in">interactive · developmental evaluation</div>
+    <h2 class="fade-in">the toy autopsy</h2>
+    <p class="lead fade-in" style="margin-bottom: 40px;">two toys. five developmental lenses. click each lens to see how the toys perform against a child's actual reality — not against marketing claims.</p>
+
+    <div class="autopsy-header-row fade-in">
+      <div class="toy-column fail">
+        <div class="toy-icon" aria-hidden="true">&#128339;</div>
+        <div class="toy-name">the puzzle clock</div>
+        <div class="toy-desc">a toy clock with removable numbered puzzle pieces, marketed for ages 3+. the child must match numbers to positions to "learn to tell time."</div>
+      </div>
+      <div class="toy-column pass">
+        <div class="toy-icon" aria-hidden="true">&#129513;</div>
+        <div class="toy-name">the bricks</div>
+        <div class="toy-desc">six colourful interlocking bricks. no instructions. no predefined outcome. infinite configurations.</div>
+      </div>
+    </div>
+
+    <div class="lens-list" id="lensList"></div>
+
+    <div class="section-footer fade-in">
+      the toy autopsy is how we taught designers to evaluate products — not against marketing claims, but against developmental reality. the best toys don't teach through instruction. they teach through play.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════ SECTION 4: INTERSTICE ═══════════════ -->
+<section class="interstice">
+  <div class="container">
+    <h2 class="fade-in">the interstice</h2>
+    <p class="lead fade-in" style="margin-bottom: 32px;">the milestones map teaches you to see the child. the toy autopsy teaches you to see the product. <em>say hej</em> holds both simultaneously.</p>
+    <div class="fade-in">
+      <p>in the workshop, teams chose a developmental domain — any of the holistic skill areas — and designed a toy prototype grounded in what they'd learned. one team created a children's backpack with a removable cartoon villain face, velcro surfaces where balls could stick and be pulled off, and a detachable tongue — a tactile, playful object inspired by flag-football mechanics.</p>
+      <p>the design worked because it was grounded in development: bilateral coordination (two hands pulling velcro), prosocial play (the character invites narrative), and object permanence (the removable face appears and disappears).</p>
+      <p>that's what <em>say hej</em> was about. not a checklist. a practice — learning to hold the child and the product in the same gaze, and designing from that place.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 5: KEY FACTS ═══════════════ -->
+<section class="key-facts">
+  <div class="container">
+    <div class="facts-list fade-in">
+      <p>co-designed and co-led by <strong>maria and garrett</strong></p>
+      <p>a major toy company</p>
+      <p>2022–2024 · global</p>
+      <p>audience: toy designers and product teams</p>
+      <p style="margin-top: 16px; margin-bottom: 4px;"><strong>quadrants activated:</strong></p>
+      <ul class="quadrant-list">
+        <li>people × design: the workshop learning experiences</li>
+        <li>people × research: developmental milestones mapping and observation</li>
+        <li>product × design: six bricks activities, building toy prototyping</li>
+        <li>product × research: toy failure analysis and developmental evaluation</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <a href="https://www.windedvertigo.com">winded.vertigo</a>
+</footer>
+
+<script>
+/* ═══════════════ DATA ═══════════════ */
+
+const DOMAIN_COLORS = {
+  Physical: '#3b82f6',
+  Social: '#ef4444',
+  Cognitive: '#22c55e',
+  Emotional: '#f59e0b',
+  Creative: '#14b8a6'
+};
+
+const milestones = [
+  {
+    name: "object permanence",
+    age: "8–12 months",
+    skills: ["Physical", "Cognitive"],
+    funFact: "when an object goes behind another object, it does not disappear.",
+    appropriatePlay: "peek-a-boo. hidden objects games.",
+    inappropriateDesign: "hiding objects or boxes with closing lids — in early childhood, hidden things quite literally disappear.",
+    takeHome: "in early childhood, hidden things quite literally disappear. design must account for this."
+  },
+  {
+    name: "prosocial behaviour",
+    age: "12–18 months",
+    skills: ["Social", "Emotional", "Cognitive"],
+    funFact: "children at early ages attribute intention to helping and hindering — and prefer even toys that are more helpful or prosocial in their intentions.",
+    appropriatePlay: "even at early ages, children will identify opportunities to help others. design experiences that evoke empathy and collaboration.",
+    inappropriateDesign: "like theory of mind, infants and toddlers have difficulty considering the perspectives and needs of others.",
+    takeHome: "there are mechanisms by which we can design experiences that evoke empathy and collaboration."
+  },
+  {
+    name: "bilateral coordination",
+    age: "18–24 months",
+    skills: ["Physical"],
+    funFact: "the ability to coordinate both hands during a task.",
+    appropriatePlay: "cutting with scissors. activities where children move across the midline. bilateral integration exercises.",
+    inappropriateDesign: "musical instruments, early sports equipment, or activities that require sustained coordination before children have it — leading to unsustainable engagement.",
+    takeHome: "the ability to coordinate our hands (and feet) ripples throughout development — we learn to cut, paper-clap, swim, and develop other athletic feats."
+  },
+  {
+    name: "dual representation",
+    age: "30 months",
+    skills: ["Physical", "Cognitive"],
+    funFact: "children have difficulty following a map (symbol) of a room to explore the actual room itself (referent).",
+    appropriatePlay: "maps for young children create a split between the map and the objects you wish for them to navigate.",
+    inappropriateDesign: "expecting children to transfer between symbolic and physical representations without support.",
+    takeHome: "symbols and metaphors are useful tools by which children can transfer learning from one context to another — but this ability develops."
+  },
+  {
+    name: "cardinality of numbers",
+    age: "3–4 years",
+    skills: ["Cognitive"],
+    funFact: "children may be able to count to 5 using their fingers, but if you ask them to raise two more fingers and ask how many they have, they will start over with their counting.",
+    appropriatePlay: "asking children to count and then add more — observe whether they understand quantity or are just reciting a sequence.",
+    inappropriateDesign: "adding more objects after counting can cause confusion about how many objects they actually have.",
+    takeHome: "counting for children is more than memorising — cardinality is where children begin to understand that the order of things is foundational for other maths."
+  },
+  {
+    name: "preoperational thinking",
+    age: "1–7 years",
+    skills: ["Cognitive"],
+    funFact: "children do not yet grasp concrete logic and cannot mentally manipulate information (e.g., try to remember the steps you took to get to school today).",
+    appropriatePlay: "ask a child to imagine an activity in their mind before doing it — observe whether they can plan mentally.",
+    inappropriateDesign: "asking a child to imagine something in their mind before doing so in the physical world — they may not be able to yet.",
+    takeHome: "be generous when asking children to understand how you think, and when asking them to explain their own thinking."
+  },
+  {
+    name: "conservation tasks",
+    age: "4–11 years",
+    skills: ["Physical", "Cognitive", "Creative"],
+    funFact: "Piaget discovered a series of tasks where children are unable to conserve a concept through a manipulation.",
+    appropriatePlay: "comparisons of tall vs. wide containers — children can conserve number concepts much earlier than volume.",
+    inappropriateDesign: "assuming children can differentiate quantities across different presentations — they often can't.",
+    takeHome: "children learn to conserve at different ages for different media — they can conserve number concepts much earlier than they can conserve volume."
+  },
+  {
+    name: "theory of mind",
+    age: "4–5 years",
+    skills: ["Social", "Cognitive", "Creative"],
+    funFact: "other people see and think differently than me.",
+    appropriatePlay: "false-belief tasks (e.g., the Sally-Anne test) show how children cling to a belief even when contradicted.",
+    inappropriateDesign: "asking a child to 'imagine your friend is walking in a park…' — they can't reliably take another's perspective yet.",
+    takeHome: "children's ability to consider things from other perspectives is a sea change moment in development."
+  },
+  {
+    name: "mental rotation",
+    age: "5 years",
+    skills: ["Physical", "Cognitive", "Creative"],
+    funFact: "the ability to imagine a physical object from different perspectives.",
+    appropriatePlay: "show transitions between rotated positions, with markings that indicate how a detail has moved.",
+    inappropriateDesign: "instructions that simply show a 'rotate' symbol with no visual guidance.",
+    takeHome: "with building toys, rotation is often present not only in instructions, but in our ability to build and understand what can be done."
+  },
+  {
+    name: "magical thinking",
+    age: "5–8 years",
+    skills: ["Cognitive", "Creative"],
+    funFact: "confusing coincidence with causality, animism (attributing motivations to inanimate objects), and unrealistic beliefs about the power of wishes.",
+    appropriatePlay: "Press Here by Hervé Tullet — a book that leverages children's magical thinking beautifully.",
+    inappropriateDesign: "introducing concepts of death or suggesting that children's thoughts can impact the physical world.",
+    takeHome: "children are susceptible to suggestion, yet this naiveté can be leveraged to create beautiful experiences and insights."
+  },
+  {
+    name: "metacognition",
+    age: "5–10 years",
+    skills: ["Social", "Cognitive", "Creative"],
+    funFact: "thinking about one's own thinking — monitoring one's own learning and updating learning behaviours.",
+    appropriatePlay: "identify and support children where they are on the tacit-to-reflective learner framework.",
+    inappropriateDesign: "asking 'what would you do if _____?' before a child has the capacity to reflect on their own reasoning.",
+    takeHome: "this awareness of our own thinking is an entry point to building strategies for problem-solving."
+  }
+];
+
+const lenses = [
+  {
+    name: "cardinality",
+    age: "3–4 years",
+    fail: "assumes children understand that \"3\" means three things. most 3-year-olds can recite numbers but don't yet grasp cardinality. the toy confuses sequence with quantity.",
+    pass: "no numbers. children can group, sort, count, and recount bricks naturally — discovering cardinality through manipulation rather than being tested on it."
+  },
+  {
+    name: "dual representation",
+    age: "30 months",
+    fail: "requires understanding that a number shape represents a quantity AND a position on a clock face — two layers of symbolic representation a toddler can't hold simultaneously.",
+    pass: "a brick is a brick and also a car, a wall, a sandwich. children practise representation at their own level."
+  },
+  {
+    name: "conservation",
+    age: "4–11 years",
+    fail: "the puzzle only works if pieces are in the \"right\" position. no room for the child's own logic about arrangement or quantity.",
+    pass: "six bricks can be a tower, a line, a pile — same six bricks, different configurations. children discover conservation naturally."
+  },
+  {
+    name: "preoperational thinking",
+    age: "1–7 years",
+    fail: "telling time requires abstract reasoning about cycles, future, past. a preoperational child can't mentally manipulate this.",
+    pass: "no abstract reasoning required. the play emerges from what the child can do right now."
+  },
+  {
+    name: "bilateral coordination",
+    age: "18–24 months",
+    fail: "small, fiddly puzzle pieces that frustrate rather than develop fine motor skills.",
+    pass: "large enough to grip with full hands. building requires both hands naturally, developing bilateral coordination through play rather than demanding it as a prerequisite."
+  }
+];
+
+
+/* ═══════════════ RENDER MILESTONES ═══════════════ */
+
+const grid = document.getElementById('milestoneGrid');
+let expandedMilestone = null;
+
+function renderMilestones() {
+  grid.innerHTML = '';
+  milestones.forEach((m, i) => {
+    const node = document.createElement('div');
+    node.className = 'milestone-node fade-in';
+    node.dataset.index = i;
+    node.dataset.skills = m.skills.join(',');
+    node.setAttribute('role', 'button');
+    node.setAttribute('tabindex', '0');
+    node.setAttribute('aria-expanded', 'false');
+
+    const dots = m.skills.map(s =>
+      `<span class="dot" style="background:${DOMAIN_COLORS[s]};" title="${s.toLowerCase()}"></span>`
+    ).join('');
+
+    node.innerHTML = `
+      <div class="milestone-header">
+        <span class="milestone-name">${m.name}</span>
+        <span class="milestone-age">${m.age}</span>
+      </div>
+      <div class="milestone-dots">${dots}</div>
+      <div class="milestone-detail">
+        <div class="detail-block">
+          <div class="detail-label">what it is</div>
+          <div class="detail-text">${m.funFact}</div>
+        </div>
+        <div class="detail-block">
+          <div class="detail-label">what good play looks like</div>
+          <div class="detail-text">${m.appropriatePlay}</div>
+        </div>
+        <div class="detail-block">
+          <div class="detail-label">what bad design looks like</div>
+          <div class="detail-text">${m.inappropriateDesign}</div>
+        </div>
+        <div class="detail-block">
+          <div class="detail-label">why it matters</div>
+          <div class="detail-text">${m.takeHome}</div>
+        </div>
+      </div>
+    `;
+
+    node.addEventListener('click', () => toggleMilestone(node, i));
+    node.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleMilestone(node, i);
+      }
+    });
+
+    grid.appendChild(node);
+  });
+}
+
+function toggleMilestone(node, index) {
+  if (expandedMilestone === index) {
+    node.classList.remove('expanded');
+    node.setAttribute('aria-expanded', 'false');
+    expandedMilestone = null;
+  } else {
+    document.querySelectorAll('.milestone-node.expanded').forEach(n => {
+      n.classList.remove('expanded');
+      n.setAttribute('aria-expanded', 'false');
+    });
+    node.classList.add('expanded');
+    node.setAttribute('aria-expanded', 'true');
+    expandedMilestone = index;
+    setTimeout(() => {
+      node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+  }
+}
+
+
+/* ═══════════════ DOMAIN FILTERING ═══════════════ */
+
+document.querySelectorAll('.domain-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.domain-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+
+    const domain = pill.dataset.domain;
+    document.querySelectorAll('.milestone-node').forEach(node => {
+      if (domain === 'all') {
+        node.classList.remove('hidden');
+      } else {
+        const skills = node.dataset.skills.split(',');
+        node.classList.toggle('hidden', !skills.includes(domain));
+      }
+    });
+
+    // collapse any expanded node when filtering
+    document.querySelectorAll('.milestone-node.expanded').forEach(n => {
+      n.classList.remove('expanded');
+      n.setAttribute('aria-expanded', 'false');
+    });
+    expandedMilestone = null;
+  });
+});
+
+
+/* ═══════════════ RENDER TOY AUTOPSY ═══════════════ */
+
+const lensList = document.getElementById('lensList');
+
+lenses.forEach((lens, i) => {
+  const row = document.createElement('div');
+  row.className = 'lens-row fade-in';
+  row.setAttribute('role', 'button');
+  row.setAttribute('tabindex', '0');
+  row.setAttribute('aria-expanded', 'false');
+
+  row.innerHTML = `
+    <div class="lens-trigger">
+      <span class="lens-label">${lens.name}</span>
+      <span class="lens-age">${lens.age}</span>
+      <svg class="lens-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="lens-comparison">
+      <div class="comparison-grid">
+        <div class="comparison-cell fail">
+          <span class="verdict" aria-label="fails">&#10007;</span>
+          <div>${lens.fail}</div>
+        </div>
+        <div class="comparison-cell pass">
+          <span class="verdict" aria-label="passes">&#10003;</span>
+          <div>${lens.pass}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const toggle = () => {
+    const wasExpanded = row.classList.contains('expanded');
+    row.classList.toggle('expanded');
+    row.setAttribute('aria-expanded', !wasExpanded);
+  };
+
+  row.addEventListener('click', toggle);
+  row.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggle();
+    }
+  });
+
+  lensList.appendChild(row);
+});
+
+
+/* ═══════════════ INTERSECTION OBSERVER ═══════════════ */
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+
+/* ═══════════════ INIT ═══════════════ */
+renderMilestones();
+
+// observe dynamically created milestone nodes
+setTimeout(() => {
+  document.querySelectorAll('.milestone-node.fade-in:not(.visible)').forEach(el => observer.observe(el));
+  document.querySelectorAll('.lens-row.fade-in:not(.visible)').forEach(el => observer.observe(el));
+}, 50);
+</script>
+</body>
+</html>
