@@ -34,7 +34,7 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 bg-sidebar text-white">
-      <div className="flex h-16 items-center px-5 border-b border-sidebar-border">
+      <div className="flex h-20 items-center px-5 pt-2 border-b border-sidebar-border">
         <Link href="/" className="block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
