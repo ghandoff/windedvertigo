@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { NewContactDialog } from "@/app/components/new-contact-dialog";
 import { Badge } from "@/components/ui/badge";
 import { useContactsCache } from "@/lib/pwa/use-contacts-cache";
 import { useOnlineStatus } from "@/lib/pwa/use-online-status";
@@ -67,7 +68,10 @@ export default function MobileContactsPage() {
 
   return (
     <>
-      <h1 className="text-lg font-semibold mb-4">contacts</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-lg font-semibold">contacts</h1>
+        <NewContactDialog compact />
+      </div>
 
       <div className="relative mb-4">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

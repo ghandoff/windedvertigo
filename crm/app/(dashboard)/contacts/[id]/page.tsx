@@ -6,6 +6,7 @@ import { getActivitiesForContact } from "@/lib/notion/activities";
 import { PageHeader } from "@/app/components/page-header";
 import { ActivityTimeline } from "@/app/components/activity-timeline";
 import { LogActivityDialog } from "@/app/components/log-activity-dialog";
+import { ContactEditDialog } from "@/app/components/contact-edit-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -68,6 +69,7 @@ export default async function ContactDetailPage({ params }: Props) {
       </Link>
 
       <PageHeader title={contact.name}>
+        <ContactEditDialog contact={contact} />
         <LogActivityDialog
           contactId={contact.id}
           contactName={contact.name}

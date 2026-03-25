@@ -13,6 +13,7 @@ import {
 import {
   Sheet, SheetContent, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
+import { useMembers } from "@/lib/pwa/use-members";
 
 const ACTIVITY_TYPES = [
   "email sent", "email received", "meeting", "call",
@@ -21,8 +22,6 @@ const ACTIVITY_TYPES = [
 ] as const;
 
 const OUTCOMES = ["positive", "neutral", "no response", "declined"] as const;
-
-const TEAM_MEMBERS = ["garrett", "maría", "jamie", "lamis", "yigal"] as const;
 
 interface LogActivityDialogProps {
   contactId?: string;
@@ -41,6 +40,7 @@ export function LogActivityDialog({
   currentStage,
 }: LogActivityDialogProps) {
   const router = useRouter();
+  const members = useMembers();
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
 
@@ -169,8 +169,8 @@ export function LogActivityDialog({
                 <SelectValue placeholder="who are you?" />
               </SelectTrigger>
               <SelectContent>
-                {TEAM_MEMBERS.map((m) => (
-                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                {members.map((m) => (
+                  <SelectItem key={m.id} value={m.firstName}>{m.firstName}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

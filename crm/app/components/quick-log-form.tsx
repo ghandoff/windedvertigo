@@ -16,6 +16,7 @@ import { useContactsCache } from "@/lib/pwa/use-contacts-cache";
 import { queueActivity } from "@/lib/pwa/offline-store";
 import { syncQueue, requestBackgroundSync } from "@/lib/pwa/sync-manager";
 import type { CachedContact } from "@/lib/pwa/offline-store";
+import { useMembers } from "@/lib/pwa/use-members";
 
 const ACTIVITY_TYPES = [
   "conference encounter", "meeting", "call", "intro made",
@@ -23,13 +24,14 @@ const ACTIVITY_TYPES = [
   "proposal shared", "other",
 ] as const;
 
-const TEAM_MEMBERS = ["garrett", "maría", "jamie", "lamis", "yigal"] as const;
+// Team members loaded dynamically from Notion members DB
 
 const OUTCOMES = ["positive", "neutral", "no response", "declined"] as const;
 
 export function QuickLogForm() {
   const router = useRouter();
   const isOnline = useOnlineStatus();
+  const members = useMembers();
   const { search: searchContacts } = useContactsCache();
   const [, startTransition] = useTransition();
 
@@ -255,8 +257,8 @@ export function QuickLogForm() {
             <SelectValue placeholder="who are you?" />
           </SelectTrigger>
           <SelectContent>
-            {TEAM_MEMBERS.map((m) => (
-              <SelectItem key={m} value={m} className="text-sm">{m}</SelectItem>
+            {members.map((m) => (
+              <SelectItem key={m.id} value={m.firstName} className="text-sm">{m.firstName}</SelectItem>
             ))}
           </SelectContent>
         </Select>

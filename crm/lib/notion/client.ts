@@ -27,6 +27,7 @@ export const CRM_DB = {
   campaignSteps: "31aa2804-d803-4af9-91bd-bdad5dd9996e",
   emailTemplates: "9e57d0c9-1477-4af6-aa9d-772de010774e",
   activities: "f61e3d25-72d6-482c-a595-ff1236dcc8c6",
+  members: "cc118d3a-960e-4cb6-b78e-f2709f3c64b7",
 } as const;
 
 // ── property name maps ────────────────────────────────────
@@ -207,6 +208,14 @@ export const CAMPAIGN_STEP_PROPS = {
   variantBSubject: "variant b subject",
   variantBBody: "variant b body",
   condition: "condition",
+} as const;
+
+export const MEMBER_PROPS = {
+  name: "first & last name",
+  active: "active",
+  email: "email",
+  companyRole: "company role",
+  capacity: "capacity",
 } as const;
 
 export const ACTIVITY_PROPS = {

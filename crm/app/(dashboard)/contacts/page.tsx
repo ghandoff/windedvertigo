@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { queryContacts } from "@/lib/notion/contacts";
+import { NewContactDialog } from "@/app/components/new-contact-dialog";
 import { PageHeader } from "@/app/components/page-header";
 import { ContactPipeline } from "@/app/components/contact-pipeline";
 import { SearchInput } from "@/app/components/search-input";
@@ -130,7 +131,9 @@ export default async function ContactsPage(props: Props) {
       <PageHeader
         title="contacts"
         description="people linked to organizations in the pipeline"
-      />
+      >
+        <NewContactDialog />
+      </PageHeader>
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Suspense>
           <SearchInput placeholder="search contacts..." />
