@@ -177,17 +177,23 @@ function EconomicsTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/crm/api/ai/usage").then((r) => r.json()),
-      fetch("/crm/api/ai/budget").then((r) => r.json()),
-      fetch("/crm/api/ai/costs").then((r) => r.json()),
-    ])
-      .then(([u, b, c]) => {
-        setUsage(u);
-        setBudget(b);
-        setCosts(c);
-      })
-      .finally(() => setLoading(false));
+    async function load() {
+      try {
+        const [uRes, bRes, cRes] = await Promise.all([
+          fetch("/crm/api/ai/usage"),
+          fetch("/crm/api/ai/budget"),
+          fetch("/crm/api/ai/costs"),
+        ]);
+        if (uRes.ok) setUsage(await uRes.json());
+        if (bRes.ok) setBudget(await bRes.json());
+        if (cRes.ok) setCosts(await cRes.json());
+      } catch {
+        // API errors are non-fatal — dashboard shows empty state
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
   async function handleBudgetSave() {

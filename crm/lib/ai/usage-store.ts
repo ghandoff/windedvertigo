@@ -1,46 +1,87 @@
 /**
- * Token usage store — file-based JSON log for tracking AI costs.
+ * Token usage store — tracks AI costs.
  *
- * Uses a simple append-only JSON-lines file stored on the server.
- * For production at scale, swap this for a database table.
+ * Uses /tmp on Vercel (writable ephemeral storage) for the usage log,
+ * with graceful fallback to in-memory when filesystem is unavailable.
+ * Data resets on cold starts — for persistent tracking, wire up a
+ * Notion database or Vercel KV in the future.
  */
 
-import { readFile, appendFile, mkdir } from "fs/promises";
-import { join } from "path";
 import type { AiFeature, TokenUsageEntry, UsageSummary, Budget, CostBreakdown } from "./types";
-import { AI_FEATURE_LABELS } from "./types";
 
-const DATA_DIR = join(process.cwd(), ".ai-usage");
-const LOG_FILE = join(DATA_DIR, "usage.jsonl");
-const BUDGET_FILE = join(DATA_DIR, "budget.json");
+// ── in-memory fallback store ─────────────────────────────
+// Persists across warm invocations on the same serverless instance.
 
-async function ensureDir() {
-  await mkdir(DATA_DIR, { recursive: true });
+let memoryLog: TokenUsageEntry[] = [];
+let memoryBudget: BudgetConfig | null = null;
+
+// ── filesystem helpers (use /tmp on Vercel) ──────────────
+
+const DATA_DIR = "/tmp/ai-usage";
+const LOG_FILE = `${DATA_DIR}/usage.jsonl`;
+const BUDGET_FILE = `${DATA_DIR}/budget.json`;
+
+async function fsWrite(path: string, data: string): Promise<boolean> {
+  try {
+    const { mkdir, writeFile } = await import("fs/promises");
+    await mkdir(DATA_DIR, { recursive: true });
+    await writeFile(path, data);
+    return true;
+  } catch {
+    return false;
+  }
 }
+
+async function fsAppend(path: string, data: string): Promise<boolean> {
+  try {
+    const { mkdir, appendFile } = await import("fs/promises");
+    await mkdir(DATA_DIR, { recursive: true });
+    await appendFile(path, data);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function fsRead(path: string): Promise<string | null> {
+  try {
+    const { readFile } = await import("fs/promises");
+    return await readFile(path, "utf-8");
+  } catch {
+    return null;
+  }
+}
+
+// ── record usage ─────────────────────────────────────────
 
 /** Append a usage entry to the log. */
 export async function recordUsage(entry: TokenUsageEntry): Promise<void> {
-  await ensureDir();
-  await appendFile(LOG_FILE, JSON.stringify(entry) + "\n");
+  memoryLog.push(entry);
+  await fsAppend(LOG_FILE, JSON.stringify(entry) + "\n");
 }
+
+// ── read usage ───────────────────────────────────────────
 
 /** Read all usage entries, optionally filtered by date range. */
 export async function getUsageEntries(
   from?: string,
   to?: string,
 ): Promise<TokenUsageEntry[]> {
-  await ensureDir();
-  let raw: string;
-  try {
-    raw = await readFile(LOG_FILE, "utf-8");
-  } catch {
-    return [];
-  }
+  // Try filesystem first, fall back to memory
+  let entries: TokenUsageEntry[] = [];
 
-  const entries: TokenUsageEntry[] = raw
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
+  const raw = await fsRead(LOG_FILE);
+  if (raw) {
+    entries = raw
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        try { return JSON.parse(line); } catch { return null; }
+      })
+      .filter(Boolean);
+  } else {
+    entries = [...memoryLog];
+  }
 
   if (from || to) {
     return entries.filter((e) => {
@@ -116,21 +157,20 @@ const DEFAULT_BUDGET: BudgetConfig = {
 };
 
 export async function getBudgetConfig(): Promise<BudgetConfig> {
-  await ensureDir();
-  try {
-    const raw = await readFile(BUDGET_FILE, "utf-8");
-    return { ...DEFAULT_BUDGET, ...JSON.parse(raw) };
-  } catch {
-    return DEFAULT_BUDGET;
+  // Try filesystem, then memory, then defaults
+  const raw = await fsRead(BUDGET_FILE);
+  if (raw) {
+    try { return { ...DEFAULT_BUDGET, ...JSON.parse(raw) }; } catch {}
   }
+  if (memoryBudget) return memoryBudget;
+  return DEFAULT_BUDGET;
 }
 
 export async function setBudgetConfig(config: Partial<BudgetConfig>): Promise<BudgetConfig> {
-  await ensureDir();
   const current = await getBudgetConfig();
   const updated = { ...current, ...config };
-  const { writeFile } = await import("fs/promises");
-  await writeFile(BUDGET_FILE, JSON.stringify(updated, null, 2));
+  memoryBudget = updated;
+  await fsWrite(BUDGET_FILE, JSON.stringify(updated, null, 2));
   return updated;
 }
 
@@ -144,7 +184,7 @@ export async function getBudgetStatus(): Promise<Budget> {
   const summary = await getUsageSummary(monthStart, monthEnd);
   const currentSpendUsd = summary.totalCostUsd;
   const remainingUsd = Math.max(0, config.monthlyLimitUsd - currentSpendUsd);
-  const spendPct = (currentSpendUsd / config.monthlyLimitUsd) * 100;
+  const spendPct = config.monthlyLimitUsd > 0 ? (currentSpendUsd / config.monthlyLimitUsd) * 100 : 0;
 
   return {
     monthlyLimitUsd: config.monthlyLimitUsd,
