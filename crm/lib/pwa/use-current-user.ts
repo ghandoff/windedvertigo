@@ -1,29 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useUser } from "@/app/components/user-provider";
 
 interface CurrentUser {
   email: string;
   name: string;
   firstName: string;
-  image: string;
 }
 
 /**
- * Hook that fetches the current authenticated user.
- * Returns their first name (lowercase) for auto-filling "logged by".
+ * Hook that returns the current authenticated user.
+ * Reads from the UserProvider context (injected server-side by layouts).
+ * This avoids the proxy cookie forwarding issue with /api/me.
  */
-export function useCurrentUser() {
-  const [user, setUser] = useState<CurrentUser | null>(null);
-
-  useEffect(() => {
-    fetch("/crm/api/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.firstName) setUser(data);
-      })
-      .catch(() => {});
-  }, []);
-
+export function useCurrentUser(): CurrentUser | null {
+  const user = useUser();
   return user;
 }

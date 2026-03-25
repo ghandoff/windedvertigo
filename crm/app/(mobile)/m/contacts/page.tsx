@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Users } from "lucide-react";
+import { Search, Users, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { NewContactDialog } from "@/app/components/new-contact-dialog";
+import { MobileContactEdit } from "@/app/components/mobile-contact-edit";
 import { Badge } from "@/components/ui/badge";
 import { useContactsCache } from "@/lib/pwa/use-contacts-cache";
 import { useOnlineStatus } from "@/lib/pwa/use-online-status";
@@ -25,34 +26,12 @@ const WARMTH_DOT: Record<string, string> = {
   hot: "bg-red-500",
 };
 
-function ContactItem({ contact }: { contact: CachedContact }) {
-  return (
-    <div className="flex items-center gap-3 px-1 py-3 border-b border-border last:border-0">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          {contact.contactWarmth && (
-            <span className={`h-2 w-2 rounded-full shrink-0 ${WARMTH_DOT[contact.contactWarmth] ?? "bg-gray-300"}`} />
-          )}
-          <span className="font-medium text-sm truncate">{contact.name}</span>
-        </div>
-        {contact.role && (
-          <p className="text-xs text-muted-foreground truncate ml-4">{contact.role}</p>
-        )}
-      </div>
-      {contact.relationshipStage && (
-        <Badge variant="outline" className={`text-[10px] shrink-0 ${STAGE_COLORS[contact.relationshipStage] ?? ""}`}>
-          {contact.relationshipStage}
-        </Badge>
-      )}
-    </div>
-  );
-}
-
 export default function MobileContactsPage() {
   const isOnline = useOnlineStatus();
-  const { contacts, loading, search } = useContactsCache();
+  const { contacts, loading, search, refresh } = useContactsCache();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CachedContact[]>([]);
+  const [editingContact, setEditingContact] = useState<CachedContact | null>(null);
 
   async function handleSearch(q: string) {
     setQuery(q);
@@ -62,6 +41,14 @@ export default function MobileContactsPage() {
     }
     const found = await search(q);
     setResults(found);
+  }
+
+  function handleEditClose(open: boolean) {
+    if (!open) {
+      setEditingContact(null);
+      // Refresh cache after edit
+      refresh();
+    }
   }
 
   const displayContacts = query.length >= 2 ? results : contacts.slice(0, 20);
@@ -95,11 +82,44 @@ export default function MobileContactsPage() {
           <p className="text-xs text-muted-foreground mb-2">
             {query ? `${displayContacts.length} results` : `${displayContacts.length} recent contacts`}
             {!isOnline && " (cached)"}
+            {isOnline && " · tap to edit"}
           </p>
           {displayContacts.map((c) => (
-            <ContactItem key={c.id} contact={c} />
+            <button
+              key={c.id}
+              onClick={() => isOnline ? setEditingContact(c) : undefined}
+              className="flex items-center gap-3 px-1 py-3 border-b border-border last:border-0 w-full text-left"
+              disabled={!isOnline}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  {c.contactWarmth && (
+                    <span className={`h-2 w-2 rounded-full shrink-0 ${WARMTH_DOT[c.contactWarmth] ?? "bg-gray-300"}`} />
+                  )}
+                  <span className="font-medium text-sm truncate">{c.name}</span>
+                </div>
+                {c.role && (
+                  <p className="text-xs text-muted-foreground truncate ml-4">{c.role}</p>
+                )}
+              </div>
+              {c.relationshipStage && (
+                <Badge variant="outline" className={`text-[10px] shrink-0 ${STAGE_COLORS[c.relationshipStage] ?? ""}`}>
+                  {c.relationshipStage}
+                </Badge>
+              )}
+              {isOnline && <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+            </button>
           ))}
         </div>
+      )}
+
+      {/* Edit sheet */}
+      {editingContact && (
+        <MobileContactEdit
+          contact={editingContact}
+          open={!!editingContact}
+          onOpenChange={handleEditClose}
+        />
       )}
     </>
   );
