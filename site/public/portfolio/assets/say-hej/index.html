@@ -456,6 +456,57 @@ h3 { font-size: 18px; margin-bottom: 8px; }
   .intro { padding: 80px 0 40px; }
 }
 
+/* ── backpack animation ── */
+.backpack-animation {
+  position: relative;
+}
+.backpack-part {
+  cursor: pointer;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  transform-origin: center;
+}
+.backpack-part:hover {
+  filter: brightness(1.15);
+}
+.backpack-part.detached {
+  opacity: 0.2;
+  transform: translateY(-20px);
+}
+#backpackFace.detached { transform: translate(0, -30px) scale(0.8); }
+#backpackBalls.detached { transform: translate(0, 20px) scale(0.9); }
+#backpackTongue.detached { transform: translate(0, 25px) scale(0.8); }
+
+.backpack-annotation {
+  text-align: center;
+  min-height: 48px;
+  padding: 0 16px;
+  transition: opacity 0.3s ease;
+}
+.backpack-annotation p {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: rgba(255,235,210,0.8);
+  margin: 0;
+}
+.backpack-annotation .annot-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,235,210,0.4);
+  margin-bottom: 4px;
+}
+.backpack-annotation .annot-domain {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     transition-duration: 0.01ms !important;
@@ -474,21 +525,22 @@ h3 { font-size: 18px; margin-bottom: 8px; }
     <h1>say hej to the child</h1>
     <div class="body-copy">
       <p>what does it mean to say hello to a child?</p>
-      <p>most adults watching a child play see activity. they see a kid stacking blocks, sorting colours, pretending to cook. what they miss is development — the invisible, intricate work happening underneath.</p>
-      <p><em>say hej</em> (danish for "hello") was a workshop series we co-designed and co-led for a major toy company. it taught toy designers to truly see what's happening when a child plays — and to design products worthy of that complexity.</p>
-      <p>below are two interactive experiences drawn from the workshop. they won't teach you everything we covered — but they'll show you how we think.</p>
+      <p>most adults watching a child play see activity. they see a kid stacking blocks, sorting colours, pretending to cook. what they miss is development: the invisible, intricate work happening underneath.</p>
+      <p>development doesn't unfold in lockstep. it loops, swerves, and adapts — shaped by context, culture, relationships, and a child's own history. we weren't teaching a checklist of "normal." we were teaching designers how to notice, interpret, and design for variability.</p>
+      <p><em>say hej</em> (danish for "hello") was a workshop series we co-designed and co-led for a major toy company. it taught toy designers to truly see what's happening when a child plays, and to design products worthy of that complexity.</p>
+      <p>the interactive page includes two experiences drawn from the workshop:</p>
     </div>
 
     <div class="cta-row">
       <a href="#milestones" class="cta-card">
         <span class="cta-number">01</span>
-        <span class="cta-title">the milestones map</span>
-        <span class="cta-desc">see what most adults miss when a child plays</span>
+        <span class="cta-title">the phenomena map</span>
+        <span class="cta-desc">11 developmental phenomena hidden inside ordinary play moments</span>
       </a>
       <a href="#autopsy" class="cta-card">
         <span class="cta-number">02</span>
         <span class="cta-title">the toy autopsy</span>
-        <span class="cta-desc">examine a toy through a child's developmental reality</span>
+        <span class="cta-desc">what predictions does a toy invite children to test?</span>
       </a>
     </div>
   </div>
@@ -500,8 +552,8 @@ h3 { font-size: 18px; margin-bottom: 8px; }
 <section id="milestones">
   <div class="container">
     <div class="eyebrow fade-in">interactive · developmental phenomena</div>
-    <h2 class="fade-in">the milestones map</h2>
-    <p class="lead fade-in" style="margin-bottom: 40px;">a child stacking blocks is not just stacking blocks. click any milestone to see the hidden developmental work inside an ordinary moment of play.</p>
+    <h2 class="fade-in">the phenomena map</h2>
+    <p class="lead fade-in" style="margin-bottom: 40px;">a child stacking blocks is not just stacking blocks. click any phenomenon to see the hidden developmental work inside an ordinary moment of play.</p>
 
     <!-- play scene illustration -->
     <div class="scene-wrapper fade-in">
@@ -554,7 +606,7 @@ h3 { font-size: 18px; margin-bottom: 8px; }
     <div class="milestone-grid" id="milestoneGrid"></div>
 
     <div class="section-footer fade-in">
-      the milestones map is how we taught designers to see the child — to move from observing activity to understanding development. this is the foundation that every design decision should rest on.
+      the phenomena map is how we taught designers to see the child — to move from observing activity to understanding development. this is the foundation that every design decision should rest on.
     </div>
   </div>
 </section>
@@ -595,10 +647,69 @@ h3 { font-size: 18px; margin-bottom: 8px; }
 <section class="interstice">
   <div class="container">
     <h2 class="fade-in">the interstice</h2>
-    <p class="lead fade-in" style="margin-bottom: 32px;">the milestones map teaches you to see the child. the toy autopsy teaches you to see the product. <em>say hej</em> holds both simultaneously.</p>
+    <p class="lead fade-in" style="margin-bottom: 32px;">the phenomena map teaches you to see the child. the toy autopsy teaches you to see the product. <em>say hej</em> holds both simultaneously.</p>
     <div class="fade-in">
-      <p>in the workshop, teams chose a developmental domain — any of the holistic skill areas — and designed a toy prototype grounded in what they'd learned. one team created a children's backpack with a removable cartoon villain face, velcro surfaces where balls could stick and be pulled off, and a detachable tongue — a tactile, playful object inspired by flag-football mechanics.</p>
-      <p>the design worked because it was grounded in development: bilateral coordination (two hands pulling velcro), prosocial play (the character invites narrative), and object permanence (the removable face appears and disappears).</p>
+      <p>winded.vertigo's approach to development starts from a simple claim: design is never neutral. every toy carries an implicit theory of how children learn, what counts as "normal," and whose ways of making meaning matter. we treat development as inferential, relational, and context-sensitive — not a staircase of universal stages, but an ongoing process of model-building where children test hypotheses, metabolise surprise, and revise what they believe about the world through play. variation isn't noise around a norm; it's the expected outcome of different histories, cultures, bodies, and environments.</p>
+      <p>in the workshop, teams chose a developmental domain and designed a toy prototype grounded in what they'd learned. one team created a children's backpack with a removable cartoon villain face, velcro surfaces where balls could stick and be pulled off, and a detachable tongue — a tactile, playful object inspired by flag-football mechanics.</p>
+    </div>
+
+    <!-- backpack prototype animation -->
+    <div class="backpack-animation fade-in" id="backpackDemo">
+      <svg viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="interactive backpack prototype — click to explore the developmental features" style="width:100%;max-width:400px;margin:32px auto;display:block;cursor:pointer;">
+        <!-- backpack body -->
+        <rect x="120" y="80" width="160" height="180" rx="24" fill="#273248" opacity="0.9"/>
+        <rect x="130" y="70" width="140" height="40" rx="20" fill="#273248" opacity="0.7"/>
+        <!-- straps -->
+        <rect x="130" y="260" width="20" height="40" rx="6" fill="#273248" opacity="0.5"/>
+        <rect x="250" y="260" width="20" height="40" rx="6" fill="#273248" opacity="0.5"/>
+
+        <!-- velcro surface (dotted texture) -->
+        <rect x="140" y="150" width="120" height="80" rx="8" fill="#3b3b5c" opacity="0.4"/>
+        <g opacity="0.3">
+          <circle cx="160" cy="170" r="2" fill="#ffebd2"/><circle cx="180" cy="170" r="2" fill="#ffebd2"/>
+          <circle cx="200" cy="170" r="2" fill="#ffebd2"/><circle cx="220" cy="170" r="2" fill="#ffebd2"/>
+          <circle cx="240" cy="170" r="2" fill="#ffebd2"/>
+          <circle cx="160" cy="190" r="2" fill="#ffebd2"/><circle cx="180" cy="190" r="2" fill="#ffebd2"/>
+          <circle cx="200" cy="190" r="2" fill="#ffebd2"/><circle cx="220" cy="190" r="2" fill="#ffebd2"/>
+          <circle cx="240" cy="190" r="2" fill="#ffebd2"/>
+          <circle cx="160" cy="210" r="2" fill="#ffebd2"/><circle cx="180" cy="210" r="2" fill="#ffebd2"/>
+          <circle cx="200" cy="210" r="2" fill="#ffebd2"/><circle cx="220" cy="210" r="2" fill="#ffebd2"/>
+          <circle cx="240" cy="210" r="2" fill="#ffebd2"/>
+        </g>
+
+        <!-- villain face (removable) -->
+        <g id="backpackFace" class="backpack-part" data-part="face">
+          <circle cx="200" cy="120" r="30" fill="#b15043"/>
+          <circle cx="190" cy="113" r="5" fill="#ffebd2"/>
+          <circle cx="210" cy="113" r="5" fill="#ffebd2"/>
+          <circle cx="190" cy="113" r="2.5" fill="#273248"/>
+          <circle cx="210" cy="113" r="2.5" fill="#273248"/>
+          <path d="M185 132 Q200 140 215 132" stroke="#ffebd2" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </g>
+
+        <!-- velcro balls -->
+        <g id="backpackBalls" class="backpack-part" data-part="balls">
+          <circle cx="165" cy="185" r="10" fill="#f59e0b" opacity="0.85"/>
+          <circle cx="200" cy="175" r="10" fill="#3b82f6" opacity="0.85"/>
+          <circle cx="235" cy="185" r="10" fill="#22c55e" opacity="0.85"/>
+        </g>
+
+        <!-- tongue (detachable) -->
+        <g id="backpackTongue" class="backpack-part" data-part="tongue">
+          <ellipse cx="200" cy="248" rx="18" ry="24" fill="#ef4444" opacity="0.8"/>
+          <ellipse cx="200" cy="244" rx="12" ry="16" fill="#f87171" opacity="0.5"/>
+        </g>
+
+        <!-- interaction hint -->
+        <text x="200" y="310" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="500" fill="rgba(255,235,210,0.5)" letter-spacing="0.06em" class="backpack-hint">click the face, balls, or tongue</text>
+      </svg>
+
+      <!-- annotation that appears on click -->
+      <div class="backpack-annotation" id="backpackAnnotation"></div>
+    </div>
+
+    <div class="fade-in">
+      <p>the design worked because it was grounded in a careful reading of development in context — designing for what children can test and revise through play: bilateral coordination (two hands pulling velcro), prosocial play (the character invites narrative), and object permanence (the removable face appears and disappears).</p>
       <p>that's what <em>say hej</em> was about. not a checklist. a practice — learning to hold the child and the product in the same gaze, and designing from that place.</p>
     </div>
   </div>
@@ -615,9 +726,9 @@ h3 { font-size: 18px; margin-bottom: 8px; }
       <p style="margin-top: 16px; margin-bottom: 4px;"><strong>quadrants activated:</strong></p>
       <ul class="quadrant-list">
         <li>people × design: the workshop learning experiences</li>
-        <li>people × research: developmental milestones mapping and observation</li>
+        <li>people × research: developmental phenomena mapping and observation</li>
         <li>product × design: six bricks activities, building toy prototyping</li>
-        <li>product × research: toy failure analysis and developmental evaluation</li>
+        <li>product × research: toy affordance + tradeoff analysis and developmental evaluation</li>
       </ul>
     </div>
   </div>
@@ -942,6 +1053,60 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+
+/* ═══════════════ BACKPACK PROTOTYPE ═══════════════ */
+
+const backpackAnnotations = {
+  face: {
+    label: 'object permanence',
+    text: 'the removable villain face appears and disappears — a child practises knowing things persist even when hidden.',
+    domain: 'cognitive',
+    color: '#22c55e'
+  },
+  balls: {
+    label: 'bilateral coordination',
+    text: 'pulling velcro balls requires two hands working together — building the coordination children need for cutting, swimming, and athletic feats.',
+    domain: 'physical',
+    color: '#3b82f6'
+  },
+  tongue: {
+    label: 'prosocial play',
+    text: 'the cartoon character invites narrative and shared play — children attribute intention to the face and create stories together.',
+    domain: 'social',
+    color: '#ef4444'
+  }
+};
+
+let activeBackpackPart = null;
+
+document.querySelectorAll('.backpack-part').forEach(part => {
+  part.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const partName = part.dataset.part;
+    const annot = document.getElementById('backpackAnnotation');
+
+    if (activeBackpackPart === partName) {
+      // toggle off
+      part.classList.remove('detached');
+      annot.innerHTML = '';
+      activeBackpackPart = null;
+      return;
+    }
+
+    // reset all parts
+    document.querySelectorAll('.backpack-part').forEach(p => p.classList.remove('detached'));
+    activeBackpackPart = partName;
+    part.classList.add('detached');
+
+    const data = backpackAnnotations[partName];
+    annot.innerHTML = `
+      <div class="annot-label">${data.label}</div>
+      <p>${data.text}</p>
+      <span class="annot-domain" style="background:${data.color}22; color:${data.color};">${data.domain}</span>
+    `;
+  });
+});
 
 
 /* ═══════════════ INIT ═══════════════ */
