@@ -32,6 +32,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   opacity: 0; pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  padding-top: 52px; /* clear agenda bar on all viewports */
   transition: opacity 0.8s ease, transform 0.8s ease;
 }
 .sc.active { opacity: 1; pointer-events: auto; z-index: 10; }
@@ -124,19 +125,19 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ── Narrator ── */
 #narrator-toggle {
   position: fixed; top: 20px; right: 20px; z-index: 300;
-  background: rgba(1,113,185,0.85); color: #fff; border: none; border-radius: 4px;
+  background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;
   padding: 10px 16px; font: 500 12px 'Quicksand', sans-serif; cursor: pointer;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   min-height: 48px; min-width: 48px;
   display: flex; align-items: center; gap: 6px;
   transition: background 0.2s;
 }
-#narrator-toggle:hover { background: rgba(1,113,185,0.95); }
+#narrator-toggle:hover { background: rgba(255,255,255,0.25); }
 #narrator-toggle .eye-icon { font-size: 14px; }
 #narrator-overlay {
   position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
   max-width: 600px; width: 90%; z-index: 250;
-  background: rgba(1,113,185,0.92); color: #fff; border-radius: 8px;
+  background: rgba(1,42,74,0.92); color: #fff; border-radius: 8px;
   padding: 24px 28px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   transition: opacity 0.3s ease, transform 0.3s ease;
   pointer-events: none;
@@ -641,7 +642,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 9 — SANDSETER / RISKY PLAY (1:30 p.m.)
    ════════════════════════════════ */
-#S9 { background: #000; }
+#S9 { background: #012a4a; }
 #S9 .dark-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .breath-line {
   font: 300 italic clamp(18px,2.8vw,26px)/1.7 'Quicksand', sans-serif;
@@ -655,7 +656,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   40% { opacity: 0.8; transform: translateY(0); }
   100% { opacity: 0.4; transform: translateY(0); }
 }
-.dark-hold { position: absolute; inset: 0; background: #000; opacity: 0; animation: holdDark 1s 5s ease forwards; pointer-events: none; }
+.dark-hold { position: absolute; inset: 0; background: #012a4a; opacity: 0; animation: holdDark 1s 5s ease forwards; pointer-events: none; }
 @keyframes holdDark { to { opacity: 1; } }
 .speaker-emerge {
   position: absolute; inset: 0;
@@ -684,17 +685,17 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .track h3 { font: 700 clamp(20px,2.5vw,26px)/1.2 'Quicksand', sans-serif; color: var(--dark); margin-bottom: 16px; }
 .track p { font: 400 15px/1.65 'Quicksand', sans-serif; color: var(--grey); }
 .track-aside { font: 300 italic 14px/1.6 'Quicksand', sans-serif; color: var(--cadet); margin-top: 16px; }
-.track-quiet { background: rgba(17,17,17,0.92); animation: quietDim 6s ease-in-out infinite alternate; }
+.track-quiet { background: rgba(1,42,74,0.92); animation: quietDim 6s ease-in-out infinite alternate; }
 @keyframes quietDim {
-  0% { background: rgba(17,17,17,0.88); box-shadow: inset 0 0 40px rgba(0,0,0,0); }
-  100% { background: rgba(17,17,17,0.96); box-shadow: inset 0 0 60px rgba(0,0,0,0.3); }
+  0% { background: rgba(1,42,74,0.88); box-shadow: inset 0 0 40px rgba(0,0,0,0); }
+  100% { background: rgba(1,42,74,0.96); box-shadow: inset 0 0 60px rgba(0,0,0,0.3); }
 }
 .track-quiet h3 { color: rgba(255,255,255,0.8); animation: quietGlow 6s ease-in-out infinite alternate; }
 @keyframes quietGlow { 0% { text-shadow: none; } 100% { text-shadow: 0 0 20px rgba(255,255,255,0.06); } }
 .track-quiet .track-label { color: rgba(255,255,255,0.8); }
 .quiet-tap-hint { font: 300 italic 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.55); margin-top: 12px; transition: opacity 0.5s; }
-#S10.quiet-dimmed { background: #0a0a0a !important; background-image: none !important; transition: background 2s ease; }
-#S10.quiet-dimmed::before { background: rgba(0,0,0,0.98) !important; transition: background 2s ease; }
+#S10.quiet-dimmed { background: #012a4a !important; background-image: none !important; transition: background 2s ease; }
+#S10.quiet-dimmed::before { background: rgba(1,42,74,0.98) !important; transition: background 2s ease; }
 #S10.quiet-dimmed .track:not(.track-quiet) { opacity: 0.05; transition: opacity 2s ease; pointer-events: none; }
 #S10.quiet-dimmed .track-quiet { box-shadow: 0 0 60px rgba(255,255,255,0.03); transition: box-shadow 2s ease; }
 #S10.quiet-dimmed .time-badge { opacity: 0.05; transition: opacity 2s ease; }
@@ -956,6 +957,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   #S3 .morgan-center { padding: 32px; }
 
   /* ── S5 hall of mirrors ── */
+  #S5.sc-bg { background-position: center top !important; } /* keep people visible on mobile */
   .table-top { width: 200px; height: 200px; padding: 30px; }
   .table-top .table-question { font-size: 15px; }
   .table-lens { max-width: 160px; padding: 12px 14px; }
@@ -1156,6 +1158,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       <div class="moment-speaker">Stephen Morgan MP</div>
       <div class="moment-note">keynote. ran as planned.</div>
       <div class="moment-detail">the minister walked through the same question wall as everyone else.</div>
+      <div class="moment-detail" style="margin-top:16px; font-style:italic; opacity:0.7">even a keynote that runs as planned can be redesigned so the format matches the message. we work with speakers to make that happen.</div>
     </div>
   </div>
 </section>
@@ -1232,7 +1235,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       <div class="moment-time">1:30 p.m.</div>
       <div class="moment-speaker" style="margin-top:12px">Prof Ellen Beate Hansen Sandseter</div>
       <div class="moment-note" style="margin-top:20px">the audience had just seen what she was about to analyse, from the children's perspective, before the adult interpretation arrived.</div>
-      <div class="post-activity">after the keynote, the Boulind offers a short opt-in activity with genuine uncertainty in it. something where the outcome is not known before you try. available in physical and non-physical forms. the brief is the same for everyone. the entry point is not.</div>
+      <div class="post-activity">after the keynote, the Boulind: a short opt-in activity with genuine uncertainty. you might build something that could fall, write a response you cannot take back, or try a physical challenge calibrated to your own threshold. the brief is the same for everyone. the entry point is not. physical and non-physical forms are always available.</div>
     </div>
   </div>
 </section>
