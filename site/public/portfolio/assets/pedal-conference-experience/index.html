@@ -442,6 +442,10 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   backdrop-filter: blur(20px); max-width: 540px;
 }
 .moment-time { font: 300 14px 'Quicksand', sans-serif; color: var(--accent-em); margin-bottom: 12px; }
+/* override on light-bg cards where accent-em has poor contrast */
+.morgan-center .moment-time,
+.draper-center .moment-time,
+.closing-center .moment-time { color: var(--cadet); }
 .moment-speaker { font: 700 clamp(28px,4vw,42px)/1.15 'Quicksand', sans-serif; color: var(--dark); margin-bottom: 24px; }
 .moment-note { font: 400 15px/1.65 'Quicksand', sans-serif; color: var(--grey); max-width: 440px; margin: 0 auto; }
 .moment-detail {
@@ -509,9 +513,10 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   backdrop-filter: blur(8px);
 }
 .time-badge {
-  position: absolute; top: 20px; left: 20px; z-index: 20;
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 20;
   font: 500 11px 'Quicksand', sans-serif; letter-spacing: 0.12em;
   color: var(--grey); background: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 3px;
+  white-space: nowrap;
 }
 
 /* ════════════════════════════════
@@ -723,7 +728,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 }
 .map-canvas { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 60px 20px 80px; gap: 16px; overflow-y: auto; flex-wrap: wrap; align-content: flex-start; }
 .map-description {
-  z-index: 20; text-align: center; max-width: 500px;
+  z-index: 20; text-align: center; max-width: 440px; margin-left: 280px;
 }
 .map-description h2 { font: 700 clamp(22px,3vw,30px)/1.2 'Quicksand', sans-serif; color: var(--dark); margin-bottom: 12px; }
 .map-description p { font: 400 15px/1.6 'Quicksand', sans-serif; color: var(--grey); }
@@ -996,7 +1001,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 
   /* ── S11 mapping — flow instead of absolute ── */
   .map-canvas { display: flex; flex-direction: column; align-items: center; padding: 60px 20px 80px; gap: 16px; }
-  .map-description { position: static; transform: none; max-width: 100%; }
+  .map-description { position: static; transform: none; max-width: 100%; margin-left: 0; }
   .map-prompt { position: static !important; transform: none !important; max-width: 100%; width: 100%; opacity: 1; animation: none; padding: 14px; }
   .map-timer { position: static; transform: none; margin-top: 8px; }
   .map-output { position: static; transform: none; opacity: 1; animation: none; margin-top: 8px; font-size: 12px; }
@@ -1167,7 +1172,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       <div class="moment-speaker">Stephen Morgan MP</div>
       <div class="moment-note">keynote. ran as planned.</div>
       <div class="moment-detail">the minister walked through the same question wall as everyone else.</div>
-      <div class="moment-detail" style="margin-top:16px; font-style:italic; opacity:0.85">with our <strong>helping your speakers walk their talk</strong> package, we'd work with the minister's team to redesign this session so the format embodies the policy message — not just delivers it.</div>
+      <div class="moment-detail" style="margin-top:16px; font-style:italic; opacity:0.85">with our <strong>helping your speakers walk their talk</strong> package, the minister's team receives three children's quotes from the question wall the week before. his keynote opens not with slides but with those three quotes — projected large, no commentary. thirty seconds of silence. then he responds to each one as if the child were in the room. the policy argument builds from the children's words, not from a briefing document. after the talk, attendees write one sentence on a card: "the policy I'd make if I were six." the minister reads five of them aloud. the room hears its own imagination alongside the policy.</div>
     </div>
   </div>
 </section>
@@ -1257,6 +1262,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       <div class="track-label">MAIN HALL</div>
       <h3>AI panel</h3>
       <p>a panel discussion on AI, toys, and the future of play. ran in the main hall as planned.</p>
+      <p style="margin-top:12px;font-style:italic;opacity:0.85">with our <strong>co-creating games with your keynote speakers</strong> package, the panel wouldn't just talk about AI and play — the audience would experience it. each table receives a toy and a prompt generated live by a language model. the panel watches the room play first, then responds to what they saw. the argument about AI and childhood stops being abstract.</p>
     </div>
     <div class="track track-quiet" id="quietRoom" role="button" tabindex="0" style="cursor:pointer">
       <div class="track-label">THE BOULIND</div>
@@ -1465,14 +1471,14 @@ const NARRATOR = [
   {scene:'cover', text:"the PEDAL Conference brings together researchers, policymakers, and educators who care about play. the content is strong. the opportunity is to redesign the architecture around it so the format says the same thing the research does."},
   {scene:'before the day', text:"two weeks before, every attendee receives a question to sit with. a note about the day's design. and a companion app linked to their badge QR — threading the digital layer through the whole day."},
   {scene:'the question wall', text:"the question wall builds in real time. children's responses are already there. by 09:30 it holds sixty to seventy cards. it stays up all day."},
-  {scene:'Stephen Morgan MP', text:"runs as planned. with our helping your speakers walk their talk package, we'd redesign this session so the format embodies the policy message — not just delivers it."},
+  {scene:'Stephen Morgan MP', text:"runs as planned. with our helping your speakers walk their talk package, the minister's team receives three children's quotes from the question wall beforehand. his keynote opens with those quotes — projected large, no commentary. thirty seconds of silence. then he responds to each one as if the child were in the room. after the talk, attendees write: the policy I'd make if I were six. the room hears its own imagination alongside the policy."},
   {scene:'the making space', text:"the Boulind opens as a making space. cardboard, tape, children's prompt cards, coloured blocks. the brief: using only what is here, make something a child could learn from. pick up the cardboard. read the children's cards. or just watch. all of these are the activity."},
   {scene:'hall of mirrors & bumper cars', text:"two formats running together. hall of mirrors: people from outside the play research field sit at tables with a question from the morning. ideas refracted through a different lens. bumper cars: a deliberate collision of perspectives. short, timed conversations between people who would not normally sit together. the format produces friction. that is the point."},
   {scene:'Dr Catherine Draper', text:"the children's quotes appear not as illustration but as counterpoint — a second voice running through the presentation that the audience holds alongside the research findings."},
   {scene:'session choice', text:"both sessions run simultaneously. both rooms are the right room."},
   {scene:'the collage', text:"a collage station runs through lunch. add something from this morning that is still with you. a phrase, a sketch, a question. it grows through the break. it will be displayed at the close."},
   {scene:'risky play', text:"the session opens with thirty seconds of unedited footage. children in risky play. no framing. the audience sees what Sandseter is about to analyse — from the children's perspective — before the adult interpretation arrives. after the keynote, a short opt-in activity with genuine uncertainty in it."},
-  {scene:'three tracks', text:"three things running at once. the AI panel in the main hall. the quiet room in the Boulind — low light, no task, no facilitation. and connecting play networks, where each table opens with a question drawn from children's responses. some people need noise to process. some need stillness. both are legitimate."},
+  {scene:'three tracks', text:"three things running at once. the AI panel — with our co-creating games package, the audience would play with AI-generated prompts before the panel responds to what they saw. the quiet room — low light, no task, no facilitation. and connecting play networks, where each table opens with a question drawn from children's responses. some people need noise to process. some need stillness. both are legitimate."},
   {scene:'map your context', text:"a short paired exercise: map your own context. what assets already exist where you work? who is already doing something? what have you built that has not been named yet? the template is there for people who think better with a structure in front of them. the conversation option is there for people who think better out loud."},
   {scene:'closing', text:"the collage is displayed at the front. the room produced these today. the conference ends by naming the children whose voices ran through the day and asking what their absence means for next year."},
   {scene:'the card', text:"on every chair: a card. a question to take with you. the garden party invitation is on the back."},
