@@ -139,16 +139,11 @@ const nextConfig: NextConfig = {
         destination: "/harbour/vertigo-vault",
         permanent: true,
       },
-      // conference experience — old static path → new Next.js page
+      // conference experience — redirect to static HTML in public/
       {
         source: "/portfolio/assets/pedal-conference-experience",
-        destination: "/portfolio/conference-experience",
-        permanent: true,
-      },
-      {
-        source: "/portfolio/assets/pedal-conference-experience/",
-        destination: "/portfolio/conference-experience",
-        permanent: true,
+        destination: "/portfolio/assets/pedal-conference-experience/index.html",
+        permanent: false,
       },
     ];
   },
