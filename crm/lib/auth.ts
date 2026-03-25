@@ -1,15 +1,25 @@
 /**
- * Auth.js v5 configuration — Google Workspace SSO.
+ * Auth.js v5 configuration — Google SSO.
  *
- * Only @windedvertigo.com Google accounts can sign in.
- * The `hd` (hosted domain) param restricts the Google sign-in picker,
- * and the signIn callback double-checks the domain server-side.
+ * Access is granted to:
+ * 1. Any @windedvertigo.com Google Workspace account (domain check)
+ * 2. Specific external emails listed in ALLOWED_EMAILS env var
+ *
+ * The signIn callback enforces both checks server-side.
  */
 
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
 const ALLOWED_DOMAIN = "windedvertigo.com";
+
+/** Parse comma-separated email allowlist from env, lowercased and trimmed. */
+const ALLOWED_EMAILS = new Set(
+  (process.env.ALLOWED_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
+);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   basePath: "/crm/api/auth",
@@ -20,7 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          hd: ALLOWED_DOMAIN,
+          // No `hd` restriction — external guests need to see the picker
           prompt: "select_account",
         },
       },
@@ -35,11 +45,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   callbacks: {
     signIn({ profile }) {
-      // Server-side domain check — hd param only restricts the picker UI
-      if (!profile?.email?.endsWith(`@${ALLOWED_DOMAIN}`)) {
-        return false;
-      }
-      return true;
+      const email = profile?.email?.toLowerCase();
+      if (!email) return false;
+
+      // Allow windedvertigo.com domain
+      if (email.endsWith(`@${ALLOWED_DOMAIN}`)) return true;
+
+      // Allow specific external emails
+      if (ALLOWED_EMAILS.has(email)) return true;
+
+      return false;
     },
 
     jwt({ token, profile }) {
