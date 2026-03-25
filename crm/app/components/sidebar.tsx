@@ -38,11 +38,10 @@ export function Sidebar() {
         <Link href="/" className="block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/crm/images/wordmark.png"
+            src="/crm/images/wordmark-white.png"
             alt="winded vertigo"
             width={140}
             height={74}
-            style={{ filter: "brightness(0) invert(1)" }}
           />
         </Link>
       </div>

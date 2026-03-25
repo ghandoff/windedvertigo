@@ -51,11 +51,11 @@ export function MobileSidebar() {
         <SheetContent side="left" className="w-60 bg-sidebar text-white p-0">
           <SheetTitle className="flex h-16 items-center px-5 border-b border-sidebar-border">
             <img
-              src="/crm/images/wordmark.png"
+              src="/crm/images/wordmark-white.png"
               alt="winded vertigo"
               width={120}
               height={64}
-              style={{ filter: "brightness(0) invert(1)" }}
+              
             />
           </SheetTitle>
           <div className="px-5 pt-3 pb-1">
@@ -88,7 +88,7 @@ export function MobileSidebar() {
         </SheetContent>
       </Sheet>
       <img
-        src="/crm/images/wordmark.png"
+        src="/crm/images/wordmark-white.png"
         alt="winded vertigo"
         width={100}
         height={53}
