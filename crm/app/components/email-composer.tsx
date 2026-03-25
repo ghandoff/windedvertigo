@@ -35,6 +35,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
   // AI draft state
   const [aiDrafting, setAiDrafting] = useState(false);
   const [aiCost, setAiCost] = useState<number | null>(null);
+  const [aiError, setAiError] = useState("");
 
   // Send state
   const [sendStatus, setSendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -78,8 +79,13 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
 
   async function handleAiDraft() {
     if (!selectedOrg) return;
+    // Confirm if user has already written content
+    if (body.trim() && body !== selectedOrg.bespokeEmailCopy) {
+      if (!window.confirm("This will replace your current email body. Continue?")) return;
+    }
     setAiDrafting(true);
     setAiCost(null);
+    setAiError("");
     try {
       const res = await fetch("/crm/api/ai/email-draft", {
         method: "POST",
@@ -96,9 +102,12 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
         setSubject(data.subject);
         setBody(data.body);
         setAiCost(data.usage.costUsd);
+      } else {
+        const data = await res.json().catch(() => ({ error: "AI draft failed" }));
+        setAiError(data.error || `Failed (${res.status})`);
       }
     } catch {
-      // silently fail — user can still write manually
+      setAiError("Network error — try again");
     } finally {
       setAiDrafting(false);
     }
@@ -229,6 +238,9 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
               )}
             </Label>
             <div className="flex items-center gap-2">
+              {aiError && (
+                <span className="text-xs text-destructive">{aiError}</span>
+              )}
               {aiCost !== null && (
                 <span className="text-xs text-muted-foreground">
                   AI cost: ${aiCost.toFixed(4)}

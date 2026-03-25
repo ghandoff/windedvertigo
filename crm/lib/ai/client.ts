@@ -53,8 +53,9 @@ export async function callClaude(opts: AiCallOptions): Promise<AiCallResult> {
     (inputTokens / 1_000_000) * pricing.input +
     (outputTokens / 1_000_000) * pricing.output;
 
+  const firstBlock = response.content[0];
   const text =
-    response.content[0].type === "text" ? response.content[0].text : "";
+    firstBlock && firstBlock.type === "text" ? firstBlock.text : "";
 
   // Record usage asynchronously — don't block the response
   const entry: TokenUsageEntry = {
@@ -71,4 +72,35 @@ export async function callClaude(opts: AiCallOptions): Promise<AiCallResult> {
   recordUsage(entry).catch(() => {});
 
   return { text, inputTokens, outputTokens, costUsd, durationMs };
+}
+
+/**
+ * Extract and parse JSON from LLM output.
+ * Strips markdown fences, leading/trailing text, and handles common
+ * LLM response quirks before parsing.
+ */
+export function parseJsonResponse<T>(raw: string): T {
+  let cleaned = raw.trim();
+
+  // Strip markdown code fences: ```json ... ``` or ``` ... ```
+  const fenceMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) {
+    cleaned = fenceMatch[1].trim();
+  }
+
+  // Try to find JSON object or array boundaries
+  if (!cleaned.startsWith("{") && !cleaned.startsWith("[")) {
+    const jsonStart = cleaned.search(/[{\[]/);
+    if (jsonStart >= 0) {
+      cleaned = cleaned.slice(jsonStart);
+    }
+  }
+
+  // Trim trailing non-JSON text after the last } or ]
+  const lastBrace = Math.max(cleaned.lastIndexOf("}"), cleaned.lastIndexOf("]"));
+  if (lastBrace >= 0) {
+    cleaned = cleaned.slice(0, lastBrace + 1);
+  }
+
+  return JSON.parse(cleaned);
 }

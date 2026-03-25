@@ -3,7 +3,7 @@
  * structured CRM filters and returns matching results.
  */
 
-import { callClaude } from "./client";
+import { callClaude, parseJsonResponse } from "./client";
 import { queryContacts } from "../notion/contacts";
 import { queryOrganizations } from "../notion/organizations";
 import type { NlSearchRequest, NlSearchResponse } from "./types";
@@ -50,7 +50,11 @@ export async function naturalLanguageSearch(
     temperature: 0.2,
   });
 
-  const parsed = JSON.parse(result.text);
+  const parsed = parseJsonResponse<{
+    contacts: Record<string, unknown> | null;
+    organizations: Record<string, unknown> | null;
+    explanation: string;
+  }>(result.text);
 
   const response: NlSearchResponse = {
     filters: {

@@ -18,9 +18,20 @@ export async function PUT(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body) return error("Invalid body");
 
+  // Validate budget values
+  const limit = Number(body.monthlyLimitUsd);
+  const threshold = Number(body.warningThresholdPct);
+
+  if (body.monthlyLimitUsd !== undefined && (isNaN(limit) || limit < 0 || limit > 10000)) {
+    return error("monthlyLimitUsd must be a number between 0 and 10000");
+  }
+  if (body.warningThresholdPct !== undefined && (isNaN(threshold) || threshold < 0 || threshold > 100)) {
+    return error("warningThresholdPct must be a number between 0 and 100");
+  }
+
   const config = await setBudgetConfig({
-    monthlyLimitUsd: body.monthlyLimitUsd,
-    warningThresholdPct: body.warningThresholdPct,
+    ...(body.monthlyLimitUsd !== undefined && { monthlyLimitUsd: limit }),
+    ...(body.warningThresholdPct !== undefined && { warningThresholdPct: threshold }),
   });
 
   return json(config);

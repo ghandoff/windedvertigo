@@ -3,7 +3,7 @@
  * using contact + organization context from the CRM.
  */
 
-import { callClaude } from "./client";
+import { callClaude, parseJsonResponse } from "./client";
 import { getOrganization } from "../notion/organizations";
 import { getContact } from "../notion/contacts";
 import { getActivitiesForOrg } from "../notion/activities";
@@ -79,11 +79,11 @@ ${req.senderName ? `Sign off as: ${req.senderName}` : "Sign off as the w.v. team
     temperature: 0.7,
   });
 
-  const parsed = JSON.parse(result.text);
+  const parsed = parseJsonResponse<{ subject: string; body: string }>(result.text);
 
   return {
-    subject: parsed.subject,
-    body: parsed.body,
+    subject: parsed.subject ?? "From winded.vertigo",
+    body: parsed.body ?? "",
     usage: {
       inputTokens: result.inputTokens,
       outputTokens: result.outputTokens,

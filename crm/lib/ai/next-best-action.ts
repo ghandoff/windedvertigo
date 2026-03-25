@@ -3,7 +3,7 @@
  * with and what action to take, based on CRM data.
  */
 
-import { callClaude } from "./client";
+import { callClaude, parseJsonResponse } from "./client";
 import { queryContacts } from "../notion/contacts";
 import { queryOrganizations } from "../notion/organizations";
 import { queryActivities } from "../notion/activities";
@@ -117,10 +117,10 @@ Return at most ${limit ?? 10} recommendations, sorted by priority.`;
     temperature: 0.5,
   });
 
-  const parsed = JSON.parse(result.text);
+  const parsed = parseJsonResponse<unknown[]>(result.text);
 
   return {
-    actions: parsed,
+    actions: Array.isArray(parsed) ? parsed : [],
     usage: {
       inputTokens: result.inputTokens,
       outputTokens: result.outputTokens,

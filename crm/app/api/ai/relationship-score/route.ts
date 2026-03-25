@@ -16,9 +16,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const contactIds = Array.isArray(body?.contactIds)
+      ? body.contactIds.filter((id: unknown) => typeof id === "string")
+      : undefined;
     const result = await scoreRelationships(
       session.user.email,
-      body?.contactIds,
+      contactIds,
     );
     return json(result);
   } catch (err) {

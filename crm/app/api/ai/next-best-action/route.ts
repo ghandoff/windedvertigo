@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { json, error, param } from "@/lib/api-helpers";
+import { json, error } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
 import { getNextBestActions } from "@/lib/ai/next-best-action";
 import { getBudgetStatus } from "@/lib/ai/usage-store";
@@ -16,9 +16,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const limit = Math.min(Math.max(1, Math.floor(Number(body?.limit) || 10)), 20);
     const result = await getNextBestActions(
       session.user.email,
-      body?.limit,
+      limit,
     );
     return json(result);
   } catch (err) {

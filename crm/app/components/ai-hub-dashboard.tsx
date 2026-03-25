@@ -199,15 +199,19 @@ function EconomicsTab() {
   async function handleBudgetSave() {
     const limit = parseFloat(newLimit);
     if (isNaN(limit) || limit <= 0) return;
-    const res = await fetch("/crm/api/ai/budget", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ monthlyLimitUsd: limit }),
-    });
-    if (res.ok) {
-      const updated = await fetch("/crm/api/ai/budget").then((r) => r.json());
-      setBudget(updated);
-      setEditBudget(false);
+    try {
+      const res = await fetch("/crm/api/ai/budget", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ monthlyLimitUsd: limit }),
+      });
+      if (res.ok) {
+        const refreshRes = await fetch("/crm/api/ai/budget");
+        if (refreshRes.ok) setBudget(await refreshRes.json());
+        setEditBudget(false);
+      }
+    } catch {
+      // network error — budget save failed silently
     }
   }
 
@@ -263,7 +267,7 @@ function EconomicsTab() {
                 className={`h-full rounded-full transition-all ${
                   budget.isOverBudget ? "bg-destructive" : budget.isNearLimit ? "bg-yellow-500" : "bg-primary"
                 }`}
-                style={{ width: `${Math.min(100, (budget.currentSpendUsd / budget.monthlyLimitUsd) * 100)}%` }}
+                style={{ width: `${Math.min(100, budget.monthlyLimitUsd > 0 ? (budget.currentSpendUsd / budget.monthlyLimitUsd) * 100 : 0)}%` }}
               />
             </div>
           </CardContent>

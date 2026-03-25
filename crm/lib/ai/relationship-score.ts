@@ -3,7 +3,7 @@
  * to score the health of contact relationships.
  */
 
-import { callClaude } from "./client";
+import { callClaude, parseJsonResponse } from "./client";
 import { queryContacts } from "../notion/contacts";
 import { queryActivities } from "../notion/activities";
 import type { RelationshipScore, RelationshipScoreResponse } from "./types";
@@ -79,17 +79,20 @@ Output ONLY valid JSON array where each element has:
     temperature: 0.3,
   });
 
-  const parsed: Array<{ id: string; score: number; trend: string; factors: string[] }> =
-    JSON.parse(result.text);
+  const parsed = parseJsonResponse<
+    Array<{ id: string; score: number; trend: string; factors: string[] }>
+  >(result.text);
 
-  const scores: RelationshipScore[] = parsed.map((p) => {
+  const validTrends = new Set(["improving", "stable", "declining", "at-risk"]);
+
+  const scores: RelationshipScore[] = (Array.isArray(parsed) ? parsed : []).map((p) => {
     const summary = contactSummaries.find((c) => c.id === p.id);
     return {
       contactId: p.id,
       contactName: summary?.name ?? "Unknown",
-      score: p.score,
-      trend: p.trend as RelationshipScore["trend"],
-      factors: p.factors,
+      score: typeof p.score === "number" ? p.score : 50,
+      trend: (validTrends.has(p.trend) ? p.trend : "stable") as RelationshipScore["trend"],
+      factors: Array.isArray(p.factors) ? p.factors : [],
       lastActivityDate: summary?.lastActivityDate ?? null,
       daysSinceContact: summary?.daysSinceContact ?? 999,
       activityCount: summary?.activityCount ?? 0,
