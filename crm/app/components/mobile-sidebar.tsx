@@ -55,7 +55,7 @@ export function MobileSidebar() {
               alt="winded vertigo"
               width={120}
               height={64}
-              className="brightness-0 invert"
+              style={{ filter: "brightness(0) invert(1)" }}
             />
           </SheetTitle>
           <div className="px-5 pt-3 pb-1">

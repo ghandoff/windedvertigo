@@ -42,7 +42,7 @@ export function Sidebar() {
             alt="winded vertigo"
             width={140}
             height={74}
-            className="brightness-0 invert"
+            style={{ filter: "brightness(0) invert(1)" }}
           />
         </Link>
       </div>
