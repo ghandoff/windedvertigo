@@ -1,8 +1,15 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { CampaignWizard } from "@/app/components/campaign-wizard";
 
-export default function NewCampaignPage() {
+interface Props {
+  searchParams: Promise<Record<string, string | undefined>>;
+}
+
+export default async function NewCampaignPage({ searchParams }: Props) {
+  const params = await searchParams;
+
   return (
     <>
       <Link
@@ -13,7 +20,9 @@ export default function NewCampaignPage() {
         back to campaigns
       </Link>
       <h1 className="text-2xl font-bold mb-6">new campaign</h1>
-      <CampaignWizard />
+      <Suspense>
+        <CampaignWizard preselectedTemplateId={params.template} />
+      </Suspense>
     </>
   );
 }

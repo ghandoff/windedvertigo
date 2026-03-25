@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { queryEmailTemplates } from "@/lib/notion/email-templates";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
@@ -6,11 +7,13 @@ import { FilterSelect } from "@/app/components/filter-select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TemplateForm } from "@/app/components/template-form";
-import type { EmailTemplateFilters } from "@/lib/notion/types";
+import { ArrowRight, Mail, Globe, Hash, Cloud } from "lucide-react";
+import type { EmailTemplate, EmailTemplateFilters } from "@/lib/notion/types";
 
 export const revalidate = 300;
 
 const CATEGORY_OPTIONS = ["outreach", "follow-up", "event invite", "newsletter", "other"] as const;
+const CHANNEL_OPTIONS = ["email", "linkedin", "twitter", "bluesky"] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
   outreach: "bg-blue-100 text-blue-700 border-blue-200",
@@ -20,6 +23,32 @@ const CATEGORY_COLORS: Record<string, string> = {
   other: "bg-gray-100 text-gray-600 border-gray-200",
 };
 
+const CHANNEL_ICONS: Record<string, React.ElementType> = {
+  email: Mail,
+  linkedin: Globe,
+  twitter: Hash,
+  bluesky: Cloud,
+};
+
+// Priority order: templates most likely to be used first
+const CATEGORY_PRIORITY: Record<string, number> = {
+  outreach: 0,
+  "follow-up": 1,
+  "event invite": 2,
+  newsletter: 3,
+  other: 4,
+};
+
+function sortByLikelyUse(templates: EmailTemplate[]): EmailTemplate[] {
+  return [...templates].sort((a, b) => {
+    const aPri = CATEGORY_PRIORITY[a.category] ?? 99;
+    const bPri = CATEGORY_PRIORITY[b.category] ?? 99;
+    if (aPri !== bPri) return aPri - bPri;
+    // Within same category, sort alphabetically
+    return a.name.localeCompare(b.name);
+  });
+}
+
 interface Props {
   searchParams: Promise<Record<string, string | undefined>>;
 }
@@ -28,6 +57,7 @@ async function TemplateGrid({ searchParams }: Props) {
   const params = await searchParams;
   const filters: EmailTemplateFilters = {};
   if (params.category) filters.category = params.category as EmailTemplateFilters["category"];
+  if (params.channel) filters.channel = params.channel as EmailTemplateFilters["channel"];
   if (params.search) filters.search = params.search;
 
   const { data: templates } = await queryEmailTemplates(
@@ -43,33 +73,54 @@ async function TemplateGrid({ searchParams }: Props) {
     );
   }
 
+  const sorted = sortByLikelyUse(templates);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      {templates.map((t) => (
-        <Card key={t.id} className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2">
-            <div className="flex items-start justify-between gap-2">
-              <CardTitle className="text-sm leading-tight">{t.name}</CardTitle>
-              {t.category && (
-                <Badge variant="outline" className={`text-[10px] shrink-0 ${CATEGORY_COLORS[t.category] ?? ""}`}>
-                  {t.category}
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2 text-xs">
-            {t.subject && (
-              <div>
-                <span className="text-muted-foreground">subject:</span>{" "}
-                <span className="font-medium">{t.subject}</span>
-              </div>
-            )}
-            {t.body && (
-              <p className="text-muted-foreground line-clamp-3">{t.body}</p>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+      {sorted.map((t) => {
+        const ChannelIcon = CHANNEL_ICONS[t.channel] ?? Mail;
+        return (
+          <Link key={t.id} href={`/campaigns/new?template=${t.id}`}>
+            <Card className="hover:shadow-md hover:border-accent/50 transition-all cursor-pointer h-full">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <ChannelIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <CardTitle className="text-sm leading-tight truncate">{t.name}</CardTitle>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2 text-xs">
+                <div className="flex flex-wrap gap-1.5">
+                  {t.category && (
+                    <Badge variant="outline" className={`text-[10px] ${CATEGORY_COLORS[t.category] ?? ""}`}>
+                      {t.category}
+                    </Badge>
+                  )}
+                  {t.channel && t.channel !== "email" && (
+                    <Badge variant="secondary" className="text-[10px]">
+                      {t.channel}
+                    </Badge>
+                  )}
+                </div>
+                {t.subject && (
+                  <div>
+                    <span className="text-muted-foreground">subject:</span>{" "}
+                    <span className="font-medium">{t.subject}</span>
+                  </div>
+                )}
+                {t.body && (
+                  <p className="text-muted-foreground line-clamp-3">{t.body}</p>
+                )}
+                {t.notes && (
+                  <p className="text-[10px] text-muted-foreground/70 italic line-clamp-1">{t.notes}</p>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -78,8 +129,8 @@ export default async function TemplatesPage(props: Props) {
   return (
     <>
       <PageHeader
-        title="email templates"
-        description="reusable templates with {{variable}} placeholders"
+        title="templates"
+        description="click any template to start a new campaign with it"
       >
         <TemplateForm />
       </PageHeader>
@@ -87,6 +138,7 @@ export default async function TemplatesPage(props: Props) {
         <Suspense>
           <SearchInput placeholder="search templates..." />
           <FilterSelect paramKey="category" placeholder="category" options={CATEGORY_OPTIONS} />
+          <FilterSelect paramKey="channel" placeholder="channel" options={CHANNEL_OPTIONS} />
         </Suspense>
       </div>
       <Suspense fallback={<div className="text-muted-foreground py-8 text-center">loading...</div>}>

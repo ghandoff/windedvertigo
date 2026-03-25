@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,10 +29,38 @@ const CAMPAIGN_TYPES = [
 
 type WizardStepNum = 1 | 2 | 3 | 4 | 5;
 
-export function CampaignWizard() {
+interface CampaignWizardProps {
+  preselectedTemplateId?: string;
+}
+
+export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
   const router = useRouter();
   const members = useMembers();
   const [, startTransition] = useTransition();
+
+  // Load preselected template and skip to step 3 (audience)
+  useEffect(() => {
+    if (!preselectedTemplateId) return;
+    fetch(`/crm/api/email-templates/${preselectedTemplateId}`)
+      .then((r) => r.json())
+      .then((tpl) => {
+        if (!tpl.id) return;
+        const channel = tpl.channel || "email";
+        setSelectedChannels([channel as StepChannel]);
+        setSteps([{
+          id: crypto.randomUUID(),
+          channel: channel as StepChannel,
+          subject: tpl.subject || "",
+          body: tpl.body || "",
+          delayDays: 0,
+          delayReference: "after previous step",
+          templateName: tpl.name,
+        }]);
+        // Skip to audience step (channels + blueprint already set via template)
+        setCurrentStep(3);
+      })
+      .catch(() => {});
+  }, [preselectedTemplateId]);
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState<WizardStepNum>(1);
