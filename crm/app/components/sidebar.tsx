@@ -38,7 +38,7 @@ export function Sidebar() {
         <Link href="/" className="block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/crm/images/wordmark-white.png"
+            src="/crm/images/wordmark.png"
             alt="winded vertigo"
             width={140}
             height={74}
