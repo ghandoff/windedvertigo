@@ -6,8 +6,7 @@ import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TemplateForm } from "@/app/components/template-form";
-import { ArrowRight, Mail, Globe, Hash, Cloud } from "lucide-react";
+import { ArrowRight, Mail, Globe, Hash, Cloud, Plus } from "lucide-react";
 import type { EmailTemplate, EmailTemplateFilters } from "@/lib/notion/types";
 
 export const revalidate = 300;
@@ -132,7 +131,13 @@ export default async function TemplatesPage(props: Props) {
         title="templates"
         description="click any template to start a new campaign with it"
       >
-        <TemplateForm />
+        <Link
+          href="/campaigns/new"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          new campaign
+        </Link>
       </PageHeader>
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Suspense>
