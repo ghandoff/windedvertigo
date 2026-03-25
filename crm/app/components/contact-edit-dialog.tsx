@@ -82,7 +82,7 @@ export function ContactEditDialog({ contact, trigger }: ContactEditDialogProps) 
         <Pencil className="h-4 w-4" />
         edit
       </SheetTrigger>
-      <SheetContent side="right" className="w-96 overflow-y-auto">
+      <SheetContent side="right" className="w-96 overflow-y-auto px-6 py-6">
         <SheetTitle>edit contact</SheetTitle>
         <div className="mt-6 space-y-4">
           <div>
