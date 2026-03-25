@@ -7,9 +7,9 @@
 
 import { NextRequest } from "next/server";
 import { getCampaign } from "@/lib/notion/campaigns";
-import { getCampaignStep, updateCampaignStep } from "@/lib/notion/campaign-steps";
+import { getCampaignStep, updateCampaignStep, getStepsForCampaign } from "@/lib/notion/campaign-steps";
 import { resolveAudience } from "@/lib/notion/audience";
-import { batchSendEmails } from "@/lib/campaign/batch-send";
+import { batchSendEmails, filterByCondition, type StepCondition } from "@/lib/campaign/batch-send";
 import { json, error } from "@/lib/api-helpers";
 
 export async function POST(
@@ -39,20 +39,39 @@ export async function POST(
     }
 
     // 2. resolve audience
-    const orgs = await resolveAudience(campaign.audienceFilters);
+    let orgs = await resolveAudience(campaign.audienceFilters);
     if (orgs.length === 0) {
       return error("no organizations match the campaign audience filters", 400);
+    }
+
+    // 2b. apply conditional branching if step has a condition
+    if (step.condition) {
+      try {
+        const condition: StepCondition = JSON.parse(step.condition);
+        const allSteps = await getStepsForCampaign(id);
+        const prevStep = allSteps.find(
+          (s) => (s.stepNumber ?? 0) === (step.stepNumber ?? 0) - 1 && s.status === "sent",
+        );
+        if (prevStep && condition.previousStep) {
+          const prevOrgIds = orgs.map((o) => o.id);
+          orgs = await filterByCondition(orgs, condition, prevOrgIds);
+        }
+      } catch {
+        // ignore invalid condition JSON
+      }
     }
 
     // 3. mark step as sending
     await updateCampaignStep(body.stepId, { status: "sending" });
 
-    // 4. batch send
+    // 4. batch send (with A/B variant support)
     const result = await batchSendEmails({
       subject: step.subject,
       body: step.body,
       senderName: body.senderName,
       orgs,
+      variantBSubject: step.variantBSubject || undefined,
+      variantBBody: step.variantBBody || undefined,
     });
 
     // 5. mark step as sent

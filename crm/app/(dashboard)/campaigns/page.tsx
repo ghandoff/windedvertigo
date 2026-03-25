@@ -37,10 +37,16 @@ export default async function CampaignsPage(props: Props) {
         description="plan, schedule, and execute multi-step outreach campaigns"
       >
         <Link
-          href="/campaigns/new"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 transition-colors"
+          href="/campaigns/calendar"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
         >
-          + new campaign
+          calendar
+        </Link>
+        <Link
+          href="/campaigns/templates"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
+        >
+          templates
         </Link>
       </PageHeader>
       <div className="flex flex-wrap items-center gap-3 mb-6">

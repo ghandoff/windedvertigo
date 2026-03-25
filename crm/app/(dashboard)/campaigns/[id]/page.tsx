@@ -61,6 +61,12 @@ export default async function CampaignDetailPage({ params }: Props) {
 
       <PageHeader title={campaign.name}>
         <div className="flex items-center gap-2">
+          <Link
+            href={`/campaigns/${id}/analytics`}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
+          >
+            analytics
+          </Link>
           <Badge variant="outline" className={STATUS_COLORS[campaign.status] ?? ""}>
             {campaign.status}
           </Badge>
