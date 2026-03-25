@@ -117,6 +117,7 @@
 
 /* Example cards */
 .exampleCard {
+  width: 100%;
   padding: 18px 20px;
   background: #3a4459;
   margin-bottom: 10px;
@@ -126,6 +127,9 @@
   text-decoration: none;
   display: block;
   color: inherit;
+  border: none;
+  font-family: inherit;
+  text-align: left;
 }
 
 .exampleCard:hover {

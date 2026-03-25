@@ -411,7 +411,7 @@ function ResultPage({
                     {ex.title}
                   </div>
                   {ex.type && (
-                    <div style={{ fontSize: 11, color: qc.css, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    <div style={{ fontSize: 11, color: "var(--wv-sienna, #cb7858)", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
                       {ex.type}
                     </div>
                   )}
@@ -419,7 +419,7 @@ function ResultPage({
                     <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.6 }}>{ex.detail}</div>
                   )}
                 </div>
-                <span style={{ color: qc.css, fontSize: 20, fontWeight: 700 }}>→</span>
+                <span style={{ color: "var(--wv-sienna, #cb7858)", fontSize: 20, fontWeight: 700 }}>→</span>
               </div>
             </button>
           ))}
