@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
@@ -21,6 +21,7 @@ import {
   Share2,
   FolderOpen,
   Radar,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { label: "contacts", href: "/contacts", icon: Users },
   { label: "email", href: "/email", icon: Mail },
   { label: "events", href: "/events", icon: CalendarDays },
+  { label: "campaigns", href: "/campaigns", icon: Megaphone },
   { label: "RFP radar", href: "/rfp-radar", icon: Radar },
   { label: "competitors", href: "/competitors", icon: Shield },
   { label: "social", href: "/social", icon: Share2 },
@@ -48,8 +50,8 @@ export function MobileSidebar() {
         </SheetTrigger>
         <SheetContent side="left" className="w-60 bg-sidebar text-white p-0">
           <SheetTitle className="flex h-16 items-center px-5 border-b border-sidebar-border">
-            <Image
-              src="/images/wordmark.png"
+            <img
+              src="/crm/images/wordmark.png"
               alt="winded vertigo"
               width={120}
               height={64}
@@ -85,8 +87,8 @@ export function MobileSidebar() {
           </nav>
         </SheetContent>
       </Sheet>
-      <Image
-        src="/images/wordmark.png"
+      <img
+        src="/crm/images/wordmark.png"
         alt="winded vertigo"
         width={100}
         height={53}

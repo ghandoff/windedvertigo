@@ -413,6 +413,96 @@ export interface RfpFilters {
   search?: string;
 }
 
+// ── campaigns ─────────────────────────────────────────────
+
+export type CampaignType = "event-based" | "recurring cadence" | "one-off blast";
+export type CampaignStatus = "draft" | "active" | "paused" | "complete";
+
+export interface AudienceFilter {
+  priority?: Priority;
+  fitRating?: FitRating;
+  friendship?: Friendship;
+  outreachStatus?: OutreachStatus;
+  connection?: ConnectionStatus | ConnectionStatus[];
+  quadrant?: Quadrant;
+  marketSegment?: string;
+  type?: OrgType;
+  category?: OrgCategory;
+  region?: Region;
+  source?: OrgSource;
+}
+
+export interface Campaign {
+  id: string;
+  name: string;
+  type: CampaignType;
+  status: CampaignStatus;
+  eventIds: string[];
+  audienceFilters: AudienceFilter;
+  owner: string;
+  startDate: DateRange | null;
+  endDate: DateRange | null;
+  notes: string;
+  createdTime: string;
+  lastEditedTime: string;
+}
+
+export interface CampaignFilters {
+  status?: CampaignStatus;
+  type?: CampaignType;
+  search?: string;
+}
+
+// ── campaign steps ────────────────────────────────────────
+
+export type StepChannel = "email" | "linkedin" | "twitter" | "bluesky";
+export type StepStatus = "draft" | "scheduled" | "sending" | "sent" | "skipped";
+
+export interface CampaignStep {
+  id: string;
+  name: string;
+  campaignIds: string[];
+  stepNumber: number | null;
+  channel: StepChannel;
+  subject: string;
+  body: string;
+  delayDays: number | null;
+  sendDate: DateRange | null;
+  status: StepStatus;
+  variantBSubject: string;
+  variantBBody: string;
+  condition: string;
+  createdTime: string;
+  lastEditedTime: string;
+}
+
+export interface CampaignStepFilters {
+  campaignId?: string;
+  status?: StepStatus;
+  channel?: StepChannel;
+  search?: string;
+}
+
+// ── email templates ───────────────────────────────────────
+
+export type TemplateCategory = "outreach" | "follow-up" | "event invite" | "newsletter" | "other";
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  category: TemplateCategory;
+  notes: string;
+  createdTime: string;
+  lastEditedTime: string;
+}
+
+export interface EmailTemplateFilters {
+  category?: TemplateCategory;
+  search?: string;
+}
+
 // ── query helpers ─────────────────────────────────────────
 
 export interface PaginationParams {

@@ -23,6 +23,9 @@ export const CRM_DB = {
   socialQueue: "076f97a5-88b8-4bca-8b26-47d26e75f516",
   emailDrafts: "084cb580-aaa2-4129-9fbc-f0435debcb33",
   rfpRadar: "685b0a16-d861-4380-b04a-f6ac276b9319",
+  campaigns: "2a797407-75fc-409b-a93a-7311c884dc91",
+  campaignSteps: "31aa2804-d803-4af9-91bd-bdad5dd9996e",
+  emailTemplates: "9e57d0c9-1477-4af6-aa9d-772de010774e",
 } as const;
 
 // ── property name maps ────────────────────────────────────
@@ -172,5 +175,40 @@ export const SOCIAL_PROPS = {
   mediaUrls: "media urls",
   scheduledFor: "scheduled for",
   organization: "organization",
+  notes: "notes",
+} as const;
+
+export const CAMPAIGN_PROPS = {
+  name: "name",
+  type: "type",
+  status: "status",
+  event: "event",
+  audienceFilters: "audience filters",
+  owner: "owner",
+  startDate: "start date",
+  endDate: "end date",
+  notes: "notes",
+} as const;
+
+export const CAMPAIGN_STEP_PROPS = {
+  name: "name",
+  campaign: "campaign",
+  stepNumber: "step number",
+  channel: "channel",
+  subject: "subject",
+  body: "body",
+  delayDays: "delay days",
+  sendDate: "send date",
+  status: "status",
+  variantBSubject: "variant b subject",
+  variantBBody: "variant b body",
+  condition: "condition",
+} as const;
+
+export const EMAIL_TEMPLATE_PROPS = {
+  name: "name",
+  subject: "subject",
+  body: "body",
+  category: "category",
   notes: "notes",
 } as const;

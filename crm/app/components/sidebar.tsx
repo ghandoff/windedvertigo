@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,6 +12,7 @@ import {
   Share2,
   FolderOpen,
   Radar,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { label: "contacts", href: "/contacts", icon: Users },
   { label: "email", href: "/email", icon: Mail },
   { label: "events", href: "/events", icon: CalendarDays },
+  { label: "campaigns", href: "/campaigns", icon: Megaphone },
   { label: "RFP radar", href: "/rfp-radar", icon: Radar },
   { label: "competitors", href: "/competitors", icon: Shield },
   { label: "social", href: "/social", icon: Share2 },
@@ -35,13 +36,13 @@ export function Sidebar() {
     <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 bg-sidebar text-white">
       <div className="flex h-16 items-center px-5 border-b border-sidebar-border">
         <Link href="/" className="block">
-          <Image
-            src="/images/wordmark.png"
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/crm/images/wordmark.png"
             alt="winded vertigo"
             width={140}
             height={74}
             className="brightness-0 invert"
-            priority
           />
         </Link>
       </div>

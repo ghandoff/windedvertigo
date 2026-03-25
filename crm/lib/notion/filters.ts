@@ -44,6 +44,10 @@ export function buildDateBefore(property: string, date: string): NotionFilter {
   return { property, date: { on_or_before: date } };
 }
 
+export function buildRelationContains(property: string, id: string): NotionFilter {
+  return { property, relation: { contains: id } };
+}
+
 /**
  * Combine an array of filter objects into a Notion compound AND filter.
  * Returns undefined if no filters are provided (no filtering).
