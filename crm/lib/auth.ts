@@ -37,6 +37,50 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
 
+  // Cookie config: ensure cookies are scoped to the proxy domain (www.windedvertigo.com)
+  // not the backend Vercel domain. Without this, PKCE state cookies set on the
+  // proxy target don't get sent back on the Google callback, causing 400 errors.
+  cookies: {
+    pkceCodeVerifier: {
+      name: "authjs.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    state: {
+      name: "authjs.state",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    callbackUrl: {
+      name: "authjs.callback-url",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    sessionToken: {
+      name: process.env.NODE_ENV === "production"
+        ? "__Secure-authjs.session-token"
+        : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+
   session: {
     strategy: "jwt",
     maxAge: 90 * 24 * 60 * 60, // 90 days — persistent across app reopens
