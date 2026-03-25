@@ -9,7 +9,7 @@ import { NextRequest } from "next/server";
 import { getCampaign } from "@/lib/notion/campaigns";
 import { getCampaignStep, updateCampaignStep, getStepsForCampaign } from "@/lib/notion/campaign-steps";
 import { resolveAudience } from "@/lib/notion/audience";
-import { batchSendEmails, filterByCondition, type StepCondition } from "@/lib/campaign/batch-send";
+import { batchSendEmails, batchCreateSocialDrafts, filterByCondition, type StepCondition } from "@/lib/campaign/batch-send";
 import { json, error } from "@/lib/api-helpers";
 
 export async function POST(
@@ -31,11 +31,12 @@ export async function POST(
     if (step.status === "sent" || step.status === "sending") {
       return error(`step is already ${step.status}`, 400);
     }
-    if (step.channel !== "email") {
-      return error("only email steps can be sent via this endpoint (social steps coming in phase 2)", 400);
+    const isSocial = step.channel === "linkedin" || step.channel === "twitter" || step.channel === "bluesky";
+    if (!isSocial && !step.subject) {
+      return error("email steps must have a subject", 400);
     }
-    if (!step.subject || !step.body) {
-      return error("step must have a subject and body", 400);
+    if (!step.body) {
+      return error("step must have a body", 400);
     }
 
     // 2. resolve audience
@@ -64,15 +65,28 @@ export async function POST(
     // 3. mark step as sending
     await updateCampaignStep(body.stepId, { status: "sending" });
 
-    // 4. batch send (with A/B variant support)
-    const result = await batchSendEmails({
-      subject: step.subject,
-      body: step.body,
-      senderName: body.senderName,
-      orgs,
-      variantBSubject: step.variantBSubject || undefined,
-      variantBBody: step.variantBBody || undefined,
-    });
+    // 4. send — branch on channel type
+    let result;
+    if (isSocial) {
+      // social channels: create drafts in the social queue
+      const socialResult = await batchCreateSocialDrafts({
+        body: step.body,
+        platform: step.channel as "linkedin" | "twitter" | "bluesky",
+        orgs,
+        senderName: body.senderName,
+      });
+      result = { sent: socialResult.created, skipped: socialResult.skipped, failed: socialResult.failed };
+    } else {
+      // email channel: send via Resend (with A/B variant support)
+      result = await batchSendEmails({
+        subject: step.subject,
+        body: step.body,
+        senderName: body.senderName,
+        orgs,
+        variantBSubject: step.variantBSubject || undefined,
+        variantBBody: step.variantBBody || undefined,
+      });
+    }
 
     // 5. mark step as sent
     await updateCampaignStep(body.stepId, {
@@ -82,6 +96,7 @@ export async function POST(
 
     return json({
       ...result,
+      channel: step.channel,
       audienceSize: orgs.length,
       stepId: body.stepId,
       campaignId: id,

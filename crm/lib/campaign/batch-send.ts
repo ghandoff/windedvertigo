@@ -8,9 +8,10 @@
 import { sendOutreachEmail } from "@/lib/email/resend";
 import { buildEmailHtml } from "@/lib/email/templates";
 import { createEmailDraft, queryEmailDrafts } from "@/lib/notion/email-drafts";
+import { createSocialDraft } from "@/lib/notion/social";
 import { updateOutreachStatus, updateConnection } from "@/lib/notion/organizations";
 import { resolveTemplateVars, type TemplateContext } from "./template-vars";
-import type { Organization } from "@/lib/notion/types";
+import type { Organization, SocialPlatform } from "@/lib/notion/types";
 
 const BATCH_SIZE = 10;
 
@@ -180,6 +181,67 @@ export async function batchSendEmails(params: BatchSendParams): Promise<BatchSen
         if (r.status === "rejected") {
           console.error("[batch-send] failed:", r.reason);
         }
+      }
+    }
+  }
+
+  return result;
+}
+
+// ── multi-channel: social draft creation ─────────────────
+
+export interface BatchSocialParams {
+  body: string;
+  platform: SocialPlatform;
+  orgs: Organization[];
+  senderName?: string;
+}
+
+export interface BatchSocialResult {
+  created: number;
+  skipped: number;
+  failed: number;
+}
+
+/**
+ * Create social drafts for all orgs in the audience.
+ * Each org gets its own social draft with resolved template variables.
+ * Drafts land in the social queue kanban as "draft" status.
+ */
+export async function batchCreateSocialDrafts(
+  params: BatchSocialParams,
+): Promise<BatchSocialResult> {
+  const { body, platform, orgs, senderName = "Garrett" } = params;
+  const result: BatchSocialResult = { created: 0, skipped: 0, failed: 0 };
+
+  for (let i = 0; i < orgs.length; i += BATCH_SIZE) {
+    const batch = orgs.slice(i, i + BATCH_SIZE);
+    const settled = await Promise.allSettled(
+      batch.map(async (org) => {
+        const ctx: TemplateContext = {
+          orgName: org.organization,
+          senderName,
+          orgEmail: org.email,
+          orgWebsite: org.website,
+        };
+        const resolvedBody = resolveTemplateVars(body, ctx);
+
+        await createSocialDraft({
+          content: resolvedBody,
+          platform,
+          status: "draft",
+          organizationId: org.id,
+        });
+        return "created" as const;
+      }),
+    );
+
+    for (const r of settled) {
+      if (r.status === "fulfilled") {
+        result.created++;
+      } else {
+        result.failed++;
+        console.error("[batch-social] failed:", r.reason);
       }
     }
   }
