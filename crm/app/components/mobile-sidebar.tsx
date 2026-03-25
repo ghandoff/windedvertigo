@@ -22,6 +22,7 @@ import {
   FolderOpen,
   Radar,
   Megaphone,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +37,7 @@ const NAV_ITEMS = [
   { label: "competitors", href: "/competitors", icon: Shield },
   { label: "social", href: "/social", icon: Share2 },
   { label: "assets", href: "/assets", icon: FolderOpen },
+  { label: "AI hub", href: "/ai-hub", icon: Sparkles },
 ] as const;
 
 export function MobileSidebar() {

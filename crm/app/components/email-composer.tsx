@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Search, Building2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Send, Search, Building2, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +31,10 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
   const [subject, setSubject] = useState("From winded.vertigo");
   const [body, setBody] = useState("");
   const [senderName, setSenderName] = useState("");
+
+  // AI draft state
+  const [aiDrafting, setAiDrafting] = useState(false);
+  const [aiCost, setAiCost] = useState<number | null>(null);
 
   // Send state
   const [sendStatus, setSendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -70,6 +74,34 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
     setBody(org.bespokeEmailCopy || "");
     setSearchQuery("");
     setShowResults(false);
+  }
+
+  async function handleAiDraft() {
+    if (!selectedOrg) return;
+    setAiDrafting(true);
+    setAiCost(null);
+    try {
+      const res = await fetch("/crm/api/ai/email-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          organizationId: selectedOrg.id,
+          tone: "warm",
+          purpose: "intro",
+          senderName: senderName || undefined,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSubject(data.subject);
+        setBody(data.body);
+        setAiCost(data.usage.costUsd);
+      }
+    } catch {
+      // silently fail — user can still write manually
+    } finally {
+      setAiDrafting(false);
+    }
   }
 
   async function handleSend() {
@@ -187,14 +219,39 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
 
         {/* Body */}
         <div>
-          <Label className="mb-1.5 block">
-            body
-            {selectedOrg?.bespokeEmailCopy && (
-              <span className="text-muted-foreground font-normal ml-2">
-                (pre-filled from bespoke copy)
-              </span>
-            )}
-          </Label>
+          <div className="flex items-center justify-between mb-1.5">
+            <Label>
+              body
+              {selectedOrg?.bespokeEmailCopy && (
+                <span className="text-muted-foreground font-normal ml-2">
+                  (pre-filled from bespoke copy)
+                </span>
+              )}
+            </Label>
+            <div className="flex items-center gap-2">
+              {aiCost !== null && (
+                <span className="text-xs text-muted-foreground">
+                  AI cost: ${aiCost.toFixed(4)}
+                </span>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAiDraft}
+                disabled={!selectedOrg || aiDrafting}
+              >
+                {aiDrafting ? (
+                  "drafting..."
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5 mr-1" />
+                    AI draft
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
           <Textarea
             placeholder="Email body..."
             value={body}
