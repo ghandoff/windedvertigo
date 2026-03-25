@@ -31,15 +31,15 @@ const INSIGHTS: Record<string, string> = {
 
 const SERVICES: Record<string, { label: string; value: string; desc: string }[]> = {
   "people-design": [
-    { label: "trainings", value: "trainings", desc: "workshops and facilitation" },
+    { label: "creativity & resilience", value: "creativity-resilience", desc: "workshops for navigating uncertainty and fostering innovation" },
     { label: "learning experiences", value: "learning-experiences", desc: "immersive programmes" },
     { label: "programmes", value: "programmes", desc: "structured learning journeys" },
-    { label: "comms assets", value: "comms-assets", desc: "materials that communicate" },
+    { label: "AI adoption", value: "ai-adoption", desc: "tools and trainings for human-centered AI integration" },
   ],
   "people-research": [
     { label: "programme evaluation", value: "program-evaluation", desc: "measure programme impact" },
     { label: "MEL touchpoints", value: "mel-touchpoints", desc: "monitoring checkpoints" },
-    { label: "psychometrics", value: "psychometrics", desc: "validated assessments" },
+    { label: "research databases", value: "research-databases", desc: "structured systems for capturing and querying evidence" },
     { label: "evidence for funders", value: "evidence-for-funders", desc: "proof for stakeholders" },
   ],
   "product-design": [
