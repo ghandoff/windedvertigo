@@ -22,7 +22,7 @@ const ALLOWED_EMAILS = new Set(
 );
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  basePath: "/crm/api/auth",
+  basePath: "/api/auth",
 
   providers: [
     Google({
@@ -122,7 +122,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   pages: {
-    signIn: "/crm/login",
-    error: "/crm/login",
+    signIn: "/login",
+    error: "/login",
   },
 });
