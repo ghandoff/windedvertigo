@@ -12,14 +12,15 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   // Allow auth routes and the login page through
+  // Note: Next.js strips basePath before middleware, so paths are without /crm
   if (
-    pathname.startsWith("/crm/api/auth") ||
-    pathname === "/crm/login" ||
-    pathname.startsWith("/crm/_next") ||
-    pathname.startsWith("/crm/favicon") ||
-    pathname === "/crm/sw.js" ||
-    pathname === "/crm/manifest.json" ||
-    pathname.startsWith("/crm/images/")
+    pathname.startsWith("/api/auth") ||
+    pathname === "/login" ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname === "/sw.js" ||
+    pathname === "/manifest.json" ||
+    pathname.startsWith("/images/")
   ) {
     return NextResponse.next();
   }
@@ -27,12 +28,12 @@ export default auth((req) => {
   // Not authenticated
   if (!req.auth) {
     // API routes get 401
-    if (pathname.startsWith("/crm/api/")) {
+    if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Pages get redirected to login
-    const loginUrl = new URL("/crm/login", req.url);
+    const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -41,5 +42,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/crm/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
