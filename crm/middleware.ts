@@ -1,18 +1,17 @@
 /**
  * Auth middleware — protect all CRM routes except login and API auth.
  *
- * Unauthenticated users are redirected to /crm/login.
- * API routes (except /api/auth) return 401 instead of redirecting.
+ * Uses getToken() to check for a valid JWT session cookie.
+ * Redirects unauthenticated users to /login.
  */
 
-import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow auth routes and the login page through
-  // Note: Next.js strips basePath before middleware, so paths are without /crm
+  // Allow auth routes, login page, static assets through
   if (
     pathname.startsWith("/api/auth") ||
     pathname === "/login" ||
@@ -25,8 +24,16 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // Not authenticated
-  if (!req.auth) {
+  // Check for session token
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET,
+    cookieName: process.env.NODE_ENV === "production"
+      ? "__Secure-authjs.session-token"
+      : "authjs.session-token",
+  });
+
+  if (!token) {
     // API routes get 401
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -39,7 +46,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
