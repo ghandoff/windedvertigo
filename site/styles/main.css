@@ -131,6 +131,45 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
 .project-card h3 { font-size: 1.1rem; margin-bottom: var(--space-xs); text-transform: lowercase; }
 .project-card p { font-size: 0.9rem; margin-bottom: var(--space-sm); color: var(--text-secondary); }
 
+/* ── what page ────────────────────────────────────────────────── */
+.what-hero { text-align: center; padding: var(--space-3xl) 0 var(--space-2xl); }
+.what-hero-subtitle { display: block; font-size: 2.5rem; font-weight: 800; letter-spacing: 0.04em; margin-bottom: var(--space-lg); text-transform: lowercase; }
+.what-hero-subtitle .w-what { color: var(--wv-redwood); }
+.what-hero-subtitle .w-we { color: var(--wv-sienna); }
+.what-hero-subtitle .w-do { color: var(--wv-champagne); }
+.what-hero-title { font-size: 82.8px; font-weight: 700; line-height: 1.2; margin-bottom: var(--space-xl); text-transform: lowercase; }
+.what-hero-body { max-width: 700px; margin: 0 auto; font-size: 1.1rem; line-height: 1.7; font-weight: 300; color: var(--wv-white); }
+
+.what-values { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; padding: var(--space-2xl) 0; }
+.what-value { text-align: center; padding: 0 var(--space-xl); }
+.what-value:not(:last-child) { border-right: 1px solid rgba(255, 235, 210, 0.2); }
+.what-value-heading { font-size: 2.2rem; font-weight: 700; margin-bottom: var(--space-md); text-transform: lowercase; }
+.what-value-body { font-size: 0.95rem; line-height: 1.6; font-weight: 300; color: var(--wv-white); }
+
+.what-imagery { position: relative; max-width: var(--container-width); margin: var(--space-lg) auto 0; }
+.what-photo-band-img {
+  width: 100%; display: block;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, black 4%, black 96%, transparent),
+    linear-gradient(to bottom, transparent, black 4%, black 65%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, black 4%, black 96%, transparent),
+    linear-gradient(to bottom, transparent, black 4%, black 65%, transparent);
+  mask-composite: intersect;
+}
+.what-process-strip { position: absolute; bottom: 0; left: 0; width: 100%; z-index: 1; display: block; }
+
+.what-process-section { padding: var(--space-sm) 0 0; }
+.what-process { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-lg); padding: var(--space-md) 0 var(--space-3xl); }
+.what-process-step { text-align: center; padding: 0 var(--space-sm); }
+.what-process-img { width: 140px; height: 140px; margin: 0 auto var(--space-lg); display: block; object-fit: contain; }
+.what-process-heading { font-size: 1.8rem; font-weight: 700; margin-bottom: var(--space-sm); text-transform: lowercase; }
+.what-process-body { font-size: 0.9rem; line-height: 1.6; font-weight: 300; color: var(--wv-white); }
+
+/* placeholder for artwork — subtle dashed circle */
+.what-process-placeholder { width: 140px; height: 140px; margin: 0 auto var(--space-lg); border: 2px dashed rgba(255, 235, 210, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--color-text-on-dark-muted); font-size: 0.8rem; font-style: italic; }
+
 /* ── footer ───────────────────────────────────────────────────── */
 /* layout now handled by shared .wv-footer classes in tokens.
    only font-awesome icon rules remain here (site-specific).       */
@@ -140,13 +179,20 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
 .wv-footer-social .fa-threads::before { font-family: "Font Awesome 6 Brands"; content: "\e618"; }
 
 /* ── responsive ───────────────────────────────────────────────── */
-@media (max-width: 1200px) { .hero-title { font-size: 60px; } }
+@media (max-width: 1200px) {
+  .hero-title { font-size: 60px; }
+  .what-hero-title { font-size: 60px; }
+}
 
 @media (max-width: 1024px) {
   :root { --edge-padding: 25px; }
   .team-member { grid-template-columns: 260px 1fr; }
   .member-headshot { width: 260px; height: 260px; border-radius: 130px; }
   .hero-title { font-size: 50px; }
+  .what-hero-title { font-size: 50px; }
+  .what-process { gap: var(--space-sm); }
+  .what-process-heading { font-size: 1.4rem; }
+  .what-process-body { font-size: 0.8rem; }
 }
 
 @media (max-width: 768px) {
@@ -168,6 +214,17 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; }
   .services-grid { grid-template-columns: 1fr; }
   /* footer responsive now handled by shared .wv-footer classes in tokens */
   .logo-img { width: 150px; }
+  .what-hero-title { font-size: 36px; }
+  .what-hero-subtitle { font-size: 1.5rem; }
+  .what-hero-body { font-size: 1rem; }
+  .what-values { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .what-value { padding: 0; }
+  .what-value:not(:last-child) { border-right: none; border-bottom: 1px solid rgba(255, 235, 210, 0.2); padding-bottom: var(--space-xl); }
+  .what-value-heading { font-size: 1.6rem; }
+  .what-process { gap: var(--space-xs); }
+  .what-process-step { padding: 0; }
+  .what-process-heading { font-size: 1.1rem; }
+  .what-process-body { font-size: 0.75rem; }
 }
 
 /* ── accessibility ────────────────────────────────────────────── */
