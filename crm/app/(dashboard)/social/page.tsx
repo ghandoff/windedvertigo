@@ -4,10 +4,9 @@ import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SocialDraftForm } from "@/app/components/social-draft-form";
-import type { SocialDraft } from "@/lib/notion/types";
+import { SocialDraftCard } from "@/app/components/social-draft-card";
 
 export const revalidate = 300;
 
@@ -17,45 +16,9 @@ const STATUS_COLUMNS = [
   { key: "posted", label: "posted" },
 ] as const;
 
-const PLATFORM_OPTIONS = ["linkedin", "twitter", "bluesky"] as const;
-
-const PLATFORM_COLORS: Record<string, string> = {
-  linkedin: "bg-blue-100 text-blue-700 border-blue-200",
-  twitter: "bg-gray-100 text-gray-700 border-gray-200",
-  bluesky: "bg-sky-100 text-sky-700 border-sky-200",
-};
-
-function formatDate(dateStr: string | null | undefined): string {
-  if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short", day: "numeric",
-  });
-}
-
-function DraftCard({ draft }: { draft: SocialDraft }) {
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-3 space-y-2">
-        <p className="text-sm leading-snug line-clamp-3">{draft.content}</p>
-        <div className="flex items-center gap-1.5">
-          {draft.platform && (
-            <Badge
-              variant="outline"
-              className={`text-[10px] ${PLATFORM_COLORS[draft.platform] ?? ""}`}
-            >
-              {draft.platform}
-            </Badge>
-          )}
-          {draft.scheduledFor?.start && (
-            <span className="text-[10px] text-muted-foreground">
-              {formatDate(draft.scheduledFor.start)}
-            </span>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+const PLATFORM_OPTIONS = [
+  "linkedin", "twitter", "bluesky", "instagram", "facebook", "substack",
+] as const;
 
 interface Props {
   searchParams: Promise<Record<string, string | undefined>>;
@@ -65,7 +28,6 @@ async function SocialBoard({ searchParams }: Props) {
   const params = await searchParams;
   const { data: drafts } = await querySocialDrafts(undefined, { pageSize: 100 });
 
-  // Client-compatible filtering by search and platform
   let filtered = drafts;
   if (params.search) {
     const q = params.search.toLowerCase();
@@ -91,7 +53,7 @@ async function SocialBoard({ searchParams }: Props) {
           <ScrollArea className="h-[calc(100vh-320px)]">
             <div className="p-2 space-y-2">
               {col.items.map((draft) => (
-                <DraftCard key={draft.id} draft={draft} />
+                <SocialDraftCard key={draft.id} draft={draft} />
               ))}
               {col.items.length === 0 && (
                 <p className="text-xs text-muted-foreground text-center py-8">

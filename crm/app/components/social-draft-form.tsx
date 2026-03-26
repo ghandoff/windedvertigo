@@ -62,6 +62,9 @@ export function SocialDraftForm() {
                 <SelectItem value="linkedin">LinkedIn</SelectItem>
                 <SelectItem value="twitter">Twitter / X</SelectItem>
                 <SelectItem value="bluesky">Bluesky</SelectItem>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="facebook">Facebook</SelectItem>
+                <SelectItem value="substack">Substack</SelectItem>
               </SelectContent>
             </Select>
           </div>
