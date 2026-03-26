@@ -378,7 +378,7 @@ export interface EmailDraft {
   lastEditedTime: string;
 }
 
-export type SocialPlatform = "linkedin" | "twitter" | "bluesky";
+export type SocialPlatform = "linkedin" | "twitter" | "bluesky" | "instagram" | "facebook" | "substack";
 export type SocialDraftStatus = "draft" | "scheduled" | "posted";
 
 export interface SocialDraft {
