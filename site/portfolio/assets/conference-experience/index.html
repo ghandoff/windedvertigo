@@ -685,13 +685,13 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   40% { opacity: 0.8; transform: translateY(0); }
   100% { opacity: 0.4; transform: translateY(0); }
 }
-.dark-hold { position: absolute; inset: 0; background: #012a4a; opacity: 0; animation: holdDark 1s 5s ease forwards; pointer-events: none; }
+.dark-hold { position: absolute; inset: 0; background: var(--magenta); opacity: 0; animation: holdDark 1s 3s ease forwards; pointer-events: none; }
 @keyframes holdDark { to { opacity: 1; } }
 .speaker-emerge {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; padding: 40px; opacity: 0;
-  animation: emergeReveal 1.5s 6.5s ease forwards;
+  animation: emergeReveal 1.5s 4s ease forwards;
 }
 @keyframes emergeReveal { 0% { opacity: 0; } 100% { opacity: 1; } }
 .speaker-emerge .moment-speaker { color: var(--champagne); }
@@ -701,7 +701,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .post-activity {
   font: 400 14px/1.65 'Quicksand', sans-serif; color: rgba(255,255,255,0.8);
   max-width: 480px; margin-top: 28px; text-align: center;
-  opacity: 0; animation: fadeUp 0.8s 8s ease forwards;
+  opacity: 0; animation: fadeUp 0.8s 5.5s ease forwards;
 }
 
 /* ════════════════════════════════
@@ -1605,7 +1605,9 @@ document.addEventListener('click', function(e) {
   }
 });
 
-let agendaExpanded = true;
+let agendaExpanded = false;
+agendaCard.classList.add('collapsed');
+agendaToggle.textContent = '▸ agenda';
 agendaToggle.addEventListener('click', function() {
   agendaExpanded = !agendaExpanded;
   agendaToggle.setAttribute('aria-expanded', agendaExpanded);
