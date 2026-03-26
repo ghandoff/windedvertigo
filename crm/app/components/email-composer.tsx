@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Send, Search, Building2, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "./rich-text-editor";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -293,12 +293,12 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
               </Button>
             </div>
           </div>
-          <Textarea
-            placeholder="Email body..."
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={12}
-            className="font-mono text-sm"
+          <RichTextEditor
+            content={body}
+            onChange={setBody}
+            placeholder="start writing your email..."
+            mode="email"
+            minHeight={250}
           />
         </div>
 

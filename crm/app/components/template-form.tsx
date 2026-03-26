@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "./rich-text-editor";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -151,12 +151,12 @@ export function TemplateForm() {
                 ))}
               </div>
             </div>
-            <Textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
+            <RichTextEditor
+              content={body}
+              onChange={setBody}
               placeholder="email body with {{variables}}"
-              rows={10}
-              className="text-sm font-mono"
+              mode="email"
+              minHeight={200}
             />
           </div>
           <div className="flex gap-2">

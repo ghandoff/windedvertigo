@@ -4,8 +4,8 @@ import { useState } from "react";
 import { ChevronUp, ChevronDown, Trash2, Plus, Mail, Globe, Hash, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { RichTextEditor } from "./rich-text-editor";
 import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -162,12 +162,12 @@ export function StepCustomizer({ steps, onChange }: StepCustomizerProps) {
                 )}
                 <div>
                   <Label className="text-xs mb-1 block">body</Label>
-                  <Textarea
-                    value={step.body}
-                    onChange={(e) => updateStep(step.id, { body: e.target.value })}
+                  <RichTextEditor
+                    content={step.body}
+                    onChange={(html) => updateStep(step.id, { body: html })}
                     placeholder="email/post content..."
-                    rows={4}
-                    className="text-xs"
+                    mode={step.channel === "email" ? "email" : "social"}
+                    minHeight={120}
                   />
                 </div>
               </div>

@@ -4,8 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { RichTextEditor } from "./rich-text-editor";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -72,11 +72,12 @@ export function SocialDraftForm() {
                 {content.length} chars
               </span>
             </Label>
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your post..."
-              rows={8}
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
+              placeholder="write your post..."
+              mode="social"
+              minHeight={150}
             />
           </div>
           <Button onClick={handleSave} disabled={!content.trim() || saving} className="w-full">
