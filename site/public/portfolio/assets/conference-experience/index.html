@@ -73,6 +73,12 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S10.sc-bg::before { background: rgba(218,244,245,0.85); }
 #S12.sc-bg { background-image: url('/portfolio/assets/conference-experience/closing_collage.png'); }
 #S12.sc-bg::before { background: rgba(3,107,180,0.75); }
+#S7.sc-bg { background-image: url('/portfolio/assets/conference-experience/quiet_room.png'); }
+#S7.sc-bg::before { background: rgba(218,244,245,0.88); }
+#S8.sc-bg { background-image: url('/portfolio/assets/conference-experience/bumer_car_tables.png'); }
+#S8.sc-bg::before { background: rgba(218,244,245,0.85); }
+#S13.sc-bg { background-image: url('/portfolio/assets/conference-experience/card_on_chair.png'); }
+#S13.sc-bg::before { background: rgba(3,107,180,0.72); }
 #S14.sc-bg { background-image: url('/portfolio/assets/conference-experience/garden_party.png'); }
 #S14.sc-bg::before { background: rgba(3,107,180,0.65); }
 
@@ -261,7 +267,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 0 — COVER
    ════════════════════════════════ */
-#S0 { background: var(--cadet); padding-bottom: 200px; }
+#S0 { background: var(--cadet); overflow-y: auto; justify-content: flex-start; padding-top: 80px; }
 .pedal-logo { width: clamp(120px, 20vw, 200px); height: auto; margin-bottom: 16px; }
 .foot-logo { height: 18px; width: auto; vertical-align: middle; margin-right: 4px; opacity: 0.5; }
 #S0 .label { font: 500 10px/1 'Quicksand', sans-serif; letter-spacing: 0.18em; text-transform: lowercase; color: var(--accent-em); }
@@ -692,8 +698,8 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 10 — THREE TRACKS (2:15 p.m.)
    ════════════════════════════════ */
-#S10 { background: var(--champagne); }
-.tracks-container { display: flex; gap: 20px; padding: 80px 40px; width: 100%; height: 100%; align-items: center; }
+#S10 { background: var(--champagne); overflow-y: auto; }
+.tracks-container { display: flex; gap: 20px; padding: 80px 40px; width: 100%; min-height: 100%; align-items: center; }
 .track { flex: 1; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 24px 22px; backdrop-filter: blur(8px); }
 .track-label { font: 600 9px 'Quicksand', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 16px; }
 .track h3 { font: 700 clamp(20px,2.5vw,26px)/1.2 'Quicksand', sans-serif; color: var(--dark); margin-bottom: 16px; }
@@ -864,6 +870,10 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
    SCREEN 16 — CTA + SUB-SERVICES
    ════════════════════════════════ */
 #S16 { background: var(--cadet); }
+.scroll-hint { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 32px; animation: scrollBounce 2s ease-in-out infinite; }
+.scroll-hint-text { font: 400 12px 'Quicksand', sans-serif; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; text-transform: lowercase; }
+.scroll-hint-arrow { font-size: 20px; color: rgba(255,255,255,0.4); }
+@keyframes scrollBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 #S16.active { overflow-y: auto; justify-content: flex-start; }
 #S16 .final-scene { position: relative; width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 60px 20px; }
 #S16 .final-text { text-align: center; max-width: 620px; padding: 40px; z-index: 5; margin-top: auto; }
@@ -1172,7 +1182,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       <div class="moment-speaker">Stephen Morgan MP</div>
       <div class="moment-note">keynote. ran as planned.</div>
       <div class="moment-detail">the minister walked through the same question wall as everyone else.</div>
-      <div class="moment-detail" style="margin-top:16px; font-style:italic; opacity:0.85">with our <strong>helping your speakers walk their talk</strong> package, the minister's team receives three children's quotes from the question wall the week before. his keynote opens not with slides but with those three quotes — projected large, no commentary. thirty seconds of silence. then he responds to each one as if the child were in the room. the policy argument builds from the children's words, not from a briefing document. after the talk, attendees write one sentence on a card: "the policy I'd make if I were six." the minister reads five of them aloud. the room hears its own imagination alongside the policy.</div>
+      <div class="moment-detail" style="margin-top:16px; font-style:italic; opacity:0.85">the minister's team receives three children's quotes from the question wall the week before. his keynote opens not with slides but with those three quotes — projected large, no commentary. thirty seconds of silence. then he responds to each one as if the child were in the room. the policy argument builds from the children's words. after the talk, attendees write one sentence on a card: "the policy I'd make if I were six." the minister reads five of them aloud. the room hears its own imagination alongside the policy.</div>
     </div>
   </div>
 </section>
@@ -1208,7 +1218,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 </section>
 
 <!-- ═══ S7 SESSION CHOICE ═══ -->
-<section class="sc" id="S7" aria-label="11:45 a.m. — choose your room">
+<section class="sc sc-bg" id="S7" aria-label="11:45 a.m. — choose your room">
   <div class="door-choice">
     <button class="door" onclick="go(8)">
       <div class="d-label">session a · 11:45 a.m.</div>
@@ -1227,7 +1237,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 </section>
 
 <!-- ═══ S8 LUNCH COLLAGE ═══ -->
-<section class="sc" id="S8" aria-label="12:25 p.m. — the collage">
+<section class="sc sc-bg" id="S8" aria-label="12:25 p.m. — the collage">
   <div class="collage-instruct">12:25 p.m. — add something from this morning that is still with you.</div>
   <div class="collage-surface" id="collageSurface"></div>
   <div class="collage-paper" id="collagePaper">
@@ -1262,7 +1272,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       <div class="track-label">MAIN HALL</div>
       <h3>AI panel</h3>
       <p>a panel discussion on AI, toys, and the future of play. ran in the main hall as planned.</p>
-      <p style="margin-top:12px;font-style:italic;opacity:0.85">with our <strong>co-creating games with your keynote speakers</strong> package, the panel wouldn't just talk about AI and play — the audience would experience it. each table receives a toy and a prompt generated live by a language model. the panel watches the room play first, then responds to what they saw. the argument about AI and childhood stops being abstract.</p>
+      <p style="margin-top:12px;font-style:italic;opacity:0.85">instead of talking about AI and play, the audience would experience it. each table receives a toy and a prompt generated live by a language model. the panel watches the room play first, then responds to what they saw. the argument about AI and childhood stops being abstract.</p>
     </div>
     <div class="track track-quiet" id="quietRoom" role="button" tabindex="0" style="cursor:pointer">
       <div class="track-label">THE BOULIND</div>
@@ -1305,7 +1315,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 </section>
 
 <!-- ═══ S13 CARD ON CHAIR ═══ -->
-<section class="sc" id="S13" aria-label="the card on the chair">
+<section class="sc sc-bg" id="S13" aria-label="the card on the chair">
   <div class="card-flip-container" tabindex="0" role="button" aria-label="card on your chair — press enter or click to flip" id="flipCard">
     <div class="card-inner">
       <div class="card-front">
@@ -1384,9 +1394,10 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   <div class="final-scene">
     <div class="particles" id="finalParticles"></div>
     <div class="final-text">
-      <div class="ft-stat">93% of conference content is forgotten within a week.</div>
+      <div class="ft-stat">most conference content is forgotten within a week.</div>
       <div class="ft-stat-follow">this changes that.</div>
       <div class="ft-value">want an immersive, hands-on conference but don't have the time or capacity? we do this so you don't have to.</div>
+      <div class="scroll-hint"><span class="scroll-hint-text">scroll to see what we offer</span><span class="scroll-hint-arrow">&#8595;</span></div>
       <div class="ft-tldr">
         <span class="tldr-item">first conversation: 30 minutes</span>
         <span class="tldr-sep"></span>
@@ -1470,14 +1481,14 @@ const NARRATOR = [
   {scene:'cover', text:"the PEDAL Conference brings together researchers, policymakers, and educators who care about play. the content is strong. the opportunity is to redesign the architecture around it so the format says the same thing the research does."},
   {scene:'before the day', text:"two weeks before, every attendee receives a question to sit with. a note about the day's design. and a companion app linked to their badge QR — threading the digital layer through the whole day."},
   {scene:'the question wall', text:"the question wall builds in real time. children's responses are already there. by 09:30 it holds sixty to seventy cards. it stays up all day."},
-  {scene:'Stephen Morgan MP', text:"runs as planned. with our helping your speakers walk their talk package, the minister's team receives three children's quotes from the question wall beforehand. his keynote opens with those quotes — projected large, no commentary. thirty seconds of silence. then he responds to each one as if the child were in the room. after the talk, attendees write: the policy I'd make if I were six. the room hears its own imagination alongside the policy."},
+  {scene:'Stephen Morgan MP', text:"the minister's team receives three children's quotes from the question wall the week before. his keynote opens with those quotes — projected large, no commentary. thirty seconds of silence. then he responds to each one as if the child were in the room. after the talk, attendees write: the policy I'd make if I were six. the room hears its own imagination alongside the policy."},
   {scene:'the making space', text:"the Boulind opens as a making space. cardboard, tape, children's prompt cards, coloured blocks. the brief: using only what is here, make something a child could learn from. pick up the cardboard. read the children's cards. or just watch. all of these are the activity."},
   {scene:'hall of mirrors & bumper cars', text:"two formats running together. hall of mirrors: people from outside the play research field sit at tables with a question from the morning. ideas refracted through a different lens. bumper cars: a deliberate collision of perspectives. short, timed conversations between people who would not normally sit together. the format produces friction. that is the point."},
   {scene:'Dr Catherine Draper', text:"the children's quotes appear not as illustration but as counterpoint — a second voice running through the presentation that the audience holds alongside the research findings."},
   {scene:'session choice', text:"both sessions run simultaneously. both rooms are the right room."},
   {scene:'the collage', text:"a collage station runs through lunch. add something from this morning that is still with you. a phrase, a sketch, a question. it grows through the break. it will be displayed at the close."},
   {scene:'risky play', text:"the session opens with thirty seconds of unedited footage. children in risky play. no framing. the audience sees what Sandseter is about to analyse — from the children's perspective — before the adult interpretation arrives. after the keynote, a short opt-in activity with genuine uncertainty in it."},
-  {scene:'three tracks', text:"three things running at once. the AI panel — with our co-creating games package, the audience would play with AI-generated prompts before the panel responds to what they saw. the quiet room — low light, no task, no facilitation. and connecting play networks, where each table opens with a question drawn from children's responses. some people need noise to process. some need stillness. both are legitimate."},
+  {scene:'three tracks', text:"three things running at once. the AI panel — instead of talking about AI and play, the audience plays with AI-generated prompts before the panel responds to what they saw. the quiet room — low light, no task, no facilitation. and connecting play networks, where each table opens with a question drawn from children's responses. some people need noise to process. some need stillness. both are legitimate."},
   {scene:'map your context', text:"a short paired exercise: map your own context. what assets already exist where you work? who is already doing something? what have you built that has not been named yet? the template is there for people who think better with a structure in front of them. the conversation option is there for people who think better out loud."},
   {scene:'closing', text:"the collage is displayed at the front. the room produced these today. the conference ends by naming the children whose voices ran through the day and asking what their absence means for next year."},
   {scene:'the card', text:"on every chair: a card. a question to take with you. the garden party invitation is on the back."},

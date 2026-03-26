@@ -9,17 +9,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --cadet: #0171B9;
-  --redwood: #1A5D66;
-  --sienna: #00A6B6;
+  --cadet: #036BB4;
+  --redwood: #016692;
+  --sienna: #00A0B8;
   --champagne: #DAF4F5;
   --white: #ffffff;
   --dark: #0C2340;
   --grey: #666666;
   --light: #CCEFF3;
   /* complementary accents — sparingly */
-  --mint: #7BC67E;
-  --lavender: #B39DDB;
+  --mint: #00883E;
+  --lavender: #942180;
+  /* PEDAL extended palette */
+  --olive: #AFB316;
+  --magenta: #78196A;
+  /* high-contrast accent for text on blue */
+  --accent-on-blue: #DAF4F5;
+  --accent-em: #7EDCE0;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 100%; height: 100%; overflow: hidden; }
@@ -33,6 +39,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   z-index: 0;
   overflow: hidden;
   padding-top: 52px; /* clear agenda bar on all viewports */
+  padding-bottom: 52px; /* clear nav bar */
   transition: opacity 0.8s ease, transform 0.8s ease;
 }
 .sc.active { opacity: 1; pointer-events: auto; z-index: 10; }
@@ -53,21 +60,27 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S2.sc-bg { background-image: url('/portfolio/assets/conference-experience/arrival_question_wall.png'); }
 #S2.sc-bg::before { background: rgba(218,244,245,0.88); }
 #S3.sc-bg { background-image: url('/portfolio/assets/conference-experience/sketches_behind_keynote.png'); }
-#S3.sc-bg::before { background: rgba(1,113,185,0.75); }
+#S3.sc-bg::before { background: rgba(3,107,180,0.75); }
 #S4.sc-bg { background-image: url('/portfolio/assets/conference-experience/making_space.png'); }
 #S4.sc-bg::before { background: rgba(218,244,245,0.82); }
 #S5.sc-bg { background-image: url('/portfolio/assets/conference-experience/hall_of_mirrors.png'); }
 #S5.sc-bg::before { background: rgba(218,244,245,0.80); }
 #S6.sc-bg { background-image: url('/portfolio/assets/conference-experience/childrens_voices_thread.png'); }
-#S6.sc-bg::before { background: rgba(1,113,185,0.78); }
+#S6.sc-bg::before { background: rgba(3,107,180,0.78); }
 #S9.sc-bg { background-image: url('/portfolio/assets/conference-experience/30_seconds_of_risky_play.png'); }
 #S9.sc-bg::before { background: rgba(0,0,0,0.82); }
 #S10.sc-bg { background-image: url('/portfolio/assets/conference-experience/creaseworks_table.png'); }
 #S10.sc-bg::before { background: rgba(218,244,245,0.85); }
 #S12.sc-bg { background-image: url('/portfolio/assets/conference-experience/closing_collage.png'); }
-#S12.sc-bg::before { background: rgba(1,113,185,0.75); }
+#S12.sc-bg::before { background: rgba(3,107,180,0.75); }
+#S7.sc-bg { background-image: url('/portfolio/assets/conference-experience/quiet_room.png'); }
+#S7.sc-bg::before { background: rgba(218,244,245,0.88); }
+#S8.sc-bg { background-image: url('/portfolio/assets/conference-experience/bumer_car_tables.png'); }
+#S8.sc-bg::before { background: rgba(218,244,245,0.85); }
+#S13.sc-bg { background-image: url('/portfolio/assets/conference-experience/card_on_chair.png'); }
+#S13.sc-bg::before { background: rgba(3,107,180,0.72); }
 #S14.sc-bg { background-image: url('/portfolio/assets/conference-experience/garden_party.png'); }
-#S14.sc-bg::before { background: rgba(1,113,185,0.65); }
+#S14.sc-bg::before { background: rgba(3,107,180,0.65); }
 
 /* ── Progress ── */
 #progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--sienna); z-index: 200; transition: width 0.8s ease; }
@@ -77,10 +90,10 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
   display: none; align-items: center; justify-content: space-between;
   padding: 10px 20px;
-  background: rgba(1,113,185,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  background: rgba(3,107,180,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
 }
-#nav .n-time { font: 300 14px 'Quicksand', sans-serif; color: var(--sienna); min-width: 60px; }
-#nav .n-label { font: 300 12px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); text-align: center; flex: 1; }
+#nav .n-time { font: 300 14px 'Quicksand', sans-serif; color: var(--accent-em); min-width: 60px; }
+#nav .n-label { font: 300 12px 'Quicksand', sans-serif; color: rgba(255,255,255,0.85); text-align: center; flex: 1; }
 .n-btn {
   background: none; border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.85);
   padding: 7px 16px; font: 400 13px 'Quicksand', sans-serif; cursor: pointer; border-radius: 3px;
@@ -125,34 +138,35 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ── Narrator ── */
 #narrator-toggle {
   position: fixed; top: 20px; right: 20px; z-index: 300;
-  background: rgba(1,42,74,0.8); color: #fff; border: 1px solid rgba(1,42,74,0.3); border-radius: 4px;
-  padding: 10px 16px; font: 500 12px 'Quicksand', sans-serif; cursor: pointer;
+  background: rgba(255,255,255,0.95); color: var(--dark); border: 1px solid rgba(0,0,0,0.08); border-radius: 4px;
+  padding: 10px 16px; font: 600 12px 'Quicksand', sans-serif; cursor: pointer;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   min-height: 48px; min-width: 48px;
   display: flex; align-items: center; gap: 6px;
   transition: background 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
 }
-#narrator-toggle:hover { background: rgba(1,42,74,0.95); }
+#narrator-toggle:hover { background: #fff; }
 #narrator-toggle .eye-icon { font-size: 14px; }
 #narrator-overlay {
-  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
-  max-width: 600px; width: 90%; z-index: 250;
-  background: rgba(1,42,74,0.92); color: #fff; border-radius: 8px;
-  padding: 24px 28px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+  max-width: 560px; width: 88%; z-index: 250;
+  background: rgba(1,42,74,0.94); color: #fff; border-radius: 8px;
+  padding: 18px 24px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   transition: opacity 0.3s ease, transform 0.3s ease;
   pointer-events: none;
+  max-height: 28vh; overflow-y: auto;
 }
 #narrator-overlay.hidden { opacity: 0; transform: translateX(-50%) translateY(8px); }
 #narrator-overlay .narrator-scene {
   font: 500 10px 'Quicksand', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--sienna); margin-bottom: 10px;
+  color: var(--accent-em); margin-bottom: 10px;
 }
 #narrator-overlay .narrator-text {
-  font: 400 14px/1.6 'Quicksand', sans-serif; color: rgba(255,255,255,0.7);
+  font: 400 14px/1.6 'Quicksand', sans-serif; color: rgba(255,255,255,0.85);
 }
 #narrator-overlay .narrator-hint {
-  font: 300 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); margin-top: 14px;
+  font: 300 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.85); margin-top: 14px;
 }
 
 /* ── Agenda Card ── */
@@ -181,7 +195,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   text-align: left; font: 400 12px 'Quicksand', sans-serif; color: var(--grey);
   min-height: 32px; border-radius: 3px; transition: background 0.2s;
 }
-.agenda-item:hover { background: rgba(1,113,185,0.04); }
+.agenda-item:hover { background: rgba(3,107,180,0.04); }
 .agenda-item.collapsed { display: none; }
 .agenda-dot {
   width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
@@ -253,13 +267,13 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 0 — COVER
    ════════════════════════════════ */
-#S0 { background: var(--cadet); }
+#S0 { background: var(--cadet); overflow-y: auto; justify-content: flex-start; padding-top: 80px; }
 .pedal-logo { width: clamp(120px, 20vw, 200px); height: auto; margin-bottom: 16px; }
 .foot-logo { height: 18px; width: auto; vertical-align: middle; margin-right: 4px; opacity: 0.5; }
-#S0 .label { font: 500 10px/1 'Quicksand', sans-serif; letter-spacing: 0.18em; text-transform: lowercase; color: var(--sienna); }
+#S0 .label { font: 500 10px/1 'Quicksand', sans-serif; letter-spacing: 0.18em; text-transform: lowercase; color: var(--accent-em); }
 #S0 h1 { font: 700 clamp(36px,7vw,68px)/1.08 'Quicksand', sans-serif; color: var(--champagne); margin: 20px 0 32px; text-align: center; padding: 0 20px; }
-#S0 .sub { font: 300 clamp(16px,2.2vw,20px)/1.7 'Quicksand', sans-serif; color: rgba(255,255,255,0.75); text-align: center; padding: 0 20px; }
-#S0 .sub em { color: var(--redwood); font-style: normal; }
+#S0 .sub { font: 300 clamp(16px,2.2vw,20px)/1.7 'Quicksand', sans-serif; color: rgba(255,255,255,0.9); text-align: center; padding: 0 20px; }
+#S0 .sub em { color: var(--accent-em); font-style: normal; }
 /* ── Onboarding hints ── */
 .onboard-hint {
   position: fixed; z-index: 310;
@@ -277,7 +291,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   background: rgba(1,42,74,0.85); padding: 8px 12px; border-radius: 6px;
   backdrop-filter: blur(8px);
 }
-#S0 .cover-context { font: 400 12px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); margin-top: 16px; }
+#S0 .cover-context { font: 400 12px 'Quicksand', sans-serif; color: rgba(255,255,255,0.85); margin-top: 16px; }
 #S0 .narrator-hint {
   position: fixed; top: 52px; right: 20px; z-index: 300;
   display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
@@ -296,7 +310,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
-#S0 .foot { position: absolute; bottom: 28px; font: 300 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); }
+#S0 .foot { position: absolute; bottom: 28px; font: 300 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.85); }
 #S0 .enter {
   margin-top: 52px; background: var(--redwood); color: #fff; border: none;
   padding: 14px 40px; font: 500 14px 'Quicksand', sans-serif; letter-spacing: 0.03em;
@@ -433,7 +447,11 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   padding: 48px 60px; border-radius: 4px;
   backdrop-filter: blur(20px); max-width: 540px;
 }
-.moment-time { font: 300 14px 'Quicksand', sans-serif; color: var(--sienna); margin-bottom: 12px; }
+.moment-time { font: 300 14px 'Quicksand', sans-serif; color: var(--accent-em); margin-bottom: 12px; }
+/* override on light-bg cards where accent-em has poor contrast */
+.morgan-center .moment-time,
+.draper-center .moment-time,
+.closing-center .moment-time { color: var(--cadet); }
 .moment-speaker { font: 700 clamp(28px,4vw,42px)/1.15 'Quicksand', sans-serif; color: var(--dark); margin-bottom: 24px; }
 .moment-note { font: 400 15px/1.65 'Quicksand', sans-serif; color: var(--grey); max-width: 440px; margin: 0 auto; }
 .moment-detail {
@@ -495,15 +513,16 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S4 .bench-note {
   position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%);
   z-index: 20; text-align: center;
-  font: 400 13px/1.6 'Quicksand', sans-serif; color: rgba(1,113,185,0.6);
+  font: 400 13px/1.6 'Quicksand', sans-serif; color: var(--grey);
   max-width: 500px;
   background: rgba(212,196,168,0.8); padding: 10px 20px; border-radius: 4px;
   backdrop-filter: blur(8px);
 }
 .time-badge {
-  position: absolute; top: 20px; left: 20px; z-index: 20;
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 20;
   font: 500 11px 'Quicksand', sans-serif; letter-spacing: 0.12em;
   color: var(--grey); background: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 3px;
+  white-space: nowrap;
 }
 
 /* ════════════════════════════════
@@ -566,7 +585,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   75% { opacity: 0.9; }
   100% { opacity: 0; transform: translateX(-20px); }
 }
-.floating-voice .fv-age { font: 500 10px 'Quicksand', sans-serif; color: rgba(218,244,245,0.6); margin-top: 4px; }
+.floating-voice .fv-age { font: 500 10px 'Quicksand', sans-serif; color: rgba(218,244,245,0.8); margin-top: 4px; }
 
 /* ════════════════════════════════
    SCREEN 7 — SESSION CHOICE (11:45 a.m.)
@@ -579,7 +598,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   background: none; border: none; font-family: inherit; min-height: 48px;
 }
 .door::before { content: ''; position: absolute; inset: 0; transition: background 0.5s; }
-.door:hover::before { background: rgba(1,113,185,0.04); }
+.door:hover::before { background: rgba(3,107,180,0.04); }
 .door:hover { transform: scale(1.01); }
 .door-divider { width: 1px; background: var(--light); align-self: stretch; }
 .door .d-label { font: 500 10px 'Quicksand', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 20px; z-index: 1; }
@@ -595,7 +614,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   background: #fff;
   background-image:
     radial-gradient(circle at 20% 30%, rgba(0,166,182,0.06) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(1,113,185,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(3,107,180,0.04) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(26,93,102,0.03) 0%, transparent 60%);
   cursor: crosshair;
 }
@@ -612,7 +631,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .c-user {
   animation: userPlace 0.4s ease forwards !important;
   font: 400 15px/1.4 'Quicksand', sans-serif; color: var(--cadet);
-  background: rgba(1,113,185,0.06); padding: 10px 16px; border-radius: 3px; pointer-events: none;
+  background: rgba(3,107,180,0.06); padding: 10px 16px; border-radius: 3px; pointer-events: none;
 }
 @keyframes userPlace { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 0.9; transform: scale(1); } }
 #S8 .collage-instruct {
@@ -651,7 +670,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 }
 .breath-1 { animation: breathIn 2s 0.5s ease forwards; }
 .breath-2 { animation: breathIn 2s 1.5s ease forwards; }
-.breath-3 { animation: breathIn 2s 2.5s ease forwards; font-size: clamp(14px,2vw,18px); color: rgba(255,255,255,0.7); }
+.breath-3 { animation: breathIn 2s 2.5s ease forwards; font-size: clamp(14px,2vw,18px); color: rgba(255,255,255,0.85); }
 @keyframes breathIn {
   0% { opacity: 0; transform: translateY(8px); }
   40% { opacity: 0.8; transform: translateY(0); }
@@ -667,8 +686,8 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 }
 @keyframes emergeReveal { 0% { opacity: 0; } 100% { opacity: 1; } }
 .speaker-emerge .moment-speaker { color: var(--champagne); }
-.speaker-emerge .moment-note { color: rgba(255,255,255,0.7); max-width: 480px; }
-.speaker-emerge .moment-time { color: var(--sienna); }
+.speaker-emerge .moment-note { color: rgba(255,255,255,0.85); max-width: 480px; }
+.speaker-emerge .moment-time { color: var(--accent-em); }
 
 .post-activity {
   font: 400 14px/1.65 'Quicksand', sans-serif; color: rgba(255,255,255,0.8);
@@ -679,8 +698,8 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 10 — THREE TRACKS (2:15 p.m.)
    ════════════════════════════════ */
-#S10 { background: var(--champagne); }
-.tracks-container { display: flex; gap: 20px; padding: 80px 40px; width: 100%; height: 100%; align-items: center; }
+#S10 { background: var(--champagne); overflow-y: auto; }
+.tracks-container { display: flex; gap: 20px; padding: 80px 40px; width: 100%; min-height: 100%; align-items: center; }
 .track { flex: 1; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 24px 22px; backdrop-filter: blur(8px); }
 .track-label { font: 600 9px 'Quicksand', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 16px; }
 .track h3 { font: 700 clamp(20px,2.5vw,26px)/1.2 'Quicksand', sans-serif; color: var(--dark); margin-bottom: 16px; }
@@ -694,7 +713,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .track-quiet h3 { color: rgba(255,255,255,0.8); animation: quietGlow 6s ease-in-out infinite alternate; }
 @keyframes quietGlow { 0% { text-shadow: none; } 100% { text-shadow: 0 0 20px rgba(255,255,255,0.06); } }
 .track-quiet .track-label { color: rgba(255,255,255,0.8); }
-.quiet-tap-hint { font: 300 italic 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); margin-top: 12px; transition: opacity 0.5s; }
+.quiet-tap-hint { font: 300 italic 11px 'Quicksand', sans-serif; color: rgba(255,255,255,0.85); margin-top: 12px; transition: opacity 0.5s; }
 #S10.quiet-dimmed { background: #012a4a !important; background-image: none !important; transition: background 2s ease; }
 #S10.quiet-dimmed::before { background: rgba(1,42,74,0.98) !important; transition: background 2s ease; }
 #S10.quiet-dimmed .track:not(.track-quiet) { opacity: 0.05; transition: opacity 2s ease; pointer-events: none; }
@@ -704,28 +723,28 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S10:not(.quiet-dimmed) .track { transition: opacity 1.5s ease; }
 #S10:not(.quiet-dimmed) .time-badge { transition: opacity 1.5s ease; }
 .track-quiet p { color: rgba(255,255,255,0.8); }
-.track-quiet .track-aside { color: rgba(255,255,255,0.7); }
+.track-quiet .track-aside { color: rgba(255,255,255,0.85); }
 
 /* ════════════════════════════════
    SCREEN 11 — MAPPING (3:15 p.m.)
    ════════════════════════════════ */
 #S11 {
   background: var(--champagne);
-  background-image: radial-gradient(circle at 50% 50%, rgba(1,113,185,0.03) 0%, transparent 70%);
+  background-image: radial-gradient(circle at 50% 50%, rgba(3,107,180,0.03) 0%, transparent 70%);
 }
-.map-canvas { position: relative; width: 100%; height: 100%; }
+.map-canvas { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 60px 20px 80px; gap: 16px; overflow-y: auto; flex-wrap: wrap; align-content: flex-start; }
 .map-description {
-  position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
-  z-index: 20; text-align: center; max-width: 500px;
+  z-index: 20; text-align: center; max-width: 440px; margin-left: 280px;
 }
 .map-description h2 { font: 700 clamp(22px,3vw,30px)/1.2 'Quicksand', sans-serif; color: var(--dark); margin-bottom: 12px; }
 .map-description p { font: 400 15px/1.6 'Quicksand', sans-serif; color: var(--grey); }
 .map-prompt {
-  position: absolute; background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.9);
   border: 1px solid var(--light); border-radius: 6px; padding: 20px 24px;
-  backdrop-filter: blur(8px); max-width: 280px;
+  backdrop-filter: blur(8px); max-width: 280px; width: 100%;
   box-shadow: 0 4px 20px rgba(0,0,0,0.04); opacity: 0;
   animation: mapIn 0.6s ease forwards;
+  position: static !important; transform: none !important;
 }
 .map-prompt label { display: block; font: 500 14px 'Quicksand', sans-serif; color: var(--cadet); margin-bottom: 10px; }
 .map-prompt textarea {
@@ -735,11 +754,9 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .map-prompt textarea::placeholder { color: var(--light); }
 @keyframes mapIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
 .map-timer {
-  position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
   font: 300 italic 17px 'Quicksand', sans-serif; color: var(--grey); text-align: center;
 }
 .map-output {
-  position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%);
   font: 400 13px/1.6 'Quicksand', sans-serif; color: var(--cadet); text-align: center;
   max-width: 480px; opacity: 0; animation: fadeUp 0.8s 1.5s ease forwards;
 }
@@ -751,22 +768,22 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S12 .closing-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .cascade-item {
   position: absolute; font: 400 12px 'Quicksand', sans-serif; color: var(--cadet);
-  background: rgba(1,113,185,0.06); padding: 6px 14px; border-radius: 20px;
+  background: rgba(3,107,180,0.06); padding: 6px 14px; border-radius: 20px;
   opacity: 0; animation: cascadeIn 0.6s ease forwards;
 }
 @keyframes cascadeIn { 0% { opacity: 0; transform: translateY(20px) scale(0.9); } 100% { opacity: 0.85; transform: translateY(0) scale(1); } }
 .cascade-voice { font: 600 14px 'Quicksand', sans-serif; color: var(--champagne); background: rgba(218,244,245,0.15); }
 #S12 .closing-center {
   z-index: 10; text-align: center; max-width: 560px; padding: 48px;
-  background: rgba(218,244,245,0.9); border-radius: 4px; backdrop-filter: blur(20px);
+  background: rgba(218,244,245,0.96); border-radius: 4px; backdrop-filter: blur(20px);
 }
 #S12 .closing-final {
-  font: 300 italic 15px/1.6 'Quicksand', sans-serif; color: var(--cadet);
+  font: 300 italic 15px/1.6 'Quicksand', sans-serif; color: var(--dark);
   margin-top: 20px; opacity: 0; animation: fadeUp 0.8s 2s ease forwards;
 }
 #S12 .closing-monday {
   font: 600 clamp(16px,2.5vw,22px)/1.3 'Quicksand', sans-serif;
-  color: var(--sienna); margin-top: 28px;
+  color: var(--accent-em); margin-top: 28px;
   opacity: 0; animation: fadeUp 0.8s 3s ease forwards;
 }
 
@@ -797,9 +814,9 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: var(--cadet);
 }
-.card-back-label { font: 600 10px 'Quicksand', sans-serif; letter-spacing: 0.16em; color: var(--sienna); margin-bottom: 16px; }
+.card-back-label { font: 600 10px 'Quicksand', sans-serif; letter-spacing: 0.16em; color: var(--accent-em); margin-bottom: 16px; }
 .card-back-time { font: 700 clamp(20px,3vw,28px)/1.2 'Quicksand', sans-serif; color: var(--champagne); margin-bottom: 24px; }
-.card-back-body { font: 400 15px/1.65 'Quicksand', sans-serif; color: rgba(255,255,255,0.75); max-width: 300px; }
+.card-back-body { font: 400 15px/1.65 'Quicksand', sans-serif; color: rgba(255,255,255,0.88); max-width: 300px; }
 .card-flip-hint { font: 300 italic 12px 'Quicksand', sans-serif; color: var(--light); margin-top: 20px; }
 
 /* ════════════════════════════════
@@ -853,27 +870,31 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
    SCREEN 16 — CTA + SUB-SERVICES
    ════════════════════════════════ */
 #S16 { background: var(--cadet); }
+.scroll-hint { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 32px; animation: scrollBounce 2s ease-in-out infinite; }
+.scroll-hint-text { font: 400 12px 'Quicksand', sans-serif; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; text-transform: lowercase; }
+.scroll-hint-arrow { font-size: 20px; color: rgba(255,255,255,0.4); }
+@keyframes scrollBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 #S16.active { overflow-y: auto; justify-content: flex-start; }
 #S16 .final-scene { position: relative; width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 60px 20px; }
 #S16 .final-text { text-align: center; max-width: 620px; padding: 40px; z-index: 5; margin-top: auto; }
 #S16 .ft-stat { font: 700 clamp(24px,4vw,38px)/1.2 'Quicksand', sans-serif; color: var(--champagne); }
-#S16 .ft-stat-follow { font: 700 clamp(24px,4vw,38px)/1.2 'Quicksand', sans-serif; color: var(--sienna); margin-top: 8px; }
+#S16 .ft-stat-follow { font: 700 clamp(24px,4vw,38px)/1.2 'Quicksand', sans-serif; color: var(--accent-em); margin-top: 8px; }
 #S16 .ft-value { font: 400 clamp(16px,2.5vw,20px)/1.65 'Quicksand', sans-serif; color: rgba(255,255,255,0.8); margin-top: 28px; }
 #S16 .ft-tldr { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 16px; margin-top: 28px; }
-.tldr-item { font: 500 13px 'Quicksand', sans-serif; color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; }
+.tldr-item { font: 500 13px 'Quicksand', sans-serif; color: rgba(255,255,255,0.88); background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; }
 .tldr-sep { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.35); }
-#S16 .ft-hook { font: 300 italic clamp(16px,2.5vw,20px)/1.5 'Quicksand', sans-serif; color: var(--sienna); text-align: center; margin-top: 40px; margin-bottom: 8px; }
-#S16 .ft-wv { font: 400 13px 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); margin-top: 40px; text-align: center; }
+#S16 .ft-hook { font: 300 italic clamp(16px,2.5vw,20px)/1.5 'Quicksand', sans-serif; color: var(--accent-em); text-align: center; margin-top: 40px; margin-bottom: 8px; }
+#S16 .ft-wv { font: 400 13px 'Quicksand', sans-serif; color: rgba(255,255,255,0.85); margin-top: 40px; text-align: center; }
 
 .services-section { width: 100%; max-width: 800px; margin-top: 60px; margin-bottom: auto; padding: 0 20px; }
-.services-label { font: 600 clamp(14px,2vw,18px)/1.3 'Quicksand', sans-serif; letter-spacing: 0.04em; color: rgba(255,255,255,0.75); text-align: center; margin-bottom: 32px; }
-.services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.services-label { font: 600 clamp(14px,2vw,18px)/1.3 'Quicksand', sans-serif; letter-spacing: 0.04em; color: rgba(255,255,255,0.88); text-align: center; margin-bottom: 32px; }
+.services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .service-card {
   background: rgba(255,255,255,0.06); border-radius: 8px; padding: 28px 24px;
   backdrop-filter: blur(8px);
 }
 .service-card h4 { font: 600 15px/1.3 'Quicksand', sans-serif; color: var(--champagne); margin-bottom: 12px; }
-.service-card p { font: 400 13px/1.6 'Quicksand', sans-serif; color: rgba(255,255,255,0.7); }
+.service-card p { font: 400 13px/1.6 'Quicksand', sans-serif; color: rgba(255,255,255,0.85); }
 .services-cta { display: flex; gap: 12px; justify-content: center; margin-top: 40px; padding-bottom: 40px; flex-wrap: wrap; }
 .cta-btn {
   display: inline-block; padding: 14px 32px; border-radius: 4px; font: 500 13px 'Quicksand', sans-serif;
@@ -886,7 +907,9 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 .cta-primary:hover { background: var(--sienna); }
 
 /* ── Responsive ── */
-/* 700px rules merged into 768px below */
+@media (max-width: 960px) {
+  .services-grid { grid-template-columns: 1fr 1fr; }
+}
 
 @media (max-width: 768px) {
   /* ── Global mobile layout ── */
@@ -913,10 +936,10 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   #narrator-overlay .narrator-text { padding: 0 16px 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; max-height: calc(30vh - 42px); }
   #narrator-overlay .narrator-hint { display: none; }
   #narrator-overlay:not(.hidden) { pointer-events: auto; }
-  #narrator-toggle { top: auto; bottom: 52px; right: 8px; z-index: 260; padding: 8px 12px; min-height: 44px; min-width: 44px; font-size: 11px; }
-  #S0 .narrator-hint { position: fixed; top: auto; bottom: 100px; right: 8px; flex-direction: row-reverse; }
-  #S0 .narrator-hint-text { text-align: left; font-size: 11px; max-width: 180px; }
-  #S0 .narrator-hint-arrow { transform: rotate(90deg); }
+  #narrator-toggle { top: 60px; bottom: auto; right: 8px; z-index: 310; padding: 8px 12px; min-height: 44px; min-width: 44px; font-size: 11px; }
+  #S0 .narrator-hint { position: fixed; top: 108px; bottom: auto; right: 8px; flex-direction: column; align-items: flex-end; }
+  #S0 .narrator-hint-text { text-align: right; font-size: 11px; max-width: 180px; }
+  #S0 .narrator-hint-arrow { transform: none; }
   #agendaHint { top: 52px; left: 20px; }
   #agendaHint .onboard-arrow { transform: rotate(-90deg); }
   #agendaHint .onboard-arrow { transform: rotate(-90deg); }
@@ -988,7 +1011,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 
   /* ── S11 mapping — flow instead of absolute ── */
   .map-canvas { display: flex; flex-direction: column; align-items: center; padding: 60px 20px 80px; gap: 16px; }
-  .map-description { position: static; transform: none; max-width: 100%; }
+  .map-description { position: static; transform: none; max-width: 100%; margin-left: 0; }
   .map-prompt { position: static !important; transform: none !important; max-width: 100%; width: 100%; opacity: 1; animation: none; padding: 14px; }
   .map-timer { position: static; transform: none; margin-top: 8px; }
   .map-output { position: static; transform: none; opacity: 1; animation: none; margin-top: 8px; font-size: 12px; }
@@ -1091,7 +1114,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 <!-- ═══ S0 COVER ═══ -->
 <section class="sc active" id="S0" aria-label="cover — reimagining PEDAL Conference 2025">
   <div class="particles" id="coverParticles"></div>
-  <img src="https://www.pedalhub.net/wp-content/themes/pedal/static/min/img/PEDAL-logo.gif" alt="PEDAL — Play in Education Development and Learning" class="cover-fade pedal-logo">
+  <div class="cover-fade" style="display:flex;align-items:center;gap:16px;justify-content:center"><img src="https://www.pedalhub.net/wp-content/themes/pedal/static/min/img/PEDAL-logo.gif" alt="PEDAL — Play in Education Development and Learning" class="pedal-logo"><span style="font:300 20px 'Quicksand',sans-serif;color:rgba(255,255,255,0.5)">×</span><img src="https://www.windedvertigo.com/images/logo.png" alt="winded.vertigo" style="height:clamp(28px,5vw,48px);width:auto;opacity:0.85"></div>
   <div class="cover-fade label">experience design concept</div>
   <h1 class="cover-fade">reimagining PEDAL Conference 2025</h1>
   <div class="cover-fade sub">same speakers. same themes. same venue.<br><em>different architecture around them.</em></div>
@@ -1101,7 +1124,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
     <span class="narrator-hint-text">click here to cover/uncover the narrator for this experience</span>
   </div>
   <button class="enter" onclick="go(1)">enter the day</button>
-  <div class="foot"><img src="https://www.pedalhub.net/wp-content/themes/pedal/static/min/img/PEDAL-logo.gif" alt="PEDAL" class="foot-logo"> PEDAL Centre, University of Cambridge · 2025</div>
+  <div class="foot"><img src="https://www.pedalhub.net/wp-content/themes/pedal/static/min/img/PEDAL-logo.gif" alt="PEDAL" class="foot-logo"><img src="https://www.windedvertigo.com/images/logo.png" alt="winded.vertigo" style="height:18px;width:auto;vertical-align:middle;margin-right:4px;opacity:0.5"> PEDAL Centre, University of Cambridge · 2025</div>
 </section>
 
 <!-- ═══ S1 BEFORE THE DAY ═══ -->
@@ -1159,7 +1182,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       <div class="moment-speaker">Stephen Morgan MP</div>
       <div class="moment-note">keynote. ran as planned.</div>
       <div class="moment-detail">the minister walked through the same question wall as everyone else.</div>
-      <div class="moment-detail" style="margin-top:16px; font-style:italic; opacity:0.7">even a keynote that runs as planned can be redesigned so the format matches the message. we work with speakers to make that happen.</div>
+      <div class="moment-detail" style="margin-top:16px; font-style:italic; opacity:0.85">the minister's team receives three children's quotes from the question wall the week before. his keynote opens not with slides but with those three quotes — projected large, no commentary. thirty seconds of silence. then he responds to each one as if the child were in the room. the policy argument builds from the children's words. after the talk, attendees write one sentence on a card: "the policy I'd make if I were six." the minister reads five of them aloud. the room hears its own imagination alongside the policy.</div>
     </div>
   </div>
 </section>
@@ -1167,9 +1190,9 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 <!-- ═══ S4 MAKING SPACE ═══ -->
 <section class="sc sc-bg" id="S4" aria-label="10:10 a.m. — the making space">
   <div class="time-badge">10:10 a.m. — Dr Bo Stjerne Thomsen / LEGO</div>
-  <div class="bench-brief">using only what is here, make something a child could learn from.</div>
+  <div class="bench-brief"><strong>using only what is here, make something a child could learn from.</strong></div>
   <div class="bench" id="bench"></div>
-  <div class="bench-note">pick up the cardboard. read the children's cards. or just watch. all of these are the activity.</div>
+  <div class="bench-note"><strong>pick up the cardboard. read the children's cards. or just watch. all of these are the activity.</strong></div>
 </section>
 
 <!-- ═══ S5 HALL OF MIRRORS ═══ -->
@@ -1195,7 +1218,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 </section>
 
 <!-- ═══ S7 SESSION CHOICE ═══ -->
-<section class="sc" id="S7" aria-label="11:45 a.m. — choose your room">
+<section class="sc sc-bg" id="S7" aria-label="11:45 a.m. — choose your room">
   <div class="door-choice">
     <button class="door" onclick="go(8)">
       <div class="d-label">session a · 11:45 a.m.</div>
@@ -1214,7 +1237,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 </section>
 
 <!-- ═══ S8 LUNCH COLLAGE ═══ -->
-<section class="sc" id="S8" aria-label="12:25 p.m. — the collage">
+<section class="sc sc-bg" id="S8" aria-label="12:25 p.m. — the collage">
   <div class="collage-instruct">12:25 p.m. — add something from this morning that is still with you.</div>
   <div class="collage-surface" id="collageSurface"></div>
   <div class="collage-paper" id="collagePaper">
@@ -1249,6 +1272,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       <div class="track-label">MAIN HALL</div>
       <h3>AI panel</h3>
       <p>a panel discussion on AI, toys, and the future of play. ran in the main hall as planned.</p>
+      <p style="margin-top:12px;font-style:italic;opacity:0.85">instead of talking about AI and play, the audience would experience it. each table receives a toy and a prompt generated live by a language model. the panel watches the room play first, then responds to what they saw. the argument about AI and childhood stops being abstract.</p>
     </div>
     <div class="track track-quiet" id="quietRoom" role="button" tabindex="0" style="cursor:pointer">
       <div class="track-label">THE BOULIND</div>
@@ -1267,7 +1291,6 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 
 <!-- ═══ S11 MAPPING ═══ -->
 <section class="sc" id="S11" aria-label="3:15 p.m. — map your context">
-  <div class="time-badge">3:15 p.m. — Dr Jermaine D'Sa & Dr Andrea Grenier</div>
   <div class="map-canvas" id="mapCanvas">
     <div class="map-description">
       <h2>a short paired exercise. map your own context.</h2>
@@ -1292,7 +1315,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 </section>
 
 <!-- ═══ S13 CARD ON CHAIR ═══ -->
-<section class="sc" id="S13" aria-label="the card on the chair">
+<section class="sc sc-bg" id="S13" aria-label="the card on the chair">
   <div class="card-flip-container" tabindex="0" role="button" aria-label="card on your chair — press enter or click to flip" id="flipCard">
     <div class="card-inner">
       <div class="card-front">
@@ -1371,9 +1394,10 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
   <div class="final-scene">
     <div class="particles" id="finalParticles"></div>
     <div class="final-text">
-      <div class="ft-stat">93% of conference content is forgotten within a week.</div>
+      <div class="ft-stat">most conference content is forgotten within a week.</div>
       <div class="ft-stat-follow">this changes that.</div>
       <div class="ft-value">want an immersive, hands-on conference but don't have the time or capacity? we do this so you don't have to.</div>
+      <div class="scroll-hint"><span class="scroll-hint-text">scroll to see what we offer</span><span class="scroll-hint-arrow">&#8595;</span></div>
       <div class="ft-tldr">
         <span class="tldr-item">first conversation: 30 minutes</span>
         <span class="tldr-sep"></span>
@@ -1383,23 +1407,31 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
       </div>
     </div>
     <div class="services-section">
-      <h3 class="services-label">some of the ways we work with conferences and events</h3>
+      <h3 class="services-label">what we offer conferences and events</h3>
       <div class="services-grid">
         <div class="service-card">
-          <h4>helping speakers maximise their messaging</h4>
-          <p>working with your keynote speakers to redesign their sessions so the format matches their content.</p>
+          <h4>the architecture between sessions</h4>
+          <p>redesigning registration, breaks, lunch, and close so the day accumulates rather than just proceeds.</p>
         </div>
         <div class="service-card">
-          <h4>adding meaning to your content</h4>
-          <p>designing the architecture between and around presentations so the day accumulates rather than just proceeds.</p>
+          <h4>helping your speakers walk their talk</h4>
+          <p>working with keynote speakers to redesign their sessions so the format matches their content.</p>
         </div>
         <div class="service-card">
-          <h4>co-creating games with your keynote speakers</h4>
-          <p>designing interactive, play-based activities that connect directly to the research being presented.</p>
+          <h4>the digital thread</h4>
+          <p>a companion app linked to badge QR codes that threads the experience before, during, and after the day.</p>
         </div>
         <div class="service-card">
-          <h4>aligning your event to Universal Design for Learning</h4>
-          <p>making sure the day works for every person in the room, with multiple ways into every activity and no single mode privileged.</p>
+          <h4>the complete reimagining</h4>
+          <p>full experience design from first email to post-conference follow-up — everything you just walked through.</p>
+        </div>
+        <div class="service-card">
+          <h4>building your team's capacity</h4>
+          <p>a train-the-trainer programme so your organising team can design engaging conferences independently.</p>
+        </div>
+        <div class="service-card">
+          <h4>proving it worked</h4>
+          <p>pre/post measurement, real-time pulse data, and impact briefs — the same rigour we bring to programme evaluation.</p>
         </div>
       </div>
       <div class="ft-hook">do you have 60 seconds to play with us?</div>
@@ -1407,7 +1439,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
         <a href="https://windedvertigo.com/do" class="cta-btn">see what we do</a>
         <a href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2RGf5v1tbCsUuJ4vvcsKr0gh2tdEU3TuCerg198j-hbxXzHMvhznWxigtvx5glXGh9Pj4diiFb" class="cta-btn cta-primary" target="_blank" rel="noopener">book a playdate</a>
       </div>
-      <div class="ft-wv"><img src="https://www.pedalhub.net/wp-content/themes/pedal/static/min/img/PEDAL-logo.gif" alt="PEDAL" style="height:32px;width:auto;opacity:0.4;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;"><br>winded.vertigo · windedvertigo.com · hello@windedvertigo.com</div>
+      <div class="ft-wv"><div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px"><img src="https://www.pedalhub.net/wp-content/themes/pedal/static/min/img/PEDAL-logo.gif" alt="PEDAL" style="height:32px;width:auto;opacity:0.4"><span style="font:300 14px 'Quicksand',sans-serif;color:rgba(255,255,255,0.3)">×</span><img src="https://www.windedvertigo.com/images/logo.png" alt="winded.vertigo" style="height:32px;width:auto;opacity:0.5"></div>winded.vertigo · windedvertigo.com · hello@windedvertigo.com</div>
     </div>
   </div>
 </section>
@@ -1449,14 +1481,14 @@ const NARRATOR = [
   {scene:'cover', text:"the PEDAL Conference brings together researchers, policymakers, and educators who care about play. the content is strong. the opportunity is to redesign the architecture around it so the format says the same thing the research does."},
   {scene:'before the day', text:"two weeks before, every attendee receives a question to sit with. a note about the day's design. and a companion app linked to their badge QR — threading the digital layer through the whole day."},
   {scene:'the question wall', text:"the question wall builds in real time. children's responses are already there. by 09:30 it holds sixty to seventy cards. it stays up all day."},
-  {scene:'Stephen Morgan MP', text:"runs as planned. the minister walked through the same question wall as everyone else on the way in."},
+  {scene:'Stephen Morgan MP', text:"the minister's team receives three children's quotes from the question wall the week before. his keynote opens with those quotes — projected large, no commentary. thirty seconds of silence. then he responds to each one as if the child were in the room. after the talk, attendees write: the policy I'd make if I were six. the room hears its own imagination alongside the policy."},
   {scene:'the making space', text:"the Boulind opens as a making space. cardboard, tape, children's prompt cards, coloured blocks. the brief: using only what is here, make something a child could learn from. pick up the cardboard. read the children's cards. or just watch. all of these are the activity."},
   {scene:'hall of mirrors & bumper cars', text:"two formats running together. hall of mirrors: people from outside the play research field sit at tables with a question from the morning. ideas refracted through a different lens. bumper cars: a deliberate collision of perspectives. short, timed conversations between people who would not normally sit together. the format produces friction. that is the point."},
   {scene:'Dr Catherine Draper', text:"the children's quotes appear not as illustration but as counterpoint — a second voice running through the presentation that the audience holds alongside the research findings."},
   {scene:'session choice', text:"both sessions run simultaneously. both rooms are the right room."},
   {scene:'the collage', text:"a collage station runs through lunch. add something from this morning that is still with you. a phrase, a sketch, a question. it grows through the break. it will be displayed at the close."},
   {scene:'risky play', text:"the session opens with thirty seconds of unedited footage. children in risky play. no framing. the audience sees what Sandseter is about to analyse — from the children's perspective — before the adult interpretation arrives. after the keynote, a short opt-in activity with genuine uncertainty in it."},
-  {scene:'three tracks', text:"three things running at once. the AI panel in the main hall. the quiet room in the Boulind — low light, no task, no facilitation. and connecting play networks, where each table opens with a question drawn from children's responses. some people need noise to process. some need stillness. both are legitimate."},
+  {scene:'three tracks', text:"three things running at once. the AI panel — instead of talking about AI and play, the audience plays with AI-generated prompts before the panel responds to what they saw. the quiet room — low light, no task, no facilitation. and connecting play networks, where each table opens with a question drawn from children's responses. some people need noise to process. some need stillness. both are legitimate."},
   {scene:'map your context', text:"a short paired exercise: map your own context. what assets already exist where you work? who is already doing something? what have you built that has not been named yet? the template is there for people who think better with a structure in front of them. the conversation option is there for people who think better out loud."},
   {scene:'closing', text:"the collage is displayed at the front. the room produced these today. the conference ends by naming the children whose voices ran through the day and asking what their absence means for next year."},
   {scene:'the card', text:"on every chair: a card. a question to take with you. the garden party invitation is on the back."},
@@ -1962,13 +1994,13 @@ function initCollage() {
   if (collageInit) return; collageInit = true;
   var s = document.getElementById('collageSurface');
   var fragments = [
-    {t:'the gap between what we study and how we gather', color:'var(--cadet)', bg:'rgba(1,113,185,0.07)'},
+    {t:'the gap between what we study and how we gather', color:'var(--cadet)', bg:'rgba(3,107,180,0.07)'},
     {t:'beetles need houses too', color:'var(--redwood)', bg:'rgba(26,93,102,0.05)', italic:true},
-    {t:'the minister and the teacher', color:'var(--dark)', bg:'rgba(1,113,185,0.04)'},
+    {t:'the minister and the teacher', color:'var(--dark)', bg:'rgba(3,107,180,0.04)'},
     {t:'what if boredom is the beginning', color:'var(--sienna)', bg:'rgba(0,166,182,0.07)'},
-    {t:'children prototype constantly', color:'var(--cadet)', bg:'rgba(1,113,185,0.05)'},
+    {t:'children prototype constantly', color:'var(--cadet)', bg:'rgba(3,107,180,0.05)'},
     {t:'watch this', color:'var(--redwood)', bg:'rgba(26,93,102,0.04)', italic:true},
-    {t:'mess is methodology', color:'var(--cadet)', bg:'rgba(1,113,185,0.05)'},
+    {t:'mess is methodology', color:'var(--cadet)', bg:'rgba(3,107,180,0.05)'},
   ];
   var positions = [
     {l:3, t:8}, {l:55, t:5}, {l:30, t:30}, {l:70, t:35},
