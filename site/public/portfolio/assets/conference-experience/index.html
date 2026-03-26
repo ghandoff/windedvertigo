@@ -79,8 +79,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S7.sc-bg::before { background: rgba(218,244,245,0.88); }
 #S8.sc-bg { background-image: url('/portfolio/assets/conference-experience/payton_crafting_table.png'); }
 #S8.sc-bg::before { background: rgba(175,179,22,0.78); }
-#S9.sc-bg { background-image: url('/portfolio/assets/conference-experience/30_seconds_of_risky_play.png'); }
-#S9.sc-bg::before { background: rgba(120,25,106,0.85); }
+/* S9: no backdrop — flat PEDAL purple */
 #S10.sc-bg { background-image: url('/portfolio/assets/conference-experience/creaseworks_table.png'); }
 #S10.sc-bg::before { background: rgba(218,244,245,0.85); }
 #S11.sc-bg { background-image: url('/portfolio/assets/conference-experience/payton_roundtable.png'); }
@@ -672,7 +671,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 9 — SANDSETER / RISKY PLAY (1:30 p.m.)
    ════════════════════════════════ */
-#S9 { background: #012a4a; }
+#S9 { background: var(--magenta); }
 #S9 .dark-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .breath-line {
   font: 300 clamp(18px,2.8vw,26px)/1.7 'Quicksand', sans-serif;
@@ -1257,7 +1256,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 </section>
 
 <!-- ═══ S9 SANDSETER / RISKY PLAY ═══ -->
-<section class="sc sc-bg" id="S9" aria-label="1:30 p.m. — risky play">
+<section class="sc" id="S9" aria-label="1:30 p.m. — risky play">
   <div class="dark-scene" id="darkScene">
     <div style="text-align:center">
       <div class="breath-line breath-1">thirty seconds of unedited footage.</div>
