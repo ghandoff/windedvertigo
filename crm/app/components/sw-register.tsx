@@ -6,7 +6,7 @@ export function ServiceWorkerRegister() {
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
-        .register("/crm/sw.js", { scope: "/crm/" })
+        .register("/sw.js", { scope: "/" })
         .then((reg) => {
           console.log("[pwa] service worker registered, scope:", reg.scope);
         })

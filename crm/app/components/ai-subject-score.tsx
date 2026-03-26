@@ -17,7 +17,7 @@ export function AiSubjectScore({ subject }: { subject: string }) {
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch("/crm/api/ai/subject-score", {
+        const res = await fetch("/api/ai/subject-score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ subject }),

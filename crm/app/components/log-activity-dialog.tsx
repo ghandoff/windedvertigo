@@ -66,7 +66,7 @@ export function LogActivityDialog({
     setSaving(true);
 
     try {
-      await fetch("/crm/api/activities", {
+      await fetch("/api/activities", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

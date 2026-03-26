@@ -37,7 +37,7 @@ export function SaveAsTemplate({ subject: initialSubject, body: initialBody, cha
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/crm/api/email-templates", {
+      const res = await fetch("/api/email-templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

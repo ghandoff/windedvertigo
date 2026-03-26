@@ -112,7 +112,7 @@ export function RfpKanban({ opportunities }: RfpKanbanProps) {
 
   const handleStatusChange = useCallback(
     async (itemId: string, newStatus: string) => {
-      await fetch(`/crm/api/rfp-radar/${itemId}`, {
+      await fetch(`/api/rfp-radar/${itemId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

@@ -9,15 +9,15 @@
  */
 
 const CACHE_NAME = "wv-crm-v1";
-const OFFLINE_PAGE = "/crm/m/log";
+const OFFLINE_PAGE = "/m/log";
 const SYNC_TAG = "wv-activity-sync";
 
 // App shell pages to precache
 const SHELL_URLS = [
-  "/crm/m",
-  "/crm/m/log",
-  "/crm/m/contacts",
-  "/crm/m/today",
+  "/m",
+  "/m/log",
+  "/m/contacts",
+  "/m/today",
 ];
 
 // ── install: precache app shell ──────────────────────────
@@ -63,7 +63,7 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.includes("/api/auth")) return;
 
   // API reads: network-first with cache fallback
-  if (url.pathname.startsWith("/crm/api/")) {
+  if (url.pathname.startsWith("/api/")) {
     event.respondWith(networkFirst(event.request));
     return;
   }
@@ -71,14 +71,14 @@ self.addEventListener("fetch", (event) => {
   // Static assets: stale-while-revalidate
   if (
     url.pathname.match(/\.(js|css|png|jpg|svg|woff2?)$/) ||
-    url.pathname.startsWith("/crm/_next/")
+    url.pathname.startsWith("/_next/")
   ) {
     event.respondWith(staleWhileRevalidate(event.request));
     return;
   }
 
   // Mobile routes: network-first (prefer fresh, fall back to cache)
-  if (url.pathname.startsWith("/crm/m")) {
+  if (url.pathname.startsWith("/m")) {
     event.respondWith(networkFirst(event.request));
     return;
   }
@@ -113,7 +113,7 @@ async function syncActivities() {
         if (item.photoBlob) {
           const formData = new FormData();
           formData.append("file", item.photoBlob, `badge-${item.id}.jpg`);
-          const uploadRes = await fetch("/crm/api/assets/upload", {
+          const uploadRes = await fetch("/api/assets/upload", {
             method: "POST",
             body: formData,
           });
@@ -128,7 +128,7 @@ async function syncActivities() {
           ? `${item.notes || ""}\n\nbadge photo: ${photoUrl}`.trim()
           : item.notes || "";
 
-        const res = await fetch("/crm/api/activities", {
+        const res = await fetch("/api/activities", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

@@ -25,7 +25,7 @@ export function BlueprintPicker({ selectedChannels, onSelect, onCustom }: Bluepr
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/crm/api/blueprints?pageSize=20")
+    fetch("/api/blueprints?pageSize=20")
       .then((r) => r.json())
       .then((d) => {
         let items = d.data ?? [];

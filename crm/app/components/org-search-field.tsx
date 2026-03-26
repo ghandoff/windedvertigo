@@ -31,7 +31,7 @@ export function OrgSearchField({ value, onChange, multiple = true }: OrgSearchFi
     if (value.length === 0) return;
     Promise.all(
       value.map((id) =>
-        fetch(`/crm/api/organizations/${id}`)
+        fetch(`/api/organizations/${id}`)
           .then((r) => r.json())
           .then((o) => ({ id: o.id, organization: o.organization, type: o.type }))
           .catch(() => ({ id, organization: id.slice(0, 8) + "...", type: undefined }))
@@ -43,7 +43,7 @@ export function OrgSearchField({ value, onChange, multiple = true }: OrgSearchFi
   useEffect(() => {
     if (query.length < 2) { setResults([]); return; }
     const timeout = setTimeout(() => {
-      fetch(`/crm/api/organizations?search=${encodeURIComponent(query)}&pageSize=10`)
+      fetch(`/api/organizations?search=${encodeURIComponent(query)}&pageSize=10`)
         .then((r) => r.json())
         .then((d) =>
           setResults(

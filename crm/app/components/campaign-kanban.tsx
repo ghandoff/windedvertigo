@@ -76,7 +76,7 @@ export function CampaignKanban({ campaigns }: CampaignKanbanProps) {
 
   const handleStatusChange = useCallback(
     async (itemId: string, newStatus: string) => {
-      await fetch(`/crm/api/campaigns/${itemId}`, {
+      await fetch(`/api/campaigns/${itemId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

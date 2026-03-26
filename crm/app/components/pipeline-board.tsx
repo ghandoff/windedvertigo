@@ -61,7 +61,7 @@ export function PipelineBoard({ organizations }: PipelineBoardProps) {
   const handleStatusChange = useCallback(
     async (itemId: string, newStatus: string) => {
       const field = groupBy === "connection" ? "connection" : "outreachStatus";
-      await fetch(`/crm/api/organizations/${itemId}`, {
+      await fetch(`/api/organizations/${itemId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [field]: newStatus }),

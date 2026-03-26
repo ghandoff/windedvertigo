@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: "/crm",
+  // basePath removed — CRM is on its own subdomain (crm.windedvertigo.com)
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/notion"],
 

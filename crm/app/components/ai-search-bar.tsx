@@ -26,7 +26,7 @@ export function AiSearchBar() {
     setLoading(true);
     setOpen(true);
     try {
-      const res = await fetch("/crm/api/ai/nl-search", {
+      const res = await fetch("/api/ai/nl-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),

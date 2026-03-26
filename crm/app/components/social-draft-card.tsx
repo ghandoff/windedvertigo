@@ -65,7 +65,7 @@ export function SocialDraftCard({ draft }: SocialDraftCardProps) {
     setError("");
 
     try {
-      const res = await fetch("/crm/api/social/post", {
+      const res = await fetch("/api/social/post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -98,7 +98,7 @@ export function SocialDraftCard({ draft }: SocialDraftCardProps) {
     if (!confirm("delete this draft?")) return;
     setDeleting(true);
     try {
-      await fetch(`/crm/api/social/drafts/${draft.id}`, { method: "DELETE" });
+      await fetch(`/api/social/drafts/${draft.id}`, { method: "DELETE" });
       startTransition(() => router.refresh());
     } catch {
       setError("delete failed");

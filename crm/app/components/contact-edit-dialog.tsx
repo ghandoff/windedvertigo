@@ -55,7 +55,7 @@ export function ContactEditDialog({ contact, trigger }: ContactEditDialogProps) 
   async function handleSave() {
     setSaving(true);
     try {
-      await fetch(`/crm/api/contacts/${contact.id}`, {
+      await fetch(`/api/contacts/${contact.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

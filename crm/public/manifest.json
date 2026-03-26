@@ -2,31 +2,31 @@
   "name": "w.v CRM",
   "short_name": "w.v CRM",
   "description": "winded.vertigo — relationship management",
-  "start_url": "/crm/m",
-  "scope": "/crm/",
+  "start_url": "/m",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#1e293b",
   "theme_color": "#1e293b",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/crm/images/icon-192.png",
+      "src": "/images/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/crm/images/icon-512.png",
+      "src": "/images/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "/crm/images/icon-512.png",
+      "src": "/images/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/crm/images/apple-touch-icon.png",
+      "src": "/images/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png"
     }

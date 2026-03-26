@@ -31,7 +31,7 @@ export function TemplateForm() {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await fetch("/crm/api/email-templates", {
+      await fetch("/api/email-templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -56,7 +56,7 @@ export function TemplateForm() {
     if (!name.trim() && !category) return;
     setAiGenerating(true);
     try {
-      const res = await fetch("/crm/api/ai/email-draft", {
+      const res = await fetch("/api/ai/email-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

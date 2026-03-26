@@ -29,7 +29,7 @@ export function AiOutreachCard({ organizationId }: { organizationId: string }) {
   async function fetchSuggestions() {
     setLoading(true);
     try {
-      const res = await fetch("/crm/api/ai/next-best-action", {
+      const res = await fetch("/api/ai/next-best-action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ limit: 3 }),

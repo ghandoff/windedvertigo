@@ -50,7 +50,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
   // Load preselected org
   useEffect(() => {
     if (preselectedOrgId) {
-      fetch(`/crm/api/organizations/${preselectedOrgId}`)
+      fetch(`/api/organizations/${preselectedOrgId}`)
         .then((res) => res.json())
         .then((org) => {
           if (org.id) selectOrg(org);
@@ -66,7 +66,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
       return;
     }
     const timeout = setTimeout(() => {
-      fetch(`/crm/api/organizations?search=${encodeURIComponent(searchQuery)}`)
+      fetch(`/api/organizations?search=${encodeURIComponent(searchQuery)}`)
         .then((res) => res.json())
         .then((data) => setSearchResults(data.data ?? []))
         .catch(() => setSearchResults([]));
@@ -93,7 +93,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
     setAiCost(null);
     setAiError("");
     try {
-      const res = await fetch("/crm/api/ai/email-draft", {
+      const res = await fetch("/api/ai/email-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -125,7 +125,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
     setSendMessage("");
 
     try {
-      const res = await fetch("/crm/api/email/send", {
+      const res = await fetch("/api/email/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

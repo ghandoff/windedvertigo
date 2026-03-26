@@ -49,7 +49,7 @@ export function StepTimeline({ campaignId, steps, audienceCount }: StepTimelineP
 
   async function handleAddStep() {
     if (!newBody.trim()) return;
-    await fetch(`/crm/api/campaigns/${campaignId}/steps`, {
+    await fetch(`/api/campaigns/${campaignId}/steps`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -70,7 +70,7 @@ export function StepTimeline({ campaignId, steps, audienceCount }: StepTimelineP
     setSendingStep(stepId);
     setSendResult(null);
     try {
-      const res = await fetch(`/crm/api/campaigns/${campaignId}/send-step`, {
+      const res = await fetch(`/api/campaigns/${campaignId}/send-step`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ stepId }),

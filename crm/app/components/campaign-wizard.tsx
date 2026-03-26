@@ -43,7 +43,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
   // Load preselected template and skip to step 3 (audience)
   useEffect(() => {
     if (!preselectedTemplateId) return;
-    fetch(`/crm/api/email-templates/${preselectedTemplateId}`)
+    fetch(`/api/email-templates/${preselectedTemplateId}`)
       .then((r) => r.json())
       .then((tpl) => {
         if (!tpl.id) return;
@@ -105,7 +105,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
 
     // Fetch blueprint steps with template content
     try {
-      const res = await fetch(`/crm/api/blueprints/${bp.id}/steps`);
+      const res = await fetch(`/api/blueprints/${bp.id}/steps`);
       const data = await res.json();
       const bpSteps = (data.data ?? []).map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -146,7 +146,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
 
     try {
       // 1. Create campaign
-      const campaignRes = await fetch("/crm/api/campaigns", {
+      const campaignRes = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -164,7 +164,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
       // 2. Create steps
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
-        await fetch(`/crm/api/campaigns/${campaign.id}/steps`, {
+        await fetch(`/api/campaigns/${campaign.id}/steps`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -303,7 +303,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
               setAudienceFilters(f);
               setRemovedOrgIds([]); // reset exclusions when filters change
               // Fetch count
-              fetch("/crm/api/audience/preview", {
+              fetch("/api/audience/preview", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(f),

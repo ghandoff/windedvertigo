@@ -29,7 +29,7 @@ export function useContactsCache() {
     }
 
     try {
-      const res = await fetch("/crm/api/contacts?pageSize=200");
+      const res = await fetch("/api/contacts?pageSize=200");
       if (res.ok) {
         const data = await res.json();
         const mapped: CachedContact[] = (data.data ?? []).map(
@@ -68,7 +68,7 @@ export function useContactsCache() {
       if (isOnline) {
         try {
           const res = await fetch(
-            `/crm/api/contacts?search=${encodeURIComponent(query)}&pageSize=20`,
+            `/api/contacts?search=${encodeURIComponent(query)}&pageSize=20`,
           );
           if (res.ok) {
             const data = await res.json();

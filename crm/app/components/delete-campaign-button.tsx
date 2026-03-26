@@ -28,7 +28,7 @@ export function DeleteCampaignButton({
   async function handleDelete() {
     setDeleting(true);
     try {
-      const res = await fetch(`/crm/api/campaigns/${campaignId}`, {
+      const res = await fetch(`/api/campaigns/${campaignId}`, {
         method: "DELETE",
       });
       if (res.ok) {

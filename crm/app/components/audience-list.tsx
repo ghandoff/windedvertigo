@@ -45,7 +45,7 @@ export function AudienceList({
       return;
     }
     setLoading(true);
-    fetch("/crm/api/audience/preview", {
+    fetch("/api/audience/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(filters),
@@ -55,7 +55,7 @@ export function AudienceList({
         // Get full list, not just preview
         if (d.count > 10) {
           // Fetch all by resolving audience
-          fetch("/crm/api/audience/preview", {
+          fetch("/api/audience/preview", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ...filters, _limit: 500 }),
@@ -79,7 +79,7 @@ export function AudienceList({
     }
     Promise.all(
       addedIds.map((id) =>
-        fetch(`/crm/api/organizations/${id}`).then((r) => r.json()).catch(() => null),
+        fetch(`/api/organizations/${id}`).then((r) => r.json()).catch(() => null),
       ),
     ).then((orgs) => setAddedOrgs(orgs.filter(Boolean)));
   }, [addedIds]);
@@ -91,7 +91,7 @@ export function AudienceList({
       return;
     }
     const timeout = setTimeout(() => {
-      fetch(`/crm/api/organizations?search=${encodeURIComponent(searchQuery)}&pageSize=10`)
+      fetch(`/api/organizations?search=${encodeURIComponent(searchQuery)}&pageSize=10`)
         .then((r) => r.json())
         .then((d) => setSearchResults(d.data ?? []))
         .catch(() => setSearchResults([]));

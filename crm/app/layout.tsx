@@ -9,7 +9,7 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 export const metadata: Metadata = {
   title: "w.v CRM",
   description: "winded.vertigo — relationship management",
-  manifest: "/crm/manifest.json",
+  manifest: "/manifest.json",
   themeColor: "#1e293b",
   appleWebApp: {
     capable: true,
@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     title: "w.v CRM",
   },
   icons: {
-    icon: "/crm/images/icon-192.png",
-    apple: "/crm/images/apple-touch-icon.png",
+    icon: "/images/icon-192.png",
+    apple: "/images/apple-touch-icon.png",
   },
 };
 

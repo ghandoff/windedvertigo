@@ -16,7 +16,7 @@ export function useMembers() {
   const [members, setMembers] = useState<MemberOption[]>([]);
 
   useEffect(() => {
-    fetch("/crm/api/members")
+    fetch("/api/members")
       .then((res) => res.json())
       .then((data) => {
         const mapped = (data.data ?? []).map(

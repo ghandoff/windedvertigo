@@ -61,7 +61,7 @@ async function syncSingleActivity(item: QueuedActivity): Promise<void> {
   if (item.photoBlob) {
     const formData = new FormData();
     formData.append("file", item.photoBlob, `badge-${item.id}.jpg`);
-    const uploadRes = await fetch("/crm/api/assets/upload", {
+    const uploadRes = await fetch("/api/assets/upload", {
       method: "POST",
       body: formData,
     });
@@ -76,7 +76,7 @@ async function syncSingleActivity(item: QueuedActivity): Promise<void> {
     ? `${item.notes || ""}\n\nbadge photo: ${photoUrl}`.trim()
     : item.notes || "";
 
-  const res = await fetch("/crm/api/activities", {
+  const res = await fetch("/api/activities", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

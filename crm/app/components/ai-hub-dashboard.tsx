@@ -180,9 +180,9 @@ function EconomicsTab() {
     async function load() {
       try {
         const [uRes, bRes, cRes] = await Promise.all([
-          fetch("/crm/api/ai/usage"),
-          fetch("/crm/api/ai/budget"),
-          fetch("/crm/api/ai/costs"),
+          fetch("/api/ai/usage"),
+          fetch("/api/ai/budget"),
+          fetch("/api/ai/costs"),
         ]);
         if (uRes.ok) setUsage(await uRes.json());
         if (bRes.ok) setBudget(await bRes.json());
@@ -200,13 +200,13 @@ function EconomicsTab() {
     const limit = parseFloat(newLimit);
     if (isNaN(limit) || limit <= 0) return;
     try {
-      const res = await fetch("/crm/api/ai/budget", {
+      const res = await fetch("/api/ai/budget", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ monthlyLimitUsd: limit }),
       });
       if (res.ok) {
-        const refreshRes = await fetch("/crm/api/ai/budget");
+        const refreshRes = await fetch("/api/ai/budget");
         if (refreshRes.ok) setBudget(await refreshRes.json());
         setEditBudget(false);
       }
@@ -442,7 +442,7 @@ function NlSearchTab() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/crm/api/ai/nl-search", {
+      const res = await fetch("/api/ai/nl-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
@@ -504,7 +504,7 @@ function NlSearchTab() {
                   {result.results.contacts.map((c) => (
                     <a
                       key={c.id}
-                      href={`/crm/contacts/${c.id}`}
+                      href={`/contacts/${c.id}`}
                       className="flex items-center justify-between py-2 px-3 rounded hover:bg-muted transition-colors"
                     >
                       <span className="font-medium text-sm">{c.name}</span>
@@ -529,7 +529,7 @@ function NlSearchTab() {
                   {result.results.organizations.map((o) => (
                     <a
                       key={o.id}
-                      href={`/crm/organizations/${o.id}`}
+                      href={`/organizations/${o.id}`}
                       className="flex items-center justify-between py-2 px-3 rounded hover:bg-muted transition-colors"
                     >
                       <span className="font-medium text-sm">{o.organization}</span>
@@ -569,7 +569,7 @@ function RelationshipsTab() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/crm/api/ai/relationship-score", {
+      const res = await fetch("/api/ai/relationship-score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
@@ -642,7 +642,7 @@ function RelationshipsTab() {
                         <span className={`text-2xl font-bold ${scoreColor(s.score)}`}>{s.score}</span>
                         <div>
                           <a
-                            href={`/crm/contacts/${s.contactId}`}
+                            href={`/contacts/${s.contactId}`}
                             className="font-medium text-sm hover:underline"
                           >
                             {s.contactName}
@@ -691,7 +691,7 @@ function NextActionsTab() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/crm/api/ai/next-best-action", {
+      const res = await fetch("/api/ai/next-best-action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ limit: 10 }),
@@ -763,7 +763,7 @@ function NextActionsTab() {
                       <div className="flex items-center gap-2 mt-1.5 text-xs">
                         {a.contactName && (
                           <a
-                            href={`/crm/contacts/${a.contactId}`}
+                            href={`/contacts/${a.contactId}`}
                             className="text-primary hover:underline flex items-center gap-1"
                           >
                             {a.contactName} <ArrowRight className="h-3 w-3" />
@@ -771,7 +771,7 @@ function NextActionsTab() {
                         )}
                         {a.organizationName && (
                           <a
-                            href={`/crm/organizations/${a.organizationId}`}
+                            href={`/organizations/${a.organizationId}`}
                             className="text-primary hover:underline flex items-center gap-1"
                           >
                             {a.organizationName} <ArrowRight className="h-3 w-3" />

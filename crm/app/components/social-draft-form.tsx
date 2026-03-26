@@ -25,7 +25,7 @@ export function SocialDraftForm() {
     if (!content.trim()) return;
     setSaving(true);
     try {
-      await fetch("/crm/api/social/drafts", {
+      await fetch("/api/social/drafts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

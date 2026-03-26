@@ -19,7 +19,7 @@ export function AiHealthBadge({ contactId }: { contactId: string }) {
   async function fetchHealth() {
     setLoading(true);
     try {
-      const res = await fetch("/crm/api/ai/relationship-score", {
+      const res = await fetch("/api/ai/relationship-score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contactIds: [contactId] }),

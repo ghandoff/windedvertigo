@@ -128,7 +128,7 @@ export function RichTextEditor({
       formData.append("file", file);
 
       try {
-        const res = await fetch("/crm/api/assets/upload", {
+        const res = await fetch("/api/assets/upload", {
           method: "POST",
           body: formData,
         });

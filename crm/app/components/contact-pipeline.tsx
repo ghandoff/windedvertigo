@@ -30,7 +30,7 @@ export function ContactPipeline({ contacts }: { contacts: Contact[] }) {
   }));
 
   async function handleStatusChange(itemId: string, newStatus: string) {
-    await fetch(`/crm/api/contacts/${itemId}`, {
+    await fetch(`/api/contacts/${itemId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ relationshipStage: newStatus }),
