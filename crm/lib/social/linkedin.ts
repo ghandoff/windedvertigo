@@ -1,3 +1,4 @@
+// LinkedIn token expires ~May 25 2026
 /**
  * LinkedIn posting client.
  *
