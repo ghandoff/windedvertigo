@@ -74,13 +74,13 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 #S5.sc-bg { background-image: url('./hall_of_mirrors.png'); }
 #S5.sc-bg::before { background: rgba(218,244,245,0.82); }
 #S6.sc-bg { background-image: url('./payton_toys_2.png'); }
-#S6.sc-bg::before { background: rgba(120,25,106,0.45); }
+#S6.sc-bg::before { background: rgba(120,25,106,0.20); }
 #S7.sc-bg { background-image: url('./quiet_room.png'); }
 #S7.sc-bg::before { background: rgba(218,244,245,0.88); }
 #S8.sc-bg { background-image: url('./payton_crafting_table.png'); }
 #S8.sc-bg::before { background: rgba(175,179,22,0.78); }
 #S9.sc-bg { background-image: url('./payton_toys_4.png'); }
-#S9.sc-bg::before { background: rgba(120,25,106,0.45); }
+#S9.sc-bg::before { background: rgba(120,25,106,0.20); }
 #S10.sc-bg { background-image: url('./creaseworks_table.png'); }
 #S10.sc-bg::before { background: rgba(218,244,245,0.85); }
 #S11.sc-bg { background-image: url('./payton_roundtable.png'); }
@@ -279,7 +279,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 0 — COVER
    ════════════════════════════════ */
-#S0 { background: var(--cadet); overflow-y: auto; justify-content: flex-start; padding-top: 80px; }
+#S0 { background-color: var(--cadet); overflow-y: auto; justify-content: flex-start; padding-top: 80px; }
 .pedal-logo { width: clamp(120px, 20vw, 200px); height: auto; margin-bottom: 16px; }
 .foot-logo { height: 18px; width: auto; vertical-align: middle; margin-right: 4px; opacity: 0.5; }
 #S0 .label { font: 500 10px/1 'Quicksand', sans-serif; letter-spacing: 0.18em; text-transform: lowercase; color: var(--accent-em); }
@@ -345,7 +345,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 1 — BEFORE THE DAY / COMPANION APP
    ════════════════════════════════ */
-#S1 { background: var(--champagne); }
+#S1 { background-color: var(--champagne); }
 .before-day { display: flex; align-items: center; justify-content: center; gap: 60px; padding: 40px; width: 100%; height: 100%; }
 .before-text { max-width: 440px; }
 .phone-mockup { width: 220px; height: 420px; background: #111; border-radius: 28px; padding: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.15); flex-shrink: 0; }
@@ -540,7 +540,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 5 — HALL OF MIRRORS (10:40 a.m.)
    ════════════════════════════════ */
-#S5 { background: var(--champagne); }
+#S5 { background-color: var(--champagne); }
 .table-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .table-top {
   width: 300px; height: 300px; border-radius: 50%;
@@ -602,7 +602,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 7 — SESSION CHOICE (11:45 a.m.)
    ════════════════════════════════ */
-#S7 { background: var(--champagne); }
+#S7 { background-color: var(--champagne); }
 .door-choice { display: flex; width: 100%; height: 100%; }
 .door {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -674,7 +674,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 9 — SANDSETER / RISKY PLAY (1:30 p.m.)
    ════════════════════════════════ */
-#S9 { background: var(--magenta); }
+#S9 { background-color: var(--magenta); }
 #S9 .dark-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .breath-line {
   font: 300 clamp(18px,2.8vw,26px)/1.7 'Quicksand', sans-serif;
@@ -710,7 +710,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 10 — THREE TRACKS (2:15 p.m.)
    ════════════════════════════════ */
-#S10 { background: var(--champagne); overflow-y: auto; }
+#S10 { background-color: var(--champagne); overflow-y: auto; }
 .tracks-container { display: flex; gap: 20px; padding: 80px 40px; width: 100%; min-height: 100%; align-items: center; }
 .track { flex: 1; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 24px 22px; backdrop-filter: blur(8px); }
 .track-label { font: 600 9px 'Quicksand', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 16px; }
@@ -776,7 +776,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 12 — CLOSING / GIBSON (4:15 p.m.)
    ════════════════════════════════ */
-#S12 { background: var(--champagne); overflow: hidden; }
+#S12 { background-color: var(--champagne); overflow: hidden; }
 #S12 .closing-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .cascade-item {
   position: absolute; font: 400 12px 'Quicksand', sans-serif; color: var(--cadet);
@@ -802,7 +802,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 13 — CARD ON CHAIR (3D flip)
    ════════════════════════════════ */
-#S13 { background: var(--champagne); }
+#S13 { background-color: var(--champagne); }
 .card-flip-container { perspective: 1000px; width: 88%; max-width: 420px; cursor: pointer; outline: none; }
 .card-flip-container:focus-visible { outline: 2px solid var(--mint); outline-offset: 4px; border-radius: 6px; }
 .card-inner { position: relative; width: 100%; transition: transform 0.7s ease; transform-style: preserve-3d; }
@@ -834,7 +834,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 14 — GARDEN PARTY (4:30 p.m.)
    ════════════════════════════════ */
-#S14 { background: var(--champagne); }
+#S14 { background-color: var(--champagne); }
 #S14 .garden-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 #S14 .garden-center {
   text-align: center; max-width: 500px; padding: 40px; z-index: 5;
@@ -849,7 +849,7 @@ body { font-family: 'Quicksand', sans-serif; font-size: 16px; color: var(--dark)
 /* ════════════════════════════════
    SCREEN 15 — DIRECTORY MOCKUP
    ════════════════════════════════ */
-#S15 { background: var(--cadet); }
+#S15 { background-color: var(--cadet); }
 .directory-mockup { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 40px; }
 .dir-phone {
   width: 380px; max-width: 100%; height: 85vh; max-height: 700px;
