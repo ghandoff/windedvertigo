@@ -1,5 +1,5 @@
 /**
- * Bluesky (AT Protocol) posting client.
+ * Bluesky (AT Protocol) posting client — @windedvertigo.bsky.social
  *
  * Uses App Password authentication — no approval process needed.
  * Docs: https://docs.bsky.app/docs/get-started
