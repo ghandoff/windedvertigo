@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Sidebar } from "@/app/components/sidebar";
 import { MobileSidebar } from "@/app/components/mobile-sidebar";
 import { AiSearchBar } from "@/app/components/ai-search-bar";
@@ -10,6 +11,11 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+
+  // Redirect unauthenticated users to login
+  if (!session?.user) {
+    redirect("/login");
+  }
   const userInfo = session?.user ? {
     email: session.user.email ?? "",
     name: session.user.name ?? "",

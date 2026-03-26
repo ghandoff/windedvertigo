@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { MobileTabBar } from "@/app/components/mobile-tab-bar";
 import { SyncIndicator } from "@/app/components/sync-indicator";
 import { UserProvider } from "@/app/components/user-provider";
@@ -8,8 +9,11 @@ export default async function MobileLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Get session server-side (works through proxy since middleware already validated it)
   const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
   const userInfo = session?.user ? {
     email: session.user.email ?? "",
     name: session.user.name ?? "",
