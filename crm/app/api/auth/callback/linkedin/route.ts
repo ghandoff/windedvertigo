@@ -1,8 +1,9 @@
 /**
  * GET /api/auth/callback/linkedin
  *
- * One-time OAuth callback to exchange authorization code for access token.
- * After getting the token, displays it for manual storage as an env var.
+ * OAuth callback to exchange authorization code for access + refresh tokens.
+ * After getting the tokens, displays them for storage as env vars.
+ * Includes offline_access scope for refresh token support.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "no authorization code" }, { status: 400 });
   }
 
-  // Exchange code for access token
+  // Exchange code for access token + refresh token
   const tokenRes = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -47,10 +48,14 @@ export async function GET(req: NextRequest) {
   const profile = profileRes.ok ? await profileRes.json() : null;
 
   return NextResponse.json({
-    message: "LinkedIn OAuth successful. Copy these values to Vercel env vars.",
+    message: "linkedin OAuth successful — add these to vercel env vars.",
     access_token: tokenData.access_token,
+    refresh_token: tokenData.refresh_token || "not returned (re-authorize with offline_access scope)",
     expires_in_seconds: tokenData.expires_in,
     expires_in_days: Math.round(tokenData.expires_in / 86400),
+    refresh_token_expires_in_days: tokenData.refresh_token_expires_in
+      ? Math.round(tokenData.refresh_token_expires_in / 86400)
+      : null,
     person_sub: profile?.sub,
     person_urn: profile?.sub ? `urn:li:person:${profile.sub}` : "unknown",
     name: profile?.name,

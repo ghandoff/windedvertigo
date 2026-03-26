@@ -1,8 +1,12 @@
 {
   "crons": [
     {
-      "path": "/crm/api/cron/campaigns",
+      "path": "/api/cron/campaigns",
       "schedule": "7 * * * *"
+    },
+    {
+      "path": "/api/cron/refresh-linkedin",
+      "schedule": "0 9 1 * *"
     }
   ]
 }
