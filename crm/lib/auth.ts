@@ -126,3 +126,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: "/crm/login",
   },
 });
+// domain: crm.windedvertigo.com
