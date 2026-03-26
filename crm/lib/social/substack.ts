@@ -6,7 +6,7 @@
  *
  * Env vars:
  *   SUBSTACK_PUBLICATION  — e.g., "windedvertigo" (subdomain)
- *   SUBSTACK_COOKIE       — connect.sid cookie value from browser session
+ *   SUBSTACK_COOKIE       — substack.sid cookie value from browser session
  *   SUBSTACK_USER_ID      — your Substack user ID (numeric)
  */
 
@@ -60,7 +60,7 @@ export async function createSubstackDraft(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Cookie: `connect.sid=${cookie}`,
+      Cookie: `substack.sid=${cookie}`,
     },
     body: JSON.stringify({
       draft_title: params.title,
@@ -88,7 +88,7 @@ export async function createSubstackDraft(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `connect.sid=${cookie}`,
+        Cookie: `substack.sid=${cookie}`,
       },
       body: JSON.stringify({}),
     });
