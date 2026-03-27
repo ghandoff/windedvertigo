@@ -401,6 +401,141 @@ body {
   color: rgba(255,255,255,0.4);
 }
 
+/* ── Wall / Collage input ── */
+.add-card-row {
+  display: flex; gap: 10px; margin-top: 20px;
+}
+.add-card-row textarea {
+  flex: 1; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;
+  padding: 12px 14px; font: 400 14px 'Quicksand', sans-serif;
+  color: var(--dark); background: rgba(255,255,255,0.9);
+  resize: none; height: 52px; outline: none;
+}
+.add-card-row textarea:focus { border-color: var(--cadet); }
+.add-card-row textarea::placeholder { color: #999; }
+.add-card-row button {
+  background: var(--cadet); color: #fff; border: none; border-radius: 4px;
+  padding: 0 20px; font: 500 13px 'Quicksand', sans-serif;
+  cursor: pointer; min-height: 48px; white-space: nowrap;
+  transition: background 0.2s;
+}
+.add-card-row button:hover { background: var(--dark); }
+.quote-card.user-card {
+  animation: cardPop 0.4s ease forwards;
+  border-left: 3px solid var(--cadet);
+}
+@keyframes cardPop {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ── Quiet room dim ── */
+.track-quiet { cursor: pointer; transition: all 0.6s ease; }
+.track-quiet.dimmed {
+  background: #1a1a2e; color: rgba(255,255,255,0.6);
+  box-shadow: 0 2px 24px rgba(0,0,0,0.2);
+}
+.track-quiet.dimmed h3 { color: rgba(255,255,255,0.8); }
+.track-quiet.dimmed p { color: rgba(255,255,255,0.5); }
+.track-quiet.dimmed .track-label { color: rgba(255,255,255,0.4); }
+.quiet-hint {
+  font: 400 11px 'Quicksand', sans-serif; color: var(--sienna);
+  margin-top: 10px; opacity: 0.7;
+}
+.track-quiet.dimmed .quiet-hint { color: rgba(255,255,255,0.3); }
+
+/* ── Card flip ── */
+.card-flip {
+  perspective: 800px;
+  max-width: 380px;
+  margin: 0 auto;
+  cursor: pointer;
+}
+.card-flip-inner {
+  position: relative;
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+}
+.card-flip.flipped .card-flip-inner { transform: rotateY(180deg); }
+.card-front, .card-back {
+  padding: 36px 32px;
+  border-radius: 6px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.card-front {
+  background: var(--white);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  text-align: center;
+}
+.card-back {
+  position: absolute; inset: 0;
+  transform: rotateY(180deg);
+  background: var(--cadet);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  text-align: center;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.card-back-label {
+  font: 600 10px 'Quicksand', sans-serif;
+  letter-spacing: 0.16em; color: var(--accent-em);
+  margin-bottom: 12px;
+}
+.card-back-time {
+  font: 700 clamp(20px,3vw,26px)/1.2 'Quicksand', sans-serif;
+  color: var(--champagne); margin-bottom: 16px;
+}
+.card-back-body {
+  font: 400 14px/1.6 'Quicksand', sans-serif;
+  color: rgba(255,255,255,0.85); max-width: 280px;
+}
+.card-flip-hint {
+  font: 400 11px 'Quicksand', sans-serif;
+  color: var(--grey); margin-top: 16px; opacity: 0.6;
+}
+.card-back .card-flip-hint { color: rgba(255,255,255,0.4); }
+
+/* ── Making space playground ── */
+.playground {
+  position: relative;
+  height: 300px;
+  margin: 28px 0 0;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(180,160,130,0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180,160,130,0.3) 1px, transparent 1px),
+    #d4c4a8;
+  background-size: 60px 60px, 60px 60px;
+  overflow: hidden;
+}
+.playground .drag-item {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  transition: box-shadow 0.2s;
+  touch-action: none;
+}
+.playground .drag-item:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.12); }
+.playground .drag-item.dragging { cursor: grabbing; z-index: 50; box-shadow: 0 12px 36px rgba(0,0,0,0.2); }
+.drag-block { border-radius: 4px; }
+.drag-card {
+  width: 180px; padding: 14px 16px;
+  background: #fffcf5; border-radius: 2px;
+  font: 300 13px/1.4 'Quicksand', sans-serif; color: var(--redwood);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+.drag-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--sienna); border-radius: 2px 2px 0 0;
+}
+.drag-card .dc-attr { font: 400 10px 'Quicksand', sans-serif; color: var(--grey); margin-top: 6px; }
+.playground-hint {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  font: 400 11px 'Quicksand', sans-serif; color: rgba(0,0,0,0.3);
+  pointer-events: none; z-index: 60; white-space: nowrap;
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .moment { padding: 56px 20px; }
@@ -410,6 +545,16 @@ body {
   .tracks { grid-template-columns: 1fr; }
   .services-grid { grid-template-columns: 1fr; }
   .hero { min-height: 100svh; padding: 48px 20px; }
+  .playground { height: 260px; }
+  .card-front, .card-back { padding: 28px 20px; }
+  /* disable 3D flip on older mobile, use crossfade */
+  @supports not (backface-visibility: hidden) {
+    .card-flip-inner { transform: none !important; }
+    .card-front { transition: opacity 0.3s; }
+    .card-flip.flipped .card-front { opacity: 0; }
+    .card-back { transform: none; opacity: 0; transition: opacity 0.3s; }
+    .card-flip.flipped .card-back { opacity: 1; }
+  }
 }
 </style>
 </head>
@@ -457,6 +602,10 @@ body {
       <div class="quote-card child">"you don't have to win. you just have to play."<div class="quote-attr">— age 6</div></div>
       <div class="quote-card">"play is how children rehearse agency."<div class="quote-attr">— community researcher</div></div>
     </div>
+    <div class="add-card-row">
+      <textarea id="wallIn" placeholder="add your own card to the wall..." aria-label="add to the question wall"></textarea>
+      <button onclick="addToWall()">pin</button>
+    </div>
   </div>
 </section>
 
@@ -478,6 +627,9 @@ body {
     <p>cardboard, tape, children's prompt cards, coloured blocks. the brief:</p>
     <p style="font-size:clamp(17px,2.5vw,22px);font-weight:500;color:var(--champagne);margin:20px 0"><strong>using only what is here, make something a child could learn from.</strong></p>
     <p>pick up the cardboard. read the children's cards. or just watch. all of these are the activity.</p>
+    <div class="playground" id="playground">
+      <div class="playground-hint">drag the pieces around</div>
+    </div>
   </div>
 </section>
 
@@ -542,6 +694,11 @@ body {
     <div class="detail" style="border-left-color:rgba(0,0,0,0.15);color:var(--dark);margin-top:20px">
       <em>beetles need houses too · mess is methodology · watch this · the gap between what we study and how we gather</em>
     </div>
+    <div id="collageCards" class="quotes-grid" style="margin-top:20px"></div>
+    <div class="add-card-row">
+      <textarea id="collageIn" placeholder="something from this morning that is still with you..." aria-label="add to the collage"></textarea>
+      <button onclick="addToCollage()">add</button>
+    </div>
   </div>
 </section>
 
@@ -568,10 +725,11 @@ body {
         <h3>AI panel</h3>
         <p>instead of talking about AI and play, the audience would experience it. each table receives a toy and a prompt generated live by a language model. the panel watches the room play first, then responds to what they saw.</p>
       </div>
-      <div class="track-card">
+      <div class="track-card track-quiet" id="quietRoom" role="button" tabindex="0">
         <div class="track-label">the boulind</div>
         <h3>the quiet room</h3>
         <p>low light. no task. no facilitation. a place to sit with what the day had produced so far. needing quiet is not opting out. it is a different way of being in.</p>
+        <div class="quiet-hint">click to dim the lights</div>
       </div>
       <div class="track-card">
         <div class="track-label">networking space</div>
@@ -608,8 +766,21 @@ body {
 <section class="moment bg-white">
   <div class="moment-inner reveal" style="text-align:center">
     <h2>the card on the chair</h2>
-    <p style="max-width:440px;margin:0 auto 20px;font-size:clamp(17px,2.5vw,22px);color:var(--dark);font-weight:300">what is one thing you want to try, change, or pay attention to in the next two weeks, however small?</p>
-    <p style="max-width:400px;margin:0 auto;color:var(--grey)">take it with you or leave it on the table.</p>
+    <div class="card-flip" id="flipCard" role="button" tabindex="0" aria-label="card on your chair — click to flip">
+      <div class="card-flip-inner">
+        <div class="card-front">
+          <p style="font-size:clamp(16px,2.5vw,20px);color:var(--dark);font-weight:300;line-height:1.55;margin-bottom:20px">what is one thing you want to try, change, or pay attention to in the next two weeks, however small?</p>
+          <p style="color:var(--grey);font-size:13px;margin-bottom:0">take it with you or leave it on the table.</p>
+          <div class="card-flip-hint">click to turn over</div>
+        </div>
+        <div class="card-back">
+          <div class="card-back-label">GARDEN PARTY</div>
+          <div class="card-back-time">4:30 p.m. · the garden</div>
+          <div class="card-back-body">if you want to stay in touch with people from today, the badge QR will have a simple directory in one week.</div>
+          <div class="card-flip-hint">click to turn back</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -713,10 +884,146 @@ var observer = new IntersectionObserver(function(entries) {
     }
   });
 }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
 
-document.querySelectorAll('.reveal').forEach(function(el) {
-  observer.observe(el);
+/* ── 1. Question wall input ── */
+function addToWall() {
+  var inp = document.getElementById('wallIn');
+  var t = inp.value.trim(); if (!t) return;
+  var grid = inp.closest('.moment-inner').querySelector('.quotes-grid');
+  var card = document.createElement('div');
+  card.className = 'quote-card user-card';
+  card.innerHTML = t + '<div class="quote-attr">\u2014 you</div>';
+  grid.appendChild(card);
+  inp.value = '';
+}
+document.getElementById('wallIn').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addToWall(); }
 });
+
+/* ── 2. Collage input ── */
+function addToCollage() {
+  var inp = document.getElementById('collageIn');
+  var t = inp.value.trim(); if (!t) return;
+  var grid = document.getElementById('collageCards');
+  var card = document.createElement('div');
+  card.className = 'quote-card user-card';
+  card.style.background = 'rgba(3,107,180,0.06)';
+  card.style.color = 'var(--cadet)';
+  card.textContent = t;
+  grid.appendChild(card);
+  inp.value = '';
+}
+document.getElementById('collageIn').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addToCollage(); }
+});
+
+/* ── 3. Quiet room dim ── */
+var quietRoom = document.getElementById('quietRoom');
+quietRoom.addEventListener('click', function() { this.classList.toggle('dimmed'); });
+quietRoom.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.classList.toggle('dimmed'); }
+});
+
+/* ── 4. Card flip ── */
+var flipCard = document.getElementById('flipCard');
+flipCard.addEventListener('click', function() { this.classList.toggle('flipped'); });
+flipCard.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.classList.toggle('flipped'); }
+});
+/* Touch text swap */
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+  document.querySelectorAll('.card-flip-hint').forEach(function(el) {
+    el.textContent = el.textContent.replace('click', 'tap');
+  });
+  var qh = document.querySelector('.quiet-hint');
+  if (qh) qh.textContent = 'tap to dim the lights';
+}
+
+/* ── 5. Making space playground ── */
+(function() {
+  var pg = document.getElementById('playground');
+  var W = 0, H = 0;
+  var colours = ['#1A5D66','#0171B9','#00A6B6','#7BC67E','#B39DDB','#00A6B6','#0171B9','#1A5D66'];
+  var cards = [
+    {t:'I like making houses for beetles. you have to think about what beetles want.', a:'age 5'},
+    {t:'you can make anything if you have tape.', a:'age 7'},
+  ];
+
+  function init() {
+    W = pg.offsetWidth; H = pg.offsetHeight;
+    if (W === 0) return;
+    /* quote cards */
+    cards.forEach(function(c, i) {
+      var el = document.createElement('div');
+      el.className = 'drag-item drag-card';
+      el.innerHTML = '\u201c' + c.t + '\u201d<div class="dc-attr">\u2014 ' + c.a + '</div>';
+      el.style.left = (20 + i * Math.min(200, W * 0.35)) + 'px';
+      el.style.top = (20 + Math.random() * 30) + 'px';
+      el.style.transform = 'rotate(' + (Math.random()*6-3) + 'deg)';
+      pg.appendChild(el); makeDraggable(el);
+    });
+    /* coloured blocks */
+    var sizes = [{w:90,h:55},{w:70,h:70},{w:110,h:40},{w:60,h:60},{w:100,h:50},{w:80,h:45}];
+    for (var i = 0; i < 6; i++) {
+      var el = document.createElement('div');
+      el.className = 'drag-item drag-block';
+      var sz = sizes[i];
+      el.style.width = sz.w + 'px'; el.style.height = sz.h + 'px';
+      el.style.background = colours[i];
+      el.style.borderRadius = (2 + Math.random() * 6) + 'px';
+      el.style.left = (20 + Math.random() * (W - sz.w - 40)) + 'px';
+      el.style.top = (100 + Math.random() * (H - 160)) + 'px';
+      el.style.transform = 'rotate(' + (Math.random()*20-10) + 'deg)';
+      el.style.opacity = (0.7 + Math.random() * 0.3).toString();
+      pg.appendChild(el); makeDraggable(el);
+    }
+    /* tubes */
+    for (var i = 0; i < 4; i++) {
+      var el = document.createElement('div');
+      el.className = 'drag-item';
+      el.style.width = (60 + Math.random() * 80) + 'px';
+      el.style.height = (8 + Math.random() * 10) + 'px';
+      el.style.background = colours[(i+3) % colours.length];
+      el.style.borderRadius = '8px';
+      el.style.opacity = (0.5 + Math.random() * 0.3).toString();
+      el.style.left = (30 + Math.random() * (W - 180)) + 'px';
+      el.style.top = (80 + Math.random() * (H - 140)) + 'px';
+      el.style.transform = 'rotate(' + (Math.random()*30-15) + 'deg)';
+      pg.appendChild(el); makeDraggable(el);
+    }
+  }
+
+  function makeDraggable(el) {
+    var ox = 0, oy = 0;
+    function down(ex, ey) {
+      el.classList.add('dragging');
+      var r = el.getBoundingClientRect();
+      var pr = pg.getBoundingClientRect();
+      ox = ex - r.left; oy = ey - r.top;
+    }
+    function move(ex, ey) {
+      if (!el.classList.contains('dragging')) return;
+      var pr = pg.getBoundingClientRect();
+      el.style.left = (ex - pr.left - ox) + 'px';
+      el.style.top = (ey - pr.top - oy) + 'px';
+      el.style.transform = 'rotate(0deg)';
+    }
+    function up() { el.classList.remove('dragging'); }
+    el.addEventListener('mousedown', function(e) { e.preventDefault(); down(e.clientX, e.clientY); });
+    el.addEventListener('touchstart', function(e) { down(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+    document.addEventListener('mousemove', function(e) { move(e.clientX, e.clientY); });
+    document.addEventListener('touchmove', function(e) { if (el.classList.contains('dragging')) { e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); } }, {passive: false});
+    document.addEventListener('mouseup', up);
+    document.addEventListener('touchend', up);
+  }
+
+  /* init when playground scrolls into view */
+  var pgObs = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) { init(); pgObs.disconnect(); }
+  }, { threshold: 0.1 });
+  pgObs.observe(pg);
+})();
 </script>
 </body>
 </html>
