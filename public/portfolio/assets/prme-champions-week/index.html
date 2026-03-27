@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>prme champions week — scavenger hunt · winded.vertigo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── winded.vertigo palette ── */
+      --wv-bg:       #0a0a0a;
+      --wv-bg2:      #111111;
+      --wv-bg3:      #181818;
+      --wv-border:   #1e1e1e;
+      --wv-border2:  #2c2c2c;
+      --wv-text:     #e8e0d4;
+      --wv-mid:      #9e9388;
+      --wv-dim:      #5a5249;
+      --wv-gold:     #c8a87c;
+      --wv-gold-dim: #7a6040;
+      --mono: 'DM Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --serif: 'Lora', serif;
+      --roboto: 'Roboto', sans-serif;
+
+      /* ── PRME Global Forum palette ── */
+      --prme-blue:      #1E3250;
+      --prme-blue-mid:  #2a4a6e;
+      --prme-gf-yellow: #FEEC00;
+      --prme-gf-green:  #42AA3D;
+      --prme-gf-red:    #E21E25;
+      --prme-gf-teal:   #32B9CF;
+      --prme-gf-purple: #6A3084;
+      --prme-gf-orange: #E7532A;
+      --prme-gf-blue:   #3F5361;
+      --prme-accent:    #E8F0FC;
+      --un-blue:        #5C92E5;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--wv-bg);
+      color: var(--wv-text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ─────────────────────────────────────────
+       CO-BRAND BAR — seven GF colours, top of page
+    ───────────────────────────────────────── */
+    .cobrand-bar {
+      display: flex;
+      height: 3px;
+      width: 100%;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 300;
+    }
+    .cobrand-bar span {
+      flex: 1;
+      display: block;
+    }
+    .cobrand-bar span:nth-child(1) { background: var(--prme-gf-yellow); }
+    .cobrand-bar span:nth-child(2) { background: var(--prme-gf-green); }
+    .cobrand-bar span:nth-child(3) { background: var(--prme-gf-red); }
+    .cobrand-bar span:nth-child(4) { background: var(--prme-gf-teal); }
+    .cobrand-bar span:nth-child(5) { background: var(--prme-gf-purple); }
+    .cobrand-bar span:nth-child(6) { background: var(--prme-gf-orange); }
+    .cobrand-bar span:nth-child(7) { background: var(--prme-gf-blue); }
+
+    /* ─────────────────────────────────────────
+       NAV
+    ───────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 3px; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.95rem 2.5rem;
+      background: rgba(10,10,10,0.93);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--wv-border);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .nav-wv {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      color: var(--wv-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-wv:hover { color: var(--wv-gold); }
+
+    /* PRME lockup in nav */
+    .nav-prme {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .nav-prme:hover { opacity: 1; }
+    .nav-prme-blocks {
+      display: flex;
+      gap: 2px;
+    }
+    .nav-prme-blocks span {
+      width: 5px;
+      height: 14px;
+      display: block;
+      border-radius: 1px;
+    }
+    .nav-prme-blocks span:nth-child(1) { background: var(--prme-gf-yellow); }
+    .nav-prme-blocks span:nth-child(2) { background: var(--prme-gf-green); }
+    .nav-prme-blocks span:nth-child(3) { background: var(--prme-gf-red); }
+    .nav-prme-blocks span:nth-child(4) { background: var(--prme-gf-teal); }
+    .nav-prme-blocks span:nth-child(5) { background: var(--prme-gf-purple); }
+    .nav-prme-blocks span:nth-child(6) { background: var(--prme-gf-orange); }
+    .nav-prme-blocks span:nth-child(7) { background: var(--prme-gf-blue); }
+    .nav-prme-label {
+      font-family: var(--roboto);
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--wv-mid);
+      text-transform: uppercase;
+    }
+
+    .nav-divider {
+      width: 1px;
+      height: 16px;
+      background: var(--wv-border2);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+    }
+    .nav-right a {
+      color: var(--wv-dim);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+    }
+    .nav-right a:hover { color: var(--wv-gold); }
+    .nav-sep { color: var(--wv-border2); margin: 0 0.6rem; }
+
+    /* ─────────────────────────────────────────
+       HERO
+    ───────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 2.5rem 5.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* city grid */
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .hero-grid::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--wv-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--wv-border) 1px, transparent 1px);
+      background-size: 72px 72px;
+      opacity: 0.5;
+      mask-image: radial-gradient(ellipse 100% 90% at 50% 100%, black 10%, transparent 75%);
+    }
+    /* PRME blue wash — subtle */
+    .hero-grid::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 70% 30%, rgba(30,50,80,0.18) 0%, transparent 65%);
+    }
+
+    /* pulsing dots */
+    .hero-dot {
+      position: absolute;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      animation: dotPulse 4s ease-in-out infinite;
+      opacity: 0;
+      pointer-events: none;
+    }
+    /* colour each dot from the GF palette */
+    .d1 { top: 26%; left: 20%; background: var(--prme-gf-yellow); box-shadow: 0 0 10px 4px rgba(254,236,0,0.3); animation-delay: 0s; }
+    .d2 { top: 44%; left: 47%; background: var(--prme-gf-green);  box-shadow: 0 0 10px 4px rgba(66,170,61,0.3);  animation-delay: 0.5s; }
+    .d3 { top: 30%; left: 60%; background: var(--prme-gf-teal);   box-shadow: 0 0 10px 4px rgba(50,185,207,0.3); animation-delay: 1s; }
+    .d4 { top: 57%; left: 33%; background: var(--prme-gf-red);    box-shadow: 0 0 10px 4px rgba(226,30,37,0.3);  animation-delay: 1.5s; }
+    .d5 { top: 20%; left: 73%; background: var(--prme-gf-purple); box-shadow: 0 0 10px 4px rgba(106,48,132,0.3); animation-delay: 2s; }
+    .d6 { top: 64%; left: 67%; background: var(--prme-gf-orange); box-shadow: 0 0 10px 4px rgba(231,83,42,0.3);  animation-delay: 2.5s; }
+    .d7 { top: 37%; left: 83%; background: var(--prme-gf-blue);   box-shadow: 0 0 10px 4px rgba(63,83,97,0.5);   animation-delay: 3s; }
+    .d8 { top: 72%; left: 22%; background: var(--wv-gold);        box-shadow: 0 0 10px 4px rgba(200,168,124,0.3); animation-delay: 3.5s; }
+
+    @keyframes dotPulse {
+      0%   { opacity: 0; transform: scale(0.4); }
+      25%  { opacity: 1; transform: scale(1); }
+      75%  { opacity: 0.5; transform: scale(1.3); }
+      100% { opacity: 0; transform: scale(0.4); }
+    }
+
+    .hero-svg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .hero-svg line {
+      stroke-width: 0.4;
+      stroke-dasharray: 3 8;
+      opacity: 0;
+      animation: lineFlicker 5s ease-in-out infinite;
+    }
+    .hero-svg line:nth-child(odd)  { stroke: var(--prme-gf-teal); }
+    .hero-svg line:nth-child(even) { stroke: var(--wv-gold-dim); }
+    .hero-svg line:nth-child(1) { animation-delay: 0.2s; }
+    .hero-svg line:nth-child(2) { animation-delay: 0.9s; }
+    .hero-svg line:nth-child(3) { animation-delay: 1.7s; }
+    .hero-svg line:nth-child(4) { animation-delay: 2.4s; }
+    .hero-svg line:nth-child(5) { animation-delay: 3.1s; }
+    .hero-svg line:nth-child(6) { animation-delay: 3.8s; }
+    .hero-svg line:nth-child(7) { animation-delay: 4.5s; }
+    @keyframes lineFlicker {
+      0%,100% { opacity: 0; }
+      30%,70%  { opacity: 0.35; }
+    }
+
+    .hero-eyebrow {
+      font-family: var(--roboto);
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      color: var(--wv-mid);
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 28px;
+      height: 2px;
+      background: linear-gradient(to right,
+        var(--prme-gf-yellow) 14.3%,
+        var(--prme-gf-green)  14.3% 28.6%,
+        var(--prme-gf-red)    28.6% 42.9%,
+        var(--prme-gf-teal)   42.9% 57.2%,
+        var(--prme-gf-purple) 57.2% 71.5%,
+        var(--prme-gf-orange) 71.5% 85.8%,
+        var(--prme-gf-blue)   85.8%);
+    }
+
+    .hero-title {
+      font-family: var(--mono);
+      font-size: clamp(2rem, 5.5vw, 4.8rem);
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      color: var(--wv-text);
+      max-width: 800px;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.5s;
+    }
+    .hero-title em {
+      font-style: italic;
+      color: var(--wv-gold);
+    }
+
+    .hero-body {
+      margin-top: 2rem;
+      font-size: 0.95rem;
+      font-weight: 300;
+      color: var(--wv-mid);
+      max-width: 500px;
+      line-height: 1.85;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.7s;
+    }
+
+    .hero-meta {
+      margin-top: 3rem;
+      display: flex;
+      gap: 3rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.9s;
+    }
+    .meta-item { display: flex; flex-direction: column; gap: 0.25rem; }
+    .meta-key {
+      font-family: var(--roboto);
+      font-size: 0.56rem;
+      letter-spacing: 0.16em;
+      color: var(--wv-dim);
+      text-transform: uppercase;
+    }
+    .meta-val {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--wv-mid);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─────────────────────────────────────────
+       SHARED LAYOUT
+    ───────────────────────────────────────── */
+    .section {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 6rem 2.5rem;
+      border-top: 1px solid var(--wv-border);
+    }
+
+    .eyebrow {
+      font-family: var(--roboto);
+      font-size: 0.58rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--wv-gold);
+      margin-bottom: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .eyebrow::after {
+      content: '';
+      flex: 1;
+      max-width: 140px;
+      height: 1px;
+      background: var(--wv-border2);
+    }
+
+    /* ─────────────────────────────────────────
+       THE BRIEF
+    ───────────────────────────────────────── */
+    .brief-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .brief-text h2 {
+      font-family: var(--mono);
+      font-size: 1.45rem;
+      font-weight: 300;
+      line-height: 1.35;
+      color: var(--wv-text);
+      margin-bottom: 1.5rem;
+    }
+    .brief-text p {
+      font-size: 0.88rem;
+      color: var(--wv-mid);
+      line-height: 1.9;
+      margin-bottom: 1.2rem;
+    }
+    .brief-text p:last-child { margin-bottom: 0; }
+
+    /* PRME Blue panel for stats */
+    .stats-panel {
+      background: var(--prme-blue);
+      border: 1px solid var(--prme-blue-mid);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .stats-panel-header {
+      padding: 1rem 1.5rem 0.75rem;
+      border-bottom: 1px solid var(--prme-blue-mid);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .stats-panel-blocks {
+      display: flex;
+      gap: 2px;
+    }
+    .stats-panel-blocks span {
+      width: 4px; height: 10px;
+      display: block;
+      border-radius: 1px;
+    }
+    .stats-panel-blocks span:nth-child(1) { background: var(--prme-gf-yellow); }
+    .stats-panel-blocks span:nth-child(2) { background: var(--prme-gf-green); }
+    .stats-panel-blocks span:nth-child(3) { background: var(--prme-gf-red); }
+    .stats-panel-blocks span:nth-child(4) { background: var(--prme-gf-teal); }
+    .stats-panel-blocks span:nth-child(5) { background: var(--prme-gf-purple); }
+    .stats-panel-blocks span:nth-child(6) { background: var(--prme-gf-orange); }
+    .stats-panel-blocks span:nth-child(7) { background: var(--prme-gf-blue); }
+    .stats-panel-title {
+      font-family: var(--roboto);
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(232,240,252,0.6);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--prme-blue-mid);
+    }
+    .stat {
+      background: var(--prme-blue);
+      padding: 1.6rem 1.5rem;
+      transition: background 0.25s;
+    }
+    .stat:hover { background: var(--prme-blue-mid); }
+    .stat-n {
+      font-family: var(--mono);
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: var(--wv-gold);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .stat-l {
+      font-family: var(--roboto);
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(232,240,252,0.5);
+    }
+
+    /* ─────────────────────────────────────────
+       ROUTE — centrepiece
+    ───────────────────────────────────────── */
+    .route-wrap {
+      border-top: 1px solid var(--wv-border);
+      padding: 6rem 0;
+    }
+    .route-inner {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+    }
+    .route-intro {
+      max-width: 520px;
+      margin-bottom: 5rem;
+    }
+    .route-intro h2 {
+      font-family: var(--mono);
+      font-size: 1.35rem;
+      font-weight: 300;
+      color: var(--wv-text);
+      margin-bottom: 1rem;
+    }
+    .route-intro p {
+      font-size: 0.86rem;
+      color: var(--wv-mid);
+      line-height: 1.9;
+    }
+
+    /* vertical timeline */
+    .timeline {
+      position: relative;
+      padding-left: 3.5rem;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0.6rem;
+      top: 0.7rem;
+      bottom: 4rem;
+      width: 1px;
+      background: linear-gradient(to bottom,
+        transparent 0%,
+        var(--wv-border2) 4%,
+        var(--wv-border2) 96%,
+        transparent 100%);
+    }
+
+    .stop {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      padding-bottom: 5rem;
+      align-items: start;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .stop.visible { opacity: 1; transform: translateY(0); }
+
+    /* timeline node — coloured from GF palette */
+    .stop::before {
+      content: attr(data-n);
+      position: absolute;
+      left: -3.5rem;
+      top: 0.15rem;
+      width: 1.35rem; height: 1.35rem;
+      border-radius: 50%;
+      background: var(--wv-bg);
+      border: 1px solid var(--wv-border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 0.52rem;
+      color: var(--wv-dim);
+      transition: border-color 0.4s, color 0.4s, background 0.4s, box-shadow 0.4s;
+    }
+    /* Each stop node gets a PRME GF colour on reveal */
+    .stop[data-n="01"].visible::before { border-color: var(--prme-gf-yellow); color: var(--prme-gf-yellow); box-shadow: 0 0 8px 2px rgba(254,236,0,0.2); background: var(--wv-bg2); }
+    .stop[data-n="02"].visible::before { border-color: var(--prme-gf-green);  color: var(--prme-gf-green);  box-shadow: 0 0 8px 2px rgba(66,170,61,0.2); background: var(--wv-bg2); }
+    .stop[data-n="03"].visible::before { border-color: var(--prme-gf-red);    color: var(--prme-gf-red);    box-shadow: 0 0 8px 2px rgba(226,30,37,0.2); background: var(--wv-bg2); }
+    .stop[data-n="04"].visible::before { border-color: var(--prme-gf-teal);   color: var(--prme-gf-teal);   box-shadow: 0 0 8px 2px rgba(50,185,207,0.2); background: var(--wv-bg2); }
+    .stop[data-n="05"].visible::before { border-color: var(--prme-gf-purple); color: var(--prme-gf-purple); box-shadow: 0 0 8px 2px rgba(106,48,132,0.2); background: var(--wv-bg2); }
+    .stop[data-n="06"].visible::before { border-color: var(--prme-gf-orange); color: var(--prme-gf-orange); box-shadow: 0 0 8px 2px rgba(231,83,42,0.2); background: var(--wv-bg2); }
+    .stop[data-n="07"].visible::before { border-color: var(--prme-gf-blue);   color: var(--prme-gf-blue);   box-shadow: 0 0 8px 2px rgba(63,83,97,0.3); background: var(--wv-bg2); }
+    .stop[data-n="08"].visible::before { border-color: var(--wv-gold);        color: var(--wv-gold);        box-shadow: 0 0 8px 2px rgba(200,168,124,0.2); background: var(--wv-bg2); }
+
+    /* tick */
+    .stop::after {
+      content: '';
+      position: absolute;
+      left: -2.15rem;
+      top: 0.62rem;
+      width: 1.5rem;
+      height: 1px;
+      background: var(--wv-border2);
+    }
+
+    /* anchor stops */
+    .stop.anchor { grid-template-columns: 1fr; }
+    .stop.anchor .stop-photo { aspect-ratio: 21/8; margin-top: 1.5rem; }
+
+    /* even stops flip */
+    .stop:not(.anchor):nth-child(even) { direction: rtl; }
+    .stop:not(.anchor):nth-child(even) > * { direction: ltr; }
+
+    /* stop type pill — coloured bar on left edge */
+    .stop-type {
+      font-family: var(--roboto);
+      font-size: 0.56rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--wv-mid);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .stop-type::before {
+      content: '';
+      width: 10px;
+      height: 2px;
+      border-radius: 1px;
+      flex-shrink: 0;
+    }
+    .stop[data-n="01"] .stop-type::before { background: var(--prme-gf-yellow); }
+    .stop[data-n="02"] .stop-type::before { background: var(--prme-gf-green); }
+    .stop[data-n="03"] .stop-type::before { background: var(--prme-gf-red); }
+    .stop[data-n="04"] .stop-type::before { background: var(--prme-gf-teal); }
+    .stop[data-n="05"] .stop-type::before { background: var(--prme-gf-purple); }
+    .stop[data-n="06"] .stop-type::before { background: var(--prme-gf-orange); }
+    .stop[data-n="07"] .stop-type::before { background: var(--prme-gf-blue); }
+    .stop[data-n="08"] .stop-type::before { background: var(--wv-gold); }
+
+    .stop-name {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--wv-text);
+      line-height: 1.3;
+      margin-bottom: 1rem;
+    }
+    .stop-desc {
+      font-size: 0.86rem;
+      color: var(--wv-mid);
+      line-height: 1.9;
+      margin-bottom: 1.25rem;
+    }
+    /* Lora italic for rationale — PRME's highlight font */
+    .stop-rationale {
+      font-family: var(--serif);
+      font-size: 0.82rem;
+      font-style: italic;
+      color: var(--wv-dim);
+      line-height: 1.7;
+      padding-left: 1rem;
+      border-left: 1px solid var(--wv-border2);
+    }
+
+    /* photo panel */
+    .stop-photo {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      background: var(--wv-bg2);
+      border: 1px solid var(--wv-border);
+    }
+    .stop-photo img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      filter: grayscale(0.3) contrast(1.05);
+      transform: scale(1.05);
+      transition: opacity 0.6s ease 0.15s, transform 0.6s ease;
+    }
+    .stop.visible .stop-photo img { opacity: 0.65; transform: scale(1); }
+    .stop-photo:hover img { opacity: 0.85; transform: scale(1.02); }
+    .stop-photo-cap {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 0.65rem 0.9rem;
+      background: linear-gradient(to top, rgba(10,10,10,0.88), transparent);
+      font-family: var(--roboto);
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      color: var(--wv-dim);
+    }
+
+    /* ─────────────────────────────────────────
+       WHAT WE MADE
+    ───────────────────────────────────────── */
+    .made-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .made-grid h2 {
+      font-family: var(--mono);
+      font-size: 1.35rem;
+      font-weight: 300;
+      color: var(--wv-text);
+      line-height: 1.4;
+      margin-bottom: 1.5rem;
+    }
+    .made-grid p {
+      font-size: 0.86rem;
+      color: var(--wv-mid);
+      line-height: 1.9;
+      margin-bottom: 1.2rem;
+    }
+    .made-grid p:last-child { margin-bottom: 0; }
+
+    .artefacts {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--wv-border);
+      border: 1px solid var(--wv-border);
+    }
+    .artefact {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.3rem 1.5rem;
+      background: var(--wv-bg2);
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .artefact:hover { background: var(--wv-bg3); }
+    .artefact-l { display: flex; flex-direction: column; gap: 0.2rem; }
+    .artefact-type {
+      font-family: var(--roboto);
+      font-size: 0.56rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--wv-gold);
+    }
+    .artefact-name {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--wv-text);
+    }
+    .artefact-arrow {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--wv-dim);
+      transition: color 0.2s, transform 0.2s;
+    }
+    .artefact:hover .artefact-arrow { color: var(--wv-gold); transform: translateX(4px); }
+
+    /* ─────────────────────────────────────────
+       QUADRANTS — PRME Blue panels
+    ───────────────────────────────────────── */
+    .quads {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--prme-blue-mid);
+      border: 1px solid var(--prme-blue-mid);
+      margin-top: 3rem;
+    }
+    .quad {
+      background: var(--prme-blue);
+      padding: 1.75rem 1.5rem;
+      transition: background 0.25s;
+    }
+    .quad:hover { background: var(--prme-blue-mid); }
+    .quad-label {
+      font-family: var(--roboto);
+      font-size: 0.58rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--wv-gold);
+      margin-bottom: 0.5rem;
+    }
+    .quad-title {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--wv-text);
+      margin-bottom: 0.5rem;
+    }
+    .quad-body {
+      font-size: 0.8rem;
+      color: rgba(232,240,252,0.5);
+      line-height: 1.75;
+    }
+
+    /* ─────────────────────────────────────────
+       CO-BRAND LOCKUP SECTION
+    ───────────────────────────────────────── */
+    .cobrand-section {
+      border-top: 1px solid var(--wv-border);
+      padding: 4rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+    }
+    .cobrand-wv {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--wv-mid);
+      letter-spacing: 0.05em;
+    }
+    .cobrand-x {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--wv-dim);
+    }
+    .cobrand-prme {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .cobrand-prme-blocks {
+      display: flex;
+      gap: 3px;
+    }
+    .cobrand-prme-blocks span {
+      width: 8px; height: 20px;
+      display: block;
+      border-radius: 1px;
+    }
+    .cobrand-prme-blocks span:nth-child(1) { background: var(--prme-gf-yellow); }
+    .cobrand-prme-blocks span:nth-child(2) { background: var(--prme-gf-green); }
+    .cobrand-prme-blocks span:nth-child(3) { background: var(--prme-gf-red); }
+    .cobrand-prme-blocks span:nth-child(4) { background: var(--prme-gf-teal); }
+    .cobrand-prme-blocks span:nth-child(5) { background: var(--prme-gf-purple); }
+    .cobrand-prme-blocks span:nth-child(6) { background: var(--prme-gf-orange); }
+    .cobrand-prme-blocks span:nth-child(7) { background: var(--prme-gf-blue); }
+    .cobrand-prme-name {
+      font-family: var(--roboto);
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--wv-dim);
+    }
+    .cobrand-prme-sub {
+      font-family: var(--roboto);
+      font-size: 0.54rem;
+      letter-spacing: 0.1em;
+      color: rgba(90,82,73,0.6);
+    }
+
+    /* ─────────────────────────────────────────
+       FOOTER
+    ───────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--wv-border);
+      padding: 2.5rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    footer a {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      color: var(--wv-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    footer a:hover { color: var(--wv-gold); }
+    footer span {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--wv-dim);
+    }
+
+    /* ─────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────── */
+    @media (max-width: 760px) {
+      nav { padding: 0.9rem 1.25rem; }
+      .nav-prme-label { display: none; }
+      .hero { padding: 0 1.25rem 4rem; }
+      .hero-title { font-size: 1.9rem; }
+      .section { padding: 4rem 1.25rem; }
+      .route-inner { padding: 0 1.25rem; }
+      .brief-grid,
+      .made-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .stop { grid-template-columns: 1fr !important; direction: ltr !important; gap: 1.5rem; }
+      .stop > * { direction: ltr !important; }
+      .stop.anchor .stop-photo { aspect-ratio: 4/3; }
+      .quads { grid-template-columns: 1fr; }
+      .hero-meta { gap: 1.75rem; }
+      footer { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+      .cobrand-section { flex-direction: column; gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- GF seven-colour bar -->
+<div class="cobrand-bar">
+  <span></span><span></span><span></span><span></span>
+  <span></span><span></span><span></span>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <a class="nav-wv" href="https://windedvertigo.com">winded.vertigo</a>
+    <div class="nav-divider"></div>
+    <a class="nav-prme" href="https://www.unprme.org" target="_blank" rel="noopener">
+      <div class="nav-prme-blocks">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </div>
+      <span class="nav-prme-label">PRME Champions Week</span>
+    </a>
+  </div>
+  <div class="nav-right">
+    <a href="https://windedvertigo.com/portfolio">portfolio</a>
+    <span class="nav-sep">/</span>
+    <a href="#">prme champions week</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-dot d1"></div><div class="hero-dot d2"></div>
+  <div class="hero-dot d3"></div><div class="hero-dot d4"></div>
+  <div class="hero-dot d5"></div><div class="hero-dot d6"></div>
+  <div class="hero-dot d7"></div><div class="hero-dot d8"></div>
+  <svg class="hero-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <line x1="20" y1="26" x2="47" y2="44"/>
+    <line x1="47" y1="44" x2="60" y2="30"/>
+    <line x1="60" y1="30" x2="73" y2="20"/>
+    <line x1="73" y1="20" x2="83" y2="37"/>
+    <line x1="47" y1="44" x2="33" y2="57"/>
+    <line x1="33" y1="57" x2="22" y2="74"/>
+    <line x1="60" y1="30" x2="67" y2="64"/>
+  </svg>
+
+  <div class="hero-eyebrow">prme champions week · united nations global compact · new york city</div>
+  <h1 class="hero-title">eight stops.<br><em>one city.</em><br>find what matters.</h1>
+  <p class="hero-body">
+    winded.vertigo designed a play-based scavenger hunt for prme champions week —
+    a conference-scale experience that moved faculty from business schools
+    around the world through new york city before the work of the week had begun.
+  </p>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <span class="meta-key">client</span>
+      <span class="meta-val">prme / ungc</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-key">location</span>
+      <span class="meta-val">new york city</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-key">format</span>
+      <span class="meta-val">play-based opening experience</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-key">w.v. team</span>
+      <span class="meta-val">garrett · maria</span>
+    </div>
+  </div>
+</section>
+
+<!-- THE BRIEF -->
+<div class="section">
+  <div class="eyebrow">the brief</div>
+  <div class="brief-grid">
+    <div class="brief-text">
+      <h2>move people before<br>the conference moves them.</h2>
+      <p>
+        prme champions week brought together faculty and academic professionals
+        from business schools around the world — institutions signed on to the
+        Principles for Responsible Management Education. the gathering was hosted
+        across two significant new york city venues: the ford foundation center
+        for social justice, and the united nations global compact headquarters.
+      </p>
+      <p>
+        winded.vertigo was asked to design a play-based opening experience
+        that would move participants out of conference mode and into genuine
+        encounter — with the city, with each other, and with the values
+        that had brought them to new york.
+      </p>
+      <p>
+        the answer was the city itself. we didn't build a warm-up activity.
+        we built a route.
+      </p>
+    </div>
+    <div>
+      <div class="stats-panel">
+        <div class="stats-panel-header">
+          <div class="stats-panel-blocks">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+          </div>
+          <span class="stats-panel-title">PRME Champions Week</span>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-n">2</div>
+            <div class="stat-l">anchor venues</div>
+          </div>
+          <div class="stat">
+            <div class="stat-n">8</div>
+            <div class="stat-l">stop locations</div>
+          </div>
+          <div class="stat">
+            <div class="stat-n">28</div>
+            <div class="stat-l">participants</div>
+          </div>
+          <div class="stat">
+            <div class="stat-n">2</div>
+            <div class="stat-l">w.v. team members</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROUTE MAP -->
+<div class="route-wrap">
+  <div class="route-inner">
+    <div class="route-intro">
+      <div class="eyebrow">the route</div>
+      <h2>scroll to walk the hunt.</h2>
+      <p>
+        each stop was chosen not just for its location, but for what it asks
+        of the person standing there. clues sent participants to find, notice,
+        and make meaning — not just arrive.
+      </p>
+    </div>
+
+    <div class="timeline">
+
+      <div class="stop anchor" data-n="01">
+        <div>
+          <div class="stop-type">anchor venue · opening</div>
+          <div class="stop-name">ford foundation center<br>for social justice</div>
+          <p class="stop-desc">
+            the first anchor. a six-storey atrium filled with trees — a building
+            designed so the outside gets in. participants gathered here, received
+            the hunt artefact and qr navigation pack, and were sent into the city.
+          </p>
+          <p class="stop-rationale">
+            "a building can hold an argument about what justice looks like.
+            this one does. we wanted that argument to be the opening move."
+          </p>
+        </div>
+        <div class="stop-photo">
+          <img src="https://drive.google.com/thumbnail?id=1_mOS_TPpT9LjBzNb3wMabtoM860J8nk9&sz=w1200" alt="Ford Foundation" loading="lazy"/>
+          <div class="stop-photo-cap">ford foundation center · e 43rd st</div>
+        </div>
+      </div>
+
+      <div class="stop" data-n="02">
+        <div>
+          <div class="stop-type">in-venue · observation</div>
+          <div class="stop-name">the sdg wall</div>
+          <p class="stop-desc">
+            before heading out, participants encountered the sdg wall — the
+            seventeen Global Goals rendered in the shorthand that has become
+            a global language of intent. the clue asked: which of these do
+            you actually know? which are you guessing at?
+          </p>
+          <p class="stop-rationale">
+            "honesty about what you don't know is the start of learning.
+            we built the first clue around it."
+          </p>
+        </div>
+        <div class="stop-photo">
+          <img src="https://drive.google.com/thumbnail?id=1EwZ4Nt7KnE9tkObB3yT2hHeZDdxPUqD5&sz=w1200" alt="SDG wall" loading="lazy"/>
+          <div class="stop-photo-cap">sdg wall — seventeen goals, one question</div>
+        </div>
+      </div>
+
+      <div class="stop" data-n="03">
+        <div>
+          <div class="stop-type">city landmark · reflection</div>
+          <div class="stop-name">the isaiah wall</div>
+          <p class="stop-desc">
+            across from the united nations, cut into stone: "they shall beat
+            their swords into ploughshares." participants were asked to write
+            down one thing they would beat into something else — any scale,
+            any domain, no wrong answers.
+          </p>
+          <p class="stop-rationale">
+            "the un is the context for PRME's entire existence.
+            we wanted people to feel that before they were inside it."
+          </p>
+        </div>
+        <div class="stop-photo">
+          <img src="https://drive.google.com/thumbnail?id=1VpVDJPeh3xgm0WR_vbfT_vIh_t8E9i_c&sz=w1200" alt="Isaiah Wall" loading="lazy"/>
+          <div class="stop-photo-cap">isaiah wall · ralph bunche park</div>
+        </div>
+      </div>
+
+      <div class="stop anchor" data-n="04">
+        <div>
+          <div class="stop-type">anchor venue · convergence</div>
+          <div class="stop-name">united nations global<br>compact headquarters</div>
+          <p class="stop-desc">
+            the second anchor. the ungc boardroom is where the principles
+            underpinning PRME were shaped. participants converged here midway
+            through the hunt — the room carries weight, and the clue asked
+            them to feel it before sitting down for the week's programme.
+          </p>
+          <p class="stop-rationale">
+            "a room is a lesson about what the people who built it believed.
+            we wanted participants to read this one before it read them."
+          </p>
+        </div>
+        <div class="stop-photo">
+          <img src="https://drive.google.com/thumbnail?id=1_Jwpmm85vaVzrhVMa6JmegYXAU0CGJ_M&sz=w1200" alt="UNGC Boardroom" loading="lazy"/>
+          <div class="stop-photo-cap">ungc boardroom · united nations global compact</div>
+        </div>
+      </div>
+
+      <div class="stop" data-n="05">
+        <div>
+          <div class="stop-type">in-venue · discovery</div>
+          <div class="stop-name">the ungc logo wall</div>
+          <p class="stop-desc">
+            every signatory organisation rendered as a mark — thousands of them.
+            participants were asked to find one they'd never heard of and learn
+            something about it before the day was out.
+          </p>
+          <p class="stop-rationale">
+            "responsible management education is about the world beyond
+            the classroom. we wanted people standing inside that world."
+          </p>
+        </div>
+        <div class="stop-photo">
+          <img src="https://drive.google.com/thumbnail?id=1_fTylxZIrrxV3auJ7yiUlrqsQVl5kxqV&sz=w1200" alt="UNGC Logo Wall" loading="lazy"/>
+          <div class="stop-photo-cap">ungc logo wall · all signatory organisations</div>
+        </div>
+      </div>
+
+      <div class="stop" data-n="06">
+        <div>
+          <div class="stop-type">city landmark · inquiry</div>
+          <div class="stop-name">new york public library</div>
+          <p class="stop-desc">
+            patience and fortitude — the stone lions at the entrance — have
+            watched new yorkers pass for over a century. the clue asked
+            participants to bring a question they couldn't yet answer to the
+            steps, and leave it there for the week to work on.
+          </p>
+          <p class="stop-rationale">
+            "a library is the physical form of the belief that knowledge
+            should be free and common. we needed that in the route."
+          </p>
+        </div>
+        <div class="stop-photo">
+          <img src="https://drive.google.com/thumbnail?id=18UUFSxqLrqRFw7sNQTkcHsI-7DXr5MRe&sz=w1200" alt="NYPL" loading="lazy"/>
+          <div class="stop-photo-cap">new york public library · 5th avenue</div>
+        </div>
+      </div>
+
+      <div class="stop" data-n="07">
+        <div>
+          <div class="stop-type">city landmark · connection</div>
+          <div class="stop-name">the whispering gallery</div>
+          <p class="stop-desc">
+            grand central's whispering gallery: stand in one corner, face the
+            wall, and whisper — someone in the opposite corner hears you as
+            if you're beside them. participants were asked to find a teammate
+            they didn't yet know well and use it.
+          </p>
+          <p class="stop-rationale">
+            "connection across distance — architectural, relational,
+            institutional. it felt like the right metaphor for what PRME is trying to do."
+          </p>
+        </div>
+        <div class="stop-photo">
+          <img src="https://drive.google.com/thumbnail?id=10jZcBXCvCZ9YE_qogI-W5WCfj2gh2Kth&sz=w1200" alt="Whispering Gallery" loading="lazy"/>
+          <div class="stop-photo-cap">whispering gallery · grand central terminal</div>
+        </div>
+      </div>
+
+      <div class="stop" data-n="08">
+        <div>
+          <div class="stop-type">city landmark · closing</div>
+          <div class="stop-name">the chrysler building</div>
+          <p class="stop-desc">
+            the final stop. built in 1930 as a monument to industrial ambition —
+            the tallest building in the world for eleven months. the clue asked:
+            what does ambition look like when it's pointed at something other
+            than height? teams regrouped here before returning to the programme.
+          </p>
+          <p class="stop-rationale">
+            "we wanted the closing image to be the question of what we build
+            and why — the exact question PRME spends a week on."
+          </p>
+        </div>
+        <div class="stop-photo">
+          <img src="https://drive.google.com/thumbnail?id=1UMY_AMvy3fgVvfo3KSNtywCR5Kmo4hJ9&sz=w1200" alt="Chrysler Building" loading="lazy"/>
+          <div class="stop-photo-cap">chrysler building · lexington avenue</div>
+        </div>
+      </div>
+
+    </div><!-- /timeline -->
+  </div>
+</div>
+
+<!-- WHAT WE MADE -->
+<div class="section">
+  <div class="eyebrow">what we made</div>
+  <div class="made-grid">
+    <div>
+      <h2>a designed print artefact.<br>a qr navigation pack.<br>a route through meaning.</h2>
+      <p>
+        the primary deliverable was the hunt document itself — a designed,
+        printed artefact that participants carried through the city. each stop
+        had a clue, a prompt, and a qr code linking to location-specific content.
+      </p>
+      <p>
+        the qr code pack gave teams flexibility to move at their own pace —
+        using the codes to navigate and unlock content without a facilitator
+        needing to be everywhere at once.
+      </p>
+      <p>
+        the design logic throughout: enough structure to make the experience
+        shared, enough looseness to allow for discovery.
+      </p>
+    </div>
+    <div>
+      <div class="artefacts">
+        <a class="artefact" href="https://drive.google.com/file/d/1uN063WWoVUkXX2i7iEfEPOcVDvuKDZjb/view" target="_blank" rel="noopener">
+          <div class="artefact-l">
+            <span class="artefact-type">print · pdf</span>
+            <span class="artefact-name">scavenger hunt document</span>
+          </div>
+          <span class="artefact-arrow">↗</span>
+        </a>
+        <a class="artefact" href="https://drive.google.com/file/d/1RSHRO9SUg7X0Q5joVdoWC2TnjdL0hBOP/view" target="_blank" rel="noopener">
+          <div class="artefact-l">
+            <span class="artefact-type">navigation · pdf</span>
+            <span class="artefact-name">qr code pack</span>
+          </div>
+          <span class="artefact-arrow">↗</span>
+        </a>
+        <a class="artefact" href="https://drive.google.com/drive/folders/1ZlM-lZ6r_IuPb_3-s1019Uh_GLBtHn06" target="_blank" rel="noopener">
+          <div class="artefact-l">
+            <span class="artefact-type">folder · all materials</span>
+            <span class="artefact-name">complete project assets</span>
+          </div>
+          <span class="artefact-arrow">↗</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 5rem;">
+    <div class="eyebrow">quadrants activated</div>
+    <div class="quads">
+      <div class="quad">
+        <div class="quad-label">people × design</div>
+        <div class="quad-title">design & deploy</div>
+        <p class="quad-body">designed and facilitated a play-based opening experience for a global conference cohort — translating learning design principles into a live city-scale artefact.</p>
+      </div>
+      <div class="quad">
+        <div class="quad-label">people × research</div>
+        <div class="quad-title">find & frame</div>
+        <p class="quad-body">grounded stop selection and clue design in responsible management education literature and PRME's Seven Principles — the route was a designed argument, not a set of locations.</p>
+      </div>
+      <div class="quad">
+        <div class="quad-label">product × design</div>
+        <div class="quad-title">build & iterate</div>
+        <p class="quad-body">produced the print hunt document and qr navigation pack as designed artefacts — physical objects that needed to work legibly in the hands of participants moving through a city.</p>
+      </div>
+      <div class="quad">
+        <div class="quad-label">product × research</div>
+        <div class="quad-title">test & validate</div>
+        <p class="quad-body">each stop was prototyped against the question: does this location ask something real of the person standing in it? the route was refined until every stop earned its place.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CO-BRAND LOCKUP -->
+<div class="cobrand-section">
+  <span class="cobrand-wv">winded.vertigo</span>
+  <span class="cobrand-x">×</span>
+  <div class="cobrand-prme">
+    <div class="cobrand-prme-blocks">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </div>
+    <span class="cobrand-prme-name">PRME</span>
+    <span class="cobrand-prme-sub">Principles for Responsible Management Education</span>
+    <span class="cobrand-prme-sub">an initiative of the UN Global Compact</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <a href="https://windedvertigo.com/portfolio">← back to portfolio</a>
+  <span>© copyright winded.vertigo, 2024–2026.</span>
+  <a href="https://windedvertigo.com/do">explore how we work →</a>
+</footer>
+
+<script>
+  const stops = document.querySelectorAll('.stop');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  stops.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
