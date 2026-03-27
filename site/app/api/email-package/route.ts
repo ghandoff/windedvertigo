@@ -22,6 +22,34 @@ const VALID_QUADRANTS = new Set([
   "product-research",
 ]);
 
+const VALID_FOCUS = new Set([
+  "creativity-resilience",
+  "learning-experiences",
+  "programmes",
+  "ai-adoption",
+  "program-evaluation",
+  "mel-touchpoints",
+  "research-databases",
+  "evidence-for-funders",
+  "learning-tools",
+  "toys-games",
+  "comms",
+  "udl-improvements",
+  "efficacy",
+  "toy-impacts",
+  "udl-validation",
+  "usability-testing",
+]);
+
+const VALID_GOALS = new Set([
+  "prove",
+  "improve",
+  "scale",
+  "accessibility",
+  "concept",
+  "prototype",
+]);
+
 const QUADRANT_LABELS: Record<string, string> = {
   "people-design": "people × design",
   "people-research": "people × research",
@@ -37,8 +65,22 @@ const CRM_CONTACTS_DB = "829cd552-4516-45b7-a65b-2bcd8d47ff81";
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const MAX_PER_DAY = 3;
 
+// global hourly cap to prevent email bombing via address rotation
+let globalHourly = { count: 0, resetAt: Date.now() + 3_600_000 };
+const MAX_PER_HOUR_GLOBAL = 50;
+
 function isRateLimited(email: string): boolean {
   const now = Date.now();
+
+  // global hourly cap
+  if (now > globalHourly.resetAt) {
+    globalHourly = { count: 1, resetAt: now + 3_600_000 };
+  } else {
+    if (globalHourly.count >= MAX_PER_HOUR_GLOBAL) return true;
+    globalHourly.count++;
+  }
+
+  // per-email daily cap
   const entry = rateLimitMap.get(email);
 
   if (!entry || now > entry.resetAt) {
@@ -132,8 +174,8 @@ export async function POST(request: NextRequest) {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const quadrant = typeof body.quadrant === "string" ? body.quadrant : "";
-  const focus = Array.isArray(body.focus) ? body.focus.filter((f): f is string => typeof f === "string") : [];
-  const goals = Array.isArray(body.goals) ? body.goals.filter((g): g is string => typeof g === "string") : [];
+  const focus = Array.isArray(body.focus) ? body.focus.filter((f): f is string => typeof f === "string" && VALID_FOCUS.has(f)) : [];
+  const goals = Array.isArray(body.goals) ? body.goals.filter((g): g is string => typeof g === "string" && VALID_GOALS.has(g)) : [];
 
   // validation
   if (!name || name.length > 100) {

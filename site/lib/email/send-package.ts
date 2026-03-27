@@ -77,7 +77,7 @@ function buildPackageHtml({
       </a>
 
       <p style="color: #273248; opacity: 0.7; font-size: 13px; line-height: 1.6; margin-top: 24px;">
-        have questions? just reply to this email — it comes straight to us.
+        have questions? hit reply — it goes straight to our team.
       </p>
 
       <hr style="border: none; border-top: 1px solid rgba(39, 50, 72, 0.1); margin: 28px 0 16px;" />
