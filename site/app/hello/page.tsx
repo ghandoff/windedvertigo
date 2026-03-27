@@ -65,7 +65,7 @@ const cards: HelloCard[] = [
     description:
       "experience one of our four quadrants with a hands-on activity.",
     cta: "let\u2019s play",
-    href: null,
+    href: "/harbour/creaseworks/sampler",
   },
 ];
 
