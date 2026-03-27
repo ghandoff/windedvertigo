@@ -91,59 +91,82 @@ export default function HelloPage() {
           </section>
 
           <div className={styles.hub}>
-            {cards.map((card) => (
-              <section
-                key={card.id}
-                id={card.id}
-                className={card.embed ? styles.cardFeatured : styles.card}
-                aria-labelledby={`${card.id}-title`}
+            {/* ── left: portrait video ──────────────────────── */}
+            <section
+              id="video"
+              className={styles.cardFeatured}
+              aria-labelledby="video-title"
+            >
+              <time
+                className={styles.badge}
+                dateTime="PT1M"
+                aria-label="estimated time: 1 minute"
               >
-                <time
-                  className={styles.badge}
-                  dateTime={`PT${card.minutes}M`}
-                  aria-label={`estimated time: ${card.minutes} minute${card.minutes > 1 ? "s" : ""}`}
+                1 min
+              </time>
+
+              <div className={styles.embedWrap}>
+                <iframe
+                  className={styles.embed}
+                  src="https://www.youtube-nocookie.com/embed/j4jgTxJ2NuY?rel=0&modestbranding=1"
+                  title="watch our story"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+
+              <h3 id="video-title" className={styles.title}>
+                watch our story
+              </h3>
+              <p className={styles.description}>
+                a quick introduction to who we are and what gets us out of bed.
+              </p>
+            </section>
+
+            {/* ── right: three stacked cards ────────────────── */}
+            <div className={styles.sidebar}>
+              {cards.filter((c) => !c.embed).map((card) => (
+                <section
+                  key={card.id}
+                  id={card.id}
+                  className={styles.card}
+                  aria-labelledby={`${card.id}-title`}
                 >
-                  {card.minutes} min
-                </time>
-
-                {card.embed && (
-                  <div className={styles.embedWrap}>
-                    <iframe
-                      className={styles.embed}
-                      src={`https://www.youtube-nocookie.com/embed/${card.embed}?rel=0&modestbranding=1`}
-                      title={card.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                )}
-
-                <h3 id={`${card.id}-title`} className={styles.title}>
-                  {card.title}
-                </h3>
-
-                <p className={styles.description}>{card.description}</p>
-
-                {card.href ? (
-                  <Link
-                    href={card.href}
-                    className={styles.cta}
-                    aria-label={`${card.cta} — ${card.title}, about ${card.minutes} minute${card.minutes > 1 ? "s" : ""}`}
+                  <time
+                    className={styles.badge}
+                    dateTime={`PT${card.minutes}M`}
+                    aria-label={`estimated time: ${card.minutes} minute${card.minutes > 1 ? "s" : ""}`}
                   >
-                    {card.cta}
-                  </Link>
-                ) : (
-                  <span
-                    className={styles.ctaPlaceholder}
-                    aria-disabled="true"
-                    role="link"
-                    aria-label={`${card.cta} — coming soon`}
-                  >
-                    {card.cta}
-                  </span>
-                )}
-              </section>
-            ))}
+                    {card.minutes} min
+                  </time>
+
+                  <h3 id={`${card.id}-title`} className={styles.title}>
+                    {card.title}
+                  </h3>
+
+                  <p className={styles.description}>{card.description}</p>
+
+                  {card.href ? (
+                    <Link
+                      href={card.href}
+                      className={styles.cta}
+                      aria-label={`${card.cta} — ${card.title}, about ${card.minutes} minute${card.minutes > 1 ? "s" : ""}`}
+                    >
+                      {card.cta}
+                    </Link>
+                  ) : (
+                    <span
+                      className={styles.ctaPlaceholder}
+                      aria-disabled="true"
+                      role="link"
+                      aria-label={`${card.cta} — coming soon`}
+                    >
+                      {card.cta}
+                    </span>
+                  )}
+                </section>
+              ))}
+            </div>
           </div>
         </div>
       </main>

@@ -16,18 +16,30 @@
   color: var(--color-text-on-dark-muted);
 }
 
-/* ── card grid ──────────────────────────────────────────────────── */
+/* ── card grid — portrait video left, 3 cards stacked right ────── */
 .hub {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: auto 1fr;
   gap: var(--space-xl);
   margin-bottom: var(--space-3xl);
 }
 
-/* video card spans full width on top row */
+/* video card — left column, height driven by 9:16 embed */
 .cardFeatured {
   composes: card;
-  grid-column: 1 / -1;
+}
+
+/* right column — three cards stacked, capped to video height */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  min-height: 0; /* allow shrink inside grid */
+}
+
+.sidebar .card {
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── card ────────────────────────────────────────────────────────── */
@@ -65,13 +77,15 @@
   letter-spacing: 0.01em;
 }
 
-/* ── video embed ────────────────────────────────────────────────── */
+/* ── video embed (portrait / Shorts format) ────────────────────── */
 .embedWrap {
-  aspect-ratio: 16 / 9;
-  width: 100%;
+  aspect-ratio: 9 / 16;
+  height: 100%;
+  max-height: 560px;
   border-radius: 4px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.3);
+  flex: 1;
 }
 
 .embed {
@@ -146,7 +160,9 @@
     padding: var(--space-xl);
   }
 
-  .cardFeatured {
-    grid-column: 1;
+  .embedWrap {
+    max-height: 480px;
+    width: 100%;
+    height: auto;
   }
 }
