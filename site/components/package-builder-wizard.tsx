@@ -265,6 +265,102 @@ function Matrix({ state, expanded = false }: { state: WizardState; expanded?: bo
   );
 }
 
+function EmailPackageForm({ state }: { state: WizardState }) {
+  const [expanded, setExpanded] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !email.trim()) return;
+
+    setStatus("sending");
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/email-package", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          quadrant: getQuadrant(state),
+          focus: state.focus,
+          goals: state.goals,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatus("error");
+        setErrorMsg(data.error || "something went wrong");
+        return;
+      }
+
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+      setErrorMsg("network error — please try again");
+    }
+  };
+
+  if (status === "sent") {
+    return (
+      <div className={`${styles.ctaBtn} ${styles.secondary}`} style={{ cursor: "default", textAlign: "center" }}>
+        check your inbox
+      </div>
+    );
+  }
+
+  if (!expanded) {
+    return (
+      <button
+        className={`${styles.ctaBtn} ${styles.secondary}`}
+        onClick={() => setExpanded(true)}
+      >
+        email my package
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className={styles.emailForm}>
+      <input
+        type="text"
+        placeholder="first name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+        autoFocus
+        className={styles.emailInput}
+      />
+      <input
+        type="email"
+        placeholder="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        className={styles.emailInput}
+      />
+      <button
+        type="submit"
+        disabled={status === "sending"}
+        className={`${styles.ctaBtn} ${styles.secondary}`}
+      >
+        {status === "sending" ? "sending…" : "send"}
+      </button>
+      {status === "error" && (
+        <p style={{ fontSize: 12, color: "var(--wv-redwood, #b15043)", margin: "6px 0 0", gridColumn: "1 / -1" }}>
+          {errorMsg}
+        </p>
+      )}
+    </form>
+  );
+}
+
 function ResultPage({
   state,
   pack,
@@ -424,7 +520,7 @@ function ResultPage({
       )}
 
       {/* CTAs */}
-      <div className={styles.ctaRow} style={{ display: "flex", gap: 10, marginTop: 32 }}>
+      <div className={styles.ctaRow} style={{ display: "flex", gap: 10, marginTop: 32, flexWrap: "wrap" }}>
         <a
           href={ctaLink}
           target="_blank"
@@ -433,13 +529,7 @@ function ResultPage({
         >
           book a playdate
         </a>
-        <a
-          href={`https://pub-c685a810f5794314a106e0f249c740c9.r2.dev/package-pdfs/${getQuadrant(state)}.pdf`}
-          download={`winded-vertigo-${getQuadrant(state)}.pdf`}
-          className={`${styles.ctaBtn} ${styles.secondary}`}
-        >
-          download package
-        </a>
+        <EmailPackageForm state={state} />
         <button className={`${styles.ctaBtn} ${styles.outline}`} onClick={onStartOver}>
           start over
         </button>

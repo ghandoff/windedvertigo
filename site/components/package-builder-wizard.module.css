@@ -167,6 +167,36 @@
   color: #ffffff;
 }
 
+/* Email package inline form */
+.emailForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.emailInput {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  text-transform: lowercase;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #ffffff;
+  outline: none;
+  min-width: 0;
+}
+
+.emailInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.emailInput:focus {
+  border-color: var(--wv-sienna, #cb7858);
+}
+
 /* Wizard two-zone layout: pinned matrix on desktop, flowing on mobile */
 .wizardBody {
   width: 100%;
@@ -193,6 +223,13 @@
   }
   .ctaBtn {
     width: 100%;
+  }
+  .emailForm {
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+  .emailForm .ctaBtn {
+    grid-column: 1 / -1;
   }
 }
 
