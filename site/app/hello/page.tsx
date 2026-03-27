@@ -39,7 +39,7 @@ const cards: HelloCard[] = [
       "a quick introduction to who we are and what gets us out of bed.",
     cta: "watch now",
     href: null,
-    embed: "YOUTUBE_VIDEO_ID", // TODO: replace with real YouTube video ID
+    embed: "j4jgTxJ2NuY",
   },
   {
     id: "calendar",
