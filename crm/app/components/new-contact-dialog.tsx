@@ -74,6 +74,7 @@ export function NewContactDialog({ organizationId, compact }: NewContactDialogPr
       setRole("");
       setContactType(null);
       setRelationshipStage("stranger");
+      setOrgIds(organizationId ? [organizationId] : []);
       setError("");
       setOpen(false);
       startTransition(() => router.refresh());
