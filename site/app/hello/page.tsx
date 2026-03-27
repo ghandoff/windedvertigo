@@ -108,7 +108,7 @@ export default function HelloPage() {
               <div className={styles.embedWrap}>
                 <iframe
                   className={styles.embed}
-                  src="https://www.youtube-nocookie.com/embed/j4jgTxJ2NuY?rel=0&modestbranding=1"
+                  src="https://www.youtube-nocookie.com/embed/M7dnNXH6x5k?rel=0&modestbranding=1"
                   title="watch our story"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
