@@ -13,7 +13,7 @@ export default async function HomePage() {
     <>
       <SiteHeader isHome />
 
-      <main id="main-content">
+      <main id="main-content" className="home">
         <div className="container">
           <section className="hero">
             <h1 className="visually-hidden">winded.vertigo</h1>
