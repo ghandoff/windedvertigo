@@ -24,9 +24,11 @@ export function DeleteCampaignButton({
   const [, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleDelete() {
     setDeleting(true);
+    setError("");
     try {
       const res = await fetch(`/api/campaigns/${campaignId}`, {
         method: "DELETE",
@@ -39,7 +41,12 @@ export function DeleteCampaignButton({
             router.refresh();
           }
         });
+      } else {
+        const data = await res.json().catch(() => ({ error: "delete failed" }));
+        setError(data.error || `failed (${res.status})`);
       }
+    } catch {
+      setError("network error");
     } finally {
       setDeleting(false);
       setConfirming(false);
@@ -50,7 +57,7 @@ export function DeleteCampaignButton({
     return (
       <div className="flex items-center gap-2">
         <span className="text-xs text-destructive">
-          delete &ldquo;{campaignName}&rdquo;?
+          {error || <>delete &ldquo;{campaignName}&rdquo;?</>}
         </span>
         <Button
           size="sm"

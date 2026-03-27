@@ -149,5 +149,5 @@ export async function updateCampaignStep(
 }
 
 export async function archiveCampaignStep(id: string): Promise<void> {
-  await notion.pages.update({ page_id: id, archived: true });
+  await notion.pages.update({ page_id: id, in_trash: true });
 }

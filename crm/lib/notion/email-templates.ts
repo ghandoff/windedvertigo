@@ -127,7 +127,7 @@ export async function updateEmailTemplate(
 }
 
 export async function archiveEmailTemplate(id: string): Promise<void> {
-  await notion.pages.update({ page_id: id, archived: true });
+  await notion.pages.update({ page_id: id, in_trash: true });
 }
 
 /** Increment the times-used counter. Fire-and-forget safe. */

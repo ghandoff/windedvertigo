@@ -240,5 +240,5 @@ export function updateOutreachStatus(id: string, status: OutreachStatus) {
 // ── archive ───────────────────────────────────────────────
 
 export async function archiveOrganization(id: string): Promise<void> {
-  await notion.pages.update({ page_id: id, archived: true });
+  await notion.pages.update({ page_id: id, in_trash: true });
 }
