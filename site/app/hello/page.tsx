@@ -27,6 +27,7 @@ interface HelloCard {
   description: string;
   cta: string;
   href: string | null; // null = placeholder
+  embed?: string; // YouTube video ID for inline embed
 }
 
 const cards: HelloCard[] = [
@@ -38,6 +39,7 @@ const cards: HelloCard[] = [
       "a quick introduction to who we are and what gets us out of bed.",
     cta: "watch now",
     href: null,
+    embed: "YOUTUBE_VIDEO_ID", // TODO: replace with real YouTube video ID
   },
   {
     id: "calendar",
@@ -93,7 +95,7 @@ export default function HelloPage() {
               <section
                 key={card.id}
                 id={card.id}
-                className={styles.card}
+                className={card.embed ? styles.cardFeatured : styles.card}
                 aria-labelledby={`${card.id}-title`}
               >
                 <time
@@ -103,6 +105,18 @@ export default function HelloPage() {
                 >
                   {card.minutes} min
                 </time>
+
+                {card.embed && (
+                  <div className={styles.embedWrap}>
+                    <iframe
+                      className={styles.embed}
+                      src={`https://www.youtube-nocookie.com/embed/${card.embed}?rel=0&modestbranding=1`}
+                      title={card.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
 
                 <h3 id={`${card.id}-title`} className={styles.title}>
                   {card.title}
