@@ -405,6 +405,46 @@ body {
   color: rgba(255,255,255,0.4);
 }
 
+/* ── Phone mockup ── */
+.before-layout { display: flex; gap: 40px; align-items: flex-start; margin-top: 32px; }
+.before-text { flex: 1; }
+.phone-mockup {
+  width: 200px; flex-shrink: 0;
+  background: #111; border-radius: 24px; padding: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+.phone-screen {
+  width: 100%; background: var(--champagne); border-radius: 16px;
+  padding: 18px 14px; overflow: hidden;
+}
+.app-header {
+  font: 600 10px 'Quicksand', sans-serif; color: var(--cadet);
+  text-align: center; padding-bottom: 10px;
+  border-bottom: 1px solid var(--light); margin-bottom: 14px;
+}
+.app-badge { text-align: center; margin-bottom: 16px; }
+.app-badge-circle {
+  width: 50px; height: 50px; border-radius: 50%;
+  border: 2px dashed var(--sienna);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 6px;
+  font: 600 10px 'Quicksand', sans-serif; color: var(--sienna);
+}
+.app-badge-name { font: 400 10px 'Quicksand', sans-serif; color: var(--grey); }
+.app-features { display: flex; flex-direction: column; gap: 8px; }
+.app-feature {
+  font: 400 9px/1.4 'Quicksand', sans-serif; color: var(--dark);
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.app-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--mint); flex-shrink: 0; margin-top: 3px;
+}
+@media (max-width: 640px) {
+  .before-layout { flex-direction: column-reverse; align-items: center; }
+  .phone-mockup { width: 180px; }
+}
+
 /* ── Wall / Collage input ── */
 .add-card-row {
   display: flex; gap: 10px; margin-top: 20px;
@@ -585,9 +625,28 @@ body {
   <div class="moment-inner reveal">
     <div class="time time-light">2 weeks before</div>
     <h2>before the day</h2>
-    <p>every attendee receives a question to sit with, a note about the day's design, and a name badge with a QR code linking to a personal conference page.</p>
-    <p class="em">this is not a standard conference. there are moments that ask something of you. all of them are optional. none of them are difficult.</p>
-    <div class="detail">a companion app linked to badge QR codes threads the digital layer through the whole experience — before, during, and after the day.</div>
+    <div class="before-layout">
+      <div class="before-text">
+        <p>every attendee receives a question to sit with, a note about the day's design, and a name badge with a QR code linking to a personal conference page.</p>
+        <p class="em">this is not a standard conference. there are moments that ask something of you. all of them are optional. none of them are difficult.</p>
+        <div class="detail">a companion app linked to badge QR codes threads the digital layer through the whole experience — before, during, and after the day.</div>
+      </div>
+      <div class="phone-mockup">
+        <div class="phone-screen">
+          <div class="app-header">PEDAL Conference 2025</div>
+          <div class="app-badge">
+            <div class="app-badge-circle">QR</div>
+            <div class="app-badge-name">your conference page</div>
+          </div>
+          <div class="app-features">
+            <div class="app-feature"><span class="app-dot"></span> question wall — add from your phone</div>
+            <div class="app-feature"><span class="app-dot"></span> curiosity display — live updates</div>
+            <div class="app-feature"><span class="app-dot"></span> post-conference: what the room produced</div>
+            <div class="app-feature"><span class="app-dot"></span> one-week directory of who was there</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
