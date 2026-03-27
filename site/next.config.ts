@@ -178,7 +178,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
               "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app",
-              "frame-src 'none'",
+              "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
               "base-uri 'self'",
               "form-action 'self'",
             ].join("; "),
