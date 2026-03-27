@@ -109,6 +109,7 @@ export async function GET(req: NextRequest) {
             subject: step.subject,
             body: step.body,
             orgs,
+            campaignName: campaign.name,
           });
 
           await updateCampaignStep(step.id, {

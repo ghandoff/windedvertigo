@@ -83,6 +83,7 @@ export async function POST(
         body: step.body,
         senderName: body.senderName,
         orgs,
+        campaignName: campaign.name,
         variantBSubject: step.variantBSubject || undefined,
         variantBBody: step.variantBBody || undefined,
       });

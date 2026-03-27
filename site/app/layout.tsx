@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
+import { TrackPageView } from "@/components/track-page-view";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -90,6 +92,8 @@ export default function RootLayout({
           skip to main content
         </a>
         {children}
+        <TrackPageView />
+        <Analytics />
       </body>
     </html>
   );

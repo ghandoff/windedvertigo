@@ -173,11 +173,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app",
+              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app https://vitals.vercel-insights.com",
               "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
               "base-uri 'self'",
               "form-action 'self'",

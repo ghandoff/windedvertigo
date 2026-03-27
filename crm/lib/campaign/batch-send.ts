@@ -6,12 +6,13 @@
  */
 
 import { sendOutreachEmail } from "@/lib/email/resend";
-import { buildEmailHtml } from "@/lib/email/templates";
+import { buildEmailHtml, htmlToPlainText } from "@/lib/email/templates";
 import { createEmailDraft, queryEmailDrafts } from "@/lib/notion/email-drafts";
 import { createActivity } from "@/lib/notion/activities";
 import { createSocialDraft } from "@/lib/notion/social";
 import { updateOutreachStatus, updateConnection } from "@/lib/notion/organizations";
 import { resolveTemplateVars, type TemplateContext } from "./template-vars";
+import { tagLinksWithUtm, buildEmailUtmParams } from "./utm";
 import type { Organization, SocialPlatform } from "@/lib/notion/types";
 
 const BATCH_SIZE = 10;
@@ -64,6 +65,8 @@ export interface BatchSendParams {
   body: string;
   senderName?: string;
   orgs: Organization[];
+  /** Campaign name — used for UTM attribution on outgoing links. */
+  campaignName?: string;
   /** A/B test: variant B subject + body. First half gets A, second half gets B. */
   variantBSubject?: string;
   variantBBody?: string;
@@ -82,6 +85,8 @@ async function sendSingleEmail(
   subject: string,
   body: string,
   senderName: string,
+  campaignName?: string,
+  variant?: "a" | "b",
 ): Promise<"sent" | "skipped"> {
   if (!org.email) return "skipped";
 
@@ -90,16 +95,25 @@ async function sendSingleEmail(
     senderName,
     orgEmail: org.email,
     orgWebsite: org.website,
+    bespokeEmailCopy: org.bespokeEmailCopy,
+    outreachSuggestion: org.outreachSuggestion,
   };
 
   const resolvedSubject = resolveTemplateVars(subject, ctx);
   const resolvedBody = resolveTemplateVars(body, ctx);
-  const html = buildEmailHtml(resolvedBody, { orgName: org.organization, senderName });
+  let html = buildEmailHtml(resolvedBody, { orgName: org.organization, senderName });
+  const text = htmlToPlainText(resolvedBody);
+
+  // Tag windedvertigo.com links with UTM params for campaign attribution
+  if (campaignName) {
+    html = tagLinksWithUtm(html, buildEmailUtmParams(campaignName, variant));
+  }
 
   const result = await sendOutreachEmail({
     to: org.email,
     subject: resolvedSubject,
     html,
+    text,
     tags: [{ name: "org_id", value: org.id }, { name: "source", value: "campaign" }],
   });
 
@@ -152,7 +166,7 @@ async function sendSingleEmail(
 }
 
 export async function batchSendEmails(params: BatchSendParams): Promise<BatchSendResult> {
-  const { subject, body, senderName = "Garrett", orgs, variantBSubject, variantBBody } = params;
+  const { subject, body, senderName = "Garrett", orgs, campaignName, variantBSubject, variantBBody } = params;
   const hasAB = !!(variantBSubject && variantBBody);
   const result: BatchSendResult = { sent: 0, skipped: 0, failed: 0 };
   if (hasAB) {
@@ -177,7 +191,8 @@ export async function batchSendEmails(params: BatchSendParams): Promise<BatchSen
         const isVariantB = hasAB && globalIdx >= midpoint;
         const useSubject = isVariantB ? variantBSubject! : subject;
         const useBody = isVariantB ? variantBBody! : body;
-        return sendSingleEmail(org, useSubject, useBody, senderName);
+        const variant = hasAB ? (isVariantB ? "b" as const : "a" as const) : undefined;
+        return sendSingleEmail(org, useSubject, useBody, senderName, campaignName, variant);
       }),
     );
 
@@ -241,6 +256,8 @@ export async function batchCreateSocialDrafts(
           senderName,
           orgEmail: org.email,
           orgWebsite: org.website,
+          bespokeEmailCopy: org.bespokeEmailCopy,
+          outreachSuggestion: org.outreachSuggestion,
         };
         const resolvedBody = resolveTemplateVars(body, ctx);
 
