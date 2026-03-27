@@ -47,7 +47,7 @@ const cards: HelloCard[] = [
     title: "schedule a playdate",
     description: "pick a time and let\u2019s chat \u2014 no agenda, just curiosity.",
     cta: "book a time",
-    href: null,
+    href: "https://calendar.app.google/Ve5m9aTHQe2vyn6E8",
   },
   {
     id: "packages",
