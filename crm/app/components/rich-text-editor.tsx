@@ -11,9 +11,31 @@ import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   List, ListOrdered, Quote, Link as LinkIcon, Image as ImageIcon,
   AlignLeft, AlignCenter, AlignRight, Undo, Redo, Code,
-  Heading1, Heading2, Minus,
+  Heading1, Heading2, Minus, Tags, ChevronDown, Code2, Link2, ExternalLink,
 } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+interface MergeTag {
+  label: string;
+  value: string;
+  group: string;
+}
+
+const MERGE_TAGS: MergeTag[] = [
+  { group: "contact", label: "org name", value: "{{orgName}}" },
+  { group: "contact", label: "contact name", value: "{{contactName}}" },
+  { group: "contact", label: "org email", value: "{{orgEmail}}" },
+  { group: "contact", label: "org website", value: "{{orgWebsite}}" },
+  { group: "sender", label: "sender name", value: "{{senderName}}" },
+  { group: "bespoke", label: "bespoke email copy", value: "{{bespokeEmailCopy}}" },
+  { group: "bespoke", label: "outreach suggestion", value: "{{outreachSuggestion}}" },
+];
+
+const MERGE_TAG_GROUPS: { key: string; label: string }[] = [
+  { key: "contact", label: "organization" },
+  { key: "sender", label: "sender" },
+  { key: "bespoke", label: "bespoke" },
+];
 
 interface RichTextEditorProps {
   content: string;
@@ -64,6 +86,10 @@ export function RichTextEditor({
   minHeight = 200,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mergeTagOpen, setMergeTagOpen] = useState(false);
+  const mergeTagRef = useRef<HTMLDivElement>(null);
+  const [htmlMode, setHtmlMode] = useState(false);
+  const [htmlSource, setHtmlSource] = useState(content);
 
   const editor = useEditor({
     extensions: [
@@ -105,6 +131,39 @@ export function RichTextEditor({
       editor.commands.setContent(content);
     }
   }, [content, editor]);
+
+  // Close merge tag dropdown on outside click
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (mergeTagRef.current && !mergeTagRef.current.contains(e.target as Node)) {
+        setMergeTagOpen(false);
+      }
+    }
+    if (mergeTagOpen) document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [mergeTagOpen]);
+
+  // When toggling into HTML mode, snapshot current editor HTML
+  const toggleHtmlMode = useCallback(() => {
+    if (!editor) return;
+    if (!htmlMode) {
+      setHtmlSource(editor.getHTML());
+    } else {
+      // Switching back: push HTML source into editor
+      editor.commands.setContent(htmlSource);
+      onChange(htmlSource);
+    }
+    setHtmlMode((v) => !v);
+  }, [editor, htmlMode, htmlSource, onChange]);
+
+  const insertMergeTag = useCallback(
+    (tag: string) => {
+      if (!editor) return;
+      editor.chain().focus().insertContent(tag).run();
+      setMergeTagOpen(false);
+    },
+    [editor],
+  );
 
   const addLink = useCallback(() => {
     if (!editor) return;
@@ -155,6 +214,16 @@ export function RichTextEditor({
       editor.chain().focus().setImage({ src: url }).run();
     }
   }, [editor]);
+
+  const openEmailPopout = useCallback(() => {
+    const html = htmlMode ? htmlSource : editor?.getHTML() ?? "";
+    const style = "body{margin:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}.wrap{max-width:600px;margin:32px auto;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:40px 48px;line-height:1.6;font-size:15px;color:#111}*{box-sizing:border-box;max-width:100%}img{border-radius:4px}a{color:#6366f1}";
+    const doc = `<!doctype html><html><head><meta charset="utf-8"><style>${style}</style></head><body><div class="wrap">${html}</div></body></html>`;
+    const blob = new Blob([doc], { type: "text/html" });
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank", "width=720,height=860,menubar=no,toolbar=no");
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+  }, [htmlMode, htmlSource, editor]);
 
   if (!editor) return null;
 
@@ -294,6 +363,9 @@ export function RichTextEditor({
         <ToolbarButton onClick={addImage} title="upload image">
           <ImageIcon size={s} />
         </ToolbarButton>
+        <ToolbarButton onClick={addImageUrl} title="insert image from URL">
+          <Link2 size={s} />
+        </ToolbarButton>
 
         {/* Horizontal rule (email only) */}
         {mode === "email" && (
@@ -304,10 +376,83 @@ export function RichTextEditor({
             <Minus size={s} />
           </ToolbarButton>
         )}
+
+        {/* HTML source toggle */}
+        <ToolbarButton onClick={toggleHtmlMode} active={htmlMode} title="edit raw HTML / preview">
+          <Code2 size={s} />
+        </ToolbarButton>
+        {/* Email popout preview (always available, not just in HTML mode) */}
+        <ToolbarButton onClick={openEmailPopout} title="open email preview in new window">
+          <ExternalLink size={s} />
+        </ToolbarButton>
+
+        <ToolbarDivider />
+
+        {/* Merge tags dropdown */}
+        <div className="relative" ref={mergeTagRef}>
+          <button
+            type="button"
+            onClick={() => setMergeTagOpen((v) => !v)}
+            title="insert merge tag"
+            className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs font-mono font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <Tags size={s} />
+            <ChevronDown size={10} />
+          </button>
+
+          {mergeTagOpen && (
+            <div className="absolute top-full left-0 mt-1 z-50 bg-popover border rounded-lg shadow-lg min-w-48 py-1 text-sm">
+              {MERGE_TAG_GROUPS.map((group) => {
+                const tags = MERGE_TAGS.filter((t) => t.group === group.key);
+                return (
+                  <div key={group.key}>
+                    <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                      {group.label}
+                    </div>
+                    {tags.map((tag) => (
+                      <button
+                        key={tag.value}
+                        type="button"
+                        className="w-full text-left px-3 py-1.5 hover:bg-accent/10 transition-colors flex items-center justify-between gap-4"
+                        onClick={() => insertMergeTag(tag.value)}
+                      >
+                        <span>{tag.label}</span>
+                        <code className="text-[10px] text-muted-foreground bg-muted px-1 rounded">{tag.value}</code>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Editor content */}
-      <EditorContent editor={editor} />
+      {htmlMode ? (
+        <div className="flex divide-x" style={{ minHeight: minHeight }}>
+          <textarea
+            className="w-1/2 p-3 font-mono text-xs resize-none focus:outline-none bg-muted/20 text-foreground"
+            style={{ minHeight: minHeight }}
+            value={htmlSource}
+            onChange={(e) => {
+              setHtmlSource(e.target.value);
+              onChange(e.target.value);
+            }}
+            spellCheck={false}
+            placeholder="<p>HTML here...</p>"
+          />
+          <iframe
+            className="w-1/2 border-0"
+            style={{ minHeight: minHeight }}
+            sandbox="allow-same-origin"
+            srcDoc={`<!doctype html><html><head><style>body{font-family:inherit;font-size:14px;padding:12px;margin:0;line-height:1.6}*{max-width:100%;box-sizing:border-box}</style></head><body>${htmlSource}</body></html>`}
+            title="HTML preview"
+          />
+        </div>
+      ) : (
+        <EditorContent editor={editor} />
+      )}
 
       {/* Hidden file input for image uploads */}
       <input

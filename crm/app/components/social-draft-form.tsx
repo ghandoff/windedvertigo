@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,17 @@ export function SocialDraftForm() {
   const [content, setContent] = useState("");
   const [platform, setPlatform] = useState<string | null>("linkedin");
   const [saving, setSaving] = useState(false);
+
+  const CHAR_LIMITS: Record<string, number> = {
+    bluesky: 300, linkedin: 3000, twitter: 280,
+    instagram: 2200, facebook: 63206, substack: Infinity,
+  };
+  const plainLen = useMemo(
+    () => content.replace(/<[^>]+>/g, "").replace(/&\w+;/g, " ").trim().length,
+    [content],
+  );
+  const charLimit = CHAR_LIMITS[platform ?? "linkedin"] ?? Infinity;
+  const overLimit = plainLen > charLimit;
 
   async function handleSave() {
     if (!content.trim()) return;
@@ -70,9 +81,9 @@ export function SocialDraftForm() {
           </div>
           <div>
             <Label className="mb-1.5 block">
-              Content
-              <span className="text-muted-foreground font-normal ml-2">
-                {content.length} chars
+              content
+              <span className={`font-normal ml-2 text-xs ${overLimit ? "text-destructive" : "text-muted-foreground"}`}>
+                {plainLen}{charLimit !== Infinity ? `/${charLimit}` : ""} chars
               </span>
             </Label>
             <RichTextEditor

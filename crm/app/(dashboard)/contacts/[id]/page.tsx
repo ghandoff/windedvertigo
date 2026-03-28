@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AiHealthBadge } from "@/app/components/ai-health-badge";
 import { AiActivityInsight } from "@/app/components/ai-activity-insight";
+import { DeleteContactButton } from "@/app/components/delete-contact-button";
 
 export const revalidate = 300;
 
@@ -71,6 +72,7 @@ export default async function ContactDetailPage({ params }: Props) {
       </Link>
 
       <PageHeader title={contact.name}>
+        <DeleteContactButton contactId={contact.id} contactName={contact.name} />
         <ContactEditDialog contact={contact} />
         <LogActivityDialog
           contactId={contact.id}

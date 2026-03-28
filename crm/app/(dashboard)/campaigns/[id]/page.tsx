@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { StepTimeline } from "@/app/components/step-timeline";
 import { AudiencePanel } from "@/app/components/audience-panel";
 import { DeleteCampaignButton } from "@/app/components/delete-campaign-button";
+import { EditCampaignButton } from "@/app/components/edit-campaign-button";
 
 export const revalidate = 300;
 
@@ -68,6 +69,7 @@ export default async function CampaignDetailPage({ params }: Props) {
           >
             analytics
           </Link>
+          <EditCampaignButton campaign={campaign} />
           <DeleteCampaignButton campaignId={id} campaignName={campaign.name} redirect />
           <Badge variant="outline" className={STATUS_COLORS[campaign.status] ?? ""}>
             {campaign.status}

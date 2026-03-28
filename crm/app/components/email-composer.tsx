@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Search, Building2, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
+import {
+  Send, Search, Building2, CheckCircle2, AlertCircle, Sparkles, X, UserPlus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "./rich-text-editor";
@@ -14,7 +16,13 @@ import { SaveAsTemplate } from "./save-as-template";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import type { Organization } from "@/lib/notion/types";
+import type { Organization, Contact } from "@/lib/notion/types";
+
+interface Recipient {
+  email: string;
+  name: string;
+  contactId?: string;
+}
 
 interface EmailComposerProps {
   preselectedOrgId?: string;
@@ -25,13 +33,19 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
   const [isPending, startTransition] = useTransition();
 
   // Org search + selection
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Organization[]>([]);
+  const [orgSearch, setOrgSearch] = useState("");
+  const [orgResults, setOrgResults] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
-  const [showResults, setShowResults] = useState(false);
+  const [showOrgResults, setShowOrgResults] = useState(false);
+
+  // Contact / recipient state
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  const [contactSearch, setContactSearch] = useState("");
+  const [contactResults, setContactResults] = useState<Contact[]>([]);
+  const [showContactResults, setShowContactResults] = useState(false);
+  const [loadingOrgContacts, setLoadingOrgContacts] = useState(false);
 
   // Email fields
-  const [to, setTo] = useState("");
   const [subject, setSubject] = useState("From winded.vertigo");
   const [body, setBody] = useState("");
   const [senderName, setSenderName] = useState("");
@@ -43,6 +57,9 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
   const [aiTone, setAiTone] = useState<string>("warm");
   const [aiPurpose, setAiPurpose] = useState<string>("intro");
 
+  // Ref to focus org search from the sidebar empty-state card
+  const orgSearchRef = useRef<HTMLInputElement>(null);
+
   // Send state
   const [sendStatus, setSendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [sendMessage, setSendMessage] = useState("");
@@ -52,40 +69,86 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
     if (preselectedOrgId) {
       fetch(`/api/organizations/${preselectedOrgId}`)
         .then((res) => res.json())
-        .then((org) => {
-          if (org.id) selectOrg(org);
-        })
+        .then((org) => { if (org.id) selectOrg(org); })
         .catch(() => {});
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preselectedOrgId]);
 
   // Search orgs
   useEffect(() => {
-    if (searchQuery.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    const timeout = setTimeout(() => {
-      fetch(`/api/organizations?search=${encodeURIComponent(searchQuery)}`)
-        .then((res) => res.json())
-        .then((data) => setSearchResults(data.data ?? []))
-        .catch(() => setSearchResults([]));
+    if (orgSearch.length < 2) { setOrgResults([]); return; }
+    const t = setTimeout(() => {
+      fetch(`/api/organizations?search=${encodeURIComponent(orgSearch)}`)
+        .then((r) => r.json())
+        .then((d) => setOrgResults(d.data ?? []))
+        .catch(() => setOrgResults([]));
     }, 300);
-    return () => clearTimeout(timeout);
-  }, [searchQuery]);
+    return () => clearTimeout(t);
+  }, [orgSearch]);
 
-  function selectOrg(org: Organization) {
+  // Search contacts
+  useEffect(() => {
+    if (contactSearch.length < 2) { setContactResults([]); return; }
+    const t = setTimeout(() => {
+      fetch(`/api/contacts?search=${encodeURIComponent(contactSearch)}`)
+        .then((r) => r.json())
+        .then((d) => setContactResults((d.data ?? []).filter((c: Contact) => c.email)))
+        .catch(() => setContactResults([]));
+    }, 300);
+    return () => clearTimeout(t);
+  }, [contactSearch]);
+
+  async function selectOrg(org: Organization) {
     setSelectedOrg(org);
-    setTo(org.email || "");
     setSubject(org.subject || "From winded.vertigo");
-    setBody(org.bespokeEmailCopy || "");
-    setSearchQuery("");
-    setShowResults(false);
+    // Do NOT auto-fill body — user composes their own email.
+    // Bespoke copy is available via the {{bespokeEmailCopy}} merge tag.
+    setOrgSearch("");
+    setShowOrgResults(false);
+
+    // Auto-load contacts linked to this org
+    if (org.contactIds?.length) {
+      setLoadingOrgContacts(true);
+      try {
+        const fetched = await Promise.all(
+          org.contactIds.map((cid) =>
+            fetch(`/api/contacts/${cid}`).then((r) => r.json()).catch(() => null)
+          )
+        );
+        const withEmail: Recipient[] = fetched
+          .filter((c) => c?.id && c.email)
+          .map((c) => ({ email: c.email, name: c.name, contactId: c.id }));
+        // Merge: keep any manually-added recipients, add org contacts that aren't already there
+        setRecipients((prev) => {
+          const existing = new Set(prev.map((r) => r.email));
+          return [...prev, ...withEmail.filter((r) => !existing.has(r.email))];
+        });
+      } catch {
+        // non-critical
+      } finally {
+        setLoadingOrgContacts(false);
+      }
+    }
   }
+
+  function addContact(contact: Contact) {
+    if (!contact.email) return;
+    setRecipients((prev) => {
+      if (prev.some((r) => r.email === contact.email)) return prev;
+      return [...prev, { email: contact.email, name: contact.name, contactId: contact.id }];
+    });
+    setContactSearch("");
+    setContactResults([]);
+    setShowContactResults(false);
+  }
+
+  const removeRecipient = useCallback((email: string) => {
+    setRecipients((prev) => prev.filter((r) => r.email !== email));
+  }, []);
 
   async function handleAiDraft() {
     if (!selectedOrg) return;
-    // Confirm if user has already written content
     if (body.trim() && body !== selectedOrg.bespokeEmailCopy) {
       if (!window.confirm("This will replace your current email body. Continue?")) return;
     }
@@ -120,7 +183,8 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
   }
 
   async function handleSend() {
-    if (!selectedOrg || !to || !body) return;
+    const toList = recipients.map((r) => r.email).filter(Boolean);
+    if (!body || toList.length === 0) return;
     setSendStatus("sending");
     setSendMessage("");
 
@@ -129,8 +193,8 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          organizationId: selectedOrg.id,
-          to,
+          organizationId: selectedOrg?.id,
+          to: toList,
           subject,
           body,
           senderName: senderName || undefined,
@@ -139,7 +203,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
       const data = await res.json();
       if (res.ok) {
         setSendStatus("sent");
-        setSendMessage(`sent to ${to}`);
+        setSendMessage(`sent to ${toList.length} recipient${toList.length !== 1 ? "s" : ""}`);
         startTransition(() => router.refresh());
       } else {
         setSendStatus("error");
@@ -151,19 +215,31 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
     }
   }
 
+  const toList = recipients.map((r) => r.email).filter(Boolean);
+  const canSend = toList.length > 0 && !!body && sendStatus !== "sending";
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Main — compose area */}
       <div className="lg:col-span-2 space-y-4">
-        {/* Org search */}
+
+        {/* Org selector (optional — for merge tags + auto-load contacts) */}
         <div className="relative">
-          <Label className="mb-1.5 block">organization</Label>
+          <Label className="mb-1.5 block">
+            organization
+            <span className="text-muted-foreground font-normal ml-2 text-xs">
+              (optional — sets merge tags and loads linked contacts)
+            </span>
+          </Label>
           {selectedOrg ? (
             <div className="flex items-center gap-2 p-2 rounded-md border bg-muted/50">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
               <span className="font-medium text-sm">{selectedOrg.organization}</span>
+              {loadingOrgContacts && (
+                <span className="text-xs text-muted-foreground ml-1">loading contacts…</span>
+              )}
               <button
-                onClick={() => { setSelectedOrg(null); setTo(""); setBody(""); }}
+                onClick={() => { setSelectedOrg(null); }}
                 className="ml-auto text-xs text-muted-foreground hover:text-foreground"
               >
                 change
@@ -173,15 +249,16 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
+                ref={orgSearchRef}
                 placeholder="search organizations..."
-                value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setShowResults(true); }}
-                onFocus={() => setShowResults(true)}
+                value={orgSearch}
+                onChange={(e) => { setOrgSearch(e.target.value); setShowOrgResults(true); }}
+                onFocus={() => setShowOrgResults(true)}
                 className="pl-8"
               />
-              {showResults && searchResults.length > 0 && (
+              {showOrgResults && orgResults.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-auto">
-                  {searchResults.map((org) => (
+                  {orgResults.map((org) => (
                     <button
                       key={org.id}
                       onClick={() => selectOrg(org)}
@@ -201,15 +278,64 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
           )}
         </div>
 
-        {/* To */}
+        {/* Recipients */}
         <div>
-          <Label className="mb-1.5 block">to</Label>
-          <Input
-            type="email"
-            placeholder="recipient@example.com"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-          />
+          <Label className="mb-1.5 block">
+            recipients
+            {recipients.length > 0 && (
+              <span className="text-muted-foreground font-normal ml-2 text-xs">
+                {recipients.length} selected
+              </span>
+            )}
+          </Label>
+
+          {/* Recipient list */}
+          {recipients.length > 0 && (
+            <div className="mb-2 border rounded-md divide-y bg-muted/10">
+              {recipients.map((r) => (
+                <div key={r.email} className="flex items-center gap-3 px-3 py-2 text-sm">
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium">{r.name}</span>
+                    <span className="text-muted-foreground ml-2 text-xs truncate">{r.email}</span>
+                  </div>
+                  <button
+                    onClick={() => removeRecipient(r.email)}
+                    className="text-muted-foreground hover:text-destructive shrink-0"
+                    title="remove recipient"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Contact search to add more */}
+          <div className="relative">
+            <UserPlus className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="search contacts to add..."
+              value={contactSearch}
+              onChange={(e) => { setContactSearch(e.target.value); setShowContactResults(true); }}
+              onFocus={() => setShowContactResults(true)}
+              onBlur={() => setTimeout(() => setShowContactResults(false), 150)}
+              className="pl-8"
+            />
+            {showContactResults && contactResults.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-48 overflow-auto">
+                {contactResults.map((c) => (
+                  <button
+                    key={c.id}
+                    onMouseDown={() => addContact(c)}
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
+                  >
+                    <span className="font-medium">{c.name}</span>
+                    <span className="text-muted-foreground text-xs">{c.email}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Subject */}
@@ -235,27 +361,14 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
         {/* Body */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <Label>
-              body
-              {selectedOrg?.bespokeEmailCopy && (
-                <span className="text-muted-foreground font-normal ml-2">
-                  (pre-filled from bespoke copy)
-                </span>
-              )}
-            </Label>
+            <Label>body</Label>
             <div className="flex items-center gap-2">
-              {aiError && (
-                <span className="text-xs text-destructive">{aiError}</span>
-              )}
+              {aiError && <span className="text-xs text-destructive">{aiError}</span>}
               {aiCost !== null && (
-                <span className="text-xs text-muted-foreground">
-                  AI cost: ${aiCost.toFixed(4)}
-                </span>
+                <span className="text-xs text-muted-foreground">AI cost: ${aiCost.toFixed(4)}</span>
               )}
               <Select value={aiTone} onValueChange={(v) => v && setAiTone(v)}>
-                <SelectTrigger className="w-[100px] h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-[100px] h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="warm" className="text-xs">warm</SelectItem>
                   <SelectItem value="professional" className="text-xs">professional</SelectItem>
@@ -264,9 +377,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
                 </SelectContent>
               </Select>
               <Select value={aiPurpose} onValueChange={(v) => v && setAiPurpose(v)}>
-                <SelectTrigger className="w-[110px] h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-[110px] h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="intro" className="text-xs">intro</SelectItem>
                   <SelectItem value="follow-up" className="text-xs">follow-up</SelectItem>
@@ -282,14 +393,7 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
                 onClick={handleAiDraft}
                 disabled={!selectedOrg || aiDrafting}
               >
-                {aiDrafting ? (
-                  "drafting..."
-                ) : (
-                  <>
-                    <Sparkles className="h-3.5 w-3.5 mr-1" />
-                    AI draft
-                  </>
-                )}
+                {aiDrafting ? "drafting..." : <><Sparkles className="h-3.5 w-3.5 mr-1" />AI draft</>}
               </Button>
             </div>
           </div>
@@ -304,23 +408,17 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
 
         {/* Send button + save as template */}
         <div className="flex items-center gap-3">
-          <Button
-            onClick={handleSend}
-            disabled={!selectedOrg || !to || !body || sendStatus === "sending"}
-            size="lg"
-          >
+          <Button onClick={handleSend} disabled={!canSend} size="lg">
             {sendStatus === "sending" ? (
               "sending..."
             ) : (
               <>
                 <Send className="h-4 w-4 mr-1.5" />
-                send email
+                send to {toList.length} recipient{toList.length !== 1 ? "s" : ""}
               </>
             )}
           </Button>
-          {body && (
-            <SaveAsTemplate subject={subject} body={body} channel="email" />
-          )}
+          {body && <SaveAsTemplate subject={subject} body={body} channel="email" />}
           {sendStatus === "sent" && (
             <span className="flex items-center gap-1.5 text-sm text-green-600">
               <CheckCircle2 className="h-4 w-4" />
@@ -348,12 +446,6 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
                 <StatusBadge value={selectedOrg.connection} type="connection" />
                 <StatusBadge value={selectedOrg.outreachStatus} type="outreach" />
               </div>
-              {selectedOrg.email && (
-                <div>
-                  <span className="text-muted-foreground">email</span>
-                  <p className="font-medium">{selectedOrg.email}</p>
-                </div>
-              )}
               {selectedOrg.friendship && (
                 <div>
                   <span className="text-muted-foreground">friendship</span>
@@ -372,19 +464,16 @@ export function EmailComposer({ preselectedOrgId }: EmailComposerProps) {
                   <p className="font-medium">{selectedOrg.outreachSuggestion}</p>
                 </div>
               )}
-              {selectedOrg.outreachTarget && (
-                <div>
-                  <span className="text-muted-foreground">outreach target</span>
-                  <p className="font-medium">{selectedOrg.outreachTarget}</p>
-                </div>
-              )}
             </CardContent>
           </Card>
         ) : (
-          <Card>
+          <Card
+            className="cursor-pointer hover:bg-muted/30 transition-colors"
+            onClick={() => { orgSearchRef.current?.focus(); orgSearchRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+          >
             <CardContent className="py-12 text-center text-muted-foreground">
               <Building2 className="h-8 w-8 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">select an organization to see context and pre-fill email copy</p>
+              <p className="text-sm">click to select an organization — loads contacts and sets merge tags</p>
             </CardContent>
           </Card>
         )}

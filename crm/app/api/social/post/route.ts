@@ -16,7 +16,7 @@ import { createInstagramPost, INSTAGRAM_CHAR_LIMIT } from "@/lib/social/meta";
 import { createSubstackDraft } from "@/lib/social/substack";
 import { updateSocialDraft } from "@/lib/notion/social";
 
-type Platform = "bluesky" | "linkedin" | "instagram" | "facebook" | "substack";
+type Platform = "bluesky" | "linkedin" | "instagram" | "facebook" | "substack" | "twitter";
 
 const PLATFORM_LIMITS: Record<Platform, number> = {
   bluesky: BLUESKY_CHAR_LIMIT,
@@ -24,6 +24,7 @@ const PLATFORM_LIMITS: Record<Platform, number> = {
   instagram: INSTAGRAM_CHAR_LIMIT,
   facebook: FACEBOOK_CHAR_LIMIT,
   substack: Infinity,
+  twitter: 280,
 };
 
 export async function POST(req: NextRequest) {
@@ -38,7 +39,11 @@ export async function POST(req: NextRequest) {
   const draftId = body.draftId as string | undefined;
 
   if (!PLATFORM_LIMITS[platform]) {
-    return error(`unsupported platform: ${platform}. supported: bluesky, linkedin, instagram, facebook, substack`);
+    return error(`unsupported platform: ${platform}. supported: bluesky, linkedin, instagram, facebook, substack, twitter`);
+  }
+
+  if (platform === "twitter") {
+    return error("Twitter/X posting is not yet configured. Add TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, and TWITTER_ACCESS_SECRET to your environment variables.", 501);
   }
 
   try {

@@ -13,6 +13,7 @@ import { StepCustomizer, type WizardStep } from "./step-customizer";
 import { AudienceBuilderInline } from "./audience-builder-inline";
 import { AudienceList } from "./audience-list";
 import { LaunchChecklist } from "./launch-checklist";
+import { CampaignTutorial, TutorialToggle, useTutorial } from "./campaign-tutorial";
 import { useMembers } from "@/lib/pwa/use-members";
 import type { Blueprint, StepChannel, AudienceFilter } from "@/lib/notion/types";
 
@@ -39,6 +40,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
   const router = useRouter();
   const members = useMembers();
   const [, startTransition] = useTransition();
+  const { enabled: tutorialEnabled, toggle: toggleTutorial } = useTutorial();
 
   // Load preselected template and skip to step 3 (audience)
   useEffect(() => {
@@ -76,9 +78,11 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
 
   // Step 3: audience
   const [audienceFilters, setAudienceFilters] = useState<AudienceFilter>({});
-  const [audienceCount, setAudienceCount] = useState(0);
+  const [audienceOrgCount, setAudienceOrgCount] = useState(0);
+  const [audienceContactCount, setAudienceContactCount] = useState(0);
   const [addedOrgIds, setAddedOrgIds] = useState<string[]>([]);
   const [removedOrgIds, setRemovedOrgIds] = useState<string[]>([]);
+  const [addedContactIds, setAddedContactIds] = useState<string[]>([]);
 
   // Step 4: steps
   const [steps, setSteps] = useState<WizardStep[]>([]);
@@ -192,8 +196,11 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
 
   return (
     <div className="max-w-2xl">
-      {/* Progress bar */}
-      <div className="flex items-center gap-2 mb-8">
+      {/* Progress bar + tutorial toggle */}
+      <div className="flex items-center gap-2 mb-2">
+        <TutorialToggle enabled={tutorialEnabled} onToggle={toggleTutorial} />
+      </div>
+      <div className="flex items-center gap-2 mb-6">
         {stepLabels.map((label, i) => {
           const num = (i + 1) as WizardStepNum;
           const isActive = num === currentStep;
@@ -223,6 +230,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
       {/* Step 1: Channels + Type */}
       {currentStep === 1 && (
         <div className="space-y-6">
+          <CampaignTutorial step={1} enabled={tutorialEnabled} />
           <div>
             <h2 className="text-lg font-semibold mb-1">what channels will this campaign use?</h2>
             <p className="text-sm text-muted-foreground mb-4">select one or more</p>
@@ -281,6 +289,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
       {/* Step 2: Blueprint */}
       {currentStep === 2 && (
         <div className="space-y-4">
+          <CampaignTutorial step={2} enabled={tutorialEnabled} />
           <h2 className="text-lg font-semibold">choose a blueprint</h2>
           <BlueprintPicker
             selectedChannels={selectedChannels}
@@ -296,31 +305,29 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
       {/* Step 3: Audience */}
       {currentStep === 3 && (
         <div className="space-y-4">
+          <CampaignTutorial step={3} enabled={tutorialEnabled} />
           <h2 className="text-lg font-semibold">target audience</h2>
           <AudienceBuilderInline
             value={audienceFilters}
             onChange={(f) => {
               setAudienceFilters(f);
-              setRemovedOrgIds([]); // reset exclusions when filters change
-              // Fetch count
-              fetch("/api/audience/preview", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(f),
-              })
-                .then((r) => r.json())
-                .then((d) => setAudienceCount(d.count ?? 0))
-                .catch(() => {});
+              setRemovedOrgIds([]);
             }}
           />
 
-          {/* Full audience list with add/remove */}
+          {/* Full audience list with add/remove orgs + contacts */}
           <AudienceList
             filters={audienceFilters}
             addedIds={addedOrgIds}
             removedIds={removedOrgIds}
             onAddedChange={setAddedOrgIds}
             onRemovedChange={setRemovedOrgIds}
+            addedContactIds={addedContactIds}
+            onAddedContactsChange={setAddedContactIds}
+            onCountChange={(orgs, contacts) => {
+              setAudienceOrgCount(orgs);
+              setAudienceContactCount(contacts);
+            }}
           />
 
           <div className="flex items-center gap-3">
@@ -328,7 +335,10 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
               <ArrowLeft className="h-4 w-4 mr-1.5" /> back
             </Button>
             <Button onClick={() => setCurrentStep(4)}>
-              next ({audienceCount - removedOrgIds.length + addedOrgIds.length} orgs) <ArrowRight className="h-4 w-4 ml-1.5" />
+              next ({audienceOrgCount} orgs
+              {audienceContactCount > 0 && ` · ${audienceContactCount} contacts`}
+              {addedContactIds.length > 0 && ` · ${addedContactIds.length} individual`})
+              <ArrowRight className="h-4 w-4 ml-1.5" />
             </Button>
           </div>
         </div>
@@ -337,6 +347,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
       {/* Step 4: Customize Steps */}
       {currentStep === 4 && (
         <div className="space-y-4">
+          <CampaignTutorial step={4} enabled={tutorialEnabled} />
           <h2 className="text-lg font-semibold">
             campaign steps
             {selectedBlueprint && (
@@ -360,6 +371,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
       {/* Step 5: Review + Create */}
       {currentStep === 5 && (
         <div className="space-y-4">
+          <CampaignTutorial step={5} enabled={tutorialEnabled} />
           <h2 className="text-lg font-semibold">review & create</h2>
 
           <div className="space-y-3">
@@ -402,7 +414,7 @@ export function CampaignWizard({ preselectedTemplateId }: CampaignWizardProps) {
             selectedChannels={selectedChannels}
             blueprintName={selectedBlueprint?.name}
             audienceFilters={audienceFilters}
-            audienceCount={audienceCount - removedOrgIds.length}
+            audienceCount={audienceOrgCount}
             addedCount={addedOrgIds.length}
             removedCount={removedOrgIds.length}
             stepCount={steps.length}
