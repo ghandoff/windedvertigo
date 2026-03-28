@@ -71,6 +71,17 @@ em { font-style: italic; }
 .logo { display: block; }
 .logo-img { width: 200px; height: auto; }
 
+/* ── wobble nudge ─────────────────────────────────────────────── */
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+.hero-nav a:first-child,
+.nav a:first-child { animation: wobble 1.5s ease-in-out infinite; display: inline-block; }
+.hero-nav a:first-child:hover,
+.nav a:first-child:hover { animation: none; }
+
 /* ── navigation ───────────────────────────────────────────────── */
 .nav { display: flex; gap: 30px; }
 .nav a { font-family: var(--font-primary); font-size: 32px; font-weight: 800; padding: var(--space-xs) 0; text-transform: lowercase; color: var(--text-primary); transition: color 0.2s ease; }
@@ -79,7 +90,7 @@ em { font-style: italic; }
 .nav-toggle { display: none; background: none; border: none; color: var(--text-primary); cursor: pointer; padding: var(--space-xs); font-size: 1.75rem; }
 
 /* home page overrides */
-main.home { padding-top: 0; }
+main.home { padding-top: 140px; }
 main.home > .container { flex: 1; display: flex; flex-direction: column; }
 
 main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; flex-direction: column; }
