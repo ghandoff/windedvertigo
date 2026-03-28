@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import type { PackData, ModalAsset } from "@/lib/notion";
 import styles from "./package-builder-wizard.module.css";
 import { AssetModal } from "./asset-modal";
@@ -266,11 +266,34 @@ function Matrix({ state, expanded = false }: { state: WizardState; expanded?: bo
 }
 
 function EmailPackageForm({ state }: { state: WizardState }) {
-  const [expanded, setExpanded] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  const quadrant = getQuadrant(state);
+  const quadrantLabel = quadrant
+    ? quadrant.replace("-", " × ")
+    : "your";
+
+  const closeModal = useCallback(() => {
+    setShowModal(false);
+  }, []);
+
+  // Escape key + body scroll lock
+  useEffect(() => {
+    if (!showModal) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal();
+    };
+    document.addEventListener("keydown", handler);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handler);
+      document.body.style.overflow = "";
+    };
+  }, [showModal, closeModal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -286,7 +309,7 @@ function EmailPackageForm({ state }: { state: WizardState }) {
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim(),
-          quadrant: getQuadrant(state),
+          quadrant,
           focus: state.focus,
           goals: state.goals,
         }),
@@ -301,63 +324,95 @@ function EmailPackageForm({ state }: { state: WizardState }) {
       }
 
       setStatus("sent");
+      // Auto-close after 2s
+      setTimeout(() => {
+        setShowModal(false);
+        // Reset for next use
+        setTimeout(() => setStatus("idle"), 300);
+      }, 2000);
     } catch {
       setStatus("error");
       setErrorMsg("network error — please try again");
     }
   };
 
-  if (status === "sent") {
-    return (
-      <div className={`${styles.ctaBtn} ${styles.secondary}`} style={{ cursor: "default", textAlign: "center" }}>
-        check your inbox
-      </div>
-    );
-  }
-
-  if (!expanded) {
-    return (
+  return (
+    <>
       <button
         className={`${styles.ctaBtn} ${styles.secondary}`}
-        onClick={() => setExpanded(true)}
+        onClick={() => setShowModal(true)}
       >
         email my package
       </button>
-    );
-  }
 
-  return (
-    <form onSubmit={handleSubmit} className={styles.emailForm}>
-      <input
-        type="text"
-        placeholder="first name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        autoFocus
-        className={styles.emailInput}
-      />
-      <input
-        type="email"
-        placeholder="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        className={styles.emailInput}
-      />
-      <button
-        type="submit"
-        disabled={status === "sending"}
-        className={`${styles.ctaBtn} ${styles.secondary}`}
-      >
-        {status === "sending" ? "sending…" : "send"}
-      </button>
-      {status === "error" && (
-        <p style={{ fontSize: 12, color: "var(--wv-redwood, #b15043)", margin: "6px 0 0", gridColumn: "1 / -1" }}>
-          {errorMsg}
-        </p>
+      {showModal && (
+        <div
+          className={styles.emailOverlay}
+          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="email your package"
+        >
+          <div className={styles.emailModal}>
+            <button className={styles.emailClose} onClick={closeModal} aria-label="close">
+              ×
+            </button>
+
+            {status === "sent" ? (
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <p style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>check your inbox</p>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  your {quadrantLabel} package is on its way
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, textTransform: "lowercase" }}>
+                  email your package
+                </h3>
+
+                <input
+                  type="text"
+                  placeholder="first name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoFocus
+                  className={styles.emailInput}
+                />
+                <input
+                  type="email"
+                  placeholder="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className={styles.emailInput}
+                />
+
+                <button
+                  type="submit"
+                  disabled={status === "sending"}
+                  className={`${styles.ctaBtn} ${styles.secondary}`}
+                  style={{ width: "100%", marginTop: 4 }}
+                >
+                  {status === "sending" ? "sending…" : "send package →"}
+                </button>
+
+                {status === "error" && (
+                  <p style={{ fontSize: 12, color: "var(--wv-redwood, #b15043)", margin: "10px 0 0", textAlign: "center" }}>
+                    {errorMsg}
+                  </p>
+                )}
+
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 16, textAlign: "center" }}>
+                  includes your {quadrantLabel} package as PDF
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
       )}
-    </form>
+    </>
   );
 }
 
