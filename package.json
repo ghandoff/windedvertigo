@@ -11,7 +11,9 @@
     "dev:harbour": "npm run dev -w harbour",
     "build:harbour": "npm run build -w harbour",
     "dev:crm": "npm run dev -w crm",
-    "build:crm": "npm run build -w crm"
+    "build:crm": "npm run build -w crm",
+    "deploy:crm": "bash scripts/deploy-crm.sh",
+    "deploy:crm:preview": "bash scripts/deploy-crm.sh --preview"
   },
   "dependencies": {
     "@notionhq/client": "^5.14.0"
