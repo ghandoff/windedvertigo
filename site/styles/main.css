@@ -79,7 +79,7 @@ em { font-style: italic; }
   75% { transform: rotate(3deg); }
 }
 .hero-nav a:first-child,
-.nav a:first-child { animation: wobble 1.5s ease-in-out infinite; display: inline-block; }
+.nav a:first-child { animation: wobble 1.5s ease-in-out infinite; display: inline-block; will-change: transform; }
 .hero-nav a:first-child:hover,
 .nav a:first-child:hover { animation: none; }
 
@@ -215,9 +215,10 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   .nav a { font-size: 20px; }
   .nav-toggle { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; font-size: 2rem; }
 
-  /* 100vh on mobile Safari includes hidden browser chrome — 100dvh
-     matches the *visible* viewport so the footer stays in view. */
-  body { min-height: 100dvh; }
+  /* 100vh on mobile Safari includes hidden browser chrome — 100svh
+     is the smallest viewport (bar visible), keeping the footer in view
+     without the layout recalcs that dvh causes (which janks animations). */
+  body { min-height: 100svh; }
   main.home { padding-top: 80px; }
   .hero-nav { flex-direction: column; gap: var(--space-sm); }
   .hero-nav a { font-size: 2.5rem; }
