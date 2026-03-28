@@ -7,9 +7,18 @@
 
 import type { DateRange } from "./types";
 
-/** Build a rich_text property from a plain string. */
+/** Build a rich_text property from a plain string.
+ *  Notion limits each text segment to 2000 chars; chunks automatically. */
 export function buildRichText(value: string) {
-  return { rich_text: [{ text: { content: value } }] };
+  const LIMIT = 2000;
+  if (value.length <= LIMIT) {
+    return { rich_text: [{ text: { content: value } }] };
+  }
+  const chunks: { text: { content: string } }[] = [];
+  for (let i = 0; i < value.length; i += LIMIT) {
+    chunks.push({ text: { content: value.slice(i, i + LIMIT) } });
+  }
+  return { rich_text: chunks };
 }
 
 /** Build a title property from a plain string. */

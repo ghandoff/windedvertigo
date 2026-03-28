@@ -7,11 +7,13 @@
 
 import { sendOutreachEmail } from "@/lib/email/resend";
 import { buildEmailHtml, htmlToPlainText } from "@/lib/email/templates";
-import { createEmailDraft, queryEmailDrafts } from "@/lib/notion/email-drafts";
+import { buildUnsubscribeUrl, buildViewInBrowserUrl } from "@/lib/email/unsubscribe";
+import { createEmailDraft, updateEmailDraft, queryEmailDrafts } from "@/lib/notion/email-drafts";
 import { createActivity } from "@/lib/notion/activities";
 import { createSocialDraft } from "@/lib/notion/social";
 import { updateOutreachStatus, updateConnection } from "@/lib/notion/organizations";
 import { resolveTemplateVars, type TemplateContext } from "./template-vars";
+import { rehostImages } from "@/lib/email/rehost-images";
 import { tagLinksWithUtm, buildEmailUtmParams } from "./utm";
 import type { Organization, SocialPlatform } from "@/lib/notion/types";
 
@@ -90,6 +92,20 @@ async function sendSingleEmail(
 ): Promise<"sent" | "skipped"> {
   if (!org.email) return "skipped";
 
+  const unsubscribeUrl = buildUnsubscribeUrl(org.id);
+
+  // Pre-create draft to get its ID for the "view in browser" URL
+  const draft = await createEmailDraft({
+    subject: "pending",
+    body: "",
+    status: "sending",
+    organizationId: org.id,
+    sentAt: new Date().toISOString(),
+    opens: 0,
+    clicks: 0,
+  });
+  const viewInBrowserUrl = buildViewInBrowserUrl(draft.id);
+
   const ctx: TemplateContext = {
     orgName: org.organization,
     senderName,
@@ -97,11 +113,14 @@ async function sendSingleEmail(
     orgWebsite: org.website,
     bespokeEmailCopy: org.bespokeEmailCopy,
     outreachSuggestion: org.outreachSuggestion,
+    unsubscribeUrl,
+    viewInBrowserUrl,
   };
 
   const resolvedSubject = resolveTemplateVars(subject, ctx);
   const resolvedBody = resolveTemplateVars(body, ctx);
-  let html = buildEmailHtml(resolvedBody, { orgName: org.organization, senderName });
+  const rehostedBody = await rehostImages(resolvedBody);
+  let html = buildEmailHtml(rehostedBody, { orgName: org.organization, senderName, unsubscribeUrl, viewInBrowserUrl });
   const text = htmlToPlainText(resolvedBody);
 
   // Tag windedvertigo.com links with UTM params for campaign attribution
@@ -119,16 +138,12 @@ async function sendSingleEmail(
 
   const resendMessageId = result.data?.id ?? "";
 
-  // Record in email drafts DB
-  await createEmailDraft({
+  // Update the pre-created draft with resolved content and Resend message ID
+  await updateEmailDraft(draft.id, {
     subject: resolvedSubject,
     body: resolvedBody,
     status: "sent",
-    organizationId: org.id,
-    sentAt: new Date().toISOString(),
     resendMessageId,
-    opens: 0,
-    clicks: 0,
   });
 
   // Advance outreach status if early stage

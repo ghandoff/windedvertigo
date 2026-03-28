@@ -90,7 +90,8 @@ export type OutreachStatus =
   | "Contacted"
   | "In conversation"
   | "Proposal sent"
-  | "Active client";
+  | "Active client"
+  | "Opted out";
 
 export type Quadrant =
   | "Design + Deploy"
@@ -362,7 +363,7 @@ export interface CrmEvent {
 
 // ── email & social drafts ─────────────────────────────────
 
-export type EmailDraftStatus = "draft" | "scheduled" | "sent" | "failed";
+export type EmailDraftStatus = "draft" | "scheduled" | "sending" | "sent" | "failed";
 
 export interface EmailDraft {
   id: string;

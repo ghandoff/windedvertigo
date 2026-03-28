@@ -1,8 +1,11 @@
 /**
  * Template variable resolver for campaign emails.
  *
- * Supports {{orgName}}, {{contactName}}, {{senderName}}, {{orgEmail}}, {{orgWebsite}}.
- * Case-insensitive matching. Unknown variables are left as-is.
+ * Supports {{orgName}}, {{contactName}}, {{senderName}}, {{orgEmail}}, {{orgWebsite}},
+ * {{unsubscribeUrl}}, {{viewInBrowserUrl}}.
+ *
+ * Also handles space-padded Mailchimp-style {{ var }} tags — resolves known vars
+ * and strips unknown ones so they never appear literally in sent emails.
  */
 
 export interface TemplateContext {
@@ -11,6 +14,10 @@ export interface TemplateContext {
   senderName?: string;
   orgEmail?: string;
   orgWebsite?: string;
+  bespokeEmailCopy?: string;
+  outreachSuggestion?: string;
+  unsubscribeUrl?: string;
+  viewInBrowserUrl?: string;
 }
 
 const VAR_MAP: Record<string, keyof TemplateContext> = {
@@ -19,12 +26,25 @@ const VAR_MAP: Record<string, keyof TemplateContext> = {
   sendername: "senderName",
   orgemail: "orgEmail",
   orgwebsite: "orgWebsite",
+  bespokeemailcopy: "bespokeEmailCopy",
+  outreachsuggestion: "outreachSuggestion",
+  unsubscribeurl: "unsubscribeUrl",
+  viewinbrowserurl: "viewInBrowserUrl",
+  // Mailchimp-style aliases — map to our equivalents or strip
+  view_in_browser: "viewInBrowserUrl",
+  update_preferences: "unsubscribeUrl",
+  unsubscribe: "unsubscribeUrl",
+  unsubscribe_link: "unsubscribeUrl",
 };
 
+/** Resolve both `{{varName}}` and `{{ var_name }}` (space-padded) syntax. */
 export function resolveTemplateVars(template: string, ctx: TemplateContext): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (match, varName: string) => {
-    const key = VAR_MAP[varName.toLowerCase()];
-    if (key && ctx[key]) return ctx[key]!;
-    return match; // leave unknown vars as-is
-  });
+  // Match {{varName}} or {{ var_name }} — word chars + underscores, optional spaces
+  return template
+    .replace(/\{\{\s*([\w]+)\s*\}\}/g, (match, varName: string) => {
+      const key = VAR_MAP[varName.toLowerCase()];
+      if (key && ctx[key]) return ctx[key]!;
+      // Strip unresolvable tags so they never land literally in emails
+      return "";
+    });
 }

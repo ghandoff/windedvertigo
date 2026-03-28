@@ -39,6 +39,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return activity;
+    return json(activity, 201);
   });
 }

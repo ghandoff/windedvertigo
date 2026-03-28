@@ -7,10 +7,13 @@ import { NextRequest, NextResponse } from "next/server";
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow auth routes, login page, static assets through
+  // Allow auth routes, login page, public pages, and static assets through
   if (
     pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/unsubscribe") ||
     pathname === "/login" ||
+    pathname.startsWith("/unsubscribe") ||
+    pathname.startsWith("/view") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     pathname === "/sw.js" ||
