@@ -73,10 +73,8 @@ em { font-style: italic; }
 
 /* ── wobble nudge ─────────────────────────────────────────────── */
 @keyframes wobble {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-3deg); }
-  50% { transform: rotate(0deg); }
-  75% { transform: rotate(3deg); }
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
 }
 .hero-nav a:first-child,
 .nav a:first-child { animation: wobble 1.5s ease-in-out infinite; display: inline-block; will-change: transform; }
