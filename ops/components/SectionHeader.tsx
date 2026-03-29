@@ -12,7 +12,7 @@ export function SectionHeader({ title, subtitle }: SectionHeaderProps) {
       {subtitle && (
         <p className="text-sm text-ops-text-muted mt-1">{subtitle}</p>
       )}
-      <div className="h-px bg-gradient-to-r from-ops-border to-transparent mt-4"></div>
+      <div className="h-px mt-4" style={{ background: 'linear-gradient(to right, var(--wv-redwood), transparent)' }}></div>
     </div>
   );
 }

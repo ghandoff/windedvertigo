@@ -48,41 +48,23 @@ export function DashboardShell({ data, user, date }: DashboardShellProps) {
   const { projects, teamMembers, upcomingMeetings, tasks, dispatchTasks, financialMetrics } = data;
 
   return (
-    <div className="min-h-screen bg-ops-bg text-ops-text">
-      {/* Header */}
-      <header className="border-b border-ops-border sticky top-0 bg-ops-bg/95 backdrop-blur-sm z-50">
-        <div className="max-w-7xl mx-auto px-6 py-8 sm:py-10">
-          <div className="flex items-baseline justify-between">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-ops-text lowercase tracking-tight">
-                winded.vertigo
-              </h1>
-              <p className="text-sm text-ops-textMuted mt-1 lowercase tracking-wide">
-                ops · command center
-              </p>
-            </div>
-            <div className="flex items-baseline gap-4">
-              <span className="text-xs text-ops-textMuted lowercase hidden sm:inline">
-                {user.email}
-              </span>
-              <form action={signOutAction}>
-                <button
-                  type="submit"
-                  className="text-xs text-ops-textMuted hover:text-ops-text transition-colors lowercase"
-                >
-                  sign out
-                </button>
-              </form>
-              <span className="text-xs text-ops-textMuted lowercase">
-                {date}
-              </span>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen flex flex-col bg-ops-bg text-ops-text">
+      {/* Header — shared .wv-header chrome (cadet bg, champagne text) */}
+      <header className="wv-header sticky top-0 z-50">
+        <a href="/" className="wv-header-brand">winded.vertigo</a>
+        <nav className="wv-header-nav">
+          <span className="wv-header-email hidden sm:inline">{user.email}</span>
+          <span className="wv-header-nav-link" style={{ opacity: 0.5, fontSize: '0.75rem' }}>{date}</span>
+          <form action={signOutAction}>
+            <button type="submit" className="wv-header-signout">
+              sign out
+            </button>
+          </form>
+        </nav>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-10 sm:py-12">
+      <main className="max-w-7xl mx-auto w-full px-6 py-10 sm:py-12 flex-1">
         {/* Project Health */}
         <section>
           <SectionHeader
@@ -135,8 +117,8 @@ export function DashboardShell({ data, user, date }: DashboardShellProps) {
           </div>
 
           {/* Deadline callout */}
-          <div className="mt-6 p-5 bg-ops-card border border-yellow-800/50 rounded-lg">
-            <p className="text-sm text-yellow-300">
+          <div className="mt-6 p-5 bg-ops-card border rounded-lg" style={{ borderColor: 'rgba(245, 158, 11, 0.3)' }}>
+            <p className="text-sm" style={{ color: 'var(--color-warning-border)' }}>
               <span className="font-semibold">deadline</span> · IDB Salvador proposal due{' '}
               <span className="font-semibold">April 10, 2026</span>
             </p>
@@ -170,12 +152,11 @@ export function DashboardShell({ data, user, date }: DashboardShellProps) {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-ops-border bg-ops-bg/50 mt-16">
-        <div className="max-w-7xl mx-auto px-6 py-6 text-center">
-          <p className="text-xs text-ops-textMuted lowercase">
-            powered by cowork dispatch
-          </p>
+      {/* Footer — shared .wv-footer chrome */}
+      <footer className="wv-footer">
+        <div className="wv-footer-inner">
+          <p className="wv-footer-copyright">powered by cowork dispatch</p>
+          <p className="wv-footer-copyright">&copy; {new Date().getFullYear()} winded.vertigo llc</p>
         </div>
       </footer>
     </div>

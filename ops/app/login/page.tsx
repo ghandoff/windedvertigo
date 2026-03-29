@@ -14,13 +14,22 @@ export default async function LoginPage({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ backgroundColor: 'var(--wv-cadet)' }}
+    >
       <div className="w-full max-w-sm space-y-8 text-center">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#e0e0e0] lowercase">
+          <h1
+            className="text-2xl font-semibold tracking-tight lowercase"
+            style={{ color: 'var(--wv-champagne)' }}
+          >
             winded.vertigo
           </h1>
-          <p className="text-sm text-[#888888] mt-2 lowercase">
+          <p
+            className="text-sm mt-2 lowercase"
+            style={{ color: 'var(--color-text-on-dark-muted)' }}
+          >
             ops · command center
           </p>
         </div>
@@ -33,7 +42,11 @@ export default async function LoginPage({
         >
           <button
             type="submit"
-            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#e0e0e0] text-[#0a0a0a] px-4 py-3 text-sm font-medium hover:bg-[#cccccc] transition-colors lowercase"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-colors lowercase"
+            style={{
+              backgroundColor: 'var(--wv-champagne)',
+              color: 'var(--wv-cadet)',
+            }}
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path
@@ -58,7 +71,7 @@ export default async function LoginPage({
         </form>
 
         {params?.error && (
-          <p className="text-sm text-red-400">
+          <p className="text-sm" style={{ color: 'var(--color-error-border)' }}>
             {params.error === "AccessDenied"
               ? "only @windedvertigo.com accounts can access ops."
               : "something went wrong. please try again."}

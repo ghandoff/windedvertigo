@@ -25,10 +25,9 @@ export const projects: Project[] = [
   {
     id: 'prme-2026',
     name: 'PRME 2026',
-    status: 'yellow',
-    deadline: 'TBD',
+    status: 'green',
     owner: 'Meredith / Sam',
-    description: 'Contract with UN Global Compact',
+    description: 'Contract signed · first invoice submitted Mar 27',
   },
   {
     id: 'amna-at-10',
@@ -79,13 +78,13 @@ export const teamMembers: TeamMember[] = [
   {
     id: 'garrett',
     name: 'Garrett Jaeger',
-    role: 'Founder & Legal Rep',
+    role: 'Director · W-2 · $10k/mo',
     focus: ['IDB Salvador', 'PRME 2026', 'Ops & Strategy'],
   },
   {
     id: 'payton',
     name: 'Payton Jaeger',
-    role: 'Communications',
+    role: 'Communications · W-2 · $50/hr',
     focus: ['Website', 'Outreach', 'Circulation'],
   },
   {
@@ -205,8 +204,8 @@ export const tasks: Task[] = [
     assigned: 'Garrett',
   },
   {
-    id: 'prme-contract',
-    title: 'PRME: Sign contract',
+    id: 'prme-invoice',
+    title: 'PRME: First invoice submitted · await payment',
     category: 'PRME 2026',
     assigned: 'Garrett',
   },
@@ -248,30 +247,30 @@ export const dispatchTasks: DispatchTask[] = [
   },
 ];
 
-// Financial metrics (placeholder structure)
+// Financial metrics — sourced from QuickBooks + Gusto (2026-03-28)
 export const financialMetrics: FinancialMetric[] = [
   {
-    label: 'Revenue Pipeline',
-    value: undefined,
+    label: 'Cash Position',
+    value: '2,072',
     currency: true,
-    hasData: false,
+    hasData: true,
   },
   {
     label: 'Monthly Burn',
-    value: undefined,
+    value: '4,275',
     currency: true,
-    hasData: false,
+    hasData: true,
   },
   {
-    label: 'Cash Position',
-    value: undefined,
+    label: 'YTD Expenses',
+    value: '12,826',
     currency: true,
-    hasData: false,
+    hasData: true,
   },
   {
-    label: 'Outstanding Invoices',
-    value: undefined,
+    label: 'YTD Revenue',
+    value: '0',
     currency: true,
-    hasData: false,
+    hasData: true,
   },
 ];
