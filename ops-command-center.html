@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>winded.vertigo · ops command center</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface-hover: #1a1a1a;
+            --border: #222;
+            --border-subtle: #1a1a1a;
+            --text: #e5e5e5;
+            --text-muted: #888;
+            --text-dim: #555;
+            --accent: #c4f04d;
+            --accent-dim: rgba(196, 240, 77, 0.15);
+            --green: #34d399;
+            --green-bg: rgba(52, 211, 153, 0.12);
+            --yellow: #fbbf24;
+            --yellow-bg: rgba(251, 191, 36, 0.12);
+            --red: #f87171;
+            --red-bg: rgba(248, 113, 113, 0.12);
+            --blue: #60a5fa;
+            --blue-bg: rgba(96, 165, 250, 0.12);
+            --purple: #a78bfa;
+            --radius: 10px;
+            --radius-sm: 6px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 36px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .brand h1 {
+            font-size: 22px;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
+
+        .brand .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: lowercase;
+        }
+
+        .header-meta {
+            text-align: right;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .header-meta .timestamp {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .section-header h2 {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+        }
+
+        .section-header .line {
+            flex: 1;
+            height: 1px;
+            background: var(--border-subtle);
+        }
+
+        /* Grid layouts */
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .grid-2-1 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 14px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            transition: border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: #333;
+        }
+
+        /* KPI Cards */
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .kpi-card .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .kpi-card .value {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -1px;
+            color: var(--text);
+        }
+
+        .kpi-card .value.awaiting {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-dim);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            text-align: center;
+            letter-spacing: 0;
+        }
+
+        .kpi-card .sub {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.green { background: var(--green-bg); color: var(--green); }
+        .badge.yellow { background: var(--yellow-bg); color: var(--yellow); }
+        .badge.red { background: var(--red-bg); color: var(--red); }
+        .badge.blue { background: var(--blue-bg); color: var(--blue); }
+
+        .badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Project cards */
+        .project-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: border-color 0.2s;
+        }
+
+        .project-card:hover {
+            border-color: #333;
+        }
+
+        .project-card .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .project-card .project-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .project-card .project-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .project-card .project-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .project-card .deadline {
+            color: var(--yellow);
+            font-weight: 500;
+        }
+
+        .project-card .deadline.urgent {
+            color: var(--red);
+        }
+
+        /* Team member cards */
+        .member-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .member-card:hover {
+            border-color: #333;
+        }
+
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .member-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .member-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .member-role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .member-focus {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .focus-tag {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-dim);
+        }
+
+        /* Meeting list */
+        .meeting-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .meeting-item:last-child {
+            border-bottom: none;
+        }
+
+        .meeting-day {
+            width: 56px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .meeting-title {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .meeting-time {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .meeting-attendees {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        /* Deadline banner */
+        .deadline-banner {
+            background: var(--red-bg);
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            border-radius: var(--radius);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .deadline-banner .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--red);
+        }
+
+        .deadline-banner .countdown {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--red);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Task list */
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-checkbox {
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid var(--text-dim);
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .task-subtasks {
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .task-category {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+
+        .task-assigned {
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        /* Dispatch cards */
+        .dispatch-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+
+        .dispatch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .dispatch-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .dispatch-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
+        }
+
+        .dispatch-schedule {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dispatch-last {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        /* Chart area */
+        .chart-container {
+            position: relative;
+            height: 220px;
+            padding: 10px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 48px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        footer .powered {
+            letter-spacing: 1px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            animation: fadeIn 0.4s ease-out both;
+        }
+
+        .section:nth-child(2) { animation-delay: 0.05s; }
+        .section:nth-child(3) { animation-delay: 0.1s; }
+        .section:nth-child(4) { animation-delay: 0.15s; }
+        .section:nth-child(5) { animation-delay: 0.2s; }
+        .section:nth-child(6) { animation-delay: 0.25s; }
+        .section:nth-child(7) { animation-delay: 0.3s; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid-4 { grid-template-columns: repeat(2, 1fr); }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .grid-2-1 { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 640px) {
+            .dashboard { padding: 20px 16px; }
+            .grid-4 { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+            header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .header-meta { text-align: left; }
+            .kpi-card .value { font-size: 24px; }
+        }
+
+        /* Print */
+        @media print {
+            body { background: white; color: #111; }
+            .card, .project-card, .member-card, .kpi-card, .dispatch-card {
+                background: white;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+
+        <header>
+            <div class="brand">
+                <h1>winded.vertigo</h1>
+                <span class="subtitle">ops · command center</span>
+            </div>
+            <div class="header-meta">
+                <div class="timestamp" id="current-date"></div>
+                <div>second brain · v1</div>
+            </div>
+        </header>
+
+        <!-- Deadline Banner -->
+        <div class="section">
+            <div class="deadline-banner">
+                <div class="label">⚡ IDB Salvador — procurement deadline</div>
+                <div class="countdown" id="countdown"></div>
+            </div>
+        </div>
+
+        <!-- Financial Snapshot -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Financial Snapshot</h2>
+                <div class="line"></div>
+            </div>
+            <div class="grid-4" id="kpi-grid"></div>
+        </div>
+
+        <!-- Project Health -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Project Health</h2>
+                <div class="line"></div>
+            </div>
+            <div class="grid-4" id="projects-grid"></div>
+        </div>
+
+        <!-- Middle row: Calendar + Dispatch -->
+        <div class="section">
+            <div class="grid-2-1">
+                <!-- Upcoming -->
+                <div>
+                    <div class="section-header">
+                        <h2>Upcoming</h2>
+                        <div class="line"></div>
+                    </div>
+                    <div class="card" id="meetings-list" style="padding: 0; overflow: hidden;"></div>
+                </div>
+                <!-- Dispatch -->
+                <div>
+                    <div class="section-header">
+                        <h2>Dispatch</h2>
+                        <div class="line"></div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px;" id="dispatch-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team + Pipeline Chart -->
+        <div class="section">
+            <div class="grid-2-1">
+                <div>
+                    <div class="section-header">
+                        <h2>Team Pulse</h2>
+                        <div class="line"></div>
+                    </div>
+                    <div class="grid-2" id="team-grid"></div>
+                </div>
+                <div>
+                    <div class="section-header">
+                        <h2>Pipeline Status</h2>
+                        <div class="line"></div>
+                    </div>
+                    <div class="card">
+                        <div class="chart-container">
+                            <canvas id="pipeline-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Items -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Action Items</h2>
+                <div class="line"></div>
+            </div>
+            <div class="card" id="tasks-list" style="padding: 0; overflow: hidden;"></div>
+        </div>
+
+        <footer>
+            <span class="powered">powered by cowork dispatch</span>
+            <span>winded.vertigo llc · 2026</span>
+        </footer>
+    </div>
+
+    <script>
+        // ========================================
+        // DATA — edit this section to update the dashboard
+        // ========================================
+
+        const PROJECTS = [
+            { name: 'IDB Salvador', status: 'yellow', deadline: '2026-04-10', owner: 'Maria', desc: 'Ed-tech modernization procurement SDP 01/2026' },
+            { name: 'PRME 2026', status: 'yellow', deadline: null, owner: 'Meredith / Sam', desc: 'Contract with UN Global Compact' },
+            { name: 'Amna at 10', status: 'green', deadline: null, owner: 'Team', desc: 'Evidence synthesis — proposal submitted Mar 26' },
+            { name: 'LEGO / Superskills!', status: 'green', deadline: null, owner: 'Team', desc: 'Cross-cutting skills certification with LEF' },
+            { name: 'Sesame Workshop', status: 'green', deadline: null, owner: 'Team', desc: 'Learning design engagement' },
+            { name: 'UNICEF', status: 'green', deadline: null, owner: 'Team', desc: 'Learning design engagement' },
+            { name: 'Website Launch', status: 'green', deadline: null, owner: 'Payton', desc: 'windedvertigo.com soft launched Mar 27' },
+            { name: '401k / CPA', status: 'yellow', deadline: null, owner: 'Garrett', desc: 'Plan #156733 — final 5500 + year-end testing' },
+        ];
+
+        const FINANCIAL = [
+            { label: 'Revenue Pipeline', value: null, currency: true },
+            { label: 'Monthly Burn', value: null, currency: true },
+            { label: 'Cash Position', value: null, currency: true },
+            { label: 'Outstanding Invoices', value: null, currency: true },
+        ];
+
+        const TEAM = [
+            { name: 'Garrett Jaeger', initials: 'GJ', role: 'Founder & Legal Rep', focus: ['IDB', 'PRME', 'Strategy'] },
+            { name: 'Payton Jaeger', initials: 'PJ', role: 'Communications', focus: ['Website', 'Outreach'] },
+            { name: 'Lamis Sabra', initials: 'LS', role: 'Collective', focus: ['Weekly Sync', 'Coordination'] },
+            { name: 'Maria Altamirano G.', initials: 'MA', role: 'Operations', focus: ['IDB Lead', 'Admin'] },
+            { name: 'Apoorva Shivaram', initials: 'AS', role: 'Learning Design', focus: ['PRME Workshops', 'Surveys'] },
+            { name: 'Kristin Lansing', initials: 'KL', role: 'Research', focus: ['Evidence', 'Research'] },
+            { name: 'James Galpin', initials: 'JG', role: 'Collective', focus: ['Collective'] },
+            { name: 'Kim Yerrie', initials: 'KY', role: 'Collective', focus: ['Collective'] },
+        ];
+
+        const MEETINGS = [
+            { day: 'MON', title: 'whirlpool x Press Play', time: '4:00 PM UTC', attendees: 'Lamis, Payton, Maria' },
+            { day: 'TUE', title: 'lamis x garrett', time: '4:00 PM UTC', attendees: 'Lamis, Garrett' },
+            { day: 'TUE', title: 'Randall call', time: '5:00 PM UTC', attendees: 'Randall, Gina' },
+            { day: 'TUE', title: 'garrett x maria (pt i)', time: '6:00 PM UTC', attendees: 'Garrett, Maria' },
+            { day: 'TUE', title: 'PRME hold', time: '7:00 PM UTC', attendees: 'Meredith, Sam' },
+            { day: 'FRI', title: 'R&D meeting', time: '6:00 PM UTC', attendees: 'Gina' },
+        ];
+
+        const DISPATCH = [
+            { name: 'weekly-cfo-review', schedule: 'Mon 9:05 AM', lastRan: 'Mar 23, 2026', status: 'active' },
+            { name: 'invoice-processor', schedule: 'Daily 9:00 AM', lastRan: 'Mar 28, 2026', status: 'active' },
+        ];
+
+        const TASKS = [
+            { title: 'IDB: Collect missing documents', category: 'IDB Salvador', assigned: 'Jamie / Maria', subtasks: ['Jamie: 3 items pending', 'Maria: 1 item pending'] },
+            { title: 'IDB: Pull docs from Drive admin folder', category: 'IDB Salvador', assigned: 'Garrett', subtasks: ['Articles of Inc.', 'EIN letter', 'ID scan'] },
+            { title: 'PRME: Sign contract', category: 'PRME 2026', assigned: 'Garrett', subtasks: null },
+            { title: 'Amna: Await response on proposal', category: 'Amna at 10', assigned: 'Team', subtasks: null },
+            { title: '401k: Final 5500 + year-end testing', category: '401k / CPA', assigned: 'CPA / Garrett', subtasks: null },
+            { title: 'Financial: Populate cash position, revenue, CPA info', category: 'Finance', assigned: 'Garrett', subtasks: ['Bank balance', 'Revenue numbers', 'Monthly burn', 'CPA contact'] },
+        ];
+
+        // ========================================
+        // RENDER
+        // ========================================
+
+        // Date
+        const now = new Date();
+        document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        }).toLowerCase();
+
+        // Countdown to IDB deadline
+        function updateCountdown() {
+            const deadline = new Date('2026-04-10T23:59:59');
+            const diff = deadline - new Date();
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            const el = document.getElementById('countdown');
+            if (days > 0) {
+                el.textContent = days + ' days';
+            } else if (days === 0) {
+                el.textContent = 'TODAY';
+            } else {
+                el.textContent = 'PAST DUE';
+            }
+        }
+        updateCountdown();
+
+        // KPIs
+        const kpiGrid = document.getElementById('kpi-grid');
+        FINANCIAL.forEach(metric => {
+            const card = document.createElement('div');
+            card.className = 'kpi-card';
+            if (metric.value !== null) {
+                const formatted = metric.currency ? '$' + metric.value.toLocaleString() : metric.value;
+                card.innerHTML = `
+                    <div class="label">${metric.label}</div>
+                    <div class="value">${formatted}</div>
+                `;
+            } else {
+                card.innerHTML = `
+                    <div class="label">${metric.label}</div>
+                    <div class="value awaiting">awaiting data</div>
+                `;
+            }
+            kpiGrid.appendChild(card);
+        });
+
+        // Projects
+        const projectsGrid = document.getElementById('projects-grid');
+        PROJECTS.forEach(project => {
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            const deadlineStr = project.deadline
+                ? `<span class="deadline${daysUntil(project.deadline) <= 14 ? ' urgent' : ''}">${formatDate(project.deadline)}</span>`
+                : '';
+            card.innerHTML = `
+                <div class="project-header">
+                    <span class="project-name">${project.name}</span>
+                    <span class="badge ${project.status}"><span class="dot"></span>${project.status === 'green' ? 'on track' : project.status === 'yellow' ? 'attention' : 'at risk'}</span>
+                </div>
+                <div class="project-desc">${project.desc}</div>
+                <div class="project-meta">
+                    <span>${project.owner}</span>
+                    ${deadlineStr}
+                </div>
+            `;
+            projectsGrid.appendChild(card);
+        });
+
+        // Meetings
+        const meetingsList = document.getElementById('meetings-list');
+        MEETINGS.forEach(meeting => {
+            const item = document.createElement('div');
+            item.className = 'meeting-item';
+            item.innerHTML = `
+                <span class="meeting-day">${meeting.day}</span>
+                <span class="meeting-title">${meeting.title}</span>
+                <span class="meeting-time">${meeting.time}</span>
+            `;
+            meetingsList.appendChild(item);
+        });
+
+        // Dispatch
+        const dispatchList = document.getElementById('dispatch-list');
+        DISPATCH.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'dispatch-card';
+            card.innerHTML = `
+                <div class="dispatch-header">
+                    <span class="dispatch-name">${task.name}</span>
+                    <span class="dispatch-status" title="active"></span>
+                </div>
+                <div class="dispatch-schedule">${task.schedule}</div>
+                <div class="dispatch-last">last ran: ${task.lastRan}</div>
+            `;
+            dispatchList.appendChild(card);
+        });
+
+        // Team
+        const teamGrid = document.getElementById('team-grid');
+        TEAM.forEach(member => {
+            const card = document.createElement('div');
+            card.className = 'member-card';
+            const tags = member.focus.map(f => `<span class="focus-tag">${f}</span>`).join('');
+            card.innerHTML = `
+                <div class="member-avatar">${member.initials}</div>
+                <div class="member-info">
+                    <div class="member-name">${member.name}</div>
+                    <div class="member-role">${member.role}</div>
+                    <div class="member-focus">${tags}</div>
+                </div>
+            `;
+            teamGrid.appendChild(card);
+        });
+
+        // Tasks
+        const tasksList = document.getElementById('tasks-list');
+        TASKS.forEach(task => {
+            const item = document.createElement('div');
+            item.className = 'task-item';
+            const subtasksHtml = task.subtasks
+                ? `<div class="task-subtasks">${task.subtasks.map(s => '→ ' + s).join('<br>')}</div>`
+                : '';
+            item.innerHTML = `
+                <div class="task-checkbox"></div>
+                <div class="task-content">
+                    <div class="task-title">${task.title}</div>
+                    ${subtasksHtml}
+                </div>
+                <span class="task-category">${task.category}</span>
+                <span class="task-assigned">${task.assigned}</span>
+            `;
+            tasksList.appendChild(item);
+        });
+
+        // Pipeline Chart
+        const ctx = document.getElementById('pipeline-chart').getContext('2d');
+        const statusCounts = { green: 0, yellow: 0, red: 0 };
+        PROJECTS.forEach(p => statusCounts[p.status]++);
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['On Track', 'Attention', 'At Risk'],
+                datasets: [{
+                    data: [statusCounts.green, statusCounts.yellow, statusCounts.red],
+                    backgroundColor: ['#34d399', '#fbbf24', '#f87171'],
+                    borderColor: '#141414',
+                    borderWidth: 3,
+                    hoverOffset: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#888',
+                            font: { size: 11 },
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyleWidth: 8,
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1a1a1a',
+                        borderColor: '#333',
+                        borderWidth: 1,
+                        titleColor: '#e5e5e5',
+                        bodyColor: '#888',
+                        padding: 10,
+                        cornerRadius: 6,
+                    }
+                }
+            }
+        });
+
+        // Helpers
+        function daysUntil(dateStr) {
+            const target = new Date(dateStr);
+            const now = new Date();
+            return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+    </script>
+</body>
+</html>
