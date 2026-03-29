@@ -7,3 +7,7 @@ node_modules/
 *.tsbuildinfo
 .ai-usage/
 .claude/
+
+# Second brain (tracked separately via 'brain' remote)
+CLAUDE.md
+.brain/
