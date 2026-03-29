@@ -57,10 +57,10 @@
 - [ ] **Middleware → proxy migration** — Scoped: ~1hr, low risk. Rename middleware.ts → proxy.ts in both apps. Park until next deploy cycle.
 
 ## Someday
-- [ ] **Monthly close scheduled task** — Build dispatch task for 1st-of-month P&L generation
-- [ ] **Weekly ops review task** — Build dispatch task for Friday/Sunday operational review
-- [ ] **Daily briefing task** — Build dispatch task for morning priorities + calendar overview
-- [ ] **Meeting prep automation** — Build dispatch tasks for pre-meeting context preparation
+- [x] ~~**Monthly close scheduled task**~~ (2026-03-29) — Runs 1st of month 9am ET. Pulls P&L + cash flow from QuickBooks, pushes to ops KV.
+- [x] ~~**Weekly ops review task**~~ (2026-03-29) — Runs Sundays 6pm ET. Full operational review: finance, projects, calendar, team → pushes all data to ops KV + Slack summary.
+- [x] ~~**Daily briefing task**~~ (2026-03-29) — Runs weekdays 8am ET. Calendar, priorities, deadlines, overnight emails → Slack DM.
+- [x] ~~**Meeting prep automation**~~ (2026-03-29) — Runs weekdays 7:30am ET. Gathers context for each meeting: recent emails, Notion notes, CRM history → Slack DM.
 - [ ] **CRM build-out** — Expand package builder and client relationship tracking
 - [ ] **Quarterly strategic review** — Design the template and schedule
 
