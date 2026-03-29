@@ -47,11 +47,20 @@ The ops dashboard needs live data from QuickBooks, Gusto, Notion, and Google Cal
 - Static fallback means the dashboard always renders even if KV is empty
 
 **What needs doing next:**
-- [ ] Verify OAuth flow in browser (Garrett: visit ops.windedvertigo.com incognito → should redirect to /login)
-- [ ] Set up Cloudflare KV namespace for ops data
+- [x] ~~Verify OAuth flow~~ — confirmed working in incognito (2026-03-28)
+- [x] ~~Set up Cloudflare KV namespace~~ — `wv-ops-data` created (id: d740788337354d738e1be321d2c4b277)
 - [ ] Build Cowork dispatch task to push dashboard snapshot to KV after weekly-cfo-review
 - [ ] Update API routes to read from KV with static fallback
 - [ ] Connect wv-ops Vercel project to GitHub for auto-deploy on push
+- [ ] **Cash position alert**: $2,072 cash with ~$4,275/mo burn. PRME invoice outstanding — revenue needs to land.
+
+**Brand alignment (2026-03-28):**
+- Login: cadet bg, champagne text, branded SSO button
+- Header: shared .wv-header chrome from tokens
+- Footer: shared .wv-footer chrome
+- Surface colors: cadet-derived darks (not generic grays)
+- Section dividers: redwood gradient accent
+- Financial data: live from QuickBooks + Gusto
 
 ---
 
