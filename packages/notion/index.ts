@@ -27,6 +27,7 @@ export {
   getStatus,
   getRelation,
   getPerson,
+  getPeopleNames,
   getCreatedTime,
   getLastEditedTime,
   getEditedBy,

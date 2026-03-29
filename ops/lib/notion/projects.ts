@@ -10,6 +10,7 @@ import {
   getStatus,
   getDate,
   getCheckbox,
+  getPeopleNames,
   queryDatabase,
   type PageObjectResponse,
 } from "@windedvertigo/notion";
@@ -65,9 +66,7 @@ function mapPageToOpsProject(page: PageObjectResponse): Project {
     name: getTitle(props[P.project]) || "Untitled",
     status: mapStatus(status),
     deadline: formatDeadline(timeline),
-    // project leads are person properties — we don't resolve names here,
-    // so we leave owner undefined; static data can fill this gap
-    owner: undefined,
+    owner: getPeopleNames(props[P.projectLeads]).join(", ") || undefined,
     description: undefined,
   };
 }

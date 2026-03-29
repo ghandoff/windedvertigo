@@ -129,6 +129,16 @@ export function getPerson(prop: Prop | undefined): string[] {
   return [];
 }
 
+/** Extract person names from a people property. Returns names in order; skips entries without a name. */
+export function getPeopleNames(prop: Prop | undefined): string[] {
+  if (!prop) return [];
+  if (prop.type === "people")
+    return prop.people
+      .map((p: { name?: string }) => p.name)
+      .filter((n: string | undefined): n is string => !!n);
+  return [];
+}
+
 /** Extract created_time property. */
 export function getCreatedTime(prop: Prop | undefined): string {
   if (!prop) return "";

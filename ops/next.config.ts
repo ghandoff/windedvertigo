@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  transpilePackages: ["@windedvertigo/tokens"],
+  transpilePackages: ["@windedvertigo/auth", "@windedvertigo/tokens"],
 
   async headers() {
     return [

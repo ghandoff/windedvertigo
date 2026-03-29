@@ -37,9 +37,9 @@
 - [x] ~~**Resend webhook → Notion sync**~~ (2026-03-29) — Route was implemented but blocked by middleware (returning 401). Fixed public allowlist. **Still needed:** register webhook URL + `RESEND_WEBHOOK_SECRET` in Resend dashboard.
 
 ### CRM — Phase 2: Relationship Depth (next sprint)
-- [ ] **Deal / opportunity pipeline** — Kanban view of BD opportunities (Identified → Pitched → Proposal → Won/Lost). New Notion DB `deals` linked to orgs + contacts.
-- [ ] **Per-contact activity timeline** — Chronological feed on org/contact records (emails sent, replies, notes, meetings). Feeds from `activities` DB + EmailDraft records.
-- [ ] **Won/lost reason capture** — Modal when deal moves to Closed Lost; structured reason + notes field.
+- [x] ~~**Deal / opportunity pipeline**~~ (2026-03-29) — Kanban `/deals` (5 stages). Notion DB created. Drag-and-drop. Full CRUD API. Sidebar nav added.
+- [x] ~~**Per-contact activity timeline**~~ (2026-03-29) — ActivityTimeline + LogActivityDialog wired into org detail page `/organizations/[id]`.
+- [x] ~~**Won/lost reason capture**~~ (2026-03-29) — LostReasonModal in DealKanban intercepts drag to "lost", captures reason + notes before PATCH.
 
 ### CRM — Phase 3: Intelligent Outreach (after campaign data)
 - [ ] **Email reply detection + sequence auto-pause** — Detect replies by thread ID via Gmail/Resend webhook; halt further campaign steps for that contact.
