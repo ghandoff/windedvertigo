@@ -172,9 +172,54 @@ export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellPro
     });
   }, []);
 
-  if (!mounted) return null;
-
   const { projects, teamMembers, upcomingMeetings, deadlines, tasks, dispatchTasks, financialMetrics } = data;
+
+  // ── command palette items (hook must be before early return) ──
+  const commandItems: CommandItem[] = useMemo(() => [
+    ...projects.map(p => ({
+      id: `project-${p.id}`,
+      label: p.name,
+      category: 'Projects',
+      href: `#project-${p.id}`,
+    })),
+    ...tasks.map(t => ({
+      id: `task-${t.id}`,
+      label: t.title,
+      category: 'Tasks',
+    })),
+    ...upcomingMeetings.map(m => ({
+      id: `meeting-${m.id}`,
+      label: m.title,
+      category: 'This Week',
+    })),
+    { id: 'nav-finance', label: 'Financial Overview', category: 'Navigation', shortcut: '↑' },
+    { id: 'nav-projects', label: 'Projects', category: 'Navigation' },
+    { id: 'nav-tasks', label: 'Action Items', category: 'Navigation' },
+    { id: 'nav-signout', label: 'Sign Out', category: 'Actions' },
+  ], [projects, tasks, upcomingMeetings]);
+
+  const handleCommandSelect = useCallback((item: CommandItem) => {
+    if (item.id === 'nav-signout') {
+      document.querySelector<HTMLFormElement>('form[action]')?.requestSubmit();
+      return;
+    }
+    if (item.id.startsWith('project-')) {
+      const p = projects.find(pr => `project-${pr.id}` === item.id);
+      if (p) setDrawerProject(p);
+      return;
+    }
+    if (item.id.startsWith('meeting-')) {
+      const m = upcomingMeetings.find(mt => `meeting-${mt.id}` === item.id);
+      if (m) setDrawerMeeting(m);
+      return;
+    }
+    if (item.href) {
+      document.querySelector(item.href)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [projects, upcomingMeetings]);
+
+  // ── early return AFTER all hooks ─────────────────────────────
+  if (!mounted) return null;
 
   // ── derived data ─────────────────────────────────────────────
   const cashMetric = financialMetrics.find(m => m.label === 'Cash Position');
@@ -221,53 +266,6 @@ export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellPro
     }
   });
   blockedProjects.forEach(p => alerts.push({ level: 'critical', text: `${p.name} is blocked` }));
-
-  // ── command palette items ────────────────────────────────────
-  const commandItems: CommandItem[] = useMemo(() => [
-    ...projects.map(p => ({
-      id: `project-${p.id}`,
-      label: p.name,
-      category: 'Projects',
-      href: `#project-${p.id}`,
-    })),
-    ...tasks.map(t => ({
-      id: `task-${t.id}`,
-      label: t.title,
-      category: 'Tasks',
-    })),
-    ...upcomingMeetings.map(m => ({
-      id: `meeting-${m.id}`,
-      label: m.title,
-      category: 'This Week',
-    })),
-    { id: 'nav-finance', label: 'Financial Overview', category: 'Navigation', shortcut: '↑' },
-    { id: 'nav-projects', label: 'Projects', category: 'Navigation' },
-    { id: 'nav-tasks', label: 'Action Items', category: 'Navigation' },
-    { id: 'nav-signout', label: 'Sign Out', category: 'Actions' },
-  ], [projects, tasks, upcomingMeetings]);
-
-  const handleCommandSelect = useCallback((item: CommandItem) => {
-    if (item.id === 'nav-signout') {
-      document.querySelector<HTMLFormElement>('form[action]')?.requestSubmit();
-      return;
-    }
-    // Open drawer for projects
-    if (item.id.startsWith('project-')) {
-      const p = projects.find(pr => `project-${pr.id}` === item.id);
-      if (p) setDrawerProject(p);
-      return;
-    }
-    // Open drawer for meetings
-    if (item.id.startsWith('meeting-')) {
-      const m = upcomingMeetings.find(mt => `meeting-${mt.id}` === item.id);
-      if (m) setDrawerMeeting(m);
-      return;
-    }
-    // Scroll to section for navigation items
-    if (item.href) {
-      document.querySelector(item.href)?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [projects, upcomingMeetings]);
 
   // ── active drawer ────────────────────────────────────────────
   const drawerOpen = drawerProject !== null || drawerMeeting !== null;
