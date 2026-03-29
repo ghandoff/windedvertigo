@@ -110,20 +110,8 @@ export const teamMembers: TeamMember[] = [
     focus: ['PRME Workshops', 'Survey Design'],
   },
   {
-    id: 'kristin',
-    name: 'Kristin Lansing',
-    role: 'Research',
-    focus: ['Research', 'Evidence'],
-  },
-  {
     id: 'james',
     name: 'James Galpin',
-    role: 'w.v Collective',
-    focus: ['Collective Work'],
-  },
-  {
-    id: 'kim',
-    name: 'Kim Yerrie',
     role: 'w.v Collective',
     focus: ['Collective Work'],
   },
