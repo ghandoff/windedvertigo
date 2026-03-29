@@ -31,6 +31,21 @@
 - [ ] **Website feedback** — Circulated to trusted contacts — since Mar 27
 
 ## Engineering (Claude Code)
+
+### CRM — Phase 1: Data Visibility (this week)
+- [x] ~~**Aggregate campaign dashboard**~~ (2026-03-29) — Stats strip on `/campaigns`: active / total, emails sent, avg open rate, avg click rate.
+- [x] ~~**Resend webhook → Notion sync**~~ (2026-03-29) — Route was implemented but blocked by middleware (returning 401). Fixed public allowlist. **Still needed:** register webhook URL + `RESEND_WEBHOOK_SECRET` in Resend dashboard.
+
+### CRM — Phase 2: Relationship Depth (next sprint)
+- [ ] **Deal / opportunity pipeline** — Kanban view of BD opportunities (Identified → Pitched → Proposal → Won/Lost). New Notion DB `deals` linked to orgs + contacts.
+- [ ] **Per-contact activity timeline** — Chronological feed on org/contact records (emails sent, replies, notes, meetings). Feeds from `activities` DB + EmailDraft records.
+- [ ] **Won/lost reason capture** — Modal when deal moves to Closed Lost; structured reason + notes field.
+
+### CRM — Phase 3: Intelligent Outreach (after campaign data)
+- [ ] **Email reply detection + sequence auto-pause** — Detect replies by thread ID via Gmail/Resend webhook; halt further campaign steps for that contact.
+- [ ] **Sequence step scheduling** — Timed multi-step follow-up with configurable delays. Vercel Cron evaluates pending steps daily. Requires reply detection first.
+
+### Ops / Infrastructure
 - [ ] **Verify ops OAuth flow** — Garrett: visit ops.windedvertigo.com incognito → should redirect to /login → SSO → dashboard with sign-out button
 - [ ] **Set up Cloudflare KV for ops data** — Create namespace, wire to dispatch tasks
 - [ ] **Wire QuickBooks into ops dashboard** — Dispatch task pushes P&L, cash flow, invoices to KV → API routes read from KV
@@ -38,7 +53,7 @@
 - [ ] **Connect wv-ops to GitHub** — Enable auto-deploy on push (currently CLI-only)
 - [ ] **Shared auth package** — Consider extracting Auth.js config to `packages/auth` for CRM + ops reuse
 - [ ] **Ops dashboard: project tracker** — Pull active projects from Notion into ops view
-- [ ] **Middleware → proxy migration** — Next.js 16 deprecation. Not urgent — middleware works for dynamic routes. Migrate CRM + ops together when proxy convention stabilizes
+- [ ] **Middleware → proxy migration** — Next.js 16 deprecation. Not urgent. Migrate CRM + ops together when proxy convention stabilizes.
 
 ## Someday
 - [ ] **Monthly close scheduled task** — Build dispatch task for 1st-of-month P&L generation

@@ -1,16 +1,20 @@
-// Dashboard data — static fallback until real integrations land.
+// Dashboard data — static fallback until KV integrations land.
 // Types live in lib/types.ts, shared by API routes + components.
 
 import type {
   Project,
   TeamMember,
   Meeting,
+  Deadline,
   Task,
   DispatchTask,
   FinancialMetric,
 } from './types';
 
-export type { Project, TeamMember, Meeting, Task, DispatchTask, FinancialMetric };
+export type { Project, TeamMember, Meeting, Deadline, Task, DispatchTask, FinancialMetric };
+
+// Data freshness — when this snapshot was last updated
+export const dataAsOf = '2026-03-28T12:00:00Z';
 
 // Projects
 export const projects: Project[] = [
@@ -178,11 +182,11 @@ export const upcomingMeetings: Meeting[] = [
 ];
 
 // Deadlines
-export const deadlines = [
+export const deadlines: Deadline[] = [
   {
     id: 'idb-deadline',
-    title: 'IDB Salvador deadline',
-    date: 'April 10, 2026',
+    title: 'IDB Salvador proposal',
+    date: '2026-04-10',
     project: 'IDB Salvador',
     priority: 'high',
   },
@@ -195,37 +199,43 @@ export const tasks: Task[] = [
     title: 'IDB: Collect missing documents',
     category: 'IDB Salvador',
     assigned: 'Jamie / Maria',
+    priority: 'high',
     subtasks: ['Jamie: 3 items pending', 'Maria: 1 item pending'],
   },
   {
     id: 'idb-docs-2',
-    title: 'IDB: Garrett pull docs from Drive',
+    title: 'IDB: Pull docs from Drive',
     category: 'IDB Salvador',
     assigned: 'Garrett',
+    priority: 'high',
   },
   {
     id: 'prme-invoice',
-    title: 'PRME: First invoice submitted · await payment',
+    title: 'PRME: Await first payment',
     category: 'PRME 2026',
     assigned: 'Garrett',
+    priority: 'high',
   },
   {
     id: 'amna-await',
     title: 'Amna: Await response on proposal',
     category: 'Amna at 10',
     assigned: 'Team',
+    priority: 'medium',
   },
   {
     id: '401k-testing',
     title: '401k: Final 5500 + year-end testing',
     category: '401k / CPA',
     assigned: 'CPA / Garrett',
+    priority: 'medium',
   },
   {
     id: 'financial-populate',
-    title: 'Financial: Populate cash position, revenue, CPA info',
+    title: 'Populate cash position, revenue, CPA info',
     category: 'Finance',
     assigned: 'Garrett',
+    priority: 'low',
   },
 ];
 

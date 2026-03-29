@@ -5,9 +5,11 @@ import {
   projects,
   teamMembers,
   upcomingMeetings,
+  deadlines,
   tasks,
   dispatchTasks,
   financialMetrics,
+  dataAsOf,
 } from "@/lib/data";
 
 export default async function DashboardPage() {
@@ -16,7 +18,11 @@ export default async function DashboardPage() {
 
   const now = new Date();
   const date = now
-    .toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    .toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    })
     .toLowerCase();
 
   return (
@@ -25,6 +31,7 @@ export default async function DashboardPage() {
         projects,
         teamMembers,
         upcomingMeetings,
+        deadlines,
         tasks,
         dispatchTasks,
         financialMetrics,
@@ -36,6 +43,7 @@ export default async function DashboardPage() {
           "",
       }}
       date={date}
+      dataAsOf={dataAsOf}
     />
   );
 }

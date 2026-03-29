@@ -23,11 +23,20 @@ export interface Meeting {
   attendees?: string[];
 }
 
+export interface Deadline {
+  id: string;
+  title: string;
+  date: string;
+  project: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
 export interface Task {
   id: string;
   title: string;
   category: string;
   assigned?: string;
+  priority?: 'high' | 'medium' | 'low';
   subtasks?: string[];
 }
 

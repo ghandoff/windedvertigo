@@ -2,16 +2,17 @@
 @import "@windedvertigo/tokens/index.css";
 
 /* ── ops command center surface tokens ───────────────────────────
-   dark aesthetic derived from the brand cadet palette.
-   deep blue-black bg, cadet-raised cards, champagne text.
-   complements the shared header/footer chrome from tokens. */
+   dark technical aesthetic — near-black bg, cadet-derived cards,
+   neutral light text for readability. champagne reserved for
+   headings & brand accent. keeps the "ops console" feel.        */
 
 @theme inline {
-  --color-ops-bg: #0d1117;
-  --color-ops-card: #1e2738;
-  --color-ops-border: #2d3748;
-  --color-ops-text: var(--wv-champagne);
-  --color-ops-text-muted: rgba(255, 235, 210, 0.6);
+  --color-ops-bg: #0a0e14;
+  --color-ops-card: #111920;
+  --color-ops-border: #1e2a38;
+  --color-ops-text: #d4d4d8;
+  --color-ops-text-muted: #71717a;
+  --color-ops-heading: #ffebd2;
 }
 
 * {
@@ -32,73 +33,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}
-
 /* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-ops-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4a5c; }
 
-::-webkit-scrollbar-track {
-  background: var(--color-ops-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-ops-border);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--wv-cadet);
-}
-
-/* Card fade-in animation */
-@keyframes cardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.card-animate {
-  animation: cardFadeIn 0.4s ease-out forwards;
-}
-
-/* Status badges — dark variants on raised surface */
-.badge-green {
-  background-color: rgba(34, 197, 94, 0.12);
-  color: var(--color-success-border);
-  border: 1px solid rgba(34, 197, 94, 0.25);
-}
-
-.badge-yellow {
-  background-color: rgba(245, 158, 11, 0.12);
-  color: var(--color-warning-border);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-}
-
-.badge-red {
-  background-color: rgba(220, 38, 38, 0.12);
-  color: var(--color-error-border);
-  border: 1px solid rgba(220, 38, 38, 0.25);
-}
-
-.badge-gray {
-  background-color: rgba(255, 235, 210, 0.06);
-  color: var(--color-ops-text-muted);
-  border: 1px solid var(--color-ops-border);
-}
-
-/* Data placeholder */
-.data-placeholder {
-  border: 2px dashed var(--color-ops-border);
-  background-color: rgba(255, 235, 210, 0.03);
-  border-radius: 0.25rem;
-}
+/* Tabular nums for financial data */
+.tabular-nums { font-variant-numeric: tabular-nums; }
