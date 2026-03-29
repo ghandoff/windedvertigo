@@ -62,7 +62,7 @@
 - [x] ~~**Daily briefing task**~~ (2026-03-29) — Runs weekdays 8am ET. Calendar, priorities, deadlines, overnight emails → Slack DM.
 - [x] ~~**Meeting prep automation**~~ (2026-03-29) — Runs weekdays 7:30am ET. Gathers context for each meeting: recent emails, Notion notes, CRM history → Slack DM.
 - [ ] **CRM build-out** — Expand package builder and client relationship tracking
-- [ ] **Quarterly strategic review** — Design the template and schedule
+- [x] ~~**Quarterly strategic review**~~ (2026-03-29) — Runs first Monday of Jan/Apr/Jul/Oct at 10am ET. Full portfolio review: financials, projects, pipeline, team, next-quarter priorities.
 
 ## Done
 - [x] ~~Ops auth fix + design system + API routes~~ (2026-03-28) — Auth was broken because static page bypassed middleware. Converted to server component with auth gate. Added sign-out, user email, dynamic date. Imported shared tokens. Created 6 API routes. Deployed.
