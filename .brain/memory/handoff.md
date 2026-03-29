@@ -4,6 +4,37 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 
 ---
 
+## 2026-03-29 — ops dashboard redesigned, KV + Notion wired, auto-deploy enabled (Claude Code)
+
+**What happened:**
+- **Dashboard redesign:** Complete UX overhaul — financial strip at top with hero cash number, computed runway bar, auto-derived alerts (low runway, deadline countdown, blocked projects). Two-column layout: actions + projects (left), schedule + dispatch (right). Interactive task checkboxes with localStorage persistence. Collapsible sections. Expandable project rows.
+- **Cloudflare KV integration:** All 6 API routes now try KV first (`ops:finance`, `ops:projects`, etc.), fall back to static data. KV read/write utilities in `ops/lib/kv.ts`.
+- **KV write endpoint:** `POST /api/kv` accepts `{ key, data }` with bearer token auth (`KV_WRITE_TOKEN`). This is how Cowork dispatch tasks push data.
+- **Notion integration:** `ops/lib/notion/projects.ts` fetches projects from the shared Notion projects DB. Falls back to static data if Notion unavailable. `page.tsx` calls `fetchProjects()` server-side.
+- **GitHub auto-deploy:** wv-ops Vercel project connected to `ghandoff/windedvertigo` monorepo with `rootDirectory: ops` and `sourceFilesOutsideRootDirectory: true`. Pushes to main auto-deploy.
+
+**Env vars needed on Vercel (not yet set):**
+- `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account ID
+- `CLOUDFLARE_API_TOKEN` — Cloudflare API token with KV read access
+- `KV_WRITE_TOKEN` — arbitrary secret for the POST /api/kv endpoint
+- `NOTION_TOKEN` — Notion integration token (same one CRM uses)
+
+**How Cowork dispatch should push data:**
+```bash
+curl -X POST https://ops.windedvertigo.com/api/kv \
+  -H "Authorization: Bearer $KV_WRITE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"key":"ops:finance","data":[...]}'
+```
+Keys: `ops:finance`, `ops:projects`, `ops:team`, `ops:calendar`, `ops:tasks`, `ops:dispatch`
+
+**What needs doing next:**
+- [ ] Set env vars on Vercel (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, KV_WRITE_TOKEN, NOTION_TOKEN)
+- [ ] Build Cowork dispatch task to push dashboard snapshots to KV after weekly-cfo-review
+- [ ] Resolve Notion project lead person IDs → names (owner field currently undefined for Notion-sourced projects)
+
+---
+
 ## 2026-03-28 — ops auth fixed, hardened, design system integrated (Claude Code)
 
 **What happened:**
