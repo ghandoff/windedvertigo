@@ -4,6 +4,7 @@
   "workspaces": [
     "harbour",
     "crm",
+    "ops",
     "packages/*"
   ],
   "scripts": {
@@ -13,7 +14,11 @@
     "dev:crm": "npm run dev -w crm",
     "build:crm": "npm run build -w crm",
     "deploy:crm": "bash scripts/deploy-crm.sh",
-    "deploy:crm:preview": "bash scripts/deploy-crm.sh --preview"
+    "deploy:crm:preview": "bash scripts/deploy-crm.sh --preview",
+    "dev:ops": "npm run dev -w ops",
+    "build:ops": "npm run build -w ops",
+    "deploy:ops": "bash scripts/deploy-ops.sh",
+    "deploy:ops:preview": "bash scripts/deploy-ops.sh --preview"
   },
   "dependencies": {
     "@notionhq/client": "^5.14.0"
