@@ -42,19 +42,19 @@
 - [x] ~~**Won/lost reason capture**~~ (2026-03-29) — LostReasonModal in DealKanban intercepts drag to "lost", captures reason + notes before PATCH.
 
 ### CRM — Phase 3: Intelligent Outreach (after campaign data)
-- [ ] **Email reply detection + sequence auto-pause** — Detect replies by thread ID via Gmail/Resend webhook; halt further campaign steps for that contact.
-- [ ] **Sequence step scheduling** — Timed multi-step follow-up with configurable delays. Vercel Cron evaluates pending steps daily. Requires reply detection first.
+- [x] ~~**Email reply detection + sequence auto-pause**~~ (2026-03-29) — `lib/gmail.ts` + `api/cron/sync-replies` polls Gmail daily at 8:55am, writes "email received" Activities. Campaign cron filters replied orgs before each send. Gmail OAuth set up for garrett@windedvertigo.com; all 3 env vars live in Vercel production.
+- [x] ~~**Sequence step scheduling**~~ (2026-03-29) — `api/cron/campaigns` runs daily at 9:07am (was incorrectly hourly — fixed). Evaluates `sendDate` or `campaignStart + cumulativeDelayDays` per step. Auto-marks campaign complete when all steps sent/skipped.
 
 ### Ops / Infrastructure
 - [ ] **Verify ops OAuth flow** — Garrett: visit ops.windedvertigo.com incognito → should redirect to /login → SSO → dashboard with sign-out button
 - [x] ~~**Set up Cloudflare KV for ops data**~~ — KV wired: API routes read from KV with static fallback, POST /api/kv for dispatch writes (2026-03-29)
 - [x] ~~**Connect wv-ops to GitHub**~~ — Auto-deploy: `ghandoff/windedvertigo` → rootDirectory `ops/` (2026-03-29)
 - [x] ~~**Ops dashboard: project tracker**~~ — Notion integration fetches from shared projects DB with static fallback (2026-03-29)
-- [ ] **Set env vars on Vercel for ops** — CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, KV_WRITE_TOKEN, NOTION_TOKEN
-- [ ] **Wire QuickBooks into ops dashboard** — Dispatch task pushes P&L, cash flow, invoices to KV → API routes read from KV
-- [ ] **Wire Gusto into ops dashboard** — Dispatch task pushes payroll, team, contractor data to KV
-- [ ] **Shared auth package** — Consider extracting Auth.js config to `packages/auth` for CRM + ops reuse
-- [ ] **Middleware → proxy migration** — Next.js 16 deprecation. Not urgent. Migrate CRM + ops together when proxy convention stabilizes.
+- [x] ~~**Set env vars on Vercel for ops**~~ (2026-03-29) — All 10 env vars set including CLOUDFLARE_API_TOKEN. Redeployed.
+- [ ] **Wire QuickBooks into ops dashboard** — Cowork dispatch task pushes P&L, cash flow, invoices to KV → ops reads from KV (Cowork task)
+- [ ] **Wire Gusto into ops dashboard** — Cowork dispatch task pushes payroll, team, contractor data to KV (Cowork task)
+- [x] ~~**Shared auth package**~~ (2026-03-29) — Extracted to `packages/auth`. CRM + ops re-export from `@windedvertigo/auth`.
+- [ ] **Middleware → proxy migration** — Scoped: ~1hr, low risk. Rename middleware.ts → proxy.ts in both apps. Park until next deploy cycle.
 
 ## Someday
 - [ ] **Monthly close scheduled task** — Build dispatch task for 1st-of-month P&L generation

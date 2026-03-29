@@ -1,10 +1,10 @@
 /**
- * Auth middleware — protect all ops routes except login and auth API.
+ * Auth proxy — protect all ops routes except login and auth API.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow auth routes, login page, and static assets through
