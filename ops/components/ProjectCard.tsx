@@ -1,5 +1,3 @@
-'use client';
-
 import { Project } from '@/lib/data';
 
 interface ProjectCardProps {
@@ -16,11 +14,11 @@ const statusColors = {
 export function ProjectCard({ project, index }: ProjectCardProps) {
   return (
     <div
-      className="card-animate p-4 bg-dark-card border border-dark-border rounded-lg hover:border-dark-text/20 transition-colors"
+      className="card-animate p-4 bg-ops-card border border-ops-border rounded-lg hover:border-ops-text/20 transition-colors"
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="flex items-start justify-between mb-3">
-        <h3 className="font-semibold text-dark-text text-sm">{project.name}</h3>
+        <h3 className="font-semibold text-ops-text text-sm">{project.name}</h3>
         <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[project.status]}`}>
           {project.status === 'green' && 'active'}
           {project.status === 'yellow' && 'in progress'}
@@ -28,21 +26,21 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
         </span>
       </div>
       {project.description && (
-        <p className="text-xs text-dark-textMuted mb-3 leading-relaxed">
+        <p className="text-xs text-ops-text-muted mb-3 leading-relaxed">
           {project.description}
         </p>
       )}
       <div className="space-y-2">
         {project.owner && (
           <div className="flex justify-between text-xs">
-            <span className="text-dark-textMuted">owner</span>
-            <span className="text-dark-text">{project.owner}</span>
+            <span className="text-ops-text-muted">owner</span>
+            <span className="text-ops-text">{project.owner}</span>
           </div>
         )}
         {project.deadline && (
           <div className="flex justify-between text-xs">
-            <span className="text-dark-textMuted">deadline</span>
-            <span className="text-dark-text">{project.deadline}</span>
+            <span className="text-ops-text-muted">deadline</span>
+            <span className="text-ops-text">{project.deadline}</span>
           </div>
         )}
       </div>

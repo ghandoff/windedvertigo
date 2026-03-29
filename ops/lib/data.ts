@@ -1,53 +1,16 @@
-// Dashboard data configuration
-// This file will be replaced with Notion API calls in the future
+// Dashboard data — static fallback until real integrations land.
+// Types live in lib/types.ts, shared by API routes + components.
 
-export interface Project {
-  id: string;
-  name: string;
-  status: 'green' | 'yellow' | 'red';
-  deadline?: string;
-  owner?: string;
-  description?: string;
-}
+import type {
+  Project,
+  TeamMember,
+  Meeting,
+  Task,
+  DispatchTask,
+  FinancialMetric,
+} from './types';
 
-export interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  focus: string[];
-}
-
-export interface Meeting {
-  id: string;
-  title: string;
-  day: string;
-  time: string;
-  timezone: string;
-  attendees?: string[];
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  category: string;
-  assigned?: string;
-  subtasks?: string[];
-}
-
-export interface DispatchTask {
-  id: string;
-  name: string;
-  schedule: string;
-  lastRan: string;
-  status: 'success' | 'pending';
-}
-
-export interface FinancialMetric {
-  label: string;
-  value?: string | number;
-  currency?: boolean;
-  hasData: boolean;
-}
+export type { Project, TeamMember, Meeting, Task, DispatchTask, FinancialMetric };
 
 // Projects
 export const projects: Project[] = [

@@ -1,4 +1,17 @@
 @import "tailwindcss";
+@import "@windedvertigo/tokens/index.css";
+
+/* ── ops-specific surface tokens ─────────────────────────────────
+   dark command-center aesthetic — extends the shared brand palette.
+   uses cadet-derived darks for bg/card/border, champagne for text. */
+
+@theme inline {
+  --color-ops-bg: #0a0a0a;
+  --color-ops-card: #121212;
+  --color-ops-border: #222222;
+  --color-ops-text: #e0e0e0;
+  --color-ops-text-muted: #888888;
+}
 
 * {
   margin: 0;
@@ -11,18 +24,15 @@ html {
 }
 
 body {
-  background-color: #0a0a0a;
-  color: #e0e0e0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  background-color: var(--color-ops-bg);
+  color: var(--color-ops-text);
+  font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 /* Scrollbar styling */
@@ -32,11 +42,11 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: var(--color-ops-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: var(--color-ops-border);
   border-radius: 4px;
 }
 
@@ -44,7 +54,7 @@ code {
   background: #444444;
 }
 
-/* Subtle fade-in animation for cards */
+/* Card fade-in animation */
 @keyframes cardFadeIn {
   from {
     opacity: 0;
@@ -60,34 +70,34 @@ code {
   animation: cardFadeIn 0.4s ease-out forwards;
 }
 
-/* Status badge styles */
+/* Status badges — using token status colors */
 .badge-green {
-  background-color: rgb(2 44 34); /* emerald-950 */
-  color: rgb(110 231 183); /* emerald-300 */
-  border: 1px solid rgb(6 95 70); /* emerald-800 */
+  background-color: var(--color-success-bg, rgb(2 44 34));
+  color: var(--color-success-vivid, rgb(110 231 183));
+  border: 1px solid var(--color-success-border, rgb(6 95 70));
 }
 
 .badge-yellow {
-  background-color: rgb(66 32 6); /* yellow-950 */
-  color: rgb(253 224 71); /* yellow-300 */
-  border: 1px solid rgb(133 77 14); /* yellow-800 */
+  background-color: var(--color-warning-bg, rgb(66 32 6));
+  color: var(--color-warning-border, rgb(253 224 71));
+  border: 1px solid var(--color-warning, rgb(133 77 14));
 }
 
 .badge-red {
-  background-color: rgb(69 10 10); /* red-950 */
-  color: rgb(252 165 165); /* red-300 */
-  border: 1px solid rgb(153 27 27); /* red-800 */
+  background-color: var(--color-error-bg, rgb(69 10 10));
+  color: var(--color-error-border, rgb(252 165 165));
+  border: 1px solid var(--color-error, rgb(153 27 27));
 }
 
 .badge-gray {
-  background-color: rgb(3 7 18); /* gray-950 */
-  color: rgb(156 163 175); /* gray-400 */
-  border: 1px solid rgb(31 41 55); /* gray-800 */
+  background-color: rgb(3 7 18);
+  color: rgb(156 163 175);
+  border: 1px solid var(--color-ops-border);
 }
 
 /* Data placeholder style */
 .data-placeholder {
-  border: 2px dashed rgb(55 65 81); /* gray-700 */
-  background-color: rgb(3 7 18); /* gray-950 */
+  border: 2px dashed var(--color-ops-border);
+  background-color: rgb(3 7 18);
   border-radius: 0.25rem;
 }
