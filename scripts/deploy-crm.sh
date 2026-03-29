@@ -18,6 +18,7 @@ BACKUP_JSON="$VERCEL_DIR/project.json.bak"
 
 CRM_PROJECT_ID="prj_rlsjo62EFnVofPUyjt0eYgzcrjmC"
 CRM_ORG_ID="team_wrpRda7ZzXdu7nKcEVVXY3th"
+HARBOUR_PROJECT_ID="prj_O2JU3Algj8MuFt3DGuwGC32KuvXd"
 
 DEPLOY_FLAGS="--prod"
 if [[ "${1:-}" == "--preview" ]]; then
@@ -28,8 +29,10 @@ echo "→ Swapping .vercel/project.json to target wv-crm"
 cp "$PROJECT_JSON" "$BACKUP_JSON"
 
 cleanup() {
-  echo "→ Restoring .vercel/project.json"
-  mv "$BACKUP_JSON" "$PROJECT_JSON"
+  echo "→ Restoring .vercel/project.json to harbour (windedvertigo)"
+  printf '{"projectId":"%s","orgId":"%s","projectName":"windedvertigo"}\n' \
+    "$HARBOUR_PROJECT_ID" "$CRM_ORG_ID" > "$PROJECT_JSON"
+  rm -f "$BACKUP_JSON"
 }
 trap cleanup EXIT
 
