@@ -45,6 +45,15 @@
 - [x] ~~**Email reply detection + sequence auto-pause**~~ (2026-03-29) — `lib/gmail.ts` + `api/cron/sync-replies` polls Gmail daily at 8:55am, writes "email received" Activities. Campaign cron filters replied orgs before each send. Gmail OAuth set up for garrett@windedvertigo.com; all 3 env vars live in Vercel production.
 - [x] ~~**Sequence step scheduling**~~ (2026-03-29) — `api/cron/campaigns` runs daily at 9:07am (was incorrectly hourly — fixed). Evaluates `sendDate` or `campaignStart + cumulativeDelayDays` per step. Auto-marks campaign complete when all steps sent/skipped.
 
+### CMO / Marketing Infrastructure (NEW)
+- [ ] **Ops dashboard: marketing module** — content calendar widget, campaign metrics widget, pipeline summary widget. Full spec in `.brain/memory/marketing/claude-code-prompt.md`
+- [ ] **CRM: content drafting workspace** — new `/content` route for drafting social posts and newsletter content, saves to Notion "content calendar" DB
+- [ ] **CRM: campaign analytics enhancement** — weekly summary card on `/campaigns` page
+- [ ] **Notion: create content calendar DB** — properties: title, channel, body, scheduled date, status, author
+- [ ] **KV keys for marketing data** — add `marketing:content-calendar`, `marketing:campaign-metrics`, `marketing:pipeline-summary` to ops API
+- [ ] **TypeScript types for MarketingSnapshot** — add to `ops/lib/types.ts`
+- [ ] **Nav updates** — add "marketing" to ops sidebar, "content" to CRM sidebar
+
 ### Ops / Infrastructure
 - [ ] **Verify ops OAuth flow** — Garrett: visit ops.windedvertigo.com incognito → should redirect to /login → SSO → dashboard with sign-out button
 - [x] ~~**Set up Cloudflare KV for ops data**~~ — KV wired: API routes read from KV with static fallback, POST /api/kv for dispatch writes (2026-03-29)

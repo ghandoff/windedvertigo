@@ -42,15 +42,6 @@ export default async function DashboardPage() {
       kvOrStatic<FinancialMetric[]>("ops:finance", staticFinancialMetrics),
     ]);
 
-  const now = new Date();
-  const date = now
-    .toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    })
-    .toLowerCase();
-
   return (
     <DashboardShell
       data={{
@@ -68,7 +59,6 @@ export default async function DashboardPage() {
           (session as unknown as Record<string, unknown>).firstName as string ??
           "",
       }}
-      date={date}
       dataAsOf={dataAsOf}
     />
   );

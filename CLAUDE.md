@@ -4,7 +4,7 @@
 > Tasks: `.brain/TASKS.md` | Memory: `.brain/memory/` | Archive: `.brain/archive/`
 
 ## Me
-Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in the US (Eastern time). Email: garrett@windedvertigo.com
+Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in San Francisco, CA (Pacific time). Email: garrett@windedvertigo.com
 
 ## People
 | Who | Role |
@@ -12,7 +12,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **Payton** | Payton Jaeger, w.v collective — comms, website circulation, outreach |
 | **Lamis** | Lamis Sabra, w.v collective — weekly sync Tuesdays 4pm UTC |
 | **Maria** | Maria Altamirano Gonzalez, w.v collective — operations, IDB Salvador lead. Weekly Tuesdays 6pm UTC |
-| **Apoorva** | Apoorva Shivaram, w.v collective — PRME workshops, survey design |
+| **Apoorva** | Apoorva Shivaram — formerly w.v collective (inactive) |
 | **Kristin** | Kristin Lansing — formerly w.v collective (inactive) |
 | **James** | James Galpin, w.v collective |
 | **Randall** | External — weekly call Tuesdays 5pm UTC |
@@ -72,6 +72,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 |------|----------|------|
 | **weekly-cfo-review** | Mon 9:05am | Cash position, revenue pipeline, CPA liaison, action items |
 | **invoice-processor** | Daily 9am | Scans Gmail for invoices, logs to Notion, labels in Gmail |
+| **weekly-cmo-review** | Wed 9am | Content calendar, social media, campaigns, outreach pipeline, brand review |
 
 ## Tool Stack
 | Tool | What we use it for |
@@ -90,6 +91,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 ## AI Roles (Second Brain C-Suite)
 - **CFO**: Financial reporting, cash flow, invoicing, CPA coordination, revenue pipeline, budget monitoring
 - **COO**: Task management, meeting prep, project health, team coordination, process automation
+- **CMO**: Brand voice enforcement, content calendar, social media strategy, campaign planning, outreach pipeline, event promotion, competitive positioning → `.brain/memory/marketing/`
 - Scheduled tasks = "dispatch" — autonomous operations that run without prompting
 
 ## Dual-Environment Architecture

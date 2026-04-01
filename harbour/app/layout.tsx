@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     type: "website",
     title: "the harbour — winded.vertigo",
     description:
-      "the harbour is protected water — a still place where play is already happening and nothing needs to be proved. playful tools for connection, creativity, and growth from winded.vertigo.",
+      "winded.vertigo is a learning design collective building evidence-based educational experiences for global organisations including the UN, IDB, Sesame Workshop, and UNICEF.",
     url: "/harbour",
     siteName: "winded.vertigo",
     images: [{ url: "/images/logo.png", width: 512, height: 512 }],
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "the harbour — winded.vertigo",
     description:
-      "the harbour is protected water — a still place where play is already happening and nothing needs to be proved. playful tools for connection, creativity, and growth from winded.vertigo.",
+      "winded.vertigo is a learning design collective building evidence-based educational experiences for global organisations including the UN, IDB, Sesame Workshop, and UNICEF.",
     images: ["/images/logo.png"],
   },
   icons: {

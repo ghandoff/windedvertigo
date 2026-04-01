@@ -92,6 +92,23 @@ const nextConfig: NextConfig = {
           "https://depth-chart-ghandoffs-projects.vercel.app/harbour/depth-chart/:path*",
       },
 
+      // raft house
+      {
+        source: "/harbour/raft-house",
+        destination:
+          "https://raft-house-ghandoffs-projects.vercel.app/harbour/raft-house",
+      },
+      {
+        source: "/harbour/raft-house/",
+        destination:
+          "https://raft-house-ghandoffs-projects.vercel.app/harbour/raft-house",
+      },
+      {
+        source: "/harbour/raft-house/:path*",
+        destination:
+          "https://raft-house-ghandoffs-projects.vercel.app/harbour/raft-house/:path*",
+      },
+
       // admin (via creaseworks)
       {
         source: "/harbour/admin/login",
@@ -177,7 +194,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app https://vitals.vercel-insights.com",
+              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io",
               "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
               "base-uri 'self'",
               "form-action 'self'",

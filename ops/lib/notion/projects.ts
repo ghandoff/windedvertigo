@@ -46,7 +46,7 @@ function formatDeadline(date: { start: string; end: string | null } | null): str
   if (!date) return undefined;
   const target = date.end ?? date.start;
   try {
-    return new Date(target).toLocaleDateString("en-US", {
+    return new Date(target).toLocaleDateString(undefined, {
       month: "long",
       day: "numeric",
       year: "numeric",

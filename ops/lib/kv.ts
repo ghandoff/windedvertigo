@@ -1,7 +1,7 @@
 // Cloudflare KV REST API utilities.
 // Reads and writes JSON values to the wv-ops-data namespace.
 
-const KV_NAMESPACE_ID = 'd740788337354d738e1be321d2c4b277';
+const KV_NAMESPACE_ID = '6793fcb92d2d485ba4bbe5c6e74a9d29';
 
 function kvUrl(key: string): string | null {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;

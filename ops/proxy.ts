@@ -7,9 +7,10 @@ import { NextRequest, NextResponse } from "next/server";
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow auth routes, login page, and static assets through
+  // Allow auth routes, login page, static assets, and machine-to-machine API endpoints
   if (
     pathname.startsWith("/api/auth") ||
+    pathname === "/api/kv" ||
     pathname === "/login" ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||

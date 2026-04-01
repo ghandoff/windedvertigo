@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://windedvertigo.com"),
   title: "winded.vertigo",
   description:
-    "a learning design collective dedicated to fostering human development through experiences with the interconnectedness of everything.",
+    "winded.vertigo is a learning design collective building evidence-based educational experiences for global organisations including the UN Global Compact and the LEGO Foundation.",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     title: "winded.vertigo",
     description:
-      "a learning design collective dedicated to fostering human development through experiences with the interconnectedness of everything.",
+      "winded.vertigo is a learning design collective building evidence-based educational experiences for global organisations including the UN Global Compact and the LEGO Foundation.",
     url: "/",
     siteName: "winded.vertigo",
     images: [{ url: "/images/logo.png", width: 512, height: 512 }],
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "winded.vertigo",
     description:
-      "a learning design collective dedicated to fostering human development through experiences with the interconnectedness of everything.",
+      "winded.vertigo is a learning design collective building evidence-based educational experiences for global organisations including the UN Global Compact and the LEGO Foundation.",
     images: ["/images/logo.png"],
   },
   icons: {
@@ -46,7 +46,7 @@ const STRUCTURED_DATA = JSON.stringify({
       url: "https://www.windedvertigo.com",
       logo: "https://www.windedvertigo.com/images/logo.png",
       description:
-        "A learning design collective dedicated to fostering human development through experiences with the interconnectedness of everything.",
+        "winded.vertigo is a learning design collective building evidence-based educational experiences for global organisations including the UN Global Compact and the LEGO Foundation.",
       sameAs: [
         "https://www.instagram.com/windedvertigo",
         "https://www.linkedin.com/company/windedvertigo",

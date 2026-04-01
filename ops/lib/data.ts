@@ -104,12 +104,6 @@ export const teamMembers: TeamMember[] = [
     focus: ['IDB Salvador Lead', 'Operations', 'Admin'],
   },
   {
-    id: 'apoorva',
-    name: 'Apoorva Shivaram',
-    role: 'Learning Design',
-    focus: ['PRME Workshops', 'Survey Design'],
-  },
-  {
     id: 'james',
     name: 'James Galpin',
     role: 'w.v Collective',

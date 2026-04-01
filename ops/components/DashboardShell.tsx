@@ -17,6 +17,11 @@ import { DetailDrawer, DrawerSection, DrawerField } from './DetailDrawer';
 import { CommandPalette } from './CommandPalette';
 import type { CommandItem } from './CommandPalette';
 import { StalenessBar } from './StalenessBar';
+import { ForecastPanel } from './ForecastPanel';
+import { InsightsPanel } from './InsightsPanel';
+import { KioskMode, KioskToggle } from './KioskMode';
+import { ActionBar } from './ActionBar';
+import { utcTimeToLocal, localDate, localHeaderDate, localTzAbbr } from '@/lib/time';
 
 /* ────────────────────────────────────────────────────────────────
    Props
@@ -33,7 +38,6 @@ interface DashboardShellProps {
     financialMetrics: FinancialMetric[];
   };
   user: { email: string; firstName: string };
-  date: string;
   dataAsOf: string;
 }
 
@@ -151,16 +155,23 @@ function TaskRow({ task, checked, onToggle, priority }: {
    Dashboard
    ──────────────────────────────────────────────────────────────── */
 
-export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellProps) {
+export function DashboardShell({ data, user, dataAsOf }: DashboardShellProps) {
   const [mounted, setMounted] = useState(false);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [drawerProject, setDrawerProject] = useState<Project | null>(null);
   const [drawerMeeting, setDrawerMeeting] = useState<Meeting | null>(null);
+  const [kioskMode, setKioskMode] = useState(false);
+
+  // Client-side localised date + timezone (avoids SSR/client mismatch)
+  const [date, setDate] = useState('');
+  const [tzAbbr, setTzAbbr] = useState('');
 
   useEffect(() => {
     setMounted(true);
     setChecked(loadChecked());
+    setDate(localHeaderDate());
+    setTzAbbr(localTzAbbr());
   }, []);
 
   const toggleTask = useCallback((id: string) => {
@@ -261,7 +272,7 @@ export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellPro
       alerts.push({
         level: days <= 7 ? 'critical' : 'warn',
         text: `${d.title} due in ${days} days`,
-        detail: `${new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — ${d.project}`,
+        detail: `${localDate(d.date)} — ${d.project}`,
       });
     }
   });
@@ -289,14 +300,18 @@ export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellPro
             </kbd>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-ops-text-muted">
+            <KioskToggle onClick={() => setKioskMode(true)} />
             <span className="hidden sm:inline">{user.email}</span>
-            <span>{date}</span>
+            <span>{date}{tzAbbr ? ` · ${tzAbbr}` : ''}</span>
             <form action={signOutAction}>
               <button type="submit" className="hover:text-ops-text transition-colors cursor-pointer">sign out</button>
             </form>
           </div>
         </div>
       </header>
+
+      {/* ── action bar ──────────────────────────────────────── */}
+      <ActionBar />
 
       <main className="max-w-6xl mx-auto w-full px-5 py-6 flex-1">
 
@@ -382,6 +397,28 @@ export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellPro
           </div>
         )}
 
+        {/* ── insights + forecast ──────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <InsightsPanel
+            cash={cash}
+            monthlyBurn={burn}
+            monthlyRevenue={parseMetricValue(ytdRevenue?.value)}
+            runway={runway}
+            projects={projects}
+            tasks={tasks}
+            checkedTaskIds={checked}
+            deadlines={deadlines}
+            teamSize={teamMembers.length}
+          />
+          <ForecastPanel
+            cash={cash}
+            monthlyBurn={burn}
+            monthlyRevenue={parseMetricValue(ytdRevenue?.value)}
+            burnHistory={burnHistory}
+            revenueHistory={[0, 0, 0, 0, 0, parseMetricValue(ytdRevenue?.value)]}
+          />
+        </div>
+
         {/* ── projects + deadlines (grouped by concern) ───────── */}
         <div className="mb-6">
           <Section title="projects" badge={
@@ -422,7 +459,7 @@ export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellPro
                         days <= 7 ? 'text-red-400' : 'text-amber-400'
                       }`}>{days}d</span>
                       <span className="text-[10px] text-ops-text-muted hidden sm:inline">
-                        {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {localDate(d.date)}
                       </span>
                     </div>
                   );
@@ -481,11 +518,16 @@ export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellPro
                     onClick={() => setDrawerMeeting(meeting)}
                     className="flex gap-3 px-2 py-2 rounded-lg hover:bg-white/[0.03] transition-colors w-full text-left cursor-pointer"
                   >
-                    <div className="w-10 text-right flex-shrink-0">
+                    <div className="w-14 text-right flex-shrink-0">
                       <p className="text-[10px] font-semibold text-ops-text-muted uppercase leading-tight">
                         {meeting.day.slice(0, 3)}
                       </p>
-                      <p className="text-[11px] text-ops-text tabular-nums">{meeting.time.replace(' PM', 'p').replace(' AM', 'a')}</p>
+                      {(() => {
+                        const { localTime } = utcTimeToLocal(meeting.time, meeting.day);
+                        return (
+                          <p className="text-[11px] text-ops-text tabular-nums">{localTime}</p>
+                        );
+                      })()}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[13px] text-ops-text truncate">{meeting.title}</p>
@@ -602,13 +644,19 @@ export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellPro
         open={drawerMeeting !== null}
         onClose={closeDrawer}
         title={drawerMeeting?.title ?? ''}
-        subtitle={drawerMeeting ? `${drawerMeeting.day} · ${drawerMeeting.time}` : undefined}
+        subtitle={drawerMeeting ? (() => {
+          const { localTime, tzAbbr: tz } = utcTimeToLocal(drawerMeeting.time, drawerMeeting.day);
+          return `${drawerMeeting.day} · ${localTime}${tz ? ` ${tz}` : ''}`;
+        })() : undefined}
       >
         {drawerMeeting && (
           <>
             <DrawerSection title="Schedule">
               <DrawerField label="Day" value={drawerMeeting.day} />
-              <DrawerField label="Time" value={`${drawerMeeting.time} ${drawerMeeting.timezone}`} />
+              <DrawerField label="Time" value={(() => {
+                const { localTime, tzAbbr: tz } = utcTimeToLocal(drawerMeeting.time, drawerMeeting.day);
+                return `${localTime}${tz ? ` ${tz}` : ''}`;
+              })()} />
             </DrawerSection>
             {drawerMeeting.attendees && drawerMeeting.attendees.length > 0 && (
               <DrawerSection title="Attendees">
@@ -627,6 +675,89 @@ export function DashboardShell({ data, user, date, dataAsOf }: DashboardShellPro
           </>
         )}
       </DetailDrawer>
+
+      {/* ── kiosk / TV mode ──────────────────────────────────── */}
+      <KioskMode
+        enabled={kioskMode}
+        onExit={() => setKioskMode(false)}
+        pageNames={['Financial Overview', 'Projects & Tasks', 'Forecast']}
+      >
+        {/* Page 1: Financial + Alerts */}
+        <div className="p-8">
+          <h2 className="text-2xl font-bold text-ops-heading mb-6 lowercase">financial overview</h2>
+          <div className="flex flex-wrap items-end gap-x-12 gap-y-6 mb-8">
+            <div>
+              <p className="text-sm uppercase tracking-wide text-white/40 mb-1">cash</p>
+              <p className="text-5xl font-bold text-white tabular-nums">${cash.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-sm uppercase tracking-wide text-white/40 mb-1">monthly burn</p>
+              <p className="text-3xl font-semibold text-white/80 tabular-nums">${burn.toLocaleString()}</p>
+            </div>
+            {runway !== null && (
+              <div>
+                <p className="text-sm uppercase tracking-wide text-white/40 mb-1">runway</p>
+                <p className={`text-3xl font-semibold tabular-nums ${
+                  runway < 1 ? 'text-red-400' : runway < 3 ? 'text-amber-400' : 'text-emerald-400'
+                }`}>{runway} months</p>
+              </div>
+            )}
+          </div>
+          {alerts.length > 0 && (
+            <div className="space-y-3">
+              {alerts.map((a, i) => (
+                <div key={i} className={`px-6 py-4 rounded-lg text-lg ${
+                  a.level === 'critical' ? 'bg-red-500/10 text-red-300' : 'bg-amber-500/10 text-amber-300'
+                }`}>
+                  <span className="font-semibold">{a.text}</span>
+                  {a.detail && <span className="text-white/40 ml-2">— {a.detail}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Page 2: Projects + Tasks */}
+        <div className="p-8">
+          <h2 className="text-2xl font-bold text-ops-heading mb-6 lowercase">projects & tasks</h2>
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <p className="text-sm uppercase tracking-wide text-white/40 mb-3">projects</p>
+              <div className="space-y-2">
+                {projects.map(p => (
+                  <div key={p.id} className="flex items-center gap-3 text-lg">
+                    <StatusBadge status={projectStatusToBadge(p.status)} size="sm" showLabel={false} />
+                    <span className="text-white/90">{p.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm uppercase tracking-wide text-white/40 mb-3">action items</p>
+              <div className="space-y-2">
+                {activeTasks.slice(0, 8).map(t => (
+                  <div key={t.id} className="flex items-center gap-3 text-lg">
+                    <StatusBadge status={t.priority === 'high' ? 'at-risk' : 'pending'} size="sm" showLabel={false} />
+                    <span className="text-white/90">{t.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Page 3: Forecast */}
+        <div className="p-8">
+          <h2 className="text-2xl font-bold text-ops-heading mb-6 lowercase">12-month forecast</h2>
+          <ForecastPanel
+            cash={cash}
+            monthlyBurn={burn}
+            monthlyRevenue={parseMetricValue(ytdRevenue?.value)}
+            burnHistory={burnHistory}
+            revenueHistory={[0, 0, 0, 0, 0, parseMetricValue(ytdRevenue?.value)]}
+          />
+        </div>
+      </KioskMode>
     </div>
   );
 }
