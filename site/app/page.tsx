@@ -8,6 +8,7 @@ export const revalidate = 3600;
 
 export default async function HomePage() {
   const sections = await fetchSiteContent("home");
+  const meta = sections.find((s) => s.name === "meta" || s.section === "meta");
 
   return (
     <>
@@ -22,6 +23,9 @@ export default async function HomePage() {
               <Link href="/we/">we.</Link>
               <Link href="/do/">do.</Link>
             </nav>
+            {meta?.content && (
+              <p className="home-meta">{meta.content}</p>
+            )}
           </section>
         </div>
       </main>
