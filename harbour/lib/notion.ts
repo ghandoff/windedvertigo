@@ -246,9 +246,9 @@ async function withFallback<T>(
  * Fetch harbour games from Notion.
  *
  * Note: tile images remain as static files in public/images/ because
- * Notion's signed file URLs expire after ~1 hour. The existing images
- * were downloaded by the old fetch-notion.js script. If a new game is
- * added in Notion, its tile image must be manually placed in public/images/.
+ * Notion's signed file URLs expire after ~1 hour. Images are sourced
+ * from each page's **cover image** in the harbour games database.
+ * Run `node scripts/sync-harbour-tiles.mjs` to download fresh copies.
  */
 export function fetchGames(): Promise<Game[]> {
   return withFallback(_fetchGames, "games.json", "fetchGames");
