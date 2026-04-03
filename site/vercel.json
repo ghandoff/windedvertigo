@@ -5,6 +5,13 @@
       "schedule": "0 6 * * 1"
     }
   ],
+  "redirects": [
+    {
+      "source": "/harbour/home",
+      "destination": "/harbour/creaseworks/harbour-home",
+      "statusCode": 302
+    }
+  ],
   "rewrites": [
     {
       "source": "/portfolio/assets/pedal-conference-experience",
