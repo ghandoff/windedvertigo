@@ -54,6 +54,21 @@
 - [ ] **TypeScript types for MarketingSnapshot** — add to `ops/lib/types.ts`
 - [ ] **Nav updates** — add "marketing" to ops sidebar, "content" to CRM sidebar
 
+### Harbour — New Apps
+- [x] ~~**tidal.pool scaffold**~~ (2026-04-03) — Full app scaffolded: simulation engine, canvas renderer, components, sandbox page, mirror-log integration. Build passes. Tile image generated. Deploy script ready.
+- [ ] **tidal.pool — Vercel project setup (Garrett):**
+  - [ ] Create Vercel project "tidal-pool" in dashboard
+  - [ ] Set rootDirectory to `tidal-pool`
+  - [ ] Enable "Include source files outside of the Root Directory"
+  - [ ] Connect to `ghandoff/windedvertigo` GitHub repo for auto-deploy
+  - [ ] Copy project ID into `scripts/deploy-tidal-pool.sh` (replace `prj_REPLACE_ME`)
+- [ ] **tidal.pool — Notion databases (Garrett/Cowork):**
+  - [ ] Create "tidal.pool Elements" DB: Name, Slug, Category (select), Icon, Description, Default Value (number), Color, Order
+  - [ ] Create "tidal.pool Scenarios" DB: Name, Slug, Description, Difficulty (select), Elements (relation), Preset Connections (rich text/JSON), Challenge Prompt, Skills (multi-select), Status, Order
+  - [ ] Add tidal.pool entry to harbour games DB: slug=`tidal-pool`, status=`coming-soon`
+- [ ] **@windedvertigo/mirror-log package** (2026-04-03) — Scaffolded in `packages/mirror-log/`. ReflectionPrompt embedded in tidal.pool sandbox. Standalone mirror-log app not yet built.
+- [ ] **paper.trail** — Not yet started. Spec in `.brain/memory/harbour-new-apps-spec.md`
+
 ### Ops / Infrastructure
 - [ ] **Verify ops OAuth flow** — Garrett: visit ops.windedvertigo.com incognito → should redirect to /login → SSO → dashboard with sign-out button
 - [x] ~~**Set up Cloudflare KV for ops data**~~ — KV wired: API routes read from KV with static fallback, POST /api/kv for dispatch writes (2026-03-29)

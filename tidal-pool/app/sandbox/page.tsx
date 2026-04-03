@@ -3,15 +3,17 @@
 /**
  * tidal.pool sandbox — the main interactive experience.
  * Blank pool with full palette access. No auth required.
+ * Includes mirror.log reflection prompt after pausing simulation.
  */
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useSimulation } from "@/hooks/use-simulation";
 import { PoolCanvas } from "@/components/pool-canvas";
 import { ElementPalette } from "@/components/element-palette";
 import { SimulationControls } from "@/components/simulation-controls";
 import { ElementInspector } from "@/components/element-inspector";
+import { ReflectionPrompt } from "@windedvertigo/mirror-log";
 import { DEFAULT_PALETTE } from "@/lib/palette-data";
 import type { PaletteItem } from "@/lib/types";
 
@@ -20,8 +22,22 @@ export default function SandboxPage() {
     useSimulation();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [, setDraggedItem] = useState<PaletteItem | null>(null);
+  const [showReflection, setShowReflection] = useState(false);
+  const [hasReflected, setHasReflected] = useState(false);
 
   const selectedElement = state.elements.find((e) => e.id === selectedId) ?? null;
+
+  // Show reflection prompt after meaningful interaction (10+ ticks, then pause)
+  const shouldOfferReflection =
+    !state.playing &&
+    state.tick >= 10 &&
+    state.elements.length >= 2 &&
+    !hasReflected;
+
+  const handleReflectionComplete = useCallback(() => {
+    setShowReflection(false);
+    setHasReflected(true);
+  }, []);
 
   return (
     <div className="h-screen flex flex-col">
@@ -79,6 +95,34 @@ export default function SandboxPage() {
           />
         )}
       </div>
+
+      {/* Reflection prompt trigger */}
+      {shouldOfferReflection && !showReflection && (
+        <div className="shrink-0 px-4 pb-3">
+          <button
+            onClick={() => setShowReflection(true)}
+            className="w-full py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-[var(--color-text-on-dark-muted)] hover:text-[var(--color-text-on-dark)] hover:bg-white/10 transition-all"
+          >
+            pause and reflect — what did you notice?
+          </button>
+        </div>
+      )}
+
+      {/* mirror.log reflection panel */}
+      {showReflection && (
+        <div className="shrink-0 px-4 pb-4">
+          <ReflectionPrompt
+            sourceApp="tidal-pool"
+            skillsExercised={["systems-thinking", "cause-and-effect"]}
+            sessionSummary={`sandbox session — ${state.elements.length} elements, ${state.connections.length} connections, ${state.tick} ticks`}
+            onComplete={handleReflectionComplete}
+            onSkip={() => {
+              setShowReflection(false);
+              setHasReflected(true);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

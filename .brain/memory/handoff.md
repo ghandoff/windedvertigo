@@ -4,6 +4,53 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 
 ---
 
+## 2026-04-03 — tidal.pool scaffolded + mirror-log package + educational gaps analysis (Claude Code)
+
+**What happened:**
+- **Educational gaps analysis:** Mapped harbour's 5 games against the depth.chart 21-skill framework. Identified 6 underserved domains: systems thinking, ethical reasoning, scientific inquiry, metacognition, storytelling, embodied play. Proposed 5 new apps to fill gaps.
+- **tidal.pool scaffolded:** Full systems thinking sandbox app in `tidal-pool/`:
+  - Custom stock-and-flow simulation engine (`lib/simulation.ts`) — pure functions, tick-based, 4 connection types (amplifying, dampening, delayed, threshold)
+  - HTML Canvas renderer with pulsing value-ring nodes, animated directional connections, ripple effects
+  - Hit-testing for drag, select, and connection drawing
+  - Components: PoolCanvas, ElementPalette (14 elements in 4 categories), SimulationControls, ElementInspector, ConnectionDrawer
+  - Hooks: useSimulation (reducer + animation loop), usePoolCanvas (canvas lifecycle + DPR)
+  - Landing page + sandbox page (full interactive mode)
+  - Build passes clean. Typecheck passes.
+- **@windedvertigo/mirror-log package** scaffolded in `packages/mirror-log/`:
+  - `<ReflectionPrompt />` — embeddable in any harbour app. Contextual prompt selection (by skill, by app, generic). Self-contained localStorage persistence.
+  - `<MoodPicker />` — 5-mood emoji selector
+  - 40+ human-designed metacognitive prompts (no AI in the loop)
+  - Already wired into tidal.pool sandbox — appears after 10+ ticks of simulation
+- **Deploy script** created: `scripts/deploy-tidal-pool.sh` (needs Vercel project ID)
+- **Tile image** generated: `harbour/public/images/tidal-pool.png`
+- **Rewrite rules** added to `site/next.config.ts` for tidal-pool
+- **Workspace** registered in root `package.json` with dev/build scripts
+
+**What needs doing next (Garrett via Vercel dashboard):**
+- [ ] Create Vercel project "tidal-pool" → rootDirectory: `tidal-pool`, enable source files outside root
+- [ ] Connect to `ghandoff/windedvertigo` GitHub repo
+- [ ] Copy project ID into `scripts/deploy-tidal-pool.sh`
+- [ ] First deploy: `./scripts/deploy-tidal-pool.sh --preview`
+
+**What needs doing next (Cowork):**
+- [ ] Create "tidal.pool Elements" Notion DB (properties: Name, Slug, Category, Icon, Description, Default Value, Color, Order)
+- [ ] Create "tidal.pool Scenarios" Notion DB (properties: Name, Slug, Description, Difficulty, Elements, Preset Connections, Challenge Prompt, Skills, Status, Order)
+- [ ] Add tidal.pool entry to harbour games Notion DB (slug: `tidal-pool`, status: `coming-soon`)
+
+**Key files:**
+- `tidal-pool/lib/simulation.ts` — pure simulation engine
+- `tidal-pool/lib/canvas-renderer.ts` — canvas drawing
+- `tidal-pool/app/sandbox/page.tsx` — main interactive page
+- `tidal-pool/hooks/use-simulation.ts` — state management + animation loop
+- `packages/mirror-log/index.ts` — package exports
+- `packages/mirror-log/components/reflection-prompt.tsx` — the embeddable widget
+- `.brain/memory/harbour-educational-gaps.md` — gap analysis
+- `.brain/memory/harbour-new-apps-spec.md` — full architecture specs
+
+**Branch:** `claude/educational-gaps-analysis-pPRzY`
+
+---
+
 ## 2026-03-29 — ops dashboard redesigned, KV + Notion wired, auto-deploy enabled (Claude Code)
 
 **What happened:**
