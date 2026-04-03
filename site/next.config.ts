@@ -92,6 +92,23 @@ const nextConfig: NextConfig = {
           "https://depth-chart-ghandoffs-projects.vercel.app/harbour/depth-chart/:path*",
       },
 
+      // tidal pool
+      {
+        source: "/harbour/tidal-pool",
+        destination:
+          "https://tidal-pool-ghandoffs-projects.vercel.app/harbour/tidal-pool",
+      },
+      {
+        source: "/harbour/tidal-pool/",
+        destination:
+          "https://tidal-pool-ghandoffs-projects.vercel.app/harbour/tidal-pool",
+      },
+      {
+        source: "/harbour/tidal-pool/:path*",
+        destination:
+          "https://tidal-pool-ghandoffs-projects.vercel.app/harbour/tidal-pool/:path*",
+      },
+
       // raft house
       {
         source: "/harbour/raft-house",
