@@ -28,7 +28,7 @@ export default function NotFound() {
               go home
             </Link>
             <Link
-              href="/do/"
+              href="/quadrants/"
               style={{
                 padding: "12px 24px",
                 border: "1px solid rgba(255,235,210,0.3)",

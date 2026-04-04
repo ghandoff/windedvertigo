@@ -23,7 +23,7 @@ export default async function HomePage() {
               <Link href="/we/">we.</Link>
               <span className="nav-do-group">
                 <a href="/do/">do</a>
-                <a href="/portfolio/" className="portfolio-dot" aria-label="portfolio">
+                <a href="/quadrants/" className="portfolio-dot" aria-label="quadrants">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <rect x="1" y="1" width="10" height="10" rx="1" />
                     <rect x="13" y="1" width="10" height="10" rx="1" />

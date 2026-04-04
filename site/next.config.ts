@@ -213,6 +213,22 @@ const nextConfig: NextConfig = {
         destination: "/portfolio/assets/pedal-conference-experience/index.html",
         permanent: false,
       },
+      // route restructure: /portfolio → /do, /do/explore → /quadrants/explore
+      {
+        source: "/portfolio",
+        destination: "/do/",
+        permanent: true,
+      },
+      {
+        source: "/portfolio/conference-experience",
+        destination: "/do/conference-experience/",
+        permanent: true,
+      },
+      {
+        source: "/do/explore",
+        destination: "/quadrants/explore/",
+        permanent: true,
+      },
     ];
   },
 

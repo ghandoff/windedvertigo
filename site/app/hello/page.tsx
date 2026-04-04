@@ -56,7 +56,7 @@ const cards: HelloCard[] = [
     description:
       "tell us what you need and we\u2019ll show you what\u2019s possible.",
     cta: "start building",
-    href: "/do/",
+    href: "/quadrants/",
   },
   {
     id: "play",

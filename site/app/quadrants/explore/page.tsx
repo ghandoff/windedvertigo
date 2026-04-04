@@ -14,12 +14,12 @@ export const metadata: Metadata = {
   title: "explore packages – winded.vertigo",
   description:
     "explore our four quadrants and see what we can build together.",
-  alternates: { canonical: "/do/explore/" },
+  alternates: { canonical: "/quadrants/explore/" },
   openGraph: {
     title: "explore packages – winded.vertigo",
     description:
       "explore our four quadrants and see what we can build together.",
-    url: "/do/explore/",
+    url: "/quadrants/explore/",
   },
 };
 

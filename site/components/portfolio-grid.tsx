@@ -7,7 +7,7 @@ import Link from "next/link";
  */
 export function PortfolioGrid() {
   return (
-    <Link href="/portfolio/" className="portfolio-dot" aria-label="portfolio">
+    <Link href="/quadrants/" className="portfolio-dot" aria-label="quadrants">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"

@@ -1,34 +1,31 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import {
-  fetchSiteContent,
-  fetchPackageBuilderData,
-} from "@/lib/notion";
-import { PackageBuilderWizard } from "@/components/package-builder-wizard";
+import { fetchPortfolioAssets, fetchSiteContent } from "@/lib/notion";
+import { PortfolioGallery } from "@/components/portfolio-gallery";
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "do. – winded.vertigo",
   description:
-    "build your custom learning experience package with our interactive package builder.",
+    "explore our portfolio of learning design tools, research outputs, and creative assets.",
   alternates: { canonical: "/do/" },
   openGraph: {
     title: "do. – winded.vertigo",
     description:
-      "build your custom learning experience package with our interactive package builder.",
+      "explore our portfolio of learning design tools, research outputs, and creative assets.",
     url: "/do/",
   },
 };
 
-export default async function DoPage() {
-  const [sections, packs] = await Promise.all([
-    fetchSiteContent("do"),
-    fetchPackageBuilderData(),
+export default async function PortfolioPage() {
+  const [assets, homeSections] = await Promise.all([
+    fetchPortfolioAssets(),
+    fetchSiteContent("home"),
   ]);
 
-  const cta = sections.find((s) => s.type === "cta");
+  const portfolioAssets = assets.filter((a) => a.showInPortfolio);
 
   return (
     <>
@@ -36,11 +33,12 @@ export default async function DoPage() {
 
       <main id="main-content">
         <div className="container content-narrow">
-          <PackageBuilderWizard packs={packs} {...(cta?.link ? { ctaLink: cta.link } : {})} />
+          <h2 className="hero-title">portfolio</h2>
+          <PortfolioGallery assets={portfolioAssets} />
         </div>
       </main>
 
-      <SiteFooter sections={sections} />
+      <SiteFooter sections={homeSections} />
     </>
   );
 }
