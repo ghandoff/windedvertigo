@@ -76,10 +76,23 @@ em { font-style: italic; }
   0%, 100% { transform: rotate(-3deg); }
   50% { transform: rotate(3deg); }
 }
-.hero-nav a:first-child,
-.nav a:first-child { animation: wobble 1.5s ease-in-out infinite; display: inline-block; will-change: transform; }
-.hero-nav a:first-child:hover,
-.nav a:first-child:hover { animation: none; }
+.hero-nav > a:first-child,
+.nav > a:first-child { animation: wobble 1.5s ease-in-out infinite; display: inline-block; will-change: transform; }
+.hero-nav > a:first-child:hover,
+.nav > a:first-child:hover { animation: none; }
+
+/* ── portfolio dot (spinning grid Easter egg) ────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.nav-do-group { display: inline-flex; align-items: baseline; }
+.portfolio-dot { display: inline-flex; align-items: center; vertical-align: baseline; line-height: 1; }
+.portfolio-dot svg { width: 0.16em; height: 0.16em; margin-left: 0.04em; animation: spin 8s linear infinite; will-change: transform; }
+.portfolio-dot:hover svg { animation-duration: 1.5s; }
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-dot svg { animation: none; }
+}
 
 /* ── navigation ───────────────────────────────────────────────── */
 .nav { display: flex; gap: 30px; }
@@ -219,7 +232,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
      without the layout recalcs that dvh causes (which janks animations). */
   body { min-height: 100svh; }
   main.home { padding-top: 80px; }
-  .hero-nav { flex-direction: column; gap: var(--space-sm); }
+  .hero-nav { flex-direction: column; gap: var(--space-sm); align-items: center; }
   .hero-nav a { font-size: 2.5rem; }
   .home-meta { font-size: 0.95rem; }
   .team-member { grid-template-columns: 1fr; text-align: center; }
