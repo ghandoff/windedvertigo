@@ -109,6 +109,57 @@ const nextConfig: NextConfig = {
           "https://raft-house-ghandoffs-projects.vercel.app/harbour/raft-house/:path*",
       },
 
+      // tidal pool
+      {
+        source: "/harbour/tidal-pool",
+        destination:
+          "https://tidal-pool-ghandoffs-projects.vercel.app/harbour/tidal-pool",
+      },
+      {
+        source: "/harbour/tidal-pool/",
+        destination:
+          "https://tidal-pool-ghandoffs-projects.vercel.app/harbour/tidal-pool",
+      },
+      {
+        source: "/harbour/tidal-pool/:path*",
+        destination:
+          "https://tidal-pool-ghandoffs-projects.vercel.app/harbour/tidal-pool/:path*",
+      },
+
+      // paper trail
+      {
+        source: "/harbour/paper-trail",
+        destination:
+          "https://paper-trail-ghandoffs-projects.vercel.app/harbour/paper-trail",
+      },
+      {
+        source: "/harbour/paper-trail/",
+        destination:
+          "https://paper-trail-ghandoffs-projects.vercel.app/harbour/paper-trail",
+      },
+      {
+        source: "/harbour/paper-trail/:path*",
+        destination:
+          "https://paper-trail-ghandoffs-projects.vercel.app/harbour/paper-trail/:path*",
+      },
+
+      // mirror log
+      {
+        source: "/harbour/mirror-log",
+        destination:
+          "https://mirror-log-ghandoffs-projects.vercel.app/harbour/mirror-log",
+      },
+      {
+        source: "/harbour/mirror-log/",
+        destination:
+          "https://mirror-log-ghandoffs-projects.vercel.app/harbour/mirror-log",
+      },
+      {
+        source: "/harbour/mirror-log/:path*",
+        destination:
+          "https://mirror-log-ghandoffs-projects.vercel.app/harbour/mirror-log/:path*",
+      },
+
       // admin (via creaseworks)
       {
         source: "/harbour/admin/login",
