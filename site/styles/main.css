@@ -112,7 +112,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 .hero-nav { display: flex; gap: 35px; }
 .hero-nav a { font-size: 7.2rem; font-weight: 700; text-transform: lowercase; transition: color 0.2s ease; }
 .hero-nav a:hover { color: var(--accent-hover); }
-.home-meta { text-align: center; font-size: 1.1rem; line-height: 1.7; font-weight: 300; color: var(--wv-white); max-width: 700px; margin: var(--space-xl) auto 0; }
+.home-meta { text-align: center; font-size: 1.1rem; line-height: 1.7; font-weight: 300; color: var(--wv-white); max-width: 700px; margin: var(--space-xl) auto 0; white-space: pre-line; }
 
 /* ── team section ─────────────────────────────────────────────── */
 .team-grid { display: flex; flex-direction: column; gap: var(--space-lg); }
