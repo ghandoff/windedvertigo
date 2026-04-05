@@ -6,7 +6,7 @@
  * Includes mirror.log reflection prompt after pausing simulation.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSimulation } from "@/hooks/use-simulation";
 import { PoolCanvas } from "@/components/pool-canvas";
@@ -24,6 +24,7 @@ export default function SandboxPage() {
   const [, setDraggedItem] = useState<PaletteItem | null>(null);
   const [showReflection, setShowReflection] = useState(false);
   const [hasReflected, setHasReflected] = useState(false);
+  const nextTapPos = useRef(0);
 
   const selectedElement = state.elements.find((e) => e.id === selectedId) ?? null;
 
@@ -39,8 +40,32 @@ export default function SandboxPage() {
     setHasReflected(true);
   }, []);
 
+  // Mobile: tap-to-add places elements in a staggered grid pattern
+  const handleTapAdd = useCallback(
+    (item: PaletteItem) => {
+      const positions = [
+        { x: 150, y: 150 },
+        { x: 280, y: 120 },
+        { x: 200, y: 260 },
+        { x: 330, y: 230 },
+        { x: 120, y: 340 },
+        { x: 260, y: 350 },
+        { x: 170, y: 200 },
+        { x: 310, y: 300 },
+      ];
+      const pos = positions[nextTapPos.current % positions.length]!;
+      // Add jitter so repeated adds don't stack exactly
+      const jitterX = (Math.random() - 0.5) * 40;
+      const jitterY = (Math.random() - 0.5) * 40;
+      const id = addElementFromPalette(item, pos.x + jitterX, pos.y + jitterY);
+      setSelectedId(id);
+      nextTapPos.current++;
+    },
+    [addElementFromPalette],
+  );
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-[100dvh] flex flex-col">
       {/* Header */}
       <header className="wv-header shrink-0">
         <Link href="/harbour/tidal-pool" className="wv-header-brand">
@@ -52,7 +77,7 @@ export default function SandboxPage() {
       </header>
 
       {/* Controls */}
-      <div className="shrink-0 px-4 pt-3">
+      <div className="shrink-0 px-3 lg:px-4 pt-2 lg:pt-3">
         <SimulationControls
           playing={state.playing}
           speed={state.speed}
@@ -64,11 +89,13 @@ export default function SandboxPage() {
       </div>
 
       {/* Main area: palette + canvas + inspector */}
-      <div className="flex-1 flex min-h-0 px-4 py-3 gap-3">
-        {/* Palette */}
+      {/* pb-20 on mobile to clear the fixed bottom palette sheet */}
+      <div className="flex-1 flex min-h-0 px-3 lg:px-4 py-2 lg:py-3 gap-3 pb-24 lg:pb-3">
+        {/* Palette (desktop sidebar + mobile bottom sheet) */}
         <ElementPalette
           items={DEFAULT_PALETTE}
           onDragStart={setDraggedItem}
+          onTapAdd={handleTapAdd}
         />
 
         {/* Canvas */}
@@ -84,15 +111,17 @@ export default function SandboxPage() {
           addConnection={addConnection}
         />
 
-        {/* Inspector (conditional) */}
+        {/* Inspector (conditional, desktop only) */}
         {selectedElement && (
-          <ElementInspector
-            element={selectedElement}
-            connections={state.connections}
-            allElements={state.elements}
-            dispatch={dispatch}
-            onClose={() => setSelectedId(null)}
-          />
+          <div className="hidden lg:block">
+            <ElementInspector
+              element={selectedElement}
+              connections={state.connections}
+              allElements={state.elements}
+              dispatch={dispatch}
+              onClose={() => setSelectedId(null)}
+            />
+          </div>
         )}
       </div>
 
