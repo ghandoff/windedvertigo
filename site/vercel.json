@@ -24,6 +24,14 @@
     {
       "source": "/portfolio/assets/pedal-conference-experience/:path*",
       "destination": "/portfolio/assets/conference-experience/:path*"
+    },
+    {
+      "source": "/portfolio/assets/mindshift-missions-prme-polls",
+      "destination": "/portfolio/assets/mindshift-missions-prme-polls/index.html"
+    },
+    {
+      "source": "/portfolio/assets/mindshift-missions-prme-polls/",
+      "destination": "/portfolio/assets/mindshift-missions-prme-polls/index.html"
     }
   ],
   "headers": [
