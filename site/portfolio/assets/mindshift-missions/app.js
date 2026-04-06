@@ -100,12 +100,63 @@ const scenarioData = {
 // Each poll appears as an interstitial screen after the specified screen.
 // Add items here and the app handles rendering, flow, and export.
 const pollData = [
-    // {
-    //     id: 'example_poll',
-    //     afterScreen: 'missionBrief',   // appears after this screen
-    //     question: 'your poll question here?',
-    //     options: ['option a', 'option b', 'option c', 'option d']
-    // },
+    {
+        id: 'motivation',
+        afterScreen: 'welcome',
+        question: 'what is your primary motivation for joining the PPCS?',
+        options: [
+            'earn a certificate',
+            'improve my teaching practice',
+            'connect with peers globally',
+            'explore new pedagogical approaches'
+        ]
+    },
+    {
+        id: 'session_interest',
+        afterScreen: 'roleSelection',
+        question: 'which upcoming session set are you most looking forward to?',
+        options: [
+            'systems thinking + circular economy',
+            'cross-cultural pedagogies + creative & emotional intelligence',
+            'active learning + play as pedagogy',
+            'student agency + AI & emerging tech + communities of practice + contemplative pedagogies'
+        ]
+    },
+    {
+        id: 'teaching_approach',
+        afterScreen: 'missionBrief',
+        question: 'which of these best describes your current teaching approach?',
+        options: [
+            'primarily lecture-based',
+            'mix of lecture and activities',
+            'primarily active/experiential',
+            'experimenting with new methods'
+        ]
+    },
+    {
+        id: 'prme_familiarity',
+        afterScreen: 'outcome',
+        question: 'how familiar are you with the PRME principles?',
+        options: [
+            '1 — not at all familiar',
+            '2 — slightly familiar',
+            '3 — somewhat familiar',
+            '4 — quite familiar',
+            '5 — very familiar'
+        ]
+    },
+    {
+        id: 'confidence',
+        afterScreen: 'reflection',
+        question: 'after watching this introduction, how confident do you feel about engaging in the live sessions?',
+        options: [
+            '1 — not confident',
+            '2 — slightly confident',
+            '3 — somewhat confident',
+            '4 — quite confident',
+            '5 — very confident'
+        ]
+    }
 ];
 
 // Application State
