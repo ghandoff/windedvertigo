@@ -167,6 +167,7 @@ const pollData = [
 // Application State
 let gameState = {
     teamMembers: '',
+    institutionalEmail: '',
     selectedRole: null,
     selectedScenario: null,
     currentCheckpoint: 1,
@@ -220,14 +221,23 @@ document.addEventListener('DOMContentLoaded', function() {
     startTimeTracking();
 });
 
+function validateWelcomeForm() {
+    const emailInput = document.getElementById('institutionalEmail');
+    const teamInput = document.getElementById('teamMembers');
+    const hasEmail = emailInput && emailInput.value.trim().length > 0;
+    const hasTeam = teamInput && teamInput.value.trim().length > 0;
+    document.getElementById('startMission').disabled = !(hasEmail && hasTeam);
+}
+
 function setupEventListeners() {
-    // Team members validation on welcome screen
+    // Welcome screen validation — both email and team members required
+    const emailInput = document.getElementById('institutionalEmail');
+    if (emailInput) {
+        emailInput.addEventListener('input', validateWelcomeForm);
+    }
     const teamInput = document.getElementById('teamMembers');
     if (teamInput) {
-        teamInput.addEventListener('input', function() {
-            const hasContent = this.value.trim().length > 0;
-            document.getElementById('startMission').disabled = !hasContent;
-        });
+        teamInput.addEventListener('input', validateWelcomeForm);
     }
 
     // Role selection
@@ -418,7 +428,7 @@ function continuePoll() {
 function submitToSheet() {
     if (!SHEET_ENDPOINT) return;
     var payload = {
-        teamMembers: gameState.teamMembers || '',
+        institutionalEmail: gameState.institutionalEmail || '',
         polls: gameState.responses.polls || {}
     };
     fetch(SHEET_ENDPOINT, {
@@ -430,10 +440,14 @@ function submitToSheet() {
 }
 
 function showRoleSelection() {
-    // Save team members from welcome screen
+    // Save welcome screen inputs
     const teamInput = document.getElementById('teamMembers');
     if (teamInput) {
         gameState.teamMembers = teamInput.value.trim();
+    }
+    const emailInput = document.getElementById('institutionalEmail');
+    if (emailInput) {
+        gameState.institutionalEmail = emailInput.value.trim();
     }
     showPollOrContinue('welcome', function() {
         showScreen('roleSelection');
@@ -935,15 +949,18 @@ function startOver() {
     const contMission = document.getElementById('continueToMission');
     if (contMission) contMission.disabled = true;
 
-    // Restore team members in the welcome input
+    // Restore welcome inputs
     const teamInput = document.getElementById('teamMembers');
     if (teamInput) {
         teamInput.value = savedTeam;
     }
+    const emailInput = document.getElementById('institutionalEmail');
+    if (emailInput) {
+        emailInput.value = gameState.institutionalEmail || '';
+    }
 
-    // Enable start button since team members are still filled in
-    const startBtn = document.getElementById('startMission');
-    if (startBtn) startBtn.disabled = !savedTeam;
+    // Re-validate welcome form
+    validateWelcomeForm();
 
     showScreen('welcome');
 }

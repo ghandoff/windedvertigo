@@ -38,7 +38,7 @@ function getOrCreateSpreadsheet() {
   sheet.setName(SHEET_NAME);
   sheet.appendRow([
     'timestamp',
-    'team_members',
+    'institutional_email',
     'poll_motivation',
     'poll_session_interest',
     'poll_teaching_approach',
@@ -70,7 +70,7 @@ function doPost(e) {
 
     sheet.appendRow([
       new Date().toISOString(),
-      data.teamMembers || '',
+      data.institutionalEmail || '',
       (polls.motivation || {}).answer || '',
       (polls.session_interest || {}).answer || '',
       (polls.teaching_approach || {}).answer || '',
