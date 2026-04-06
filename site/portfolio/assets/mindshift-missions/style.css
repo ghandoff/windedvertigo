@@ -389,14 +389,13 @@ body {
   position: absolute;
   left: calc(1.5rem + 6px);
   top: 50%;
-  transform: translateY(-50%);
   width: 8px;
   height: 5px;
   border: solid #ffffff;
   border-width: 0 0 2px 2px;
   opacity: 0;
   transition: opacity 0.2s ease;
-  transform: translateY(calc(-50% + 2px)) rotate(-45deg);
+  transform: translateY(calc(-50% - 1px)) rotate(-45deg);
 }
 
 .choice-option.selected::after {
@@ -896,7 +895,7 @@ textarea.form-control {
 
 .time-tracker {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 4.5rem;
   right: 1.5rem;
   background-color: rgba(39, 50, 72, 0.95);
   border: 1px solid var(--app-surface-border);
@@ -1000,7 +999,7 @@ textarea.form-control {
   }
 
   .time-tracker {
-    bottom: 1rem;
+    bottom: 4rem;
     right: 1rem;
     font-size: 0.75rem;
     padding: 0.375rem 0.5rem;
