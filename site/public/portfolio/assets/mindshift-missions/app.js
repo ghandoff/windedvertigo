@@ -96,6 +96,18 @@ const scenarioData = {
     badges: ["Curiosity Explorer", "Adaptability Ace", "Systems Thinker", "Inquiry Master"]
 };
 
+// ── Engagement Polls ──
+// Each poll appears as an interstitial screen after the specified screen.
+// Add items here and the app handles rendering, flow, and export.
+const pollData = [
+    // {
+    //     id: 'example_poll',
+    //     afterScreen: 'missionBrief',   // appears after this screen
+    //     question: 'your poll question here?',
+    //     options: ['option a', 'option b', 'option c', 'option d']
+    // },
+];
+
 // Application State
 let gameState = {
     teamMembers: '',
@@ -122,7 +134,8 @@ let gameState = {
         reflection: {
             answer1: '',
             answer2: ''
-        }
+        },
+        polls: {}
     },
     earnedBadges: []
 };
@@ -230,64 +243,191 @@ function showScreen(screenId) {
     window.scrollTo(0, 0);
 }
 
+// ── Poll System ──
+// Polls that should appear after the given screen, in order
+function getPollsAfter(screenId) {
+    return pollData.filter(p => p.afterScreen === screenId);
+}
+
+// Pending poll queue for current transition
+let pendingPolls = [];
+let pollNextAction = null;
+
+function showPollOrContinue(fromScreen, nextAction) {
+    const polls = getPollsAfter(fromScreen).filter(p => !gameState.responses.polls[p.id]);
+    if (polls.length > 0) {
+        pendingPolls = polls.slice(1);
+        pollNextAction = nextAction;
+        renderPoll(polls[0]);
+    } else {
+        nextAction();
+    }
+}
+
+function renderPoll(poll) {
+    // Reuse or create the poll screen container
+    let pollScreen = document.getElementById('pollScreen');
+    if (!pollScreen) {
+        pollScreen = document.createElement('section');
+        pollScreen.id = 'pollScreen';
+        pollScreen.className = 'screen';
+        document.querySelector('.app-main').appendChild(pollScreen);
+    }
+
+    // Build DOM safely — all text content set via textContent, not innerHTML
+    pollScreen.textContent = '';
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    const body = document.createElement('div');
+    body.className = 'card__body';
+
+    const heading = document.createElement('h2');
+    heading.textContent = 'quick check-in';
+    body.appendChild(heading);
+
+    const question = document.createElement('p');
+    question.className = 'poll-question';
+    question.textContent = poll.question;
+    body.appendChild(question);
+
+    const optionsContainer = document.createElement('div');
+    optionsContainer.className = 'choice-options poll-options';
+
+    poll.options.forEach(function(optText, i) {
+        const opt = document.createElement('div');
+        opt.className = 'choice-option';
+        opt.dataset.pollId = poll.id;
+        opt.dataset.optionIndex = i;
+        opt.setAttribute('role', 'radio');
+        opt.setAttribute('aria-checked', 'false');
+        opt.tabIndex = 0;
+
+        const text = document.createElement('p');
+        text.className = 'choice-option__text';
+        text.textContent = optText;
+        opt.appendChild(text);
+
+        opt.addEventListener('click', function() {
+            optionsContainer.querySelectorAll('.choice-option').forEach(function(o) {
+                o.classList.remove('selected');
+                o.setAttribute('aria-checked', 'false');
+            });
+            opt.classList.add('selected');
+            opt.setAttribute('aria-checked', 'true');
+            gameState.responses.polls[poll.id] = {
+                question: poll.question,
+                selected: i,
+                answer: optText
+            };
+            continueBtn.disabled = false;
+        });
+
+        opt.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                opt.click();
+            }
+        });
+
+        optionsContainer.appendChild(opt);
+    });
+
+    body.appendChild(optionsContainer);
+
+    const continueBtn = document.createElement('button');
+    continueBtn.className = 'btn btn--primary btn--lg';
+    continueBtn.id = 'pollContinue';
+    continueBtn.disabled = true;
+    continueBtn.textContent = 'continue';
+    continueBtn.addEventListener('click', continuePoll);
+    body.appendChild(continueBtn);
+
+    card.appendChild(body);
+    pollScreen.appendChild(card);
+
+    showScreen('pollScreen');
+}
+
+function continuePoll() {
+    if (pendingPolls.length > 0) {
+        var next = pendingPolls.shift();
+        renderPoll(next);
+    } else {
+        pollNextAction();
+        pollNextAction = null;
+    }
+}
+
 function showRoleSelection() {
     // Save team members from welcome screen
     const teamInput = document.getElementById('teamMembers');
     if (teamInput) {
         gameState.teamMembers = teamInput.value.trim();
     }
-    showScreen('roleSelection');
+    showPollOrContinue('welcome', function() {
+        showScreen('roleSelection');
+    });
 }
 
 function showScenarioSelection() {
-    showScreen('scenarioSelection');
+    showPollOrContinue('roleSelection', function() {
+        showScreen('scenarioSelection');
+    });
 }
 
 function showMissionBrief() {
-    // Populate mission brief
-    document.getElementById('selectedRole').textContent = gameState.selectedRole;
-    document.getElementById('selectedScenario').textContent = scenarioData.scenarios[gameState.selectedScenario].title;
-    document.getElementById('scenarioBrief').textContent = scenarioData.scenarios[gameState.selectedScenario].brief;
-    document.getElementById('scenarioConstraint').textContent = scenarioData.scenarios[gameState.selectedScenario].constraint;
-    
-    showScreen('missionBrief');
+    showPollOrContinue('scenarioSelection', function() {
+        // Populate mission brief
+        document.getElementById('selectedRole').textContent = gameState.selectedRole;
+        document.getElementById('selectedScenario').textContent = scenarioData.scenarios[gameState.selectedScenario].title;
+        document.getElementById('scenarioBrief').textContent = scenarioData.scenarios[gameState.selectedScenario].brief;
+        document.getElementById('scenarioConstraint').textContent = scenarioData.scenarios[gameState.selectedScenario].constraint;
+
+        showScreen('missionBrief');
+    });
 }
 
 function showCheckpoint(checkpointNumber) {
-    gameState.currentCheckpoint = checkpointNumber;
-    const scenario = scenarioData.scenarios[gameState.selectedScenario];
-    const checkpoint = scenario.checkpoints[checkpointNumber];
-    
-    // Update checkpoint content
-    document.getElementById('checkpointTitle').textContent = `checkpoint ${checkpointNumber}`;
-    document.getElementById('checkpointSituation').textContent = checkpoint.title;
-    document.getElementById('checkpointDetails').textContent = checkpoint.info;
-    
-    // Populate questions
-    const questionsContainer = document.getElementById('questionsContainer');
-    questionsContainer.innerHTML = '';
-    checkpoint.questions.forEach((question, index) => {
-        const questionElement = createChoiceElement(question, 'question', index);
-        questionsContainer.appendChild(questionElement);
+    // Determine which screen we're coming from for poll routing
+    var fromScreen = checkpointNumber === 1 ? 'missionBrief' : 'checkpoint1';
+
+    showPollOrContinue(fromScreen, function() {
+        gameState.currentCheckpoint = checkpointNumber;
+        var scenario = scenarioData.scenarios[gameState.selectedScenario];
+        var checkpoint = scenario.checkpoints[checkpointNumber];
+
+        // Update checkpoint content
+        document.getElementById('checkpointTitle').textContent = 'checkpoint ' + checkpointNumber;
+        document.getElementById('checkpointSituation').textContent = checkpoint.title;
+        document.getElementById('checkpointDetails').textContent = checkpoint.info;
+
+        // Populate questions
+        var questionsContainer = document.getElementById('questionsContainer');
+        questionsContainer.textContent = '';
+        checkpoint.questions.forEach(function(question, index) {
+            var questionElement = createChoiceElement(question, 'question', index);
+            questionsContainer.appendChild(questionElement);
+        });
+
+        // Populate actions
+        var actionsContainer = document.getElementById('actionsContainer');
+        actionsContainer.textContent = '';
+        checkpoint.actions.forEach(function(action, index) {
+            var actionElement = createChoiceElement(action, 'action', index);
+            actionsContainer.appendChild(actionElement);
+        });
+
+        // Clear form fields
+        document.getElementById('groupDiscussion').value = '';
+        document.getElementById('actionExplanation').value = '';
+        document.getElementById('aiAdvice').value = '';
+
+        // Disable continue button
+        document.getElementById('continueCheckpoint').disabled = true;
+
+        showScreen('checkpoint');
     });
-    
-    // Populate actions
-    const actionsContainer = document.getElementById('actionsContainer');
-    actionsContainer.innerHTML = '';
-    checkpoint.actions.forEach((action, index) => {
-        const actionElement = createChoiceElement(action, 'action', index);
-        actionsContainer.appendChild(actionElement);
-    });
-    
-    // Clear form fields
-    document.getElementById('groupDiscussion').value = '';
-    document.getElementById('actionExplanation').value = '';
-    document.getElementById('aiAdvice').value = '';
-    
-    // Disable continue button
-    document.getElementById('continueCheckpoint').disabled = true;
-    
-    showScreen('checkpoint');
 }
 
 function createChoiceElement(text, type, index) {
@@ -334,6 +474,12 @@ function continueFromCheckpoint() {
 }
 
 function showOutcome() {
+    showPollOrContinue('checkpoint2', function() {
+        _renderOutcome();
+    });
+}
+
+function _renderOutcome() {
     const scenario = scenarioData.scenarios[gameState.selectedScenario];
     const outcomes = scenario.outcomes;
 
@@ -353,32 +499,36 @@ function showOutcome() {
 }
 
 function showReflection() {
-    const scenario = scenarioData.scenarios[gameState.selectedScenario];
-    
-    // Set reflection prompts
-    document.getElementById('reflectionPrompt1').textContent = scenario.reflection_prompts[0];
-    document.getElementById('reflectionPrompt2').textContent = scenario.reflection_prompts[1];
-    document.getElementById('scaffoldHelper').textContent = scenario.scaffold;
-    
-    // Clear fields
-    document.getElementById('reflectionAnswer1').value = '';
-    document.getElementById('reflectionAnswer2').value = '';
-    
-    showScreen('reflection');
+    showPollOrContinue('outcome', function() {
+        const scenario = scenarioData.scenarios[gameState.selectedScenario];
+
+        // Set reflection prompts
+        document.getElementById('reflectionPrompt1').textContent = scenario.reflection_prompts[0];
+        document.getElementById('reflectionPrompt2').textContent = scenario.reflection_prompts[1];
+        document.getElementById('scaffoldHelper').textContent = scenario.scaffold;
+
+        // Clear fields
+        document.getElementById('reflectionAnswer1').value = '';
+        document.getElementById('reflectionAnswer2').value = '';
+
+        showScreen('reflection');
+    });
 }
 
 function showSummary() {
     // Save reflection responses
     gameState.responses.reflection.answer1 = document.getElementById('reflectionAnswer1').value;
     gameState.responses.reflection.answer2 = document.getElementById('reflectionAnswer2').value;
-    
-    // Calculate badges
-    calculateBadges();
-    
-    // Populate summary
-    populateSummary();
-    
-    showScreen('summary');
+
+    showPollOrContinue('reflection', function() {
+        // Calculate badges
+        calculateBadges();
+
+        // Populate summary
+        populateSummary();
+
+        showScreen('summary');
+    });
 }
 
 function populateSummary() {
@@ -666,7 +816,21 @@ reflections:
    ${gameState.responses.reflection.answer2}
 
 badges earned: ${gameState.earnedBadges.join(', ')}
+${generatePollSummaryText()}
     `.trim();
+}
+
+function generatePollSummaryText() {
+    const polls = gameState.responses.polls;
+    const ids = Object.keys(polls);
+    if (ids.length === 0) return '';
+    var lines = ['\nengagement polls:'];
+    ids.forEach(function(id) {
+        var p = polls[id];
+        lines.push('- ' + p.question);
+        lines.push('  → ' + p.answer);
+    });
+    return lines.join('\n');
 }
 
 function startOver() {
@@ -682,7 +846,8 @@ function startOver() {
         responses: {
             checkpoint1: { question: null, action: null, groupDiscussion: '', actionExplanation: '', aiAdvice: '' },
             checkpoint2: { question: null, action: null, groupDiscussion: '', actionExplanation: '', aiAdvice: '' },
-            reflection: { answer1: '', answer2: '' }
+            reflection: { answer1: '', answer2: '' },
+            polls: {}
         },
         earnedBadges: []
     };
