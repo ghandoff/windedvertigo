@@ -100,7 +100,7 @@ const scenarioData = {
 // ── Google Sheet auto-submit ──────────────────────────────────────
 // Replace with your deployed Google Apps Script web app URL.
 // See google-apps-script.js for setup instructions.
-const SHEET_ENDPOINT = '';
+const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz9a-8CqpAwfz40M77PzKEhwe6MqnqtT0Jj-VMPyzPuv1gya1NgwKkTckhr6ZPd6s_N/exec';
 
 // Each poll appears as an interstitial screen after the specified screen.
 // Add items here and the app handles rendering, flow, and export.
