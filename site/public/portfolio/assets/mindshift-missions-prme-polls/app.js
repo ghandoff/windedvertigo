@@ -141,7 +141,7 @@ const pollData = [
     {
         id: 'prme_familiarity',
         afterScreen: 'outcome',
-        question: 'how familiar are you with the PRME principles?',
+        question: 'how familiar are you with the PRME design principles (Personal, Relationship-Centred, Insightful, Modular, and Experiential)?',
         options: [
             '1 — not at all familiar',
             '2 — slightly familiar',
