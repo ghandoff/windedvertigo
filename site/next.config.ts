@@ -448,7 +448,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io",
+              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com",
               "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
               "base-uri 'self'",
               "form-action 'self'",

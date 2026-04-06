@@ -1,0 +1,1127 @@
+/* ============================================================================
+   Mindshift Missions - windedvertigo Brand Styles
+   App-specific styles for dark theme integration
+   Brand colours: Cadet Blue (#273248), Redwood (#b15043), Burnt Sienna (#cb7858)
+   ============================================================================ */
+
+:root {
+  --app-primary: #b15043;
+  --app-secondary: #cb7858;
+  --app-highlight: #ffebd2;
+  --app-surface: rgba(255, 255, 255, 0.06);
+  --app-surface-border: rgba(255, 255, 255, 0.1);
+  --app-form-border: rgba(255, 255, 255, 0.2);
+  --app-focus-ring: rgba(177, 80, 67, 0.4);
+  --app-checkpoint-bg: rgba(177, 80, 67, 0.1);
+  --app-status-bg: rgba(177, 80, 67, 0.1);
+  --app-scrollbar: rgba(255, 255, 255, 0.2);
+  --app-text-secondary: rgba(255, 255, 255, 0.7);
+}
+
+/* ============================================================================
+   Global App Styles
+   ============================================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #273248;
+  color: #ffffff;
+  font-family: Inter, -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-transform: lowercase;
+  margin: 0;
+  padding: 0;
+}
+
+/* ============================================================================
+   Scrollbar Styling
+   ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--app-scrollbar);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================================================
+   Header Section
+   ============================================================================ */
+
+.app-header {
+  background-color: #273248;
+  border-bottom: 1px solid var(--app-surface-border);
+  padding: 50px 30px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-title {
+  font-family: Inter, -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  text-transform: lowercase;
+  margin: 0 0 1.5rem 0;
+  color: #ffffff;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b15043 0%, #cb7858 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.875rem;
+  color: var(--app-text-secondary);
+  margin-top: 0.5rem;
+  text-transform: lowercase;
+}
+
+/* ============================================================================
+   Main Content Area
+   ============================================================================ */
+
+.app-main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 50px 30px;
+}
+
+/* Screen Management */
+.screen {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.screen.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   Cards
+   ============================================================================ */
+
+.card {
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-surface-border);
+  border-radius: 8px;
+  padding: 0;
+  margin-bottom: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.card__body {
+  padding: 1.5rem;
+}
+
+.card__header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--app-surface-border);
+}
+
+.card__footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--app-surface-border);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ============================================================================
+   Role Selection
+   ============================================================================ */
+
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 50px;
+}
+
+.role-card {
+  background-color: var(--app-surface);
+  border: 2px solid var(--app-surface-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.role-card:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--app-primary);
+}
+
+.role-card.selected {
+  background-color: rgba(177, 80, 67, 0.15);
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px rgba(177, 80, 67, 0.1);
+}
+
+.role-card__title {
+  font-weight: 700;
+  font-size: 1.125rem;
+  text-transform: lowercase;
+  margin: 0 0 0.5rem 0;
+  color: #ffffff;
+}
+
+.role-card__description {
+  font-size: 0.875rem;
+  color: var(--app-text-secondary);
+  text-transform: lowercase;
+  margin: 0;
+}
+
+/* ============================================================================
+   Scenario Selection
+   ============================================================================ */
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 50px;
+}
+
+.scenario-card {
+  background-color: var(--app-surface);
+  border: 2px solid var(--app-surface-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scenario-card:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--app-primary);
+}
+
+.scenario-card.selected {
+  background-color: rgba(177, 80, 67, 0.15);
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px rgba(177, 80, 67, 0.1);
+}
+
+.scenario-card__title {
+  font-weight: 700;
+  font-size: 1.125rem;
+  text-transform: lowercase;
+  margin: 0 0 0.5rem 0;
+  color: #ffffff;
+}
+
+.scenario-card__description {
+  font-size: 0.875rem;
+  color: var(--app-text-secondary);
+  text-transform: lowercase;
+  margin: 0;
+}
+
+/* ============================================================================
+   Mission Info & Checkpoints
+   ============================================================================ */
+
+.mission-info {
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-surface-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 50px;
+}
+
+.info-item {
+  margin-bottom: 1rem;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-item__label {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--app-primary);
+  text-transform: lowercase;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.info-item__value {
+  font-size: 1rem;
+  color: #ffffff;
+  text-transform: lowercase;
+  line-height: 1.6;
+}
+
+.checkpoint-info {
+  background-color: var(--app-checkpoint-bg);
+  border: 1px solid rgba(177, 80, 67, 0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 50px;
+}
+
+.checkpoint-info__title {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--app-primary);
+  text-transform: lowercase;
+  margin: 0 0 1rem 0;
+}
+
+.checkpoint-info__content {
+  font-size: 0.95rem;
+  color: #ffffff;
+  text-transform: lowercase;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ============================================================================
+   Choice Options (Radio-style Selection)
+   ============================================================================ */
+
+.choice-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 50px;
+}
+
+.choice-option {
+  background-color: var(--app-surface);
+  border: 2px solid var(--app-surface-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  padding-left: calc(1.5rem + 28px);
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+}
+
+.choice-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--app-primary);
+}
+
+.choice-option.selected {
+  background-color: rgba(177, 80, 67, 0.15);
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px rgba(177, 80, 67, 0.1);
+}
+
+/* Circle indicator */
+.choice-option::before {
+  content: '';
+  position: absolute;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--app-form-border);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.choice-option.selected::before {
+  border-color: var(--app-primary);
+  background-color: var(--app-primary);
+  box-shadow: inset 0 0 0 4px rgba(177, 80, 67, 0.15);
+}
+
+/* Checkmark indicator */
+.choice-option::after {
+  content: '';
+  position: absolute;
+  left: calc(1.5rem + 6px);
+  top: 50%;
+  width: 8px;
+  height: 5px;
+  border: solid #ffffff;
+  border-width: 0 0 2px 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  transform: translateY(calc(-50% - 1px)) rotate(-45deg);
+}
+
+.choice-option.selected::after {
+  opacity: 1;
+}
+
+.choice-option__text {
+  font-size: 1rem;
+  color: #ffffff;
+  text-transform: lowercase;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ============================================================================
+   Engagement Polls
+   ============================================================================ */
+
+.poll-question {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+}
+
+.poll-options {
+  margin-bottom: 2rem;
+}
+
+/* ============================================================================
+   Outcomes
+   ============================================================================ */
+
+.outcome-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 50px;
+}
+
+.outcome-item {
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-surface-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.outcome-item__label {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--app-primary);
+  text-transform: lowercase;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.outcome-item__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: lowercase;
+}
+
+/* ============================================================================
+   Scaffold Helper / Reflection
+   ============================================================================ */
+
+.scaffold-helper {
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-surface-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 50px;
+}
+
+.scaffold-helper__title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--app-primary);
+  text-transform: lowercase;
+  margin: 0 0 1rem 0;
+}
+
+.scaffold-helper__prompt {
+  font-size: 0.95rem;
+  color: var(--app-text-secondary);
+  text-transform: lowercase;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   Summary Display
+   ============================================================================ */
+
+/* ============================================================================
+   PRME Co-Brand
+   Seven Principles stripe + attribution
+   ============================================================================ */
+
+.prme-stripe {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.prme-stripe::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to bottom,
+    #E2580E 0%,      /* share — red-orange */
+    #ED9120 16.6%,   /* teach — orange */
+    #FFCF00 33.3%,   /* foundation yellow */
+    #486C37 50%,     /* purpose — green */
+    #7A9EB8 66.6%,   /* values — teal */
+    #405DAB 83.3%,   /* partner — blue */
+    #1E3250 100%     /* prme blue — navy */
+  );
+}
+
+.prme-cobrand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--app-surface-border);
+  font-size: 0.8rem;
+  color: var(--app-text-secondary);
+}
+
+.prme-cobrand-logo {
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  color: #5C92E5;
+  text-transform: uppercase;
+}
+
+.prme-cobrand-sep {
+  color: var(--app-surface-border);
+  margin: 0 0.5rem;
+  font-weight: 300;
+}
+
+.prme-cobrand-wv {
+  font-weight: 600;
+  color: var(--app-primary);
+  text-transform: lowercase;
+}
+
+/* ============================================================================
+   Summary Grid & Sections
+   ============================================================================ */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 50px;
+}
+
+.summary-section {
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-surface-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.summary-section__title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--app-primary);
+  text-transform: lowercase;
+  margin: 0 0 1rem 0;
+}
+
+.summary-item {
+  margin-bottom: 1rem;
+}
+
+.summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.summary-label {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--app-text-secondary);
+  text-transform: lowercase;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.summary-value {
+  font-size: 0.95rem;
+  color: #ffffff;
+  text-transform: lowercase;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   Team Member Chips
+   ============================================================================ */
+
+.team-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.team-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(177, 80, 67, 0.15);
+  border: 1px solid rgba(177, 80, 67, 0.35);
+  color: #ffebd2;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: lowercase;
+  letter-spacing: 0.01em;
+}
+
+.team-chip::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cb7858;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   Badges & Achievements
+   ============================================================================ */
+
+.badges {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.badge {
+  background: rgba(177, 80, 67, 0.15);
+  border: 1px solid rgba(177, 80, 67, 0.35);
+  color: #ffebd2;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: lowercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.badge::before {
+  content: '\2605';
+  font-size: 0.6rem;
+  color: #cb7858;
+}
+
+/* ============================================================================
+   Form Elements
+   ============================================================================ */
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #ffffff;
+  text-transform: lowercase;
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--app-form-border);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-family: Inter, -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  text-transform: lowercase;
+  transition: all 0.2s ease;
+}
+
+.form-control:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.form-control:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px var(--app-focus-ring);
+}
+
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 120px;
+  font-family: Inter, -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ============================================================================
+   Buttons
+   ============================================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: Inter, -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  text-transform: lowercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary Button */
+.btn--primary {
+  background-color: #b15043;
+  color: #ffffff;
+  border: 1px solid #b15043;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background-color: #AF4F41;
+  border-color: #AF4F41;
+  box-shadow: 0 4px 12px rgba(177, 80, 67, 0.3);
+}
+
+.btn--primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--app-focus-ring);
+}
+
+.btn--primary:active:not(:disabled) {
+  background-color: #9d4539;
+  transform: scale(0.98);
+}
+
+/* Secondary Button */
+.btn--secondary {
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid var(--app-form-border);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn--secondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--app-focus-ring);
+}
+
+/* Outline Button */
+.btn--outline {
+  background-color: transparent;
+  color: var(--app-primary);
+  border: 2px solid var(--app-primary);
+}
+
+.btn--outline:hover:not(:disabled) {
+  background-color: rgba(177, 80, 67, 0.1);
+  border-color: var(--app-primary);
+}
+
+.btn--outline:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--app-focus-ring);
+}
+
+/* Size Variations */
+.btn--lg {
+  padding: 1rem 1.5rem;
+  font-size: 1.125rem;
+}
+
+.btn--sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Button Group */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ============================================================================
+   Status Messages
+   ============================================================================ */
+
+.status-message {
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  text-transform: lowercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  justify-content: center;
+}
+
+.status-message.success {
+  background-color: var(--app-status-bg);
+  border: 1px solid rgba(177, 80, 67, 0.3);
+  color: #ffffff;
+}
+
+.status-message.error {
+  background-color: rgba(220, 100, 100, 0.1);
+  border: 1px solid rgba(220, 100, 100, 0.3);
+  color: #ffffff;
+}
+
+.status-message.warning {
+  background-color: rgba(203, 120, 88, 0.1);
+  border: 1px solid rgba(203, 120, 88, 0.3);
+  color: #ffffff;
+}
+
+.status-message.info {
+  background-color: rgba(255, 235, 210, 0.05);
+  border: 1px solid rgba(255, 235, 210, 0.2);
+  color: #ffffff;
+}
+
+/* ============================================================================
+   Loading States
+   ============================================================================ */
+
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #b15043;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading.sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.loading.lg {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+
+/* ============================================================================
+   Time Tracker
+   ============================================================================ */
+
+.time-tracker {
+  position: fixed;
+  bottom: 4.5rem;
+  right: 1.5rem;
+  background-color: rgba(39, 50, 72, 0.95);
+  border: 1px solid var(--app-surface-border);
+  border-radius: 6px;
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--app-text-secondary);
+  text-transform: lowercase;
+  backdrop-filter: blur(8px);
+  z-index: 50;
+}
+
+/* ============================================================================
+   Export Buttons
+   ============================================================================ */
+
+.export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 50px;
+  margin-top: 50px;
+  padding-top: 50px;
+  border-top: 1px solid var(--app-surface-border);
+}
+
+/* ============================================================================
+   Text Utilities
+   ============================================================================ */
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-muted {
+  color: var(--app-text-secondary);
+}
+
+.text-primary {
+  color: var(--app-primary);
+}
+
+.text-secondary {
+  color: var(--app-secondary);
+}
+
+.mt-xs { margin-top: 0.5rem; }
+.mt-sm { margin-top: 1rem; }
+.mt-md { margin-top: 1.5rem; }
+.mt-lg { margin-top: 50px; }
+
+.mb-xs { margin-bottom: 0.5rem; }
+.mb-sm { margin-bottom: 1rem; }
+.mb-md { margin-bottom: 1.5rem; }
+.mb-lg { margin-bottom: 50px; }
+
+.px-xs { padding-left: 0.5rem; padding-right: 0.5rem; }
+.px-sm { padding-left: 1rem; padding-right: 1rem; }
+.px-md { padding-left: 1.5rem; padding-right: 1.5rem; }
+.px-lg { padding-left: 50px; padding-right: 50px; }
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .app-title {
+    font-size: 1.5rem;
+  }
+
+  .app-main {
+    padding: 1.5rem 1rem;
+  }
+
+  .role-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .outcome-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-group {
+    flex-direction: column;
+  }
+
+  .btn-group .btn {
+    width: 100%;
+  }
+
+  .time-tracker {
+    bottom: 4rem;
+    right: 1rem;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-title {
+    font-size: 1.25rem;
+  }
+
+  .progress-bar {
+    height: 6px;
+  }
+
+  .card__body,
+  .card__header,
+  .card__footer {
+    padding: 1rem;
+  }
+
+  .choice-option {
+    padding: 1rem;
+    padding-left: calc(1rem + 24px);
+  }
+
+  .choice-option::before {
+    left: 1rem;
+    width: 18px;
+    height: 18px;
+  }
+
+  .choice-option::after {
+    left: calc(1rem + 5px);
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+/* ============================================================================
+   Accessibility
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  .card {
+    border-width: 2px;
+  }
+
+  .btn {
+    border-width: 2px;
+  }
+
+  .choice-option {
+    border-width: 3px;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+  .app-header,
+  .btn,
+  .time-tracker {
+    display: none;
+  }
+
+  .app-main {
+    padding: 0;
+  }
+
+  body {
+    background-color: #ffffff;
+    color: #000000;
+  }
+}
