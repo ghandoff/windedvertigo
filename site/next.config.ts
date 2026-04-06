@@ -160,6 +160,193 @@ const nextConfig: NextConfig = {
           "https://mirror-log-ghandoffs-projects.vercel.app/harbour/mirror-log/:path*",
       },
 
+      // orbit lab
+      {
+        source: "/harbour/orbit-lab",
+        destination:
+          "https://orbit-lab-ghandoffs-projects.vercel.app/harbour/orbit-lab",
+      },
+      {
+        source: "/harbour/orbit-lab/",
+        destination:
+          "https://orbit-lab-ghandoffs-projects.vercel.app/harbour/orbit-lab",
+      },
+      {
+        source: "/harbour/orbit-lab/:path*",
+        destination:
+          "https://orbit-lab-ghandoffs-projects.vercel.app/harbour/orbit-lab/:path*",
+      },
+
+      // proof garden
+      {
+        source: "/harbour/proof-garden",
+        destination:
+          "https://proof-garden-ghandoffs-projects.vercel.app/harbour/proof-garden",
+      },
+      {
+        source: "/harbour/proof-garden/",
+        destination:
+          "https://proof-garden-ghandoffs-projects.vercel.app/harbour/proof-garden",
+      },
+      {
+        source: "/harbour/proof-garden/:path*",
+        destination:
+          "https://proof-garden-ghandoffs-projects.vercel.app/harbour/proof-garden/:path*",
+      },
+
+      // bias lens
+      {
+        source: "/harbour/bias-lens",
+        destination:
+          "https://bias-lens-ghandoffs-projects.vercel.app/harbour/bias-lens",
+      },
+      {
+        source: "/harbour/bias-lens/",
+        destination:
+          "https://bias-lens-ghandoffs-projects.vercel.app/harbour/bias-lens",
+      },
+      {
+        source: "/harbour/bias-lens/:path*",
+        destination:
+          "https://bias-lens-ghandoffs-projects.vercel.app/harbour/bias-lens/:path*",
+      },
+
+      // scale shift
+      {
+        source: "/harbour/scale-shift",
+        destination:
+          "https://scale-shift-ghandoffs-projects.vercel.app/harbour/scale-shift",
+      },
+      {
+        source: "/harbour/scale-shift/",
+        destination:
+          "https://scale-shift-ghandoffs-projects.vercel.app/harbour/scale-shift",
+      },
+      {
+        source: "/harbour/scale-shift/:path*",
+        destination:
+          "https://scale-shift-ghandoffs-projects.vercel.app/harbour/scale-shift/:path*",
+      },
+
+      // pattern weave
+      {
+        source: "/harbour/pattern-weave",
+        destination:
+          "https://pattern-weave-ghandoffs-projects.vercel.app/harbour/pattern-weave",
+      },
+      {
+        source: "/harbour/pattern-weave/",
+        destination:
+          "https://pattern-weave-ghandoffs-projects.vercel.app/harbour/pattern-weave",
+      },
+      {
+        source: "/harbour/pattern-weave/:path*",
+        destination:
+          "https://pattern-weave-ghandoffs-projects.vercel.app/harbour/pattern-weave/:path*",
+      },
+
+      // market mind
+      {
+        source: "/harbour/market-mind",
+        destination:
+          "https://market-mind-ghandoffs-projects.vercel.app/harbour/market-mind",
+      },
+      {
+        source: "/harbour/market-mind/",
+        destination:
+          "https://market-mind-ghandoffs-projects.vercel.app/harbour/market-mind",
+      },
+      {
+        source: "/harbour/market-mind/:path*",
+        destination:
+          "https://market-mind-ghandoffs-projects.vercel.app/harbour/market-mind/:path*",
+      },
+
+      // rhythm lab
+      {
+        source: "/harbour/rhythm-lab",
+        destination:
+          "https://rhythm-lab-ghandoffs-projects.vercel.app/harbour/rhythm-lab",
+      },
+      {
+        source: "/harbour/rhythm-lab/",
+        destination:
+          "https://rhythm-lab-ghandoffs-projects.vercel.app/harbour/rhythm-lab",
+      },
+      {
+        source: "/harbour/rhythm-lab/:path*",
+        destination:
+          "https://rhythm-lab-ghandoffs-projects.vercel.app/harbour/rhythm-lab/:path*",
+      },
+
+      // code weave
+      {
+        source: "/harbour/code-weave",
+        destination:
+          "https://code-weave-ghandoffs-projects.vercel.app/harbour/code-weave",
+      },
+      {
+        source: "/harbour/code-weave/",
+        destination:
+          "https://code-weave-ghandoffs-projects.vercel.app/harbour/code-weave",
+      },
+      {
+        source: "/harbour/code-weave/:path*",
+        destination:
+          "https://code-weave-ghandoffs-projects.vercel.app/harbour/code-weave/:path*",
+      },
+
+      // time prism
+      {
+        source: "/harbour/time-prism",
+        destination:
+          "https://time-prism-ghandoffs-projects.vercel.app/harbour/time-prism",
+      },
+      {
+        source: "/harbour/time-prism/",
+        destination:
+          "https://time-prism-ghandoffs-projects.vercel.app/harbour/time-prism",
+      },
+      {
+        source: "/harbour/time-prism/:path*",
+        destination:
+          "https://time-prism-ghandoffs-projects.vercel.app/harbour/time-prism/:path*",
+      },
+
+      // liminal pass
+      {
+        source: "/harbour/liminal-pass",
+        destination:
+          "https://liminal-pass-ghandoffs-projects.vercel.app/harbour/liminal-pass",
+      },
+      {
+        source: "/harbour/liminal-pass/",
+        destination:
+          "https://liminal-pass-ghandoffs-projects.vercel.app/harbour/liminal-pass",
+      },
+      {
+        source: "/harbour/liminal-pass/:path*",
+        destination:
+          "https://liminal-pass-ghandoffs-projects.vercel.app/harbour/liminal-pass/:path*",
+      },
+
+      // emerge box
+      {
+        source: "/harbour/emerge-box",
+        destination:
+          "https://emerge-box-ghandoffs-projects.vercel.app/harbour/emerge-box",
+      },
+      {
+        source: "/harbour/emerge-box/",
+        destination:
+          "https://emerge-box-ghandoffs-projects.vercel.app/harbour/emerge-box",
+      },
+      {
+        source: "/harbour/emerge-box/:path*",
+        destination:
+          "https://emerge-box-ghandoffs-projects.vercel.app/harbour/emerge-box/:path*",
+      },
+
       // admin (via creaseworks)
       {
         source: "/harbour/admin/login",
