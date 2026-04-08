@@ -6,7 +6,9 @@ node_modules/
 *.env.local
 *.tsbuildinfo
 .ai-usage/
-.claude/
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 
 # Second brain (tracked separately via 'brain' remote)
 CLAUDE.md
