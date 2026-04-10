@@ -108,7 +108,7 @@ const pollData = [
     {
         id: 'motivation',
         afterScreen: 'welcome',
-        question: 'what is your primary motivation for joining the PPCS?',
+        question: 'what is your primary motivation for joining the PRME Pedagogy Certificate Series?',
         options: [
             'earn a certificate',
             'improve my teaching practice',
