@@ -1,8 +1,24 @@
 "use server";
 
 import { auth } from "@windedvertigo/auth";
-import { getOrCreateTree, createPerson, createRelationship, logActivity } from "@/lib/db/queries";
+import { getOrCreateTree, getTreePersons, createPerson, createRelationship, logActivity, getPerson } from "@/lib/db/queries";
+import { generateHintsForPerson } from "@/lib/hints/engine";
 import { revalidatePath } from "next/cache";
+
+/** fire-and-forget hint generation for a newly created person */
+async function autoHint(treeId: string, personId: string) {
+  try {
+    const [person, allPersons] = await Promise.all([
+      getPerson(personId),
+      getTreePersons(treeId),
+    ]);
+    if (person) {
+      await generateHintsForPerson(treeId, person, allPersons);
+    }
+  } catch {
+    // non-critical — don't block person creation
+  }
+}
 
 export async function addPerson(formData: FormData) {
   const session = await auth();
@@ -32,6 +48,9 @@ export async function addPerson(formData: FormData) {
     targetId: personId,
     targetName: displayName,
   });
+
+  // fire-and-forget hint generation
+  autoHint(tree.id, personId);
 
   revalidatePath("/");
 }
@@ -268,6 +287,9 @@ export async function quickAddRelativeAction(formData: FormData) {
       details: { relationship_type: relType },
     });
   }
+
+  // fire-and-forget hint generation for the new person
+  autoHint(treeId, personId);
 
   revalidatePath("/");
 }

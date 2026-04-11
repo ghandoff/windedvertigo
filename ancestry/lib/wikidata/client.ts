@@ -1,3 +1,4 @@
+const WIKIDATA_API = "https://www.wikidata.org/w/api.php";
 const WIKIDATA_SPARQL = "https://query.wikidata.org/sparql";
 const USER_AGENT = "windedvertigo-ancestry/1.0 (https://windedvertigo.com)";
 
@@ -57,7 +58,6 @@ async function sparqlQuery(query: string): Promise<Record<string, { value: strin
 }
 
 function extractId(uri: string): string {
-  // "http://www.wikidata.org/entity/Q12345" -> "Q12345"
   return uri.split("/").pop() ?? uri;
 }
 
@@ -65,8 +65,52 @@ function val(binding: Record<string, { value: string }>, key: string): string | 
   return binding[key]?.value ?? null;
 }
 
+// ---------- fast candidate search via wbsearchentities ----------
+
+type SearchEntity = {
+  id: string;
+  label: string;
+  description?: string;
+};
+
+/**
+ * Fast entity search — returns candidate Q-IDs for humans matching the name.
+ * Uses the MediaWiki API (wbsearchentities) which is indexed and fast (~200ms),
+ * unlike SPARQL label scans which take 5-15 seconds.
+ */
+async function searchEntities(name: string, limit = 20): Promise<SearchEntity[]> {
+  const params = new URLSearchParams({
+    action: "wbsearchentities",
+    search: name,
+    type: "item",
+    language: "en",
+    limit: String(limit),
+    format: "json",
+    origin: "*",
+  });
+
+  const res = await fetch(`${WIKIDATA_API}?${params}`, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+
+  if (!res.ok) return [];
+  const data = await res.json();
+
+  return (data?.search ?? []).map((e: { id: string; label?: string; description?: string }) => ({
+    id: e.id,
+    label: e.label ?? "",
+    description: e.description ?? "",
+  }));
+}
+
 // ---------- public API ----------
 
+/**
+ * Search Wikidata for persons matching the given name and dates.
+ * Two-phase approach:
+ * 1. wbsearchentities for fast candidate IDs (~200ms)
+ * 2. Targeted SPARQL to enrich only matching entities with genealogical data
+ */
 export async function searchWikidata(params: {
   givenName: string;
   surname: string;
@@ -76,32 +120,25 @@ export async function searchWikidata(params: {
   const fullName = `${params.givenName} ${params.surname}`.trim();
   if (!fullName) return [];
 
+  // phase 1: fast candidate search
+  const candidates = await searchEntities(fullName, 20);
+  if (candidates.length === 0) return [];
+
+  // build VALUES clause for targeted SPARQL
+  const qids = candidates.map((c) => `wd:${c.id}`).join(" ");
+
+  // phase 2: targeted SPARQL enrichment — only for specific entities
   let dateFilter = "";
   if (params.birthYear) {
     const lo = params.birthYear - 10;
     const hi = params.birthYear + 10;
-    dateFilter += `
-      OPTIONAL { ?person wdt:P569 ?birthDate. }
-      FILTER(!BOUND(?birthDate) || (YEAR(?birthDate) >= ${lo} && YEAR(?birthDate) <= ${hi}))
-    `;
+    dateFilter += `\n      FILTER(!BOUND(?birthDate) || (YEAR(?birthDate) >= ${lo} && YEAR(?birthDate) <= ${hi}))`;
   }
   if (params.deathYear) {
     const lo = params.deathYear - 10;
     const hi = params.deathYear + 10;
-    dateFilter += `
-      OPTIONAL { ?person wdt:P570 ?deathDate. }
-      FILTER(!BOUND(?deathDate) || (YEAR(?deathDate) >= ${lo} && YEAR(?deathDate) <= ${hi}))
-    `;
+    dateFilter += `\n      FILTER(!BOUND(?deathDate) || (YEAR(?deathDate) >= ${lo} && YEAR(?deathDate) <= ${hi}))`;
   }
-
-  // if no date filters were added, we still need to fetch dates
-  const needDates = !params.birthYear && !params.deathYear;
-  const optionalDates = needDates
-    ? `OPTIONAL { ?person wdt:P569 ?birthDate. }
-       OPTIONAL { ?person wdt:P570 ?deathDate. }`
-    : "";
-
-  const escapedName = fullName.replace(/"/g, '\\"');
 
   const query = `
     SELECT DISTINCT ?person ?personLabel ?personDescription
@@ -110,12 +147,11 @@ export async function searchWikidata(params: {
            ?fatherLabel ?motherLabel ?spouseLabel
            ?occupationLabel ?article
     WHERE {
+      VALUES ?person { ${qids} }
       ?person wdt:P31 wd:Q5.
-      ?person rdfs:label ?label.
-      FILTER(LANG(?label) = "en")
-      FILTER(CONTAINS(LCASE(?label), LCASE("${escapedName}")))
+      OPTIONAL { ?person wdt:P569 ?birthDate. }
+      OPTIONAL { ?person wdt:P570 ?deathDate. }
       ${dateFilter}
-      ${optionalDates}
       OPTIONAL { ?person wdt:P19 ?birthPlace. }
       OPTIONAL { ?person wdt:P20 ?deathPlace. }
       OPTIONAL { ?person wdt:P22 ?father. }
@@ -133,7 +169,7 @@ export async function searchWikidata(params: {
 
   const bindings = await sparqlQuery(query);
 
-  // deduplicate by wikidata ID (multiple rows for multi-valued properties)
+  // deduplicate by wikidata ID
   const seen = new Map<string, WikidataResult>();
 
   for (const b of bindings) {
@@ -196,7 +232,6 @@ export async function getWikidataPerson(wikidataId: string): Promise<WikidataPer
 
   const first = bindings[0];
 
-  // collect all relationships across rows
   const relationships: WikidataPersonDetail["relationships"] = [];
   const relSeen = new Set<string>();
 

@@ -139,11 +139,23 @@ export default async function HomePage({
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-57px)] md:h-[calc(100vh-65px)]">
+      {/* hints notification banner */}
+      {hintCounts.pending > 0 && (
+        <div className="bg-primary/5 border-b border-primary/20 px-4 py-2 flex items-center justify-between">
+          <p className="text-sm text-primary">
+            {hintCounts.pending} suggested {hintCounts.pending === 1 ? "match" : "matches"} waiting for review
+          </p>
+          <Link href="/hints" className="text-sm font-medium text-primary hover:underline">
+            review hints
+          </Link>
+        </div>
+      )}
+
+      <div className={`flex ${hintCounts.pending > 0 ? "h-[calc(100vh-93px)] md:h-[calc(100vh-101px)]" : "h-[calc(100vh-57px)] md:h-[calc(100vh-65px)]"}`}>
         {/* sidebar — desktop aside + mobile drawer */}
         <SidebarWrapper>
           {canEdit && persons.length > 0 && (
-            <GenerateHintsButton treeId={tree.id as string} />
+            <GenerateHintsButton treeId={tree.id as string} pendingCount={hintCounts.pending ?? 0} />
           )}
 
           <PersonList persons={persons} />

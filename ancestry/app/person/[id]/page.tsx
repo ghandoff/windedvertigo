@@ -10,6 +10,7 @@ import { BiographyForm } from "./biography-form";
 import { RelativeCard } from "./relative-card";
 import { SourcesSection } from "./add-source-form";
 import { DeletePersonButton } from "./delete-person-button";
+import { FindHintsButton } from "./find-hints-button";
 import { PrivacyBanner } from "../../components/privacy-banner";
 import { HintCard } from "../../hints/hint-card";
 
@@ -132,8 +133,9 @@ export default async function PersonPage({
               </div>
             )}
             <div className="mt-1 text-sm text-muted-foreground">{lifeDates}</div>
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
               <EditPersonForm person={person} />
+              <FindHintsButton personId={person.id} personName={displayName} />
               <DeletePersonButton personId={person.id} personName={displayName} />
             </div>
           </div>
