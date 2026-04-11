@@ -45,8 +45,15 @@ export function EditPersonForm({ person }: { person: Person }) {
   const [isPending, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
   const [showAddEvent, setShowAddEvent] = useState(false);
+  const [sex, setSex] = useState<string>(person.sex ?? "U");
 
   const primaryName = person.names.find((n) => n.is_primary) ?? person.names[0];
+  const birthName = person.names.find((n) => n.name_type === "birth");
+  const marriedName = person.names.find((n) => n.name_type === "married");
+
+  // maiden name is the birth name's surname when it differs from current primary surname
+  const existingMaidenName = birthName?.surname !== primaryName?.surname ? birthName?.surname : (marriedName ? birthName?.surname : null);
+  const isFemale = sex === "F";
 
   if (!isEditing) {
     return (
@@ -97,7 +104,8 @@ export function EditPersonForm({ person }: { person: Person }) {
             <label className="block text-xs text-muted-foreground mb-1">sex</label>
             <select
               name="sex"
-              defaultValue={person.sex ?? "U"}
+              value={sex}
+              onChange={(e) => setSex(e.target.value)}
               className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
             >
               {SEX_OPTIONS.map((o) => (
@@ -117,6 +125,18 @@ export function EditPersonForm({ person }: { person: Person }) {
             </select>
           </div>
         </div>
+
+        {isFemale && (
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1">maiden name (birth surname)</label>
+            <input
+              name="maidenName"
+              defaultValue={existingMaidenName ?? ""}
+              className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+              placeholder="surname before marriage"
+            />
+          </div>
+        )}
 
         <div className="flex gap-2">
           <button

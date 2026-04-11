@@ -324,6 +324,7 @@ export async function updatePerson(personId: string, data: {
   sex?: string;
   isLiving?: boolean;
   notes?: string;
+  maidenName?: string;
 }) {
   const sql = getDb();
 
@@ -354,6 +355,46 @@ export async function updatePerson(personId: string, data: {
         display = ${display || null}
       WHERE person_id = ${personId} AND is_primary = true
     `;
+  }
+
+  // handle maiden name — create/update birth + married name records
+  if (data.maidenName && data.surname && data.maidenName !== data.surname) {
+    const givenNames = data.givenNames ?? null;
+
+    // check if a birth name record exists
+    const birthRows = await sql`
+      SELECT id FROM person_names WHERE person_id = ${personId} AND name_type = 'birth'
+    `;
+
+    if (birthRows.length > 0) {
+      // update existing birth name with maiden surname
+      const maidenDisplay = [givenNames, data.maidenName].filter(Boolean).join(" ");
+      await sql`
+        UPDATE person_names SET surname = ${data.maidenName}, display = ${maidenDisplay}
+        WHERE person_id = ${personId} AND name_type = 'birth'
+      `;
+    } else {
+      // create birth name record with maiden surname
+      const maidenDisplay = [givenNames, data.maidenName].filter(Boolean).join(" ");
+      await sql`
+        INSERT INTO person_names (person_id, name_type, given_names, surname, display, is_primary, sort_order)
+        VALUES (${personId}, 'birth', ${givenNames}, ${data.maidenName}, ${maidenDisplay}, false, 0)
+      `;
+    }
+
+    // check if a married name record exists
+    const marriedRows = await sql`
+      SELECT id FROM person_names WHERE person_id = ${personId} AND name_type = 'married'
+    `;
+
+    if (marriedRows.length === 0) {
+      // create married name record with current surname
+      const marriedDisplay = [givenNames, data.surname].filter(Boolean).join(" ");
+      await sql`
+        INSERT INTO person_names (person_id, name_type, given_names, surname, display, is_primary, sort_order)
+        VALUES (${personId}, 'married', ${givenNames}, ${data.surname}, ${marriedDisplay}, false, 1)
+      `;
+    }
   }
 }
 

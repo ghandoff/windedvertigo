@@ -1,11 +1,11 @@
-import type { Person, HintMatchData } from "../types";
+import type { Person, Relationship, HintMatchData } from "../types";
 import { isConfigured, searchPersons as fsSearch, searchRecords as fsSearchRecords } from "../familysearch/client";
 import { searchWikidata } from "../wikidata/client";
 import { searchNewspapers } from "../chronicling-america/client";
 import { searchNARA } from "../nara/client";
 import { searchDPLA, isConfigured as isDPLAConfigured } from "../dpla/client";
 import { scoreMatch } from "./scoring";
-import { upsertHint } from "../db/queries";
+import { upsertHint, getTreeRelationships } from "../db/queries";
 
 const MIN_CONFIDENCE = 30;
 const RATE_LIMIT_MS = 100;
@@ -45,7 +45,64 @@ function getBirthPlace(person: Person): string | null {
   return birth?.description ?? null;
 }
 
+/** get all unique surnames from a person's name records (birth, married, alias) */
+function getAllSurnames(person: Person): string[] {
+  const surnames = new Set<string>();
+  for (const name of person.names) {
+    if (name.surname) surnames.add(name.surname);
+  }
+  return [...surnames];
+}
+
+/** get the first name from a person for display (e.g. "Robert" from "Robert James") */
+function getFirstName(person: Person): string {
+  const given = getGivenNames(person);
+  return given.split(/\s+/)[0] ?? "";
+}
+
+/** look up family members using relationships */
+function getFamilyContext(
+  person: Person,
+  existingPersons: Person[],
+  relationships: Relationship[],
+): { parents: Person[]; spouses: Person[] } {
+  const personMap = new Map(existingPersons.map((p) => [p.id, p]));
+  const parents: Person[] = [];
+  const spouses: Person[] = [];
+
+  for (const rel of relationships) {
+    const parentTypes = ["biological_parent", "adoptive_parent", "foster_parent", "step_parent", "guardian"];
+
+    if (parentTypes.includes(rel.relationship_type)) {
+      // person1 is parent of person2
+      if (rel.person2_id === person.id && rel.person1_id) {
+        const parent = personMap.get(rel.person1_id);
+        if (parent) parents.push(parent);
+      }
+    } else if (rel.relationship_type === "spouse" || rel.relationship_type === "partner") {
+      const otherId = rel.person1_id === person.id ? rel.person2_id : rel.person1_id;
+      if (otherId === person.id) continue; // self-reference guard
+      if (rel.person1_id === person.id || rel.person2_id === person.id) {
+        const spouse = personMap.get(otherId);
+        if (spouse) spouses.push(spouse);
+      }
+    }
+  }
+
+  return { parents, spouses };
+}
+
 // ---------- generate hints for a single person ----------
+
+/** cached relationships per tree to avoid re-fetching for each person */
+let cachedRelationships: { treeId: string; rels: Relationship[] } | null = null;
+
+async function getRelationshipsForTree(treeId: string): Promise<Relationship[]> {
+  if (cachedRelationships?.treeId === treeId) return cachedRelationships.rels;
+  const rels = await getTreeRelationships(treeId);
+  cachedRelationships = { treeId, rels };
+  return rels;
+}
 
 export async function generateHintsForPerson(
   treeId: string,
@@ -61,51 +118,101 @@ export async function generateHintsForPerson(
   const birthPlace = getBirthPlace(person);
   const deathYear = getDeathYear(person);
 
+  // gather alternate surnames (maiden name, married names, aliases)
+  const allSurnames = getAllSurnames(person);
+  const alternateSurnames = allSurnames.filter((s) => s !== surname);
+
+  // look up family context for richer searches
+  const relationships = await getRelationshipsForTree(treeId);
+  const family = getFamilyContext(person, existingPersons, relationships);
+  const parentNames = family.parents.map((p) => ({
+    given: getFirstName(p),
+    surname: getSurname(p),
+  })).filter((n) => n.given || n.surname);
+  const spouseNames = family.spouses.map((p) => ({
+    given: getFirstName(p),
+    surname: getSurname(p),
+  })).filter((n) => n.given || n.surname);
+
   let generated = 0;
+
+  // track seen external IDs to avoid duplicate hints from alternate-name searches
+  const seenExternalIds = new Set<string>();
+
+  // helper to process FamilySearch person results and upsert hints
+  async function processFSPersonResults(results: Awaited<ReturnType<typeof fsSearch>>, source: string) {
+    for (const r of results) {
+      if (seenExternalIds.has(`fs-${r.id}`)) continue;
+      seenExternalIds.add(`fs-${r.id}`);
+
+      const matchData: HintMatchData = {
+        displayName: r.name,
+        givenNames: r.givenName,
+        middleName: r.middleName ?? undefined,
+        surname: r.surname,
+        birthDate: r.birthDate ?? undefined,
+        birthPlace: r.birthPlace ?? undefined,
+        deathDate: r.deathDate ?? undefined,
+        deathPlace: r.deathPlace ?? undefined,
+        sex: r.sex,
+        sourceUrl: `https://www.familysearch.org/tree/person/details/${r.id}`,
+      };
+
+      const evidence = scoreMatch(person, matchData, existingPersons);
+      if (evidence.overallConfidence < MIN_CONFIDENCE) continue;
+
+      const id = await upsertHint({
+        treeId,
+        personId: person.id,
+        sourceSystem: "familysearch",
+        externalId: r.id,
+        matchData,
+        confidence: evidence.overallConfidence,
+        evidence,
+      });
+
+      if (id) generated++;
+    }
+  }
 
   // --- familysearch ---
   if (isConfigured()) {
     try {
+      // primary search with current surname
       const fsResults = await fsSearch({
         givenName: givenName || undefined,
         surname: surname || undefined,
         birthYear: birthYear?.toString(),
         birthPlace: birthPlace ?? undefined,
       });
+      await processFSPersonResults(fsResults, "primary");
+      await sleep(RATE_LIMIT_MS);
 
-      for (const r of fsResults) {
-        const matchData: HintMatchData = {
-          displayName: r.name,
-          givenNames: r.givenName,
-          middleName: r.middleName ?? undefined,
-          surname: r.surname,
-          birthDate: r.birthDate ?? undefined,
-          birthPlace: r.birthPlace ?? undefined,
-          deathDate: r.deathDate ?? undefined,
-          deathPlace: r.deathPlace ?? undefined,
-          sex: r.sex,
-          sourceUrl: `https://www.familysearch.org/tree/person/details/${r.id}`,
-        };
-
-        const evidence = scoreMatch(person, matchData, existingPersons);
-        if (evidence.overallConfidence < MIN_CONFIDENCE) continue;
-
-        const id = await upsertHint({
-          treeId,
-          personId: person.id,
-          sourceSystem: "familysearch",
-          externalId: r.id,
-          matchData,
-          confidence: evidence.overallConfidence,
-          evidence,
+      // search with alternate surnames (maiden name, etc.)
+      for (const altSurname of alternateSurnames) {
+        const altResults = await fsSearch({
+          givenName: givenName || undefined,
+          surname: altSurname,
+          birthYear: birthYear?.toString(),
+          birthPlace: birthPlace ?? undefined,
         });
-
-        if (id) generated++;
+        await processFSPersonResults(altResults, `alt:${altSurname}`);
+        await sleep(RATE_LIMIT_MS);
       }
 
-      await sleep(RATE_LIMIT_MS);
+      // search with spouse surname (catches married-name records)
+      for (const sp of spouseNames) {
+        if (sp.surname && sp.surname !== surname && !allSurnames.includes(sp.surname)) {
+          const spResults = await fsSearch({
+            givenName: givenName || undefined,
+            surname: sp.surname,
+            birthYear: birthYear?.toString(),
+          });
+          await processFSPersonResults(spResults, `spouse:${sp.surname}`);
+          await sleep(RATE_LIMIT_MS);
+        }
+      }
     } catch (err) {
-      // don't let familysearch errors stop the whole process
       console.warn("hint engine: familysearch error for person", person.id, err);
     }
   }
@@ -168,16 +275,12 @@ export async function generateHintsForPerson(
 
   // --- familysearch historical records (birth certs, census, marriage, death) ---
   if (isConfigured()) {
-    try {
-      const records = await fsSearchRecords({
-        givenName: givenName || undefined,
-        surname: surname || undefined,
-        birthYear: birthYear?.toString(),
-        birthPlace: birthPlace ?? undefined,
-        deathYear: deathYear?.toString(),
-      });
-
+    // helper to process FS record results
+    async function processFSRecordResults(records: Awaited<ReturnType<typeof fsSearchRecords>>) {
       for (const r of records) {
+        if (seenExternalIds.has(`fsr-${r.id}`)) continue;
+        seenExternalIds.add(`fsr-${r.id}`);
+
         const matchData: HintMatchData = {
           displayName: r.personName ?? r.title,
           givenNames: r.givenName ?? givenName,
@@ -209,26 +312,61 @@ export async function generateHintsForPerson(
 
         if (id) generated++;
       }
+    }
 
+    try {
+      // primary search
+      const records = await fsSearchRecords({
+        givenName: givenName || undefined,
+        surname: surname || undefined,
+        birthYear: birthYear?.toString(),
+        birthPlace: birthPlace ?? undefined,
+        deathYear: deathYear?.toString(),
+      });
+      await processFSRecordResults(records);
       await sleep(RATE_LIMIT_MS);
+
+      // search with alternate surnames
+      for (const altSurname of alternateSurnames) {
+        const altRecords = await fsSearchRecords({
+          givenName: givenName || undefined,
+          surname: altSurname,
+          birthYear: birthYear?.toString(),
+          birthPlace: birthPlace ?? undefined,
+          deathYear: deathYear?.toString(),
+        });
+        await processFSRecordResults(altRecords);
+        await sleep(RATE_LIMIT_MS);
+      }
     } catch (err) {
       console.warn("hint engine: familysearch records error for person", person.id, err);
     }
   }
 
   // --- chronicling america (newspaper archives 1836-1963) ---
-  try {
-    const fullName = [givenName, surname].filter(Boolean).join(" ");
-    if (fullName) {
+  // build all name variants to search
+  const nameVariants = new Set<string>();
+  const primaryFullName = [givenName, surname].filter(Boolean).join(" ");
+  if (primaryFullName) nameVariants.add(primaryFullName);
+  for (const altSurname of alternateSurnames) {
+    const altName = [givenName, altSurname].filter(Boolean).join(" ");
+    if (altName) nameVariants.add(altName);
+  }
+
+  for (const searchName of nameVariants) {
+    try {
       const npResults = await searchNewspapers({
-        name: fullName,
+        name: searchName,
         dateFrom: birthYear?.toString(),
         dateTo: deathYear ? String(deathYear + 5) : undefined,
       });
 
       for (const r of npResults) {
+        if (seenExternalIds.has(`ca-${r.id}`)) continue;
+        seenExternalIds.add(`ca-${r.id}`);
+
         const matchData: HintMatchData = {
-          displayName: fullName,
+          displayName: searchName,
           givenNames: givenName,
           surname: surname,
           sourceUrl: r.pageUrl,
@@ -257,22 +395,24 @@ export async function generateHintsForPerson(
       }
 
       await sleep(RATE_LIMIT_MS);
+    } catch (err) {
+      console.warn("hint engine: chronicling america error for", searchName, err);
     }
-  } catch (err) {
-    console.warn("hint engine: chronicling america error for person", person.id, err);
   }
 
   // --- nara (national archives — census, military, immigration, land) ---
-  try {
-    const fullName = [givenName, surname].filter(Boolean).join(" ");
-    if (fullName) {
+  for (const searchName of nameVariants) {
+    try {
       const naraResults = await searchNARA({
-        name: fullName,
+        name: searchName,
         dateFrom: birthYear?.toString(),
         dateTo: deathYear ? String(deathYear + 5) : undefined,
       });
 
       for (const r of naraResults) {
+        if (seenExternalIds.has(`nara-${r.naraId}`)) continue;
+        seenExternalIds.add(`nara-${r.naraId}`);
+
         const matchData: HintMatchData = {
           displayName: r.personName ?? r.title,
           givenNames: r.givenName ?? givenName,
@@ -302,24 +442,26 @@ export async function generateHintsForPerson(
       }
 
       await sleep(RATE_LIMIT_MS);
+    } catch (err) {
+      console.warn("hint engine: nara error for", searchName, err);
     }
-  } catch (err) {
-    console.warn("hint engine: nara error for person", person.id, err);
   }
 
   // --- dpla (digital public library of america — obituaries, local histories, photos) ---
   if (isDPLAConfigured()) {
-    try {
-      const fullName = [givenName, surname].filter(Boolean).join(" ");
-      if (fullName) {
+    for (const searchName of nameVariants) {
+      try {
         const dplaResults = await searchDPLA({
-          name: fullName,
+          name: searchName,
           dateFrom: birthYear?.toString(),
           dateTo: deathYear ? String(deathYear + 5) : undefined,
           place: birthPlace ?? undefined,
         });
 
         for (const r of dplaResults) {
+          if (seenExternalIds.has(`dpla-${r.id}`)) continue;
+          seenExternalIds.add(`dpla-${r.id}`);
+
           const matchData: HintMatchData = {
             displayName: r.title,
             givenNames: givenName,
@@ -349,9 +491,9 @@ export async function generateHintsForPerson(
         }
 
         await sleep(RATE_LIMIT_MS);
+      } catch (err) {
+        console.warn("hint engine: dpla error for", searchName, err);
       }
-    } catch (err) {
-      console.warn("hint engine: dpla error for person", person.id, err);
     }
   }
 

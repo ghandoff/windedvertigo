@@ -30,11 +30,16 @@ async function verifyOwnership(personId: string) {
 export async function updatePersonAction(personId: string, formData: FormData) {
   const { session, tree, person } = await verifyOwnership(personId);
 
+  const givenNames = (formData.get("givenNames") as string) || undefined;
+  const surname = (formData.get("surname") as string) || undefined;
+  const maidenName = (formData.get("maidenName") as string)?.trim() || undefined;
+
   await dbUpdatePerson(personId, {
-    givenNames: (formData.get("givenNames") as string) || undefined,
-    surname: (formData.get("surname") as string) || undefined,
+    givenNames,
+    surname,
     sex: (formData.get("sex") as string) || undefined,
     isLiving: formData.get("isLiving") === "true",
+    maidenName,
   });
 
   const primaryName = person.names.find((n) => n.is_primary) ?? person.names[0];
