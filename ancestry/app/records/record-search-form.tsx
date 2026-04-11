@@ -132,6 +132,9 @@ export function RecordSearchForm({ defaults, persons, treeId, preselectedPersonI
               <option value="death">death</option>
               <option value="marriage">marriage</option>
               <option value="census">census</option>
+              <option value="military">military</option>
+              <option value="immigration">immigration</option>
+              <option value="land">land / deeds</option>
             </select>
           </div>
         </div>
@@ -184,11 +187,15 @@ export function RecordSearchForm({ defaults, persons, treeId, preselectedPersonI
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${
-                      r.source === "familysearch"
-                        ? "bg-green-500/10 text-green-600"
+                      r.source === "familysearch" ? "bg-green-500/10 text-green-600"
+                        : r.source === "nara" ? "bg-purple-500/10 text-purple-600"
+                        : r.source === "dpla" ? "bg-amber-500/10 text-amber-600"
                         : "bg-blue-500/10 text-blue-600"
                     }`}>
-                      {r.source === "familysearch" ? "familysearch" : "newspaper"}
+                      {r.source === "familysearch" ? "familysearch"
+                        : r.source === "nara" ? "national archives"
+                        : r.source === "dpla" ? "digital public library"
+                        : "newspaper"}
                     </span>
                     {r.recordType && (
                       <span className="text-[10px] text-muted-foreground uppercase">{r.recordType}</span>

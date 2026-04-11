@@ -1,12 +1,15 @@
 /**
- * Chronicling America — Library of Congress newspaper archive API.
+ * Chronicling America — Library of Congress newspaper archive.
  * Free, no auth required. Coverage: 1836-1963, US newspapers.
  * Good for: obituaries, birth/marriage announcements, news mentions.
  *
- * API docs: https://chroniclingamerica.loc.gov/about/api/
+ * Uses the loc.gov search API (the old chroniclingamerica.loc.gov endpoint
+ * was retired and redirects/404s as of 2025).
+ *
+ * API docs: https://www.loc.gov/apis/
  */
 
-const BASE_URL = "https://chroniclingamerica.loc.gov";
+const BASE_URL = "https://www.loc.gov";
 
 export type NewspaperResult = {
   id: string;
@@ -24,23 +27,30 @@ export async function searchNewspapers(params: {
   name: string;
   dateFrom?: string; // YYYY format
   dateTo?: string;
-  state?: string; // two-letter state code
+  state?: string; // full state name or two-letter code
 }): Promise<NewspaperResult[]> {
   if (!params.name.trim()) return [];
 
   const searchParams = new URLSearchParams({
-    andtext: params.name,
-    format: "json",
-    rows: "20",
-    sort: "relevance",
+    q: params.name,
+    fo: "json",
+    c: "15",
   });
 
-  if (params.dateFrom) searchParams.set("dateFilterType", "yearRange");
-  if (params.dateFrom) searchParams.set("date1", params.dateFrom);
-  if (params.dateTo) searchParams.set("date2", params.dateTo);
-  if (params.state) searchParams.set("state", params.state);
+  // date range filter
+  if (params.dateFrom && params.dateTo) {
+    searchParams.set("dates", `${params.dateFrom}/${params.dateTo}`);
+  } else if (params.dateFrom) {
+    searchParams.set("dates", `${params.dateFrom}/`);
+  } else if (params.dateTo) {
+    searchParams.set("dates", `/${params.dateTo}`);
+  }
 
-  const url = `${BASE_URL}/search/pages/results/?${searchParams}`;
+  if (params.state) {
+    searchParams.set("fa", `location_state:${params.state.toLowerCase()}`);
+  }
+
+  const url = `${BASE_URL}/newspapers/?${searchParams}`;
 
   const res = await fetch(url, {
     headers: { Accept: "application/json" },
@@ -51,31 +61,36 @@ export async function searchNewspapers(params: {
   }
 
   const data = await res.json();
-  const items = data?.items ?? [];
+  const items = data?.results ?? [];
 
   return items.map((item: {
     id?: string;
     title?: string;
     date?: string;
     url?: string;
-    ocr_eng?: string;
-    county?: string[];
-    state?: string[];
-    edition_label?: string;
-    page?: string;
+    description?: string[];
+    location_state?: string[];
+    image_url?: string[];
   }) => {
-    // extract a short snippet from OCR text around the search term
-    const ocr = item.ocr_eng ?? "";
+    // extract OCR text from description
+    const ocr = item.description?.[0] ?? "";
     const snippet = extractSnippet(ocr, params.name, 150);
+
+    // extract newspaper name from title (format: "Image N of The Paper (City, State), Date")
+    const titleMatch = item.title?.match(/Image \d+ of (.+?)(?:,|\()/);
+    const newspaper = titleMatch?.[1]?.trim() ?? item.title ?? "unknown newspaper";
+
+    // use the small thumbnail from image_url array
+    const thumbnailUrl = item.image_url?.[0] ?? null;
 
     return {
       id: item.id ?? item.url ?? "",
-      title: `${item.title ?? "newspaper"} — ${item.date ?? ""}`,
-      newspaper: item.title ?? "unknown newspaper",
+      title: item.title ?? "newspaper page",
+      newspaper,
       date: item.date ?? "",
-      state: item.state?.[0] ?? null,
-      pageUrl: item.url ? `${BASE_URL}${item.url}` : "",
-      thumbnailUrl: item.id ? `${BASE_URL}${item.id}thumbnail.jpg` : null,
+      state: item.location_state?.[0] ?? null,
+      pageUrl: item.url ?? item.id ?? "",
+      thumbnailUrl,
       ocrSnippet: snippet,
     } satisfies NewspaperResult;
   });

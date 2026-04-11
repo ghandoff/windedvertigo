@@ -73,8 +73,10 @@ export default async function RecordsPage({
         <div>
           <h2 className="text-lg font-semibold text-foreground">search historical records</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            search FamilySearch records and Library of Congress newspaper archives for birth certificates,
-            death records, marriage records, census data, and newspaper mentions.
+            search FamilySearch, Library of Congress newspapers, National Archives (NARA),
+            and Digital Public Library of America for birth certificates, death records,
+            marriage records, census data, military records, immigration documents,
+            land deeds, and newspaper mentions.
           </p>
         </div>
 
