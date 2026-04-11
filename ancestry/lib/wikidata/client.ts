@@ -16,6 +16,7 @@ export type WikidataResult = {
   motherName: string | null;
   spouseName: string | null;
   occupation: string | null;
+  imageUrl: string | null;
   wikipediaUrl: string | null;
 };
 
@@ -145,7 +146,7 @@ export async function searchWikidata(params: {
            ?birthDate ?deathDate
            ?birthPlaceLabel ?deathPlaceLabel
            ?fatherLabel ?motherLabel ?spouseLabel
-           ?occupationLabel ?article
+           ?occupationLabel ?image ?article
     WHERE {
       VALUES ?person { ${qids} }
       ?person wdt:P31 wd:Q5.
@@ -158,6 +159,7 @@ export async function searchWikidata(params: {
       OPTIONAL { ?person wdt:P25 ?mother. }
       OPTIONAL { ?person wdt:P26 ?spouse. }
       OPTIONAL { ?person wdt:P106 ?occupation. }
+      OPTIONAL { ?person wdt:P18 ?image. }
       OPTIONAL {
         ?article schema:about ?person;
                  schema:isPartOf <https://en.wikipedia.org/>.
@@ -188,6 +190,7 @@ export async function searchWikidata(params: {
       motherName: val(b, "motherLabel"),
       spouseName: val(b, "spouseLabel"),
       occupation: val(b, "occupationLabel"),
+      imageUrl: val(b, "image"),
       wikipediaUrl: val(b, "article"),
     });
   }

@@ -49,8 +49,15 @@ async function createExternalSource(
   treeId: string,
   hint: Hint,
 ): Promise<string | null> {
-  const sourceLabel =
-    hint.source_system === "familysearch" ? "FamilySearch" : "Wikidata";
+  const sourceLabels: Record<string, string> = {
+    familysearch: "FamilySearch Tree",
+    familysearch_records: "FamilySearch Records",
+    wikidata: "Wikidata",
+    chronicling_america: "Newspaper Archive",
+    nara: "National Archives",
+    dpla: "Digital Public Library of America",
+  };
+  const sourceLabel = sourceLabels[hint.source_system] ?? hint.source_system;
 
   const displayName = hint.match_data.displayName ||
     [hint.match_data.givenNames, hint.match_data.surname].filter(Boolean).join(" ");
@@ -76,69 +83,81 @@ export async function acceptHintAction(formData: FormData) {
   // 1. update hint status
   await updateHintStatus(hintId, "accepted");
 
+  const isRecordHint = ["familysearch_records", "chronicling_america", "nara", "dpla"].includes(hint.source_system);
   let importedPersonId: string | null = null;
 
-  // 2. import the person
-  if (hint.source_system === "familysearch") {
-    // try the familysearch import endpoint for richer data
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ??
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-
-      const res = await fetch(`${baseUrl}/api/familysearch/import`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          personId: hint.external_id,
-          includeFamily: false,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        importedPersonId = data.primaryPersonId;
-      } else {
-        // fallback: create from match data
-        importedPersonId = await createPersonFromMatchData(tree.id, hint.match_data);
-      }
-    } catch {
-      importedPersonId = await createPersonFromMatchData(tree.id, hint.match_data);
-    }
-  } else {
-    // wikidata or other: create from match data directly
-    importedPersonId = await createPersonFromMatchData(tree.id, hint.match_data);
-  }
-
-  // 3. create source citation
-  if (importedPersonId) {
+  if (isRecordHint) {
+    // record hints: attach as source/citation to existing person (don't create new person)
     const sourceId = await createExternalSource(tree.id, hint);
-
     if (sourceId) {
       await createCitation({
         sourceId,
         eventId: null,
         confidence: hint.confidence >= 70 ? "primary" : "secondary",
-        notes: `auto-linked from ${hint.source_system} hint (${hint.confidence}% match)`,
+        extract: hint.match_data.snippet ?? null,
+        notes: `attached from ${hint.source_system} hint (${hint.confidence}% match)`,
       });
     }
+  } else {
+    // person hints: import the person
+    if (hint.source_system === "familysearch") {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ??
+          (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
-    const displayName = hint.match_data.displayName ||
-      [hint.match_data.givenNames, hint.match_data.surname].filter(Boolean).join(" ");
+        const res = await fetch(`${baseUrl}/api/familysearch/import`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            personId: hint.external_id,
+            includeFamily: false,
+          }),
+        });
 
-    await logActivity({
-      treeId: tree.id,
-      actorEmail: session.user!.email!,
-      action: "hint_accepted",
-      targetType: "hint",
-      targetId: hintId,
-      targetName: displayName,
-      details: {
-        source: hint.source_system,
-        confidence: hint.confidence,
-        importedPersonId,
-      },
-    });
+        if (res.ok) {
+          const data = await res.json();
+          importedPersonId = data.primaryPersonId;
+        } else {
+          importedPersonId = await createPersonFromMatchData(tree.id, hint.match_data);
+        }
+      } catch {
+        importedPersonId = await createPersonFromMatchData(tree.id, hint.match_data);
+      }
+    } else {
+      importedPersonId = await createPersonFromMatchData(tree.id, hint.match_data);
+    }
+
+    // create source citation for imported person
+    if (importedPersonId) {
+      const sourceId = await createExternalSource(tree.id, hint);
+      if (sourceId) {
+        await createCitation({
+          sourceId,
+          eventId: null,
+          confidence: hint.confidence >= 70 ? "primary" : "secondary",
+          notes: `auto-linked from ${hint.source_system} hint (${hint.confidence}% match)`,
+        });
+      }
+    }
   }
+
+  const displayName = hint.match_data.displayName ||
+    [hint.match_data.givenNames, hint.match_data.surname].filter(Boolean).join(" ");
+
+  await logActivity({
+    treeId: tree.id,
+    actorEmail: session.user!.email!,
+    action: "hint_accepted",
+    targetType: "hint",
+    targetId: hintId,
+    targetName: displayName,
+    details: {
+      source: hint.source_system,
+      confidence: hint.confidence,
+      importedPersonId: importedPersonId ?? undefined,
+      isRecordHint,
+    },
+  });
 
   revalidatePath("/hints");
   revalidatePath("/");

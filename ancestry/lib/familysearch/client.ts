@@ -54,6 +54,7 @@ export type FamilySearchResult = {
   id: string;
   name: string;
   givenName: string;
+  middleName: string | null;
   surname: string;
   sex: "M" | "F" | "U";
   birthDate: string | null;
@@ -123,6 +124,13 @@ function parseGivenName(person: FSPerson): string {
   return segments.slice(0, -1).join(" ") || full;
 }
 
+/** split "John William" into { first: "John", middle: "William" } */
+function splitGivenNames(given: string): { first: string; middle: string | null } {
+  const parts = given.trim().split(/\s+/);
+  if (parts.length <= 1) return { first: parts[0] ?? "", middle: null };
+  return { first: parts[0], middle: parts.slice(1).join(" ") };
+}
+
 function parseSurname(person: FSPerson): string {
   const parts = person.names?.[0]?.nameForms?.[0]?.parts;
   if (parts) {
@@ -176,10 +184,14 @@ function mapPerson(person: FSPerson, score?: number): FamilySearchPerson {
     place: f.place?.original ?? null,
   }));
 
+  const given = parseGivenName(person);
+  const { first, middle } = splitGivenNames(given);
+
   return {
     id: person.id,
     name: person.display?.name ?? person.names?.[0]?.nameForms?.[0]?.fullText ?? "unknown",
-    givenName: parseGivenName(person),
+    givenName: first,
+    middleName: middle,
     surname: parseSurname(person),
     sex: parseSex(person),
     birthDate: person.display?.birthDate ?? null,
@@ -222,10 +234,13 @@ export async function searchPersons(params: {
   return entries.map((entry: { id: string; score?: number; content?: { gedcomx?: { persons?: FSPerson[] } } }) => {
     const person = entry.content?.gedcomx?.persons?.[0];
     if (!person) return null;
+    const given = parseGivenName(person);
+    const { first, middle } = splitGivenNames(given);
     return {
       id: person.id,
       name: person.display?.name ?? "unknown",
-      givenName: parseGivenName(person),
+      givenName: first,
+      middleName: middle,
       surname: parseSurname(person),
       sex: parseSex(person),
       birthDate: person.display?.birthDate ?? null,
@@ -294,4 +309,126 @@ export async function getPersonWithFamily(personId: string): Promise<FamilySearc
     spouses,
     children,
   };
+}
+
+// ---------- historical records search ----------
+
+export type FamilySearchRecord = {
+  id: string;
+  title: string;
+  collectionTitle: string | null;
+  recordType: string | null;
+  personName: string | null;
+  givenName: string | null;
+  middleName: string | null;
+  surname: string | null;
+  birthDate: string | null;
+  birthPlace: string | null;
+  deathDate: string | null;
+  deathPlace: string | null;
+  eventDate: string | null;
+  eventPlace: string | null;
+  sourceUrl: string;
+  score: number | null;
+};
+
+/** search FamilySearch historical records (birth, death, marriage, census, etc.) */
+export async function searchRecords(params: {
+  givenName?: string;
+  surname?: string;
+  birthYear?: string;
+  birthPlace?: string;
+  deathYear?: string;
+  eventType?: string; // birth, death, marriage, census
+}): Promise<FamilySearchRecord[]> {
+  const parts: string[] = [];
+  if (params.givenName) parts.push(`givenName:${params.givenName}`);
+  if (params.surname) parts.push(`surname:${params.surname}`);
+  if (params.birthYear) parts.push(`birthLikeDate.year:${params.birthYear}~`);
+  if (params.birthPlace) parts.push(`birthLikePlace:${params.birthPlace}`);
+  if (params.deathYear) parts.push(`deathLikeDate.year:${params.deathYear}~`);
+
+  if (parts.length === 0) throw new Error("at least one search parameter is required");
+
+  const q = encodeURIComponent(parts.join(" "));
+  let url = `/platform/search/records?q=${q}&count=20`;
+
+  // add collection filter for specific record types
+  if (params.eventType) {
+    const collectionFilters: Record<string, string> = {
+      birth: "&collectionNameFilter=birth",
+      death: "&collectionNameFilter=death",
+      marriage: "&collectionNameFilter=marriage",
+      census: "&collectionNameFilter=census",
+    };
+    if (collectionFilters[params.eventType]) {
+      url += collectionFilters[params.eventType];
+    }
+  }
+
+  const res = await fsFetch(url);
+  const data = await res.json();
+
+  const entries = data?.searchResults ?? [];
+
+  return entries.map((entry: {
+    id?: string;
+    score?: number;
+    title?: string;
+    content?: {
+      gedcomx?: {
+        persons?: FSPerson[];
+        sourceDescriptions?: Array<{ titles?: Array<{ value: string }>; about?: string }>;
+      };
+    };
+  }) => {
+    const person = entry.content?.gedcomx?.persons?.[0];
+    const sourceDesc = entry.content?.gedcomx?.sourceDescriptions?.[0];
+
+    const personDisplay = person?.display;
+
+    // extract structured name from record person
+    let recGiven: string | null = null;
+    let recMiddle: string | null = null;
+    let recSurname: string | null = null;
+    if (person) {
+      const fullGiven = parseGivenName(person);
+      const { first, middle } = splitGivenNames(fullGiven);
+      recGiven = first || null;
+      recMiddle = middle;
+      recSurname = parseSurname(person) || null;
+    }
+
+    return {
+      id: entry.id ?? person?.id ?? "",
+      title: sourceDesc?.titles?.[0]?.value ?? entry.title ?? "untitled record",
+      collectionTitle: entry.title ?? null,
+      recordType: guessRecordType(sourceDesc?.titles?.[0]?.value ?? entry.title ?? ""),
+      personName: personDisplay?.name ?? null,
+      givenName: recGiven,
+      middleName: recMiddle,
+      surname: recSurname,
+      birthDate: personDisplay?.birthDate ?? null,
+      birthPlace: personDisplay?.birthPlace ?? null,
+      deathDate: personDisplay?.deathDate ?? null,
+      deathPlace: personDisplay?.deathPlace ?? null,
+      eventDate: personDisplay?.birthDate ?? personDisplay?.deathDate ?? null,
+      eventPlace: personDisplay?.birthPlace ?? personDisplay?.deathPlace ?? null,
+      sourceUrl: sourceDesc?.about ?? `https://www.familysearch.org/search/record/results?q=${q}`,
+      score: entry.score ?? null,
+    } satisfies FamilySearchRecord;
+  }).filter((r: FamilySearchRecord) => r.id) as FamilySearchRecord[];
+}
+
+function guessRecordType(title: string): string {
+  const t = title.toLowerCase();
+  if (t.includes("birth")) return "birth";
+  if (t.includes("death") || t.includes("burial")) return "death";
+  if (t.includes("marriage") || t.includes("wedding")) return "marriage";
+  if (t.includes("census")) return "census";
+  if (t.includes("military") || t.includes("draft")) return "military";
+  if (t.includes("immigration") || t.includes("passenger")) return "immigration";
+  if (t.includes("church") || t.includes("baptism") || t.includes("christening")) return "church";
+  if (t.includes("probate") || t.includes("will")) return "probate";
+  return "other";
 }

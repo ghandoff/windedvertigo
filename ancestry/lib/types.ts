@@ -143,7 +143,7 @@ export type TreeNode = {
 // ---------------------------------------------------------------------------
 
 export type HintStatus = "pending" | "accepted" | "rejected" | "expired";
-export type HintSource = "familysearch" | "wikidata";
+export type HintSource = "familysearch" | "wikidata" | "familysearch_records" | "chronicling_america" | "nara" | "dpla";
 
 export type Hint = {
   id: string;
@@ -162,6 +162,7 @@ export type Hint = {
 export type HintMatchData = {
   displayName: string;
   givenNames?: string;
+  middleName?: string;
   surname?: string;
   birthDate?: string;
   birthPlace?: string;
@@ -169,6 +170,18 @@ export type HintMatchData = {
   deathPlace?: string;
   sex?: string;
   sourceUrl?: string;
+  /** for record-based hints: the type of record (birth, death, census, newspaper, etc.) */
+  recordType?: string;
+  /** for record-based hints: the collection or newspaper title */
+  collectionTitle?: string;
+  /** for record hints: the event/publication date (distinct from birthDate) */
+  eventDate?: string;
+  /** for record hints: the event/publication place */
+  eventPlace?: string;
+  /** for newspaper hints: OCR text snippet */
+  snippet?: string;
+  /** thumbnail or image URL for document/person preview */
+  imageUrl?: string;
   relationships?: {
     type: string;
     name: string;

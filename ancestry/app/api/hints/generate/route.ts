@@ -45,7 +45,9 @@ export async function POST(req: NextRequest) {
 
       // warn if FamilySearch isn't configured
       if (!isFSConfigured()) {
-        send({ type: "warning", message: "FamilySearch not configured — Wikidata results only" });
+        send({ type: "warning", message: "FamilySearch not configured — searching Wikidata + newspaper archives only" });
+      } else {
+        send({ type: "warning", message: "searching FamilySearch (tree + records), Wikidata, and newspaper archives" });
       }
 
       const startTime = Date.now();

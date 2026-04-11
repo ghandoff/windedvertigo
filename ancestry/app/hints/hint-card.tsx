@@ -20,12 +20,24 @@ function confidenceBarColor(score: number): string {
 function sourceLabel(source: string): string {
   switch (source) {
     case "familysearch":
-      return "FamilySearch";
+      return "FamilySearch Tree";
+    case "familysearch_records":
+      return "FamilySearch Records";
     case "wikidata":
       return "Wikidata";
+    case "chronicling_america":
+      return "Newspaper Archive";
+    case "nara":
+      return "National Archives";
+    case "dpla":
+      return "Digital Public Library";
     default:
       return source;
   }
+}
+
+function isRecordHint(source: string): boolean {
+  return ["familysearch_records", "chronicling_america", "nara", "dpla"].includes(source);
 }
 
 function EvidenceRow({
@@ -213,12 +225,24 @@ export function HintCard({
         {/* suggested match */}
         <div className="rounded-md border border-border bg-background p-3 space-y-1">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-            suggested match
+            {isRecordHint(hint.source_system) ? "record found" : "suggested match"}
           </div>
           <div className="text-sm font-medium truncate">{matchDisplayName}</div>
+          {match.recordType && (
+            <div className="text-xs">
+              <span className="inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
+                {match.recordType}
+              </span>
+            </div>
+          )}
+          {match.collectionTitle && (
+            <div className="text-xs text-muted-foreground truncate" title={match.collectionTitle}>
+              {match.collectionTitle}
+            </div>
+          )}
           {match.birthDate && (
             <div className="text-xs text-muted-foreground">
-              b. {match.birthDate}
+              {isRecordHint(hint.source_system) ? match.birthDate : `b. ${match.birthDate}`}
             </div>
           )}
           {match.birthPlace && (
@@ -226,9 +250,14 @@ export function HintCard({
               {match.birthPlace}
             </div>
           )}
-          {match.deathDate && (
+          {match.deathDate && !isRecordHint(hint.source_system) && (
             <div className="text-xs text-muted-foreground">
               d. {match.deathDate}
+            </div>
+          )}
+          {match.snippet && (
+            <div className="text-xs text-muted-foreground italic line-clamp-2 mt-1">
+              {match.snippet}
             </div>
           )}
         </div>
