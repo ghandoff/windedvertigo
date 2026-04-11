@@ -32,21 +32,19 @@ export function GedcomImport() {
       <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
         import gedcom
       </h3>
-      <div className="flex gap-2">
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".ged,.gedcom"
-          className="flex-1 text-xs file:mr-2 file:rounded-md file:border-0 file:bg-primary/10 file:px-2 file:py-1 file:text-xs file:font-medium file:text-primary"
-        />
-        <button
-          onClick={handleImport}
-          disabled={importing}
-          className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-        >
-          {importing ? "importing..." : "import"}
-        </button>
-      </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".ged,.gedcom"
+        className="w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-primary/10 file:px-2 file:py-1 file:text-xs file:font-medium file:text-primary truncate"
+      />
+      <button
+        onClick={handleImport}
+        disabled={importing}
+        className="w-full rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+      >
+        {importing ? "importing..." : "import"}
+      </button>
       {result && (
         <p className="text-xs text-muted-foreground">
           imported {result.personsImported} people and {result.familiesImported} families
