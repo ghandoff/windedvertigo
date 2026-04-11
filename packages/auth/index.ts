@@ -31,18 +31,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          // No `hd` restriction — external guests need to see the picker
-          prompt: "select_account",
-        },
-      },
+      // No prompt override — Google will silently reuse the active session
+      // when only one account is signed in, avoiding an unnecessary picker.
+      // The picker still appears naturally when multiple accounts are present.
     }),
   ],
 
   // Cookie config: ensure cookies are scoped to the proxy domain (www.windedvertigo.com)
   // not the backend Vercel domain. Without this, PKCE state cookies set on the
   // proxy target don't get sent back on the Google callback, causing 400 errors.
+  //
+  // IMPORTANT: sessionToken must include maxAge matching session.maxAge.
+  // Without it the browser treats it as a session cookie and deletes it on close.
   cookies: {
     pkceCodeVerifier: {
       name: "authjs.pkce.code_verifier",
@@ -80,6 +80,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
+        maxAge: 90 * 24 * 60 * 60, // 90 days — must match session.maxAge
       },
     },
   },
