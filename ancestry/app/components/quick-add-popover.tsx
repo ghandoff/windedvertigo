@@ -101,24 +101,29 @@ export function QuickAddPopover({
         <input type="hidden" name="relatedPersonId" value={personId} />
         <input type="hidden" name="relationship" value={type} />
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           <input
             name="givenNames"
             required
             className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
-            placeholder="given names"
+            placeholder="first"
             autoFocus
+          />
+          <input
+            name="middleName"
+            className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+            placeholder="middle"
           />
           <input
             name="surname"
             required
             className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
-            placeholder="surname"
+            placeholder="last"
             defaultValue={defaultSurname}
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1.5">
           <input
             name="birthYear"
             className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
@@ -136,6 +141,12 @@ export function QuickAddPopover({
             ))}
           </select>
         </div>
+
+        <input
+          name="birthPlace"
+          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+          placeholder="birth place (city, state, country)"
+        />
 
         <button
           type="submit"

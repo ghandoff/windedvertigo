@@ -28,18 +28,26 @@ export async function addPerson(formData: FormData) {
 
   const givenNames = formData.get("givenNames") as string;
   const surname = formData.get("surname") as string;
+  const middleName = (formData.get("middleName") as string)?.trim() || undefined;
+  const maidenName = (formData.get("maidenName") as string)?.trim() || undefined;
+  const birthPlace = (formData.get("birthPlace") as string)?.trim() || undefined;
+  const currentResidence = (formData.get("currentResidence") as string)?.trim() || undefined;
 
   const personId = await createPerson({
     treeId: tree.id,
     givenNames,
     surname,
+    middleName,
+    maidenName,
     sex: (formData.get("sex") as string) || "U",
     isLiving: formData.get("isLiving") !== "false",
     birthDate: (formData.get("birthDate") as string) || undefined,
+    birthPlace,
     deathDate: (formData.get("deathDate") as string) || undefined,
+    currentResidence,
   });
 
-  const displayName = [givenNames, surname].filter(Boolean).join(" ");
+  const displayName = [givenNames, middleName, surname].filter(Boolean).join(" ");
   await logActivity({
     treeId: tree.id,
     actorEmail: session.user.email,
@@ -101,22 +109,31 @@ export async function setupTreeAction(formData: FormData) {
     return {
       givenNames: givenNames || "unknown",
       surname: surname || "unknown",
+      middleName: (formData.get(`${prefix}_middleName`) as string)?.trim() || undefined,
+      maidenName: (formData.get(`${prefix}_maidenName`) as string)?.trim() || undefined,
       sex: (formData.get(`${prefix}_sex`) as string) || "U",
       birthDate: (formData.get(`${prefix}_birthDate`) as string) || undefined,
+      birthPlace: (formData.get(`${prefix}_birthPlace`) as string)?.trim() || undefined,
     };
   }
 
   // create a person and log it
-  async function create(data: { givenNames: string; surname: string; sex: string; birthDate?: string }) {
+  async function create(data: {
+    givenNames: string; surname: string; sex: string;
+    middleName?: string; maidenName?: string; birthDate?: string; birthPlace?: string;
+  }) {
     const personId = await createPerson({
       treeId,
       givenNames: data.givenNames,
       surname: data.surname,
+      middleName: data.middleName,
+      maidenName: data.maidenName,
       sex: data.sex,
       isLiving: true,
       birthDate: data.birthDate,
+      birthPlace: data.birthPlace,
     });
-    const displayName = [data.givenNames, data.surname].filter(Boolean).join(" ");
+    const displayName = [data.givenNames, data.middleName, data.surname].filter(Boolean).join(" ");
     await logActivity({
       treeId,
       actorEmail: email,
@@ -219,8 +236,11 @@ export async function quickAddRelativeAction(formData: FormData) {
   const relationship = formData.get("relationship") as string; // parent, child, spouse
   const givenNames = (formData.get("givenNames") as string).trim();
   const surname = (formData.get("surname") as string).trim();
+  const middleName = (formData.get("middleName") as string)?.trim() || undefined;
+  const maidenName = (formData.get("maidenName") as string)?.trim() || undefined;
   const sex = (formData.get("sex") as string) || "U";
   const birthYear = (formData.get("birthYear") as string)?.trim();
+  const birthPlace = (formData.get("birthPlace") as string)?.trim() || undefined;
 
   // create the person
   const birthDate = birthYear ? `${birthYear}-01-01` : undefined;
@@ -228,12 +248,15 @@ export async function quickAddRelativeAction(formData: FormData) {
     treeId,
     givenNames,
     surname,
+    middleName,
+    maidenName,
     sex,
     isLiving: true,
     birthDate,
+    birthPlace,
   });
 
-  const displayName = [givenNames, surname].filter(Boolean).join(" ");
+  const displayName = [givenNames, middleName, surname].filter(Boolean).join(" ");
   await logActivity({
     treeId,
     actorEmail: email,

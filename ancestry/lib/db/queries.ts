@@ -202,9 +202,12 @@ export async function createPerson(input: {
   isLiving?: boolean;
   givenNames: string;
   surname: string;
+  middleName?: string;
+  maidenName?: string;
   birthDate?: string;
   birthPlace?: string;
   deathDate?: string;
+  currentResidence?: string;
 }) {
   const sql = getDb();
 
@@ -215,18 +218,45 @@ export async function createPerson(input: {
   `;
 
   const personId = person[0].id;
-  const display = [input.givenNames, input.surname].filter(Boolean).join(" ");
+
+  // build given_names with middle name included (standard GEDCOM convention)
+  const givenNames = [input.givenNames, input.middleName].filter(Boolean).join(" ");
+  const display = [givenNames, input.surname].filter(Boolean).join(" ");
 
   await sql`
-    INSERT INTO person_names (person_id, name_type, given_names, surname, display, is_primary)
-    VALUES (${personId}, 'birth', ${input.givenNames}, ${input.surname}, ${display}, true)
+    INSERT INTO person_names (person_id, name_type, given_names, surname, display, is_primary, sort_order)
+    VALUES (${personId}, 'birth', ${givenNames}, ${input.surname}, ${display}, true, 0)
   `;
 
-  if (input.birthDate) {
-    const fuzzyDate = { precision: "exact", date: input.birthDate, display: input.birthDate };
+  // if maiden name differs from surname, add a married name record
+  if (input.maidenName && input.maidenName !== input.surname) {
+    const maidenDisplay = [givenNames, input.maidenName].filter(Boolean).join(" ");
+    // the birth name becomes the maiden name, married name becomes primary display
+    // swap: birth name uses maiden surname, married name uses current surname
     await sql`
-      INSERT INTO events (person_id, event_type, date, sort_date, is_primary)
-      VALUES (${personId}, 'birth', ${JSON.stringify(fuzzyDate)}, ${input.birthDate}, true)
+      UPDATE person_names SET surname = ${input.maidenName}, display = ${maidenDisplay}
+      WHERE person_id = ${personId} AND name_type = 'birth'
+    `;
+    const marriedDisplay = [givenNames, input.surname].filter(Boolean).join(" ");
+    await sql`
+      INSERT INTO person_names (person_id, name_type, given_names, surname, display, is_primary, sort_order)
+      VALUES (${personId}, 'married', ${givenNames}, ${input.surname}, ${marriedDisplay}, false, 1)
+    `;
+  }
+
+  if (input.birthDate || input.birthPlace) {
+    const fuzzyDate = input.birthDate
+      ? { precision: "exact", date: input.birthDate, display: input.birthDate }
+      : null;
+    await sql`
+      INSERT INTO events (person_id, event_type, date, sort_date, description, is_primary)
+      VALUES (
+        ${personId}, 'birth',
+        ${fuzzyDate ? JSON.stringify(fuzzyDate) : null},
+        ${input.birthDate ?? null},
+        ${input.birthPlace ?? null},
+        true
+      )
     `;
   }
 
@@ -235,6 +265,13 @@ export async function createPerson(input: {
     await sql`
       INSERT INTO events (person_id, event_type, date, sort_date, is_primary)
       VALUES (${personId}, 'death', ${JSON.stringify(fuzzyDate)}, ${input.deathDate}, true)
+    `;
+  }
+
+  if (input.currentResidence) {
+    await sql`
+      INSERT INTO events (person_id, event_type, description, is_primary)
+      VALUES (${personId}, 'residence', ${input.currentResidence}, false)
     `;
   }
 

@@ -6,11 +6,13 @@ import { addPerson } from "../actions";
 export function AddPersonForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [expanded, setExpanded] = useState(false);
+  const [sex, setSex] = useState("U");
 
   async function handleSubmit(formData: FormData) {
     await addPerson(formData);
     formRef.current?.reset();
     setExpanded(false);
+    setSex("U");
   }
 
   return (
@@ -24,14 +26,23 @@ export function AddPersonForm() {
 
       {expanded && (
         <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border p-3">
-          <div className="grid grid-cols-2 gap-2">
+          {/* name row: first, middle, surname */}
+          <div className="grid grid-cols-3 gap-2">
             <label className="space-y-1">
-              <span className="text-xs text-muted-foreground">given names</span>
+              <span className="text-xs text-muted-foreground">first name</span>
               <input
                 name="givenNames"
                 required
                 className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
                 placeholder="e.g. garrett"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs text-muted-foreground">middle name</span>
+              <input
+                name="middleName"
+                className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
+                placeholder="e.g. james"
               />
             </label>
             <label className="space-y-1">
@@ -45,12 +56,26 @@ export function AddPersonForm() {
             </label>
           </div>
 
+          {/* maiden name — shown when sex is F */}
+          {sex === "F" && (
+            <label className="space-y-1">
+              <span className="text-xs text-muted-foreground">maiden name <span className="text-muted-foreground/60">(birth surname, if different)</span></span>
+              <input
+                name="maidenName"
+                className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
+                placeholder="e.g. smith"
+              />
+            </label>
+          )}
+
+          {/* sex, birth date, death date */}
           <div className="grid grid-cols-3 gap-2">
             <label className="space-y-1">
               <span className="text-xs text-muted-foreground">sex</span>
               <select
                 name="sex"
-                defaultValue="U"
+                value={sex}
+                onChange={(e) => setSex(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
               >
                 <option value="M">male</option>
@@ -60,7 +85,7 @@ export function AddPersonForm() {
               </select>
             </label>
             <label className="space-y-1">
-              <span className="text-xs text-muted-foreground">birth</span>
+              <span className="text-xs text-muted-foreground">date of birth</span>
               <input
                 name="birthDate"
                 type="date"
@@ -76,6 +101,26 @@ export function AddPersonForm() {
               />
             </label>
           </div>
+
+          {/* birth place */}
+          <label className="space-y-1">
+            <span className="text-xs text-muted-foreground">place of birth</span>
+            <input
+              name="birthPlace"
+              className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
+              placeholder="e.g. san francisco, ca, usa"
+            />
+          </label>
+
+          {/* current residence */}
+          <label className="space-y-1">
+            <span className="text-xs text-muted-foreground">current residence <span className="text-muted-foreground/60">(city, state, country)</span></span>
+            <input
+              name="currentResidence"
+              className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
+              placeholder="e.g. san francisco, ca 94110, usa"
+            />
+          </label>
 
           <label className="flex items-center gap-2">
             <input name="isLiving" type="checkbox" defaultChecked value="true" className="rounded" />

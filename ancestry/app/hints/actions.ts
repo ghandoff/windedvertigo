@@ -37,8 +37,10 @@ async function createPersonFromMatchData(
     sex: matchData.sex ?? "U",
     isLiving: false,
     givenNames: matchData.givenNames ?? "",
+    middleName: matchData.middleName ?? undefined,
     surname: matchData.surname ?? "",
     birthDate: matchData.birthDate ?? undefined,
+    birthPlace: matchData.birthPlace ?? undefined,
     deathDate: matchData.deathDate ?? undefined,
   });
   return personId;

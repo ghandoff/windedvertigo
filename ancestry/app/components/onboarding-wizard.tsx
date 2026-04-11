@@ -57,6 +57,9 @@ function PersonCard({
   defaultSex?: string;
   optional?: boolean;
 }) {
+  const [sex, setSex] = useState(defaultSex ?? "U");
+  const isFemale = sex === "F";
+
   return (
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -65,14 +68,23 @@ function PersonCard({
           <span className="text-[10px] text-muted-foreground">optional</span>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      {/* name row: first, middle, surname */}
+      <div className="grid grid-cols-3 gap-2">
         <label className="space-y-1">
-          <span className="text-xs text-muted-foreground">given names</span>
+          <span className="text-xs text-muted-foreground">first name</span>
           <input
             name={`${prefix}_givenNames`}
             className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
-            placeholder="first name(s)"
+            placeholder="first"
             required={!optional}
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-xs text-muted-foreground">middle</span>
+          <input
+            name={`${prefix}_middleName`}
+            className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
+            placeholder="middle"
           />
         </label>
         <label className="space-y-1">
@@ -85,9 +97,20 @@ function PersonCard({
           />
         </label>
       </div>
+      {/* maiden name for female persons */}
+      {isFemale && (
+        <label className="space-y-1">
+          <span className="text-xs text-muted-foreground">maiden name <span className="text-muted-foreground/60">(if different)</span></span>
+          <input
+            name={`${prefix}_maidenName`}
+            className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
+            placeholder="birth surname"
+          />
+        </label>
+      )}
       <div className="grid grid-cols-2 gap-2">
         <label className="space-y-1">
-          <span className="text-xs text-muted-foreground">birth date</span>
+          <span className="text-xs text-muted-foreground">date of birth</span>
           <input
             name={`${prefix}_birthDate`}
             type="date"
@@ -98,7 +121,8 @@ function PersonCard({
           <span className="text-xs text-muted-foreground">sex</span>
           <select
             name={`${prefix}_sex`}
-            defaultValue={defaultSex ?? "U"}
+            value={sex}
+            onChange={(e) => setSex(e.target.value)}
             className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
           >
             <option value="M">male</option>
@@ -108,6 +132,14 @@ function PersonCard({
           </select>
         </label>
       </div>
+      <label className="space-y-1">
+        <span className="text-xs text-muted-foreground">place of birth</span>
+        <input
+          name={`${prefix}_birthPlace`}
+          className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
+          placeholder="city, state, country"
+        />
+      </label>
       {defaultSex && <input type="hidden" name={`${prefix}_defaultSex`} value={defaultSex} />}
     </div>
   );
