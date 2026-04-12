@@ -196,3 +196,27 @@ export type HintEvidence = {
   familyMatch?: { score: number; details: string };
   overallConfidence: number;
 };
+
+// ---------------------------------------------------------------------------
+// research tasks
+// ---------------------------------------------------------------------------
+
+export type TaskStatus = "todo" | "in_progress" | "done" | "dismissed";
+export type TaskPriority = "high" | "medium" | "low";
+
+export type ResearchTask = {
+  id: string;
+  tree_id: string;
+  person_id: string | null;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  source: string | null;
+  hint_id: string | null;
+  due_date: string | null;
+  created_at: string;
+  updated_at: string;
+  // joined fields
+  person_name?: string;
+};

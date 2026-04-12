@@ -1,5 +1,5 @@
 import { getDb } from ".";
-import type { Person, PersonName, PersonEvent, Relationship, RelationshipType, TreeNode, Place, Source, Citation, PARENT_TYPES, TreeMember, TreeRole, Hint, HintStatus } from "../types";
+import type { Person, PersonName, PersonEvent, Relationship, RelationshipType, TreeNode, Place, Source, Citation, PARENT_TYPES, TreeMember, TreeRole, Hint, HintStatus, ResearchTask, TaskStatus, TaskPriority } from "../types";
 
 const PARENT_TYPE_LIST = [
   "biological_parent", "adoptive_parent", "foster_parent", "step_parent", "guardian",
@@ -1048,4 +1048,289 @@ export async function getHintCounts(
   } catch {
     return { pending: 0, accepted: 0, rejected: 0, expired: 0 };
   }
+}
+
+// ---------------------------------------------------------------------------
+// research tasks
+// ---------------------------------------------------------------------------
+
+/** get all tasks for a tree, joined with person display name */
+export async function getTreeTasks(treeId: string): Promise<ResearchTask[]> {
+  const sql = getDb();
+  try {
+    const rows = await sql`
+      SELECT
+        t.id, t.tree_id, t.person_id, t.title, t.description,
+        t.status, t.priority, t.source, t.hint_id, t.due_date,
+        t.created_at, t.updated_at,
+        pn.display AS person_name
+      FROM research_tasks t
+      LEFT JOIN person_names pn ON pn.person_id = t.person_id AND pn.is_primary = true
+      WHERE t.tree_id = ${treeId}
+      ORDER BY
+        CASE t.priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 END,
+        t.created_at DESC
+    `;
+    return rows as ResearchTask[];
+  } catch {
+    return [];
+  }
+}
+
+/** create a research task */
+export async function createTask(treeId: string, data: {
+  title: string;
+  description?: string | null;
+  personId?: string | null;
+  priority?: TaskPriority;
+  source?: string | null;
+  hintId?: string | null;
+  dueDate?: string | null;
+}): Promise<string | null> {
+  const sql = getDb();
+  try {
+    const result = await sql`
+      INSERT INTO research_tasks (tree_id, person_id, title, description, priority, source, hint_id, due_date)
+      VALUES (
+        ${treeId},
+        ${data.personId ?? null},
+        ${data.title},
+        ${data.description ?? null},
+        ${data.priority ?? "medium"},
+        ${data.source ?? "manual"},
+        ${data.hintId ?? null},
+        ${data.dueDate ?? null}
+      )
+      RETURNING id
+    `;
+    return result[0]?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** update a task's status */
+export async function updateTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
+  const sql = getDb();
+  await sql`
+    UPDATE research_tasks SET status = ${status}, updated_at = now()
+    WHERE id = ${taskId}
+  `;
+}
+
+/** update task fields */
+export async function updateTask(taskId: string, data: {
+  title?: string;
+  description?: string | null;
+  personId?: string | null;
+  priority?: TaskPriority;
+  dueDate?: string | null;
+}): Promise<void> {
+  const sql = getDb();
+  await sql`
+    UPDATE research_tasks SET
+      title = COALESCE(${data.title ?? null}, title),
+      description = COALESCE(${data.description ?? null}, description),
+      person_id = COALESCE(${data.personId ?? null}, person_id),
+      priority = COALESCE(${data.priority ?? null}, priority),
+      due_date = COALESCE(${data.dueDate ?? null}, due_date),
+      updated_at = now()
+    WHERE id = ${taskId}
+  `;
+}
+
+/** delete a task */
+export async function deleteTask(taskId: string): Promise<void> {
+  const sql = getDb();
+  await sql`DELETE FROM research_tasks WHERE id = ${taskId}`;
+}
+
+/** analyze persons for data gaps and auto-create research tasks */
+export async function generateTasksFromGaps(treeId: string, persons: Person[]): Promise<number> {
+  const sql = getDb();
+  let created = 0;
+
+  for (const person of persons) {
+    const displayName =
+      person.names.find((n) => n.is_primary)?.display ??
+      [person.names[0]?.given_names, person.names[0]?.surname].filter(Boolean).join(" ") ??
+      "unnamed";
+
+    const hasBirth = person.events.some((e) => e.event_type === "birth" && e.date);
+    const hasDeath = person.events.some((e) => e.event_type === "death" && e.date);
+
+    // check for existing parents
+    const parentRows = await sql`
+      SELECT 1 FROM relationships
+      WHERE person2_id = ${person.id}
+        AND relationship_type = ANY(${PARENT_TYPE_LIST})
+      LIMIT 1
+    `;
+    const hasParents = parentRows.length > 0;
+
+    const gaps: { title: string; description: string; priority: TaskPriority }[] = [];
+
+    if (!hasBirth) {
+      gaps.push({
+        title: `find birth date for ${displayName}`,
+        description: `no birth date recorded. check vital records, census data, or family bibles.`,
+        priority: "high",
+      });
+    }
+
+    if (!person.is_living && !hasDeath) {
+      gaps.push({
+        title: `find death date for ${displayName}`,
+        description: `marked as deceased but no death date recorded. check obituaries, cemetery records, or vital records.`,
+        priority: "medium",
+      });
+    }
+
+    if (!hasParents) {
+      gaps.push({
+        title: `identify parents of ${displayName}`,
+        description: `no parents linked. search census records, birth certificates, or church records.`,
+        priority: "high",
+      });
+    }
+
+    for (const gap of gaps) {
+      // avoid duplicates: check if a similar auto_gap task already exists
+      const existing = await sql`
+        SELECT 1 FROM research_tasks
+        WHERE tree_id = ${treeId}
+          AND person_id = ${person.id}
+          AND source = 'auto_gap'
+          AND title = ${gap.title}
+          AND status != 'done'
+        LIMIT 1
+      `;
+      if (existing.length > 0) continue;
+
+      await sql`
+        INSERT INTO research_tasks (tree_id, person_id, title, description, priority, source)
+        VALUES (${treeId}, ${person.id}, ${gap.title}, ${gap.description}, ${gap.priority}, 'auto_gap')
+      `;
+      created++;
+    }
+  }
+
+  return created;
+}
+
+// ---------------------------------------------------------------------------
+// merge persons
+// ---------------------------------------------------------------------------
+
+/** merge personB into personA: move all names, events, relationships, then delete personB */
+export async function mergePersons(
+  keepId: string,
+  removeId: string,
+): Promise<void> {
+  const sql = getDb();
+
+  // move non-duplicate names from removeId to keepId
+  const existingNames = await sql`
+    SELECT LOWER(given_names) as given, LOWER(surname) as surname FROM person_names WHERE person_id = ${keepId}
+  `;
+  const nameSet = new Set(existingNames.map((n) => `${n.given}|${n.surname}`));
+
+  const removeNames = await sql`
+    SELECT id, given_names, surname FROM person_names WHERE person_id = ${removeId}
+  `;
+  for (const n of removeNames) {
+    const key = `${(n.given_names ?? "").toLowerCase()}|${(n.surname ?? "").toLowerCase()}`;
+    if (!nameSet.has(key)) {
+      await sql`UPDATE person_names SET person_id = ${keepId}, is_primary = false WHERE id = ${n.id}`;
+    }
+  }
+
+  // move events that don't duplicate existing event types+dates
+  const existingEvents = await sql`
+    SELECT event_type, sort_date FROM events WHERE person_id = ${keepId}
+  `;
+  const eventSet = new Set(existingEvents.map((e) => `${e.event_type}|${e.sort_date ?? ""}`));
+
+  const removeEvents = await sql`
+    SELECT id, event_type, sort_date FROM events WHERE person_id = ${removeId}
+  `;
+  for (const e of removeEvents) {
+    const key = `${e.event_type}|${e.sort_date ?? ""}`;
+    if (!eventSet.has(key)) {
+      await sql`UPDATE events SET person_id = ${keepId} WHERE id = ${e.id}`;
+    }
+  }
+
+  // move relationships — remap person references, skip duplicates
+  const existingRels = await sql`
+    SELECT person1_id, person2_id, relationship_type FROM relationships
+    WHERE person1_id = ${keepId} OR person2_id = ${keepId}
+  `;
+  const relSet = new Set(existingRels.map((r) =>
+    `${r.person1_id}|${r.person2_id}|${r.relationship_type}`
+  ));
+
+  const rels1 = await sql`
+    SELECT id, person1_id, person2_id, relationship_type FROM relationships
+    WHERE person1_id = ${removeId}
+  `;
+  for (const r of rels1) {
+    if (r.person2_id === keepId) {
+      await sql`DELETE FROM relationships WHERE id = ${r.id}`;
+    } else {
+      const key = `${keepId}|${r.person2_id}|${r.relationship_type}`;
+      if (!relSet.has(key)) {
+        await sql`UPDATE relationships SET person1_id = ${keepId} WHERE id = ${r.id}`;
+        relSet.add(key);
+      } else {
+        await sql`DELETE FROM relationships WHERE id = ${r.id}`;
+      }
+    }
+  }
+
+  const rels2 = await sql`
+    SELECT id, person1_id, person2_id, relationship_type FROM relationships
+    WHERE person2_id = ${removeId}
+  `;
+  for (const r of rels2) {
+    if (r.person1_id === keepId) {
+      await sql`DELETE FROM relationships WHERE id = ${r.id}`;
+    } else {
+      const key = `${r.person1_id}|${keepId}|${r.relationship_type}`;
+      if (!relSet.has(key)) {
+        await sql`UPDATE relationships SET person2_id = ${keepId} WHERE id = ${r.id}`;
+        relSet.add(key);
+      } else {
+        await sql`DELETE FROM relationships WHERE id = ${r.id}`;
+      }
+    }
+  }
+
+  // move media links
+  await sql`UPDATE media_links SET person_id = ${keepId} WHERE person_id = ${removeId}`;
+
+  // move hints
+  try {
+    await sql`UPDATE hints SET person_id = ${keepId} WHERE person_id = ${removeId}`;
+  } catch { /* hints table may not exist */ }
+
+  // merge notes
+  const [keepPerson] = await sql`SELECT notes, thumbnail_url FROM persons WHERE id = ${keepId}`;
+  const [removePerson] = await sql`SELECT notes FROM persons WHERE id = ${removeId}`;
+  if (removePerson?.notes && removePerson.notes !== keepPerson?.notes) {
+    const merged = [keepPerson?.notes, removePerson.notes].filter(Boolean).join("\n\n");
+    await sql`UPDATE persons SET notes = ${merged} WHERE id = ${keepId}`;
+  }
+
+  // copy thumbnail if keep doesn't have one
+  if (!keepPerson?.thumbnail_url) {
+    await sql`
+      UPDATE persons SET thumbnail_url = (SELECT thumbnail_url FROM persons WHERE id = ${removeId})
+      WHERE id = ${keepId} AND thumbnail_url IS NULL
+    `;
+  }
+
+  // delete the removed person (cascades names, events via FK)
+  await sql`DELETE FROM persons WHERE id = ${removeId}`;
+  await sql`UPDATE persons SET updated_at = NOW() WHERE id = ${keepId}`;
 }

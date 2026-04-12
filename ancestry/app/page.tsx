@@ -135,6 +135,37 @@ export default async function HomePage({
           <GedcomExport />
           <FamilySearchSearch />
 
+          {/* tools nav */}
+          <div className="space-y-1">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              tools
+            </h3>
+            <Link
+              href="/duplicates"
+              className="block rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              find duplicates
+            </Link>
+            <Link
+              href="/tasks"
+              className="block rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              research tasks
+            </Link>
+            <Link
+              href="/reports"
+              className="block rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              reports
+            </Link>
+            <Link
+              href="/records"
+              className="block rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              record search
+            </Link>
+          </div>
+
           {recentActivity.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
