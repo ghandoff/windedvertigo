@@ -76,7 +76,7 @@ function CommentItem({
             {depth < 2 && (
               <button
                 onClick={() => setReplying(!replying)}
-                className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                className="min-h-[28px] px-1.5 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded transition-colors"
               >
                 reply
               </button>
@@ -85,7 +85,7 @@ function CommentItem({
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="text-[10px] text-muted-foreground hover:text-red-500 transition-colors"
+                className="min-h-[28px] px-1.5 text-[10px] text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded disabled:opacity-50 transition-colors"
               >
                 {deleting ? "..." : "delete"}
               </button>

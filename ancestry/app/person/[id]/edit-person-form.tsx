@@ -245,8 +245,9 @@ export function EditPersonForm({ person }: { person: Person }) {
                   });
                 }}
                 disabled={isPending}
-                className="shrink-0 text-xs text-destructive hover:underline disabled:opacity-50"
+                className="shrink-0 min-w-[28px] min-h-[28px] flex items-center justify-center text-xs text-destructive hover:bg-destructive/10 rounded disabled:opacity-50 transition-colors"
                 title="delete event"
+                aria-label="delete event"
               >
                 ×
               </button>

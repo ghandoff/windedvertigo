@@ -97,6 +97,9 @@ export function RecordSearchForm({ defaults, persons, treeId, preselectedPersonI
             <label className="block text-xs font-medium text-muted-foreground mb-1">birth year</label>
             <input
               name="birthYear"
+              type="number"
+              min="1000"
+              max="2100"
               defaultValue={defaults.birthYear}
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
               placeholder="e.g. 1850"
@@ -106,6 +109,9 @@ export function RecordSearchForm({ defaults, persons, treeId, preselectedPersonI
             <label className="block text-xs font-medium text-muted-foreground mb-1">death year</label>
             <input
               name="deathYear"
+              type="number"
+              min="1000"
+              max="2100"
               defaultValue={defaults.deathYear}
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
               placeholder="e.g. 1920"

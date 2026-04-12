@@ -192,10 +192,11 @@ export function DnaSection({ personId, initialData }: { personId: string; initia
             />
             <button
               onClick={() => removeRow(i)}
-              className="text-muted-foreground hover:text-red-500 text-xs transition-colors"
-              title="remove"
+              className="shrink-0 min-w-[28px] min-h-[28px] flex items-center justify-center text-muted-foreground hover:text-red-500 hover:bg-red-500/10 text-xs rounded transition-colors"
+              title="remove region"
+              aria-label="remove region"
             >
-              x
+              &times;
             </button>
           </div>
         ))}

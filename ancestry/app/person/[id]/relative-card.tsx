@@ -43,7 +43,7 @@ export function RelativeCard({ relative, personId }: { relative: RelativeInfo; p
         {relative.thumbnailUrl ? (
           <img
             src={relative.thumbnailUrl}
-            alt=""
+            alt={relative.displayName}
             className="h-9 w-9 rounded-full object-cover shrink-0"
           />
         ) : (
@@ -68,8 +68,9 @@ export function RelativeCard({ relative, personId }: { relative: RelativeInfo; p
             });
           }}
           disabled={isPending}
-          className="shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 text-xs text-destructive hover:underline disabled:opacity-50 transition-opacity"
+          className="shrink-0 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 min-w-[28px] min-h-[28px] flex items-center justify-center text-xs text-destructive hover:bg-destructive/10 rounded disabled:opacity-50 transition-all"
           title="remove relationship"
+          aria-label={`unlink ${relative.displayName}`}
         >
           ×
         </button>

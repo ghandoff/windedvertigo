@@ -57,8 +57,9 @@ function TaskCard({ task }: { task: ResearchTask }) {
         <button
           onClick={remove}
           disabled={isPending}
-          className="text-muted-foreground hover:text-red-500 text-xs shrink-0 transition-colors"
+          className="shrink-0 min-w-[28px] min-h-[28px] flex items-center justify-center text-muted-foreground hover:text-red-500 hover:bg-red-500/10 text-xs rounded disabled:opacity-50 transition-colors"
           title="delete task"
+          aria-label="delete task"
         >
           &times;
         </button>
@@ -92,7 +93,7 @@ function TaskCard({ task }: { task: ResearchTask }) {
           <button
             onClick={() => moveTo(prevStatus)}
             disabled={isPending}
-            className="rounded bg-muted text-muted-foreground px-2 py-0.5 text-[10px] hover:text-foreground disabled:opacity-50 transition-colors"
+            className="rounded bg-muted text-muted-foreground px-2 py-1 text-[10px] min-h-[28px] hover:text-foreground disabled:opacity-50 transition-colors"
           >
             &larr; {prevStatus === "todo" ? "to do" : prevStatus.replace("_", " ")}
           </button>
@@ -101,7 +102,7 @@ function TaskCard({ task }: { task: ResearchTask }) {
           <button
             onClick={() => moveTo(nextStatus)}
             disabled={isPending}
-            className="rounded bg-muted text-muted-foreground px-2 py-0.5 text-[10px] hover:text-foreground disabled:opacity-50 transition-colors"
+            className="rounded bg-muted text-muted-foreground px-2 py-1 text-[10px] min-h-[28px] hover:text-foreground disabled:opacity-50 transition-colors"
           >
             {nextStatus === "in_progress" ? "in progress" : nextStatus} &rarr;
           </button>
@@ -110,7 +111,7 @@ function TaskCard({ task }: { task: ResearchTask }) {
           <button
             onClick={dismiss}
             disabled={isPending}
-            className="rounded bg-muted text-muted-foreground px-2 py-0.5 text-[10px] hover:text-foreground disabled:opacity-50 transition-colors ml-auto"
+            className="rounded bg-muted text-muted-foreground px-2 py-1 text-[10px] min-h-[28px] hover:text-foreground disabled:opacity-50 transition-colors ml-auto"
           >
             dismiss
           </button>

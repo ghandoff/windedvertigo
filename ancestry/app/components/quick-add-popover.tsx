@@ -126,10 +126,11 @@ export function QuickAddPopover({
         <div className="grid grid-cols-2 gap-1.5">
           <input
             name="birthYear"
+            type="number"
+            min="1000"
+            max="2100"
             className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
             placeholder="birth year"
-            pattern="[0-9]{4}"
-            maxLength={4}
           />
           <select
             name="sex"

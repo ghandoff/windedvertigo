@@ -119,7 +119,7 @@ export default async function SettingsPage() {
                   <input type="hidden" name="email" value={member.member_email} />
                   <button
                     type="submit"
-                    className="text-xs text-destructive hover:text-destructive/80 transition-colors"
+                    className="min-h-[28px] px-2 text-xs text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded transition-colors"
                   >
                     remove
                   </button>
