@@ -10,6 +10,7 @@ import {
   updateTreeVisibility,
   getTreeRole,
 } from "@/lib/db/queries";
+import { sendTreeInviteEmail } from "@/lib/email";
 import type { TreeRole } from "@/lib/types";
 
 async function requireOwner(treeId: string) {
@@ -42,7 +43,24 @@ export async function inviteMemberAction(formData: FormData) {
     throw new Error("you cannot invite yourself");
   }
 
+  // get tree info for the email
+  const tree = await getOrCreateTree(ownerEmail);
+
   await addTreeMember(treeId, email, role);
+
+  // send invite email — fire-and-forget so invite still works if email fails
+  try {
+    await sendTreeInviteEmail({
+      to: email,
+      inviterName: ownerEmail.split("@")[0],
+      treeName: tree.name ?? "family tree",
+      role,
+      treeId,
+    });
+  } catch (err) {
+    console.error("failed to send invite email:", err);
+  }
+
   redirect("/settings");
 }
 
