@@ -19,6 +19,7 @@ import { GenerateHintsButton } from "./components/generate-hints-button";
 import { HintsModalTrigger } from "./components/hints-modal";
 import { HintsBanner } from "./components/hints-banner";
 import { TreeSwitcher } from "./components/tree-switcher";
+import { FloatingActions } from "./components/floating-actions";
 
 export default async function HomePage({
   searchParams,
@@ -191,6 +192,9 @@ export default async function HomePage({
           )}
         </main>
       </div>
+
+      {/* mobile floating actions */}
+      {canEdit && treeNodes.length > 0 && <FloatingActions />}
 
       {/* mobile bottom nav */}
       <MobileNav />
