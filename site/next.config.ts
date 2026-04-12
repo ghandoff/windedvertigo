@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   // Notion search for multi-source DB assets can take 30+ rounds (~90s)
   staticPageGenerationTimeout: 180,
 
-  // External rewrites — proxy harbour apps to their Vercel deployments
+  // External rewrites — proxy harbour apps to CF Workers (or Vercel for blocked apps)
   async rewrites() {
     return [
       // CRM
@@ -62,289 +62,289 @@ const nextConfig: NextConfig = {
       {
         source: "/harbour/deep-deck",
         destination:
-          "https://deep-deck-ghandoffs-projects.vercel.app/harbour/deep-deck",
+          "https://wv-harbour-deep-deck.windedvertigo.workers.dev/harbour/deep-deck",
       },
       {
         source: "/harbour/deep-deck/",
         destination:
-          "https://deep-deck-ghandoffs-projects.vercel.app/harbour/deep-deck",
+          "https://wv-harbour-deep-deck.windedvertigo.workers.dev/harbour/deep-deck",
       },
       {
         source: "/harbour/deep-deck/:path*",
         destination:
-          "https://deep-deck-ghandoffs-projects.vercel.app/harbour/deep-deck/:path*",
+          "https://wv-harbour-deep-deck.windedvertigo.workers.dev/harbour/deep-deck/:path*",
       },
 
       // depth chart
       {
         source: "/harbour/depth-chart",
         destination:
-          "https://depth-chart-ghandoffs-projects.vercel.app/harbour/depth-chart",
+          "https://wv-harbour-depth-chart.windedvertigo.workers.dev/harbour/depth-chart",
       },
       {
         source: "/harbour/depth-chart/",
         destination:
-          "https://depth-chart-ghandoffs-projects.vercel.app/harbour/depth-chart",
+          "https://wv-harbour-depth-chart.windedvertigo.workers.dev/harbour/depth-chart",
       },
       {
         source: "/harbour/depth-chart/:path*",
         destination:
-          "https://depth-chart-ghandoffs-projects.vercel.app/harbour/depth-chart/:path*",
+          "https://wv-harbour-depth-chart.windedvertigo.workers.dev/harbour/depth-chart/:path*",
       },
 
       // raft house
       {
         source: "/harbour/raft-house",
         destination:
-          "https://raft-house-ghandoffs-projects.vercel.app/harbour/raft-house",
+          "https://wv-harbour-raft-house.windedvertigo.workers.dev/harbour/raft-house",
       },
       {
         source: "/harbour/raft-house/",
         destination:
-          "https://raft-house-ghandoffs-projects.vercel.app/harbour/raft-house",
+          "https://wv-harbour-raft-house.windedvertigo.workers.dev/harbour/raft-house",
       },
       {
         source: "/harbour/raft-house/:path*",
         destination:
-          "https://raft-house-ghandoffs-projects.vercel.app/harbour/raft-house/:path*",
+          "https://wv-harbour-raft-house.windedvertigo.workers.dev/harbour/raft-house/:path*",
       },
 
       // tidal pool
       {
         source: "/harbour/tidal-pool",
         destination:
-          "https://tidal-pool-ghandoffs-projects.vercel.app/harbour/tidal-pool",
+          "https://wv-harbour-tidal-pool.windedvertigo.workers.dev/harbour/tidal-pool",
       },
       {
         source: "/harbour/tidal-pool/",
         destination:
-          "https://tidal-pool-ghandoffs-projects.vercel.app/harbour/tidal-pool",
+          "https://wv-harbour-tidal-pool.windedvertigo.workers.dev/harbour/tidal-pool",
       },
       {
         source: "/harbour/tidal-pool/:path*",
         destination:
-          "https://tidal-pool-ghandoffs-projects.vercel.app/harbour/tidal-pool/:path*",
+          "https://wv-harbour-tidal-pool.windedvertigo.workers.dev/harbour/tidal-pool/:path*",
       },
 
       // paper trail
       {
         source: "/harbour/paper-trail",
         destination:
-          "https://paper-trail-ghandoffs-projects.vercel.app/harbour/paper-trail",
+          "https://wv-harbour-paper-trail.windedvertigo.workers.dev/harbour/paper-trail",
       },
       {
         source: "/harbour/paper-trail/",
         destination:
-          "https://paper-trail-ghandoffs-projects.vercel.app/harbour/paper-trail",
+          "https://wv-harbour-paper-trail.windedvertigo.workers.dev/harbour/paper-trail",
       },
       {
         source: "/harbour/paper-trail/:path*",
         destination:
-          "https://paper-trail-ghandoffs-projects.vercel.app/harbour/paper-trail/:path*",
+          "https://wv-harbour-paper-trail.windedvertigo.workers.dev/harbour/paper-trail/:path*",
       },
 
       // mirror log
       {
         source: "/harbour/mirror-log",
         destination:
-          "https://mirror-log-ghandoffs-projects.vercel.app/harbour/mirror-log",
+          "https://wv-harbour-mirror-log.windedvertigo.workers.dev/harbour/mirror-log",
       },
       {
         source: "/harbour/mirror-log/",
         destination:
-          "https://mirror-log-ghandoffs-projects.vercel.app/harbour/mirror-log",
+          "https://wv-harbour-mirror-log.windedvertigo.workers.dev/harbour/mirror-log",
       },
       {
         source: "/harbour/mirror-log/:path*",
         destination:
-          "https://mirror-log-ghandoffs-projects.vercel.app/harbour/mirror-log/:path*",
+          "https://wv-harbour-mirror-log.windedvertigo.workers.dev/harbour/mirror-log/:path*",
       },
 
       // orbit lab
       {
         source: "/harbour/orbit-lab",
         destination:
-          "https://orbit-lab-ghandoffs-projects.vercel.app/harbour/orbit-lab",
+          "https://wv-harbour-orbit-lab.windedvertigo.workers.dev/harbour/orbit-lab",
       },
       {
         source: "/harbour/orbit-lab/",
         destination:
-          "https://orbit-lab-ghandoffs-projects.vercel.app/harbour/orbit-lab",
+          "https://wv-harbour-orbit-lab.windedvertigo.workers.dev/harbour/orbit-lab",
       },
       {
         source: "/harbour/orbit-lab/:path*",
         destination:
-          "https://orbit-lab-ghandoffs-projects.vercel.app/harbour/orbit-lab/:path*",
+          "https://wv-harbour-orbit-lab.windedvertigo.workers.dev/harbour/orbit-lab/:path*",
       },
 
       // proof garden
       {
         source: "/harbour/proof-garden",
         destination:
-          "https://proof-garden-ghandoffs-projects.vercel.app/harbour/proof-garden",
+          "https://wv-harbour-proof-garden.windedvertigo.workers.dev/harbour/proof-garden",
       },
       {
         source: "/harbour/proof-garden/",
         destination:
-          "https://proof-garden-ghandoffs-projects.vercel.app/harbour/proof-garden",
+          "https://wv-harbour-proof-garden.windedvertigo.workers.dev/harbour/proof-garden",
       },
       {
         source: "/harbour/proof-garden/:path*",
         destination:
-          "https://proof-garden-ghandoffs-projects.vercel.app/harbour/proof-garden/:path*",
+          "https://wv-harbour-proof-garden.windedvertigo.workers.dev/harbour/proof-garden/:path*",
       },
 
       // bias lens
       {
         source: "/harbour/bias-lens",
         destination:
-          "https://bias-lens-ghandoffs-projects.vercel.app/harbour/bias-lens",
+          "https://wv-harbour-bias-lens.windedvertigo.workers.dev/harbour/bias-lens",
       },
       {
         source: "/harbour/bias-lens/",
         destination:
-          "https://bias-lens-ghandoffs-projects.vercel.app/harbour/bias-lens",
+          "https://wv-harbour-bias-lens.windedvertigo.workers.dev/harbour/bias-lens",
       },
       {
         source: "/harbour/bias-lens/:path*",
         destination:
-          "https://bias-lens-ghandoffs-projects.vercel.app/harbour/bias-lens/:path*",
+          "https://wv-harbour-bias-lens.windedvertigo.workers.dev/harbour/bias-lens/:path*",
       },
 
       // scale shift
       {
         source: "/harbour/scale-shift",
         destination:
-          "https://scale-shift-ghandoffs-projects.vercel.app/harbour/scale-shift",
+          "https://wv-harbour-scale-shift.windedvertigo.workers.dev/harbour/scale-shift",
       },
       {
         source: "/harbour/scale-shift/",
         destination:
-          "https://scale-shift-ghandoffs-projects.vercel.app/harbour/scale-shift",
+          "https://wv-harbour-scale-shift.windedvertigo.workers.dev/harbour/scale-shift",
       },
       {
         source: "/harbour/scale-shift/:path*",
         destination:
-          "https://scale-shift-ghandoffs-projects.vercel.app/harbour/scale-shift/:path*",
+          "https://wv-harbour-scale-shift.windedvertigo.workers.dev/harbour/scale-shift/:path*",
       },
 
       // pattern weave
       {
         source: "/harbour/pattern-weave",
         destination:
-          "https://pattern-weave-ghandoffs-projects.vercel.app/harbour/pattern-weave",
+          "https://wv-harbour-pattern-weave.windedvertigo.workers.dev/harbour/pattern-weave",
       },
       {
         source: "/harbour/pattern-weave/",
         destination:
-          "https://pattern-weave-ghandoffs-projects.vercel.app/harbour/pattern-weave",
+          "https://wv-harbour-pattern-weave.windedvertigo.workers.dev/harbour/pattern-weave",
       },
       {
         source: "/harbour/pattern-weave/:path*",
         destination:
-          "https://pattern-weave-ghandoffs-projects.vercel.app/harbour/pattern-weave/:path*",
+          "https://wv-harbour-pattern-weave.windedvertigo.workers.dev/harbour/pattern-weave/:path*",
       },
 
       // market mind
       {
         source: "/harbour/market-mind",
         destination:
-          "https://market-mind-ghandoffs-projects.vercel.app/harbour/market-mind",
+          "https://wv-harbour-market-mind.windedvertigo.workers.dev/harbour/market-mind",
       },
       {
         source: "/harbour/market-mind/",
         destination:
-          "https://market-mind-ghandoffs-projects.vercel.app/harbour/market-mind",
+          "https://wv-harbour-market-mind.windedvertigo.workers.dev/harbour/market-mind",
       },
       {
         source: "/harbour/market-mind/:path*",
         destination:
-          "https://market-mind-ghandoffs-projects.vercel.app/harbour/market-mind/:path*",
+          "https://wv-harbour-market-mind.windedvertigo.workers.dev/harbour/market-mind/:path*",
       },
 
       // rhythm lab
       {
         source: "/harbour/rhythm-lab",
         destination:
-          "https://rhythm-lab-ghandoffs-projects.vercel.app/harbour/rhythm-lab",
+          "https://wv-harbour-rhythm-lab.windedvertigo.workers.dev/harbour/rhythm-lab",
       },
       {
         source: "/harbour/rhythm-lab/",
         destination:
-          "https://rhythm-lab-ghandoffs-projects.vercel.app/harbour/rhythm-lab",
+          "https://wv-harbour-rhythm-lab.windedvertigo.workers.dev/harbour/rhythm-lab",
       },
       {
         source: "/harbour/rhythm-lab/:path*",
         destination:
-          "https://rhythm-lab-ghandoffs-projects.vercel.app/harbour/rhythm-lab/:path*",
+          "https://wv-harbour-rhythm-lab.windedvertigo.workers.dev/harbour/rhythm-lab/:path*",
       },
 
       // code weave
       {
         source: "/harbour/code-weave",
         destination:
-          "https://code-weave-ghandoffs-projects.vercel.app/harbour/code-weave",
+          "https://wv-harbour-code-weave.windedvertigo.workers.dev/harbour/code-weave",
       },
       {
         source: "/harbour/code-weave/",
         destination:
-          "https://code-weave-ghandoffs-projects.vercel.app/harbour/code-weave",
+          "https://wv-harbour-code-weave.windedvertigo.workers.dev/harbour/code-weave",
       },
       {
         source: "/harbour/code-weave/:path*",
         destination:
-          "https://code-weave-ghandoffs-projects.vercel.app/harbour/code-weave/:path*",
+          "https://wv-harbour-code-weave.windedvertigo.workers.dev/harbour/code-weave/:path*",
       },
 
       // time prism
       {
         source: "/harbour/time-prism",
         destination:
-          "https://time-prism-ghandoffs-projects.vercel.app/harbour/time-prism",
+          "https://wv-harbour-time-prism.windedvertigo.workers.dev/harbour/time-prism",
       },
       {
         source: "/harbour/time-prism/",
         destination:
-          "https://time-prism-ghandoffs-projects.vercel.app/harbour/time-prism",
+          "https://wv-harbour-time-prism.windedvertigo.workers.dev/harbour/time-prism",
       },
       {
         source: "/harbour/time-prism/:path*",
         destination:
-          "https://time-prism-ghandoffs-projects.vercel.app/harbour/time-prism/:path*",
+          "https://wv-harbour-time-prism.windedvertigo.workers.dev/harbour/time-prism/:path*",
       },
 
       // liminal pass
       {
         source: "/harbour/liminal-pass",
         destination:
-          "https://liminal-pass-ghandoffs-projects.vercel.app/harbour/liminal-pass",
+          "https://wv-harbour-liminal-pass.windedvertigo.workers.dev/harbour/liminal-pass",
       },
       {
         source: "/harbour/liminal-pass/",
         destination:
-          "https://liminal-pass-ghandoffs-projects.vercel.app/harbour/liminal-pass",
+          "https://wv-harbour-liminal-pass.windedvertigo.workers.dev/harbour/liminal-pass",
       },
       {
         source: "/harbour/liminal-pass/:path*",
         destination:
-          "https://liminal-pass-ghandoffs-projects.vercel.app/harbour/liminal-pass/:path*",
+          "https://wv-harbour-liminal-pass.windedvertigo.workers.dev/harbour/liminal-pass/:path*",
       },
 
       // emerge box
       {
         source: "/harbour/emerge-box",
         destination:
-          "https://emerge-box-ghandoffs-projects.vercel.app/harbour/emerge-box",
+          "https://wv-harbour-emerge-box.windedvertigo.workers.dev/harbour/emerge-box",
       },
       {
         source: "/harbour/emerge-box/",
         destination:
-          "https://emerge-box-ghandoffs-projects.vercel.app/harbour/emerge-box",
+          "https://wv-harbour-emerge-box.windedvertigo.workers.dev/harbour/emerge-box",
       },
       {
         source: "/harbour/emerge-box/:path*",
         destination:
-          "https://emerge-box-ghandoffs-projects.vercel.app/harbour/emerge-box/:path*",
+          "https://wv-harbour-emerge-box.windedvertigo.workers.dev/harbour/emerge-box/:path*",
       },
 
       // admin (via creaseworks)
@@ -448,7 +448,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com",
+              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com https://*.windedvertigo.workers.dev",
               "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
               "base-uri 'self'",
               "form-action 'self'",
