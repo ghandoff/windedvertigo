@@ -9,21 +9,6 @@ const nextConfig: NextConfig = {
   // External rewrites — proxy harbour apps to CF Workers (or Vercel for blocked apps)
   async rewrites() {
     return [
-      // CRM
-      {
-        source: "/crm",
-        destination: "https://wv-crm-ghandoffs-projects.vercel.app/crm",
-      },
-      {
-        source: "/crm/",
-        destination: "https://wv-crm-ghandoffs-projects.vercel.app/crm",
-      },
-      {
-        source: "/crm/:path*",
-        destination:
-          "https://wv-crm-ghandoffs-projects.vercel.app/crm/:path*",
-      },
-
       // creaseworks
       {
         source: "/harbour/creaseworks",
@@ -416,6 +401,17 @@ const nextConfig: NextConfig = {
         destination: "/quadrants/explore/",
         permanent: true,
       },
+      // port (fka CRM) — redirect to its own domain
+      {
+        source: "/crm",
+        destination: "https://port.windedvertigo.com",
+        permanent: true,
+      },
+      {
+        source: "/crm/:path*",
+        destination: "https://port.windedvertigo.com/:path*",
+        permanent: true,
+      },
     ];
   },
 
@@ -448,7 +444,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com https://*.windedvertigo.workers.dev",
+              "connect-src 'self' https://api.notion.com https://port.windedvertigo.com https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com https://*.windedvertigo.workers.dev",
               "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
               "base-uri 'self'",
               "form-action 'self'",
