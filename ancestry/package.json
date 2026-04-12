@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.84.0",
     "@neondatabase/serverless": "^0.10.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.3.3",

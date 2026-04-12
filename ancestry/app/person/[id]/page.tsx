@@ -14,6 +14,7 @@ import { FindHintsButton } from "./find-hints-button";
 import { PrivacyBanner } from "../../components/privacy-banner";
 import { HintCard } from "../../hints/hint-card";
 import { CommentThread } from "../../components/comment-thread";
+import { ResearchAssistant } from "./research-assistant";
 
 const SEX_ICONS: Record<string, string> = {
   M: "♂",
@@ -302,6 +303,17 @@ export default async function PersonPage({
             </svg>
             search records for {displayName}
           </Link>
+        </section>
+
+        {/* AI research assistant */}
+        <section className="rounded-lg border border-border bg-card p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+            AI research assistant
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            use AI to analyze this person&apos;s profile and suggest specific research directions.
+          </p>
+          <ResearchAssistant personId={person.id} personName={displayName} />
         </section>
 
         {/* discussion */}

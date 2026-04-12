@@ -170,6 +170,12 @@ export default async function HomePage({
             >
               places & migration
             </Link>
+            <Link
+              href="/census"
+              className="block rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              census timeline
+            </Link>
           </div>
 
           {recentActivity.length > 0 && (
