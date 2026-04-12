@@ -194,6 +194,25 @@ function layoutTree(treeNodes: TreeNode[], colorMode: ColorMode): { nodes: Node[
     }
   }
 
+  // create union nodes for co-parents who share children but are NOT listed as spouses.
+  // without this, their children get marked as "handled by couple" but no union node
+  // exists, leaving them with no edges in the graph.
+  for (const [key, children] of coupleChildren) {
+    if (processedSpouseKeys.has(key)) continue; // already handled as spouse pair
+
+    const [p1, p2] = key.split("--");
+    const unionId = `union-${key}`;
+    unionNodes.push({ id: unionId, key, p1, p2, relType: "biological_parent", label: "" });
+    g.setNode(unionId, { width: UNION_WIDTH, height: UNION_HEIGHT });
+
+    g.setEdge(p1, unionId, { weight: 3, minlen: 0 });
+    g.setEdge(p2, unionId, { weight: 3, minlen: 0 });
+
+    for (const childId of children) {
+      g.setEdge(unionId, childId);
+    }
+  }
+
   // build React Flow edges
   const edges: Edge[] = [];
 
