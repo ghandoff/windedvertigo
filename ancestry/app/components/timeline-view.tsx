@@ -180,11 +180,11 @@ export function TimelineView({
   }
 
   return (
-    <div ref={containerRef} className="w-full h-full relative overflow-hidden">
+    <div ref={containerRef} className="w-full h-full relative overflow-y-auto overflow-x-hidden">
       <svg
         ref={svgRef}
         width={dimensions.width}
-        height={dimensions.height}
+        height={contentHeight}
         className="select-none"
         style={{ cursor: "grab" }}
       >
@@ -217,7 +217,7 @@ export function TimelineView({
               x={LABEL_WIDTH}
               y={0}
               width={dimensions.width - LABEL_WIDTH}
-              height={dimensions.height}
+              height={contentHeight}
             />
           </clipPath>
         </defs>

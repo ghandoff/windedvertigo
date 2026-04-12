@@ -30,7 +30,8 @@ export async function getTreePersons(treeId: string): Promise<Person[]> {
   const rows = await sql`
     SELECT
       p.id, p.tree_id, p.sex, p.is_living, p.privacy_level,
-      p.thumbnail_url, p.notes, p.created_at, p.updated_at
+      p.thumbnail_url, p.notes, p.created_at, p.updated_at,
+      p.custom_fields
     FROM persons p
     WHERE p.tree_id = ${treeId}
     ORDER BY p.created_at
@@ -191,6 +192,7 @@ export function buildTreeNodes(
           startDate: meta?.startDate ?? null,
         };
       }),
+      customFields: (p.custom_fields as Record<string, string>) ?? {},
     };
   });
 }
@@ -598,7 +600,8 @@ export async function getPerson(personId: string): Promise<Person | null> {
 
   const rows = await sql`
     SELECT id, tree_id, sex, is_living, privacy_level,
-           thumbnail_url, notes, created_at, updated_at
+           thumbnail_url, notes, created_at, updated_at,
+           custom_fields
     FROM persons WHERE id = ${personId}
   `;
   if (rows.length === 0) return null;
@@ -880,6 +883,45 @@ export async function updateTreeVisibility(treeId: string, visibility: string) {
 }
 
 // ---------------------------------------------------------------------------
+// layout positions — persisted whiteboard-style node positions
+// ---------------------------------------------------------------------------
+
+export type LayoutPositions = Record<string, { x: number; y: number }>;
+
+/** get saved layout positions for a tree */
+export async function getLayoutPositions(treeId: string): Promise<LayoutPositions> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT layout_positions FROM trees WHERE id = ${treeId}
+  `;
+  return (rows[0]?.layout_positions as LayoutPositions) ?? {};
+}
+
+/** save layout positions (merges with existing) */
+export async function saveLayoutPositions(
+  treeId: string,
+  positions: LayoutPositions,
+): Promise<void> {
+  const sql = getDb();
+  // merge new positions into existing ones using jsonb concatenation
+  await sql`
+    UPDATE trees
+    SET layout_positions = COALESCE(layout_positions, '{}'::jsonb) || ${JSON.stringify(positions)}::jsonb,
+        updated_at = now()
+    WHERE id = ${treeId}
+  `;
+}
+
+/** clear all saved layout positions (reset to auto-layout) */
+export async function clearLayoutPositions(treeId: string): Promise<void> {
+  const sql = getDb();
+  await sql`
+    UPDATE trees SET layout_positions = '{}'::jsonb, updated_at = now()
+    WHERE id = ${treeId}
+  `;
+}
+
+// ---------------------------------------------------------------------------
 // activity log
 // ---------------------------------------------------------------------------
 
@@ -1073,6 +1115,20 @@ export async function getHintCounts(
     return counts;
   } catch {
     return { pending: 0, accepted: 0, rejected: 0, expired: 0 };
+  }
+}
+
+/** delete all pending hints for a tree (to allow a fresh re-scan) */
+export async function resetPendingHints(treeId: string): Promise<number> {
+  const sql = getDb();
+  try {
+    const result = await sql`
+      DELETE FROM hints
+      WHERE tree_id = ${treeId} AND status = 'pending'
+    `;
+    return (result as unknown as { count: number }).count ?? 0;
+  } catch {
+    return 0;
   }
 }
 
@@ -1545,4 +1601,100 @@ export async function updateDnaData(personId: string, data: DnaData): Promise<vo
     UPDATE persons SET dna_data = ${JSON.stringify(data)}::jsonb, updated_at = NOW()
     WHERE id = ${personId}
   `;
+}
+
+// ---------------------------------------------------------------------------
+// saved views
+// ---------------------------------------------------------------------------
+
+export type SavedView = {
+  id: string;
+  name: string;
+  chartType: string;
+  colorMode: string;
+  focalPersonId: string | null;
+  ancestorDepth: number;
+  descendantDepth: number;
+  collapsedNodeIds: string[];
+  createdAt: string;
+};
+
+export async function getSavedViews(treeId: string): Promise<SavedView[]> {
+  const sql = getDb();
+  const rows = await sql`SELECT saved_views FROM trees WHERE id = ${treeId}`;
+  if (rows.length === 0) return [];
+  return (rows[0].saved_views as SavedView[]) ?? [];
+}
+
+export async function addSavedView(treeId: string, view: SavedView): Promise<void> {
+  const sql = getDb();
+  await sql`
+    UPDATE trees
+    SET saved_views = COALESCE(saved_views, '[]'::jsonb) || ${JSON.stringify(view)}::jsonb
+    WHERE id = ${treeId}
+  `;
+}
+
+export async function deleteSavedView(treeId: string, viewId: string): Promise<void> {
+  const sql = getDb();
+  // Remove the view with matching id from the JSONB array
+  await sql`
+    UPDATE trees
+    SET saved_views = (
+      SELECT COALESCE(jsonb_agg(elem), '[]'::jsonb)
+      FROM jsonb_array_elements(COALESCE(saved_views, '[]'::jsonb)) AS elem
+      WHERE elem->>'id' != ${viewId}
+    )
+    WHERE id = ${treeId}
+  `;
+}
+
+// ---------------------------------------------------------------------------
+// custom fields
+// ---------------------------------------------------------------------------
+
+export async function getCustomFieldKeys(treeId: string): Promise<string[]> {
+  const sql = getDb();
+  // get all unique keys used across persons in this tree
+  const rows = await sql`
+    SELECT DISTINCT jsonb_object_keys(COALESCE(custom_fields, '{}'::jsonb)) AS key
+    FROM persons
+    WHERE tree_id = ${treeId} AND custom_fields IS NOT NULL AND custom_fields != '{}'::jsonb
+    ORDER BY key
+  `;
+  return rows.map(r => r.key as string);
+}
+
+export async function updateCustomFields(personId: string, fields: Record<string, string>): Promise<void> {
+  const sql = getDb();
+  await sql`
+    UPDATE persons
+    SET custom_fields = COALESCE(custom_fields, '{}'::jsonb) || ${JSON.stringify(fields)}::jsonb,
+        updated_at = NOW()
+    WHERE id = ${personId}
+  `;
+}
+
+export async function deleteCustomField(personId: string, key: string): Promise<void> {
+  const sql = getDb();
+  await sql`
+    UPDATE persons
+    SET custom_fields = custom_fields - ${key},
+        updated_at = NOW()
+    WHERE id = ${personId}
+  `;
+}
+
+/** get all unique values for a given custom field key across a tree */
+export async function getCustomFieldValues(treeId: string, key: string): Promise<string[]> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT DISTINCT custom_fields->>  ${key} AS val
+    FROM persons
+    WHERE tree_id = ${treeId}
+      AND custom_fields ? ${key}
+      AND custom_fields->> ${key} IS NOT NULL
+    ORDER BY val
+  `;
+  return rows.map(r => r.val as string);
 }

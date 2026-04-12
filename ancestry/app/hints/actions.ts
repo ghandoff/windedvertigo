@@ -6,6 +6,7 @@ import {
   getOrCreateTree,
   updateHintStatus,
   getHintsForTree,
+  resetPendingHints,
   createPerson,
   createSource,
   createCitation,
@@ -209,4 +210,38 @@ export async function refreshHintsAction() {
   }
 
   revalidatePath("/hints");
+  revalidatePath("/");
+}
+
+/** delete all pending hints and re-scan from scratch */
+export async function resetHintsAction() {
+  const { session, tree } = await getTreeForUser();
+
+  const deleted = await resetPendingHints(tree.id);
+
+  await logActivity({
+    treeId: tree.id,
+    actorEmail: session.user!.email!,
+    action: "hints_reset",
+    targetType: "hint",
+    targetId: tree.id,
+    targetName: `${deleted} pending hints cleared`,
+  });
+
+  // trigger fresh scan
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+  try {
+    await fetch(`${baseUrl}/api/hints/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ treeId: tree.id }),
+    });
+  } catch {
+    // hint generation API may not exist yet
+  }
+
+  revalidatePath("/hints");
+  revalidatePath("/");
 }

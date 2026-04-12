@@ -211,7 +211,21 @@ export function FanChart({
 
   const { width, height } = dimensions;
   const cx = width / 2;
-  const cy = height * 0.85; // focal person near bottom for semicircle fan
+
+  // determine the actual max generation in the tree
+  const maxGen = Math.max(...ancestorNodes.map((a) => a.generation), 1);
+
+  // compute ring width so the fan fits within the container
+  const padding = 20;
+  const maxRadiusV = height - CENTER_RADIUS - padding * 2; // vertical: fan extends up from cy, focal circle down
+  const maxRadiusH = width / 2 - padding; // horizontal: semicircle extends left/right from cx
+  const maxRadius = Math.max(Math.min(maxRadiusV, maxRadiusH), CENTER_RADIUS + 20);
+  const ringWidth = Math.max((maxRadius - CENTER_RADIUS) / maxGen, 15);
+
+  // center the fan vertically:
+  // fan extends upward by maxOuterRadius from cy, and downward by CENTER_RADIUS
+  const maxOuterRadius = CENTER_RADIUS + maxGen * ringWidth;
+  const cy = (height + maxOuterRadius + CENTER_RADIUS) / 2 - (maxOuterRadius - CENTER_RADIUS) / 2 + CENTER_RADIUS;
 
   const arcGenerator = d3.arc<AncestorNode>();
 
@@ -234,11 +248,11 @@ export function FanChart({
               const innerRadius =
                 generation === 0
                   ? 0
-                  : CENTER_RADIUS + (generation - 1) * RING_WIDTH;
+                  : CENTER_RADIUS + (generation - 1) * ringWidth;
               const outerRadius =
                 generation === 0
                   ? CENTER_RADIUS
-                  : CENTER_RADIUS + generation * RING_WIDTH;
+                  : CENTER_RADIUS + generation * ringWidth;
 
               const isHighlighted =
                 hoveredLineage.size === 0 || hoveredLineage.has(node.id);

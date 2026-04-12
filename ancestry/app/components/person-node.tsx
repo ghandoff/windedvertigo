@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, Position, useStore, type NodeProps } from "@xyflow/react";
 import type { TreeNode, ColorMode } from "@/lib/types";
 import { QuickAddPopover, type QuickAddType } from "./quick-add-popover";
 
@@ -11,6 +11,12 @@ export type PersonNodeData = TreeNode & {
   colorMode: ColorMode;
   surnameIndex: number;
   completenessScore: number;
+  isFocused?: boolean;
+  isCollapsible?: boolean;
+  isCollapsed?: boolean;
+  onToggleCollapse?: (nodeId: string) => void;
+  onContextMenu?: (personId: string, x: number, y: number) => void;
+  onOpenDetail?: (personId: string) => void;
 };
 
 const SEX_COLORS: Record<string, string> = {
@@ -77,8 +83,29 @@ function getNodeStyle(d: PersonNodeData): { className?: string; style?: React.CS
       }
     }
 
-    default:
+    default: {
+      // handle custom:fieldName decoration modes
+      if (mode.startsWith("custom:")) {
+        const fieldName = mode.slice(7);
+        const value = (d as PersonNodeData & { customFields?: Record<string, string> }).customFields?.[fieldName];
+        if (!value) {
+          return { style: { backgroundColor: "hsl(0, 0%, 92%)", borderColor: "hsl(0, 0%, 78%)" } };
+        }
+        // deterministic hue from value string
+        let hash = 0;
+        for (let i = 0; i < value.length; i++) {
+          hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0;
+        }
+        const hue = Math.abs(hash) % 360;
+        return {
+          style: {
+            backgroundColor: `hsl(${hue}, 50%, 82%)`,
+            borderColor: `hsl(${hue}, 50%, 65%)`,
+          },
+        };
+      }
       return { className: SEX_COLORS.U };
+    }
   }
 }
 
@@ -110,9 +137,14 @@ function QuickAddButton({
   );
 }
 
+/** zoom thresholds for progressive detail */
+const ZOOM_COMPACT = 0.4;   // below this: name-only pill
+const ZOOM_FULL = 1.0;      // above this: full card with actions
+
 export function PersonNode({ data }: NodeProps) {
   const d = data as unknown as PersonNodeData;
   const router = useRouter();
+  const zoom = useStore((s) => s.transform[2]);
   const nodeStyle = getNodeStyle(d);
   const icon = SEX_ICONS[d.sex ?? "U"] ?? "·";
   const [activePopover, setActivePopover] = useState<QuickAddType | null>(null);
@@ -128,11 +160,49 @@ export function PersonNode({ data }: NodeProps) {
 
   const closePopover = useCallback(() => setActivePopover(null), []);
 
+  const handleClick = useCallback(() => {
+    if (d.onOpenDetail) {
+      d.onOpenDetail(d.id);
+    } else {
+      router.push(`/person/${d.id}`);
+    }
+  }, [d.id, d.onOpenDetail, router]);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    d.onContextMenu?.(d.id, e.clientX, e.clientY);
+  }, [d.id, d.onContextMenu]);
+
   const popoverPosition: Record<QuickAddType, string> = {
     parent: "bottom-full left-1/2 -translate-x-1/2 mb-2",
     child: "top-full left-1/2 -translate-x-1/2 mt-2",
     spouse: "top-1/2 left-full -translate-y-1/2 ml-2",
   };
+
+  // ── compact pill (far zoom) ──────────────────────────────────────────
+  if (zoom < ZOOM_COMPACT) {
+    return (
+      <>
+        <Handle type="target" position={Position.Top} className="!bg-border !w-1 !h-1" />
+        <div
+          className={`rounded-full border px-2 py-0.5 cursor-pointer ${nodeStyle.className ?? ""}`}
+          style={nodeStyle.style}
+          onClick={handleClick}
+          onContextMenu={handleContextMenu}
+        >
+          <div className="truncate text-[9px] font-medium text-foreground leading-tight max-w-[100px]">
+            {d.displayName.split(" ")[0]}
+          </div>
+        </div>
+        <Handle type="source" position={Position.Bottom} className="!bg-border !w-1 !h-1" />
+      </>
+    );
+  }
+
+  // ── standard card (medium zoom) ──────────────────────────────────────
+  // ── full card with actions (close zoom, > ZOOM_FULL) ─────────────────
+  const showActions = zoom >= ZOOM_FULL;
 
   return (
     <>
@@ -141,10 +211,11 @@ export function PersonNode({ data }: NodeProps) {
         <div
           className={`rounded-lg border-2 px-3 py-2 shadow-sm min-w-[140px] max-w-[200px] min-h-[44px] cursor-pointer hover:shadow-md transition-shadow touch-manipulation ${nodeStyle.className ?? ""}`}
           style={nodeStyle.style}
-          onClick={() => router.push(`/person/${d.id}`)}
+          onClick={handleClick}
+          onContextMenu={handleContextMenu}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => { if (e.key === "Enter") router.push(`/person/${d.id}`); }}
+          onKeyDown={(e) => { if (e.key === "Enter") handleClick(); }}
         >
           <div className="flex items-start gap-2">
             {d.thumbnailUrl ? (
@@ -167,12 +238,43 @@ export function PersonNode({ data }: NodeProps) {
               </div>
             </div>
           </div>
+
+          {/* extra detail at close zoom */}
+          {showActions && (
+            <div className="mt-1.5 pt-1.5 border-t border-black/10 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              {d.parentIds.length > 0 && <span title="parents">↑{d.parentIds.length}</span>}
+              {d.spouseIds.length > 0 && <span title="spouses">♥{d.spouseIds.length}</span>}
+              {d.childIds.length > 0 && <span title="children">↓{d.childIds.length}</span>}
+              {d.completenessScore < 3 && (
+                <span className="ml-auto text-amber-500" title="incomplete profile">⚠</span>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* quick-add buttons */}
-        <QuickAddButton position="top" label="add parent" onClick={handleQuickAdd("parent")} />
-        <QuickAddButton position="bottom" label="add child" onClick={handleQuickAdd("child")} />
-        <QuickAddButton position="right" label="add spouse" onClick={handleQuickAdd("spouse")} />
+        {/* quick-add buttons (visible on hover at any zoom) */}
+        {showActions && (
+          <>
+            <QuickAddButton position="top" label="add parent" onClick={handleQuickAdd("parent")} />
+            {!d.isCollapsed && <QuickAddButton position="bottom" label="add child" onClick={handleQuickAdd("child")} />}
+            <QuickAddButton position="right" label="add spouse" onClick={handleQuickAdd("spouse")} />
+          </>
+        )}
+
+        {/* collapse/expand toggle */}
+        {d.isCollapsible && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              d.onToggleCollapse?.(d.id);
+            }}
+            title={d.isCollapsed ? "expand subtree" : "collapse subtree"}
+            className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-muted border border-border text-[10px] font-bold text-muted-foreground hover:text-foreground hover:bg-card transition-colors z-10 shadow-sm"
+          >
+            {d.isCollapsed ? "+" : "−"}
+          </button>
+        )}
 
         {/* popover */}
         {activePopover && (

@@ -51,22 +51,35 @@ function legendForMode(mode: ColorMode): LegendEntry[] {
         { color: "hsl(45, 70%, 85%)", label: "partial" },
         { color: "hsl(142, 50%, 85%)", label: "complete" },
       ];
+    default: {
+      // custom:fieldName — show generic legend with "has value" / "no value"
+      if (mode.startsWith("custom:")) {
+        const fieldName = mode.slice(7);
+        return [
+          { color: "hsl(210, 50%, 82%)", label: `has ${fieldName}` },
+          { color: "hsl(0, 0%, 92%)", label: `no ${fieldName}` },
+        ];
+      }
+      return [];
+    }
   }
 }
 
 export function ColorCoding({
   value,
   onChange,
+  customFieldKeys = [],
 }: {
   value: ColorMode;
   onChange: (mode: ColorMode) => void;
+  customFieldKeys?: string[];
 }) {
   const legend = legendForMode(value);
 
   return (
     <div className="flex flex-col gap-2">
       {/* mode selector */}
-      <div className="flex gap-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border p-1 shadow-sm">
+      <div className="flex flex-wrap gap-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border p-1 shadow-sm">
         {COLOR_MODES.map((opt) => (
           <button
             key={opt.value}
@@ -80,6 +93,26 @@ export function ColorCoding({
             {opt.label}
           </button>
         ))}
+
+        {/* custom field options */}
+        {customFieldKeys.length > 0 && (
+          <>
+            <span className="self-center text-[9px] text-muted-foreground/50 px-1">|</span>
+            {customFieldKeys.map((key) => (
+              <button
+                key={`custom:${key}`}
+                onClick={() => onChange(`custom:${key}`)}
+                className={`px-2 py-1 text-[10px] font-medium rounded-md transition-colors ${
+                  value === `custom:${key}`
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                by {key}
+              </button>
+            ))}
+          </>
+        )}
       </div>
 
       {/* legend */}

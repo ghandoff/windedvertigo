@@ -1,7 +1,7 @@
 import { auth } from "@windedvertigo/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getOrCreateTree, getTreePersons, getTreeRelationships, getTreePlaces, getAccessibleTrees, getTreeRole, getRecentActivity, getHintCounts } from "@/lib/db/queries";
+import { getOrCreateTree, getTreePersons, getTreeRelationships, getTreePlaces, getAccessibleTrees, getTreeRole, getRecentActivity, getHintCounts, getLayoutPositions } from "@/lib/db/queries";
 import { buildTreeNodes } from "@/lib/db/queries";
 import { AddPersonForm } from "./components/add-person-form";
 import { AddRelationshipForm } from "./components/add-relationship-form";
@@ -20,6 +20,8 @@ import { HintsModalTrigger } from "./components/hints-modal";
 import { HintsBanner } from "./components/hints-banner";
 import { TreeSwitcher } from "./components/tree-switcher";
 import { FloatingActions } from "./components/floating-actions";
+import { ProductTour } from "./components/product-tour";
+import { HelpDrawer } from "./components/help-drawer";
 
 export default async function HomePage({
   searchParams,
@@ -47,12 +49,13 @@ export default async function HomePage({
 
   const canEdit = role === "owner" || role === "editor";
 
-  const [persons, relationships, places, recentActivity, hintCounts] = await Promise.all([
+  const [persons, relationships, places, recentActivity, hintCounts, savedPositions] = await Promise.all([
     getTreePersons(tree.id),
     getTreeRelationships(tree.id),
     getTreePlaces(tree.id),
     getRecentActivity(tree.id, 10),
     getHintCounts(tree.id),
+    getLayoutPositions(tree.id as string),
   ]);
   const treeNodes = buildTreeNodes(persons, relationships);
   const allEvents = persons.flatMap((p) => p.events);
@@ -120,15 +123,11 @@ export default async function HomePage({
             <GenerateHintsButton treeId={tree.id as string} pendingCount={hintCounts.pending ?? 0} />
           )}
 
-          <PersonList persons={persons} />
-
+          {/* actions first — always visible without scrolling */}
           {canEdit && <AddPersonForm />}
           {canEdit && persons.length >= 2 && (
             <AddRelationshipForm persons={persons} />
           )}
-          {canEdit && <GedcomImport />}
-          <GedcomExport />
-          <FamilySearchSearch />
 
           {/* tools nav */}
           <div className="space-y-1">
@@ -173,6 +172,19 @@ export default async function HomePage({
             </Link>
           </div>
 
+          {/* import/export */}
+          <div className="space-y-1">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              import / export
+            </h3>
+            {canEdit && <GedcomImport />}
+            <GedcomExport />
+            <FamilySearchSearch />
+          </div>
+
+          {/* people list — collapsible, at the bottom */}
+          <PersonList persons={persons} />
+
           {recentActivity.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -188,7 +200,7 @@ export default async function HomePage({
           {treeNodes.length === 0 ? (
             <OnboardingWizard />
           ) : (
-            <ChartSwitcher nodes={treeNodes} events={allEvents} places={places} />
+            <ChartSwitcher nodes={treeNodes} events={allEvents} places={places} savedPositions={savedPositions} />
           )}
         </main>
       </div>
@@ -198,6 +210,10 @@ export default async function HomePage({
 
       {/* mobile bottom nav */}
       <MobileNav />
+
+      {/* tutorial system */}
+      {treeNodes.length > 0 && <ProductTour />}
+      <HelpDrawer />
     </div>
   );
 }

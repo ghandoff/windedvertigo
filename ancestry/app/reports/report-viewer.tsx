@@ -7,7 +7,12 @@ import type {
   AncestorReportData,
   DescendantReportData,
 } from "./actions";
-import { PdfExportButton } from "./pdf-export";
+import dynamic from "next/dynamic";
+
+const PdfExportButton = dynamic(
+  () => import("./pdf-export").then((m) => m.PdfExportButton),
+  { ssr: false, loading: () => <span className="text-xs text-muted-foreground">loading…</span> },
+);
 
 function EventList({ events }: { events: PersonSummary["events"] }) {
   if (events.length === 0) return null;

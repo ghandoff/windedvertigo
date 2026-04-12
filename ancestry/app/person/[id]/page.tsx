@@ -17,6 +17,7 @@ import { CommentThread } from "../../components/comment-thread";
 import { ResearchAssistant } from "./research-assistant";
 import { DnaSection } from "./dna-section";
 import { PhotoGallery } from "./photo-gallery";
+import { CustomFieldsSection } from "./custom-fields-section";
 import type { MediaItem } from "./photo-actions";
 
 const SEX_ICONS: Record<string, string> = {
@@ -200,6 +201,11 @@ export default async function PersonPage({
             </ul>
           )}
         </section>
+
+        {/* custom fields */}
+        {!isRedacted && (
+          <CustomFieldsSection personId={person.id} initialFields={(person as any).custom_fields ?? {}} />
+        )}
 
         {/* family */}
         <section className="space-y-4">

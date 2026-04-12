@@ -11,6 +11,7 @@ import type { HintStatus } from "@/lib/types";
 import { formatFuzzyDate } from "@/lib/db";
 import { HintCard } from "./hint-card";
 import { RefreshButton } from "./refresh-button";
+import { ResetButton } from "./reset-button";
 
 const VALID_FILTERS = ["all", "pending", "accepted", "rejected"] as const;
 type Filter = (typeof VALID_FILTERS)[number];
@@ -100,7 +101,10 @@ export default async function HintsPage({
               &middot; {counts.rejected} rejected
             </p>
           </div>
-          <RefreshButton />
+          <div className="flex items-center gap-2">
+            <ResetButton pendingCount={counts.pending} />
+            <RefreshButton />
+          </div>
         </div>
 
         {/* filter tabs */}

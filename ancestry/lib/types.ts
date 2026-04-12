@@ -34,6 +34,7 @@ export type Person = {
   privacy_level: string;
   thumbnail_url: string | null;
   notes: string | null;
+  custom_fields: Record<string, string>;
   created_at: string;
   updated_at: string;
   names: PersonName[];
@@ -110,7 +111,7 @@ export type TreeMember = {
 };
 
 // color coding modes for pedigree chart
-export type ColorMode = "sex" | "generation" | "surname" | "living" | "completeness";
+export type ColorMode = "sex" | "generation" | "surname" | "living" | "completeness" | `custom:${string}`;
 
 // edge metadata for relationship-type-aware rendering
 export type EdgeMeta = {
@@ -136,6 +137,7 @@ export type TreeNode = {
   parentEdges: EdgeMeta[];
   /** metadata per spouse edge (matches spouseIds order) */
   spouseEdges: EdgeMeta[];
+  customFields: Record<string, string>;
 };
 
 // ---------------------------------------------------------------------------

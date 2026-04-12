@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 import type { TreeNode } from "@/lib/types";
+import { calculateRelationship } from "@/lib/relationship-calculator";
+import { PersonSelect } from "./person-select";
 
 type PathStep = { personId: string; edgeLabel: string };
 
@@ -19,8 +21,8 @@ function buildAdjacencyList(nodes: TreeNode[]): Map<string, AdjEntry[]> {
     if (!adj.has(node.id)) adj.set(node.id, []);
 
     for (const parentId of node.parentIds) {
-      addEdge(node.id, parentId, "child → parent");
-      addEdge(parentId, node.id, "parent → child");
+      addEdge(node.id, parentId, "child \u2192 parent");
+      addEdge(parentId, node.id, "parent \u2192 child");
     }
 
     for (const spouseId of node.spouseIds) {
@@ -30,8 +32,8 @@ function buildAdjacencyList(nodes: TreeNode[]): Map<string, AdjEntry[]> {
     // childIds edges are already covered by the reverse parentIds traversal,
     // but in case some nodes are missing from the array, add them explicitly
     for (const childId of node.childIds) {
-      addEdge(node.id, childId, "parent → child");
-      addEdge(childId, node.id, "child → parent");
+      addEdge(node.id, childId, "parent \u2192 child");
+      addEdge(childId, node.id, "child \u2192 parent");
     }
   }
 
@@ -70,105 +72,7 @@ function findPath(
   return null;
 }
 
-// --- searchable person select ---
-
-function PersonSelect({
-  nodes,
-  value,
-  onChange,
-  placeholder,
-}: {
-  nodes: TreeNode[];
-  value: string;
-  onChange: (id: string) => void;
-  placeholder: string;
-}) {
-  const [query, setQuery] = useState("");
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const selectedNode = nodes.find((n) => n.id === value);
-
-  const filtered = useMemo(() => {
-    if (!query.trim()) return nodes.slice(0, 50);
-    const q = query.toLowerCase();
-    return nodes.filter((n) => n.displayName.toLowerCase().includes(q)).slice(0, 50);
-  }, [nodes, query]);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  return (
-    <div ref={containerRef} className="relative">
-      <input
-        type="text"
-        className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-        placeholder={selectedNode ? selectedNode.displayName : placeholder}
-        value={open ? query : selectedNode ? selectedNode.displayName : ""}
-        onFocus={() => {
-          setOpen(true);
-          setQuery("");
-        }}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      {open && (
-        <div className="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto rounded-md border border-border bg-card shadow-lg">
-          {filtered.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-muted-foreground">
-              no matches
-            </div>
-          ) : (
-            filtered.map((n) => (
-              <button
-                key={n.id}
-                className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors flex items-center gap-2"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  onChange(n.id);
-                  setOpen(false);
-                  setQuery("");
-                }}
-              >
-                <span
-                  className="inline-block w-2 h-2 rounded-full shrink-0"
-                  style={{
-                    backgroundColor:
-                      n.sex === "M"
-                        ? "#6B8F9E"
-                        : n.sex === "F"
-                          ? "#A45A52"
-                          : "#C97B3D",
-                  }}
-                />
-                <span className="truncate">{n.displayName}</span>
-                {n.birthYear && (
-                  <span className="text-xs text-muted-foreground ml-auto shrink-0">
-                    {n.birthYear}
-                  </span>
-                )}
-              </button>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // --- sex color helper ---
-
-function sexColor(sex: string | null): string {
-  if (sex === "M") return "#6B8F9E";
-  if (sex === "F") return "#A45A52";
-  return "#C97B3D";
-}
 
 function sexBgClass(sex: string | null): string {
   if (sex === "M") return "border-[#6B8F9E] bg-blue-50";
@@ -177,19 +81,19 @@ function sexBgClass(sex: string | null): string {
 }
 
 const SEX_ICONS: Record<string, string> = {
-  M: "♂",
-  F: "♀",
-  X: "⚧",
-  U: "·",
+  M: "\u2642",
+  F: "\u2640",
+  X: "\u26A7",
+  U: "\u00B7",
 };
 
 // --- path card ---
 
 function PathCard({ node }: { node: TreeNode }) {
-  const icon = SEX_ICONS[node.sex ?? "U"] ?? "·";
+  const icon = SEX_ICONS[node.sex ?? "U"] ?? "\u00B7";
   const lifespan = [node.birthYear, node.isLiving ? "living" : (node.deathYear ?? "?")]
     .filter(Boolean)
-    .join(" – ");
+    .join(" \u2013 ");
 
   return (
     <div
@@ -260,10 +164,15 @@ export function RelationshipFinder({ nodes }: { nodes: TreeNode[] }) {
     setSearched(true);
   };
 
+  const relationshipLabel = useMemo(() => {
+    if (!result || result.length === 0) return null;
+    return calculateRelationship(result);
+  }, [result]);
+
   const stepsText = useMemo(() => {
     if (!result || result.length <= 1) return null;
     const labels = result.slice(1).map((s) => s.edgeLabel);
-    return `${result.length - 1} step${result.length - 1 === 1 ? "" : "s"}: ${labels.join(" → ")}`;
+    return `${result.length - 1} step${result.length - 1 === 1 ? "" : "s"}: ${labels.join(" \u2192 ")}`;
   }, [result]);
 
   return (
@@ -295,12 +204,17 @@ export function RelationshipFinder({ nodes }: { nodes: TreeNode[] }) {
         >
           find path
         </button>
-        {searched && stepsText && (
-          <div className="w-full text-sm text-muted-foreground mt-1">{stepsText}</div>
+        {searched && relationshipLabel && relationshipLabel !== "self" && (
+          <div className="w-full mt-1">
+            <div className="text-base font-semibold text-foreground">{relationshipLabel}</div>
+            {stepsText && (
+              <div className="text-xs text-muted-foreground mt-0.5">{stepsText}</div>
+            )}
+          </div>
         )}
         {searched && personA === personB && personA && (
-          <div className="w-full text-sm text-muted-foreground mt-1">
-            same person selected
+          <div className="w-full mt-1">
+            <div className="text-base font-semibold text-foreground">self</div>
           </div>
         )}
       </div>

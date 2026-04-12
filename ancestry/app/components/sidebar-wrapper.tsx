@@ -15,6 +15,7 @@ export function SidebarWrapper({ children }: { children: React.ReactNode }) {
     <>
       {/* desktop sidebar */}
       <aside
+        data-tutorial="sidebar"
         className={`hidden md:flex flex-col shrink-0 overflow-y-auto border-r border-border transition-all duration-200 ${
           collapsed ? "w-0 p-0 overflow-hidden" : "w-80 p-4"
         }`}
