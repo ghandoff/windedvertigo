@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { scanDuplicatesAction, mergePersonsAction, type SerializedDuplicate } from "./actions";
+import { scanDuplicatesAction, getPersonForMergeAction, type SerializedDuplicate } from "./actions";
+import { MergeWizard } from "./merge-wizard";
+import type { Person } from "@/lib/types";
 
 export function DuplicateScanner() {
   const [duplicates, setDuplicates] = useState<SerializedDuplicate[] | null>(null);
   const [scanning, startScan] = useTransition();
-  const [merging, startMerge] = useTransition();
   const [mergedPairs, setMergedPairs] = useState<Set<string>>(new Set());
-  const [confirmMerge, setConfirmMerge] = useState<SerializedDuplicate | null>(null);
-  const [keepId, setKeepId] = useState<string>("");
+
+  // merge wizard state
+  const [wizardPersons, setWizardPersons] = useState<{ a: Person; b: Person; dup: SerializedDuplicate } | null>(null);
+  const [loadingMerge, startLoadMerge] = useTransition();
 
   function handleScan() {
     startScan(async () => {
@@ -19,21 +22,21 @@ export function DuplicateScanner() {
     });
   }
 
-  function openMergeDialog(dup: SerializedDuplicate) {
-    setConfirmMerge(dup);
-    setKeepId(dup.personAId); // default: keep person A
+  function openMergeWizard(dup: SerializedDuplicate) {
+    startLoadMerge(async () => {
+      const [a, b] = await Promise.all([
+        getPersonForMergeAction(dup.personAId),
+        getPersonForMergeAction(dup.personBId),
+      ]);
+      setWizardPersons({ a, b, dup });
+    });
   }
 
-  function handleMerge() {
-    if (!confirmMerge || !keepId) return;
-    const removeId = keepId === confirmMerge.personAId ? confirmMerge.personBId : confirmMerge.personAId;
-    const pairKey = `${confirmMerge.personAId}|${confirmMerge.personBId}`;
-
-    startMerge(async () => {
-      await mergePersonsAction(keepId, removeId);
-      setMergedPairs((prev) => new Set(prev).add(pairKey));
-      setConfirmMerge(null);
-    });
+  function handleWizardComplete() {
+    if (!wizardPersons) return;
+    const pairKey = `${wizardPersons.dup.personAId}|${wizardPersons.dup.personBId}`;
+    setMergedPairs((prev) => new Set(prev).add(pairKey));
+    setWizardPersons(null);
   }
 
   function confidenceColor(score: number): string {
@@ -120,10 +123,11 @@ export function DuplicateScanner() {
                       {confidenceLabel(dup.score)} ({dup.score}%)
                     </span>
                     <button
-                      onClick={() => openMergeDialog(dup)}
-                      className="rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                      onClick={() => openMergeWizard(dup)}
+                      disabled={loadingMerge}
+                      className="rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 disabled:opacity-50 transition-colors"
                     >
-                      merge
+                      {loadingMerge ? "loading..." : "merge"}
                     </button>
                   </div>
                 </div>
@@ -133,71 +137,14 @@ export function DuplicateScanner() {
         </div>
       )}
 
-      {/* merge confirmation dialog */}
-      {confirmMerge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">merge persons</h3>
-            <p className="text-xs text-muted-foreground">
-              choose which person to keep. the other person&apos;s names, events,
-              relationships, and notes will be merged in, then the duplicate will be removed.
-            </p>
-
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                <input
-                  type="radio"
-                  name="keepPerson"
-                  checked={keepId === confirmMerge.personAId}
-                  onChange={() => setKeepId(confirmMerge.personAId)}
-                  className="accent-primary"
-                />
-                <div>
-                  <span className="text-sm font-medium text-foreground">
-                    keep {confirmMerge.personAName}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-2">
-                    remove {confirmMerge.personBName}
-                  </span>
-                </div>
-              </label>
-              <label className="flex items-center gap-2 rounded-md border border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                <input
-                  type="radio"
-                  name="keepPerson"
-                  checked={keepId === confirmMerge.personBId}
-                  onChange={() => setKeepId(confirmMerge.personBId)}
-                  className="accent-primary"
-                />
-                <div>
-                  <span className="text-sm font-medium text-foreground">
-                    keep {confirmMerge.personBName}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-2">
-                    remove {confirmMerge.personAName}
-                  </span>
-                </div>
-              </label>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={handleMerge}
-                disabled={merging}
-                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-              >
-                {merging ? "merging..." : "confirm merge"}
-              </button>
-              <button
-                onClick={() => setConfirmMerge(null)}
-                disabled={merging}
-                className="rounded-md bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted/80"
-              >
-                cancel
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* merge wizard overlay */}
+      {wizardPersons && (
+        <MergeWizard
+          personA={wizardPersons.a}
+          personB={wizardPersons.b}
+          onComplete={handleWizardComplete}
+          onCancel={() => setWizardPersons(null)}
+        />
       )}
 
       {/* empty state */}

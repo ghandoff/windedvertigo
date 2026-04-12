@@ -550,6 +550,32 @@ export async function updatePersonThumbnail(personId: string, url: string) {
   await sql`UPDATE persons SET thumbnail_url = ${url}, updated_at = now() WHERE id = ${personId} AND thumbnail_url IS NULL`;
 }
 
+/** force-set a person's thumbnail (used by photo gallery) */
+export async function setPersonThumbnail(personId: string, url: string) {
+  const sql = getDb();
+  await sql`UPDATE persons SET thumbnail_url = ${url}, updated_at = now() WHERE id = ${personId}`;
+}
+
+/** get all media linked to a person */
+export async function getPersonMedia(personId: string) {
+  const sql = getDb();
+  return await sql`
+    SELECT m.id, m.url, m.filename, m.mime_type, m.size_bytes, m.created_at
+    FROM media m
+    JOIN media_links ml ON ml.media_id = m.id
+    WHERE ml.person_id = ${personId}
+    ORDER BY m.created_at DESC
+  `;
+}
+
+/** delete a media record and its links */
+export async function deleteMedia(mediaId: string) {
+  const sql = getDb();
+  await sql`DELETE FROM media_links WHERE media_id = ${mediaId}`;
+  const rows = await sql`DELETE FROM media WHERE id = ${mediaId} RETURNING url`;
+  return rows[0]?.url as string | undefined;
+}
+
 /** get all places with coordinates for a tree */
 export async function getTreePlaces(treeId: string): Promise<Place[]> {
   const sql = getDb();

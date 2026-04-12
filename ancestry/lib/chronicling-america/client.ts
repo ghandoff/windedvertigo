@@ -31,10 +31,11 @@ export async function searchNewspapers(params: {
 }): Promise<NewspaperResult[]> {
   if (!params.name.trim()) return [];
 
+  // use exact phrase match (quoted) so first and last name must appear together
   const searchParams = new URLSearchParams({
-    q: params.name,
+    q: `"${params.name}"`,
     fo: "json",
-    c: "15",
+    c: "10",
   });
 
   // date range filter

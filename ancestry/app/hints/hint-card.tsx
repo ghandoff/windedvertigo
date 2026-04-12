@@ -240,9 +240,19 @@ export function HintCard({
               {match.collectionTitle}
             </div>
           )}
+          {match.eventDate && isRecordHint(hint.source_system) && (
+            <div className="text-xs text-muted-foreground">
+              date: {match.eventDate}
+            </div>
+          )}
+          {match.eventPlace && isRecordHint(hint.source_system) && (
+            <div className="text-xs text-muted-foreground truncate">
+              location: {match.eventPlace}
+            </div>
+          )}
           {match.birthDate && (
             <div className="text-xs text-muted-foreground">
-              {isRecordHint(hint.source_system) ? match.birthDate : `b. ${match.birthDate}`}
+              {isRecordHint(hint.source_system) ? `b. ${match.birthDate}` : `b. ${match.birthDate}`}
             </div>
           )}
           {match.birthPlace && (
@@ -250,14 +260,14 @@ export function HintCard({
               {match.birthPlace}
             </div>
           )}
-          {match.deathDate && !isRecordHint(hint.source_system) && (
+          {match.deathDate && (
             <div className="text-xs text-muted-foreground">
               d. {match.deathDate}
             </div>
           )}
           {match.snippet && (
-            <div className="text-xs text-muted-foreground italic line-clamp-2 mt-1">
-              {match.snippet}
+            <div className="text-xs text-muted-foreground italic line-clamp-3 mt-1 border-l-2 border-muted pl-2">
+              &ldquo;{match.snippet}&rdquo;
             </div>
           )}
         </div>

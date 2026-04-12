@@ -7,6 +7,7 @@ import type {
   AncestorReportData,
   DescendantReportData,
 } from "./actions";
+import { PdfExportButton } from "./pdf-export";
 
 function EventList({ events }: { events: PersonSummary["events"] }) {
   if (events.length === 0) return null;
@@ -162,8 +163,8 @@ function DescendantReport({ data }: { data: DescendantReportData }) {
 export function ReportViewer({ data }: { data: ReportData }) {
   return (
     <div>
-      {/* print button — hidden when printing */}
-      <div className="mb-4 print:hidden">
+      {/* toolbar — hidden when printing */}
+      <div className="mb-4 print:hidden flex gap-2">
         <button
           type="button"
           onClick={() => window.print()}
@@ -171,6 +172,7 @@ export function ReportViewer({ data }: { data: ReportData }) {
         >
           print
         </button>
+        <PdfExportButton data={data} />
       </div>
 
       {/* report body — print-friendly */}

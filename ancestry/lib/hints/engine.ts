@@ -7,11 +7,41 @@ import { searchDPLA, isConfigured as isDPLAConfigured } from "../dpla/client";
 import { scoreMatch } from "./scoring";
 import { upsertHint, getTreeRelationships } from "../db/queries";
 
-const MIN_CONFIDENCE = 30;
+const MIN_CONFIDENCE = 40;
+const MIN_CONFIDENCE_RECORDS = 50; // higher bar for newspaper/archive hits
 const RATE_LIMIT_MS = 100;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// ---------- US state abbreviation map for geographic filtering ----------
+
+const US_STATES: Record<string, string> = {
+  alabama: "al", alaska: "ak", arizona: "az", arkansas: "ar", california: "ca",
+  colorado: "co", connecticut: "ct", delaware: "de", florida: "fl", georgia: "ga",
+  hawaii: "hi", idaho: "id", illinois: "il", indiana: "in", iowa: "ia",
+  kansas: "ks", kentucky: "ky", louisiana: "la", maine: "me", maryland: "md",
+  massachusetts: "ma", michigan: "mi", minnesota: "mn", mississippi: "ms", missouri: "mo",
+  montana: "mt", nebraska: "ne", nevada: "nv", "new hampshire": "nh", "new jersey": "nj",
+  "new mexico": "nm", "new york": "ny", "north carolina": "nc", "north dakota": "nd",
+  ohio: "oh", oklahoma: "ok", oregon: "or", pennsylvania: "pa", "rhode island": "ri",
+  "south carolina": "sc", "south dakota": "sd", tennessee: "tn", texas: "tx", utah: "ut",
+  vermont: "vt", virginia: "va", washington: "wa", "west virginia": "wv",
+  wisconsin: "wi", wyoming: "wy",
+};
+
+const STATE_ABBREVS = new Set(Object.values(US_STATES));
+
+/** extract US state from a place string like "Springfield, Illinois, USA" */
+function extractStateFromPlace(place: string | null): string | null {
+  if (!place) return null;
+  const parts = place.split(",").map((p) => p.trim().toLowerCase());
+  for (const part of parts) {
+    if (US_STATES[part]) return part;
+    if (part.length === 2 && STATE_ABBREVS.has(part)) return part;
+  }
+  return null;
 }
 
 // ---------- helpers to extract person data ----------
@@ -347,11 +377,16 @@ export async function generateHintsForPerson(
   // build all name variants to search
   const nameVariants = new Set<string>();
   const primaryFullName = [givenName, surname].filter(Boolean).join(" ");
-  if (primaryFullName) nameVariants.add(primaryFullName);
+  if (primaryFullName && givenName && surname) nameVariants.add(primaryFullName);
   for (const altSurname of alternateSurnames) {
-    const altName = [givenName, altSurname].filter(Boolean).join(" ");
-    if (altName) nameVariants.add(altName);
+    if (givenName && altSurname) {
+      const altName = [givenName, altSurname].filter(Boolean).join(" ");
+      nameVariants.add(altName);
+    }
   }
+
+  // extract state from birth place for geographic filtering
+  const birthState = extractStateFromPlace(birthPlace);
 
   for (const searchName of nameVariants) {
     try {
@@ -359,11 +394,19 @@ export async function generateHintsForPerson(
         name: searchName,
         dateFrom: birthYear?.toString(),
         dateTo: deathYear ? String(deathYear + 5) : undefined,
+        state: birthState ?? undefined,
       });
 
       for (const r of npResults) {
         if (seenExternalIds.has(`ca-${r.id}`)) continue;
         seenExternalIds.add(`ca-${r.id}`);
+
+        // validate that the OCR snippet actually contains the full name as a phrase
+        if (r.ocrSnippet) {
+          const snippetLower = r.ocrSnippet.toLowerCase();
+          const nameLower = searchName.toLowerCase();
+          if (!snippetLower.includes(nameLower)) continue; // skip fragmented matches
+        }
 
         const matchData: HintMatchData = {
           displayName: searchName,
@@ -379,7 +422,7 @@ export async function generateHintsForPerson(
         };
 
         const evidence = scoreMatch(person, matchData, existingPersons);
-        if (evidence.overallConfidence < MIN_CONFIDENCE) continue;
+        if (evidence.overallConfidence < MIN_CONFIDENCE_RECORDS) continue;
 
         const id = await upsertHint({
           treeId,
@@ -426,7 +469,7 @@ export async function generateHintsForPerson(
         };
 
         const evidence = scoreMatch(person, matchData, existingPersons);
-        if (evidence.overallConfidence < MIN_CONFIDENCE) continue;
+        if (evidence.overallConfidence < MIN_CONFIDENCE_RECORDS) continue;
 
         const id = await upsertHint({
           treeId,
@@ -475,7 +518,7 @@ export async function generateHintsForPerson(
           };
 
           const evidence = scoreMatch(person, matchData, existingPersons);
-          if (evidence.overallConfidence < MIN_CONFIDENCE) continue;
+          if (evidence.overallConfidence < MIN_CONFIDENCE_RECORDS) continue;
 
           const id = await upsertHint({
             treeId,

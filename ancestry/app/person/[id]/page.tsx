@@ -1,7 +1,7 @@
 import { auth } from "@windedvertigo/auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { getPerson, getOrCreateTree, getPersonRelatives, getPersonSources, getTreeRole, getHintsForPerson, getComments, getDnaData } from "@/lib/db/queries";
+import { getPerson, getOrCreateTree, getPersonRelatives, getPersonSources, getTreeRole, getHintsForPerson, getComments, getDnaData, getPersonMedia } from "@/lib/db/queries";
 import { formatFuzzyDate } from "@/lib/db";
 import { isLikelyLiving, redactPerson } from "@/lib/privacy";
 import type { ViewerRole } from "@/lib/privacy";
@@ -16,6 +16,8 @@ import { HintCard } from "../../hints/hint-card";
 import { CommentThread } from "../../components/comment-thread";
 import { ResearchAssistant } from "./research-assistant";
 import { DnaSection } from "./dna-section";
+import { PhotoGallery } from "./photo-gallery";
+import type { MediaItem } from "./photo-actions";
 
 const SEX_ICONS: Record<string, string> = {
   M: "♂",
@@ -65,13 +67,23 @@ export default async function PersonPage({
   const isRedacted = isLikelyLiving(person) && role !== "owner" && role !== "editor";
   const viewPerson = redactPerson(person, role);
 
-  const [relatives, personSources, pendingHints, comments, dnaData] = await Promise.all([
+  const [relatives, personSources, pendingHints, comments, dnaData, mediaRows] = await Promise.all([
     getPersonRelatives(id, tree.id),
     getPersonSources(id),
     getHintsForPerson(id, "pending"),
     getComments("person", id),
     getDnaData(id),
+    getPersonMedia(id),
   ]);
+
+  const photos: MediaItem[] = mediaRows.map((r) => ({
+    id: r.id,
+    url: r.url,
+    filename: r.filename,
+    mimeType: r.mime_type,
+    sizeBytes: r.size_bytes,
+    createdAt: r.created_at,
+  }));
 
   const primaryName = viewPerson.names.find((n) => n.is_primary) ?? viewPerson.names[0];
   const displayName =
@@ -145,6 +157,16 @@ export default async function PersonPage({
             </div>
           </div>
         </div>
+
+        {/* photos */}
+        {!isRedacted && (
+          <section className="rounded-lg border border-border bg-card p-4 space-y-3">
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+              photos
+            </h2>
+            <PhotoGallery personId={person.id} initialPhotos={photos} currentThumbnail={viewPerson.thumbnail_url} />
+          </section>
+        )}
 
         {/* facts / events */}
         <section className="rounded-lg border border-border bg-card p-4 space-y-3">
