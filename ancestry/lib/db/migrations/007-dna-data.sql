@@ -1,0 +1,1 @@
+ALTER TABLE persons ADD COLUMN IF NOT EXISTS dna_data JSONB;

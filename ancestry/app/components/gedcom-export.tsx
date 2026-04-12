@@ -5,6 +5,7 @@ import { useState } from "react";
 export function GedcomExport() {
   const [downloading, setDownloading] = useState(false);
   const [redactLiving, setRedactLiving] = useState(true);
+  const [format, setFormat] = useState<"gedcom" | "gedcom7">("gedcom");
   const [error, setError] = useState<string | null>(null);
 
   async function handleDownload() {
@@ -13,7 +14,7 @@ export function GedcomExport() {
 
     try {
       const privacy = redactLiving ? "redact" : "full";
-      const res = await fetch(`/api/export?format=gedcom&privacy=${privacy}`);
+      const res = await fetch(`/api/export?format=${format}&privacy=${privacy}`);
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: "download failed" }));
@@ -50,10 +51,12 @@ export function GedcomExport() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <select
-            disabled
+            value={format}
+            onChange={(e) => setFormat(e.target.value as "gedcom" | "gedcom7")}
             className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
           >
-            <option>GEDCOM 5.5.1</option>
+            <option value="gedcom">GEDCOM 5.5.1</option>
+            <option value="gedcom7">GEDCOM 7.0</option>
           </select>
         </div>
         <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">

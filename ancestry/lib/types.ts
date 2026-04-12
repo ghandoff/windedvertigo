@@ -225,6 +225,19 @@ export type ResearchTask = {
 // comments — collaborative discussion threads on persons, events, sources
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// DNA / ethnicity — manual entry (all DNA APIs are paid)
+// ---------------------------------------------------------------------------
+
+export type DnaData = {
+  ethnicity: Array<{ region: string; percentage: number }>;
+  maternalHaplogroup?: string;
+  paternalHaplogroup?: string;
+  testProvider?: string;
+  testDate?: string;
+  notes?: string;
+};
+
 export type CommentTargetType = "person" | "event" | "source" | "relationship";
 
 export type Comment = {

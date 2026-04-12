@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@windedvertigo/auth";
 import { getOrCreateTree, getTreePersons, getTreeRelationships } from "@/lib/db/queries";
 import { exportGedcom } from "@/lib/gedcom/exporter";
+import { exportGedcom7 } from "@/lib/gedcom/exporter7";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
   const format = searchParams.get("format") ?? "gedcom";
   const privacy = searchParams.get("privacy") ?? "redact";
 
-  if (format !== "gedcom") {
+  if (format !== "gedcom" && format !== "gedcom7") {
     return NextResponse.json({ error: "unsupported format" }, { status: 400 });
   }
 
@@ -27,9 +28,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "no persons in tree" }, { status: 404 });
   }
 
-  const gedcom = exportGedcom(persons, relationships, {
-    redactLiving: privacy !== "full",
-  });
+  const redactLiving = privacy !== "full";
+
+  const gedcom = format === "gedcom7"
+    ? exportGedcom7(persons, relationships, [], { redactLiving })
+    : exportGedcom(persons, relationships, { redactLiving });
 
   const treeName = (tree.name ?? "family-tree")
     .toLowerCase()

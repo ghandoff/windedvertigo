@@ -1,7 +1,7 @@
 import { auth } from "@windedvertigo/auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { getPerson, getOrCreateTree, getPersonRelatives, getPersonSources, getTreeRole, getHintsForPerson, getComments } from "@/lib/db/queries";
+import { getPerson, getOrCreateTree, getPersonRelatives, getPersonSources, getTreeRole, getHintsForPerson, getComments, getDnaData } from "@/lib/db/queries";
 import { formatFuzzyDate } from "@/lib/db";
 import { isLikelyLiving, redactPerson } from "@/lib/privacy";
 import type { ViewerRole } from "@/lib/privacy";
@@ -15,6 +15,7 @@ import { PrivacyBanner } from "../../components/privacy-banner";
 import { HintCard } from "../../hints/hint-card";
 import { CommentThread } from "../../components/comment-thread";
 import { ResearchAssistant } from "./research-assistant";
+import { DnaSection } from "./dna-section";
 
 const SEX_ICONS: Record<string, string> = {
   M: "♂",
@@ -64,11 +65,12 @@ export default async function PersonPage({
   const isRedacted = isLikelyLiving(person) && role !== "owner" && role !== "editor";
   const viewPerson = redactPerson(person, role);
 
-  const [relatives, personSources, pendingHints, comments] = await Promise.all([
+  const [relatives, personSources, pendingHints, comments, dnaData] = await Promise.all([
     getPersonRelatives(id, tree.id),
     getPersonSources(id),
     getHintsForPerson(id, "pending"),
     getComments("person", id),
+    getDnaData(id),
   ]);
 
   const primaryName = viewPerson.names.find((n) => n.is_primary) ?? viewPerson.names[0];
@@ -249,6 +251,16 @@ export default async function PersonPage({
         {!isRedacted && (
           <section>
             <BiographyForm personId={person.id} initialNotes={person.notes} />
+          </section>
+        )}
+
+        {/* DNA / ethnicity */}
+        {!isRedacted && (
+          <section className="rounded-lg border border-border bg-card p-4 space-y-3">
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+              DNA & ethnicity
+            </h2>
+            <DnaSection personId={person.id} initialData={dnaData} />
           </section>
         )}
 

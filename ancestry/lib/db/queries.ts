@@ -1,5 +1,5 @@
 import { getDb } from ".";
-import type { Person, PersonName, PersonEvent, Relationship, RelationshipType, TreeNode, Place, Source, Citation, PARENT_TYPES, TreeMember, TreeRole, Hint, HintStatus, ResearchTask, TaskStatus, TaskPriority, Comment, CommentTargetType } from "../types";
+import type { Person, PersonName, PersonEvent, Relationship, RelationshipType, TreeNode, Place, Source, Citation, PARENT_TYPES, TreeMember, TreeRole, Hint, HintStatus, ResearchTask, TaskStatus, TaskPriority, Comment, CommentTargetType, DnaData } from "../types";
 
 const PARENT_TYPE_LIST = [
   "biological_parent", "adoptive_parent", "foster_parent", "step_parent", "guardian",
@@ -1501,4 +1501,22 @@ export async function getMigrationPaths(treeId: string): Promise<Array<{
       person_name: data.person_name,
       events: data.events,
     }));
+}
+
+// ---------------------------------------------------------------------------
+// DNA / ethnicity data
+// ---------------------------------------------------------------------------
+
+export async function getDnaData(personId: string): Promise<DnaData | null> {
+  const sql = getDb();
+  const [row] = await sql`SELECT dna_data FROM persons WHERE id = ${personId}`;
+  return row?.dna_data ?? null;
+}
+
+export async function updateDnaData(personId: string, data: DnaData): Promise<void> {
+  const sql = getDb();
+  await sql`
+    UPDATE persons SET dna_data = ${JSON.stringify(data)}::jsonb, updated_at = NOW()
+    WHERE id = ${personId}
+  `;
 }
