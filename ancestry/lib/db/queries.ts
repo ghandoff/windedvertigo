@@ -562,11 +562,16 @@ export async function setPersonThumbnail(personId: string, url: string) {
 export async function getPersonMedia(personId: string) {
   const sql = getDb();
   return await sql`
-    SELECT m.id, m.url, m.filename, m.mime_type, m.size_bytes, m.created_at
+    SELECT m.id,
+           m.file_url AS url,
+           m.title AS filename,
+           m.file_type AS mime_type,
+           0 AS size_bytes,
+           m.uploaded_at AS created_at
     FROM media m
     JOIN media_links ml ON ml.media_id = m.id
     WHERE ml.person_id = ${personId}
-    ORDER BY m.created_at DESC
+    ORDER BY m.uploaded_at DESC
   `;
 }
 
@@ -574,8 +579,8 @@ export async function getPersonMedia(personId: string) {
 export async function deleteMedia(mediaId: string) {
   const sql = getDb();
   await sql`DELETE FROM media_links WHERE media_id = ${mediaId}`;
-  const rows = await sql`DELETE FROM media WHERE id = ${mediaId} RETURNING url`;
-  return rows[0]?.url as string | undefined;
+  const rows = await sql`DELETE FROM media WHERE id = ${mediaId} RETURNING file_url`;
+  return rows[0]?.file_url as string | undefined;
 }
 
 /** get all places with coordinates for a tree */
