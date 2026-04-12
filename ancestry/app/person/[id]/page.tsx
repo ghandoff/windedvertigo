@@ -1,7 +1,7 @@
 import { auth } from "@windedvertigo/auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { getPerson, getOrCreateTree, getPersonRelatives, getPersonSources, getTreeRole, getHintsForPerson } from "@/lib/db/queries";
+import { getPerson, getOrCreateTree, getPersonRelatives, getPersonSources, getTreeRole, getHintsForPerson, getComments } from "@/lib/db/queries";
 import { formatFuzzyDate } from "@/lib/db";
 import { isLikelyLiving, redactPerson } from "@/lib/privacy";
 import type { ViewerRole } from "@/lib/privacy";
@@ -13,6 +13,7 @@ import { DeletePersonButton } from "./delete-person-button";
 import { FindHintsButton } from "./find-hints-button";
 import { PrivacyBanner } from "../../components/privacy-banner";
 import { HintCard } from "../../hints/hint-card";
+import { CommentThread } from "../../components/comment-thread";
 
 const SEX_ICONS: Record<string, string> = {
   M: "♂",
@@ -62,10 +63,11 @@ export default async function PersonPage({
   const isRedacted = isLikelyLiving(person) && role !== "owner" && role !== "editor";
   const viewPerson = redactPerson(person, role);
 
-  const [relatives, personSources, pendingHints] = await Promise.all([
+  const [relatives, personSources, pendingHints, comments] = await Promise.all([
     getPersonRelatives(id, tree.id),
     getPersonSources(id),
     getHintsForPerson(id, "pending"),
+    getComments("person", id),
   ]);
 
   const primaryName = viewPerson.names.find((n) => n.is_primary) ?? viewPerson.names[0];
@@ -300,6 +302,19 @@ export default async function PersonPage({
             </svg>
             search records for {displayName}
           </Link>
+        </section>
+
+        {/* discussion */}
+        <section className="rounded-lg border border-border bg-card p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+            discussion {comments.length > 0 && <span className="text-muted-foreground font-normal">({comments.length})</span>}
+          </h2>
+          <CommentThread
+            comments={comments}
+            targetType="person"
+            targetId={person.id}
+            currentEmail={session.user.email!}
+          />
         </section>
 
         {/* sources */}

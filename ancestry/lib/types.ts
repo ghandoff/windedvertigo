@@ -220,3 +220,23 @@ export type ResearchTask = {
   // joined fields
   person_name?: string;
 };
+
+// ---------------------------------------------------------------------------
+// comments — collaborative discussion threads on persons, events, sources
+// ---------------------------------------------------------------------------
+
+export type CommentTargetType = "person" | "event" | "source" | "relationship";
+
+export type Comment = {
+  id: string;
+  tree_id: string;
+  author_email: string;
+  target_type: CommentTargetType;
+  target_id: string;
+  parent_id: string | null;
+  body: string;
+  created_at: string;
+  updated_at: string;
+  // joined
+  replies?: Comment[];
+};

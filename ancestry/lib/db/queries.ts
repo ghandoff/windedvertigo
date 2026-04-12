@@ -1,5 +1,5 @@
 import { getDb } from ".";
-import type { Person, PersonName, PersonEvent, Relationship, RelationshipType, TreeNode, Place, Source, Citation, PARENT_TYPES, TreeMember, TreeRole, Hint, HintStatus, ResearchTask, TaskStatus, TaskPriority } from "../types";
+import type { Person, PersonName, PersonEvent, Relationship, RelationshipType, TreeNode, Place, Source, Citation, PARENT_TYPES, TreeMember, TreeRole, Hint, HintStatus, ResearchTask, TaskStatus, TaskPriority, Comment, CommentTargetType } from "../types";
 
 const PARENT_TYPE_LIST = [
   "biological_parent", "adoptive_parent", "foster_parent", "step_parent", "guardian",
@@ -1333,4 +1333,172 @@ export async function mergePersons(
   // delete the removed person (cascades names, events via FK)
   await sql`DELETE FROM persons WHERE id = ${removeId}`;
   await sql`UPDATE persons SET updated_at = NOW() WHERE id = ${keepId}`;
+}
+
+// ---------------------------------------------------------------------------
+// comments — collaborative discussion threads
+// ---------------------------------------------------------------------------
+
+export async function getComments(targetType: CommentTargetType, targetId: string): Promise<Comment[]> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT id, tree_id, author_email, target_type, target_id, parent_id, body, created_at, updated_at
+    FROM comments
+    WHERE target_type = ${targetType} AND target_id = ${targetId}
+    ORDER BY created_at
+  `;
+
+  // nest replies under parents
+  const map = new Map<string, Comment>();
+  const topLevel: Comment[] = [];
+  for (const r of rows) {
+    const comment = { ...r, replies: [] } as unknown as Comment;
+    map.set(comment.id, comment);
+  }
+  for (const c of map.values()) {
+    if (c.parent_id && map.has(c.parent_id)) {
+      map.get(c.parent_id)!.replies!.push(c);
+    } else {
+      topLevel.push(c);
+    }
+  }
+  return topLevel;
+}
+
+export async function getCommentCount(targetType: CommentTargetType, targetId: string): Promise<number> {
+  const sql = getDb();
+  const [{ count }] = await sql`
+    SELECT COUNT(*)::int as count FROM comments
+    WHERE target_type = ${targetType} AND target_id = ${targetId}
+  `;
+  return count;
+}
+
+export async function createComment(data: {
+  treeId: string;
+  authorEmail: string;
+  targetType: CommentTargetType;
+  targetId: string;
+  parentId?: string;
+  body: string;
+}): Promise<Comment> {
+  const sql = getDb();
+  const [row] = await sql`
+    INSERT INTO comments (tree_id, author_email, target_type, target_id, parent_id, body)
+    VALUES (${data.treeId}, ${data.authorEmail}, ${data.targetType}, ${data.targetId}, ${data.parentId ?? null}, ${data.body})
+    RETURNING id, tree_id, author_email, target_type, target_id, parent_id, body, created_at, updated_at
+  `;
+  return row as Comment;
+}
+
+export async function deleteComment(commentId: string, authorEmail: string): Promise<boolean> {
+  const sql = getDb();
+  const result = await sql`
+    DELETE FROM comments WHERE id = ${commentId} AND author_email = ${authorEmail}
+  `;
+  return (result as any).count > 0;
+}
+
+// ---------------------------------------------------------------------------
+// place intelligence — geocode and migration patterns
+// ---------------------------------------------------------------------------
+
+export async function getPlacesWithCoords(treeId: string): Promise<Array<Place & { event_count: number; persons: string[] }>> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT
+      p.id, p.tree_id, p.place_type, p.latitude, p.longitude,
+      pn.name,
+      COUNT(DISTINCT e.id)::int as event_count,
+      ARRAY_AGG(DISTINCT
+        COALESCE(
+          (SELECT display FROM person_names WHERE person_id = e.person_id AND is_primary LIMIT 1),
+          (SELECT given_names || ' ' || surname FROM person_names WHERE person_id = e.person_id AND is_primary LIMIT 1)
+        )
+      ) FILTER (WHERE e.person_id IS NOT NULL) as persons
+    FROM places p
+    JOIN place_names pn ON pn.place_id = p.id AND pn.is_primary = true
+    LEFT JOIN events e ON e.place_id = p.id
+    WHERE p.tree_id = ${treeId}
+      AND p.latitude IS NOT NULL
+      AND p.longitude IS NOT NULL
+    GROUP BY p.id, p.tree_id, p.place_type, p.latitude, p.longitude, pn.name
+    ORDER BY event_count DESC
+  `;
+  return rows as any;
+}
+
+export async function geocodePlace(placeId: string, lat: number, lng: number): Promise<void> {
+  const sql = getDb();
+  await sql`
+    UPDATE places SET latitude = ${lat}, longitude = ${lng}
+    WHERE id = ${placeId}
+  `;
+}
+
+export async function getUngeocodedPlaces(treeId: string): Promise<Array<{ id: string; name: string }>> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT p.id, pn.name
+    FROM places p
+    JOIN place_names pn ON pn.place_id = p.id AND pn.is_primary = true
+    WHERE p.tree_id = ${treeId}
+      AND (p.latitude IS NULL OR p.longitude IS NULL)
+    ORDER BY pn.name
+  `;
+  return rows as any;
+}
+
+export async function getMigrationPaths(treeId: string): Promise<Array<{
+  person_id: string;
+  person_name: string;
+  events: Array<{ event_type: string; date: string | null; place_name: string; lat: number; lng: number }>;
+}>> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT
+      e.person_id,
+      COALESCE(
+        (SELECT display FROM person_names WHERE person_id = e.person_id AND is_primary LIMIT 1),
+        (SELECT given_names || ' ' || surname FROM person_names WHERE person_id = e.person_id AND is_primary LIMIT 1),
+        'unnamed'
+      ) as person_name,
+      e.event_type,
+      e.sort_date as date,
+      pn.name as place_name,
+      pl.latitude as lat,
+      pl.longitude as lng
+    FROM events e
+    JOIN persons per ON per.id = e.person_id AND per.tree_id = ${treeId}
+    JOIN places pl ON pl.id = e.place_id AND pl.latitude IS NOT NULL AND pl.longitude IS NOT NULL
+    JOIN place_names pn ON pn.place_id = pl.id AND pn.is_primary = true
+    ORDER BY e.person_id, e.sort_date NULLS LAST
+  `;
+
+  // group by person
+  const byPerson = new Map<string, { person_name: string; events: any[] }>();
+  for (const r of rows) {
+    if (!byPerson.has(r.person_id)) {
+      byPerson.set(r.person_id, { person_name: r.person_name, events: [] });
+    }
+    byPerson.get(r.person_id)!.events.push({
+      event_type: r.event_type,
+      date: r.date,
+      place_name: r.place_name,
+      lat: Number(r.lat),
+      lng: Number(r.lng),
+    });
+  }
+
+  // only return persons with 2+ distinct places
+  return Array.from(byPerson.entries())
+    .filter(([, data]) => {
+      const uniquePlaces = new Set(data.events.map((e: any) => `${e.lat},${e.lng}`));
+      return uniquePlaces.size >= 2;
+    })
+    .map(([person_id, data]) => ({
+      person_id,
+      person_name: data.person_name,
+      events: data.events,
+    }));
 }

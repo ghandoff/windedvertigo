@@ -164,6 +164,12 @@ export default async function HomePage({
             >
               record search
             </Link>
+            <Link
+              href="/places"
+              className="block rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              places & migration
+            </Link>
           </div>
 
           {recentActivity.length > 0 && (
