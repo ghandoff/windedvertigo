@@ -125,7 +125,7 @@ export function FamilySearchSearch() {
 
       {expanded && (
         <div className="space-y-3 rounded-lg border border-border p-3">
-          <form action={handleSearch} className="space-y-3">
+          <form action={handleSearch} className="space-y-3" data-1p-ignore autoComplete="off">
             <div className="grid grid-cols-2 gap-2">
               <label className="space-y-1">
                 <span className="text-xs text-muted-foreground">given name</span>

@@ -168,7 +168,7 @@ export function OnboardingWizard() {
   return (
     <div className="flex h-full items-center justify-center px-4">
       <div className="w-full max-w-2xl">
-        <form action={handleSubmit}>
+        <form action={handleSubmit} data-1p-ignore autoComplete="off">
           <StepIndicator current={step} />
 
           {/* step 1: self */}

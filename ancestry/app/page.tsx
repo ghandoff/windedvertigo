@@ -18,6 +18,7 @@ import { OnboardingWizard } from "./components/onboarding-wizard";
 import { GenerateHintsButton } from "./components/generate-hints-button";
 import { HintsModalTrigger } from "./components/hints-modal";
 import { HintsBanner } from "./components/hints-banner";
+import { TreeSwitcher } from "./components/tree-switcher";
 
 export default async function HomePage({
   searchParams,
@@ -74,27 +75,20 @@ export default async function HomePage({
           </div>
           <div className="flex items-center gap-4">
             {sharedTrees.length > 0 && (
-              <select
-                className="rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground"
-                defaultValue={tree.id}
-                // client-side navigation via native form
-                onChange={undefined}
-              >
-                <option value={tree.id}>{tree.name}</option>
-                {sharedTrees.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} (shared)
-                  </option>
-                ))}
-              </select>
+              <TreeSwitcher
+                currentTreeId={tree.id as string}
+                currentTreeName={tree.name as string}
+                sharedTrees={sharedTrees as any}
+              />
             )}
             <HintsModalTrigger pendingCount={hintCounts.pending} />
             <SearchButton treeId={tree.id as string} />
             <span className="text-sm text-muted-foreground">{tree.name}</span>
             <Link
               href="/settings"
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors p-1"
               title="tree settings"
+              aria-label="tree settings"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

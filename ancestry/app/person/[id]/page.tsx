@@ -115,7 +115,7 @@ export default async function PersonPage({
           {viewPerson.thumbnail_url ? (
             <img
               src={viewPerson.thumbnail_url!}
-              alt=""
+              alt={`${displayName}'s photo`}
               className="h-14 w-14 md:h-20 md:w-20 rounded-full object-cover shrink-0 border-2 border-border"
             />
           ) : (

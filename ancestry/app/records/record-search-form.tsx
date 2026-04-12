@@ -73,7 +73,7 @@ export function RecordSearchForm({ defaults, persons, treeId, preselectedPersonI
   return (
     <div className="space-y-6">
       {/* search form */}
-      <form action={handleSearch} className="space-y-4">
+      <form action={handleSearch} className="space-y-4" data-1p-ignore autoComplete="off">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">given name</label>

@@ -25,7 +25,7 @@ export function AddPersonForm() {
       </button>
 
       {expanded && (
-        <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border p-3">
+        <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border p-3" data-1p-ignore autoComplete="off">
           {/* name row: first, middle, surname */}
           <div className="grid grid-cols-3 gap-2">
             <label className="space-y-1">

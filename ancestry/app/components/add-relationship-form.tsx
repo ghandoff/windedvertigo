@@ -80,7 +80,7 @@ export function AddRelationshipForm({ persons }: { persons: Person[] }) {
       </button>
 
       {expanded && (
-        <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border p-3">
+        <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border p-3" data-1p-ignore autoComplete="off">
           <label className="space-y-1">
             <span className="text-xs text-muted-foreground">
               {isDirectional ? "person 1 (the parent/guardian)" : "person 1"}

@@ -29,7 +29,7 @@ export function AddTaskForm({
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
       <h3 className="text-sm font-medium text-foreground">add task</h3>
-      <form ref={formRef} action={handleSubmit} className="space-y-3">
+      <form ref={formRef} action={handleSubmit} className="space-y-3" data-1p-ignore autoComplete="off">
         <div>
           <label htmlFor="title" className="block text-xs text-muted-foreground mb-1">
             title

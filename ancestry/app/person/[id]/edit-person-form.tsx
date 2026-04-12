@@ -76,7 +76,7 @@ export function EditPersonForm({ person }: { person: Person }) {
             setIsEditing(false);
           });
         }}
-        className="rounded-lg border border-border bg-card p-4 space-y-4"
+        className="rounded-lg border border-border bg-card p-4 space-y-4" data-1p-ignore autoComplete="off"
       >
         <h3 className="text-sm font-semibold text-foreground">edit person</h3>
 

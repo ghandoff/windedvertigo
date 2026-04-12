@@ -97,7 +97,7 @@ export function SourcesSection({
               setShowForm(false);
             });
           }}
-          className="space-y-4 border-b border-border pb-4"
+          className="space-y-4 border-b border-border pb-4" data-1p-ignore autoComplete="off"
         >
           <div className="space-y-3">
             <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">

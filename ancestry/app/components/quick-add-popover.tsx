@@ -97,7 +97,7 @@ export function QuickAddPopover({
         </button>
       </div>
 
-      <form ref={formRef} action={handleSubmit} className="space-y-2">
+      <form ref={formRef} action={handleSubmit} className="space-y-2" data-1p-ignore autoComplete="off">
         <input type="hidden" name="relatedPersonId" value={personId} />
         <input type="hidden" name="relationship" value={type} />
 

@@ -33,6 +33,7 @@ export function BiographyForm({ personId, initialNotes }: { personId: string; in
 
   return (
     <form
+      data-1p-ignore autoComplete="off"
       action={(formData) => {
         startTransition(async () => {
           await updateBiographyAction(personId, formData);
