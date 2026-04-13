@@ -21,7 +21,7 @@ function getResend(): Resend {
 
 const DOMAIN = process.env.RESEND_DOMAIN ?? "windedvertigo.com";
 const REPLY_TO = process.env.RESEND_REPLY_TO ?? `garrett@${DOMAIN}`;
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://ancestry.windedvertigo.com";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://wv-ancestry.vercel.app";
 
 // ─── invite email ────────────────────────────────────────────
 

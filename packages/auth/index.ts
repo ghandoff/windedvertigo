@@ -13,8 +13,29 @@
 
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import { neon } from "@neondatabase/serverless";
 
 const ALLOWED_DOMAIN = "windedvertigo.com";
+
+/**
+ * Check if an email appears in any tree_members row (ancestry app).
+ * Uses @neondatabase/serverless for a one-shot query — no connection pool.
+ * Fails silently if DATABASE_URL is unset or the table doesn't exist,
+ * so non-ancestry apps are unaffected.
+ */
+async function isTreeMember(email: string): Promise<boolean> {
+  try {
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) return false;
+    const sql = neon(dbUrl);
+    const rows = await sql`
+      SELECT 1 FROM tree_members WHERE member_email = ${email} LIMIT 1
+    `;
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 /** Parse comma-separated email allowlist from env, lowercased and trimmed. */
 const ALLOWED_EMAILS = new Set(
@@ -92,7 +113,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   callbacks: {
-    signIn({ profile }) {
+    async signIn({ profile }) {
       const email = profile?.email?.toLowerCase();
       if (!email) return false;
 
@@ -101,6 +122,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       // Allow specific external emails
       if (ALLOWED_EMAILS.has(email)) return true;
+
+      // Allow anyone invited to a tree (ancestry app)
+      // Gracefully skips if tree_members table doesn't exist (other apps)
+      if (await isTreeMember(email)) return true;
 
       return false;
     },
