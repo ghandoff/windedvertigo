@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pedal-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "3456", "/Users/mariaaltamirano/windedvertigo/site/public/portfolio/assets/pedal-conference-experience"],
+      "port": 3456
+    },
+    {
+      "name": "pfa-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "3457", "/Users/mariaaltamirano/windedvertigo/site/portfolio/assets/play-for-all"],
+      "port": 3457
+    },
+    {
+      "name": "say-hej",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "3458", "/Users/mariaaltamirano/windedvertigo/apps/PEDAL-conference"],
+      "port": 3458
+    }
+  ]
+}

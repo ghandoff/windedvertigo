@@ -7,7 +7,9 @@ import {
   removeMemberAction,
   updateRoleAction,
   updateVisibilityAction,
+  updateNotificationPrefsAction,
 } from "./actions";
+import { getNotificationPrefs } from "@/lib/db/notifications";
 import { InviteSuccessBanner } from "./invite-success-banner";
 
 export default async function SettingsPage({
@@ -23,6 +25,7 @@ export default async function SettingsPage({
   const role = await getTreeRole(tree.id, session.user.email);
   const isOwner = role === "owner";
   const members = await getTreeMembers(tree.id);
+  const notifPrefs = await getNotificationPrefs(tree.id, session.user.email);
 
   return (
     <div className="min-h-screen bg-background">
@@ -183,6 +186,51 @@ export default async function SettingsPage({
             </form>
           </section>
         )}
+
+        {/* notification preferences */}
+        <section id="notifications" className="space-y-3">
+          <h2 className="text-sm font-medium text-foreground">notifications</h2>
+          <p className="text-xs text-muted-foreground">
+            control which email notifications you receive for this tree
+          </p>
+          <form action={updateNotificationPrefsAction} className="space-y-3">
+            <input type="hidden" name="treeId" value={tree.id} />
+            <label className="flex items-center gap-3 rounded-md border border-border px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors">
+              <input
+                type="checkbox"
+                name="immediate"
+                defaultChecked={notifPrefs.immediate}
+                className="rounded border-border"
+              />
+              <div>
+                <span className="text-sm text-foreground">activity updates</span>
+                <p className="text-xs text-muted-foreground">
+                  get notified when someone makes changes to the tree (batched every 5 minutes)
+                </p>
+              </div>
+            </label>
+            <label className="flex items-center gap-3 rounded-md border border-border px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors">
+              <input
+                type="checkbox"
+                name="digest"
+                defaultChecked={notifPrefs.digest}
+                className="rounded border-border"
+              />
+              <div>
+                <span className="text-sm text-foreground">weekly digest</span>
+                <p className="text-xs text-muted-foreground">
+                  receive a summary of all tree activity every monday morning
+                </p>
+              </div>
+            </label>
+            <button
+              type="submit"
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              save preferences
+            </button>
+          </form>
+        </section>
       </div>
     </div>
   );

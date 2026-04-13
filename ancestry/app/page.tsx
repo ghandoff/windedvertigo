@@ -116,7 +116,7 @@ export default async function HomePage({
       {/* hints notification banner */}
       <HintsBanner pendingCount={hintCounts.pending} />
 
-      <div className={`flex ${hintCounts.pending > 0 ? "h-[calc(100vh-93px)] md:h-[calc(100vh-101px)]" : "h-[calc(100vh-57px)] md:h-[calc(100vh-65px)]"}`}>
+      <div className={`flex overflow-hidden ${hintCounts.pending > 0 ? "h-[calc(100vh-93px)] md:h-[calc(100vh-101px)]" : "h-[calc(100vh-57px)] md:h-[calc(100vh-65px)]"}`}>
         {/* sidebar — desktop aside + mobile drawer */}
         <SidebarWrapper>
           {canEdit && persons.length > 0 && (

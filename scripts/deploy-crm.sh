@@ -11,6 +11,9 @@
 
 set -euo pipefail
 
+# Ensure Homebrew bin is on PATH (needed when invoked from a non-login shell)
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERCEL_DIR="$REPO_ROOT/.vercel"
 PROJECT_JSON="$VERCEL_DIR/project.json"
@@ -41,6 +44,7 @@ printf '{"projectId":"%s","orgId":"%s","projectName":"wv-crm"}\n' \
 
 echo "→ Deploying from monorepo root"
 cd "$REPO_ROOT"
-vercel deploy $DEPLOY_FLAGS
+VERCEL_BIN="${VERCEL_BIN:-$(command -v vercel 2>/dev/null || echo /opt/homebrew/bin/vercel)}"
+"$VERCEL_BIN" deploy $DEPLOY_FLAGS
 
 # cleanup() runs automatically via trap on EXIT

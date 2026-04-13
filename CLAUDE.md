@@ -59,7 +59,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 ## Recurring Meetings
 | Meeting | When | Who |
 |---------|------|-----|
-| whirlpool x Press Play | Mon 4pm UTC | Lamis, Payton, Maria, + |
+| whirlpool | Mon & Wed 4pm UTC (9am PT) | Lamis, Payton, Maria, + (Mon "x Press Play" includes Jan, Casper) |
 | weekly = lamis x garrett | Tue 4pm UTC | Lamis |
 | Randall | Tue 5pm UTC | Randall, Gina |
 | garrett x maria (part i) | Tue 6pm UTC | Maria |
@@ -73,6 +73,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **weekly-cfo-review** | Mon 9:05am | Cash position, revenue pipeline, CPA liaison, action items |
 | **invoice-processor** | Daily 9am | Scans Gmail for invoices, logs to Notion, labels in Gmail |
 | **weekly-cmo-review** | Wed 9am | Content calendar, social media, campaigns, outreach pipeline, brand review |
+| **whirlpool-agenda-generator** | Sun & Tue 8pm PT | Auto-generates whirlpool agenda from last meeting's action items, project updates, Slack threads, and calendar context. Creates Notion entry + Slack DM for Garrett to review. Hub: notion.so/33ae4ee74ba481b1a391fed914baa05b |
 
 ## Tool Stack
 | Tool | What we use it for |
@@ -132,7 +133,7 @@ Both environments read the same repo, same `CLAUDE.md`, same `.brain/`.
 ```
 windedvertigo/
   harbour/          — main website (windedvertigo.com)
-  crm/              — client relationship manager (crm.windedvertigo.com)
+  crm/              — client relationship manager (port.windedvertigo.com)
   ops/              — command center dashboard (ops.windedvertigo.com)
   packages/         — shared packages
   scripts/          — deploy scripts (deploy-crm.sh, deploy-ops.sh)
@@ -145,7 +146,7 @@ windedvertigo/
 | Service | Domain | Vercel Project | Status |
 |---------|--------|---------------|--------|
 | Website | windedvertigo.com | wv-harbour | Live |
-| CRM | crm.windedvertigo.com | wv-crm | Live |
+| CRM | port.windedvertigo.com | wv-crm | Live |
 | Ops | ops.windedvertigo.com | wv-ops | Deployed — auth flow needs verification |
 
 ## Preferences

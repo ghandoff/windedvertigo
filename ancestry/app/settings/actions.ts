@@ -11,6 +11,7 @@ import {
   getTreeRole,
 } from "@/lib/db/queries";
 import { sendTreeInviteEmail } from "@/lib/email";
+import { upsertNotificationPrefs } from "@/lib/db/notifications";
 import type { TreeRole } from "@/lib/types";
 
 async function requireOwner(treeId: string) {
@@ -108,4 +109,23 @@ export async function updateVisibilityAction(formData: FormData) {
   await requireOwner(treeId);
   await updateTreeVisibility(treeId, visibility);
   redirect("/settings");
+}
+
+export async function updateNotificationPrefsAction(formData: FormData) {
+  const treeId = formData.get("treeId") as string;
+  if (!treeId) throw new Error("missing treeId");
+
+  const session = await auth();
+  if (!session?.user?.email) redirect("/login");
+
+  // any member (not just owner) can update their own notification prefs
+  const immediate = formData.get("immediate") === "on";
+  const digest = formData.get("digest") === "on";
+
+  await upsertNotificationPrefs(treeId, session.user.email, {
+    immediate,
+    digest,
+  });
+
+  redirect("/settings#notifications");
 }

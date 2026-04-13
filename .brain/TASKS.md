@@ -1,5 +1,15 @@
 # Tasks
 
+## Whirlpool actions — 2026-04-08 (w.v x press.play)
+- [ ] **garrett** — set up google drive folder and share with press play team
+- [ ] **team** — upload documentation of past conference experiences to shared folder
+- [ ] **team** — organize documentation into buckets/categories (small engagements → full conferences)
+- [ ] **garrett** — draft doc proposing service tiers for conference offerings
+- [ ] **press play** — translate danish testimonials to english
+- [ ] **garrett** — schedule next w.v x press play for april 22, same time
+- [ ] **garrett** — set up email chain or slack channel for ongoing press play comms
+- [ ] **team** — follow up on cold email outreach responses and refine approach
+
 ## Active
 - [ ] **IDB Salvador documentation — April 10 deadline** — Submit to nadia.nochez@mined.gob.sv as single consolidated digital file.
   - **Legal docs (Garrett to pull):**
@@ -22,7 +32,12 @@
 - [x] ~~**PRME 2026 contract** — Signed. Approved PO received Thu Mar 27. First invoice submitted same day.~~ (2026-03-27)
 - [ ] **Amna at 10 proposal** — Follow up on submission (sent Mar 26 to Jonelle and Walaa)
 - [ ] **401k / CPA coordination** — Finalize TPA arrangement for final 5500 + year-end testing with ADP (Alyssa Wong)
-- [ ] **Website feedback** — Collect responses from soft launch circulation (Payton sent Mar 27)
+- [ ] **Website feedback** — 2 responses collected via #website-feedback (both flag newcomer discoverability). Scope "what we do" clarity improvement → log for Claude Code.
+- [ ] **Sesame Workshop close-out** — Received pass 31 March. Draft graceful close-out reply.
+- [ ] **Amna at 10 follow-up** — 8 days since proposal submission (26 March). Send follow-up to Jonelle and Walaa.
+- [ ] **Whirlpool promotion** — Post teaser for 06 April session on LinkedIn/Bluesky
+- [ ] **Resend webhook registration** — Register webhook URL + set RESEND_WEBHOOK_SECRET in Resend dashboard to unblock campaign tracking
+- [ ] **Attio CRM trial** — Trial ending. Decide: keep or cancel.
 - [ ] **Populate financial memory** — Share CPA info, bank details, annual revenue targets, expense budget with Claude to complete financial.md
 
 ## Waiting On
@@ -53,6 +68,16 @@
 - [ ] **KV keys for marketing data** — add `marketing:content-calendar`, `marketing:campaign-metrics`, `marketing:pipeline-summary` to ops API
 - [ ] **TypeScript types for MarketingSnapshot** — add to `ops/lib/types.ts`
 - [ ] **Nav updates** — add "marketing" to ops sidebar, "content" to CRM sidebar
+
+### raft.house — Next Waves
+- [x] ~~**Wave 1: core platform**~~ (2026-03-31) — PartyKit server, 4 activity types (poll, prediction, reflection, open-response), facilitator dashboard, participant mobile view, join flow, timer, pause/resume
+- [x] ~~**Wave 2: puzzle + asymmetric activities**~~ (2026-03-31) — Collaborative sequencing puzzles, asymmetric info role-play. 2 whirlpool session templates (play as pedagogy, sunk cost trap)
+- [x] ~~**Deploy + CMS**~~ (2026-03-31) — Live at windedvertigo.com/harbour/raft-house. Notion sessions database. QR code sharing. ISR facilitate page.
+- [x] ~~**Wave 3: canvas + sorting + rule-sandbox**~~ (2026-03-31) — Canvas (spatial pin placement with zones/axes), sorting (card categorization with solution scoring), rule-sandbox (parameter sliders + safe arithmetic evaluator). "Systems thinking" demo template.
+- [x] ~~**Session results export**~~ (2026-03-31) — Markdown report with per-activity responses, poll tallies, prediction scoring, puzzle sequence comparison. Browser-side Blob download.
+- [x] ~~**WebSocket reconnect fix**~~ (2026-03-31) — Exponential backoff (1s → 16s, 10 max attempts), connectTrigger state counter, visual reconnecting/failed states.
+- [x] ~~**Custom session builder**~~ (2026-03-31) — Facilitator designs activity sequences from scratch with config editors for all 9 activity types. Replaces "coming soon" placeholder.
+- [x] ~~**Session history**~~ (2026-03-31) — Auto-saves completed sessions to Notion "session results" DB. Facilitator can browse past sessions at /facilitate/history and view detailed results.
 
 ### Ops / Infrastructure
 - [ ] **Verify ops OAuth flow** — Garrett: visit ops.windedvertigo.com incognito → should redirect to /login → SSO → dashboard with sign-out button

@@ -234,7 +234,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   main.home { padding-top: 80px; }
   .hero-nav { flex-direction: column; gap: var(--space-sm); align-items: center; }
   .hero-nav a { font-size: 2.5rem; }
-  .home-meta { font-size: 0.95rem; }
+  .home-meta { font-size: 0.8125rem; }
   .team-member { grid-template-columns: 1fr; text-align: center; }
   .member-photo { justify-content: center; }
   .member-headshot { width: 280px; height: 280px; border-radius: 140px; }

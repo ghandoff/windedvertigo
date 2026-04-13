@@ -1,0 +1,6 @@
+[submodule "crm"]
+	path = crm
+	url = https://github.com/ghandoff/wv-crm.git
+[submodule "ops-dashboard"]
+	path = ops-dashboard
+	url = git@github.com:ghandoff/wv-ops.git

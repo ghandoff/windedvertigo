@@ -13,3 +13,11 @@ node_modules/
 # Second brain (tracked separately via 'brain' remote)
 CLAUDE.md
 .brain/
+
+# Wrangler local state
+.wrangler/
+
+# Sensitive env files (created by Vercel CLI or manual — never commit)
+.env.crm-check
+*.env.production
+*.env.vercel

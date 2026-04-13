@@ -966,6 +966,13 @@ export async function logActivity(input: {
         ${input.details ? JSON.stringify(input.details) : null}
       )
     `;
+    // enqueue for notification emails (fire-and-forget)
+    try {
+      const { enqueueNotification } = await import("./notifications");
+      await enqueueNotification(input.treeId, input.actorEmail);
+    } catch {
+      console.warn("notification_queue: failed to enqueue");
+    }
   } catch {
     // activity logging is non-critical — don't break mutations if the table doesn't exist yet
     console.warn("activity_log: failed to write (table may not exist yet)");
