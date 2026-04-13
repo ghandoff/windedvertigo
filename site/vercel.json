@@ -32,6 +32,18 @@
     {
       "source": "/portfolio/assets/mindshift-missions-prme-polls/",
       "destination": "/portfolio/assets/mindshift-missions-prme-polls/index.html"
+    },
+    {
+      "source": "/portfolio/assets/systems-thinking",
+      "destination": "/portfolio/assets/systems-thinking/index.html"
+    },
+    {
+      "source": "/portfolio/assets/systems-thinking/",
+      "destination": "/portfolio/assets/systems-thinking/index.html"
+    },
+    {
+      "source": "/portfolio/assets/systems-thinking/:path*",
+      "destination": "/portfolio/assets/systems-thinking/:path*"
     }
   ],
   "headers": [
@@ -64,7 +76,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app wss://*.partykit.dev wss://*.partykit.io https://vitals.vercel-insights.com https://script.google.com https://script.googleusercontent.com; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.notion.com https://wv-crm-ghandoffs-projects.vercel.app wss://*.partykit.dev wss://*.partykit.io https://vitals.vercel-insights.com https://script.google.com https://script.googleusercontent.com; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; base-uri 'self'; form-action 'self'"
         }
       ]
     }

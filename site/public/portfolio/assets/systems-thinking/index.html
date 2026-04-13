@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>systems thinking simulator — w.v × prme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --cadet: #273248;
+  --redwood: #B15043;
+  --sienna: #CB7858;
+  --champagne: #FFEBD2;
+  --muted: #6B7589;
+  --rule: #EAD9BD;
+  --soft-card: #FFF6E5;
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html {
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--cadet);
+  background: var(--champagne);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* -- wordmark -- */
+.wordmark {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 100;
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--cadet);
+  letter-spacing: -0.01em;
+  user-select: none;
+}
+.wordmark .dot {
+  color: var(--sienna);
+}
+
+/* -- screens -- */
+.screen {
+  display: none;
+  min-height: 100vh;
+}
+.screen.active {
+  display: block;
+}
+
+/* -- landing -- */
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 80px 24px 48px;
+  text-align: center;
+}
+.landing-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.landing-headline {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--cadet);
+  line-height: 1.2;
+  max-width: 18ch;
+  margin-bottom: 24px;
+}
+.landing-rule {
+  width: 320px;
+  height: 1px;
+  background: var(--rule);
+  margin: 0 auto 32px;
+}
+.landing-body {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 52ch;
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+.landing-skills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 600px;
+  margin-bottom: 48px;
+}
+.skill-chip {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1px solid var(--rule);
+  color: var(--cadet);
+  background: var(--soft-card);
+}
+.landing-how {
+  max-width: 480px;
+  text-align: left;
+  margin-bottom: 48px;
+}
+.landing-how-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  text-align: center;
+}
+.landing-how ol {
+  list-style: none;
+  counter-reset: steps;
+}
+.landing-how li {
+  counter-increment: steps;
+  font-size: 14px;
+  color: var(--cadet);
+  line-height: 1.6;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.landing-how li:last-child {
+  border-bottom: none;
+}
+.landing-how li::before {
+  content: counter(steps);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sienna);
+  flex-shrink: 0;
+  width: 24px;
+  text-align: right;
+}
+.btn {
+  display: inline-block;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--champagne);
+  background: var(--cadet);
+  border: none;
+  padding: 14px 32px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.btn:hover {
+  opacity: 0.9;
+}
+.btn:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.landing-footer {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 48px;
+}
+
+/* -- scenarios menu -- */
+.scenarios {
+  padding: 80px 24px 48px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.scenarios-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.scenarios-headline {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--cadet);
+  text-align: center;
+  margin-bottom: 40px;
+}
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.scenario-card {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s;
+}
+.scenario-card:hover {
+  border-color: var(--sienna);
+}
+.scenario-card.coming-soon {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.scenario-number {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.scenario-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cadet);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.scenario-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  flex: 1;
+  margin-bottom: 16px;
+}
+.scenario-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.scenario-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.scenario-chip {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: rgba(203, 120, 88, 0.12);
+  color: var(--sienna);
+}
+.scenario-link {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--champagne);
+  background: var(--cadet);
+  border: none;
+  padding: 6px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.scenario-link:hover {
+  opacity: 0.9;
+}
+.scenario-link:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.scenario-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-style: italic;
+}
+.back-link {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--sienna);
+  text-decoration: none;
+  margin-bottom: 24px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--font);
+  padding: 0;
+}
+.back-link:hover {
+  text-decoration: underline;
+}
+.back-link:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+
+<!-- wordmark -->
+<div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+
+<!-- screen 1: landing -->
+<div id="screen-landing" class="screen active" role="region" aria-label="introduction">
+  <div class="landing">
+    <div class="landing-title">systems thinking simulator</div>
+    <div class="landing-headline">every system is perfectly designed to produce the results it gets.</div>
+    <div class="landing-rule"></div>
+    <div class="landing-body">
+      ten institutions. ten mandates. the same five leverage tiers.<br><br>
+      each scenario puts you on a committee with a mandate and a set of decisions. some change parameters. some change rules. some change who decides. one changes the question itself.<br><br>
+      your job is not to find the right answer. it is to notice which kind of decision bends the system — and why.
+    </div>
+    <div class="landing-skills">
+      <span class="skill-chip">systems dynamics</span>
+      <span class="skill-chip">leverage points</span>
+      <span class="skill-chip">stakeholder negotiation</span>
+      <span class="skill-chip">causal-loop reasoning</span>
+      <span class="skill-chip">paradigm recognition</span>
+    </div>
+    <div class="landing-how">
+      <div class="landing-how-title">how to play</div>
+      <ol>
+        <li>choose a scenario from the menu.</li>
+        <li>assign roles — each person argues from their role's interest.</li>
+        <li>read each intervention. expand the detail. discuss.</li>
+        <li>reach consensus, then run it. watch the 25-year trajectory.</li>
+        <li>after each run, read the "why" — it explains the leverage tier.</li>
+        <li>after all five, look for the pattern across interventions.</li>
+      </ol>
+    </div>
+    <button class="btn" id="btn-scenarios" aria-label="choose a scenario">choose a scenario</button>
+    <div class="landing-footer">w.v × prme · ppcs 2026</div>
+  </div>
+</div>
+
+<!-- screen 2: scenario menu -->
+<div id="screen-scenarios" class="screen" role="region" aria-label="scenario selection">
+  <div class="scenarios">
+    <button class="back-link" id="btn-back-landing" aria-label="back to introduction">&larr; back</button>
+    <div class="scenarios-title">choose a scenario</div>
+    <div class="scenarios-headline">ten institutions. ten systems.</div>
+    <div class="scenario-grid">
+      <!-- 1. Lakeshore (live) -->
+      <div class="scenario-card">
+        <div class="scenario-number">scenario 01</div>
+        <div class="scenario-name">lakeshore college</div>
+        <div class="scenario-desc">a small liberal arts college must reach net-zero by 2050. five interventions, from parking permits to rechartering the institution's purpose.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">higher ed</span>
+            <span class="scenario-chip">emissions</span>
+          </div>
+          <a class="scenario-link" href="lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
+        </div>
+      </div>
+      <!-- 2. Placeholder -->
+      <div class="scenario-card coming-soon">
+        <div class="scenario-number">scenario 02</div>
+        <div class="scenario-name">meridian general hospital</div>
+        <div class="scenario-desc">a regional hospital must cut wait times without increasing burnout. interventions range from scheduling tweaks to redesigning the care model.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">healthcare</span>
+            <span class="scenario-chip">capacity</span>
+          </div>
+          <span class="scenario-badge">coming soon</span>
+        </div>
+      </div>
+      <!-- 3. Placeholder -->
+      <div class="scenario-card coming-soon">
+        <div class="scenario-number">scenario 03</div>
+        <div class="scenario-name">riverton public schools</div>
+        <div class="scenario-desc">a school district must close an achievement gap. interventions span from tutoring programmes to restructuring how schools are governed.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">K-12</span>
+            <span class="scenario-chip">equity</span>
+          </div>
+          <span class="scenario-badge">coming soon</span>
+        </div>
+      </div>
+      <!-- 4. Placeholder -->
+      <div class="scenario-card coming-soon">
+        <div class="scenario-number">scenario 04</div>
+        <div class="scenario-name">crestline housing authority</div>
+        <div class="scenario-desc">a city must reduce homelessness. interventions move from emergency shelters to redefining what affordable housing means.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">municipal</span>
+            <span class="scenario-chip">housing</span>
+          </div>
+          <span class="scenario-badge">coming soon</span>
+        </div>
+      </div>
+      <!-- 5. Placeholder -->
+      <div class="scenario-card coming-soon">
+        <div class="scenario-number">scenario 05</div>
+        <div class="scenario-name">bayfield fisheries co-op</div>
+        <div class="scenario-desc">a coastal fishing co-op must prevent stock collapse. interventions range from catch limits to redefining the co-op's relationship with the ecosystem.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">commons</span>
+            <span class="scenario-chip">ecology</span>
+          </div>
+          <span class="scenario-badge">coming soon</span>
+        </div>
+      </div>
+      <!-- 6. Placeholder -->
+      <div class="scenario-card coming-soon">
+        <div class="scenario-number">scenario 06</div>
+        <div class="scenario-name">hargrove manufacturing</div>
+        <div class="scenario-desc">a mid-size manufacturer must halve waste. interventions move from recycling targets to circular design and supply-chain rechartering.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">industry</span>
+            <span class="scenario-chip">waste</span>
+          </div>
+          <span class="scenario-badge">coming soon</span>
+        </div>
+      </div>
+      <!-- 7. Placeholder -->
+      <div class="scenario-card coming-soon">
+        <div class="scenario-number">scenario 07</div>
+        <div class="scenario-name">pine ridge water district</div>
+        <div class="scenario-desc">a drought-prone district must secure its water supply. interventions span pricing, infrastructure, governance, and watershed identity.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">utility</span>
+            <span class="scenario-chip">water</span>
+          </div>
+          <span class="scenario-badge">coming soon</span>
+        </div>
+      </div>
+      <!-- 8. Placeholder -->
+      <div class="scenario-card coming-soon">
+        <div class="scenario-number">scenario 08</div>
+        <div class="scenario-name">central transit authority</div>
+        <div class="scenario-desc">a city transit system must double ridership. interventions range from fare changes to reframing public transit as a right.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">transport</span>
+            <span class="scenario-chip">access</span>
+          </div>
+          <span class="scenario-badge">coming soon</span>
+        </div>
+      </div>
+      <!-- 9. Placeholder -->
+      <div class="scenario-card coming-soon">
+        <div class="scenario-number">scenario 09</div>
+        <div class="scenario-name">oakwood community foundation</div>
+        <div class="scenario-desc">a foundation must shift from charity to systemic change. interventions move from grant size to redefining what the foundation exists to do.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">philanthropy</span>
+            <span class="scenario-chip">impact</span>
+          </div>
+          <span class="scenario-badge">coming soon</span>
+        </div>
+      </div>
+      <!-- 10. Placeholder -->
+      <div class="scenario-card coming-soon">
+        <div class="scenario-number">scenario 10</div>
+        <div class="scenario-name">summit tech platform</div>
+        <div class="scenario-desc">a social platform must reduce misinformation. interventions range from content moderation to redefining the platform's purpose and incentive structure.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">tech</span>
+            <span class="scenario-chip">trust</span>
+          </div>
+          <span class="scenario-badge">coming soon</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('btn-scenarios').addEventListener('click', () => {
+  document.getElementById('screen-landing').classList.remove('active');
+  document.getElementById('screen-scenarios').classList.add('active');
+  window.scrollTo(0, 0);
+});
+document.getElementById('btn-back-landing').addEventListener('click', () => {
+  document.getElementById('screen-scenarios').classList.remove('active');
+  document.getElementById('screen-landing').classList.add('active');
+  window.scrollTo(0, 0);
+});
+</script>
+</body>
+</html>
