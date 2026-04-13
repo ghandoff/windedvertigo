@@ -12,6 +12,7 @@ import { formatFuzzyDate } from "@/lib/db";
 import { HintCard } from "./hint-card";
 import { RefreshButton } from "./refresh-button";
 import { ResetButton } from "./reset-button";
+import { ClearRejectedButton } from "./clear-rejected-button";
 
 const VALID_FILTERS = ["all", "pending", "accepted", "rejected"] as const;
 type Filter = (typeof VALID_FILTERS)[number];
@@ -102,6 +103,7 @@ export default async function HintsPage({
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <ClearRejectedButton count={counts.rejected} />
             <ResetButton pendingCount={counts.pending} />
             <RefreshButton />
           </div>

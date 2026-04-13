@@ -1137,6 +1137,20 @@ export async function resetPendingHints(treeId: string): Promise<number> {
   }
 }
 
+/** delete all rejected hints for a tree */
+export async function clearRejectedHints(treeId: string): Promise<number> {
+  const sql = getDb();
+  try {
+    const result = await sql`
+      DELETE FROM hints
+      WHERE tree_id = ${treeId} AND status = 'rejected'
+    `;
+    return (result as unknown as { count: number }).count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // research tasks
 // ---------------------------------------------------------------------------

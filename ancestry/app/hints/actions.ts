@@ -7,6 +7,7 @@ import {
   updateHintStatus,
   getHintsForTree,
   resetPendingHints,
+  clearRejectedHints,
   createPerson,
   createSource,
   createCitation,
@@ -244,4 +245,22 @@ export async function resetHintsAction() {
 
   revalidatePath("/hints");
   revalidatePath("/");
+}
+
+/** delete all rejected hints */
+export async function clearRejectedHintsAction() {
+  const { session, tree } = await getTreeForUser();
+
+  const deleted = await clearRejectedHints(tree.id);
+
+  await logActivity({
+    treeId: tree.id,
+    actorEmail: session.user!.email!,
+    action: "rejected_hints_cleared",
+    targetType: "hint",
+    targetId: tree.id,
+    targetName: `${deleted} rejected hints cleared`,
+  });
+
+  revalidatePath("/hints");
 }
