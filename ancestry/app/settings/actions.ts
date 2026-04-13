@@ -61,7 +61,7 @@ export async function inviteMemberAction(formData: FormData) {
     console.error("failed to send invite email:", err);
   }
 
-  redirect("/settings");
+  redirect(`/settings?invited=${encodeURIComponent(email)}`);
 }
 
 export async function removeMemberAction(formData: FormData) {

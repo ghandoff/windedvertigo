@@ -8,8 +8,14 @@ import {
   updateRoleAction,
   updateVisibilityAction,
 } from "./actions";
+import { InviteSuccessBanner } from "./invite-success-banner";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ invited?: string }>;
+}) {
+  const { invited } = await searchParams;
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
@@ -20,6 +26,8 @@ export default async function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {invited && <InviteSuccessBanner email={invited} />}
+
       {/* header */}
       <header className="border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
