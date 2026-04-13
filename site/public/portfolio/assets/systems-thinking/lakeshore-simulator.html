@@ -169,67 +169,6 @@ html, body {
   background: var(--soft-card);
 }
 
-/* -- screen: roles -- */
-.screen-roles {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 48px 24px;
-}
-.roles-title {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 24px;
-}
-.roles-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 16px;
-  max-width: 720px;
-  margin-bottom: 36px;
-}
-.role-card {
-  background: var(--soft-card);
-  border: 1px solid var(--rule);
-  padding: 20px 16px;
-  width: 130px;
-  text-align: center;
-  transition: border-color 0.2s;
-}
-.role-card:hover {
-  border-color: var(--sienna);
-}
-.role-icon {
-  font-size: 28px;
-  margin-bottom: 8px;
-  display: block;
-}
-.role-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--cadet);
-  line-height: 1.3;
-  margin-bottom: 4px;
-}
-.role-interest {
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.4;
-  font-style: italic;
-}
-.roles-instruction {
-  font-size: 14px;
-  color: var(--muted);
-  max-width: 38ch;
-  line-height: 1.6;
-  margin-bottom: 32px;
-}
-
 /* -- screen: baseline -- */
 .screen-baseline {
   flex-direction: column;
@@ -310,6 +249,27 @@ html, body {
   position: relative;
   min-height: 0;
 }
+.chart-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  background: rgba(255, 246, 229, 0.85);
+  transition: opacity 0.4s;
+}
+.chart-placeholder.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.chart-placeholder-text {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 220px;
+}
 
 /* political capital meter */
 .pc-meter-wrap {
@@ -370,6 +330,76 @@ html, body {
 }
 .intervention-card.was-run {
   border-color: var(--sienna);
+}
+.intervention-card.locked {
+  opacity: 0.55;
+  pointer-events: none;
+  position: relative;
+}
+.intervention-card.locked .card-lock-overlay {
+  pointer-events: auto;
+  cursor: not-allowed;
+}
+.card-lock-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  align-items: center;
+  justify-content: center;
+}
+.locked .card-lock-overlay {
+  display: flex;
+}
+.lock-icon {
+  font-size: 28px;
+  opacity: 0.6;
+}
+.lock-tooltip {
+  position: absolute;
+  bottom: calc(50% + 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--cadet);
+  color: var(--champagne);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.lock-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--cadet);
+}
+.card-lock-overlay:hover .lock-tooltip {
+  opacity: 1;
+}
+@keyframes card-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.intervention-card.shake {
+  animation: card-shake 0.4s ease;
+}
+.intervention-card.unlocking .lock-icon {
+  transition: opacity 0.4s, transform 0.4s;
+  opacity: 0;
+  transform: scale(1.3);
+}
+.intervention-card.unlocking {
+  transition: opacity 0.4s;
+  opacity: 1;
 }
 .card-header {
   display: flex;
@@ -597,6 +627,45 @@ html, body {
 .pattern-btn-wrap {
   margin-top: 32px;
 }
+.insight-blocks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 800px;
+  width: 100%;
+  margin-top: 32px;
+}
+.insight-block {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 20px;
+  border-radius: 2px;
+}
+.insight-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 8px;
+}
+.insight-body {
+  font-size: 14px;
+  color: var(--cadet);
+  line-height: 1.6;
+}
+.calibration-note {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  text-align: center;
+  max-width: 56ch;
+  margin-top: 20px;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .insight-blocks { grid-template-columns: 1fr; }
+}
 
 /* -- screen: handoff -- */
 .screen-handoff {
@@ -792,43 +861,7 @@ html, body {
   <button class="committee-link" id="btn-committee" aria-label="see the committee composition">see the committee</button>
 </div>
 
-<!-- screen 2: roles -->
-<div id="screen-roles" class="screen screen-roles" role="region" aria-label="assign roles">
-  <div class="roles-title">assign one role per person</div>
-  <div class="roles-instruction">
-    each person argues from their role's interest. you must reach consensus before each intervention runs.
-  </div>
-  <div class="roles-grid">
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9670;</span>
-      <div class="role-name">chair</div>
-      <div class="role-interest">VP for operations. protects the budget.</div>
-    </div>
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9881;</span>
-      <div class="role-name">facilities rep</div>
-      <div class="role-interest">runs the buildings. knows what breaks.</div>
-    </div>
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9733;</span>
-      <div class="role-name">student rep</div>
-      <div class="role-interest">undergraduate senate. wants equity and speed.</div>
-    </div>
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9878;</span>
-      <div class="role-name">trustee liaison</div>
-      <div class="role-interest">investment committee. guards the endowment.</div>
-    </div>
-    <div class="role-card">
-      <span class="role-icon" aria-hidden="true">&#9752;</span>
-      <div class="role-name">town liaison</div>
-      <div class="role-interest">municipal sustainability. thinks in watersheds.</div>
-    </div>
-  </div>
-  <button class="btn" id="btn-roles-continue" aria-label="continue to baseline">continue</button>
-</div>
-
-<!-- screen 3: baseline -->
+<!-- screen 2: baseline -->
 <div id="screen-baseline" class="screen screen-baseline" role="region" aria-label="baseline trajectory">
   <div class="baseline-title">without intervention.</div>
   <div class="baseline-subtitle">the campus emits more in 2050 than it does today.</div>
@@ -849,6 +882,9 @@ html, body {
   <div class="decisions-right">
     <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
     <div class="decisions-chart-wrap">
+      <div class="chart-placeholder" id="chart-placeholder">
+        <span class="chart-placeholder-text">choose an intervention on the left, then hit "run this" to see its trajectory here.</span>
+      </div>
       <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
       <div class="endpoint-labels" id="endpoint-labels"></div>
     </div>
@@ -930,6 +966,23 @@ html, body {
   </div>
   <div class="pattern-caption">
     the higher you push on the leverage ladder, the more the system bends. the bottom of the ladder produces a sag and a recovery. the top of the ladder produces a structural break.
+  </div>
+  <div class="insight-blocks">
+    <div class="insight-block">
+      <div class="insight-eyebrow">what this system is like</div>
+      <div class="insight-body">a campus is a slow-growth system with long feedback delays. emissions rise not because of one bad decision, but because the default structure rewards expansion and defers consequences.</div>
+    </div>
+    <div class="insight-block">
+      <div class="insight-eyebrow">how to spot the pattern</div>
+      <div class="insight-body">parameter tweaks (pricing, efficiency) produce a dip, then a recovery — the system absorbs them. structural changes (governance, purpose) bend the curve permanently because they change which questions get asked.</div>
+    </div>
+    <div class="insight-block">
+      <div class="insight-eyebrow">which lever matters most</div>
+      <div class="insight-body">the highest-leverage intervention is not the most expensive one. it is the one that changes the rules under which every other decision is made. meadows called this "the power to transcend paradigms."</div>
+    </div>
+  </div>
+  <div class="calibration-note">
+    note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual emissions. the relative ordering of interventions — not the absolute numbers — is the lesson.
   </div>
   <div class="pattern-btn-wrap">
     <button class="btn" id="btn-handoff" aria-label="what does this mean for us?">what does this mean for us?</button>
@@ -1345,9 +1398,11 @@ function buildCards() {
     const reductionPct = lastVal !== null ? ((1 - lastVal / blLast) * 100).toFixed(0) : null;
 
     const card = document.createElement('div');
-    card.className = 'intervention-card' + (wasRun ? ' was-run' : '');
+    const isLocked = d.id === 5 && state.interventionsRun.length < 2 && !wasRun;
+    card.className = 'intervention-card' + (wasRun ? ' was-run' : '') + (isLocked ? ' locked' : '');
     const detailOpen = state.detailOpen && state.detailOpen[d.id];
     card.innerHTML = `
+      ${isLocked ? `<div class="card-lock-overlay"><span class="lock-icon" aria-hidden="true">&#x1F512;</span><span class="lock-tooltip">run at least 2 interventions first</span></div>` : ''}
       <div class="card-header">
         <span class="card-number">${d.id}.</span>
         <span class="card-title">${d.title}</span>
@@ -1378,6 +1433,16 @@ function buildCards() {
       </div>
     `;
     stack.appendChild(card);
+  });
+
+  // bind lock overlay shake
+  stack.querySelectorAll('.card-lock-overlay').forEach(overlay => {
+    overlay.addEventListener('click', () => {
+      const card = overlay.closest('.intervention-card');
+      card.classList.remove('shake');
+      void card.offsetWidth; // reflow to re-trigger
+      card.classList.add('shake');
+    });
   });
 
   // bind detail toggles
@@ -1436,9 +1501,11 @@ function highlightMapNodes(nodeIds) {
 function handleRunIntervention(id) {
   if (state.animating) return;
 
-  // dismiss onboarding hint
+  // dismiss onboarding hint & chart placeholder
   const hintCards = document.getElementById('hint-cards');
   if (hintCards) hintCards.style.display = 'none';
+  const placeholder = document.getElementById('chart-placeholder');
+  if (placeholder) placeholder.classList.add('hidden');
 
   // highlight systems map
   const intData = interventionData.find(x => x.id === id);
@@ -1707,8 +1774,7 @@ function render() {
 // event bindings
 // ────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-begin').addEventListener('click', () => showScreen('roles'));
-  document.getElementById('btn-roles-continue').addEventListener('click', () => showScreen('baseline'));
+  document.getElementById('btn-begin').addEventListener('click', () => showScreen('baseline'));
   document.getElementById('btn-decide').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-see-pattern').addEventListener('click', () => showScreen('pattern'));
   document.getElementById('btn-handoff').addEventListener('click', () => showScreen('handoff'));
@@ -1729,6 +1795,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chartBaseline) { chartBaseline.destroy(); chartBaseline = null; }
     if (chartPattern) { chartPattern.destroy(); chartPattern = null; }
     document.getElementById('endpoint-labels').innerHTML = '';
+    const ph = document.getElementById('chart-placeholder');
+    if (ph) ph.classList.remove('hidden');
+    const hint = document.getElementById('hint-cards');
+    if (hint) { hint.style.display = ''; hint.dataset.shown = ''; }
     showScreen('mandate');
   });
 
