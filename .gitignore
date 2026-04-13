@@ -14,6 +14,10 @@ node_modules/
 CLAUDE.md
 .brain/
 
+# Nested git repos — register as submodules via terminal (git submodule add)
+crm/
+ops-dashboard/
+
 # Wrangler local state
 .wrangler/
 
