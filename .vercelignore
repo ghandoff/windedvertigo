@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.DS_Store
+.vercel/
+.turbo/
+*.env.local
+*.tsbuildinfo
+.ai-usage/
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+CLAUDE.md
+.brain/
+.wrangler/
+.env.crm-check
+*.env.production
+*.env.vercel
