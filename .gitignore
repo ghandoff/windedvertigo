@@ -15,13 +15,13 @@ CLAUDE.md
 .brain/
 
 # Nested git repos — register as submodules via terminal (git submodule add)
-crm/
+port/
 ops-dashboard/
 
 # Wrangler local state
 .wrangler/
 
 # Sensitive env files (created by Vercel CLI or manual — never commit)
-.env.crm-check
+.env.port-check
 *.env.production
 *.env.vercel

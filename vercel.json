@@ -1,7 +1,7 @@
 {
   "builds": [
     {
-      "src": "crm/package.json",
+      "src": "port/package.json",
       "use": "@vercel/next"
     }
   ]

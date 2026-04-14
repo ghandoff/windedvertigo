@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": [
     "harbour",
-    "crm",
+    "port",
     "ops",
     "ancestry",
     "packages/*"
@@ -12,10 +12,10 @@
     "sync:footer": "node scripts/sync-footer.mjs",
     "dev:harbour": "npm run dev -w harbour",
     "build:harbour": "npm run build -w harbour",
-    "dev:crm": "npm run dev -w crm",
-    "build:crm": "npm run build -w crm",
-    "deploy:crm": "bash scripts/deploy-crm.sh",
-    "deploy:crm:preview": "bash scripts/deploy-crm.sh --preview",
+    "dev:port": "npm run dev -w port",
+    "build:port": "npm run build -w port",
+    "deploy:port": "bash scripts/deploy-port.sh",
+    "deploy:port:preview": "bash scripts/deploy-port.sh --preview",
     "dev:ops": "npm run dev -w ops",
     "build:ops": "npm run build -w ops",
     "deploy:ops": "bash scripts/deploy-ops.sh",

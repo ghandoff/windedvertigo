@@ -12,6 +12,6 @@ node_modules/
 CLAUDE.md
 .brain/
 .wrangler/
-.env.crm-check
+.env.port-check
 *.env.production
 *.env.vercel
