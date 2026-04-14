@@ -201,6 +201,85 @@ html, body {
   margin-top: 32px;
 }
 
+/* -- explore mode (pre-commitment) -- */
+.decisions-explore .decisions-right { display: none; }
+.decisions-explore .decisions-left {
+  width: 100% !important;
+  max-width: none !important;
+  border-right: none !important;
+}
+.explore-prompt {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--cadet);
+  line-height: 1.6;
+}
+.explore-prompt strong { font-weight: 600; }
+.explore-prompt .explore-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.btn-choose {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: none;
+  border: 1.5px solid var(--cadet);
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-choose:hover { background: var(--cadet); color: var(--champagne); }
+.btn-choose:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.intervention-card.committed { border-color: var(--cadet); border-width: 2px; }
+.committed-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--cadet);
+  color: var(--champagne);
+  padding: 2px 8px;
+  margin-left: 8px;
+}
+.commit-confirm {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(39, 50, 72, 0.85);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+.commit-confirm.visible { display: flex; }
+.commit-confirm-inner {
+  background: var(--champagne);
+  padding: 40px;
+  max-width: 480px;
+}
+.commit-confirm-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 12px;
+}
+.commit-confirm-body {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.commit-confirm-actions { display: flex; gap: 12px; justify-content: center; }
+
 /* -- screen: decisions -- */
 .screen-decisions {
   flex-direction: row;
@@ -876,6 +955,10 @@ html, body {
 <!-- screen 3: decisions -->
 <div id="screen-decisions" class="screen screen-decisions" role="region" aria-label="intervention decisions">
   <div class="decisions-left">
+    <div class="explore-prompt" id="explore-prompt">
+      <strong>which intervention would you choose?</strong>
+      <div class="explore-sub">read all five. expand the details. when you're ready, click "this is my decision" on the one you think will reduce emissions the most. you won't see the data until you commit.</div>
+    </div>
     <div class="card-stack-title">interventions</div>
     <div id="card-stack"></div>
   </div>
@@ -953,7 +1036,7 @@ html, body {
     </div>
   </div>
   <div class="onboard-hint onboard-hint-cards" id="hint-cards" style="display:none">
-    <span class="onboard-hint-text">click "run this" on any card to see its 25-year trajectory.</span>
+    <span class="onboard-hint-text">now run each intervention to see what the system does over 25 years. start with your choice — then try the others.</span>
     <span class="onboard-hint-arrow">&#8595;</span>
   </div>
 </div>
@@ -1039,12 +1122,25 @@ html, body {
   </div>
 </div>
 
+<div class="commit-confirm" id="commit-confirm" role="dialog" aria-label="confirm your decision">
+  <div class="commit-confirm-inner">
+    <div class="commit-confirm-title" id="commit-confirm-title"></div>
+    <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention — starting with yours.</div>
+    <div class="commit-confirm-actions">
+      <button class="btn btn-small" id="btn-commit-back" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);">go back</button>
+      <button class="btn btn-small" id="btn-commit-confirm">lock it in</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ────────────────────────────────────────────
 // state
 // ────────────────────────────────────────────
 const state = {
   screen: 'mandate',
+  committed: false,
+  committedId: null,
   interventionsRun: [],
   trajectories: {},
   politicalCapital: 1.0,
@@ -1398,15 +1494,16 @@ function buildCards() {
     const reductionPct = lastVal !== null ? ((1 - lastVal / blLast) * 100).toFixed(0) : null;
 
     const card = document.createElement('div');
-    const isLocked = d.id === 5 && state.interventionsRun.length < 2 && !wasRun;
-    card.className = 'intervention-card' + (wasRun ? ' was-run' : '') + (isLocked ? ' locked' : '');
+    const isLocked = state.committed && d.id === 5 && state.interventionsRun.length < 2 && !wasRun;
+    const isCommitted = state.committedId === d.id;
+    card.className = 'intervention-card' + (wasRun ? ' was-run' : '') + (isLocked ? ' locked' : '') + (isCommitted ? ' committed' : '');
     const detailOpen = state.detailOpen && state.detailOpen[d.id];
     card.innerHTML = `
       ${isLocked ? `<div class="card-lock-overlay"><span class="lock-icon" aria-hidden="true">&#x1F512;</span><span class="lock-tooltip">run at least 2 interventions first</span></div>` : ''}
       <div class="card-header">
         <span class="card-number">${d.id}.</span>
         <span class="card-title">${d.title}</span>
-        <span class="leverage-chip ${d.chipClass}">${d.chip}</span>
+        <span class="leverage-chip ${d.chipClass}">${d.chip}</span>${isCommitted ? '<span class="committed-badge">your choice</span>' : ''}
       </div>
       <div class="card-body">${d.body}</div>
       <button class="card-detail-toggle" data-detail-id="${d.id}" aria-expanded="${detailOpen ? 'true' : 'false'}">${detailOpen ? '− less detail' : '+ more detail'}</button>
@@ -1420,16 +1517,16 @@ function buildCards() {
       </div>
       ${wasRun ? `<div class="card-why open">${d.why}</div>` : ''}
       <div class="card-footer">
-        <span class="card-meta">25-year reduction: ${reductionPct !== null ? `<span class="result-value">~${reductionPct}%</span>` : '—'}</span>
-        <div class="card-btn-row">
-          ${d.id <= 3 ? `
-            <label class="voting-bloc-label ${state.interventionsRun.includes(4) && !state.rechartered ? 'visible' : ''}" aria-label="run with new voting bloc">
-              <input type="checkbox" ${state.withVotingBloc[d.id] ? 'checked' : ''} data-voting-id="${d.id}">
-              <span>with new voting bloc</span>
-            </label>
-          ` : ''}
-          <button class="btn btn-small" data-run-id="${d.id}" ${state.animating || (state.rechartered && d.id === 5) ? 'disabled' : ''} aria-label="run intervention ${d.id}">run this</button>
-        </div>
+        ${state.committed ? `
+          <span class="card-meta">25-year reduction: ${reductionPct !== null ? '<span class="result-value">~' + reductionPct + '%</span>' : '—'}</span>
+          <div class="card-btn-row">
+            ${d.id <= 3 ? '<label class="voting-bloc-label ' + (state.interventionsRun.includes(4) && !state.rechartered ? 'visible' : '') + '" aria-label="run with new voting bloc"><input type="checkbox" ' + (state.withVotingBloc[d.id] ? 'checked' : '') + ' data-voting-id="' + d.id + '"><span>with new voting bloc</span></label>' : ''}
+            <button class="btn btn-small" data-run-id="${d.id}" ${state.animating || (state.rechartered && d.id === 5) ? 'disabled' : ''} aria-label="run intervention ${d.id}">run this</button>
+          </div>
+        ` : `
+          <span class="card-meta"></span>
+          <button class="btn-choose" data-choose-id="${d.id}" aria-label="choose intervention ${d.id}">this is my decision</button>
+        `}
       </div>
     `;
     stack.appendChild(card);
@@ -1458,11 +1555,19 @@ function buildCards() {
     });
   });
 
-  // bind events
+  // bind run buttons (analysis mode)
   stack.querySelectorAll('[data-run-id]').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = parseInt(btn.dataset.runId);
       handleRunIntervention(id);
+    });
+  });
+
+  // bind choose buttons (explore mode)
+  stack.querySelectorAll('[data-choose-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.chooseId);
+      showCommitConfirm(id);
     });
   });
   stack.querySelectorAll('[data-voting-id]').forEach(cb => {
@@ -1745,42 +1850,76 @@ function showScreen(name) {
     setTimeout(initBaselineChart, 50);
   }
   if (name === 'decisions') {
+    updateExploreMode();
     buildCards();
-    if (!chartDecisions) setTimeout(() => updateDecisionsChart(), 50);
-    updatePcMeter(state.politicalCapital);
-    // show onboarding hint on first visit
-    const hintCards = document.getElementById('hint-cards');
-    if (hintCards && !hintCards.dataset.shown && state.interventionsRun.length === 0) {
-      hintCards.style.display = 'flex';
-      hintCards.dataset.shown = '1';
-      setTimeout(() => { hintCards.style.display = 'none'; }, 10000);
-    }
+    if (state.committed && !chartDecisions) setTimeout(() => updateDecisionsChart(), 50);
+    if (state.committed) updatePcMeter(state.politicalCapital);
   }
   if (name === 'pattern') {
     setTimeout(initPatternChart, 50);
   }
 }
 
+function updateExploreMode() {
+  const screen = document.getElementById('screen-decisions');
+  const prompt = document.getElementById('explore-prompt');
+  if (!state.committed) {
+    screen.classList.add('decisions-explore');
+    if (prompt) prompt.style.display = '';
+  } else {
+    screen.classList.remove('decisions-explore');
+    if (prompt) prompt.style.display = 'none';
+  }
+}
+
 function render() {
   if (state.screen === 'decisions') {
     if (!state.animating) buildCards();
-    updatePcMeter(state.politicalCapital);
+    updateExploreMode();
+    if (state.committed) updatePcMeter(state.politicalCapital);
     const patternBtn = document.getElementById('btn-see-pattern');
     if (patternBtn) patternBtn.classList.toggle('visible', state.rechartered);
   }
 }
 
 // ────────────────────────────────────────────
+// commitment flow
+// ────────────────────────────────────────────
+let pendingCommitId = null;
+
+function showCommitConfirm(id) {
+  pendingCommitId = id;
+  const intv = interventionData.find(x => x.id === id);
+  document.getElementById('commit-confirm-title').textContent = 'your decision: "' + intv.title + '"';
+  document.getElementById('commit-confirm').classList.add('visible');
+}
+
+// ────────────────────────────────────────────
 // event bindings
 // ────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-begin').addEventListener('click', () => showScreen('baseline'));
+  document.getElementById('btn-commit-back').addEventListener('click', () => {
+    document.getElementById('commit-confirm').classList.remove('visible');
+    pendingCommitId = null;
+  });
+
+  document.getElementById('btn-commit-confirm').addEventListener('click', () => {
+    document.getElementById('commit-confirm').classList.remove('visible');
+    const id = pendingCommitId;
+    pendingCommitId = null;
+    setState({ committed: true, committedId: id });
+    setTimeout(() => handleRunIntervention(id), 400);
+  });
+
+  document.getElementById('btn-begin').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-decide').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-see-pattern').addEventListener('click', () => showScreen('pattern'));
   document.getElementById('btn-handoff').addEventListener('click', () => showScreen('handoff'));
   document.getElementById('btn-restart').addEventListener('click', () => {
     Object.assign(state, {
       screen: 'mandate',
+      committed: false,
+      committedId: null,
       interventionsRun: [],
       trajectories: {},
       politicalCapital: 1.0,
