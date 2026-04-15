@@ -922,6 +922,81 @@ html, body {
   left: 140px;
 }
 
+/* -- stacked charts (primary + secondary) -- */
+.charts-stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 8px;
+}
+.decisions-chart-wrap {
+  flex: 1 1 auto;
+}
+.secondary-wrap {
+  flex: 0 0 auto;
+  height: 40%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.secondary-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0 4px;
+}
+.secondary-divider-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--sienna);
+  opacity: 0.45;
+}
+.secondary-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.secondary-chart-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+/* -- trade-off follow-up within surprise check -- */
+.tradeoff-wrap {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rule);
+}
+.tradeoff-prompt {
+  font-size: 12px;
+  color: var(--cadet);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* -- trade-off copy inside card-why -- */
+.card-why .tradeoff-line {
+  display: block;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(203, 120, 88, 0.3);
+  font-size: 12px;
+  color: var(--cadet);
+}
+.card-why .tradeoff-line::before {
+  content: 'trade-off: ';
+  font-weight: 700;
+  color: var(--redwood);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
 /* -- teacher's guide link -- */
 .tg-link {
   position: fixed;
@@ -1188,12 +1263,24 @@ html, body {
   </div>
   <div class="decisions-right">
     <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
-    <div class="decisions-chart-wrap">
-      <div class="chart-placeholder" id="chart-placeholder">
-        <span class="chart-placeholder-text">choose an intervention on the left, then hit "run this" to see its trajectory here.</span>
+    <div class="charts-stack">
+      <div class="decisions-chart-wrap">
+        <div class="chart-placeholder" id="chart-placeholder">
+          <span class="chart-placeholder-text">choose an intervention on the left, then hit "run this" to see its trajectory here.</span>
+        </div>
+        <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
+        <div class="endpoint-labels" id="endpoint-labels"></div>
       </div>
-      <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
-      <div class="endpoint-labels" id="endpoint-labels"></div>
+      <div class="secondary-wrap" id="secondary-wrap" aria-hidden="false">
+        <div class="secondary-divider">
+          <span class="secondary-divider-rule" aria-hidden="true"></span>
+          <span class="secondary-label">political capital</span>
+          <span class="secondary-divider-rule" aria-hidden="true"></span>
+        </div>
+        <div class="secondary-chart-wrap">
+          <canvas id="chart-secondary" aria-label="political-capital trajectories chart"></canvas>
+        </div>
+      </div>
     </div>
     <div class="systems-map-wrap" id="systems-map-wrap">
       <svg id="systems-map" viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" aria-label="causal loop diagram of lakeshore emissions system">
@@ -1271,6 +1358,15 @@ html, body {
   <div class="pattern-chart-wrap">
     <canvas id="chart-pattern" aria-label="all five intervention trajectories overlaid, showing increasing effectiveness from parameter-level to paradigm-level changes"></canvas>
   </div>
+  <div class="secondary-divider" style="width:100%;max-width:800px;margin-top:16px;">
+    <span class="secondary-divider-rule" aria-hidden="true"></span>
+    <span class="secondary-label">political capital</span>
+    <span class="secondary-divider-rule" aria-hidden="true"></span>
+  </div>
+  <div class="pattern-chart-wrap" style="height:180px;margin-top:4px;">
+    <canvas id="chart-pattern-secondary" aria-label="political-capital trajectories across all five interventions"></canvas>
+  </div>
+  <div class="pattern-caption" style="margin-top:12px;font-size:13px;">the move that bends the primary the most is rarely the move that protects the secondary. notice which interventions cost what — and which, eventually, pay back more than they cost.</div>
   <div class="pattern-caption">
     the higher you push on the leverage ladder, the more the system bends. the bottom of the ladder produces a sag and a recovery. the top of the ladder produces a structural break.
   </div>
@@ -1296,6 +1392,7 @@ html, body {
     <div class="export-eyebrow">take this with you</div>
     <div class="export-title" id="export-scenario-name">lakeshore college sustainability committee</div>
     <p class="export-mandate" id="export-mandate">bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.</p>
+    <p class="export-mandate" id="export-tradeoff-headline" style="display:none;color:var(--cadet);font-style:normal;font-weight:500;"></p>
 
     <div class="export-section">
       <div class="export-section-label">your committed decision</div>
@@ -1417,7 +1514,20 @@ const state = {
   currentAnimYear: 2025,
   hypothesis: '',
   surprise: {},
+  tradeoffNoticed: {},
   shifted: '',
+};
+
+// ────────────────────────────────────────────
+// secondary stock: political capital
+// ────────────────────────────────────────────
+const SECONDARY = {
+  name: 'political capital',
+  units: 'index',
+  baseline: 1.0,
+  goodDirection: 'up',
+  yMin: 0.4,
+  yMax: 1.5,
 };
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1434,6 +1544,7 @@ function loadReflect() {
     const data = JSON.parse(raw);
     if (typeof data.hypothesis === 'string') state.hypothesis = data.hypothesis;
     if (data.surprise && typeof data.surprise === 'object') state.surprise = data.surprise;
+    if (data.tradeoffNoticed && typeof data.tradeoffNoticed === 'object') state.tradeoffNoticed = data.tradeoffNoticed;
     if (typeof data.shifted === 'string') state.shifted = data.shifted;
   } catch (e) { /* ignore */ }
 }
@@ -1443,6 +1554,7 @@ function saveReflect() {
     sessionStorage.setItem(REFLECT_KEY, JSON.stringify({
       hypothesis: state.hypothesis,
       surprise: state.surprise,
+      tradeoffNoticed: state.tradeoffNoticed,
       shifted: state.shifted,
     }));
   } catch (e) { /* ignore */ }
@@ -1644,6 +1756,51 @@ function computeAllTrajectories() {
 let chartBaseline = null;
 let chartDecisions = null;
 let chartPattern = null;
+let chartSecondary = null;
+let chartPatternSecondary = null;
+
+function makeSecondaryChartOptions() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    scales: {
+      x: {
+        type: 'linear', min: 2025, max: 2050,
+        ticks: { stepSize: 5, color: COLORS.muted, font: { family: "'Inter', sans-serif", size: 10 } },
+        grid: { color: COLORS.rule, drawTicks: false },
+        border: { color: COLORS.rule },
+      },
+      y: {
+        type: 'linear', min: SECONDARY.yMin, max: SECONDARY.yMax,
+        ticks: {
+          color: COLORS.muted, font: { family: "'Inter', sans-serif", size: 10 },
+          callback: (v) => v.toFixed(1),
+        },
+        grid: { color: COLORS.rule, drawTicks: false },
+        border: { color: COLORS.rule },
+        title: {
+          display: true, text: SECONDARY.units, color: COLORS.muted,
+          font: { family: "'Inter', sans-serif", size: 10, weight: '500' },
+        },
+      },
+    },
+    animation: { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' },
+    elements: { point: { radius: 0 }, line: { tension: 0.3 } },
+  };
+}
+
+function makeSecondaryBaselineDataset() {
+  return {
+    label: 'baseline',
+    data: YEARS.map(y => ({ x: y, y: SECONDARY.baseline })),
+    borderColor: COLORS.rule,
+    borderWidth: 1.5,
+    borderDash: [6, 4],
+    pointRadius: 0,
+    order: 9,
+  };
+}
 
 function makeChartOptions(overrides = {}) {
   return {
@@ -1717,6 +1874,7 @@ const interventionData = [
       stakes: '<strong>chair:</strong> easy revenue win. <strong>facilities:</strong> less parking maintenance. <strong>student rep:</strong> hits low-income commuters hardest. <strong>trustee:</strong> minimal risk. <strong>town:</strong> spillover parking on residential streets.',
     },
     why: 'this is a <em>parameter-level</em> change — adjusting a number inside the existing system. the curve sags and partially recovers because the system\'s structure hasn\'t changed. people adapt around price signals. meadows calls this the weakest leverage point: "constants, parameters, numbers."',
+    tradeoff: 'every commuter who pays more is a voter on campus. the committee spends political capital fastest on the move that feels most like punishment, and it buys the least emissions for the spend.',
     mapHighlight: [0, 1],
   },
   {
@@ -1732,6 +1890,7 @@ const interventionData = [
       stakes: '<strong>chair:</strong> largest capital commitment. <strong>facilities:</strong> years of construction disruption. <strong>student rep:</strong> invisible — no one sees a boiler. <strong>trustee:</strong> $45M is endowment-level. <strong>town:</strong> reduces local air pollutants too.',
     },
     why: 'still a <em>parameter-level</em> change, but with a much longer time constant. the 12-year ramp means the committee must sustain political will across multiple leadership cycles. the back-loaded curve is typical of infrastructure: slow to start, powerful once complete. but it\'s still adjusting <em>what flows through</em> the existing system, not the system itself.',
+    tradeoff: 'a decade of capital disruption costs authority the committee needs for everything else. the drop in political capital during the ramp is why most institutions never finish the plan they started.',
     mapHighlight: [0, 2],
   },
   {
@@ -1747,6 +1906,7 @@ const interventionData = [
       stakes: '<strong>chair:</strong> increases construction costs 15–20%. <strong>facilities:</strong> simpler systems, but unfamiliar. <strong>student rep:</strong> visible flagship buildings. <strong>trustee:</strong> higher per-project cost, lower lifecycle cost. <strong>town:</strong> sets a precedent for municipal code.',
     },
     why: 'this is a <em>rules-level</em> change — it changes what is permitted. unlike parameters, rules reshape the <em>structure</em> of future decisions. every building project from now on asks a different question. the curve bends more slowly than a parameter change but doesn\'t rebound, because the rule persists after the committee that made it is gone.',
+    tradeoff: 'a modest cost in political capital during the early cost-overrun years on new projects. rules that bite first, reward later.',
     mapHighlight: [0, 3, 4],
   },
   {
@@ -1762,6 +1922,7 @@ const interventionData = [
       stakes: '<strong>chair:</strong> loses control of capital agenda. <strong>facilities:</strong> may get mandates they didn\'t ask for. <strong>student rep:</strong> <em>gains binding power</em> for the first time. <strong>trustee:</strong> dilution of fiduciary influence. <strong>town:</strong> <em>gains binding power</em> — campus decisions now affect town planning.',
     },
     why: 'this is a deeper <em>rules-level</em> change — it changes <em>who decides</em>, not just what\'s permitted. the curve shows an indirect but compounding effect because every future decision now passes through a different filter. if you\'re playing roles, this is the moment the student rep and town liaison feel the shift — they\'ve just gained real power at the table.',
+    tradeoff: 'the chair loses a lever and spends early political capital to accept the loss. by year two the system has absorbed the new composition; by year five the chair\'s authority is restored at a new equilibrium.',
     mapHighlight: [0, 5, 6],
   },
   {
@@ -1777,9 +1938,29 @@ const interventionData = [
       stakes: '<strong>chair:</strong> accountability expands beyond operations. <strong>facilities:</strong> every maintenance decision becomes a stewardship decision. <strong>student rep:</strong> this is what they came for. <strong>trustee:</strong> fiduciary duty now includes ecological duty. <strong>town:</strong> the institution becomes a watershed partner, not just a neighbour.',
     },
     why: 'this is a <em>paradigm-level</em> change — the highest leverage point. it doesn\'t just change parameters, rules, or even goals. it changes the <em>question</em> every other decision is being asked. the curve drops furthest because every intervention is now multiplied by institutional purpose. meadows: "the power to transcend paradigms" — the system bends because its identity has shifted.',
+    tradeoff: 'a deep early fall in political capital as factions realign — then a recovery above baseline. the re-charter is the only intervention that eventually returns more authority than it spends. for eighteen months, it looks like committee suicide.',
     mapHighlight: [0, 1, 2, 3, 4, 5, 6],
   },
 ];
+
+function hasOppositeTradeoff(id) {
+  // primary is emissions (↓ good); secondary is PC (↑ good)
+  // opposite-direction move = primary down (improvement) while secondary drops (cost)
+  // in lakeshore every non-neutral run costs some PC — but we only surface the follow-up
+  // when the secondary end-value remains below baseline (still a net cost) AND primary improved
+  const traj = state.trajectories[id];
+  const pcHist = state.politicalCapitalHistory[id];
+  if (!traj || !pcHist) return false;
+  const primaryEnd = traj[traj.length - 1];
+  const primaryBaseEnd = baseline[baseline.length - 1];
+  const primaryImproved = primaryEnd < primaryBaseEnd; // emissions down = good
+  const secondaryEnd = pcHist[pcHist.length - 1];
+  const secondaryHarmed = secondaryEnd < SECONDARY.baseline - 0.01; // PC below baseline = cost
+  // Also surface if there's a meaningful mid-run dip even when end recovers
+  const minPc = Math.min(...pcHist);
+  const midDip = minPc < SECONDARY.baseline - 0.12;
+  return primaryImproved && (secondaryHarmed || midDip);
+}
 
 function buildCards() {
   const stack = document.getElementById('card-stack');
@@ -1826,7 +2007,28 @@ function buildCards() {
           </div>
         </div>
       ` : ''}
-      ${wasRun && state.surprise[d.id] ? `<div class="card-why open">${d.why}</div>` : ''}
+      ${wasRun && state.surprise[d.id] ? `<div class="card-why open">${d.why}${d.tradeoff ? '<span class="tradeoff-line">' + d.tradeoff + '</span>' : ''}</div>` : ''}
+      ${wasRun && state.surprise[d.id] && hasOppositeTradeoff(d.id) && !state.tradeoffNoticed[d.id] ? `
+        <div class="tradeoff-wrap">
+          <div class="tradeoff-prompt" id="tradeoff-prompt-${d.id}">notice the second chart — was that trade-off visible to you when you chose?</div>
+          <div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-${d.id}">
+            <button type="button" class="surprise-chip" data-tradeoff-id="${d.id}" data-tradeoff-val="yes" role="radio" aria-pressed="false" tabindex="0">yes</button>
+            <button type="button" class="surprise-chip" data-tradeoff-id="${d.id}" data-tradeoff-val="no" role="radio" aria-pressed="false" tabindex="-1">no</button>
+          </div>
+        </div>
+      ` : ''}
+      ${wasRun && state.surprise[d.id] && hasOppositeTradeoff(d.id) && state.tradeoffNoticed[d.id] ? `
+        <div class="tradeoff-wrap">
+          <div class="tradeoff-prompt" id="tradeoff-prompt-${d.id}">notice the second chart — was that trade-off visible to you when you chose?</div>
+          <div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-${d.id}">
+            ${['yes','no'].map((v,i) => {
+              const chosen = state.tradeoffNoticed[d.id];
+              const isChosen = chosen === v;
+              return `<button type="button" class="surprise-chip" data-tradeoff-id="${d.id}" data-tradeoff-val="${v}" role="radio" aria-pressed="${isChosen ? 'true' : 'false'}" tabindex="${isChosen ? '0' : '-1'}">${v}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
       <div class="card-footer">
         ${state.committed ? `
           <span class="card-meta">25-year reduction: ${reductionPct !== null ? '<span class="result-value">~' + reductionPct + '%</span>' : '—'}</span>
@@ -1911,6 +2113,17 @@ function buildCards() {
           chip.click();
         }
       });
+    });
+  });
+
+  // bind trade-off follow-up chips
+  stack.querySelectorAll('[data-tradeoff-id]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const id = parseInt(chip.dataset.tradeoffId);
+      const val = chip.dataset.tradeoffVal;
+      const newTn = { ...state.tradeoffNoticed, [id]: val };
+      setState({ tradeoffNoticed: newTn });
+      saveReflect();
     });
   });
 
@@ -2047,6 +2260,42 @@ function updateDecisionsChart(highlightId = null) {
       options: makeChartOptions(),
     });
   }
+
+  updateSecondaryChart(highlightId);
+}
+
+function updateSecondaryChart(highlightId = null) {
+  const canvas = document.getElementById('chart-secondary');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const datasets = [makeSecondaryBaselineDataset()];
+
+  state.interventionsRun.forEach(id => {
+    const pcHist = state.politicalCapitalHistory[id];
+    if (!pcHist) return;
+    const isHighlight = id === highlightId;
+    datasets.push({
+      label: 'intervention ' + id,
+      data: YEARS.map((y, i) => ({ x: y, y: pcHist[i] })),
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderWidth: isHighlight ? 2.5 : 1.5,
+      pointRadius: 0,
+      order: isHighlight ? 1 : 5,
+    });
+  });
+
+  if (chartSecondary) {
+    chartSecondary.data.datasets = datasets;
+    chartSecondary.options.animation = { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' };
+    chartSecondary.update();
+  } else {
+    chartSecondary = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: makeSecondaryChartOptions(),
+    });
+  }
 }
 
 function animateDecisionsChart(highlightId) {
@@ -2179,6 +2428,34 @@ function initPatternChart() {
     data: { datasets },
     options: makeChartOptions({ animDuration: 1500 }),
   });
+
+  // secondary pattern chart
+  const sCanvas = document.getElementById('chart-pattern-secondary');
+  if (!sCanvas) return;
+  const sCtx = sCanvas.getContext('2d');
+
+  const allPc = {};
+  for (let i = 1; i <= 4; i++) allPc[i] = runIntervention(i).pcTimeline;
+  allPc[5] = combinedTrajectory().pcTimeline;
+
+  const sDatasets = [makeSecondaryBaselineDataset()];
+  [1, 2, 3, 4, 5].forEach(id => {
+    sDatasets.push({
+      label: 'intervention ' + id,
+      data: YEARS.map((y, i) => ({ x: y, y: allPc[id][i] })),
+      borderColor: getTrajectoryColor(id, true),
+      borderWidth: id === 5 ? 3 : 2,
+      pointRadius: 0,
+      order: id === 5 ? 1 : 5,
+    });
+  });
+
+  if (chartPatternSecondary) chartPatternSecondary.destroy();
+  chartPatternSecondary = new Chart(sCtx, {
+    type: 'line',
+    data: { datasets: sDatasets },
+    options: makeSecondaryChartOptions(),
+  });
 }
 
 // ────────────────────────────────────────────
@@ -2267,17 +2544,30 @@ function buildExportPlainText() {
   lines.push('LAKESHORE COLLEGE SUSTAINABILITY COMMITTEE');
   lines.push('mandate: bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.');
   lines.push('');
+  // trade-off headline
+  const ran = state.interventionsRun;
+  const withOpposite = ran.filter(id => hasOppositeTradeoff(id));
+  const noticed = withOpposite.filter(id => state.tradeoffNoticed[id] === 'yes');
+  if (ran.length > 0) {
+    lines.push('you ran ' + ran.length + ' intervention' + (ran.length === 1 ? '' : 's') + '. ' + withOpposite.length + ' of them improved the primary while damaging the secondary. you noticed ' + noticed.length + ' of those at the time.');
+    lines.push('');
+  }
   const committed = state.committedId ? interventionData.find(x => x.id === state.committedId) : null;
   lines.push('your committed decision: ' + (committed ? committed.title : '(none committed)'));
   lines.push('your hypothesis: ' + (state.hypothesis || '(none recorded)'));
   lines.push('');
-  lines.push('interventions:');
+  lines.push('interventions (primary: emissions tCO2e · secondary: political capital, 1.0 = neutral):');
   interventionData.forEach(d => {
     const traj = state.trajectories[d.id];
+    const pcHist = state.politicalCapitalHistory[d.id];
     const lastVal = traj ? traj[traj.length - 1] : null;
+    const lastPc = pcHist ? pcHist[pcHist.length - 1] : null;
     const surprise = state.surprise[d.id] || 'not run';
-    const valStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO2e' : '—';
-    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + ' — 25-year outcome: ' + valStr);
+    const tn = state.tradeoffNoticed[d.id];
+    const primaryStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO2e' : '—';
+    const secondaryStr = lastPc !== null ? lastPc.toFixed(2) + ' PC' : '—';
+    const tnStr = tn ? ' — trade-off noticed: ' + tn : '';
+    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + tnStr + ' — primary: ' + primaryStr + ' — secondary: ' + secondaryStr);
   });
   lines.push('');
   lines.push('what shifted: ' + (state.shifted || '(blank)'));
@@ -2302,17 +2592,35 @@ function renderExport() {
   list.innerHTML = '';
   interventionData.forEach(d => {
     const traj = state.trajectories[d.id];
+    const pcHist = state.politicalCapitalHistory[d.id];
     const lastVal = traj ? traj[traj.length - 1] : null;
+    const lastPc = pcHist ? pcHist[pcHist.length - 1] : null;
     const surprise = state.surprise[d.id];
+    const tn = state.tradeoffNoticed[d.id];
     const valStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO\u2082e' : '—';
+    const pcStr = lastPc !== null ? 'PC ' + lastPc.toFixed(2) : 'PC —';
     const li = document.createElement('li');
     li.innerHTML = '<span class="export-li-num">' + d.id + '.</span>' +
       '<span class="export-li-title">' + d.title.replace(/</g,'&lt;') + '</span>' +
       '<span class="export-li-tier">' + d.chip + '</span>' +
-      '<span class="export-li-surprise">surprise: ' + (surprise || 'not run') + '</span>' +
-      '<span class="export-li-value">' + valStr + '</span>';
+      '<span class="export-li-surprise">surprise: ' + (surprise || 'not run') + (tn ? ' · trade-off noticed: ' + tn : '') + '</span>' +
+      '<span class="export-li-value">' + valStr + ' · ' + pcStr + '</span>';
     list.appendChild(li);
   });
+
+  // trade-off headline
+  const headlineEl = document.getElementById('export-tradeoff-headline');
+  if (headlineEl) {
+    const ran = state.interventionsRun;
+    const withOpposite = ran.filter(id => hasOppositeTradeoff(id));
+    const noticed = withOpposite.filter(id => state.tradeoffNoticed[id] === 'yes');
+    if (ran.length > 0) {
+      headlineEl.textContent = 'you ran ' + ran.length + ' intervention' + (ran.length === 1 ? '' : 's') + '. ' + withOpposite.length + ' of them improved the primary while damaging the secondary. you noticed ' + noticed.length + ' of those at the time.';
+      headlineEl.style.display = '';
+    } else {
+      headlineEl.style.display = 'none';
+    }
+  }
 
   if (shiftedTa && shiftedTa.value !== state.shifted) {
     shiftedTa.value = state.shifted || '';
@@ -2414,6 +2722,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currentAnimYear: 2025,
       hypothesis: '',
       surprise: {},
+      tradeoffNoticed: {},
       shifted: '',
     });
     clearReflect();
@@ -2422,8 +2731,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const sta = document.getElementById('shifted-textarea');
     if (sta) sta.value = '';
     if (chartDecisions) { chartDecisions.destroy(); chartDecisions = null; }
+    if (chartSecondary) { chartSecondary.destroy(); chartSecondary = null; }
     if (chartBaseline) { chartBaseline.destroy(); chartBaseline = null; }
     if (chartPattern) { chartPattern.destroy(); chartPattern = null; }
+    if (chartPatternSecondary) { chartPatternSecondary.destroy(); chartPatternSecondary = null; }
     document.getElementById('endpoint-labels').innerHTML = '';
     const ph = document.getElementById('chart-placeholder');
     if (ph) ph.classList.remove('hidden');

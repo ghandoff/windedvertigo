@@ -759,6 +759,79 @@ body { min-height: 100vh; }
   .decisions-right { min-height: 50vh; }
 }
 
+/* -- stacked charts -- */
+.charts-stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 8px;
+}
+.decisions-chart-wrap { flex: 1 1 auto; }
+.secondary-wrap {
+  flex: 0 0 auto;
+  height: 38%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.secondary-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0 4px;
+}
+.secondary-divider-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--sienna);
+  opacity: 0.45;
+}
+.secondary-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.secondary-chart-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+/* -- trade-off follow-up within surprise check -- */
+.tradeoff-wrap {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rule);
+}
+.tradeoff-prompt {
+  font-size: 12px;
+  color: var(--cadet);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* -- trade-off copy inside card-why -- */
+.card-why .tradeoff-line {
+  display: block;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(203, 120, 88, 0.3);
+  font-size: 12px;
+  color: var(--cadet);
+}
+.card-why .tradeoff-line::before {
+  content: 'trade-off: ';
+  font-weight: 700;
+  color: var(--redwood);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
 /* -- teacher's guide link -- */
 .tg-link {
   position: fixed;
@@ -1023,12 +1096,24 @@ body { min-height: 100vh; }
   </div>
   <div class="decisions-right">
     <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
-    <div class="decisions-chart-wrap">
-      <div class="chart-placeholder" id="chart-placeholder">
-        <span class="chart-placeholder-text">choose an intervention on the left, then hit "run this" to see its trajectory here.</span>
+    <div class="charts-stack">
+      <div class="decisions-chart-wrap">
+        <div class="chart-placeholder" id="chart-placeholder">
+          <span class="chart-placeholder-text">choose an intervention on the left, then hit "run this" to see its trajectory here.</span>
+        </div>
+        <canvas id="chart-decisions" aria-label="trajectories chart"></canvas>
+        <div class="endpoint-labels" id="endpoint-labels"></div>
       </div>
-      <canvas id="chart-decisions" aria-label="trajectories chart"></canvas>
-      <div class="endpoint-labels" id="endpoint-labels"></div>
+      <div class="secondary-wrap" id="secondary-wrap" aria-hidden="false">
+        <div class="secondary-divider">
+          <span class="secondary-divider-rule" aria-hidden="true"></span>
+          <span class="secondary-label" id="secondary-label"></span>
+          <span class="secondary-divider-rule" aria-hidden="true"></span>
+        </div>
+        <div class="secondary-chart-wrap">
+          <canvas id="chart-secondary" aria-label="secondary stock trajectories chart"></canvas>
+        </div>
+      </div>
     </div>
     <div class="resource-meter-wrap" id="resource-meter-wrap">
       <div class="resource-label" id="resource-label"></div>
@@ -1047,6 +1132,15 @@ body { min-height: 100vh; }
   <div class="pattern-chart-wrap">
     <canvas id="chart-pattern" aria-label="all five intervention trajectories overlaid"></canvas>
   </div>
+  <div class="secondary-divider" id="pattern-secondary-divider" style="width:100%;max-width:800px;margin-top:16px;display:none;">
+    <span class="secondary-divider-rule" aria-hidden="true"></span>
+    <span class="secondary-label" id="pattern-secondary-label"></span>
+    <span class="secondary-divider-rule" aria-hidden="true"></span>
+  </div>
+  <div class="pattern-chart-wrap" id="pattern-secondary-wrap" style="height:180px;margin-top:4px;display:none;">
+    <canvas id="chart-pattern-secondary" aria-label="secondary stock across all five interventions"></canvas>
+  </div>
+  <div class="pattern-caption" id="pattern-tradeoff-line" style="margin-top:12px;font-size:13px;display:none;">the move that bends the primary the most is rarely the move that protects the secondary. notice which interventions cost what.</div>
   <div class="pattern-caption" id="pattern-caption">
     the higher you push on the leverage ladder, the more the system bends. parameter changes produce a dip and a recovery. goal changes produce a structural break.
   </div>
@@ -1072,6 +1166,7 @@ body { min-height: 100vh; }
     <div class="export-eyebrow">take this with you</div>
     <div class="export-title" id="export-scenario-name"></div>
     <p class="export-mandate" id="export-mandate"></p>
+    <p class="export-mandate" id="export-tradeoff-headline" style="display:none;color:var(--cadet);font-style:normal;font-weight:500;"></p>
 
     <div class="export-section">
       <div class="export-section-label">your committed decision</div>
@@ -1885,11 +1980,169 @@ const SCENARIOS = {
 };
 
 // ────────────────────────────────────────────
+// secondary stocks per scenario (phase 2)
+// ────────────────────────────────────────────
+const SCENARIO_SECONDARIES = {
+  committee: {
+    meta: { name: 'faculty workload per cycle', units: 'hours/cycle', baseline: 12, goodDirection: 'down', yMin: 8, yMax: 18 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0.08, polarity: -1 },
+      2: { type: 'parameter', magnitude: 0, polarity: 0 },
+      3: { type: 'parameter', magnitude: 0.17, polarity: -1 },
+      4: { type: 'rules', magnitude: 0.33, polarity: -1 },
+      5: { type: 'goals', magnitude: 0.25, polarity: -1 },
+    },
+    tradeoffs: {
+      1: 'surveys add a form to every cycle. workload rises without a matching rise in trust.',
+      3: 'rotation buys accountability by adding election overhead and chair onboarding.',
+      4: 'required implementation closes the loop — and asks faculty to carry the heaviest new load. trust rebuilds through the added work, not around it.',
+      5: 'stewardship raises engagement and hours at once. the difference is that the hours now feel voluntary.',
+    },
+  },
+  engagement: {
+    meta: { name: 'student participation anxiety', units: '0–100 index', baseline: 52, goodDirection: 'down', yMin: 35, yMax: 70 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0.15, polarity: -1 },
+      2: { type: 'parameter', magnitude: 0.05, polarity: -1 },
+      3: { type: 'parameter', magnitude: 0.05, polarity: -1 },
+      4: { type: 'rules', magnitude: 0.20, polarity: 1 },
+      5: { type: 'goals', magnitude: 0.35, polarity: 1, compoundRate: 0.25 },
+    },
+    tradeoffs: {
+      1: 'points raise the cost of silence. the loudest students get louder; the quietest recalculate.',
+      2: 'a reminder is a small pressure. it compounds for students already primed to fear the cold-call.',
+      3: 'more turns can mean more chances to be caught unprepared, unless the framing shifts.',
+    },
+  },
+  capstone: {
+    meta: { name: 'breadth of student topics', units: 'distinct topics', baseline: 18, goodDirection: 'up', yMin: 8, yMax: 22 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0, polarity: 0 },
+      2: { type: 'parameter', magnitude: 0.10, polarity: -1 },
+      3: { type: 'parameter', magnitude: 0, polarity: 0 },
+      4: { type: 'rules', magnitude: 0.33, polarity: -1 },
+      5: { type: 'goals', magnitude: 0.15, polarity: -1, fn: (t) => 18 * (1 - 0.18 * Math.sin(Math.PI * t)) },
+    },
+    tradeoffs: {
+      2: 'a visible rubric invites rubric-fit. the distribution tightens toward the exemplars.',
+      4: 'external clients raise quality by narrowing what capstone can be about. whose problems count is now on someone else\'s desk.',
+      5: 'publication pressure narrows topic choice early as students play it safe. later cohorts, emboldened by being read back, begin to broaden the field again.',
+    },
+  },
+  churn: {
+    meta: { name: 'revenue per customer', units: 'USD / month', baseline: 80, goodDirection: 'up', yMin: 55, yMax: 95 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0.20, polarity: -1, decayRate: 0 },
+      2: { type: 'parameter', magnitude: 0, polarity: 0 },
+      3: { type: 'parameter', magnitude: 0.05, polarity: -1 },
+      4: { type: 'rules', magnitude: 0.12, polarity: 1 },
+      5: { type: 'goals', magnitude: 0.15, polarity: 1, fn: (t) => 80 * (1 - 0.10 * Math.max(0, 1 - t * 3) + 0.18 * Math.min(1, t * 1.3)) },
+    },
+    tradeoffs: {
+      1: 'the customers stay, but the margin per customer drops by the size of the discount. counting heads can disguise a bleeding ledger.',
+      3: 'support raises retention at the margins and raises cost per customer. the head-count looks better; the unit economics look worse.',
+      5: 'mismatched accounts churn in the short run, then customers willing to pay more arrive. two motions; one chart.',
+    },
+  },
+  burnout: {
+    meta: { name: 'sprint velocity', units: 'points / sprint', baseline: 40, goodDirection: 'up', yMin: 25, yMax: 55 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0, polarity: 0 },
+      2: { type: 'parameter', magnitude: 0.05, polarity: 1 },
+      3: { type: 'parameter', magnitude: 0.15, polarity: 1, decayRate: 0.1 },
+      4: { type: 'rules', magnitude: 0.20, polarity: -1, fn: (t) => 40 * (1 - 0.20 * Math.max(0, 1 - t * 2.5) - 0.05) },
+      5: { type: 'goals', magnitude: 0.10, polarity: -1, fn: (t) => 40 * (1 - 0.08 - 0.04 * Math.max(0, 1 - t * 3)) },
+    },
+    tradeoffs: {
+      3: 'contractors buy velocity short-term. work expands to fill available capacity; the next quarter\'s baseline now assumes them.',
+      4: 'year one looks like a velocity cut. year two shows what the old velocity was actually costing in defects, attrition, and planning accuracy.',
+      5: 'raw story-point velocity drops as the denominator changes. the chart is measuring an old thing during a redefinition of what output is.',
+    },
+  },
+  'supply-chain': {
+    meta: { name: 'procurement cost index', units: '1.00 = baseline', baseline: 1.00, goodDirection: 'down', yMin: 0.95, yMax: 1.10 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0, polarity: 0 },
+      2: { type: 'parameter', magnitude: 0.02, polarity: -1 },
+      3: { type: 'parameter', magnitude: 0.03, polarity: -1, fn: (t) => 1.00 + 0.035 * Math.max(0, 1 - t * 3) + 0.010 },
+      4: { type: 'rules', magnitude: 0.04, polarity: -1 },
+      5: { type: 'goals', magnitude: 0.04, polarity: -1, fn: (t) => 1.00 + 0.06 * Math.max(0, 1 - t * 1.5) + 0.02 * t * (1 - t) },
+    },
+    tradeoffs: {
+      2: 'a 30% audit budget raises unit cost by ~2% via pass-through. verification has a price.',
+      3: 'publishing buys delay-compression in exchange for a brief exposed-supplier premium. the cost lift settles as the market also surfaces cheaper verified options.',
+      4: 'required disclosure commands a supplier premium. the rules-level move is structurally correct and genuinely more expensive.',
+      5: 'the paradigm lift costs most upfront as a new compliant-supplier market forms. by year ten, the premium normalises.',
+    },
+  },
+  fitness: {
+    meta: { name: 'enjoyment of exercise', units: '1–10 scale', baseline: 6.0, goodDirection: 'up', yMin: 4, yMax: 9 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0.05, polarity: 1 },
+      2: { type: 'parameter', magnitude: 0, polarity: 0 },
+      3: { type: 'rules', magnitude: 0.10, polarity: -1 },
+      4: { type: 'rules', magnitude: 0.08, polarity: -1 },
+      5: { type: 'goals', magnitude: 0.40, polarity: 1, compoundRate: 0.15 },
+    },
+    tradeoffs: {
+      3: 'accountability works, but exercise drifts from "something I do" to "something I owe." intrinsic motivation erodes quietly.',
+      4: 'infrastructure beats willpower — at the cost of spontaneity. the week that exercises is also the week that is less playful.',
+    },
+  },
+  sleep: {
+    meta: { name: 'self-reported productivity', units: 'focused hrs/day', baseline: 9.0, goodDirection: 'up', yMin: 6.5, yMax: 10 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0, polarity: 0 },
+      2: { type: 'parameter', magnitude: 0, polarity: 0 },
+      3: { type: 'parameter', magnitude: 0.03, polarity: 1 },
+      4: { type: 'rules', magnitude: 0.15, polarity: -1, fn: (t) => 9.0 * (1 - 0.17 * Math.max(0, 1 - t * 2) + 0.02 * t) },
+      5: { type: 'goals', magnitude: 0.10, polarity: 1 },
+    },
+    tradeoffs: {
+      4: 'for six months, the new bedtime looks like a productivity cut. the chart recovers as quality replaces quantity.',
+      5: 'self-reported hours of focused work drop numerically, but the metric re-anchors. what counts has changed.',
+    },
+  },
+  savings: {
+    meta: { name: 'monthly discretionary spend', units: 'USD', baseline: 400, goodDirection: 'up', yMin: 150, yMax: 450 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0, polarity: 0 },
+      2: { type: 'rules', magnitude: 0.50, polarity: -1 },
+      3: { type: 'parameter', magnitude: 0.10, polarity: 1 },
+      4: { type: 'rules', magnitude: 0.50, polarity: -1 },
+      5: { type: 'goals', magnitude: 0.20, polarity: -1 },
+    },
+    tradeoffs: {
+      2: 'the buffer grows by exactly the amount the present-day life shrinks. the chart shows who paid what.',
+      4: 'structural transfer works because you never see the money. the discretionary line falls anyway — a transfer from present to future self.',
+      5: 'spend falls modestly, but what remains is spent more intentionally. the reframing is not deprivation — it buys something.',
+    },
+  },
+  plastic: {
+    meta: { name: 'staff admin hours', units: 'hrs / week', baseline: 2.0, goodDirection: 'down', yMin: 0, yMax: 4 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0.50, polarity: -1 },
+      2: { type: 'parameter', magnitude: 0.25, polarity: -1 },
+      3: { type: 'parameter', magnitude: 0.75, polarity: -1 },
+      4: { type: 'rules', magnitude: 0.75, polarity: 1 },
+      5: { type: 'goals', magnitude: 0.25, polarity: -1, fn: (t) => 2.0 * (1 + 0.30 * Math.max(0, 1 - t * 2.5) - 0.15 * Math.min(1, t * 1.5)) },
+    },
+    tradeoffs: {
+      1: 'more bins means more collection. the programme gets heavier without the plastic getting lighter.',
+      2: 'campaigns need maintenance. the signage programme is itself a small recurring job.',
+      3: 'reusables arrive with a replacement programme. lost mugs, distribution, coordination — all ongoing.',
+      5: 'the broader goal raises admin across departments before consolidating. scope expands, then settles.',
+    },
+  },
+};
+
+// ────────────────────────────────────────────
 // load scenario from query param
 // ────────────────────────────────────────────
 const params = new URLSearchParams(window.location.search);
 const scenarioSlug = params.get('s');
 const scenario = SCENARIOS[scenarioSlug];
+const secondarySpec = SCENARIO_SECONDARIES[scenarioSlug] || null;
 
 if (!scenario) {
   document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#273248;text-align:center;padding:24px;"><div><h2>scenario not found.</h2><p style="color:#6B7589;margin:16px 0;">the scenario "' + (scenarioSlug || '') + '" doesn\'t exist yet.</p><a href="/portfolio/assets/systems-thinking/" style="color:#CB7858;">back to all scenarios</a></div></div>';
@@ -1920,6 +2173,38 @@ function generateBaseline() {
 }
 
 const baseline = generateBaseline();
+
+function runSecondary(id) {
+  if (!secondarySpec) return null;
+  const meta = secondarySpec.meta;
+  const eff = secondarySpec.interventions[id];
+  if (!eff) return Array(26).fill(meta.baseline);
+  if (eff.fn) return Array.from({ length: 26 }, (_, i) => eff.fn(i / 25));
+  if (eff.polarity === 0 || eff.magnitude === 0) return Array(26).fill(meta.baseline);
+
+  const result = [meta.baseline];
+  const onsetRate = eff.onsetRate ?? (eff.type === 'parameter' ? 4 : eff.type === 'rules' ? 3 : 2);
+  const decayRate = eff.decayRate ?? (eff.type === 'parameter' ? 0.4 : 0);
+  const compoundRate = eff.compoundRate ?? (eff.type === 'goals' ? 0.3 : 0);
+
+  for (let i = 1; i < 26; i++) {
+    const t = i / 25;
+    const onset = eff.type === 'parameter'
+      ? Math.min(1, t * onsetRate)
+      : 1 - Math.exp(-t * onsetRate);
+    let m;
+    if (decayRate > 0) m = eff.magnitude * onset * Math.max(0.2, 1 - t * decayRate);
+    else if (compoundRate > 0) m = eff.magnitude * onset * (1 + t * compoundRate);
+    else m = eff.magnitude * onset;
+
+    // polarity +1 moves the stock toward "good", -1 away from it
+    // goodUp=true: +1 → increase; goodUp=false (↓good): +1 → decrease
+    const goodUp = meta.goodDirection === 'up';
+    const signed = (goodUp ? 1 : -1) * eff.polarity * m;
+    result.push(meta.baseline * (1 + signed));
+  }
+  return result;
+}
 
 function runIntervention(id) {
   const intv = scenario.interventions.find(x => x.id === id);
@@ -1972,12 +2257,14 @@ const state = {
   committedId: null,
   interventionsRun: [],
   trajectories: {},
+  secondaryTrajectories: {},
   detailOpen: {},
   allRun: false,
   animating: false,
   currentAnimYear: 2025,
   hypothesis: '',
   surprise: {},
+  tradeoffNoticed: {},
   shifted: '',
 };
 
@@ -1991,6 +2278,7 @@ function loadReflect() {
     const data = JSON.parse(raw);
     if (typeof data.hypothesis === 'string') state.hypothesis = data.hypothesis;
     if (data.surprise && typeof data.surprise === 'object') state.surprise = data.surprise;
+    if (data.tradeoffNoticed && typeof data.tradeoffNoticed === 'object') state.tradeoffNoticed = data.tradeoffNoticed;
     if (typeof data.shifted === 'string') state.shifted = data.shifted;
   } catch (e) { /* ignore */ }
 }
@@ -1999,6 +2287,7 @@ function saveReflect() {
     sessionStorage.setItem(REFLECT_KEY, JSON.stringify({
       hypothesis: state.hypothesis,
       surprise: state.surprise,
+      tradeoffNoticed: state.tradeoffNoticed,
       shifted: state.shifted,
     }));
   } catch (e) { /* ignore */ }
@@ -2031,6 +2320,20 @@ if (scenario.dominantId && scenario.dominantId !== 5) {
   document.getElementById('pattern-caption').textContent = 'five decisions. one shape — but not the shape you might expect. in this system, the dominant trajectory is a ' + domTier + '-level intervention. the leverage point is where the system\'s structure asks for it, not where the ladder predicts.';
 }
 document.title = scenario.name + ' — systems thinking simulator';
+
+// secondary stock label + pattern-screen reveal
+if (secondarySpec) {
+  const labelEl = document.getElementById('secondary-label');
+  if (labelEl) labelEl.textContent = secondarySpec.meta.name;
+  const patLabelEl = document.getElementById('pattern-secondary-label');
+  if (patLabelEl) patLabelEl.textContent = secondarySpec.meta.name;
+  document.getElementById('pattern-secondary-divider').style.display = '';
+  document.getElementById('pattern-secondary-wrap').style.display = '';
+  document.getElementById('pattern-tradeoff-line').style.display = '';
+} else {
+  const sw = document.getElementById('secondary-wrap');
+  if (sw) sw.style.display = 'none';
+}
 
 // teacher's-guide link target
 const tgLink = document.getElementById('tg-link');
@@ -2128,6 +2431,46 @@ const COLORS = {
 let chartBaseline = null;
 let chartDecisions = null;
 let chartPattern = null;
+let chartSecondary = null;
+let chartPatternSecondary = null;
+
+function makeSecondaryChartOptions() {
+  if (!secondarySpec) return makeChartOptions('');
+  const m = secondarySpec.meta;
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    animation: { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' },
+    scales: {
+      x: {
+        type: 'linear', min: 2025, max: 2050,
+        ticks: { stepSize: 5, color: COLORS.muted, font: { family: 'Inter', size: 10 } },
+        grid: { color: COLORS.rule },
+      },
+      y: {
+        type: 'linear', min: m.yMin, max: m.yMax,
+        ticks: { color: COLORS.muted, font: { family: 'Inter', size: 10 } },
+        grid: { color: COLORS.rule },
+        title: { display: true, text: m.units, color: COLORS.muted, font: { family: 'Inter', size: 10 } },
+      },
+    },
+    elements: { point: { radius: 0 }, line: { tension: 0.3 } },
+  };
+}
+
+function makeSecondaryBaselineDataset() {
+  if (!secondarySpec) return null;
+  return {
+    label: 'baseline',
+    data: YEARS.map(y => ({ x: y, y: secondarySpec.meta.baseline })),
+    borderColor: COLORS.rule,
+    borderWidth: 1.5,
+    borderDash: [6, 4],
+    pointRadius: 0,
+    order: 9,
+  };
+}
 
 function makeChartOptions(yLabel) {
   return {
@@ -2210,6 +2553,42 @@ function updateDecisionsChart(highlightId) {
       options: makeChartOptions(scenario.stockUnit),
     });
   }
+
+  updateSecondaryChart(highlightId);
+}
+
+function updateSecondaryChart(highlightId) {
+  if (!secondarySpec) return;
+  const canvas = document.getElementById('chart-secondary');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const datasets = [makeSecondaryBaselineDataset()];
+  state.interventionsRun.forEach(id => {
+    const traj = state.secondaryTrajectories[id];
+    if (!traj) return;
+    const isHighlight = id === highlightId;
+    datasets.push({
+      label: 'intervention ' + id,
+      data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderWidth: isHighlight ? 2.5 : 1.5,
+      pointRadius: 0,
+      order: isHighlight ? 1 : 5,
+    });
+  });
+
+  if (chartSecondary) {
+    chartSecondary.data.datasets = datasets;
+    chartSecondary.options.animation = { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' };
+    chartSecondary.update();
+  } else {
+    chartSecondary = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: makeSecondaryChartOptions(),
+    });
+  }
 }
 
 function animateDecisionsChart(highlightId) {
@@ -2284,6 +2663,64 @@ function initPatternChart() {
     data: { datasets },
     options: makeChartOptions(scenario.stockUnit),
   });
+
+  if (!secondarySpec) return;
+  const sCanvas = document.getElementById('chart-pattern-secondary');
+  if (!sCanvas) return;
+  const sCtx = sCanvas.getContext('2d');
+  const allSec = {};
+  scenario.interventions.forEach(intv => { allSec[intv.id] = runSecondary(intv.id); });
+  const sDatasets = [makeSecondaryBaselineDataset()];
+  scenario.interventions.forEach(intv => {
+    const isDom = intv.id === domId;
+    sDatasets.push({
+      label: 'intervention ' + intv.id,
+      data: YEARS.map((y, i) => ({ x: y, y: allSec[intv.id][i] })),
+      borderColor: isDom ? COLORS.cadet : getTrajectoryColor(intv.id) + '80',
+      borderWidth: isDom ? 2.5 : 1.5,
+      borderDash: intv.effect.type === 'parameter' && !isDom ? [4, 2] : [],
+      pointRadius: 0,
+      order: isDom ? 1 : 5,
+    });
+  });
+  if (chartPatternSecondary) chartPatternSecondary.destroy();
+  chartPatternSecondary = new Chart(sCtx, {
+    type: 'line',
+    data: { datasets: sDatasets },
+    options: makeSecondaryChartOptions(),
+  });
+}
+
+// ────────────────────────────────────────────
+// trade-off helpers
+// ────────────────────────────────────────────
+function hasOppositeTradeoff(id) {
+  if (!secondarySpec) return false;
+  const traj = state.trajectories[id];
+  const secTraj = state.secondaryTrajectories[id];
+  if (!traj || !secTraj) return false;
+  // primary improvement direction
+  const primaryEnd = traj[traj.length - 1];
+  const primaryStart = baseline[0];
+  const primaryGoodUp = !isStockBad;
+  const primaryImproved = primaryGoodUp ? primaryEnd > primaryStart : primaryEnd < primaryStart;
+  // secondary harmed direction (moved AWAY from good)
+  const secEnd = secTraj[secTraj.length - 1];
+  const secBase = secondarySpec.meta.baseline;
+  const secGoodUp = secondarySpec.meta.goodDirection === 'up';
+  const endHarmed = secGoodUp ? secEnd < secBase * 0.99 : secEnd > secBase * 1.01;
+  // also surface if there's a meaningful mid-run dip even when end recovers
+  const extreme = secGoodUp ? Math.min(...secTraj) : Math.max(...secTraj);
+  const threshold = 0.08; // 8% deviation from baseline
+  const midDip = secGoodUp
+    ? extreme < secBase * (1 - threshold)
+    : extreme > secBase * (1 + threshold);
+  return primaryImproved && (endHarmed || midDip);
+}
+
+function getTradeoffCopy(id) {
+  if (!secondarySpec || !secondarySpec.tradeoffs) return null;
+  return secondarySpec.tradeoffs[id] || null;
 }
 
 // ────────────────────────────────────────────
@@ -2339,7 +2776,16 @@ function buildCards() {
         }).join('');
         return '<div class="surprise-wrap" data-surprise-card="' + d.id + '"><div class="surprise-prompt" id="surprise-prompt-' + d.id + '">did that match what you expected?</div><div class="surprise-chips" role="radiogroup" aria-labelledby="surprise-prompt-' + d.id + '">' + chips + '</div></div>';
       })() : ''}
-      ${wasRun && state.surprise[d.id] ? '<div class="card-why open">' + d.why + '</div>' : ''}
+      ${wasRun && state.surprise[d.id] ? '<div class="card-why open">' + d.why + (getTradeoffCopy(d.id) ? '<span class="tradeoff-line">' + getTradeoffCopy(d.id) + '</span>' : '') + '</div>' : ''}
+      ${wasRun && state.surprise[d.id] && hasOppositeTradeoff(d.id) ? (function() {
+        const chosen = state.tradeoffNoticed[d.id];
+        const chips = ['yes','no'].map((v,i) => {
+          const isChosen = chosen === v;
+          const focusable = chosen ? isChosen : i === 0;
+          return '<button type="button" class="surprise-chip" data-tradeoff-id="' + d.id + '" data-tradeoff-val="' + v + '" role="radio" aria-pressed="' + (isChosen ? 'true' : 'false') + '" tabindex="' + (focusable ? '0' : '-1') + '">' + v + '</button>';
+        }).join('');
+        return '<div class="tradeoff-wrap"><div class="tradeoff-prompt" id="tradeoff-prompt-' + d.id + '">notice the second chart — was that trade-off visible to you when you chose?</div><div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-' + d.id + '">' + chips + '</div></div>';
+      })() : ''}
       <div class="card-footer">
         ${state.committed ? '<span class="card-meta">25-year change: ' + (changePct !== null ? '<span class="result-value">' + (isStockBad ? '−' : '+') + changePct + '%</span>' : '—') + '</span><button class="btn btn-small" data-run-id="' + d.id + '" ' + (state.animating ? 'disabled' : '') + ' aria-label="run intervention ' + d.id + '">run this</button>' : '<span class="card-meta"></span><button class="btn-choose" data-choose-id="' + d.id + '" aria-label="choose intervention ' + d.id + '">this is my decision</button>'}
       </div>
@@ -2383,6 +2829,17 @@ function buildCards() {
     btn.addEventListener('click', () => {
       const id = parseInt(btn.dataset.chooseId);
       showCommitConfirm(id);
+    });
+  });
+
+  // bind trade-off follow-up chips
+  stack.querySelectorAll('[data-tradeoff-id]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const id = parseInt(chip.dataset.tradeoffId);
+      const val = chip.dataset.tradeoffVal;
+      const newTn = { ...state.tradeoffNoticed, [id]: val };
+      setState({ tradeoffNoticed: newTn });
+      saveReflect();
     });
   });
 
@@ -2430,15 +2887,18 @@ function handleRunIntervention(id) {
   if (placeholder) placeholder.classList.add('hidden');
 
   const result = runIntervention(id);
+  const secResult = secondarySpec ? runSecondary(id) : null;
   const newRun = state.interventionsRun.includes(id)
     ? state.interventionsRun
     : [...state.interventionsRun, id];
   const newTraj = { ...state.trajectories, [id]: result };
+  const newSecTraj = secResult ? { ...state.secondaryTrajectories, [id]: secResult } : state.secondaryTrajectories;
   const allRun = newRun.length === 5;
 
   setState({
     interventionsRun: newRun,
     trajectories: newTraj,
+    secondaryTrajectories: newSecTraj,
     allRun,
     animating: true,
   });
@@ -2529,27 +2989,41 @@ function updateHypoUi() {
 // ────────────────────────────────────────────
 // summary export
 // ────────────────────────────────────────────
+function formatStockValue(v, unit) {
+  if (v === null || v === undefined) return '—';
+  const rounded = Math.abs(v) >= 100 ? Math.round(v).toLocaleString() : v.toFixed(2);
+  return rounded + (unit ? ' ' + unit : '');
+}
+
 function buildExportPlainText() {
   const lines = [];
   lines.push(scenario.name.toUpperCase());
   if (scenario.mandate) lines.push('mandate: ' + scenario.mandate);
   lines.push('');
+  const ran = state.interventionsRun;
+  const withOpposite = ran.filter(id => hasOppositeTradeoff(id));
+  const noticed = withOpposite.filter(id => state.tradeoffNoticed[id] === 'yes');
+  if (ran.length > 0 && secondarySpec) {
+    lines.push('you ran ' + ran.length + ' intervention' + (ran.length === 1 ? '' : 's') + '. ' + withOpposite.length + ' of them improved the primary while damaging the secondary. you noticed ' + noticed.length + ' of those at the time.');
+    lines.push('');
+  }
   const committed = state.committedId ? scenario.interventions.find(x => x.id === state.committedId) : null;
   lines.push('your committed decision: ' + (committed ? committed.title : '(none committed)'));
   lines.push('your hypothesis: ' + (state.hypothesis || '(none recorded)'));
   lines.push('');
-  lines.push('interventions:');
+  const secName = secondarySpec ? secondarySpec.meta.name : null;
+  lines.push('interventions (primary: ' + scenario.stock + (secName ? ' · secondary: ' + secName : '') + '):');
   scenario.interventions.forEach(d => {
     const traj = state.trajectories[d.id];
+    const secTraj = state.secondaryTrajectories[d.id];
     const lastVal = traj ? traj[traj.length - 1] : null;
+    const secLast = secTraj ? secTraj[secTraj.length - 1] : null;
     const surprise = state.surprise[d.id] || 'not run';
-    let valStr;
-    if (lastVal === null) valStr = '—';
-    else {
-      const rounded = Math.abs(lastVal) >= 100 ? Math.round(lastVal).toLocaleString() : lastVal.toFixed(1);
-      valStr = rounded + ' ' + (scenario.stockUnit || '');
-    }
-    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + ' — 25-year outcome: ' + valStr);
+    const tn = state.tradeoffNoticed[d.id];
+    const primaryStr = formatStockValue(lastVal, scenario.stockUnit);
+    const secStr = secondarySpec ? ' · secondary: ' + formatStockValue(secLast, secondarySpec.meta.units) : '';
+    const tnStr = tn ? ' — trade-off noticed: ' + tn : '';
+    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + tnStr + ' — primary: ' + primaryStr + secStr);
   });
   lines.push('');
   lines.push('what shifted: ' + (state.shifted || '(blank)'));
@@ -2574,22 +3048,35 @@ function renderExport() {
   list.innerHTML = '';
   scenario.interventions.forEach(d => {
     const traj = state.trajectories[d.id];
+    const secTraj = state.secondaryTrajectories[d.id];
     const lastVal = traj ? traj[traj.length - 1] : null;
+    const secLast = secTraj ? secTraj[secTraj.length - 1] : null;
     const surprise = state.surprise[d.id];
-    let valStr;
-    if (lastVal === null) valStr = '—';
-    else {
-      const rounded = Math.abs(lastVal) >= 100 ? Math.round(lastVal).toLocaleString() : lastVal.toFixed(1);
-      valStr = rounded + ' ' + (scenario.stockUnit || '');
-    }
+    const tn = state.tradeoffNoticed[d.id];
+    const valStr = formatStockValue(lastVal, scenario.stockUnit);
+    const secStr = secondarySpec ? ' · ' + formatStockValue(secLast, secondarySpec.meta.units) : '';
     const li = document.createElement('li');
     li.innerHTML = '<span class="export-li-num">' + d.id + '.</span>' +
       '<span class="export-li-title">' + d.title.replace(/</g,'&lt;') + '</span>' +
       '<span class="export-li-tier">' + d.chip + '</span>' +
-      '<span class="export-li-surprise">surprise: ' + (surprise || 'not run') + '</span>' +
-      '<span class="export-li-value">' + valStr + '</span>';
+      '<span class="export-li-surprise">surprise: ' + (surprise || 'not run') + (tn ? ' · trade-off noticed: ' + tn : '') + '</span>' +
+      '<span class="export-li-value">' + valStr + secStr + '</span>';
     list.appendChild(li);
   });
+
+  // trade-off headline
+  const headlineEl = document.getElementById('export-tradeoff-headline');
+  if (headlineEl) {
+    const ran = state.interventionsRun;
+    const withOpposite = ran.filter(id => hasOppositeTradeoff(id));
+    const noticed = withOpposite.filter(id => state.tradeoffNoticed[id] === 'yes');
+    if (ran.length > 0 && secondarySpec) {
+      headlineEl.textContent = 'you ran ' + ran.length + ' intervention' + (ran.length === 1 ? '' : 's') + '. ' + withOpposite.length + ' of them improved the primary while damaging the secondary. you noticed ' + noticed.length + ' of those at the time.';
+      headlineEl.style.display = '';
+    } else {
+      headlineEl.style.display = 'none';
+    }
+  }
 
   if (shiftedTa && shiftedTa.value !== state.shifted) {
     shiftedTa.value = state.shifted || '';
@@ -2685,12 +3172,14 @@ document.getElementById('btn-restart').addEventListener('click', () => {
     committedId: null,
     interventionsRun: [],
     trajectories: {},
+    secondaryTrajectories: {},
     detailOpen: {},
     allRun: false,
     animating: false,
     currentAnimYear: 2025,
     hypothesis: '',
     surprise: {},
+    tradeoffNoticed: {},
     shifted: '',
   });
   clearReflect();
@@ -2699,8 +3188,10 @@ document.getElementById('btn-restart').addEventListener('click', () => {
   const sta = document.getElementById('shifted-textarea');
   if (sta) sta.value = '';
   if (chartDecisions) { chartDecisions.destroy(); chartDecisions = null; }
+  if (chartSecondary) { chartSecondary.destroy(); chartSecondary = null; }
   if (chartBaseline) { chartBaseline.destroy(); chartBaseline = null; }
   if (chartPattern) { chartPattern.destroy(); chartPattern = null; }
+  if (chartPatternSecondary) { chartPatternSecondary.destroy(); chartPatternSecondary = null; }
   document.getElementById('endpoint-labels').innerHTML = '';
   const ph = document.getElementById('chart-placeholder');
   if (ph) ph.classList.remove('hidden');
