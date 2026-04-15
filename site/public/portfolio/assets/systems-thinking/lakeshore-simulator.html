@@ -921,12 +921,236 @@ html, body {
   top: 72px;
   left: 140px;
 }
+
+/* -- teacher's guide link -- */
+.tg-link {
+  position: fixed;
+  top: 28px;
+  right: 24px;
+  z-index: 100;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--redwood);
+  text-decoration: none;
+  letter-spacing: 0;
+}
+.tg-link:hover { text-decoration: underline; }
+.tg-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* -- hypothesis textarea inside commit-confirm -- */
+.hypo-wrap { text-align: left; margin-bottom: 24px; }
+.hypo-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+.hypo-textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+}
+.hypo-textarea:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 1px;
+}
+.hypo-textarea::placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+.hypo-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.hypo-counter.over { color: var(--redwood); }
+
+/* -- surprise check -- */
+.surprise-wrap {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(39, 50, 72, 0.04);
+  border-left: 2px solid var(--cadet);
+}
+.surprise-prompt {
+  font-size: 12px;
+  color: var(--cadet);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.surprise-chips {
+  display: flex;
+  gap: 6px;
+}
+.surprise-chip {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: none;
+  border: 1.5px solid var(--cadet);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.surprise-chip:hover { background: var(--cadet); color: var(--champagne); }
+.surprise-chip:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.surprise-chip[aria-pressed="true"] {
+  background: var(--cadet);
+  color: var(--champagne);
+}
+
+/* -- summary export -- */
+.export-wrap {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 32px;
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 24px;
+}
+.export-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 8px;
+}
+.export-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 4px;
+}
+.export-mandate {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.export-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.export-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.export-section p { font-size: 13px; color: var(--cadet); line-height: 1.55; }
+.export-section em { color: var(--muted); font-style: italic; }
+.export-list { list-style: none; padding: 0; margin: 0; }
+.export-list li {
+  font-size: 12px;
+  color: var(--cadet);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+.export-list li:last-child { border-bottom: none; }
+.export-li-num { font-weight: 700; min-width: 18px; }
+.export-li-title { flex: 1 1 200px; }
+.export-li-tier {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: rgba(203, 120, 88, 0.15);
+  color: var(--sienna);
+}
+.export-li-surprise { font-style: italic; color: var(--muted); }
+.export-li-value { font-variant-numeric: tabular-nums; color: var(--cadet); font-weight: 600; }
+.shifted-textarea {
+  width: 100%;
+  min-height: 56px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--champagne);
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  margin-top: 6px;
+}
+.shifted-textarea:focus-visible { outline: 3px solid #3B82F6; outline-offset: 1px; }
+.export-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.export-toast {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--sienna);
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.export-toast.visible { opacity: 1; }
+
+/* -- print: only summary export, fits A4 -- */
+@media print {
+  @page { size: A4; margin: 18mm; }
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  body * { visibility: hidden !important; }
+  #reflection-export, #reflection-export * { visibility: visible !important; }
+  #reflection-export {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    background: #fff !important;
+    border: none !important;
+    padding: 0 !important;
+    font-size: 11pt;
+    color: #000 !important;
+  }
+  #reflection-export .export-eyebrow,
+  #reflection-export .export-title,
+  #reflection-export .export-section-label { color: #273248 !important; }
+  #reflection-export .export-actions { display: none !important; }
+  #reflection-export .shifted-textarea {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+  }
+}
 </style>
 </head>
 <body>
 
 <!-- wordmark -->
 <div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<a class="tg-link" href="/portfolio/assets/systems-thinking/teacher-guides/lakeshore.html" target="_blank" rel="noopener" aria-label="open teacher's guide for lakeshore in a new tab">teacher's guide &rarr;</a>
 
 <!-- screen 1: mandate -->
 <div id="screen-mandate" class="screen screen-mandate active" role="region" aria-label="the mandate">
@@ -1067,6 +1291,39 @@ html, body {
   <div class="calibration-note">
     note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual emissions. the relative ordering of interventions — not the absolute numbers — is the lesson.
   </div>
+
+  <section class="export-wrap" id="reflection-export" aria-label="take this with you">
+    <div class="export-eyebrow">take this with you</div>
+    <div class="export-title" id="export-scenario-name">lakeshore college sustainability committee</div>
+    <p class="export-mandate" id="export-mandate">bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.</p>
+
+    <div class="export-section">
+      <div class="export-section-label">your committed decision</div>
+      <p id="export-committed-title"><em>none committed.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">your hypothesis</div>
+      <p id="export-hypothesis"><em>none recorded.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">interventions</div>
+      <ul class="export-list" id="export-interventions"></ul>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label"><label for="shifted-textarea">one sentence — what shifted?</label></div>
+      <textarea id="shifted-textarea" class="shifted-textarea" maxlength="280" rows="2" placeholder="what changed in how you saw the system?"></textarea>
+    </div>
+
+    <div class="export-actions">
+      <button class="btn btn-small" id="btn-export-pdf" aria-label="download as pdf">download as pdf</button>
+      <button class="btn btn-small" id="btn-export-copy" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);" aria-label="copy summary to clipboard">copy to clipboard</button>
+      <span class="export-toast" id="export-toast" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
   <div class="pattern-btn-wrap">
     <button class="btn" id="btn-handoff" aria-label="what does this mean for us?">what does this mean for us?</button>
   </div>
@@ -1126,9 +1383,17 @@ html, body {
   <div class="commit-confirm-inner">
     <div class="commit-confirm-title" id="commit-confirm-title"></div>
     <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention — starting with yours.</div>
+    <div class="hypo-wrap">
+      <label class="hypo-label" for="hypo-textarea">one sentence — I chose this because I think the bottleneck is&hellip;</label>
+      <textarea id="hypo-textarea" class="hypo-textarea" maxlength="240" rows="3" placeholder="e.g., price, trust, how we measure success, who gets to decide&hellip;" aria-describedby="hypo-counter"></textarea>
+      <div class="hypo-meta">
+        <span><span id="hypo-counter">0</span>&thinsp;/&thinsp;240</span>
+        <span id="hypo-hint">at least 10 characters.</span>
+      </div>
+    </div>
     <div class="commit-confirm-actions">
       <button class="btn btn-small" id="btn-commit-back" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);">go back</button>
-      <button class="btn btn-small" id="btn-commit-confirm">lock it in</button>
+      <button class="btn btn-small" id="btn-commit-confirm" disabled>lock it in</button>
     </div>
   </div>
 </div>
@@ -1150,9 +1415,42 @@ const state = {
   rechartered: false,
   animating: false,
   currentAnimYear: 2025,
+  hypothesis: '',
+  surprise: {},
+  shifted: '',
 };
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ────────────────────────────────────────────
+// session persistence (reflective prompts)
+// ────────────────────────────────────────────
+const REFLECT_KEY = 'st-lakeshore-reflect';
+
+function loadReflect() {
+  try {
+    const raw = sessionStorage.getItem(REFLECT_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (typeof data.hypothesis === 'string') state.hypothesis = data.hypothesis;
+    if (data.surprise && typeof data.surprise === 'object') state.surprise = data.surprise;
+    if (typeof data.shifted === 'string') state.shifted = data.shifted;
+  } catch (e) { /* ignore */ }
+}
+
+function saveReflect() {
+  try {
+    sessionStorage.setItem(REFLECT_KEY, JSON.stringify({
+      hypothesis: state.hypothesis,
+      surprise: state.surprise,
+      shifted: state.shifted,
+    }));
+  } catch (e) { /* ignore */ }
+}
+
+function clearReflect() {
+  try { sessionStorage.removeItem(REFLECT_KEY); } catch (e) { /* ignore */ }
+}
 
 function setState(patch) {
   Object.assign(state, patch);
@@ -1515,7 +1813,20 @@ function buildCards() {
           <dt>at the table</dt><dd>${d.detail.stakes}</dd>
         </dl>
       </div>
-      ${wasRun ? `<div class="card-why open">${d.why}</div>` : ''}
+      ${wasRun ? `
+        <div class="surprise-wrap" data-surprise-card="${d.id}">
+          <div class="surprise-prompt" id="surprise-prompt-${d.id}">did that match what you expected?</div>
+          <div class="surprise-chips" role="radiogroup" aria-labelledby="surprise-prompt-${d.id}">
+            ${['yes', 'sort of', 'no'].map((v, i) => {
+              const chosen = state.surprise[d.id];
+              const isChosen = chosen === v;
+              const isFirstFocusable = chosen ? isChosen : i === 0;
+              return `<button type="button" class="surprise-chip" data-surprise-id="${d.id}" data-surprise-val="${v}" role="radio" aria-pressed="${isChosen ? 'true' : 'false'}" tabindex="${isFirstFocusable ? '0' : '-1'}">${v}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+      ${wasRun && state.surprise[d.id] ? `<div class="card-why open">${d.why}</div>` : ''}
       <div class="card-footer">
         ${state.committed ? `
           <span class="card-meta">25-year reduction: ${reductionPct !== null ? '<span class="result-value">~' + reductionPct + '%</span>' : '—'}</span>
@@ -1570,6 +1881,39 @@ function buildCards() {
       showCommitConfirm(id);
     });
   });
+  // bind surprise chips
+  stack.querySelectorAll('.surprise-chips').forEach(group => {
+    const chips = Array.from(group.querySelectorAll('.surprise-chip'));
+    chips.forEach((chip, idx) => {
+      chip.addEventListener('click', () => {
+        const id = parseInt(chip.dataset.surpriseId);
+        const val = chip.dataset.surpriseVal;
+        chips.forEach(c => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
+        const newSurprise = { ...state.surprise, [id]: val };
+        setState({ surprise: newSurprise });
+        saveReflect();
+      });
+      chip.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = chips[(idx + 1) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          next.setAttribute('tabindex', '0');
+          next.focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prev = chips[(idx - 1 + chips.length) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          prev.setAttribute('tabindex', '0');
+          prev.focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          chip.click();
+        }
+      });
+    });
+  });
+
   stack.querySelectorAll('[data-voting-id]').forEach(cb => {
     cb.addEventListener('change', (e) => {
       const id = parseInt(cb.dataset.votingId);
@@ -1857,6 +2201,7 @@ function showScreen(name) {
   }
   if (name === 'pattern') {
     setTimeout(initPatternChart, 50);
+    renderExport();
   }
 }
 
@@ -1891,25 +2236,163 @@ function showCommitConfirm(id) {
   pendingCommitId = id;
   const intv = interventionData.find(x => x.id === id);
   document.getElementById('commit-confirm-title').textContent = 'your decision: "' + intv.title + '"';
+  const ta = document.getElementById('hypo-textarea');
+  if (ta) {
+    ta.value = state.hypothesis || '';
+    updateHypoUi();
+    setTimeout(() => ta.focus(), 50);
+  }
   document.getElementById('commit-confirm').classList.add('visible');
+}
+
+function updateHypoUi() {
+  const ta = document.getElementById('hypo-textarea');
+  const counter = document.getElementById('hypo-counter');
+  const hint = document.getElementById('hypo-hint');
+  const btn = document.getElementById('btn-commit-confirm');
+  if (!ta || !btn) return;
+  const len = ta.value.length;
+  const trimmedLen = ta.value.trim().length;
+  if (counter) counter.textContent = String(len);
+  if (counter) counter.classList.toggle('over', len >= 240);
+  if (hint) hint.textContent = trimmedLen >= 10 ? '\u00A0' : 'at least 10 characters.';
+  btn.disabled = trimmedLen < 10;
+}
+
+// ────────────────────────────────────────────
+// summary export
+// ────────────────────────────────────────────
+function buildExportPlainText() {
+  const lines = [];
+  lines.push('LAKESHORE COLLEGE SUSTAINABILITY COMMITTEE');
+  lines.push('mandate: bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.');
+  lines.push('');
+  const committed = state.committedId ? interventionData.find(x => x.id === state.committedId) : null;
+  lines.push('your committed decision: ' + (committed ? committed.title : '(none committed)'));
+  lines.push('your hypothesis: ' + (state.hypothesis || '(none recorded)'));
+  lines.push('');
+  lines.push('interventions:');
+  interventionData.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const surprise = state.surprise[d.id] || 'not run';
+    const valStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO2e' : '—';
+    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + ' — 25-year outcome: ' + valStr);
+  });
+  lines.push('');
+  lines.push('what shifted: ' + (state.shifted || '(blank)'));
+  return lines.join('\n');
+}
+
+function renderExport() {
+  const titleEl = document.getElementById('export-committed-title');
+  const hypoEl = document.getElementById('export-hypothesis');
+  const list = document.getElementById('export-interventions');
+  const shiftedTa = document.getElementById('shifted-textarea');
+  if (!list) return;
+
+  if (state.committedId) {
+    const c = interventionData.find(x => x.id === state.committedId);
+    titleEl.innerHTML = c ? c.title : '<em>none committed.</em>';
+  } else {
+    titleEl.innerHTML = '<em>none committed.</em>';
+  }
+  hypoEl.innerHTML = state.hypothesis ? state.hypothesis.replace(/&/g,'&amp;').replace(/</g,'&lt;') : '<em>none recorded.</em>';
+
+  list.innerHTML = '';
+  interventionData.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const surprise = state.surprise[d.id];
+    const valStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO\u2082e' : '—';
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="export-li-num">' + d.id + '.</span>' +
+      '<span class="export-li-title">' + d.title.replace(/</g,'&lt;') + '</span>' +
+      '<span class="export-li-tier">' + d.chip + '</span>' +
+      '<span class="export-li-surprise">surprise: ' + (surprise || 'not run') + '</span>' +
+      '<span class="export-li-value">' + valStr + '</span>';
+    list.appendChild(li);
+  });
+
+  if (shiftedTa && shiftedTa.value !== state.shifted) {
+    shiftedTa.value = state.shifted || '';
+  }
 }
 
 // ────────────────────────────────────────────
 // event bindings
 // ────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  loadReflect();
+
+  const hypoTa = document.getElementById('hypo-textarea');
+  if (hypoTa) {
+    hypoTa.addEventListener('input', () => {
+      state.hypothesis = hypoTa.value;
+      updateHypoUi();
+      saveReflect();
+    });
+    updateHypoUi();
+  }
+
   document.getElementById('btn-commit-back').addEventListener('click', () => {
     document.getElementById('commit-confirm').classList.remove('visible');
     pendingCommitId = null;
   });
 
   document.getElementById('btn-commit-confirm').addEventListener('click', () => {
+    if (state.hypothesis.trim().length < 10) return;
     document.getElementById('commit-confirm').classList.remove('visible');
     const id = pendingCommitId;
     pendingCommitId = null;
     setState({ committed: true, committedId: id });
     setTimeout(() => handleRunIntervention(id), 400);
   });
+
+  // shifted textarea (export)
+  const shiftedTa = document.getElementById('shifted-textarea');
+  if (shiftedTa) {
+    shiftedTa.value = state.shifted || '';
+    shiftedTa.addEventListener('input', () => {
+      state.shifted = shiftedTa.value;
+      saveReflect();
+    });
+  }
+
+  // export buttons
+  const btnPdf = document.getElementById('btn-export-pdf');
+  if (btnPdf) btnPdf.addEventListener('click', () => window.print());
+
+  const btnCopy = document.getElementById('btn-export-copy');
+  const toast = document.getElementById('export-toast');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', async () => {
+      const txt = buildExportPlainText();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(txt);
+        } else {
+          const tmp = document.createElement('textarea');
+          tmp.value = txt;
+          document.body.appendChild(tmp);
+          tmp.select();
+          document.execCommand('copy');
+          document.body.removeChild(tmp);
+        }
+        if (toast) {
+          toast.textContent = 'copied.';
+          toast.classList.add('visible');
+          setTimeout(() => toast.classList.remove('visible'), 1800);
+        }
+      } catch (e) {
+        if (toast) {
+          toast.textContent = 'copy failed.';
+          toast.classList.add('visible');
+          setTimeout(() => toast.classList.remove('visible'), 1800);
+        }
+      }
+    });
+  }
 
   document.getElementById('btn-begin').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-decide').addEventListener('click', () => showScreen('decisions'));
@@ -1929,7 +2412,15 @@ document.addEventListener('DOMContentLoaded', () => {
       rechartered: false,
       animating: false,
       currentAnimYear: 2025,
+      hypothesis: '',
+      surprise: {},
+      shifted: '',
     });
+    clearReflect();
+    const ta = document.getElementById('hypo-textarea');
+    if (ta) { ta.value = ''; updateHypoUi(); }
+    const sta = document.getElementById('shifted-textarea');
+    if (sta) sta.value = '';
     if (chartDecisions) { chartDecisions.destroy(); chartDecisions = null; }
     if (chartBaseline) { chartBaseline.destroy(); chartBaseline = null; }
     if (chartPattern) { chartPattern.destroy(); chartPattern = null; }

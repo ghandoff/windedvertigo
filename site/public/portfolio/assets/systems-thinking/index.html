@@ -333,6 +333,50 @@ body {
   outline: 3px solid #3B82F6;
   outline-offset: 2px;
 }
+
+/* -- teacher's guide links -- */
+.scenario-tg {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-decoration: none;
+}
+.scenario-tg:hover { color: var(--redwood); text-decoration: underline; }
+.scenario-tg:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+.landing-secondary {
+  margin-top: 16px;
+}
+.landing-secondary a {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--redwood);
+  text-decoration: none;
+}
+.landing-secondary a:hover { text-decoration: underline; }
+.landing-secondary a:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+.scenarios-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.for-teachers-link {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--redwood);
+  text-decoration: none;
+}
+.for-teachers-link:hover { text-decoration: underline; }
+.for-teachers-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -370,6 +414,7 @@ body {
       </ol>
     </div>
     <button class="btn" id="btn-scenarios" aria-label="choose a scenario">choose a scenario</button>
+    <div class="landing-secondary"><a href="/portfolio/assets/systems-thinking/teacher-guides/index.html">for teachers &rarr;</a></div>
     <div class="landing-footer">w.v × prme · ppcs 2026</div>
   </div>
 </div>
@@ -380,6 +425,9 @@ body {
     <button class="back-link" id="btn-back-landing" aria-label="back to introduction">&larr; back</button>
     <div class="scenarios-title">choose a scenario</div>
     <div class="scenarios-headline">ten scenarios. ten stocks. one pattern.</div>
+    <div class="scenarios-meta" style="justify-content:center;">
+      <a class="for-teachers-link" href="/portfolio/assets/systems-thinking/teacher-guides/index.html">for teachers &rarr;</a>
+    </div>
     <div class="scenario-grid">
       <!-- anchor: Lakeshore (live, full model) -->
       <div class="scenario-card">
@@ -393,6 +441,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/lakeshore.html" aria-label="open teacher's guide for lakeshore college">teacher's guide</a>
       </div>
       <!-- 1. Committee -->
       <div class="scenario-card">
@@ -406,6 +455,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=committee" aria-label="play committee scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/committee.html" aria-label="open teacher's guide for committee scenario">teacher's guide</a>
       </div>
       <!-- 2. Student Engagement -->
       <div class="scenario-card">
@@ -419,6 +469,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=engagement" aria-label="play student engagement scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/engagement.html" aria-label="open teacher's guide for student engagement scenario">teacher's guide</a>
       </div>
       <!-- 3. Capstone Quality -->
       <div class="scenario-card">
@@ -432,6 +483,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=capstone" aria-label="play capstone quality scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/capstone.html" aria-label="open teacher's guide for capstone quality scenario">teacher's guide</a>
       </div>
       <!-- 4. SaaS Churn -->
       <div class="scenario-card">
@@ -445,6 +497,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=churn" aria-label="play saas churn scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/churn.html" aria-label="open teacher's guide for saas churn scenario">teacher's guide</a>
       </div>
       <!-- 5. Team Burnout -->
       <div class="scenario-card">
@@ -458,6 +511,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=burnout" aria-label="play team burnout scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/burnout.html" aria-label="open teacher's guide for team burnout scenario">teacher's guide</a>
       </div>
       <!-- 6. Supply Chain -->
       <div class="scenario-card">
@@ -471,6 +525,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=supply-chain" aria-label="play supply chain scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/supply-chain.html" aria-label="open teacher's guide for supply chain scenario">teacher's guide</a>
       </div>
       <!-- 7. Fitness -->
       <div class="scenario-card">
@@ -484,6 +539,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=fitness" aria-label="play fitness scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/fitness.html" aria-label="open teacher's guide for fitness scenario">teacher's guide</a>
       </div>
       <!-- 8. Sleep Debt -->
       <div class="scenario-card">
@@ -497,6 +553,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=sleep" aria-label="play sleep debt scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/sleep.html" aria-label="open teacher's guide for sleep debt scenario">teacher's guide</a>
       </div>
       <!-- 9. Personal Savings -->
       <div class="scenario-card">
@@ -510,6 +567,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=savings" aria-label="play personal savings scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/savings.html" aria-label="open teacher's guide for personal savings scenario">teacher's guide</a>
       </div>
       <!-- 10. Office Plastic -->
       <div class="scenario-card">
@@ -523,6 +581,7 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=plastic" aria-label="play office plastic scenario">play</a>
         </div>
+        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/plastic.html" aria-label="open teacher's guide for office plastic scenario">teacher's guide</a>
       </div>
     </div>
   </div>

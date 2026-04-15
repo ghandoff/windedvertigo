@@ -758,11 +758,230 @@ body { min-height: 100vh; }
   .decisions-left { width: 100%; border-right: none; border-bottom: 1px solid var(--rule); max-height: 50vh; }
   .decisions-right { min-height: 50vh; }
 }
+
+/* -- teacher's guide link -- */
+.tg-link {
+  position: fixed;
+  top: 28px;
+  right: 24px;
+  z-index: 100;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--redwood);
+  text-decoration: none;
+}
+.tg-link:hover { text-decoration: underline; }
+.tg-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* -- hypothesis textarea -- */
+.hypo-wrap { text-align: left; margin-bottom: 24px; }
+.hypo-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+.hypo-textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+}
+.hypo-textarea:focus-visible { outline: 3px solid #3B82F6; outline-offset: 1px; }
+.hypo-textarea::placeholder { color: var(--muted); font-style: italic; }
+.hypo-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.hypo-counter.over { color: var(--redwood); }
+
+/* -- surprise check -- */
+.surprise-wrap {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(39, 50, 72, 0.04);
+  border-left: 2px solid var(--cadet);
+}
+.surprise-prompt {
+  font-size: 12px;
+  color: var(--cadet);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.surprise-chips { display: flex; gap: 6px; }
+.surprise-chip {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: none;
+  border: 1.5px solid var(--cadet);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.surprise-chip:hover { background: var(--cadet); color: var(--champagne); }
+.surprise-chip:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.surprise-chip[aria-pressed="true"] {
+  background: var(--cadet);
+  color: var(--champagne);
+}
+
+/* override card-why default to hide unless we open it ourselves */
+.intervention-card .card-why { max-height: 0; padding: 0 12px; }
+.intervention-card .card-why.open { max-height: 300px; padding: 12px; }
+
+/* -- summary export -- */
+.export-wrap {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 32px;
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 24px;
+}
+.export-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 8px;
+}
+.export-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 4px;
+}
+.export-mandate {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.export-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.export-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.export-section p { font-size: 13px; color: var(--cadet); line-height: 1.55; }
+.export-section em { color: var(--muted); font-style: italic; }
+.export-list { list-style: none; padding: 0; margin: 0; }
+.export-list li {
+  font-size: 12px;
+  color: var(--cadet);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+.export-list li:last-child { border-bottom: none; }
+.export-li-num { font-weight: 700; min-width: 18px; }
+.export-li-title { flex: 1 1 200px; }
+.export-li-tier {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: rgba(203, 120, 88, 0.15);
+  color: var(--sienna);
+}
+.export-li-surprise { font-style: italic; color: var(--muted); }
+.export-li-value { font-variant-numeric: tabular-nums; color: var(--cadet); font-weight: 600; }
+.shifted-textarea {
+  width: 100%;
+  min-height: 56px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--champagne);
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  margin-top: 6px;
+}
+.shifted-textarea:focus-visible { outline: 3px solid #3B82F6; outline-offset: 1px; }
+.export-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.export-toast {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--sienna);
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.export-toast.visible { opacity: 1; }
+
+/* -- print -- */
+@media print {
+  @page { size: A4; margin: 18mm; }
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  body * { visibility: hidden !important; }
+  #reflection-export, #reflection-export * { visibility: visible !important; }
+  #reflection-export {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    background: #fff !important;
+    border: none !important;
+    padding: 0 !important;
+    font-size: 11pt;
+    color: #000 !important;
+  }
+  #reflection-export .export-eyebrow,
+  #reflection-export .export-title,
+  #reflection-export .export-section-label { color: #273248 !important; }
+  #reflection-export .export-actions { display: none !important; }
+  #reflection-export .shifted-textarea {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+  }
+}
 </style>
 </head>
 <body>
 
 <div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<a class="tg-link" id="tg-link" href="#" target="_blank" rel="noopener" aria-label="open teacher's guide in a new tab">teacher's guide &rarr;</a>
 
 <!-- screen 1: mandate -->
 <div id="screen-mandate" class="screen active screen-mandate" role="region" aria-label="the mandate">
@@ -848,6 +1067,39 @@ body { min-height: 100vh; }
   <div class="calibration-note">
     note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual outcomes. the relative ordering of interventions — not the absolute numbers — is the lesson.
   </div>
+
+  <section class="export-wrap" id="reflection-export" aria-label="take this with you">
+    <div class="export-eyebrow">take this with you</div>
+    <div class="export-title" id="export-scenario-name"></div>
+    <p class="export-mandate" id="export-mandate"></p>
+
+    <div class="export-section">
+      <div class="export-section-label">your committed decision</div>
+      <p id="export-committed-title"><em>none committed.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">your hypothesis</div>
+      <p id="export-hypothesis"><em>none recorded.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">interventions</div>
+      <ul class="export-list" id="export-interventions"></ul>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label"><label for="shifted-textarea">one sentence — what shifted?</label></div>
+      <textarea id="shifted-textarea" class="shifted-textarea" maxlength="280" rows="2" placeholder="what changed in how you saw the system?"></textarea>
+    </div>
+
+    <div class="export-actions">
+      <button class="btn btn-small" id="btn-export-pdf" aria-label="download as pdf">download as pdf</button>
+      <button class="btn btn-small" id="btn-export-copy" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);" aria-label="copy summary to clipboard">copy to clipboard</button>
+      <span class="export-toast" id="export-toast" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
   <div class="pattern-btn-wrap">
     <button class="btn" id="btn-handoff" aria-label="what does this mean?">what does this mean?</button>
   </div>
@@ -874,9 +1126,17 @@ body { min-height: 100vh; }
   <div class="commit-confirm-inner">
     <div class="commit-confirm-title" id="commit-confirm-title"></div>
     <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention — starting with yours.</div>
+    <div class="hypo-wrap">
+      <label class="hypo-label" for="hypo-textarea">one sentence — I chose this because I think the bottleneck is&hellip;</label>
+      <textarea id="hypo-textarea" class="hypo-textarea" maxlength="240" rows="3" placeholder="e.g., price, trust, how we measure success, who gets to decide&hellip;" aria-describedby="hypo-counter"></textarea>
+      <div class="hypo-meta">
+        <span><span id="hypo-counter">0</span>&thinsp;/&thinsp;240</span>
+        <span id="hypo-hint">at least 10 characters.</span>
+      </div>
+    </div>
     <div class="commit-confirm-actions">
       <button class="btn btn-small" id="btn-commit-back" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);">go back</button>
-      <button class="btn btn-small" id="btn-commit-confirm">lock it in</button>
+      <button class="btn btn-small" id="btn-commit-confirm" disabled>lock it in</button>
     </div>
   </div>
 </div>
@@ -1716,7 +1976,36 @@ const state = {
   allRun: false,
   animating: false,
   currentAnimYear: 2025,
+  hypothesis: '',
+  surprise: {},
+  shifted: '',
 };
+
+// session persistence (reflective prompts) — keyed per scenario slug
+const REFLECT_KEY = 'st-' + scenarioSlug + '-reflect';
+
+function loadReflect() {
+  try {
+    const raw = sessionStorage.getItem(REFLECT_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (typeof data.hypothesis === 'string') state.hypothesis = data.hypothesis;
+    if (data.surprise && typeof data.surprise === 'object') state.surprise = data.surprise;
+    if (typeof data.shifted === 'string') state.shifted = data.shifted;
+  } catch (e) { /* ignore */ }
+}
+function saveReflect() {
+  try {
+    sessionStorage.setItem(REFLECT_KEY, JSON.stringify({
+      hypothesis: state.hypothesis,
+      surprise: state.surprise,
+      shifted: state.shifted,
+    }));
+  } catch (e) { /* ignore */ }
+}
+function clearReflect() {
+  try { sessionStorage.removeItem(REFLECT_KEY); } catch (e) { /* ignore */ }
+}
 
 function setState(patch) {
   Object.assign(state, patch);
@@ -1742,6 +2031,16 @@ if (scenario.dominantId && scenario.dominantId !== 5) {
   document.getElementById('pattern-caption').textContent = 'five decisions. one shape — but not the shape you might expect. in this system, the dominant trajectory is a ' + domTier + '-level intervention. the leverage point is where the system\'s structure asks for it, not where the ladder predicts.';
 }
 document.title = scenario.name + ' — systems thinking simulator';
+
+// teacher's-guide link target
+const tgLink = document.getElementById('tg-link');
+if (tgLink) tgLink.href = '/portfolio/assets/systems-thinking/teacher-guides/' + scenarioSlug + '.html';
+
+// pre-fill export header
+const exportName = document.getElementById('export-scenario-name');
+const exportMandate = document.getElementById('export-mandate');
+if (exportName) exportName.textContent = scenario.name;
+if (exportMandate) exportMandate.textContent = scenario.mandate || '';
 
 // hide resource meter (lakeshore-only feature)
 document.getElementById('resource-meter-wrap').style.display = 'none';
@@ -2031,7 +2330,16 @@ function buildCards() {
           <dt>stakes</dt><dd>${d.detail.stakes}</dd>
         </dl>
       </div>
-      ${wasRun ? '<div class="card-why open">' + d.why + '</div>' : ''}
+      ${wasRun ? (function() {
+        const chosen = state.surprise[d.id];
+        const chips = ['yes','sort of','no'].map((v,i) => {
+          const isChosen = chosen === v;
+          const focusable = chosen ? isChosen : i === 0;
+          return '<button type="button" class="surprise-chip" data-surprise-id="' + d.id + '" data-surprise-val="' + v + '" role="radio" aria-pressed="' + (isChosen ? 'true' : 'false') + '" tabindex="' + (focusable ? '0' : '-1') + '">' + v + '</button>';
+        }).join('');
+        return '<div class="surprise-wrap" data-surprise-card="' + d.id + '"><div class="surprise-prompt" id="surprise-prompt-' + d.id + '">did that match what you expected?</div><div class="surprise-chips" role="radiogroup" aria-labelledby="surprise-prompt-' + d.id + '">' + chips + '</div></div>';
+      })() : ''}
+      ${wasRun && state.surprise[d.id] ? '<div class="card-why open">' + d.why + '</div>' : ''}
       <div class="card-footer">
         ${state.committed ? '<span class="card-meta">25-year change: ' + (changePct !== null ? '<span class="result-value">' + (isStockBad ? '−' : '+') + changePct + '%</span>' : '—') + '</span><button class="btn btn-small" data-run-id="' + d.id + '" ' + (state.animating ? 'disabled' : '') + ' aria-label="run intervention ' + d.id + '">run this</button>' : '<span class="card-meta"></span><button class="btn-choose" data-choose-id="' + d.id + '" aria-label="choose intervention ' + d.id + '">this is my decision</button>'}
       </div>
@@ -2077,6 +2385,39 @@ function buildCards() {
       showCommitConfirm(id);
     });
   });
+
+  // bind surprise chips
+  stack.querySelectorAll('.surprise-chips').forEach(group => {
+    const chips = Array.from(group.querySelectorAll('.surprise-chip'));
+    chips.forEach((chip, idx) => {
+      chip.addEventListener('click', () => {
+        const id = parseInt(chip.dataset.surpriseId);
+        const val = chip.dataset.surpriseVal;
+        chips.forEach(c => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
+        const newSurprise = { ...state.surprise, [id]: val };
+        setState({ surprise: newSurprise });
+        saveReflect();
+      });
+      chip.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = chips[(idx + 1) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          next.setAttribute('tabindex', '0');
+          next.focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prev = chips[(idx - 1 + chips.length) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          prev.setAttribute('tabindex', '0');
+          prev.focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          chip.click();
+        }
+      });
+    });
+  });
 }
 
 function handleRunIntervention(id) {
@@ -2120,7 +2461,10 @@ function showScreen(name) {
     if (state.committed && !chartDecisions) updateDecisionsChart();
     buildCards();
   }
-  if (name === 'pattern') initPatternChart();
+  if (name === 'pattern') {
+    initPatternChart();
+    renderExport();
+  }
 }
 
 function updateExploreMode() {
@@ -2159,7 +2503,155 @@ function showCommitConfirm(id) {
   pendingCommitId = id;
   const intv = scenario.interventions.find(x => x.id === id);
   document.getElementById('commit-confirm-title').textContent = 'your decision: "' + intv.title + '"';
+  const ta = document.getElementById('hypo-textarea');
+  if (ta) {
+    ta.value = state.hypothesis || '';
+    updateHypoUi();
+    setTimeout(() => ta.focus(), 50);
+  }
   document.getElementById('commit-confirm').classList.add('visible');
+}
+
+function updateHypoUi() {
+  const ta = document.getElementById('hypo-textarea');
+  const counter = document.getElementById('hypo-counter');
+  const hint = document.getElementById('hypo-hint');
+  const btn = document.getElementById('btn-commit-confirm');
+  if (!ta || !btn) return;
+  const len = ta.value.length;
+  const trimmedLen = ta.value.trim().length;
+  if (counter) counter.textContent = String(len);
+  if (counter) counter.classList.toggle('over', len >= 240);
+  if (hint) hint.textContent = trimmedLen >= 10 ? '\u00A0' : 'at least 10 characters.';
+  btn.disabled = trimmedLen < 10;
+}
+
+// ────────────────────────────────────────────
+// summary export
+// ────────────────────────────────────────────
+function buildExportPlainText() {
+  const lines = [];
+  lines.push(scenario.name.toUpperCase());
+  if (scenario.mandate) lines.push('mandate: ' + scenario.mandate);
+  lines.push('');
+  const committed = state.committedId ? scenario.interventions.find(x => x.id === state.committedId) : null;
+  lines.push('your committed decision: ' + (committed ? committed.title : '(none committed)'));
+  lines.push('your hypothesis: ' + (state.hypothesis || '(none recorded)'));
+  lines.push('');
+  lines.push('interventions:');
+  scenario.interventions.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const surprise = state.surprise[d.id] || 'not run';
+    let valStr;
+    if (lastVal === null) valStr = '—';
+    else {
+      const rounded = Math.abs(lastVal) >= 100 ? Math.round(lastVal).toLocaleString() : lastVal.toFixed(1);
+      valStr = rounded + ' ' + (scenario.stockUnit || '');
+    }
+    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + ' — 25-year outcome: ' + valStr);
+  });
+  lines.push('');
+  lines.push('what shifted: ' + (state.shifted || '(blank)'));
+  return lines.join('\n');
+}
+
+function renderExport() {
+  const titleEl = document.getElementById('export-committed-title');
+  const hypoEl = document.getElementById('export-hypothesis');
+  const list = document.getElementById('export-interventions');
+  const shiftedTa = document.getElementById('shifted-textarea');
+  if (!list) return;
+
+  if (state.committedId) {
+    const c = scenario.interventions.find(x => x.id === state.committedId);
+    titleEl.innerHTML = c ? c.title.replace(/</g,'&lt;') : '<em>none committed.</em>';
+  } else {
+    titleEl.innerHTML = '<em>none committed.</em>';
+  }
+  hypoEl.innerHTML = state.hypothesis ? state.hypothesis.replace(/&/g,'&amp;').replace(/</g,'&lt;') : '<em>none recorded.</em>';
+
+  list.innerHTML = '';
+  scenario.interventions.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const surprise = state.surprise[d.id];
+    let valStr;
+    if (lastVal === null) valStr = '—';
+    else {
+      const rounded = Math.abs(lastVal) >= 100 ? Math.round(lastVal).toLocaleString() : lastVal.toFixed(1);
+      valStr = rounded + ' ' + (scenario.stockUnit || '');
+    }
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="export-li-num">' + d.id + '.</span>' +
+      '<span class="export-li-title">' + d.title.replace(/</g,'&lt;') + '</span>' +
+      '<span class="export-li-tier">' + d.chip + '</span>' +
+      '<span class="export-li-surprise">surprise: ' + (surprise || 'not run') + '</span>' +
+      '<span class="export-li-value">' + valStr + '</span>';
+    list.appendChild(li);
+  });
+
+  if (shiftedTa && shiftedTa.value !== state.shifted) {
+    shiftedTa.value = state.shifted || '';
+  }
+}
+
+// ────────────────────────────────────────────
+// reflective-prompt event bindings
+// ────────────────────────────────────────────
+loadReflect();
+
+const hypoTaEl = document.getElementById('hypo-textarea');
+if (hypoTaEl) {
+  hypoTaEl.addEventListener('input', () => {
+    state.hypothesis = hypoTaEl.value;
+    updateHypoUi();
+    saveReflect();
+  });
+  updateHypoUi();
+}
+
+const shiftedTaEl = document.getElementById('shifted-textarea');
+if (shiftedTaEl) {
+  shiftedTaEl.value = state.shifted || '';
+  shiftedTaEl.addEventListener('input', () => {
+    state.shifted = shiftedTaEl.value;
+    saveReflect();
+  });
+}
+
+const btnPdfEl = document.getElementById('btn-export-pdf');
+if (btnPdfEl) btnPdfEl.addEventListener('click', () => window.print());
+
+const btnCopyEl = document.getElementById('btn-export-copy');
+const toastEl = document.getElementById('export-toast');
+if (btnCopyEl) {
+  btnCopyEl.addEventListener('click', async () => {
+    const txt = buildExportPlainText();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(txt);
+      } else {
+        const tmp = document.createElement('textarea');
+        tmp.value = txt;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        document.body.removeChild(tmp);
+      }
+      if (toastEl) {
+        toastEl.textContent = 'copied.';
+        toastEl.classList.add('visible');
+        setTimeout(() => toastEl.classList.remove('visible'), 1800);
+      }
+    } catch (e) {
+      if (toastEl) {
+        toastEl.textContent = 'copy failed.';
+        toastEl.classList.add('visible');
+        setTimeout(() => toastEl.classList.remove('visible'), 1800);
+      }
+    }
+  });
 }
 
 document.getElementById('btn-commit-back').addEventListener('click', () => {
@@ -2168,6 +2660,7 @@ document.getElementById('btn-commit-back').addEventListener('click', () => {
 });
 
 document.getElementById('btn-commit-confirm').addEventListener('click', () => {
+  if (state.hypothesis.trim().length < 10) return;
   document.getElementById('commit-confirm').classList.remove('visible');
   const id = pendingCommitId;
   pendingCommitId = null;
@@ -2196,7 +2689,15 @@ document.getElementById('btn-restart').addEventListener('click', () => {
     allRun: false,
     animating: false,
     currentAnimYear: 2025,
+    hypothesis: '',
+    surprise: {},
+    shifted: '',
   });
+  clearReflect();
+  const ta = document.getElementById('hypo-textarea');
+  if (ta) { ta.value = ''; updateHypoUi(); }
+  const sta = document.getElementById('shifted-textarea');
+  if (sta) sta.value = '';
   if (chartDecisions) { chartDecisions.destroy(); chartDecisions = null; }
   if (chartBaseline) { chartBaseline.destroy(); chartBaseline = null; }
   if (chartPattern) { chartPattern.destroy(); chartPattern = null; }
@@ -2210,4 +2711,3 @@ document.getElementById('btn-restart').addEventListener('click', () => {
 </script>
 </body>
 </html>
-
