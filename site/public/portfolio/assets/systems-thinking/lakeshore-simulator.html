@@ -218,10 +218,60 @@ html, body {
   line-height: 1.6;
 }
 .explore-prompt strong { font-weight: 600; }
-.explore-prompt .explore-sub {
-  font-size: 12px;
+.explore-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.explore-header {
+  position: relative;
+}
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--muted);
+  background: none;
   color: var(--muted);
-  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.info-btn:hover, .info-btn:focus-visible {
+  border-color: var(--cadet);
+  color: var(--cadet);
+}
+.info-btn:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.info-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: var(--cadet);
+  color: var(--champagne);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 10px 14px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.info-btn.active + .info-tooltip,
+.info-btn:focus + .info-tooltip {
+  display: block;
 }
 .btn-choose {
   font-family: var(--font);
@@ -341,6 +391,34 @@ html, body {
 .chart-placeholder.hidden {
   opacity: 0;
   pointer-events: none;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 6px 4px 2px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1;
+}
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.chart-legend-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 2.5px solid currentColor;
+  flex-shrink: 0;
+}
+.chart-legend-swatch.dashed {
+  border-top-style: dashed;
+}
+.chart-legend-swatch.dotted {
+  border-top-style: dotted;
 }
 .chart-placeholder-text {
   font-size: 13px;
@@ -1266,6 +1344,7 @@ html, body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.18);
   cursor: pointer;
   transition: transform 0.15s ease;
+  margin-top: -6px;
 }
 .dosage-slider::-webkit-slider-thumb:hover {
   transform: scale(1.15);
@@ -1436,8 +1515,11 @@ html, body {
 <div id="screen-decisions" class="screen screen-decisions" role="region" aria-label="intervention decisions">
   <div class="decisions-left">
     <div class="explore-prompt" id="explore-prompt">
-      <strong>which intervention would you choose?</strong>
-      <div class="explore-sub">read all five. expand the details. when you're ready, click "this is my decision" on the one you think will reduce emissions the most. you won't see the data until you commit.</div>
+      <div class="explore-header">
+        <strong>which intervention would you choose?</strong>
+        <button class="info-btn" id="info-btn" aria-label="how to use this simulator" aria-expanded="false" type="button">?</button>
+        <div class="info-tooltip" id="info-tooltip" role="tooltip">read all five. expand the details. when you're ready, click "this is my decision" on the one you think will reduce emissions the most. you won't see the data until you commit.</div>
+      </div>
     </div>
     <div class="card-stack-title">interventions</div>
     <div id="card-stack"></div>
@@ -1455,6 +1537,12 @@ html, body {
             <span class="chart-placeholder-text">expand an intervention on the left and drag its slider to see the trajectory here.</span>
           </div>
           <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
+          <div class="chart-legend" id="legend-decisions">
+            <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--rule);"></span> baseline</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--cadet);"></span> net-zero target</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--sienna);"></span> intervention</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--cadet);"></span> combined (recharter)</span>
+          </div>
           <div class="endpoint-labels" id="endpoint-labels"></div>
         </div>
         <div class="secondary-wrap" id="secondary-wrap" aria-hidden="false">
@@ -1465,6 +1553,10 @@ html, body {
           </div>
           <div class="secondary-chart-wrap">
             <canvas id="chart-secondary" aria-label="political-capital trajectories chart"></canvas>
+            <div class="chart-legend" id="legend-secondary">
+              <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--rule);"></span> baseline (1.0)</span>
+              <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--sienna);"></span> intervention</span>
+            </div>
           </div>
         </div>
       </div>
@@ -2027,7 +2119,8 @@ function makeSecondaryChartOptions() {
         },
       },
     },
-    animation: { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' },
+    animation: { duration: reducedMotion ? 0 : 800, easing: 'easeOutQuart' },
+    transitions: { active: { animation: { duration: 0 } } },
     elements: { point: { radius: 0 }, line: { tension: 0.3 } },
   };
 }
@@ -2071,7 +2164,8 @@ function makeChartOptions(overrides = {}) {
         },
       },
     },
-    animation: { duration: reducedMotion ? 0 : (overrides.animDuration || 2500), easing: 'easeInOutQuart' },
+    animation: { duration: reducedMotion ? 0 : (overrides.animDuration || 800), easing: 'easeOutQuart' },
+    transitions: { active: { animation: { duration: 0 } } },
     elements: { point: { radius: 0 }, line: { tension: 0.3 } },
   };
 }
@@ -2582,7 +2676,7 @@ function updateDecisionsChart(highlightId = null) {
 
   if (chartDecisions) {
     chartDecisions.data.datasets = datasets;
-    chartDecisions.options.animation = { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' };
+    chartDecisions.options.animation = { duration: reducedMotion ? 0 : 800, easing: 'easeOutQuart' };
     chartDecisions.update();
   } else {
     chartDecisions = new Chart(ctx, {
@@ -2618,7 +2712,7 @@ function updateSecondaryChart(highlightId = null) {
 
   if (chartSecondary) {
     chartSecondary.data.datasets = datasets;
-    chartSecondary.options.animation = { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' };
+    chartSecondary.options.animation = { duration: reducedMotion ? 0 : 800, easing: 'easeOutQuart' };
     chartSecondary.update();
   } else {
     chartSecondary = new Chart(ctx, {
@@ -3010,6 +3104,21 @@ document.addEventListener('DOMContentLoaded', () => {
       tabCharts.setAttribute('aria-selected', 'false');
       panelMap.classList.remove('right-panel-hidden');
       panelCharts.classList.add('right-panel-hidden');
+    });
+  }
+
+  // info tooltip toggle
+  const infoBtn = document.getElementById('info-btn');
+  if (infoBtn) {
+    infoBtn.addEventListener('click', () => {
+      const expanded = infoBtn.classList.toggle('active');
+      infoBtn.setAttribute('aria-expanded', expanded);
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#info-btn') && !e.target.closest('#info-tooltip')) {
+        infoBtn.classList.remove('active');
+        infoBtn.setAttribute('aria-expanded', 'false');
+      }
     });
   }
 
