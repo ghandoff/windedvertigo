@@ -38,7 +38,7 @@ const PROPS = {
     type: "Content Type",
     page: "Page",
     section: "Section",
-    playMemory: "Play Memory",
+    icon: "Icon", // repurposed as "play memory" for team-member rows on /we/
     features: "Features",
     brandColor: "Brand Color",
     accentColor: "Accent Color",
@@ -402,7 +402,7 @@ async function _fetchSiteContent(pageKey: string): Promise<SiteSection[]> {
       order: getNumber(props[p.order]),
       type: getSelect(props[p.type]),
       section: getText(props[p.section]),
-      icon: getText(props[p.playMemory]),
+      icon: getText(props[p.icon]),
       features: getText(props[p.features]),
       brandColor: getSelect(props[p.brandColor]),
       accentColor: getSelect(props[p.accentColor]),
