@@ -22,7 +22,7 @@
   --champagne: #FFEBD2;
   --muted: #6B7589;
   --rule: #EAD9BD;
-  --soft-card: #FFF6E5;
+  --soft-card: #fff;
   --on-dark-muted: #B5BBC9;
   --on-dark: #FFEBD2;
   --rule-dark: rgba(255,235,210,0.12);
@@ -145,7 +145,7 @@ html, body {
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--cadet);
-  background: var(--champagne);
+  background: #fff;
   border: none;
   padding: 14px 32px;
   cursor: pointer;
@@ -208,7 +208,9 @@ html, body {
 .decisions-explore .decisions-right { display: none; }
 .decisions-explore .decisions-left {
   width: 100% !important;
-  max-width: none !important;
+  max-width: 520px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
   border-right: none !important;
 }
 .explore-prompt {
@@ -315,7 +317,7 @@ html, body {
 }
 .commit-confirm.visible { display: flex; }
 .commit-confirm-inner {
-  background: var(--champagne);
+  background: #fff;
   padding: 40px;
   max-width: 480px;
   color: var(--cadet);
@@ -872,7 +874,7 @@ html, body {
   display: flex;
 }
 .modal-dialog {
-  background: var(--champagne);
+  background: #fff;
   border: 1px solid var(--rule);
   padding: 40px;
   max-width: 520px;
@@ -1927,7 +1929,7 @@ const COLORS = {
   champagne: '#FFEBD2',
   muted: '#6B7589',
   rule: '#EAD9BD',
-  softCard: '#FFF6E5',
+  softCard: '#ffffff',
   chartTick: '#B5BBC9',
   chartGrid: 'rgba(255,235,210,0.08)',
 };

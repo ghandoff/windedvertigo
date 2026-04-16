@@ -18,7 +18,7 @@
   --champagne: #FFEBD2;
   --muted: #6B7589;
   --rule: #EAD9BD;
-  --soft-card: #FFF6E5;
+  --soft-card: #fff;
   --on-dark: #FFEBD2;
   --on-dark-muted: #B5BBC9;
   --rule-dark: rgba(255,235,210,0.12);
@@ -119,7 +119,7 @@ body { min-height: 100vh; }
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--cadet);
-  background: var(--champagne);
+  background: #fff;
   border: none;
   padding: 14px 32px;
   cursor: pointer;
@@ -540,6 +540,9 @@ body { min-height: 100vh; }
 .decisions-explore .decisions-right { display: none; }
 .decisions-explore .decisions-left {
   width: 100%;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
   border-right: none;
   max-height: none;
   overflow-y: auto;
@@ -605,7 +608,7 @@ body { min-height: 100vh; }
 }
 .commit-confirm.visible { display: flex; }
 .commit-confirm-inner {
-  background: var(--champagne);
+  background: #fff;
   padding: 40px;
   max-width: 480px;
   color: var(--cadet);
