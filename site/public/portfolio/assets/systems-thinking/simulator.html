@@ -19,6 +19,9 @@
   --muted: #6B7589;
   --rule: #EAD9BD;
   --soft-card: #FFF6E5;
+  --on-dark: #FFEBD2;
+  --on-dark-muted: #B5BBC9;
+  --rule-dark: rgba(255,235,210,0.12);
   --font: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -34,8 +37,8 @@ html {
   font-family: var(--font);
   font-size: 16px;
   line-height: 1.6;
-  color: var(--cadet);
-  background: var(--champagne);
+  color: var(--on-dark);
+  background: var(--cadet);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -48,7 +51,7 @@ body { min-height: 100vh; }
   z-index: 100;
   font-weight: 700;
   font-size: 24px;
-  color: var(--cadet);
+  color: var(--on-dark);
   letter-spacing: -0.01em;
   user-select: none;
 }
@@ -75,21 +78,21 @@ body { min-height: 100vh; }
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   margin-bottom: 16px;
 }
 .mandate-title {
   font-size: clamp(18px, 3vw, 28px);
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--cadet);
+  color: var(--on-dark);
   max-width: 36ch;
   line-height: 1.3;
   margin-bottom: 24px;
 }
 .mandate-stock {
   font-size: 13px;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   margin-bottom: 8px;
 }
 .mandate-loop {
@@ -105,7 +108,7 @@ body { min-height: 100vh; }
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   margin-top: 32px;
 }
 
@@ -115,14 +118,14 @@ body { min-height: 100vh; }
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--champagne);
-  background: var(--cadet);
+  color: var(--cadet);
+  background: var(--champagne);
   border: none;
   padding: 14px 32px;
   cursor: pointer;
   transition: opacity 0.2s;
 }
-.btn:hover { opacity: 0.9; }
+.btn:hover { opacity: 0.9; background: var(--on-dark); color: var(--cadet); }
 .btn:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-small { padding: 8px 20px; font-size: 13px; }
@@ -138,13 +141,13 @@ body { min-height: 100vh; }
   font-size: 28px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--cadet);
+  color: var(--on-dark);
   text-align: center;
   margin-bottom: 8px;
 }
 .baseline-subtitle {
   font-size: 15px;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   text-align: center;
   margin-bottom: 32px;
   max-width: 48ch;
@@ -174,7 +177,7 @@ body { min-height: 100vh; }
   flex-shrink: 0;
   padding: 24px;
   overflow-y: auto;
-  border-right: 1px solid var(--rule);
+  border-right: 1px solid var(--rule-dark);
 }
 .decisions-right {
   flex: 1;
@@ -188,7 +191,7 @@ body { min-height: 100vh; }
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   margin-bottom: 16px;
 }
 
@@ -199,6 +202,7 @@ body { min-height: 100vh; }
   padding: 16px;
   margin-bottom: 12px;
   position: relative;
+  color: var(--cadet);
 }
 .intervention-card.was-run {
   border-color: var(--sienna);
@@ -389,6 +393,7 @@ body { min-height: 100vh; }
   z-index: 2;
   background: rgba(255, 246, 229, 0.85);
   transition: opacity 0.4s;
+  color: var(--cadet);
 }
 .chart-placeholder.hidden {
   opacity: 0;
@@ -404,7 +409,7 @@ body { min-height: 100vh; }
 .year-ticker {
   font-size: 48px;
   font-weight: 700;
-  color: var(--cadet);
+  color: var(--on-dark-muted);
   opacity: 0.08;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -442,19 +447,19 @@ body { min-height: 100vh; }
 .resource-meter-wrap {
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--rule-dark);
 }
 .resource-label {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   margin-bottom: 6px;
 }
 .resource-bar {
   height: 6px;
-  background: var(--rule);
+  background: var(--rule-dark);
   position: relative;
   overflow: hidden;
 }
@@ -465,7 +470,7 @@ body { min-height: 100vh; }
 }
 .resource-value {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   margin-top: 4px;
   text-align: right;
 }
@@ -474,21 +479,21 @@ body { min-height: 100vh; }
 .systems-map-wrap {
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--rule-dark);
 }
 .systems-map-wrap svg {
   width: 100%;
   height: auto;
 }
 .map-node rect {
-  fill: var(--soft-card);
-  stroke: var(--rule);
+  fill: rgba(255,235,210,0.06);
+  stroke: var(--rule-dark);
   stroke-width: 1;
 }
 .map-node text {
   font-family: var(--font);
   font-size: 10px;
-  fill: var(--muted);
+  fill: var(--on-dark-muted);
 }
 .map-node.highlight rect {
   fill: var(--sienna);
@@ -499,7 +504,7 @@ body { min-height: 100vh; }
   font-weight: 600;
 }
 .map-edge {
-  stroke: var(--rule);
+  stroke: rgba(255,235,210,0.2);
   stroke-width: 1.2;
 }
 .map-edge.highlight {
@@ -509,20 +514,22 @@ body { min-height: 100vh; }
 .map-label {
   font-family: var(--font);
   font-size: 8px;
-  fill: var(--muted);
+  fill: var(--on-dark-muted);
 }
 
 /* see pattern button */
 .see-pattern-btn {
   display: none;
   margin-top: 16px;
+  color: var(--on-dark);
+  border-color: var(--on-dark-muted);
 }
 .see-pattern-btn.visible { display: inline-block; }
 
 /* enhanced mandate */
 .mandate-intro {
   font-size: 15px;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   max-width: 48ch;
   line-height: 1.7;
   margin-bottom: 24px;
@@ -601,6 +608,7 @@ body { min-height: 100vh; }
   background: var(--champagne);
   padding: 40px;
   max-width: 480px;
+  color: var(--cadet);
 }
 .commit-confirm-title {
   font-size: 18px;
@@ -620,9 +628,9 @@ body { min-height: 100vh; }
 .scenario-picker {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule-dark);
   padding: 0 24px;
-  background: var(--champagne);
+  background: var(--cadet);
   flex-shrink: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -633,7 +641,7 @@ body { min-height: 100vh; }
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -644,9 +652,9 @@ body { min-height: 100vh; }
   text-decoration: none;
   display: block;
 }
-.scenario-tab:hover { color: var(--cadet); }
+.scenario-tab:hover { color: var(--on-dark); }
 .scenario-tab.active {
-  color: var(--cadet);
+  color: var(--on-dark);
   border-bottom-color: var(--sienna);
 }
 
@@ -661,7 +669,7 @@ body { min-height: 100vh; }
   font-size: 28px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--cadet);
+  color: var(--on-dark);
   text-align: center;
   margin-bottom: 24px;
 }
@@ -673,7 +681,7 @@ body { min-height: 100vh; }
 }
 .pattern-caption {
   font-size: 15px;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   text-align: center;
   max-width: 56ch;
   margin-top: 24px;
@@ -695,6 +703,7 @@ body { min-height: 100vh; }
   border: 1px solid var(--rule);
   padding: 20px;
   border-radius: 2px;
+  color: var(--cadet);
 }
 .insight-eyebrow {
   font-size: 10px;
@@ -711,7 +720,7 @@ body { min-height: 100vh; }
 }
 .calibration-note {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   font-style: italic;
   text-align: center;
   max-width: 56ch;
@@ -732,7 +741,7 @@ body { min-height: 100vh; }
 }
 .handoff-text {
   font-size: 18px;
-  color: var(--cadet);
+  color: var(--on-dark);
   line-height: 1.7;
   max-width: 42ch;
   margin-bottom: 32px;
@@ -742,7 +751,7 @@ body { min-height: 100vh; }
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   margin-top: 24px;
 }
 .handoff-links {
@@ -755,7 +764,7 @@ body { min-height: 100vh; }
 @media (max-width: 768px) {
   .screen-decisions { height: auto; min-height: 100vh; }
   .decisions-content { flex-direction: column; }
-  .decisions-left { width: 100%; border-right: none; border-bottom: 1px solid var(--rule); max-height: 45vh; }
+  .decisions-left { width: 100%; border-right: none; border-bottom: 1px solid var(--rule-dark); max-height: 45vh; }
   .decisions-right { min-height: 50vh; flex-direction: column; }
 }
 
@@ -785,7 +794,7 @@ body { min-height: 100vh; }
 .secondary-divider-rule {
   flex: 1;
   height: 1px;
-  background: var(--sienna);
+  background: var(--rule-dark);
   opacity: 0.45;
 }
 .secondary-label {
@@ -793,7 +802,7 @@ body { min-height: 100vh; }
   font-weight: 700;
   letter-spacing: 0.20em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   white-space: nowrap;
 }
 .secondary-chart-wrap {
@@ -841,7 +850,7 @@ body { min-height: 100vh; }
   font-family: var(--font);
   font-size: 14px;
   font-weight: 500;
-  color: var(--redwood);
+  color: var(--on-dark-muted);
   text-decoration: none;
 }
 .tg-link:hover { text-decoration: underline; }
@@ -925,6 +934,7 @@ body { min-height: 100vh; }
   background: var(--soft-card);
   border: 1px solid var(--rule);
   padding: 24px;
+  color: var(--cadet);
 }
 .export-eyebrow {
   font-size: 10px;
@@ -994,7 +1004,7 @@ body { min-height: 100vh; }
   font-size: 13px;
   line-height: 1.5;
   color: var(--cadet);
-  background: var(--champagne);
+  background: var(--soft-card);
   border: 1px solid var(--rule);
   padding: 8px 10px;
   margin-top: 6px;
@@ -1138,18 +1148,18 @@ body { min-height: 100vh; }
   gap: 8px;
   margin-bottom: 16px;
   padding: 8px 0;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule-dark);
 }
 .mode-toggle-wrap .mode-label {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--on-dark-muted);
 }
 .mode-toggle {
   display: flex;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--rule-dark);
   overflow: hidden;
 }
 .mode-btn {
@@ -1160,7 +1170,7 @@ body { min-height: 100vh; }
   padding: 6px 14px;
   border: none;
   background: transparent;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -1179,7 +1189,7 @@ body { min-height: 100vh; }
 }
 .mode-unlock-hint {
   font-size: 10px;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   font-style: italic;
 }
 
@@ -1270,7 +1280,7 @@ body { min-height: 100vh; }
   background: rgba(39,50,72,0.03);
   border: 1px solid var(--rule);
   font-size: 11px;
-  color: var(--muted);
+  color: var(--on-dark-muted);
 }
 .combined-legend-swatch {
   display: inline-block;
@@ -1294,7 +1304,7 @@ body { min-height: 100vh; }
 .right-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule-dark);
   margin-bottom: 16px;
   flex-shrink: 0;
 }
@@ -1308,15 +1318,15 @@ body { min-height: 100vh; }
   border: none;
   border-bottom: 2px solid transparent;
   background: transparent;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
 }
 .right-tab:hover {
-  color: var(--cadet);
+  color: var(--on-dark);
 }
 .right-tab.active {
-  color: var(--cadet);
+  color: var(--on-dark);
   border-bottom-color: var(--sienna);
 }
 .right-tab:focus-visible {
@@ -1364,7 +1374,7 @@ body { min-height: 100vh; }
   }
   #panel-map {
     flex: 2;
-    border-left: 1px solid var(--rule);
+    border-left: 1px solid var(--rule-dark);
     padding-left: 16px;
     max-height: 100%;
     overflow-y: auto;
@@ -1379,7 +1389,7 @@ body { min-height: 100vh; }
   .right-tabs {
     position: sticky;
     top: 0;
-    background: var(--champagne);
+    background: var(--cadet);
     z-index: 5;
   }
   .decisions-right {
@@ -1689,11 +1699,11 @@ const SCENARIOS = {
     map: {
       viewBox: '0 0 480 200',
       nodes: [
-        { id: 0, label: 'team\nenergy', x: 240, y: 30, w: 80 },
-        { id: 1, label: 'velocity', x: 80, y: 90, w: 80 },
-        { id: 2, label: 'sprint\nscope', x: 400, y: 90, w: 90 },
-        { id: 3, label: 'attrition', x: 120, y: 175, w: 80 },
-        { id: 4, label: 'planning\nprocess', x: 360, y: 175, w: 100 },
+        { id: 0, label: 'team\nenergy', x: 240, y: 100, w: 80 },
+        { id: 1, label: 'velocity', x: 70, y: 30, w: 80 },
+        { id: 2, label: 'sprint\nscope', x: 410, y: 30, w: 90 },
+        { id: 3, label: 'attrition', x: 70, y: 175, w: 80 },
+        { id: 4, label: 'planning\nprocess', x: 410, y: 175, w: 100 },
       ],
       edges: [
         { from: 0, to: 1, label: '+' },
@@ -2060,6 +2070,21 @@ function runCombinedSecondary(dosages) {
 }
 
 // ────────────────────────────────────────────
+// pre-compute y-axis bounds (fixed across all interventions)
+// ────────────────────────────────────────────
+function computeYBounds() {
+  let min = Infinity, max = -Infinity;
+  baseline.forEach(v => { if (v < min) min = v; if (v > max) max = v; });
+  scenario.interventions.forEach(intv => {
+    const traj = runIntervention(intv.id, 1);
+    traj.forEach(v => { if (v < min) min = v; if (v > max) max = v; });
+  });
+  const pad = (max - min) * 0.1;
+  return { yMin: Math.max(0, Math.floor(min - pad)), yMax: Math.ceil(max + pad) };
+}
+const yBounds = computeYBounds();
+
+// ────────────────────────────────────────────
 // state
 // ────────────────────────────────────────────
 const state = {
@@ -2187,7 +2212,7 @@ if (scenario.map) {
   const mapWrap = document.getElementById('systems-map-wrap');
   const m = scenario.map;
   let svg = '<svg viewBox="' + m.viewBox + '" xmlns="http://www.w3.org/2000/svg" aria-label="causal loop diagram">';
-  svg += '<defs><marker id="ah" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#EAD9BD"/></marker>';
+  svg += '<defs><marker id="ah" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="rgba(255,235,210,0.2)"/></marker>';
   svg += '<marker id="ah-hi" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#CB7858"/></marker></defs>';
   // edges
   m.edges.forEach(e => {
@@ -2246,6 +2271,8 @@ const COLORS = {
   champagne: '#FFEBD2',
   muted: '#6B7589',
   rule: '#EAD9BD',
+  chartTick: '#B5BBC9',
+  chartGrid: 'rgba(255,235,210,0.08)',
 };
 
 let chartBaseline = null;
@@ -2265,14 +2292,14 @@ function makeSecondaryChartOptions() {
     scales: {
       x: {
         type: 'linear', min: 2025, max: 2050,
-        ticks: { stepSize: 5, color: COLORS.muted, font: { family: 'Inter', size: 10 } },
-        grid: { color: COLORS.rule },
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 10 } },
+        grid: { color: COLORS.chartGrid },
       },
       y: {
         type: 'linear', min: m.yMin, max: m.yMax,
-        ticks: { color: COLORS.muted, font: { family: 'Inter', size: 10 } },
-        grid: { color: COLORS.rule },
-        title: { display: true, text: m.units, color: COLORS.muted, font: { family: 'Inter', size: 10 } },
+        ticks: { color: COLORS.chartTick, font: { family: 'Inter', size: 10 } },
+        grid: { color: COLORS.chartGrid },
+        title: { display: true, text: m.units, color: COLORS.chartTick, font: { family: 'Inter', size: 10 } },
       },
     },
     elements: { point: { radius: 0 }, line: { tension: 0.3 } },
@@ -2302,13 +2329,16 @@ function makeChartOptions(yLabel) {
         type: 'linear',
         min: 2025,
         max: 2050,
-        ticks: { stepSize: 5, color: COLORS.muted, font: { family: 'Inter', size: 11 } },
-        grid: { color: COLORS.rule },
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 11 } },
+        grid: { color: COLORS.chartGrid },
       },
       y: {
-        ticks: { color: COLORS.muted, font: { family: 'Inter', size: 11 } },
-        grid: { color: COLORS.rule },
-        title: yLabel ? { display: true, text: yLabel, color: COLORS.muted, font: { family: 'Inter', size: 11 } } : undefined,
+        type: 'linear',
+        min: yBounds.yMin,
+        max: yBounds.yMax,
+        ticks: { color: COLORS.chartTick, font: { family: 'Inter', size: 11 } },
+        grid: { color: COLORS.chartGrid },
+        title: yLabel ? { display: true, text: yLabel, color: COLORS.chartTick, font: { family: 'Inter', size: 11 } } : undefined,
       },
     },
     plugins: {
