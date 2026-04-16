@@ -493,7 +493,7 @@ body { min-height: 100vh; }
 .map-node text {
   font-family: var(--font);
   font-size: 10px;
-  fill: var(--on-dark-muted);
+  fill: #fff;
 }
 .map-node.highlight rect {
   fill: var(--sienna);
@@ -514,15 +514,14 @@ body { min-height: 100vh; }
 .map-label {
   font-family: var(--font);
   font-size: 8px;
-  fill: var(--on-dark-muted);
+  fill: rgba(255,255,255,0.7);
 }
 
 /* see pattern button */
 .see-pattern-btn {
   display: none;
   margin-top: 16px;
-  color: var(--on-dark);
-  border-color: var(--on-dark-muted);
+  color: var(--cadet);
 }
 .see-pattern-btn.visible { display: inline-block; }
 
@@ -732,6 +731,68 @@ body { min-height: 100vh; }
 }
 @media (max-width: 640px) {
   .insight-blocks { grid-template-columns: 1fr; }
+}
+
+/* -- mailing list CTA -- */
+.mailing-cta {
+  max-width: 800px;
+  width: 100%;
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid var(--rule-dark);
+  text-align: center;
+}
+.mailing-cta-text {
+  font-size: 14px;
+  color: var(--on-dark-muted);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  max-width: 52ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mailing-form {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.mailing-input {
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-dark);
+  background: rgba(255,255,255,0.08);
+  color: var(--on-dark);
+  width: 260px;
+  max-width: 100%;
+}
+.mailing-input:focus {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.mailing-input::placeholder {
+  color: var(--on-dark-muted);
+}
+.mailing-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  background: var(--sienna);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.mailing-btn:hover { opacity: 0.9; }
+.mailing-btn:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.mailing-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.mailing-success {
+  font-size: 13px;
+  color: var(--sienna);
+  font-weight: 600;
+  margin-top: 8px;
+  min-height: 20px;
 }
 
 /* -- handoff -- */
@@ -1570,6 +1631,15 @@ body { min-height: 100vh; }
       <span class="export-toast" id="export-toast" role="status" aria-live="polite"></span>
     </div>
   </section>
+
+  <div class="mailing-cta" aria-label="stay informed about teaching tools">
+    <p class="mailing-cta-text">if you want to be aware of other winded.vertigo tools, add your email and join our mailing list to receive updates on tools that can support your teaching practice.</p>
+    <form class="mailing-form" id="mailing-form">
+      <input class="mailing-input" type="email" id="mailing-email" placeholder="your email address" required aria-label="email address for mailing list">
+      <button class="mailing-btn" type="submit">join the list</button>
+    </form>
+    <div class="mailing-success" id="mailing-success" role="status" aria-live="polite"></div>
+  </div>
 
   <div class="pattern-btn-wrap">
     <button class="btn" id="btn-handoff" aria-label="what does this mean?">what does this mean?</button>
@@ -3263,6 +3333,20 @@ document.getElementById('btn-commit-confirm').addEventListener('click', () => {
 document.getElementById('btn-begin').addEventListener('click', () => showScreen('decisions'));
 document.getElementById('btn-decide').addEventListener('click', () => showScreen('decisions'));
 document.getElementById('btn-see-pattern').addEventListener('click', () => showScreen('pattern'));
+// mailing list form
+document.getElementById('mailing-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const email = document.getElementById('mailing-email').value.trim();
+  if (!email) return;
+  // log via session if active
+  if (typeof sessionLogger !== 'undefined') {
+    sessionLogger.log('mailing_signup', { email });
+  }
+  document.getElementById('mailing-email').disabled = true;
+  document.getElementById('mailing-form').querySelector('.mailing-btn').disabled = true;
+  document.getElementById('mailing-success').textContent = 'thank you — we\'ll keep you posted.';
+});
+
 document.getElementById('btn-handoff').addEventListener('click', () => showScreen('handoff'));
 document.getElementById('btn-restart').addEventListener('click', () => {
   Object.assign(state, {

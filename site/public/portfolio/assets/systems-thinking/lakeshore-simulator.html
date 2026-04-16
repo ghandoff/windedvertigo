@@ -37,9 +37,7 @@
   }
 }
 
-html, body {
-  height: 100%;
-  overflow: hidden;
+html {
   font-family: var(--font);
   font-size: 16px;
   line-height: 1.6;
@@ -48,6 +46,8 @@ html, body {
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
+
+body { min-height: 100vh; }
 
 /* -- wordmark -- */
 .wordmark {
@@ -68,11 +68,7 @@ html, body {
 /* -- screens -- */
 .screen {
   display: none;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
+  min-height: 100vh;
 }
 .screen.active {
   display: flex;
@@ -339,6 +335,7 @@ html, body {
 /* -- screen: decisions -- */
 .screen-decisions {
   flex-direction: row;
+  height: 100vh;
   padding: 0;
   overflow: hidden;
 }
@@ -672,7 +669,7 @@ html, body {
 .map-node text {
   font-family: var(--font);
   font-size: 10px;
-  fill: var(--on-dark-muted);
+  fill: #fff;
   transition: fill 0.4s;
 }
 .map-node.highlight rect {
@@ -763,7 +760,6 @@ html, body {
 .screen-pattern {
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 48px;
 }
 .pattern-title {
@@ -833,6 +829,68 @@ html, body {
   .insight-blocks { grid-template-columns: 1fr; }
 }
 
+/* -- mailing list CTA -- */
+.mailing-cta {
+  max-width: 800px;
+  width: 100%;
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid var(--rule-dark);
+  text-align: center;
+}
+.mailing-cta-text {
+  font-size: 14px;
+  color: var(--on-dark-muted);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  max-width: 52ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mailing-form {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.mailing-input {
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-dark);
+  background: rgba(255,255,255,0.08);
+  color: var(--on-dark);
+  width: 260px;
+  max-width: 100%;
+}
+.mailing-input:focus {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.mailing-input::placeholder {
+  color: var(--on-dark-muted);
+}
+.mailing-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  background: var(--sienna);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.mailing-btn:hover { opacity: 0.9; }
+.mailing-btn:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.mailing-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.mailing-success {
+  font-size: 13px;
+  color: var(--sienna);
+  font-weight: 600;
+  margin-top: 8px;
+  min-height: 20px;
+}
+
 /* -- screen: handoff -- */
 .screen-handoff {
   flex-direction: column;
@@ -847,6 +905,12 @@ html, body {
   color: var(--on-dark);
   max-width: 44ch;
   margin-bottom: 48px;
+}
+.handoff-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .handoff-footer {
   font-size: 11px;
@@ -951,8 +1015,7 @@ html, body {
 .see-pattern-btn {
   display: none;
   margin-top: 12px;
-  color: var(--on-dark);
-  border-color: var(--on-dark-muted);
+  color: var(--cadet);
 }
 .see-pattern-btn.visible {
   display: inline-block;
@@ -1476,8 +1539,12 @@ html, body {
   }
 }
 
-/* mobile: sticky tabs */
+/* mobile layout */
 @media (max-width: 768px) {
+  .screen-decisions { height: auto; min-height: 100vh; }
+  .screen-decisions { flex-direction: column; }
+  .decisions-left { width: 100%; min-width: 0; max-width: none; border-right: none; border-bottom: 1px solid var(--rule-dark); max-height: 45vh; }
+  .decisions-right { height: 55vh; }
   .right-tabs {
     position: sticky;
     top: 0;
@@ -1490,6 +1557,7 @@ html, body {
   #panel-map .systems-map-wrap svg {
     max-height: 40vh;
   }
+  .insight-blocks { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -1497,7 +1565,7 @@ html, body {
 
 <!-- wordmark -->
 <div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
-<a class="tg-link" href="/portfolio/assets/systems-thinking/teacher-guides/lakeshore.html" target="_blank" rel="noopener" aria-label="open teacher's guide for lakeshore in a new tab">teacher's guide &rarr;</a>
+<!-- teacher's guide link moved to facilitator dashboard -->
 
 <!-- screen 1: mandate -->
 <div id="screen-mandate" class="screen screen-mandate active" role="region" aria-label="the mandate">
@@ -1709,6 +1777,15 @@ html, body {
     </div>
   </section>
 
+  <div class="mailing-cta" aria-label="stay informed about teaching tools">
+    <p class="mailing-cta-text">if you want to be aware of other winded.vertigo tools, add your email and join our mailing list to receive updates on tools that can support your teaching practice.</p>
+    <form class="mailing-form" id="mailing-form">
+      <input class="mailing-input" type="email" id="mailing-email" placeholder="your email address" required aria-label="email address for mailing list">
+      <button class="mailing-btn" type="submit">join the list</button>
+    </form>
+    <div class="mailing-success" id="mailing-success" role="status" aria-live="polite"></div>
+  </div>
+
   <div class="pattern-btn-wrap">
     <button class="btn" id="btn-handoff" aria-label="what does this mean for us?">what does this mean for us?</button>
   </div>
@@ -1725,7 +1802,10 @@ html, body {
     the question is not "which one works?"<br><br>
     it is "which one would you have known to make?"
   </div>
-  <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
+  <div class="handoff-links">
+    <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
+    <a class="btn" href="/portfolio/assets/systems-thinking/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
+  </div>
   <div class="handoff-footer">ppcs 2026 · session 1A · w.v × prme · simulator v1.0</div>
 </div>
 
@@ -3139,6 +3219,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-begin').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-decide').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-see-pattern').addEventListener('click', () => showScreen('pattern'));
+  // mailing list form
+  document.getElementById('mailing-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('mailing-email').value.trim();
+    if (!email) return;
+    if (typeof sessionLogger !== 'undefined') {
+      sessionLogger.log('mailing_signup', { email });
+    }
+    document.getElementById('mailing-email').disabled = true;
+    document.getElementById('mailing-form').querySelector('.mailing-btn').disabled = true;
+    document.getElementById('mailing-success').textContent = 'thank you — we\'ll keep you posted.';
+  });
+
   document.getElementById('btn-handoff').addEventListener('click', () => showScreen('handoff'));
   document.getElementById('btn-restart').addEventListener('click', () => {
     Object.assign(state, {
