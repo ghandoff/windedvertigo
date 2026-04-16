@@ -74,6 +74,12 @@ function MemberCard({ member }: { member: TeamMember }) {
             [{expanded ? "see less" : "see more..."}]
           </button>
         )}
+        {member.playMemory && (
+          <blockquote className="play-memory">
+            <span className="play-memory-label">childhood play memory</span>
+            {member.playMemory}
+          </blockquote>
+        )}
         {member.link && (
           <div className="links">
             <a href={member.link} target="_blank" rel="noopener noreferrer">

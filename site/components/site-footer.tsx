@@ -27,6 +27,11 @@ const SOCIAL_ICONS: Record<string, React.ReactNode> = {
       <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z" />
     </svg>
   ),
+  email: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-20.728c-.904 0-1.636-.732-1.636-1.636v-13.909c0-.904.732-1.636 1.636-1.636h20.728c.904 0 1.636.732 1.636 1.636zm-2.404 1.166l-9.596 6.4-9.596-6.4-.804 1.205 10.4 6.932 10.4-6.932-.804-1.205z" />
+    </svg>
+  ),
 };
 
 // Default social links (overridden by CMS if provided)
@@ -35,6 +40,7 @@ const DEFAULT_SOCIAL = [
   { label: "facebook", href: "https://www.facebook.com/windedvertigo" },
   { label: "linkedin", href: "https://www.linkedin.com/company/winded-vertigo/" },
   { label: "substack", href: "https://windedvertigo.substack.com/" },
+  { label: "email", href: "mailto:garrett@windedvertigo.com" },
 ];
 
 export function SiteFooter({ sections }: { sections?: SiteSection[] }) {
@@ -64,20 +70,30 @@ export function SiteFooter({ sections }: { sections?: SiteSection[] }) {
     <footer className="wv-footer">
       <div className="wv-footer-inner">
         <p className="wv-footer-copyright">{copyright}</p>
-        <nav className="wv-footer-social" aria-label="social links">
-          {social.map((s) => (
-            <a
-              key={s.label}
-              href={s.href}
-              aria-label={s.label}
-              {...(s.href.startsWith("http")
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
-            >
-              {SOCIAL_ICONS[s.label]}
-            </a>
-          ))}
-        </nav>
+        <div className="wv-footer-right">
+          <a
+            href="https://windedvertigo.substack.com/subscribe"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="wv-footer-subscribe"
+          >
+            subscribe to our newsletter
+          </a>
+          <nav className="wv-footer-social" aria-label="social links">
+            {social.map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                aria-label={s.label}
+                {...(s.href.startsWith("http")
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+              >
+                {SOCIAL_ICONS[s.label]}
+              </a>
+            ))}
+          </nav>
+        </div>
       </div>
     </footer>
   );

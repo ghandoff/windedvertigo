@@ -177,6 +177,7 @@ export interface TeamMember {
   name: string;
   role: string;
   bio: string;
+  playMemory: string;
   headshot: string;
   tags: string[];
   link: string;
@@ -704,6 +705,7 @@ export function extractTeamMembers(
       name: s.name,
       role: s.tagline,
       bio: s.content,
+      playMemory: s.icon,
       headshot: s.imageUrl,
       tags: s.features
         ? s.features

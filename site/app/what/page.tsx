@@ -85,6 +85,7 @@ export default async function WhatPage() {
           {/* ── pillars ────────────────────────────────── */}
           {pillars.length > 0 && (
             <section className="what-values" aria-label="core values">
+              <h2 className="what-values-label">what guides us</h2>
               {pillars.map((pillar) => (
                 <div key={pillar.name} className="what-value">
                   <h2

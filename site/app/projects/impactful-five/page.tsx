@@ -104,8 +104,30 @@ export default function ImpactfulFivePage() {
               of their pedagogical development.
             </p>
 
+            <div className="what-we-learned">
+              <h2>what we learned</h2>
+              <p>
+                faculty change doesn&rsquo;t happen through resources alone — it
+                happens through relationships. the most engaged i5 faculty
+                weren&rsquo;t the ones with the best materials; they were the
+                ones who felt safe enough to experiment, fail, and share what
+                they discovered with peers.
+              </p>
+              <p>
+                we also learned that playful pedagogy is deeply contextual. a
+                technique that transforms a classroom in Denmark may need
+                entirely different framing in Nigeria or Colombia. our role
+                shifted from &ldquo;delivering training&rdquo; to
+                &ldquo;supporting adaptation&rdquo; — helping faculty
+                translate principles into their own cultural and institutional
+                realities.
+              </p>
+            </div>
+
             <p>
-              <Link href="/do/">&#8592; back to projects</Link>
+              <Link href="/do/" className="back-link">
+                &#8592; back to portfolio
+              </Link>
             </p>
           </article>
         </div>

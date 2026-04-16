@@ -6,19 +6,27 @@ import {
   fetchPackageBuilderData,
 } from "@/lib/notion";
 import { PackageBuilderWizard } from "@/components/package-builder-wizard";
+import { QuizErrorBoundary } from "@/components/quiz-error-boundary";
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "quadrants. – winded.vertigo",
   description:
-    "build your custom learning experience package with our interactive package builder.",
+    "discover your learning design quadrant and build a custom experience package with our interactive quiz.",
   alternates: { canonical: "/quadrants/" },
   openGraph: {
+    type: "website",
+    url: "https://www.windedvertigo.com/quadrants/",
     title: "quadrants. – winded.vertigo",
     description:
-      "build your custom learning experience package with our interactive package builder.",
-    url: "/quadrants/",
+      "discover your learning design quadrant and build a custom experience package with our interactive quiz.",
+  },
+  twitter: {
+    card: "summary",
+    title: "quadrants. – winded.vertigo",
+    description:
+      "discover your learning design quadrant and build a custom experience package with our interactive quiz.",
   },
 };
 
@@ -36,7 +44,9 @@ export default async function DoPage() {
 
       <main id="main-content">
         <div className="container content-narrow">
-          <PackageBuilderWizard packs={packs} {...(cta?.link ? { ctaLink: cta.link } : {})} />
+          <QuizErrorBoundary>
+            <PackageBuilderWizard packs={packs} {...(cta?.link ? { ctaLink: cta.link } : {})} />
+          </QuizErrorBoundary>
         </div>
       </main>
 

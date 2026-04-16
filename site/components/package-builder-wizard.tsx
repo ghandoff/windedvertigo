@@ -517,9 +517,20 @@ function ResultPage({
               lineHeight: 1.8,
               color: "rgba(255,255,255,0.7)",
               marginBottom: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
             }}
           >
-            {pack.story}
+            {pack.story.split(/\.\s+/).reduce((acc: string[], sentence, i, arr) => {
+              // Group sentences into short paragraphs of ~2 sentences each
+              const last = acc.length - 1;
+              if (i % 2 === 0) acc.push(sentence + (i < arr.length - 1 ? "." : ""));
+              else acc[last] = acc[last] + " " + sentence + (i < arr.length - 1 ? "." : "");
+              return acc;
+            }, []).map((para, i) => (
+              <p key={i} style={{ margin: 0 }}>{para.trim()}</p>
+            ))}
           </div>
         )}
         {pack.crossover && (
