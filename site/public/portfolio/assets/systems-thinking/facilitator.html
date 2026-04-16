@@ -173,9 +173,16 @@ h1{font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);mar
 const API_BASE = '/api/session';
 let sessionState = { code: null, pin: null };
 
+// strip non-digits live — prevents invisible autofill/paste characters from tripping validation
+const pinInput = document.getElementById('pin-input');
+pinInput.addEventListener('input', () => {
+  const cleaned = pinInput.value.replace(/\D/g, '').slice(0, 4);
+  if (cleaned !== pinInput.value) pinInput.value = cleaned;
+});
+
 // ── auth ──
 document.getElementById('btn-create').addEventListener('click', async () => {
-  const pin = document.getElementById('pin-input').value;
+  const pin = document.getElementById('pin-input').value.trim().replace(/\D/g, '');
   const err = document.getElementById('auth-error');
   err.textContent = '';
 
@@ -205,7 +212,7 @@ document.getElementById('btn-create').addEventListener('click', async () => {
 
 document.getElementById('btn-rejoin').addEventListener('click', async () => {
   const code = document.getElementById('rejoin-code').value.toUpperCase();
-  const pin = document.getElementById('pin-input').value;
+  const pin = document.getElementById('pin-input').value.trim().replace(/\D/g, '');
   const err = document.getElementById('auth-error');
   err.textContent = '';
 

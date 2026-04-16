@@ -1386,6 +1386,93 @@ body { min-height: 100vh; }
   min-height: 300px;
 }
 
+/* systems map caption — explains 0-100 pressure scale */
+.systems-map-caption {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--on-dark);
+  opacity: 0.75;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: rgba(39,50,72,0.5);
+  border-left: 2px solid var(--sienna);
+  border-radius: 0 4px 4px 0;
+}
+
+/* onboarding hints — transient cards on first decisions screen visit */
+.onboarding-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  transition: opacity 0.3s ease-out;
+  opacity: 1;
+}
+.onboarding-hints[hidden] {
+  display: none;
+  opacity: 0;
+}
+.onboarding-hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--on-dark);
+  padding: 8px 12px;
+  background: rgba(39,50,72,0.6);
+  border-left: 2px solid var(--champagne);
+  border-radius: 0 4px 4px 0;
+}
+.onboarding-hint strong {
+  color: var(--champagne);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-hints { transition: none; }
+}
+
+/* pattern screen legend — colour-coded labels for each trajectory */
+.pattern-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 18px;
+  margin: 8px auto 16px;
+  padding: 10px 16px;
+  max-width: 820px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--on-dark);
+  opacity: 0.9;
+}
+.pattern-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+}
+.pattern-legend-item.is-dominant {
+  font-weight: 600;
+}
+.pattern-legend-item:not(.is-dominant) .pattern-legend-swatch {
+  opacity: 0.55;
+  height: 2px;
+}
+.pattern-legend-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 3px;
+  background: var(--swatch, var(--cadet));
+  flex-shrink: 0;
+}
+.pattern-legend-swatch.is-dashed {
+  background: repeating-linear-gradient(
+    to right,
+    var(--swatch, var(--cadet)) 0 4px,
+    transparent 4px 7px
+  );
+}
+
 /* -- wide screen: side-by-side charts + map -- */
 @media (min-width: 1400px) {
   .right-tabs { display: none; }
@@ -1485,6 +1572,10 @@ body { min-height: 100vh; }
     <div id="card-stack"></div>
   </div>
   <div class="decisions-right">
+    <div class="onboarding-hints" id="onboarding-hints" aria-live="polite" hidden>
+      <div class="onboarding-hint"><strong>charts</strong> — how each intervention bends the stock over 25 years. run a slider on the left to draw a line.</div>
+      <div class="onboarding-hint"><strong>systems map</strong> — how pressure ripples through the parts of the system. numbers are 0–100 pressure, not the slider units.</div>
+    </div>
     <div class="right-tabs" role="tablist" aria-label="right panel view">
       <button class="right-tab active" id="tab-charts" role="tab" aria-selected="true" aria-controls="panel-charts">charts</button>
       <button class="right-tab" id="tab-map" role="tab" aria-selected="false" aria-controls="panel-map">systems map</button>
@@ -1518,6 +1609,9 @@ body { min-height: 100vh; }
       <button class="btn btn-small see-pattern-btn" id="btn-see-pattern" aria-label="see the pattern">see the pattern</button>
     </div>
     <div class="right-panel right-panel-hidden" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
+      <div class="systems-map-caption">
+        numbers inside each circle show that node's pressure on a 0–100 scale. they're separate from the slider units on the left — sliders set how much of an intervention you apply; circles show how that ripple reaches each part of the system.
+      </div>
       <div class="systems-map-wrap" id="systems-map-wrap"></div>
     </div>
   </div>
@@ -1527,6 +1621,7 @@ body { min-height: 100vh; }
 <!-- screen 4: pattern -->
 <div id="screen-pattern" class="screen screen-pattern" role="region" aria-label="the pattern across all three interventions">
   <div class="pattern-title">three decisions. one shape.</div>
+  <div class="pattern-legend" id="pattern-legend" aria-label="chart legend"></div>
   <div class="pattern-chart-wrap">
     <canvas id="chart-pattern" aria-label="all three intervention trajectories overlaid"></canvas>
   </div>
@@ -2860,6 +2955,33 @@ function initPatternChart() {
     options: makeChartOptions(scenario.stockUnit),
   });
 
+  const legend = document.getElementById('pattern-legend');
+  if (legend) {
+    legend.innerHTML = '';
+    const items = [
+      { label: 'baseline (no intervention)', color: COLORS.muted, dashed: true, dominant: false },
+    ];
+    scenario.interventions.forEach(intv => {
+      const isDominant = intv.id === domId;
+      items.push({
+        label: intv.title.split('.')[0].trim() + (isDominant ? ' — dominant lever' : ''),
+        color: isDominant ? COLORS.cadet : getTrajectoryColor(intv.id),
+        dashed: intv.effect.type === 'parameter' && !isDominant,
+        dominant: isDominant,
+      });
+    });
+    items.forEach(it => {
+      const el = document.createElement('span');
+      el.className = 'pattern-legend-item' + (it.dominant ? ' is-dominant' : '');
+      const swatch = document.createElement('span');
+      swatch.className = 'pattern-legend-swatch' + (it.dashed ? ' is-dashed' : '');
+      swatch.style.setProperty('--swatch', it.color);
+      el.appendChild(swatch);
+      el.appendChild(document.createTextNode(it.label));
+      legend.appendChild(el);
+    });
+  }
+
   if (!secondarySpec) return;
   const sCanvas = document.getElementById('chart-pattern-secondary');
   if (!sCanvas) return;
@@ -3366,6 +3488,16 @@ function showScreen(name) {
       }
     }
     buildCards();
+    if (!sessionStorage.getItem('st.hints.shown')) {
+      const hints = document.getElementById('onboarding-hints');
+      if (hints) {
+        hints.hidden = false;
+        sessionStorage.setItem('st.hints.shown', '1');
+        const dismiss = () => { hints.hidden = true; };
+        setTimeout(dismiss, 8000);
+        document.querySelector('.decisions-right')?.addEventListener('click', dismiss, { once: true });
+      }
+    }
   }
   if (name === 'pattern') {
     initPatternChart();
