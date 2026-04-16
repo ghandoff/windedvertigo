@@ -377,6 +377,73 @@ body {
 }
 .for-teachers-link:hover { text-decoration: underline; }
 .for-teachers-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* session join */
+.session-join-wrap {
+  margin-bottom: 16px;
+}
+.session-join-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 6px;
+}
+.session-join-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.session-join-input {
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border: 1px solid var(--rule);
+  background: var(--soft-card);
+  color: var(--cadet);
+  width: 120px;
+  text-align: center;
+}
+.session-join-input:focus {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.session-join-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 8px 16px;
+  border: 1px solid var(--cadet);
+  background: var(--cadet);
+  color: var(--champagne);
+  cursor: pointer;
+}
+.session-join-btn:hover { opacity: 0.9; }
+.session-join-btn:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.session-join-error {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--redwood);
+  margin-top: 4px;
+  min-height: 16px;
+}
+.facilitator-link {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-decoration: none;
+  margin-top: 8px;
+}
+.facilitator-link:hover { color: var(--redwood); text-decoration: underline; }
+.facilitator-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -391,8 +458,8 @@ body {
     <div class="landing-headline">every system is perfectly designed to produce the results it gets.</div>
     <div class="landing-rule"></div>
     <div class="landing-body">
-      ten scenarios. ten stocks. the same five leverage tiers.<br><br>
-      each scenario gives you a system with a mandate and five decisions. some change parameters. some change rules. some change the goal itself.<br><br>
+      four scenarios. four stocks. three leverage tiers.<br><br>
+      each scenario gives you a system with a mandate and three decisions. some change parameters. some change rules. some change the goal itself.<br><br>
       your job is not to find the right answer. it is to notice which kind of decision bends the system — and why.
     </div>
     <div class="landing-skills">
@@ -410,11 +477,21 @@ body {
         <li>read each intervention. expand the detail. discuss.</li>
         <li>run an intervention. watch the trajectory.</li>
         <li>after each run, read the "why" — it names the leverage tier.</li>
-        <li>after all five, look for the pattern across interventions.</li>
+        <li>after all three, look for the pattern across interventions.</li>
       </ol>
     </div>
     <button class="btn" id="btn-scenarios" aria-label="choose a scenario">choose a scenario</button>
-    <div class="landing-secondary"><a href="/portfolio/assets/systems-thinking/teacher-guides/index.html">for teachers &rarr;</a></div>
+    <div class="landing-secondary">
+      <div class="session-join-wrap">
+        <label class="session-join-label" for="session-code-input">have a session code?</label>
+        <div class="session-join-row">
+          <input class="session-join-input" id="session-code-input" type="text" maxlength="6" placeholder="ABC123" autocomplete="off" aria-label="session code">
+          <button class="session-join-btn" id="btn-join-session">join</button>
+        </div>
+        <div class="session-join-error" id="join-error" role="alert"></div>
+      </div>
+      <a class="facilitator-link" href="facilitator.html">facilitator dashboard &rarr;</a>
+    </div>
     <div class="landing-footer">w.v × prme · ppcs 2026</div>
   </div>
 </div>
@@ -424,16 +501,13 @@ body {
   <div class="scenarios">
     <button class="back-link" id="btn-back-landing" aria-label="back to introduction">&larr; back</button>
     <div class="scenarios-title">choose a scenario</div>
-    <div class="scenarios-headline">ten scenarios. ten stocks. one pattern.</div>
-    <div class="scenarios-meta" style="justify-content:center;">
-      <a class="for-teachers-link" href="/portfolio/assets/systems-thinking/teacher-guides/index.html">for teachers &rarr;</a>
-    </div>
+    <div class="scenarios-headline">four scenarios. four stocks. one pattern.</div>
     <div class="scenario-grid">
       <!-- anchor: Lakeshore (live, full model) -->
       <div class="scenario-card">
         <div class="scenario-number">anchor scenario</div>
         <div class="scenario-name">lakeshore college</div>
-        <div class="scenario-desc">a small liberal arts college must reach net-zero by 2050. five interventions, from parking permits to rechartering the institution's purpose. full five-stock model.</div>
+        <div class="scenario-desc">a small liberal arts college must reach net-zero by 2050. three interventions, from parking permits to rechartering the institution's purpose. full five-stock model.</div>
         <div class="scenario-meta">
           <div class="scenario-chips">
             <span class="scenario-chip">higher ed</span>
@@ -441,55 +515,12 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
         </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/lakeshore.html" aria-label="open teacher's guide for lakeshore college">teacher's guide</a>
       </div>
-      <!-- 1. Committee -->
+      <!-- 1. SaaS Churn -->
       <div class="scenario-card">
-        <div class="scenario-number">scenario 01 · institutional</div>
-        <div class="scenario-name">curriculum review committee</div>
-        <div class="scenario-desc">stock: faculty trust in the curriculum review process. reinforcing loop. five interventions from surveys to redefining the mandate.</div>
-        <div class="scenario-meta">
-          <div class="scenario-chips">
-            <span class="scenario-chip">institutional</span>
-            <span class="scenario-chip">trust</span>
-          </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=committee" aria-label="play committee scenario">play</a>
-        </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/committee.html" aria-label="open teacher's guide for committee scenario">teacher's guide</a>
-      </div>
-      <!-- 2. Student Engagement -->
-      <div class="scenario-card">
-        <div class="scenario-number">scenario 02 · academic</div>
-        <div class="scenario-name">student engagement</div>
-        <div class="scenario-desc">stock: weekly active participation. balancing loop. interventions range from participation points to reframing course purpose.</div>
-        <div class="scenario-meta">
-          <div class="scenario-chips">
-            <span class="scenario-chip">academic</span>
-            <span class="scenario-chip">engagement</span>
-          </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=engagement" aria-label="play student engagement scenario">play</a>
-        </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/engagement.html" aria-label="open teacher's guide for student engagement scenario">teacher's guide</a>
-      </div>
-      <!-- 3. Capstone Quality -->
-      <div class="scenario-card">
-        <div class="scenario-number">scenario 03 · academic</div>
-        <div class="scenario-name">capstone quality</div>
-        <div class="scenario-desc">stock: depth of capstone projects. reinforcing loop. interventions span from longer timelines to redefining capstone as public contribution.</div>
-        <div class="scenario-meta">
-          <div class="scenario-chips">
-            <span class="scenario-chip">academic</span>
-            <span class="scenario-chip">quality</span>
-          </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=capstone" aria-label="play capstone quality scenario">play</a>
-        </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/capstone.html" aria-label="open teacher's guide for capstone quality scenario">teacher's guide</a>
-      </div>
-      <!-- 4. SaaS Churn -->
-      <div class="scenario-card">
-        <div class="scenario-number">scenario 04 · business</div>
+        <div class="scenario-number">scenario 01 · business</div>
         <div class="scenario-name">saas churn</div>
-        <div class="scenario-desc">stock: active paying customers. reinforcing loop. interventions move from discount renewals to repositioning the product entirely.</div>
+        <div class="scenario-desc">stock: active paying customers. reinforcing loop. three interventions from discount renewals to repositioning the product entirely.</div>
         <div class="scenario-meta">
           <div class="scenario-chips">
             <span class="scenario-chip">business</span>
@@ -497,13 +528,12 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=churn" aria-label="play saas churn scenario">play</a>
         </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/churn.html" aria-label="open teacher's guide for saas churn scenario">teacher's guide</a>
       </div>
-      <!-- 5. Team Burnout -->
+      <!-- 2. Team Burnout -->
       <div class="scenario-card">
-        <div class="scenario-number">scenario 05 · business</div>
+        <div class="scenario-number">scenario 02 · business</div>
         <div class="scenario-name">team burnout</div>
-        <div class="scenario-desc">stock: sustainable team energy. reinforcing loop. interventions range from wellness stipends to redefining what success means.</div>
+        <div class="scenario-desc">stock: sustainable team energy. reinforcing loop. three interventions from hiring contractors to redefining what success means.</div>
         <div class="scenario-meta">
           <div class="scenario-chips">
             <span class="scenario-chip">business</span>
@@ -511,41 +541,12 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=burnout" aria-label="play team burnout scenario">play</a>
         </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/burnout.html" aria-label="open teacher's guide for team burnout scenario">teacher's guide</a>
       </div>
-      <!-- 6. Supply Chain -->
+      <!-- 3. Sleep Debt -->
       <div class="scenario-card">
-        <div class="scenario-number">scenario 06 · business / sustainability</div>
-        <div class="scenario-name">supply chain transparency</div>
-        <div class="scenario-desc">stock: share of verified tier-2 suppliers. balancing loop. interventions move from vendor forms to redefining 'preferred supplier.'</div>
-        <div class="scenario-meta">
-          <div class="scenario-chips">
-            <span class="scenario-chip">sustainability</span>
-            <span class="scenario-chip">supply chain</span>
-          </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=supply-chain" aria-label="play supply chain scenario">play</a>
-        </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/supply-chain.html" aria-label="open teacher's guide for supply chain scenario">teacher's guide</a>
-      </div>
-      <!-- 7. Fitness -->
-      <div class="scenario-card">
-        <div class="scenario-number">scenario 07 · personal</div>
-        <div class="scenario-name">fitness</div>
-        <div class="scenario-desc">stock: weekly workout consistency. balancing loop. interventions span from better shoes to clarifying why fitness matters to you.</div>
-        <div class="scenario-meta">
-          <div class="scenario-chips">
-            <span class="scenario-chip">personal</span>
-            <span class="scenario-chip">health</span>
-          </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=fitness" aria-label="play fitness scenario">play</a>
-        </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/fitness.html" aria-label="open teacher's guide for fitness scenario">teacher's guide</a>
-      </div>
-      <!-- 8. Sleep Debt -->
-      <div class="scenario-card">
-        <div class="scenario-number">scenario 08 · personal</div>
+        <div class="scenario-number">scenario 03 · personal</div>
         <div class="scenario-name">sleep debt</div>
-        <div class="scenario-desc">stock: average nightly sleep. reinforcing loop. interventions range from blackout curtains to redefining productivity.</div>
+        <div class="scenario-desc">stock: average nightly sleep. reinforcing loop. three interventions from blackout curtains to redefining productivity.</div>
         <div class="scenario-meta">
           <div class="scenario-chips">
             <span class="scenario-chip">personal</span>
@@ -553,35 +554,6 @@ body {
           </div>
           <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=sleep" aria-label="play sleep debt scenario">play</a>
         </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/sleep.html" aria-label="open teacher's guide for sleep debt scenario">teacher's guide</a>
-      </div>
-      <!-- 9. Personal Savings -->
-      <div class="scenario-card">
-        <div class="scenario-number">scenario 09 · personal / financial</div>
-        <div class="scenario-name">personal savings</div>
-        <div class="scenario-desc">stock: months of expenses in buffer. balancing loop. interventions move from high-yield accounts to reframing savings as a freedom fund.</div>
-        <div class="scenario-meta">
-          <div class="scenario-chips">
-            <span class="scenario-chip">personal</span>
-            <span class="scenario-chip">financial</span>
-          </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=savings" aria-label="play personal savings scenario">play</a>
-        </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/savings.html" aria-label="open teacher's guide for personal savings scenario">teacher's guide</a>
-      </div>
-      <!-- 10. Office Plastic -->
-      <div class="scenario-card">
-        <div class="scenario-number">scenario 10 · sustainability</div>
-        <div class="scenario-name">office plastic</div>
-        <div class="scenario-desc">stock: weekly single-use plastic discarded. reinforcing loop. interventions range from recycling bins to redefining the sustainability goal for operations.</div>
-        <div class="scenario-meta">
-          <div class="scenario-chips">
-            <span class="scenario-chip">sustainability</span>
-            <span class="scenario-chip">waste</span>
-          </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=plastic" aria-label="play office plastic scenario">play</a>
-        </div>
-        <a class="scenario-tg" href="/portfolio/assets/systems-thinking/teacher-guides/plastic.html" aria-label="open teacher's guide for office plastic scenario">teacher's guide</a>
       </div>
     </div>
   </div>
@@ -597,6 +569,49 @@ document.getElementById('btn-back-landing').addEventListener('click', () => {
   document.getElementById('screen-scenarios').classList.remove('active');
   document.getElementById('screen-landing').classList.add('active');
   window.scrollTo(0, 0);
+});
+
+// session join
+document.getElementById('btn-join-session').addEventListener('click', async () => {
+  const input = document.getElementById('session-code-input');
+  const err = document.getElementById('join-error');
+  const code = input.value.toUpperCase().trim();
+  err.textContent = '';
+
+  if (!/^[A-Z0-9]{6}$/.test(code)) {
+    err.textContent = 'enter a 6-character session code.';
+    return;
+  }
+
+  const btn = document.getElementById('btn-join-session');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/session/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'could not join session');
+    // store session info for the simulator to pick up
+    sessionStorage.setItem('st-session', JSON.stringify({
+      code: data.sessionCode,
+      pid: data.participantId,
+      config: data.config,
+    }));
+    // proceed to scenario selection
+    document.getElementById('screen-landing').classList.remove('active');
+    document.getElementById('screen-scenarios').classList.add('active');
+    window.scrollTo(0, 0);
+  } catch (e) {
+    err.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+// allow Enter key in session code input
+document.getElementById('session-code-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-join-session').click();
 });
 </script>
 </body>

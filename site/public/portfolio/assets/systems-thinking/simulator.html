@@ -181,7 +181,7 @@ body { min-height: 100vh; }
   display: flex;
   flex-direction: column;
   padding: 24px;
-  overflow-y: auto;
+  overflow: hidden;
 }
 .card-stack-title {
   font-size: 11px;
@@ -753,10 +753,10 @@ body { min-height: 100vh; }
 }
 
 @media (max-width: 768px) {
-  .screen-decisions { height: auto; }
+  .screen-decisions { height: auto; min-height: 100vh; }
   .decisions-content { flex-direction: column; }
-  .decisions-left { width: 100%; border-right: none; border-bottom: 1px solid var(--rule); max-height: 50vh; }
-  .decisions-right { min-height: 50vh; }
+  .decisions-left { width: 100%; border-right: none; border-bottom: 1px solid var(--rule); max-height: 45vh; }
+  .decisions-right { min-height: 50vh; flex-direction: column; }
 }
 
 /* -- stacked charts -- */
@@ -1049,12 +1049,355 @@ body { min-height: 100vh; }
     border: 1px solid #999 !important;
   }
 }
+
+/* -- dosage sliders -- */
+.dosage-slider-wrap {
+  width: 100%;
+}
+.dosage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.dosage-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.dosage-dosage {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cadet);
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: right;
+}
+.dosage-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+  outline: none;
+  margin: 0;
+  cursor: pointer;
+}
+.dosage-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cadet);
+  border: 2px solid var(--champagne);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.dosage-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.dosage-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cadet);
+  border: 2px solid var(--champagne);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  cursor: pointer;
+}
+.dosage-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+}
+.dosage-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+}
+.dosage-slider:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.dosage-slider-wrap .card-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dosage-slider::-webkit-slider-thumb { transition: none; }
+}
+
+/* -- mode toggle -- */
+.mode-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.mode-toggle-wrap .mode-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.mode-toggle {
+  display: flex;
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+.mode-btn {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.mode-btn:hover { background: rgba(203,120,88,0.06); }
+.mode-btn.active {
+  background: var(--cadet);
+  color: var(--champagne);
+}
+.mode-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.mode-btn:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: -2px;
+}
+.mode-unlock-hint {
+  font-size: 10px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* -- accordion cards (individual mode) -- */
+.individual-mode .intervention-card {
+  cursor: pointer;
+}
+.individual-mode .intervention-card .card-body,
+.individual-mode .intervention-card .card-detail-toggle,
+.individual-mode .intervention-card .card-detail,
+.individual-mode .intervention-card .card-footer,
+.individual-mode .intervention-card .card-why,
+.individual-mode .intervention-card .surprise-wrap,
+.individual-mode .intervention-card .tradeoff-wrap {
+  max-height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-top: none;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.2s ease, margin 0.3s ease;
+}
+.individual-mode .intervention-card.accordion-open .card-body {
+  max-height: 200px;
+  opacity: 1;
+  margin-bottom: 8px;
+}
+.individual-mode .intervention-card.accordion-open .card-detail-toggle {
+  max-height: 30px;
+  opacity: 1;
+}
+.individual-mode .intervention-card.accordion-open .card-detail {
+  opacity: 1;
+}
+.individual-mode .intervention-card.accordion-open .card-detail.open {
+  max-height: 400px;
+}
+.individual-mode .intervention-card.accordion-open .card-footer {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+}
+.individual-mode .intervention-card.accordion-open .card-why {
+  opacity: 1;
+}
+.individual-mode .intervention-card.accordion-open .card-why.open {
+  max-height: 300px;
+  padding: 12px;
+}
+.individual-mode .intervention-card.accordion-open .surprise-wrap,
+.individual-mode .intervention-card.accordion-open .tradeoff-wrap {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 8px;
+}
+/* active card border highlight */
+.individual-mode .intervention-card.accordion-open {
+  border-color: var(--sienna);
+}
+
+/* -- combined mode -- */
+.combined-mode .intervention-card {
+  padding: 12px 16px;
+}
+.combined-mode .intervention-card .card-body,
+.combined-mode .intervention-card .card-detail-toggle,
+.combined-mode .intervention-card .card-detail,
+.combined-mode .intervention-card .card-why,
+.combined-mode .intervention-card .surprise-wrap,
+.combined-mode .intervention-card .tradeoff-wrap {
+  display: none;
+}
+.combined-mode .intervention-card .card-footer {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: none;
+}
+/* combined trajectory legend */
+.combined-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: rgba(39,50,72,0.03);
+  border: 1px solid var(--rule);
+  font-size: 11px;
+  color: var(--muted);
+}
+.combined-legend-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .individual-mode .intervention-card .card-body,
+  .individual-mode .intervention-card .card-detail-toggle,
+  .individual-mode .intervention-card .card-footer,
+  .individual-mode .intervention-card .card-why,
+  .individual-mode .intervention-card .surprise-wrap,
+  .individual-mode .intervention-card .tradeoff-wrap {
+    transition: none;
+  }
+}
+
+/* -- right-panel tabs -- */
+.right-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.right-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.right-tab:hover {
+  color: var(--cadet);
+}
+.right-tab.active {
+  color: var(--cadet);
+  border-bottom-color: var(--sienna);
+}
+.right-tab:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: -2px;
+}
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.right-panel-hidden {
+  display: none;
+}
+
+/* systems map panel — constrained height, scrollable */
+#panel-map .systems-map-wrap {
+  margin-top: 0;
+  padding: 16px;
+  border-top: none;
+}
+#panel-map .systems-map-wrap svg {
+  width: 100%;
+  height: auto;
+  max-height: 60vh;
+}
+
+/* -- wide screen: side-by-side charts + map -- */
+@media (min-width: 1400px) {
+  .right-tabs { display: none; }
+  .right-panel,
+  .right-panel.right-panel-hidden {
+    display: flex;
+  }
+  .decisions-right {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+  }
+  #panel-charts {
+    flex: 3;
+    min-width: 0;
+  }
+  #panel-map {
+    flex: 2;
+    border-left: 1px solid var(--rule);
+    padding-left: 16px;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+  #panel-map .systems-map-wrap svg {
+    max-height: none;
+  }
+}
+
+/* -- mobile: vertical stack with collapsible map -- */
+@media (max-width: 768px) {
+  .right-tabs {
+    position: sticky;
+    top: 0;
+    background: var(--champagne);
+    z-index: 5;
+  }
+  .decisions-right {
+    padding: 12px;
+  }
+  #panel-map .systems-map-wrap {
+    padding: 8px;
+  }
+  #panel-map .systems-map-wrap svg {
+    max-height: 40vh;
+  }
+}
 </style>
 </head>
 <body>
 
 <div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
-<a class="tg-link" id="tg-link" href="#" target="_blank" rel="noopener" aria-label="open teacher's guide in a new tab">teacher's guide &rarr;</a>
+<!-- teacher's guide link moved to facilitator dashboard -->
 
 <!-- screen 1: mandate -->
 <div id="screen-mandate" class="screen active screen-mandate" role="region" aria-label="the mandate">
@@ -1086,51 +1429,71 @@ body { min-height: 100vh; }
   <div class="decisions-left">
     <div class="explore-prompt" id="explore-prompt">
       <strong>which intervention would you choose?</strong>
-      <div class="explore-sub">read all five. expand the details. when you're ready, click "this is my decision" on the one you think will move the stock the most. you won't see the data until you commit.</div>
+      <div class="explore-sub">read all three. expand the details. when you're ready, click "this is my decision" on the one you think will move the stock the most. you won't see the data until you commit.</div>
     </div>
     <div class="hint-cards" id="hint-cards" style="display:none;">
       now run each intervention to see what the system does over 25 years. start with your choice — then try the others.
     </div>
-    <div class="card-stack-title">interventions</div>
+    <div id="mode-toggle-wrap" class="mode-toggle-wrap" style="display:none;">
+      <span class="mode-label">mode</span>
+      <div class="mode-toggle" role="tablist" aria-label="play mode">
+        <button class="mode-btn active" id="btn-mode-individual" role="tab" aria-selected="true">individual</button>
+        <button class="mode-btn" id="btn-mode-combined" role="tab" aria-selected="false" disabled>combined</button>
+      </div>
+      <span class="mode-unlock-hint" id="mode-unlock-hint">explore all 3 to unlock</span>
+    </div>
+    <div class="card-stack-title" id="card-stack-title">interventions</div>
+    <div id="combined-legend" class="combined-legend" style="display:none;">
+      <span><span class="combined-legend-swatch" style="background:var(--cadet);"></span> combined</span>
+      <span><span class="combined-legend-swatch" style="background:var(--sienna);opacity:0.3;"></span> individual (ghost)</span>
+    </div>
     <div id="card-stack"></div>
   </div>
   <div class="decisions-right">
-    <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
-    <div class="charts-stack">
-      <div class="decisions-chart-wrap">
-        <div class="chart-placeholder" id="chart-placeholder">
-          <span class="chart-placeholder-text">choose an intervention on the left, then hit "run this" to see its trajectory here.</span>
-        </div>
-        <canvas id="chart-decisions" aria-label="trajectories chart"></canvas>
-        <div class="endpoint-labels" id="endpoint-labels"></div>
-      </div>
-      <div class="secondary-wrap" id="secondary-wrap" aria-hidden="false">
-        <div class="secondary-divider">
-          <span class="secondary-divider-rule" aria-hidden="true"></span>
-          <span class="secondary-label" id="secondary-label"></span>
-          <span class="secondary-divider-rule" aria-hidden="true"></span>
-        </div>
-        <div class="secondary-chart-wrap">
-          <canvas id="chart-secondary" aria-label="secondary stock trajectories chart"></canvas>
-        </div>
-      </div>
+    <div class="right-tabs" role="tablist" aria-label="right panel view">
+      <button class="right-tab active" id="tab-charts" role="tab" aria-selected="true" aria-controls="panel-charts">charts</button>
+      <button class="right-tab" id="tab-map" role="tab" aria-selected="false" aria-controls="panel-map">systems map</button>
     </div>
-    <div class="resource-meter-wrap" id="resource-meter-wrap">
-      <div class="resource-label" id="resource-label"></div>
-      <div class="resource-bar"><div class="resource-fill" id="resource-fill"></div></div>
-      <div class="resource-value" id="resource-value"></div>
+    <div class="right-panel" id="panel-charts" role="tabpanel" aria-labelledby="tab-charts">
+      <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
+      <div class="charts-stack">
+        <div class="decisions-chart-wrap">
+          <div class="chart-placeholder" id="chart-placeholder">
+            <span class="chart-placeholder-text">expand an intervention on the left and drag its slider to see the trajectory here.</span>
+          </div>
+          <canvas id="chart-decisions" aria-label="trajectories chart"></canvas>
+          <div class="endpoint-labels" id="endpoint-labels"></div>
+        </div>
+        <div class="secondary-wrap" id="secondary-wrap" aria-hidden="false">
+          <div class="secondary-divider">
+            <span class="secondary-divider-rule" aria-hidden="true"></span>
+            <span class="secondary-label" id="secondary-label"></span>
+            <span class="secondary-divider-rule" aria-hidden="true"></span>
+          </div>
+          <div class="secondary-chart-wrap">
+            <canvas id="chart-secondary" aria-label="secondary stock trajectories chart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="resource-meter-wrap" id="resource-meter-wrap">
+        <div class="resource-label" id="resource-label"></div>
+        <div class="resource-bar"><div class="resource-fill" id="resource-fill"></div></div>
+        <div class="resource-value" id="resource-value"></div>
+      </div>
+      <button class="btn btn-small see-pattern-btn" id="btn-see-pattern" aria-label="see the pattern">see the pattern</button>
     </div>
-    <div class="systems-map-wrap" id="systems-map-wrap"></div>
-    <button class="btn btn-small see-pattern-btn" id="btn-see-pattern" aria-label="see the pattern">see the pattern</button>
+    <div class="right-panel right-panel-hidden" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
+      <div class="systems-map-wrap" id="systems-map-wrap"></div>
+    </div>
   </div>
   </div>
 </div>
 
 <!-- screen 4: pattern -->
-<div id="screen-pattern" class="screen screen-pattern" role="region" aria-label="the pattern across all five interventions">
-  <div class="pattern-title">five decisions. one shape.</div>
+<div id="screen-pattern" class="screen screen-pattern" role="region" aria-label="the pattern across all three interventions">
+  <div class="pattern-title">three decisions. one shape.</div>
   <div class="pattern-chart-wrap">
-    <canvas id="chart-pattern" aria-label="all five intervention trajectories overlaid"></canvas>
+    <canvas id="chart-pattern" aria-label="all three intervention trajectories overlaid"></canvas>
   </div>
   <div class="secondary-divider" id="pattern-secondary-divider" style="width:100%;max-width:800px;margin-top:16px;display:none;">
     <span class="secondary-divider-rule" aria-hidden="true"></span>
@@ -1138,7 +1501,7 @@ body { min-height: 100vh; }
     <span class="secondary-divider-rule" aria-hidden="true"></span>
   </div>
   <div class="pattern-chart-wrap" id="pattern-secondary-wrap" style="height:180px;margin-top:4px;display:none;">
-    <canvas id="chart-pattern-secondary" aria-label="secondary stock across all five interventions"></canvas>
+    <canvas id="chart-pattern-secondary" aria-label="secondary stock across all three interventions"></canvas>
   </div>
   <div class="pattern-caption" id="pattern-tradeoff-line" style="margin-top:12px;font-size:13px;display:none;">the move that bends the primary the most is rarely the move that protects the secondary. notice which interventions cost what.</div>
   <div class="pattern-caption" id="pattern-caption">
@@ -1203,7 +1566,7 @@ body { min-height: 100vh; }
 <!-- screen 5: handoff -->
 <div id="screen-handoff" class="screen screen-handoff" role="region" aria-label="the handoff">
   <div class="handoff-text">
-    the same five decisions exist in every system you manage.<br><br>
+    the same three decisions exist in every system you manage.<br><br>
     they are not always called "interventions."<br>
     they are called: a form, a budget line, a policy,<br>
     a charter, a mission statement.<br><br>
@@ -1241,253 +1604,6 @@ body { min-height: 100vh; }
 // scenario data
 // ────────────────────────────────────────────
 const SCENARIOS = {
-  committee: {
-    name: 'curriculum review committee',
-    category: 'institutional',
-    stock: 'faculty trust in the curriculum review process',
-    stockUnit: 'trust index',
-    loop: 'reinforcing',
-    baselineValue: 62,
-    baselineDirection: 'down',
-    baselineRate: -0.008,
-    targetValue: 80,
-    targetLabel: 'actionable trust threshold',
-    intro: 'the curriculum review committee meets twice a year to evaluate programmes and recommend changes. it has twelve faculty members, a rotating chair appointed by the provost, and an administrative liaison. over the past five years, fewer than half of its recommendations have been implemented. attendance is declining. faculty describe the process as "performative." the provost wants the committee to function — but trust is the bottleneck.',
-    mandate: 'rebuild faculty trust in the curriculum review process to the point where the committee can act on its recommendations.',
-    baselineCaption: 'trust erodes slowly — each cycle without action reinforces scepticism.',
-    insight: 'this is a trust system with long memory. every ignored recommendation reinforces the belief that the process is performative. the loop is reinforcing: low trust → low engagement → weaker recommendations → lower trust.',
-    insightSpot: 'the survey and rubric produce the familiar parameter shape: a brief uplift, then a return. rotating the chair bends the curve more because it changes a structural feature — but the mandate stays the same. the structural break comes from requiring implementation, which closes the broken feedback loop.',
-    insightLever: 'in this system, the paradigm shift is the dominant lever — redefining "review" as "stewardship" changes the identity of the committee. but the rules-level change (required implementation) is what closes the structural gap. the two compound: the paradigm gives direction, the rule gives teeth.',
-    resource: { name: 'institutional goodwill', startValue: 1.0, costs: { 1: 0.05, 2: 0.10, 3: 0.20, 4: 0.30, 5: 0.15 } },
-    map: {
-      viewBox: '0 0 480 200',
-      nodes: [
-        { id: 0, label: 'faculty trust', x: 240, y: 30, w: 100 },
-        { id: 1, label: 'engagement', x: 80, y: 90, w: 90 },
-        { id: 2, label: 'recommendation\nquality', x: 240, y: 110, w: 110 },
-        { id: 3, label: 'implementation\nrate', x: 400, y: 90, w: 110 },
-        { id: 4, label: 'committee\nstructure', x: 120, y: 175, w: 100 },
-        { id: 5, label: 'institutional\npurpose', x: 360, y: 175, w: 100 },
-      ],
-      edges: [
-        { from: 0, to: 1, label: '+' },
-        { from: 1, to: 2, label: '+' },
-        { from: 2, to: 3, label: '+' },
-        { from: 3, to: 0, label: '+' },
-        { from: 4, to: 1, label: '+' },
-        { from: 4, to: 2, label: '+' },
-        { from: 5, to: 0, label: '+' },
-        { from: 5, to: 3, label: '+' },
-      ],
-    },
-    interventions: [
-      {
-        id: 1, title: 'send a satisfaction survey after each review cycle.',
-        body: 'measures the problem. does not change the structure that produces it.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'visibility of faculty sentiment', timeline: 'immediate data, no structural change', assumptions: 'measuring trust does not build it — but it signals that someone is paying attention.', stakes: 'low cost, low risk, low impact.' },
-        why: 'this is a <em>parameter-level</em> change. it adjusts a measurement without altering the process. the curve barely moves because knowing the temperature doesn\'t change the weather.',
-        effect: { type: 'parameter', magnitude: 0.03 },
-        mapHighlight: [0, 1],
-      },
-      {
-        id: 2, title: 'publish a transparent rubric for how recommendations are evaluated.',
-        body: 'makes the criteria visible. doesn\'t change who applies them.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'perceived fairness of the process', timeline: 'one cycle to implement, effect builds slowly', assumptions: 'transparency reduces suspicion but does not redistribute power.', stakes: 'some resistance from administrators who prefer discretion.' },
-        why: 'still <em>parameter-level</em> — the rubric makes the existing process visible but doesn\'t change the process itself. the curve dips slightly because faculty feel heard, then reverts as structural problems persist.',
-        effect: { type: 'parameter', magnitude: 0.06 },
-        mapHighlight: [0, 2],
-      },
-      {
-        id: 3, title: 'rotate the committee chair every two years with faculty election.',
-        body: 'changes who holds the pen. changes the power structure.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'distribution of authority within the committee', timeline: 'takes effect next election cycle', assumptions: 'elected chairs are more accountable to faculty. rotation prevents capture.', stakes: 'current chair may resist. administration loses a lever.' },
-        why: 'this is right at the boundary between parameter and <em>rule</em>. rotating the chair changes a structural feature of the process — who has authority — but the mandate and purpose stay the same. the curve bends more than a survey, but the system eventually adapts.',
-        effect: { type: 'parameter', magnitude: 0.12 },
-        mapHighlight: [0, 1, 4],
-      },
-      {
-        id: 4, title: 'require the committee to implement its own top recommendation each cycle.',
-        body: 'changes what the committee is required to do — not just what it can recommend.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'the feedback loop between recommendation and action', timeline: 'one cycle to see first result', assumptions: 'mandating action closes the loop. faculty see that participation leads to change.', stakes: 'administrators must cede some implementation authority. high institutional friction.' },
-        why: 'this is a <em>rules-level</em> change. it closes the broken feedback loop: recommendations now lead to action, which rebuilds trust, which improves future recommendations. the curve bends and stays bent because the structure that was eroding trust has been repaired.',
-        effect: { type: 'rules', magnitude: 0.35 },
-        mapHighlight: [0, 2, 3, 4],
-      },
-      {
-        id: 5, title: 'redefine the committee\'s mandate: from "review" to "stewardship of the academic programme."',
-        body: 'changes the question the committee exists to answer.',
-        chip: 'goals & paradigms', chipClass: 'chip-goals',
-        detail: { targets: 'the purpose and identity of the committee itself', timeline: 'immediate reframing, compounding cultural shift', assumptions: 'redefining purpose changes what people optimise for. "stewardship" implies ongoing responsibility, not periodic review.', stakes: 'profound shift. some will see this as overreach. others will see it as what the committee should have been all along.' },
-        why: 'this is a <em>paradigm-level</em> change. it doesn\'t fix the process — it redefines what the process is for. the curve drops furthest because every other intervention is now multiplied by a new sense of purpose. trust rebuilds not because the system was repaired, but because its identity changed.',
-        effect: { type: 'goals', magnitude: 0.65 },
-        mapHighlight: [0, 1, 2, 3, 4, 5],
-      },
-    ],
-  },
-
-  engagement: {
-    name: 'student engagement',
-    category: 'academic',
-    stock: 'weekly active participation',
-    stockUnit: '% actively participating',
-    loop: 'balancing',
-    baselineValue: 34,
-    baselineDirection: 'flat',
-    baselineRate: -0.003,
-    dominantId: 5,
-    intro: 'a second-year required course in a business programme has 60 students. attendance is consistent — the course counts for credit. but weekly active participation (asking questions, contributing to discussions, engaging with case material) hovers at about a third. the instructor has tried participation grades, cold-calling, shorter lectures. each produces a brief spike and a return to baseline. the pattern: compliance is cheap. what isn\'t happening is commitment, and the levers the instructor has permission to pull are all at the compliance layer.',
-    insightSpot: 'the compliance levers all share a shape: a spike, then a return to baseline. the system absorbs them because they don\'t change what students are participating in — only whether they perform participation. the paradigm shift bends the curve permanently because it redefines what "engagement" means.',
-    insightLever: 'in this system, the highest-leverage intervention is the one that changes the course\'s purpose. when "content delivery" becomes "building capacity to act," every other lever — grading, discussion, assessment — is multiplied. the paradigm is the dominant lever because the system\'s identity is the bottleneck.',
-    map: {
-      viewBox: '0 0 480 200',
-      nodes: [
-        { id: 0, label: 'active\nparticipation', x: 240, y: 30, w: 110 },
-        { id: 1, label: 'student\nmotivation', x: 80, y: 90, w: 100 },
-        { id: 2, label: 'learning\ndepth', x: 400, y: 90, w: 90 },
-        { id: 3, label: 'instructor\nenergy', x: 120, y: 175, w: 100 },
-        { id: 4, label: 'course\npurpose', x: 360, y: 175, w: 90 },
-      ],
-      edges: [
-        { from: 0, to: 2, label: '+' },
-        { from: 2, to: 1, label: '+' },
-        { from: 1, to: 0, label: '+' },
-        { from: 3, to: 0, label: '+' },
-        { from: 4, to: 1, label: '+' },
-        { from: 4, to: 2, label: '+' },
-      ],
-    },
-    interventions: [
-      {
-        id: 1, title: 'add participation points to the grading rubric.',
-        body: 'prices the behaviour. doesn\'t change what students value.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'extrinsic motivation for speaking', timeline: 'immediate uptick, plateau within weeks', assumptions: 'grade incentives produce compliance, not engagement. some students game the system.', stakes: 'easy to implement, risks rewarding quantity over quality.' },
-        why: 'this is a <em>parameter-level</em> change. it adjusts an incentive without changing the learning environment. participation rises briefly, then plateaus as students find the minimum threshold.',
-        effect: { type: 'parameter', magnitude: 0.04 },
-        mapHighlight: [0, 1],
-      },
-      {
-        id: 2, title: 'send weekly reminder emails with discussion prompts.',
-        body: 'nudges attention. doesn\'t change the structure of the class.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'student attention and preparation', timeline: 'immediate, decays over semester', assumptions: 'reminder fatigue is real. the signal degrades as students learn to ignore it.', stakes: 'zero cost, zero structural change.' },
-        why: 'still <em>parameter-level</em>. nudges are absorbed by the system. the initial bump fades as the emails become part of the noise.',
-        effect: { type: 'parameter', magnitude: 0.02 },
-        mapHighlight: [0, 1],
-      },
-      {
-        id: 3, title: 'shorten lectures to 20 minutes, use remaining time for structured discussion.',
-        body: 'changes the time allocation. gives participation a structural slot.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'the ratio of passive to active time', timeline: 'immediate structural change to class format', assumptions: 'more time for discussion increases opportunity but doesn\'t guarantee quality.', stakes: 'requires rethinking content delivery. some faculty resist giving up lecture time.' },
-        why: 'this sits at the upper edge of <em>parameter</em> — it changes a structural feature (time allocation) but not the rules or purpose. the curve bends more because the opportunity to participate is now built into the class structure.',
-        effect: { type: 'parameter', magnitude: 0.10 },
-        mapHighlight: [0, 3],
-      },
-      {
-        id: 4, title: 'let students choose their own assessment format.',
-        body: 'changes the rules of evaluation. shifts ownership to the learner.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'student agency in the assessment process', timeline: 'one term to see effects, compounds over time', assumptions: 'choice increases ownership. students who choose their format engage more deeply because they\'re working in their strength.', stakes: 'requires trust in students. some will choose the easiest option. most won\'t.' },
-        why: 'this is a <em>rules-level</em> change. it shifts who controls the assessment structure. engagement rises because students are no longer performing for a rubric — they\'re working on something they chose. the curve bends and holds.',
-        effect: { type: 'rules', magnitude: 0.30 },
-        mapHighlight: [0, 1, 2],
-      },
-      {
-        id: 5, title: 'reframe the course purpose: from "content delivery" to "building capacity to act on what you learn."',
-        body: 'changes what the course exists to do.',
-        chip: 'goals & paradigms', chipClass: 'chip-goals',
-        detail: { targets: 'the identity and purpose of the course itself', timeline: 'immediate reframing, cultural shift over semesters', assumptions: 'when the purpose changes, what counts as "participation" changes. students engage differently when the course is about building capacity, not absorbing content.', stakes: 'profound. some students will resist the ambiguity. most will rise to it.' },
-        why: 'this is a <em>paradigm-level</em> change. it redefines what engagement means. the curve drops furthest because students aren\'t just participating more — they\'re participating in something different. the system\'s identity has shifted.',
-        effect: { type: 'goals', magnitude: 0.65, compoundRate: 0.35 },
-        mapHighlight: [0, 1, 2, 3, 4],
-      },
-    ],
-  },
-
-  capstone: {
-    name: 'capstone quality',
-    category: 'academic',
-    stock: 'depth of capstone projects',
-    stockUnit: 'quality index',
-    loop: 'reinforcing',
-    baselineValue: 45,
-    baselineDirection: 'down',
-    baselineRate: -0.006,
-    dominantId: 4,
-    intro: 'a business school capstone programme asks final-year students to produce a strategy project for a real or simulated organisation. over five years, the average quality has drifted down. students share templates. the rubric has been tightened twice — each time, scores improved briefly, then settled back. the faculty committee that evaluates capstones has been the same four professors for six years. they describe the problem as "student effort." the pattern suggests it is the evaluation structure itself.',
-    insightSpot: 'the rubric tightening produced the classic parameter shape: a brief score improvement, then a return to baseline. the structural bottleneck was not what students did, but who evaluated the output. the committee\'s norms had drifted — and tighter rubrics just measured the drift more precisely.',
-    insightLever: 'in this system, the dominant lever is not the paradigm shift but the structural composition change: bringing external clients into the evaluation. output in evaluation systems rises to meet the room, not the instrument. changing who judges — not how they judge — changed the room.',
-    map: {
-      viewBox: '0 0 480 200',
-      nodes: [
-        { id: 0, label: 'project\nquality', x: 240, y: 30, w: 90 },
-        { id: 1, label: 'student\neffort', x: 80, y: 90, w: 90 },
-        { id: 2, label: 'evaluation\nrigour', x: 400, y: 90, w: 100 },
-        { id: 3, label: 'committee\nnorms', x: 120, y: 175, w: 100 },
-        { id: 4, label: 'external\naccountability', x: 360, y: 175, w: 110 },
-      ],
-      edges: [
-        { from: 1, to: 0, label: '+' },
-        { from: 2, to: 1, label: '+' },
-        { from: 0, to: 2, label: '+' },
-        { from: 3, to: 2, label: '−' },
-        { from: 4, to: 2, label: '+' },
-        { from: 4, to: 0, label: '+' },
-      ],
-    },
-    interventions: [
-      {
-        id: 1, title: 'extend the capstone timeline by four weeks.',
-        body: 'gives more time. doesn\'t change what students do with it.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'time available for deep work', timeline: 'immediate, one cohort to evaluate', assumptions: 'more time helps prepared students. it doesn\'t help students who lack a clear question.', stakes: 'easy to implement, modest effect.' },
-        why: 'this is a <em>parameter-level</em> change. more time helps at the margins but doesn\'t change the structure of the experience. students with weak projects just have more time to produce weak projects.',
-        effect: { type: 'parameter', magnitude: 0.04 },
-        mapHighlight: [0, 1],
-      },
-      {
-        id: 2, title: 'publish a detailed rubric with exemplars.',
-        body: 'makes expectations visible. risks becoming a ceiling.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'clarity of quality expectations', timeline: 'immediate transparency', assumptions: 'rubrics clarify but can also constrain. students aim for the rubric, not beyond it.', stakes: 'low risk, moderate ceiling effect.' },
-        why: 'still <em>parameter-level</em>. the rubric makes the target visible but doesn\'t change the nature of the work. quality improves modestly as students aim for the defined standard — but no further.',
-        effect: { type: 'parameter', magnitude: 0.06 },
-        mapHighlight: [0, 2],
-      },
-      {
-        id: 3, title: 'require a midpoint draft with structured peer feedback.',
-        body: 'changes the process. builds in iteration.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'the feedback loop within the capstone process', timeline: 'one cycle to see effects', assumptions: 'structured iteration catches weak projects early. peer feedback builds community standards.', stakes: 'requires faculty time for the feedback cycle. worth it.' },
-        why: 'this is a <em>rules-level</em> change. it builds a feedback loop into the process — drafts get caught early, standards become shared through peer review. the curve lifts because the structure now actively improves projects rather than just measuring them.',
-        effect: { type: 'rules', magnitude: 0.25 },
-        mapHighlight: [0, 1, 3],
-      },
-      {
-        id: 4, title: 'partner capstones with external clients who need the work.',
-        body: 'changes who the work is for. real stakes, real feedback.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'the purpose and audience of capstone work', timeline: 'one cycle to establish partnerships', assumptions: 'external clients raise the stakes naturally. students produce better work when someone needs it.', stakes: 'requires relationship management. client expectations must be managed.' },
-        why: 'this is the dominant <em>rules-level</em> change in this system. it shifts the audience from "professor who grades" to "client who needs." output in evaluation systems tends to rise to meet the room, not the instrument. changing <em>who judges</em> — not how they judge — changes the room. the curve lifts most because the structural bottleneck (a closed evaluation committee with drifting norms) has been replaced with an external accountability structure.',
-        effect: { type: 'rules', magnitude: 0.52 },
-        mapHighlight: [0, 2, 4],
-      },
-      {
-        id: 5, title: 'reframe capstone as a public contribution to the discipline, not a graduation requirement.',
-        body: 'changes what "capstone" means.',
-        chip: 'goals & paradigms', chipClass: 'chip-goals',
-        detail: { targets: 'the identity and purpose of capstone work', timeline: 'immediate reframing, cultural shift over cohorts', assumptions: 'when capstone becomes contribution rather than requirement, the question changes from "what do I need to pass?" to "what can I offer?"', stakes: 'profound shift. requires institutional backing and a public platform for student work.' },
-        why: 'this is a <em>paradigm-level</em> change. it redefines what capstone exists to do. but in this system, the structural bottleneck was the evaluation committee, not the purpose statement. the paradigm shift helps — students who see capstone as contribution try harder — but the dominant lever was changing who is in the room.',
-        effect: { type: 'goals', magnitude: 0.38, compoundRate: 0.15 },
-        mapHighlight: [0, 1, 2, 3, 4],
-      },
-    ],
-  },
 
   churn: {
     name: 'saas churn',
@@ -1531,42 +1647,27 @@ const SCENARIOS = {
         detail: { targets: 'renewal rate via price incentive', timeline: 'immediate retention bump, sustained because price IS the constraint', assumptions: 'in most systems, discounts decay as expectations reset. in this system, the product delivers value — the price-to-value ratio is the bottleneck. adjusting it releases the constraint directly.', stakes: 'margin erosion, but the LTV increase outweighs the discount cost.' },
         why: 'this looks like a standard <em>parameter-level</em> change — and in most systems, it would decay. but in this system, price is the <em>binding constraint</em>. the product works; customers leave because the perceived value doesn\'t justify the price at the current activation rate. the discount releases the bottleneck directly. meadows warned: "the leverage point is not always where you expect it."',
         effect: { type: 'parameter', magnitude: 0.42, decayRate: 0.08 },
+        dosage: { label: 'discount on annual renewals', unit: '%', min: 0, max: 40 },
         mapHighlight: [0, 3],
       },
       {
-        id: 2, title: 'launch a loyalty email sequence with usage tips.',
-        body: 'nudges engagement. doesn\'t change the product.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'customer engagement with existing features', timeline: 'immediate, effect decays over months', assumptions: 'emails help customers discover value they\'re already paying for. doesn\'t help if the value isn\'t there.', stakes: 'low cost, low ceiling.' },
-        why: 'this is a <em>parameter-level</em> change that doesn\'t address the binding constraint. email nudges produce a brief engagement bump that fades. the structural reasons people leave remain unchanged.',
-        effect: { type: 'parameter', magnitude: 0.05 },
-        mapHighlight: [0, 2],
-      },
-      {
-        id: 3, title: 'hire three dedicated support representatives.',
-        body: 'improves responsiveness. doesn\'t change what they\'re responding to.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'response time and support quality', timeline: 'immediate service improvement', assumptions: 'better support retains frustrated customers. doesn\'t attract new ones or change why they get frustrated.', stakes: 'significant ongoing cost. helps retention at the margins.' },
-        why: 'this is a <em>parameter-level</em> change that improves the experience at the support layer. but the binding constraint — price-to-value at the activation moment — isn\'t addressed by faster support responses.',
-        effect: { type: 'parameter', magnitude: 0.08 },
-        mapHighlight: [0, 1],
-      },
-      {
-        id: 4, title: 'redesign the onboarding flow so new users reach value in the first session.',
+        id: 2, title: 'redesign the onboarding flow so new users reach value in the first session.',
         body: 'changes the first experience. changes what "using the product" means.',
         chip: 'rules', chipClass: 'chip-rules',
         detail: { targets: 'time-to-value for new customers', timeline: 'one quarter to redesign, effects compound', assumptions: 'customers who reach value quickly stay longer. onboarding is the highest-leverage moment in the customer lifecycle.', stakes: 'requires engineering investment. high payoff if executed well.' },
         why: 'this is a <em>rules-level</em> change. it restructures the critical first experience so that value is reached before doubt sets in. the curve bends modestly — it helps, but the binding constraint (price-to-value) is partially addressed by activation, not fully by onboarding alone.',
         effect: { type: 'rules', magnitude: 0.22 },
+        dosage: { label: 'onboarding redesign depth', unit: '% of funnel rebuilt', min: 0, max: 100 },
         mapHighlight: [0, 2],
       },
       {
-        id: 5, title: 'reposition the product: from "tool for X" to "platform for the outcome customers actually want."',
+        id: 3, title: 'reposition the product: from "tool for X" to "platform for the outcome customers actually want."',
         body: 'changes what the product claims to be — and therefore who it attracts and why they stay.',
         chip: 'goals & paradigms', chipClass: 'chip-goals',
         detail: { targets: 'the identity of the product and its customer base', timeline: 'immediate repositioning, market shift over quarters', assumptions: 'repositioning changes who arrives. customers who come for the right reason churn less. the referral loop strengthens because the message is clearer.', stakes: 'profound. requires alignment across product, marketing, and sales. some existing customers won\'t recognise the new positioning.' },
         why: 'this is a <em>paradigm-level</em> change. repositioning changes who arrives, which eventually addresses the activation problem upstream. but it is slower and more uncertain than directly releasing the binding constraint. in this system, the paradigm shift is valuable but not dominant — the bottleneck was at the parameter layer all along.',
         effect: { type: 'goals', magnitude: 0.35, compoundRate: 0.15 },
+        dosage: { label: 'repositioning commitment', unit: 'quarters invested', min: 0, max: 4 },
         mapHighlight: [0, 1, 2, 3, 4],
       },
     ],
@@ -1581,10 +1682,10 @@ const SCENARIOS = {
     baselineValue: 68,
     baselineDirection: 'down',
     baselineRate: -0.010,
-    dominantId: 4,
+    dominantId: 2,
     intro: 'a 14-person product team at a mid-size company ships a release every two weeks. velocity has been rising for three quarters — and so has attrition. two senior engineers left in the last six months; exit interviews cited "unsustainable pace." the remaining team absorbs the work. the planning process sets sprint scope based on the previous sprint\'s output, which means every good sprint raises the bar for the next one. the people burning out don\'t sit at the planning table.',
-    insightSpot: 'the wellness stipend and no-meeting fridays share the same shape: a brief recovery that the system absorbs. the planning process ratchets — every good sprint raises the bar. the parameter interventions subsidise coping while the structural load keeps increasing. the scope cap breaks the ratchet.',
-    insightLever: 'in this system, the dominant lever is the scope cap — intervention (4). it puts the captured party (the team) at the planning table structurally. the planning process can no longer use last sprint\'s output as next sprint\'s floor. the paradigm shift helps, but without the structural mechanism change, the ratchet reasserts.',
+    insightSpot: 'the contractors and no-meeting fridays share the same shape: a brief recovery that the system absorbs. the planning process ratchets — every good sprint raises the bar. the parameter intervention subsidises coping while the structural load keeps increasing. the scope cap breaks the ratchet.',
+    insightLever: 'in this system, the dominant lever is the scope cap — intervention (2). it puts the captured party (the team) at the planning table structurally. the planning process can no longer use last sprint\'s output as next sprint\'s floor. the paradigm shift helps, but without the structural mechanism change, the ratchet reasserts.',
     map: {
       viewBox: '0 0 480 200',
       nodes: [
@@ -1605,184 +1706,34 @@ const SCENARIOS = {
     },
     interventions: [
       {
-        id: 1, title: 'introduce a $500 quarterly wellness stipend.',
-        body: 'subsidises recovery. doesn\'t change the workload.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'individual recovery capacity', timeline: 'immediate', assumptions: 'wellness spending helps individuals cope. it doesn\'t change the system that exhausts them.', stakes: 'appreciated but insufficient. can feel performative if workload doesn\'t change.' },
-        why: 'this is a <em>parameter-level</em> change. it subsidises recovery without touching the source of exhaustion. the curve dips slightly as individuals feel cared for, then resumes because the structural load hasn\'t changed.',
-        effect: { type: 'parameter', magnitude: 0.03 },
-        mapHighlight: [0],
-      },
-      {
-        id: 2, title: 'institute no-meeting fridays.',
-        body: 'protects one day. doesn\'t change the other four.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'uninterrupted work time', timeline: 'immediate', assumptions: 'meetings compress into four days. net cognitive load may not change.', stakes: 'popular with the team, but meetings migrate. compliance erodes within months.' },
-        why: 'still <em>parameter-level</em>. protected time helps but the system adapts — meetings compress, slack messages replace syncs. the structural demand hasn\'t changed.',
-        effect: { type: 'parameter', magnitude: 0.04 },
-        mapHighlight: [0, 1],
-      },
-      {
-        id: 3, title: 'hire contractors to absorb overflow work.',
+        id: 1, title: 'hire contractors to absorb overflow work.',
         body: 'adds capacity. doesn\'t change how much work enters the system.',
         chip: 'parameter', chipClass: 'chip-parameter',
         detail: { targets: 'team workload distribution', timeline: 'immediate relief', assumptions: 'contractors handle overflow but create coordination overhead. work expands to fill available capacity.', stakes: 'expensive. risk of induced demand — more capacity invites more scope.' },
         why: 'this is the strongest <em>parameter-level</em> intervention. it genuinely reduces load in the short term. but without a scope cap, the system absorbs the new capacity and returns to overload.',
         effect: { type: 'parameter', magnitude: 0.08 },
+        dosage: { label: 'overflow contractors', unit: 'headcount', min: 0, max: 6 },
         mapHighlight: [0, 1, 2],
       },
       {
-        id: 4, title: 'cap sprint scope at 80% of estimated capacity. the remaining 20% is protected slack.',
+        id: 2, title: 'cap sprint scope at 80% of estimated capacity. the remaining 20% is protected slack.',
         body: 'changes the rules of how much work enters the system.',
         chip: 'rules', chipClass: 'chip-rules',
         detail: { targets: 'the structural relationship between capacity and demand', timeline: 'one sprint to see effects, compounds over quarters', assumptions: 'a hard cap prevents scope creep at the source. 20% slack allows recovery, learning, and absorption of surprises.', stakes: 'requires leadership to defend the cap against scope pressure. high friction, high payoff.' },
         why: 'this is a <em>rules-level</em> change — and in this system, it is the dominant lever. the scope cap puts the captured party (the team) at the planning table structurally: the cap exists because someone measured their capacity and made it binding. energy recovers because the loop that was draining it has been structurally interrupted. the planning process can no longer ratchet.',
         effect: { type: 'rules', magnitude: 0.52 },
+        dosage: { label: 'protected slack', unit: '% of capacity', min: 0, max: 30 },
         mapHighlight: [0, 2, 4],
       },
       {
-        id: 5, title: 'redefine success: from "shipping features" to "sustainable delivery of value."',
+        id: 3, title: 'redefine success: from "shipping features" to "sustainable delivery of value."',
         body: 'changes what the team is optimising for.',
         chip: 'goals & paradigms', chipClass: 'chip-goals',
         detail: { targets: 'the team\'s identity and what it means to do good work', timeline: 'immediate reframing, cultural shift over quarters', assumptions: 'when "success" includes sustainability, every sprint planning conversation changes. overwork stops being heroic and starts being a system failure.', stakes: 'profound. requires executive alignment. some high-performers will resist the redefinition.' },
         why: 'this is a <em>paradigm-level</em> change. it redefines what the team optimises for — but in this system, the reinforcing loop is driven by the planning process, not by culture alone. redefining success helps, but unless the planning mechanism changes, the loop reasserts. the paradigm shift is necessary but not sufficient; the structural cap is the lever.',
         effect: { type: 'goals', magnitude: 0.40, compoundRate: 0.15 },
+        dosage: { label: 'definition shift depth', unit: '% adoption', min: 0, max: 100 },
         mapHighlight: [0, 1, 2, 3, 4],
-      },
-    ],
-  },
-
-  'supply-chain': {
-    name: 'supply chain transparency',
-    category: 'business / sustainability',
-    stock: 'share of verified tier-2 suppliers',
-    stockUnit: '% verified',
-    loop: 'balancing',
-    baselineValue: 12,
-    baselineDirection: 'flat',
-    baselineRate: 0.002,
-    dominantId: 3,
-    intro: 'a consumer-goods company sources from 340 tier-1 suppliers, who in turn source from an estimated 2,000 tier-2 suppliers. the company publishes an annual sustainability report, but tier-2 verification sits at 12%. an NGO report last year named the company as "opaque beyond tier 1." the VP of procurement wants to move. the problem: consequences of sourcing decisions arrive 12–18 months after the purchase order. by the time a violation surfaces, the product is on shelves and the contract is renewed.',
-    insightSpot: 'the audit budget and vendor forms share a flat shape — they work within the existing delay structure and barely move the needle. the supplier list publication bends the curve most because it compresses the 18-month feedback delay to near real-time. in delay-dominant systems, the leverage point is the delay itself.',
-    insightLever: 'in this system, the dominant lever is intervention (3) — publishing the supplier list. it is technically a parameter change (visibility, not rules). but in a delay-dominant system, compressing the feedback loop is the structural move. the rules-level and paradigm-level interventions help, but they propagate slowly through the same delay the parameter change eliminated.',
-    map: {
-      viewBox: '0 0 480 200',
-      nodes: [
-        { id: 0, label: 'verified\nsuppliers', x: 240, y: 30, w: 100 },
-        { id: 1, label: 'transparency', x: 80, y: 90, w: 100 },
-        { id: 2, label: 'stakeholder\npressure', x: 400, y: 90, w: 100 },
-        { id: 3, label: 'feedback\ndelay', x: 120, y: 175, w: 90 },
-        { id: 4, label: 'procurement\nrules', x: 360, y: 175, w: 100 },
-      ],
-      edges: [
-        { from: 0, to: 1, label: '+' },
-        { from: 1, to: 2, label: '+' },
-        { from: 2, to: 0, label: '+' },
-        { from: 3, to: 1, label: '−' },
-        { from: 4, to: 0, label: '+' },
-      ],
-    },
-    interventions: [
-      {
-        id: 1, title: 'add three questions about tier-2 sourcing to the vendor intake form.',
-        body: 'asks the question. doesn\'t require the answer.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'visibility of tier-2 practices', timeline: 'immediate', assumptions: 'forms signal interest but don\'t compel action. suppliers answer what\'s easy and skip what\'s hard.', stakes: 'zero friction, zero teeth.' },
-        why: 'this is a <em>parameter-level</em> change. asking a question on a form doesn\'t change the incentive to answer honestly. the curve barely moves.',
-        effect: { type: 'parameter', magnitude: 0.03 },
-        mapHighlight: [0, 1],
-      },
-      {
-        id: 2, title: 'increase the audit budget by 30%.',
-        body: 'funds more verification. doesn\'t change what triggers it.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'audit capacity', timeline: 'immediate increase in verification volume', assumptions: 'more budget means more audits, but without structural requirements, audits stay voluntary and reactive.', stakes: 'moderate cost, moderate reach.' },
-        why: 'still <em>parameter-level</em>. more budget means more audits, but the structural incentive is unchanged. you can audit faster without ever changing which suppliers get selected.',
-        effect: { type: 'parameter', magnitude: 0.06 },
-        mapHighlight: [0, 1],
-      },
-      {
-        id: 3, title: 'publish the full supplier list on the company website.',
-        body: 'collapses the delay. consequences of sourcing decisions become visible immediately, not 18 months later.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'the feedback delay between sourcing decisions and consequences', timeline: 'immediate visibility — the delay compresses from 18 months to real-time', assumptions: 'in delay-dominant systems, compressing the feedback loop is the structural move. public transparency makes every sourcing decision visible to external stakeholders before the product ships, not after. this changes supplier behaviour upstream.', stakes: 'high reputational exposure. the company must be prepared to act on what the list reveals.' },
-        why: 'this is technically a <em>parameter-level</em> change — it adjusts visibility, not rules. but in a <em>delay-dominant</em> system, compressing the feedback loop is the highest-leverage move. the 18-month gap between sourcing and consequences was the structural feature that allowed opacity to persist. publishing collapses that gap. the curve bends most because the system\'s defining feature — delay — has been structurally removed.',
-        effect: { type: 'parameter', magnitude: 0.48, decayRate: 0.05 },
-        mapHighlight: [0, 1, 2, 3],
-      },
-      {
-        id: 4, title: 'require tier-2 disclosure as a condition of preferred-supplier status.',
-        body: 'changes the rules. makes verification a prerequisite, not a request.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'the structural relationship between disclosure and procurement status', timeline: 'one procurement cycle to take effect', assumptions: 'when disclosure is required for preferred status, suppliers who want the business will comply. the incentive reverses.', stakes: 'some suppliers will drop out. the ones who stay are the ones you want.' },
-        why: 'this is a <em>rules-level</em> change. it reverses the incentive structure — but the delay still exists. suppliers comply on paper, and violations surface a year later. the rule helps, but without compressing the feedback loop, enforcement lags.',
-        effect: { type: 'rules', magnitude: 0.30 },
-        mapHighlight: [0, 4],
-      },
-      {
-        id: 5, title: 'redefine "preferred supplier" to include verified social and environmental practices at every tier.',
-        body: 'changes what "preferred" means.',
-        chip: 'goals & paradigms', chipClass: 'chip-goals',
-        detail: { targets: 'the definition of supplier quality itself', timeline: 'immediate redefinition, market shift over years', assumptions: 'when "preferred" includes verified practices at every tier, the entire procurement logic changes. suppliers don\'t just disclose — they invest in their own supply chains.', stakes: 'profound. changes which suppliers pursue you, not just which ones you audit.' },
-        why: 'this is a <em>paradigm-level</em> change. it redefines what the company values in a supplier. but in a delay-dominant system, the paradigm shift takes years to propagate through the supply chain. the curve rises, but the dominant lever is still the one that compressed the delay — because that\'s what this system\'s structure asks for.',
-        effect: { type: 'goals', magnitude: 0.35, compoundRate: 0.15 },
-        mapHighlight: [0, 1, 2, 3, 4],
-      },
-    ],
-  },
-
-  fitness: {
-    name: 'fitness',
-    category: 'personal',
-    stock: 'weekly workout consistency',
-    stockUnit: 'sessions / week',
-    loop: 'balancing',
-    baselineValue: 1.2,
-    baselineDirection: 'flat',
-    baselineRate: -0.005,
-    mandate: 'move from sporadic exercise to a sustainable weekly routine that doesn\'t collapse under life pressure.',
-    baselineCaption: 'one or two sessions a week, when nothing else gets in the way. the system defaults to rest.',
-    insight: 'this is a balancing system that settles at low activity. life pressure displaces exercise, which reduces energy, which makes exercise feel harder, which makes it easier to skip. the loop holds you at "not quite enough."',
-    interventions: [
-      {
-        id: 1, title: 'buy better running shoes.',
-        body: 'removes a friction point. doesn\'t change the schedule.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'comfort and injury risk during exercise', timeline: 'immediate', assumptions: 'better equipment reduces one barrier. it doesn\'t create motivation or time.', stakes: 'small investment, small effect.' },
-        why: 'this is a <em>parameter-level</em> change. better shoes remove a minor friction but don\'t change the structure of your week. the curve barely moves.',
-        effect: { type: 'parameter', magnitude: 0.03 },
-      },
-      {
-        id: 2, title: 'get a gym membership.',
-        body: 'creates access. doesn\'t create the habit.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'access to exercise facilities', timeline: 'immediate access, usage decays', assumptions: 'most gym memberships go underused. access ≠ action.', stakes: 'monthly cost. the "sunk cost" effect helps some people. not most.' },
-        why: 'still <em>parameter-level</em>. the gym exists whether you go or not. the curve dips as initial motivation fades and the membership becomes background noise.',
-        effect: { type: 'parameter', magnitude: 0.05 },
-      },
-      {
-        id: 3, title: 'hire a personal trainer for two sessions a week.',
-        body: 'adds external accountability and structure.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'accountability and exercise quality', timeline: 'immediate structure', assumptions: 'a trainer creates a commitment device. someone is waiting for you. the sessions are planned. you show up because cancelling feels costly.', stakes: 'significant cost. high accountability. works while you can afford it.' },
-        why: 'this is a <em>rules-level</em> change. external accountability creates structure you didn\'t have. the curve lifts because the system now has a forcing function — someone else holds you to it.',
-        effect: { type: 'rules', magnitude: 0.28 },
-      },
-      {
-        id: 4, title: 'redesign your week around workouts: block time, move meetings, set non-negotiable slots.',
-        body: 'changes the structure of your time. exercise becomes infrastructure, not afterthought.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'the structural position of exercise in your schedule', timeline: 'one week to implement, compounds over months', assumptions: 'when exercise is scheduled like a meeting, it competes equally with other commitments. infrastructure beats willpower.', stakes: 'requires real trade-offs. some meetings move. some tasks wait.' },
-        why: 'this is a deeper <em>rules-level</em> change. it restructures the container (your week) so exercise isn\'t competing against everything else. the curve lifts more because the structural barrier — "I don\'t have time" — has been architecturally removed.',
-        effect: { type: 'rules', magnitude: 0.38 },
-      },
-      {
-        id: 5, title: 'clarify why fitness matters to you — not "I should exercise" but "this is who I am."',
-        body: 'changes your identity. changes what you optimise for.',
-        chip: 'goals & paradigms', chipClass: 'chip-goals',
-        detail: { targets: 'your self-concept and what you consider non-negotiable', timeline: 'immediate reframing, deepens over time', assumptions: 'identity-level change is the most durable. people who say "I\'m a runner" run more than people who say "I\'m trying to run more." the verb shifts from doing to being.', stakes: 'no financial cost. high psychological cost. requires honest self-examination.' },
-        why: 'this is a <em>paradigm-level</em> change. it shifts fitness from a behaviour to an identity. the curve rises most because every decision — what to eat, when to sleep, how to spend a free hour — is now filtered through a different question.',
-        effect: { type: 'goals', magnitude: 0.58 },
       },
     ],
   },
@@ -1807,173 +1758,25 @@ const SCENARIOS = {
         detail: { targets: 'sleep environment quality', timeline: 'immediate', assumptions: 'a darker room helps sleep quality. it doesn\'t help you get to bed on time.', stakes: 'small investment, small effect.' },
         why: 'this is a <em>parameter-level</em> change. a better environment improves quality at the margins but doesn\'t address why you\'re going to bed late.',
         effect: { type: 'parameter', magnitude: 0.03 },
+        dosage: { label: 'room darkness level', unit: '% light blocked', min: 0, max: 100 },
       },
       {
-        id: 2, title: 'set a bedtime reminder on your phone.',
-        body: 'nudges the behaviour. doesn\'t change the incentives.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'awareness of bedtime', timeline: 'immediate, compliance decays', assumptions: 'reminders work for a week. then you start dismissing them. the pull of "one more thing" is structural, not informational.', stakes: 'zero cost. zero structural change.' },
-        why: 'still <em>parameter-level</em>. the reminder adds information you already have. the curve barely moves because the problem isn\'t forgetting — it\'s choosing.',
-        effect: { type: 'parameter', magnitude: 0.02 },
-      },
-      {
-        id: 3, title: 'take melatonin 30 minutes before target bedtime.',
-        body: 'chemical nudge. helps you fall asleep, not stay asleep.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'sleep onset latency', timeline: 'immediate effect', assumptions: 'melatonin reduces the time to fall asleep. it doesn\'t address the structural reasons you\'re awake.', stakes: 'inexpensive, mild effect. risk of dependency narrative.' },
-        why: 'still <em>parameter-level</em>. a chemical nudge that helps at the margin. the structural pressure that keeps you up hasn\'t changed.',
-        effect: { type: 'parameter', magnitude: 0.04 },
-      },
-      {
-        id: 4, title: 'set a consistent bedtime rule: lights out by 10:30 p.m., no screens after 10:00 p.m.',
+        id: 2, title: 'set a consistent bedtime rule: lights out by 10:30 p.m., no screens after 10:00 p.m.',
         body: 'creates a hard boundary. changes the rules of the evening.',
         chip: 'rules', chipClass: 'chip-rules',
         detail: { targets: 'the structural boundary between evening activity and sleep', timeline: 'one week to establish, compounds over months', assumptions: 'a consistent rule creates a rhythm. the body adapts. the hard part is defending the boundary against late-night work, social pressure, or "one more episode."', stakes: 'requires real discipline. high payoff for those who hold it.' },
         why: 'this is a <em>rules-level</em> change. it creates a structural boundary that the reinforcing loop can\'t easily erode. sleep stabilises because the input side — bedtime — is now governed by a rule, not a negotiation.',
         effect: { type: 'rules', magnitude: 0.30 },
+        dosage: { label: 'bedtime consistency', unit: 'nights per week', min: 0, max: 7 },
       },
       {
-        id: 5, title: 'redefine productivity: from "hours worked" to "quality of decisions made when rested."',
+        id: 3, title: 'redefine productivity: from "hours worked" to "quality of decisions made when rested."',
         body: 'changes what you optimise for. sleep becomes an investment, not a cost.',
         chip: 'goals & paradigms', chipClass: 'chip-goals',
         detail: { targets: 'your definition of what it means to be productive', timeline: 'immediate reframing, cultural shift if applied to a team', assumptions: 'when productivity is redefined, staying up late stops being "dedicated" and starts being "counterproductive." the incentive structure inverts.', stakes: 'no cost. high psychological difficulty. requires letting go of the "I\'ll sleep when I\'m dead" identity.' },
         why: 'this is a <em>paradigm-level</em> change. it removes the pressure that creates sleep debt — the belief that more hours awake = more output. the curve rises most because the system\'s purpose has changed.',
         effect: { type: 'goals', magnitude: 0.55 },
-      },
-    ],
-  },
-
-  savings: {
-    name: 'personal savings',
-    category: 'personal / financial',
-    stock: 'months of expenses in buffer',
-    stockUnit: 'months',
-    loop: 'balancing',
-    baselineValue: 0.8,
-    baselineDirection: 'flat',
-    baselineRate: -0.003,
-    mandate: 'build a financial buffer from less than one month to a sustainable reserve that absorbs surprises without derailing.',
-    baselineCaption: 'savings hover near zero — each unexpected expense resets the clock.',
-    insight: 'this is a balancing system stuck near zero. unexpected expenses deplete savings, which creates stress, which leads to compensatory spending, which prevents saving. the loop holds you at "barely enough."',
-    interventions: [
-      {
-        id: 1, title: 'open a high-yield savings account.',
-        body: 'optimises the container. doesn\'t change what flows into it.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'interest earned on savings', timeline: 'immediate, marginal effect', assumptions: 'a better account helps money grow slightly faster. it doesn\'t address why the balance stays low.', stakes: 'zero risk, zero structural change.' },
-        why: 'this is a <em>parameter-level</em> change. a better rate of return doesn\'t matter when the principal stays near zero. the curve barely moves.',
-        effect: { type: 'parameter', magnitude: 0.03 },
-      },
-      {
-        id: 2, title: 'set up a monthly auto-transfer of $200 to savings.',
-        body: 'automates the behaviour. creates a structural flow.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'the structural flow of money into savings', timeline: 'immediate, compounds monthly', assumptions: 'automation removes the decision. the transfer happens whether you think about it or not. the hard part is not turning it off when things get tight.', stakes: 'requires $200/month of slack. if the slack doesn\'t exist, this fails.' },
-        why: 'this is a <em>rules-level</em> change. automation creates a structural flow that doesn\'t depend on willpower. the curve lifts because money accumulates by default rather than by decision.',
-        effect: { type: 'rules', magnitude: 0.25 },
-      },
-      {
-        id: 3, title: 'cancel three subscriptions you don\'t actively use.',
-        body: 'reduces outflow. frees up margin.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'monthly discretionary spending', timeline: 'immediate', assumptions: 'cutting subscriptions frees cash. the effect is real but small unless redirected.', stakes: 'minor inconvenience. minor savings.' },
-        why: 'this is a <em>parameter-level</em> change. it frees up cash at the margins. the curve moves modestly because the freed money doesn\'t automatically become savings — it gets absorbed by other spending unless structurally redirected.',
-        effect: { type: 'parameter', magnitude: 0.06 },
-      },
-      {
-        id: 4, title: 'split your paycheque at source: savings portion goes directly to a separate account.',
-        body: 'changes the structure of income allocation. savings happens before spending.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'the order of operations: save first, spend what remains', timeline: 'one pay cycle to implement', assumptions: 'pay-yourself-first is the oldest structural savings rule. it works because you never see the money in your spending account.', stakes: 'requires employer direct-deposit configuration. psychologically, it reframes "leftover" as "planned."' },
-        why: 'this is a deeper <em>rules-level</em> change. it restructures the flow so savings happens upstream of spending. the curve lifts more because the structural barrier — money arriving in the wrong account — has been removed.',
-        effect: { type: 'rules', magnitude: 0.35 },
-      },
-      {
-        id: 5, title: 'reframe savings as a "freedom fund" — not deprivation, but the purchase of future options.',
-        body: 'changes what saving means to you.',
-        chip: 'goals & paradigms', chipClass: 'chip-goals',
-        detail: { targets: 'your relationship with money and your future self', timeline: 'immediate reframing, deepens over time', assumptions: 'when savings is reframed as purchasing freedom rather than sacrificing pleasure, every spending decision is filtered through a different question: "is this worth more than a month of options?"', stakes: 'no financial cost. high psychological shift. requires honest reckoning with what you value.' },
-        why: 'this is a <em>paradigm-level</em> change. it redefines the purpose of saving. the curve rises most because every financial decision is now filtered through a different lens. you\'re not depriving yourself — you\'re buying freedom.',
-        effect: { type: 'goals', magnitude: 0.58 },
-      },
-    ],
-  },
-
-  plastic: {
-    name: 'office plastic',
-    category: 'sustainability / institutional',
-    stock: 'weekly single-use plastic discarded',
-    stockUnit: 'kg / week',
-    loop: 'reinforcing',
-    baselineValue: 24,
-    baselineDirection: 'up',
-    baselineRate: 0.008,
-    dominantId: 4,
-    intro: 'a 200-person office building goes through roughly 24 kg of single-use plastic per week — cups, cutlery, food containers, bottle caps. the facilities manager has tried recycling drives, signage campaigns, and a reusable-mug programme. each initiative produces a visible dip, then usage climbs back. the pattern is substitution: closing one disposal channel doesn\'t close the procurement channel. employees who lose their mug grab a disposable cup. the reusable programme created an alternative without removing the default.',
-    insightSpot: 'the parameter interventions all share a distinctive rebound shape: a visible dip followed by a climb back. this is the signature of substitution rebound — each initiative closes a disposal or awareness channel, but the procurement channel stays open. the reusable mug programme dips most, then climbs back as forgotten mugs drive people to disposables.',
-    insightLever: 'in this system, the dominant lever is the procurement ban — intervention (4). it closes the buying channel, not the disposal channel. every parameter intervention above tried to change behaviour while the default remained available. the ban removes the default. substitution rebound is structurally impossible when there is nothing to substitute back to.',
-    map: {
-      viewBox: '0 0 480 200',
-      nodes: [
-        { id: 0, label: 'plastic\ndiscarded', x: 240, y: 30, w: 90 },
-        { id: 1, label: 'procurement\nchannel', x: 80, y: 90, w: 100 },
-        { id: 2, label: 'disposal\nbehaviour', x: 400, y: 90, w: 100 },
-        { id: 3, label: 'awareness', x: 120, y: 175, w: 80 },
-        { id: 4, label: 'reusable\nadoption', x: 360, y: 175, w: 100 },
-      ],
-      edges: [
-        { from: 1, to: 0, label: '+' },
-        { from: 2, to: 0, label: '+' },
-        { from: 3, to: 2, label: '−' },
-        { from: 4, to: 2, label: '−' },
-        { from: 1, to: 4, label: '−' },
-      ],
-    },
-    interventions: [
-      {
-        id: 1, title: 'add more recycling bins in common areas.',
-        body: 'manages the output. doesn\'t change the input.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'recycling rate of existing plastic waste', timeline: 'immediate', assumptions: 'more bins increase recycling rates. they don\'t reduce plastic entering the building.', stakes: 'low cost, gives the appearance of action. risk of "recycling theatre."' },
-        why: 'this is a <em>parameter-level</em> change. better bins manage waste after it\'s created. the curve dips as recycling increases, then climbs back — because new plastic keeps arriving.',
-        effect: { type: 'parameter', magnitude: 0.10, decayRate: 0.6 },
-        mapHighlight: [0, 2],
-      },
-      {
-        id: 2, title: 'put up awareness signage about plastic waste.',
-        body: 'informs. doesn\'t compel.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'employee awareness of plastic consumption', timeline: 'immediate visibility, effect decays', assumptions: 'signs work briefly. people habituate. awareness ≠ behaviour change.', stakes: 'zero cost, zero structural impact.' },
-        why: 'still <em>parameter-level</em>. signage produces a visible dip as people notice, then rebounds as they habituate. the "worked then didn\'t" shape is the signature of substitution rebound — closing an awareness channel doesn\'t close the buying channel.',
-        effect: { type: 'parameter', magnitude: 0.08, decayRate: 0.7 },
-        mapHighlight: [0, 2, 3],
-      },
-      {
-        id: 3, title: 'provide free reusable mugs and water bottles to all employees.',
-        body: 'creates an alternative. doesn\'t remove the default.',
-        chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'availability of reusable alternatives', timeline: 'immediate distribution', assumptions: 'some employees switch. many forget the mug at home and use disposable anyway. without removing the disposable option, the default wins.', stakes: 'moderate cost, moderate adoption.' },
-        why: 'this is the strongest <em>parameter-level</em> intervention — it creates a real alternative. but the curve rebounds because the default (disposable) still exists. every day someone forgets their mug, they reach for the disposable. the substitution channel stays open.',
-        effect: { type: 'parameter', magnitude: 0.15, decayRate: 0.5 },
-        mapHighlight: [0, 2, 4],
-      },
-      {
-        id: 4, title: 'prohibit single-use plastic in all office procurement.',
-        body: 'closes the buying channel entirely. doesn\'t manage disposal — removes the source.',
-        chip: 'rules', chipClass: 'chip-rules',
-        detail: { targets: 'the procurement system\'s default options', timeline: 'one procurement cycle to implement', assumptions: 'when single-use isn\'t available, reusable becomes the only option. the rule removes the choice architecture that favoured disposable. this is the structural move the parameter interventions couldn\'t make.', stakes: 'some employee frustration initially. rapid adaptation as alternatives become normal.' },
-        why: 'this is a <em>rules-level</em> change — and in this system, it is the dominant lever. it closes the <em>buying channel</em>, not the disposal channel. every parameter intervention above tried to change behaviour while the default remained available. this one removes the default. the curve drops and stays down because substitution rebound is structurally impossible — there is nothing to substitute back to.',
-        effect: { type: 'rules', magnitude: 0.55 },
-        mapHighlight: [0, 1],
-      },
-      {
-        id: 5, title: 'redefine the organisation\'s sustainability goal: from "reduce waste" to "zero disposable culture."',
-        body: 'changes what sustainability means for operations.',
-        chip: 'goals & paradigms', chipClass: 'chip-goals',
-        detail: { targets: 'the organisational identity around materials and waste', timeline: 'immediate reframing, cultural shift over quarters', assumptions: 'when the goal shifts from "less waste" to "no disposable culture," every ordering decision, every event plan, every kitchen supply is filtered through a different question.', stakes: 'profound. changes procurement, events, kitchen, cafeteria. requires leadership commitment across departments.' },
-        why: 'this is a <em>paradigm-level</em> change. it broadens the scope beyond office plastic to all disposable culture. but in this system, the dominant lever was at the rules layer — closing the procurement channel. the paradigm shift extends and deepens that change, but doesn\'t outperform it on this specific stock.',
-        effect: { type: 'goals', magnitude: 0.42, compoundRate: 0.12 },
-        mapHighlight: [0, 1, 2, 3, 4],
+        dosage: { label: 'redefinition commitment', unit: '% belief shift', min: 0, max: 100 },
       },
     ],
   },
@@ -1983,155 +1786,42 @@ const SCENARIOS = {
 // secondary stocks per scenario (phase 2)
 // ────────────────────────────────────────────
 const SCENARIO_SECONDARIES = {
-  committee: {
-    meta: { name: 'faculty workload per cycle', units: 'hours/cycle', baseline: 12, goodDirection: 'down', yMin: 8, yMax: 18 },
-    interventions: {
-      1: { type: 'parameter', magnitude: 0.08, polarity: -1 },
-      2: { type: 'parameter', magnitude: 0, polarity: 0 },
-      3: { type: 'parameter', magnitude: 0.17, polarity: -1 },
-      4: { type: 'rules', magnitude: 0.33, polarity: -1 },
-      5: { type: 'goals', magnitude: 0.25, polarity: -1 },
-    },
-    tradeoffs: {
-      1: 'surveys add a form to every cycle. workload rises without a matching rise in trust.',
-      3: 'rotation buys accountability by adding election overhead and chair onboarding.',
-      4: 'required implementation closes the loop — and asks faculty to carry the heaviest new load. trust rebuilds through the added work, not around it.',
-      5: 'stewardship raises engagement and hours at once. the difference is that the hours now feel voluntary.',
-    },
-  },
-  engagement: {
-    meta: { name: 'student participation anxiety', units: '0–100 index', baseline: 52, goodDirection: 'down', yMin: 35, yMax: 70 },
-    interventions: {
-      1: { type: 'parameter', magnitude: 0.15, polarity: -1 },
-      2: { type: 'parameter', magnitude: 0.05, polarity: -1 },
-      3: { type: 'parameter', magnitude: 0.05, polarity: -1 },
-      4: { type: 'rules', magnitude: 0.20, polarity: 1 },
-      5: { type: 'goals', magnitude: 0.35, polarity: 1, compoundRate: 0.25 },
-    },
-    tradeoffs: {
-      1: 'points raise the cost of silence. the loudest students get louder; the quietest recalculate.',
-      2: 'a reminder is a small pressure. it compounds for students already primed to fear the cold-call.',
-      3: 'more turns can mean more chances to be caught unprepared, unless the framing shifts.',
-    },
-  },
-  capstone: {
-    meta: { name: 'breadth of student topics', units: 'distinct topics', baseline: 18, goodDirection: 'up', yMin: 8, yMax: 22 },
-    interventions: {
-      1: { type: 'parameter', magnitude: 0, polarity: 0 },
-      2: { type: 'parameter', magnitude: 0.10, polarity: -1 },
-      3: { type: 'parameter', magnitude: 0, polarity: 0 },
-      4: { type: 'rules', magnitude: 0.33, polarity: -1 },
-      5: { type: 'goals', magnitude: 0.15, polarity: -1, fn: (t) => 18 * (1 - 0.18 * Math.sin(Math.PI * t)) },
-    },
-    tradeoffs: {
-      2: 'a visible rubric invites rubric-fit. the distribution tightens toward the exemplars.',
-      4: 'external clients raise quality by narrowing what capstone can be about. whose problems count is now on someone else\'s desk.',
-      5: 'publication pressure narrows topic choice early as students play it safe. later cohorts, emboldened by being read back, begin to broaden the field again.',
-    },
-  },
   churn: {
     meta: { name: 'revenue per customer', units: 'USD / month', baseline: 80, goodDirection: 'up', yMin: 55, yMax: 95 },
     interventions: {
       1: { type: 'parameter', magnitude: 0.20, polarity: -1, decayRate: 0 },
-      2: { type: 'parameter', magnitude: 0, polarity: 0 },
-      3: { type: 'parameter', magnitude: 0.05, polarity: -1 },
-      4: { type: 'rules', magnitude: 0.12, polarity: 1 },
-      5: { type: 'goals', magnitude: 0.15, polarity: 1, fn: (t) => 80 * (1 - 0.10 * Math.max(0, 1 - t * 3) + 0.18 * Math.min(1, t * 1.3)) },
+      2: { type: 'rules', magnitude: 0.12, polarity: 1 },
+      3: { type: 'goals', magnitude: 0.15, polarity: 1, fn: (t) => 80 * (1 - 0.10 * Math.max(0, 1 - t * 3) + 0.18 * Math.min(1, t * 1.3)) },
     },
     tradeoffs: {
       1: 'the customers stay, but the margin per customer drops by the size of the discount. counting heads can disguise a bleeding ledger.',
-      3: 'support raises retention at the margins and raises cost per customer. the head-count looks better; the unit economics look worse.',
-      5: 'mismatched accounts churn in the short run, then customers willing to pay more arrive. two motions; one chart.',
+      3: 'mismatched accounts churn in the short run, then customers willing to pay more arrive. two motions; one chart.',
     },
   },
   burnout: {
     meta: { name: 'sprint velocity', units: 'points / sprint', baseline: 40, goodDirection: 'up', yMin: 25, yMax: 55 },
     interventions: {
-      1: { type: 'parameter', magnitude: 0, polarity: 0 },
-      2: { type: 'parameter', magnitude: 0.05, polarity: 1 },
-      3: { type: 'parameter', magnitude: 0.15, polarity: 1, decayRate: 0.1 },
-      4: { type: 'rules', magnitude: 0.20, polarity: -1, fn: (t) => 40 * (1 - 0.20 * Math.max(0, 1 - t * 2.5) - 0.05) },
-      5: { type: 'goals', magnitude: 0.10, polarity: -1, fn: (t) => 40 * (1 - 0.08 - 0.04 * Math.max(0, 1 - t * 3)) },
+      1: { type: 'parameter', magnitude: 0.15, polarity: 1, decayRate: 0.1 },
+      2: { type: 'rules', magnitude: 0.20, polarity: -1, fn: (t) => 40 * (1 - 0.20 * Math.max(0, 1 - t * 2.5) - 0.05) },
+      3: { type: 'goals', magnitude: 0.10, polarity: -1, fn: (t) => 40 * (1 - 0.08 - 0.04 * Math.max(0, 1 - t * 3)) },
     },
     tradeoffs: {
-      3: 'contractors buy velocity short-term. work expands to fill available capacity; the next quarter\'s baseline now assumes them.',
-      4: 'year one looks like a velocity cut. year two shows what the old velocity was actually costing in defects, attrition, and planning accuracy.',
-      5: 'raw story-point velocity drops as the denominator changes. the chart is measuring an old thing during a redefinition of what output is.',
+      1: 'contractors buy velocity short-term. work expands to fill available capacity; the next quarter\'s baseline now assumes them.',
+      2: 'year one looks like a velocity cut. year two shows what the old velocity was actually costing in defects, attrition, and planning accuracy.',
+      3: 'raw story-point velocity drops as the denominator changes. the chart is measuring an old thing during a redefinition of what output is.',
     },
   },
-  'supply-chain': {
-    meta: { name: 'procurement cost index', units: '1.00 = baseline', baseline: 1.00, goodDirection: 'down', yMin: 0.95, yMax: 1.10 },
-    interventions: {
-      1: { type: 'parameter', magnitude: 0, polarity: 0 },
-      2: { type: 'parameter', magnitude: 0.02, polarity: -1 },
-      3: { type: 'parameter', magnitude: 0.03, polarity: -1, fn: (t) => 1.00 + 0.035 * Math.max(0, 1 - t * 3) + 0.010 },
-      4: { type: 'rules', magnitude: 0.04, polarity: -1 },
-      5: { type: 'goals', magnitude: 0.04, polarity: -1, fn: (t) => 1.00 + 0.06 * Math.max(0, 1 - t * 1.5) + 0.02 * t * (1 - t) },
-    },
-    tradeoffs: {
-      2: 'a 30% audit budget raises unit cost by ~2% via pass-through. verification has a price.',
-      3: 'publishing buys delay-compression in exchange for a brief exposed-supplier premium. the cost lift settles as the market also surfaces cheaper verified options.',
-      4: 'required disclosure commands a supplier premium. the rules-level move is structurally correct and genuinely more expensive.',
-      5: 'the paradigm lift costs most upfront as a new compliant-supplier market forms. by year ten, the premium normalises.',
-    },
-  },
-  fitness: {
-    meta: { name: 'enjoyment of exercise', units: '1–10 scale', baseline: 6.0, goodDirection: 'up', yMin: 4, yMax: 9 },
-    interventions: {
-      1: { type: 'parameter', magnitude: 0.05, polarity: 1 },
-      2: { type: 'parameter', magnitude: 0, polarity: 0 },
-      3: { type: 'rules', magnitude: 0.10, polarity: -1 },
-      4: { type: 'rules', magnitude: 0.08, polarity: -1 },
-      5: { type: 'goals', magnitude: 0.40, polarity: 1, compoundRate: 0.15 },
-    },
-    tradeoffs: {
-      3: 'accountability works, but exercise drifts from "something I do" to "something I owe." intrinsic motivation erodes quietly.',
-      4: 'infrastructure beats willpower — at the cost of spontaneity. the week that exercises is also the week that is less playful.',
-    },
-  },
+
   sleep: {
     meta: { name: 'self-reported productivity', units: 'focused hrs/day', baseline: 9.0, goodDirection: 'up', yMin: 6.5, yMax: 10 },
     interventions: {
       1: { type: 'parameter', magnitude: 0, polarity: 0 },
-      2: { type: 'parameter', magnitude: 0, polarity: 0 },
-      3: { type: 'parameter', magnitude: 0.03, polarity: 1 },
-      4: { type: 'rules', magnitude: 0.15, polarity: -1, fn: (t) => 9.0 * (1 - 0.17 * Math.max(0, 1 - t * 2) + 0.02 * t) },
-      5: { type: 'goals', magnitude: 0.10, polarity: 1 },
+      2: { type: 'rules', magnitude: 0.15, polarity: -1, fn: (t) => 9.0 * (1 - 0.17 * Math.max(0, 1 - t * 2) + 0.02 * t) },
+      3: { type: 'goals', magnitude: 0.10, polarity: 1 },
     },
     tradeoffs: {
-      4: 'for six months, the new bedtime looks like a productivity cut. the chart recovers as quality replaces quantity.',
-      5: 'self-reported hours of focused work drop numerically, but the metric re-anchors. what counts has changed.',
-    },
-  },
-  savings: {
-    meta: { name: 'monthly discretionary spend', units: 'USD', baseline: 400, goodDirection: 'up', yMin: 150, yMax: 450 },
-    interventions: {
-      1: { type: 'parameter', magnitude: 0, polarity: 0 },
-      2: { type: 'rules', magnitude: 0.50, polarity: -1 },
-      3: { type: 'parameter', magnitude: 0.10, polarity: 1 },
-      4: { type: 'rules', magnitude: 0.50, polarity: -1 },
-      5: { type: 'goals', magnitude: 0.20, polarity: -1 },
-    },
-    tradeoffs: {
-      2: 'the buffer grows by exactly the amount the present-day life shrinks. the chart shows who paid what.',
-      4: 'structural transfer works because you never see the money. the discretionary line falls anyway — a transfer from present to future self.',
-      5: 'spend falls modestly, but what remains is spent more intentionally. the reframing is not deprivation — it buys something.',
-    },
-  },
-  plastic: {
-    meta: { name: 'staff admin hours', units: 'hrs / week', baseline: 2.0, goodDirection: 'down', yMin: 0, yMax: 4 },
-    interventions: {
-      1: { type: 'parameter', magnitude: 0.50, polarity: -1 },
-      2: { type: 'parameter', magnitude: 0.25, polarity: -1 },
-      3: { type: 'parameter', magnitude: 0.75, polarity: -1 },
-      4: { type: 'rules', magnitude: 0.75, polarity: 1 },
-      5: { type: 'goals', magnitude: 0.25, polarity: -1, fn: (t) => 2.0 * (1 + 0.30 * Math.max(0, 1 - t * 2.5) - 0.15 * Math.min(1, t * 1.5)) },
-    },
-    tradeoffs: {
-      1: 'more bins means more collection. the programme gets heavier without the plastic getting lighter.',
-      2: 'campaigns need maintenance. the signage programme is itself a small recurring job.',
-      3: 'reusables arrive with a replacement programme. lost mugs, distribution, coordination — all ongoing.',
-      5: 'the broader goal raises admin across departments before consolidating. scope expands, then settles.',
+      2: 'for six months, the new bedtime looks like a productivity cut. the chart recovers as quality replaces quantity.',
+      3: 'self-reported hours of focused work drop numerically, but the metric re-anchors. what counts has changed.',
     },
   },
 };
@@ -2143,6 +1833,60 @@ const params = new URLSearchParams(window.location.search);
 const scenarioSlug = params.get('s');
 const scenario = SCENARIOS[scenarioSlug];
 const secondarySpec = SCENARIO_SECONDARIES[scenarioSlug] || null;
+
+// ────────────────────────────────────────────
+// session logging (Phase 6)
+// ────────────────────────────────────────────
+class SessionLogger {
+  constructor() {
+    this.sessionCode = null;
+    this.participantId = null;
+    this.config = {};
+    this.sliderDebounce = {};
+    try {
+      const raw = sessionStorage.getItem('st-session');
+      if (raw) {
+        const data = JSON.parse(raw);
+        this.sessionCode = data.code || null;
+        this.participantId = data.pid || null;
+        this.config = data.config || {};
+      }
+    } catch (e) { /* solo mode */ }
+  }
+  get active() { return !!(this.sessionCode && this.participantId); }
+  log(type, data) {
+    if (!this.active) return;
+    const payload = JSON.stringify({
+      sessionCode: this.sessionCode,
+      participantId: this.participantId,
+      type,
+      data: { scenario: scenarioSlug, ...data },
+    });
+    // sendBeacon for fire-and-forget (survives page unload)
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/session/log', payload);
+    } else {
+      fetch('/api/session/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  }
+  // debounced slider logging — max 1 event per second per intervention
+  logSlider(interventionId, dosage) {
+    if (!this.active) return;
+    if (this.sliderDebounce[interventionId]) return;
+    this.sliderDebounce[interventionId] = true;
+    setTimeout(() => { this.sliderDebounce[interventionId] = false; }, 1000);
+    this.log('slider_move', { interventionId, dosage });
+  }
+}
+const logger = new SessionLogger();
+
+// log scenario start
+logger.log('scenario_started', { scenario: scenarioSlug });
 
 if (!scenario) {
   document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#273248;text-align:center;padding:24px;"><div><h2>scenario not found.</h2><p style="color:#6B7589;margin:16px 0;">the scenario "' + (scenarioSlug || '') + '" doesn\'t exist yet.</p><a href="/portfolio/assets/systems-thinking/" style="color:#CB7858;">back to all scenarios</a></div></div>';
@@ -2174,7 +1918,8 @@ function generateBaseline() {
 
 const baseline = generateBaseline();
 
-function runSecondary(id) {
+function runSecondary(id, dosageFraction) {
+  if (dosageFraction === undefined) dosageFraction = 1;
   if (!secondarySpec) return null;
   const meta = secondarySpec.meta;
   const eff = secondarySpec.interventions[id];
@@ -2193,9 +1938,9 @@ function runSecondary(id) {
       ? Math.min(1, t * onsetRate)
       : 1 - Math.exp(-t * onsetRate);
     let m;
-    if (decayRate > 0) m = eff.magnitude * onset * Math.max(0.2, 1 - t * decayRate);
-    else if (compoundRate > 0) m = eff.magnitude * onset * (1 + t * compoundRate);
-    else m = eff.magnitude * onset;
+    if (decayRate > 0) m = eff.magnitude * dosageFraction * onset * Math.max(0.2, 1 - t * decayRate);
+    else if (compoundRate > 0) m = eff.magnitude * dosageFraction * onset * (1 + t * compoundRate);
+    else m = eff.magnitude * dosageFraction * onset;
 
     // polarity +1 moves the stock toward "good", -1 away from it
     // goodUp=true: +1 → increase; goodUp=false (↓good): +1 → decrease
@@ -2206,13 +1951,14 @@ function runSecondary(id) {
   return result;
 }
 
-function runIntervention(id) {
+function runIntervention(id, dosageFraction) {
+  if (dosageFraction === undefined) dosageFraction = 1;
   const intv = scenario.interventions.find(x => x.id === id);
   if (!intv) return baseline.slice();
 
   const effect = intv.effect;
   const result = [baseline[0]];
-  const mag = effect.magnitude;
+  const mag = effect.magnitude * dosageFraction;
 
   // per-intervention curve overrides (defaults by type)
   const onsetRate = effect.onsetRate ?? (effect.type === 'parameter' ? 4 : effect.type === 'rules' ? 3 : 2);
@@ -2248,6 +1994,71 @@ function runIntervention(id) {
   return result;
 }
 
+function runCombined(dosages) {
+  // independent-probability model: combined = 1 - ∏(1 - individual_i)
+  // preserves natural diminishing returns without new parameters
+  const result = [baseline[0]];
+  const individual = {};
+  scenario.interventions.forEach(intv => {
+    const df = dosages[intv.id] || 0;
+    if (df > 0) individual[intv.id] = runIntervention(intv.id, df);
+  });
+  const activeIds = Object.keys(individual).map(Number);
+
+  for (let i = 1; i < 26; i++) {
+    if (activeIds.length === 0) {
+      result.push(baseline[i]);
+      continue;
+    }
+    // compute each intervention's fractional effect vs baseline
+    let product = 1;
+    activeIds.forEach(id => {
+      const intvVal = individual[id][i];
+      let effect;
+      if (isStockBad) {
+        // effect = fraction of baseline reduction achieved
+        effect = (baseline[i] - intvVal) / baseline[i];
+      } else {
+        const ceiling = scenario.baselineValue * 2.5;
+        const room = ceiling - baseline[i];
+        if (room > 0) {
+          effect = (intvVal - baseline[i]) / room;
+        } else {
+          effect = 0;
+        }
+      }
+      product *= (1 - Math.max(0, Math.min(1, effect)));
+    });
+    const combinedEffect = 1 - product;
+
+    if (isStockBad) {
+      result.push(baseline[i] * (1 - combinedEffect));
+    } else {
+      const ceiling = scenario.baselineValue * 2.5;
+      const room = ceiling - baseline[i];
+      result.push(baseline[i] + room * combinedEffect);
+    }
+  }
+  return result;
+}
+
+function runCombinedSecondary(dosages) {
+  if (!secondarySpec) return null;
+  // for secondary, use simple additive model (effects can harm)
+  const meta = secondarySpec.meta;
+  const result = Array(26).fill(meta.baseline);
+  scenario.interventions.forEach(intv => {
+    const df = dosages[intv.id] || 0;
+    if (df <= 0) return;
+    const secTraj = runSecondary(intv.id, df);
+    if (!secTraj) return;
+    for (let i = 0; i < 26; i++) {
+      result[i] += (secTraj[i] - meta.baseline);
+    }
+  });
+  return result;
+}
+
 // ────────────────────────────────────────────
 // state
 // ────────────────────────────────────────────
@@ -2266,6 +2077,11 @@ const state = {
   surprise: {},
   tradeoffNoticed: {},
   shifted: '',
+  dosages: {},
+  sliderActive: false,
+  mode: 'individual',        // 'individual' | 'combined'
+  activeIntervention: null,  // id of expanded card in individual mode
+  exploredInterventions: [], // ids where slider has been moved from 0
 };
 
 // session persistence (reflective prompts) — keyed per scenario slug
@@ -2292,6 +2108,14 @@ function saveReflect() {
     }));
   } catch (e) { /* ignore */ }
 }
+// debounced reflection logger — fires 2s after last keystroke
+let reflectLogTimer = null;
+function logReflectChange(type, text) {
+  if (reflectLogTimer) clearTimeout(reflectLogTimer);
+  reflectLogTimer = setTimeout(() => {
+    logger.log(type, { text });
+  }, 2000);
+}
 function clearReflect() {
   try { sessionStorage.removeItem(REFLECT_KEY); } catch (e) { /* ignore */ }
 }
@@ -2314,10 +2138,10 @@ document.getElementById('insight-what').textContent = scenario.insight;
 if (scenario.insightSpot) document.getElementById('insight-spot').textContent = scenario.insightSpot;
 if (scenario.insightLever) document.getElementById('insight-lever').textContent = scenario.insightLever;
 // per-scenario pattern caption — default assumes (5) wins; override when dominant is lower-tier
-if (scenario.dominantId && scenario.dominantId !== 5) {
+if (scenario.dominantId && scenario.dominantId !== 3) {
   const domIntv = scenario.interventions.find(x => x.id === scenario.dominantId);
   const domTier = domIntv ? domIntv.chip : 'parameter';
-  document.getElementById('pattern-caption').textContent = 'five decisions. one shape — but not the shape you might expect. in this system, the dominant trajectory is a ' + domTier + '-level intervention. the leverage point is where the system\'s structure asks for it, not where the ladder predicts.';
+  document.getElementById('pattern-caption').textContent = 'three decisions. one shape — but not the shape you might expect. in this system, the dominant trajectory is a ' + domTier + '-level intervention. the leverage point is where the system\'s structure asks for it, not where the ladder predicts.';
 }
 document.title = scenario.name + ' — systems thinking simulator';
 
@@ -2335,10 +2159,6 @@ if (secondarySpec) {
   if (sw) sw.style.display = 'none';
 }
 
-// teacher's-guide link target
-const tgLink = document.getElementById('tg-link');
-if (tgLink) tgLink.href = '/portfolio/assets/systems-thinking/teacher-guides/' + scenarioSlug + '.html';
-
 // pre-fill export header
 const exportName = document.getElementById('export-scenario-name');
 const exportMandate = document.getElementById('export-mandate');
@@ -2349,7 +2169,7 @@ if (exportMandate) exportMandate.textContent = scenario.mandate || '';
 document.getElementById('resource-meter-wrap').style.display = 'none';
 
 // populate scenario picker
-const LIBRARY_SCENARIOS = ['committee', 'engagement', 'capstone', 'churn', 'burnout', 'supply-chain', 'plastic'];
+const LIBRARY_SCENARIOS = ['churn', 'burnout', 'sleep'];
 const picker = document.getElementById('scenario-picker');
 LIBRARY_SCENARIOS.forEach(slug => {
   const s = SCENARIOS[slug];
@@ -2544,8 +2364,8 @@ function updateDecisionsChart(highlightId) {
 
   if (chartDecisions) {
     chartDecisions.data.datasets = datasets;
-    chartDecisions.options.animation = { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' };
-    chartDecisions.update();
+    chartDecisions.options.animation = { duration: 0 };
+    chartDecisions.update('none');
   } else {
     chartDecisions = new Chart(ctx, {
       type: 'line',
@@ -2580,8 +2400,8 @@ function updateSecondaryChart(highlightId) {
 
   if (chartSecondary) {
     chartSecondary.data.datasets = datasets;
-    chartSecondary.options.animation = { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' };
-    chartSecondary.update();
+    chartSecondary.options.animation = { duration: 0 };
+    chartSecondary.update('none');
   } else {
     chartSecondary = new Chart(ctx, {
       type: 'line',
@@ -2643,9 +2463,9 @@ function initPatternChart() {
   const ctx = canvas.getContext('2d');
   const datasets = [makeBaselineDataset(0.4)];
 
-  const domId = scenario.dominantId || 5;
+  const domId = scenario.dominantId || 3;
   scenario.interventions.forEach(intv => {
-    const traj = runIntervention(intv.id);
+    const traj = runIntervention(intv.id, 1);
     const isDominant = intv.id === domId;
     datasets.push({
       label: intv.title.split('.')[0],
@@ -2669,7 +2489,7 @@ function initPatternChart() {
   if (!sCanvas) return;
   const sCtx = sCanvas.getContext('2d');
   const allSec = {};
-  scenario.interventions.forEach(intv => { allSec[intv.id] = runSecondary(intv.id); });
+  scenario.interventions.forEach(intv => { allSec[intv.id] = runSecondary(intv.id, 1); });
   const sDatasets = [makeSecondaryBaselineDataset()];
   scenario.interventions.forEach(intv => {
     const isDom = intv.id === domId;
@@ -2745,9 +2565,10 @@ function buildCards() {
     }
 
     const card = document.createElement('div');
-    const isLocked = state.committed && d.id === 5 && state.interventionsRun.length < 2 && !wasRun;
+    const isLocked = state.committed && d.id === scenario.interventions.length && state.interventionsRun.length < (scenario.interventions.length - 2) && !wasRun;
     const isCommitted = state.committedId === d.id;
-    card.className = 'intervention-card' + (wasRun ? ' was-run' : '') + (isLocked ? ' locked' : '') + (isCommitted ? ' committed' : '');
+    const isAccordionOpen = state.mode === 'individual' && state.activeIntervention === d.id;
+    card.className = 'intervention-card' + (wasRun ? ' was-run' : '') + (isLocked ? ' locked' : '') + (isCommitted ? ' committed' : '') + (isAccordionOpen ? ' accordion-open' : '');
     const detailOpen = state.detailOpen && state.detailOpen[d.id];
 
     card.innerHTML = `
@@ -2787,7 +2608,24 @@ function buildCards() {
         return '<div class="tradeoff-wrap"><div class="tradeoff-prompt" id="tradeoff-prompt-' + d.id + '">notice the second chart — was that trade-off visible to you when you chose?</div><div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-' + d.id + '">' + chips + '</div></div>';
       })() : ''}
       <div class="card-footer">
-        ${state.committed ? '<span class="card-meta">25-year change: ' + (changePct !== null ? '<span class="result-value">' + (isStockBad ? '−' : '+') + changePct + '%</span>' : '—') + '</span><button class="btn btn-small" data-run-id="' + d.id + '" ' + (state.animating ? 'disabled' : '') + ' aria-label="run intervention ' + d.id + '">run this</button>' : '<span class="card-meta"></span><button class="btn-choose" data-choose-id="' + d.id + '" aria-label="choose intervention ' + d.id + '">this is my decision</button>'}
+        ${state.committed ? (function() {
+          const intv = scenario.interventions.find(x => x.id === d.id);
+          const dosageInfo = intv.dosage;
+          const currentDosage = state.dosages[d.id] || 0;
+          const currentVal = dosageInfo
+            ? Math.round(dosageInfo.min + currentDosage * (dosageInfo.max - dosageInfo.min))
+            : Math.round(currentDosage * 100);
+          const unit = dosageInfo ? dosageInfo.unit : '%';
+          const label = dosageInfo ? dosageInfo.label : 'dosage';
+          return '<div class="dosage-slider-wrap">' +
+            '<div class="dosage-header">' +
+              '<span class="dosage-label">' + label + '</span>' +
+              '<span class="dosage-dosage">' + currentVal + unit + '</span>' +
+            '</div>' +
+            '<input type="range" class="dosage-slider" data-slider-id="' + d.id + '" min="0" max="100" value="' + Math.round(currentDosage * 100) + '" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(currentDosage * 100) + '">' +
+            '<span class="card-meta">25-year change: ' + (changePct !== null ? '<span class="result-value">' + (isStockBad ? '\u2212' : '+') + changePct + '%</span>' : '\u2014') + '</span>' +
+          '</div>';
+        })() : '<span class="card-meta"></span><button class="btn-choose" data-choose-id="' + d.id + '" aria-label="choose intervention ' + d.id + '">this is my decision</button>'}
       </div>
     `;
     stack.appendChild(card);
@@ -2816,11 +2654,49 @@ function buildCards() {
     });
   });
 
-  // bind run buttons (analysis mode)
-  stack.querySelectorAll('[data-run-id]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = parseInt(btn.dataset.runId);
-      handleRunIntervention(id);
+  // bind dosage sliders (analysis mode)
+  stack.querySelectorAll('.dosage-slider').forEach(slider => {
+    let debounceTimer = null;
+    slider.addEventListener('input', () => {
+      state.sliderActive = true;
+      const id = parseInt(slider.dataset.sliderId);
+      const dosageEl = slider.closest('.dosage-slider-wrap').querySelector('.dosage-dosage');
+      const metaEl = slider.closest('.dosage-slider-wrap').querySelector('.card-meta');
+      const intv = scenario.interventions.find(x => x.id === id);
+      const fraction = parseInt(slider.value) / 100;
+      const displayVal = intv.dosage
+        ? Math.round(intv.dosage.min + fraction * (intv.dosage.max - intv.dosage.min))
+        : slider.value;
+      const unit = intv.dosage ? intv.dosage.unit : '%';
+      if (dosageEl) dosageEl.textContent = displayVal + unit;
+      slider.setAttribute('aria-valuenow', slider.value);
+      if (debounceTimer) cancelAnimationFrame(debounceTimer);
+      debounceTimer = requestAnimationFrame(() => {
+        handleRunIntervention(id, fraction);
+        logger.logSlider(id, fraction);
+        // update result value in-place without rebuilding cards
+        if (metaEl) {
+          const result = state.trajectories[id];
+          const lastVal = result ? result[result.length - 1] : null;
+          const blLast = baseline[baseline.length - 1];
+          if (lastVal !== null) {
+            const pct = isStockBad
+              ? ((1 - lastVal / blLast) * 100).toFixed(0)
+              : (((lastVal - blLast) / blLast) * 100).toFixed(0);
+            const sign = isStockBad ? '\u2212' : '+';
+            metaEl.textContent = '';
+            metaEl.append('25-year change: ');
+            const span = document.createElement('span');
+            span.className = 'result-value';
+            span.textContent = sign + pct + '%';
+            metaEl.appendChild(span);
+          }
+        }
+      });
+    });
+    slider.addEventListener('change', () => {
+      state.sliderActive = false;
+      buildCards();
     });
   });
 
@@ -2832,6 +2708,35 @@ function buildCards() {
     });
   });
 
+  // bind accordion headers (individual mode)
+  if (state.mode === 'individual' && state.committed) {
+    stack.querySelectorAll('.intervention-card .card-header').forEach(header => {
+      header.style.cursor = 'pointer';
+      header.addEventListener('click', (e) => {
+        // don't toggle if clicking a button inside header
+        if (e.target.closest('button')) return;
+        const card = header.closest('.intervention-card');
+        const numEl = card.querySelector('.card-number');
+        if (!numEl) return;
+        const id = parseInt(numEl.textContent);
+        if (state.activeIntervention === id) {
+          // collapse
+          state.activeIntervention = null;
+        } else {
+          state.activeIntervention = id;
+          // highlight on chart
+          if (state.trajectories[id]) {
+            updateDecisionsChart(id);
+          }
+          // highlight systems map
+          const intv = scenario.interventions.find(x => x.id === id);
+          if (intv && intv.mapHighlight) highlightMapNodes(intv.mapHighlight);
+        }
+        buildCards();
+      });
+    });
+  }
+
   // bind trade-off follow-up chips
   stack.querySelectorAll('[data-tradeoff-id]').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -2840,6 +2745,7 @@ function buildCards() {
       const newTn = { ...state.tradeoffNoticed, [id]: val };
       setState({ tradeoffNoticed: newTn });
       saveReflect();
+      logger.log('tradeoff_noticed', { interventionId: id, response: val });
     });
   });
 
@@ -2854,6 +2760,7 @@ function buildCards() {
         const newSurprise = { ...state.surprise, [id]: val };
         setState({ surprise: newSurprise });
         saveReflect();
+        logger.log('surprise_answered', { interventionId: id, response: val });
       });
       chip.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -2877,33 +2784,175 @@ function buildCards() {
   });
 }
 
-function handleRunIntervention(id) {
-  if (state.animating) return;
-
+function handleRunIntervention(id, dosageFraction) {
   // dismiss hints & placeholder
   const hintCards = document.getElementById('hint-cards');
   if (hintCards) hintCards.style.display = 'none';
   const placeholder = document.getElementById('chart-placeholder');
   if (placeholder) placeholder.classList.add('hidden');
 
-  const result = runIntervention(id);
-  const secResult = secondarySpec ? runSecondary(id) : null;
+  const df = dosageFraction !== undefined ? dosageFraction : 1;
+  const result = runIntervention(id, df);
+  const secResult = secondarySpec ? runSecondary(id, df) : null;
   const newRun = state.interventionsRun.includes(id)
     ? state.interventionsRun
     : [...state.interventionsRun, id];
   const newTraj = { ...state.trajectories, [id]: result };
   const newSecTraj = secResult ? { ...state.secondaryTrajectories, [id]: secResult } : state.secondaryTrajectories;
-  const allRun = newRun.length === 5;
+  const newDosages = { ...state.dosages, [id]: df };
+  const allRun = newRun.length === scenario.interventions.length;
+
+  // track explored interventions (slider moved from 0)
+  const newExplored = state.exploredInterventions.includes(id)
+    ? state.exploredInterventions
+    : [...state.exploredInterventions, id];
 
   setState({
     interventionsRun: newRun,
     trajectories: newTraj,
     secondaryTrajectories: newSecTraj,
+    dosages: newDosages,
     allRun,
-    animating: true,
+    exploredInterventions: newExplored,
   });
 
-  animateDecisionsChart(id);
+  // update mode toggle availability
+  updateModeToggle();
+
+  if (state.mode === 'combined') {
+    updateCombinedChart();
+  } else {
+    updateDecisionsChart(id);
+  }
+}
+
+// ────────────────────────────────────────────
+// play mode management
+// ────────────────────────────────────────────
+function updateModeToggle() {
+  const wrap = document.getElementById('mode-toggle-wrap');
+  const btnCombined = document.getElementById('btn-mode-combined');
+  const hint = document.getElementById('mode-unlock-hint');
+  if (!wrap || !btnCombined) return;
+
+  // show toggle only after commitment
+  if (state.committed) {
+    wrap.style.display = '';
+  }
+
+  const allExplored = state.exploredInterventions.length >= scenario.interventions.length;
+  btnCombined.disabled = !allExplored;
+  if (hint) hint.style.display = allExplored ? 'none' : '';
+}
+
+function switchMode(newMode) {
+  state.mode = newMode;
+  logger.log('mode_switched', { mode: newMode });
+  const cardStack = document.getElementById('card-stack');
+  const legend = document.getElementById('combined-legend');
+  const btnIndiv = document.getElementById('btn-mode-individual');
+  const btnComb = document.getElementById('btn-mode-combined');
+  const title = document.getElementById('card-stack-title');
+
+  if (newMode === 'combined') {
+    cardStack.parentElement.classList.remove('individual-mode');
+    cardStack.parentElement.classList.add('combined-mode');
+    if (legend) legend.style.display = '';
+    if (btnIndiv) { btnIndiv.classList.remove('active'); btnIndiv.setAttribute('aria-selected', 'false'); }
+    if (btnComb) { btnComb.classList.add('active'); btnComb.setAttribute('aria-selected', 'true'); }
+    if (title) title.textContent = 'combine interventions';
+    buildCards();
+    updateCombinedChart();
+  } else {
+    cardStack.parentElement.classList.remove('combined-mode');
+    cardStack.parentElement.classList.add('individual-mode');
+    if (legend) legend.style.display = 'none';
+    if (btnIndiv) { btnIndiv.classList.add('active'); btnIndiv.setAttribute('aria-selected', 'true'); }
+    if (btnComb) { btnComb.classList.remove('active'); btnComb.setAttribute('aria-selected', 'false'); }
+    if (title) title.textContent = 'interventions';
+    buildCards();
+    if (state.activeIntervention) {
+      updateDecisionsChart(state.activeIntervention);
+    }
+  }
+}
+
+function updateCombinedChart() {
+  const canvas = document.getElementById('chart-decisions');
+  const ctx = canvas.getContext('2d');
+
+  const datasets = [makeBaselineDataset(0.5)];
+
+  // ghost individual lines
+  scenario.interventions.forEach(intv => {
+    const df = state.dosages[intv.id] || 0;
+    if (df <= 0) return;
+    const traj = state.trajectories[intv.id] || runIntervention(intv.id, df);
+    datasets.push({
+      label: intv.title,
+      data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
+      borderColor: getTrajectoryColor(intv.id) + '40',
+      borderWidth: 1,
+      borderDash: [4, 3],
+      pointRadius: 0,
+      order: 5,
+    });
+  });
+
+  // combined trajectory
+  const combined = runCombined(state.dosages);
+  datasets.push({
+    label: 'combined',
+    data: YEARS.map((y, i) => ({ x: y, y: combined[i] })),
+    borderColor: COLORS.cadet,
+    borderWidth: 3,
+    pointRadius: 0,
+    order: 1,
+  });
+
+  if (chartDecisions) {
+    chartDecisions.data.datasets = datasets;
+    chartDecisions.options.animation = { duration: 0 };
+    chartDecisions.update('none');
+  } else {
+    chartDecisions = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: makeChartOptions(scenario.stockUnit),
+    });
+  }
+
+  // combined secondary
+  if (secondarySpec) {
+    const secCombined = runCombinedSecondary(state.dosages);
+    const canvas2 = document.getElementById('chart-secondary');
+    if (!canvas2) return;
+    const ctx2 = canvas2.getContext('2d');
+
+    const secDatasets = [makeSecondaryBaselineDataset()];
+    if (secCombined) {
+      secDatasets.push({
+        label: 'combined',
+        data: YEARS.map((y, i) => ({ x: y, y: secCombined[i] })),
+        borderColor: COLORS.cadet,
+        borderWidth: 3,
+        pointRadius: 0,
+        order: 1,
+      });
+    }
+
+    if (chartSecondary) {
+      chartSecondary.data.datasets = secDatasets;
+      chartSecondary.options.animation = { duration: 0 };
+      chartSecondary.update('none');
+    } else {
+      chartSecondary = new Chart(ctx2, {
+        type: 'line',
+        data: { datasets: secDatasets },
+        options: makeSecondaryChartOptions(),
+      });
+    }
+  }
 }
 
 // ────────────────────────────────────────────
@@ -2918,7 +2967,18 @@ function showScreen(name) {
   if (name === 'baseline' && !chartBaseline) initBaselineChart();
   if (name === 'decisions') {
     updateExploreMode();
-    if (state.committed && !chartDecisions) updateDecisionsChart();
+    if (state.committed) {
+      const left = document.querySelector('.decisions-left');
+      if (left) {
+        left.classList.toggle('individual-mode', state.mode === 'individual');
+        left.classList.toggle('combined-mode', state.mode === 'combined');
+      }
+      updateModeToggle();
+      if (!chartDecisions) {
+        if (state.mode === 'combined') updateCombinedChart();
+        else updateDecisionsChart();
+      }
+    }
     buildCards();
   }
   if (name === 'pattern') {
@@ -2941,7 +3001,7 @@ function updateExploreMode() {
 
 function render() {
   if (state.screen === 'decisions') {
-    if (!state.animating) buildCards();
+    if (!state.sliderActive) buildCards();
     updateExploreMode();
     const patternBtn = document.getElementById('btn-see-pattern');
     if (patternBtn) patternBtn.classList.toggle('visible', state.allRun);
@@ -3152,10 +3212,16 @@ document.getElementById('btn-commit-confirm').addEventListener('click', () => {
   const id = pendingCommitId;
   pendingCommitId = null;
 
-  setState({ committed: true, committedId: id });
+  logger.log('hypothesis_written', { text: state.hypothesis });
+  setState({ committed: true, committedId: id, activeIntervention: id, mode: 'individual' });
+
+  // set up individual mode
+  const left = document.querySelector('.decisions-left');
+  if (left) left.classList.add('individual-mode');
+  updateModeToggle();
 
   // auto-run the committed intervention after a brief pause
-  setTimeout(() => handleRunIntervention(id), 400);
+  setTimeout(() => handleRunIntervention(id, 1), 400);
 });
 
 // ────────────────────────────────────────────
@@ -3181,6 +3247,11 @@ document.getElementById('btn-restart').addEventListener('click', () => {
     surprise: {},
     tradeoffNoticed: {},
     shifted: '',
+    dosages: {},
+    sliderActive: false,
+    mode: 'individual',
+    activeIntervention: null,
+    exploredInterventions: [],
   });
   clearReflect();
   const ta = document.getElementById('hypo-textarea');
@@ -3199,6 +3270,56 @@ document.getElementById('btn-restart').addEventListener('click', () => {
   if (hint) { hint.style.display = ''; hint.dataset.shown = ''; }
   showScreen('mandate');
 });
+// shifted textarea logging
+const shiftedTa = document.getElementById('shifted-textarea');
+if (shiftedTa) {
+  shiftedTa.addEventListener('input', () => {
+    state.shifted = shiftedTa.value;
+    saveReflect();
+    logReflectChange('shifted_written', shiftedTa.value);
+  });
+}
+
+// mode toggle
+document.getElementById('btn-mode-individual').addEventListener('click', () => switchMode('individual'));
+document.getElementById('btn-mode-combined').addEventListener('click', function() {
+  if (!this.disabled) switchMode('combined');
+});
+
+// right-panel tab switching
+function switchRightTab(tabId) {
+  document.querySelectorAll('.right-tab').forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+  });
+  document.querySelectorAll('.right-panel').forEach(p => {
+    p.classList.add('right-panel-hidden');
+  });
+  const tab = document.getElementById('tab-' + tabId);
+  const panel = document.getElementById('panel-' + tabId);
+  if (tab) { tab.classList.add('active'); tab.setAttribute('aria-selected', 'true'); }
+  if (panel) panel.classList.remove('right-panel-hidden');
+}
+document.getElementById('tab-charts').addEventListener('click', () => switchRightTab('charts'));
+document.getElementById('tab-map').addEventListener('click', () => switchRightTab('map'));
+// keyboard navigation between tabs
+document.querySelectorAll('.right-tab').forEach((tab, idx, tabs) => {
+  tab.addEventListener('keydown', (e) => {
+    let target = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      target = tabs[(idx + 1) % tabs.length];
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      target = tabs[(idx - 1 + tabs.length) % tabs.length];
+    }
+    if (target) {
+      target.focus();
+      target.click();
+    }
+  });
+});
+
 </script>
 </body>
 </html>

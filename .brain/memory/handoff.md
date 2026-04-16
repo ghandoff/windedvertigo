@@ -2,6 +2,99 @@
 
 When Cowork or Claude Code finishes a significant session, drop a note here so the other environment picks up with full context. Most recent first.
 
+> **cross-device convention:** this file is the source of truth when resuming work. say "pick up [project]" or "where did we leave off?" at the start of any Cowork or Claude Code session to trigger a read. the `context-sync` scheduled task updates the **live state** block below daily at 9pm PT.
+
+---
+
+## 🟢 live state
+<!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
+
+**last synced:** mon 13 apr 2026, 9:10pm PT
+
+**where we are right now:**
+Port restructure shipped (commit d0eec54, deployed apr 14): sidebar 12→7, dashboard, merged pages (opportunities, projects, campaigns), audience filters 7→4 (fit, relationship, source, segment), derived priority, skeleton fallbacks, URL-synced tabs, staggered kanban animations. All old URLs preserved via 308 redirects. Follow-on tasks in progress: Notion schema migration (native relationship property), mobile tab bar, dead code cleanup, memory updates.
+
+PRME 2026 is live and invoiced (PO #2069 approved, first invoice mar 27 — payment still outstanding); PRME bi-weekly hold sits on tomorrow's calendar at 12pm PT, a good window to raise payment + comms reset. IDB Salvador docs went in apr 10 via Maria — awaiting acknowledgement from MINEDUCYT. New today: Nordic Naturals (Sharon Matheny / Lauren Bosio) granted access to their CAIPB claims database on Smartsheet — a fresh engagement surface to scope. Today's whirlpool was play-only ("the world prowl"); apr 8 press play action items remain parked for wednesday apr 15.
+
+### open threads
+
+| project | last action | next action | link |
+|---------|-------------|-------------|------|
+| IDB Salvador | maria submitted docs apr 10 (deadline day) | confirm receipt from nadia.nochez@mined.gob.sv; align with maria tue 10am | [notion mail](https://mail.notion.so/inbox/a99b1601-0090-4e61-98bd-a074c0d6665f) |
+| PRME 2026 | first invoice submitted mar 27; meredith sent comms reset note apr 7 | raise payment + comms alignment at tue 12pm PRME hold | [notion mail](https://mail.notion.so/inbox/19d69751a722cce5) |
+| Amna at 10 | proposal submitted mar 26 | follow-up overdue (19 days) — email Jonelle and Walaa this week | [tasks](.brain/TASKS.md) |
+| Sesame Workshop | received pass mar 31 | draft graceful close-out reply | [tasks](.brain/TASKS.md) |
+| Siyavula MEL proposal | soft pass apr 13 — alexandra prefers SA-based orgs | decide: respond further or close out | [gmail](https://mail.google.com) |
+| CPA / Q1 CFO review | abhishek emailed + secure chat apr 13; tax extension organizer reminder landed overnight | book Q1 CFO review via Straight Talk CPAs portal; complete 2025 tax extension organizer | gmail: abhi@straighttalkcpas.com |
+| Nordic Naturals / CAIPB | sharon + lauren granted smartsheet access apr 13 (CAIPB Database, AI Details for Qualified RMs, MASTER DATA) | open workspaces, scope "insights" deliverable, confirm cadence with sharon | gmail: lbosio@nordicnaturals.com |
+| Press Play collab | apr 8 whirlpool items unresolved; carry forward to wed apr 15 | schedule apr 22 session; set up google drive folder + slack channel | [tasks](.brain/TASKS.md) |
+
+### waiting on external
+
+- **PRME payment** — first invoice submitted to meredith / sam — since mar 27; PO #2069 approved
+- **IDB submission receipt** — maria submitted apr 10 to MINEDUCYT; awaiting acknowledgement from nadia.nochez@mined.gob.sv
+- **Amna at 10 response** — proposal sent to jonelle and walaa — since mar 26 (19 days, overdue for follow-up)
+- **IDB collective project docs** — AET, ECO966, Solihull, NSIT references — requested from collective members
+- **Siyavula MEL decision** — alexandra indicated preference for SA-based orgs; may not hear back — since apr 13
+
+### environment handoffs
+
+**Cowork → Claude Code:**
+- world prowl app build at `harbour/app/prowl/` — prompt in notion: [340e4ee7](https://www.notion.so/340e4ee74ba4814f83fccb603daea70a)
+- ops dashboard: wire quickbooks + gusto data via cowork dispatch → KV push
+- CMO marketing module in ops dashboard — spec in `.brain/memory/marketing/claude-code-prompt.md`
+- resend webhook URL still needs registering in resend dashboard (unblocks campaign tracking)
+
+**Claude Code → Cowork:**
+- ancestry app substantially built — review decisions needed (harbour integration? pricing? launch comms?)
+- ancestry app: `wv-invoice-logged` gmail label application still manual (MCP limitation — 3 messages unlabeled)
+- nordic naturals engagement surface: scope whether the CAIPB claims work becomes a formal w.v project and what it implies for pipeline / invoicing
+
+### mobile bookmarks
+
+- _no unresolved self-DMs today_ — recent slack activity from garrett is outbound (to maria on whirlpool builds, to sharon / gina on nordic naturals credentials); nothing parked for self-reference
+
+---
+
+## history (most recent first)
+
+---
+
+## 2026-04-14 — port restructure shipped + follow-on tasks (Claude Code)
+
+**what happened:**
+- **Port restructure complete** (commit d0eec54, deployed to production): sidebar 12→7, dashboard with pipeline kanban, merged pages (opportunities, projects, campaigns), audience filters simplified 7→4 (fit, relationship, source, segment), derived priority system (fit × relationship matrix), skeleton fallbacks, URL-synced tabs, staggered kanban animations. All old URLs preserved via 308 redirects.
+- **Follow-on tasks shipped same session:**
+  - Notion schema: added native "relationship" select property to organizations database (7 stages: stranger→champion), backfill script created, mapper updated to prefer native value with derivation fallback
+  - Mobile tab bar: updated 5 tabs (pipeline, contacts, log, today, work), redirect → /m/pipeline
+  - Dead code cleanup: deleted status-badge.tsx, org-edit-dialog.tsx; removed PriorityBadge from priority-badge.tsx (FitBadge kept)
+  - Memory: fixed crm→port references in operational.md, added project row
+- **Key architecture decision:** relationship is now a first-class Notion property. On create/update, the app computes relationship from connection/outreach/friendship and writes it. On read, it prefers the native value but falls back to derivation for any un-backfilled rows.
+
+---
+
+## 2026-04-13 (evening) — context-sync: nordic naturals engagement surface appeared (Cowork)
+
+**what happened:**
+- sharon matheny (nordic naturals) had lauren bosio grant garrett viewer access to three smartsheet workspaces: CAIPB Database, AI Details for Qualified RMs, CAIPB Database — MASTER DATA. framed as "insights" request — scope + cadence not yet defined.
+- garrett shared SQR-RCT x PCS platform credentials with sharon + gina via slack group DM (nordic naturals workspace).
+- tax extension organizer reminder from straight talk CPAs landed overnight — needs completion alongside the Q1 CFO review booking.
+- whirlpool "the world prowl" was play-only; no business agenda; apr 8 press play actions remain the live list for wed apr 15.
+- git: only housekeeping commits on windedvertigo repo (submodule / gitignore tidy).
+- tomorrow's hot window: PRME bi-weekly at 12pm PT — natural moment to raise invoice payment and meredith's comms reset note from apr 7.
+
+---
+
+## 2026-04-13 — context-sync: first live-state refresh (Cowork)
+
+**what happened:**
+- first context-sync run — live state block fully populated from Gmail, Slack, git, Notion, and TASKS.md
+- IDB Salvador: Maria submitted documentation on apr 10 (deadline met) — receipt confirmation still needed from MINEDUCYT
+- Siyavula MEL proposal received a soft pass (prefers SA-based orgs) — Garrett replied
+- ancestry app: significant Claude Code build activity this week (photo gallery, GEDCOM 7.0 export, AI research assistant, DNA/ethnicity, census timeline, collaborative comments, mobile redesign, merge wizard)
+- PRME survey showing 94 responses; Meredith sent comms reset note apr 7
+- CPA Q1 CFO review request from Abhishek — needs booking
+
 ---
 
 ## 2026-03-29 — ops dashboard redesigned, KV + Notion wired, auto-deploy enabled (Claude Code)

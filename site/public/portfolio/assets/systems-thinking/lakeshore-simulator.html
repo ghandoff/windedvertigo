@@ -1219,6 +1219,187 @@ html, body {
     border: 1px solid #999 !important;
   }
 }
+
+/* -- dosage sliders -- */
+.dosage-slider-wrap {
+  width: 100%;
+}
+.dosage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.dosage-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.dosage-dosage {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cadet);
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: right;
+}
+.dosage-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+  outline: none;
+  margin: 0;
+  cursor: pointer;
+}
+.dosage-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cadet);
+  border: 2px solid var(--champagne);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.dosage-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.dosage-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cadet);
+  border: 2px solid var(--champagne);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  cursor: pointer;
+}
+.dosage-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+}
+.dosage-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+}
+.dosage-slider:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.dosage-slider-wrap .card-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dosage-slider::-webkit-slider-thumb { transition: none; }
+}
+
+/* -- right-panel tabs -- */
+.right-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.right-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.right-tab:hover {
+  color: var(--cadet);
+}
+.right-tab.active {
+  color: var(--cadet);
+  border-bottom-color: var(--sienna);
+}
+.right-tab:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: -2px;
+}
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.right-panel-hidden {
+  display: none;
+}
+
+/* systems map panel */
+#panel-map .systems-map-wrap {
+  margin-top: 0;
+  padding: 16px;
+  border-top: none;
+}
+#panel-map .systems-map-wrap svg {
+  width: 100%;
+  height: auto;
+  max-height: 60vh;
+}
+
+/* wide screen: side-by-side charts + map */
+@media (min-width: 1400px) {
+  .right-tabs { display: none; }
+  .right-panel,
+  .right-panel.right-panel-hidden {
+    display: flex;
+  }
+  .decisions-right {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+  }
+  #panel-charts {
+    flex: 3;
+    min-width: 0;
+  }
+  #panel-map {
+    flex: 2;
+    border-left: 1px solid var(--rule);
+    padding-left: 16px;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+  #panel-map .systems-map-wrap svg {
+    max-height: none;
+  }
+}
+
+/* mobile: sticky tabs */
+@media (max-width: 768px) {
+  .right-tabs {
+    position: sticky;
+    top: 0;
+    background: var(--champagne);
+    z-index: 5;
+  }
+  #panel-map .systems-map-wrap {
+    padding: 8px;
+  }
+  #panel-map .systems-map-wrap svg {
+    max-height: 40vh;
+  }
+}
 </style>
 </head>
 <body>
@@ -1262,92 +1443,95 @@ html, body {
     <div id="card-stack"></div>
   </div>
   <div class="decisions-right">
-    <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
-    <div class="charts-stack">
-      <div class="decisions-chart-wrap">
-        <div class="chart-placeholder" id="chart-placeholder">
-          <span class="chart-placeholder-text">choose an intervention on the left, then hit "run this" to see its trajectory here.</span>
-        </div>
-        <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
-        <div class="endpoint-labels" id="endpoint-labels"></div>
-      </div>
-      <div class="secondary-wrap" id="secondary-wrap" aria-hidden="false">
-        <div class="secondary-divider">
-          <span class="secondary-divider-rule" aria-hidden="true"></span>
-          <span class="secondary-label">political capital</span>
-          <span class="secondary-divider-rule" aria-hidden="true"></span>
-        </div>
-        <div class="secondary-chart-wrap">
-          <canvas id="chart-secondary" aria-label="political-capital trajectories chart"></canvas>
-        </div>
-      </div>
+    <div class="right-tabs" role="tablist" aria-label="right panel view">
+      <button class="right-tab active" id="tab-charts" role="tab" aria-selected="true" aria-controls="panel-charts">charts</button>
+      <button class="right-tab" id="tab-map" role="tab" aria-selected="false" aria-controls="panel-map">systems map</button>
     </div>
-    <div class="systems-map-wrap" id="systems-map-wrap">
-      <svg id="systems-map" viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" aria-label="causal loop diagram of lakeshore emissions system">
-        <!-- arrows -->
-        <defs>
-          <marker id="arrowhead" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
-            <polygon points="0 0, 7 2.5, 0 5" fill="#EAD9BD"/>
-          </marker>
-          <marker id="arrowhead-hi" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
-            <polygon points="0 0, 7 2.5, 0 5" fill="#CB7858"/>
-          </marker>
-        </defs>
-        <!-- edges -->
-        <line class="map-edge" id="edge-0-1" x1="260" y1="40" x2="95" y2="70" marker-end="url(#arrowhead)"/>
-        <line class="map-edge" id="edge-0-2" x1="260" y1="40" x2="210" y2="80" marker-end="url(#arrowhead)"/>
-        <line class="map-edge" id="edge-0-3" x1="260" y1="40" x2="345" y2="70" marker-end="url(#arrowhead)"/>
-        <line class="map-edge" id="edge-0-4" x1="260" y1="40" x2="430" y2="70" marker-end="url(#arrowhead)"/>
-        <line class="map-edge" id="edge-5-0" x1="130" y1="155" x2="245" y2="50" marker-end="url(#arrowhead)"/>
-        <line class="map-edge" id="edge-6-0" x1="390" y1="155" x2="275" y2="50" marker-end="url(#arrowhead)"/>
-        <line class="map-edge" id="edge-1-5" x1="80" y1="95" x2="115" y2="140" marker-end="url(#arrowhead)"/>
-        <line class="map-edge" id="edge-3-6" x1="350" y1="95" x2="375" y2="140" marker-end="url(#arrowhead)"/>
-        <line class="map-edge" id="edge-2-5" x1="200" y1="105" x2="145" y2="140" marker-end="url(#arrowhead)"/>
-        <line class="map-edge" id="edge-4-6" x1="440" y1="95" x2="405" y2="140" marker-end="url(#arrowhead)"/>
-        <!-- nodes -->
-        <g class="map-node" id="node-0">
-          <rect x="205" y="18" width="110" height="30" rx="4"/>
-          <text x="260" y="38" text-anchor="middle">total emissions</text>
-        </g>
-        <g class="map-node" id="node-1">
-          <rect x="30" y="65" width="100" height="30" rx="4"/>
-          <text x="80" y="85" text-anchor="middle">mobile</text>
-        </g>
-        <g class="map-node" id="node-2">
-          <rect x="150" y="75" width="100" height="30" rx="4"/>
-          <text x="200" y="95" text-anchor="middle">stationary</text>
-        </g>
-        <g class="map-node" id="node-3">
-          <rect x="300" y="65" width="100" height="30" rx="4"/>
-          <text x="350" y="85" text-anchor="middle">embodied</text>
-        </g>
-        <g class="map-node" id="node-4">
-          <rect x="395" y="65" width="90" height="30" rx="4"/>
-          <text x="440" y="85" text-anchor="middle">floor area</text>
-        </g>
-        <g class="map-node" id="node-5">
-          <rect x="60" y="138" width="140" height="30" rx="4"/>
-          <text x="130" y="158" text-anchor="middle">decision structure</text>
-        </g>
-        <g class="map-node" id="node-6">
-          <rect x="320" y="138" width="140" height="30" rx="4"/>
-          <text x="390" y="158" text-anchor="middle">institutional purpose</text>
-        </g>
-      </svg>
-    </div>
-    <div style="text-align: right;">
+    <div class="right-panel" id="panel-charts" role="tabpanel" aria-labelledby="tab-charts">
+      <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
+      <div class="charts-stack">
+        <div class="decisions-chart-wrap">
+          <div class="chart-placeholder" id="chart-placeholder">
+            <span class="chart-placeholder-text">expand an intervention on the left and drag its slider to see the trajectory here.</span>
+          </div>
+          <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
+          <div class="endpoint-labels" id="endpoint-labels"></div>
+        </div>
+        <div class="secondary-wrap" id="secondary-wrap" aria-hidden="false">
+          <div class="secondary-divider">
+            <span class="secondary-divider-rule" aria-hidden="true"></span>
+            <span class="secondary-label">political capital</span>
+            <span class="secondary-divider-rule" aria-hidden="true"></span>
+          </div>
+          <div class="secondary-chart-wrap">
+            <canvas id="chart-secondary" aria-label="political-capital trajectories chart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="pc-meter-wrap">
+        <div class="pc-label">political capital</div>
+        <div class="pc-bar-outer">
+          <div class="pc-bar-indicator" id="pc-indicator" style="left: calc(50% - 8px);"></div>
+        </div>
+        <div class="pc-warning" id="pc-warning"></div>
+      </div>
       <button class="btn btn-small see-pattern-btn" id="btn-see-pattern" aria-label="see the pattern">see the pattern</button>
     </div>
-    <div class="pc-meter-wrap">
-      <div class="pc-label">political capital</div>
-      <div class="pc-bar-outer">
-        <div class="pc-bar-indicator" id="pc-indicator" style="left: calc(50% - 8px);"></div>
+    <div class="right-panel right-panel-hidden" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
+      <div class="systems-map-wrap" id="systems-map-wrap">
+        <svg id="systems-map" viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" aria-label="causal loop diagram of lakeshore emissions system">
+          <defs>
+            <marker id="arrowhead" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="#EAD9BD"/>
+            </marker>
+            <marker id="arrowhead-hi" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="#CB7858"/>
+            </marker>
+          </defs>
+          <line class="map-edge" id="edge-0-1" x1="260" y1="40" x2="95" y2="70" marker-end="url(#arrowhead)"/>
+          <line class="map-edge" id="edge-0-2" x1="260" y1="40" x2="210" y2="80" marker-end="url(#arrowhead)"/>
+          <line class="map-edge" id="edge-0-3" x1="260" y1="40" x2="345" y2="70" marker-end="url(#arrowhead)"/>
+          <line class="map-edge" id="edge-0-4" x1="260" y1="40" x2="430" y2="70" marker-end="url(#arrowhead)"/>
+          <line class="map-edge" id="edge-5-0" x1="130" y1="155" x2="245" y2="50" marker-end="url(#arrowhead)"/>
+          <line class="map-edge" id="edge-6-0" x1="390" y1="155" x2="275" y2="50" marker-end="url(#arrowhead)"/>
+          <line class="map-edge" id="edge-1-5" x1="80" y1="95" x2="115" y2="140" marker-end="url(#arrowhead)"/>
+          <line class="map-edge" id="edge-3-6" x1="350" y1="95" x2="375" y2="140" marker-end="url(#arrowhead)"/>
+          <line class="map-edge" id="edge-2-5" x1="200" y1="105" x2="145" y2="140" marker-end="url(#arrowhead)"/>
+          <line class="map-edge" id="edge-4-6" x1="440" y1="95" x2="405" y2="140" marker-end="url(#arrowhead)"/>
+          <g class="map-node" id="node-0">
+            <rect x="205" y="18" width="110" height="30" rx="4"/>
+            <text x="260" y="38" text-anchor="middle">total emissions</text>
+          </g>
+          <g class="map-node" id="node-1">
+            <rect x="30" y="65" width="100" height="30" rx="4"/>
+            <text x="80" y="85" text-anchor="middle">mobile</text>
+          </g>
+          <g class="map-node" id="node-2">
+            <rect x="150" y="75" width="100" height="30" rx="4"/>
+            <text x="200" y="95" text-anchor="middle">stationary</text>
+          </g>
+          <g class="map-node" id="node-3">
+            <rect x="300" y="65" width="100" height="30" rx="4"/>
+            <text x="350" y="85" text-anchor="middle">embodied</text>
+          </g>
+          <g class="map-node" id="node-4">
+            <rect x="395" y="65" width="90" height="30" rx="4"/>
+            <text x="440" y="85" text-anchor="middle">floor area</text>
+          </g>
+          <g class="map-node" id="node-5">
+            <rect x="60" y="138" width="140" height="30" rx="4"/>
+            <text x="130" y="158" text-anchor="middle">decision structure</text>
+          </g>
+          <g class="map-node" id="node-6">
+            <rect x="320" y="138" width="140" height="30" rx="4"/>
+            <text x="390" y="158" text-anchor="middle">institutional purpose</text>
+          </g>
+        </svg>
       </div>
-      <div class="pc-warning" id="pc-warning"></div>
     </div>
   </div>
   <div class="onboard-hint onboard-hint-cards" id="hint-cards" style="display:none">
-    <span class="onboard-hint-text">now run each intervention to see what the system does over 25 years. start with your choice — then try the others.</span>
+    <span class="onboard-hint-text">now drag each slider to see what the system does over 25 years. start with your choice — then try the others.</span>
     <span class="onboard-hint-arrow">&#8595;</span>
   </div>
 </div>
@@ -1511,12 +1695,64 @@ const state = {
   detailOpen: {},
   rechartered: false,
   animating: false,
+  sliderActive: false,
   currentAnimYear: 2025,
+  dosages: {},
   hypothesis: '',
   surprise: {},
   tradeoffNoticed: {},
   shifted: '',
 };
+
+// ────────────────────────────────────────────
+// session logger — fire-and-forget event logging
+// ────────────────────────────────────────────
+class SessionLogger {
+  constructor() {
+    this.sessionCode = null;
+    this.participantId = null;
+    this.config = {};
+    this.sliderDebounce = {};
+    try {
+      const raw = sessionStorage.getItem('st-session');
+      if (raw) {
+        const data = JSON.parse(raw);
+        this.sessionCode = data.code || null;
+        this.participantId = data.pid || null;
+        this.config = data.config || {};
+      }
+    } catch (e) { /* solo mode */ }
+  }
+  get active() { return !!(this.sessionCode && this.participantId); }
+  log(type, data) {
+    if (!this.active) return;
+    const payload = JSON.stringify({
+      sessionCode: this.sessionCode,
+      participantId: this.participantId,
+      type,
+      data: { scenario: 'lakeshore', ...data },
+    });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/session/log', payload);
+    } else {
+      fetch('/api/session/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  }
+  logSlider(interventionId, dosage) {
+    if (!this.active) return;
+    if (this.sliderDebounce[interventionId]) return;
+    this.sliderDebounce[interventionId] = true;
+    setTimeout(() => { this.sliderDebounce[interventionId] = false; }, 1000);
+    this.log('slider_move', { interventionId, dosage });
+  }
+}
+const logger = new SessionLogger();
+logger.log('scenario_started', { scenario: 'lakeshore' });
 
 // ────────────────────────────────────────────
 // secondary stock: political capital
@@ -1617,12 +1853,14 @@ function computeBaseline() {
 
 const baseline = computeBaseline();
 
-function runIntervention(id, opts = {}) {
-  if (id === 5) return combinedTrajectory();
+function runIntervention(id, dosageFraction, opts = {}) {
+  if (dosageFraction === undefined) dosageFraction = 1;
+  if (id === 5) return combinedTrajectory(dosageFraction);
 
   const traj = [];
   const pcTimeline = [];
   const withBloc = opts.withVotingBloc || false;
+  const df = dosageFraction;
 
   for (let t = 0; t < 26; t++) {
     const bl = baselineAt(t);
@@ -1633,49 +1871,46 @@ function runIntervention(id, opts = {}) {
     let pc = 1.0;
 
     if (id === 1) {
-      // parking permit: sag-and-rebound on mobile
-      // drops sharply, partially recovers, settles at 82% (→ ~3% total reduction)
-      let mf;
-      if (t === 0)      mf = 0.72;  // 28% drop
-      else if (t === 1)  mf = 0.68;  // 32% drop (peak)
-      else if (t <= 6)   mf = 0.68 + (0.82 - 0.68) * ((t - 1) / 5); // recovery
-      else               mf = 0.82;  // permanent settle
-      mob = MOB_0 * mf;
+      // parking permit: sag-and-rebound on mobile — scaled by dosage
+      let mfBase;
+      if (t === 0)      mfBase = 0.72;
+      else if (t === 1)  mfBase = 0.68;
+      else if (t <= 6)   mfBase = 0.68 + (0.82 - 0.68) * ((t - 1) / 5);
+      else               mfBase = 0.82;
+      // scale reduction from 1.0 by dosage
+      mob = MOB_0 * (1 - (1 - mfBase) * df);
 
-      const pcDrop = withBloc ? 0.075 : 0.15;
+      const pcDrop = (withBloc ? 0.075 : 0.15) * df;
       pc = t < 4 ? 1.0 - pcDrop * Math.max(0, 1 - t / 4) : 1.0;
     }
 
     else if (id === 2) {
-      // heat pump: 12-year deployment ramp + continued improvement after
-      // back-loaded ramp (quadratic) so most visible gain appears post-year-8
-      // post-ramp drift reflects grid decarb improving heat-pump CoP over time
+      // heat pump: 12-year deployment ramp — scaled by dosage
       const ramp = Math.min(Math.pow(t / 12, 1.6), 1.0);
       const postDrift = t > 12 ? Math.pow(1 - 0.004, t - 12) : 1.0;
-      stat = STAT_0 * (1 - ramp * 0.355) * postDrift;
+      stat = STAT_0 * (1 - ramp * 0.355 * df) * postDrift;
 
-      const pcDrop = withBloc ? 0.10 : 0.20;
+      const pcDrop = (withBloc ? 0.10 : 0.20) * df;
       pc = t < 8 ? 1.0 - pcDrop * Math.max(0, 1 - t / 8) : 1.0;
     }
 
     else if (id === 3) {
-      // living building: new construction savings + small mandate drift
+      // living building: new construction savings — scaled by dosage
       if (t >= 1) {
         const newFrac = 1 - 1 / bl.floorMult;
-        stat = STAT_0 * (1 - newFrac * 0.85);
-        emb = bl.emb * (1 - newFrac * 0.75);
+        stat = STAT_0 * (1 - newFrac * 0.85 * df);
+        emb = bl.emb * (1 - newFrac * 0.75 * df);
       }
-      // mandate drift: awareness spillover on remaining stock
-      if (t >= 1) drift *= Math.pow(1 - 0.002, t - 1);
+      if (t >= 1) drift *= Math.pow(1 - 0.002 * df, t - 1);
 
-      const pcDrop = withBloc ? 0.05 : 0.10;
+      const pcDrop = (withBloc ? 0.05 : 0.10) * df;
       if (t >= 2 && t < 5) pc = 1.0 - pcDrop * (1 - (t - 2) / 3);
     }
 
     else if (id === 4) {
-      // votes: exogenous drift starting year 3
-      if (t >= 3) drift *= Math.pow(1 - 0.022, t - 3);
-      pc = t < 2 ? 0.95 : 1.0;
+      // votes: exogenous drift — scaled by dosage
+      if (t >= 3) drift *= Math.pow(1 - 0.022 * df, t - 3);
+      pc = t < 2 ? 1.0 - 0.05 * df : 1.0;
     }
 
     traj.push(Math.max((stat + mob + emb) * drift, 0));
@@ -1685,18 +1920,23 @@ function runIntervention(id, opts = {}) {
   return { trajectory: traj, pcTimeline };
 }
 
-function combinedTrajectory() {
-  // recharter: all 1–4 with multipliers + purpose drift
-  const M = { 1: 1.6, 2: 1.4, 3: 1.5, 4: 1.3 };
+function combinedTrajectory(dosageFraction) {
+  if (dosageFraction === undefined) dosageFraction = 1;
+  // recharter: all 1–4 with multipliers + purpose drift, scaled by dosage
+  const MBase = { 1: 1.6, 2: 1.4, 3: 1.5, 4: 1.3 };
+  // scale multiplier boost by dosage: at df=0 multiplier=1 (no boost), at df=1 full boost
+  const M = {};
+  for (const k in MBase) M[k] = 1 + (MBase[k] - 1) * dosageFraction;
+  const df = dosageFraction;
   const traj = [];
   const pcTimeline = [];
 
   for (let t = 0; t < 26; t++) {
     const bl = baselineAt(t);
 
-    // intervention 1 — parking (1.6× effect)
-    const settle1 = 0.18 * M[1]; // 0.288
-    const peak1 = 0.32 * M[1];   // 0.512
+    // intervention 1 — parking (scaled multiplier)
+    const settle1 = 0.18 * M[1];
+    const peak1 = 0.32 * M[1];
     let mf;
     if (t === 0)      mf = 1 - 0.28 * M[1];
     else if (t === 1)  mf = 1 - peak1;
@@ -1705,12 +1945,12 @@ function combinedTrajectory() {
     mf = Math.max(mf, 0.10);
     const mob = MOB_0 * mf;
 
-    // intervention 2 — heat pump (1.4× effect)
+    // intervention 2 — heat pump (scaled multiplier)
     const ramp = Math.min(Math.pow(t / 12, 1.6), 1.0);
     const postDrift2 = t > 12 ? Math.pow(1 - 0.004, t - 12) : 1.0;
     let stat = STAT_0 * Math.max((1 - ramp * 0.355 * M[2]) * postDrift2, 0.05);
 
-    // intervention 3 — living building (1.5× effect)
+    // intervention 3 — living building (scaled multiplier)
     let emb = bl.emb;
     if (t >= 1) {
       const nf = 1 - 1 / bl.floorMult;
@@ -1723,20 +1963,22 @@ function combinedTrajectory() {
     }
     let mandateDrift = t >= 1 ? Math.pow(1 - 0.002 * M[3], t - 1) : 1;
 
-    // intervention 4 — votes (1.3× effect)
+    // intervention 4 — votes (scaled multiplier)
     let votesDrift = t >= 3 ? Math.pow(1 - 0.022 * M[4], t - 3) : 1;
 
-    // intervention 5 — purpose drift
-    let purposeDrift = t >= 4 ? Math.pow(1 - 0.045, t - 4) : 1;
+    // intervention 5 — purpose drift scaled by dosage
+    let purposeDrift = t >= 4 ? Math.pow(1 - 0.045 * df, t - 4) : 1;
 
     const total = Math.max((stat + mob + emb) * mandateDrift * votesDrift * purposeDrift, 0);
     traj.push(total);
 
-    // political capital: deep drop then recovery above 1.0
+    // political capital: deep drop then recovery above 1.0, scaled by dosage
     let pc;
-    if (t <= 1) pc = 0.70;
-    else if (t <= 6) pc = 0.70 + (1.30 - 0.70) * ((t - 1) / 5);
-    else pc = 1.30;
+    const pcDip = 0.30 * df;
+    const pcRecovery = 0.30 * df;
+    if (t <= 1) pc = 1.0 - pcDip;
+    else if (t <= 6) pc = (1.0 - pcDip) + ((1.0 + pcRecovery) - (1.0 - pcDip)) * ((t - 1) / 5);
+    else pc = 1.0 + pcRecovery;
     pcTimeline.push(pc);
   }
 
@@ -1745,8 +1987,8 @@ function combinedTrajectory() {
 
 function computeAllTrajectories() {
   const all = {};
-  for (let i = 1; i <= 4; i++) all[i] = runIntervention(i).trajectory;
-  all[5] = combinedTrajectory().trajectory;
+  for (let i = 1; i <= 4; i++) all[i] = runIntervention(i, 1).trajectory;
+  all[5] = combinedTrajectory(1).trajectory;
   return all;
 }
 
@@ -1867,6 +2109,7 @@ const interventionData = [
     body: 'immediate price signal to commuters. targets mobile emissions — commuter, fleet, and business travel.',
     chip: 'parameter',
     chipClass: 'chip-parameter',
+    dosage: { label: 'price increase', unit: '%', min: 0, max: 40 },
     detail: {
       targets: 'mobile emissions (commuter vehicles, fleet, business travel)',
       timeline: 'immediate. takes effect next semester.',
@@ -1883,6 +2126,7 @@ const interventionData = [
     body: 'long deployment ramp. displaces stationary emissions from heating and cooling over a decade.',
     chip: 'parameter',
     chipClass: 'chip-parameter',
+    dosage: { label: 'deployment commitment', unit: '% of plan', min: 0, max: 100 },
     detail: {
       targets: 'stationary emissions (heating, cooling, hot water)',
       timeline: '12-year phased deployment. most reduction visible after year 8.',
@@ -1899,6 +2143,7 @@ const interventionData = [
     body: 'changes the rules for new construction. no effect on existing building stock.',
     chip: 'rules',
     chipClass: 'chip-rules',
+    dosage: { label: 'standard stringency', unit: '% of LBC', min: 0, max: 100 },
     detail: {
       targets: 'embodied + stationary emissions in new construction only',
       timeline: 'takes effect on next building project. compounds as campus grows.',
@@ -1915,6 +2160,7 @@ const interventionData = [
     body: 'changes who decides. does not directly reduce emissions — changes which interventions get approved next.',
     chip: 'rules',
     chipClass: 'chip-rules',
+    dosage: { label: 'governance reform depth', unit: '% adoption', min: 0, max: 100 },
     detail: {
       targets: 'decision-making structure (indirect effect on all emission categories)',
       timeline: 'governance change takes effect immediately. emission effects emerge over 3–5 years as different projects get approved.',
@@ -1931,6 +2177,7 @@ const interventionData = [
     body: 'changes the question every other intervention is being asked. paradigm-level shift.',
     chip: 'goals & paradigms',
     chipClass: 'chip-goals',
+    dosage: { label: 'purpose reframe depth', unit: '% commitment', min: 0, max: 100 },
     detail: {
       targets: 'all emission categories simultaneously — reframes every prior intervention',
       timeline: 'immediate reframing. effects compound as institutional culture shifts.',
@@ -2030,16 +2277,28 @@ function buildCards() {
         </div>
       ` : ''}
       <div class="card-footer">
-        ${state.committed ? `
-          <span class="card-meta">25-year reduction: ${reductionPct !== null ? '<span class="result-value">~' + reductionPct + '%</span>' : '—'}</span>
-          <div class="card-btn-row">
-            ${d.id <= 3 ? '<label class="voting-bloc-label ' + (state.interventionsRun.includes(4) && !state.rechartered ? 'visible' : '') + '" aria-label="run with new voting bloc"><input type="checkbox" ' + (state.withVotingBloc[d.id] ? 'checked' : '') + ' data-voting-id="' + d.id + '"><span>with new voting bloc</span></label>' : ''}
-            <button class="btn btn-small" data-run-id="${d.id}" ${state.animating || (state.rechartered && d.id === 5) ? 'disabled' : ''} aria-label="run intervention ${d.id}">run this</button>
-          </div>
-        ` : `
-          <span class="card-meta"></span>
-          <button class="btn-choose" data-choose-id="${d.id}" aria-label="choose intervention ${d.id}">this is my decision</button>
-        `}
+        ${state.committed ? (function() {
+          const intv = interventionData.find(x => x.id === d.id);
+          const dosageInfo = intv.dosage;
+          const currentDosage = state.dosages[d.id] || 0;
+          const currentVal = dosageInfo
+            ? Math.round(dosageInfo.min + currentDosage * (dosageInfo.max - dosageInfo.min))
+            : Math.round(currentDosage * 100);
+          const unit = dosageInfo ? dosageInfo.unit : '%';
+          const label = dosageInfo ? dosageInfo.label : 'dosage';
+          const votingRow = d.id <= 3 && state.interventionsRun.includes(4) && !state.rechartered
+            ? '<label class="voting-bloc-label visible" aria-label="run with new voting bloc"><input type="checkbox" ' + (state.withVotingBloc[d.id] ? 'checked' : '') + ' data-voting-id="' + d.id + '"><span>with new voting bloc</span></label>'
+            : '';
+          return '<div class="dosage-slider-wrap">' +
+            '<div class="dosage-header">' +
+              '<span class="dosage-label">' + label + '</span>' +
+              '<span class="dosage-dosage">' + currentVal + unit + '</span>' +
+            '</div>' +
+            '<input type="range" class="dosage-slider" data-slider-id="' + d.id + '" min="0" max="100" value="' + Math.round(currentDosage * 100) + '" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(currentDosage * 100) + '">' +
+            '<span class="card-meta">25-year reduction: ' + (reductionPct !== null ? '<span class="result-value">~' + reductionPct + '%</span>' : '\u2014') + '</span>' +
+            votingRow +
+          '</div>';
+        })() : '<span class="card-meta"></span><button class="btn-choose" data-choose-id="' + d.id + '" aria-label="choose intervention ' + d.id + '">this is my decision</button>'}
       </div>
     `;
     stack.appendChild(card);
@@ -2068,11 +2327,46 @@ function buildCards() {
     });
   });
 
-  // bind run buttons (analysis mode)
-  stack.querySelectorAll('[data-run-id]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = parseInt(btn.dataset.runId);
-      handleRunIntervention(id);
+  // bind dosage sliders (analysis mode)
+  stack.querySelectorAll('.dosage-slider').forEach(slider => {
+    let debounceTimer = null;
+    slider.addEventListener('input', () => {
+      state.sliderActive = true;
+      const id = parseInt(slider.dataset.sliderId);
+      const dosageEl = slider.closest('.dosage-slider-wrap').querySelector('.dosage-dosage');
+      const metaEl = slider.closest('.dosage-slider-wrap').querySelector('.card-meta');
+      const intv = interventionData.find(x => x.id === id);
+      const fraction = parseInt(slider.value) / 100;
+      const displayVal = intv.dosage
+        ? Math.round(intv.dosage.min + fraction * (intv.dosage.max - intv.dosage.min))
+        : slider.value;
+      const unit = intv.dosage ? intv.dosage.unit : '%';
+      if (dosageEl) dosageEl.textContent = displayVal + unit;
+      slider.setAttribute('aria-valuenow', slider.value);
+      if (debounceTimer) cancelAnimationFrame(debounceTimer);
+      debounceTimer = requestAnimationFrame(() => {
+        handleRunIntervention(id, fraction);
+        logger.logSlider(id, fraction);
+        // update result value in-place without rebuilding cards
+        if (metaEl) {
+          const result = state.trajectories[id];
+          const lastVal = result ? result[result.length - 1] : null;
+          const blLast = baseline[baseline.length - 1];
+          if (lastVal !== null) {
+            const pct = ((1 - lastVal / blLast) * 100).toFixed(0);
+            metaEl.textContent = '';
+            metaEl.append('25-year reduction: ');
+            const span = document.createElement('span');
+            span.className = 'result-value';
+            span.textContent = '~' + pct + '%';
+            metaEl.appendChild(span);
+          }
+        }
+      });
+    });
+    slider.addEventListener('change', () => {
+      state.sliderActive = false;
+      buildCards();
     });
   });
 
@@ -2094,6 +2388,7 @@ function buildCards() {
         const newSurprise = { ...state.surprise, [id]: val };
         setState({ surprise: newSurprise });
         saveReflect();
+        logger.log('surprise_response', { interventionId: id, response: val });
       });
       chip.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -2124,6 +2419,7 @@ function buildCards() {
       const newTn = { ...state.tradeoffNoticed, [id]: val };
       setState({ tradeoffNoticed: newTn });
       saveReflect();
+      logger.log('tradeoff_noticed', { interventionId: id, response: val });
     });
   });
 
@@ -2134,7 +2430,7 @@ function buildCards() {
       newBloc[id] = e.target.checked;
       setState({ withVotingBloc: newBloc });
       if (state.interventionsRun.includes(id)) {
-        handleRunIntervention(id);
+        handleRunIntervention(id, state.dosages[id] || 1);
       }
     });
   });
@@ -2160,9 +2456,7 @@ function highlightMapNodes(nodeIds) {
   });
 }
 
-function handleRunIntervention(id) {
-  if (state.animating) return;
-
+function handleRunIntervention(id, dosageFraction) {
   // dismiss onboarding hint & chart placeholder
   const hintCards = document.getElementById('hint-cards');
   if (hintCards) hintCards.style.display = 'none';
@@ -2173,50 +2467,87 @@ function handleRunIntervention(id) {
   const intData = interventionData.find(x => x.id === id);
   if (intData) highlightMapNodes(intData.mapHighlight);
 
-  if (id === 5) {
+  const df = dosageFraction !== undefined ? dosageFraction : 1;
+
+  // intervention 5: show recharter modal on first activation
+  if (id === 5 && !state.rechartered && df > 0) {
+    state._pendingRecharterDosage = df;
     document.getElementById('modal-recharter').classList.add('active');
     return;
   }
 
+  if (id === 5) {
+    const result = combinedTrajectory(df);
+    const newTrajectories = { ...state.trajectories };
+    // re-run 1–4 with boosted multipliers (voting bloc on)
+    for (let i = 1; i <= 4; i++) {
+      newTrajectories[i] = runIntervention(i, state.dosages[i] || 1, { withVotingBloc: true }).trajectory;
+    }
+    newTrajectories[5] = result.trajectory;
+    const newRun = [1, 2, 3, 4, 5].filter(i => state.interventionsRun.includes(i) || i === 5);
+    setState({
+      interventionsRun: newRun.length === 5 ? newRun : [...new Set([...state.interventionsRun, 5])],
+      trajectories: newTrajectories,
+      dosages: { ...state.dosages, [id]: df },
+      politicalCapital: result.pcTimeline[result.pcTimeline.length - 1],
+      politicalCapitalHistory: { ...state.politicalCapitalHistory, 5: result.pcTimeline },
+      currentAnimYear: 2050,
+    });
+    updateDecisionsChart(id);
+    updateEndpointLabels();
+    return;
+  }
+
   const opts = { withVotingBloc: id <= 3 && state.withVotingBloc[id] };
-  const result = runIntervention(id, opts);
+  const result = runIntervention(id, df, opts);
   const newRun = state.interventionsRun.includes(id)
     ? state.interventionsRun
     : [...state.interventionsRun, id];
 
+  // update year ticker to 2050 on first interaction
+  const ticker = document.getElementById('year-ticker');
+  if (ticker) ticker.textContent = '2050';
+
   setState({
     interventionsRun: newRun,
     trajectories: { ...state.trajectories, [id]: result.trajectory },
+    dosages: { ...state.dosages, [id]: df },
     politicalCapital: result.pcTimeline[result.pcTimeline.length - 1],
     politicalCapitalHistory: { ...state.politicalCapitalHistory, [id]: result.pcTimeline },
-    animating: true,
-    currentAnimYear: 2025,
+    currentAnimYear: 2050,
   });
 
-  animateDecisionsChart(id);
+  updateDecisionsChart(id);
+  updateEndpointLabels();
 }
 
 function handleRecharterContinue() {
   document.getElementById('modal-recharter').classList.remove('active');
 
-  const result = combinedTrajectory();
-  const newTrajectories = {};
+  const df = state._pendingRecharterDosage || 1;
+  const result = combinedTrajectory(df);
+  const newTrajectories = { ...state.trajectories };
   for (let i = 1; i <= 4; i++) {
-    newTrajectories[i] = runIntervention(i, { withVotingBloc: true }).trajectory;
+    newTrajectories[i] = runIntervention(i, state.dosages[i] || 1, { withVotingBloc: true }).trajectory;
   }
   newTrajectories[5] = result.trajectory;
 
+  const ticker = document.getElementById('year-ticker');
+  if (ticker) ticker.textContent = '2050';
+
   setState({
-    interventionsRun: [1, 2, 3, 4, 5],
+    interventionsRun: [...new Set([...state.interventionsRun, 5])],
     trajectories: newTrajectories,
+    dosages: { ...state.dosages, 5: df },
     politicalCapital: result.pcTimeline[result.pcTimeline.length - 1],
     politicalCapitalHistory: { ...state.politicalCapitalHistory, 5: result.pcTimeline },
     rechartered: true,
-    animating: true,
-    currentAnimYear: 2025,
+    currentAnimYear: 2050,
   });
 
-  animateDecisionsChart(5);
+  updateDecisionsChart(5);
+  updateEndpointLabels();
+  logger.log('recharter_confirmed', { dosage: df });
 }
 
 function getTrajectoryColor(id, forPattern = false) {
@@ -2296,51 +2627,6 @@ function updateSecondaryChart(highlightId = null) {
       options: makeSecondaryChartOptions(),
     });
   }
-}
-
-function animateDecisionsChart(highlightId) {
-  updateDecisionsChart(highlightId);
-
-  if (reducedMotion) {
-    state.animating = false;
-    state.currentAnimYear = 2050;
-    updateEndpointLabels();
-    buildCards();
-    render();
-    return;
-  }
-
-  const duration = 2500;
-  const start = performance.now();
-  const ticker = document.getElementById('year-ticker');
-  ticker.classList.add('animating');
-
-  function tick(now) {
-    const elapsed = now - start;
-    const progress = Math.min(elapsed / duration, 1);
-    const year = Math.round(2025 + 25 * progress);
-    ticker.textContent = year;
-    state.currentAnimYear = year;
-
-    const pcHist = state.politicalCapitalHistory[highlightId];
-    if (pcHist) {
-      const idx = Math.min(year - 2025, 25);
-      updatePcMeter(pcHist[idx] || 1.0);
-    }
-
-    if (progress < 1) {
-      requestAnimationFrame(tick);
-    } else {
-      ticker.classList.remove('animating');
-      state.animating = false;
-      state.currentAnimYear = 2050;
-      updateEndpointLabels();
-      buildCards();
-      render();
-    }
-  }
-
-  requestAnimationFrame(tick);
 }
 
 function updateEndpointLabels() {
@@ -2435,8 +2721,8 @@ function initPatternChart() {
   const sCtx = sCanvas.getContext('2d');
 
   const allPc = {};
-  for (let i = 1; i <= 4; i++) allPc[i] = runIntervention(i).pcTimeline;
-  allPc[5] = combinedTrajectory().pcTimeline;
+  for (let i = 1; i <= 4; i++) allPc[i] = runIntervention(i, 1).pcTimeline;
+  allPc[5] = combinedTrajectory(1).pcTimeline;
 
   const sDatasets = [makeSecondaryBaselineDataset()];
   [1, 2, 3, 4, 5].forEach(id => {
@@ -2473,7 +2759,7 @@ function showScreen(name) {
   if (name === 'decisions') {
     updateExploreMode();
     buildCards();
-    if (state.committed && !chartDecisions) setTimeout(() => updateDecisionsChart(), 50);
+    if (state.committed && !chartDecisions) setTimeout(() => updateDecisionsChart(null), 50);
     if (state.committed) updatePcMeter(state.politicalCapital);
   }
   if (name === 'pattern') {
@@ -2496,7 +2782,7 @@ function updateExploreMode() {
 
 function render() {
   if (state.screen === 'decisions') {
-    if (!state.animating) buildCards();
+    if (!state.sliderActive) buildCards();
     updateExploreMode();
     if (state.committed) updatePcMeter(state.politicalCapital);
     const patternBtn = document.getElementById('btn-see-pattern');
@@ -2653,8 +2939,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('commit-confirm').classList.remove('visible');
     const id = pendingCommitId;
     pendingCommitId = null;
-    setState({ committed: true, committedId: id });
-    setTimeout(() => handleRunIntervention(id), 400);
+    setState({ committed: true, committedId: id, dosages: { ...state.dosages, [id]: 1 } });
+    logger.log('committed', { interventionId: id, hypothesis: state.hypothesis });
+    setTimeout(() => handleRunIntervention(id, 1), 400);
   });
 
   // shifted textarea (export)
@@ -2702,6 +2989,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // tab toggle: charts vs systems map
+  const tabCharts = document.getElementById('tab-charts');
+  const tabMap = document.getElementById('tab-map');
+  const panelCharts = document.getElementById('panel-charts');
+  const panelMap = document.getElementById('panel-map');
+  if (tabCharts && tabMap && panelCharts && panelMap) {
+    tabCharts.addEventListener('click', () => {
+      tabCharts.classList.add('active');
+      tabCharts.setAttribute('aria-selected', 'true');
+      tabMap.classList.remove('active');
+      tabMap.setAttribute('aria-selected', 'false');
+      panelCharts.classList.remove('right-panel-hidden');
+      panelMap.classList.add('right-panel-hidden');
+    });
+    tabMap.addEventListener('click', () => {
+      tabMap.classList.add('active');
+      tabMap.setAttribute('aria-selected', 'true');
+      tabCharts.classList.remove('active');
+      tabCharts.setAttribute('aria-selected', 'false');
+      panelMap.classList.remove('right-panel-hidden');
+      panelCharts.classList.add('right-panel-hidden');
+    });
+  }
+
   document.getElementById('btn-begin').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-decide').addEventListener('click', () => showScreen('decisions'));
   document.getElementById('btn-see-pattern').addEventListener('click', () => showScreen('pattern'));
@@ -2719,7 +3030,9 @@ document.addEventListener('DOMContentLoaded', () => {
       detailOpen: {},
       rechartered: false,
       animating: false,
+      sliderActive: false,
       currentAnimYear: 2025,
+      dosages: {},
       hypothesis: '',
       surprise: {},
       tradeoffNoticed: {},
