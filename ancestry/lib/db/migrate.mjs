@@ -151,7 +151,7 @@ const statements = [
 async function migrate() {
   for (const stmt of statements) {
     try {
-      await sql(stmt);
+      await sql.query(stmt);
       const preview = stmt.replace(/\s+/g, " ").slice(0, 70);
       console.log(`✓ ${preview}`);
     } catch (e) {

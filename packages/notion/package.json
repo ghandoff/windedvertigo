@@ -14,6 +14,6 @@
     "*.ts"
   ],
   "peerDependencies": {
-    "@notionhq/client": ">=2.3.0"
+    "@notionhq/client": ">=5.14.0"
   }
 }
