@@ -257,7 +257,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   margin: 0 auto var(--space-2xl);
   font-size: 1.05rem;
   line-height: 1.7;
-  color: var(--color-text-on-dark-muted);
+  color: var(--wv-white);
   text-align: center;
 }
 
@@ -444,7 +444,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   font-family: var(--font-primary);
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--wv-champagne);
+  color: var(--wv-white);
   text-transform: lowercase;
   text-decoration: none;
   letter-spacing: 0.02em;

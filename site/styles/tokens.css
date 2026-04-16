@@ -163,7 +163,7 @@
 .wv-footer-subscribe {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--wv-champagne);
+  color: var(--wv-white);
   text-decoration: none;
   text-transform: lowercase;
   transition: color 0.2s ease;
