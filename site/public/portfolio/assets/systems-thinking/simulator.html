@@ -475,46 +475,16 @@ body { min-height: 100vh; }
   text-align: right;
 }
 
-/* systems map */
+/* -- systems map canvas -- */
 .systems-map-wrap {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule-dark);
-}
-.systems-map-wrap svg {
   width: 100%;
-  height: auto;
+  height: 100%;
+  position: relative;
 }
-.map-node rect {
-  fill: rgba(255,235,210,0.06);
-  stroke: var(--rule-dark);
-  stroke-width: 1;
-}
-.map-node text {
-  font-family: var(--font);
-  font-size: 10px;
-  fill: #fff;
-}
-.map-node.highlight rect {
-  fill: var(--sienna);
-  stroke: var(--sienna);
-}
-.map-node.highlight text {
-  fill: var(--champagne);
-  font-weight: 600;
-}
-.map-edge {
-  stroke: rgba(255,235,210,0.2);
-  stroke-width: 1.2;
-}
-.map-edge.highlight {
-  stroke: var(--sienna);
-  stroke-width: 2;
-}
-.map-label {
-  font-family: var(--font);
-  font-size: 8px;
-  fill: rgba(255,255,255,0.7);
+#systems-map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* see pattern button */
@@ -1408,16 +1378,12 @@ body { min-height: 100vh; }
   display: none;
 }
 
-/* systems map panel — constrained height, scrollable */
+/* systems map panel — constrained height */
 #panel-map .systems-map-wrap {
   margin-top: 0;
-  padding: 16px;
+  padding: 0;
   border-top: none;
-}
-#panel-map .systems-map-wrap svg {
-  width: 100%;
-  height: auto;
-  max-height: 60vh;
+  min-height: 300px;
 }
 
 /* -- wide screen: side-by-side charts + map -- */
@@ -1441,10 +1407,7 @@ body { min-height: 100vh; }
     border-left: 1px solid var(--rule-dark);
     padding-left: 16px;
     max-height: 100%;
-    overflow-y: auto;
-  }
-  #panel-map .systems-map-wrap svg {
-    max-height: none;
+    overflow: hidden;
   }
 }
 
@@ -1460,10 +1423,8 @@ body { min-height: 100vh; }
     padding: 12px;
   }
   #panel-map .systems-map-wrap {
-    padding: 8px;
-  }
-  #panel-map .systems-map-wrap svg {
-    max-height: 40vh;
+    padding: 0;
+    min-height: 250px;
   }
 }
 </style>
@@ -1683,6 +1644,333 @@ body { min-height: 100vh; }
 </div>
 
 <script>
+// ── systems map canvas renderer ───────────────────────────
+// tidal-pool-style reactive visualisation
+// shared between simulator.html and lakeshore-simulator.html
+(function(window) {
+  'use strict';
+
+  const NODE_RADIUS = 28;
+  const NODE_BORDER = 3;
+  const ARROW_SIZE = 8;
+  const LABEL_FONT = '500 11px "Inter", system-ui, sans-serif';
+  const VALUE_FONT = '700 14px "Inter", system-ui, sans-serif';
+  const ICON_FONT = '20px serif';
+  const CONNECTION_COLORS = {
+    amplifying: 'rgba(34, 197, 94, 0.6)',
+    dampening:  'rgba(239, 68, 68, 0.6)',
+    delayed:    'rgba(59, 130, 246, 0.6)',
+    threshold:  'rgba(245, 158, 11, 0.6)',
+  };
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resizeCanvas(mapCtx) {
+    const { canvas, ctx } = mapCtx;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    mapCtx.dpr = dpr;
+    scaleNodes(mapCtx);
+  }
+
+  function scaleNodes(mapCtx) {
+    const { nodes, canvas, dpr } = mapCtx;
+    if (!nodes || nodes.length === 0) return;
+    const cw = canvas.width / dpr;
+    const ch = canvas.height / dpr;
+    const padding = 60;
+    // find data bounds
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    nodes.forEach(n => { minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x); minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y); });
+    const dataW = Math.max(maxX - minX, 1);
+    const dataH = Math.max(maxY - minY, 1);
+    const scaleX = (cw - padding * 2) / dataW;
+    const scaleY = (ch - padding * 2) / dataH;
+    const scale = Math.min(scaleX, scaleY);
+    const offsetX = (cw - dataW * scale) / 2 - minX * scale;
+    const offsetY = (ch - dataH * scale) / 2 - minY * scale;
+    nodes.forEach(n => {
+      n.renderX = n.x * scale + offsetX;
+      n.renderY = n.y * scale + offsetY;
+    });
+  }
+
+  function computeNodeValues(nodes, edges, dosages, interventions) {
+    if (!nodes || !interventions) return;
+    // pass 1: direct influences
+    nodes.forEach(n => { n.displayValue = n.baseValue; n.directlyInfluenced = false; });
+    interventions.forEach(intv => {
+      const frac = (dosages[intv.id] || 0);
+      if (frac === 0) return;
+      const influences = intv.influences || (intv.mapHighlight || []).map(nid => ({ nodeId: nid, weight: 1.0 }));
+      influences.forEach(inf => {
+        const node = nodes.find(n => n.id === inf.nodeId);
+        if (!node) return;
+        // for dampening nodes (like price-to-value, attrition), intervention REDUCES their value
+        // for amplifying nodes, intervention INCREASES their value
+        const delta = frac * inf.weight * 40;
+        node.displayValue = Math.max(0, Math.min(100, node.displayValue + delta));
+        node.directlyInfluenced = true;
+      });
+    });
+    // pass 2: single-hop edge propagation
+    nodes.forEach(n => {
+      if (n.directlyInfluenced) return; // skip already-influenced
+      edges.forEach(e => {
+        if (e.to !== n.id) return;
+        const src = nodes.find(s => s.id === e.from);
+        if (!src) return;
+        const srcDelta = src.displayValue - src.baseValue;
+        if (Math.abs(srcDelta) < 0.5) return;
+        const propagated = srcDelta * (e.strength || 0.5) * (e.type === 'dampening' ? -0.3 : 0.3);
+        n.displayValue = Math.max(0, Math.min(100, n.displayValue + propagated));
+      });
+    });
+    // compute valuePct
+    nodes.forEach(n => {
+      n.valuePct = Math.max(0, Math.min(1, n.displayValue / 100));
+    });
+  }
+
+  function drawConnection(ctx, edge, nodes, tick) {
+    const from = nodes.find(n => n.id === edge.from);
+    const to = nodes.find(n => n.id === edge.to);
+    if (!from || !to) return;
+    const fx = from.renderX, fy = from.renderY;
+    const tx = to.renderX, ty = to.renderY;
+    const dx = tx - fx, dy = ty - fy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) return;
+    const ux = dx / dist, uy = dy / dist;
+    const startX = fx + ux * (NODE_RADIUS + 4);
+    const startY = fy + uy * (NODE_RADIUS + 4);
+    const endX = tx - ux * (NODE_RADIUS + 4);
+    const endY = ty - uy * (NODE_RADIUS + 4);
+
+    const color = CONNECTION_COLORS[edge.type || 'amplifying'];
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2 + (edge.strength || 0.5) * 2;
+    ctx.setLineDash(edge.type === 'delayed' ? [6, 4] : []);
+    if (edge.type === 'delayed' && !prefersReducedMotion) ctx.lineDashOffset = -(tick * 2);
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    // arrowhead
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - ux * ARROW_SIZE - uy * ARROW_SIZE * 0.5, endY - uy * ARROW_SIZE + ux * ARROW_SIZE * 0.5);
+    ctx.lineTo(endX - ux * ARROW_SIZE + uy * ARROW_SIZE * 0.5, endY - uy * ARROW_SIZE - ux * ARROW_SIZE * 0.5);
+    ctx.closePath();
+    ctx.fill();
+
+    // polarity label at midpoint
+    const midX = (startX + endX) / 2, midY = (startY + endY) / 2;
+    const typeLabel = edge.type === 'dampening' ? '\u2212' : edge.type === 'delayed' ? '\u23F1' : edge.type === 'threshold' ? '\u26A1' : '+';
+    ctx.font = '600 12px "Inter", system-ui, sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(typeLabel, midX, midY - 8);
+    ctx.restore();
+  }
+
+  function drawNode(ctx, node, tick, isHighlighted, isIndirect) {
+    const x = node.renderX, y = node.renderY;
+    if (x === undefined || y === undefined) return;
+    const value = node.displayValue !== undefined ? node.displayValue : node.baseValue;
+    const valuePct = node.valuePct !== undefined ? node.valuePct : value / 100;
+
+    // pulse
+    const pulseAmp = prefersReducedMotion ? 0 : (1 + valuePct * 1.5);
+    const pulse = Math.sin(tick * 0.1 + value * 0.05) * pulseAmp;
+    const radius = NODE_RADIUS + pulse;
+
+    // glow for directly influenced nodes
+    if (isHighlighted) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 235, 210, 0.4)';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 235, 210, 0.15)';
+      ctx.fill();
+      ctx.restore();
+    } else if (isIndirect) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 235, 210, 0.2)';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 235, 210, 0.06)';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // outer circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(30, 39, 56, 0.9)';
+    ctx.fill();
+
+    // value arc
+    if (valuePct > 0) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * valuePct);
+      ctx.strokeStyle = node.color || '#CB7858';
+      ctx.lineWidth = NODE_BORDER;
+      ctx.stroke();
+    }
+
+    // inner circle
+    ctx.beginPath();
+    ctx.arc(x, y, radius - NODE_BORDER - 1, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(39, 50, 72, 0.95)';
+    ctx.fill();
+
+    // icon
+    if (node.icon) {
+      ctx.font = ICON_FONT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(node.icon, x, y - 4);
+    }
+
+    // value number
+    ctx.font = VALUE_FONT;
+    ctx.fillStyle = '#ffebd2';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(Math.round(value).toString(), x, y + 14);
+    ctx.restore();
+
+    // label below (handle multiline with \n)
+    ctx.save();
+    ctx.font = LABEL_FONT;
+    ctx.fillStyle = 'rgba(255, 235, 210, 0.7)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const lines = (node.label || '').split('\n');
+    lines.forEach((line, i) => {
+      ctx.fillText(line, x, y + radius + 6 + i * 13);
+    });
+    ctx.restore();
+  }
+
+  function drawMap(mapCtx) {
+    const { ctx, canvas, dpr, nodes, edges, tick, dosages, interventions } = mapCtx;
+    if (!ctx || !canvas) return;
+    const w = canvas.width / dpr;
+    const h = canvas.height / dpr;
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    // subtle radial gradient background
+    const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.6);
+    grad.addColorStop(0, 'rgba(39, 50, 72, 1)');
+    grad.addColorStop(1, 'rgba(30, 39, 56, 1)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // subtle grid dots
+    ctx.fillStyle = 'rgba(255, 235, 210, 0.04)';
+    for (let gx = 40; gx < w; gx += 40) {
+      for (let gy = 40; gy < h; gy += 40) {
+        ctx.beginPath();
+        ctx.arc(gx, gy, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // draw edges
+    (edges || []).forEach(e => drawConnection(ctx, e, nodes, tick));
+
+    // determine which nodes are highlighted
+    const highlightedIds = new Set();
+    const indirectIds = new Set();
+    if (interventions && dosages) {
+      interventions.forEach(intv => {
+        if ((dosages[intv.id] || 0) > 0) {
+          const influences = intv.influences || (intv.mapHighlight || []).map(nid => ({ nodeId: nid, weight: 1.0 }));
+          influences.forEach(inf => highlightedIds.add(inf.nodeId));
+        }
+      });
+      // indirect = nodes connected to highlighted but not themselves highlighted
+      (edges || []).forEach(e => {
+        if (highlightedIds.has(e.from) && !highlightedIds.has(e.to)) indirectIds.add(e.to);
+        if (highlightedIds.has(e.to) && !highlightedIds.has(e.from)) indirectIds.add(e.from);
+      });
+    }
+
+    // draw nodes
+    (nodes || []).forEach(n => {
+      drawNode(ctx, n, tick, highlightedIds.has(n.id), indirectIds.has(n.id));
+    });
+
+    ctx.restore();
+  }
+
+  function startAnimation(mapCtx) {
+    if (mapCtx.animId) return;
+    mapCtx.visible = true;
+    function loop() {
+      if (!mapCtx.visible) { mapCtx.animId = null; return; }
+      if (!prefersReducedMotion) mapCtx.tick++;
+      drawMap(mapCtx);
+      mapCtx.animId = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  function stopAnimation(mapCtx) {
+    mapCtx.visible = false;
+    if (mapCtx.animId) {
+      cancelAnimationFrame(mapCtx.animId);
+      mapCtx.animId = null;
+    }
+  }
+
+  function init(container, mapData, interventions) {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'systems-map-canvas';
+    canvas.setAttribute('aria-label', 'reactive systems map showing how interventions affect system variables');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    container.innerHTML = '';
+    container.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    const mapCtx = {
+      canvas, ctx, dpr: 1, tick: 0, animId: null, visible: false,
+      nodes: mapData ? (mapData.nodes || []).map(n => Object.assign({}, n, { displayValue: n.baseValue, valuePct: n.baseValue / 100 })) : [],
+      edges: mapData ? (mapData.edges || []) : [],
+      interventions: interventions || [],
+      dosages: {},
+    };
+
+    resizeCanvas(mapCtx);
+
+    const ro = new ResizeObserver(() => { resizeCanvas(mapCtx); if (mapCtx.visible) drawMap(mapCtx); });
+    ro.observe(container);
+
+    return mapCtx;
+  }
+
+  window.SystemsMapCanvas = { init, compute: computeNodeValues, draw: drawMap, start: startAnimation, stop: stopAnimation, resize: resizeCanvas };
+})(window);
+
 // ────────────────────────────────────────────
 // scenario data
 // ────────────────────────────────────────────
@@ -1702,21 +1990,20 @@ const SCENARIOS = {
     insightSpot: 'the higher-tier interventions produce familiar shapes — onboarding restructures the experience, repositioning shifts who arrives. but the parameter-level discount barely decays. that\'s the signature of a binding constraint: when the bottleneck is at the parameter layer, a parameter fix holds. meadows warned the leverage point is not always where you expect it.',
     insightLever: 'in this system, the dominant lever is intervention (1) — the discount. price-to-value is the binding constraint. the product works; customers leave because perceived value doesn\'t justify the cost at the current activation rate. the paradigm shift is valuable but slower and less certain than directly releasing the bottleneck.',
     map: {
-      viewBox: '0 0 480 200',
       nodes: [
-        { id: 0, label: 'active\ncustomers', x: 240, y: 30, w: 100 },
-        { id: 1, label: 'word-of-\nmouth', x: 80, y: 90, w: 90 },
-        { id: 2, label: 'activation\nrate', x: 400, y: 90, w: 90 },
-        { id: 3, label: 'price-to-value\nratio', x: 120, y: 175, w: 110 },
-        { id: 4, label: 'product\npositioning', x: 360, y: 175, w: 100 },
+        { id: 0, label: 'active\ncustomers', icon: '\uD83D\uDC65', color: '#CB7858', x: 240, y: 30, baseValue: 55 },
+        { id: 1, label: 'word-of-\nmouth', icon: '\uD83D\uDCE2', color: '#22C55E', x: 80, y: 90, baseValue: 45 },
+        { id: 2, label: 'activation\nrate', icon: '\u26A1', color: '#3B82F6', x: 400, y: 90, baseValue: 40 },
+        { id: 3, label: 'price-to-value\nratio', icon: '\uD83D\uDCB0', color: '#B15043', x: 120, y: 175, baseValue: 60 },
+        { id: 4, label: 'product\npositioning', icon: '\uD83C\uDFAF', color: '#F59E0B', x: 360, y: 175, baseValue: 35 },
       ],
       edges: [
-        { from: 0, to: 1, label: '+' },
-        { from: 1, to: 0, label: '+' },
-        { from: 2, to: 0, label: '+' },
-        { from: 3, to: 0, label: '−' },
-        { from: 4, to: 2, label: '+' },
-        { from: 4, to: 1, label: '+' },
+        { from: 0, to: 1, type: 'amplifying', strength: 0.7, label: '+' },
+        { from: 1, to: 0, type: 'amplifying', strength: 0.5, label: '+' },
+        { from: 2, to: 0, type: 'amplifying', strength: 0.6, label: '+' },
+        { from: 3, to: 0, type: 'dampening', strength: 0.8, label: '\u2212' },
+        { from: 4, to: 2, type: 'amplifying', strength: 0.5, label: '+' },
+        { from: 4, to: 1, type: 'amplifying', strength: 0.4, label: '+' },
       ],
     },
     mandate: 'reverse the customer attrition trend and build a base that grows itself through retention and referral.',
@@ -1732,6 +2019,7 @@ const SCENARIOS = {
         effect: { type: 'parameter', magnitude: 0.42, decayRate: 0.08 },
         dosage: { label: 'discount on annual renewals', unit: '%', min: 0, max: 40 },
         mapHighlight: [0, 3],
+        influences: [{ nodeId: 3, weight: 1.0 }, { nodeId: 0, weight: 0.5 }],
       },
       {
         id: 2, title: 'redesign the onboarding flow so new users reach value in the first session.',
@@ -1742,6 +2030,7 @@ const SCENARIOS = {
         effect: { type: 'rules', magnitude: 0.22 },
         dosage: { label: 'onboarding redesign depth', unit: '% of funnel rebuilt', min: 0, max: 100 },
         mapHighlight: [0, 2],
+        influences: [{ nodeId: 2, weight: 1.0 }, { nodeId: 0, weight: 0.3 }],
       },
       {
         id: 3, title: 'reposition the product: from "tool for X" to "platform for the outcome customers actually want."',
@@ -1752,6 +2041,7 @@ const SCENARIOS = {
         effect: { type: 'goals', magnitude: 0.35, compoundRate: 0.15 },
         dosage: { label: 'repositioning commitment', unit: 'quarters invested', min: 0, max: 4 },
         mapHighlight: [0, 1, 2, 3, 4],
+        influences: [{ nodeId: 4, weight: 1.0 }, { nodeId: 1, weight: 0.6 }, { nodeId: 0, weight: 0.4 }],
       },
     ],
   },
@@ -1770,21 +2060,20 @@ const SCENARIOS = {
     insightSpot: 'the contractors and no-meeting fridays share the same shape: a brief recovery that the system absorbs. the planning process ratchets — every good sprint raises the bar. the parameter intervention subsidises coping while the structural load keeps increasing. the scope cap breaks the ratchet.',
     insightLever: 'in this system, the dominant lever is the scope cap — intervention (2). it puts the captured party (the team) at the planning table structurally. the planning process can no longer use last sprint\'s output as next sprint\'s floor. the paradigm shift helps, but without the structural mechanism change, the ratchet reasserts.',
     map: {
-      viewBox: '0 0 480 200',
       nodes: [
-        { id: 0, label: 'team\nenergy', x: 240, y: 100, w: 80 },
-        { id: 1, label: 'velocity', x: 70, y: 30, w: 80 },
-        { id: 2, label: 'sprint\nscope', x: 410, y: 30, w: 90 },
-        { id: 3, label: 'attrition', x: 70, y: 175, w: 80 },
-        { id: 4, label: 'planning\nprocess', x: 410, y: 175, w: 100 },
+        { id: 0, label: 'team\nenergy', icon: '\uD83D\uDD0B', color: '#22C55E', x: 240, y: 100, baseValue: 45 },
+        { id: 1, label: 'velocity', icon: '\uD83D\uDE80', color: '#3B82F6', x: 70, y: 30, baseValue: 55 },
+        { id: 2, label: 'sprint\nscope', icon: '\uD83D\uDCCB', color: '#F59E0B', x: 410, y: 30, baseValue: 65 },
+        { id: 3, label: 'attrition', icon: '\uD83D\uDEAA', color: '#B15043', x: 70, y: 175, baseValue: 50 },
+        { id: 4, label: 'planning\nprocess', icon: '\uD83D\uDCCA', color: '#CB7858', x: 410, y: 175, baseValue: 60 },
       ],
       edges: [
-        { from: 0, to: 1, label: '+' },
-        { from: 1, to: 2, label: '+' },
-        { from: 2, to: 0, label: '−' },
-        { from: 0, to: 3, label: '−' },
-        { from: 3, to: 0, label: '−' },
-        { from: 4, to: 2, label: '+' },
+        { from: 0, to: 1, type: 'amplifying', strength: 0.7, label: '+' },
+        { from: 1, to: 2, type: 'amplifying', strength: 0.6, label: '+' },
+        { from: 2, to: 0, type: 'dampening', strength: 0.8, label: '\u2212' },
+        { from: 0, to: 3, type: 'dampening', strength: 0.5, label: '\u2212' },
+        { from: 3, to: 0, type: 'dampening', strength: 0.6, label: '\u2212' },
+        { from: 4, to: 2, type: 'amplifying', strength: 0.7, label: '+' },
       ],
     },
     interventions: [
@@ -1797,6 +2086,7 @@ const SCENARIOS = {
         effect: { type: 'parameter', magnitude: 0.08 },
         dosage: { label: 'overflow contractors', unit: 'headcount', min: 0, max: 6 },
         mapHighlight: [0, 1, 2],
+        influences: [{ nodeId: 0, weight: 0.8 }, { nodeId: 1, weight: 0.4 }],
       },
       {
         id: 2, title: 'cap sprint scope at 80% of estimated capacity. the remaining 20% is protected slack.',
@@ -1807,6 +2097,7 @@ const SCENARIOS = {
         effect: { type: 'rules', magnitude: 0.52 },
         dosage: { label: 'protected slack', unit: '% of capacity', min: 0, max: 30 },
         mapHighlight: [0, 2, 4],
+        influences: [{ nodeId: 2, weight: 1.0 }, { nodeId: 4, weight: 0.8 }, { nodeId: 0, weight: 0.5 }],
       },
       {
         id: 3, title: 'redefine success: from "shipping features" to "sustainable delivery of value."',
@@ -1817,6 +2108,7 @@ const SCENARIOS = {
         effect: { type: 'goals', magnitude: 0.40, compoundRate: 0.15 },
         dosage: { label: 'definition shift depth', unit: '% adoption', min: 0, max: 100 },
         mapHighlight: [0, 1, 2, 3, 4],
+        influences: [{ nodeId: 4, weight: 0.7 }, { nodeId: 0, weight: 0.6 }, { nodeId: 3, weight: 0.5 }],
       },
     ],
   },
@@ -1832,7 +2124,26 @@ const SCENARIOS = {
     baselineRate: -0.004,
     mandate: 'restore average nightly sleep to a sustainable level before the compounding effects of sleep debt become chronic.',
     baselineCaption: 'sleep erodes slowly — each short night makes the next one more likely.',
-    insight: 'this is a reinforcing loop in decline. less sleep → lower cognitive function → worse time management → later bedtime → less sleep. the debt compounds silently.',
+    insight: 'this is a reinforcing loop in decline. less sleep \u2192 lower cognitive function \u2192 worse time management \u2192 later bedtime \u2192 less sleep. the debt compounds silently.',
+    map: {
+      nodes: [
+        { id: 0, label: 'nightly\nsleep', icon: '\uD83D\uDE34', color: '#CB7858', x: 240, y: 50, baseValue: 40 },
+        { id: 1, label: 'cognitive\nfunction', icon: '\uD83E\uDDE0', color: '#B15043', x: 80, y: 140, baseValue: 45 },
+        { id: 2, label: 'time\nmanagement', icon: '\u23F0', color: '#6B7589', x: 240, y: 220, baseValue: 40 },
+        { id: 3, label: 'bedtime\ndiscipline', icon: '\uD83C\uDF19', color: '#3B82F6', x: 400, y: 140, baseValue: 35 },
+        { id: 4, label: 'sleep\nenvironment', icon: '\uD83D\uDECF\uFE0F', color: '#22C55E', x: 400, y: 50, baseValue: 50 },
+        { id: 5, label: 'productivity\nidentity', icon: '\uD83D\uDCA1', color: '#F59E0B', x: 80, y: 50, baseValue: 30 },
+      ],
+      edges: [
+        { from: 0, to: 1, type: 'amplifying', strength: 0.8, label: '+' },
+        { from: 1, to: 2, type: 'amplifying', strength: 0.6, label: '+' },
+        { from: 2, to: 3, type: 'amplifying', strength: 0.7, label: '+' },
+        { from: 3, to: 0, type: 'amplifying', strength: 0.9, label: '+' },
+        { from: 4, to: 0, type: 'amplifying', strength: 0.3, label: '+' },
+        { from: 5, to: 3, type: 'dampening', strength: 0.7, label: '\u2212' },
+        { from: 5, to: 0, type: 'dampening', strength: 0.5, label: '\u2212' },
+      ],
+    },
     interventions: [
       {
         id: 1, title: 'install blackout curtains.',
@@ -1842,24 +2153,30 @@ const SCENARIOS = {
         why: 'this is a <em>parameter-level</em> change. a better environment improves quality at the margins but doesn\'t address why you\'re going to bed late.',
         effect: { type: 'parameter', magnitude: 0.03 },
         dosage: { label: 'room darkness level', unit: '% light blocked', min: 0, max: 100 },
+        mapHighlight: [0, 4],
+        influences: [{ nodeId: 4, weight: 1.0 }, { nodeId: 0, weight: 0.3 }],
       },
       {
         id: 2, title: 'set a consistent bedtime rule: lights out by 10:30 p.m., no screens after 10:00 p.m.',
         body: 'creates a hard boundary. changes the rules of the evening.',
         chip: 'rules', chipClass: 'chip-rules',
         detail: { targets: 'the structural boundary between evening activity and sleep', timeline: 'one week to establish, compounds over months', assumptions: 'a consistent rule creates a rhythm. the body adapts. the hard part is defending the boundary against late-night work, social pressure, or "one more episode."', stakes: 'requires real discipline. high payoff for those who hold it.' },
-        why: 'this is a <em>rules-level</em> change. it creates a structural boundary that the reinforcing loop can\'t easily erode. sleep stabilises because the input side — bedtime — is now governed by a rule, not a negotiation.',
+        why: 'this is a <em>rules-level</em> change. it creates a structural boundary that the reinforcing loop can\'t easily erode. sleep stabilises because the input side \u2014 bedtime \u2014 is now governed by a rule, not a negotiation.',
         effect: { type: 'rules', magnitude: 0.30 },
         dosage: { label: 'bedtime consistency', unit: 'nights per week', min: 0, max: 7 },
+        mapHighlight: [0, 2, 3],
+        influences: [{ nodeId: 3, weight: 1.0 }, { nodeId: 0, weight: 0.7 }, { nodeId: 2, weight: 0.4 }],
       },
       {
         id: 3, title: 'redefine productivity: from "hours worked" to "quality of decisions made when rested."',
         body: 'changes what you optimise for. sleep becomes an investment, not a cost.',
         chip: 'goals & paradigms', chipClass: 'chip-goals',
         detail: { targets: 'your definition of what it means to be productive', timeline: 'immediate reframing, cultural shift if applied to a team', assumptions: 'when productivity is redefined, staying up late stops being "dedicated" and starts being "counterproductive." the incentive structure inverts.', stakes: 'no cost. high psychological difficulty. requires letting go of the "I\'ll sleep when I\'m dead" identity.' },
-        why: 'this is a <em>paradigm-level</em> change. it removes the pressure that creates sleep debt — the belief that more hours awake = more output. the curve rises most because the system\'s purpose has changed.',
+        why: 'this is a <em>paradigm-level</em> change. it removes the pressure that creates sleep debt \u2014 the belief that more hours awake = more output. the curve rises most because the system\'s purpose has changed.',
         effect: { type: 'goals', magnitude: 0.55 },
         dosage: { label: 'redefinition commitment', unit: '% belief shift', min: 0, max: 100 },
+        mapHighlight: [0, 3, 5],
+        influences: [{ nodeId: 5, weight: 1.0 }, { nodeId: 3, weight: 0.6 }, { nodeId: 0, weight: 0.5 }],
       },
     ],
   },
@@ -2282,56 +2599,12 @@ LIBRARY_SCENARIOS.forEach(slug => {
 
 // render systems map if defined
 if (scenario.map) {
-  const mapWrap = document.getElementById('systems-map-wrap');
-  const m = scenario.map;
-  let svg = '<svg viewBox="' + m.viewBox + '" xmlns="http://www.w3.org/2000/svg" aria-label="causal loop diagram">';
-  svg += '<defs><marker id="ah" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="rgba(255,235,210,0.2)"/></marker>';
-  svg += '<marker id="ah-hi" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#CB7858"/></marker></defs>';
-  // edges
-  m.edges.forEach(e => {
-    const from = m.nodes.find(n => n.id === e.from);
-    const to = m.nodes.find(n => n.id === e.to);
-    if (from && to) {
-      svg += '<line class="map-edge" id="edge-' + e.from + '-' + e.to + '" x1="' + from.x + '" y1="' + (from.y + 15) + '" x2="' + to.x + '" y2="' + (to.y - 5) + '" marker-end="url(#ah)"/>';
-      if (e.label) {
-        const mx = (from.x + to.x) / 2;
-        const my = (from.y + to.y) / 2;
-        svg += '<text class="map-label" x="' + (mx + 4) + '" y="' + (my - 2) + '">' + e.label + '</text>';
-      }
-    }
-  });
-  // nodes
-  m.nodes.forEach(n => {
-    const w = n.w || 90;
-    const lines = n.label.split('\\n');
-    svg += '<g class="map-node" id="node-' + n.id + '">';
-    svg += '<rect x="' + (n.x - w/2) + '" y="' + (n.y - 12) + '" width="' + w + '" height="' + (lines.length > 1 ? 30 : 24) + '" rx="4"/>';
-    lines.forEach((line, i) => {
-      svg += '<text x="' + n.x + '" y="' + (n.y + 4 + i * 12) + '" text-anchor="middle">' + line + '</text>';
-    });
-    svg += '</g>';
-  });
-  svg += '</svg>';
-  mapWrap.innerHTML = svg;
-}
-
-function highlightMapNodes(nodeIds) {
-  document.querySelectorAll('.map-node').forEach(n => n.classList.remove('highlight'));
-  document.querySelectorAll('.map-edge').forEach(e => { e.classList.remove('highlight'); e.setAttribute('marker-end', 'url(#ah)'); });
-  if (!nodeIds || nodeIds.length === 0) return;
-  nodeIds.forEach(id => {
-    const node = document.getElementById('node-' + id);
-    if (node) node.classList.add('highlight');
-  });
-  nodeIds.forEach(a => {
-    nodeIds.forEach(b => {
-      if (a === b) return;
-      ['edge-' + a + '-' + b, 'edge-' + b + '-' + a].forEach(eid => {
-        const el = document.getElementById(eid);
-        if (el) { el.classList.add('highlight'); el.setAttribute('marker-end', 'url(#ah-hi)'); }
-      });
-    });
-  });
+  const mapContainer = document.getElementById('systems-map-wrap');
+  window._mapCtx = SystemsMapCanvas.init(mapContainer, scenario.map, scenario.interventions);
+  // on wide screens both panels are visible — auto-start animation
+  if (window.matchMedia('(min-width: 1400px)').matches && window._mapCtx) {
+    SystemsMapCanvas.start(window._mapCtx);
+  }
 }
 
 // ────────────────────────────────────────────
@@ -2751,9 +3024,11 @@ function buildCards() {
       const newOpen = { ...state.detailOpen };
       newOpen[id] = !newOpen[id];
       setState({ detailOpen: newOpen });
-      // highlight systems map
-      const d = scenario.interventions.find(x => x.id === id);
-      if (d && d.mapHighlight) highlightMapNodes(d.mapHighlight);
+      // update systems map canvas
+      if (window._mapCtx) {
+        SystemsMapCanvas.compute(window._mapCtx.nodes, window._mapCtx.edges, state.dosages, scenario.interventions);
+        if (!window._mapCtx.visible) SystemsMapCanvas.draw(window._mapCtx);
+      }
     });
   });
 
@@ -2795,6 +3070,12 @@ function buildCards() {
             metaEl.appendChild(span);
           }
         }
+        // update systems map canvas
+        if (window._mapCtx) {
+          window._mapCtx.dosages = state.dosages;
+          SystemsMapCanvas.compute(window._mapCtx.nodes, window._mapCtx.edges, state.dosages, scenario.interventions);
+          if (!window._mapCtx.visible) SystemsMapCanvas.draw(window._mapCtx);
+        }
       });
     });
     slider.addEventListener('change', () => {
@@ -2831,9 +3112,11 @@ function buildCards() {
           if (state.trajectories[id]) {
             updateDecisionsChart(id);
           }
-          // highlight systems map
-          const intv = scenario.interventions.find(x => x.id === id);
-          if (intv && intv.mapHighlight) highlightMapNodes(intv.mapHighlight);
+          // update systems map canvas
+          if (window._mapCtx) {
+            SystemsMapCanvas.compute(window._mapCtx.nodes, window._mapCtx.edges, state.dosages, scenario.interventions);
+            if (!window._mapCtx.visible) SystemsMapCanvas.draw(window._mapCtx);
+          }
         }
         buildCards();
       });
@@ -3417,8 +3700,17 @@ function switchRightTab(tabId) {
   if (tab) { tab.classList.add('active'); tab.setAttribute('aria-selected', 'true'); }
   if (panel) panel.classList.remove('right-panel-hidden');
 }
-document.getElementById('tab-charts').addEventListener('click', () => switchRightTab('charts'));
-document.getElementById('tab-map').addEventListener('click', () => switchRightTab('map'));
+document.getElementById('tab-charts').addEventListener('click', () => {
+  switchRightTab('charts');
+  if (window._mapCtx) SystemsMapCanvas.stop(window._mapCtx);
+});
+document.getElementById('tab-map').addEventListener('click', () => {
+  switchRightTab('map');
+  if (window._mapCtx) {
+    SystemsMapCanvas.resize(window._mapCtx);
+    SystemsMapCanvas.start(window._mapCtx);
+  }
+});
 // keyboard navigation between tabs
 document.querySelectorAll('.right-tab').forEach((tab, idx, tabs) => {
   tab.addEventListener('keydown', (e) => {

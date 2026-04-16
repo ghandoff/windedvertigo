@@ -652,43 +652,15 @@ body { min-height: 100vh; }
 
 /* -- systems map -- */
 .systems-map-wrap {
-  margin-top: 8px;
-  padding: 8px 0;
-  border-top: 1px solid var(--rule-dark);
-}
-#systems-map {
   width: 100%;
-  max-height: 140px;
+  height: 100%;
+  position: relative;
+  min-height: 300px;
 }
-.map-node rect {
-  fill: rgba(255,235,210,0.06);
-  stroke: var(--rule-dark);
-  stroke-width: 1;
-  transition: stroke 0.4s, fill 0.4s;
-}
-.map-node text {
-  font-family: var(--font);
-  font-size: 10px;
-  fill: #fff;
-  transition: fill 0.4s;
-}
-.map-node.highlight rect {
-  stroke: var(--sienna);
-  fill: rgba(203, 120, 88, 0.1);
-}
-.map-node.highlight text {
-  fill: var(--cadet);
-  font-weight: 600;
-}
-.map-edge {
-  stroke: rgba(255,235,210,0.2);
-  stroke-width: 1;
-  transition: stroke 0.4s, stroke-width 0.4s;
-}
-.map-edge.highlight {
-  stroke: var(--sienna);
-  stroke-width: 2;
-  marker-end: url(#arrowhead-hi);
+#systems-map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* -- card detail & why -- */
@@ -1502,13 +1474,10 @@ body { min-height: 100vh; }
 /* systems map panel */
 #panel-map .systems-map-wrap {
   margin-top: 0;
-  padding: 16px;
+  padding: 0;
   border-top: none;
-}
-#panel-map .systems-map-wrap svg {
-  width: 100%;
-  height: auto;
-  max-height: 60vh;
+  min-height: 400px;
+  height: 100%;
 }
 
 /* wide screen: side-by-side charts + map */
@@ -1532,10 +1501,11 @@ body { min-height: 100vh; }
     border-left: 1px solid var(--rule-dark);
     padding-left: 16px;
     max-height: 100%;
-    overflow-y: auto;
+    overflow: hidden;
   }
-  #panel-map .systems-map-wrap svg {
-    max-height: none;
+  #panel-map .systems-map-wrap {
+    min-height: 0;
+    height: 100%;
   }
 }
 
@@ -1552,10 +1522,8 @@ body { min-height: 100vh; }
     z-index: 5;
   }
   #panel-map .systems-map-wrap {
-    padding: 8px;
-  }
-  #panel-map .systems-map-wrap svg {
-    max-height: 40vh;
+    padding: 0;
+    min-height: 250px;
   }
   .insight-blocks { grid-template-columns: 1fr; }
 }
@@ -1650,56 +1618,7 @@ body { min-height: 100vh; }
       <button class="btn btn-small see-pattern-btn" id="btn-see-pattern" aria-label="see the pattern">see the pattern</button>
     </div>
     <div class="right-panel right-panel-hidden" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
-      <div class="systems-map-wrap" id="systems-map-wrap">
-        <svg id="systems-map" viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" aria-label="causal loop diagram of lakeshore emissions system">
-          <defs>
-            <marker id="arrowhead" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
-              <polygon points="0 0, 7 2.5, 0 5" fill="rgba(255,235,210,0.2)"/>
-            </marker>
-            <marker id="arrowhead-hi" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
-              <polygon points="0 0, 7 2.5, 0 5" fill="#CB7858"/>
-            </marker>
-          </defs>
-          <line class="map-edge" id="edge-0-1" x1="260" y1="40" x2="95" y2="70" marker-end="url(#arrowhead)"/>
-          <line class="map-edge" id="edge-0-2" x1="260" y1="40" x2="210" y2="80" marker-end="url(#arrowhead)"/>
-          <line class="map-edge" id="edge-0-3" x1="260" y1="40" x2="345" y2="70" marker-end="url(#arrowhead)"/>
-          <line class="map-edge" id="edge-0-4" x1="260" y1="40" x2="430" y2="70" marker-end="url(#arrowhead)"/>
-          <line class="map-edge" id="edge-5-0" x1="130" y1="155" x2="245" y2="50" marker-end="url(#arrowhead)"/>
-          <line class="map-edge" id="edge-6-0" x1="390" y1="155" x2="275" y2="50" marker-end="url(#arrowhead)"/>
-          <line class="map-edge" id="edge-1-5" x1="80" y1="95" x2="115" y2="140" marker-end="url(#arrowhead)"/>
-          <line class="map-edge" id="edge-3-6" x1="350" y1="95" x2="375" y2="140" marker-end="url(#arrowhead)"/>
-          <line class="map-edge" id="edge-2-5" x1="200" y1="105" x2="145" y2="140" marker-end="url(#arrowhead)"/>
-          <line class="map-edge" id="edge-4-6" x1="440" y1="95" x2="405" y2="140" marker-end="url(#arrowhead)"/>
-          <g class="map-node" id="node-0">
-            <rect x="205" y="18" width="110" height="30" rx="4"/>
-            <text x="260" y="38" text-anchor="middle">total emissions</text>
-          </g>
-          <g class="map-node" id="node-1">
-            <rect x="30" y="65" width="100" height="30" rx="4"/>
-            <text x="80" y="85" text-anchor="middle">mobile</text>
-          </g>
-          <g class="map-node" id="node-2">
-            <rect x="150" y="75" width="100" height="30" rx="4"/>
-            <text x="200" y="95" text-anchor="middle">stationary</text>
-          </g>
-          <g class="map-node" id="node-3">
-            <rect x="300" y="65" width="100" height="30" rx="4"/>
-            <text x="350" y="85" text-anchor="middle">embodied</text>
-          </g>
-          <g class="map-node" id="node-4">
-            <rect x="395" y="65" width="90" height="30" rx="4"/>
-            <text x="440" y="85" text-anchor="middle">floor area</text>
-          </g>
-          <g class="map-node" id="node-5">
-            <rect x="60" y="138" width="140" height="30" rx="4"/>
-            <text x="130" y="158" text-anchor="middle">decision structure</text>
-          </g>
-          <g class="map-node" id="node-6">
-            <rect x="320" y="138" width="140" height="30" rx="4"/>
-            <text x="390" y="158" text-anchor="middle">institutional purpose</text>
-          </g>
-        </svg>
-      </div>
+      <div class="systems-map-wrap" id="systems-map-wrap"></div>
     </div>
   </div>
   <div class="onboard-hint onboard-hint-cards" id="hint-cards" style="display:none">
@@ -2287,6 +2206,338 @@ function makeBaselineDataset(opacity = 1.0) {
   };
 }
 
+// ── systems map canvas renderer ───────────────────────────
+// tidal-pool-style reactive visualisation
+// shared between simulator.html and lakeshore-simulator.html
+(function(window) {
+  'use strict';
+
+  const NODE_RADIUS = 28;
+  const NODE_BORDER = 3;
+  const ARROW_SIZE = 8;
+  const LABEL_FONT = '500 11px "Inter", system-ui, sans-serif';
+  const VALUE_FONT = '700 14px "Inter", system-ui, sans-serif';
+  const ICON_FONT = '20px serif';
+  const CONNECTION_COLORS = {
+    amplifying: 'rgba(34, 197, 94, 0.6)',
+    dampening:  'rgba(239, 68, 68, 0.6)',
+    delayed:    'rgba(59, 130, 246, 0.6)',
+    threshold:  'rgba(245, 158, 11, 0.6)',
+  };
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resizeCanvas(mapCtx) {
+    const { canvas, ctx } = mapCtx;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    mapCtx.dpr = dpr;
+    scaleNodes(mapCtx);
+  }
+
+  function scaleNodes(mapCtx) {
+    const { nodes, canvas, dpr } = mapCtx;
+    if (!nodes || nodes.length === 0) return;
+    const cw = canvas.width / dpr;
+    const ch = canvas.height / dpr;
+    const padding = 60;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    nodes.forEach(n => { minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x); minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y); });
+    const dataW = Math.max(maxX - minX, 1);
+    const dataH = Math.max(maxY - minY, 1);
+    const scaleX = (cw - padding * 2) / dataW;
+    const scaleY = (ch - padding * 2) / dataH;
+    const scale = Math.min(scaleX, scaleY);
+    const offsetX = (cw - dataW * scale) / 2 - minX * scale;
+    const offsetY = (ch - dataH * scale) / 2 - minY * scale;
+    nodes.forEach(n => {
+      n.renderX = n.x * scale + offsetX;
+      n.renderY = n.y * scale + offsetY;
+    });
+  }
+
+  function computeNodeValues(nodes, edges, dosages, interventions) {
+    if (!nodes || !interventions) return;
+    nodes.forEach(n => { n.displayValue = n.baseValue; n.directlyInfluenced = false; });
+    interventions.forEach(intv => {
+      const frac = (dosages[intv.id] || 0);
+      if (frac === 0) return;
+      const influences = intv.influences || (intv.mapHighlight || []).map(nid => ({ nodeId: nid, weight: 1.0 }));
+      influences.forEach(inf => {
+        const node = nodes.find(n => n.id === inf.nodeId);
+        if (!node) return;
+        const delta = frac * inf.weight * 40;
+        node.displayValue = Math.max(0, Math.min(100, node.displayValue + delta));
+        node.directlyInfluenced = true;
+      });
+    });
+    nodes.forEach(n => {
+      if (n.directlyInfluenced) return;
+      edges.forEach(e => {
+        if (e.to !== n.id) return;
+        const src = nodes.find(s => s.id === e.from);
+        if (!src) return;
+        const srcDelta = src.displayValue - src.baseValue;
+        if (Math.abs(srcDelta) < 0.5) return;
+        const propagated = srcDelta * (e.strength || 0.5) * (e.type === 'dampening' ? -0.3 : 0.3);
+        n.displayValue = Math.max(0, Math.min(100, n.displayValue + propagated));
+      });
+    });
+    nodes.forEach(n => {
+      n.valuePct = Math.max(0, Math.min(1, n.displayValue / 100));
+    });
+  }
+
+  function drawConnection(ctx, edge, nodes, tick) {
+    const from = nodes.find(n => n.id === edge.from);
+    const to = nodes.find(n => n.id === edge.to);
+    if (!from || !to) return;
+    const fx = from.renderX, fy = from.renderY;
+    const tx = to.renderX, ty = to.renderY;
+    const dx = tx - fx, dy = ty - fy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) return;
+    const ux = dx / dist, uy = dy / dist;
+    const startX = fx + ux * (NODE_RADIUS + 4);
+    const startY = fy + uy * (NODE_RADIUS + 4);
+    const endX = tx - ux * (NODE_RADIUS + 4);
+    const endY = ty - uy * (NODE_RADIUS + 4);
+
+    const color = CONNECTION_COLORS[edge.type || 'amplifying'];
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2 + (edge.strength || 0.5) * 2;
+    ctx.setLineDash(edge.type === 'delayed' ? [6, 4] : []);
+    if (edge.type === 'delayed' && !prefersReducedMotion) ctx.lineDashOffset = -(tick * 2);
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - ux * ARROW_SIZE - uy * ARROW_SIZE * 0.5, endY - uy * ARROW_SIZE + ux * ARROW_SIZE * 0.5);
+    ctx.lineTo(endX - ux * ARROW_SIZE + uy * ARROW_SIZE * 0.5, endY - uy * ARROW_SIZE - ux * ARROW_SIZE * 0.5);
+    ctx.closePath();
+    ctx.fill();
+
+    const midX = (startX + endX) / 2, midY = (startY + endY) / 2;
+    const typeLabel = edge.type === 'dampening' ? '\u2212' : edge.type === 'delayed' ? '\u23F1' : edge.type === 'threshold' ? '\u26A1' : '+';
+    ctx.font = '600 12px "Inter", system-ui, sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(typeLabel, midX, midY - 8);
+    ctx.restore();
+  }
+
+  function drawNode(ctx, node, tick, isHighlighted, isIndirect) {
+    const x = node.renderX, y = node.renderY;
+    if (x === undefined || y === undefined) return;
+    const value = node.displayValue !== undefined ? node.displayValue : node.baseValue;
+    const valuePct = node.valuePct !== undefined ? node.valuePct : value / 100;
+
+    const pulseAmp = prefersReducedMotion ? 0 : (1 + valuePct * 1.5);
+    const pulse = Math.sin(tick * 0.1 + value * 0.05) * pulseAmp;
+    const radius = NODE_RADIUS + pulse;
+
+    if (isHighlighted) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 235, 210, 0.4)';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 235, 210, 0.15)';
+      ctx.fill();
+      ctx.restore();
+    } else if (isIndirect) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 235, 210, 0.2)';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 235, 210, 0.06)';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(30, 39, 56, 0.9)';
+    ctx.fill();
+
+    if (valuePct > 0) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * valuePct);
+      ctx.strokeStyle = node.color || '#CB7858';
+      ctx.lineWidth = NODE_BORDER;
+      ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius - NODE_BORDER - 1, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(39, 50, 72, 0.95)';
+    ctx.fill();
+
+    if (node.icon) {
+      ctx.font = ICON_FONT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(node.icon, x, y - 4);
+    }
+
+    ctx.font = VALUE_FONT;
+    ctx.fillStyle = '#ffebd2';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(Math.round(value).toString(), x, y + 14);
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = LABEL_FONT;
+    ctx.fillStyle = 'rgba(255, 235, 210, 0.7)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const lines = (node.label || '').split('\n');
+    lines.forEach((line, i) => {
+      ctx.fillText(line, x, y + radius + 6 + i * 13);
+    });
+    ctx.restore();
+  }
+
+  function drawMap(mapCtx) {
+    const { ctx, canvas, dpr, nodes, edges, tick, dosages, interventions } = mapCtx;
+    if (!ctx || !canvas) return;
+    const w = canvas.width / dpr;
+    const h = canvas.height / dpr;
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.6);
+    grad.addColorStop(0, 'rgba(39, 50, 72, 1)');
+    grad.addColorStop(1, 'rgba(30, 39, 56, 1)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.fillStyle = 'rgba(255, 235, 210, 0.04)';
+    for (let gx = 40; gx < w; gx += 40) {
+      for (let gy = 40; gy < h; gy += 40) {
+        ctx.beginPath();
+        ctx.arc(gx, gy, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    (edges || []).forEach(e => drawConnection(ctx, e, nodes, tick));
+
+    const highlightedIds = new Set();
+    const indirectIds = new Set();
+    if (interventions && dosages) {
+      interventions.forEach(intv => {
+        if ((dosages[intv.id] || 0) > 0) {
+          const influences = intv.influences || (intv.mapHighlight || []).map(nid => ({ nodeId: nid, weight: 1.0 }));
+          influences.forEach(inf => highlightedIds.add(inf.nodeId));
+        }
+      });
+      (edges || []).forEach(e => {
+        if (highlightedIds.has(e.from) && !highlightedIds.has(e.to)) indirectIds.add(e.to);
+        if (highlightedIds.has(e.to) && !highlightedIds.has(e.from)) indirectIds.add(e.from);
+      });
+    }
+
+    (nodes || []).forEach(n => {
+      drawNode(ctx, n, tick, highlightedIds.has(n.id), indirectIds.has(n.id));
+    });
+
+    ctx.restore();
+  }
+
+  function startAnimation(mapCtx) {
+    if (mapCtx.animId) return;
+    mapCtx.visible = true;
+    function loop() {
+      if (!mapCtx.visible) { mapCtx.animId = null; return; }
+      if (!prefersReducedMotion) mapCtx.tick++;
+      drawMap(mapCtx);
+      mapCtx.animId = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  function stopAnimation(mapCtx) {
+    mapCtx.visible = false;
+    if (mapCtx.animId) {
+      cancelAnimationFrame(mapCtx.animId);
+      mapCtx.animId = null;
+    }
+  }
+
+  function init(container, mapData, interventions) {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'systems-map-canvas';
+    canvas.setAttribute('aria-label', 'reactive systems map showing how interventions affect system variables');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    container.textContent = '';
+    container.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    const mapCtx = {
+      canvas, ctx, dpr: 1, tick: 0, animId: null, visible: false,
+      nodes: mapData ? (mapData.nodes || []).map(n => Object.assign({}, n, { displayValue: n.baseValue, valuePct: n.baseValue / 100 })) : [],
+      edges: mapData ? (mapData.edges || []) : [],
+      interventions: interventions || [],
+      dosages: {},
+    };
+
+    resizeCanvas(mapCtx);
+
+    const ro = new ResizeObserver(() => { resizeCanvas(mapCtx); if (mapCtx.visible) drawMap(mapCtx); });
+    ro.observe(container);
+
+    return mapCtx;
+  }
+
+  window.SystemsMapCanvas = { init, compute: computeNodeValues, draw: drawMap, start: startAnimation, stop: stopAnimation, resize: resizeCanvas };
+})(window);
+
+// ────────────────────────────────────────────
+// lakeshore map data
+// ────────────────────────────────────────────
+const lakeshoreMap = {
+  nodes: [
+    { id: 0, label: 'total\nemissions', icon: '🏭', color: '#B15043', x: 260, y: 30, baseValue: 75 },
+    { id: 1, label: 'mobile', icon: '🚗', color: '#CB7858', x: 80, y: 80, baseValue: 65 },
+    { id: 2, label: 'stationary', icon: '🔥', color: '#CB7858', x: 200, y: 90, baseValue: 70 },
+    { id: 3, label: 'embodied', icon: '🏗️', color: '#CB7858', x: 350, y: 80, baseValue: 60 },
+    { id: 4, label: 'floor\narea', icon: '📐', color: '#6B7589', x: 440, y: 80, baseValue: 55 },
+    { id: 5, label: 'decision\nstructure', icon: '🏛️', color: '#3B82F6', x: 130, y: 165, baseValue: 40 },
+    { id: 6, label: 'institutional\npurpose', icon: '🌊', color: '#22C55E', x: 390, y: 165, baseValue: 35 },
+  ],
+  edges: [
+    { from: 0, to: 1, type: 'amplifying', strength: 0.5, label: '+' },
+    { from: 0, to: 2, type: 'amplifying', strength: 0.5, label: '+' },
+    { from: 0, to: 3, type: 'amplifying', strength: 0.4, label: '+' },
+    { from: 0, to: 4, type: 'amplifying', strength: 0.3, label: '+' },
+    { from: 5, to: 0, type: 'dampening', strength: 0.7, label: '−' },
+    { from: 6, to: 0, type: 'dampening', strength: 0.8, label: '−' },
+    { from: 1, to: 5, type: 'amplifying', strength: 0.4, label: '+' },
+    { from: 3, to: 6, type: 'amplifying', strength: 0.4, label: '+' },
+    { from: 2, to: 5, type: 'amplifying', strength: 0.3, label: '+' },
+    { from: 4, to: 6, type: 'amplifying', strength: 0.3, label: '+' },
+  ],
+};
+
 // ────────────────────────────────────────────
 // rendering
 // ────────────────────────────────────────────
@@ -2307,6 +2558,7 @@ const interventionData = [
     why: 'this is a <em>parameter-level</em> change — adjusting a number inside the existing system. the curve sags and partially recovers because the system\'s structure hasn\'t changed. people adapt around price signals. meadows calls this the weakest leverage point: "constants, parameters, numbers."',
     tradeoff: 'every commuter who pays more is a voter on campus. the committee spends political capital fastest on the move that feels most like punishment, and it buys the least emissions for the spend.',
     mapHighlight: [0, 1],
+    influences: [{ nodeId: 1, weight: 1.0 }, { nodeId: 0, weight: 0.4 }],
   },
   {
     id: 2,
@@ -2324,6 +2576,7 @@ const interventionData = [
     why: 'still a <em>parameter-level</em> change, but with a much longer time constant. the 12-year ramp means the committee must sustain political will across multiple leadership cycles. the back-loaded curve is typical of infrastructure: slow to start, powerful once complete. but it\'s still adjusting <em>what flows through</em> the existing system, not the system itself.',
     tradeoff: 'a decade of capital disruption costs authority the committee needs for everything else. the drop in political capital during the ramp is why most institutions never finish the plan they started.',
     mapHighlight: [0, 2],
+    influences: [{ nodeId: 2, weight: 1.0 }, { nodeId: 0, weight: 0.5 }],
   },
   {
     id: 3,
@@ -2341,6 +2594,7 @@ const interventionData = [
     why: 'this is a <em>rules-level</em> change — it changes what is permitted. unlike parameters, rules reshape the <em>structure</em> of future decisions. every building project from now on asks a different question. the curve bends more slowly than a parameter change but doesn\'t rebound, because the rule persists after the committee that made it is gone.',
     tradeoff: 'a modest cost in political capital during the early cost-overrun years on new projects. rules that bite first, reward later.',
     mapHighlight: [0, 3, 4],
+    influences: [{ nodeId: 3, weight: 0.8 }, { nodeId: 4, weight: 0.6 }, { nodeId: 0, weight: 0.3 }],
   },
   {
     id: 4,
@@ -2358,6 +2612,7 @@ const interventionData = [
     why: 'this is a deeper <em>rules-level</em> change — it changes <em>who decides</em>, not just what\'s permitted. the curve shows an indirect but compounding effect because every future decision now passes through a different filter. if you\'re playing roles, this is the moment the student rep and town liaison feel the shift — they\'ve just gained real power at the table.',
     tradeoff: 'the chair loses a lever and spends early political capital to accept the loss. by year two the system has absorbed the new composition; by year five the chair\'s authority is restored at a new equilibrium.',
     mapHighlight: [0, 5, 6],
+    influences: [{ nodeId: 5, weight: 1.0 }, { nodeId: 6, weight: 0.5 }, { nodeId: 0, weight: 0.2 }],
   },
   {
     id: 5,
@@ -2375,6 +2630,7 @@ const interventionData = [
     why: 'this is a <em>paradigm-level</em> change — the highest leverage point. it doesn\'t just change parameters, rules, or even goals. it changes the <em>question</em> every other decision is being asked. the curve drops furthest because every intervention is now multiplied by institutional purpose. meadows: "the power to transcend paradigms" — the system bends because its identity has shifted.',
     tradeoff: 'a deep early fall in political capital as factions realign — then a recovery above baseline. the re-charter is the only intervention that eventually returns more authority than it spends. for eighteen months, it looks like committee suicide.',
     mapHighlight: [0, 1, 2, 3, 4, 5, 6],
+    influences: [{ nodeId: 6, weight: 1.0 }, { nodeId: 5, weight: 0.7 }, { nodeId: 0, weight: 0.6 }, { nodeId: 1, weight: 0.3 }, { nodeId: 2, weight: 0.3 }, { nodeId: 3, weight: 0.3 }, { nodeId: 4, weight: 0.3 }],
   },
 ];
 
@@ -2509,9 +2765,8 @@ function buildCards() {
       const newOpen = { ...state.detailOpen };
       newOpen[id] = !newOpen[id];
       setState({ detailOpen: newOpen });
-      // highlight systems map
-      const d = interventionData.find(x => x.id === id);
-      if (d) highlightMapNodes(d.mapHighlight);
+      // update systems map
+      updateCanvasMap();
     });
   });
 
@@ -2624,24 +2879,11 @@ function buildCards() {
   });
 }
 
-function highlightMapNodes(nodeIds) {
-  document.querySelectorAll('.map-node').forEach(n => n.classList.remove('highlight'));
-  document.querySelectorAll('.map-edge').forEach(e => e.classList.remove('highlight'));
-  if (!nodeIds || nodeIds.length === 0) return;
-  nodeIds.forEach(id => {
-    const node = document.getElementById('node-' + id);
-    if (node) node.classList.add('highlight');
-  });
-  // highlight edges between highlighted nodes
-  nodeIds.forEach(a => {
-    nodeIds.forEach(b => {
-      if (a === b) return;
-      const e1 = document.getElementById('edge-' + a + '-' + b);
-      const e2 = document.getElementById('edge-' + b + '-' + a);
-      if (e1) e1.classList.add('highlight');
-      if (e2) e2.classList.add('highlight');
-    });
-  });
+function updateCanvasMap() {
+  if (window._mapCtx) {
+    SystemsMapCanvas.compute(window._mapCtx.nodes, window._mapCtx.edges, state.dosages, interventionData);
+    if (!window._mapCtx.visible) SystemsMapCanvas.draw(window._mapCtx);
+  }
 }
 
 function handleRunIntervention(id, dosageFraction) {
@@ -2651,11 +2893,10 @@ function handleRunIntervention(id, dosageFraction) {
   const placeholder = document.getElementById('chart-placeholder');
   if (placeholder) placeholder.classList.add('hidden');
 
-  // highlight systems map
-  const intData = interventionData.find(x => x.id === id);
-  if (intData) highlightMapNodes(intData.mapHighlight);
-
   const df = dosageFraction !== undefined ? dosageFraction : 1;
+
+  // eagerly update dosage so canvas map reflects current slider position
+  state.dosages = { ...state.dosages, [id]: df };
 
   // intervention 5: show recharter modal on first activation
   if (id === 5 && !state.rechartered && df > 0) {
@@ -2683,6 +2924,7 @@ function handleRunIntervention(id, dosageFraction) {
     });
     updateDecisionsChart(id);
     updateEndpointLabels();
+    updateCanvasMap();
     return;
   }
 
@@ -2707,6 +2949,7 @@ function handleRunIntervention(id, dosageFraction) {
 
   updateDecisionsChart(id);
   updateEndpointLabels();
+  updateCanvasMap();
 }
 
 function handleRecharterContinue() {
@@ -2735,6 +2978,7 @@ function handleRecharterContinue() {
 
   updateDecisionsChart(5);
   updateEndpointLabels();
+  updateCanvasMap();
   logger.log('recharter_confirmed', { dosage: df });
 }
 
@@ -3177,6 +3421,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // initialise canvas systems map
+  const mapContainer = document.getElementById('systems-map-wrap');
+  if (mapContainer) {
+    window._mapCtx = SystemsMapCanvas.init(mapContainer, lakeshoreMap, interventionData);
+    // on wide screens both panels are visible — auto-start animation
+    if (window.matchMedia('(min-width: 1400px)').matches && window._mapCtx) {
+      SystemsMapCanvas.start(window._mapCtx);
+    }
+  }
+
   // tab toggle: charts vs systems map
   const tabCharts = document.getElementById('tab-charts');
   const tabMap = document.getElementById('tab-map');
@@ -3190,6 +3444,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tabMap.setAttribute('aria-selected', 'false');
       panelCharts.classList.remove('right-panel-hidden');
       panelMap.classList.add('right-panel-hidden');
+      if (window._mapCtx) SystemsMapCanvas.stop(window._mapCtx);
     });
     tabMap.addEventListener('click', () => {
       tabMap.classList.add('active');
@@ -3198,6 +3453,10 @@ document.addEventListener('DOMContentLoaded', () => {
       tabCharts.setAttribute('aria-selected', 'false');
       panelMap.classList.remove('right-panel-hidden');
       panelCharts.classList.add('right-panel-hidden');
+      if (window._mapCtx) {
+        SystemsMapCanvas.resize(window._mapCtx);
+        SystemsMapCanvas.start(window._mapCtx);
+      }
     });
   }
 
