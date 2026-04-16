@@ -36,8 +36,6 @@ export default async function DoPage() {
     fetchPackageBuilderData(),
   ]);
 
-  const cta = sections.find((s) => s.type === "cta");
-
   return (
     <>
       <SiteHeader />
@@ -45,7 +43,7 @@ export default async function DoPage() {
       <main id="main-content">
         <div className="container content-narrow">
           <QuizErrorBoundary>
-            <PackageBuilderWizard packs={packs} {...(cta?.link ? { ctaLink: cta.link } : {})} />
+            <PackageBuilderWizard packs={packs} />
           </QuizErrorBoundary>
         </div>
       </main>

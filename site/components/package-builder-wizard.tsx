@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import type { PackData, ModalAsset } from "@/lib/notion";
 import styles from "./package-builder-wizard.module.css";
 import { AssetModal } from "./asset-modal";
+import { PlaydateForm } from "./playdate-form";
 
 /* ── Quadrant colors ── */
 
@@ -80,11 +81,11 @@ interface WizardState {
   mode: string | null;
   focus: string[];
   goals: string[];
+  quadrantHistory: string[];
 }
 
 interface Props {
   packs: Record<string, PackData>;
-  ctaLink?: string;
 }
 
 /* ── Helpers ── */
@@ -419,13 +420,11 @@ function EmailPackageForm({ state }: { state: WizardState }) {
 function ResultPage({
   state,
   pack,
-  ctaLink,
   onStartOver,
   allExamples,
 }: {
   state: WizardState;
   pack: PackData;
-  ctaLink: string;
   onStartOver: () => void;
   allExamples: ModalAsset[];
 }) {
@@ -587,14 +586,10 @@ function ResultPage({
 
       {/* CTAs */}
       <div className={styles.ctaRow} style={{ display: "flex", gap: 10, marginTop: 32, flexWrap: "wrap" }}>
-        <a
-          href={ctaLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${styles.ctaBtn} ${styles.primary}`}
-        >
-          book a playdate
-        </a>
+        <PlaydateForm
+          quadrant={getQuadrant(state)}
+          quadrantHistory={state.quadrantHistory}
+        />
         <EmailPackageForm state={state} />
         <button className={`${styles.ctaBtn} ${styles.outline}`} onClick={onStartOver}>
           start over
@@ -616,13 +611,14 @@ function ResultPage({
 
 /* ── Main Wizard Component ── */
 
-export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.google/ZXVqJLdprmUZk1DW6" }: Props) {
+export function PackageBuilderWizard({ packs }: Props) {
   const [state, setState] = useState<WizardState>({
     step: 1,
     audience: null,
     mode: null,
     focus: [],
     goals: [],
+    quadrantHistory: [],
   });
 
   const quadrant = getQuadrant(state);
@@ -647,7 +643,7 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
   }, []);
 
   const startOver = useCallback(() => {
-    setState({ step: 1, audience: null, mode: null, focus: [], goals: [] });
+    setState({ step: 1, audience: null, mode: null, focus: [], goals: [], quadrantHistory: [] });
   }, []);
 
   // Flatten all examples across all packs for the modal's "related work" pool
@@ -673,7 +669,7 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
   if (state.step === 5) {
     if (quadrant && packs[quadrant]) {
       return (
-        <ResultPage state={state} pack={packs[quadrant]} ctaLink={ctaLink} onStartOver={startOver} allExamples={allExamples} />
+        <ResultPage state={state} pack={packs[quadrant]} onStartOver={startOver} allExamples={allExamples} />
       );
     }
     // Graceful fallback — pack data missing for this quadrant
@@ -689,7 +685,16 @@ export function PackageBuilderWizard({ packs, ctaLink = "https://calendar.app.go
 
   /* Steps 1–4 */
   const handleSelect = (field: "audience" | "mode", value: string) => {
-    advance({ [field]: value, step: state.step + 1 });
+    if (field === "mode") {
+      // step 2 → step 3: a quadrant is now determined, track it
+      const newQuadrant = `${state.audience}-${value}`;
+      const history = state.quadrantHistory.includes(newQuadrant)
+        ? state.quadrantHistory
+        : [...state.quadrantHistory, newQuadrant];
+      advance({ [field]: value, step: state.step + 1, quadrantHistory: history });
+    } else {
+      advance({ [field]: value, step: state.step + 1 });
+    }
   };
 
   return (

@@ -70,7 +70,7 @@ function buildPackageHtml({
       ` : ""}
 
       <a
-        href="https://calendar.app.google/ZXVqJLdprmUZk1DW6"
+        href="https://www.windedvertigo.com/quadrants/"
         style="display: inline-block; background-color: #b15043; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; text-transform: lowercase;"
       >
         book a free playdate

@@ -262,6 +262,66 @@
   }
 }
 
+/* Playdate form */
+.playdateTextarea {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #ffffff;
+  outline: none;
+  margin-bottom: 10px;
+  resize: none;
+  line-height: 1.5;
+}
+
+.playdateTextarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.playdateTextarea:focus {
+  border-color: var(--wv-sienna, #cb7858);
+}
+
+.playdateHint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+.playdateSubtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.playdateSuccess {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.playdateSuccess h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-transform: lowercase;
+  color: #ffffff;
+}
+
+.playdateSuccess p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
 @media (max-width: 600px) {
   .pbIntro {
     display: none;
