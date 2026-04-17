@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { HelloScroll } from "@/components/hello-scroll";
+import { PlaydateForm } from "@/components/playdate-form";
 import styles from "@/components/hello-hub.module.css";
 
 export const metadata: Metadata = {
@@ -146,7 +147,14 @@ export default function HelloPage() {
 
                   <p className={styles.description}>{card.description}</p>
 
-                  {card.href ? (
+                  {card.id === "calendar" ? (
+                    <PlaydateForm
+                      quadrant={null}
+                      quadrantHistory={[]}
+                      className={styles.cta}
+                      buttonLabel="book a time"
+                    />
+                  ) : card.href ? (
                     <Link
                       href={card.href}
                       className={styles.cta}

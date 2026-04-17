@@ -7,11 +7,12 @@ interface PlaydateFormProps {
   quadrant: string | null;
   quadrantHistory: string[];
   className?: string;
+  buttonLabel?: string;
 }
 
 const CALENDAR_LINK = "https://calendar.app.google/ZXVqJLdprmUZk1DW6";
 
-export function PlaydateForm({ quadrant, quadrantHistory, className }: PlaydateFormProps) {
+export function PlaydateForm({ quadrant, quadrantHistory, className, buttonLabel = "book a playdate" }: PlaydateFormProps) {
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -77,10 +78,10 @@ export function PlaydateForm({ quadrant, quadrantHistory, className }: PlaydateF
   return (
     <>
       <button
-        className={`${styles.ctaBtn} ${styles.primary} ${className ?? ""}`}
+        className={className ?? `${styles.ctaBtn} ${styles.primary}`}
         onClick={() => setShowModal(true)}
       >
-        book a playdate
+        {buttonLabel}
       </button>
 
       {showModal && (
