@@ -9,6 +9,7 @@ node_modules/
 .claude/*
 !.claude/settings.json
 !.claude/hooks/
+!.claude/evergreen.md
 
 # Second brain (tracked separately via 'brain' remote)
 CLAUDE.md

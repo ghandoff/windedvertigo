@@ -1,158 +1,65 @@
 # Memory
 
-> Deep memory, tasks, and operational files live in `.brain/`
-> Tasks: `.brain/TASKS.md` | Memory: `.brain/memory/` | Archive: `.brain/archive/`
+> **Hot cache only.** Stable facts about Garrett, the people, the terms, the principles. Volatile state (tool routings, infra, scheduled tasks, recurring meetings, project status) lives in `.brain/memory/operational.md` and is reviewed monthly.
+>
+> Deep memory: `.brain/memory/` | Tasks: `.brain/TASKS.md` | Handoff: `.brain/memory/handoff.md` | Archive: `.brain/archive/`
+>
+> **Shared team evergreens: `.claude/evergreen.md`** — brand voice, IP/licensing, accessibility standards, external API facts. Stable regardless of Claude Code updates. Consult that first for writing/brand rules; this file for personal workflow and volatile state.
 
 ## Me
 Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in San Francisco, CA (Pacific time). Email: garrett@windedvertigo.com
 
-## People
+## People (hot cache)
 | Who | Role |
 |-----|------|
-| **Payton** | Payton Jaeger, w.v collective — comms, website circulation, outreach |
-| **Lamis** | Lamis Sabra, w.v collective — weekly sync Tuesdays 4pm UTC |
-| **Maria** | Maria Altamirano Gonzalez, w.v collective — operations, IDB Salvador lead. Weekly Tuesdays 6pm UTC |
-| **Apoorva** | Apoorva Shivaram — formerly w.v collective (inactive) |
-| **Kristin** | Kristin Lansing — formerly w.v collective (inactive) |
+| **Payton** | Payton Jaeger, w.v collective — comms, website, outreach |
+| **Lamis** | Lamis Sabra, w.v collective |
+| **Maria** | Maria Altamirano Gonzalez, w.v collective — operations, IDB Salvador lead |
 | **James** | James Galpin, w.v collective |
-| **Randall** | External — weekly call Tuesdays 5pm UTC |
-| **Gina** | Gina Jaeger — family |
 | **Meredith** | Meredith Storey, UN Global Compact / PRME — key client contact |
 | **Sam** | Sam at PRME — works with Meredith on contracts |
-→ Full list: .brain/memory/glossary.md, profiles: .brain/memory/people/
+| **Randall** | External — weekly call partner |
+| **Gina** | Gina Jaeger — family |
 
-## Terms
+→ Inactive collective members (Apoorva, Kristin) and full glossary: `.brain/memory/glossary.md`. Profiles: `.brain/memory/people/`.
+
+## Terms (hot cache)
 | Term | Meaning |
 |------|---------|
 | **w.v** | winded.vertigo |
 | **whirlpool** | Monthly community learning event (public-facing) |
 | **fruitstand** | Internal team meeting |
 | **campfire** | Studio discussion format |
-| **PRME** | Principles for Responsible Management Education (UN Global Compact program) |
-| **PPCS** | PRME Pedagogy Certificate System — evidence infrastructure + AR program |
-| **creaseworks** | w.v product — creativity platform |
-| **GoTCHA!** | w.v product/project |
-| **eddyy** | w.v product/project |
-| **perp labs** | w.v studio initiative — perpetual labs |
-| **toy lab** | w.v studio initiative |
-| **play, fair** | w.v studio initiative — play and fairness research |
-| **IDB** | Inter-American Development Bank — El Salvador ed-tech procurement |
-| **MINEDUCYT** | El Salvador Ministry of Education, Science and Technology |
+| **PRME** | Principles for Responsible Management Education (UN Global Compact) |
+| **PPCS** | PRME Pedagogy Certificate System |
 | **the collective** | The Winded Vertigo Collective — the full team |
-| **Press Play** | Partner or program — joint whirlpool sessions |
-| **stack audit** | Annual review of tools, DNS, hosting, subscriptions (first Monday of Jan) |
-→ Full glossary: .brain/memory/glossary.md
+| **creaseworks / GoTCHA! / eddyy** | w.v products |
+| **perp labs / toy lab / play, fair** | w.v studio initiatives |
+| **IDB / MINEDUCYT** | Inter-American Development Bank / El Salvador Min. of Education — ed-tech client |
+| **dispatch** | Scheduled tasks that run autonomously |
 
-## Active Projects
-| Name | What | Status |
-|------|------|--------|
-| **IDB Salvador** | Ed-tech modernization procurement SDP 01/2026. Deadline: **April 10, 2026** | Active — docs requested |
-| **PRME 2026** | Contract with UN Global Compact. Signed. PO approved Mar 27. First invoice submitted. | Active — invoicing |
-| **Amna at 10** | Evidence synthesis & impact report proposal submitted Mar 26 | Proposal submitted |
-| **LEGO / Superskills!** | Cross-cutting skills certification with Learning Economy Foundation | Active |
-| **Sesame Workshop** | Learning design engagement | Active |
-| **UNICEF** | Learning design engagement | Active |
-| **Website launch** | windedvertigo.com circulated to trusted contacts for feedback Mar 27 | Active — soft launch |
-| **401k / CPA** | Plan #156733 with ADP. Final 5500 + year-end testing needed | Active — admin |
-→ Details: .brain/memory/projects/
+→ Full glossary: `.brain/memory/glossary.md`.
 
-## Recurring Meetings
-| Meeting | When | Who |
-|---------|------|-----|
-| whirlpool | Mon & Wed 4pm UTC (9am PT) | Lamis, Payton, Maria, + (Mon "x Press Play" includes Jan, Casper) |
-| weekly = lamis x garrett | Tue 4pm UTC | Lamis |
-| Randall | Tue 5pm UTC | Randall, Gina |
-| garrett x maria (part i) | Tue 6pm UTC | Maria |
-| PRME hold | Tue 7pm UTC | Meredith, Sam, + |
-| R&D meeting | Fri 6pm UTC | Gina, + |
-| bi-weekly strategy playdates | Every 2 weeks | Team |
+## Active projects
+→ Live list with status: `.brain/memory/operational.md` (refreshed nightly by `context-sync`). Project deep-dives: `.brain/memory/projects/`.
 
-## Scheduled Tasks (AI Automation)
-| Task | Schedule | What |
-|------|----------|------|
-| **weekly-cfo-review** | Mon 9:05am | Cash position, revenue pipeline, CPA liaison, action items |
-| **invoice-processor** | Daily 9am | Scans Gmail for invoices, logs to Notion, labels in Gmail |
-| **weekly-cmo-review** | Wed 9am | Content calendar, social media, campaigns, outreach pipeline, brand review |
-| **whirlpool-agenda-generator** | Sun & Tue 8pm PT | Auto-generates whirlpool agenda from last meeting's action items, project updates, Slack threads, and calendar context. Creates Notion entry + Slack DM for Garrett to review. Hub: notion.so/33ae4ee74ba481b1a391fed914baa05b |
+## AI roles (second brain)
+- **CFO** — financial reporting, cash flow, invoicing, CPA coordination, revenue pipeline
+- **COO** — task management, meeting prep, project health, team coordination
+- **CMO** — brand voice, content calendar, social media, campaigns, outreach → `.brain/memory/marketing/`
+- Dispatch (scheduled tasks) = autonomous operations that run without prompting
 
-## Tool Stack
-| Tool | What we use it for |
-|------|-------------------|
-| **Notion** | Central knowledge base, project management, invoice tracker, wiki |
-| **Slack** | Team communication, async coordination |
-| **Gmail** | External comms, client correspondence, invoice capture |
-| **Google Calendar** | Scheduling, meeting cadence, time blocking |
-| **Google Drive** | Document storage, shared folders, proposals |
-| **Vercel** | Website hosting (windedvertigo.com) |
-| **Cloudflare** | DNS, security, edge infrastructure |
-| **Cowork (Claude)** | CFO/COO operations, memory system, scheduled tasks, file management |
-| **Otter AI** | Meeting transcription (archived in Notion) |
-| **ADP** | 401k plan administration |
+## Principles (how I want Claude to operate)
+- **Continuous copilot.** Surface relevant info proactively. Don't wait to be asked.
+- **Financial clarity is top priority.** "Where do we stand?" should always have an answer.
+- **Use the right surface.** Cowork (desktop) and Claude Code (terminal/web) read the same repo. Use whichever has the capability the task needs today — check, don't assume. Log cross-surface handoffs in `.brain/memory/handoff.md`.
+- **Memory hygiene.** Update `.brain/` after significant sessions. Demote stale items to `glossary.md` or `archive/`. Never let CLAUDE.md exceed ~100 lines.
+- **Prefer skills over inline instructions.** Skills update; inline rules rot. Lean on `productivity:memory-management`, `productivity:task-management`, `marketing:brand-voice`, `slack-by-salesforce:*`, `enterprise-search:*`, `finance:*`, `operations:*`, `data:*`, and the document skills.
+- **All domains integrated.** Work, personal, creative, health, financial — one continuous context.
+- **Brand voice.** Lowercase aesthetic (winded.vertigo style), British spelling, oxford commas. See `marketing:brand-voice` skill + `.brain/memory/marketing/`.
 
-## AI Roles (Second Brain C-Suite)
-- **CFO**: Financial reporting, cash flow, invoicing, CPA coordination, revenue pipeline, budget monitoring
-- **COO**: Task management, meeting prep, project health, team coordination, process automation
-- **CMO**: Brand voice enforcement, content calendar, social media strategy, campaign planning, outreach pipeline, event promotion, competitive positioning → `.brain/memory/marketing/`
-- Scheduled tasks = "dispatch" — autonomous operations that run without prompting
-
-## Dual-Environment Architecture
-
-The second brain operates across two Claude environments with a shared memory layer.
-
-### Cowork (Desktop App) — Operations Layer
-**Role:** CFO/COO copilot. Runs the business.
-- Financial reviews via QuickBooks + Gusto MCPs
-- Email triage, drafts, invoice processing (Gmail MCP)
-- Meeting prep + calendar management (GCal MCP)
-- Team coordination (Slack + Notion MCPs)
-- Document creation (proposals, reports, decks, PDFs)
-- Scheduled dispatch tasks (invoice-processor, weekly-cfo-review)
-- Cross-tool search and synthesis (enterprise search)
-- Project tracking, task management, memory updates
-- Google Drive document retrieval
-
-### Claude Code (Terminal) — Engineering Bench
-**Role:** Builder. Ships code.
-- Monorepo code changes: `harbour/`, `crm/`, `ops/`, `packages/`
-- Build fixes, dependency management, config files
-- Git operations (commit, push, branch, PR)
-- Deployment via Vercel CLI (`deploy:ops`, `deploy:crm`)
-- New features for ops dashboard, CRM, website
-- Infrastructure (Cloudflare workers, D1, KV if needed)
-- Debugging build/runtime errors
-- Any task that needs `git push` or `npm run`
-
-### Shared Foundation
-Both environments read the same repo, same `CLAUDE.md`, same `.brain/`.
-- Memory updates happen in whichever environment finishes a significant session
-- When Cowork identifies engineering work → log it in `TASKS.md` under `## Engineering (Claude Code)`
-- When Claude Code finishes building → update `TASKS.md` and note what's deployed
-- Handoff notes go in `.brain/memory/handoff.md` for cross-environment context
-
-## Monorepo Structure
-```
-windedvertigo/
-  harbour/          — main website (windedvertigo.com)
-  crm/              — client relationship manager (port.windedvertigo.com)
-  ops/              — command center dashboard (ops.windedvertigo.com)
-  packages/         — shared packages
-  scripts/          — deploy scripts (deploy-crm.sh, deploy-ops.sh)
-  .vercel/          — Vercel project config (swapped by deploy scripts)
-```
-
-**Tech stack:** Next.js 16 + Turbopack, Tailwind v4, Auth.js v5 (Google OAuth), npm workspaces (no turborepo), Vercel hosting, Cloudflare DNS.
-
-## Infrastructure State
-| Service | Domain | Vercel Project | Status |
-|---------|--------|---------------|--------|
-| Website | windedvertigo.com | wv-harbour | Live |
-| CRM | port.windedvertigo.com | wv-crm | Live |
-| Ops | ops.windedvertigo.com | wv-ops | Deployed — auth flow needs verification |
-
-## Preferences
-- Continuous copilot mode — don't wait to be asked, surface relevant info proactively
-- All domains integrated: work, personal, creative, health, financial/CPA
-- Lowercase aesthetic in brand voice (winded.vertigo style)
-- Financial clarity is top priority — "where do we stand?" should always have an answer
-- Memory should always be updated after significant sessions
-- Engineering work → Claude Code. Operations work → Cowork. Don't fight the tools.
+## Conventions
+- **`/resume`** or **"pick up [project]"** at the start of any session → read `.brain/memory/handoff.md` first, then resume without re-explaining.
+- **"update handoff"** at end of significant sessions → refresh the live state block.
+- **End-of-session memory updates.** If you learned something durable about a person, term, project, or preference, write it through (CLAUDE.md hot cache or the appropriate `.brain/memory/` file).
+- **Operational drift check.** If something in `operational.md` is older than 60 days, verify against live sources before treating it as truth.
