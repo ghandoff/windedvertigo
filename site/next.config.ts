@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
   // External rewrites — proxy harbour apps to CF Workers (or Vercel for blocked apps)
   async rewrites() {
     return [
+      // systems thinking — proxy API calls (HTML served as static files uses root-relative /api/session/*)
+      {
+        source: "/api/session/:path*",
+        destination:
+          "https://systems-thinking-gray.vercel.app/api/session/:path*",
+      },
+
       // creaseworks
       {
         source: "/harbour/creaseworks",
