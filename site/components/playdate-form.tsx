@@ -118,7 +118,7 @@ export function PlaydateForm({ quadrant, quadrantHistory, className }: PlaydateF
                   book a playdate
                 </h3>
                 <p className={styles.playdateSubtitle}>
-                  a little context goes a long way — share what caught your eye so we can jump straight into exploring how we might work together.
+                  a little context goes a long way — share what caught your eye so we can jump straight into exploring how we might work and play together.
                 </p>
 
                 <input
