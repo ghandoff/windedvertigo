@@ -1,5 +1,17 @@
 # Tasks
 
+## Whirlpool actions — 2026-04-15 (harbour playtest + strategy sprint)
+- [ ] **garrett** — send cold outreach campaign to remaining organisations after meeting
+- [ ] **team** — hold writing retreat on monday (apr 21) focused on "play, aliveness, justice" substack piece
+- [ ] **payton** — create miro board with topics and angles before monday's writing retreat
+- [ ] **garrett** — move play date booking interface to "the port" with pre-meeting questions ("what made you book?" / "i'd love to talk about…")
+- [ ] **garrett** — pilot 2–4 harbour games per category; deprioritise breadth in favour of quality
+- [ ] **team** — research play therapists as target audience (UK play therapy association as potential partner)
+- [ ] **team** — use one harbour game as opener for future whirlpool meetings (cycle through raft house categories over 10–12 sessions)
+
+## Whirlpool actions — 2026-04-13 (the world prowl — play session)
+*This session was a dedicated sandbox/play experience. No new business action items. All April 8 items carry forward to Wednesday's whirlpool (Apr 15).*
+
 ## Whirlpool actions — 2026-04-08 (w.v x press.play)
 - [ ] **garrett** — set up google drive folder and share with press play team
 - [ ] **team** — upload documentation of past conference experiences to shared folder

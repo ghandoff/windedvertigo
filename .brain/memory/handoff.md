@@ -9,54 +9,137 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** mon 13 apr 2026, 9:10pm PT
+**last synced:** sat 18 apr 2026, 9pm PT (context-sync)
 
 **where we are right now:**
-Port restructure shipped (commit d0eec54, deployed apr 14): sidebar 12→7, dashboard, merged pages (opportunities, projects, campaigns), audience filters 7→4 (fit, relationship, source, segment), derived priority, skeleton fallbacks, URL-synced tabs, staggered kanban animations. All old URLs preserved via 308 redirects. Follow-on tasks in progress: Notion schema migration (native relationship property), mobile tab bar, dead code cleanup, memory updates.
-
-PRME 2026 is live and invoiced (PO #2069 approved, first invoice mar 27 — payment still outstanding); PRME bi-weekly hold sits on tomorrow's calendar at 12pm PT, a good window to raise payment + comms reset. IDB Salvador docs went in apr 10 via Maria — awaiting acknowledgement from MINEDUCYT. New today: Nordic Naturals (Sharon Matheny / Lauren Bosio) granted access to their CAIPB claims database on Smartsheet — a fresh engagement surface to scope. Today's whirlpool was play-only ("the world prowl"); apr 8 press play action items remain parked for wednesday apr 15.
+quiet weekend — no git commits, no calendar events sunday. CPA tax situation remains the #1 urgent item: TaxDome reminder for missing docs + extension organiser still unactioned. PRME payment now 22 days outstanding — tue PRME hold with meredith is the escalation moment. cash last known $5,076.19 (apr 16). monday opens with weekly site check (7am), whirlpool (9am); tuesday is stacked: strategy playdates (8am), lamis (9am), maria (10am), PRME hold (12pm), leah (3:30pm). KiwiCo lead warm — forwarded to their international partnerships team, awaiting response. invoice processor dispatch still broken. ADP quarterly retirement statement now available.
 
 ### open threads
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| IDB Salvador | maria submitted docs apr 10 (deadline day) | confirm receipt from nadia.nochez@mined.gob.sv; align with maria tue 10am | [notion mail](https://mail.notion.so/inbox/a99b1601-0090-4e61-98bd-a074c0d6665f) |
-| PRME 2026 | first invoice submitted mar 27; meredith sent comms reset note apr 7 | raise payment + comms alignment at tue 12pm PRME hold | [notion mail](https://mail.notion.so/inbox/19d69751a722cce5) |
-| Amna at 10 | proposal submitted mar 26 | follow-up overdue (19 days) — email Jonelle and Walaa this week | [tasks](.brain/TASKS.md) |
-| Sesame Workshop | received pass mar 31 | draft graceful close-out reply | [tasks](.brain/TASKS.md) |
-| Siyavula MEL proposal | soft pass apr 13 — alexandra prefers SA-based orgs | decide: respond further or close out | [gmail](https://mail.google.com) |
-| CPA / Q1 CFO review | abhishek emailed + secure chat apr 13; tax extension organizer reminder landed overnight | book Q1 CFO review via Straight Talk CPAs portal; complete 2025 tax extension organizer | gmail: abhi@straighttalkcpas.com |
-| Nordic Naturals / CAIPB | sharon + lauren granted smartsheet access apr 13 (CAIPB Database, AI Details for Qualified RMs, MASTER DATA) | open workspaces, scope "insights" deliverable, confirm cadence with sharon | gmail: lbosio@nordicnaturals.com |
-| Press Play collab | apr 8 whirlpool items unresolved; carry forward to wed apr 15 | schedule apr 22 session; set up google drive folder + slack channel | [tasks](.brain/TASKS.md) |
+| CPA / tax | 2 TaxDome reminders apr 18 (missing docs + extension organiser) | **urgent** — complete tax extension organiser + missing docs via TaxDome portal before penalties | gmail: notifications@taxdome.com |
+| Nordic Naturals | lauren meeting done apr 16; PCS gap analysis complete; follow-up **wed apr 22 3pm** | close 4 critical schema gaps; review PCS template lauren sent by email | [gap analysis](https://www.notion.so/345e4ee74ba4819c8bbbc616067723c2) |
+| PRME 2026 | first invoice submitted mar 27; PO #2069 approved | **raise payment tue PRME hold** — 22 days outstanding | [notion mail](https://mail.notion.so/inbox/19d69751a722cce5) |
+| IDB Salvador | maria sync done apr 16; deadline was apr 10 | confirm status with maria at tue sync (10am PT) — 8 days past deadline | [notion mail](https://mail.notion.so/inbox/a99b1601-0090-4e61-98bd-a074c0d6665f) |
+| KiwiCo | reply received apr 17 — forwarded to international partnerships team | monitor for follow-up; draft partnership brief if they respond | gmail: schoolsgroups@kiwico.com |
+| harbour launch | depth pivot confirmed; writing retreat **mon apr 21** | pilot 2–4 games per category; whisper campaign — may 1 deadline | [tasks](.brain/TASKS.md) |
+| Press Play collab | apr 8 items carried forward | schedule apr 22 session; set up google drive folder + slack channel | [tasks](.brain/TASKS.md) |
+| Amna at 10 | proposal submitted mar 26 | follow-up overdue (23 days) — email jonelle and walaa **this week** | [tasks](.brain/TASKS.md) |
 
 ### waiting on external
 
-- **PRME payment** — first invoice submitted to meredith / sam — since mar 27; PO #2069 approved
-- **IDB submission receipt** — maria submitted apr 10 to MINEDUCYT; awaiting acknowledgement from nadia.nochez@mined.gob.sv
-- **Amna at 10 response** — proposal sent to jonelle and walaa — since mar 26 (19 days, overdue for follow-up)
+- **PRME payment** — first invoice submitted to meredith / sam — since mar 27 (22 days); PO #2069 approved. tue PRME hold is the escalation point.
+- **IDB submission receipt** — maria submitted apr 10 to MINEDUCYT; awaiting acknowledgement from nadia.nochez@mined.gob.sv — 8 days past deadline
+- **Amna at 10 response** — proposal sent to jonelle and walaa — since mar 26 (23 days, overdue for follow-up)
+- **KiwiCo international team** — inquiry forwarded apr 17; awaiting response from their partnerships division
 - **IDB collective project docs** — AET, ECO966, Solihull, NSIT references — requested from collective members
-- **Siyavula MEL decision** — alexandra indicated preference for SA-based orgs; may not hear back — since apr 13
 
 ### environment handoffs
 
 **Cowork → Claude Code:**
-- world prowl app build at `harbour/app/prowl/` — prompt in notion: [340e4ee7](https://www.notion.so/340e4ee74ba4814f83fccb603daea70a)
+- nordic naturals: close 4 critical PCS schema gaps identified in gap analysis — claim prefix separation, standardised ingredient nomenclature, benefit categories, demographics
 - ops dashboard: wire quickbooks + gusto data via cowork dispatch → KV push
 - CMO marketing module in ops dashboard — spec in `.brain/memory/marketing/claude-code-prompt.md`
 - resend webhook URL still needs registering in resend dashboard (unblocks campaign tracking)
+- prepare full-stack + tooling notion brief for maria (upstash discussion)
 
 **Claude Code → Cowork:**
 - ancestry app substantially built — review decisions needed (harbour integration? pricing? launch comms?)
-- ancestry app: `wv-invoice-logged` gmail label application still manual (MCP limitation — 3 messages unlabeled)
-- nordic naturals engagement surface: scope whether the CAIPB claims work becomes a formal w.v project and what it implies for pipeline / invoicing
+- `wv-invoice-logged` gmail label application still manual (MCP limitation — 3 messages unlabeled)
+- triage isabel rodríguez tejedo inbound (certificate of excellence inquiry via payton)
+- CPA portal: complete tax extension organiser + missing docs (2 fresh reminders apr 18)
+- invoice processor dispatch broken — gmail MCP stale + notion invoice tracker DB missing; reload session to fix
+- attio CRM trial ending — decide: keep or cancel
+- ADP quarterly retirement plan statement now available — review
 
 ### mobile bookmarks
 
-- _no unresolved self-DMs today_ — recent slack activity from garrett is outbound (to maria on whirlpool builds, to sharon / gina on nordic naturals credentials); nothing parked for self-reference
+- _source unavailable_ — slack MCP tools not available in this session; self-DMs from last 24h could not be checked
 
 ---
 
 ## history (most recent first)
+
+---
+
+## 2026-04-18 (night) — context-sync: second pass, state confirmed stable (Cowork)
+
+**what happened:**
+- second context-sync pass of the day — no material changes since 9pm run. no git commits, no new actionable emails beyond earlier TaxDome + KiwiCo.
+- sunday calendar is empty. monday: weekly site check (7am), whirlpool (9am). tuesday stacked: strategy playdates (8am), lamis (9am), maria (10am), PRME hold (12pm), leah (3:30pm).
+- notion: only World Bank procurement alerts in last 24h — no project status changes.
+- gmail: TaxDome missing docs reminder (still unactioned), KiwiCo satisfaction survey (noise), ADP quarterly statement available.
+- slack DM to garrett could not be sent — slack MCP tools not available in this session (recurring limitation).
+- handoff live state refreshed and confirmed accurate.
+
+---
+
+## 2026-04-18 (evening) — context-sync: CPA reminders escalating, KiwiCo lead, quiet weekend (Cowork)
+
+**what happened:**
+- quiet weekend day — no git commits in last 48h.
+- CPA tax situation escalating: two fresh TaxDome reminders landed (missing documents for tax return + 2025 individual tax extension organiser). this is now the #1 urgent item.
+- KiwiCo replied to winded.vertigo partnership outreach (apr 17) — forwarded inquiry to their international partnerships team. genuine new lead to monitor.
+- ADP quarterly retirement plan statement now available online.
+- Torrance Festival of Ideas: CREATIVITY & AI — whova profile validation email received (apr 17).
+- PRME payment now 22 days outstanding (was 20). tue PRME hold meeting with meredith is the escalation moment.
+- Amna at 10 follow-up now 23 days overdue.
+- IDB Salvador now 8 days past deadline.
+- monday calendar: weekly site check (7am), whirlpool (9am). tuesday stacked: strategy playdates (8am), lamis (9am), maria (10am), PRME hold (12pm), leah (3:30pm).
+- slack DM to garrett could not be sent — slack MCP tools not available in this session.
+
+---
+
+## 2026-04-16 (evening) — context-sync: nordic meeting done, PCS gap analysis shipped, invoice processor broken (Cowork)
+
+**what happened:**
+- nordic naturals meeting with lauren bosio completed (3:15pm). PCS gap analysis finished — 4 critical gaps, 4 important gaps, 4-phase roadmap. follow-up booked **wed apr 22 3pm**. lauren sent PCS template by email. project moved from "scoping" to active delivery.
+- 11 git commits: website feedback improvements (phases 1–4), playdate intake form replacing external booking, systems-thinking simulator overhaul (reactive canvas, dark theme, burnout map), security fixes (4 npm vulns), monorepo dependency alignment.
+- invoice processor dispatch broken — gmail MCP stale definitions + notion invoice tracker DB not found in search. needs cowork session reload.
+- garrett discussed full-stack tooling access with maria (upstash, MCP integrations, notion brief for tech stack understanding).
+- michael renvillard replied to website feedback email — gracious close, offered further help.
+- cash: $5,076.19 ($3,500 owner contribution offset by -$496 operating MTD).
+
+---
+
+## 2026-04-15 (evening) — context-sync: whirlpool pivot, nordic call tomorrow, CPA urgent (Cowork)
+
+**what happened:**
+- whirlpool session produced harbour strategy pivot: depth over breadth (pilot 2–4 games per category), play therapists as beachhead audience. writing retreat booked mon apr 21.
+- lauren bosio (nordic naturals) confirmed working call for thu apr 16 at 3pm PT — first real session since SOW approval.
+- CPA: 3 unread emails from straight talk CPAs — tax extension organizer reminder, missing docs request, vivek ghelani secure chat. needs immediate attention.
+- CMO weekly review flagged 21-day social silence; harbour phase 1 whisper campaign behind schedule for may 1 launch.
+- git: 3 commits on systems-thinking simulator (lakeshore sync, dosage sliders, stacked trade-off charts).
+- stripe unrecognised device sign-in alert — needs verification.
+- invoice sweep: all quiet, nothing new logged.
+
+---
+
+## 2026-04-15 — engagement tracking shipped + email-draft backfill (Claude Code)
+
+**what happened:**
+- **Engagement tracking deployed** (commit 2bbeddd, deployed to production apr 15):
+  - Engagement profile on org pages — shows email activity (sends, opens, clicks), campaign history, and engagement score per organisation.
+  - Recipient transparency — email drafts now track `sentTo` (email address) and `contactId` (when sent to a contact vs org-level email).
+  - Resend webhook activity logging — incoming webhook events (delivered, opened, clicked, bounced, complained) are logged and update draft metrics in real time.
+  - UTM attribution — outbound email links are tagged with utm_source/medium/campaign/content for click-through tracking.
+  - Campaign recipients page — view all recipients for a campaign with per-recipient open/click stats.
+- **Backfill script created** (`port/app/api/admin/backfill-email-drafts/route.ts`): one-shot GET endpoint to populate `sentTo` on existing email drafts from the first campaign (`33be4ee7-4ba4-81be-b832-d045290c5a30`). Fetches org email for each draft that has an `organizationId` but empty `sentTo`, writes it back with 350ms rate-limit delay.
+- Memory: updated handoff live state, cleaned up port rename thread.
+
+---
+
+## 2026-04-14 (evening) — context-sync: nordic SOW approved, port rename shipped, PRME inbound (Cowork)
+
+**what happened:**
+- nordic naturals SOW approved (garrett told payton via slack DM). contract signing expected this week or next — moves from "scoping" to "closing" in pipeline.
+- crm/ → port/ monorepo rename shipped (3 commits: bf7bea7 refactor rename, bd66fba vercel.json fix, 5102e9b .vercelignore fix).
+- garrett rescheduled maria sync from tue to wed after 1:30pm her time.
+- payton forwarded an inbound from isabel rodríguez tejedo (universidad de navarra) re: "certificate of excellence" — likely PPCS/PRME-adjacent, needs triage.
+- siyavula MEL and sesame workshop threads appear dormant — removed from open threads (siyavula soft pass, sesame received pass).
+- gmail: only 2 unread (payton's fwd + notion 3.4 newsletter). no urgent external replies.
+- no unresolved self-DMs in slack.
 
 ---
 
