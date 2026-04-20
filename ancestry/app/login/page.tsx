@@ -1,4 +1,5 @@
 import { signIn } from "@windedvertigo/auth";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
@@ -12,6 +13,7 @@ export default function LoginPage() {
             sign in to view your family tree
           </p>
         </div>
+        {/* Primary: server action form (requires JS hydration) */}
         <form
           action={async () => {
             "use server";
@@ -25,6 +27,17 @@ export default function LoginPage() {
             sign in with google
           </button>
         </form>
+        {/* Fallback: direct link to Auth.js built-in sign-in page.
+            Works even if JS fails to hydrate (older browsers, slow connections). */}
+        <p className="text-center text-xs text-muted-foreground">
+          button not working?{" "}
+          <Link
+            href="/api/auth/signin?callbackUrl=/"
+            className="underline hover:text-foreground transition-colors"
+          >
+            try here
+          </Link>
+        </p>
       </div>
     </div>
   );
