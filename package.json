@@ -28,7 +28,7 @@
     "deploy:site:preview": "bash scripts/deploy-site.sh --preview"
   },
   "dependencies": {
-    "@notionhq/client": "^5.14.0"
+    "@notionhq/client": "^5.19.0"
   },
   "engines": {
     "node": ">=22"
