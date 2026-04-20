@@ -8,13 +8,50 @@
  */
 
 import { Client } from "@notionhq/client";
-import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import type {
+  PageObjectResponse,
+  QueryDataSourceParameters,
+  QueryDataSourceResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 import fs from "fs";
 import path from "path";
 import { syncImageToR2, imageUrl } from "@/lib/sync-image";
 
 // ── client ────────────────────────────────────────────────
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
+
+// ── data source resolution (v5 API: 2025-09-03) ──────────
+// In Notion API v5, queries target a "data source" (a single schema
+// inside a database container), not the database itself. Each of our
+// hard-coded database IDs has exactly one data source; we resolve it
+// once per process via databases.retrieve and cache the mapping.
+const dataSourceCache = new Map<string, string>();
+
+async function getDataSourceId(databaseId: string): Promise<string> {
+  const cached = dataSourceCache.get(databaseId);
+  if (cached) return cached;
+  const db = await withRetry(
+    () => notion.databases.retrieve({ database_id: databaseId }),
+    `getDataSourceId:${databaseId}`,
+  );
+  if (!("data_sources" in db) || db.data_sources.length === 0) {
+    throw new Error(`no data sources found for database ${databaseId}`);
+  }
+  const id = db.data_sources[0].id;
+  dataSourceCache.set(databaseId, id);
+  return id;
+}
+
+/** Query a data source by the legacy database ID. Resolves and caches
+ *  the data_source_id transparently so call sites read like the old
+ *  notion.databases.query(...) shape. */
+async function queryDataSource(
+  databaseId: string,
+  params: Omit<QueryDataSourceParameters, "data_source_id">,
+): Promise<QueryDataSourceResponse> {
+  const data_source_id = await getDataSourceId(databaseId);
+  return notion.dataSources.query({ data_source_id, ...params });
+}
 
 // ── database IDs ──────────────────────────────────────────
 const DB = {
@@ -368,8 +405,7 @@ async function _fetchSiteContent(pageKey: string): Promise<SiteSection[]> {
     round++;
     const response = await withRetry(
       () =>
-        notion.databases.query({
-          database_id: DB.siteContent,
+        queryDataSource(DB.siteContent, {
           filter: {
             property: p.page,
             select: { equals: pageKey },
@@ -624,13 +660,12 @@ async function _fetchPackageBuilderData(): Promise<
   // (portfolio assets are shared — we derive PB examples from them)
   const [quadrantsRes, outcomesRes, portfolioAssets] = await Promise.all([
     withRetry(
-      () => notion.databases.query({ database_id: DB.quadrants }),
+      () => queryDataSource(DB.quadrants, {}),
       "fetchQuadrants",
     ),
     withRetry(
       () =>
-        notion.databases.query({
-          database_id: DB.outcomes,
+        queryDataSource(DB.outcomes, {
           sorts: [{ property: op.order, direction: "ascending" }],
         }),
       "fetchOutcomes",
@@ -783,24 +818,21 @@ async function _fetchConferenceExperience(): Promise<ConferenceExperienceData> {
   const [screensRes, itemsRes, agendaRes] = await Promise.all([
     withRetry(
       () =>
-        notion.databases.query({
-          database_id: DB.conferenceScreens,
+        queryDataSource(DB.conferenceScreens, {
           sorts: [{ property: sp.order, direction: "ascending" }],
         }),
       "conferenceScreens",
     ),
     withRetry(
       () =>
-        notion.databases.query({
-          database_id: DB.conferenceItems,
+        queryDataSource(DB.conferenceItems, {
           sorts: [{ property: ip.order, direction: "ascending" }],
         }),
       "conferenceItems",
     ),
     withRetry(
       () =>
-        notion.databases.query({
-          database_id: DB.conferenceAgenda,
+        queryDataSource(DB.conferenceAgenda, {
           sorts: [{ property: ap.order, direction: "ascending" }],
         }),
       "conferenceAgenda",

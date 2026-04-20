@@ -57,8 +57,21 @@ const QUADRANT_LABELS: Record<string, string> = {
   "product-research": "product × research",
 };
 
-// CRM contacts data source ID
+// CRM contacts database ID. In Notion API v5 (2025-09-03) we query the
+// underlying data source, not the database itself; resolved + cached
+// per process via getCrmDataSourceId() below.
 const CRM_CONTACTS_DB = "829cd552-4516-45b7-a65b-2bcd8d47ff81";
+
+let cachedCrmDataSourceId: string | null = null;
+async function getCrmDataSourceId(notion: Client): Promise<string> {
+  if (cachedCrmDataSourceId) return cachedCrmDataSourceId;
+  const db = await notion.databases.retrieve({ database_id: CRM_CONTACTS_DB });
+  if (!("data_sources" in db) || db.data_sources.length === 0) {
+    throw new Error("no data sources found for CRM contacts database");
+  }
+  cachedCrmDataSourceId = db.data_sources[0].id;
+  return cachedCrmDataSourceId;
+}
 
 /* ── rate limiting (in-memory, per-instance) ── */
 
@@ -115,8 +128,9 @@ async function logContactToNotion(params: {
 
   // check for existing contact by email
   try {
-    const existing = await notion.databases.query({
-      database_id: CRM_CONTACTS_DB,
+    const data_source_id = await getCrmDataSourceId(notion);
+    const existing = await notion.dataSources.query({
+      data_source_id,
       filter: {
         property: "email",
         email: { equals: params.email },
