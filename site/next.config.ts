@@ -356,6 +356,23 @@ const nextConfig: NextConfig = {
           "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/admin/:path*",
       },
 
+      // rubric co-builder
+      {
+        source: "/harbour/rubric-co-builder",
+        destination:
+          "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder",
+      },
+      {
+        source: "/harbour/rubric-co-builder/",
+        destination:
+          "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder",
+      },
+      {
+        source: "/harbour/rubric-co-builder/:path*",
+        destination:
+          "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder/:path*",
+      },
+
       // harbour hub (catch-all — must be last)
       {
         source: "/harbour",
