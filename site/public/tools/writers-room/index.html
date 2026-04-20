@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>the writer's room — whirlpool 21 april 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    /* primary brand */
+    --navy: #273248;
+    --redwood: #b15043;
+    --sienna: #cb7858;
+    --champagne: #ffebd2;
+
+    /* complementary palette (page 21) */
+    --olive: #434824;
+    --blue: #436db1;
+    --periwinkle: #5872cb;
+    --lavender: #d5d2ff;
+    --brown: #482d27;
+    --teal: #43b187;
+    --mint: #58cbb2;
+    --cyan: #d2fdff;
+
+    /* functional */
+    --bg: #f4f8ff;
+    --card-bg: #ffffff;
+    --text: #273248;
+    --text-light: #5a6478;
+    --text-muted: #8b95a8;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== AMBIENT BACKGROUND ===== */
+  .ambient-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    transition: background 2s ease;
+  }
+  .ambient-bg.warm { background: linear-gradient(135deg, #f4f8ff 0%, #ede8ff 40%, #d2fdff 100%); }
+  .ambient-bg.focus { background: linear-gradient(135deg, #d2fdff 0%, #e8f9f6 40%, #f4f8ff 100%); }
+  .ambient-bg.reflect { background: linear-gradient(135deg, #ede8ff 0%, #d5d2ff 30%, #d2fdff 100%); }
+  .ambient-bg.forward { background: linear-gradient(135deg, #d2fdff 0%, #d5d2ff 50%, #ffebd2 100%); }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    color: var(--navy);
+    background: linear-gradient(135deg, var(--blue), var(--teal), var(--periwinkle));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .date {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 0.25rem;
+    font-weight: 400;
+  }
+
+  /* ===== PHASE NAV ===== */
+  .phase-nav {
+    display: flex;
+    gap: 0.3rem;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .phase-btn {
+    background: var(--card-bg);
+    border: 2px solid #e8e4f0;
+    color: var(--text);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: lowercase;
+    letter-spacing: 0.03em;
+    font-family: inherit;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .phase-btn:hover { border-color: var(--periwinkle); background: var(--lavender); }
+  .phase-btn.active {
+    background: linear-gradient(135deg, var(--blue), var(--periwinkle));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(67,109,177,0.3);
+  }
+  .phase-btn.active.teal-phase {
+    background: linear-gradient(135deg, var(--teal), var(--mint));
+    box-shadow: 0 2px 8px rgba(67,177,135,0.3);
+  }
+  .phase-btn.active.lavender-phase {
+    background: linear-gradient(135deg, var(--periwinkle), #7b6ecf);
+    box-shadow: 0 2px 8px rgba(88,114,203,0.3);
+  }
+  .phase-btn.active.forward-phase {
+    background: linear-gradient(135deg, var(--teal), var(--blue));
+    box-shadow: 0 2px 8px rgba(67,109,177,0.3);
+  }
+  .phase-btn .time {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 300;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  /* ===== PHASES ===== */
+  .phase { display: none; animation: fadeIn 0.6s ease; }
+  .phase.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .phase-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-transform: lowercase;
+    text-align: center;
+    margin-bottom: 0.25rem;
+    color: var(--navy);
+  }
+  .phase-subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    font-weight: 400;
+  }
+  .phase-instructions {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--text-light);
+    border: 1px solid #e8e4f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .phase-instructions strong { color: var(--blue); }
+
+  /* ===== TIMER ===== */
+  .timer-container {
+    text-align: center;
+    margin: 2rem 0;
+  }
+  .timer-display {
+    font-size: 5rem;
+    font-weight: 200;
+    letter-spacing: 0.05em;
+    color: var(--navy);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .timer-label {
+    font-size: 0.85rem;
+    color: var(--teal);
+    margin-top: 0.5rem;
+    font-weight: 500;
+  }
+  .timer-controls {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+  .timer-btn {
+    background: var(--card-bg);
+    border: 2px solid #e8e4f0;
+    color: var(--text);
+    padding: 0.6rem 1.8rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    font-weight: 500;
+    text-transform: lowercase;
+  }
+  .timer-btn:hover { border-color: var(--mint); background: var(--cyan); }
+  .timer-btn.primary {
+    background: linear-gradient(135deg, var(--teal), var(--mint));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(67,177,135,0.3);
+  }
+  .timer-btn.primary:hover { box-shadow: 0 4px 12px rgba(67,177,135,0.4); }
+
+  /* ===== BREATHING CIRCLE ===== */
+  .breathing-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem 0;
+  }
+  .breathing-circle {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 3px solid var(--mint);
+    background: radial-gradient(circle, var(--cyan) 0%, transparent 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--teal);
+    transition: transform 4s ease-in-out, border-color 4s ease-in-out, background 4s ease-in-out;
+  }
+  .breathing-circle.inhale {
+    transform: scale(1.3);
+    border-color: var(--periwinkle);
+    background: radial-gradient(circle, var(--lavender) 0%, transparent 70%);
+    color: var(--blue);
+  }
+  .breathing-circle.exhale {
+    transform: scale(0.85);
+    border-color: var(--mint);
+    background: radial-gradient(circle, var(--cyan) 0%, transparent 70%);
+    color: var(--teal);
+  }
+  .breathing-btn {
+    margin-top: 1.5rem;
+    background: linear-gradient(135deg, var(--periwinkle), var(--blue));
+    border: none;
+    color: #fff;
+    padding: 0.6rem 2rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    text-transform: lowercase;
+    box-shadow: 0 2px 8px rgba(88,114,203,0.3);
+  }
+
+  /* ===== SPARKS FEED ===== */
+  .sparks-panel {
+    background: var(--card-bg);
+    border: 1px solid #e8e4f0;
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-top: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .sparks-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--periwinkle);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  .sparks-input-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .sparks-input {
+    flex: 1;
+    background: #f7f5ff;
+    border: 2px solid #e8e4f0;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    color: var(--text);
+    font-size: 0.88rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .sparks-input::placeholder { color: #b8b0d0; }
+  .sparks-input:focus { border-color: var(--periwinkle); }
+  .sparks-send {
+    background: linear-gradient(135deg, var(--periwinkle), var(--blue));
+    border: none;
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(88,114,203,0.25);
+  }
+  .sparks-feed {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .spark-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0edf8;
+    font-size: 0.88rem;
+    color: var(--text-light);
+    animation: fadeIn 0.4s ease;
+  }
+  .spark-item:last-child { border-bottom: none; }
+  .spark-item .spark-time {
+    color: var(--mint);
+    font-size: 0.72rem;
+    float: right;
+    font-weight: 500;
+  }
+  .spark-empty {
+    color: #c4bdd8;
+    font-size: 0.85rem;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  /* ===== CLAIM BOARD ===== */
+  .claim-board {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .claim-topic {
+    background: var(--card-bg);
+    border: 2px solid #e8e4f0;
+    border-radius: 16px;
+    padding: 1.25rem;
+    transition: border-color 0.3s;
+  }
+  .claim-topic:hover { border-color: var(--lavender); }
+  .claim-topic:first-child { border-left: 4px solid var(--periwinkle); }
+  .claim-topic:last-child { border-left: 4px solid var(--teal); }
+  .claim-topic h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+    text-transform: lowercase;
+  }
+  .claim-topic p {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+  .claim-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .claim-slot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .claim-slot input {
+    background: #f7f5ff;
+    border: 2px solid #e8e4f0;
+    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    color: var(--text);
+    font-size: 0.82rem;
+    font-family: inherit;
+    width: 120px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .claim-slot input:focus { border-color: var(--periwinkle); }
+  .claim-slot label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  /* ===== PROMPT CARD ===== */
+  .prompt-card {
+    background: linear-gradient(135deg, var(--lavender), var(--cyan));
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    margin: 2rem 0;
+    box-shadow: 0 4px 16px rgba(88,114,203,0.15);
+  }
+  .prompt-card .prompt-text {
+    font-size: 1.3rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--navy);
+    line-height: 1.5;
+  }
+
+  /* ===== CHECKLIST ===== */
+  .checklist {
+    list-style: none;
+    margin: 1.5rem 0;
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    border: 1px solid #e8e4f0;
+  }
+  .checklist li {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f0edf8;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #d0cbe0;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .check-box:hover { border-color: var(--teal); }
+  .check-box.checked {
+    background: linear-gradient(135deg, var(--teal), var(--mint));
+    border-color: transparent;
+  }
+  .check-box.checked::after {
+    content: '✓';
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--periwinkle), var(--teal), var(--mint));
+    z-index: 100;
+    transition: width 0.5s ease;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* ===== AUDIO CHIME (visual indicator) ===== */
+  .chime-flash {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(213,210,255,0.3), rgba(210,253,255,0.3));
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .chime-flash.active { opacity: 1; }
+
+  /* ===== CLOSING FOOTER ===== */
+  .closing-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding: 2rem;
+    border-top: 2px solid #e8e4f0;
+  }
+  .closing-footer .arc {
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--periwinkle), var(--teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .closing-footer .brand {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 700px) {
+    .container { padding: 1rem; }
+    .timer-display { font-size: 3.5rem; }
+    .claim-board { grid-template-columns: 1fr; }
+    .phase-nav { gap: 0.2rem; }
+    .phase-btn { padding: 0.4rem 0.6rem; font-size: 0.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="chime-flash" id="chimeFlash"></div>
+<div class="ambient-bg warm" id="ambientBg"></div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>the writer's room</h1>
+    <p class="date">whirlpool — monday, 21 april 2026 · 90 minutes</p>
+  </div>
+
+  <div class="phase-nav" id="phaseNav">
+    <button class="phase-btn active" onclick="showPhase('opener')">
+      paper trail
+      <span class="time">0:00 – 0:10</span>
+    </button>
+    <button class="phase-btn" onclick="showPhase('breathe')">
+      breathe
+      <span class="time">0:10 – 0:17</span>
+    </button>
+    <button class="phase-btn" onclick="showPhase('find')">
+      find
+      <span class="time">0:17 – 0:25</span>
+    </button>
+    <button class="phase-btn" onclick="showPhase('fold1')">
+      fold 1
+      <span class="time">0:25 – 0:50</span>
+    </button>
+    <button class="phase-btn" onclick="showPhase('unfold1')">
+      unfold 1
+      <span class="time">0:50 – 0:58</span>
+    </button>
+    <button class="phase-btn" onclick="showPhase('fold2')">
+      fold 2
+      <span class="time">0:58 – 1:18</span>
+    </button>
+    <button class="phase-btn" onclick="showPhase('unfold2')">
+      unfold 2
+      <span class="time">1:18 – 1:25</span>
+    </button>
+    <button class="phase-btn" onclick="showPhase('findagain')">
+      find again
+      <span class="time">1:25 – 1:30</span>
+    </button>
+  </div>
+
+  <!-- ===== PHASE: PAPER TRAIL ===== -->
+  <div class="phase active" id="phase-opener">
+    <p class="phase-title">paper trail</p>
+    <p class="phase-subtitle">harbour opener · 10 minutes</p>
+
+    <div class="phase-instructions">
+      <strong><a href="https://windedvertigo.com/harbour/paper-trail" target="_blank" style="color: var(--blue); text-decoration: underline; text-decoration-color: var(--mint);">open paper.trail</a></strong> in the harbour and play together for ~5 minutes. trace the connections between ideas — let the game surface what's already on your mind before the writing begins.
+      <br><br>
+      <strong>debrief (5 min):</strong> what thread did you pull? what surprised you? let whatever surfaced sit — you might find it again later in the writing.
+    </div>
+
+    <div class="timer-container">
+      <div class="timer-display" id="openerTimer">10:00</div>
+      <div class="timer-label">harbour opener</div>
+      <div class="timer-controls">
+        <button class="timer-btn primary" onclick="startTimer('openerTimer', 600)">start</button>
+        <button class="timer-btn" onclick="pauseTimer()">pause</button>
+        <button class="timer-btn" onclick="resetTimer('openerTimer', 600)">reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PHASE: BREATHE ===== -->
+  <div class="phase" id="phase-breathe">
+    <p class="phase-title">breathing together</p>
+    <p class="phase-subtitle">arrive · 7 minutes</p>
+
+    <div class="breathing-wrap">
+      <div class="breathing-circle" id="breathCircle">breathe</div>
+      <button class="breathing-btn" id="breathBtn" onclick="toggleBreathing()">begin breathing</button>
+    </div>
+
+    <div class="prompt-card" style="margin-top: 2rem;">
+      <p class="prompt-text">"what word is sitting with you today?"</p>
+    </div>
+
+    <div class="sparks-panel">
+      <div class="sparks-title">one-word check-in</div>
+      <div class="sparks-input-row">
+        <input class="sparks-input" id="checkinInput" placeholder="drop your word here..." onkeypress="if(event.key==='Enter')addCheckin()">
+        <button class="sparks-send" onclick="addCheckin()">drop</button>
+      </div>
+      <div id="checkinFeed" class="sparks-feed">
+        <p class="spark-empty">waiting for words...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PHASE: FIND ===== -->
+  <div class="phase" id="phase-find">
+    <p class="phase-title">find</p>
+    <p class="phase-subtitle">miro tour + topic claiming · 8 minutes</p>
+
+    <div class="phase-instructions">
+      <strong>payton walks the miro board.</strong> two substacks on deck. claim the sections and angles you want to write — put your name on it.
+    </div>
+
+    <div class="claim-board">
+      <div class="claim-topic">
+        <h4>find, fold, unfold, find again</h4>
+        <p>a conceptual piece building on jamie's transformative theory of change. the arc of discovery, shaping, reflecting, and returning with new eyes.</p>
+        <div class="claim-slots">
+          <div class="claim-slot">
+            <input placeholder="your name" id="claim1a">
+            <label>— opening / framing</label>
+          </div>
+          <div class="claim-slot">
+            <input placeholder="your name" id="claim1b">
+            <label>— the fold (process)</label>
+          </div>
+          <div class="claim-slot">
+            <input placeholder="your name" id="claim1c">
+            <label>— the unfold (reflection)</label>
+          </div>
+          <div class="claim-slot">
+            <input placeholder="your name" id="claim1d">
+            <label>— find again (forward)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="claim-topic">
+        <h4>paper crumpling / emotional awareness</h4>
+        <p>a concrete, metaphor-driven piece. the crumpled paper that never fully uncrumples — emotional learning, embodied awareness, the marks we carry forward.</p>
+        <div class="claim-slots">
+          <div class="claim-slot">
+            <input placeholder="your name" id="claim2a">
+            <label>— the metaphor</label>
+          </div>
+          <div class="claim-slot">
+            <input placeholder="your name" id="claim2b">
+            <label>— the science</label>
+          </div>
+          <div class="claim-slot">
+            <input placeholder="your name" id="claim2c">
+            <label>— the personal</label>
+          </div>
+          <div class="claim-slot">
+            <input placeholder="your name" id="claim2d">
+            <label>— the application</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timer-container">
+      <div class="timer-display" id="findTimer">8:00</div>
+      <div class="timer-label">find phase</div>
+      <div class="timer-controls">
+        <button class="timer-btn primary" onclick="startTimer('findTimer', 480)">start</button>
+        <button class="timer-btn" onclick="pauseTimer()">pause</button>
+        <button class="timer-btn" onclick="resetTimer('findTimer', 480)">reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PHASE: FOLD 1 ===== -->
+  <div class="phase" id="phase-fold1">
+    <p class="phase-title">fold 1</p>
+    <p class="phase-subtitle">first writing sprint · 25 minutes</p>
+
+    <div class="timer-container">
+      <div class="timer-display" id="fold1Timer">25:00</div>
+      <div class="timer-label">drafting — shape the material</div>
+      <div class="timer-controls">
+        <button class="timer-btn primary" onclick="startTimer('fold1Timer', 1500)">start</button>
+        <button class="timer-btn" onclick="pauseTimer()">pause</button>
+        <button class="timer-btn" onclick="resetTimer('fold1Timer', 1500)">reset</button>
+      </div>
+    </div>
+
+    <div class="sparks-panel">
+      <div class="sparks-title">sparks — drop fragments, lines, questions as they come</div>
+      <div class="sparks-input-row">
+        <input class="sparks-input" id="sparkInput1" placeholder="a line, a thought, a question..." onkeypress="if(event.key==='Enter')addSpark('sparkInput1')">
+        <button class="sparks-send" onclick="addSpark('sparkInput1')">spark</button>
+      </div>
+      <div id="sparkFeed" class="sparks-feed">
+        <p class="spark-empty">the feed is quiet... start writing, drop sparks as they come</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PHASE: UNFOLD 1 ===== -->
+  <div class="phase" id="phase-unfold1">
+    <p class="phase-title">unfold 1</p>
+    <p class="phase-subtitle">mid-session reflection · 8 minutes</p>
+
+    <div class="prompt-card">
+      <p class="prompt-text">"read your favourite line aloud."</p>
+    </div>
+
+    <div class="phase-instructions">
+      each person shares one sentence or paragraph they wrote. no preamble, just read it. then quick reactions — what resonated, what surprised. if you want to swap sections or collaborate on something, now's the time.
+    </div>
+
+    <div class="timer-container">
+      <div class="timer-display" id="unfold1Timer">8:00</div>
+      <div class="timer-label">unfold — open it up, see what's there</div>
+      <div class="timer-controls">
+        <button class="timer-btn primary" onclick="startTimer('unfold1Timer', 480)">start</button>
+        <button class="timer-btn" onclick="pauseTimer()">pause</button>
+        <button class="timer-btn" onclick="resetTimer('unfold1Timer', 480)">reset</button>
+      </div>
+    </div>
+
+    <div class="sparks-panel">
+      <div class="sparks-title">reactions</div>
+      <div class="sparks-input-row">
+        <input class="sparks-input" id="reactionInput" placeholder="what resonated..." onkeypress="if(event.key==='Enter')addReaction()">
+        <button class="sparks-send" onclick="addReaction()">drop</button>
+      </div>
+      <div id="reactionFeed" class="sparks-feed">
+        <p class="spark-empty">listen first, react after...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PHASE: FOLD 2 ===== -->
+  <div class="phase" id="phase-fold2">
+    <p class="phase-title">fold 2</p>
+    <p class="phase-subtitle">second writing sprint · 20 minutes</p>
+
+    <div class="phase-instructions">
+      back to drafting. continue solo or pair up for collaborative sections. the sparks feed carries over — keep dropping fragments.
+    </div>
+
+    <div class="timer-container">
+      <div class="timer-display" id="fold2Timer">20:00</div>
+      <div class="timer-label">drafting — deeper fold</div>
+      <div class="timer-controls">
+        <button class="timer-btn primary" onclick="startTimer('fold2Timer', 1200)">start</button>
+        <button class="timer-btn" onclick="pauseTimer()">pause</button>
+        <button class="timer-btn" onclick="resetTimer('fold2Timer', 1200)">reset</button>
+      </div>
+    </div>
+
+    <div class="sparks-panel">
+      <div class="sparks-title">sparks (continued)</div>
+      <div class="sparks-input-row">
+        <input class="sparks-input" id="sparkInput2" placeholder="a line, a thought, a question..." onkeypress="if(event.key==='Enter')addSpark('sparkInput2')">
+        <button class="sparks-send" onclick="addSpark('sparkInput2')">spark</button>
+      </div>
+      <div id="sparkFeed2" class="sparks-feed"></div>
+    </div>
+  </div>
+
+  <!-- ===== PHASE: UNFOLD 2 ===== -->
+  <div class="phase" id="phase-unfold2">
+    <p class="phase-title">unfold 2</p>
+    <p class="phase-subtitle">deeper reflection · 7 minutes</p>
+
+    <div class="prompt-card">
+      <p class="prompt-text">"what did you find today?"</p>
+    </div>
+
+    <div class="phase-instructions">
+      read-alouds from the second sprint. what shifted between fold 1 and fold 2? what emerged that you didn't expect?
+      <br><br>
+      <strong>co-authoring next steps:</strong> who's finishing what, when is it due, how does the substack co-authoring flow work from here.
+    </div>
+
+    <ul class="checklist">
+      <li><div class="check-box" onclick="toggleCheck(this)"></div> "find, fold, unfold, find again" — first draft owner confirmed</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div> "paper crumpling" — first draft owner confirmed</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div> substack co-authoring flow established</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div> draft deadline agreed</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div> editing / feedback loop defined</li>
+    </ul>
+
+    <div class="timer-container">
+      <div class="timer-display" id="unfold2Timer">7:00</div>
+      <div class="timer-label">unfold — what did you find?</div>
+      <div class="timer-controls">
+        <button class="timer-btn primary" onclick="startTimer('unfold2Timer', 420)">start</button>
+        <button class="timer-btn" onclick="pauseTimer()">pause</button>
+        <button class="timer-btn" onclick="resetTimer('unfold2Timer', 420)">reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PHASE: FIND AGAIN ===== -->
+  <div class="phase" id="phase-findagain">
+    <p class="phase-title">find again</p>
+    <p class="phase-subtitle">look forward · 5 minutes</p>
+
+    <div class="prompt-card">
+      <p class="prompt-text">"what are we taking from today — and what should the next writer's room look like?"</p>
+    </div>
+
+    <div class="phase-instructions">
+      this isn't a retrospective — it's a seed-planting moment. what worked about today's format? what would you change? what topics should the next writing retreat whirlpool tackle?
+    </div>
+
+    <div class="sparks-panel">
+      <div class="sparks-title">seeds for next time</div>
+      <div class="sparks-input-row">
+        <input class="sparks-input" id="seedInput" placeholder="a seed for the next writer's room..." onkeypress="if(event.key==='Enter')addSeed()">
+        <button class="sparks-send" onclick="addSeed()">plant</button>
+      </div>
+      <div id="seedFeed" class="sparks-feed">
+        <p class="spark-empty">plant something for next time...</p>
+      </div>
+    </div>
+
+    <div class="timer-container">
+      <div class="timer-display" id="findAgainTimer">5:00</div>
+      <div class="timer-label">find again — the cycle continues</div>
+      <div class="timer-controls">
+        <button class="timer-btn primary" onclick="startTimer('findAgainTimer', 300)">start</button>
+        <button class="timer-btn" onclick="pauseTimer()">pause</button>
+        <button class="timer-btn" onclick="resetTimer('findAgainTimer', 300)">reset</button>
+      </div>
+    </div>
+
+    <div class="closing-footer">
+      <p class="arc">find → fold → unfold → find again</p>
+      <p class="brand">the writer's room — winded.vertigo whirlpool</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ===== STATE =====
+  let currentTimer = null;
+  let currentTimerEl = null;
+  let remainingSeconds = 0;
+  let breathingInterval = null;
+  let isBreathing = false;
+  let sparksList = [];
+
+  // ===== PHASE NAVIGATION =====
+  const phaseMap = {
+    'opener': 'warm',
+    'breathe': 'warm',
+    'find': 'reflect',
+    'fold1': 'focus',
+    'unfold1': 'reflect',
+    'fold2': 'focus',
+    'unfold2': 'reflect',
+    'findagain': 'forward'
+  };
+
+  const phaseStyles = {
+    'opener': '',
+    'breathe': '',
+    'find': 'lavender-phase',
+    'fold1': 'teal-phase',
+    'unfold1': 'lavender-phase',
+    'fold2': 'teal-phase',
+    'unfold2': 'lavender-phase',
+    'findagain': 'forward-phase'
+  };
+
+  const phaseOrder = ['opener','breathe','find','fold1','unfold1','fold2','unfold2','findagain'];
+
+  function showPhase(id) {
+    document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+    const btns = document.querySelectorAll('.phase-btn');
+    btns.forEach(b => {
+      b.classList.remove('active', 'teal-phase', 'lavender-phase', 'forward-phase');
+    });
+
+    document.getElementById('phase-' + id).classList.add('active');
+    const idx = phaseOrder.indexOf(id);
+    btns[idx].classList.add('active');
+    if (phaseStyles[id]) btns[idx].classList.add(phaseStyles[id]);
+
+    // ambient background
+    const bg = document.getElementById('ambientBg');
+    bg.className = 'ambient-bg ' + phaseMap[id];
+
+    // progress bar
+    const progress = ((idx + 1) / phaseOrder.length) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+  }
+
+  // ===== TIMER =====
+  function startTimer(elId, totalSec) {
+    if (currentTimer) clearInterval(currentTimer);
+    currentTimerEl = elId;
+    if (remainingSeconds <= 0 || currentTimerEl !== elId) {
+      remainingSeconds = totalSec;
+    }
+
+    currentTimer = setInterval(() => {
+      remainingSeconds--;
+      if (remainingSeconds <= 0) {
+        remainingSeconds = 0;
+        clearInterval(currentTimer);
+        currentTimer = null;
+        triggerChime();
+      }
+      updateTimerDisplay(elId, remainingSeconds);
+    }, 1000);
+  }
+
+  function pauseTimer() {
+    if (currentTimer) {
+      clearInterval(currentTimer);
+      currentTimer = null;
+    }
+  }
+
+  function resetTimer(elId, totalSec) {
+    pauseTimer();
+    remainingSeconds = totalSec;
+    updateTimerDisplay(elId, totalSec);
+  }
+
+  function updateTimerDisplay(elId, seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    document.getElementById(elId).textContent = m + ':' + String(s).padStart(2, '0');
+  }
+
+  function triggerChime() {
+    // visual chime
+    const flash = document.getElementById('chimeFlash');
+    flash.classList.add('active');
+    setTimeout(() => flash.classList.remove('active'), 1500);
+
+    // audio chime
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 528;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 3);
+
+      // second harmonic
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.frequency.value = 396;
+      osc2.type = 'sine';
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.5);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 4);
+      osc2.start(ctx.currentTime + 0.5);
+      osc2.stop(ctx.currentTime + 4);
+    } catch(e) {}
+  }
+
+  // ===== BREATHING =====
+  function toggleBreathing() {
+    const circle = document.getElementById('breathCircle');
+    const btn = document.getElementById('breathBtn');
+
+    if (isBreathing) {
+      clearInterval(breathingInterval);
+      isBreathing = false;
+      circle.className = 'breathing-circle';
+      circle.textContent = 'breathe';
+      btn.textContent = 'begin breathing';
+      return;
+    }
+
+    isBreathing = true;
+    btn.textContent = 'stop';
+    let inhaling = true;
+
+    function cycle() {
+      if (inhaling) {
+        circle.className = 'breathing-circle inhale';
+        circle.textContent = 'breathe in';
+      } else {
+        circle.className = 'breathing-circle exhale';
+        circle.textContent = 'breathe out';
+      }
+      inhaling = !inhaling;
+    }
+
+    cycle();
+    breathingInterval = setInterval(cycle, 4000);
+  }
+
+  // ===== SPARKS =====
+  function addSpark(inputId) {
+    const input = document.getElementById(inputId);
+    const text = input.value.trim();
+    if (!text) return;
+
+    const now = new Date();
+    const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+
+    sparksList.push({ text, time });
+    input.value = '';
+
+    renderSparks('sparkFeed');
+    renderSparks('sparkFeed2');
+  }
+
+  function renderSparks(feedId) {
+    const feed = document.getElementById(feedId);
+    if (!feed) return;
+    if (sparksList.length === 0) {
+      feed.innerHTML = '<p class="spark-empty">the feed is quiet... start writing, drop sparks as they come</p>';
+      return;
+    }
+    feed.innerHTML = sparksList.map(s =>
+      '<div class="spark-item"><span class="spark-time">' + s.time + '</span>' + s.text + '</div>'
+    ).reverse().join('');
+  }
+
+  function addToFeed(inputId, feedId) {
+    const input = document.getElementById(inputId);
+    const text = input.value.trim();
+    if (!text) return;
+
+    const now = new Date();
+    const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+    const feed = document.getElementById(feedId);
+
+    const empty = feed.querySelector('.spark-empty');
+    if (empty) empty.remove();
+
+    const item = document.createElement('div');
+    item.className = 'spark-item';
+    item.innerHTML = '<span class="spark-time">' + time + '</span>' + text;
+    feed.insertBefore(item, feed.firstChild);
+    input.value = '';
+  }
+
+  function addCheckin() { addToFeed('checkinInput', 'checkinFeed'); }
+  function addReaction() { addToFeed('reactionInput', 'reactionFeed'); }
+  function addSeed() { addToFeed('seedInput', 'seedFeed'); }
+
+  // ===== CHECKLIST =====
+  function toggleCheck(el) {
+    el.classList.toggle('checked');
+  }
+</script>
+
+</body>
+</html>

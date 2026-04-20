@@ -44,6 +44,14 @@
     {
       "source": "/portfolio/assets/systems-thinking/:path*",
       "destination": "/portfolio/assets/systems-thinking/:path*"
+    },
+    {
+      "source": "/tools/:slug",
+      "destination": "/tools/:slug/index.html"
+    },
+    {
+      "source": "/tools/:slug/",
+      "destination": "/tools/:slug/index.html"
     }
   ],
   "headers": [
