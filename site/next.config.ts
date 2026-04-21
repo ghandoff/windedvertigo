@@ -387,6 +387,37 @@ const nextConfig: NextConfig = {
         destination: "https://cuts-catalogue.vercel.app/:path*",
       },
 
+      // feel cards
+      {
+        source: "/harbour/feel-cards",
+        destination: "https://feel-cards.vercel.app/",
+      },
+      {
+        source: "/harbour/feel-cards/",
+        destination: "https://feel-cards.vercel.app/",
+      },
+      {
+        source: "/harbour/feel-cards/:path*",
+        destination: "https://feel-cards.vercel.app/:path*",
+      },
+
+      // values auction
+      {
+        source: "/harbour/values-auction",
+        destination:
+          "https://values-auction.vercel.app/harbour/values-auction",
+      },
+      {
+        source: "/harbour/values-auction/",
+        destination:
+          "https://values-auction.vercel.app/harbour/values-auction",
+      },
+      {
+        source: "/harbour/values-auction/:path*",
+        destination:
+          "https://values-auction.vercel.app/harbour/values-auction/:path*",
+      },
+
       // harbour hub (catch-all — must be last)
       {
         source: "/harbour",
