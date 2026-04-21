@@ -373,6 +373,20 @@ const nextConfig: NextConfig = {
           "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder/:path*",
       },
 
+      // values-auction (Vite app — no basePath, serves from root)
+      {
+        source: "/harbour/values-auction",
+        destination: "https://values-auction-pi.vercel.app/",
+      },
+      {
+        source: "/harbour/values-auction/",
+        destination: "https://values-auction-pi.vercel.app/",
+      },
+      {
+        source: "/harbour/values-auction/:path*",
+        destination: "https://values-auction-pi.vercel.app/:path*",
+      },
+
       // cuts catalogue
       {
         source: "/harbour/cuts-catalogue",
