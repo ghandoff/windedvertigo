@@ -373,6 +373,20 @@ const nextConfig: NextConfig = {
           "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder/:path*",
       },
 
+      // cuts catalogue
+      {
+        source: "/harbour/cuts-catalogue",
+        destination: "https://cuts-catalogue.vercel.app/",
+      },
+      {
+        source: "/harbour/cuts-catalogue/",
+        destination: "https://cuts-catalogue.vercel.app/",
+      },
+      {
+        source: "/harbour/cuts-catalogue/:path*",
+        destination: "https://cuts-catalogue.vercel.app/:path*",
+      },
+
       // harbour hub (catch-all — must be last)
       {
         source: "/harbour",
