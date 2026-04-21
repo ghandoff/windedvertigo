@@ -387,6 +387,20 @@ const nextConfig: NextConfig = {
         destination: "https://cuts-catalogue.vercel.app/:path*",
       },
 
+      // feel cards
+      {
+        source: "/harbour/feel-cards",
+        destination: "https://feel-cards.vercel.app/",
+      },
+      {
+        source: "/harbour/feel-cards/",
+        destination: "https://feel-cards.vercel.app/",
+      },
+      {
+        source: "/harbour/feel-cards/:path*",
+        destination: "https://feel-cards.vercel.app/:path*",
+      },
+
       // values auction
       {
         source: "/harbour/values-auction",
