@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>the mashup — w.v x press play</title>
+<style>
+  :root {
+    --blue: #436db1;
+    --periwinkle: #5872cb;
+    --lavender: #d5d2ff;
+    --teal: #43b187;
+    --mint: #58cbb2;
+    --cyan: #d2fdff;
+    --olive: #434824;
+    --brown: #482d27;
+    --navy: #273248;
+    --redwood: #b15043;
+    --sienna: #cb7858;
+    --champagne: #ffebd2;
+    --bg: #f8f7ff;
+    --text: #273248;
+    --text-light: #5a6478;
+    --card: #ffffff;
+    --shadow: 0 4px 24px rgba(39, 50, 72, 0.08);
+    --shadow-lg: 0 8px 40px rgba(39, 50, 72, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 1.2s ease;
+  }
+
+  /* AMBIENT BACKGROUND */
+  .ambient {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    opacity: 0.4;
+    transition: background 2s ease;
+    pointer-events: none;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(248, 247, 255, 0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(67, 109, 177, 0.1);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .header-title {
+    font-size: 15px; font-weight: 600; letter-spacing: 0.5px;
+    color: var(--navy);
+    text-transform: lowercase;
+  }
+
+  .header-subtitle {
+    font-size: 11px; color: var(--text-light); letter-spacing: 0.3px;
+    text-transform: lowercase;
+  }
+
+  .header-right {
+    display: flex; align-items: center; gap: 16px;
+  }
+
+  .global-timer {
+    font-size: 20px; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--periwinkle);
+  }
+
+  .decision-counter {
+    display: flex; gap: 4px;
+  }
+  .decision-pip {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--lavender);
+    transition: all 0.5s ease;
+  }
+  .decision-pip.locked {
+    background: var(--teal);
+    box-shadow: 0 0 8px rgba(67, 177, 135, 0.4);
+  }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 200;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--periwinkle), var(--teal), var(--mint));
+    transition: width 0.8s ease;
+  }
+
+  /* PHASE NAV */
+  .phase-nav {
+    display: flex; gap: 4px; padding: 16px 24px;
+    overflow-x: auto; position: relative; z-index: 10;
+  }
+  .phase-btn {
+    padding: 6px 14px; border-radius: 20px;
+    border: 1.5px solid var(--lavender);
+    background: transparent; color: var(--text-light);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    white-space: nowrap; transition: all 0.3s ease;
+    text-transform: lowercase;
+  }
+  .phase-btn:hover { border-color: var(--periwinkle); color: var(--periwinkle); }
+  .phase-btn.active {
+    background: var(--periwinkle); border-color: var(--periwinkle);
+    color: white; box-shadow: 0 2px 12px rgba(88, 114, 203, 0.3);
+  }
+  .phase-btn.active.decision-phase {
+    background: var(--teal); border-color: var(--teal);
+    box-shadow: 0 2px 12px rgba(67, 177, 135, 0.3);
+  }
+  .phase-btn.active.close-phase {
+    background: linear-gradient(135deg, var(--teal), var(--periwinkle));
+    border-color: transparent;
+  }
+  .phase-btn.completed {
+    background: rgba(67, 177, 135, 0.1);
+    border-color: var(--teal); color: var(--teal);
+  }
+
+  /* MAIN CONTENT */
+  .main { max-width: 800px; margin: 0 auto; padding: 0 24px 80px; position: relative; z-index: 10; }
+
+  .phase { display: none; animation: fadeIn 0.6s ease; }
+  .phase.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* PHASE HEADER */
+  .phase-header {
+    text-align: center; padding: 32px 0 24px;
+  }
+  .phase-number {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text-light); margin-bottom: 4px;
+  }
+  .phase-title {
+    font-size: 32px; font-weight: 300; letter-spacing: -0.5px;
+    color: var(--navy); text-transform: lowercase;
+  }
+  .phase-duration {
+    font-size: 13px; color: var(--text-light); margin-top: 4px;
+  }
+
+  /* TIMER */
+  .timer-container {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    margin: 20px 0;
+  }
+  .timer-display {
+    font-size: 48px; font-weight: 200; font-variant-numeric: tabular-nums;
+    color: var(--periwinkle);
+    transition: color 0.5s;
+  }
+  .timer-display.warning { color: var(--sienna); }
+  .timer-display.critical { color: var(--redwood); animation: pulse 1s infinite; }
+
+  @keyframes pulse { 50% { opacity: 0.5; } }
+
+  .timer-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1.5px solid var(--lavender); background: white;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; transition: all 0.2s;
+  }
+  .timer-btn:hover { border-color: var(--periwinkle); background: var(--lavender); }
+
+  /* CARDS */
+  .card {
+    background: var(--card); border-radius: 16px;
+    padding: 28px; margin: 16px 0;
+    box-shadow: var(--shadow); border: 1px solid rgba(67, 109, 177, 0.06);
+  }
+
+  .card-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-light); margin-bottom: 8px;
+  }
+
+  .card h3 {
+    font-size: 18px; font-weight: 600; color: var(--navy);
+    margin-bottom: 12px; text-transform: lowercase;
+  }
+
+  .card p, .card li {
+    font-size: 14px; line-height: 1.7; color: var(--text-light);
+  }
+
+  .card ul { padding-left: 20px; }
+  .card li { margin: 4px 0; }
+
+  /* PROMPT CARD (special) */
+  .prompt-card {
+    background: linear-gradient(135deg, var(--lavender) 0%, var(--cyan) 100%);
+    border: none; text-align: center;
+  }
+  .prompt-card p {
+    font-size: 20px; font-weight: 300; color: var(--navy);
+    line-height: 1.5;
+  }
+
+  /* CONTEXT CARD */
+  .context-card {
+    background: rgba(213, 210, 255, 0.15);
+    border: 1px dashed var(--lavender);
+  }
+  .context-card p { font-size: 13px; font-style: italic; }
+
+  /* DECISION CARD */
+  .decision-card {
+    border: 2px solid var(--lavender);
+    transition: border-color 0.5s;
+  }
+  .decision-card.locked {
+    border-color: var(--teal);
+    background: linear-gradient(135deg, rgba(67, 177, 135, 0.03), rgba(88, 203, 178, 0.06));
+  }
+
+  .decision-question {
+    font-size: 22px; font-weight: 400; color: var(--navy);
+    margin-bottom: 16px; line-height: 1.4;
+    text-transform: lowercase;
+  }
+
+  .decision-options {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0;
+  }
+  .decision-option {
+    padding: 8px 16px; border-radius: 8px;
+    border: 1.5px solid var(--lavender);
+    background: white; cursor: pointer;
+    font-size: 13px; color: var(--text);
+    transition: all 0.2s; text-transform: lowercase;
+  }
+  .decision-option:hover { border-color: var(--teal); background: rgba(67, 177, 135, 0.05); }
+  .decision-option.selected {
+    border-color: var(--teal); background: rgba(67, 177, 135, 0.1);
+    color: var(--teal); font-weight: 600;
+  }
+
+  .notes-field {
+    width: 100%; min-height: 80px; padding: 14px;
+    border: 1.5px solid var(--lavender); border-radius: 10px;
+    font-family: inherit; font-size: 14px; color: var(--text);
+    background: rgba(213, 210, 255, 0.08);
+    resize: vertical; outline: none;
+    transition: border-color 0.3s;
+  }
+  .notes-field:focus { border-color: var(--periwinkle); }
+  .notes-field::placeholder { color: var(--text-light); opacity: 0.5; }
+
+  .lock-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 24px; border-radius: 10px;
+    border: none; cursor: pointer;
+    font-size: 14px; font-weight: 600;
+    background: var(--teal); color: white;
+    margin-top: 16px; transition: all 0.3s;
+    text-transform: lowercase;
+  }
+  .lock-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(67, 177, 135, 0.3); }
+  .lock-btn.is-locked {
+    background: rgba(67, 177, 135, 0.15); color: var(--teal);
+    cursor: default;
+  }
+
+  .next-btn {
+    display: block; margin: 24px auto 0;
+    padding: 12px 32px; border-radius: 10px;
+    border: none; cursor: pointer;
+    font-size: 14px; font-weight: 600;
+    background: var(--periwinkle); color: white;
+    transition: all 0.3s; text-transform: lowercase;
+  }
+  .next-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(88, 114, 203, 0.3); }
+
+  /* MICRO-CHALLENGE */
+  .micro-challenge {
+    background: linear-gradient(135deg, var(--champagne) 0%, rgba(213, 210, 255, 0.3) 100%);
+    border: 1px solid rgba(203, 120, 88, 0.2);
+    border-radius: 12px; padding: 20px; margin: 16px 0;
+    text-align: center;
+  }
+  .micro-challenge .emoji { font-size: 28px; margin-bottom: 8px; }
+  .micro-challenge .challenge-text {
+    font-size: 14px; color: var(--navy); font-weight: 500;
+    text-transform: lowercase;
+  }
+  .micro-challenge .challenge-sub {
+    font-size: 12px; color: var(--text-light); margin-top: 4px;
+  }
+
+  /* ICEBREAKER */
+  .icebreaker-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;
+  }
+  .icebreaker-card {
+    background: white; border-radius: 12px; padding: 20px;
+    border: 1.5px solid var(--lavender);
+    cursor: pointer; transition: all 0.3s; text-align: center;
+  }
+  .icebreaker-card:hover {
+    border-color: var(--periwinkle); transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+  .icebreaker-card .ic-emoji { font-size: 32px; margin-bottom: 8px; }
+  .icebreaker-card .ic-text { font-size: 13px; color: var(--text); text-transform: lowercase; }
+
+  /* SUMMARY TABLE */
+  .summary-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    margin: 16px 0;
+  }
+  .summary-table th {
+    text-align: left; padding: 10px 14px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-light); border-bottom: 2px solid var(--lavender);
+  }
+  .summary-table td {
+    padding: 12px 14px; font-size: 14px;
+    border-bottom: 1px solid rgba(213, 210, 255, 0.3);
+  }
+  .summary-table tr:last-child td { border-bottom: none; }
+
+  .status-badge {
+    display: inline-block; padding: 2px 10px; border-radius: 10px;
+    font-size: 11px; font-weight: 600; text-transform: lowercase;
+  }
+  .status-badge.locked { background: rgba(67, 177, 135, 0.15); color: var(--teal); }
+  .status-badge.open { background: rgba(213, 210, 255, 0.5); color: var(--periwinkle); }
+
+  /* LAUNCH ANIMATION */
+  .launch-container { text-align: center; padding: 40px 0; }
+  .launch-rocket {
+    font-size: 64px; transition: all 1.5s ease;
+    display: inline-block;
+  }
+  .launch-rocket.launching {
+    transform: translateY(-120px) scale(0.5);
+    opacity: 0;
+  }
+  .launch-message {
+    font-size: 28px; font-weight: 300; color: var(--navy);
+    margin-top: 20px; opacity: 0; transition: opacity 1s ease 1s;
+    text-transform: lowercase;
+  }
+  .launch-message.visible { opacity: 1; }
+
+  /* PIE CHART (for revenue split) */
+  .pie-container {
+    display: flex; align-items: center; justify-content: center; gap: 24px;
+    margin: 16px 0;
+  }
+  .pie-svg { width: 120px; height: 120px; }
+  .pie-slider {
+    width: 200px;
+    accent-color: var(--teal);
+  }
+  .pie-label {
+    font-size: 13px; color: var(--text-light);
+    text-align: center; margin-top: 4px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .header { padding: 10px 16px; }
+    .main { padding: 0 16px 60px; }
+    .phase-title { font-size: 24px; }
+    .timer-display { font-size: 36px; }
+    .decision-question { font-size: 18px; }
+    .icebreaker-grid { grid-template-columns: 1fr; }
+  }
+
+  /* CHIME RIPPLE */
+  .chime-ripple {
+    position: fixed; top: 50%; left: 50%;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(88, 203, 178, 0.3);
+    transform: translate(-50%, -50%) scale(0);
+    animation: ripple 1.5s ease-out forwards;
+    pointer-events: none; z-index: 300;
+  }
+  @keyframes ripple {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(40); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient" id="ambient"></div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="header">
+  <div>
+    <div class="header-title">the mashup</div>
+    <div class="header-subtitle">w.v x press play — decision sprint</div>
+  </div>
+  <div class="header-right">
+    <div class="decision-counter" id="decisionCounter"></div>
+    <div class="global-timer" id="globalTimer">0:00:00</div>
+  </div>
+</div>
+
+<div class="phase-nav" id="phaseNav"></div>
+
+<div class="main" id="main">
+  <!-- Phases are rendered by JS -->
+</div>
+
+<script>
+// ===== STATE =====
+const state = {
+  currentPhase: 0,
+  globalStartTime: null,
+  globalInterval: null,
+  phaseTimers: {},
+  decisions: [
+    { id: 1, locked: false, selected: null, notes: '' },
+    { id: 2, locked: false, selected: null, notes: '' },
+    { id: 3, locked: false, selected: null, notes: '' },
+    { id: 4, locked: false, selected: null, notes: '' },
+    { id: 5, locked: false, selected: null, notes: '' }
+  ],
+  pieSplit: 60
+};
+
+// ===== PHASES CONFIG =====
+const phases = [
+  {
+    id: 'spin-up',
+    title: 'spin up',
+    subtitle: 'warm-up',
+    duration: 5,
+    type: 'warmup',
+    ambient: 'linear-gradient(135deg, rgba(255,235,210,0.6) 0%, rgba(213,210,255,0.4) 50%, rgba(210,253,255,0.3) 100%)'
+  },
+  {
+    id: 'the-compass',
+    title: 'the compass',
+    subtitle: 'orient around the proposal',
+    duration: 8,
+    type: 'orient',
+    ambient: 'linear-gradient(135deg, rgba(213,210,255,0.5) 0%, rgba(210,253,255,0.4) 100%)'
+  },
+  {
+    id: 'decision-1',
+    title: 'go / no-go',
+    subtitle: 'decision 1 of 5 — the document',
+    duration: 7,
+    type: 'decision',
+    decisionIndex: 0,
+    ambient: 'linear-gradient(135deg, rgba(67,177,135,0.08) 0%, rgba(210,253,255,0.3) 100%)'
+  },
+  {
+    id: 'decision-2',
+    title: 'the name',
+    subtitle: 'decision 2 of 5 — brand identity',
+    duration: 8,
+    type: 'decision',
+    decisionIndex: 1,
+    ambient: 'linear-gradient(135deg, rgba(88,114,203,0.08) 0%, rgba(213,210,255,0.3) 100%)'
+  },
+  {
+    id: 'decision-3',
+    title: 'split the pie',
+    subtitle: 'decision 3 of 5 — revenue model',
+    duration: 8,
+    type: 'decision',
+    decisionIndex: 2,
+    ambient: 'linear-gradient(135deg, rgba(203,120,88,0.08) 0%, rgba(255,235,210,0.3) 100%)'
+  },
+  {
+    id: 'decision-4',
+    title: 'first target',
+    subtitle: 'decision 4 of 5 — who do we call?',
+    duration: 8,
+    type: 'decision',
+    decisionIndex: 3,
+    ambient: 'linear-gradient(135deg, rgba(88,114,203,0.08) 0%, rgba(67,177,135,0.1) 100%)'
+  },
+  {
+    id: 'decision-5',
+    title: 'the handshake',
+    subtitle: 'decision 5 of 5 — making it real',
+    duration: 8,
+    type: 'decision',
+    decisionIndex: 4,
+    ambient: 'linear-gradient(135deg, rgba(67,177,135,0.12) 0%, rgba(213,210,255,0.2) 100%)'
+  },
+  {
+    id: 'launch',
+    title: 'launch',
+    subtitle: 'review + commit + celebrate',
+    duration: 8,
+    type: 'close',
+    ambient: 'linear-gradient(135deg, rgba(67,177,135,0.15) 0%, rgba(88,114,203,0.1) 50%, rgba(255,235,210,0.2) 100%)'
+  }
+];
+
+// ===== DECISION DATA =====
+const decisionData = [
+  {
+    question: 'do we adopt this document as our shared scoping reference?',
+    context: 'the proposal covers internal alignment (part i), external value proposition (part ii), a four-package menu (part iii), and a business model with year-one revenue targets (part iv). it was drafted after our march 16, march 30, and april 8 sessions.',
+    challenge: { emoji: '👁', text: '60-second speed scan', sub: 'open the proposal doc — find one thing you\'d change or celebrate. share it.' },
+    options: ['yes, adopt as-is', 'adopt with edits (note below)', 'needs another pass', 'start fresh'],
+    notesPlaceholder: 'what edits or conditions?'
+  },
+  {
+    question: 'what do we call ourselves when we go to market together?',
+    context: 'options discussed: "winded play" as a shared product line, "w.v x press play" as a named partnership, or per-engagement co-branding depending on geography. the march 25 meeting flagged a "winded play" shared drive.',
+    challenge: { emoji: '🏷', text: 'the name storm', sub: '30 seconds — everyone type a name idea in the chat. wildest wins.' },
+    options: ['winded play', 'w.v x press play', 'per-engagement co-branding', 'something else (note below)'],
+    notesPlaceholder: 'alternative names or conditions on naming...'
+  },
+  {
+    question: 'how do we split revenue on joint engagements?',
+    context: 'straw-person from the proposal: 60/40 to the party leading delivery, with a flat 10% origination fee to whichever party sourced the lead. first three engagements are case-study discounted (up to 30%).',
+    challenge: { emoji: '🥧', text: 'split the pie', sub: 'use the slider below to show your gut-feel default split. discuss the differences.' },
+    options: ['60/40 lead delivery', '50/50 equal split', '70/30 + origination fee', 'case-by-case (note terms)'],
+    notesPlaceholder: 'exceptions, conditions, origination fee terms...',
+    hasPie: true
+  },
+  {
+    question: 'what\'s our first joint target?',
+    context: 'the proposal recommends the pedal conference (uk), using the simulator walk-through as the discovery meeting. other options: hotel legoland, bella center copenhagen, hummel team day, or a prme/un global compact event.',
+    challenge: { emoji: '🎯', text: 'bullseye', sub: 'everyone name your top pick out loud at the same time. see where you land.' },
+    options: ['pedal conference (uk)', 'hotel legoland / nordic hotel', 'bella center copenhagen', 'hummel team day', 'prme / un global compact', 'another target (note below)'],
+    notesPlaceholder: 'why this target? who makes first contact? by when?'
+  },
+  {
+    question: 'do we sign a lightweight mou for the first three engagements?',
+    context: 'the proposal suggests: whoever has the primary buyer relationship invoices and subcontracts the other. a lightweight mou or letter of intent covers the first 3 engagements while we formalise. the first 3 get case-study discounts.',
+    challenge: { emoji: '🤝', text: 'the handshake', sub: 'before we decide: stand up and literally shake hands (or wave on camera). deals start with trust.' },
+    options: ['yes, draft mou this week', 'yes, but i\'ll draft it', 'letter of intent only', 'verbal agreement for now', 'need legal review first'],
+    notesPlaceholder: 'who drafts? what terms? timeline?'
+  }
+];
+
+// ===== AUDIO =====
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playChime(freq = 528, dur = 0.8) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + dur);
+
+  // visual ripple
+  const r = document.createElement('div');
+  r.className = 'chime-ripple';
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 1500);
+}
+
+function playTransition() {
+  playChime(396, 0.6);
+  setTimeout(() => playChime(528, 0.8), 200);
+}
+
+function playLock() {
+  playChime(528, 0.4);
+  setTimeout(() => playChime(660, 0.5), 150);
+  setTimeout(() => playChime(792, 0.6), 300);
+}
+
+// ===== TIMER =====
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function formatGlobalTime(ms) {
+  const total = Math.floor(ms / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function startGlobalTimer() {
+  if (state.globalStartTime) return;
+  state.globalStartTime = Date.now();
+  state.globalInterval = setInterval(() => {
+    const elapsed = Date.now() - state.globalStartTime;
+    document.getElementById('globalTimer').textContent = formatGlobalTime(elapsed);
+  }, 1000);
+}
+
+function createPhaseTimer(phaseIndex) {
+  const phase = phases[phaseIndex];
+  const totalSec = phase.duration * 60;
+  let remaining = totalSec;
+  let running = false;
+  let interval = null;
+
+  const display = document.getElementById(`timer-${phaseIndex}`);
+  const startBtn = document.getElementById(`timer-start-${phaseIndex}`);
+  const resetBtn = document.getElementById(`timer-reset-${phaseIndex}`);
+
+  if (!display) return;
+
+  function update() {
+    display.textContent = formatTime(remaining);
+    display.className = 'timer-display';
+    if (remaining <= 60 && remaining > 15) display.classList.add('warning');
+    if (remaining <= 15) display.classList.add('critical');
+
+    if (remaining <= 0) {
+      clearInterval(interval);
+      running = false;
+      startBtn.textContent = '▶';
+      playChime(396, 1.5);
+    }
+  }
+
+  startBtn.onclick = () => {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    startGlobalTimer();
+    if (running) {
+      clearInterval(interval);
+      running = false;
+      startBtn.textContent = '▶';
+    } else {
+      interval = setInterval(() => { remaining--; update(); }, 1000);
+      running = true;
+      startBtn.textContent = '⏸';
+    }
+  };
+
+  resetBtn.onclick = () => {
+    clearInterval(interval);
+    running = false;
+    remaining = totalSec;
+    startBtn.textContent = '▶';
+    update();
+  };
+
+  update();
+  state.phaseTimers[phaseIndex] = { stop: () => { clearInterval(interval); running = false; } };
+}
+
+// ===== RENDER =====
+function renderPhaseNav() {
+  const nav = document.getElementById('phaseNav');
+  nav.innerHTML = phases.map((p, i) => {
+    let cls = 'phase-btn';
+    if (i === state.currentPhase) {
+      cls += ' active';
+      if (p.type === 'decision') cls += ' decision-phase';
+      if (p.type === 'close') cls += ' close-phase';
+    }
+    if (i < state.currentPhase) cls += ' completed';
+    return `<button class="${cls}" onclick="goToPhase(${i})">${p.title}</button>`;
+  }).join('');
+}
+
+function renderDecisionCounter() {
+  const counter = document.getElementById('decisionCounter');
+  counter.innerHTML = state.decisions.map(d =>
+    `<div class="decision-pip ${d.locked ? 'locked' : ''}"></div>`
+  ).join('');
+}
+
+function renderProgress() {
+  const pct = ((state.currentPhase + 1) / phases.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function setAmbient(phase) {
+  document.getElementById('ambient').style.background = phase.ambient;
+}
+
+function renderPhase(index) {
+  const phase = phases[index];
+  const main = document.getElementById('main');
+
+  let html = `<div class="phase active">`;
+  html += `<div class="phase-header">
+    <div class="phase-number">${phase.subtitle}</div>
+    <div class="phase-title">${phase.title}</div>
+    <div class="phase-duration">${phase.duration} minutes</div>
+  </div>`;
+
+  // Timer
+  html += `<div class="timer-container">
+    <button class="timer-btn" id="timer-start-${index}">▶</button>
+    <div class="timer-display" id="timer-${index}">${formatTime(phase.duration * 60)}</div>
+    <button class="timer-btn" id="timer-reset-${index}">↺</button>
+  </div>`;
+
+  // Phase-specific content
+  if (phase.type === 'warmup') {
+    html += renderWarmup();
+  } else if (phase.type === 'orient') {
+    html += renderOrient();
+  } else if (phase.type === 'decision') {
+    html += renderDecision(phase.decisionIndex);
+  } else if (phase.type === 'close') {
+    html += renderClose();
+  }
+
+  // Next button
+  if (index < phases.length - 1) {
+    html += `<button class="next-btn" onclick="nextPhase()">next: ${phases[index + 1].title} →</button>`;
+  }
+
+  html += `</div>`;
+  main.innerHTML = html;
+
+  createPhaseTimer(index);
+  setAmbient(phase);
+
+  if (phase.type === 'decision' && phase.decisionIndex !== undefined) {
+    setupDecisionInteractions(phase.decisionIndex);
+  }
+  if (phase.type === 'decision' && decisionData[phase.decisionIndex]?.hasPie) {
+    setupPie();
+  }
+}
+
+function renderWarmup() {
+  return `
+    <div class="prompt-card card">
+      <p>two truths and a conference disaster</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">how to play</div>
+      <h3>each person shares three conference moments</h3>
+      <p>two are real things you witnessed at actual conferences. one is invented. everyone else guesses which is the lie.</p>
+      <p style="margin-top:12px;">this sets the tone — we're here because conferences are broken, and we've all felt it.</p>
+    </div>
+
+    <div class="icebreaker-grid">
+      <div class="icebreaker-card" onclick="this.style.borderColor='var(--teal)'">
+        <div class="ic-emoji">🎤</div>
+        <div class="ic-text">garrett goes first</div>
+      </div>
+      <div class="icebreaker-card" onclick="this.style.borderColor='var(--teal)'">
+        <div class="ic-emoji">🧊</div>
+        <div class="ic-text">casper goes first</div>
+      </div>
+      <div class="icebreaker-card" onclick="this.style.borderColor='var(--teal)'">
+        <div class="ic-emoji">🎲</div>
+        <div class="ic-text">random pick</div>
+      </div>
+      <div class="icebreaker-card" onclick="this.style.borderColor='var(--teal)'">
+        <div class="ic-emoji">🌀</div>
+        <div class="ic-text">youngest goes first</div>
+      </div>
+    </div>
+
+    <div class="card" style="text-align:center; background: rgba(213,210,255,0.15);">
+      <p style="font-size:13px;">remember: "play is a low-stakes opportunity for practising a high-stakes task" — casper, march 16</p>
+    </div>
+  `;
+}
+
+function renderOrient() {
+  return `
+    <div class="prompt-card card">
+      <p>five decisions to make today.<br>let's see the map.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">the proposal</div>
+      <h3>w.v x press play — conference redesign, interventions & the pedal simulator</h3>
+      <p>garrett drafted this after our april 8 session and shared it with casper and jan. it has four parts:</p>
+      <ul>
+        <li><strong>part i</strong> — internal alignment: who brings what, open questions</li>
+        <li><strong>part ii</strong> — external value proposition: the pitch to conference hosts</li>
+        <li><strong>part iii</strong> — package menu: four tiers from $8k to $400k/year</li>
+        <li><strong>part iv</strong> — business model, go-to-market, year-one revenue ladder</li>
+      </ul>
+      <p style="margin-top:12px;"><a href="https://docs.google.com/document/d/16I5oxeTmExQFJp1wu2jEhNP2gKoytZQ1_Jc5DvqMGWE/edit" target="_blank" style="color:var(--periwinkle); text-decoration:underline;">open the proposal doc →</a></p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">the five decisions</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        ${decisionData.map((d, i) => `
+          <div style="padding:12px 14px; border-radius:8px; border:1px solid var(--lavender); font-size:13px; line-height:1.4;">
+            <span style="color:var(--teal); font-weight:600;">${i+1}.</span> ${d.question}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="background: rgba(213,210,255,0.1);">
+      <div class="card-label">the arc so far</div>
+      <p><strong>march 16</strong> — first introductions. reframed play as psychological safety. conference takeovers identified. "starter kit" concept born.</p>
+      <p style="margin-top:8px;"><strong>march 30</strong> — crm demos, campaign strategy, pedal simulator walkthrough. scaling conversations started.</p>
+      <p style="margin-top:8px;"><strong>april 8</strong> — campaign results (78% open rate, 1 click). package tiers sketched. shared drive created. "april 22 is decision day."</p>
+      <p style="margin-top:12px; font-weight:500; color:var(--navy);">today: we stop talking about what we might do. we decide.</p>
+    </div>
+  `;
+}
+
+function renderDecision(dIndex) {
+  const d = decisionData[dIndex];
+  const s = state.decisions[dIndex];
+
+  let html = `
+    <div class="micro-challenge">
+      <div class="emoji">${d.challenge.emoji}</div>
+      <div class="challenge-text">${d.challenge.text}</div>
+      <div class="challenge-sub">${d.challenge.sub}</div>
+    </div>
+
+    <div class="context-card card">
+      <div class="card-label">context from the proposal</div>
+      <p>${d.context}</p>
+    </div>
+
+    <div class="decision-card card ${s.locked ? 'locked' : ''}" id="decision-card-${dIndex}">
+      <div class="decision-question">${d.question}</div>
+
+      <div class="decision-options" id="options-${dIndex}">
+        ${d.options.map((opt, oi) => `
+          <div class="decision-option ${s.selected === oi ? 'selected' : ''}"
+               data-decision="${dIndex}" data-option="${oi}">
+            ${opt}
+          </div>
+        `).join('')}
+      </div>
+  `;
+
+  if (d.hasPie) {
+    html += `
+      <div class="pie-container">
+        <svg class="pie-svg" viewBox="0 0 100 100" id="pieSvg">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="var(--lavender)" stroke-width="10"/>
+          <circle cx="50" cy="50" r="45" fill="none" stroke="var(--teal)" stroke-width="10"
+                  stroke-dasharray="${state.pieSplit * 2.83} ${(100 - state.pieSplit) * 2.83}"
+                  stroke-dashoffset="70.75" id="pieArc"/>
+        </svg>
+        <div>
+          <input type="range" min="30" max="80" value="${state.pieSplit}" class="pie-slider" id="pieSlider">
+          <div class="pie-label" id="pieLabel">lead: ${state.pieSplit}% / support: ${100 - state.pieSplit}%</div>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `
+      <div style="margin-top:16px;">
+        <div class="card-label">notes / conditions</div>
+        <textarea class="notes-field" id="notes-${dIndex}" placeholder="${d.notesPlaceholder}">${s.notes}</textarea>
+      </div>
+
+      <button class="lock-btn ${s.locked ? 'is-locked' : ''}" id="lock-${dIndex}" onclick="toggleLock(${dIndex})">
+        ${s.locked ? '🔒 decision locked' : '🔓 lock this decision'}
+      </button>
+    </div>
+  `;
+
+  return html;
+}
+
+function renderClose() {
+  const lockedCount = state.decisions.filter(d => d.locked).length;
+
+  let html = `
+    <div class="launch-container" id="launchContainer">
+      <div class="launch-rocket" id="launchRocket">🚀</div>
+      <div class="launch-message" id="launchMessage">${lockedCount === 5 ? 'all systems go.' : `${lockedCount}/5 decisions locked`}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">decision summary</div>
+      <table class="summary-table">
+        <tr><th>#</th><th>decision</th><th>outcome</th><th>status</th></tr>
+        ${state.decisions.map((d, i) => {
+          const data = decisionData[i];
+          const outcome = d.locked ? (d.selected !== null ? data.options[d.selected] : 'see notes') : '—';
+          return `<tr>
+            <td style="color:var(--teal);font-weight:600;">${i+1}</td>
+            <td>${data.question.slice(0, 40)}...</td>
+            <td>${outcome}</td>
+            <td><span class="status-badge ${d.locked ? 'locked' : 'open'}">${d.locked ? 'locked' : 'open'}</span></td>
+          </tr>`;
+        }).join('')}
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-label">notes captured</div>
+      ${state.decisions.map((d, i) => {
+        if (!d.notes) return '';
+        return `<p style="margin:8px 0;"><strong style="color:var(--teal);">decision ${i+1}:</strong> ${d.notes}</p>`;
+      }).join('') || '<p style="color:var(--text-light);">no notes captured yet</p>'}
+    </div>
+
+    <div class="card">
+      <div class="card-label">next steps</div>
+      <textarea class="notes-field" id="next-steps-notes" placeholder="capture owners, deadlines, and commitments here..."></textarea>
+    </div>
+  `;
+
+  if (lockedCount === 5) {
+    html += `<button class="lock-btn" style="display:block;margin:24px auto;background:linear-gradient(135deg,var(--teal),var(--periwinkle));font-size:16px;padding:14px 40px;" onclick="triggerLaunch()">launch the partnership</button>`;
+  } else {
+    html += `<div style="text-align:center;margin-top:20px;color:var(--text-light);font-size:13px;">lock all 5 decisions to launch</div>`;
+  }
+
+  return html;
+}
+
+// ===== INTERACTIONS =====
+// Map option index to pie split for the revenue decision
+const optionPieSplits = { 0: 60, 1: 50, 2: 70, 3: null }; // null = no change (case-by-case)
+
+function updatePieChart(splitValue) {
+  if (splitValue === null) return;
+  state.pieSplit = splitValue;
+  const arc = document.getElementById('pieArc');
+  const slider = document.getElementById('pieSlider');
+  const label = document.getElementById('pieLabel');
+  if (arc) arc.setAttribute('stroke-dasharray', `${splitValue * 2.83} ${(100 - splitValue) * 2.83}`);
+  if (slider) slider.value = splitValue;
+  if (label) label.textContent = `lead: ${splitValue}% / support: ${100 - splitValue}%`;
+}
+
+function setupDecisionInteractions(dIndex) {
+  const d = decisionData[dIndex];
+
+  document.querySelectorAll(`[data-decision="${dIndex}"]`).forEach(el => {
+    el.onclick = () => {
+      if (state.decisions[dIndex].locked) return;
+      const oi = parseInt(el.dataset.option);
+      state.decisions[dIndex].selected = oi;
+      document.querySelectorAll(`[data-decision="${dIndex}"]`).forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+
+      // If this is the pie decision, update the chart
+      if (d.hasPie && optionPieSplits[oi] !== undefined) {
+        updatePieChart(optionPieSplits[oi]);
+      }
+    };
+  });
+
+  const notesEl = document.getElementById(`notes-${dIndex}`);
+  if (notesEl) {
+    notesEl.oninput = () => { state.decisions[dIndex].notes = notesEl.value; };
+  }
+}
+
+function setupPie() {
+  const slider = document.getElementById('pieSlider');
+  if (!slider) return;
+  slider.oninput = () => {
+    state.pieSplit = parseInt(slider.value);
+    const arc = document.getElementById('pieArc');
+    arc.setAttribute('stroke-dasharray', `${state.pieSplit * 2.83} ${(100 - state.pieSplit) * 2.83}`);
+    document.getElementById('pieLabel').textContent = `lead: ${state.pieSplit}% / support: ${100 - state.pieSplit}%`;
+  };
+}
+
+function toggleLock(dIndex) {
+  const d = state.decisions[dIndex];
+  d.locked = !d.locked;
+  if (d.locked) playLock();
+
+  renderDecisionCounter();
+
+  const card = document.getElementById(`decision-card-${dIndex}`);
+  const btn = document.getElementById(`lock-${dIndex}`);
+  if (d.locked) {
+    card.classList.add('locked');
+    btn.classList.add('is-locked');
+    btn.innerHTML = '🔒 decision locked';
+  } else {
+    card.classList.remove('locked');
+    btn.classList.remove('is-locked');
+    btn.innerHTML = '🔓 lock this decision';
+  }
+}
+
+function triggerLaunch() {
+  playChime(396, 0.5);
+  setTimeout(() => playChime(528, 0.5), 200);
+  setTimeout(() => playChime(660, 0.5), 400);
+  setTimeout(() => playChime(792, 0.8), 600);
+  setTimeout(() => playChime(1056, 1.2), 800);
+
+  const rocket = document.getElementById('launchRocket');
+  const msg = document.getElementById('launchMessage');
+  rocket.classList.add('launching');
+  msg.textContent = 'w.v x press play is live.';
+  msg.classList.add('visible');
+
+  document.getElementById('ambient').style.background =
+    'linear-gradient(135deg, rgba(67,177,135,0.2) 0%, rgba(88,114,203,0.15) 50%, rgba(255,235,210,0.2) 100%)';
+}
+
+// ===== NAVIGATION =====
+function goToPhase(index) {
+  // Stop current timer
+  if (state.phaseTimers[state.currentPhase]) {
+    state.phaseTimers[state.currentPhase].stop();
+  }
+
+  state.currentPhase = index;
+  if (index > 0) playTransition();
+
+  renderPhaseNav();
+  renderProgress();
+  renderPhase(index);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextPhase() {
+  if (state.currentPhase < phases.length - 1) {
+    goToPhase(state.currentPhase + 1);
+  }
+}
+
+// ===== INIT =====
+renderPhaseNav();
+renderDecisionCounter();
+renderProgress();
+renderPhase(0);
+</script>
+</body>
+</html>
