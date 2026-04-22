@@ -462,6 +462,17 @@ const nextConfig: NextConfig = {
         destination: "/harbour/vertigo-vault",
         permanent: true,
       },
+      // whirlpool tools — redirect clean URLs to static HTML in public/
+      {
+        source: "/tools/the-mashup",
+        destination: "/tools/the-mashup/index.html",
+        permanent: false,
+      },
+      {
+        source: "/tools/writers-room",
+        destination: "/tools/writers-room/index.html",
+        permanent: false,
+      },
       // conference experience — redirect to static HTML in public/
       {
         source: "/portfolio/assets/pedal-conference-experience",
