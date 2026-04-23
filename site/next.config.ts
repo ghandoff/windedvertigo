@@ -432,6 +432,16 @@ const nextConfig: NextConfig = {
           "https://values-auction-pi.vercel.app/harbour/values-auction/:path*",
       },
 
+      // three-intelligence-workbook — static HTML tool
+      {
+        source: "/harbour/three-intelligence-workbook",
+        destination: "/tools/three-intelligence-workbook/index.html",
+      },
+      {
+        source: "/harbour/three-intelligence-workbook/",
+        destination: "/tools/three-intelligence-workbook/index.html",
+      },
+
       // harbour hub (catch-all — must be last)
       {
         source: "/harbour",
@@ -534,7 +544,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://unpkg.com",
+              "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://unpkg.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",

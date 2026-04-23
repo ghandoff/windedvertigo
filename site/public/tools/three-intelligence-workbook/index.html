@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="three intelligences — a self-assessment and practice workbook for business students, PPCS session 2B">
+  <title>the three intelligences</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-family: 'Inter', sans-serif; }
+    body { font-family: 'Inter', sans-serif; color: #273248; margin: 0; }
+
+    /* — rating pills — */
+    .pill {
+      width: 2.5rem; height: 2.5rem;
+      border-radius: 9999px;
+      border: 1.5px solid #273248;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.875rem; font-weight: 400;
+      cursor: pointer;
+      background: white; color: #273248;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .pill:hover { background: #273248; color: white; }
+    .pill.on    { background: #273248; color: white; }
+    .pill:focus-visible { outline: 2px solid #b15043; outline-offset: 2px; }
+
+    /* — buttons — */
+    .btn-p {
+      display: inline-block; padding: 0.75rem 2rem;
+      background: #b15043; color: white;
+      border: none; border-radius: 4px;
+      font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 700;
+      letter-spacing: 0.06em; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-p:hover:not(:disabled) { background: #95382e; }
+    .btn-p:disabled { background: #c4b8b6; cursor: not-allowed; }
+    .btn-p:focus-visible { outline: 2px solid #ffebd2; outline-offset: 2px; }
+
+    .btn-s {
+      display: inline-block; padding: 0.75rem 2rem;
+      background: transparent; color: #273248;
+      border: 1.5px solid #273248; border-radius: 4px;
+      font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 400;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-s:hover { background: rgba(39,50,72,0.06); }
+    .btn-s:focus-visible { outline: 2px solid #b15043; outline-offset: 2px; }
+
+    /* — practice cards — */
+    .p-card {
+      background: white; border: 1.5px solid #e5e7eb; border-radius: 6px;
+      padding: 1rem 1.25rem; display: flex; align-items: flex-start; gap: 0.75rem;
+      transition: border-color 0.15s; margin-bottom: 0.625rem;
+    }
+    .p-card:hover  { border-color: #273248; }
+    .p-card.done   { opacity: 0.6; }
+
+    .p-check {
+      width: 1.25rem; height: 1.25rem; min-width: 1.25rem;
+      border: 1.5px solid #273248; border-radius: 3px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      margin-top: 2px; font-size: 0.75rem;
+      transition: background 0.15s, color 0.15s;
+      background: white; color: transparent;
+    }
+    .p-check.on { background: #273248; color: white; }
+    .p-check:focus-visible { outline: 2px solid #b15043; outline-offset: 2px; }
+
+    /* — evidence toggle — */
+    .ev-toggle {
+      display: inline-flex; align-items: center; gap: 0.25rem;
+      font-size: 0.6875rem; cursor: pointer;
+      color: #273248; opacity: 0.38;
+      background: none; border: none;
+      font-family: 'Inter', sans-serif;
+      padding: 0; margin-top: 0.5rem;
+      transition: opacity 0.15s;
+      list-style: none;
+    }
+    .ev-toggle::-webkit-details-marker { display: none; }
+    .ev-toggle:hover { opacity: 0.65; }
+    details[open] .ev-toggle { opacity: 0.65; }
+
+    /* — badges — */
+    .b-c { background: #d2fdff; color: #273248; }
+    .b-e { background: #ffebd2; color: #273248; border: 1px solid #e5d5c0; }
+    .b-l { background: #d5d2ff; color: #273248; }
+
+    /* — subskill tag — */
+    .sk-tag {
+      font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #273248; opacity: 0.38;
+      margin-bottom: 0.875rem; margin-top: 1.75rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .sk-tag:first-child { margin-top: 0; }
+    .sk-score {
+      font-weight: 400; opacity: 1;
+      font-size: 0.6875rem; color: #273248; opacity: 0.45;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* — progress bar — */
+    .prog-track { height: 3px; background: rgba(39,50,72,0.15); border-radius: 9999px; overflow: hidden; }
+    .prog-fill  { height: 100%; background: #b15043; border-radius: 9999px; transition: width 0.3s ease; }
+
+    /* — filter chips — */
+    .chip {
+      padding: 0.3rem 0.875rem;
+      border: 1.5px solid #273248; border-radius: 9999px;
+      font-size: 0.75rem; font-family: 'Inter', sans-serif;
+      cursor: pointer; background: white; color: #273248;
+      transition: background 0.15s, color 0.15s;
+    }
+    .chip.on { background: #273248; color: white; }
+    .chip:focus-visible { outline: 2px solid #b15043; outline-offset: 2px; }
+
+    /* — welcome banner — */
+    #wb {
+      position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+      z-index: 100; background: #273248; color: white;
+      padding: 0.625rem 1.25rem; border-radius: 4px;
+      font-size: 0.8125rem; display: none;
+      align-items: center; gap: 0.75rem;
+      white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .wb-x {
+      background: none; border: none; color: white; cursor: pointer;
+      font-size: 1.125rem; line-height: 1; opacity: 0.6;
+      font-family: 'Inter', sans-serif; padding: 0;
+    }
+    .wb-x:hover { opacity: 1; }
+
+    /* — radar — */
+    .radar-wrap { max-width: 480px; width: 100%; margin: 0 auto; }
+
+    /* — print — */
+    @media print {
+      #s1, #s3, #s5, #s6, #s7, #wb, .no-print { display: none !important; }
+      body { font-size: 11pt; color: #000; }
+      #s4 { background: #fff !important; padding: 2rem 3rem !important; }
+      .p-card {
+        border: 1px solid #ccc !important; break-inside: avoid;
+        margin-bottom: 6pt; padding: 8pt 10pt;
+      }
+      h2 { font-size: 18pt; margin-bottom: 8pt; }
+      h3, h4 { font-size: 11pt; }
+      .print-header { display: block !important; }
+      details { display: none; }
+    }
+    .print-header { display: none; }
+
+    /* — misc — */
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    @media (max-width: 400px) {
+      .pill { width: 2.125rem; height: 2.125rem; font-size: 0.8125rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- welcome-back banner -->
+<div id="wb" role="status" aria-live="polite">
+  <span>continue where you left off</span>
+  <button class="wb-x" onclick="dismissWb()" aria-label="dismiss">×</button>
+</div>
+
+<!-- print-only header (shown in print only) -->
+<div class="print-header" style="padding:2rem 3rem 1rem;">
+  <h1 style="font-size:22pt;font-weight:700;color:#273248;margin-bottom:4pt;">the three intelligences</h1>
+  <p style="font-size:10pt;color:#555;margin-bottom:2rem;">my practice plan — PPCS session 2B · winded.vertigo, 2026</p>
+</div>
+
+<!-- ═══════════════════════════════════════
+     S1  HERO — dark ground
+════════════════════════════════════════ -->
+<section id="s1" style="background:#273248;color:white;min-height:100svh;"
+         class="flex flex-col items-center justify-center px-6 py-24">
+  <div class="max-w-xl w-full text-center">
+    <p class="text-xs tracking-widest uppercase mb-8"
+       style="color:#ffebd2;opacity:0.55;letter-spacing:0.15em;">PPCS — session 2B</p>
+    <h1 class="font-bold mb-4 leading-tight"
+        style="font-size:clamp(2.5rem,8vw,4rem);color:#ffebd2;">
+      the three<br>intelligences
+    </h1>
+    <p class="mb-10" style="font-weight:300;font-size:1.125rem;opacity:0.8;">
+      a self-assessment and practice workbook
+    </p>
+    <p class="mb-12 leading-relaxed max-w-md mx-auto"
+       style="font-weight:300;font-size:1rem;opacity:0.85;line-height:1.8;">
+      three intelligences quietly shape how well you lead, decide, and work with
+      others in business. most courses train one of them and assume the other two.
+      this workbook is a way to see which you already have strong, which you're
+      still building, and what to practise day-to-day to grow the ones that are
+      thinner.
+    </p>
+    <button class="btn-p" onclick="go('s2')"
+            style="letter-spacing:0.1em;" aria-label="begin the self-assessment">begin</button>
+    <p class="mt-10 text-xs" style="opacity:0.32;">
+      no one sees your answers unless you want them to.
+    </p>
+    <p class="mt-4 no-print">
+      <button onclick="openRestoreModal()"
+              style="background:none;border:none;cursor:pointer;color:white;opacity:0.38;
+                     font-size:0.75rem;font-family:Inter,sans-serif;text-decoration:underline;
+                     transition:opacity 0.15s;"
+              onmouseover="this.style.opacity='0.75'"
+              onmouseout="this.style.opacity='0.38'">have a restore link?</button>
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     S2  SELF-ASSESSMENT — champagne ground
+════════════════════════════════════════ -->
+<section id="s2" style="background:#ffebd2;" class="py-20 px-6">
+  <div class="max-w-2xl mx-auto">
+
+    <h2 class="font-bold mb-2" style="font-size:1.75rem;color:#273248;">rate yourself</h2>
+    <p class="mb-8" style="font-size:1rem;opacity:0.65;line-height:1.6;">
+      30 statements, 10 per intelligence. rate each 1 (not at all true of me) to 5 (strongly true of me).
+      go with your first instinct. this takes about 8 minutes.
+    </p>
+
+    <!-- progress -->
+    <div class="mb-10">
+      <div class="flex justify-between items-baseline mb-2">
+        <span id="prog-label" class="text-sm" style="opacity:0.55;">0 of 30 rated</span>
+        <span id="prog-pct"   class="text-xs" style="opacity:0.4;">0%</span>
+      </div>
+      <div class="prog-track"><div id="prog-fill" class="prog-fill" style="width:0"></div></div>
+    </div>
+
+    <!-- assessment container — built by JS -->
+    <div id="assessment-container"></div>
+
+    <div class="text-center pt-2">
+      <button id="shape-btn" class="btn-p" onclick="doReveal()" disabled
+              style="letter-spacing:0.08em;">see my shape</button>
+      <p id="shape-hint" class="mt-3 text-xs" style="opacity:0.4;">rate all 30 to continue</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     S3  SPIDER WEB REVEAL — white ground
+════════════════════════════════════════ -->
+<section id="s3" style="background:#ffffff;" class="py-20 px-6">
+  <div class="max-w-2xl mx-auto">
+    <h2 class="font-bold mb-2" style="font-size:1.75rem;color:#273248;">your spider web</h2>
+    <p class="mb-10" style="font-size:1rem;opacity:0.5;">
+      the shape of your three intelligences.
+    </p>
+
+    <div id="radar-placeholder" class="text-center py-16" style="opacity:0.38;">
+      <p style="font-size:1rem;">complete your ratings to see your shape.</p>
+    </div>
+
+    <div id="radar-live" style="display:none;">
+      <div class="radar-wrap mb-8">
+        <canvas id="rc" role="img"
+                aria-label="radar chart showing your nine subskill scores across the three intelligences"></canvas>
+      </div>
+
+      <!-- strongest / weakest -->
+      <div class="flex flex-col sm:flex-row gap-3 mb-8">
+        <div class="flex-1 px-5 py-4 rounded-md text-center" style="background:#ffebd2;">
+          <p class="text-xs uppercase tracking-widest mb-1"
+             style="opacity:0.5;letter-spacing:0.1em;">strongest</p>
+          <p id="lbl-strong" class="font-bold" style="font-size:0.9375rem;"></p>
+        </div>
+        <div class="flex-1 px-5 py-4 rounded-md text-center" style="background:#ffebd2;">
+          <p class="text-xs uppercase tracking-widest mb-1"
+             style="opacity:0.5;letter-spacing:0.1em;">growing</p>
+          <p id="lbl-weak" class="font-bold" style="font-size:0.9375rem;"></p>
+        </div>
+      </div>
+
+      <!-- web history legend -->
+      <div id="web-legend" class="mb-8" style="display:none;">
+        <p class="text-xs mb-2" style="opacity:0.45;letter-spacing:0.05em;">your webs</p>
+        <div id="web-legend-items" class="flex flex-wrap gap-4"></div>
+      </div>
+
+      <!-- share + save -->
+      <div class="mb-10 flex flex-col sm:flex-row gap-3 justify-center no-print">
+        <button onclick="openSaveModal()" class="btn-p" style="font-size:0.8125rem;">
+          save my progress
+        </button>
+        <button onclick="exportWeb()" class="btn-s" style="font-size:0.8125rem;">
+          share my web (without my ratings)
+        </button>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center no-print">
+        <button onclick="go('s4')" class="btn-p">see my practice plan</button>
+        <button onclick="openLibrary()" class="btn-s">explore all practices</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     S4  PRACTICE PLAN — champagne ground
+════════════════════════════════════════ -->
+<section id="s4" style="background:#ffebd2;" class="py-20 px-6">
+  <div class="max-w-2xl mx-auto">
+    <h2 class="font-bold mb-2" style="font-size:1.75rem;color:#273248;">your practice plan</h2>
+    <p class="mb-2" style="font-size:1rem;opacity:0.65;">
+      based on your two lowest-rated subskills.
+    </p>
+    <p class="mb-10 text-sm" style="opacity:0.5;">
+      the practices that feel slightly uncomfortable are the ones working. check the ones
+      you're trying this week.
+    </p>
+
+    <div id="plan-placeholder" class="text-center py-16" style="opacity:0.38;">
+      <p style="font-size:1rem;">complete your ratings to see your practice plan.</p>
+    </div>
+
+    <div id="plan-content" style="display:none;"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     S5  FULL LIBRARY — white ground
+════════════════════════════════════════ -->
+<section id="s5" style="background:#ffffff;" class="py-20 px-6">
+  <div class="max-w-2xl mx-auto">
+    <div class="flex items-baseline justify-between mb-6">
+      <h2 class="font-bold" style="font-size:1.75rem;color:#273248;">all practices</h2>
+      <button id="lib-toggle" onclick="toggleLib()" class="text-sm no-print"
+              style="opacity:0.5;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;"
+              aria-expanded="false" aria-controls="lib-inner">show all 36 ▾</button>
+    </div>
+
+    <div id="lib-inner" style="display:none;">
+      <div class="mb-6">
+        <div class="flex flex-wrap gap-2 mb-4" role="group" aria-label="filter practices by category">
+          <button class="chip on" onclick="setFilter('all',this)">all</button>
+          <button class="chip"    onclick="setFilter('personal',this)">personal</button>
+          <button class="chip"    onclick="setFilter('school',this)">school</button>
+          <button class="chip"    onclick="setFilter('creative',this)">creative</button>
+          <button class="chip"    onclick="setFilter('emotional',this)">emotional</button>
+          <button class="chip"    onclick="setFilter('collaboration',this)">collaboration</button>
+        </div>
+        <input
+          type="search" id="lib-search"
+          placeholder="search practices…"
+          oninput="doSearch(this.value)"
+          aria-label="search all practices"
+          style="width:100%;padding:0.625rem 1rem;border:1.5px solid #273248;border-radius:4px;
+                 font-size:0.875rem;font-family:Inter,sans-serif;outline:none;
+                 background:white;color:#273248;"
+        >
+      </div>
+      <div id="lib-content"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     S6  SEMESTER TRACKER — champagne ground
+════════════════════════════════════════ -->
+<section id="s6" style="background:#ffebd2;" class="py-20 px-6">
+  <div class="max-w-2xl mx-auto">
+    <h2 class="font-bold mb-2" style="font-size:1.75rem;color:#273248;">the semester arc</h2>
+    <p class="mb-10" style="font-size:1rem;opacity:0.65;">
+      how to use this workbook across fifteen weeks.
+    </p>
+
+    <div class="space-y-6 mb-10">
+      <div class="flex gap-6">
+        <div class="text-xs font-bold uppercase tracking-widest pt-1 shrink-0 w-24"
+             style="opacity:0.45;letter-spacing:0.08em;">week 1</div>
+        <p style="font-size:1rem;line-height:1.7;">
+          rate yourself. plot your web. identify your two weakest subskills.
+        </p>
+      </div>
+      <div class="flex gap-6">
+        <div class="text-xs font-bold uppercase tracking-widest pt-1 shrink-0 w-24"
+             style="opacity:0.45;letter-spacing:0.08em;">weeks 2–5</div>
+        <p style="font-size:1rem;line-height:1.7;">
+          pick two personal practices and two school practices from your two weakest subskills.
+          the practices that feel slightly uncomfortable are the ones working. track them in
+          a note on your phone — which ones you tried, which ones stuck.
+        </p>
+      </div>
+      <div class="flex gap-6">
+        <div class="text-xs font-bold uppercase tracking-widest pt-1 shrink-0 w-24"
+             style="opacity:0.45;letter-spacing:0.08em;">week 6</div>
+        <p style="font-size:1rem;line-height:1.7;">
+          mid-semester re-rate. plot a new web in a different colour. compare.
+        </p>
+      </div>
+      <div class="flex gap-6">
+        <div class="text-xs font-bold uppercase tracking-widest pt-1 shrink-0 w-24"
+             style="opacity:0.45;letter-spacing:0.08em;">weeks 7–14</div>
+        <p style="font-size:1rem;line-height:1.7;">
+          rotate practices. the ones that became habit are done — pick new ones. the ones
+          that didn't stick, drop them. replace with fresh ones.
+        </p>
+      </div>
+      <div class="flex gap-6">
+        <div class="text-xs font-bold uppercase tracking-widest pt-1 shrink-0 w-24"
+             style="opacity:0.45;letter-spacing:0.08em;">week 15</div>
+        <p style="font-size:1rem;line-height:1.7;">
+          final re-rate. plot your third web. note which subskills shifted and which didn't.
+          the ones that didn't may need a different kind of practice than this workbook
+          offers — talk to your professor, a counsellor, a peer.
+        </p>
+      </div>
+    </div>
+
+    <div class="rounded-md p-5 mb-12" style="background:white;border:1px solid #e5d5c0;">
+      <p style="font-size:0.9375rem;line-height:1.7;">
+        <strong>rule of thumb.</strong> one subskill moves noticeably in a semester. two if
+        you're disciplined. three means you weren't honest on the first rating.
+      </p>
+    </div>
+
+    <div class="text-center">
+      <p id="rerate-hint" class="mb-4 text-sm" style="opacity:0.55;"></p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center no-print">
+        <button id="rerate-btn" onclick="doRerate()" class="btn-p">re-rate yourself</button>
+        <button onclick="openSaveModal()" class="btn-s">save my progress</button>
+      </div>
+      <p id="web-count" class="mt-4 text-xs" style="opacity:0.4;"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     S7  CLOSE — dark ground
+════════════════════════════════════════ -->
+<section id="s7" style="background:#273248;color:white;" class="py-20 px-6">
+  <div class="max-w-2xl mx-auto">
+
+    <div class="mb-12">
+      <h2 class="font-bold mb-5" style="font-size:1.5rem;color:#ffebd2;">
+        why your professor gave you this
+      </h2>
+      <p class="leading-relaxed"
+         style="font-weight:300;font-size:1rem;opacity:0.85;line-height:1.85;">
+        if your professor shared this workbook with you, they chose it because they believe
+        these three intelligences belong in a business education — not as soft skills, but
+        as the infrastructure underneath every case you analyse, every team you join, every
+        decision you'll make as a future leader. some of the practices in here will feel
+        obvious. some will feel foreign. the ones that feel foreign are the ones you need most.
+      </p>
+    </div>
+
+    <div class="mb-12">
+      <p class="text-xs font-bold uppercase tracking-widest mb-5"
+         style="opacity:0.38;letter-spacing:0.1em;">consolidated sources</p>
+      <div class="space-y-3"
+           style="font-weight:300;font-size:0.875rem;opacity:0.65;line-height:1.85;">
+        <p>Brookfield, S. D., &amp; Preskill, S. (2016). <em>The discussion book: 50 great ways to get people talking.</em> Jossey-Bass.</p>
+        <p>Brooks, A. W., &amp; John, L. K. (2018). The surprising power of questions. <em>Harvard Business Review,</em> 96(3), 60–67.</p>
+        <p>Dunlosky, J., Rawson, K. A., Marsh, E. J., Nathan, M. J., &amp; Willingham, D. T. (2013). Improving students' learning with effective learning techniques. <em>Psychological Science in the Public Interest,</em> 14(1), 4–58.</p>
+        <p>Edmondson, A. (1999). Psychological safety and learning behavior in work teams. <em>Administrative Science Quarterly,</em> 44(2), 350–383.</p>
+        <p>Galinsky, A. D., Maddux, W. W., Gilin, D., &amp; White, J. B. (2008). Why it pays to get inside the head of your opponent: The differential effects of perspective taking and empathy in negotiations. <em>Psychological Science,</em> 19(4), 378–384.</p>
+        <p>Galinsky, A. D., &amp; Moskowitz, G. B. (2000). Perspective-taking: Decreasing stereotype expression, stereotype accessibility, and in-group favoritism. <em>Journal of Personality and Social Psychology,</em> 78(4), 708–724.</p>
+        <p>Gick, M. L., &amp; Holyoak, K. J. (1983). Schema induction and analogical transfer. <em>Cognitive Psychology,</em> 15(1), 1–38.</p>
+        <p>Gollwitzer, P. M., &amp; Sheeran, P. (2006). Implementation intentions and goal achievement: A meta-analysis of effects and processes. <em>Advances in Experimental Social Psychology,</em> 38, 69–119.</p>
+        <p>Gross, J. J. (1998). Antecedent- and response-focused emotion regulation: Divergent consequences for experience, expression, and physiology. <em>Journal of Personality and Social Psychology,</em> 74(1), 224–237.</p>
+        <p>Herzog, S. M., &amp; Hertwig, R. (2009). The wisdom of many in one mind: Improving individual judgments with dialectical bootstrapping. <em>Psychological Science,</em> 20(2), 231–237.</p>
+        <p>Kahan, D. M. (2013). Ideology, motivated reasoning, and cognitive reflection. <em>Judgment and Decision Making,</em> 8(4), 407–424.</p>
+        <p>Kashdan, T. B., Barrett, L. F., &amp; McKnight, P. E. (2015). Unpacking emotion differentiation: Transforming unpleasant experience by perceiving distinctions in negativity. <em>Current Directions in Psychological Science,</em> 24(1), 10–16.</p>
+        <p>Kross, E., &amp; Ayduk, O. (2011). Making meaning out of negative experiences by self-distancing. <em>Current Directions in Psychological Science,</em> 20(3), 187–191.</p>
+        <p>Leary, M. R., Diebels, K. J., Davisson, E. K., Jongman-Sereno, K. P., Isherwood, J. C., Raimi, K. T., Deffler, S. A., &amp; Hoyle, R. H. (2017). Cognitive and interpersonal features of intellectual humility. <em>Personality and Social Psychology Bulletin,</em> 43(6), 793–813.</p>
+        <p>Lieberman, M. D., Eisenberger, N. I., Crockett, M. J., Tom, S. M., Pfeifer, J. H., &amp; Way, B. M. (2007). Putting feelings into words: Affect labeling disrupts amygdala activity in response to affective stimuli. <em>Psychological Science,</em> 18(5), 421–428.</p>
+        <p>Lord, C. G., Lepper, M. R., &amp; Preston, E. (1984). Considering the opposite: A corrective strategy for social judgment. <em>Journal of Personality and Social Psychology,</em> 47(6), 1231–1243.</p>
+        <p>Markman, K. D., Lindberg, M. J., Kray, L. J., &amp; Galinsky, A. D. (2007). Implications of counterfactual structure for creative generation and analytical problem solving. <em>Personality and Social Psychology Bulletin,</em> 33(3), 312–324.</p>
+        <p>Nemeth, C. J., Brown, K. S., &amp; Rogers, J. D. (2001). Devil's advocate versus authentic dissent: Stimulating quantity and quality. <em>European Journal of Social Psychology,</em> 31(6), 707–720.</p>
+        <p>Nemeth, C. J., Personnaz, B., Personnaz, M., &amp; Goncalo, J. A. (2004). The liberating role of conflict in group creativity: A study in two countries. <em>European Journal of Social Psychology,</em> 34(4), 365–374.</p>
+        <p>Nutt, P. C. (1993). The identification of solution ideas during organizational decision making. <em>Management Science,</em> 39(9), 1071–1085.</p>
+        <p>Page, S. E. (2017). <em>The diversity bonus: How great teams pay off in the knowledge economy.</em> Princeton University Press.</p>
+        <p>Pennebaker, J. W., &amp; Chung, C. K. (2011). Expressive writing: Connections to physical and mental health. In H. S. Friedman (Ed.), <em>The Oxford handbook of health psychology</em> (pp. 417–437). Oxford University Press.</p>
+        <p>Rogers, C. R., &amp; Farson, R. E. (1957). <em>Active listening.</em> Industrial Relations Center, University of Chicago.</p>
+        <p>Sio, U. N., &amp; Ormerod, T. C. (2009). Does incubation enhance problem solving? A meta-analytic review. <em>Psychological Bulletin,</em> 135(1), 94–120.</p>
+        <p>Uzzi, B., Mukherjee, S., Stringer, M., &amp; Jones, B. (2013). Atypical combinations and scientific impact. <em>Science,</em> 342(6157), 468–472.</p>
+        <p>Zaccaro, A., Piarulli, A., Laurino, M., Garbella, E., Menicucci, D., Neri, B., &amp; Gemignani, A. (2018). How breath-control can change your life: A systematic review on psycho-physiological correlates of slow breathing. <em>Frontiers in Human Neuroscience,</em> 12, 353.</p>
+        <p>Zenner, C., Herrnleben-Kurz, S., &amp; Walach, H. (2014). Mindfulness-based interventions in schools — a systematic review and meta-analysis. <em>Frontiers in Psychology,</em> 5, 603.</p>
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-8"
+         style="border-top:1px solid rgba(255,255,255,0.14);">
+      <p class="text-xs" style="opacity:0.32;">
+        developed for the PRME Pedagogy Certificate Series, Session 2B.
+        winded.vertigo, 2026.
+      </p>
+      <button onclick="doReset()" class="text-xs no-print"
+              style="opacity:0.28;background:none;border:none;cursor:pointer;color:white;
+                     font-family:Inter,sans-serif;transition:opacity 0.2s;"
+              onmouseover="this.style.opacity='0.7'"
+              onmouseout="this.style.opacity='0.28'">start over</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── SAVE MODAL ── -->
+<div id="save-modal" role="dialog" aria-modal="true" aria-labelledby="save-modal-title"
+     onclick="if(event.target===this)closeSaveModal()"
+     style="display:none;position:fixed;inset:0;background:rgba(39,50,72,0.72);z-index:300;
+            align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:white;border-radius:8px;padding:2rem;max-width:440px;width:100%;
+              max-height:90vh;overflow-y:auto;font-family:Inter,sans-serif;">
+    <h3 id="save-modal-title"
+        style="font-size:1.125rem;font-weight:700;color:#273248;margin:0 0 0.375rem;">
+      save your progress
+    </h3>
+    <p style="font-size:0.875rem;color:#273248;opacity:0.58;margin:0 0 1.5rem;line-height:1.65;">
+      enter your email — we'll send you a link. click it any time, on any device, and you'll land right back here.
+    </p>
+
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+      <input type="email" id="save-email" placeholder="your@email.com"
+             autocomplete="email"
+             style="flex:1;min-width:0;padding:0.625rem 0.875rem;
+                    border:1.5px solid #273248;border-radius:4px;
+                    font-size:0.875rem;font-family:Inter,sans-serif;
+                    outline:none;color:#273248;"
+             onkeydown="if(event.key==='Enter')doEmailSave()"
+             aria-label="your email address" />
+      <button onclick="doEmailSave()" id="send-link-btn"
+              style="background:#b15043;color:white;border:none;border-radius:4px;
+                     padding:0.625rem 1.125rem;font-size:0.8125rem;font-weight:700;
+                     cursor:pointer;font-family:Inter,sans-serif;white-space:nowrap;
+                     transition:background 0.15s;"
+              onmouseover="this.style.background='#95382e'"
+              onmouseout="this.style.background='#b15043'">send link</button>
+    </div>
+
+    <p id="save-sent-msg"
+       style="display:none;font-size:0.8125rem;color:#273248;opacity:0.65;
+              margin-bottom:1rem;line-height:1.6;">
+      ✓ your email client should have opened with a ready-to-send message. if not, copy the link below.
+    </p>
+
+    <!-- collapsible fallback -->
+    <details style="margin-top:0.5rem;">
+      <summary style="font-size:0.75rem;color:#273248;opacity:0.4;cursor:pointer;
+                      list-style:none;font-family:Inter,sans-serif;transition:opacity 0.15s;"
+               onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='0.4'">
+        or copy the link manually ▸
+      </summary>
+      <div style="margin-top:0.75rem;position:relative;">
+        <input id="save-link-box" readonly type="text"
+          style="width:100%;padding:0.625rem 3.5rem 0.625rem 0.875rem;
+                 border:1.5px solid #e5e7eb;border-radius:4px;
+                 font-size:0.6875rem;font-family:monospace;
+                 color:#273248;background:#f8f7f5;"
+          aria-label="your restore link" />
+        <button onclick="copyLink()" id="copy-link-btn"
+                style="position:absolute;top:50%;right:0.5rem;transform:translateY(-50%);
+                       background:#273248;color:white;border:none;border-radius:3px;
+                       font-size:0.6875rem;padding:0.25rem 0.625rem;cursor:pointer;
+                       font-family:Inter,sans-serif;letter-spacing:0.04em;">copy</button>
+      </div>
+    </details>
+
+    <div style="display:flex;justify-content:flex-end;border-top:1px solid #e5e7eb;
+                padding-top:1rem;margin-top:1.25rem;">
+      <button onclick="closeSaveModal()"
+              style="background:none;border:none;cursor:pointer;font-size:0.8125rem;
+                     opacity:0.45;font-family:Inter,sans-serif;color:#273248;">close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESTORE MODAL (manual fallback) ── -->
+<div id="restore-modal" role="dialog" aria-modal="true" aria-labelledby="restore-modal-title"
+     onclick="if(event.target===this)closeRestoreModal()"
+     style="display:none;position:fixed;inset:0;background:rgba(39,50,72,0.72);z-index:300;
+            align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:white;border-radius:8px;padding:2rem;max-width:440px;width:100%;
+              font-family:Inter,sans-serif;">
+    <h3 id="restore-modal-title"
+        style="font-size:1.125rem;font-weight:700;color:#273248;margin:0 0 0.375rem;">
+      paste your restore link
+    </h3>
+    <p style="font-size:0.875rem;color:#273248;opacity:0.58;margin:0 0 1.25rem;line-height:1.65;">
+      paste the link from your save email below. the link starts with <em>http</em>.
+    </p>
+    <input type="text" id="restore-code-input"
+      placeholder="paste your restore link here…"
+      style="width:100%;padding:0.625rem 0.875rem;border:1.5px solid #273248;border-radius:4px;
+             font-size:0.8125rem;font-family:Inter,sans-serif;color:#273248;
+             margin-bottom:0.75rem;outline:none;"
+      aria-label="paste your restore link"
+      onkeydown="if(event.key==='Enter')doRestoreLink()" />
+    <p id="restore-error"
+       style="display:none;color:#b15043;font-size:0.8125rem;margin-bottom:0.75rem;line-height:1.5;">
+      that link doesn't look right — please check and try again.
+    </p>
+    <div style="display:flex;justify-content:flex-end;gap:0.75rem;">
+      <button onclick="closeRestoreModal()"
+              style="background:none;border:none;cursor:pointer;font-size:0.8125rem;
+                     opacity:0.45;font-family:Inter,sans-serif;color:#273248;">cancel</button>
+      <button onclick="doRestoreLink()"
+              style="background:#b15043;color:white;border:none;border-radius:4px;
+                     padding:0.625rem 1.25rem;font-size:0.8125rem;font-weight:700;
+                     cursor:pointer;font-family:Inter,sans-serif;transition:background 0.15s;"
+              onmouseover="this.style.background='#95382e'"
+              onmouseout="this.style.background='#b15043'">restore</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── AUTO-RESTORE TOAST ── -->
+<div id="restore-toast"
+     style="display:none;position:fixed;inset:0;background:rgba(39,50,72,0.72);z-index:300;
+            align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:white;border-radius:8px;padding:2rem;max-width:380px;width:100%;
+              font-family:Inter,sans-serif;text-align:center;">
+    <p style="font-size:2rem;margin:0 0 0.75rem;">✓</p>
+    <h3 style="font-size:1.125rem;font-weight:700;color:#273248;margin:0 0 0.5rem;">
+      progress restored
+    </h3>
+    <p style="font-size:0.875rem;color:#273248;opacity:0.58;margin:0 0 1.5rem;line-height:1.65;">
+      you're right back where you left off.
+    </p>
+    <button onclick="dismissRestoreToast()"
+            style="background:#273248;color:white;border:none;border-radius:4px;
+                   padding:0.625rem 1.75rem;font-size:0.8125rem;font-weight:700;
+                   cursor:pointer;font-family:Inter,sans-serif;">continue</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  DATA — AXES (9 subskills, 3 per intelligence)
+// ════════════════════════════════════════
+
+const AXES = [
+  { label:'divergent thinking',   intel:'creative',      questions:[0,1,2] },
+  { label:'ambiguity tolerance',  intel:'creative',      questions:[3,4,5] },
+  { label:'reframing',            intel:'creative',      questions:[6,7,8,9] },
+  { label:'self-awareness',       intel:'emotional',     questions:[10,11,12] },
+  { label:'self-regulation',      intel:'emotional',     questions:[13,14,15] },
+  { label:'empathy',              intel:'emotional',     questions:[16,17,18,19] },
+  { label:'active listening',     intel:'collaboration', questions:[20,21,22] },
+  { label:'being persuadable',    intel:'collaboration', questions:[23,24,25] },
+  { label:'productive challenge', intel:'collaboration', questions:[26,27,28,29] },
+];
+
+// ════════════════════════════════════════
+//  DATA — 30 QUESTIONS (0-indexed)
+// ════════════════════════════════════════
+
+const QUESTIONS = [
+  // creative — divergent thinking [0,1,2]
+  "when I face a problem, I usually come up with more than one way to solve it.",
+  "when I'm asked for my opinion, I often offer more than one angle on it.",
+  "in a group discussion, I'm comfortable proposing an idea that might be rejected.",
+  // creative — ambiguity tolerance [3,4,5]
+  "I'm comfortable not knowing the answer right away.",
+  "when a question doesn't have a clear answer, I can sit with it rather than rushing to decide.",
+  "I can keep working on a problem even when I'm unsure I'm on the right track.",
+  // creative — reframing [6,7,8,9]
+  "when I'm stuck, I can look at the same problem from a completely different angle.",
+  "I actively look for analogies from other contexts to solve problems in front of me.",
+  "when a plan fails, I can usually see what the failure teaches me.",
+  "I can identify when a question is actually about something else than it first appears.",
+  // emotional — self-awareness [10,11,12]
+  "I can name what I'm feeling when I feel it — not hours later.",
+  "I know what tends to trigger strong reactions in me.",
+  "I notice when my mood is affecting how I'm thinking about something.",
+  // emotional — self-regulation [13,14,15]
+  "when I'm stressed, I can still think clearly.",
+  "when something bothers me, I can respond rather than react.",
+  "I can focus on a task even when I'm in a bad mood.",
+  // emotional — empathy [16,17,18,19]
+  "I can usually tell when someone is upset even if they haven't said so.",
+  "I can read the mood of a room when I walk into it.",
+  "I can imagine how a situation looks from someone else's perspective, even when I disagree with them.",
+  "when a conversation gets tense, I can sense what the other person is worried about underneath.",
+  // collaboration — active listening [20,21,22]
+  "I listen to views I disagree with with real curiosity, not just to respond.",
+  "I can accurately summarise someone else's argument back to them, even if I disagree.",
+  "when someone is talking, I'm usually focused on them, not on what I'll say next.",
+  // collaboration — being persuadable [23,24,25]
+  "I've changed my mind because a peer's argument was better than mine.",
+  "I can identify in advance what would change my mind on something I believe strongly.",
+  "I can distinguish between my position and my ego — and let the position go.",
+  // collaboration — productive challenge [26,27,28,29]
+  "I can disagree with someone without making it personal.",
+  "I can push back on an idea without attacking the person who proposed it.",
+  "I stay engaged in a discussion even when I'm losing the argument.",
+  "when I think a group is too quick to agree, I'm comfortable raising a dissenting view.",
+];
+
+// ════════════════════════════════════════
+//  DATA — PRACTICES (36 total, with evidence)
+// ════════════════════════════════════════
+
+const P = {
+  creative: {
+    personal: [
+      { id:'cp1', intel:'creative', cat:'personal', name:'the three-options rule',
+        text:'for any small decision today — what to eat, what to watch, how to spend 30 min — list three options before choosing. not two. three.',
+        evidence:'Nutt (1993) studied 168 organisational decisions and found that those developed with multiple alternatives succeeded at roughly twice the rate of those where a single alternative was pursued. <em>Management Science,</em> 39(9), 1071–1085.' },
+      { id:'cp2', intel:'creative', cat:'personal', name:'two-answer habit',
+        text:'when someone asks your opinion, give two. <em>I could see it going this way or that way.</em>',
+        evidence:'Herzog &amp; Hertwig (2009) found that generating a second, deliberately different estimate and averaging it with the first improved accuracy in about three-quarters of participants. <em>Psychological Science,</em> 20(2), 231–237.' },
+      { id:'cp3', intel:'creative', cat:'personal', name:'the 24-hour rule',
+        text:'before making any non-urgent decision, wait 24 hours. note what your first instinct was and whether it changed.',
+        evidence:'Sio &amp; Ormerod (2009) meta-analysed 117 studies and found a positive incubation effect on problem solving, with divergent-thinking tasks benefiting most. <em>Psychological Bulletin,</em> 135(1), 94–120.' },
+      { id:'cp4', intel:'creative', cat:'personal', name:'borrowed-lens practice',
+        text:'pick one person whose thinking you admire — how would they approach the problem you\'re stuck on?',
+        evidence:'Galinsky &amp; Moskowitz (2000) found that actively adopting another person\'s perspective shifts cognitive processing and surfaces ideas the default frame suppresses. <em>Journal of Personality and Social Psychology,</em> 78(4), 708–724.' },
+      { id:'cp5', intel:'creative', cat:'personal', name:'cross-domain reading',
+        text:'one article or chapter per week from a field you know nothing about. no purpose beyond exposure.',
+        evidence:'Uzzi et al. (2013) analysed 17.9 million papers and found that the highest-impact work combines conventional expertise with atypical cross-domain references at nearly twice the rate of average work. <em>Science,</em> 342(6157), 468–472.' },
+      { id:'cp6', intel:'creative', cat:'personal', name:'the "what if" question',
+        text:'when you\'re stuck, ask: <em>what if the opposite were true? what if there were no budget? what if there were no deadline?</em>',
+        evidence:'Markman et al. (2007) found that additive counterfactual mindsets reliably improved creative generation performance. <em>Personality and Social Psychology Bulletin,</em> 33(3), 312–324.' },
+    ],
+    school: [
+      { id:'cs1', intel:'creative', cat:'school', name:'before-reading hook',
+        text:'open any case or reading with one question: <em>what\'s the non-obvious angle here?</em> write it before you read.',
+        evidence:'Dunlosky et al. (2013) found that elaborative interrogation — generating questions before or during reading — receives moderate-to-high support across learning-outcome studies. <em>Psychological Science in the Public Interest,</em> 14(1), 4–58.' },
+      { id:'cs2', intel:'creative', cat:'school', name:'group-work rule',
+        text:'in any group discussion, propose at least two options, never one. make it your reputation.',
+        evidence:'Nutt (1993) found the same multiple-alternatives principle that predicts individual decision quality also predicts group decision quality in organisational field studies. <em>Management Science,</em> 39(9), 1071–1085.' },
+      { id:'cs3', intel:'creative', cat:'school', name:'before-convergence',
+        text:'when a group starts agreeing quickly, ask: <em>what are we missing?</em>',
+        evidence:'Nemeth et al. (2004) found that groups exposed to dissent generated more and more creative solutions than those in which consensus formed quickly, across studies in both the US and France. <em>European Journal of Social Psychology,</em> 34(4), 365–374.' },
+      { id:'cs4', intel:'creative', cat:'school', name:'steelman the wrong answer',
+        text:'for every case, write a one-paragraph argument for the option you don\'t think is right. notice what it makes visible.',
+        evidence:'Lord et al. (1984) found that instructing people to consider the opposite of their current view reduced biased assimilation of evidence more effectively than instructions to be "fair and unbiased." <em>Journal of Personality and Social Psychology,</em> 47(6), 1231–1243.' },
+      { id:'cs5', intel:'creative', cat:'school', name:'the three-angle case brief',
+        text:'when you brief a case, write three different openings — <em>this is a strategy problem · this is a people problem · this is a finance problem.</em> pick the strongest.',
+        evidence:'Gick &amp; Holyoak (1983) found that exposure to multiple analogical framings of a problem produced substantially better transfer to novel problems than single-framing exposure. <em>Cognitive Psychology,</em> 15(1), 1–38.' },
+      { id:'cs6', intel:'creative', cat:'school', name:"devil's advocate rotation",
+        text:'in your study group, rotate who plays devil\'s advocate each session. make it structural, not personal.',
+        evidence:'Nemeth et al. (2001) found that role-based dissent structures generate more and more creative solutions than nominal-group or consensus-seeking groups. <em>European Journal of Social Psychology,</em> 31(6), 707–720.' },
+    ],
+  },
+  emotional: {
+    personal: [
+      { id:'ep1', intel:'emotional', cat:'personal', name:'weather check, 3× a day',
+        text:'phone alarms at 11am, 3pm, 8pm. at each alarm, pause 30 seconds: <em>what am I feeling right now — in one word?</em> no analysis, just name.',
+        evidence:'Kashdan et al. (2015) found that people high in emotional granularity — who can name their emotions precisely — show less maladaptive coping, less aggression, and less severe anxiety. <em>Current Directions in Psychological Science,</em> 24(1), 10–16.' },
+      { id:'ep2', intel:'emotional', cat:'personal', name:'one-word day log',
+        text:'before bed, write one word in your notes app for the day you just had. after a week, read them back.',
+        evidence:'Pennebaker &amp; Chung (2011) found that brief daily emotional writing, even one-word logs, improves psychological and physical health markers across 400+ studies. In <em>The Oxford handbook of health psychology</em> (pp. 417–437). Oxford University Press.' },
+      { id:'ep3', intel:'emotional', cat:'personal', name:'4-7-8 breathing',
+        text:'breathe in 4 sec, hold 7, out 8. three rounds before anything stressful.',
+        evidence:'Zaccaro et al. (2018) found that slow breathing (6 breaths/min or slower) increases heart rate variability and shifts the autonomic nervous system toward parasympathetic dominance, reducing physiological stress markers. <em>Frontiers in Human Neuroscience,</em> 12, 353.' },
+      { id:'ep4', intel:'emotional', cat:'personal', name:'the gap between trigger and action',
+        text:'when something bothers you, count to 10 before responding. notice how the intensity changes.',
+        evidence:'Gross (1998) found that regulating before the emotional response fully develops produces better physiological and behavioural outcomes than suppression after the fact. <em>Journal of Personality and Social Psychology,</em> 74(1), 224–237.' },
+      { id:'ep5', intel:'emotional', cat:'personal', name:'five-minute walk after a hard conversation',
+        text:'no phone. let the feeling move through you before you move to the next thing.',
+        evidence:'Kross &amp; Ayduk (2011) found that creating physical or temporal distance from a negative experience reduces rumination and emotional reactivity over the following week. <em>Current Directions in Psychological Science,</em> 20(3), 187–191.' },
+      { id:'ep6', intel:'emotional', cat:'personal', name:'the "this is temporary" note',
+        text:'when you feel a big emotion, write on paper: <em>this feeling will end.</em> it sounds trite; it helps.',
+        evidence:'Kross &amp; Ayduk (2011) found that temporal self-distancing — framing the feeling as something that will pass — reduces emotional reactivity. <em>Current Directions in Psychological Science,</em> 20(3), 187–191.' },
+    ],
+    school: [
+      { id:'es1', intel:'emotional', cat:'school', name:'pre-class 30-second check-in',
+        text:'before walking into a class you find difficult, pause: <em>what am I bringing to this room today?</em> one word.',
+        evidence:'Zenner et al. (2014) meta-analysed 24 studies (2,224 students) and found brief mindfulness check-ins produce a cognitive-performance effect size g = .80 in educational settings. <em>Frontiers in Psychology,</em> 5, 603.' },
+      { id:'es2', intel:'emotional', cat:'school', name:'write-before-respond',
+        text:'when you feel defensive in a class discussion, write the word for what you\'re feeling in your notebook before you respond.',
+        evidence:'Lieberman et al. (2007) found that naming an emotion in words reduces amygdala reactivity and increases prefrontal regulation; unnamed emotions amplify reactivity. <em>Psychological Science,</em> 18(5), 421–428.' },
+      { id:'es3', intel:'emotional', cat:'school', name:'cold-call breath',
+        text:'before you answer a cold-call, take one audible breath. it slows the room down; it slows you down.',
+        evidence:'Zaccaro et al. (2018) found that a single slow exhalation activates vagal parasympathetic response, reducing sympathetic-arousal markers in measurable timeframes. <em>Frontiers in Human Neuroscience,</em> 12, 353.' },
+      { id:'es4', intel:'emotional', cat:'school', name:'partner weather report',
+        text:'before starting a group project meeting, each person says one word about how they\'re arriving. no explanation required.',
+        evidence:'Edmondson (1999) found that brief emotional check-ins are one of the structured practices that build psychological safety; teams high in psychological safety outperform on learning and complex-task outcomes. <em>Administrative Science Quarterly,</em> 44(2), 350–383.' },
+      { id:'es5', intel:'emotional', cat:'school', name:'the private pre-feedback note',
+        text:'before giving feedback to a teammate, write a private note: <em>what do I want this person to feel as they read this?</em>',
+        evidence:'Galinsky et al. (2008) found that briefly adopting the recipient\'s perspective before a hard conversation produces better outcomes for both parties. <em>Psychological Science,</em> 19(4), 378–384.' },
+      { id:'es6', intel:'emotional', cat:'school', name:'the "what\'s the smallest thing" question',
+        text:'when you feel overwhelmed before an exam or deadline, ask: <em>what is the smallest thing I can do in 10 min?</em> then do it.',
+        evidence:'Gollwitzer &amp; Sheeran (2006) found that if-then plans specifying the smallest first action produce a medium-to-large effect on goal initiation (d = .65 across 94 studies). <em>Advances in Experimental Social Psychology,</em> 38, 69–119.' },
+    ],
+  },
+  collaboration: {
+    personal: [
+      { id:'lp1', intel:'collaboration', cat:'personal', name:'the rule of three',
+        text:'before you speak in any conversation, name three things the other person said.',
+        evidence:'Rogers &amp; Farson (1957) established that reflective summarisation back to the speaker is the core mechanism of active listening and produces measurable shifts in relational quality and understanding. <em>Active listening.</em> Industrial Relations Center, University of Chicago.' },
+      { id:'lp2', intel:'collaboration', cat:'personal', name:'one-source-per-week',
+        text:'read one article from a source you disagree with per week. engage with the strongest version of the argument, not the weakest.',
+        evidence:'Kahan (2013) found that exposure to well-reasoned opposing views, processed with cognitive reflection, reduces the polarising effects of identity-protective cognition. <em>Judgment and Decision Making,</em> 8(4), 407–424.' },
+      { id:'lp3', intel:'collaboration', cat:'personal', name:'the mind-change log',
+        text:'note in your phone: times you changed your position and why. after a month, review.',
+        evidence:'Leary et al. (2017) found that tracking belief changes builds intellectual humility, which predicts better decision-making, openness to new information, and less dogmatism. <em>Personality and Social Psychology Bulletin,</em> 43(6), 793–813.' },
+      { id:'lp4', intel:'collaboration', cat:'personal', name:"play devil's advocate to yourself",
+        text:'once a week, write a paragraph arguing against your strongest view. feel the discomfort. notice what it teaches.',
+        evidence:'Lord et al. (1984) found that self-generated consider-the-opposite instructions reduce biased assimilation more effectively than generic "be fair" instructions. <em>Journal of Personality and Social Psychology,</em> 47(6), 1231–1243.' },
+      { id:'lp5', intel:'collaboration', cat:'personal', name:'the interview mode',
+        text:'once a week, spend a meal asking someone questions only. no opinions, no stories of your own. just questions.',
+        evidence:'Brooks &amp; John (2018) found that asking follow-up questions increases perceived responsiveness, trust, and information exchange; people rate high-question partners as significantly more likeable. <em>Harvard Business Review,</em> 96(3), 60–67.' },
+      { id:'lp6', intel:'collaboration', cat:'personal', name:'the "tell me more" default',
+        text:'when someone shares something you disagree with, say <em>tell me more</em> instead of countering. see what shows up.',
+        evidence:'Brooks &amp; John (2018) found that open-ended follow-ups elicit information that closed or counter-framed responses suppress, improving both relational and informational outcomes. <em>Harvard Business Review,</em> 96(3), 60–67.' },
+    ],
+    school: [
+      { id:'ls1', intel:'collaboration', cat:'school', name:'speak once, then listen',
+        text:'in any group discussion, make a rule with yourself: you speak once, then listen until everyone has spoken once. <em>then</em> you can speak again.',
+        evidence:'Brookfield &amp; Preskill (2016) found that Circle of Voices protocols prevent dominant-voice skew, ensure wider participation, and consistently produce richer group output across decades of classroom research. <em>The discussion book.</em> Jossey-Bass.' },
+      { id:'ls2', intel:'collaboration', cat:'school', name:'steelman your opponent',
+        text:'before any debate or case argument, write the opposing position more strongly than the people who hold it do. argue yours only after.',
+        evidence:'Lord et al. (1984) found that explicit consideration of opposing arguments reduces attitude polarisation and biased evidence evaluation. <em>Journal of Personality and Social Psychology,</em> 47(6), 1231–1243.' },
+      { id:'ls3', intel:'collaboration', cat:'school', name:'the weekly mind-change note',
+        text:'keep a note each week: <em>what did I change my mind about in class this week, and why?</em> if nothing, that\'s data.',
+        evidence:'Leary et al. (2017) found that intellectual humility predicts openness to new information, curiosity, tolerance of ambiguity, and low dogmatism; it is developable through reflective tracking of belief changes. <em>Personality and Social Psychology Bulletin,</em> 43(6), 793–813.' },
+      { id:'ls4', intel:'collaboration', cat:'school', name:'partner rotations',
+        text:'in every group project, try to partner with someone you haven\'t worked with before. the friction is the point.',
+        evidence:'Page (2017) found that teams with cognitive diversity outperform homogeneous teams on complex problem-solving, creative, and predictive tasks across dozens of field and laboratory studies. <em>The diversity bonus.</em> Princeton University Press.' },
+      { id:'ls5', intel:'collaboration', cat:'school', name:'the "I\'m not sure" declaration',
+        text:'in class discussion, say <em>I\'m not sure</em> out loud at least once per week. it\'s the most undervalued phrase in a classroom.',
+        evidence:'Leary et al. (2017) found that overt expressions of intellectual humility — including uncertainty markers — are associated with measurable openness to revision and are developable through practice. <em>Personality and Social Psychology Bulletin,</em> 43(6), 793–813.' },
+      { id:'ls6', intel:'collaboration', cat:'school', name:'credit-sharing habit',
+        text:'when you build on someone else\'s idea, name them. <em>to build on what Sara said…</em> — make it audible.',
+        evidence:'Edmondson (1999) found that explicit credit-sharing is one of the behaviours that builds team psychological safety, which in turn mediates team learning and performance. <em>Administrative Science Quarterly,</em> 44(2), 350–383.' },
+    ],
+  },
+};
+
+const ALL_P = [
+  ...P.creative.personal, ...P.creative.school,
+  ...P.emotional.personal, ...P.emotional.school,
+  ...P.collaboration.personal, ...P.collaboration.school,
+];
+
+const WEB_COLS = [
+  { border:'#273248', fill:'rgba(39,50,72,0.12)',  label:'week 1' },
+  { border:'#b15043', fill:'rgba(177,80,67,0.12)', label:'week 6' },
+  { border:'#cb7858', fill:'rgba(203,120,88,0.12)',label:'week 15' },
+];
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+
+const SK = 'three-intel-v1';
+
+let S = {
+  ratings:    Array(30).fill(0),
+  checked:    [],       // practice ids
+  webHistory: [],       // [{scores:[...]}]
+  planIds:    [],       // visible practice ids in plan
+  swapNext:   {},       // practiceId → next pool index
+  libFilter:  'all',
+  libSearch:  '',
+};
+
+let chart = null;
+
+function save() {
+  localStorage.setItem(SK, JSON.stringify(S));
+}
+
+function loadSaved() {
+  const raw = localStorage.getItem(SK);
+  if (!raw) return false;
+  try {
+    const d = JSON.parse(raw);
+    // discard old 9-question saves gracefully
+    if (Array.isArray(d.ratings) && d.ratings.length === 9) {
+      localStorage.removeItem(SK);
+      return false;
+    }
+    Object.assign(S, d);
+    return true;
+  } catch { return false; }
+}
+
+// ════════════════════════════════════════
+//  COMPUTED SCORES
+// ════════════════════════════════════════
+
+function axisScores() {
+  return AXES.map(ax => {
+    const rated = ax.questions.filter(i => S.ratings[i] > 0);
+    if (!rated.length) return 0;
+    const sum = rated.reduce((acc, i) => acc + S.ratings[i], 0);
+    return Math.round((sum / ax.questions.length) * 10) / 10;
+  });
+}
+
+function axisScore(axIdx) {
+  const ax    = AXES[axIdx];
+  const rated = ax.questions.filter(i => S.ratings[i] > 0);
+  if (!rated.length) return null;
+  const sum   = rated.reduce((acc, i) => acc + S.ratings[i], 0);
+  return Math.round((sum / ax.questions.length) * 10) / 10;
+}
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+
+function init() {
+  buildAssessment();
+
+  // auto-restore from URL hash (#restore=CODE) takes priority over localStorage
+  const restoredFromLink = checkHashRestore();
+
+  const hasData = loadSaved();
+
+  if (restoredFromLink) {
+    // restored — show confirmation toast
+    restoreRatings();
+    updateProgress();
+    if (S.ratings.every(r => r > 0)) {
+      document.getElementById('shape-btn').disabled = false;
+      document.getElementById('shape-hint').textContent = '';
+      showRadar(); showPlan();
+    }
+    renderLibrary(); updateRerateUI();
+    setTimeout(showRestoreToast, 400);
+    return;
+  }
+
+  if (hasData && S.ratings.some(r => r > 0)) {
+    restoreRatings();
+    const wb = document.getElementById('wb');
+    wb.style.display = 'flex';
+    setTimeout(() => { wb.style.display = 'none'; }, 5000);
+  }
+
+  updateProgress();
+
+  if (S.ratings.every(r => r > 0)) {
+    document.getElementById('shape-btn').disabled = false;
+    document.getElementById('shape-hint').textContent = '';
+    showRadar();
+    showPlan();
+  }
+
+  renderLibrary();
+  updateRerateUI();
+}
+
+// ════════════════════════════════════════
+//  ASSESSMENT
+// ════════════════════════════════════════
+
+const INTEL_GROUPS = [
+  { intel:'creative',      label:'creative intelligence',  badge:'b-c', axes:[0,1,2] },
+  { intel:'emotional',     label:'emotional intelligence', badge:'b-e', axes:[3,4,5] },
+  { intel:'collaboration', label:'collaboration',          badge:'b-l', axes:[6,7,8] },
+];
+
+function buildAssessment() {
+  const container = document.getElementById('assessment-container');
+  if (!container) return;
+
+  let html = '';
+  INTEL_GROUPS.forEach(group => {
+    html += `<div class="mb-12">
+      <div class="mb-6">
+        <span class="${group.badge} text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+              style="letter-spacing:0.1em;">${group.label}</span>
+      </div>`;
+
+    group.axes.forEach(axIdx => {
+      const ax = AXES[axIdx];
+      html += `<div class="sk-tag" id="sk-label-${axIdx}">
+        ${ax.label}
+        <span class="sk-score" id="sk-score-${axIdx}"></span>
+      </div>`;
+
+      ax.questions.forEach(qIdx => {
+        const n = qIdx + 1;
+        html += `<div id="q${qIdx}" class="mb-6"></div>`;
+      });
+    });
+
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+
+  // build each question row
+  AXES.forEach((ax, axIdx) => {
+    ax.questions.forEach(qIdx => {
+      buildQuestion(qIdx, axIdx, ax);
+    });
+  });
+}
+
+function buildQuestion(qIdx, axIdx, ax) {
+  const el = document.getElementById('q' + qIdx);
+  if (!el) return;
+  const n   = qIdx + 1;
+  const val = S.ratings[qIdx];
+  el.innerHTML = `
+    <p style="font-size:1rem;line-height:1.7;margin-bottom:1rem;">${n}. ${QUESTIONS[qIdx]}</p>
+    <div class="flex flex-wrap gap-2"
+         role="radiogroup" aria-label="rating for: ${QUESTIONS[qIdx]}">
+      ${[1,2,3,4,5].map(v => `
+        <button
+          class="pill${val === v ? ' on' : ''}"
+          data-qidx="${qIdx}" data-val="${v}"
+          onclick="rate(${qIdx},${v})"
+          aria-pressed="${val === v}"
+          aria-label="${v}${v === 1 ? ' — not at all true of me' : v === 5 ? ' — strongly true of me' : ''}"
+        >${v}</button>
+      `).join('')}
+    </div>
+    <div class="flex justify-between mt-1 px-0.5"
+         style="font-size:0.75rem;opacity:0.45;" aria-hidden="true">
+      <span>not at all</span><span>strongly true</span>
+    </div>
+  `;
+
+  el.addEventListener('keydown', e => {
+    const pills = [...el.querySelectorAll('.pill')];
+    const idx   = pills.indexOf(document.activeElement);
+    if (idx < 0) return;
+    if (e.key === 'ArrowRight' && idx < pills.length - 1) { e.preventDefault(); pills[idx + 1].focus(); }
+    if (e.key === 'ArrowLeft'  && idx > 0)               { e.preventDefault(); pills[idx - 1].focus(); }
+    if (e.key === ' ' || e.key === 'Enter')               { e.preventDefault(); pills[idx].click(); }
+  });
+}
+
+function restoreRatings() {
+  AXES.forEach((ax, axIdx) => {
+    ax.questions.forEach(qIdx => {
+      if (S.ratings[qIdx] > 0) applyRateUI(qIdx, S.ratings[qIdx]);
+    });
+    updateSkScore(axIdx);
+  });
+}
+
+function rate(qIdx, val) {
+  S.ratings[qIdx] = val;
+  applyRateUI(qIdx, val);
+  updateProgress();
+  save();
+
+  // update running axis score display
+  const axIdx = AXES.findIndex(ax => ax.questions.includes(qIdx));
+  if (axIdx >= 0) updateSkScore(axIdx);
+
+  if (S.ratings.every(r => r > 0)) {
+    document.getElementById('shape-btn').disabled = false;
+    document.getElementById('shape-hint').textContent = '';
+  }
+}
+
+function applyRateUI(qIdx, val) {
+  const el = document.getElementById('q' + qIdx);
+  if (!el) return;
+  el.querySelectorAll('.pill').forEach(b => {
+    const v = parseInt(b.dataset.val);
+    b.classList.toggle('on', v === val);
+    b.setAttribute('aria-pressed', v === val);
+  });
+}
+
+function updateSkScore(axIdx) {
+  const el    = document.getElementById('sk-score-' + axIdx);
+  if (!el) return;
+  const score = axisScore(axIdx);
+  el.textContent = score !== null ? `— ${score.toFixed(1)} / 5` : '';
+}
+
+function updateProgress() {
+  const done = S.ratings.filter(r => r > 0).length;
+  const pct  = Math.round(done / 30 * 100);
+  document.getElementById('prog-label').textContent = `${done} of 30 rated`;
+  document.getElementById('prog-pct').textContent   = `${pct}%`;
+  document.getElementById('prog-fill').style.width  = `${pct}%`;
+}
+
+// ════════════════════════════════════════
+//  RADAR
+// ════════════════════════════════════════
+
+function doReveal() {
+  const scores = axisScores();
+  const last   = S.webHistory[S.webHistory.length - 1];
+  if (!last || JSON.stringify(last.scores) !== JSON.stringify(scores)) {
+    if (S.webHistory.length < 3) {
+      S.webHistory.push({ scores });
+      save();
+    }
+  }
+  showRadar();
+  showPlan();
+  renderLibrary();
+  updateRerateUI();
+  go('s3');
+}
+
+function showRadar() {
+  if (!S.webHistory.length) return;
+  document.getElementById('radar-placeholder').style.display = 'none';
+  document.getElementById('radar-live').style.display        = 'block';
+  drawChart();
+  updateStrWk();
+  renderWebLegend();
+}
+
+function drawChart() {
+  const ctx = document.getElementById('rc').getContext('2d');
+  if (chart) chart.destroy();
+
+  const datasets = S.webHistory.map((h, i) => ({
+    label:                WEB_COLS[i].label,
+    data:                 h.scores,
+    backgroundColor:      WEB_COLS[i].fill,
+    borderColor:          WEB_COLS[i].border,
+    borderWidth:          2,
+    pointBackgroundColor: WEB_COLS[i].border,
+    pointRadius:          4,
+    pointHoverRadius:     6,
+  }));
+
+  chart = new Chart(ctx, {
+    type: 'radar',
+    data: { labels: AXES.map(a => a.label), datasets },
+    options: {
+      animation:  { duration: 600, easing: 'easeOutQuart' },
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display:  S.webHistory.length > 1,
+          position: 'bottom',
+          labels:   { font: { family: 'Inter', size: 11 }, color: '#273248', padding: 16 },
+        },
+        tooltip: { enabled: true },
+      },
+      scales: {
+        r: {
+          min: 0, max: 5,
+          ticks: {
+            stepSize: 1,
+            font:  { family: 'Inter', size: 10 },
+            color: '#6b7280',
+            backdropColor: 'transparent',
+          },
+          grid:       { color: 'rgba(39,50,72,0.08)' },
+          angleLines: { color: 'rgba(39,50,72,0.08)' },
+          pointLabels: {
+            font:  { family: 'Inter', size: window.innerWidth < 420 ? 9 : 11 },
+            color: '#273248',
+          },
+        },
+      },
+    },
+  });
+}
+
+function updateStrWk() {
+  const scores = S.webHistory[S.webHistory.length - 1].scores;
+  const ranked = scores.map((v, i) => ({ v, i })).sort((a, b) => b.v - a.v);
+  document.getElementById('lbl-strong').textContent = AXES[ranked[0].i].label;
+  document.getElementById('lbl-weak').textContent   = AXES[ranked[ranked.length - 1].i].label;
+}
+
+function renderWebLegend() {
+  const leg   = document.getElementById('web-legend');
+  const items = document.getElementById('web-legend-items');
+  if (S.webHistory.length <= 1) { leg.style.display = 'none'; return; }
+  leg.style.display = 'block';
+  items.innerHTML = S.webHistory.map((_, i) => `
+    <div class="flex items-center gap-2">
+      <span style="width:12px;height:12px;border-radius:50%;background:${WEB_COLS[i].border};display:inline-block;"></span>
+      <span style="font-size:0.8125rem;opacity:0.65;">${WEB_COLS[i].label}</span>
+    </div>
+  `).join('');
+}
+
+function exportWeb() {
+  const cv = document.getElementById('rc');
+  const a  = document.createElement('a');
+  a.download = 'three-intelligences-web.png';
+  a.href     = cv.toDataURL('image/png');
+  a.click();
+}
+
+// ════════════════════════════════════════
+//  PLAN
+// ════════════════════════════════════════
+
+function twoLowest() {
+  const scores = axisScores();
+  return scores
+    .map((s, i) => ({ s, i }))
+    .sort((a, b) => a.s - b.s)
+    .slice(0, 2)
+    .map(x => x.i);
+}
+
+function initPlanIds() {
+  const [i1, i2] = twoLowest();
+  const a = AXES[i1].intel;
+  const b = AXES[i2].intel;
+
+  if (a === b) {
+    S.planIds = [
+      ...P[a].personal.map(p => p.id),
+      ...P[a].school.map(p => p.id),
+    ];
+  } else {
+    S.planIds = [
+      ...P[a].personal.slice(0, 3).map(p => p.id),
+      ...P[a].school.slice(0, 3).map(p => p.id),
+      ...P[b].personal.slice(0, 3).map(p => p.id),
+      ...P[b].school.slice(0, 3).map(p => p.id),
+    ];
+  }
+  S.swapNext = {};
+  save();
+}
+
+function showPlan() {
+  if (!S.ratings.every(r => r > 0)) return;
+  if (!S.planIds.length) initPlanIds();
+  document.getElementById('plan-placeholder').style.display = 'none';
+  document.getElementById('plan-content').style.display     = 'block';
+  renderPlan();
+}
+
+function renderPlan() {
+  const [i1, i2] = twoLowest();
+  const a = AXES[i1].intel;
+  const b = AXES[i2].intel;
+  const intels = a === b ? [a] : [a, b];
+
+  let html = '';
+  intels.forEach(intel => {
+    const visible  = S.planIds.map(id => ALL_P.find(p => p.id === id)).filter(p => p && p.intel === intel);
+    const personal = visible.filter(p => p.cat === 'personal');
+    const school   = visible.filter(p => p.cat === 'school');
+
+    html += `
+      <div class="mb-10">
+        <div class="mb-5">
+          <span class="${bclass(intel)} text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+                style="letter-spacing:0.08em;">${ilabel(intel)}</span>
+        </div>
+        ${personal.length ? `
+          <h4 class="text-xs font-bold uppercase tracking-widest mb-3"
+              style="opacity:0.45;letter-spacing:0.08em;">personal</h4>
+          ${personal.map(p => planCard(p)).join('')}
+        ` : ''}
+        ${school.length ? `
+          <h4 class="text-xs font-bold uppercase tracking-widest mb-3 mt-5"
+              style="opacity:0.45;letter-spacing:0.08em;">school</h4>
+          ${school.map(p => planCard(p)).join('')}
+        ` : ''}
+      </div>
+    `;
+  });
+
+  document.getElementById('plan-content').innerHTML = html;
+}
+
+function planCard(practice) {
+  const ck      = S.checked.includes(practice.id);
+  const canSwap = swapPool(practice).length > 0;
+  return `
+    <div class="p-card${ck ? ' done' : ''}" id="pc-${practice.id}">
+      <button
+        class="p-check${ck ? ' on' : ''}"
+        onclick="toggleCheck('${practice.id}')"
+        aria-pressed="${ck}"
+        aria-label="${ck ? 'uncheck' : 'check'}: ${practice.name}"
+        id="pk-${practice.id}"
+      >${ck ? '✓' : ''}</button>
+      <div style="flex:1;min-width:0;">
+        <p class="font-bold" style="font-size:0.9375rem;margin-bottom:0.25rem;">${practice.name}</p>
+        <p style="font-size:0.875rem;opacity:0.65;line-height:1.65;">${practice.text}</p>
+        ${practice.evidence ? `
+          <details>
+            <summary class="ev-toggle">evidence ▸</summary>
+            <p style="font-size:0.75rem;opacity:0.5;line-height:1.65;margin-top:0.375rem;font-style:italic;">${practice.evidence}</p>
+          </details>
+        ` : ''}
+      </div>
+      ${canSwap ? `
+        <button onclick="swap('${practice.id}')"
+                class="no-print text-xs"
+                style="opacity:0.32;background:none;border:none;cursor:pointer;
+                       font-family:Inter,sans-serif;margin-left:0.5rem;flex-shrink:0;
+                       transition:opacity 0.15s;color:#273248;"
+                onmouseover="this.style.opacity='0.75'"
+                onmouseout="this.style.opacity='0.32'"
+                aria-label="replace ${practice.name} with another practice">replace</button>
+      ` : ''}
+    </div>
+  `;
+}
+
+function swapPool(practice) {
+  const all = P[practice.intel][practice.cat];
+  return all.filter(p => !S.planIds.includes(p.id));
+}
+
+function swap(currentId) {
+  const cur  = ALL_P.find(p => p.id === currentId);
+  if (!cur) return;
+  const pool = swapPool(cur);
+  if (!pool.length) return;
+  const idx  = (S.swapNext[currentId] || 0) % pool.length;
+  const next = pool[idx];
+  S.swapNext[currentId] = idx + 1;
+  const slot = S.planIds.indexOf(currentId);
+  if (slot !== -1) S.planIds[slot] = next.id;
+  save();
+  const card = document.getElementById('pc-' + currentId);
+  if (card) card.outerHTML = planCard(next);
+}
+
+// ════════════════════════════════════════
+//  CHECKBOXES
+// ════════════════════════════════════════
+
+function toggleCheck(id) {
+  const idx = S.checked.indexOf(id);
+  const now = idx === -1;
+  if (now) S.checked.push(id); else S.checked.splice(idx, 1);
+  save();
+
+  [['pc', 'pk'], ['lc', 'lk']].forEach(([cp, kp]) => {
+    const card = document.getElementById(`${cp}-${id}`);
+    const btn  = document.getElementById(`${kp}-${id}`);
+    if (!card || !btn) return;
+    card.classList.toggle('done', now);
+    btn.classList.toggle('on',   now);
+    btn.textContent = now ? '✓' : '';
+    btn.setAttribute('aria-pressed', now);
+    btn.setAttribute('aria-label', `${now ? 'uncheck' : 'check'}: ${ALL_P.find(p => p.id === id)?.name || id}`);
+  });
+}
+
+// ════════════════════════════════════════
+//  LIBRARY
+// ════════════════════════════════════════
+
+let libFilter = 'all';
+let libSearch  = '';
+
+function toggleLib() {
+  const inner = document.getElementById('lib-inner');
+  const btn   = document.getElementById('lib-toggle');
+  const open  = inner.style.display !== 'none';
+  inner.style.display = open ? 'none' : 'block';
+  btn.setAttribute('aria-expanded', !open);
+  btn.textContent = open ? 'show all 36 ▾' : 'hide ▴';
+}
+
+function openLibrary() {
+  const inner = document.getElementById('lib-inner');
+  const btn   = document.getElementById('lib-toggle');
+  inner.style.display = 'block';
+  btn.setAttribute('aria-expanded', true);
+  btn.textContent = 'hide ▴';
+  go('s5');
+}
+
+function setFilter(f, el) {
+  libFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  if (el) el.classList.add('on');
+  renderLibrary();
+}
+
+function doSearch(q) {
+  libSearch = q.toLowerCase();
+  renderLibrary();
+}
+
+function renderLibrary() {
+  const cont = document.getElementById('lib-content');
+  if (!cont) return;
+
+  const groups = ['creative', 'emotional', 'collaboration'];
+  let html = '';
+
+  groups.forEach(intel => {
+    const all     = [...P[intel].personal, ...P[intel].school];
+    const visible = all.filter(p => {
+      if (libFilter === 'personal'      && p.cat   !== 'personal')      return false;
+      if (libFilter === 'school'        && p.cat   !== 'school')        return false;
+      if (libFilter === 'creative'      && p.intel !== 'creative')      return false;
+      if (libFilter === 'emotional'     && p.intel !== 'emotional')     return false;
+      if (libFilter === 'collaboration' && p.intel !== 'collaboration') return false;
+      if (libSearch) {
+        const text = (p.name + ' ' + p.text.replace(/<[^>]+>/g, '')).toLowerCase();
+        if (!text.includes(libSearch)) return false;
+      }
+      return true;
+    });
+    if (!visible.length) return;
+
+    const personal = visible.filter(p => p.cat === 'personal');
+    const school   = visible.filter(p => p.cat === 'school');
+
+    html += `
+      <div class="mb-10">
+        <div class="mb-5">
+          <span class="${bclass(intel)} text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+                style="letter-spacing:0.08em;">${ilabel(intel)}</span>
+        </div>
+        ${personal.length ? `
+          <h4 class="text-xs font-bold uppercase tracking-widest mb-3"
+              style="opacity:0.45;letter-spacing:0.08em;">personal</h4>
+          ${personal.map(p => libCard(p)).join('')}
+        ` : ''}
+        ${school.length ? `
+          <h4 class="text-xs font-bold uppercase tracking-widest mb-3 mt-5"
+              style="opacity:0.45;letter-spacing:0.08em;">school</h4>
+          ${school.map(p => libCard(p)).join('')}
+        ` : ''}
+      </div>
+    `;
+  });
+
+  if (!html) {
+    html = '<p class="text-sm text-center py-10" style="opacity:0.45;">no practices match — try a different filter or search term.</p>';
+  }
+  cont.innerHTML = html;
+
+  S.checked.forEach(id => {
+    const c = document.getElementById('lc-' + id);
+    const k = document.getElementById('lk-' + id);
+    if (c && k) {
+      c.classList.add('done');
+      k.classList.add('on');
+      k.textContent = '✓';
+      k.setAttribute('aria-pressed', 'true');
+    }
+  });
+}
+
+function libCard(practice) {
+  const ck = S.checked.includes(practice.id);
+  return `
+    <div class="p-card${ck ? ' done' : ''}" id="lc-${practice.id}">
+      <button
+        class="p-check${ck ? ' on' : ''}"
+        onclick="toggleCheck('${practice.id}')"
+        aria-pressed="${ck}"
+        aria-label="${ck ? 'uncheck' : 'check'}: ${practice.name}"
+        id="lk-${practice.id}"
+      >${ck ? '✓' : ''}</button>
+      <div style="flex:1;min-width:0;">
+        <p class="font-bold" style="font-size:0.9375rem;margin-bottom:0.25rem;">${practice.name}</p>
+        <p style="font-size:0.875rem;opacity:0.65;line-height:1.65;">${practice.text}</p>
+        ${practice.evidence ? `
+          <details>
+            <summary class="ev-toggle">evidence ▸</summary>
+            <p style="font-size:0.75rem;opacity:0.5;line-height:1.65;margin-top:0.375rem;font-style:italic;">${practice.evidence}</p>
+          </details>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════
+//  RE-RATE
+// ════════════════════════════════════════
+
+function doRerate() {
+  if (S.webHistory.length >= 3) {
+    alert('all three ratings are complete — week 1, week 6, and week 15. your arc is fully documented.');
+    return;
+  }
+  S.ratings  = Array(30).fill(0);
+  S.planIds  = [];
+  S.swapNext = {};
+  save();
+  buildAssessment();
+  document.getElementById('shape-btn').disabled = true;
+  document.getElementById('shape-hint').textContent = 'rate all 30 to continue';
+  document.getElementById('plan-placeholder').style.display = 'block';
+  document.getElementById('plan-content').style.display     = 'none';
+  updateProgress();
+  updateRerateUI();
+  go('s2');
+}
+
+function updateRerateUI() {
+  const n      = S.webHistory.length;
+  const hints  = [
+    'rate yourself now to begin tracking your arc.',
+    'come back around week 6 to add your second web.',
+    'come back around week 15 for your final rating.',
+    'all three webs plotted. your semester arc is complete.',
+  ];
+  const labels = ['', 'week 1 complete', 'week 1 + week 6 complete', 'all three ratings complete'];
+
+  const hint  = document.getElementById('rerate-hint');
+  const count = document.getElementById('web-count');
+  const btn   = document.getElementById('rerate-btn');
+
+  if (hint)  hint.textContent  = hints[n]  || '';
+  if (count) count.textContent = labels[n] || '';
+  if (btn && n >= 3) { btn.disabled = true; btn.textContent = 'all ratings complete'; }
+}
+
+// ════════════════════════════════════════
+//  RESET
+// ════════════════════════════════════════
+
+function doReset() {
+  if (!confirm('start over? this will clear all ratings, checked practices, and saved webs.')) return;
+  localStorage.removeItem(SK);
+  location.reload();
+}
+
+// ════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════
+
+function go(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+function dismissWb() {
+  document.getElementById('wb').style.display = 'none';
+}
+
+function bclass(intel) {
+  return intel === 'creative' ? 'b-c' : intel === 'emotional' ? 'b-e' : 'b-l';
+}
+
+function ilabel(intel) {
+  return intel === 'creative' ? 'creative intelligence'
+       : intel === 'emotional' ? 'emotional intelligence'
+       : 'collaboration';
+}
+
+// ════════════════════════════════════════
+//  SAVE / RESTORE — LINK-BASED
+// ════════════════════════════════════════
+
+function generateCode() {
+  const d = { r: S.ratings, c: S.checked, w: S.webHistory, p: S.planIds };
+  return btoa(encodeURIComponent(JSON.stringify(d)));
+}
+
+function generateRestoreUrl() {
+  const base = window.location.href.split('#')[0];
+  return base + '#restore=' + generateCode();
+}
+
+function openSaveModal() {
+  const modal   = document.getElementById('save-modal');
+  const linkBox = document.getElementById('save-link-box');
+  const sentMsg = document.getElementById('save-sent-msg');
+  if (linkBox) linkBox.value = generateRestoreUrl();
+  if (sentMsg) sentMsg.style.display = 'none';
+  document.getElementById('save-email').value = '';
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('save-email').focus(), 50);
+}
+
+function closeSaveModal() {
+  document.getElementById('save-modal').style.display = 'none';
+}
+
+function copyLink() {
+  const box = document.getElementById('save-link-box');
+  const btn = document.getElementById('copy-link-btn');
+  const url = box.value;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      btn.textContent = 'copied ✓';
+      setTimeout(() => { btn.textContent = 'copy'; }, 2000);
+    });
+  } else {
+    box.select();
+    document.execCommand('copy');
+    btn.textContent = 'copied ✓';
+    setTimeout(() => { btn.textContent = 'copy'; }, 2000);
+  }
+}
+
+function doEmailSave() {
+  const email = (document.getElementById('save-email').value || '').trim();
+  if (!email) { document.getElementById('save-email').focus(); return; }
+  const url     = generateRestoreUrl();
+  const subject = encodeURIComponent('my three intelligences workbook — pick up where I left off');
+  const body    = encodeURIComponent(
+    'click the link below to restore your progress in the three intelligences workbook:\n\n' +
+    url + '\n\n' +
+    'the link will open the workbook and pick up right where you left off.'
+  );
+  window.open(`mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`);
+  document.getElementById('save-sent-msg').style.display = 'block';
+}
+
+// ── auto-restore from URL hash on load ──
+function checkHashRestore() {
+  const hash = window.location.hash;
+  if (!hash.startsWith('#restore=')) return false;
+  const raw = hash.slice('#restore='.length);
+  try {
+    const d = JSON.parse(decodeURIComponent(atob(raw)));
+    if (!Array.isArray(d.r) || d.r.length !== 30) return false;
+    S.ratings    = d.r;
+    S.checked    = d.c || [];
+    S.webHistory = d.w || [];
+    S.planIds    = d.p || [];
+    S.swapNext   = {};
+    save();
+    // clean the hash from the URL without triggering a reload
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    return true;
+  } catch { return false; }
+}
+
+function showRestoreToast() {
+  document.getElementById('restore-toast').style.display = 'flex';
+}
+
+function dismissRestoreToast() {
+  document.getElementById('restore-toast').style.display = 'none';
+  // scroll to their web if it exists, otherwise to assessment
+  if (S.webHistory.length) go('s3'); else go('s2');
+}
+
+// ── manual fallback: paste a restore link ──
+function openRestoreModal() {
+  const modal = document.getElementById('restore-modal');
+  document.getElementById('restore-error').style.display = 'none';
+  document.getElementById('restore-code-input').value    = '';
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('restore-code-input').focus(), 50);
+}
+
+function closeRestoreModal() {
+  document.getElementById('restore-modal').style.display = 'none';
+}
+
+function doRestoreLink() {
+  const errEl = document.getElementById('restore-error');
+  const raw   = (document.getElementById('restore-code-input').value || '').trim();
+
+  // extract code from either a full URL (#restore=CODE) or a bare code
+  let code = raw;
+  const hashIdx = raw.indexOf('#restore=');
+  if (hashIdx !== -1) code = raw.slice(hashIdx + '#restore='.length);
+
+  try {
+    const d = JSON.parse(decodeURIComponent(atob(code)));
+    if (!Array.isArray(d.r)) throw new Error('invalid');
+    if (d.r.length !== 30) {
+      errEl.textContent = d.r.length === 9
+        ? 'this is an older save — the workbook now has 30 statements. please start fresh.'
+        : 'that link doesn\'t look right — please check and try again.';
+      errEl.style.display = 'block';
+      return;
+    }
+    S.ratings    = d.r;
+    S.checked    = d.c || [];
+    S.webHistory = d.w || [];
+    S.planIds    = d.p || [];
+    S.swapNext   = {};
+    save();
+    closeRestoreModal();
+    location.reload();
+  } catch {
+    errEl.textContent = 'that link doesn\'t look right — please check and try again.';
+    errEl.style.display = 'block';
+  }
+}
+
+// close modals on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeSaveModal(); closeRestoreModal(); }
+});
+
+// ════════════════════════════════════════
+//  START
+// ════════════════════════════════════════
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
