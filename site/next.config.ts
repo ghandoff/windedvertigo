@@ -452,21 +452,14 @@ const nextConfig: NextConfig = {
         destination: "https://feel-cards.vercel.app/:path*",
       },
 
-      // values auction
+      // three-intelligence-workbook — static HTML tool
       {
-        source: "/harbour/values-auction",
-        destination:
-          "https://values-auction-pi.vercel.app/harbour/values-auction",
+        source: "/harbour/three-intelligence-workbook",
+        destination: "/tools/three-intelligence-workbook/index.html",
       },
       {
-        source: "/harbour/values-auction/",
-        destination:
-          "https://values-auction-pi.vercel.app/harbour/values-auction",
-      },
-      {
-        source: "/harbour/values-auction/:path*",
-        destination:
-          "https://values-auction-pi.vercel.app/harbour/values-auction/:path*",
+        source: "/harbour/three-intelligence-workbook/",
+        destination: "/tools/three-intelligence-workbook/index.html",
       },
 
       // harbour hub (catch-all — must be last)
