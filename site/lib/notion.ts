@@ -456,18 +456,19 @@ async function _fetchSiteContent(pageKey: string): Promise<SiteSection[]> {
  */
 export async function fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
   try {
-    return await _fetchPortfolioAssets();
+    const live = await _fetchPortfolioAssets();
+    if (live.length > 0) return live;
+    // Notion linked-DB returns 0 results via search — fall through to JSON
+    console.warn("[notion] fetchPortfolioAssets: 0 pages from Notion, using JSON fallback");
   } catch (err) {
     console.warn(
       `[notion] fetchPortfolioAssets failed, falling back to JSON: ${(err as Error).message}`,
     );
-    // Fallback JSON has shape { assets: [...] }
-    const data = readFallback<{ assets: PortfolioAsset[] }>(
-      "portfolio-assets.json",
-    );
-    if (data?.assets) return data.assets;
-    throw err;
   }
+  // Fallback JSON has shape { assets: [...] }
+  const data = readFallback<{ assets: PortfolioAsset[] }>("portfolio-assets.json");
+  if (data?.assets) return data.assets;
+  return [];
 }
 
 // quadrant relation cache

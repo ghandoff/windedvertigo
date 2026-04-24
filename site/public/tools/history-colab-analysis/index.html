@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>website audit — history co:lab · winded.vertigo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cadet:     #273248;
+      --redwood:   #b15043;
+      --sienna:    #cb7858;
+      --champagne: #ffebd2;
+      --cream:     #fff8f2;
+      --soft:      #4a5167;
+      --border:    #e8d5bd;
+      --card-bg:   #ffffff;
+      --ink:       #273248;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .skip-link {
+      position: absolute; top: -100px; left: 16px;
+      background: var(--redwood); color: #fff;
+      padding: 8px 16px; border-radius: 4px; font-size: 14px;
+      text-decoration: none; z-index: 9999;
+      transition: top 0.2s;
+    }
+    .skip-link:focus { top: 0; }
+    :focus-visible { outline: 3px solid var(--redwood); outline-offset: 3px; border-radius: 3px; }
+
+    body {
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--cadet);
+      padding: 72px 48px 60px;
+      position: relative;
+    }
+    .hero-eyebrow {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sienna);
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-size: clamp(30px, 4vw, 52px);
+      font-weight: 300;
+      color: var(--champagne);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .hero-sub {
+      font-size: 18px;
+      color: rgba(255,235,210,0.75);
+      margin-bottom: 32px;
+      font-weight: 300;
+    }
+    .hero-meta-row {
+      display: flex; flex-wrap: wrap; gap: 24px;
+      border-top: 1px solid rgba(255,235,210,0.15);
+      padding-top: 24px;
+    }
+    .hero-meta-item {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,235,210,0.55);
+    }
+    .hero-meta-item strong {
+      display: block;
+      color: rgba(255,235,210,0.9);
+      font-size: 13px;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,248,242,0.97);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
+      display: flex; gap: 0; overflow-x: auto;
+    }
+    .nav a {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--soft);
+      text-decoration: none;
+      padding: 14px 20px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .nav a:hover { color: var(--cadet); border-bottom-color: var(--redwood); }
+    .nav a:focus-visible { outline-offset: -3px; }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 860px; margin: 0 auto; padding: 0 48px; }
+    .section { padding: 64px 0; border-bottom: 1px solid var(--border); }
+    .section:last-of-type { border-bottom: none; }
+    .section-label {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--cadet);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 300;
+      color: var(--cadet);
+      line-height: 1.2;
+      margin-bottom: 20px;
+      letter-spacing: -0.01em;
+    }
+    .section-intro {
+      font-size: 17px;
+      color: var(--soft);
+      max-width: 680px;
+      margin-bottom: 36px;
+      line-height: 1.75;
+    }
+
+    /* ── CALLOUT / QUOTE BOXES ── */
+    .callout {
+      background: rgba(177,80,67,0.06);
+      border-left: 3px solid var(--redwood);
+      padding: 16px 20px;
+      margin: 20px 0;
+      font-size: 15px;
+      color: var(--ink);
+      font-style: italic;
+      border-radius: 0 6px 6px 0;
+    }
+    .callout strong { font-style: normal; color: var(--redwood); }
+
+    /* ── ISSUE CARDS ── */
+    .issue-group { margin-bottom: 40px; }
+    .issue-group h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--cadet);
+      margin-bottom: 6px;
+      margin-top: 28px;
+    }
+    .issue-group h2 {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--cadet);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      margin-top: 40px;
+    }
+    .issue-group p { font-size: 15px; color: var(--soft); line-height: 1.75; margin-bottom: 12px; }
+    .issue-group ul { padding-left: 20px; }
+    .issue-group li { font-size: 15px; color: var(--soft); margin-bottom: 6px; line-height: 1.65; }
+
+    /* ── METADATA TABLE ── */
+    .meta-table { width: 100%; border-collapse: collapse; margin: 28px 0; }
+    .meta-table td {
+      padding: 11px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .meta-table td:first-child {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cadet);
+      font-weight: 600;
+      white-space: nowrap;
+      width: 180px;
+    }
+    .meta-table td:last-child { color: var(--soft); }
+    .meta-table tr:last-child td { border-bottom: none; }
+
+    /* ── ALIGNMENT GRIDS ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 28px 0; }
+    .align-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .align-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cadet);
+      margin-bottom: 12px;
+      letter-spacing: 0.02em;
+    }
+    .align-card ul { padding-left: 16px; }
+    .align-card li { font-size: 14px; color: var(--soft); margin-bottom: 7px; line-height: 1.6; }
+
+    .collab-table { width: 100%; border-collapse: collapse; margin: 28px 0; }
+    .collab-table th {
+      background: var(--cadet);
+      color: var(--champagne);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 12px 16px;
+      text-align: left;
+    }
+    .collab-table td {
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--soft);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    .collab-table td:first-child {
+      font-weight: 600;
+      color: var(--cadet);
+      width: 160px;
+      white-space: nowrap;
+    }
+    .collab-table tr:last-child td { border-bottom: none; }
+
+    /* ── DISCOVERY FORM ── */
+    #form-section { background: var(--card-bg); border-radius: 0; }
+    .form-section-header {
+      background: var(--cadet);
+      padding: 48px;
+      margin-bottom: 0;
+    }
+    .form-section-header .section-label { color: var(--sienna); }
+    .form-section-header .section-title { color: var(--champagne); }
+    .form-section-header p { color: rgba(255,235,210,0.75); font-size: 16px; max-width: 600px; }
+
+    .form-body { padding: 48px; }
+    .form-group-title {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cadet);
+      margin-top: 40px;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .form-group-title:first-of-type { margin-top: 0; }
+
+    .field { margin-bottom: 24px; }
+    .field label {
+      display: block;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--cadet);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .field label .q-num {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--redwood);
+      margin-right: 8px;
+    }
+    .field textarea, .field input[type="text"], .field input[type="email"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--cream);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      resize: vertical;
+    }
+    .field textarea:focus, .field input:focus {
+      outline: none;
+      border-color: var(--redwood);
+      box-shadow: 0 0 0 3px rgba(177,80,67,0.12);
+    }
+    .field textarea { min-height: 88px; }
+    .field input[type="text"], .field input[type="email"] { height: 46px; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .form-submit-row { margin-top: 40px; }
+    .btn-submit {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--redwood);
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 14px 32px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      min-height: 48px;
+    }
+    .btn-submit:hover { background: #8a3028; }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:focus-visible { outline: 3px solid var(--redwood); outline-offset: 3px; }
+
+    .form-note {
+      font-size: 13px;
+      color: var(--soft);
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    /* Thank-you state */
+    #thank-you {
+      display: none;
+      background: rgba(39,50,72,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      margin-top: 40px;
+    }
+    #thank-you h3 { font-size: 22px; font-weight: 400; color: var(--cadet); margin-bottom: 10px; }
+    #thank-you p { font-size: 15px; color: var(--soft); }
+
+    /* ── CLOSING NOTE ── */
+    .closing {
+      background: var(--champagne);
+      padding: 64px 48px;
+      border-top: 1px solid var(--border);
+    }
+    .closing .section-label { color: var(--redwood); }
+    .closing .section-title { color: var(--cadet); }
+    .closing p { font-size: 16px; color: var(--soft); max-width: 680px; margin-bottom: 16px; line-height: 1.8; }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--cadet);
+      color: rgba(255,235,210,0.55);
+      padding: 40px 48px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      line-height: 1.8;
+    }
+    .footer-brand { color: var(--champagne); font-size: 15px; font-weight: 600; }
+    .footer a { color: var(--sienna); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .hero { padding: 48px 24px 40px; }
+      .container { padding: 0 24px; }
+      .nav { padding: 0 16px; }
+      .section { padding: 48px 0; }
+      .two-col { grid-template-columns: 1fr; }
+      .field-row { grid-template-columns: 1fr; }
+      .form-body, .form-section-header { padding: 32px 24px; }
+      .closing { padding: 48px 24px; }
+      .footer { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">skip to main content</a>
+
+<div class="hero" role="banner">
+  <div class="hero-eyebrow">winded.vertigo — april 2026</div>
+  <h1 class="hero-title">website audit<br>history co:lab</h1>
+  <p class="hero-sub">thehistorycolab.org — a candid assessment and discovery framework</p>
+  <div class="hero-meta-row">
+    <div class="hero-meta-item"><strong>prepared by</strong> garrett jaeger</div>
+    <div class="hero-meta-item"><strong>for</strong> fernande raine & susan rivers</div>
+    <div class="hero-meta-item"><strong>purpose</strong> potential redesign engagement</div>
+  </div>
+</div>
+
+<nav class="nav" aria-label="document sections">
+  <a href="#who-they-are">01 who they are</a>
+  <a href="#critical-assessment">02 assessment</a>
+  <a href="#alignment">03 alignment</a>
+  <a href="#discovery-form">04 discovery questions</a>
+</nav>
+
+<main id="main-content">
+
+  <!-- ── SECTION 1: WHO THEY ARE ── -->
+  <section id="who-they-are" class="section">
+    <div class="container">
+      <div class="section-label">01 — who they are</div>
+      <h2 class="section-title">history co:lab at a glance</h2>
+      <p class="section-intro">history co:lab is a civic innovation lab that puts humanity at the center of learning. founded through a 2024 merger of the original history co:lab and ithrive games, it operates today under co-leadership of fernande raine and susan rivers.</p>
+
+      <p style="font-size:15px; color:var(--soft); margin-bottom:20px; line-height:1.75;">their mission: create the conditions for young people to grow into their power, grounded in history, connected to community, and equipped for civic life. they work across four service lines — thought leadership, product design, strategic advising, and convening + weaving — with active community of practice programmes in kansas city, pittsburgh, and dallas.</p>
+
+      <p style="font-size:15px; color:var(--soft); margin-bottom:32px; line-height:1.75;">notable outputs include untextbooked — an award-winning youth-led podcast with 90,000+ downloads across 100 countries and an ambie award nomination — a co-designed us history curriculum funded by xq, and a growing library of research publications co-authored with partners including the carnegie foundation and rockefeller brothers fund.</p>
+
+      <table class="meta-table" aria-label="site technical metadata">
+        <tbody>
+          <tr><td>platform</td><td>squarespace (evident from url structure and page naming conventions)</td></tr>
+          <tr><td>primary domain</td><td>thehistorycolab.org</td></tr>
+          <tr><td>secondary domain</td><td>got-history.org (older domain, still active; donate/engage links point here)</td></tr>
+          <tr><td>navigation</td><td>home · resources · about (dropdown) · our team · engage · donate</td></tr>
+          <tr><td>footer links</td><td>contact · newsletter signup · linkedin · privacy policy</td></tr>
+          <tr><td>social media</td><td>linkedin only (in footer)</td></tr>
+          <tr><td>co-leads</td><td>fernande raine & susan rivers</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── SECTION 2: CRITICAL ASSESSMENT ── -->
+  <section id="critical-assessment" class="section">
+    <div class="container">
+      <div class="section-label">02 — critical assessment</div>
+      <h2 class="section-title">where the site is working against itself</h2>
+      <p class="section-intro">the site is honest, readable, and intellectually credible — which reflects the organisation well. the mission language is strong and the content has real weight. but the site is working against itself in several structural and experiential ways. issues fall into four areas.</p>
+
+      <div class="issue-group">
+        <h2>technical &amp; hygiene</h2>
+        <p>these are the most fixable problems and should be addressed regardless of whether a full redesign happens.</p>
+
+        <h3>multiple legacy pages still publicly accessible and google-indexed</h3>
+        <p>the following urls are all live and indexed by search engines:</p>
+        <ul>
+          <li><code>/aboutus</code> — labelled 'about - older'</li>
+          <li><code>/about-us</code> — labelled 'old - our team'</li>
+          <li><code>/about-us-3</code> — a newer iteration</li>
+          <li><code>/about-2025</code> — appears to be the current intended about page</li>
+          <li><code>/our-programs</code> — labelled 'old - our projects'</li>
+        </ul>
+        <p>this creates a fragmented seo footprint and means visitors arriving from google may land on outdated, contradictory pages. for an organisation that just completed a significant merger and rebrand, this is actively undermining first impressions. old pages should be redirected or unpublished.</p>
+
+        <h3>donate button links off-site to a different domain</h3>
+        <p>the donate button — which appears in primary navigation — routes to <code>got-history.org/donate</code>, a completely separate domain. the same is true for the 'co:ntribute, co:create, co:llaborate' cta links on the resources page. this is a legacy artifact from the organisation's previous brand identity.</p>
+        <div class="callout">from a user's perspective: i clicked donate and i'm suddenly at a different website? this erodes trust and almost certainly costs donations. the got-history.org domain should be evaluated for consolidation, redirect, or replacement.</div>
+
+        <h3>browser page title shows 'general 2' on the resources page</h3>
+        <p>the resources page (<code>/resources-2025</code>) displays 'general 2 — history co:lab' in the browser tab. this is a squarespace internal page name that was never updated. it reads as unfinished and appears in browser history and bookmarks.</p>
+
+        <h3>shopping cart icon visible in the header</h3>
+        <p>a '0 items in cart' link appears in the site header — a default squarespace element for e-commerce templates that was never disabled. for a mission-driven nonprofit, a shopping cart icon is disorienting. it implies a store that doesn't exist.</p>
+      </div>
+
+      <div class="issue-group">
+        <h2>navigation &amp; information architecture</h2>
+        <p>the site currently offers five navigation items: home, resources, about, engage, donate. for an organisation with the programmatic complexity of the co:lab, this is too compressed. key programmes and entry points are invisible from the top level.</p>
+
+        <h3>programmes have no home in the navigation</h3>
+        <p>untextbooked, the creation co:lab, and the learning ecosystem work in kansas city, pittsburgh, and dallas are all active, named programmes — but none appear in the main navigation. a visitor curious about the organisation's actual work has to hunt.</p>
+
+        <h3>the engage page is thin to the point of confusion</h3>
+        <p>the engage page contains a join form and a donate button — that's it. the homepage, by contrast, elegantly segments audiences: young people, educators, and partners. the engage page abandons that structure.</p>
+        <div class="callout">the homepage does the information architecture work that the engage page should be doing. the visitor who clicks 'engage' has already self-identified — the page should meet them there.</div>
+
+        <h3>about dropdown has only one sub-item</h3>
+        <p>the about dropdown currently reveals only 'our team.' if the intent is a dropdown, there should be richer sub-navigation — or the dropdown should be removed in favour of a single, well-structured about page.</p>
+      </div>
+
+      <div class="issue-group">
+        <h2>content &amp; storytelling</h2>
+        <p>the content quality is genuinely strong in places. the merger narrative is compelling, the four-service framework is clear, and the publications on the resources page are legitimate thought leadership. but some key stories are missing or misplaced.</p>
+
+        <h3>the merger story deserves more real estate</h3>
+        <p>the 2024 merger of history co:lab and ithrive games is a significant organisational moment — two pioneering organisations combining forces. currently, this story is buried near the bottom of both the homepage and the about page. for a first-time visitor trying to understand 'who are these people and why should i trust them,' this is probably the most compelling thing on the site.</p>
+
+        <h3>no blog, news, or announcements section</h3>
+        <p>the resources page lists publications with real timestamps (april 2025, october 2025) — which signals an active organisation. but there's no feed, no blog, no way for a returning visitor to see what's new. for an organisation doing original research and thought leadership, the absence of a content publishing stream is a missed opportunity for both engagement and seo.</p>
+
+        <h3>impact numbers are present but could be sharper</h3>
+        <p>the homepage references 'ways we are changing the game' with a carousel of impact items. carousels are one of the least effective ways to communicate impact — most users don't engage with them. untextbooked's 90,000 downloads across 100 countries is a genuinely impressive stat that deserves a more prominent, static treatment.</p>
+
+        <h3>the youth voice is present but underdeveloped visually</h3>
+        <p>for an organisation whose entire proposition is centred on young people's agency and co-design, the site should feel like young people had a hand in building it. currently youth partners are given a small listing under the team section.</p>
+      </div>
+
+      <div class="issue-group">
+        <h2>visual presence</h2>
+        <p>based on a review of the live site, the visual design is clean and functional but not distinctive. it reads as a respectable squarespace nonprofit template that hasn't been pushed far enough to feel ownable.</p>
+
+        <h3>logo lockup is not optimised for screen</h3>
+        <p>the 'history' text runs vertically on the left side of the co:lab mark. this is an interesting design choice but at smaller screen sizes the vertical text becomes nearly unreadable. the logo may also be creating legibility issues in the header where it competes with nav links.</p>
+
+        <h3>the site doesn't yet reflect the post-merger identity</h3>
+        <p>the co:lab describes itself as 'innovators and weavers' and its logo features a tree with roots symbolising growth and connectivity. but the current site visual language doesn't carry that metaphor through. there's no consistent illustration style, no visual thread connecting sections, and the page layouts feel like independent rooms rather than a coherent environment.</p>
+
+        <h3>the footer undersells the organisation</h3>
+        <p>the footer contains: an address, an email, a linkedin link, and a copyright notice. there's no final call to action, no newsletter pitch, no quick links to key pages, and no indication of the organisation's broader social presence. for many visitors, the footer is the last thing they see before deciding whether to engage.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 3: ALIGNMENT ── -->
+  <section id="alignment" class="section">
+    <div class="container">
+      <div class="section-label">03 — alignment with winded.vertigo</div>
+      <h2 class="section-title">where we converge and where we complement</h2>
+      <p class="section-intro">the strategic and philosophical overlap between the co:lab and winded.vertigo is substantial. these are not two organisations whose interests intersect at the margins — they share a core conviction about how young people learn, what learning is for, and what it looks like when it works.</p>
+
+      <div class="two-col">
+        <div class="align-card">
+          <h4>where we converge</h4>
+          <ul>
+            <li>learning by making and doing — both believe in experiential, participatory learning as the foundation, not the supplement</li>
+            <li>co-design with young people — co:lab's ithrive games model and w.v's game design work share a commitment to designing with, not for</li>
+            <li>the humanities as a lever — history, storytelling, and creative expression as pathways to civic identity</li>
+            <li>ecosystem thinking — both operate as weavers and connectors, not just direct service providers</li>
+            <li>play and games — ithrive games and w.v's game portfolio create immediate common ground around the pedagogical case for play</li>
+            <li>small, mission-led teams with a big-tent collaborative model</li>
+          </ul>
+        </div>
+        <div class="align-card">
+          <h4>where we complement</h4>
+          <ul>
+            <li>winded.vertigo brings deep creative design practice — the co:lab could benefit from w.v's approach to prototyping, visual identity, and digital experience design</li>
+            <li>the co:lab brings institutional reach — school partnerships, museum relationships, research publications, and funder networks that w.v doesn't yet have</li>
+            <li>w.v has international experience (idb/el salvador, unicef, sesame workshop); the co:lab is us-focused but globally-cited</li>
+            <li>the whirlpool / monthly community learning format is a natural analog to the co:lab's convening + weaving service line</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-size:18px; font-weight:500; color:var(--cadet); margin:40px 0 16px;">what a collaboration could look like</h3>
+      <table class="collab-table" aria-label="collaboration models">
+        <thead>
+          <tr><th>model</th><th>what it could mean in practice</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>skills exchange</td>
+            <td>winded.vertigo redesigns the co:lab's website; co:lab provides introductions to schools, museums, or funders in the civic learning space</td>
+          </tr>
+          <tr>
+            <td>paid engagement</td>
+            <td>fernande has fundraising capacity — a grant or funder-backed web redesign project is a legitimate revenue opportunity for w.v</td>
+          </tr>
+          <tr>
+            <td>co-designed programme</td>
+            <td>a joint learning experience format combining w.v's game design methodology with the co:lab's civic education content — could live as a whirlpool edition or co:lab workshop</td>
+          </tr>
+          <tr>
+            <td>research partnership</td>
+            <td>w.v's creative platforms (creaseworks, gotcha!) + co:lab's research infrastructure could produce publishable work on creativity and civic learning</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── SECTION 4: DISCOVERY FORM ── -->
+  <section id="form-section">
+    <div class="form-section-header">
+      <div class="container">
+        <div class="section-label">04 — discovery questions</div>
+        <h2 class="section-title" id="discovery-form">for fernande &amp; susan</h2>
+        <p>these questions are designed for a first design discovery conversation — or you can answer them here and send them back directly. they move from strategic intent to tactical preferences, surfacing the decisions that will most significantly shape any redesign engagement.</p>
+      </div>
+    </div>
+
+    <div class="form-body">
+      <div class="container">
+        <form id="discovery-form-el" novalidate>
+          <!-- Respondent info -->
+          <div class="form-group-title">your details</div>
+          <div class="field-row">
+            <div class="field">
+              <label for="resp-name">name</label>
+              <input type="text" id="resp-name" name="name" placeholder="fernande raine" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="resp-email">email</label>
+              <input type="email" id="resp-email" name="email" placeholder="fernande@thehistorycolab.org" autocomplete="email">
+            </div>
+          </div>
+
+          <!-- Group 1: Strategy & Audience -->
+          <div class="form-group-title">on strategy &amp; audience</div>
+
+          <div class="field">
+            <label for="q1"><span class="q-num">01</span>who are your three most important audiences right now — and in what order of priority? (e.g. institutional funders, educators, young people, board prospects, media, potential partners)</label>
+            <textarea id="q1" name="q1" rows="4" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q2"><span class="q-num">02</span>what's the single most important action you want a first-time visitor to take when they land on the site?</label>
+            <textarea id="q2" name="q2" rows="3" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q3"><span class="q-num">03</span>the 2024 merger is a major organisational story. when you introduce the co:lab to someone new today, what's the version of that story that lands best — and does the website tell it the same way?</label>
+            <textarea id="q3" name="q3" rows="4" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q4"><span class="q-num">04</span>is the site currently generating meaningful inbound interest — new partner inquiries, funder discovery, educator signups — or does most of that happen through personal networks?</label>
+            <textarea id="q4" name="q4" rows="3" placeholder="your answer…"></textarea>
+          </div>
+
+          <!-- Group 2: Programs & Content -->
+          <div class="form-group-title">on programmes &amp; content</div>
+
+          <div class="field">
+            <label for="q5"><span class="q-num">05</span>the four service pillars are clear at a category level — but where are the case studies? what's the story you most wish the site was telling about something you've actually done?</label>
+            <textarea id="q5" name="q5" rows="4" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q6"><span class="q-num">06</span>how do you want to represent the regional ecosystem work in kansas city, pittsburgh, and dallas? is it a programme visitors should be able to learn about and join, or more of a proof-point for your model?</label>
+            <textarea id="q6" name="q6" rows="3" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q7"><span class="q-num">07</span>untextbooked has extraordinary stats (90k downloads, 100 countries, ambie nomination). where does it fit in your current organisational strategy — core product, proof of concept, or something else? should the site lead with it more?</label>
+            <textarea id="q7" name="q7" rows="4" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q8"><span class="q-num">08</span>do you have an editorial or content publishing cadence? is there appetite for a blog, newsletter integration, or news feed — or is the publications page the right model?</label>
+            <textarea id="q8" name="q8" rows="3" placeholder="your answer…"></textarea>
+          </div>
+
+          <!-- Group 3: Brand & Visual Identity -->
+          <div class="form-group-title">on brand &amp; visual identity</div>
+
+          <div class="field">
+            <label for="q9"><span class="q-num">09</span>do you have a post-merger brand guide — defined type, colour system, illustration style? or is the current site the de facto brand?</label>
+            <textarea id="q9" name="q9" rows="3" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q10"><span class="q-num">10</span>when you imagine the redesigned site, what three words or phrases describe how it should feel? what sites — nonprofit or otherwise — do you find yourself pointing to as 'this is the energy we want'?</label>
+            <textarea id="q10" name="q10" rows="4" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q11"><span class="q-num">11</span>the co:lab's tree/roots logo and 'innovators and weavers' language are strong metaphors. do you want the redesigned site to live deeper inside that visual world — or is the current restrained direction intentional?</label>
+            <textarea id="q11" name="q11" rows="3" placeholder="your answer…"></textarea>
+          </div>
+
+          <!-- Group 4: Technical & Scope -->
+          <div class="form-group-title">on technical constraints &amp; project scope</div>
+
+          <div class="field">
+            <label for="q12"><span class="q-num">12</span>what's the status of got-history.org? is there an intention to consolidate domains, maintain both, or redirect? how is your donate/payment infrastructure set up?</label>
+            <textarea id="q12" name="q12" rows="3" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q13"><span class="q-num">13</span>are you committed to staying on squarespace, or is the platform itself open for reconsideration? (the answer will significantly shape what's possible.)</label>
+            <textarea id="q13" name="q13" rows="3" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q14"><span class="q-num">14</span>who on your team would own the site going forward? who makes content updates today — and how often?</label>
+            <textarea id="q14" name="q14" rows="3" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q15"><span class="q-num">15</span>do you have a sense of budget range for this engagement? is there a funder or foundation that might support a digital infrastructure grant? (this is the kind of work that organisational development funders often support.)</label>
+            <textarea id="q15" name="q15" rows="3" placeholder="your answer…"></textarea>
+          </div>
+          <div class="field">
+            <label for="q16"><span class="q-num">16</span>what are the next 12 months of major organisational milestones — publications, programme launches, convenings, anniversary moments — that a redesigned site should be built to support?</label>
+            <textarea id="q16" name="q16" rows="4" placeholder="your answer…"></textarea>
+          </div>
+
+          <div class="form-submit-row">
+            <button type="submit" class="btn-submit">send responses to winded.vertigo →</button>
+            <p class="form-note">your responses will open a pre-filled email to garrett@windedvertigo.com — just hit send.</p>
+          </div>
+
+          <div id="thank-you" role="alert">
+            <h3>responses ready to send</h3>
+            <p>your email client should have opened with your answers pre-filled. if it didn't, reach out directly at <a href="mailto:garrett@windedvertigo.com">garrett@windedvertigo.com</a>.</p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CLOSING NOTE ── -->
+  <section class="closing">
+    <div class="container">
+      <div class="section-label">closing note</div>
+      <h2 class="section-title">what this could be</h2>
+      <p>history co:lab is an organisation with a genuinely strong story that its website is not yet fully telling. the content quality, mission clarity, and programmatic depth are all there — the site just needs a structure and visual language equal to the work.</p>
+      <p>for winded.vertigo, this is the kind of project that plays directly to our strengths: learning design meets web design; co-creation methodology meets brand development; a relationship-first engagement with a collaborator whose values align with ours.</p>
+      <p>whether this is a skills exchange, a funded project, or the beginning of a longer collaboration, the fit is real. the most important first step is a good conversation — and these questions are designed to make that conversation go somewhere.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div>
+    <div class="footer-brand">winded.vertigo</div>
+    <div>garrett jaeger — <a href="mailto:garrett@windedvertigo.com">garrett@windedvertigo.com</a></div>
+    <div><a href="https://windedvertigo.com">windedvertigo.com</a></div>
+  </div>
+  <div style="text-align:right">
+    <div>prepared for fernande raine &amp; history co:lab</div>
+    <div>april 2026</div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('discovery-form-el').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const name  = document.getElementById('resp-name').value.trim() || 'fernande';
+    const email = document.getElementById('resp-email').value.trim();
+
+    const questions = [
+      { num:'01', label:'priority audiences', id:'q1' },
+      { num:'02', label:'most important visitor action', id:'q2' },
+      { num:'03', label:'the merger story', id:'q3' },
+      { num:'04', label:'inbound interest from site', id:'q4' },
+      { num:'05', label:'missing case studies', id:'q5' },
+      { num:'06', label:'regional ecosystem work', id:'q6' },
+      { num:'07', label:'untextbooked in strategy', id:'q7' },
+      { num:'08', label:'content publishing cadence', id:'q8' },
+      { num:'09', label:'post-merger brand guide', id:'q9' },
+      { num:'10', label:'three words for the site + reference sites', id:'q10' },
+      { num:'11', label:'visual metaphor direction', id:'q11' },
+      { num:'12', label:'got-history.org status + donate infrastructure', id:'q12' },
+      { num:'13', label:'squarespace commitment', id:'q13' },
+      { num:'14', label:'site ownership post-redesign', id:'q14' },
+      { num:'15', label:'budget range + funder appetite', id:'q15' },
+      { num:'16', label:'next 12 months milestones', id:'q16' },
+    ];
+
+    let body = `discovery questions — history co:lab website audit\nfrom: ${name}${email ? ' <' + email + '>' : ''}\n\n`;
+    body += '─'.repeat(60) + '\n\n';
+
+    questions.forEach(q => {
+      const val = document.getElementById(q.id).value.trim();
+      body += `Q${q.num}: ${q.label}\n`;
+      body += (val || '(no response)') + '\n\n';
+    });
+
+    const subject = encodeURIComponent('history co:lab: discovery questions from ' + name);
+    const bodyEncoded = encodeURIComponent(body);
+    window.location.href = `mailto:garrett@windedvertigo.com?subject=${subject}&body=${bodyEncoded}`;
+
+    document.getElementById('thank-you').style.display = 'block';
+    document.getElementById('thank-you').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+</script>
+
+</body>
+</html>
