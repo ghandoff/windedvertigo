@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "wv-site",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      // Self-reference for incremental cache (ISR)
+      // Service name must match worker name above
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-site"
+    }
+  ],
+  "r2_buckets": [
+    {
+      // Incremental cache bucket for ISR (separate from creaseworks-evidence)
+      // Create before deploying: npx wrangler r2 bucket create wv-site-opennext-cache
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "wv-site-opennext-cache"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  }
+}

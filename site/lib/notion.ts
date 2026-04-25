@@ -13,8 +13,6 @@ import type {
   QueryDataSourceParameters,
   QueryDataSourceResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import fs from "fs";
-import path from "path";
 import { syncImageToR2, imageUrl } from "@/lib/sync-image";
 
 // ── client ────────────────────────────────────────────────
@@ -345,33 +343,6 @@ async function withRetry<T>(
   );
 }
 
-function readFallback<T>(filename: string): T | null {
-  try {
-    const filePath = path.join(process.cwd(), "data", filename);
-    const raw = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
-async function withFallback<T>(
-  fetcher: () => Promise<T>,
-  fallbackFile: string,
-  label: string,
-): Promise<T> {
-  try {
-    return await fetcher();
-  } catch (err) {
-    console.warn(
-      `[notion] ${label} failed, falling back to ${fallbackFile}: ${(err as Error).message}`,
-    );
-    const data = readFallback<T>(fallbackFile);
-    if (data !== null) return data;
-    throw err;
-  }
-}
-
 // ── fetchers ──────────────────────────────────────────────
 
 /**
@@ -380,19 +351,7 @@ async function withFallback<T>(
 export async function fetchSiteContent(
   pageKey: string,
 ): Promise<SiteSection[]> {
-  try {
-    return await _fetchSiteContent(pageKey);
-  } catch (err) {
-    console.warn(
-      `[notion] fetchSiteContent:${pageKey} failed, falling back to JSON: ${(err as Error).message}`,
-    );
-    // Fallback JSON has shape { sections: [...] }
-    const data = readFallback<{ sections: SiteSection[] }>(
-      `site-content-${pageKey}.json`,
-    );
-    if (data?.sections) return data.sections;
-    throw err;
-  }
+  return _fetchSiteContent(pageKey);
 }
 
 async function _fetchSiteContent(pageKey: string): Promise<SiteSection[]> {
@@ -462,12 +421,9 @@ export async function fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
     console.warn("[notion] fetchPortfolioAssets: 0 pages from Notion, using JSON fallback");
   } catch (err) {
     console.warn(
-      `[notion] fetchPortfolioAssets failed, falling back to JSON: ${(err as Error).message}`,
+      `[notion] fetchPortfolioAssets failed: ${(err as Error).message}`,
     );
   }
-  // Fallback JSON has shape { assets: [...] }
-  const data = readFallback<{ assets: PortfolioAsset[] }>("portfolio-assets.json");
-  if (data?.assets) return data.assets;
   return [];
 }
 
@@ -609,19 +565,7 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
 export async function fetchPackageBuilderData(): Promise<
   Record<string, PackData>
 > {
-  try {
-    return await _fetchPackageBuilderData();
-  } catch (err) {
-    console.warn(
-      `[notion] fetchPackageBuilder failed, falling back to JSON: ${(err as Error).message}`,
-    );
-    // Fallback JSON has shape { packs: {...} }
-    const data = readFallback<{ packs: Record<string, PackData> }>(
-      "package-builder-content.json",
-    );
-    if (data?.packs) return data.packs;
-    throw err;
-  }
+  return _fetchPackageBuilderData();
 }
 
 /** Build package builder examples from already-fetched portfolio assets.
@@ -803,11 +747,7 @@ export interface ConferenceExperienceData {
 // ── conference experience fetcher ────────────────────────
 
 export async function fetchConferenceExperience(): Promise<ConferenceExperienceData> {
-  return withFallback(
-    () => _fetchConferenceExperience(),
-    "conference-experience.json",
-    "fetchConferenceExperience",
-  );
+  return _fetchConferenceExperience();
 }
 
 async function _fetchConferenceExperience(): Promise<ConferenceExperienceData> {
