@@ -406,6 +406,11 @@ const nextConfig: NextConfig = {
       },
 
       // values-auction (Vite app — no basePath, serves from root)
+      // wordmark.svg uses root-relative /wordmark.svg, proxy it to the app origin
+      {
+        source: "/wordmark.svg",
+        destination: "https://values-auction-pi.vercel.app/wordmark.svg",
+      },
       {
         source: "/harbour/values-auction",
         destination: "https://values-auction-pi.vercel.app/",
@@ -445,23 +450,6 @@ const nextConfig: NextConfig = {
       {
         source: "/harbour/feel-cards/:path*",
         destination: "https://feel-cards.vercel.app/:path*",
-      },
-
-      // values auction
-      {
-        source: "/harbour/values-auction",
-        destination:
-          "https://values-auction-pi.vercel.app/harbour/values-auction",
-      },
-      {
-        source: "/harbour/values-auction/",
-        destination:
-          "https://values-auction-pi.vercel.app/harbour/values-auction",
-      },
-      {
-        source: "/harbour/values-auction/:path*",
-        destination:
-          "https://values-auction-pi.vercel.app/harbour/values-auction/:path*",
       },
 
       // three-intelligence-workbook — static HTML tool

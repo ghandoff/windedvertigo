@@ -61,6 +61,7 @@ const DB = {
   conferenceScreens: "66b266f68a664524829d39a3621a0754",
   conferenceItems: "6beb2d506e604b898a2232b510a432bb",
   conferenceAgenda: "bd92b25081344df79021bd5888d22806",
+  cataloguePractices: "62bbc91d-9be7-4b94-8268-967cdbe81e4c",
 } as const;
 
 // ── property names ────────────────────────────────────────
@@ -908,4 +909,118 @@ async function _fetchConferenceExperience(): Promise<ConferenceExperienceData> {
   }
 
   return { screens, agenda };
+}
+
+// ── regenerative practices catalogue ─────────────────────
+
+export interface RegenerativePractice {
+  id: string;
+  name: string;
+  tagline: string;
+  dimensions: string[];
+  duration: string;
+  formats: string[];
+  levels: string[];
+  objective: string;
+  instructions: string;
+  materials: string;
+  author: string;
+  coverImage: string;
+  submittedAt: string;
+}
+
+export interface CatalogueSchema {
+  dimensions: string[];
+  durations: string[];
+  formats: string[];
+  levels: string[];
+}
+
+const CATALOGUE_PROPS = {
+  name: "practice name",
+  tagline: "tagline",
+  dimensions: "regenerative dimension",
+  duration: "duration",
+  formats: "format",
+  levels: "learning level",
+  objective: "objective",
+  instructions: "step-by-step instructions",
+  materials: "materials needed",
+  author: "practice author",
+  coverImage: "cover image",
+} as const;
+
+export async function fetchCatalogueSchema(): Promise<CatalogueSchema> {
+  try {
+    const db = await withRetry(
+      () => notion.databases.retrieve({ database_id: DB.cataloguePractices }),
+      "fetchCatalogueSchema",
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const props = (db as any).properties ?? {};
+
+    function getOptions(propName: string): string[] {
+      const prop = props[propName];
+      if (!prop) return [];
+      const opts: { name: string }[] =
+        prop.multi_select?.options ?? prop.select?.options ?? [];
+      return opts.map((o) => o.name);
+    }
+
+    return {
+      dimensions: getOptions(CATALOGUE_PROPS.dimensions),
+      durations: getOptions(CATALOGUE_PROPS.duration),
+      formats: getOptions(CATALOGUE_PROPS.formats),
+      levels: getOptions(CATALOGUE_PROPS.levels),
+    };
+  } catch (err) {
+    console.warn(
+      `[notion] fetchCatalogueSchema failed: ${(err as Error).message}`,
+    );
+    return { dimensions: [], durations: [], formats: [], levels: [] };
+  }
+}
+
+export async function fetchRegenerativePractices(): Promise<
+  RegenerativePractice[]
+> {
+  try {
+    const response = await withRetry(
+      () =>
+        queryDataSource(DB.cataloguePractices, {
+          sorts: [{ timestamp: "created_time", direction: "descending" }],
+          page_size: 100,
+        }),
+      "fetchRegenerativePractices",
+    );
+
+    const practices: RegenerativePractice[] = [];
+    for (const page of response.results) {
+      if (!("properties" in page)) continue;
+      const p = (page as PageObjectResponse).properties;
+      const name = getTitle(p[CATALOGUE_PROPS.name]);
+      if (!name) continue;
+      practices.push({
+        id: (page as PageObjectResponse).id,
+        name,
+        tagline: getText(p[CATALOGUE_PROPS.tagline]),
+        dimensions: getMultiSelect(p[CATALOGUE_PROPS.dimensions]),
+        duration: getSelect(p[CATALOGUE_PROPS.duration]),
+        formats: getMultiSelect(p[CATALOGUE_PROPS.formats]),
+        levels: getMultiSelect(p[CATALOGUE_PROPS.levels]),
+        objective: getText(p[CATALOGUE_PROPS.objective]),
+        instructions: getText(p[CATALOGUE_PROPS.instructions]),
+        materials: getText(p[CATALOGUE_PROPS.materials]),
+        author: getText(p[CATALOGUE_PROPS.author]),
+        coverImage: getIconValue(p[CATALOGUE_PROPS.coverImage]),
+        submittedAt: (page as PageObjectResponse).created_time,
+      });
+    }
+    return practices;
+  } catch (err) {
+    console.warn(
+      `[notion] fetchRegenerativePractices failed: ${(err as Error).message}`,
+    );
+    return [];
+  }
 }
