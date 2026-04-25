@@ -472,16 +472,18 @@ const nextConfig: NextConfig = {
       // harbour hub (catch-all — must be last)
       {
         source: "/harbour",
-        destination: "https://harbour-ghandoffs-projects.vercel.app/harbour",
+        destination:
+          "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
       },
       {
         source: "/harbour/",
-        destination: "https://harbour-ghandoffs-projects.vercel.app/harbour",
+        destination:
+          "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
       },
       {
         source: "/harbour/:path*",
         destination:
-          "https://harbour-ghandoffs-projects.vercel.app/harbour/:path*",
+          "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour/:path*",
       },
     ];
   },
