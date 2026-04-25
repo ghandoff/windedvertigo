@@ -6,9 +6,14 @@ const nextConfig: NextConfig = {
   // Notion search for multi-source DB assets can take 30+ rounds (~90s)
   staticPageGenerationTimeout: 180,
 
-  // External rewrites — proxy harbour apps to CF Workers (or Vercel for blocked apps)
+  // External rewrites — proxy harbour apps to CF Workers (or Vercel for blocked apps).
+  // Returned as `beforeFiles` so rewrites are evaluated BEFORE the site app's
+  // own filesystem routes. Without this, paths under /harbour/{app}/api/auth/...
+  // get intercepted by the site's not-found.tsx (and worse, the 404 response
+  // gets prerendered + cached in R2 ISR), 404'ing real OAuth callbacks instead
+  // of proxying them to the harbour app workers.
   async rewrites() {
-    return [
+    return { beforeFiles: [
       // systems-thinking — portfolio route (CF Pages)
       {
         source: "/portfolio/assets/systems-thinking",
@@ -485,7 +490,7 @@ const nextConfig: NextConfig = {
         destination:
           "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour/:path*",
       },
-    ];
+    ] };
   },
 
   // Redirects — vertigo vault legacy URLs

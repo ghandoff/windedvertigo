@@ -351,7 +351,18 @@ async function withRetry<T>(
 export async function fetchSiteContent(
   pageKey: string,
 ): Promise<SiteSection[]> {
-  return _fetchSiteContent(pageKey);
+  try {
+    return await _fetchSiteContent(pageKey);
+  } catch (err) {
+    // Build-time resilience: if Notion is unreachable (stale token in
+    // .env.local during local CF build, network blip, etc.), return empty
+    // sections so the build succeeds. Deployed worker has a valid secret
+    // and will fetch live content at request time, populating ISR cache.
+    console.warn(
+      `[notion] fetchSiteContent:${pageKey} failed, returning []: ${(err as Error).message}`,
+    );
+    return [];
+  }
 }
 
 async function _fetchSiteContent(pageKey: string): Promise<SiteSection[]> {
@@ -565,7 +576,15 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
 export async function fetchPackageBuilderData(): Promise<
   Record<string, PackData>
 > {
-  return _fetchPackageBuilderData();
+  try {
+    return await _fetchPackageBuilderData();
+  } catch (err) {
+    // Build-time resilience — see fetchSiteContent.
+    console.warn(
+      `[notion] fetchPackageBuilderData failed, returning {}: ${(err as Error).message}`,
+    );
+    return {};
+  }
 }
 
 /** Build package builder examples from already-fetched portfolio assets.
@@ -747,7 +766,15 @@ export interface ConferenceExperienceData {
 // ── conference experience fetcher ────────────────────────
 
 export async function fetchConferenceExperience(): Promise<ConferenceExperienceData> {
-  return _fetchConferenceExperience();
+  try {
+    return await _fetchConferenceExperience();
+  } catch (err) {
+    // Build-time resilience — see fetchSiteContent for rationale.
+    console.warn(
+      `[notion] fetchConferenceExperience failed, returning empty data: ${(err as Error).message}`,
+    );
+    return { screens: [], agenda: [] };
+  }
 }
 
 async function _fetchConferenceExperience(): Promise<ConferenceExperienceData> {
