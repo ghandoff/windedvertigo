@@ -9,11 +9,38 @@ const nextConfig: NextConfig = {
   // External rewrites — proxy harbour apps to CF Workers (or Vercel for blocked apps)
   async rewrites() {
     return [
-      // systems thinking — proxy API calls (HTML served as static files uses root-relative /api/session/*)
+      // systems-thinking — portfolio route (CF Pages)
+      {
+        source: "/portfolio/assets/systems-thinking",
+        destination: "https://systems-thinking.pages.dev/",
+      },
+      {
+        source: "/portfolio/assets/systems-thinking/",
+        destination: "https://systems-thinking.pages.dev/",
+      },
+      {
+        source: "/portfolio/assets/systems-thinking/:path*",
+        destination: "https://systems-thinking.pages.dev/:path*",
+      },
+
+      // systems-thinking — proxy root-relative /api/session/* calls from HTML pages (CF Pages Functions)
       {
         source: "/api/session/:path*",
-        destination:
-          "https://systems-thinking-gray.vercel.app/api/session/:path*",
+        destination: "https://systems-thinking.pages.dev/api/session/:path*",
+      },
+
+      // values-auction — portfolio route (CF Pages, base: /portfolio/assets/values-auction/)
+      {
+        source: "/portfolio/assets/values-auction",
+        destination: "https://values-auction-d9m.pages.dev/",
+      },
+      {
+        source: "/portfolio/assets/values-auction/",
+        destination: "https://values-auction-d9m.pages.dev/",
+      },
+      {
+        source: "/portfolio/assets/values-auction/:path*",
+        destination: "https://values-auction-d9m.pages.dev/:path*",
       },
 
       // creaseworks
@@ -548,7 +575,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com https://port.windedvertigo.com https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com https://*.windedvertigo.workers.dev",
+              "connect-src 'self' https://api.notion.com https://port.windedvertigo.com https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com https://*.windedvertigo.workers.dev wss://*.windedvertigo.workers.dev",
               "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
               "base-uri 'self'",
               "form-action 'self'",
