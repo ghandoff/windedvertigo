@@ -3,6 +3,8 @@
 > Deep memory, tasks, and operational files live in `.brain/`
 > Tasks: `.brain/TASKS.md` | Memory: `.brain/memory/` | Archive: `.brain/archive/`
 
+> **What's new (2026-04-25):** CF zone consolidation complete (zone now at garrett account `097c92553b268f8360b74f625f6d980a`). Site, harbour, and depth-chart migrated to Cloudflare Workers via OpenNext. Port agent (`wv-claw`) live in Slack DM. Migration record: `~/.claude/plans/partitioned-painting-pascal.md`.
+
 ## Me
 Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in San Francisco, CA (Pacific time). Email: garrett@windedvertigo.com
 
@@ -83,8 +85,8 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **Gmail** | External comms, client correspondence, invoice capture |
 | **Google Calendar** | Scheduling, meeting cadence, time blocking |
 | **Google Drive** | Document storage, shared folders, proposals |
-| **Vercel** | Website hosting (windedvertigo.com) |
-| **Cloudflare** | DNS, security, edge infrastructure |
+| **Cloudflare** | Primary hosting (Workers via OpenNext: site, harbour, depth-chart), DNS, R2 storage, edge |
+| **Vercel** | Hosting for port (CRM), creaseworks, vault, nordic — apps that depend on Workflow DevKit / Vercel Blob |
 | **Cowork (Claude)** | CFO/COO operations, memory system, scheduled tasks, file management |
 | **Otter AI** | Meeting transcription (archived in Notion) |
 | **ADP** | 401k plan administration |
@@ -116,7 +118,7 @@ The second brain operates across two Claude environments with a shared memory la
 - Monorepo code changes: `harbour/`, `crm/`, `ops/`, `packages/`
 - Build fixes, dependency management, config files
 - Git operations (commit, push, branch, PR)
-- Deployment via Vercel CLI (`deploy:ops`, `deploy:crm`)
+- Deployment via Vercel CLI (port/CRM, ops, creaseworks, vault, nordic) and Wrangler/OpenNext (site, harbour, depth-chart on CF Workers)
 - New features for ops dashboard, CRM, website
 - Infrastructure (Cloudflare workers, D1, KV if needed)
 - Debugging build/runtime errors
@@ -143,11 +145,19 @@ windedvertigo/
 **Tech stack:** Next.js 16 + Turbopack, Tailwind v4, Auth.js v5 (Google OAuth), npm workspaces (no turborepo), Vercel hosting, Cloudflare DNS.
 
 ## Infrastructure State
-| Service | Domain | Vercel Project | Status |
-|---------|--------|---------------|--------|
-| Website | windedvertigo.com | wv-harbour | Live |
-| CRM | port.windedvertigo.com | wv-crm | Live |
-| Ops | ops.windedvertigo.com | wv-ops | Deployed — auth flow needs verification |
+| Service | Domain | Host | Project / Worker | Status |
+|---------|--------|------|------------------|--------|
+| Site | windedvertigo.com | CF Workers (OpenNext) | `wv-site` | Live (migrated from Vercel 2026-04-25) |
+| Harbour | (apps under windedvertigo.com) | CF Workers (OpenNext) | `wv-harbour-harbour` (R2 binding for tile images, Auth.js host in Pool A SSO) | Live — magic-link signin live; security headers via @windedvertigo/security wrapper |
+| Depth-chart | windedvertigo.com/harbour/depth-chart/* | CF Workers (OpenNext) | `wv-harbour-depth-chart` (own CF routes, bypasses site router) | Live — Pool A SSO; security headers via wrapper |
+| wv-launch-smoke | wv-launch-smoke.windedvertigo.workers.dev | CF Workers | `wv-launch-smoke` (cron `*/30 * * * *`, KV `SMOKE_LATEST`) | Live — 40-target probe, posts to wv-claw on red |
+| Port (CRM) | port.windedvertigo.com | Vercel | `wv-crm` | Live |
+| Port agent | Slack DM @wv-claw | Vercel (worker `wv-claw`) | App `A0AUA3VQHFH` / bot `U0AUPLEA8RL` / audit DB `f2f48a9998d84cd69598efdc79a44f1e` | Live end-to-end |
+| Nordic | nordic.windedvertigo.com | Vercel | `nordic-sqr-rct` (DNS A → 76.76.21.21, dns-only — kept on Vercel for Workflow DevKit + Vercel Blob) | Live |
+| Ops | ops.windedvertigo.com | Vercel | `wv-ops` | Deployed — auth flow needs verification |
+| Creaseworks, Vault | — | Vercel | (kept on Vercel) | Live |
+
+**Canonical image bucket:** R2 `creaseworks-evidence` (in garrett CF account `097c92553b268f8360b74f625f6d980a`, migrated 2026-04-25 from anotheroption). Public URL: `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev`. Used by site, harbour, vault, creaseworks.
 
 ## Preferences
 - Continuous copilot mode — don't wait to be asked, surface relevant info proactively
