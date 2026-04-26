@@ -464,17 +464,12 @@ const nextConfig: NextConfig = {
           "https://values-auction-pi.vercel.app/harbour/values-auction/:path*",
       },
 
-      // three-intelligence-workbook — static HTML tool
-      {
-        source: "/harbour/three-intelligence-workbook",
-        destination: "/tools/three-intelligence-workbook/",
-      },
-      {
-        source: "/harbour/three-intelligence-workbook/",
-        destination: "/tools/three-intelligence-workbook/",
-      },
-
       // harbour hub (catch-all — must be last)
+      // NOTE: three-intelligence-workbook is a static HTML tool that lives at
+      // /tools/three-intelligence-workbook/. Mounted via redirects() below
+      // (NOT here) because OpenNext-on-CF's internal rewrite to a static
+      // asset directory doesn't resolve cleanly — it 307s to the slash form
+      // which the rewriter treats as the rewrite's final response.
       {
         source: "/harbour",
         destination:
@@ -510,6 +505,20 @@ const nextConfig: NextConfig = {
       {
         source: "/tools/the-mashup",
         destination: "/tools/the-mashup/index.html",
+        permanent: false,
+      },
+      // three-intelligence-workbook — static HTML tool. /harbour/* prefix
+      // redirects to the static-tool URL since OpenNext-on-CF's internal
+      // rewrite to a directory doesn't resolve cleanly. Same pattern as
+      // /tools/the-mashup and /tools/writers-room above.
+      {
+        source: "/harbour/three-intelligence-workbook",
+        destination: "/tools/three-intelligence-workbook/index.html",
+        permanent: false,
+      },
+      {
+        source: "/harbour/three-intelligence-workbook/",
+        destination: "/tools/three-intelligence-workbook/index.html",
         permanent: false,
       },
       {
