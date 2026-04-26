@@ -406,6 +406,11 @@ const nextConfig: NextConfig = {
       },
 
       // values-auction (Vite app — no basePath, serves from root)
+      // wordmark.svg uses root-relative /wordmark.svg, proxy it to the app origin
+      {
+        source: "/wordmark.svg",
+        destination: "https://values-auction-pi.vercel.app/wordmark.svg",
+      },
       {
         source: "/harbour/values-auction",
         destination: "https://values-auction-pi.vercel.app/",
