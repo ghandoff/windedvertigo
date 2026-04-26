@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https:",
               "connect-src 'self' https://vitals.vercel-insights.com",
               "frame-src 'none'",
+              "frame-ancestors 'none'",
               "worker-src 'self'",
               "base-uri 'self'",
               "form-action 'self'",

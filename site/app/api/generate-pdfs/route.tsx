@@ -1,63 +1,21 @@
 /**
- * POST /api/generate-pdfs
+ * /api/generate-pdfs — REMOVED
  *
- * Generates branded PDF packages for each quadrant and uploads to R2.
- * Called weekly by Vercel cron (vercel.json) or manually for testing.
+ * PDF generation has been moved to the port (port.windedvertigo.com) cron
+ * at /api/cron/generate-pdfs. This route existed on the site when it was
+ * hosted on Vercel (Node.js), but Cloudflare Pages Workers cannot run
+ * @react-pdf/renderer.
  *
- * Auth: requires ?token= matching CRON_SECRET env var.
+ * The port's Monday 6am UTC cron now handles generation directly.
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { renderToBuffer } from "@react-pdf/renderer";
-import { fetchPackageBuilderData } from "@/lib/notion";
-import { uploadBuffer, getPublicUrl } from "@/lib/r2";
-import { PackagePDF } from "@/lib/pdf/package-template";
+import { NextResponse } from "next/server";
 
-export const maxDuration = 120; // seconds — Notion search + 4 PDF renders + 4 R2 uploads
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
-  // Auth check
-  const token = request.nextUrl.searchParams.get("token");
-  const secret = process.env.CRON_SECRET;
-
-  if (!secret || token !== secret) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
-  try {
-    const packs = await fetchPackageBuilderData();
-    const results: { quadrant: string; key: string; url: string; bytes: number }[] = [];
-
-    for (const [quadrantKey, pack] of Object.entries(packs)) {
-      // Render PDF to buffer
-      const buffer = await renderToBuffer(
-        <PackagePDF pack={pack} quadrantKey={quadrantKey} />
-      );
-
-      // Upload to R2
-      const r2Key = `package-pdfs/${quadrantKey}.pdf`;
-      await uploadBuffer(r2Key, Buffer.from(buffer), "application/pdf");
-
-      results.push({
-        quadrant: quadrantKey,
-        key: r2Key,
-        url: getPublicUrl(r2Key),
-        bytes: buffer.byteLength,
-      });
-    }
-
-    return NextResponse.json({
-      ok: true,
-      generated: results.length,
-      pdfs: results,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (err) {
-    console.error("[generate-pdfs] failed:", err);
-    return NextResponse.json(
-      { error: (err as Error).message },
-      { status: 500 },
-    );
-  }
+export function GET() {
+  return NextResponse.json(
+    { error: "PDF generation has moved to the port cron — see port/app/api/cron/generate-pdfs" },
+    { status: 404 },
+  );
 }

@@ -6,14 +6,46 @@ const nextConfig: NextConfig = {
   // Notion search for multi-source DB assets can take 30+ rounds (~90s)
   staticPageGenerationTimeout: 180,
 
-  // External rewrites — proxy harbour apps to CF Workers (or Vercel for blocked apps)
+  // External rewrites — proxy harbour apps to CF Workers (or Vercel for blocked apps).
+  // Returned as `beforeFiles` so rewrites are evaluated BEFORE the site app's
+  // own filesystem routes. Without this, paths under /harbour/{app}/api/auth/...
+  // get intercepted by the site's not-found.tsx (and worse, the 404 response
+  // gets prerendered + cached in R2 ISR), 404'ing real OAuth callbacks instead
+  // of proxying them to the harbour app workers.
   async rewrites() {
-    return [
-      // systems thinking — proxy API calls (HTML served as static files uses root-relative /api/session/*)
+    return { beforeFiles: [
+      // systems-thinking — portfolio route (CF Pages)
+      {
+        source: "/portfolio/assets/systems-thinking",
+        destination: "https://systems-thinking.pages.dev/",
+      },
+      {
+        source: "/portfolio/assets/systems-thinking/",
+        destination: "https://systems-thinking.pages.dev/",
+      },
+      {
+        source: "/portfolio/assets/systems-thinking/:path*",
+        destination: "https://systems-thinking.pages.dev/:path*",
+      },
+
+      // systems-thinking — proxy root-relative /api/session/* calls from HTML pages (CF Pages Functions)
       {
         source: "/api/session/:path*",
-        destination:
-          "https://systems-thinking-gray.vercel.app/api/session/:path*",
+        destination: "https://systems-thinking.pages.dev/api/session/:path*",
+      },
+
+      // values-auction — portfolio route (CF Pages, base: /portfolio/assets/values-auction/)
+      {
+        source: "/portfolio/assets/values-auction",
+        destination: "https://values-auction-d9m.pages.dev/",
+      },
+      {
+        source: "/portfolio/assets/values-auction/",
+        destination: "https://values-auction-d9m.pages.dev/",
+      },
+      {
+        source: "/portfolio/assets/values-auction/:path*",
+        destination: "https://values-auction-d9m.pages.dev/:path*",
       },
 
       // creaseworks
@@ -420,31 +452,45 @@ const nextConfig: NextConfig = {
         destination: "https://feel-cards.vercel.app/:path*",
       },
 
-      // three-intelligence-workbook — static HTML tool
+      // values auction
       {
-        source: "/harbour/three-intelligence-workbook",
-        destination: "/tools/three-intelligence-workbook/index.html",
+        source: "/harbour/values-auction",
+        destination:
+          "https://values-auction-pi.vercel.app/harbour/values-auction",
       },
       {
-        source: "/harbour/three-intelligence-workbook/",
-        destination: "/tools/three-intelligence-workbook/index.html",
+        source: "/harbour/values-auction/",
+        destination:
+          "https://values-auction-pi.vercel.app/harbour/values-auction",
+      },
+      {
+        source: "/harbour/values-auction/:path*",
+        destination:
+          "https://values-auction-pi.vercel.app/harbour/values-auction/:path*",
       },
 
       // harbour hub (catch-all — must be last)
+      // NOTE: three-intelligence-workbook is a static HTML tool that lives at
+      // /tools/three-intelligence-workbook/. Mounted via redirects() below
+      // (NOT here) because OpenNext-on-CF's internal rewrite to a static
+      // asset directory doesn't resolve cleanly — it 307s to the slash form
+      // which the rewriter treats as the rewrite's final response.
       {
         source: "/harbour",
-        destination: "https://harbour-ghandoffs-projects.vercel.app/harbour",
+        destination:
+          "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
       },
       {
         source: "/harbour/",
-        destination: "https://harbour-ghandoffs-projects.vercel.app/harbour",
+        destination:
+          "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
       },
       {
         source: "/harbour/:path*",
         destination:
-          "https://harbour-ghandoffs-projects.vercel.app/harbour/:path*",
+          "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour/:path*",
       },
-    ];
+    ] };
   },
 
   // Redirects — vertigo vault legacy URLs
@@ -464,6 +510,20 @@ const nextConfig: NextConfig = {
       {
         source: "/tools/the-mashup",
         destination: "/tools/the-mashup/index.html",
+        permanent: false,
+      },
+      // three-intelligence-workbook — static HTML tool. /harbour/* prefix
+      // redirects to the static-tool URL since OpenNext-on-CF's internal
+      // rewrite to a directory doesn't resolve cleanly. Same pattern as
+      // /tools/the-mashup and /tools/writers-room above.
+      {
+        source: "/harbour/three-intelligence-workbook",
+        destination: "/tools/three-intelligence-workbook/index.html",
+        permanent: false,
+      },
+      {
+        source: "/harbour/three-intelligence-workbook/",
+        destination: "/tools/three-intelligence-workbook/index.html",
         permanent: false,
       },
       {
@@ -532,12 +592,13 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://unpkg.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net",
+              "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://unpkg.com https://cdn.jsdelivr.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com https://port.windedvertigo.com https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com https://*.windedvertigo.workers.dev",
+              "connect-src 'self' https://api.notion.com https://port.windedvertigo.com https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com https://*.windedvertigo.workers.dev wss://*.windedvertigo.workers.dev",
               "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
+              "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
             ].join("; "),

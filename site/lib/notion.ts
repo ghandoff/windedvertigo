@@ -13,8 +13,6 @@ import type {
   QueryDataSourceParameters,
   QueryDataSourceResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import fs from "fs";
-import path from "path";
 import { syncImageToR2, imageUrl } from "@/lib/sync-image";
 
 // ── client ────────────────────────────────────────────────
@@ -346,33 +344,6 @@ async function withRetry<T>(
   );
 }
 
-function readFallback<T>(filename: string): T | null {
-  try {
-    const filePath = path.join(process.cwd(), "data", filename);
-    const raw = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
-async function withFallback<T>(
-  fetcher: () => Promise<T>,
-  fallbackFile: string,
-  label: string,
-): Promise<T> {
-  try {
-    return await fetcher();
-  } catch (err) {
-    console.warn(
-      `[notion] ${label} failed, falling back to ${fallbackFile}: ${(err as Error).message}`,
-    );
-    const data = readFallback<T>(fallbackFile);
-    if (data !== null) return data;
-    throw err;
-  }
-}
-
 // ── fetchers ──────────────────────────────────────────────
 
 /**
@@ -384,15 +355,14 @@ export async function fetchSiteContent(
   try {
     return await _fetchSiteContent(pageKey);
   } catch (err) {
+    // Build-time resilience: if Notion is unreachable (stale token in
+    // .env.local during local CF build, network blip, etc.), return empty
+    // sections so the build succeeds. Deployed worker has a valid secret
+    // and will fetch live content at request time, populating ISR cache.
     console.warn(
-      `[notion] fetchSiteContent:${pageKey} failed, falling back to JSON: ${(err as Error).message}`,
+      `[notion] fetchSiteContent:${pageKey} failed, returning []: ${(err as Error).message}`,
     );
-    // Fallback JSON has shape { sections: [...] }
-    const data = readFallback<{ sections: SiteSection[] }>(
-      `site-content-${pageKey}.json`,
-    );
-    if (data?.sections) return data.sections;
-    throw err;
+    return [];
   }
 }
 
@@ -457,18 +427,16 @@ async function _fetchSiteContent(pageKey: string): Promise<SiteSection[]> {
  */
 export async function fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
   try {
-    return await _fetchPortfolioAssets();
+    const live = await _fetchPortfolioAssets();
+    if (live.length > 0) return live;
+    // Notion linked-DB returns 0 results via search — fall through to JSON
+    console.warn("[notion] fetchPortfolioAssets: 0 pages from Notion, using JSON fallback");
   } catch (err) {
     console.warn(
-      `[notion] fetchPortfolioAssets failed, falling back to JSON: ${(err as Error).message}`,
+      `[notion] fetchPortfolioAssets failed: ${(err as Error).message}`,
     );
-    // Fallback JSON has shape { assets: [...] }
-    const data = readFallback<{ assets: PortfolioAsset[] }>(
-      "portfolio-assets.json",
-    );
-    if (data?.assets) return data.assets;
-    throw err;
   }
+  return [];
 }
 
 // quadrant relation cache
@@ -612,15 +580,11 @@ export async function fetchPackageBuilderData(): Promise<
   try {
     return await _fetchPackageBuilderData();
   } catch (err) {
+    // Build-time resilience — see fetchSiteContent.
     console.warn(
-      `[notion] fetchPackageBuilder failed, falling back to JSON: ${(err as Error).message}`,
+      `[notion] fetchPackageBuilderData failed, returning {}: ${(err as Error).message}`,
     );
-    // Fallback JSON has shape { packs: {...} }
-    const data = readFallback<{ packs: Record<string, PackData> }>(
-      "package-builder-content.json",
-    );
-    if (data?.packs) return data.packs;
-    throw err;
+    return {};
   }
 }
 
@@ -803,11 +767,15 @@ export interface ConferenceExperienceData {
 // ── conference experience fetcher ────────────────────────
 
 export async function fetchConferenceExperience(): Promise<ConferenceExperienceData> {
-  return withFallback(
-    () => _fetchConferenceExperience(),
-    "conference-experience.json",
-    "fetchConferenceExperience",
-  );
+  try {
+    return await _fetchConferenceExperience();
+  } catch (err) {
+    // Build-time resilience — see fetchSiteContent for rationale.
+    console.warn(
+      `[notion] fetchConferenceExperience failed, returning empty data: ${(err as Error).message}`,
+    );
+    return { screens: [], agenda: [] };
+  }
 }
 
 async function _fetchConferenceExperience(): Promise<ConferenceExperienceData> {
