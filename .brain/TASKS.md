@@ -1,5 +1,111 @@
 # Tasks
 
+## Completed 2026-04-26 — harbour launch-readiness session
+
+- [x] **Phase 0 wrap-up complete** — image-failure counter on harbour cron, sweep guard + restored 5 seeded SKUs (migration 053), doc drift closed.
+- [x] **Phase 1 SSO verification** — Pool A (creaseworks/vault/depth-chart/harbour), Pool B (port), Pool C (ops) all verified via Chrome MCP. Three-pool architecture documented at `harbour-apps/docs/security/auth-pool-audit-2026-04-25.md`.
+- [x] **Phase 2 + 2.5** — port AUTH_URL verified, /crm 308 verified, creaseworks AUTH_URL fix shipped (silenced env-url-basepath warnings).
+- [x] **Phase 3a** — harbour magic-link signin live; joined Pool A SSO as 4th app. Same `userId f0e3ec80-…` across all four. `apps/harbour/lib/auth.ts` uses `createHarbourAuth({ appName: "" })`. 7 secrets on `wv-harbour-harbour` Worker.
+- [x] **Phase 3b code + deploy** — Google OAuth on harbour. Reuses existing OAuth client `160968051904-ud88va6odnnjlp76j5dlc4qfd8upq2lp`. Worker version `8f5edc0d-…` live; `/api/auth/providers` lists both google + resend. *Functional click-through verification pending user adding redirect URI to Google Cloud Console.*
+- [x] **Phase 4a security audit** — full audit at `harbour-apps/docs/security/launch-audit-2026-04-26.md`. 7 must-fix, 22 should-fix initially.
+- [x] **Phase 4b Vercel-side** — vault headers, frame-ancestors on creaseworks/site/ops/port. Closed 7 should-fix items.
+- [x] **Phase 4b harbour + depth-chart wrapper** — `@windedvertigo/security` package (`packages/security/`) ships `wrapWithSecurityHeaders` + `HARBOUR_DEFAULT_CSP`. harbour and depth-chart Workers wrapped, all 6 headers emitting. Closed 4 must-fix items + many should-fix.
+- [x] **Phase 5a smoke script** — `harbour-apps/scripts/launch-smoke.mjs` covers 40 production targets with 3-retry backoff. 40/40 green at last run.
+- [x] **Phase 5b smoke Worker deployed** — `wv-launch-smoke` Worker live, cron `*/30 * * * *`, KV `b67fcfef…`. Reads + writes to `latest` key; emits Slack digest on red when `WV_CLAW_WEBHOOK` secret is set. *Webhook URL pending user.*
+- [x] **A2 prep — 16 CF Worker apps configured with security wrapper** — bias-lens, code-weave, deep-deck, emerge-box, liminal-pass, market-mind, mirror-log, orbit-lab, paper-trail, pattern-weave, proof-garden, raft-house, rhythm-lab, scale-shift, tidal-pool, time-prism. Each has `worker.ts`, updated `wrangler.jsonc` main field, tsconfig exclude, package.json dep. Deploy via `harbour-apps/scripts/deploy-cf-wrappers.sh`. Commit `042392e`.
+- [x] **B1 — vault static CSP removed from vercel.json** — vault's `proxy.ts` (commit `79db6c3`) had a working nonce-based CSP that was being overridden at the edge by `vercel.json`'s static CSP. Removed the static entry; nonce-CSP becomes sole emitter on next vault deploy. Commit `dcbe3ab`.
+- [x] **B4 — CSP nonce investigation doc** — `harbour-apps/docs/security/csp-nonce-investigation.md`. Recommendation: keep `'unsafe-inline'` on CF Workers fleet for launch; validate nonce pattern on vault first, then propagate post-launch.
+- [x] **C2 partial — DNS audit** — SPF doesn't include `_spf.resend.com` (Resend emails fail SPF alignment), DMARC has no `rua=` reporting. Findings in `harbour-apps/docs/runbooks/launch-monitoring.md`.
+- [x] **C4 — launch monitoring runbook** — `harbour-apps/docs/runbooks/launch-monitoring.md`. Triage trees, monitoring URLs, wrangler tail filters, smoke worker KV inspection, rollback procedures.
+- [x] **Forward-roadmap plan written** — `~/.claude/plans/partitioned-painting-pascal.md` Phase A/B/C/D, sequencing, risks, done-when criteria. ONE 30-second user gate (A.1) for the entire pre-launch path.
+
+### Pending (user actions to unblock)
+
+- [ ] **A.1 (30 sec)**: add `https://www.windedvertigo.com/harbour/api/auth/callback/google` redirect URI to Google OAuth client `160968051904-ud88va6odnnjlp76j5dlc4qfd8upq2lp`.
+- [ ] **A2 + A4 deploy**: run `cd harbour-apps && ./scripts/deploy-cf-wrappers.sh --include-depth-chart` (rolls out wrapper to 16 apps + redeploys depth-chart with new AUTH_URL).
+- [ ] **A3**: create incoming webhook on wv-claw Slack app, then `echo "$URL" | wrangler secret put WV_CLAW_WEBHOOK --name wv-launch-smoke`.
+
+## Completed 2026-04-25 — port infra consolidation session
+
+- [x] **CF DNS zone consolidation** — windedvertigo.com zone activated 2026-04-25T01:43 UTC at garrett CF account (`097c92553b268f8360b74f625f6d980a`); migrated from anotheroption account.
+- [x] **Port agent (wv-claw) deployed** — end-to-end tested in Slack DM. App `A0AUA3VQHFH` / bot `U0AUPLEA8RL` / audit DB `f2f48a9998d84cd69598efdc79a44f1e`.
+- [x] **windedvertigo.com → Cloudflare Workers** — `wv-site` Worker live via OpenNext; Vercel `windedvertigo-site` project deleted.
+- [x] **Harbour → Cloudflare Workers** — `wv-harbour-harbour` Worker live with R2 binding for tile images.
+- [x] **Depth-chart on CF Workers** — fully wired with all secrets, direct CF routes (bypasses site router), end-to-end auth verified via shared `.windedvertigo.com` cookie.
+- [x] **nordic.windedvertigo.com** — custom domain added on Vercel (project `nordic-sqr-rct`, kept on Vercel for Workflow DevKit + Vercel Blob).
+- [x] **Vault image bucket public access restored** — after R2 account migration to garrett account.
+- [x] **Vault read-time cover_url refactor** — computes from `cover_r2_key` at read time; future R2 migrations are env-var-only.
+- [x] **Creaseworks R2 credentials repaired** — production now uses garrett-account keys.
+- [x] **Harbour tile images centralized in R2** — admin sync endpoint at `/harbour/api/admin/sync-tiles`.
+
+## Infrastructure / platform (queued — needs focused session)
+
+Two related infrastructure projects surfaced during the R2 token-rotation incident on 2026-04-23. Both are medium-effort and should be tackled together in a single focused session, not piecemeal.
+
+### Project: Cloudflare account consolidation
+
+**Current state**: Assets split across two Cloudflare accounts.
+- `garrett@windedvertigo.com` account: DNS zones, domain registrar ("Gearbox"/Cloudflare Registrar)
+- `anotheroption@gmail.com` account (ID: `4f33ee381364bce6959bdea092f046bb`): R2 buckets (`crm-assets`, `creaseworks-evidence`), Workers, AI Gateway, etc.
+
+**Target**: Everything under `garrett@windedvertigo.com`.
+
+**Why it matters**: Split accounts mean two logins, two token sets, two billing surfaces, and ongoing confusion when rotating creds (like today's incident). Consolidation reduces cognitive load and blast radius.
+
+**Plan outline** (needs refinement before execution):
+1. Audit assets in both accounts — list every zone, bucket, worker, KV namespace, AI Gateway, etc.
+2. Move DNS zones + domain registrations to `garrett@windedvertigo.com` via CF's transfer-between-your-accounts flow (low-risk — zones update propagate over minutes)
+3. Recreate R2 buckets in target account (R2 buckets are not transferable; must rclone the data over)
+4. Update Vercel env vars: `CF_ACCOUNT_ID`, `R2_*`, `R2_PUBLIC_URL`
+5. Redeploy port + harbour; verify uploads + reads
+6. Migrate Workers, KV, D1, AI Gateway bindings — recreate + redeploy
+7. Delete old account's assets once verified
+8. Rotate/deactivate old API tokens
+
+**Effort**: 60–90 minutes once started; most time is the R2 object sync.
+
+### Project: Rename "CRM" → "port" across infrastructure
+
+**Current state**: Legacy "CRM" naming in places where code/config was renamed but infrastructure wasn't.
+- R2 bucket name: `crm-assets` (should be `port-assets`)
+- Vercel domain aliases: `wv-crm.vercel.app`, `crm.windedvertigo.com` (alongside `wv-port-*` + `port.windedvertigo.com`)
+- Possibly Notion databases or other references
+
+**Target**: Everything reads "port" (matches the in-app brand language).
+
+**Plan outline**:
+1. Audit every reference to "crm" / "CRM" across repos, Vercel project, Cloudflare, Notion
+2. Bucket rename (recreate + sync, like the consolidation — R2 doesn't support direct rename)
+3. Remove stale Vercel aliases (`wv-crm.vercel.app`, `crm.windedvertigo.com`) once nothing points at them
+4. Update `R2_BUCKET_NAME` env var + `R2_PUBLIC_URL` if that's re-branded too
+5. Redeploy; verify no broken links (especially user-shared URLs that embed the old domain)
+
+**Effort**: 30–60 minutes if bundled with the consolidation work (same bucket-sync action).
+
+### Recommendation
+
+Bundle both into a single session titled "port infra consolidation" — the R2 bucket work only happens once (move to new account AND rename). Do it on a low-traffic evening with port users warned that uploads will be briefly unavailable during the sync cutover.
+
+## Whirlpool actions — 2026-04-22 (w.v x press play)
+- [ ] **garrett + team** — review and refine the w.v x press play proposal document as shared alignment tool for both teams
+- [ ] **payton** — develop marketing materials hitting pain points ("have you ever felt disconnected at a conference?"), with digestible content + links to deeper pieces
+- [ ] **garrett + press play** — explore co-branded social media posts combining Press Play event footage with Winded Vertigo research backing
+- [ ] **both teams** — secure video documentation and testimonials at future events in real-time (not after the fact)
+- [ ] **garrett** — explore design solutions for gathering engagement metrics at events (e.g., RFID badge tracking for play zone dwell time)
+- [ ] **casper (press play)** — pursue Hotel Legoland + Danish conference hotel union organizer connections
+- [ ] **garrett** — follow up with Paul Ramchandani on Pedal conference proposal (sent over holiday, no response yet)
+- [ ] **press play** — add assets and documentation to the shared Google Drive folder
+- [ ] **garrett + payton** — build co-branded landing page for w.v x press play conference injection offering; point campaigns to it
+- [ ] **payton** — start drafting first campaign; prepare draft campaign + co-branded website for review at next w.v x press play whirlpool (May 11)
+
+## Whirlpool actions — 2026-04-20 (writer's room)
+- [ ] **Jamie** — split the "unfolding" document into 5 digestible Substack posts by end of day Tuesday (Apr 21)
+- [ ] **Team** — review Jamie's unfolding document and flag particularly resonant sections
+- [ ] **garrett** — discuss with Maria about designing interactive experiences and video content for Substack
+- [ ] **Payton** — coordinate posting Jamie's content on Substack, LinkedIn, and website
+- [ ] **Team** — plan structure for monthly public play dates (30–60 minutes: 20 min playing, 20 min reflecting, 20 min connecting to theory)
+- [ ] **garrett** — use Claude to generate a 500-word summary of the transformative theory of change
+
 ## Whirlpool actions — 2026-04-15 (harbour playtest + strategy sprint)
 - [ ] **garrett** — send cold outreach campaign to remaining organisations after meeting
 - [ ] **team** — hold writing retreat on monday (apr 21) focused on "play, aliveness, justice" substack piece
@@ -23,6 +129,16 @@
 - [ ] **team** — follow up on cold email outreach responses and refine approach
 
 ## Active
+
+### Infrastructure follow-ups (post 2026-04-25 consolidation)
+- [ ] **Notion content work — page covers** — Add page covers to playdates/packs/collections in Notion (creaseworks side, ~85 pages).
+- [ ] **Phase 1 refactor for creaseworks** — Apply same read-time URL pattern as vault (compute from R2 key on read).
+- [ ] **Phase 3: body-content image sync** — In vault and creaseworks, parse `body_html` and sync inline images to R2.
+- [ ] **Revoke temp CF API token** — "Edit Cloudflare Workers" token, after stable.
+- [ ] **Delete DNS API token** — `(cfut_H1x9...903e3, redacted — token literal in CF dashboard)`, after stable.
+- [ ] **Close anotheroption CF account** — empty after migration.
+- [x] ~~**Documentation sync**~~ (2026-04-25) — TASKS.md updated to reflect 2026-04-25 work.
+
 - [ ] **IDB Salvador documentation — April 10 deadline** — Submit to nadia.nochez@mined.gob.sv as single consolidated digital file.
   - **Legal docs (Garrett to pull):**
     - [ ] Articles of Incorporation / Certificate of Formation for WV LLC

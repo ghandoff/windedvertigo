@@ -9,57 +9,220 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** sat 18 apr 2026, 9pm PT (context-sync)
+**last synced:** sun 27 apr 2026, ~9am PT (claude code, harbour launch-readiness session)
 
 **where we are right now:**
-quiet weekend — no git commits, no calendar events sunday. CPA tax situation remains the #1 urgent item: TaxDome reminder for missing docs + extension organiser still unactioned. PRME payment now 22 days outstanding — tue PRME hold with meredith is the escalation moment. cash last known $5,076.19 (apr 16). monday opens with weekly site check (7am), whirlpool (9am); tuesday is stacked: strategy playdates (8am), lamis (9am), maria (10am), PRME hold (12pm), leah (3:30pm). KiwiCo lead warm — forwarded to their international partnerships team, awaiting response. invoice processor dispatch still broken. ADP quarterly retirement statement now available.
+harbour public launch is ~6 weeks out (early-to-mid june). today closed all of phase 0-5a of launch readiness in claude code: 4-app pool A SSO (creaseworks/vault/depth-chart/harbour) live with both magic-link and google OAuth on harbour, security audit run with 7 must-fix → 0 must-fix on vercel side (vault headers + frame-ancestors), CF workers wrapper shipped to harbour + depth-chart via new `@windedvertigo/security` package. smoke worker `wv-launch-smoke` deployed (cron */30, 40/40 green). prep done for 16 more CF workers apps (bias-lens through time-prism + paper-trail/deep-deck/raft-house/tidal-pool/mirror-log) — deploy via `harbour-apps/scripts/deploy-cf-wrappers.sh`. forward roadmap plan written at `~/.claude/plans/partitioned-painting-pascal.md`. blocked on user actions: (1) add 1 google OAuth redirect URI, (2) run deploy script, (3) provide slack webhook URL for smoke alerts.
 
 ### open threads
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| CPA / tax | 2 TaxDome reminders apr 18 (missing docs + extension organiser) | **urgent** — complete tax extension organiser + missing docs via TaxDome portal before penalties | gmail: notifications@taxdome.com |
-| Nordic Naturals | lauren meeting done apr 16; PCS gap analysis complete; follow-up **wed apr 22 3pm** | close 4 critical schema gaps; review PCS template lauren sent by email | [gap analysis](https://www.notion.so/345e4ee74ba4819c8bbbc616067723c2) |
-| PRME 2026 | first invoice submitted mar 27; PO #2069 approved | **raise payment tue PRME hold** — 22 days outstanding | [notion mail](https://mail.notion.so/inbox/19d69751a722cce5) |
-| IDB Salvador | maria sync done apr 16; deadline was apr 10 | confirm status with maria at tue sync (10am PT) — 8 days past deadline | [notion mail](https://mail.notion.so/inbox/a99b1601-0090-4e61-98bd-a074c0d6665f) |
-| KiwiCo | reply received apr 17 — forwarded to international partnerships team | monitor for follow-up; draft partnership brief if they respond | gmail: schoolsgroups@kiwico.com |
-| harbour launch | depth pivot confirmed; writing retreat **mon apr 21** | pilot 2–4 games per category; whisper campaign — may 1 deadline | [tasks](.brain/TASKS.md) |
-| Press Play collab | apr 8 items carried forward | schedule apr 22 session; set up google drive folder + slack channel | [tasks](.brain/TASKS.md) |
-| Amna at 10 | proposal submitted mar 26 | follow-up overdue (23 days) — email jonelle and walaa **this week** | [tasks](.brain/TASKS.md) |
+| harbour 3B verification | code + secrets deployed; OAuth client gate pending | add redirect URI to client `160968051904-…`: `https://www.windedvertigo.com/harbour/api/auth/callback/google` | gcp console |
+| 16-app CF wrapper rollout | prep committed `042392e`; deploy script ready | run `./scripts/deploy-cf-wrappers.sh --include-depth-chart` | terminal |
+| smoke alert webhook | smoke worker reads `WV_CLAW_WEBHOOK` if set | create incoming webhook on wv-claw Slack app, run `wrangler secret put` | slack |
+| vault nonce CSP | found existing proxy.ts in commit `79db6c3` was being overridden by vercel.json static CSP; removed the static one in commit `dcbe3ab` | next vault deploy will activate nonce-CSP; verify via curl | — |
+| DNS gaps for resend | SPF missing `include:_spf.resend.com`, DMARC missing `rua=` | add both before launch — see `harbour-apps/docs/runbooks/launch-monitoring.md` | cf dns |
+| PRME 2026 — programme start | sam + metz (UN GC) asked about feedback survey/qualtrics apr 24; garrett replied; metz follow-up unread | reply to metz@unglobalcompact.org; confirm survey platform decision with maria | — |
+| creaseworks — covers + body images | notion sync runs but cover_url NULL (no covers on source pages) | add notion covers for playdates/packs/collections; apply phase 1 refactor | — |
+| health insurance | gusto june 1 coverage — deadline april 30 | confirm benefits in gusto before april 30 — **3 days left** | gusto dashboard |
+| CPA / tax | aakib $329.81 reversal pending; extension organizer step 2/4 open | reply to aakib re: chase temp hold; finish extension organizer | taxdome.com |
+| Amna at 10 | proposal submitted mar 26 | **31 days overdue** — email jonelle and walaa immediately | — |
+
+### open threads
+
+| project | last action | next action | link |
+|---------|-------------|-------------|------|
+| vercel prod failures | 4 builds failed overnight after CF migration (port x2, harbour-apps x2) — 5:33am + 6:19am | **claude code first**: investigate build logs, check DNS/env var breakage from migration | vercel dashboard |
+| cloudflare workers KV | daily 1,000 put limit exceeded (alert 12:31am apr 25) | upgrade to paid KV tier or throttle dispatch writes | cloudflare dashboard |
+| CF account cleanup | zone + R2 migrated to garrett account; temp tokens still active | revoke temp CF API token; delete DNS-only token; close anotheroption CF account | cloudflare dashboard |
+| PRME 2026 — programme start | sam + metz (UN GC) asked about feedback survey/qualtrics apr 24; garrett replied; metz follow-up unread | reply to metz@unglobalcompact.org; confirm survey platform decision with maria; check maria on PPCS post drafts | — |
+| creaseworks — covers + body images | notion sync runs but cover_url NULL (no covers on source pages) | add notion covers for playdates/packs/collections; apply phase 1 refactor; build body-content image sync | — |
+| health insurance | gusto june 1 coverage — deadline april 30 | confirm benefits in gusto before april 30 — **5 days** | gusto dashboard |
+| CPA / tax | aakib $329.81 reversal pending; extension organizer step 2/4 open | reply to aakib re: chase temp hold; finish extension organizer | taxdome.com |
+| Amna at 10 | proposal submitted mar 26 | **30 days overdue** — email jonelle and walaa immediately | — |
 
 ### waiting on external
 
-- **PRME payment** — first invoice submitted to meredith / sam — since mar 27 (22 days); PO #2069 approved. tue PRME hold is the escalation point.
-- **IDB submission receipt** — maria submitted apr 10 to MINEDUCYT; awaiting acknowledgement from nadia.nochez@mined.gob.sv — 8 days past deadline
-- **Amna at 10 response** — proposal sent to jonelle and walaa — since mar 26 (23 days, overdue for follow-up)
-- **KiwiCo international team** — inquiry forwarded apr 17; awaiting response from their partnerships division
-- **IDB collective project docs** — AET, ECO966, Solihull, NSIT references — requested from collective members
+- **meredith (PRME)** — awaiting timeline response re: facilitation guides — since 1:40pm PT apr 21 (4 days outstanding)
+- **IDB Salvador** — ✅ **RESOLVED apr 24**: nadia.nochez confirmed receipt; evaluation committee reviewing. monitor for outcome.
+- **Amna at 10 response** — proposal sent to jonelle and walaa — since mar 26 (30 days, overdue for follow-up)
+- **KiwiCo international team** — inquiry forwarded apr 17; awaiting response from partnerships division
+- **Anthropic ZDR + rate limit** — ZDR ticket #215474029316065 filed apr 23; rate limit increase pending — no timeline
+- **health insurance** — gusto june 1 coverage deadline is **april 30** (5 days) — confirm before april 30
 
 ### environment handoffs
 
 **Cowork → Claude Code:**
-- nordic naturals: close 4 critical PCS schema gaps identified in gap analysis — claim prefix separation, standardised ingredient nomenclature, benefit categories, demographics
-- ops dashboard: wire quickbooks + gusto data via cowork dispatch → KV push
+- **vercel prod failures** — 4x overnight failures (port + harbour-apps) after CF migration; investigate build logs + DNS/env var breakage first
+- **CF KV free tier exceeded** — upgrade to paid tier or throttle context-sync/dispatch writes
+- **creaseworks content**: add notion cover images for playdates/packs/collections so cover_url populates on next sync
+- **creaseworks phase 1 refactor**: decouple cover_url from R2 URL hash (mirror vault's read-time pattern)
+- **body-content image sync**: parse body_html for inline notion images and migrate to R2
+- **CF cleanup**: revoke temporary CF API token; delete DNS-only token; close anotheroption CF account
+- CRM campaign 404 bug (POST /api/campaigns) — still unresolved since apr 17
 - CMO marketing module in ops dashboard — spec in `.brain/memory/marketing/claude-code-prompt.md`
-- resend webhook URL still needs registering in resend dashboard (unblocks campaign tracking)
-- prepare full-stack + tooling notion brief for maria (upstash discussion)
+- resend webhook URL still needs registering in resend dashboard
 
 **Claude Code → Cowork:**
-- ancestry app substantially built — review decisions needed (harbour integration? pricing? launch comms?)
-- `wv-invoice-logged` gmail label application still manual (MCP limitation — 3 messages unlabeled)
-- triage isabel rodríguez tejedo inbound (certificate of excellence inquiry via payton)
-- CPA portal: complete tax extension organiser + missing docs (2 fresh reminders apr 18)
-- invoice processor dispatch broken — gmail MCP stale + notion invoice tracker DB missing; reload session to fix
-- attio CRM trial ending — decide: keep or cancel
-- ADP quarterly retirement plan statement now available — review
+- health insurance: confirm benefits in gusto before april 30 (**5 days**)
+- CPA: reply to aakib re: $329.81 chase temp hold; finish personal extension organizer step 2/4
+- QuickBooks: record PRME $48,285 income + contractor payments (Maria $18,330, Lamis $1,005) from apr 20
+- ADP invoice for week ending apr 25 arrived — pay this week
+- PRME survey: reply to metz@unglobalcompact.org confirming qualtrics / alternative platform decision
+- attio CRM trial — decide: keep or cancel
+- `wv-invoice-logged` gmail label — 3 messages still unlabeled
 
 ### mobile bookmarks
 
-- _source unavailable_ — slack MCP tools not available in this session; self-DMs from last 24h could not be checked
+- no self-DMs in last 24h beyond the auto morning briefing
+- morning briefing (apr 25, 7:10am) flagged: LFT blood test due today (call kaiser 415-444-2940), vercel failures, CF KV limit, ADP invoice — all still open
 
 ---
 
 ## history (most recent first)
+
+---
+
+## 2026-04-25 (night) — context-sync: infra day complete, vercel failures flagged, PRME programme starting (Cowork)
+
+**what happened:**
+- **massive infra day closed out** — CF zone consolidation complete (zone at garrett account `097c92553b268f8360b74f625f6d980a`); site + harbour + depth-chart live on CF workers via opennext; port agent (`wv-claw`) live end-to-end in slack DM. R2 migration complete.
+- **vercel production failures** — 4x overnight build failures (port x2, harbour-apps x2 at 5:33am + 6:19am) likely caused by CF domain migration. claude code needed to investigate.
+- **CF KV free tier exceeded** — daily 1,000 put limit hit 12:31am apr 25; context-sync or dispatch writes likely culprit.
+- **cash at $28,208** — strongest position since formation (+$26,136 since apr 1); PRME revenue landing well.
+- **IDB Salvador resolved** — nadia.nochez confirmed receipt of apr 10 documentation; evaluation committee reviewing.
+- **PRME programme start** — sam thompson + metz (UN GC) asked about feedback survey/qualtrics expiry apr 24; garrett replied. metz follow-up still unread.
+- **ADP invoice** — week ending apr 25 arrived; needs payment.
+- **health insurance deadline approaching** — gusto april 30 (5 days).
+- **google security alert** — new sign-in on mac flagged overnight (likely legitimate post-migration session).
+- tomorrow (sun apr 26): calendar clear — recovery day.
+- slack DM sent to garrett (U06Q4UN4PKR).
+
+---
+
+## 2026-04-25 — full-day infra push: CF zone consolidation finished, site + harbour + depth-chart on workers, port agent live, R2 image migration (Claude Code)
+
+**what happened (~14 hour session):**
+
+**infrastructure shipped:**
+- **CF zone consolidation finished** at 2026-04-25T01:43 UTC — windedvertigo.com zone now lives at the garrett account (`097c92553b268f8360b74f625f6d980a`).
+- **site → CF Workers**: windedvertigo.com migrated vercel → workers (`wv-site` via opennext). Vercel project `windedvertigo-site` deleted.
+- **harbour → CF Workers**: migrated to `wv-harbour-harbour`; notion client v2 → v5 upgrade.
+- **depth-chart fully provisioned on workers**: own CF routes (bypasses site router); auth flow works end-to-end; SSO via shared `.windedvertigo.com` cookie verified.
+- **port agent (`wv-claw`) deployed end-to-end** — `@wv-claw what campaigns are active?` works in slack DM.
+- **nordic.windedvertigo.com** custom domain attached to existing vercel project.
+- **R2 image migration completed** across vault, harbour, creaseworks (creds repair), site.
+
+**key fixes:**
+- **vault cover image bucket access restored** after CF account migration: re-enabled `r2.dev` public access, updated `R2_PUBLIC_URL`, rewrote 72 DB rows via `fix-cover-urls.mjs` migration script. Vault refactored to compute `cover_url` from `cover_r2_key` at query time.
+- **harbour tile sync** via admin endpoint `POST /harbour/api/admin/sync-tiles` (16 from notion + 3 fallback to repo statics).
+- **creaseworks R2 access keys** synced from vault — was stuck on stale anotheroption keys, sync silently failed.
+- **auth.js v5 redirects on workers**: fixed via `WORKERS_AUTH_PAGES_BASEPATH` env var on depth-chart, prefixes `pages.error` / `signIn` paths.
+
+**known incomplete:** creaseworks notion sync runs but `cover_url` still NULL because notion source pages have no covers (content work pending).
+
+**pending for next session:**
+- add cover images in notion for creaseworks playdates/packs/collections
+- apply phase 1 refactor to creaseworks (decouple cover_url from R2 URL hash, mirror vault pattern)
+- body-content image sync (parse body_html for inline notion images)
+- revoke temporary CF API token; delete DNS-only token; close anotheroption account
+
+migration record: `~/.claude/plans/partitioned-painting-pascal.md`. infrastructure state table in `CLAUDE.md` already updated.
+
+---
+
+## 2026-04-24 (night) — context-sync: IDB receipt confirmed, cloudflare consolidation done, harbour → workers migration, port still failing (Cowork)
+
+**what happened:**
+- **IDB Salvador UNBLOCKED** — nadia.nochez@mined.gob.sv confirmed receipt of the apr 10 documentation (10:38pm apr 24); evaluation committee actively reviewing. 14-day silence resolved — no action needed until outcome.
+- **cloudflare account consolidation**: windedvertigo.com zone successfully moved to `garrett@windedvertigo.com` account (cloudflare confirmation emails at 1:42am + 1:44am apr 25). R2 buckets, workers, KV/D1 bindings still need verification under new account.
+- **harbour → cloudflare workers migration**: 4 commits today — opennext migration, worker routes for windedvertigo.com, portfolio assets routes (systems-thinking + values-auction), `/do` page fallback fix. significant infrastructure shift.
+- **cloudflare workers KV free tier exceeded**: daily 1,000 put limit hit (alert received 12:31am apr 25). context-sync or dispatch writes are the likely culprit — need upgrade or throttling.
+- **port deployment failures**: 6+ vercel failures across apr 24; 1 more at 2am apr 25. urgent claude code task.
+- **PRME programme comms active**: sam thompson (UN GC) asked about feedback survey + follow-up email comms; garrett replied same day. alex brewer sent discussion post formatting notes; garrett forwarded to maria.
+- **harbour/portfolio placement question**: garrett asked maria whether her games should live in harbour vs portfolio — awaiting her input.
+- **gusto**: payton jaeger's bank account details updated (routine notification, no action needed).
+- tomorrow (sat apr 25): terbinafine repeat LFT calendar reminder, NFL draft rounds 4-7 (9am-2pm). no work meetings.
+- slack DM sent to garrett (U06Q4UN4PKR).
+
+---
+
+## 2026-04-23 (night) — context-sync: harbour build failing, vercel account merge started, CPA escalating, health insurance deadline, supabase added (Cowork)
+
+**what happened:**
+- **harbour production deployment broken** — two failed builds at 1am apr 24 (emails from notifications@vercel.com). likely caused by three-intelligence-workbook PR (#4) or the vercel account consolidation now in progress. claude code needed urgently.
+- **vercel account consolidation started** — `anotheroption@gmail.com` sent two vercel team invites to `garrett@windedvertigo.com` (12:40am + 12:44am apr 24): "ghandoff's projects" + "winded vertigo" teams. this is the TASKS.md consolidation work beginning. R2 / KV / workers bindings need verification.
+- **engineering**: 1 commit — `9ba44ee feat(site): add three-intelligence-workbook at /harbour/three-intelligence-workbook (#4)` — new harbour tool live (or attempting to be).
+- **CPA escalating**: abhishek sachdeva (2 messages) + aakib qureshi (2 messages) sent new taxdome secure messages on apr 23. now 4 unread messages in the portal — tax work is actively blocked on garrett's response.
+- **health insurance**: gusto email flagged june 1 coverage deadline is **april 30** (7 days) — unactioned.
+- **supabase added to stack**: welcome email arrived apr 23; garrett is onboarding maria to the engineering stack (github email + apps developed — stack migration in progress).
+- **PRME**: maria resolved 4 suggestions on ppcs-2026-session-1a this morning. PPCS anchor prep meeting set for mon apr 27.
+- **cash**: $3,924 (morning briefing). chase ink CC payment was due today — status unconfirmed.
+- **save the children**: draft consultancy application spotted in gmail (climate resilience CCCRM) — unclear if garrett or maria started it; needs triage.
+- **tomorrow (apr 24)**: laton appt (10:50am), R&D meeting with gina (11am), NFL draft rounds 2-3 (4pm).
+- slack DM sent to garrett (U06Q4UN4PKR).
+
+---
+
+## 2026-04-22 (night) — context-sync: facilitation guide in production, nordic doc landed, press play tiers set, CRM 404 bug flagged (Cowork)
+
+**what happened:**
+- **PRME facilitation guides**: maria made active suggestions in ppcs-2026-session-1a-facilitation-guide.docx (8:26am). production underway. meredith's timeline response still outstanding (32h).
+- **nordic naturals**: connect call with lauren bosio happened today (3pm). post-call, lauren shared "standardisations of substantiation data" google doc at 5:55pm — review + comments needed.
+- **press play whirlpool** (apr 22): service tiers defined (playful injection as entry point), pedal conference (paul ramchandani) identified as primary target. payton leading co-branded landing page + first campaign draft for may 11.
+- **engineering**: 2 commits — the-mashup whirlpool facilitation tool + clean URL redirects shipped.
+- **CMO dispatch flagged**: CRM campaign 404 bug (POST /api/campaigns, payton reported apr 17) blocking all email sends — claude code urgent. harbour whisper campaign behind: 9 days to may 1, no teasers live yet.
+- **cash confirmed**: $5,076 ($3,500 owner draw; operating burn -$496 MTD).
+- **anthropic ZDR request** filed at 3:22am apr 23 to support@anthropic.com re: production API key.
+- CPA TaxDome (fifth+ reminder) still unactioned. IDB MINEDUCYT receipt at 12 days — escalate with maria.
+- tomorrow (thu apr 23): garrett × maria weekly (9am), personal appointment (12:30pm), NFL draft r1 (5pm w/ gina). chase CC payment due.
+- slack DM sent to garrett (U06Q4UN4PKR).
+
+---
+
+## 2026-04-21 (night) — context-sync: PRME facilitation guide urgency, writing retreat underway, wire sent (Cowork)
+
+**what happened:**
+- **PRME urgency**: meredith's team requested facilitation guides by tue apr 22 (tomorrow). maria flagged this is the final webinar development phase. garrett proposed to meredith: preview tuesday + full guides thursday. awaiting response.
+- writing retreat happened today — payton accepted garrett's suggestion in "first fold: seven drafts from unfolding v3". Substack piece on "play, aliveness, justice" taking shape.
+- chase wire transfer confirmation received this morning — wire sent (likely second lamis payment or PRME-related).
+- gina jaeger (nordic naturals) shared "WindedVertigoMaterials" dropbox folder with garrett — new collaboration asset for nordic naturals work.
+- playdate intake flow tested: garrett self-booked a "general" playdate — form is working.
+- carly ciarrocchi reference request via Happily freelancer platform landed — unactioned.
+- CPA: fifth TaxDome reminder (tax extension organiser + missing docs) — remains unactioned.
+- no git commits today — engineering quiet.
+- tomorrow (wed apr 22): m&m&g (8:30am), whirlpool x press play (9am), payton sync (10am), fruitstand (11am), nordic naturals zoom with lauren (3pm).
+- slack DM sent to garrett (U06Q4UN4PKR).
+
+---
+
+## 2026-04-20 (night) — context-sync: PRME payment received, API credits resolved, rubric-co-builder live (Cowork)
+
+**what happened:**
+- **PRME payment landed** — garrett confirmed to lamis via slack DM at ~6pm PT: "$1000 wired, more at month end." removes the longest-running external blocker (24 days outstanding).
+- claude API credits topped up — anthropic receipt #2389-1698-5975 arrived; individual org outage from yesterday resolved.
+- 7 commits today: dep bumps (notionhq/client v5, typescript 5→6, @types/node 22→25, resend 6.12.1, protobufjs security fix, ancestry deps aligned) + `feat(site): proxy /harbour/rubric-co-builder` — new tool live on site.
+- new lead: maria applied to childfund américas consulting opportunity (solicitud de TDR), CC'd garrett.
+- carly ciarrocchi replied to garrett's email — enthusiastic, asking about TED x LEGO playday NYC may.
+- anthropic rate limit increase requested — added to queue, no timeline.
+- miro renewal charged (receipt #2722-9307) — needs check at next stack audit.
+- CPA: fourth TaxDome reminder still unactioned — remains #1 urgent admin item.
+- tomorrow stacked: strategy playdates (8am), lamis (9am), maria (10am), PRME hold (12pm), leah (3:30pm).
+- slack DM sent to garrett (U06Q4UN4PKR).
+
+---
+
+## 2026-04-19 (night) — context-sync: writer's room shipped, claude API credits depleted (Cowork)
+
+**what happened:**
+- 5 git commits today: writer's room whirlpool tool live at `/tools/` on the site, ancestry auth.js sign-in fallback link, next-env.d.ts regenerated after production build, brain memory updated.
+- new urgent item: claude API credits depleted for garrett's individual org — action-needed email arrived apr 20 ~4am UTC. individual API access disabled until credits topped up.
+- CPA: third TaxDome reminder for 2025 individual tax extension organiser landed apr 20 morning — still unactioned.
+- PRME: payment now 23 days outstanding. "winded.vertigo & PRME" meeting confirmed on calendar for tue apr 21 12pm PT — key escalation moment.
+- tomorrow's calendar: site check (7am), whirlpool (9am). tuesday stacked: strategy playdates (8am), lamis (9am), maria (10am), PRME hold (12pm), leah (3:30pm — new meeting added apr 18).
+- notion: only world bank procurement alerts in last 24h — no project status changes.
+- slack DM to garrett could not be sent — slack MCP tools not available in this session (recurring limitation).
 
 ---
 
