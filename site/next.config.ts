@@ -467,11 +467,11 @@ const nextConfig: NextConfig = {
       // three-intelligence-workbook — static HTML tool
       {
         source: "/harbour/three-intelligence-workbook",
-        destination: "/tools/three-intelligence-workbook/index.html",
+        destination: "/tools/three-intelligence-workbook/",
       },
       {
         source: "/harbour/three-intelligence-workbook/",
-        destination: "/tools/three-intelligence-workbook/index.html",
+        destination: "/tools/three-intelligence-workbook/",
       },
 
       // harbour hub (catch-all — must be last)
