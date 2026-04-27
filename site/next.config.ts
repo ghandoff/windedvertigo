@@ -512,6 +512,11 @@ const nextConfig: NextConfig = {
         destination: "/tools/the-mashup/index.html",
         permanent: false,
       },
+      {
+        source: "/tools/ppcs-launch",
+        destination: "/tools/ppcs-launch/index.html",
+        permanent: false,
+      },
       // three-intelligence-workbook — static HTML tool. /harbour/* prefix
       // redirects to the static-tool URL since OpenNext-on-CF's internal
       // rewrite to a directory doesn't resolve cleanly. Same pattern as

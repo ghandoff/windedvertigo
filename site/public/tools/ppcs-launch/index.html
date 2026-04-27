@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ppcs session 1 — launch countdown</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --blue: #436db1;
+    --periwinkle: #5872cb;
+    --lavender: #d5d2ff;
+    --teal: #43b187;
+    --mint: #58cbb2;
+    --cyan: #d2fdff;
+    --dark: #1a1a2e;
+    --darker: #12121f;
+    --surface: #1e1e32;
+    --surface-hover: #2a2a44;
+    --text: #e8e6f0;
+    --text-dim: #9994b8;
+    --glow-teal: rgba(67, 177, 135, 0.15);
+    --glow-periwinkle: rgba(88, 114, 203, 0.15);
+  }
+
+  body {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: var(--darker);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ambient background */
+  .ambient {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 20%, var(--glow-periwinkle), transparent),
+      radial-gradient(ellipse 50% 40% at 80% 80%, var(--glow-teal), transparent);
+    animation: ambientShift 20s ease-in-out infinite alternate;
+  }
+  @keyframes ambientShift {
+    0% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* header */
+  .header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .header .label {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mint);
+    margin-bottom: 0.5rem;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--lavender);
+    line-height: 1.3;
+  }
+  .header h1 span {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .header .subtitle {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+  }
+
+  /* countdown */
+  .countdown-section {
+    background: var(--surface);
+    border: 1px solid rgba(88, 114, 203, 0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .countdown-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+  .countdown-grid {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+  .countdown-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .countdown-number {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    min-width: 2ch;
+  }
+  .countdown-number.urgent { color: #e07a5f; }
+  .countdown-number.close { color: #f2cc8f; }
+  .countdown-number.good { color: var(--mint); }
+  .countdown-word {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 0.25rem;
+  }
+  .countdown-divider {
+    font-size: 3rem;
+    color: var(--periwinkle);
+    opacity: 0.4;
+    line-height: 1;
+    align-self: flex-start;
+  }
+
+  /* progress bar */
+  .progress-section {
+    margin-bottom: 2rem;
+  }
+  .progress-bar-bg {
+    background: var(--surface);
+    border-radius: 12px;
+    height: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(88, 114, 203, 0.15);
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--periwinkle), var(--teal));
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0; width: 40px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2));
+    border-radius: 0 12px 12px 0;
+  }
+  .progress-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  /* checklist */
+  .checklist-section {
+    margin-bottom: 2rem;
+  }
+  .section-title {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--periwinkle);
+    margin-bottom: 1rem;
+    padding-left: 0.25rem;
+  }
+
+  .checklist-item {
+    background: var(--surface);
+    border: 1px solid rgba(88, 114, 203, 0.12);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .checklist-item:hover {
+    background: var(--surface-hover);
+    border-color: rgba(88, 114, 203, 0.3);
+  }
+  .checklist-item.done {
+    border-color: rgba(67, 177, 135, 0.3);
+    background: rgba(67, 177, 135, 0.06);
+  }
+  .checklist-item.done .item-title {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+
+  .check-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--periwinkle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+  .checklist-item.done .check-circle {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+  .check-circle svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .checklist-item.done .check-circle svg { opacity: 1; }
+
+  .item-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .item-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    transition: all 0.3s;
+  }
+  .item-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+  }
+
+  .item-assignee {
+    flex-shrink: 0;
+  }
+  .assignee-btn {
+    background: rgba(88, 114, 203, 0.12);
+    border: 1px solid rgba(88, 114, 203, 0.2);
+    border-radius: 20px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--lavender);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .assignee-btn:hover {
+    background: rgba(88, 114, 203, 0.25);
+  }
+  .assignee-btn.claimed {
+    background: rgba(67, 177, 135, 0.15);
+    border-color: rgba(67, 177, 135, 0.3);
+    color: var(--mint);
+  }
+
+  /* team strip */
+  .team-section {
+    margin-bottom: 2rem;
+  }
+  .team-grid {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .team-member {
+    background: var(--surface);
+    border: 1px solid rgba(88, 114, 203, 0.12);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
+  .team-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  .team-name { color: var(--text); }
+  .team-count {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-left: 0.25rem;
+  }
+
+  /* notes area */
+  .notes-section {
+    margin-bottom: 2rem;
+  }
+  .notes-area {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid rgba(88, 114, 203, 0.12);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.85rem;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .notes-area:focus {
+    border-color: rgba(88, 114, 203, 0.4);
+  }
+  .notes-area::placeholder {
+    color: var(--text-dim);
+    opacity: 0.6;
+  }
+
+  /* celebration overlay */
+  .celebration {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(18, 18, 31, 0.85);
+    backdrop-filter: blur(8px);
+  }
+  .celebration.active { display: flex; }
+  .celebration-content {
+    text-align: center;
+    animation: celebPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes celebPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .celebration h2 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--lavender);
+    margin-bottom: 0.5rem;
+  }
+  .celebration h2 span { font-weight: 700; color: var(--mint); }
+  .celebration p {
+    color: var(--text-dim);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .celebration .dismiss-btn {
+    background: var(--teal);
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    color: var(--dark);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .celebration .dismiss-btn:hover { transform: scale(1.05); }
+
+  /* confetti canvas */
+  #confetti {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 101;
+    pointer-events: none;
+  }
+
+  /* assignee popup */
+  .assignee-popup {
+    position: fixed;
+    z-index: 50;
+    background: var(--surface);
+    border: 1px solid rgba(88, 114, 203, 0.3);
+    border-radius: 10px;
+    padding: 0.5rem;
+    display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .assignee-popup.open { display: block; }
+  .assignee-option {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    text-align: left;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .assignee-option:hover {
+    background: var(--surface-hover);
+  }
+
+  /* responsive */
+  @media (max-width: 600px) {
+    .countdown-number { font-size: 2.5rem; }
+    .countdown-grid { gap: 1rem; }
+    .checklist-item { flex-wrap: wrap; }
+    .item-assignee { width: 100%; margin-top: 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+
+<div class="container">
+  <div class="header">
+    <div class="label">winded.vertigo × prme</div>
+    <h1>ppcs <span>session 1</span> launch</h1>
+    <div class="subtitle">pedagogy certificate series — first live cohort · thursday, april 30</div>
+  </div>
+
+  <div class="countdown-section">
+    <div class="countdown-label">time to launch</div>
+    <div class="countdown-grid">
+      <div class="countdown-unit">
+        <div class="countdown-number" id="days">0</div>
+        <div class="countdown-word">days</div>
+      </div>
+      <div class="countdown-divider">:</div>
+      <div class="countdown-unit">
+        <div class="countdown-number" id="hours">0</div>
+        <div class="countdown-word">hours</div>
+      </div>
+      <div class="countdown-divider">:</div>
+      <div class="countdown-unit">
+        <div class="countdown-number" id="minutes">0</div>
+        <div class="countdown-word">min</div>
+      </div>
+      <div class="countdown-divider">:</div>
+      <div class="countdown-unit">
+        <div class="countdown-number" id="seconds">0</div>
+        <div class="countdown-word">sec</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+    <div class="progress-stats">
+      <span id="progressText">0 of 8 ready</span>
+      <span id="progressPct">0%</span>
+    </div>
+  </div>
+
+  <div class="checklist-section">
+    <div class="section-title">launch checklist</div>
+    <div id="checklist"></div>
+  </div>
+
+  <div class="team-section">
+    <div class="section-title">crew</div>
+    <div class="team-grid" id="teamGrid"></div>
+  </div>
+
+  <div class="notes-section">
+    <div class="section-title">launch notes</div>
+    <textarea class="notes-area" id="notes" placeholder="anything maria needs, last-minute thoughts, encouragement for the team..."></textarea>
+  </div>
+</div>
+
+<div class="celebration" id="celebration">
+  <div class="celebration-content">
+    <h2>all systems <span>go</span></h2>
+    <p>session 1 is ready for the world. let's do this, maria.</p>
+    <button class="dismiss-btn" onclick="dismissCelebration()">back to dashboard</button>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<div class="assignee-popup" id="assigneePopup"></div>
+
+<script>
+// ─── state ───
+const LAUNCH = new Date('2026-04-30T06:00:00-07:00'); // 6am PT Thursday
+
+const TEAM = [
+  { id: 'maria',    name: 'maria',    color: '#e07a5f' },
+  { id: 'garrett',  name: 'garrett',  color: '#5872cb' },
+  { id: 'lamis',    name: 'lamis',    color: '#43b187' },
+  { id: 'payton',   name: 'payton',   color: '#f2cc8f' },
+  { id: 'jamie',    name: 'jamie',    color: '#81b29a' },
+  { id: 'marietta', name: 'marietta', color: '#d5d2ff' },
+];
+
+const ITEMS = [
+  {
+    id: 'fac-guide',
+    title: 'facilitation guide finalized',
+    desc: 'session-1a guide — all suggestions resolved, formatting complete',
+    assignee: 'maria',
+    done: false,
+  },
+  {
+    id: 'video-interactions',
+    title: 'video interactions reviewed',
+    desc: 'PPCS intro video interactions doc — garrett\'s review pass complete',
+    assignee: 'garrett',
+    done: false,
+  },
+  {
+    id: 'participant-materials',
+    title: 'participant materials packaged',
+    desc: 'handouts, worksheets, pre-read documents compiled and shareable',
+    assignee: 'maria',
+    done: false,
+  },
+  {
+    id: 'platform-setup',
+    title: 'platform ready',
+    desc: 'session hosted, links tested, access verified for all participants',
+    assignee: null,
+    done: false,
+  },
+  {
+    id: 'comms-sent',
+    title: 'participant comms sent',
+    desc: 'invitation email with logistics, calendar hold, and pre-work instructions',
+    assignee: null,
+    done: false,
+  },
+  {
+    id: 'rubric-ready',
+    title: 'rubric & assessment criteria set',
+    desc: 'evidence rubric aligned with facilitation guide activities',
+    assignee: null,
+    done: false,
+  },
+  {
+    id: 'dry-run',
+    title: 'tech rehearsal complete',
+    desc: 'walk through the full session flow — slides, transitions, timing',
+    assignee: null,
+    done: false,
+  },
+  {
+    id: 'meredith-confirm',
+    title: 'meredith briefed',
+    desc: 'PRME team aligned on session 1 scope, format, and follow-up plan',
+    assignee: 'garrett',
+    done: false,
+  },
+];
+
+let state = {
+  items: ITEMS,
+  celebrated: false,
+};
+
+// ─── countdown ───
+function updateCountdown() {
+  const now = new Date();
+  let diff = LAUNCH - now;
+  if (diff < 0) diff = 0;
+
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+
+  const dEl = document.getElementById('days');
+  const hEl = document.getElementById('hours');
+  const mEl = document.getElementById('minutes');
+  const sEl = document.getElementById('seconds');
+
+  dEl.textContent = d;
+  hEl.textContent = String(h).padStart(2, '0');
+  mEl.textContent = String(m).padStart(2, '0');
+  sEl.textContent = String(s).padStart(2, '0');
+
+  // color based on urgency
+  const totalHours = diff / 3600000;
+  const cls = totalHours < 12 ? 'urgent' : totalHours < 48 ? 'close' : 'good';
+  [dEl, hEl, mEl, sEl].forEach(el => {
+    el.className = 'countdown-number ' + cls;
+  });
+}
+
+// ─── render ───
+function render() {
+  const container = document.getElementById('checklist');
+  container.innerHTML = '';
+
+  state.items.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'checklist-item' + (item.done ? ' done' : '');
+
+    const assignee = item.assignee ? TEAM.find(t => t.id === item.assignee) : null;
+    const assigneeLabel = assignee ? assignee.name : 'claim';
+    const assigneeClass = assignee ? 'assignee-btn claimed' : 'assignee-btn';
+
+    div.innerHTML = `
+      <div class="check-circle" onclick="toggleItem(${i})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <div class="item-content" onclick="toggleItem(${i})">
+        <div class="item-title">${item.title}</div>
+        <div class="item-desc">${item.desc}</div>
+      </div>
+      <div class="item-assignee">
+        <button class="${assigneeClass}" onclick="showAssigneePopup(event, ${i})" style="${assignee ? 'border-color:' + assignee.color + '40; color:' + assignee.color : ''}">${assigneeLabel}</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  updateProgress();
+  renderTeam();
+}
+
+function toggleItem(i) {
+  state.items[i].done = !state.items[i].done;
+  render();
+  saveState();
+
+  // check if all done
+  if (!state.celebrated && state.items.every(item => item.done)) {
+    state.celebrated = true;
+    setTimeout(() => {
+      document.getElementById('celebration').classList.add('active');
+      launchConfetti();
+    }, 400);
+  }
+}
+
+function updateProgress() {
+  const done = state.items.filter(i => i.done).length;
+  const total = state.items.length;
+  const pct = Math.round((done / total) * 100);
+
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${done} of ${total} ready`;
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function renderTeam() {
+  const grid = document.getElementById('teamGrid');
+  grid.innerHTML = '';
+
+  TEAM.forEach(member => {
+    const count = state.items.filter(i => i.assignee === member.id).length;
+    const doneCount = state.items.filter(i => i.assignee === member.id && i.done).length;
+    const div = document.createElement('div');
+    div.className = 'team-member';
+    div.innerHTML = `
+      <div class="team-avatar" style="background:${member.color}">${member.name[0].toUpperCase()}</div>
+      <span class="team-name">${member.name}</span>
+      ${count > 0 ? `<span class="team-count">${doneCount}/${count}</span>` : ''}
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// ─── assignee popup ───
+let popupOpen = false;
+
+function showAssigneePopup(e, itemIdx) {
+  e.stopPropagation();
+  const popup = document.getElementById('assigneePopup');
+  const rect = e.target.getBoundingClientRect();
+
+  popup.innerHTML = '';
+
+  // unassign option
+  const unBtn = document.createElement('button');
+  unBtn.className = 'assignee-option';
+  unBtn.textContent = '— unassign';
+  unBtn.style.color = 'var(--text-dim)';
+  unBtn.onclick = () => { assignItem(itemIdx, null); };
+  popup.appendChild(unBtn);
+
+  TEAM.forEach(member => {
+    const btn = document.createElement('button');
+    btn.className = 'assignee-option';
+    btn.textContent = member.name;
+    btn.style.color = member.color;
+    btn.onclick = () => { assignItem(itemIdx, member.id); };
+    popup.appendChild(btn);
+  });
+
+  popup.style.top = (rect.bottom + 4) + 'px';
+  popup.style.left = rect.left + 'px';
+  popup.classList.add('open');
+  popupOpen = true;
+}
+
+function assignItem(idx, memberId) {
+  state.items[idx].assignee = memberId;
+  closePopup();
+  render();
+  saveState();
+}
+
+function closePopup() {
+  document.getElementById('assigneePopup').classList.remove('open');
+  popupOpen = false;
+}
+
+document.addEventListener('click', (e) => {
+  if (popupOpen && !e.target.closest('.assignee-popup')) closePopup();
+});
+
+// ─── confetti ───
+function launchConfetti() {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const colors = ['#436db1', '#5872cb', '#d5d2ff', '#43b187', '#58cbb2', '#d2fdff', '#e07a5f', '#f2cc8f'];
+  const particles = [];
+
+  for (let i = 0; i < 200; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: -10 - Math.random() * canvas.height * 0.5,
+      w: 4 + Math.random() * 6,
+      h: 8 + Math.random() * 8,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: 2 + Math.random() * 4,
+      rot: Math.random() * 360,
+      rotV: (Math.random() - 0.5) * 12,
+      opacity: 1,
+    });
+  }
+
+  let frame = 0;
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+
+    particles.forEach(p => {
+      if (p.opacity <= 0) return;
+      alive = true;
+
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.05;
+      p.rot += p.rotV;
+
+      if (frame > 120) p.opacity -= 0.01;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.globalAlpha = Math.max(0, p.opacity);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+
+    frame++;
+    if (alive) requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+function dismissCelebration() {
+  document.getElementById('celebration').classList.remove('active');
+  const ctx = document.getElementById('confetti').getContext('2d');
+  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+}
+
+// ─── persistence ───
+function saveState() {
+  try {
+    const data = {
+      items: state.items,
+      celebrated: state.celebrated,
+      notes: document.getElementById('notes').value,
+    };
+    // Use in-memory only (no localStorage in Claude artifacts)
+  } catch(e) {}
+}
+
+// ─── audio chime ───
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 528;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.8);
+  } catch(e) {}
+}
+
+// override toggleItem to add chime
+const _toggle = toggleItem;
+window.toggleItem = function(i) {
+  const wasDone = state.items[i].done;
+  _toggle(i);
+  if (!wasDone && state.items[i].done) playChime();
+};
+
+// ─── init ───
+render();
+updateCountdown();
+setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>
