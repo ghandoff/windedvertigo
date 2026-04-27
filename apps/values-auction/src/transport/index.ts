@@ -5,11 +5,6 @@ import { uid } from '@/utils/id';
 
 export function createTransport(clientId = uid('c')): Transport {
   const env = (import.meta.env as Record<string, string | undefined>) ?? {};
-<<<<<<< Updated upstream
-  // production defaults to socket so participants on different devices can sync.
-  // broadcastchannel only works same-browser, which left phone joiners stuck.
-=======
->>>>>>> Stashed changes
   const defaultMode = env.PROD ? 'socket' : 'broadcast';
   const mode = env.VITE_TRANSPORT ?? defaultMode;
   if (mode === 'socket') {
