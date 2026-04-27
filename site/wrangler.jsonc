@@ -8,22 +8,10 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  "services": [
-    {
-      // Self-reference for incremental cache (ISR)
-      // Service name must match worker name above
-      "binding": "WORKER_SELF_REFERENCE",
-      "service": "wv-site"
-    }
-  ],
-  "r2_buckets": [
-    {
-      // Incremental cache bucket for ISR (separate from creaseworks-evidence)
-      // Create before deploying: npx wrangler r2 bucket create wv-site-opennext-cache
-      "binding": "NEXT_INC_CACHE_R2_BUCKET",
-      "bucket_name": "wv-site-opennext-cache"
-    }
-  ],
+  // r2_buckets and WORKER_SELF_REFERENCE omitted — using static-assets incremental
+  // cache (no R2 required). Re-add once wv-site-opennext-cache R2 bucket is
+  // provisioned in the deploy account and open-next.config.ts is switched back.
+
   "images": {
     "binding": "IMAGES"
   },
