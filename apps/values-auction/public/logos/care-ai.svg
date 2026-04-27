@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="Care.ai logo">
+  <rect width="240" height="240" fill="#ffebd2"/>
+  <path d="M120 172 C60 132 60 72 96 72 C108 72 120 84 120 96 C120 84 132 72 144 72 C180 72 180 132 120 172 Z" fill="#b15043"/>
+  <circle cx="84" cy="96" r="6" fill="#273248"/>
+  <circle cx="156" cy="96" r="6" fill="#273248"/>
+  <circle cx="120" cy="128" r="6" fill="#273248"/>
+  <line x1="84" y1="96" x2="156" y2="96" stroke="#273248" stroke-width="2"/>
+  <line x1="84" y1="96" x2="120" y2="128" stroke="#273248" stroke-width="2"/>
+  <line x1="156" y1="96" x2="120" y2="128" stroke="#273248" stroke-width="2"/>
+  <text x="120" y="220" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">Care.ai</text>
+</svg>

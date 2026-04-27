@@ -6,10 +6,14 @@
     "port",
     "ops",
     "ancestry",
-    "packages/*"
+    "packages/*",
+    "apps/values-auction"
   ],
   "scripts": {
     "sync:footer": "node scripts/sync-footer.mjs",
+    "dev:values-auction": "npm run dev -w @harbour/values-auction",
+    "build:values-auction": "npm run build -w @harbour/values-auction",
+    "deploy:values-auction": "npm run deploy:spa -w @harbour/values-auction",
     "dev:harbour": "npm run dev -w harbour",
     "build:harbour": "npm run build -w harbour",
     "dev:port": "npm run dev -w port",

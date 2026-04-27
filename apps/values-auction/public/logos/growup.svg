@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="GrowUp logo">
+  <rect width="240" height="240" fill="#ffebd2"/>
+  <path d="M120 48 C100 72 100 108 120 132 C140 108 140 72 120 48 Z" fill="none" stroke="#273248" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M120 132 L120 180" stroke="#273248" stroke-width="6" stroke-linecap="round"/>
+  <path d="M120 180 C104 180 88 164 88 160 M120 180 C136 180 152 164 152 160" fill="none" stroke="#273248" stroke-width="4" stroke-linecap="round"/>
+  <text x="120" y="220" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">GrowUp</text>
+</svg>
