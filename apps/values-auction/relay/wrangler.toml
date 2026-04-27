@@ -1,0 +1,12 @@
+name = "wv-values-auction-relay"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+account_id = "097c92553b268f8360b74f625f6d980a"
+
+[[durable_objects.bindings]]
+name = "SESSION"
+class_name = "SessionRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SessionRoom"]

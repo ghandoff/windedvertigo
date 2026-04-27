@@ -1,0 +1,60 @@
+:root {
+  --wv-burnt-sienna: #cb7858;
+  --wv-cadet-blue: #5f9ea0;
+  --wv-redwood: #a45a52;
+  --wv-champagne: #f7e7ce;
+  --wv-deep: #1a2438;
+  --wv-white: #ffffff;
+
+  --bg: var(--wv-burnt-sienna);
+  --bg-card: var(--wv-champagne);
+  --bg-deep: var(--wv-deep);
+  --fg: var(--wv-deep);
+  --fg-inverse: var(--wv-white);
+  --fg-muted: rgba(26, 36, 56, 0.72);
+  --accent-urgent: var(--wv-redwood);
+  --accent-warm: var(--wv-cadet-blue);
+
+  --focus-ring: 3px solid var(--wv-cadet-blue);
+  --focus-ring-offset: 2px;
+
+  --shadow-card: 0 2px 8px rgba(26, 36, 56, 0.08);
+  --shadow-card-lifted: 0 12px 40px rgba(26, 36, 56, 0.16);
+
+  --type-display: 700 48px/1.05 'Inter', system-ui, sans-serif;
+  --type-h1: 700 32px/1.15 'Inter', system-ui, sans-serif;
+  --type-h2: 700 22px/1.25 'Inter', system-ui, sans-serif;
+  --type-body: 400 16px/1.5 'Inter', system-ui, sans-serif;
+  --type-small: 400 14px/1.45 'Inter', system-ui, sans-serif;
+  --type-mono: 400 14px/1.4 ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+  --dur-act-shift: 600ms;
+
+  --team-cadet: #5f9ea0;
+  --team-redwood: #a45a52;
+  --team-sienna: #e97451;
+  --team-champagne: #f7e7ce;
+  --team-deep: #1a2438;
+  --team-sand: #e9d0a8;
+}

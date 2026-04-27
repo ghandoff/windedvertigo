@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="HomeHatch logo">
+  <rect width="240" height="240" fill="#ffebd2"/>
+  <path d="M48 120 L96 76 L144 120 L144 176 L48 176 Z" fill="none" stroke="#b15043" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M132 132 L172 100 L212 132 L212 176 L132 176 Z" fill="none" stroke="#273248" stroke-width="6" stroke-linejoin="round"/>
+  <text x="120" y="212" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="20" letter-spacing="1" fill="#273248">HomeHatch</text>
+</svg>
