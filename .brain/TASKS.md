@@ -130,6 +130,9 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 
 ## Active
 
+### Urgent — deploy to CF Workers
+- [ ] **Redeploy site to Cloudflare Workers** — `ppcs-launch` countdown tool + `next.config.ts` redirect rule committed and pushed to GitHub (commit `350c772`) but site DNS points to CF Workers (`wv-site`), not Vercel. Need Wrangler/OpenNext deploy to get `windedvertigo.com/tools/ppcs-launch` live. **Needed before Monday 9am PT whirlpool.** File: `site/public/tools/ppcs-launch/index.html`. Redirect: `/tools/ppcs-launch` → `/tools/ppcs-launch/index.html`.
+
 ### Infrastructure follow-ups (post 2026-04-25 consolidation)
 - [ ] **Notion content work — page covers** — Add page covers to playdates/packs/collections in Notion (creaseworks side, ~85 pages).
 - [ ] **Phase 1 refactor for creaseworks** — Apply same read-time URL pattern as vault (compute from R2 key on read).
