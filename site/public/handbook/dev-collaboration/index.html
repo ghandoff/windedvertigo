@@ -352,7 +352,8 @@
         <li><a href="#5-git-workflow-for-shared-repos">5. git workflow for shared repos</a></li>
         <li><a href="#6-common-pitfalls-lessons-from-the-migration-so-far">6. common pitfalls (lessons from the migration so far)</a></li>
         <li><a href="#7-case-study-values-auction-error-1019-2026-04-27">7. case study: values-auction error 1019 (2026-04-27)</a></li>
-        <li><a href="#8-quick-command-reference">8. quick command reference</a></li>
+        <li><a href="#8-ip-promotion-when-building-for-prme">8. ip &amp; promotion when building for prme</a></li>
+        <li><a href="#9-quick-command-reference">9. quick command reference</a></li>
       </ol>
     </nav>
     <main class="doc" id="content">
@@ -360,7 +361,7 @@
 <blockquote>
 <p>reference for garrett &amp; maria — how the codebase is split across repos, what changed in the cloudflare migration, and the git workflow we use to avoid stepping on each other.</p>
 <p>last updated: 2026-04-27 (post values-auction error 1019 incident — see section 7 &quot;case study&quot; at the bottom).</p>
-<p>sections: (1) which repo owns which file · (2) vercel → cloudflare migration · (3) the tool chain · (4) secrets and access · (5) git workflow for shared repos · (6) common pitfalls · (7) case study · (8) quick command reference.</p>
+<p>sections: (1) which repo owns which file · (2) vercel → cloudflare migration · (3) the tool chain · (4) secrets and access · (5) git workflow for shared repos · (6) common pitfalls · (7) case study · (8) ip &amp; promotion when building for prme · (9) quick command reference.</p>
 </blockquote>
 <hr>
 <h2 id="1-which-repo-owns-which-file"><a href="#1-which-repo-owns-which-file" class="anchor" aria-label="link to section">#</a>1. which repo owns which file</h2>
@@ -776,7 +777,131 @@ git log --oneline -10 site/next.config.ts
 </ol>
 <p><strong>meta-lesson:</strong> the migration creates drift across both the apps and the routing config. when moving an app, do the cleanup (delete old rewrites, update env vars, redeploy worker dependencies) in the same PR as the migration — not as separate &quot;i&#39;ll get to it later&quot; tickets.</p>
 <hr>
-<h2 id="8-quick-command-reference"><a href="#8-quick-command-reference" class="anchor" aria-label="link to section">#</a>8. quick command reference</h2>
+<h2 id="8-ip-promotion-when-building-for-prme"><a href="#8-ip-promotion-when-building-for-prme" class="anchor" aria-label="link to section">#</a>8. ip &amp; promotion when building for prme</h2>
+<blockquote>
+<p><em>not legal advice. consequential decisions should be confirmed with counsel.</em></p>
+</blockquote>
+<p>most of our portfolio assets sit at <code>windedvertigo.com/portfolio/assets/...</code> and are accessed by prme signatories during the prme pedagogy certificate series. some of those tools are wv-original IP (we built them on our own time, on our own platform, as part of our broader work). some are prme-funded &quot;new deliverables&quot; — created in performance of the prme sub-grant agreement, which assigns the IP to the foundation.</p>
+<p>the distinction matters for two reasons:</p>
+<ol>
+<li><strong>what header / promotional language we can put on a tool</strong> (quiet vs. bolder)</li>
+<li><strong>whether we can migrate a tool to <code>/harbour/</code> as a freemium upsell</strong> (some need written consent from prme; others don&#39;t)</li>
+</ol>
+<h3 id="the-contract-clause-that-governs-this"><a href="#the-contract-clause-that-governs-this" class="anchor" aria-label="link to section">#</a>the contract clause that governs this</h3>
+<p>the may 2025 <a href="https://drive.google.com/file/d/1ooQXr8V2l0_UdqRnAY1ZGYf4ymuSjWtw/view">sub-grant agreement</a> section 8 splits things three ways:</p>
+<ul>
+<li><strong>8a — existing IP:</strong> anything we built before 2025-04-15 (or independently of any funder scope) stays ours. patents, copyrights, trademarks, trade secrets, know-how — all retained.</li>
+<li><strong>8c — new deliverables:</strong> anything we conceive, reduce to practice, or create <em>in performance of services under the contract</em> (the certificate-series lessons, the facilitator guides, the participant-facing applied learning resources, etc.) is &quot;the sole and exclusive property of the foundation.&quot; we irrevocably assign all rights to them. we &quot;shall not use, disclose, or exploit any new deliverables for any purpose other than performing services under this contract without the prior written consent of the foundation.&quot;</li>
+<li><strong>8d — license back:</strong> if any of our pre-existing IP is needed by the foundation to fully exploit the new deliverables, they get a non-exclusive, perpetual, irrevocable, worldwide, royalty-free license — but only &quot;in connection with the new deliverables.&quot;</li>
+</ul>
+<p>the 2026 PPCS work appears to flow under PO #2069 attached to the same master agreement. assume the same IP regime applies until / unless a new master is signed.</p>
+<h3 id="the-rule-of-thumb"><a href="#the-rule-of-thumb" class="anchor" aria-label="link to section">#</a>the rule of thumb</h3>
+<table>
+<thead>
+<tr>
+<th>origin</th>
+<th>portfolio header (<code>/portfolio/assets/...</code>)</th>
+<th>harbour migration with promotional headers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>wv-original</strong> (built before contract or independent)</td>
+<td>full wv branding fine, &quot;more at /harbour&quot; CTAs fine</td>
+<td>yes, no consent needed</td>
+</tr>
+<tr>
+<td><strong>prme-funded new deliverable</strong> (covered by section 8c)</td>
+<td>quiet wv header only — wordmark + &quot;back to windedvertigo.com&quot; link. no CTAs to wv collective signup or harbour upsell.</td>
+<td><strong>prior written consent required</strong> from the foundation (meredith / alex stein). usually granted on request, but the consent has to exist on paper.</td>
+</tr>
+<tr>
+<td><strong>mixed</strong> (wv tooling layer + prme content layer, like depth-chart)</td>
+<td>depends on which layer the header is promoting. wv tooling layer = wv branding fine. prme content layer = treat as prme-funded.</td>
+<td>promote the wv tooling, not the prme content layer.</td>
+</tr>
+<tr>
+<td><strong>3rd-party</strong> (e.g. prme framework content under cc by 4.0)</td>
+<td>attribution required, otherwise free to use</td>
+<td>yes, with attribution</td>
+</tr>
+</tbody></table>
+<h3 id="the-per-tool-register"><a href="#the-per-tool-register" class="anchor" aria-label="link to section">#</a>the per-tool register</h3>
+<p>actual classifications per tool (which is wv-original, which is prme-funded, what consent status, etc.) live in <code>.brain/memory/tool-ip-register.md</code>. that file is private to the wv collective (tracked via the <code>brain</code> remote, not <code>origin</code>). update it whenever a new tool ships or its classification changes. <strong>before a tool moves to <code>/harbour/</code> with promotional CTAs, it must be classified in the register and not marked <code>tbd</code>.</strong></p>
+<h3 id="the-vertigovault-precedent"><a href="#the-vertigovault-precedent" class="anchor" aria-label="link to section">#</a>the vertigo.vault precedent</h3>
+<p>the existing pattern — a free portfolio teaser version that links to a fuller version inside <code>/harbour/</code> — works cleanly <strong>for wv-original tools</strong>. for prme-funded tools, the same UX works but should be framed differently:</p>
+<ul>
+<li>the prme-facing version remains complete and unchanged. nothing is gated behind a wv freemium wall. prme signatories get the full deliverable they paid for.</li>
+<li>the harbour version is positioned as wv&#39;s <em>broader collection that includes this prme-licensed asset</em> — not as a &quot;premium upgrade&quot; of the prme tool. avoids the impression that prme&#39;s certified content has a paywalled tier.</li>
+<li>the invitation header reads as &quot;explore winded.vertigo&#39;s wider work&quot; rather than &quot;unlock more features of this tool.&quot;</li>
+</ul>
+<h3 id="the-consent-ask-flow"><a href="#the-consent-ask-flow" class="anchor" aria-label="link to section">#</a>the consent-ask flow</h3>
+<p>when a prme-funded tool needs to move to harbour:</p>
+<ol>
+<li>identify the deliverable + PO# in the IP register</li>
+<li>email meredith (PRME) cc&#39;ing alex stein (foundation) requesting written consent for hosting an enhanced or broader-collection version on the wv harbour, with attribution + continued free access to the prme version</li>
+<li>file the reply in <code>~/Drive/PRME/&lt;contract&gt;/consents/</code></li>
+<li>update the register with the consent date and scope</li>
+<li>proceed with the harbour migration</li>
+</ol>
+<p>most foundations are happy to see broader dissemination of their funded work, so this is usually a one-email gate. the friction exists to keep us honest about the contract.</p>
+<h3 id="url-stability-first-deploy-is-permanent"><a href="#url-stability-first-deploy-is-permanent" class="anchor" aria-label="link to section">#</a>url stability — first deploy is permanent</h3>
+<p><strong>rule: a tool&#39;s URL never moves after first deploy. IP origin and audience are signaled by the page header, not by the URL path.</strong></p>
+<p>it&#39;s tempting to say &quot;wv-original tools live at <code>/portfolio/</code>, prme-funded tools live at <code>/portfolio/prme/</code>, monetizable tools live at <code>/harbour/</code>&quot; — but that taxonomy creates a bug factory. tools&#39; classifications evolve (a portfolio exemplar gets monetized, a wv-original tool gets re-licensed, a prme deliverable gets consent for harbour use). every move means:</p>
+<ul>
+<li>broken bookmarks held by prme signatories, conference attendees, anyone who shared the original link</li>
+<li>broken inbound links from prme communications, decks, emails sent before the move</li>
+<li>routing config churn in <code>site/next.config.ts</code> (the exact category of churn that produced today&#39;s error 1019 incident)</li>
+<li>env var path drift in the apps themselves (vite <code>base:</code>, asset references)</li>
+<li>caching artifacts in cf pages and the cdn</li>
+</ul>
+<p><strong>so: where a tool first lands is where it lives forever.</strong> if its IP / audience story changes later, change the header — not the URL. example:</p>
+<ul>
+<li>values-auction launched at <code>/portfolio/assets/values-auction/</code> and stays there even if wv later monetizes a pro version. the pro version gets a NEW URL like <code>/harbour/values-auction-pro/</code> and the original page links to it.</li>
+<li>a prme-funded tool that later gets consent for a harbour version: original portfolio URL is unchanged. the harbour version lives at a new sibling URL.</li>
+<li>a tool that wv stops promoting: leave the URL alone, just remove or quiet the promo header. URLs cost nothing to keep alive.</li>
+</ul>
+<p>this is also why the per-tool register tracks IP category as a separate column from URL — the URL is permanent, the category may evolve.</p>
+<h3 id="header-convention-the-part-that-does-the-actual-signaling"><a href="#header-convention-the-part-that-does-the-actual-signaling" class="anchor" aria-label="link to section">#</a>header convention (the part that does the actual signaling)</h3>
+<p>the header tells the visitor what they&#39;re looking at and who built it. four templates:</p>
+<table>
+<thead>
+<tr>
+<th>origin</th>
+<th>header pattern (top of page)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>wv-original</strong></td>
+<td>&quot;winded.vertigo · {tool name}&quot; + optional lineage (&quot;originally built for {context}&quot;) + optional &quot;more at /harbour&quot; CTA</td>
+</tr>
+<tr>
+<td><strong>wv-original re-used in a partner context</strong></td>
+<td>&quot;winded.vertigo · {tool name} · shared with {partner name + year}&quot; — example: values-auction in 2026 prme PPCS reads &quot;winded.vertigo · values-auction · originally built for AOM 2025, shared with prme 2026 pedagogy certificate series&quot;</td>
+</tr>
+<tr>
+<td><strong>wv-derived</strong></td>
+<td>&quot;winded.vertigo · {tool name} · spinoff of {origin tool}&quot; — example: systems-thinking reads &quot;spinoff of tidal.pool&quot;</td>
+</tr>
+<tr>
+<td><strong>prme-funded</strong> (or any funder-commissioned new deliverable)</td>
+<td>&quot;{funder name + program} · {tool name} · hosted by winded.vertigo&quot; — wv reads as the platform host, not the brand. no wv collective signup CTAs, no harbour upsell.</td>
+</tr>
+<tr>
+<td><strong>mixed</strong> (wv tooling + funder content)</td>
+<td>header reflects the LAYER being foregrounded. depth-chart&#39;s tooling page reads as wv; the embedded prme framework content reads as prme + cc by 4.0 attribution.</td>
+</tr>
+</tbody></table>
+<p><strong>the discipline:</strong> when in doubt about whether a tool should have a wv-promotional header, default to the quieter template. it&#39;s much cheaper to add brand presence later than to retroactively scrub it from a tool that prme signatories have already shared.</p>
+<h3 id="what-not-to-do"><a href="#what-not-to-do" class="anchor" aria-label="link to section">#</a>what NOT to do</h3>
+<ul>
+<li>don&#39;t add a &quot;join the winded.vertigo collective&quot; CTA to a prme-funded tool&#39;s portfolio page</li>
+<li>don&#39;t migrate a prme-funded tool to <code>/harbour/</code> without consent on file, even if the harbour version &quot;adds features&quot;</li>
+<li>don&#39;t reproduce prme-funded content in unrelated wv contexts (decks, marketing pages, conference talks) without consent</li>
+<li>don&#39;t gate the prme-facing version of a tool behind a wv signup</li>
+<li>don&#39;t assume the 2026 work is on a fresh master agreement — until a new master is signed, the may 2025 terms govern PO #2069 work</li>
+</ul>
+<hr>
+<h2 id="9-quick-command-reference"><a href="#9-quick-command-reference" class="anchor" aria-label="link to section">#</a>9. quick command reference</h2>
 <pre><code class="language-bash"># am i in the right repo?
 git remote -v
 pwd
