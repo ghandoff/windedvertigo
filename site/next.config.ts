@@ -391,6 +391,19 @@ const nextConfig: NextConfig = {
         source: "/harbour/values-auction/:path*",
         destination: "https://values-auction-pi.vercel.app/:path*",
       },
+      // values-auction — portfolio/assets entry point
+      {
+        source: "/portfolio/assets/values-auction",
+        destination: "https://values-auction-pi.vercel.app/",
+      },
+      {
+        source: "/portfolio/assets/values-auction/",
+        destination: "https://values-auction-pi.vercel.app/",
+      },
+      {
+        source: "/portfolio/assets/values-auction/:path*",
+        destination: "https://values-auction-pi.vercel.app/:path*",
+      },
 
       // cuts catalogue
       {
