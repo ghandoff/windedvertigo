@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#273248" />
+<meta name="description" content="winded.vertigo collective dev-collaboration handbook — repo split, vercel→cf migration, tools, secrets, git workflow." />
+<meta name="robots" content="noindex" />
+<title>dev collaboration handbook · winded.vertigo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23273248'/%3E%3Ctext x='50%25' y='55%25' fill='%23ffebd2' font-size='10' font-family='monospace' text-anchor='middle' dominant-baseline='middle'%3Ewv%3C/text%3E%3C/svg%3E" />
+<style>
+  :root {
+    --wv-cadet: #273248;
+    --wv-redwood: #b15043;
+    --wv-sienna: #cb7858;
+    --wv-champagne: #ffebd2;
+    --wv-cadet-soft: #3a4866;
+    --wv-bg: #ffffff;
+    --wv-bg-subtle: #f7f6f2;
+    --wv-border: #e6e2d8;
+    --wv-text: #1f2738;
+    --wv-text-muted: #5a6478;
+    --wv-code-bg: #1e2638;
+    --wv-code-text: #e8e6f0;
+    --wv-focus: #3b82f6;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    margin: 0;
+    background: var(--wv-bg);
+    color: var(--wv-text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-contrast: more) {
+    body { color: #000; }
+    :root {
+      --wv-text: #000;
+      --wv-text-muted: #1f2738;
+    }
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--wv-focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--wv-cadet);
+    color: var(--wv-champagne);
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    z-index: 100;
+  }
+  .skip-link:focus { left: 0; }
+
+  header.site {
+    background: var(--wv-cadet);
+    color: var(--wv-champagne);
+    padding: 1rem 1.5rem;
+    border-bottom: 4px solid var(--wv-sienna);
+  }
+  header.site .wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  header.site .brand {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    color: var(--wv-champagne);
+  }
+  header.site .brand:hover { color: #fff; }
+  header.site .meta {
+    font-size: 0.875rem;
+    color: var(--wv-champagne);
+    opacity: 0.85;
+  }
+  header.site .meta a {
+    color: var(--wv-champagne);
+    text-decoration: underline;
+    text-decoration-color: var(--wv-sienna);
+    text-underline-offset: 3px;
+  }
+  header.site .meta a:hover { opacity: 1; }
+
+  .layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      padding-top: 1.5rem;
+    }
+  }
+
+  nav.toc {
+    position: sticky;
+    top: 1.5rem;
+    font-size: 0.9rem;
+    border-left: 2px solid var(--wv-border);
+    padding-left: 1rem;
+  }
+  @media (max-width: 900px) {
+    nav.toc {
+      position: static;
+      border-left: none;
+      border: 1px solid var(--wv-border);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      background: var(--wv-bg-subtle);
+    }
+  }
+  nav.toc h2 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--wv-text-muted);
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+  }
+  nav.toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: section;
+  }
+  nav.toc li {
+    counter-increment: section;
+    margin: 0.4rem 0;
+    line-height: 1.4;
+  }
+  nav.toc li::before {
+    content: counter(section) ".";
+    color: var(--wv-text-muted);
+    font-variant-numeric: tabular-nums;
+    margin-right: 0.5rem;
+  }
+  nav.toc a {
+    color: var(--wv-text);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  nav.toc a:hover {
+    color: var(--wv-redwood);
+    border-bottom-color: var(--wv-sienna);
+  }
+
+  main.doc {
+    max-width: 70ch;
+    min-width: 0;
+  }
+
+  main.doc h1 {
+    font-size: 2.25rem;
+    color: var(--wv-cadet);
+    margin: 0 0 0.5rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  main.doc h2 {
+    font-size: 1.5rem;
+    color: var(--wv-cadet);
+    margin: 3rem 0 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--wv-border);
+    line-height: 1.3;
+  }
+  main.doc h2:first-of-type { border-top: none; padding-top: 0; margin-top: 2rem; }
+  main.doc h3 {
+    font-size: 1.15rem;
+    color: var(--wv-cadet);
+    margin: 2rem 0 0.75rem;
+  }
+  main.doc h4 {
+    font-size: 1rem;
+    color: var(--wv-cadet-soft);
+    margin: 1.5rem 0 0.5rem;
+  }
+
+  main.doc h2 .anchor,
+  main.doc h3 .anchor,
+  main.doc h4 .anchor {
+    color: var(--wv-border);
+    text-decoration: none;
+    margin-right: 0.5rem;
+    font-weight: 400;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  main.doc h2:hover .anchor,
+  main.doc h3:hover .anchor,
+  main.doc h4:hover .anchor {
+    opacity: 1;
+    color: var(--wv-sienna);
+  }
+
+  main.doc p { margin: 0 0 1rem; }
+
+  main.doc a {
+    color: var(--wv-redwood);
+    text-decoration: underline;
+    text-decoration-color: var(--wv-sienna);
+    text-underline-offset: 2px;
+  }
+  main.doc a:hover {
+    color: var(--wv-sienna);
+    text-decoration-color: var(--wv-redwood);
+  }
+
+  main.doc strong { color: var(--wv-cadet); font-weight: 600; }
+
+  main.doc ul, main.doc ol {
+    padding-left: 1.5rem;
+    margin: 0 0 1rem;
+  }
+  main.doc li { margin: 0.25rem 0; }
+  main.doc li > p { margin-bottom: 0.5rem; }
+
+  main.doc blockquote {
+    border-left: 3px solid var(--wv-sienna);
+    background: var(--wv-bg-subtle);
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    color: var(--wv-text-muted);
+  }
+  main.doc blockquote p:last-child { margin-bottom: 0; }
+
+  main.doc code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    background: var(--wv-bg-subtle);
+    color: var(--wv-cadet);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    border: 1px solid var(--wv-border);
+  }
+
+  main.doc pre {
+    background: var(--wv-code-bg);
+    color: var(--wv-code-text);
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    border: 1px solid var(--wv-cadet);
+  }
+  main.doc pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    border: none;
+    font-size: inherit;
+  }
+
+  main.doc table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.95rem;
+  }
+  main.doc th, main.doc td {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--wv-border);
+    vertical-align: top;
+  }
+  main.doc th {
+    background: var(--wv-bg-subtle);
+    color: var(--wv-cadet);
+    font-weight: 600;
+    border-bottom: 2px solid var(--wv-cadet);
+  }
+  main.doc tr:hover td { background: var(--wv-bg-subtle); }
+
+  main.doc hr {
+    border: none;
+    border-top: 1px solid var(--wv-border);
+    margin: 2.5rem 0;
+  }
+
+  footer.site {
+    max-width: 1200px;
+    margin: 2rem auto 0;
+    padding: 1.5rem;
+    border-top: 1px solid var(--wv-border);
+    color: var(--wv-text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  footer.site a {
+    color: var(--wv-redwood);
+    text-decoration: underline;
+    text-decoration-color: var(--wv-sienna);
+  }
+</style>
+</head>
+<body>
+  <a class="skip-link" href="#content">skip to content</a>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="https://www.windedvertigo.com/">winded.vertigo</a>
+      <div class="meta">
+        last updated: 2026-04-27 · <a href="https://github.com/ghandoff/windedvertigo/blob/main/docs/dev-collaboration.md">view source on github</a>
+      </div>
+    </div>
+  </header>
+  <div class="layout">
+    <nav class="toc" aria-label="table of contents">
+      <h2>contents</h2>
+      <ol>
+        <li><a href="#1-which-repo-owns-which-file">1. which repo owns which file</a></li>
+        <li><a href="#2-the-vercel-cloudflare-migration-2026-04-25">2. the vercel → cloudflare migration (2026-04-25)</a></li>
+        <li><a href="#3-the-tool-chain-what-each-cli-does">3. the tool chain — what each CLI does</a></li>
+        <li><a href="#4-secrets-and-access-never-paste-a-token-into-chat">4. secrets and access — never paste a token into chat</a></li>
+        <li><a href="#5-git-workflow-for-shared-repos">5. git workflow for shared repos</a></li>
+        <li><a href="#6-common-pitfalls-lessons-from-the-migration-so-far">6. common pitfalls (lessons from the migration so far)</a></li>
+        <li><a href="#7-case-study-values-auction-error-1019-2026-04-27">7. case study: values-auction error 1019 (2026-04-27)</a></li>
+        <li><a href="#8-quick-command-reference">8. quick command reference</a></li>
+      </ol>
+    </nav>
+    <main class="doc" id="content">
+      <h1 id="dev-collaboration-handbook"><a href="#dev-collaboration-handbook" class="anchor" aria-label="link to section">#</a>dev collaboration handbook</h1>
+<blockquote>
+<p>reference for garrett &amp; maria — how the codebase is split across repos, what changed in the cloudflare migration, and the git workflow we use to avoid stepping on each other.</p>
+<p>last updated: 2026-04-27 (post values-auction error 1019 incident — see section 7 &quot;case study&quot; at the bottom).</p>
+<p>sections: (1) which repo owns which file · (2) vercel → cloudflare migration · (3) the tool chain · (4) secrets and access · (5) git workflow for shared repos · (6) common pitfalls · (7) case study · (8) quick command reference.</p>
+</blockquote>
+<hr>
+<h2 id="1-which-repo-owns-which-file"><a href="#1-which-repo-owns-which-file" class="anchor" aria-label="link to section">#</a>1. which repo owns which file</h2>
+<p>we work across multiple repos under <code>~/Projects/</code>. before editing anything, check which repo you&#39;re in:</p>
+<pre><code class="language-bash">pwd                              # where am i?
+git remote -v                    # which github repo is &quot;origin&quot;?
+git rev-parse --show-toplevel    # what&#39;s the repo root?
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>repo</th>
+<th>github</th>
+<th>what lives here</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>harbour-apps</strong></td>
+<td><code>ghandoff/harbour-apps</code></td>
+<td>the app source: values-auction, systems-thinking, cuts-catalogue, rubric-co-builder, feel-cards, etc. each app has its own deploy config (<code>vite.config.ts</code>, <code>wrangler.toml</code>, <code>package.json</code>).</td>
+</tr>
+<tr>
+<td><strong>windedvertigo</strong></td>
+<td><code>ghandoff/windedvertigo</code></td>
+<td>the site shell + routing: <strong><code>site/next.config.ts</code> (the rewrites that route <code>windedvertigo.com/*</code> to all the harbour apps)</strong>, the main marketing site, port (CRM), ops dashboard. also where <code>.brain/</code> lives.</td>
+</tr>
+<tr>
+<td><strong>pocket-prompts</strong></td>
+<td><code>ghandoff/pocket-prompts</code></td>
+<td>voice pipeline backend + mobile app</td>
+</tr>
+<tr>
+<td><strong>nordic-sqr-rct</strong></td>
+<td><code>ghandoff/nordic-sqr-rct</code></td>
+<td>nordic SQR-RCT review platform</td>
+</tr>
+</tbody></table>
+<p><strong>the most common confusion:</strong> the apps live in <code>harbour-apps</code>, but the URL routing for those apps lives in <code>windedvertigo/site/next.config.ts</code>. when an app changes URL, BOTH repos may need updates:</p>
+<ul>
+<li>the app: deploy config, base path, env vars</li>
+<li>the site: a rewrite rule pointing at the app&#39;s new origin</li>
+</ul>
+<p><strong>rule of thumb:</strong> if you&#39;re editing how a URL is routed → <code>windedvertigo</code>. if you&#39;re editing the app itself → <code>harbour-apps</code>.</p>
+<hr>
+<h2 id="2-the-vercel-cloudflare-migration-2026-04-25"><a href="#2-the-vercel-cloudflare-migration-2026-04-25" class="anchor" aria-label="link to section">#</a>2. the vercel → cloudflare migration (2026-04-25)</h2>
+<p>we migrated the public-facing stack from vercel to cloudflare workers/pages. the apps that moved had three things change:</p>
+<table>
+<thead>
+<tr>
+<th>before (vercel)</th>
+<th>after (cloudflare)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>*.vercel.app</code> URLs (e.g. <code>values-auction-pi.vercel.app</code>)</td>
+<td><code>*.pages.dev</code> for static SPAs (e.g. <code>values-auction-d9m.pages.dev</code>) or <code>*.windedvertigo.workers.dev</code> for next.js apps via OpenNext</td>
+</tr>
+<tr>
+<td><code>vercel deploy</code></td>
+<td><code>npx wrangler pages deploy dist --project-name &lt;name&gt;</code> (Pages SPAs) <strong>or</strong> <code>npx opennextjs-cloudflare build &amp;&amp; npx opennextjs-cloudflare deploy</code> (OpenNext apps)</td>
+</tr>
+<tr>
+<td>rewrite destinations in <code>site/next.config.ts</code> pointed at <code>*.vercel.app</code></td>
+<td>rewrite destinations now point at <code>*.pages.dev</code> or <code>*.windedvertigo.workers.dev</code></td>
+</tr>
+</tbody></table>
+<p><strong>which apps still on vercel:</strong> port (CRM) <code>wv-crm</code>, creaseworks, vertigo-vault, nordic. these need workflow devkit / vercel blob features that don&#39;t exist on CF yet.</p>
+<p><strong>which apps moved to CF:</strong> site (<code>wv-site</code>), harbour hub (<code>wv-harbour-harbour</code>), depth-chart (<code>wv-harbour-depth-chart</code>), values-auction (<code>values-auction</code> Pages project + <code>wv-values-auction-relay</code> Worker), systems-thinking, and the long tail of harbour apps.</p>
+<p><strong>finding URLs after the migration:</strong></p>
+<pre><code class="language-bash">npx wrangler pages project list                    # all CF Pages projects in the current account
+npx wrangler deployments list --name &lt;worker&gt;     # recent deploys for a Worker
+gh repo view ghandoff/&lt;repo&gt; --web                # open the repo in github
+</code></pre>
+<p><strong>the most dangerous habit post-migration:</strong> typing <code>*.vercel.app</code> from muscle memory. before you add a rewrite or a fetch URL, search the codebase for the right destination — odds are it&#39;s already wired correctly somewhere.</p>
+<pre><code class="language-bash">grep -rn &quot;values-auction&quot; site/next.config.ts     # does this app already have a route?
+</code></pre>
+<hr>
+<h2 id="3-the-tool-chain-what-each-cli-does"><a href="#3-the-tool-chain-what-each-cli-does" class="anchor" aria-label="link to section">#</a>3. the tool chain — what each CLI does</h2>
+<p>we have a small constellation of command-line tools. each does one specific thing. knowing which one you need for which job saves a lot of &quot;why isn&#39;t this working.&quot;</p>
+<h3 id="wrangler-cloudflares-cli"><a href="#wrangler-cloudflares-cli" class="anchor" aria-label="link to section">#</a>wrangler — cloudflare&#39;s CLI</h3>
+<p><code>wrangler</code> is to cloudflare what <code>vercel</code> is to vercel. it&#39;s the deploy/inspect/manage tool for everything on the CF stack: workers, pages, KV, R2, durable objects, queues, D1.</p>
+<p><strong>what we use it for:</strong></p>
+<table>
+<thead>
+<tr>
+<th>command</th>
+<th>does what</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npx wrangler login</code></td>
+<td>OAuth into your CF account. drops a token in <code>~/.wrangler/</code>. all subsequent commands act as you.</td>
+</tr>
+<tr>
+<td><code>npx wrangler whoami</code></td>
+<td>prints which account you&#39;re authenticated as — useful when you&#39;re not sure which account <code>wrangler</code> is acting on.</td>
+</tr>
+<tr>
+<td><code>npx wrangler pages project list</code></td>
+<td>list all CF Pages projects in the current account</td>
+</tr>
+<tr>
+<td><code>npx wrangler pages deploy dist --project-name &lt;name&gt;</code></td>
+<td>deploy a static SPA&#39;s <code>dist/</code> to a Pages project. used by every harbour app&#39;s <code>npm run deploy:spa</code> script.</td>
+</tr>
+<tr>
+<td><code>npx wrangler deploy</code></td>
+<td>deploy a worker (server-side code). reads <code>wrangler.toml</code> for config + bindings. used for <code>wv-values-auction-relay</code>, <code>wv-launch-smoke</code>, etc.</td>
+</tr>
+<tr>
+<td><code>npx wrangler dev</code></td>
+<td>local dev server emulating the CF runtime — including bindings (KV, R2, DO). use this before pushing to prod.</td>
+</tr>
+<tr>
+<td><code>npx wrangler tail &lt;worker&gt;</code></td>
+<td>live-stream production logs from a worker. invaluable for debugging &quot;it works locally but breaks live.&quot;</td>
+</tr>
+</tbody></table>
+<p><strong><code>wrangler.toml</code> is the source of truth.</strong> every worker has one. it declares <code>name</code>, <code>main</code> (entry point), <code>compatibility_date</code>, <code>account_id</code>, and bindings (durable objects, KV, R2). when you run <code>wrangler deploy</code>, it reads this file, packages your code, applies any DO migrations, and uploads. fixing a deploy usually means editing <code>wrangler.toml</code> (e.g. today&#39;s <code>new_classes</code> → <code>new_sqlite_classes</code> fix on the values-auction relay).</p>
+<p><strong>why <code>npx</code> in front?</strong> so the version pinned in the project&#39;s <code>package.json</code> is used (the relay is on wrangler 3.x; the harbour-apps root is on 4.x). a global wrangler install would override this and silently use the wrong version.</p>
+<p><strong>openNext + wrangler:</strong> <code>npx opennextjs-cloudflare deploy</code> for the site/harbour/depth-chart apps wraps wrangler under the hood. it builds the next.js app into a worker bundle, then calls <code>wrangler deploy</code>. you don&#39;t have to call wrangler directly for those, but knowing it&#39;s there helps when you&#39;re debugging.</p>
+<h3 id="gh-githubs-cli"><a href="#gh-githubs-cli" class="anchor" aria-label="link to section">#</a>gh — github&#39;s CLI</h3>
+<p><code>gh</code> is github wrapped in a terminal. used for everything git/github that isn&#39;t core git: PRs, issues, releases, repo metadata, CI run inspection.</p>
+<table>
+<thead>
+<tr>
+<th>command</th>
+<th>does what</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>gh auth login</code></td>
+<td>OAuth into github. one-time per machine.</td>
+</tr>
+<tr>
+<td><code>gh pr create --fill</code></td>
+<td>open a PR from your current branch — <code>--fill</code> uses the commit message as title/body.</td>
+</tr>
+<tr>
+<td><code>gh pr view &lt;number&gt;</code> / <code>gh pr diff &lt;number&gt;</code></td>
+<td>inspect any PR — title, body, mergeability, full diff.</td>
+</tr>
+<tr>
+<td><code>gh pr close &lt;number&gt; --comment &quot;...&quot;</code></td>
+<td>close a PR with an explanation comment.</td>
+</tr>
+<tr>
+<td><code>gh pr merge &lt;number&gt;</code></td>
+<td>merge a PR (squash, rebase, or merge — picks default).</td>
+</tr>
+<tr>
+<td><code>gh repo view --web</code></td>
+<td>open the current repo in github in your browser.</td>
+</tr>
+<tr>
+<td><code>gh run list --repo &lt;repo&gt;</code></td>
+<td>recent CI runs.</td>
+</tr>
+<tr>
+<td><code>gh api &lt;endpoint&gt;</code></td>
+<td>raw github api — useful when the CLI doesn&#39;t have a wrapper for what you need.</td>
+</tr>
+</tbody></table>
+<p>we used <code>gh pr close 11</code> today to close maria&#39;s superseded PR with an explanation. all PR review and merge happens through <code>gh</code> or the github web UI — both work.</p>
+<h3 id="vercel-vercels-cli-still-used-for-some-apps"><a href="#vercel-vercels-cli-still-used-for-some-apps" class="anchor" aria-label="link to section">#</a>vercel — vercel&#39;s CLI (still used for some apps)</h3>
+<p><code>vercel</code> is the CF-equivalent for the apps that didn&#39;t migrate (port, creaseworks, vault, nordic). same shape as wrangler but for vercel&#39;s platform.</p>
+<table>
+<thead>
+<tr>
+<th>command</th>
+<th>does what</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>vercel login</code></td>
+<td>OAuth into vercel.</td>
+</tr>
+<tr>
+<td><code>vercel --prod</code></td>
+<td>deploy current dir to production.</td>
+</tr>
+<tr>
+<td><code>vercel env pull .env.local</code></td>
+<td>pull env vars from the linked vercel project into a local <code>.env.local</code>.</td>
+</tr>
+<tr>
+<td><code>vercel logs &lt;deployment&gt;</code></td>
+<td>stream logs from a deployment.</td>
+</tr>
+</tbody></table>
+<p>most harbour apps no longer use this. only port (CRM), creaseworks, vault, and nordic still do.</p>
+<h3 id="git-node-npm-npx-the-foundations"><a href="#git-node-npm-npx-the-foundations" class="anchor" aria-label="link to section">#</a>git, node, npm, npx — the foundations</h3>
+<p>these are the actual building blocks under everything else.</p>
+<ul>
+<li><strong>git</strong> — version control. <code>git pull</code>, <code>git commit</code>, <code>git push</code>, <code>git status</code>, <code>git log</code>, <code>git diff</code>. branching covered in section 5.</li>
+<li><strong>node</strong> — JavaScript runtime. <code>node 24 LTS</code> is the current default for our stack (set via <code>nvm use 24</code> if you have multiple versions installed).</li>
+<li><strong>npm</strong> — node&#39;s package manager. <code>npm install</code> to install deps from <code>package.json</code>. <code>npm run &lt;script&gt;</code> to invoke a script defined in <code>package.json</code>&#39;s <code>scripts</code> block.</li>
+<li><strong>npx</strong> — runs a package without installing it globally. <code>npx wrangler ...</code> runs the wrangler version from the local <code>node_modules</code> (preferred over a global install, which can drift).</li>
+</ul>
+<h3 id="a-quick-which-tool-for-which-job-cheat"><a href="#a-quick-which-tool-for-which-job-cheat" class="anchor" aria-label="link to section">#</a>a quick &quot;which tool for which job&quot; cheat</h3>
+<table>
+<thead>
+<tr>
+<th>you want to...</th>
+<th>use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>deploy a static SPA to CF Pages</td>
+<td><code>npx wrangler pages deploy dist --project-name &lt;name&gt;</code></td>
+</tr>
+<tr>
+<td>deploy a CF Worker</td>
+<td><code>cd &lt;worker-dir&gt; &amp;&amp; npx wrangler deploy</code></td>
+</tr>
+<tr>
+<td>deploy a Next.js app to CF</td>
+<td><code>cd &lt;app-dir&gt; &amp;&amp; npx opennextjs-cloudflare build &amp;&amp; npx opennextjs-cloudflare deploy</code></td>
+</tr>
+<tr>
+<td>deploy any app to vercel</td>
+<td><code>cd &lt;app-dir&gt; &amp;&amp; vercel --prod</code></td>
+</tr>
+<tr>
+<td>open a PR from your branch</td>
+<td><code>gh pr create --fill</code></td>
+</tr>
+<tr>
+<td>see live logs from a worker</td>
+<td><code>npx wrangler tail &lt;worker-name&gt;</code></td>
+</tr>
+<tr>
+<td>install/update deps</td>
+<td><code>npm install</code></td>
+</tr>
+<tr>
+<td>run a one-off task from a package</td>
+<td><code>npx &lt;package&gt;</code></td>
+</tr>
+<tr>
+<td>see what&#39;s deployed where</td>
+<td><code>npx wrangler pages project list</code> (CF) or vercel dashboard</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="4-secrets-and-access-never-paste-a-token-into-chat"><a href="#4-secrets-and-access-never-paste-a-token-into-chat" class="anchor" aria-label="link to section">#</a>4. secrets and access — never paste a token into chat</h2>
+<p>this is the most-likely-to-cause-an-incident category. read this section even if you skip the others.</p>
+<h3 id="the-rule"><a href="#the-rule" class="anchor" aria-label="link to section">#</a>the rule</h3>
+<p><strong>any secret value (API token, password, env-pull dump, dashboard &quot;reveal&quot; output) belongs in a terminal or in 1password — never in slack, email, claude, or any web form.</strong> if claude or slack ever asks you for a token&#39;s value, the answer is &quot;no, but i&#39;ll tell you whether it works.&quot;</p>
+<h3 id="why"><a href="#why" class="anchor" aria-label="link to section">#</a>why</h3>
+<ul>
+<li>chat history is searchable, exported, screenshotted, archived. a token pasted once may live forever in a place you don&#39;t control.</li>
+<li>1password (or another vault) gives you: encryption at rest, sharing controls, revocation, audit logs, and the ability to rotate without hunting for stale copies.</li>
+<li>claude in particular has a memory layer. anything you paste might end up referenced later in unrelated conversations.</li>
+</ul>
+<h3 id="the-right-way-to-share-access-between-teammates"><a href="#the-right-way-to-share-access-between-teammates" class="anchor" aria-label="link to section">#</a>the right way to share access between teammates</h3>
+<p><strong>preferred: invite as a member of the cloudflare account.</strong> dash.cloudflare.com → manage account → members → invite. assign the smallest permission policy that does the job (e.g. &quot;Workers Platform Admin&quot; only — not &quot;Super Administrator&quot;). benefits:</p>
+<ul>
+<li>audit trail by user</li>
+<li>revoke in one click if they leave or their machine is compromised</li>
+<li>no shared secret to rotate</li>
+<li>they get their own auth via <code>wrangler login</code></li>
+</ul>
+<p><strong>fallback: API token via 1password.</strong> only if the recipient is automated (CI, a script). steps:</p>
+<ol>
+<li>dash.cloudflare.com/profile/api-tokens → create token with the minimum scopes needed + an expiration date (90 days max).</li>
+<li>copy value DIRECTLY into a new 1password item in a vault the recipient has access to. never via chat.</li>
+<li>verify it works without printing the value:<pre><code class="language-bash">op read &quot;op://Shared/&lt;item-name&gt;/credential&quot; | xargs -I{} \
+  curl -sS -H &quot;Authorization: Bearer {}&quot; \
+  https://api.cloudflare.com/client/v4/user/tokens/verify | jq &#39;.result.status&#39;
+# should print &quot;active&quot;
+</code></pre>
+</li>
+<li>tell the recipient the 1password item name. they pull it into <code>CLOUDFLARE_API_TOKEN</code> from there.</li>
+</ol>
+<h3 id="the-same-logic-for-other-services"><a href="#the-same-logic-for-other-services" class="anchor" aria-label="link to section">#</a>the same logic for other services</h3>
+<table>
+<thead>
+<tr>
+<th>service</th>
+<th>preferred access</th>
+<th>fallback</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>github</td>
+<td>invite to org (already done for maria as <code>winded-maria</code>)</td>
+<td>personal access token via 1password</td>
+</tr>
+<tr>
+<td>vercel</td>
+<td>invite to team (<code>ghandoffs-projects</code>)</td>
+<td>API token via 1password</td>
+</tr>
+<tr>
+<td>neon postgres</td>
+<td>per-user auth</td>
+<td>connection string via 1password (project-scoped)</td>
+</tr>
+<tr>
+<td>anthropic / openai</td>
+<td>shared workspace</td>
+<td>API key via 1password (rotate quarterly)</td>
+</tr>
+</tbody></table>
+<h3 id="scopes-to-never-grant-casually"><a href="#scopes-to-never-grant-casually" class="anchor" aria-label="link to section">#</a>scopes to never grant casually</h3>
+<ul>
+<li><strong>CF &quot;Super Administrator&quot;</strong> — can change billing, manage members, revoke other admins. only garrett.</li>
+<li><strong>CF &quot;Administrator&quot;</strong> — can edit subscriptions. mostly garrett.</li>
+<li><strong>github org &quot;Owner&quot;</strong> — can transfer the org. only garrett.</li>
+<li><strong>vercel &quot;Owner&quot;</strong> — same.</li>
+<li><strong>CF API token without expiration</strong> — set 90 days max; rotate on a calendar.</li>
+</ul>
+<h3 id="what-to-do-if-a-secret-leaks"><a href="#what-to-do-if-a-secret-leaks" class="anchor" aria-label="link to section">#</a>what to do if a secret leaks</h3>
+<ol>
+<li><strong>rotate immediately</strong> — go to the dashboard, regenerate the token. the old value dies the moment the new one is created.</li>
+<li><strong>find every place the old value is stored</strong> (1password, <code>.env</code> files, vercel/cf env vars, CI secrets). update all.</li>
+<li><strong>check audit logs</strong> for anything that ran with the leaked token between leak and rotation.</li>
+<li><strong>post-mortem in slack</strong> — short note in <code>#engineering</code> with what leaked, blast radius, and how to prevent next time.</li>
+</ol>
+<p>never use <code>git filter-branch</code> or <code>git push --force</code> to &quot;remove&quot; a leaked secret from history — once it&#39;s pushed, assume it was scraped. only rotation makes a leaked secret safe.</p>
+<hr>
+<h2 id="5-git-workflow-for-shared-repos"><a href="#5-git-workflow-for-shared-repos" class="anchor" aria-label="link to section">#</a>5. git workflow for shared repos</h2>
+<p><strong>the golden rule: shared config files (<code>site/next.config.ts</code>, <code>wrangler.toml</code>, <code>package.json</code> at repo root, anything in <code>packages/</code>) need a branch + PR.</strong> your own app&#39;s source code in <code>apps/&lt;your-app&gt;/</code> you can push directly if you&#39;re confident.</p>
+<h3 id="the-standard-flow"><a href="#the-standard-flow" class="anchor" aria-label="link to section">#</a>the standard flow</h3>
+<pre><code class="language-bash"># 1. start fresh — always pull before you start
+cd ~/Projects/windedvertigo
+git checkout main
+git pull --rebase origin main
+
+# 2. branch with a descriptive name
+git checkout -b fix/values-auction-cleanup
+# naming: feat/&lt;thing&gt;, fix/&lt;thing&gt;, chore/&lt;thing&gt;, docs/&lt;thing&gt;
+
+# 3. edit, test locally
+# ... your changes ...
+npm run build          # or npm run dev — make sure it doesn&#39;t crash
+
+# 4. commit with a clear message
+git add site/next.config.ts
+git commit -m &quot;fix(site): remove dead /harbour/values-auction rewrites&quot;
+
+# 5. push the branch and open a PR
+git push -u origin fix/values-auction-cleanup
+gh pr create --fill   # or use the github UI
+
+# 6. wait for review (or self-review if it&#39;s straightforward)
+
+# 7. merge via the github UI (squash &amp; merge keeps history clean)
+</code></pre>
+<h3 id="when-you-can-skip-the-pr"><a href="#when-you-can-skip-the-pr" class="anchor" aria-label="link to section">#</a>when you can skip the PR</h3>
+<ul>
+<li>changes only to your own app folder (<code>apps/&lt;your-app&gt;/</code>) where no one else is working</li>
+<li><code>[skip ci]</code> docs/scripts updates that don&#39;t affect deploys</li>
+<li>urgent prod fixes (but tell the team in slack first)</li>
+</ul>
+<h3 id="before-editing-a-shared-config-read-it-first"><a href="#before-editing-a-shared-config-read-it-first" class="anchor" aria-label="link to section">#</a>before editing a shared config, read it first</h3>
+<p>this would have prevented today&#39;s incident:</p>
+<pre><code class="language-bash"># before adding a rewrite for values-auction, check if one exists
+grep -n &quot;values-auction&quot; site/next.config.ts
+
+# look at the surrounding context — is there a beforeFiles block? an afterFiles block?
+sed -n &#39;30,60p&#39; site/next.config.ts
+
+# check the file&#39;s history
+git log --oneline -10 site/next.config.ts
+</code></pre>
+<p>if you find existing rules, your job is to <strong>edit or delete</strong> them — not duplicate them.</p>
+<h3 id="the-which-repo-am-i-in-check"><a href="#the-which-repo-am-i-in-check" class="anchor" aria-label="link to section">#</a>the &quot;which repo am i in&quot; check</h3>
+<p>if you&#39;re about to push and you&#39;re not 100% sure which repo:</p>
+<pre><code class="language-bash">git remote -v
+# origin  https://github.com/ghandoff/harbour-apps.git (push)
+# vs
+# origin  https://github.com/ghandoff/windedvertigo.git (push)
+</code></pre>
+<p>different repos = different files. <code>site/next.config.ts</code> only exists in <code>windedvertigo</code>.</p>
+<h3 id="force-push-safety"><a href="#force-push-safety" class="anchor" aria-label="link to section">#</a>force-push safety</h3>
+<ul>
+<li>never <code>git push --force</code> to main</li>
+<li>on your own branch: <code>git push --force-with-lease</code> is safe (rejects if someone else pushed)</li>
+<li>if you accidentally pushed something bad: don&#39;t force-push to fix it — open a <code>git revert</code> PR instead</li>
+</ul>
+<hr>
+<h2 id="6-common-pitfalls-lessons-from-the-migration-so-far"><a href="#6-common-pitfalls-lessons-from-the-migration-so-far" class="anchor" aria-label="link to section">#</a>6. common pitfalls (lessons from the migration so far)</h2>
+<h3 id="pitfall-1-stale-destinations"><a href="#pitfall-1-stale-destinations" class="anchor" aria-label="link to section">#</a>pitfall 1: stale destinations</h3>
+<p>every <code>*.vercel.app</code> in the codebase post-migration is suspect. before merging anything that adds a rewrite, fetch destination, or redirect, verify the destination exists:</p>
+<pre><code class="language-bash">curl -sI https://that-thing.vercel.app | head -3
+# if you get HTTP/2 404 with server: vercel — the project is gone
+</code></pre>
+<h3 id="pitfall-2-dist-is-gitignored"><a href="#pitfall-2-dist-is-gitignored" class="anchor" aria-label="link to section">#</a>pitfall 2: <code>dist/</code> is gitignored</h3>
+<p><code>dist/</code> (the build output) is gitignored in every app. if you manually drop a config file (like <code>_redirects</code> for cloudflare pages) into <code>dist/</code>, it disappears on the next clean build. <strong>source-control config files in <code>public/</code></strong> (vite copies <code>public/</code> → <code>dist/</code> on every build) so they survive.</p>
+<h3 id="pitfall-3-env-files-are-baked-at-build-time"><a href="#pitfall-3-env-files-are-baked-at-build-time" class="anchor" aria-label="link to section">#</a>pitfall 3: env files are baked at build time</h3>
+<p><code>.env.production</code> in vite apps is read AT BUILD TIME, not at runtime. if you change <code>VITE_WS_URL</code>, you must rebuild and redeploy the SPA. visiting <code>pages.dev</code> won&#39;t pick up the new URL until a new bundle ships.</p>
+<h3 id="pitfall-4-forgetting-the-worker"><a href="#pitfall-4-forgetting-the-worker" class="anchor" aria-label="link to section">#</a>pitfall 4: forgetting the worker</h3>
+<p>a SPA that talks to a backend worker (like values-auction&#39;s websocket relay) needs the worker deployed separately. the SPA deploy doesn&#39;t include the worker. always check: &quot;if this app has a <code>workers/</code> or <code>relay/</code> or <code>server/</code> directory, is the worker actually deployed?&quot;</p>
+<pre><code class="language-bash">curl -sI https://your-worker-name.windedvertigo.workers.dev/health
+# 200 = deployed. 404 = the worker doesn&#39;t exist on that subdomain.
+</code></pre>
+<h3 id="pitfall-5-rewrite-into-rewrite-loops"><a href="#pitfall-5-rewrite-into-rewrite-loops" class="anchor" aria-label="link to section">#</a>pitfall 5: rewrite-into-rewrite loops</h3>
+<p>if site A rewrites a path to site B, and site B has a <code>_redirects</code> rule sending traffic back to site A, you&#39;ve got an infinite loop. cloudflare returns <strong>error 1019</strong> for these. fix: remove the canonicalisation rule on the destination (it&#39;s already canonical from the user&#39;s perspective via the rewrite).</p>
+<hr>
+<h2 id="7-case-study-values-auction-error-1019-2026-04-27"><a href="#7-case-study-values-auction-error-1019-2026-04-27" class="anchor" aria-label="link to section">#</a>7. case study: values-auction error 1019 (2026-04-27)</h2>
+<p>a worked example of every pitfall above, all in one app:</p>
+<p><strong>symptom:</strong> <code>windedvertigo.com/portfolio/assets/values-auction</code> returned cloudflare error 1019. clicking &quot;create new session&quot; did nothing.</p>
+<p><strong>root causes (three of them):</strong></p>
+<ol>
+<li><p><strong>redirect loop.</strong> maria deployed the SPA with a <code>_redirects</code> file in <code>dist/</code> that sent <code>pages.dev/*</code> → <code>windedvertigo.com/portfolio/assets/values-auction/*</code>. but the site rewrite proxies <code>/portfolio/assets/values-auction/*</code> → <code>pages.dev/*</code>. infinite loop → error 1019. the <code>_redirects</code> file was only in <code>dist/</code> (not in source), so nobody could find it via <code>git log</code>. <strong>fix:</strong> moved an empty/comment-only <code>_redirects</code> to <code>public/</code> so the file is source-controlled and the bad rule can&#39;t come back.</p>
+</li>
+<li><p><strong>websocket relay never deployed.</strong> the SPA&#39;s <code>.env.production</code> told it to connect to <code>wss://wv-values-auction-relay.windedvertigo.workers.dev/ws</code>. that worker didn&#39;t exist (<code>relay/node_modules</code> was empty — never even installed). every &quot;create new session&quot; call hit a 404. <strong>fix:</strong> <code>cd relay &amp;&amp; npm install &amp;&amp; npx wrangler deploy</code> (after switching <code>new_classes</code> → <code>new_sqlite_classes</code> for the free-tier DO migration). also fixed <code>.env.production</code> which was missing the <code>/ws</code> path suffix.</p>
+</li>
+<li><p><strong>stale vercel rewrites.</strong> <code>site/next.config.ts:408-425</code> had three rules routing <code>/harbour/values-auction*</code> and <code>/wordmark.svg</code> to <code>values-auction-pi.vercel.app</code> (dead — vercel project removed during migration). these were never cleaned up when maria added the new <code>/portfolio/assets/values-auction*</code> rules in <code>beforeFiles</code> at lines 37-49. PR #11 tried to clean up but accidentally pointed everything at the same dead vercel URL. <strong>fix:</strong> delete lines 408-425 entirely.</p>
+</li>
+</ol>
+<p><strong>meta-lesson:</strong> the migration creates drift across both the apps and the routing config. when moving an app, do the cleanup (delete old rewrites, update env vars, redeploy worker dependencies) in the same PR as the migration — not as separate &quot;i&#39;ll get to it later&quot; tickets.</p>
+<hr>
+<h2 id="8-quick-command-reference"><a href="#8-quick-command-reference" class="anchor" aria-label="link to section">#</a>8. quick command reference</h2>
+<pre><code class="language-bash"># am i in the right repo?
+git remote -v
+pwd
+
+# what&#39;s already in this file?
+grep -n &quot;&lt;keyword&gt;&quot; site/next.config.ts
+git log --oneline -10 -- &lt;file&gt;
+
+# is this URL still alive?
+curl -sI https://&lt;host&gt;/&lt;path&gt; | head -3
+
+# what cloudflare projects do we have?
+npx wrangler pages project list
+npx wrangler deployments list --name &lt;worker&gt;
+
+# pull → branch → edit → push → PR
+git pull --rebase origin main
+git checkout -b fix/&lt;thing&gt;
+# ... edit ...
+git commit -am &quot;fix(scope): summary&quot;
+git push -u origin fix/&lt;thing&gt;
+gh pr create --fill
+
+# check who deployed what when
+gh run list --repo ghandoff/&lt;repo&gt; --limit 5
+</code></pre>
+
+    </main>
+  </div>
+  <footer class="site">
+    a winded.vertigo collective working document · for internal collaboration ·
+    rendered from <a href="https://github.com/ghandoff/windedvertigo/blob/main/docs/dev-collaboration.md"><code>docs/dev-collaboration.md</code></a>
+  </footer>
+</body>
+</html>

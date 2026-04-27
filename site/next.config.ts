@@ -517,6 +517,18 @@ const nextConfig: NextConfig = {
         destination: "/tools/ppcs-launch/index.html",
         permanent: false,
       },
+      // dev-collaboration handbook — static HTML rendered from
+      // docs/dev-collaboration.md by scripts/render-handbook.mjs.
+      {
+        source: "/handbook/dev-collaboration",
+        destination: "/handbook/dev-collaboration/index.html",
+        permanent: false,
+      },
+      {
+        source: "/handbook/dev-collaboration/",
+        destination: "/handbook/dev-collaboration/index.html",
+        permanent: false,
+      },
       // three-intelligence-workbook — static HTML tool. /harbour/* prefix
       // redirects to the static-tool URL since OpenNext-on-CF's internal
       // rewrite to a directory doesn't resolve cleanly. Same pattern as
