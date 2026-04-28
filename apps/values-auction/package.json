@@ -15,7 +15,7 @@
     "lint": "eslint",
     "dev:hub": "cd workers/hub && npx wrangler dev",
     "deploy:hub": "cd workers/hub && npm install && npx wrangler deploy",
-    "deploy:spa": "npm run build && CLOUDFLARE_ACCOUNT_ID=097c92553b268f8360b74f625f6d980a npx wrangler pages deploy dist --project-name values-auction"
+    "deploy:spa": "npm run build && CLOUDFLARE_ACCOUNT_ID=097c92553b268f8360b74f625f6d980a npx wrangler pages deploy dist --project-name values-auction --branch=main"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
