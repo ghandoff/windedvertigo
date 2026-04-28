@@ -208,7 +208,10 @@ export class VaFacilitator extends LitElement {
     *::after {
       box-sizing: border-box;
     }
-    @media (max-width: 1100px) {
+    :host > * {
+      min-width: 0;
+    }
+    @media (max-width: 1400px) {
       :host {
         grid-template-columns: 1fr;
       }
@@ -326,9 +329,7 @@ export class VaFacilitator extends LitElement {
       border: 2px solid transparent;
       background: var(--bg);
       font-weight: 700;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      word-break: break-word;
     }
     .deck button[data-selected='true'] {
       border-color: var(--wv-redwood);

@@ -53,13 +53,16 @@ export function reduce(session: Session, action: Action): Session {
 
     case 'SESSION_START': {
       const now = Date.now();
+      const grouping = getAct('grouping');
       return pushEvent(
         {
           ...session,
           startedAt: now,
+          currentAct: 'grouping',
           actStartedAt: now,
+          actDurationMs: grouping.durationMs,
         },
-        event('actAdvanced', { to: 'arrival' }, now),
+        event('actAdvanced', { to: 'grouping' }, now),
       );
     }
 

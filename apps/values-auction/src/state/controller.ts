@@ -36,6 +36,16 @@ function persist(session: Session) {
   }
 }
 
+function cleanStaleSessionData(currentSessionId: string) {
+  const prefix = 'va:session:';
+  const stale: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k?.startsWith(prefix) && k !== `${prefix}${currentSessionId}`) stale.push(k);
+  }
+  stale.forEach((k) => localStorage.removeItem(k));
+}
+
 export async function createController(
   sessionId: string,
   role: TransportRole,
@@ -46,6 +56,7 @@ export async function createController(
 
   const cached = hydrate(sessionId);
   if (cached) store.replace(cached);
+  cleanStaleSessionData(sessionId);
 
   const transport = createTransport(clientId);
   await transport.connect(sessionId, role, clientId);

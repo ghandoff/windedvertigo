@@ -31,6 +31,11 @@ export class VaCard extends LitElement {
       transform: translateY(-2px);
       box-shadow: var(--shadow-card-lifted);
     }
+    :host([data-active]) {
+      border: 3px solid var(--wv-redwood, currentColor);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-lifted);
+    }
   `;
 
   render() {
