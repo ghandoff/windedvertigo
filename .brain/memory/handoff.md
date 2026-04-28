@@ -14,35 +14,28 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 **where we are right now:**
 **G.2.4 canary fully operational.** `wv-port-jobs` CF Queue consumer deployed with all 7 secrets set (ANTHROPIC_API_KEY, NOTION_TOKEN, RESEND_API_KEY, SLACK_BOT_TOKEN, SLACK_WEBHOOK_URL, SUPABASE_SERVICE_KEY, SUPABASE_URL). Note: Vercel CLI env pull redacts sensitive vars — used Vercel API (`decrypt=true`) + Python script to extract and pipe directly to wrangler. Canary window: 2026-05-01 → ~2026-05-08.
 
-**Phase B in progress**: harbour-apps subtree merge running at `apps/harbour/`.
+**Phase B DONE**: harbour-apps subtree merge complete at `apps/harbour/`.
 
-**PRs waiting for Garrett to merge (in priority order):**
-1. **PR #32** `fix/ops-middleware-rename` — **🔴 SECURITY**: `ops/proxy.ts` was dead; all ops routes unprotected. Rename → `middleware.ts`, export `middleware()`. Merge + redeploy fixes auth.
-2. **PR #31** `fix/ops-supabase-lazy-init` — fixes wv-ops preview build crash (module-level throw on missing env vars)
-3. **PR #33** `chore/gitignore-supabase-temp` — trivial: ignore `supabase/.temp/` dirs
-4. **PR #25** `restructure/phase-a1-cleanup-and-ops-merge` — E.2+E.3 packages (conflicts resolved, now mergeable) → unlocks #26 → #28 → #30 → #16/#17/#13
-
-**After PR #25 merges:** monitor `bo2te4fe8` auto-triggers site CF Workers redeploy (already done manually, but monitor will confirm)
+**All queued PRs now merged**: #33, #31, #32, #25, #34, #35, #16, #17, #30, #13. Site CF Workers redeploy in progress.
 
 ### open threads
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| ops auth | PR #32 ready | **merge PR #32** → wv-ops auto-redeploys → verify incognito redirect to /login | github |
+| ops auth | PR #32 merged | **Garrett: verify incognito redirect to /login** at ops.windedvertigo.com | ops.windedvertigo.com |
 | booking system | admin connect UI live + 5 hosts + 8 event types seeded; Turnstile live | **Garrett: connect Google Calendars** via `/admin/booking/connect` (one OAuth flow per host) | port.windedvertigo.com/admin/booking/connect |
 | harbour oauth gate | code deployed | **30-sec user action**: add redirect URI `https://www.windedvertigo.com/harbour/api/auth/callback/google` to OAuth client `160968051904-…` | gcp console |
-| 16-app CF wrapper rollout | Phase B merge done (or in progress) | run `cd apps/harbour && ./scripts/deploy-cf-wrappers.sh --include-depth-chart` (path updated post-merge) | terminal |
+| 16-app CF wrapper rollout | Phase B merge done | run `cd apps/harbour && ./scripts/deploy-cf-wrappers.sh --include-depth-chart` (path updated post-merge) | terminal |
 | smoke alert webhook | worker live, 40/40 green | create wv-claw incoming webhook → `wrangler secret put WV_CLAW_WEBHOOK --name wv-launch-smoke` | slack |
 | Notion content calendar DB | CRM `/content` route wired, waiting for DB | **Cowork action**: create content calendar DB in Notion (title, channel, body, scheduled date, status, author) → set `NOTION_CONTENT_CALENDAR_DB_ID` in wv-port Vercel env | notion |
 | port agent write tools | PR #22 merged 2026-05-01 | test createCampaign + updateContact in Slack DM @wv-claw | port |
 | PRME 2026 | contract active, PO approved, first invoice submitted | sync with meredith on facilitation guide timeline | gmail |
 | IDB Salvador | documentation submitted apr 10, receipt confirmed apr 24 | passive monitor — evaluation in progress | — |
-| harbour-apps Phase B | Gate cleared (0 open PRs); subtree merge in progress | Phase B merge completing autonomously | — |
+| Neon decommission | ancestry migrated to Supabase 2026-04-27 | delete Neon project (safe after 2026-05-04) | neon.tech |
 
 ### environment handoffs
 
 **Cowork → Claude Code:**
-- after PR merges: run `cd site && npx opennextjs-cloudflare build && wrangler deploy` to push site to CF Workers
 - creaseworks content + refactor — notion covers for playdates/packs/collections
 - CF cleanup — revoke temp CF API token, close anotheroption CF account (consolidation complete as of apr 24)
 - resend webhook — register URL + `RESEND_WEBHOOK_SECRET` in resend dashboard
@@ -57,30 +50,31 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| PPCS launch | session 1 launches **thu apr 30**; countdown tool committed (`350c772`) but site is on CF workers — not yet redeployed | claude code: wrangler/opennext redeploy of `wv-site` **before mon 9am PT whirlpool**; anchor-leg prep with maria mon 10:30-2pm PT | gcal |
+| PPCS session 1 launch | countdown tool shipped (`350c772`); site fix `30b5dfc` (static-assets cache, drop R2 binding) deployed today; anchor-leg prep done with maria | verify `windedvertigo.com/tools/ppcs-launch/` resolves on prod (smoke probe blocked by allowlist); run wed 1pm dry run with maria | gcal |
 | harbour 3B oauth gate | code + secrets deployed; google OAuth client gate pending | **30-sec user action**: add redirect URI to client `160968051904-…`: `https://www.windedvertigo.com/harbour/api/auth/callback/google` | gcp console |
 | 16-app CF wrapper rollout | prep committed `042392e`; deploy script ready | run `cd harbour-apps && ./scripts/deploy-cf-wrappers.sh --include-depth-chart` | terminal |
 | smoke alert webhook | `wv-launch-smoke` worker live, cron */30, 40/40 green; reads `WV_CLAW_WEBHOOK` if set | create incoming webhook on wv-claw slack app, run `wrangler secret put WV_CLAW_WEBHOOK --name wv-launch-smoke` | slack |
-| PRME 2026 — programme start | metz @ UN GC asked about qualtrics survey apr 24; garrett's reply still unanswered by metz; programme kick-off this week | reply to metz@unglobalcompact.org confirming survey platform; sync with maria on PPCS post drafts | gmail |
-| vercel harbour-apps prod | 5+ overnight build failures since apr 24 after CF migration; harbour now on workers but vercel project still triggering | claude code: investigate build logs, decide whether to delete the vercel project or fix env-var drift | vercel |
-| health insurance | gusto june 1 coverage deadline is **thu apr 30** | confirm benefits selection in gusto — **4 days left** | gusto |
-| amna at 10 | proposal sent mar 26 to jonelle + walaa | **31 days overdue** — email follow-up | gmail |
+| PRME 2026 — programme start | metz qualtrics thread still unanswered; PRME hold meeting tomorrow 12pm PT with meredith + sam | use tue 12pm PRME hold to lock survey platform + facilitation guide cadence; sync maria pre-call at 11am | gcal |
+| dev-collaboration handbook | section 8 (IP & promotion when building for prme) shipped today (`b7c1108`); rendered to `/handbook/dev-collaboration` (`ec45c7a`) | circulate to maria + payton; reference from PRME comms re: discussion-post formatting | site |
+| vercel harbour-apps preview | preview deployment failures continued today (2x at 16:04 UTC) post-CF migration | claude code: investigate build logs, decide whether to delete vercel project or fix env-var drift | vercel |
+| health insurance | gusto june 1 coverage deadline is **thu apr 30**; mike bryant resent reminder today | confirm benefits selection in gusto — **3 days left** | gusto |
+| amna at 10 | proposal sent mar 26 to jonelle + walaa | **32 days overdue** — email follow-up | gmail |
 
 ### waiting on external
 
-- **metz @ UN global compact** — clarifying question about qualtrics survey approach for PRME 2026 — since 24 apr (3 days; programme kicking off this week)
-- **meredith (PRME)** — facilitation guide timeline — since 21 apr (5 days)
+- **metz @ UN global compact** — qualtrics survey approach for PRME 2026 — since 24 apr (4 days; tomorrow's PRME hold is the escalation moment)
+- **meredith (PRME)** — facilitation guide timeline — since 21 apr (6 days)
 - **IDB Salvador** — evaluation committee reviewing apr 10 documentation; nadia.nochez confirmed receipt 24 apr — passive monitor
-- **amna at 10** — jonelle + walaa, proposal sent 26 mar (31 days, overdue for follow-up)
+- **amna at 10** — jonelle + walaa, proposal sent 26 mar (32 days, overdue for follow-up)
 - **KiwiCo international partnerships** — inquiry forwarded 17 apr — passive
-- **anthropic** — ZDR ticket #215474029316065 (filed 23 apr) and rate-limit increase — no timeline
 - **paul ramchandani (pedal conference)** — proposal sent over the holiday — no response
+- **CPA (aakib qureshi)** — new taxdome message landed today; reply pending
 
 ### environment handoffs
 
 **Cowork → Claude Code:**
-- **urgent before mon 9am PT**: redeploy `wv-site` CF worker so the ppcs-launch countdown tool (commit `350c772`) goes live ahead of whirlpool. file: `site/public/tools/ppcs-launch/index.html`; redirect in `next.config.ts`.
-- **vercel harbour-apps failures** — 5+ overnight failures since apr 24; investigate or retire the vercel project now that traffic is on CF workers.
+- **vercel harbour-apps preview failures** — repeated since apr 24, two more today; investigate or retire the vercel project now that traffic is on CF workers.
+- **PPCS launch tool prod verification** — automated smoke probe to `windedvertigo.com/tools/ppcs-launch/` returns 403 (allowlist), so a manual verify or smoke-allowlist whitelist is needed before thursday.
 - **CF KV daily put limit** — context-sync / dispatch writes likely tripping the free tier; upgrade or throttle.
 - **creaseworks content + refactor** — add notion covers for playdates/packs/collections; apply phase 1 read-time `cover_url` refactor (mirror vault); build body-content inline image sync.
 - **CF cleanup** — revoke temp CF API token, delete DNS-only token, close anotheroption CF account.
@@ -89,23 +83,43 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 - **resend webhook** — register URL + set `RESEND_WEBHOOK_SECRET` in resend dashboard.
 
 **Claude Code → Cowork:**
-- **PRME comms** — reply to metz@unglobalcompact.org re: qualtrics survey decision; loop maria.
-- **health insurance** — confirm benefits in gusto before thu apr 30 (4 days).
-- **CPA** — reply to aakib re: $329.81 chase temp hold; finish personal extension organizer step 2/4 in taxdome.
+- **tue 12pm PRME hold** — escalation moment for survey platform + facilitation guide cadence; need to come in with a recommendation, not a question.
+- **health insurance** — confirm benefits in gusto before thu apr 30 (3 days).
+- **CPA** — reply to aakib's new taxdome message (today); finish personal extension organizer step 2/4 in taxdome.
+- **gusto** — review 1 employee expense (due mon may 4).
 - **ADP invoice 719518339** — week ending apr 25; log to notion + pay.
 - **QuickBooks** — record PRME $48,285 income + contractor payments (maria $18,330, lamis $1,005) from 20 apr.
 - **attio CRM trial** — keep or cancel decision.
 - **`wv-invoice-logged` gmail label** — 3 messages still unlabeled.
+- **wed celebration prep** — write paragraph on how maria's work has personally inspired you (whirlpool action item).
 
 ### mobile bookmarks
 
-- _none open_ — the only self-DM beyond the auto morning + evening briefings was a stub note "MCSD TK" at 1:16pm PT (likely a placeholder for a follow-up to capture later).
-- the agenda widget for tomorrow's whirlpool is queued at notion.so/34fe4ee74ba481478f90c28141029068 — review before 9am PT.
-- gina DM (5am) noted Wells Fargo ATM phone-scan was failing across three machines — personal, no business action.
+- _no new self-DMs in last 24h_ — slack search returned empty.
+- whirlpool agenda + recording for today's session: notion.so/34fe4ee74ba48019a809c50a4eba95ee — action items already logged in TASKS.md.
+- gina has declined the wed apr 29 UC-riverside PD panel invite (the cross-calendar joint event); the panel itself still stands at 9am-12pm PT for garrett.
+- maria added a **"dry run PPCS 1a"** event for wed apr 29 13:00-14:00 PT — sandwich it between the UC-riverside panel and post-panel decompression.
 
 ---
 
 ## history (most recent first)
+
+---
+
+## 2026-04-27 (night) — context-sync: PPCS week in motion, anthropic tier 4 landed, dev-collaboration handbook shipped (Cowork)
+
+**what happened:**
+- **whirlpool ran today** — fresh action set logged in TASKS.md: payton ↔ jamie on facilitation guides, each member writes a paragraph on maria for wed celebration, payton leads wed solo (garrett at UC-riverside), team drafts plain-language transformative-theory-of-change substack post, garrett + maria finalised thursday's PPCS session 1 anchor leg.
+- **6 commits today on windedvertigo repo:** dev-collaboration handbook (3 commits — `696eb8a` add doc, `ec45c7a` render to /handbook/dev-collaboration, `b7c1108` section 8 IP & promotion when building for prme), site fix `30b5dfc` (static-assets incremental cache, drop R2 binding — likely the wv-site CF workers redeploy that gated the PPCS countdown tool), `dcceee3` safe-tier dep bumps, `0e58ab3` weekly auto-sync.
+- **anthropic api tier 4 approved** — sales@mail.anthropic.com confirmed account on Build plan with Tier 4 limits; rate-limit increase request resolved. removed from waiting-on-external.
+- **maria added a dry-run PPCS 1a** for wed apr 29 13:00-14:00 PT — slot between the UC-riverside panel and decompression.
+- **gina declined** the cross-calendar UC-riverside PD panel invite; garrett still attends solo wed 9am-12pm PT.
+- **PPCS launch tool prod verification blocked** — automated smoke probe hit 403 from the workspace allowlist (`X-Proxy-Error: blocked-by-allowlist`); need manual browser check or allowlist whitelist before thursday.
+- **vercel harbour-apps preview** — two more preview deployment failures today at 16:04 UTC (continuing the post-CF-migration noise).
+- **CPA active again** — aakib qureshi sent a fresh taxdome secure message; reply pending.
+- **gusto added a new task** — review 1 employee expense, due mon may 4.
+- **tomorrow stacks four meetings 9am-1pm PT**: lamis 9am, randall 10am, maria 11am, PRME hold (meredith + sam) 12pm — natural lock-in moment for survey + facilitation cadence decisions.
+- slack DM sent to garrett (U06Q4UN4PKR).
 
 ---
 
