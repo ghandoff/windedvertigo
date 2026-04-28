@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Person } from "@/lib/types";
-import { formatFuzzyDate } from "@/lib/db";
+import { formatFuzzyDate } from "@/lib/db/utils";
 
 function getDisplayName(p: Person): string {
   const primary = p.names.find((n) => n.is_primary) ?? p.names[0];

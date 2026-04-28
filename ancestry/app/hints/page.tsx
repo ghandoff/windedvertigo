@@ -8,7 +8,7 @@ import {
   getPerson,
 } from "@/lib/db/queries";
 import type { HintStatus } from "@/lib/types";
-import { formatFuzzyDate } from "@/lib/db";
+import { formatFuzzyDate } from "@/lib/db/utils";
 import { HintCard } from "./hint-card";
 import { RefreshButton } from "./refresh-button";
 import { ResetButton } from "./reset-button";

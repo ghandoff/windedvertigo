@@ -1,5 +1,5 @@
 import type { Person, PersonEvent } from "./types";
-import type { FuzzyDate } from "./db";
+import type { FuzzyDate } from "./db/utils";
 
 /** extract a 4-digit year from a fuzzy date object */
 function extractBirthYear(date: FuzzyDate | null): number | null {
