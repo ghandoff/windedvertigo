@@ -212,6 +212,11 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 
 ### Ops / Infrastructure
 - [ ] **Verify ops OAuth flow** — Garrett: visit ops.windedvertigo.com incognito → should redirect to /login → SSO → dashboard with sign-out button
+- [ ] **Merge PR #13** — `feat/ops-supabase-team` branch: ops Supabase (team + projects) + ancestry Neon→Supabase migration. Ready to merge at https://github.com/ghandoff/windedvertigo/pull/13
+- [ ] **Neon decommission** — Ancestry Neon project safe to delete after 2026-05-04 (7-day clean window). `DATABASE_URL` in ancestry/.env.local already updated; just delete the Neon project.
+- [ ] **wv-nordic JWT rotation** — Supabase dashboard → wv-nordic → API Settings → "Generate new JWT secret". Then re-pull new keys to nordic/.env.local (see plan Thread 2).
+- [x] ~~**Ancestry → Supabase migration**~~ (2026-04-27) — 20 tables + data migrated from Neon to wv-port-pilot. postgres.js driver wired. Deployed to wv-ancestry on Vercel.
+- [x] ~~**ops team members from Supabase**~~ (2026-04-27) — ops_team_members table live; team panel reads from Supabase with static fallback. Also ops_projects seeded + Supabase fallback for projects panel.
 - [x] ~~**Set up Cloudflare KV for ops data**~~ — KV wired: API routes read from KV with static fallback, POST /api/kv for dispatch writes (2026-03-29)
 - [x] ~~**Connect wv-ops to GitHub**~~ — Auto-deploy: `ghandoff/windedvertigo` → rootDirectory `ops/` (2026-03-29)
 - [x] ~~**Ops dashboard: project tracker**~~ — Notion integration fetches from shared projects DB with static fallback (2026-03-29)
@@ -232,3 +237,15 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 ## Done
 - [x] ~~Ops auth fix + design system + API routes~~ (2026-03-28) — Auth was broken because static page bypassed middleware. Converted to server component with auth gate. Added sign-out, user email, dynamic date. Imported shared tokens. Created 6 API routes. Deployed.
 - [x] ~~Second brain architecture — CLAUDE.md, memory/, TASKS.md built~~ (2026-03-28)
+
+## Whirlpool actions — 2026-04-27
+
+- [ ] **Payton** — connect with Jamie today/tomorrow re: facilitation guide structure + deadlines
+- [ ] **Team (each member)** — write one paragraph on how Maria's work has personally inspired you (for Wed celebration)
+- [ ] **Payton** — prepare Wednesday whirlpool agenda + lead the meeting (Garrett at UC-Riverside PD panel)
+- [ ] **Team** — draft introductory Substack post explaining transformative theory of change in plain ("4th-grade") language
+- [ ] **Payton** — set hard deadlines for Substack post submissions
+- [ ] **Garrett + Maria** — finalize Thursday's PPCS Session 1 immediately after this whirlpool (anchor-leg prep at 10:30am)
+
+*Recording + summary:* https://www.notion.so/34fe4ee74ba48019a809c50a4eba95ee
+*Agenda:* https://www.notion.so/34fe4ee74ba481478f90c28141029068
