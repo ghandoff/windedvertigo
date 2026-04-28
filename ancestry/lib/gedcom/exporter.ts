@@ -8,7 +8,7 @@
  */
 
 import type { Person, PersonName, PersonEvent, Relationship } from "../types";
-import type { FuzzyDate } from "../db";
+import type { FuzzyDate } from "../db/utils";
 
 const GEDCOM_MONTHS = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",

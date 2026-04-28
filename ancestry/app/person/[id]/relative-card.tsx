@@ -2,8 +2,8 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { formatFuzzyDate } from "@/lib/db";
-import type { FuzzyDate } from "@/lib/db";
+import { formatFuzzyDate } from "@/lib/db/utils";
+import type { FuzzyDate } from "@/lib/db/utils";
 import { deleteRelationshipAction } from "./actions";
 
 const SEX_ICONS: Record<string, string> = {

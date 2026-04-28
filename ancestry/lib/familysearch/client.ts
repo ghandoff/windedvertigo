@@ -1,4 +1,4 @@
-import type { FuzzyDate } from "@/lib/db";
+import type { FuzzyDate } from "@/lib/db/utils";
 
 const BASE_URL = "https://api.familysearch.org";
 

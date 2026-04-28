@@ -2,7 +2,7 @@ import { auth } from "@windedvertigo/auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getPerson, getOrCreateTree, getPersonRelatives, getPersonSources, getTreeRole, getHintsForPerson, getComments, getDnaData, getPersonMedia } from "@/lib/db/queries";
-import { formatFuzzyDate } from "@/lib/db";
+import { formatFuzzyDate } from "@/lib/db/utils";
 import { isLikelyLiving, redactPerson } from "@/lib/privacy";
 import type { ViewerRole } from "@/lib/privacy";
 import { EditPersonForm } from "./edit-person-form";

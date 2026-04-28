@@ -3,7 +3,7 @@
 import { useTransition, useState } from "react";
 import type { Person } from "@/lib/types";
 import { updatePersonAction, addEventAction, deleteEventAction } from "./actions";
-import { formatFuzzyDate } from "@/lib/db";
+import { formatFuzzyDate } from "@/lib/db/utils";
 
 const SEX_OPTIONS = [
   { value: "M", label: "male ♂" },
