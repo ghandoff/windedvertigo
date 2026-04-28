@@ -1,8 +1,18 @@
-import { neon } from "@neondatabase/serverless";
+import postgres from "postgres";
 
-export function getDb() {
-  const sql = neon(process.env.DATABASE_URL!);
-  return sql;
+const _sql = postgres(process.env.DATABASE_URL!, { ssl: "require" });
+
+// Typed to match neon's NeonQueryFunction signature so all callers compile unchanged.
+// postgres.RowList is structurally identical at runtime; this cast bridges the type gap.
+type SqlFn = (
+  strings: TemplateStringsArray,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ...values: any[]
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+) => Promise<Record<string, any>[]>;
+
+export function getDb(): SqlFn {
+  return _sql as unknown as SqlFn;
 }
 
 // fuzzy date helpers
