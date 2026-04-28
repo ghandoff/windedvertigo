@@ -54,3 +54,39 @@ export interface FinancialMetric {
   currency?: boolean;
   hasData: boolean;
 }
+
+export interface ContentItem {
+  id: string;
+  title: string;
+  channel: 'linkedin' | 'bluesky' | 'twitter' | 'newsletter' | 'blog' | 'website';
+  body?: string;
+  scheduledDate: string;
+  status: 'idea' | 'draft' | 'review' | 'approved' | 'scheduled' | 'published';
+  author?: string;
+}
+
+export interface CampaignMetrics {
+  campaignId: string;
+  name: string;
+  emailsSent: number;
+  openRate: number;
+  clickRate: number;
+  replyRate: number;
+  status: string;
+}
+
+export interface PipelineSummary {
+  identified: number;
+  pitched: number;
+  proposal: number;
+  won: number;
+  lost: number;
+  totalValue?: number;
+}
+
+export interface MarketingSnapshot {
+  contentCalendar: ContentItem[];
+  campaignMetrics: CampaignMetrics[];
+  pipelineSummary: PipelineSummary;
+  generatedAt: string;
+}

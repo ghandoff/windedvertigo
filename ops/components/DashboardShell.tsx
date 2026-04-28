@@ -10,7 +10,11 @@ import type {
   Task,
   DispatchTask,
   FinancialMetric,
+  ContentItem,
+  CampaignMetrics,
+  PipelineSummary,
 } from '@/lib/types';
+import { MarketingSection } from './MarketingSection';
 import Sparkline from './Sparkline';
 import { StatusBadge, projectStatusToBadge } from './StatusBadge';
 import { DetailDrawer, DrawerSection, DrawerField } from './DetailDrawer';
@@ -36,6 +40,9 @@ interface DashboardShellProps {
     tasks: Task[];
     dispatchTasks: DispatchTask[];
     financialMetrics: FinancialMetric[];
+    contentCalendar: ContentItem[];
+    campaignMetrics: CampaignMetrics[];
+    pipelineSummary: PipelineSummary;
   };
   user: { email: string; firstName: string };
   dataAsOf: string;
@@ -183,7 +190,8 @@ export function DashboardShell({ data, user, dataAsOf }: DashboardShellProps) {
     });
   }, []);
 
-  const { projects, teamMembers, upcomingMeetings, deadlines, tasks, dispatchTasks, financialMetrics } = data;
+  const { projects, teamMembers, upcomingMeetings, deadlines, tasks, dispatchTasks, financialMetrics,
+          contentCalendar, campaignMetrics, pipelineSummary } = data;
 
   // ── command palette items (hook must be before early return) ──
   const commandItems: CommandItem[] = useMemo(() => [
@@ -585,6 +593,16 @@ export function DashboardShell({ data, user, dataAsOf }: DashboardShellProps) {
             ))}
           </div>
         </Section>
+
+        {/* ── marketing: content calendar + pipeline ──────────── */}
+        <Section title="marketing" defaultOpen={false}>
+          <MarketingSection
+            contentCalendar={contentCalendar}
+            campaignMetrics={campaignMetrics}
+            pipelineSummary={pipelineSummary}
+          />
+        </Section>
+
       </main>
 
       {/* ── footer with staleness indicator ──────────────────── */}
