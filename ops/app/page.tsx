@@ -13,6 +13,7 @@ import {
 } from "@/lib/data";
 import { fetchProjects } from "@/lib/notion/projects";
 import { fetchTeamMembers } from "@/lib/supabase/team";
+import { fetchProjectsFromSupabase } from "@/lib/supabase/projects";
 import { kvGet } from "@/lib/kv";
 import type {
   FinancialMetric,
@@ -34,7 +35,7 @@ export default async function DashboardPage() {
   // Fetch all data domains in parallel
   const [projects, teamMembers, upcomingMeetings, tasks, dispatchTasks, financialMetrics] =
     await Promise.all([
-      fetchProjects().then((live) => live ?? staticProjects),
+      fetchProjects().then((live) => live ?? fetchProjectsFromSupabase()).then((live) => live ?? staticProjects),
       fetchTeamMembers().then((live) => live ?? staticTeamMembers),
       kvOrStatic<Meeting[]>("ops:calendar", staticMeetings),
       kvOrStatic<Task[]>("ops:tasks", staticTasks),
