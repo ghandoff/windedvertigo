@@ -48,12 +48,12 @@ export class VaParticipant extends LitElement {
       this.reactToSession(s);
     });
     this.session = this.controller?.store.getState();
-    const cachedName = localStorage.getItem(`va:name:${this.code}`);
+    const cachedName = sessionStorage.getItem(`va:name:${this.code}`);
     if (cachedName) {
       this.name = cachedName;
       this.joined = this.session?.participants.some((p) => p.id === this.participantId) ?? false;
     }
-    this.staged = localStorage.getItem(`va:staged:${this.code}`) === '1';
+    this.staged = sessionStorage.getItem(`va:staged:${this.code}`) === '1';
   }
 
   disconnectedCallback() {
@@ -64,10 +64,10 @@ export class VaParticipant extends LitElement {
 
   private restoreOrCreateId(): string {
     const key = `va:pid:${this.code}`;
-    const existing = localStorage.getItem(key);
+    const existing = sessionStorage.getItem(key);
     if (existing) return existing;
     const id = uid('p');
-    localStorage.setItem(key, id);
+    sessionStorage.setItem(key, id);
     return id;
   }
 
@@ -121,7 +121,7 @@ export class VaParticipant extends LitElement {
   private handleJoin(e: Event) {
     e.preventDefault();
     if (!this.name.trim() || !this.controller) return;
-    localStorage.setItem(`va:name:${this.code}`, this.name.trim());
+    sessionStorage.setItem(`va:name:${this.code}`, this.name.trim());
     this.controller.dispatch({
       type: 'PARTICIPANT_JOIN',
       participant: {
@@ -145,7 +145,7 @@ export class VaParticipant extends LitElement {
       return;
     }
     this.staged = true;
-    localStorage.setItem(`va:staged:${this.code}`, '1');
+    sessionStorage.setItem(`va:staged:${this.code}`, '1');
     announce(COPY.arrival.waitingForFacilitator, 'polite');
   }
 

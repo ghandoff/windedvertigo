@@ -6,6 +6,10 @@ export class SocketTransport implements Transport {
   private handlers = new Set<(m: TransportMessage) => void>();
   private url: string;
   private queue: TransportMessage[] = [];
+  private sessionId?: string;
+  private role?: TransportRole;
+  private reconnectAttempts = 0;
+  private stopped = false;
 
   constructor(clientId: string, url = 'ws://localhost:8787') {
     this.clientId = clientId;
@@ -13,7 +17,10 @@ export class SocketTransport implements Transport {
   }
 
   async connect(sessionId: string, role: TransportRole, clientId: string): Promise<void> {
+    this.sessionId = sessionId;
+    this.role = role;
     this.clientId = clientId;
+    this.stopped = false;
     const full = `${this.url}?session=${encodeURIComponent(sessionId)}&role=${role}&id=${encodeURIComponent(
       clientId,
     )}`;
@@ -27,6 +34,7 @@ export class SocketTransport implements Transport {
           }
           resolve();
         });
+        this.ws.addEventListener('close', () => this.scheduleReconnect());
         this.ws.addEventListener('error', (e) => reject(e));
         this.ws.addEventListener('message', (ev) => {
           try {
@@ -43,6 +51,31 @@ export class SocketTransport implements Transport {
     });
   }
 
+  private scheduleReconnect() {
+    if (this.stopped || !this.sessionId || !this.role) return;
+    const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 30_000);
+    this.reconnectAttempts++;
+    setTimeout(() => this.reconnect(), delay);
+  }
+
+  private async reconnect() {
+    if (this.stopped || !this.sessionId || !this.role) return;
+    try {
+      await this.connect(this.sessionId, this.role, this.clientId);
+      this.reconnectAttempts = 0;
+      if (this.role !== 'facilitator') {
+        this.send({
+          type: 'request-state',
+          payload: null,
+          at: Date.now(),
+          sender: this.clientId,
+        });
+      }
+    } catch {
+      this.scheduleReconnect();
+    }
+  }
+
   send(msg: TransportMessage): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       this.queue.push(msg);
@@ -57,6 +90,7 @@ export class SocketTransport implements Transport {
   }
 
   disconnect(): void {
+    this.stopped = true;
     this.ws?.close();
     this.ws = undefined;
     this.handlers.clear();

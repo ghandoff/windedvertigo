@@ -54,8 +54,11 @@ export async function createController(
 
   const unsub = store.subscribe((s) => persist(s));
 
+  let retryTimer: ReturnType<typeof setTimeout> | undefined;
+
   transport.subscribe((msg) => {
     if (msg.type === 'state') {
+      clearTimeout(retryTimer);
       store.replace(msg.payload as Session);
       return;
     }
@@ -86,12 +89,10 @@ export async function createController(
   });
 
   if (!authoritative) {
-    transport.send({
-      type: 'request-state',
-      payload: null,
-      at: Date.now(),
-      sender: clientId,
-    });
+    const sendReq = () =>
+      transport.send({ type: 'request-state', payload: null, at: Date.now(), sender: clientId });
+    sendReq();
+    retryTimer = setTimeout(() => sendReq(), 3_000);
   }
 
   function dispatch(action: Action) {

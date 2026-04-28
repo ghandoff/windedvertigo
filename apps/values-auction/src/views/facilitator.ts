@@ -326,6 +326,9 @@ export class VaFacilitator extends LitElement {
       border: 2px solid transparent;
       background: var(--bg);
       font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .deck button[data-selected='true'] {
       border-color: var(--wv-redwood);
