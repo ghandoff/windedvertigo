@@ -2981,7 +2981,7 @@ function initPatternChart() {
       const isDominant = intv.id === domId;
       items.push({
         label: intv.title.split('.')[0].trim() + (isDominant ? ' — dominant lever' : ''),
-        color: isDominant ? COLORS.cadet : getTrajectoryColor(intv.id),
+        color: getTrajectoryColor(intv.id),
         dashed: intv.effect.type === 'parameter' && !isDominant,
         dominant: isDominant,
       });
