@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>teacher's guides — systems thinking simulator</title>
+<title>teacher's guides — lines become loops</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,8 +13,7 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 html{font-family:var(--font);font-size:16px;line-height:1.55;color:var(--on-dark);background:var(--cadet);-webkit-font-smoothing:antialiased}
 body{min-height:100vh}
-.wordmark{position:fixed;top:24px;left:24px;font-weight:700;font-size:24px;color:var(--on-dark);letter-spacing:-.01em;user-select:none}
-.wordmark .dot{color:var(--sienna)}
+.wordmark{position:fixed;top:24px;left:24px;z-index:100;display:inline-block;line-height:0}.wordmark img{display:block;width:160px;height:auto}@media (max-width:640px){.wordmark img{width:120px}}
 .wrap{max-width:880px;margin:0 auto;padding:96px 32px 48px}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:8px}
 h1{font-size:30px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);margin-bottom:12px;line-height:1.2}
@@ -30,11 +29,11 @@ h1{font-size:30px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);mar
 .back:hover{text-decoration:underline}
 .back:focus-visible{outline:3px solid #3B82F6;outline-offset:2px}
 @page{size:A4;margin:14mm}
-@media print{.wordmark{position:static;font-size:18px;margin-bottom:8px}.wrap{padding:0;max-width:none}.back{display:none}}
+@media print{.wordmark{position:static;margin-bottom:8px}.wordmark img{width:80px;height:auto}.wrap{padding:0;max-width:none}.back{display:none}}
 </style>
 </head>
 <body>
-<div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
 <main class="wrap">
   <div class="eyebrow">teacher's guides</div>
   <h1>for teachers.</h1>
@@ -43,27 +42,27 @@ h1{font-size:30px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);mar
   <ul class="list">
     <li>
       <div class="list-cat">anchor</div>
-      <a href="/portfolio/assets/systems-thinking/teacher-guides/lakeshore.html">lakeshore college sustainability committee</a>
+      <a href="/portfolio/assets/lines-become-loops/teacher-guides/lakeshore.html">lakeshore college sustainability committee</a>
       <div class="list-desc">net-zero by 2050. three interventions from parking permits to re-chartering institutional purpose.</div>
     </li>
     <li>
       <div class="list-cat">business</div>
-      <a href="/portfolio/assets/systems-thinking/teacher-guides/churn.html">saas churn</a>
+      <a href="/portfolio/assets/lines-become-loops/teacher-guides/churn.html">saas churn</a>
       <div class="list-desc">paradigm does not win here, because the binding constraint is at the parameter layer. the load-bearing scenario.</div>
     </li>
     <li>
       <div class="list-cat">business</div>
-      <a href="/portfolio/assets/systems-thinking/teacher-guides/burnout.html">team burnout</a>
+      <a href="/portfolio/assets/lines-become-loops/teacher-guides/burnout.html">team burnout</a>
       <div class="list-desc">interrupting the planning ratchet by giving the captured party a structural seat.</div>
     </li>
     <li>
       <div class="list-cat">personal</div>
-      <a href="/portfolio/assets/systems-thinking/teacher-guides/sleep.html">sleep debt</a>
+      <a href="/portfolio/assets/lines-become-loops/teacher-guides/sleep.html">sleep debt</a>
       <div class="list-desc">redefining productivity removes the pressure that creates the debt.</div>
     </li>
   </ul>
 
-  <a class="back" href="/portfolio/assets/systems-thinking/">&larr; back to all scenarios</a>
+  <a class="back" href="/portfolio/assets/lines-become-loops/">&larr; back to all scenarios</a>
 </main>
 </body>
 </html>

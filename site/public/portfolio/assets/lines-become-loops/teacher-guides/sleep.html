@@ -13,8 +13,7 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 html{font-family:var(--font);font-size:16px;line-height:1.55;color:var(--on-dark);background:var(--cadet);-webkit-font-smoothing:antialiased}
 body{min-height:100vh}
-.wordmark{position:fixed;top:24px;left:24px;font-weight:700;font-size:24px;color:var(--on-dark);letter-spacing:-.01em;user-select:none}
-.wordmark .dot{color:var(--sienna)}
+.wordmark{position:fixed;top:24px;left:24px;z-index:100;display:inline-block;line-height:0}.wordmark img{display:block;width:160px;height:auto}@media (max-width:640px){.wordmark img{width:120px}}
 .guide{max-width:780px;margin:0 auto;padding:96px 32px 48px}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:8px}
 h1{font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);margin-bottom:12px;line-height:1.2}
@@ -33,11 +32,11 @@ h2{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
 .back:hover{text-decoration:underline}
 .back:focus-visible{outline:3px solid #3B82F6;outline-offset:2px}
 @page{size:A4;margin:14mm}
-@media print{html,body{background:#fff!important;color:#000!important}.wordmark{position:static;margin-bottom:8px;font-size:18px}.guide{padding:0;max-width:none}.eyebrow,h2{color:#000!important}h1{font-size:18pt}.lead{font-size:11pt;margin-bottom:10pt}.section{margin-top:10pt;padding-top:8pt}.section p,.section ul,.section ol{font-size:9.5pt;line-height:1.4}.section li{margin-bottom:2pt}.lp{padding:6pt 8pt;margin-top:4pt;background:#fff!important;border:1px solid #999!important}.lp h3{font-size:8pt}.lp ol{font-size:9pt;line-height:1.35}.back{display:none}}
+@media print{html,body{background:#fff!important;color:#000!important}.wordmark{position:static;margin-bottom:8px}.wordmark img{width:80px;height:auto}.guide{padding:0;max-width:none}.eyebrow,h2{color:#000!important}h1{font-size:18pt}.lead{font-size:11pt;margin-bottom:10pt}.section{margin-top:10pt;padding-top:8pt}.section p,.section ul,.section ol{font-size:9.5pt;line-height:1.4}.section li{margin-bottom:2pt}.lp{padding:6pt 8pt;margin-top:4pt;background:#fff!important;border:1px solid #999!important}.lp h3{font-size:8pt}.lp ol{font-size:9pt;line-height:1.35}.back{display:none}}
 </style>
 </head>
 <body>
-<div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
 <main class="guide">
   <div class="eyebrow">teacher's guide · personal</div>
   <h1>sleep debt</h1>
@@ -105,9 +104,9 @@ h2{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
     </div>
   </section>
 
-  <p class="cite">suggested citation: winded.vertigo &amp; PRME (2026). systems thinking simulator: sleep debt. PPCS 2026 workshop materials.</p>
+  <p class="cite">suggested citation: winded.vertigo &amp; PRME (2026). lines become loops: sleep debt. PPCS 2026 workshop materials.</p>
 
-  <a class="back" href="/portfolio/assets/systems-thinking/simulator.html?s=sleep">&larr; back to the scenario</a>
+  <a class="back" href="/portfolio/assets/lines-become-loops/simulator.html?s=sleep">&larr; back to the scenario</a>
 </main>
 </body>
 </html>

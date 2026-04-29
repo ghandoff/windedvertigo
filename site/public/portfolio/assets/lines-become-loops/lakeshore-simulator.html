@@ -55,14 +55,12 @@ body { min-height: 100vh; }
   top: 24px;
   left: 24px;
   z-index: 100;
-  font-weight: 700;
-  font-size: 24px;
-  color: var(--on-dark);
-  letter-spacing: -0.01em;
-  user-select: none;
+  display: inline-block;
+  line-height: 0;
 }
-.wordmark .dot {
-  color: var(--sienna);
+.wordmark img { display: block; width: 160px; height: auto; }
+@media (max-width: 640px) {
+  .wordmark img { width: 120px; }
 }
 
 /* -- screens -- */
@@ -1532,7 +1530,7 @@ body { min-height: 100vh; }
 <body>
 
 <!-- wordmark -->
-<div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
 <!-- teacher's guide link moved to facilitator dashboard -->
 
 <!-- screen 1: mandate -->
@@ -1723,7 +1721,7 @@ body { min-height: 100vh; }
   </div>
   <div class="handoff-links">
     <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
-    <a class="btn" href="/portfolio/assets/systems-thinking/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
+    <a class="btn" href="/portfolio/assets/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
   </div>
   <div class="handoff-footer">ppcs 2026 · session 1A · w.v × prme · simulator v1.0</div>
 </div>
@@ -2114,7 +2112,7 @@ function makeSecondaryChartOptions() {
     scales: {
       x: {
         type: 'linear', min: 2025, max: 2050,
-        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: "'Inter', sans-serif", size: 10 } },
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: "'Inter', sans-serif", size: 10 }, callback: v => String(v) },
         grid: { color: COLORS.chartGrid, drawTicks: false },
         border: { color: COLORS.chartGrid },
       },
@@ -2158,7 +2156,7 @@ function makeChartOptions(overrides = {}) {
     scales: {
       x: {
         type: 'linear', min: 2025, max: 2050,
-        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: "'Inter', sans-serif", size: 11 } },
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: "'Inter', sans-serif", size: 11 }, callback: v => String(v) },
         grid: { color: COLORS.chartGrid, drawTicks: false },
         border: { color: COLORS.chartGrid },
       },

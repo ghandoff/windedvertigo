@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>facilitator dashboard — systems thinking simulator</title>
+<title>facilitator dashboard — lines become loops</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,8 +13,9 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 html{font-family:var(--font);font-size:16px;line-height:1.55;color:var(--on-dark);background:var(--cadet);-webkit-font-smoothing:antialiased}
 body{min-height:100vh}
-.wordmark{position:fixed;top:24px;left:24px;font-weight:700;font-size:24px;color:var(--on-dark);letter-spacing:-.01em;user-select:none;z-index:100}
-.wordmark .dot{color:var(--sienna)}
+.wordmark{position:fixed;top:24px;left:24px;z-index:100;display:inline-block;line-height:0}
+.wordmark img{display:block;width:160px;height:auto}
+@media (max-width:640px){.wordmark img{width:120px}}
 .wrap{max-width:720px;margin:0 auto;padding:96px 24px 48px}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:8px}
 h1{font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);margin-bottom:16px;line-height:1.2}
@@ -81,7 +82,7 @@ h1{font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);mar
 </style>
 </head>
 <body>
-<div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
 
 <main class="wrap">
   <div class="eyebrow">facilitator dashboard</div>

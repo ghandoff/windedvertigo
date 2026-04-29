@@ -15,6 +15,13 @@
   "images": {
     "binding": "IMAGES"
   },
+
+  // SESSION_KV — backs /portfolio/assets/lines-become-loops/api/session/*
+  // (facilitator-led classroom session state). Same namespace as
+  // harbour-apps/apps/lines-become-loops/wrangler.toml so test data carries.
+  "kv_namespaces": [
+    { "binding": "SESSION_KV", "id": "ff5eb1afe81d481db7353b49c429c5c4" }
+  ],
   "routes": [
     {
       // Apex and www — serve this Worker for all windedvertigo.com traffic
