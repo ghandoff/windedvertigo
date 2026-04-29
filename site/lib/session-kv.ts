@@ -1,5 +1,5 @@
-/// <reference types="@cloudflare/workers-types" />
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { KVNamespace, KVNamespaceListResult } from "@cloudflare/workers-types";
 
 export function apiHeaders(): Record<string, string> {
   return {
