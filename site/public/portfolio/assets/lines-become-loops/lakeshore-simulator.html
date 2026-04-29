@@ -47,22 +47,67 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
-body { min-height: 100vh; }
+body { min-height: 100vh; padding-top: 146px; }
+@media (max-width: 640px) { body { padding-top: 130px; } }
 
-/* -- wordmark -- */
-.wordmark {
-  display: block;
-  padding: 16px 24px;
+/* -- page header (fixed) -- */
+.page-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: var(--cadet);
+  padding: 16px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+.wordmark { display: inline-block; line-height: 0; }
 .wordmark img { display: block; width: 160px; height: auto; }
 @media (max-width: 640px) {
   .wordmark img { width: 120px; }
 }
 
+/* -- scenario picker (lives inside .page-header) -- */
+.scenario-picker {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule-dark);
+  margin: 0 -24px;
+  padding: 0 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scenario-picker::-webkit-scrollbar { display: none; }
+.scenario-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: block;
+  transition: color 0.15s, border-color 0.15s;
+}
+.scenario-tab:hover { color: var(--on-dark); }
+.scenario-tab.active,
+.scenario-tab[aria-current="page"] {
+  color: var(--on-dark);
+  border-bottom-color: var(--sienna);
+}
+
 /* -- screens -- */
 .screen {
   display: none;
-  min-height: 100vh;
+  min-height: calc(100vh - 146px);
+}
+@media (max-width: 640px) {
+  .screen { min-height: calc(100vh - 130px); }
 }
 .screen.active {
   display: flex;
@@ -329,9 +374,12 @@ body { min-height: 100vh; }
 /* -- screen: decisions -- */
 .screen-decisions {
   flex-direction: row;
-  height: 100vh;
+  height: calc(100vh - 146px);
   padding: 0;
   overflow: hidden;
+}
+@media (max-width: 640px) {
+  .screen-decisions { height: calc(100vh - 130px); }
 }
 .decisions-left {
   width: 40%;
@@ -1314,7 +1362,9 @@ body { min-height: 100vh; }
     color: #000 !important;
     height: auto !important;
     overflow: visible !important;
+    padding-top: 0 !important;
   }
+  .page-header { display: none !important; }
   body * { visibility: hidden !important; }
   #reflection-export, #reflection-export * { visibility: visible !important; }
   #reflection-export {
@@ -1526,7 +1576,15 @@ body { min-height: 100vh; }
 <body>
 
 <!-- wordmark -->
-<a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+<header class="page-header" role="banner">
+  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+  <nav class="scenario-picker" aria-label="switch scenario">
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab active" aria-current="page" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+  </nav>
+</header>
 <!-- teacher's guide link moved to facilitator dashboard -->
 
 <!-- screen 1: mandate -->

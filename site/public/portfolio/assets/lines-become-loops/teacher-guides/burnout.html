@@ -12,8 +12,16 @@
 :root{--cadet:#273248;--redwood:#B15043;--sienna:#CB7858;--champagne:#FFEBD2;--muted:#6B7589;--rule:#EAD9BD;--soft:#FFF6E5;--on-dark:#FFEBD2;--on-dark-muted:#B5BBC9;--rule-dark:rgba(255,235,210,0.12);--font:'Inter',system-ui,-apple-system,sans-serif}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 html{font-family:var(--font);font-size:16px;line-height:1.55;color:var(--on-dark);background:var(--cadet);-webkit-font-smoothing:antialiased}
-body{min-height:100vh}
-.wordmark{display:block;padding:16px 24px}.wordmark img{display:block;width:160px;height:auto}@media (max-width:640px){.wordmark img{width:120px}}
+body{min-height:100vh;padding-top:146px}@media (max-width:640px){body{padding-top:130px}}
+.page-header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--cadet);padding:16px 24px 0 24px;display:flex;flex-direction:column;gap:12px}
+.wordmark{display:inline-block;line-height:0}
+.wordmark img{display:block;width:160px;height:auto}
+@media (max-width:640px){.wordmark img{width:120px}}
+.scenario-picker{display:flex;gap:0;border-bottom:1px solid var(--rule-dark);margin:0 -24px;padding:0 24px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scenario-picker::-webkit-scrollbar{display:none}
+.scenario-tab{font-family:var(--font);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--on-dark-muted);background:none;border:none;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;white-space:nowrap;text-decoration:none;display:block;transition:color .15s,border-color .15s}
+.scenario-tab:hover{color:var(--on-dark)}
+.scenario-tab.active,.scenario-tab[aria-current="page"]{color:var(--on-dark);border-bottom-color:var(--sienna)}
 .guide{max-width:780px;margin:0 auto;padding:24px 32px 48px}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:8px}
 h1{font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);margin-bottom:12px;line-height:1.2}
@@ -32,11 +40,11 @@ h2{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
 .back:hover{text-decoration:underline}
 .back:focus-visible{outline:3px solid #3B82F6;outline-offset:2px}
 @page{size:A4;margin:14mm}
-@media print{html,body{background:#fff!important;color:#000!important}.wordmark{position:static;margin-bottom:8px}.wordmark img{width:80px;height:auto}.guide{padding:0;max-width:none}.eyebrow,h2{color:#000!important}h1{font-size:18pt}.lead{font-size:11pt;margin-bottom:10pt}.section{margin-top:10pt;padding-top:8pt}.section p,.section ul,.section ol{font-size:9.5pt;line-height:1.4}.section li{margin-bottom:2pt}.lp{padding:6pt 8pt;margin-top:4pt;background:#fff!important;border:1px solid #999!important}.lp h3{font-size:8pt}.lp ol{font-size:9pt;line-height:1.35}.back{display:none}}
+@media print{body{padding-top:0}.page-header{position:static;padding:0;background:transparent}.scenario-picker{display:none}html,body{background:#fff!important;color:#000!important}.wordmark{position:static;margin-bottom:8px}.wordmark img{width:80px;height:auto}.guide{padding:0;max-width:none}.eyebrow,h2{color:#000!important}h1{font-size:18pt}.lead{font-size:11pt;margin-bottom:10pt}.section{margin-top:10pt;padding-top:8pt}.section p,.section ul,.section ol{font-size:9.5pt;line-height:1.4}.section li{margin-bottom:2pt}.lp{padding:6pt 8pt;margin-top:4pt;background:#fff!important;border:1px solid #999!important}.lp h3{font-size:8pt}.lp ol{font-size:9pt;line-height:1.35}.back{display:none}}
 </style>
 </head>
 <body>
-<a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+<header class="page-header" role="banner"><a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a><nav class="scenario-picker" aria-label="switch scenario"><a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a><a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a><a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a><a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a></nav></header>
 <main class="guide">
   <div class="eyebrow">teacher's guide · business</div>
   <h1>team burnout</h1>
