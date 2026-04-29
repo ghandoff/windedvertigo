@@ -1152,6 +1152,7 @@ body { min-height: 100vh; padding-top: 146px; }
   box-shadow: 0 1px 3px rgba(0,0,0,0.18);
   cursor: pointer;
   transition: transform 0.15s ease;
+  margin-top: -6px;
 }
 .dosage-slider::-webkit-slider-thumb:hover {
   transform: scale(1.15);
@@ -2822,7 +2823,8 @@ function makeBaselineDataset(alpha) {
 function getTrajectoryColor(id) {
   const intv = scenario.interventions.find(x => x.id === id);
   if (!intv) return COLORS.sienna;
-  if (intv.effect.type === 'goals') return COLORS.cadet;
+  // goals & paradigms = champagne (highest leverage, brightest contrast on cadet bg)
+  if (intv.effect.type === 'goals') return COLORS.champagne;
   if (intv.effect.type === 'rules') return COLORS.redwood;
   return COLORS.sienna;
 }
@@ -2840,7 +2842,7 @@ function updateDecisionsChart(highlightId) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -2876,7 +2878,7 @@ function updateSecondaryChart(highlightId) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -2955,7 +2957,7 @@ function initPatternChart() {
     datasets.push({
       label: intv.title.split('.')[0],
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isDominant ? COLORS.cadet : getTrajectoryColor(intv.id) + '80',
+      borderColor: isDominant ? getTrajectoryColor(intv.id) : getTrajectoryColor(intv.id) + 'CC',
       borderWidth: isDominant ? 2.5 : 1.5,
       borderDash: intv.effect.type === 'parameter' && !isDominant ? [4, 2] : [],
       pointRadius: 0,
@@ -3008,7 +3010,7 @@ function initPatternChart() {
     sDatasets.push({
       label: 'intervention ' + intv.id,
       data: YEARS.map((y, i) => ({ x: y, y: allSec[intv.id][i] })),
-      borderColor: isDom ? COLORS.cadet : getTrajectoryColor(intv.id) + '80',
+      borderColor: isDom ? getTrajectoryColor(intv.id) : getTrajectoryColor(intv.id) + 'CC',
       borderWidth: isDom ? 2.5 : 1.5,
       borderDash: intv.effect.type === 'parameter' && !isDom ? [4, 2] : [],
       pointRadius: 0,

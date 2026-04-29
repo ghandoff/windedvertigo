@@ -2239,7 +2239,7 @@ function makeNetZeroDataset() {
   return {
     label: 'net-zero target',
     data: YEARS.map(y => ({ x: y, y: NET_ZERO_LINE })),
-    borderColor: COLORS.cadet,
+    borderColor: COLORS.champagne,
     borderDash: [8, 4],
     borderWidth: 1.5,
     pointRadius: 0,
@@ -3035,11 +3035,12 @@ function handleRecharterContinue() {
 }
 
 function getTrajectoryColor(id, forPattern = false) {
-  if (id === 5) return COLORS.cadet;
+  // intervention 5 = goals & paradigms (highest leverage); champagne contrasts on cadet bg
+  if (id === 5) return COLORS.champagne;
   if (forPattern) {
-    if (id <= 2) return 'rgba(203, 120, 88, 0.4)';
-    if (id === 3) return 'rgba(203, 120, 88, 0.65)';
-    if (id === 4) return 'rgba(203, 120, 88, 0.85)';
+    if (id <= 2) return 'rgba(203, 120, 88, 0.55)';
+    if (id === 3) return 'rgba(203, 120, 88, 0.75)';
+    if (id === 4) return 'rgba(203, 120, 88, 0.95)';
   }
   return COLORS.sienna;
 }
@@ -3057,7 +3058,7 @@ function updateDecisionsChart(highlightId = null) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -3093,7 +3094,7 @@ function updateSecondaryChart(highlightId = null) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: pcHist[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -3161,7 +3162,7 @@ function initBaselineChart() {
         {
           label: 'baseline',
           data: YEARS.map((y, i) => ({ x: y, y: baseline[i] })),
-          borderColor: COLORS.cadet,
+          borderColor: COLORS.sienna,
           borderWidth: 2.5,
           pointRadius: 0,
           fill: false,
