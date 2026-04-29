@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>systems thinking simulator</title>
+<title>lines become loops</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -49,13 +49,13 @@ body { min-height: 100vh; }
   top: 24px;
   left: 24px;
   z-index: 100;
-  font-weight: 700;
-  font-size: 24px;
-  color: var(--on-dark);
-  letter-spacing: -0.01em;
-  user-select: none;
+  display: inline-block;
+  line-height: 0;
 }
-.wordmark .dot { color: var(--sienna); }
+.wordmark img { display: block; width: 160px; height: auto; }
+@media (max-width: 640px) {
+  .wordmark img { width: 120px; }
+}
 
 .screen {
   display: none;
@@ -1518,7 +1518,7 @@ body { min-height: 100vh; }
 </head>
 <body>
 
-<div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
 <!-- teacher's guide link moved to facilitator dashboard -->
 
 <!-- screen 1: mandate -->
@@ -1714,7 +1714,7 @@ body { min-height: 100vh; }
   </div>
   <div class="handoff-links">
     <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
-    <a class="btn" href="/portfolio/assets/systems-thinking/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
+    <a class="btn" href="/portfolio/assets/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
   </div>
   <div class="handoff-footer">ppcs 2026 · session 1A · w.v × prme · simulator v1.0</div>
 </div>
@@ -2384,7 +2384,7 @@ const logger = new SessionLogger();
 logger.log('scenario_started', { scenario: scenarioSlug });
 
 if (!scenario) {
-  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#273248;text-align:center;padding:24px;"><div><h2>scenario not found.</h2><p style="color:#6B7589;margin:16px 0;">the scenario "' + (scenarioSlug || '') + '" doesn\'t exist yet.</p><a href="/portfolio/assets/systems-thinking/" style="color:#CB7858;">back to all scenarios</a></div></div>';
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#273248;text-align:center;padding:24px;"><div><h2>scenario not found.</h2><p style="color:#6B7589;margin:16px 0;">the scenario "' + (scenarioSlug || '') + '" doesn\'t exist yet.</p><a href="/portfolio/assets/lines-become-loops/" style="color:#CB7858;">back to all scenarios</a></div></div>';
   throw new Error('unknown scenario: ' + scenarioSlug);
 }
 
@@ -2653,7 +2653,7 @@ if (scenario.dominantId && scenario.dominantId !== 3) {
   const domTier = domIntv ? domIntv.chip : 'parameter';
   document.getElementById('pattern-caption').textContent = 'three decisions. one shape — but not the shape you might expect. in this system, the dominant trajectory is a ' + domTier + '-level intervention. the leverage point is where the system\'s structure asks for it, not where the ladder predicts.';
 }
-document.title = scenario.name + ' — systems thinking simulator';
+document.title = scenario.name + ' — lines become loops';
 
 // secondary stock label + pattern-screen reveal
 if (secondarySpec) {
@@ -2733,7 +2733,7 @@ function makeSecondaryChartOptions() {
     scales: {
       x: {
         type: 'linear', min: 2025, max: 2050,
-        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 10 } },
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 10 }, callback: v => String(v) },
         grid: { color: COLORS.chartGrid },
       },
       y: {
@@ -2770,7 +2770,7 @@ function makeChartOptions(yLabel) {
         type: 'linear',
         min: 2025,
         max: 2050,
-        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 11 } },
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 11 }, callback: v => String(v) },
         grid: { color: COLORS.chartGrid },
       },
       y: {

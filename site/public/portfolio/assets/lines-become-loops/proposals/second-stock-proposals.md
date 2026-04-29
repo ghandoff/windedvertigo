@@ -1,4 +1,4 @@
-# second-stock proposals — systems thinking simulator
+# second-stock proposals — lines become loops
 
 phase 1 deliverable. for Maria's review before any code changes.
 

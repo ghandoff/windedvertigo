@@ -14,25 +14,10 @@ const nextConfig: NextConfig = {
   // of proxying them to the harbour app workers.
   async rewrites() {
     return { beforeFiles: [
-      // systems-thinking — portfolio route (CF Pages)
-      {
-        source: "/portfolio/assets/systems-thinking",
-        destination: "https://systems-thinking.pages.dev/",
-      },
-      {
-        source: "/portfolio/assets/systems-thinking/",
-        destination: "https://systems-thinking.pages.dev/",
-      },
-      {
-        source: "/portfolio/assets/systems-thinking/:path*",
-        destination: "https://systems-thinking.pages.dev/:path*",
-      },
-
-      // systems-thinking — proxy root-relative /api/session/* calls from HTML pages (CF Pages Functions)
-      {
-        source: "/api/session/:path*",
-        destination: "https://systems-thinking.pages.dev/api/session/:path*",
-      },
+      // lines-become-loops (formerly systems-thinking) — served from
+      // public/portfolio/assets/lines-become-loops/ with API routes at
+      // app/portfolio/assets/lines-become-loops/api/session/* (CF KV via
+      // SESSION_KV binding in wrangler.jsonc). No proxy/rewrite needed.
 
       // values-auction — portfolio route (CF Pages, base: /portfolio/assets/values-auction/)
       {
@@ -510,6 +495,18 @@ const nextConfig: NextConfig = {
       {
         source: "/vertigo-vault",
         destination: "/harbour/vertigo-vault",
+        permanent: true,
+      },
+
+      // lines-become-loops — slug rename from systems-thinking (2026-04-28)
+      {
+        source: "/portfolio/assets/systems-thinking",
+        destination: "/portfolio/assets/lines-become-loops",
+        permanent: true,
+      },
+      {
+        source: "/portfolio/assets/systems-thinking/:path*",
+        destination: "/portfolio/assets/lines-become-loops/:path*",
         permanent: true,
       },
       // whirlpool tools — redirect clean URLs to static HTML in public/
