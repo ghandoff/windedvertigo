@@ -316,7 +316,7 @@ function EmailPackageForm({ state }: { state: WizardState }) {
         }),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as { error?: string };
 
       if (!res.ok) {
         setStatus("error");
