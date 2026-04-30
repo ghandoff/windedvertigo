@@ -122,7 +122,7 @@ export async function sendPackageEmail(
     });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
+      const data = (await res.json().catch(() => ({}))) as { message?: string };
       console.error("resend api error (package):", data);
       return {
         success: false,
