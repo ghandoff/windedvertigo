@@ -22,6 +22,19 @@
   "kv_namespaces": [
     { "binding": "SESSION_KV", "id": "ff5eb1afe81d481db7353b49c429c5c4" }
   ],
+
+  // SITE_URL — used by /api/book-playdate to build the dynamic
+  // /book/[slug]?prefill=... URL in the visitor confirmation email.
+  // Non-secret; safe to ship in the wrangler config.
+  "vars": {
+    "SITE_URL": "https://www.windedvertigo.com"
+  },
+
+  // Cron triggers (Phase 5 — deferred until the scheduled() handler is wired):
+  //   "triggers": { "crons": ["0 9 * * *", "0 * * * *"] }
+  // Daily 09:00 UTC for OAuth token health check, hourly for reminder emails.
+  // Don't declare these without a scheduled handler — every fire would error.
+
   "routes": [
     {
       // Apex and www — serve this Worker for all windedvertigo.com traffic

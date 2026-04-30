@@ -10,8 +10,6 @@ interface PlaydateFormProps {
   buttonLabel?: string;
 }
 
-const CALENDAR_LINK = "https://calendar.app.google/ZXVqJLdprmUZk1DW6";
-
 export function PlaydateForm({ quadrant, quadrantHistory, className, buttonLabel = "book a playdate" }: PlaydateFormProps) {
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState("");
@@ -20,6 +18,8 @@ export function PlaydateForm({ quadrant, quadrantHistory, className, buttonLabel
   const [valuable, setValuable] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [bookingUrl, setBookingUrl] = useState<string | null>(null);
+  const [hostHint, setHostHint] = useState<string | null>(null);
 
   const closeModal = useCallback(() => {
     setShowModal(false);
@@ -60,7 +60,12 @@ export function PlaydateForm({ quadrant, quadrantHistory, className, buttonLabel
         }),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as {
+        error?: string;
+        bookingUrl?: string;
+        slug?: string;
+        hostHint?: string;
+      };
 
       if (!res.ok) {
         setStatus("error");
@@ -68,6 +73,11 @@ export function PlaydateForm({ quadrant, quadrantHistory, className, buttonLabel
         return;
       }
 
+      // The API returns a routed /book/[slug]?prefill=... URL. Stash it
+      // for the success-state CTA so the visitor lands on a pre-filled
+      // booking form instead of the old static Google Calendar link.
+      setBookingUrl(data.bookingUrl ?? null);
+      setHostHint(data.hostHint ?? null);
       setStatus("sent");
     } catch {
       setStatus("error");
@@ -101,17 +111,23 @@ export function PlaydateForm({ quadrant, quadrantHistory, className, buttonLabel
               <div className={styles.playdateSuccess}>
                 <h3>you&apos;re almost there</h3>
                 <p>
-                  we&apos;ve got your details — now pick a time that works for you.
+                  {hostHint
+                    ? `based on what you shared, we've matched you with ${hostHint}. pick a time that works for you.`
+                    : "we've got your details — now pick a time that works for you."}
                 </p>
-                <a
-                  href={CALENDAR_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${styles.ctaBtn} ${styles.primary}`}
-                  style={{ display: "inline-block", width: "100%" }}
-                >
-                  choose a time →
-                </a>
+                {bookingUrl ? (
+                  <a
+                    href={bookingUrl}
+                    className={`${styles.ctaBtn} ${styles.primary}`}
+                    style={{ display: "inline-block", width: "100%" }}
+                  >
+                    choose a time →
+                  </a>
+                ) : (
+                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 8 }}>
+                    check your email for the booking link.
+                  </p>
+                )}
               </div>
             ) : (
               <form onSubmit={handleSubmit}>

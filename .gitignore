@@ -25,3 +25,7 @@ ops-dashboard/
 .env.port-check
 *.env.production
 *.env.vercel
+
+# locally-generated booking secrets — never commit
+.secrets-do-not-commit/
+*/.secrets-do-not-commit/
