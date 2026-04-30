@@ -1648,7 +1648,7 @@ body { min-height: 100vh; padding-top: 146px; }
             <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--rule);"></span> baseline</span>
             <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--champagne);"></span> net-zero target</span>
             <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--sienna);"></span> intervention</span>
-            <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--champagne);"></span> combined (recharter)</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--soft-card);"></span> combined (recharter)</span>
           </div>
           <div class="endpoint-labels" id="endpoint-labels"></div>
         </div>
@@ -3042,8 +3042,9 @@ function handleRecharterContinue() {
 }
 
 function getTrajectoryColor(id, forPattern = false) {
-  // intervention 5 = goals & paradigms (highest leverage); champagne contrasts on cadet bg
-  if (id === 5) return COLORS.champagne;
+  // intervention 5 = goals & paradigms (highest leverage); white keeps it distinct from the
+  // champagne net-zero reference line (both would otherwise be #FFEBD2 and converge near y≈1860)
+  if (id === 5) return COLORS.softCard;
   if (forPattern) {
     if (id <= 2) return 'rgba(203, 120, 88, 0.55)';
     if (id === 3) return 'rgba(203, 120, 88, 0.75)';
