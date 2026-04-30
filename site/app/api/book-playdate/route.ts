@@ -8,13 +8,22 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { Client } from "@notionhq/client";
+import { routeIntake } from "@/lib/booking/intake-routing";
+import { mintPrefillToken } from "@/lib/booking/prefill";
 
 /* ── constants ── */
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM ?? "noreply@windedvertigo.com";
 const REPLY_TO = "hello@windedvertigo.com";
-const CALENDAR_LINK = "https://calendar.app.google/ZXVqJLdprmUZk1DW6";
+
+// Site origin used to build the dynamic /book/[slug]?prefill=... URL in
+// the visitor confirmation email. Falls back to canonical prod hostname
+// if SITE_URL isn't set in env (e.g. local dev with NEXT_PUBLIC_SITE_URL).
+const SITE_URL =
+  process.env.SITE_URL ??
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "https://www.windedvertigo.com";
 
 const VALID_QUADRANTS = new Set([
   "people-design",
@@ -28,6 +37,20 @@ const QUADRANT_LABELS: Record<string, string> = {
   "people-research": "people × research",
   "product-design": "product × design",
   "product-research": "product × research",
+};
+
+// Human-readable description of which host(s) the visitor will meet,
+// used in the visitor confirmation email after intake routing.
+// Keys must align with the slugs returned by lib/booking/intake-routing.ts.
+const SLUG_TO_HOST_HINT: Record<string, string> = {
+  garrett: "garrett",
+  payton: "payton",
+  lamis: "lamis",
+  maria: "maria",
+  james: "james",
+  discovery: "whichever of us is most available",
+  strategy: "garrett and maria for a strategic conversation",
+  partnership: "garrett and payton to talk partnership",
 };
 
 // CRM contacts database ID. In Notion API v5 (2025-09-03) we query the
@@ -267,7 +290,7 @@ function buildNotificationHtml(params: {
   `;
 }
 
-function buildConfirmationHtml(name: string): string {
+function buildConfirmationHtml(name: string, bookingUrl: string, hostHint: string): string {
   const firstName = name.split(" ")[0].toLowerCase();
 
   return `
@@ -284,11 +307,11 @@ function buildConfirmationHtml(name: string): string {
       </p>
 
       <p style="color: #273248; font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        we've got your details and we're looking forward to meeting you. pick a time that works and we'll take it from there — no prep needed, just curiosity.
+        based on what you shared, we've matched you with ${escapeHtml(hostHint)}. pick a time that works and we'll take it from there — no prep needed, just curiosity.
       </p>
 
       <a
-        href="${CALENDAR_LINK}"
+        href="${bookingUrl}"
         style="display: inline-block; background-color: #b15043; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; text-transform: lowercase;"
       >
         choose a time →
@@ -352,17 +375,36 @@ export async function POST(request: NextRequest) {
   try {
     const label = quadrant ? (QUADRANT_LABELS[quadrant] ?? quadrant) : "general";
 
+    // Route the visitor to the right event-type slug + mint a prefill
+    // token so the booking form pre-populates with their name/email/answers.
+    const routing = routeIntake({ quadrant, quadrantHistory, curious, valuable });
+    let bookingUrl = `${SITE_URL}/book/${routing.slug}`;
+    try {
+      const prefillToken = await mintPrefillToken({
+        name, email, curious, valuable, quadrant, quadrantHistory,
+      });
+      bookingUrl += `?prefill=${encodeURIComponent(prefillToken)}`;
+    } catch (e) {
+      // If signing fails (missing BOOKING_SIGNING_KEY), fall back to the
+      // un-prefilled booking page — the visitor can still book, just
+      // re-types name/email. Don't fail the whole request.
+      console.warn("[book-playdate] prefill mint failed:", String(e));
+    }
+    console.log("[book-playdate] routed", { slug: routing.slug, reason: routing.reason });
+
+    const hostHint = SLUG_TO_HOST_HINT[routing.slug] ?? "the right person on our team";
+
     // send emails + log contact in parallel
     const [notifResult, confirmResult] = await Promise.all([
       sendEmail({
         to: REPLY_TO,
-        subject: `playdate booked — ${name} — ${label}`,
+        subject: `playdate booked — ${name} — ${label} → /book/${routing.slug}`,
         html: buildNotificationHtml({ name, email, quadrant, quadrantHistory, curious, valuable }),
       }),
       sendEmail({
         to: email,
         subject: "your playdate is almost booked — winded.vertigo",
-        html: buildConfirmationHtml(name),
+        html: buildConfirmationHtml(name, bookingUrl, hostHint),
         replyTo: REPLY_TO,
       }),
       logContactToNotion({ name, email, quadrant, quadrantHistory, curious, valuable }).catch((err) => {
@@ -381,7 +423,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      bookingUrl,
+      slug: routing.slug,
+      hostHint,
+    });
   } catch (err) {
     console.error("[book-playdate] unexpected error:", err);
     return NextResponse.json(
