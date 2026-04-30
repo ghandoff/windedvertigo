@@ -43,7 +43,16 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const event = { type, data: data || {}, timestamp: new Date().toISOString() };
     const eventKey = `event:${sessionCode}:${participantId}:${Date.now()}`;
-    await kv.put(eventKey, JSON.stringify(event), { expirationTtl: SESSION_TTL });
+
+    // Wrap KV writes so a rate-limit (429) or transient failure never kills the
+    // student's experience — we log the error and return 200 regardless.
+    // Students keep interacting; the facilitator dashboard may lag, but the
+    // session continues uninterrupted.
+    try {
+      await kv.put(eventKey, JSON.stringify(event), { expirationTtl: SESSION_TTL });
+    } catch (writeErr) {
+      console.error("session/log: event write failed (student experience continues):", writeErr);
+    }
 
     const studentKey = `student:${sessionCode}:${participantId}`;
     const studentRaw = await kv.get(studentKey);
@@ -57,7 +66,11 @@ export async function POST(req: NextRequest): Promise<Response> {
         if (!student.progress[data.scenario]) student.progress[data.scenario] = {};
         student.progress[data.scenario].interacting = true;
       }
-      await kv.put(studentKey, JSON.stringify(student), { expirationTtl: SESSION_TTL });
+      try {
+        await kv.put(studentKey, JSON.stringify(student), { expirationTtl: SESSION_TTL });
+      } catch (writeErr) {
+        console.error("session/log: student-state write failed (continuing):", writeErr);
+      }
     }
 
     return Response.json({ ok: true }, { status: 200, headers: apiHeaders() });

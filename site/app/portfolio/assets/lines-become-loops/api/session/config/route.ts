@@ -30,7 +30,12 @@ export async function PATCH(req: NextRequest): Promise<Response> {
       session.config.collectReflections = collectReflections;
     }
 
-    await kv.put(`session:${code}`, JSON.stringify(session), { expirationTtl: SESSION_TTL });
+    try {
+      await kv.put(`session:${code}`, JSON.stringify(session), { expirationTtl: SESSION_TTL });
+    } catch (writeErr) {
+      console.error("session/config: write failed:", writeErr);
+      return Response.json({ error: "failed to save config, try again" }, { status: 503, headers: apiHeaders() });
+    }
     return Response.json({ config: session.config }, { status: 200, headers: apiHeaders() });
   } catch (err) {
     console.error("session/config error:", err);
