@@ -21,7 +21,14 @@ export async function POST(req: NextRequest): Promise<Response> {
       currentScenario: null as string | null,
       progress: {} as Record<string, unknown>,
     };
-    await kv.put(`student:${upperCode}:${pid}`, JSON.stringify(student), { expirationTtl: SESSION_TTL });
+    // Wrap in try-catch: if KV is rate-limited the student still gets a
+    // participantId and can interact; state tracking may be degraded but the
+    // session does not abort.
+    try {
+      await kv.put(`student:${upperCode}:${pid}`, JSON.stringify(student), { expirationTtl: SESSION_TTL });
+    } catch (writeErr) {
+      console.error("session/join: student write failed (issuing participantId anyway):", writeErr);
+    }
 
     const session = JSON.parse(raw) as { config?: { collectReflections?: boolean } };
     return Response.json(
