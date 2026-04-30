@@ -1,0 +1,19 @@
+# Minimal Supabase CLI config for the booking system.
+#
+# Run `supabase link --project-ref <ref>` after creating the wv-booking
+# project to associate this directory with it. Once linked, you can
+# apply migrations with `supabase db push` instead of pasting SQL into
+# the dashboard.
+#
+# This config is intentionally small — we only use Supabase for the
+# booking tables. Auth, edge functions, storage, etc. are not used.
+
+project_id = "wv-booking"
+
+[db]
+# match production where it matters; downgrade if local docker is too heavy
+major_version = 15
+
+[db.migrations]
+# 0001_booking_init.sql lives here
+schema_paths = ["./migrations"]
