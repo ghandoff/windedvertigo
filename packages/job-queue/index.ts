@@ -31,10 +31,28 @@ export type {
  *   requestedAt: new Date().toISOString(),
  * });
  */
+/** Duck-typed interface — compatible with CF `Queue<T>` at runtime. */
+interface QueueLike<T> {
+  send(payload: T, options?: unknown): Promise<void>;
+}
+
+/** Duck-typed message interface — compatible with CF `Message<T>` at runtime. */
+interface MessageLike<T> {
+  readonly body: T;
+  ack(): void;
+  retry(options?: unknown): void;
+}
+
+/** Duck-typed batch interface — compatible with CF `MessageBatch<T>` at runtime. */
+interface MessageBatchLike<T> {
+  readonly queue: string;
+  readonly messages: ReadonlyArray<MessageLike<T>>;
+}
+
 export async function publishJob<T>(
-  queue: Queue<T>,
+  queue: QueueLike<T>,
   payload: T,
-  options?: QueueSendOptions,
+  options?: unknown,
 ): Promise<void> {
   await queue.send(payload, options);
 }
@@ -55,7 +73,7 @@ export async function publishJob<T>(
  */
 export function createQueueConsumer<T>(
   handler: (payload: T, env: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>,
-): (batch: MessageBatch<T>, env: Record<string, unknown>) => Promise<void> {
+): (batch: MessageBatchLike<T>, env: Record<string, unknown>) => Promise<void> {
   return async (batch, env) => {
     for (const message of batch.messages) {
       try {

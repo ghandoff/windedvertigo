@@ -18,6 +18,10 @@ import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar"
 import { recordUsage } from "@/lib/ai/usage-store";
 import { auth } from "@/lib/auth";
 import { inngest } from "@/lib/inngest/client";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { publishJob } from "@windedvertigo/job-queue";
+import type { RfpProposalJob, RfpDocumentUploadedJob } from "@windedvertigo/job-queue/types";
+import type { PortCfEnv } from "@/lib/cf-env";
 
 const anthropic = new Anthropic();
 
@@ -297,10 +301,20 @@ export async function POST(
   }
 
   // Fire question parsing job (fire-and-forget — never blocks the response)
-  inngest.send({
-    name: "rfp/document.uploaded",
-    data: { rfpId: id, documentUrl: publicUrl, contentType },
-  }).catch(() => {});
+  // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
+  const docPayload: RfpDocumentUploadedJob = {
+    type: "rfp/document-uploaded",
+    rfpId: id,
+    documentUrl: publicUrl,
+    contentType,
+    uploadedAt: new Date().toISOString(),
+  };
+  try {
+    const { env } = getCloudflareContext();
+    publishJob(env.RFP_DOCUMENT_QUEUE, docPayload).catch(() => {});
+  } catch {
+    inngest.send({ name: "rfp/document.uploaded", data: { rfpId: id, documentUrl: publicUrl, contentType } }).catch(() => {});
+  }
 
   // If the opportunity is already "pursuing" and a TOR just arrived, re-trigger
   // proposal generation so the draft incorporates the actual document content.
@@ -313,12 +327,22 @@ export async function POST(
     const triggeredBy = userId;
     // Advance proposalStatus so the UI shows feedback immediately
     updateRfpOpportunity(id, { proposalStatus: "generating" }).catch(() => {});
-    inngest.send({
-      name: "rfp/pursuing.triggered",
-      data: { rfpId: id, triggeredBy },
-    }).catch((err) => {
-      console.warn("[rfp/document] failed to re-trigger proposal generation:", err);
-    });
+    const proposalPayload: RfpProposalJob = {
+      type: "rfp/generate-proposal",
+      rfpId: id,
+      triggeredBy,
+      requestedAt: new Date().toISOString(),
+    };
+    try {
+      const { env } = getCloudflareContext();
+      publishJob(env.PROPOSAL_QUEUE, proposalPayload).catch((err) => {
+        console.warn("[rfp/document] failed to re-trigger proposal generation:", err);
+      });
+    } catch {
+      inngest.send({ name: "rfp/pursuing.triggered", data: { rfpId: id, triggeredBy } }).catch((err) => {
+        console.warn("[rfp/document] failed to re-trigger proposal generation:", err);
+      });
+    }
   }
 
   return NextResponse.json({

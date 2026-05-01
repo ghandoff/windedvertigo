@@ -20,6 +20,10 @@ import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar"
 import { recordUsage } from "@/lib/ai/usage-store";
 import { auth } from "@/lib/auth";
 import { inngest } from "@/lib/inngest/client";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { publishJob } from "@windedvertigo/job-queue";
+import type { RfpDocumentUploadedJob } from "@windedvertigo/job-queue/types";
+import type { PortCfEnv } from "@/lib/cf-env";
 
 const anthropic = new Anthropic();
 
@@ -208,12 +212,20 @@ export async function POST(
   }
 
   // Fire question parsing job (fire-and-forget — never blocks the response).
-  // Mirrors the sibling route's contentType so downstream logic can pick the
-  // text path rather than the PDF path.
-  inngest.send({
-    name: "rfp/document.uploaded",
-    data: { rfpId: id, documentUrl: publicUrl, contentType: "text/plain" },
-  }).catch(() => {});
+  // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
+  const docPayload: RfpDocumentUploadedJob = {
+    type: "rfp/document-uploaded",
+    rfpId: id,
+    documentUrl: publicUrl,
+    contentType: "text/plain",
+    uploadedAt: new Date().toISOString(),
+  };
+  try {
+    const { env } = getCloudflareContext();
+    publishJob(env.RFP_DOCUMENT_QUEUE, docPayload).catch(() => {});
+  } catch {
+    inngest.send({ name: "rfp/document.uploaded", data: { rfpId: id, documentUrl: publicUrl, contentType: "text/plain" } }).catch(() => {});
+  }
 
   return NextResponse.json({ ok: true, url: publicUrl, notionUpdated: true, extraction });
 }

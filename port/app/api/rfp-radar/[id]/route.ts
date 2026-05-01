@@ -4,6 +4,10 @@ import { json, withNotionError } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
 import { inngest } from "@/lib/inngest/client";
 import { createRfpDeadlineEvent } from "@/lib/gcal";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { publishJob } from "@windedvertigo/job-queue";
+import type { RfpProposalJob } from "@windedvertigo/job-queue/types";
+import type { PortCfEnv } from "@/lib/cf-env";
 
 export async function GET(
   _req: NextRequest,
@@ -38,12 +42,23 @@ export async function PATCH(
       const withGenerating = { ...updated, proposalStatus: "generating" as const };
 
       // Fire-and-forget — don't block the UI response
-      inngest.send({
-        name: "rfp/pursuing.triggered",
-        data: { rfpId: id, triggeredBy },
-      }).catch((err) => {
-        console.warn("[rfp-radar] failed to dispatch proposal generation event:", err);
-      });
+      // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
+      const proposalPayload: RfpProposalJob = {
+        type: "rfp/generate-proposal",
+        rfpId: id,
+        triggeredBy,
+        requestedAt: new Date().toISOString(),
+      };
+      try {
+        const { env } = getCloudflareContext();
+        publishJob(env.PROPOSAL_QUEUE, proposalPayload).catch((err) => {
+          console.warn("[rfp-radar] failed to enqueue proposal job:", err);
+        });
+      } catch {
+        inngest.send({ name: "rfp/pursuing.triggered", data: { rfpId: id, triggeredBy } }).catch((err) => {
+          console.warn("[rfp-radar] failed to dispatch proposal generation event:", err);
+        });
+      }
 
       // Auto-create a Google Calendar deadline event — fire-and-forget, never blocks
       createRfpDeadlineEvent(updated).catch((err) => {

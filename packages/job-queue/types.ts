@@ -53,14 +53,41 @@ export type JobHandler<T extends JobPayload = JobPayload> = (
 
 // ── Queue binding types (CF Workers env) ─────────────────────────
 
+/**
+ * Minimal duck-typed queue sender — structurally compatible with CF `Queue<T>`
+ * at runtime without requiring @cloudflare/workers-types in non-CF contexts.
+ */
+interface QueueSender<T> {
+  send(payload: T, options?: unknown): Promise<void>;
+}
+
 export interface QueueBindings {
   /** CF Queue binding — injected by wrangler at runtime. */
-  PROPOSAL_QUEUE: Queue<RfpProposalJob>;
-  TIMESHEET_QUEUE: Queue<TimesheetStatusJob>;
-  RFP_DOCUMENT_QUEUE: Queue<RfpDocumentUploadedJob>;
+  PROPOSAL_QUEUE: QueueSender<RfpProposalJob>;
+  TIMESHEET_QUEUE: QueueSender<TimesheetStatusJob>;
+  RFP_DOCUMENT_QUEUE: QueueSender<RfpDocumentUploadedJob>;
 }
 
 // ── Cron function signatures (for CF scheduled() handler) ─────────
+
+/**
+ * Duck-typed CF `ScheduledController` — compatible with the CF Workers runtime
+ * object without requiring @cloudflare/workers-types.
+ */
+interface ScheduledControllerLike {
+  readonly scheduledTime: number;
+  readonly cron: string;
+  noRetry(): void;
+}
+
+/**
+ * Duck-typed CF `ExecutionContext` — compatible with the CF Workers runtime
+ * object without requiring @cloudflare/workers-types.
+ */
+interface ExecutionContextLike {
+  waitUntil(promise: Promise<unknown>): void;
+  passThroughOnException(): void;
+}
 
 /**
  * Functions that were Inngest cron-triggered are mapped to CF Worker
@@ -70,7 +97,7 @@ export interface QueueBindings {
  * submission-followup → cron: "0 8 * * *"   (daily 8am UTC)
  * bd-asset-health     → cron: "0 9 * * 1"   (Monday 9am UTC)
  */
-export type ScheduledHandler = (controller: ScheduledController, env: QueueBindings & Record<string, unknown>, ctx: ExecutionContext) => Promise<void>;
+export type ScheduledHandler = (controller: ScheduledControllerLike, env: QueueBindings & Record<string, unknown>, ctx: ExecutionContextLike) => Promise<void>;
 
 // ── Durable Object base types ─────────────────────────────────────
 

@@ -28,6 +28,10 @@ import { updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { claimProposalGeneration } from "@/lib/supabase/rfp-opportunities";
 import { inngest } from "@/lib/inngest/client";
 import { auth } from "@/lib/auth";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { publishJob } from "@windedvertigo/job-queue";
+import type { RfpProposalJob } from "@windedvertigo/job-queue/types";
+import type { PortCfEnv } from "@/lib/cf-env";
 
 export async function POST(
   _req: NextRequest,
@@ -66,14 +70,24 @@ export async function POST(
   });
 
   const triggeredBy = session.user.email ?? "system";
-  inngest
-    .send({
-      name: "rfp/pursuing.triggered",
-      data: { rfpId: id, triggeredBy },
-    })
-    .catch((err) => {
+  const proposalPayload: RfpProposalJob = {
+    type: "rfp/generate-proposal",
+    rfpId: id,
+    triggeredBy,
+    requestedAt: new Date().toISOString(),
+  };
+
+  // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
+  try {
+    const { env } = getCloudflareContext();
+    publishJob(env.PROPOSAL_QUEUE, proposalPayload).catch((err) => {
+      console.warn("[regenerate-proposal] failed to enqueue proposal job:", err);
+    });
+  } catch {
+    inngest.send({ name: "rfp/pursuing.triggered", data: { rfpId: id, triggeredBy } }).catch((err) => {
       console.warn("[regenerate-proposal] failed to dispatch Inngest event:", err);
     });
+  }
 
   return NextResponse.json({ ok: true, triggeredBy });
 }

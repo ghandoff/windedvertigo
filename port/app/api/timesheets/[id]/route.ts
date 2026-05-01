@@ -3,6 +3,10 @@ import { getTimesheet, updateTimesheet, archiveTimesheet } from "@/lib/notion/ti
 import { json, withNotionError } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
 import { inngest } from "@/lib/inngest/client";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { publishJob } from "@windedvertigo/job-queue";
+import type { TimesheetStatusJob } from "@windedvertigo/job-queue/types";
+import type { PortCfEnv } from "@/lib/cf-env";
 
 export async function GET(
   _req: NextRequest,
@@ -32,20 +36,31 @@ export async function PATCH(
 
   const result = await withNotionError(() => updateTimesheet(id, body));
 
-  // Fire Inngest event on meaningful status transitions
+  // Fire job on meaningful status transitions (fire-and-forget)
+  // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
   if (body.status && body.status !== previousStatus) {
-    // Fire-and-forget — don't block the response on event delivery
-    inngest.send({
-      name: "timesheet/status.changed",
-      data: {
-        timesheetId: id,
-        newStatus: body.status,
-        previousStatus,
-        approverEmail: await getCallerEmail(req),
-      },
-    }).catch((err) => {
-      console.warn("[inngest] failed to send timesheet event:", err);
-    });
+    const approverEmail = await getCallerEmail(req);
+    const timesheetPayload: TimesheetStatusJob = {
+      type: "timesheet/status-changed",
+      timesheetId: id,
+      newStatus: body.status,
+      previousStatus,
+      approverEmail,
+      changedAt: new Date().toISOString(),
+    };
+    try {
+      const { env } = getCloudflareContext();
+      publishJob(env.TIMESHEET_QUEUE, timesheetPayload).catch((err) => {
+        console.warn("[timesheets] failed to enqueue status job:", err);
+      });
+    } catch {
+      inngest.send({
+        name: "timesheet/status.changed",
+        data: { timesheetId: id, newStatus: body.status, previousStatus, approverEmail },
+      }).catch((err) => {
+        console.warn("[inngest] failed to send timesheet event:", err);
+      });
+    }
   }
 
   return result;
