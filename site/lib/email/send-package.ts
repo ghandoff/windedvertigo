@@ -1,9 +1,11 @@
 /**
  * Send a package builder email with PDF attachment via Resend.
  *
- * Pattern follows creaseworks send-digest.ts — raw fetch to Resend API
- * with inline-CSS HTML and base64-encoded PDF attachment.
+ * HTML primitives come from @windedvertigo/email-templates.
+ * Transport uses raw fetch — the resend SDK is not compatible with CF Workers.
  */
+
+import { wvShell, ctaButton, escapeHtml, wvPara } from "@windedvertigo/email-templates";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM ?? "noreply@windedvertigo.com";
@@ -41,51 +43,19 @@ function buildPackageHtml({
   const label = QUADRANT_LABELS[quadrant] ?? quadrant;
   const firstName = name.split(" ")[0].toLowerCase();
 
-  // pick the first matching goal hook for a personalised line
-  const hook = goals
-    .map((g) => GOAL_HOOKS[g])
-    .find((h) => h);
+  const hook = goals.map((g) => GOAL_HOOKS[g]).find((h) => h);
 
-  return `
-    <div style="font-family: Inter, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
-      <h2 style="color: #273248; font-size: 20px; font-weight: 600; margin-bottom: 4px; text-transform: lowercase;">
-        your ${label} package
-      </h2>
-      <p style="color: #273248; opacity: 0.5; font-size: 13px; margin-bottom: 24px;">
-        winded.vertigo
-      </p>
-
-      <p style="color: #273248; font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        hi ${firstName},
-      </p>
-
-      <p style="color: #273248; font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        here's the <strong>${label}</strong> package you built — it's attached as a PDF.
-      </p>
-
-      ${hook ? `
-      <p style="color: #273248; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
-        ${hook}
-      </p>
-      ` : ""}
-
-      <a
-        href="https://www.windedvertigo.com/quadrants/"
-        style="display: inline-block; background-color: #b15043; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; text-transform: lowercase;"
-      >
-        book a free playdate
-      </a>
-
-      <p style="color: #273248; opacity: 0.7; font-size: 13px; line-height: 1.6; margin-top: 24px;">
-        have questions? hit reply — it goes straight to our team.
-      </p>
-
-      <hr style="border: none; border-top: 1px solid rgba(39, 50, 72, 0.1); margin: 28px 0 16px;" />
-      <p style="color: #273248; opacity: 0.3; font-size: 11px; margin: 0;">
-        winded.vertigo · this package refreshes weekly as we add new work
-      </p>
-    </div>
-  `;
+  return wvShell(
+    `your ${label} package`,
+    `
+      ${wvPara(`hi ${escapeHtml(firstName)},`)}
+      ${wvPara(`here's the <strong>${escapeHtml(label)}</strong> package you built — it's attached as a PDF.`, "16px")}
+      ${hook ? wvPara(escapeHtml(hook), "24px") : ""}
+      ${ctaButton("https://www.windedvertigo.com/quadrants/", "book a free playdate")}
+      ${wvPara("have questions? hit reply — it goes straight to our team.", "24px")}
+    `,
+    "winded.vertigo · this package refreshes weekly as we add new work",
+  );
 }
 
 export async function sendPackageEmail(
