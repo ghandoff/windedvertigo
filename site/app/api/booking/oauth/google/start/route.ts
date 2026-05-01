@@ -22,10 +22,31 @@ function checkAdmin(token: string | null): boolean {
   return diff === 0;
 }
 
+/**
+ * Read a query param from a raw URL string using decodeURIComponent instead of
+ * URLSearchParams.get(). URLSearchParams follows application/x-www-form-urlencoded
+ * which decodes '+' as a space — correct for HTML forms but wrong for URL params
+ * that encode literal '+' signs as '%2B'. OpenNext normalises '%2B' → '+' when
+ * passing requests through middleware, so a subsequent searchParams.get() would
+ * produce spaces where '+' chars belong. decodeURIComponent leaves '+' alone.
+ */
+function getRawParam(url: string, name: string): string | null {
+  const qs = url.split("?")[1] ?? "";
+  const entry = qs.split("&").find((p) => p.startsWith(`${name}=`));
+  if (!entry) return null;
+  try {
+    return decodeURIComponent(entry.slice(name.length + 1));
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const adminToken = url.searchParams.get("admin");
-  const hostSlug = url.searchParams.get("host");
+  // Use getRawParam instead of URLSearchParams.get() to avoid the +→space
+  // double-decode: OpenNext middleware normalises %2B→+ in the URL, then
+  // URLSearchParams.get() would convert that + to a space.
+  const adminToken = getRawParam(req.url, "admin");
+  const hostSlug = getRawParam(req.url, "host");
 
   if (!checkAdmin(adminToken)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
