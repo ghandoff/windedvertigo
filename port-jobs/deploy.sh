@@ -24,16 +24,9 @@ echo "▶ Pulling production env from Vercel project ${VERCEL_PROJECT}..."
 # Note: .env.port-jobs-tmp is in .gitignore
 cd "$(dirname "$0")"
 
-# Create .vercel/project.json so `vercel env pull` knows which project
-mkdir -p .vercel
-cat > .vercel/project.json <<JSON
-{
-  "projectId": "prj_rlsjo62EFnVofPUyjt0eYgzcrjmC",
-  "orgId": "team_winded-vertigo"
-}
-JSON
-
-vercel env pull "${ENV_FILE}" --environment production --yes 2>&1 | grep -v "^$"
+# Pull using explicit flags — avoids orgId config issues
+# ghandoffs-projects owns wv-port (prj_rlsjo62EFnVofPUyjt0eYgzcrjmC)
+vercel env pull "${ENV_FILE}" --environment production --scope ghandoffs-projects --yes 2>&1 | grep -v "^$"
 
 echo "▶ Setting secrets on ${WORKER_NAME}..."
 
@@ -61,7 +54,6 @@ set_secret SUPABASE_SERVICE_KEY
 
 # Clean up temp env file
 rm -f "${ENV_FILE}"
-rm -f .vercel/project.json
 
 echo "▶ Deploying ${WORKER_NAME}..."
 wrangler deploy

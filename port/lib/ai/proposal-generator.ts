@@ -36,6 +36,23 @@ export interface ProposalDraft {
   teamMembersForCvs: string[];
 }
 
+// ── QuestionBank types (inlined from lib/inngest/functions/parse-rfp-questions.ts) ──
+// Avoids a hard dependency on the inngest module path, which is deleted at G.2.5.
+
+interface QuestionBankEntry {
+  number: string;
+  text: string;
+  suggestedAssets: Array<{ assetId: string; assetName: string; relevanceNote: string }>;
+  draftResponse: string;
+}
+
+interface QuestionBank {
+  rfpId: string;
+  rfpName: string;
+  generatedAt: string;
+  questions: QuestionBankEntry[];
+}
+
 // ── input context ─────────────────────────────────────────
 
 export interface ProposalContext {
@@ -45,7 +62,7 @@ export interface ProposalContext {
   bdAssets: BdAsset[];
   userId: string;
   documentRequirements?: string | null;
-  questionBank?: import("@/lib/inngest/functions/parse-rfp-questions").QuestionBank | null;
+  questionBank?: QuestionBank | null;
   relevantCitations?: BibliographyEntry[] | null;
   /** Rate benchmarks pre-fetched for this funder type and geography. */
   rateRefs?: RateReference[] | null;
