@@ -42,16 +42,20 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
-body { min-height: 100vh; }
+body { min-height: 100vh; padding-top: 146px; }
+@media (max-width: 640px) { body { padding-top: 130px; } }
 
-.wordmark {
+.page-header {
   position: fixed;
-  top: 24px;
-  left: 24px;
+  top: 0; left: 0; right: 0;
   z-index: 100;
-  display: inline-block;
-  line-height: 0;
+  background: var(--cadet);
+  padding: 16px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+.wordmark { display: inline-block; line-height: 0; }
 .wordmark img { display: block; width: 160px; height: auto; }
 @media (max-width: 640px) {
   .wordmark img { width: 120px; }
@@ -59,7 +63,10 @@ body { min-height: 100vh; }
 
 .screen {
   display: none;
-  min-height: 100vh;
+  min-height: calc(100vh - 146px);
+}
+@media (max-width: 640px) {
+  .screen { min-height: calc(100vh - 130px); }
 }
 .screen.active {
   display: flex;
@@ -163,8 +170,11 @@ body { min-height: 100vh; }
 /* -- decisions -- */
 .screen-decisions {
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 146px);
   overflow: hidden;
+}
+@media (max-width: 640px) {
+  .screen-decisions { height: calc(100vh - 130px); }
 }
 .decisions-content {
   display: flex;
@@ -596,14 +606,13 @@ body { min-height: 100vh; }
 }
 .commit-confirm-actions { display: flex; gap: 12px; justify-content: center; }
 
-/* -- scenario picker -- */
+/* -- scenario picker (lives inside .page-header) -- */
 .scenario-picker {
   display: flex;
   gap: 0;
   border-bottom: 1px solid var(--rule-dark);
+  margin: 0 -24px;
   padding: 0 24px;
-  background: var(--cadet);
-  flex-shrink: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -625,7 +634,8 @@ body { min-height: 100vh; }
   display: block;
 }
 .scenario-tab:hover { color: var(--on-dark); }
-.scenario-tab.active {
+.scenario-tab.active,
+.scenario-tab[aria-current="page"] {
   color: var(--on-dark);
   border-bottom-color: var(--sienna);
 }
@@ -1069,7 +1079,9 @@ body { min-height: 100vh; }
     color: #000 !important;
     height: auto !important;
     overflow: visible !important;
+    padding-top: 0 !important;
   }
+  .page-header { display: none !important; }
   body * { visibility: hidden !important; }
   #reflection-export, #reflection-export * { visibility: visible !important; }
   #reflection-export {
@@ -1140,6 +1152,7 @@ body { min-height: 100vh; }
   box-shadow: 0 1px 3px rgba(0,0,0,0.18);
   cursor: pointer;
   transition: transform 0.15s ease;
+  margin-top: -6px;
 }
 .dosage-slider::-webkit-slider-thumb:hover {
   transform: scale(1.15);
@@ -1518,7 +1531,15 @@ body { min-height: 100vh; }
 </head>
 <body>
 
-<a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+<header class="page-header" role="banner">
+  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+  <nav class="scenario-picker" id="scenario-picker" aria-label="switch scenario">
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+  </nav>
+</header>
 <!-- teacher's guide link moved to facilitator dashboard -->
 
 <!-- screen 1: mandate -->
@@ -1546,7 +1567,6 @@ body { min-height: 100vh; }
 
 <!-- screen 3: decisions -->
 <div id="screen-decisions" class="screen screen-decisions" role="region" aria-label="intervention decisions">
-  <nav class="scenario-picker" id="scenario-picker" aria-label="switch scenario"></nav>
   <div class="decisions-content">
   <div class="decisions-left">
     <div class="explore-prompt" id="explore-prompt">
@@ -2678,18 +2698,13 @@ if (exportMandate) exportMandate.textContent = scenario.mandate || '';
 // hide resource meter (lakeshore-only feature)
 document.getElementById('resource-meter-wrap').style.display = 'none';
 
-// populate scenario picker
-const LIBRARY_SCENARIOS = ['churn', 'burnout', 'sleep'];
-const picker = document.getElementById('scenario-picker');
-LIBRARY_SCENARIOS.forEach(slug => {
-  const s = SCENARIOS[slug];
-  if (!s) return;
-  const a = document.createElement('a');
-  a.className = 'scenario-tab' + (slug === scenarioSlug ? ' active' : '');
-  a.textContent = s.name;
-  a.href = 'simulator.html?s=' + slug;
-  a.setAttribute('aria-current', slug === scenarioSlug ? 'page' : 'false');
-  picker.appendChild(a);
+// mark the active tab in the page-header scenario picker
+document.querySelectorAll('.scenario-tab').forEach(tab => {
+  const tabUrl = new URL(tab.href, location.origin);
+  if (tabUrl.searchParams.get('s') === scenarioSlug) {
+    tab.classList.add('active');
+    tab.setAttribute('aria-current', 'page');
+  }
 });
 
 // render systems map if defined
@@ -2808,7 +2823,8 @@ function makeBaselineDataset(alpha) {
 function getTrajectoryColor(id) {
   const intv = scenario.interventions.find(x => x.id === id);
   if (!intv) return COLORS.sienna;
-  if (intv.effect.type === 'goals') return COLORS.cadet;
+  // goals & paradigms = champagne (highest leverage, brightest contrast on cadet bg)
+  if (intv.effect.type === 'goals') return COLORS.champagne;
   if (intv.effect.type === 'rules') return COLORS.redwood;
   return COLORS.sienna;
 }
@@ -2826,7 +2842,7 @@ function updateDecisionsChart(highlightId) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -2862,7 +2878,7 @@ function updateSecondaryChart(highlightId) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -2941,7 +2957,7 @@ function initPatternChart() {
     datasets.push({
       label: intv.title.split('.')[0],
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isDominant ? COLORS.cadet : getTrajectoryColor(intv.id) + '80',
+      borderColor: isDominant ? getTrajectoryColor(intv.id) : getTrajectoryColor(intv.id) + 'CC',
       borderWidth: isDominant ? 2.5 : 1.5,
       borderDash: intv.effect.type === 'parameter' && !isDominant ? [4, 2] : [],
       pointRadius: 0,
@@ -2965,7 +2981,7 @@ function initPatternChart() {
       const isDominant = intv.id === domId;
       items.push({
         label: intv.title.split('.')[0].trim() + (isDominant ? ' — dominant lever' : ''),
-        color: isDominant ? COLORS.cadet : getTrajectoryColor(intv.id),
+        color: getTrajectoryColor(intv.id),
         dashed: intv.effect.type === 'parameter' && !isDominant,
         dominant: isDominant,
       });
@@ -2994,7 +3010,7 @@ function initPatternChart() {
     sDatasets.push({
       label: 'intervention ' + intv.id,
       data: YEARS.map((y, i) => ({ x: y, y: allSec[intv.id][i] })),
-      borderColor: isDom ? COLORS.cadet : getTrajectoryColor(intv.id) + '80',
+      borderColor: isDom ? getTrajectoryColor(intv.id) : getTrajectoryColor(intv.id) + 'CC',
       borderWidth: isDom ? 2.5 : 1.5,
       borderDash: intv.effect.type === 'parameter' && !isDom ? [4, 2] : [],
       pointRadius: 0,

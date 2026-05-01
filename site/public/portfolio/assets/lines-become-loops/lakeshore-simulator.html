@@ -47,26 +47,67 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
-body { min-height: 100vh; }
+body { min-height: 100vh; padding-top: 146px; }
+@media (max-width: 640px) { body { padding-top: 130px; } }
 
-/* -- wordmark -- */
-.wordmark {
+/* -- page header (fixed) -- */
+.page-header {
   position: fixed;
-  top: 24px;
-  left: 24px;
+  top: 0; left: 0; right: 0;
   z-index: 100;
-  display: inline-block;
-  line-height: 0;
+  background: var(--cadet);
+  padding: 16px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+.wordmark { display: inline-block; line-height: 0; }
 .wordmark img { display: block; width: 160px; height: auto; }
 @media (max-width: 640px) {
   .wordmark img { width: 120px; }
 }
 
+/* -- scenario picker (lives inside .page-header) -- */
+.scenario-picker {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule-dark);
+  margin: 0 -24px;
+  padding: 0 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scenario-picker::-webkit-scrollbar { display: none; }
+.scenario-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: block;
+  transition: color 0.15s, border-color 0.15s;
+}
+.scenario-tab:hover { color: var(--on-dark); }
+.scenario-tab.active,
+.scenario-tab[aria-current="page"] {
+  color: var(--on-dark);
+  border-bottom-color: var(--sienna);
+}
+
 /* -- screens -- */
 .screen {
   display: none;
-  min-height: 100vh;
+  min-height: calc(100vh - 146px);
+}
+@media (max-width: 640px) {
+  .screen { min-height: calc(100vh - 130px); }
 }
 .screen.active {
   display: flex;
@@ -164,6 +205,13 @@ body { min-height: 100vh; }
 }
 .btn-ghost:hover {
   background: rgba(255,235,210,0.08);
+}
+.modal-dialog .btn-ghost {
+  color: var(--redwood);
+  border: 1px solid var(--redwood);
+}
+.modal-dialog .btn-ghost:hover {
+  background: rgba(177, 80, 67, 0.08);
 }
 
 /* -- screen: baseline -- */
@@ -333,9 +381,12 @@ body { min-height: 100vh; }
 /* -- screen: decisions -- */
 .screen-decisions {
   flex-direction: row;
-  height: 100vh;
+  height: calc(100vh - 146px);
   padding: 0;
   overflow: hidden;
+}
+@media (max-width: 640px) {
+  .screen-decisions { height: calc(100vh - 130px); }
 }
 .decisions-left {
   width: 40%;
@@ -343,7 +394,7 @@ body { min-height: 100vh; }
   max-width: 440px;
   height: 100%;
   overflow-y: auto;
-  padding: 72px 24px 24px 24px;
+  padding: 24px 24px 24px 24px;
   border-right: 1px solid var(--rule-dark);
   background: var(--cadet);
 }
@@ -352,7 +403,7 @@ body { min-height: 100vh; }
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 72px 32px 24px 32px;
+  padding: 24px 32px 24px 32px;
   position: relative;
   overflow: hidden;
 }
@@ -398,7 +449,7 @@ body { min-height: 100vh; }
   display: flex;
   flex-wrap: wrap;
   gap: 10px 16px;
-  padding: 6px 4px 2px;
+  padding: 6px 4px 10px;
   font-size: 11px;
   color: var(--on-dark-muted);
   line-height: 1;
@@ -1067,7 +1118,7 @@ body { min-height: 100vh; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 2px 0 4px;
+  padding: 8px 0 4px;
 }
 .secondary-divider-rule {
   flex: 1;
@@ -1318,7 +1369,9 @@ body { min-height: 100vh; }
     color: #000 !important;
     height: auto !important;
     overflow: visible !important;
+    padding-top: 0 !important;
   }
+  .page-header { display: none !important; }
   body * { visibility: hidden !important; }
   #reflection-export, #reflection-export * { visibility: visible !important; }
   #reflection-export {
@@ -1530,7 +1583,15 @@ body { min-height: 100vh; }
 <body>
 
 <!-- wordmark -->
-<a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+<header class="page-header" role="banner">
+  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+  <nav class="scenario-picker" aria-label="switch scenario">
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab active" aria-current="page" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+  </nav>
+</header>
 <!-- teacher's guide link moved to facilitator dashboard -->
 
 <!-- screen 1: mandate -->
@@ -1585,9 +1646,9 @@ body { min-height: 100vh; }
           <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
           <div class="chart-legend" id="legend-decisions">
             <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--rule);"></span> baseline</span>
-            <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--cadet);"></span> net-zero target</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--champagne);"></span> net-zero target</span>
             <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--sienna);"></span> intervention</span>
-            <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--cadet);"></span> combined (recharter)</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--soft-card);"></span> combined (recharter)</span>
           </div>
           <div class="endpoint-labels" id="endpoint-labels"></div>
         </div>
@@ -2185,7 +2246,7 @@ function makeNetZeroDataset() {
   return {
     label: 'net-zero target',
     data: YEARS.map(y => ({ x: y, y: NET_ZERO_LINE })),
-    borderColor: COLORS.cadet,
+    borderColor: COLORS.champagne,
     borderDash: [8, 4],
     borderWidth: 1.5,
     pointRadius: 0,
@@ -2981,11 +3042,13 @@ function handleRecharterContinue() {
 }
 
 function getTrajectoryColor(id, forPattern = false) {
-  if (id === 5) return COLORS.cadet;
+  // intervention 5 = goals & paradigms (highest leverage); white keeps it distinct from the
+  // champagne net-zero reference line (both would otherwise be #FFEBD2 and converge near y≈1860)
+  if (id === 5) return COLORS.softCard;
   if (forPattern) {
-    if (id <= 2) return 'rgba(203, 120, 88, 0.4)';
-    if (id === 3) return 'rgba(203, 120, 88, 0.65)';
-    if (id === 4) return 'rgba(203, 120, 88, 0.85)';
+    if (id <= 2) return 'rgba(203, 120, 88, 0.55)';
+    if (id === 3) return 'rgba(203, 120, 88, 0.75)';
+    if (id === 4) return 'rgba(203, 120, 88, 0.95)';
   }
   return COLORS.sienna;
 }
@@ -3003,7 +3066,7 @@ function updateDecisionsChart(highlightId = null) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -3039,7 +3102,7 @@ function updateSecondaryChart(highlightId = null) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: pcHist[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -3107,7 +3170,7 @@ function initBaselineChart() {
         {
           label: 'baseline',
           data: YEARS.map((y, i) => ({ x: y, y: baseline[i] })),
-          borderColor: COLORS.cadet,
+          borderColor: COLORS.sienna,
           borderWidth: 2.5,
           pointRadius: 0,
           fill: false,
