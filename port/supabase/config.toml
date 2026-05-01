@@ -1,0 +1,12 @@
+# Supabase CLI config for wv-port-pilot.
+#
+# Run `supabase link --project-ref fpqbokzjipovjhvujqtm` from this directory
+# to associate with wv-port-pilot. Apply migrations with `supabase db push`.
+
+project_id = "wv-port-pilot"
+
+[db]
+major_version = 17
+
+[db.migrations]
+schema_paths = ["./migrations"]

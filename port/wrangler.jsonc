@@ -1,0 +1,69 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-port",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+
+  // OpenNext build output
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  // ── CF Queue producer bindings ────────────────────────────────────────────
+  // These bindings allow the Next.js API routes to publish jobs by calling
+  // `getCloudflareContext().env.PROPOSAL_QUEUE.send(...)`.
+  // Queue names must match the consumers defined in port-jobs/wrangler.jsonc.
+  "queues": {
+    "producers": [
+      { "binding": "PROPOSAL_QUEUE",    "queue": "wv-port-proposal-queue" },
+      { "binding": "TIMESHEET_QUEUE",   "queue": "wv-port-timesheet-queue" },
+      { "binding": "RFP_DOCUMENT_QUEUE","queue": "wv-port-rfp-document-queue" }
+    ]
+  },
+
+  // ── Cron trigger — single hourly router ──────────────────────────────────
+  // Replaces 32 vercel.json cron entries. The scheduled() handler in
+  // port/lib/scheduled.ts routes each :00 tick to the right API routes.
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+
+  // ── R2 binding ───────────────────────────────────────────────────────────
+  // PORT_ASSETS: uploaded RFP documents, parsed question JSON
+  "r2_buckets": [
+    { "binding": "PORT_ASSETS", "bucket_name": "port-assets" }
+  ],
+
+  // ── Non-secret vars ───────────────────────────────────────────────────────
+  // PORT_URL is used by the scheduled() hourly router when self-requesting
+  // API routes. Must match the production domain.
+  "vars": {
+    "PORT_URL": "https://port.windedvertigo.com"
+  },
+
+  // ── Routes ───────────────────────────────────────────────────────────────
+  "routes": [
+    {
+      "pattern": "port.windedvertigo.com/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ],
+
+  // ── Secrets (set via `wrangler secret put`) ───────────────────────────────
+  // Required secrets (same as Vercel env vars for this app):
+  //   NEXTAUTH_SECRET, NEXTAUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+  //   NOTION_TOKEN, ANTHROPIC_API_KEY, RESEND_API_KEY, SLACK_BOT_TOKEN
+  //   SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_SUPABASE_URL
+  //   SUPABASE_SECRET_KEY, CRON_SECRET, GOOGLE_CALENDAR_CLIENT_ID
+  //   GOOGLE_CALENDAR_CLIENT_SECRET, GOOGLE_CALENDAR_REFRESH_TOKEN
+  //   GUSTO_CLIENT_ID, GUSTO_CLIENT_SECRET, GUSTO_ACCESS_TOKEN
+  //   GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN
+  //   FEEDLY_ACCESS_TOKEN, CF_R2_ACCOUNT_ID, CF_R2_ACCESS_KEY_ID
+  //   CF_R2_SECRET_ACCESS_KEY, TURNSTILE_SECRET_KEY
+
+  // ── OpenNext config ───────────────────────────────────────────────────────
+  // open-next.config.ts must be created at port/open-next.config.ts (G.2.1)
+  // Run: npx opennextjs-cloudflare build && wrangler deploy
+}
