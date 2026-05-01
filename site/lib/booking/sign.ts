@@ -93,6 +93,7 @@ export type OauthStateTokenPayload = {
   hostId: string;
   nonce: string;     // random string for CSRF binding
   exp: number;
+  adminToken: string; // echoed back in callback redirect so admin page stays authorized
 };
 
 export type PrefillTokenPayload = {

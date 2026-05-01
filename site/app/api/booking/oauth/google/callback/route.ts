@@ -23,6 +23,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(
       new URL(`/admin/booking/connect?status=denied`, req.url),
     );
+    // Note: no admin token available here (state not yet verified) — user sees
+    // the unauthorized page, but they can navigate back manually.
   }
 
   if (!code || !state) {
@@ -48,8 +50,11 @@ export async function GET(req: NextRequest) {
       console.error("[booking.oauth.callback] no refresh_token in response", {
         hostId: statePayload.hostId,
       });
+      const adminQ = statePayload.adminToken
+        ? `&admin=${encodeURIComponent(statePayload.adminToken)}`
+        : "";
       return NextResponse.redirect(
-        new URL(`/admin/booking/connect?status=no_refresh_token&host=${statePayload.hostId}`, req.url),
+        new URL(`/admin/booking/connect?status=no_refresh_token&host=${statePayload.hostId}${adminQ}`, req.url),
       );
     }
 
@@ -76,13 +81,19 @@ export async function GET(req: NextRequest) {
       googleEmail,
     });
 
+    const adminQ = statePayload.adminToken
+      ? `&admin=${encodeURIComponent(statePayload.adminToken)}`
+      : "";
     return NextResponse.redirect(
-      new URL(`/admin/booking/connect?status=connected&host=${statePayload.hostId}`, req.url),
+      new URL(`/admin/booking/connect?status=connected&host=${statePayload.hostId}${adminQ}`, req.url),
     );
   } catch (e) {
     console.error("[booking.oauth.callback] exchange/persist failed", { err: String(e) });
+    const adminQ = statePayload.adminToken
+      ? `&admin=${encodeURIComponent(statePayload.adminToken)}`
+      : "";
     return NextResponse.redirect(
-      new URL(`/admin/booking/connect?status=error&host=${statePayload.hostId}`, req.url),
+      new URL(`/admin/booking/connect?status=error&host=${statePayload.hostId}${adminQ}`, req.url),
     );
   }
 }
