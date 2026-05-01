@@ -10,7 +10,10 @@
   },
   "main": "src/index.ts",
   "dependencies": {
-    "@windedvertigo/job-queue": "*"
+    "@windedvertigo/job-queue": "*",
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@notionhq/client": "^5.19.0",
+    "resend": "^4.5.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250510.0",

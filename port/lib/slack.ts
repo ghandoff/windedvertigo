@@ -58,7 +58,7 @@ async function slackApi({ method, body }: SlackApiOptions): Promise<any> {
     body: JSON.stringify(body),
   });
 
-  const data = await res.json();
+  const data = await res.json() as { ok: boolean; error?: string };
   if (!data.ok) {
     console.warn(`[slack] ${method} failed:`, data.error);
   }

@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wv-port-jobs",
   "main": "src/index.ts",
-  "compatibility_date": "2024-09-23",
+  "compatibility_date": "2025-03-01",
   "compatibility_flags": ["nodejs_compat"],
 
   // ── Queue consumers ───────────────────────────────────────────────
@@ -39,18 +39,32 @@
         "max_batch_timeout": 30,
         "max_retries": 3,
         "dead_letter_queue": "wv-port-rfp-document-queue-dlq"
+      },
+      {
+        "queue": "wv-port-proposal-queue-dlq",
+        // DLQ consumer: replaces Inngest generateProposalFailureHandler.
+        // Fires when proposal-queue exhausts maxRetries. Resets proposalStatus
+        // to "failed" so the UI escape hatch shows + posts Slack alert.
+        "max_batch_size": 5,
+        "max_batch_timeout": 30,
+        "max_retries": 1
       }
     ]
   },
 
-  // ── Secrets (set via `wrangler secret put` — never commit values) ─
+  // ── Secrets (set via `wrangler secret put --name wv-port-jobs`) ──
   // Required secrets:
   //   ANTHROPIC_API_KEY      — Claude API (proposal generation + RFP parsing)
   //   RESEND_API_KEY         — Transactional email (timesheet notifications)
-  //   SLACK_BOT_TOKEN        — Slack posting (timesheet + cron summaries)
+  //   SLACK_WEBHOOK_URL      — Slack incoming webhook (channel posts)
+  //   SLACK_BOT_TOKEN        — Slack bot token (DMs + Block Kit)
   //   NOTION_TOKEN           — Notion read/write (proposal output)
   //   SUPABASE_URL           — wv-port-pilot project URL
   //   SUPABASE_SERVICE_KEY   — Service role key (bypasses RLS for job writes)
+  //
+  // Copy values from wv-port Vercel environment (same secrets):
+  //   vercel env pull .env.port-jobs --project wv-port --environment production
+  //   Then: cat .env.port-jobs | grep -E 'ANTHROPIC|RESEND|SLACK|NOTION|SUPABASE' | xargs -I{} wrangler secret put {} --name wv-port-jobs
 
   // ── R2 binding ───────────────────────────────────────────────────
   // Used by parse-rfp-questions consumer to store parsed question JSON.

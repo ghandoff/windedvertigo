@@ -11,7 +11,10 @@
     "isolatedModules": true,
     "paths": {
       "@windedvertigo/job-queue": ["../packages/job-queue/index.ts"],
-      "@windedvertigo/job-queue/types": ["../packages/job-queue/types.ts"]
+      "@windedvertigo/job-queue/types": ["../packages/job-queue/types.ts"],
+      // Resolves @/lib/... imports from port/lib/ so consumers can reuse
+      // the existing business logic without duplicating it.
+      "@/*": ["../port/*"]
     }
   },
   "include": ["src/**/*.ts"],

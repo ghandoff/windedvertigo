@@ -81,10 +81,10 @@ export function createQueueConsumer<T>(
 export const PROPOSAL_QUEUE_CONSUMER_CONFIG = {
   maxRetries: 3,
   retryDelay: { initialDelay: 30 }, // 30s → 60s → 120s exponential
-} satisfies Partial<QueueConsumerOptions>;
+};
 
 /** Standard retry config for lightweight status-change jobs. */
 export const STATUS_QUEUE_CONSUMER_CONFIG = {
   maxRetries: 5,
   retryDelay: { initialDelay: 5 },
-} satisfies Partial<QueueConsumerOptions>;
+};
