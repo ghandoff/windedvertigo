@@ -86,7 +86,7 @@ REQUIRED_HEADERS=(
 
 deploy_one() {
   local app="$1"
-  local app_dir="$REPO_ROOT/apps/$app"
+  local app_dir="$REPO_ROOT/$app"
   local worker_name="wv-harbour-$app"
   local worker_url="https://$worker_name.windedvertigo.workers.dev"
 
