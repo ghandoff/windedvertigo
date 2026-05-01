@@ -1,0 +1,3620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lakeshore college sustainability committee — simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --cadet: #273248;
+  --redwood: #B15043;
+  --sienna: #CB7858;
+  --champagne: #FFEBD2;
+  --muted: #6B7589;
+  --rule: #EAD9BD;
+  --soft-card: #fff;
+  --on-dark-muted: #B5BBC9;
+  --on-dark: #FFEBD2;
+  --rule-dark: rgba(255,235,210,0.12);
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html {
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--on-dark);
+  background: var(--cadet);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { min-height: 100vh; padding-top: 146px; }
+@media (max-width: 640px) { body { padding-top: 130px; } }
+
+/* -- page header (fixed) -- */
+.page-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: var(--cadet);
+  padding: 16px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wordmark { display: inline-block; line-height: 0; }
+.wordmark img { display: block; width: 160px; height: auto; }
+@media (max-width: 640px) {
+  .wordmark img { width: 120px; }
+}
+
+/* -- scenario picker (lives inside .page-header) -- */
+.scenario-picker {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule-dark);
+  margin: 0 -24px;
+  padding: 0 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scenario-picker::-webkit-scrollbar { display: none; }
+.scenario-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: block;
+  transition: color 0.15s, border-color 0.15s;
+}
+.scenario-tab:hover { color: var(--on-dark); }
+.scenario-tab.active,
+.scenario-tab[aria-current="page"] {
+  color: var(--on-dark);
+  border-bottom-color: var(--sienna);
+}
+
+/* -- screens -- */
+.screen {
+  display: none;
+  min-height: calc(100vh - 146px);
+}
+@media (max-width: 640px) {
+  .screen { min-height: calc(100vh - 130px); }
+}
+.screen.active {
+  display: flex;
+}
+
+/* -- screen: mandate -- */
+.screen-mandate {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px;
+}
+.mandate-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark);
+  margin-bottom: 32px;
+}
+.mandate-rule {
+  width: 320px;
+  height: 1px;
+  background: var(--rule-dark);
+  margin: 0 auto 40px;
+}
+.mandate-text {
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--on-dark);
+  max-width: 42ch;
+  margin: 0 auto 48px;
+}
+.mandate-sub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-top: 32px;
+}
+.committee-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  cursor: pointer;
+  border: none;
+  background: none;
+  text-decoration: none;
+  padding: 4px 0;
+}
+.committee-link:hover {
+  text-decoration: underline;
+}
+.committee-link:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* -- buttons -- */
+.btn {
+  display: inline-block;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: #fff;
+  border: none;
+  padding: 14px 32px;
+  cursor: pointer;
+  transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn:hover {
+  background: var(--on-dark);
+  color: var(--cadet);
+}
+.btn:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.btn-small {
+  font-size: 12px;
+  padding: 8px 18px;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--on-dark);
+  border: 1px solid var(--rule-dark);
+}
+.btn-ghost:hover {
+  background: rgba(255,235,210,0.08);
+}
+.modal-dialog .btn-ghost {
+  color: var(--redwood);
+  border: 1px solid var(--redwood);
+}
+.modal-dialog .btn-ghost:hover {
+  background: rgba(177, 80, 67, 0.08);
+}
+
+/* -- screen: baseline -- */
+.screen-baseline {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+.baseline-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--on-dark);
+  text-align: center;
+  margin-bottom: 4px;
+}
+.baseline-subtitle {
+  font-size: 15px;
+  color: var(--on-dark-muted);
+  text-align: center;
+  font-style: italic;
+  margin-bottom: 32px;
+}
+.baseline-chart-wrap {
+  width: 100%;
+  max-width: 720px;
+  height: 340px;
+  position: relative;
+}
+.baseline-btn-wrap {
+  margin-top: 32px;
+}
+
+/* -- explore mode (pre-commitment) -- */
+.decisions-explore .decisions-right { display: none; }
+.decisions-explore .decisions-left {
+  width: 100% !important;
+  max-width: 520px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  border-right: none !important;
+}
+.explore-prompt {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--cadet);
+  line-height: 1.6;
+}
+.explore-prompt strong { font-weight: 600; }
+.explore-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.explore-header {
+  position: relative;
+}
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--on-dark-muted);
+  background: none;
+  color: var(--on-dark-muted);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.info-btn:hover, .info-btn:focus-visible {
+  border-color: var(--on-dark);
+  color: var(--on-dark);
+}
+.info-btn:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.info-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: var(--cadet);
+  color: var(--champagne);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 10px 14px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.info-btn.active + .info-tooltip,
+.info-btn:focus + .info-tooltip {
+  display: block;
+}
+.btn-choose {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: none;
+  border: 1.5px solid var(--cadet);
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-choose:hover { background: var(--cadet); color: var(--champagne); }
+.btn-choose:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.intervention-card.committed { border-color: var(--cadet); border-width: 2px; }
+.committed-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--cadet);
+  color: var(--champagne);
+  padding: 2px 8px;
+  margin-left: 8px;
+}
+.commit-confirm {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(39, 50, 72, 0.85);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+.commit-confirm.visible { display: flex; }
+.commit-confirm-inner {
+  background: #fff;
+  padding: 40px;
+  max-width: 480px;
+  color: var(--cadet);
+}
+.commit-confirm-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 12px;
+}
+.commit-confirm-body {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.commit-confirm-actions { display: flex; gap: 12px; justify-content: center; }
+
+/* -- screen: decisions -- */
+.screen-decisions {
+  flex-direction: row;
+  height: calc(100vh - 146px);
+  padding: 0;
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .screen-decisions { height: calc(100vh - 130px); }
+}
+.decisions-left {
+  width: 40%;
+  min-width: 340px;
+  max-width: 440px;
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px 24px 24px 24px;
+  border-right: 1px solid var(--rule-dark);
+  background: var(--cadet);
+}
+.decisions-right {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px 24px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* year ticker */
+.year-ticker {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--on-dark-muted);
+  letter-spacing: -0.02em;
+  text-align: right;
+  margin-bottom: 8px;
+  opacity: 0.15;
+  transition: opacity 0.3s;
+  line-height: 1;
+}
+.year-ticker.animating {
+  opacity: 1;
+}
+
+/* chart area */
+.decisions-chart-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+.chart-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  background: rgba(255, 246, 229, 0.85);
+  transition: opacity 0.4s;
+  color: var(--cadet);
+}
+.chart-placeholder.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 6px 4px 10px;
+  font-size: 11px;
+  color: var(--on-dark-muted);
+  line-height: 1;
+}
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.chart-legend-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 2.5px solid currentColor;
+  flex-shrink: 0;
+}
+.chart-legend-swatch.dashed {
+  border-top-style: dashed;
+}
+.chart-legend-swatch.dotted {
+  border-top-style: dotted;
+}
+.chart-placeholder-text {
+  font-size: 13px;
+  color: var(--cadet);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 220px;
+}
+
+/* political capital meter */
+.pc-meter-wrap {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule-dark);
+}
+.pc-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-bottom: 6px;
+}
+.pc-bar-outer {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(to right, var(--redwood), var(--champagne) 50%, var(--cadet));
+  position: relative;
+  overflow: visible;
+}
+.pc-bar-indicator {
+  position: absolute;
+  top: -3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cadet);
+  border: 2px solid var(--champagne);
+  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.pc-warning {
+  font-size: 12px;
+  color: var(--redwood);
+  font-style: italic;
+  margin-top: 6px;
+  min-height: 18px;
+}
+
+/* intervention cards */
+.card-stack-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-bottom: 16px;
+}
+.intervention-card {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+  color: var(--cadet);
+}
+.intervention-card.was-run {
+  border-color: var(--sienna);
+}
+.intervention-card.locked {
+  opacity: 0.55;
+  pointer-events: none;
+  position: relative;
+}
+.intervention-card.locked .card-lock-overlay {
+  pointer-events: auto;
+  cursor: not-allowed;
+}
+.card-lock-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  align-items: center;
+  justify-content: center;
+}
+.locked .card-lock-overlay {
+  display: flex;
+}
+.lock-icon {
+  font-size: 28px;
+  opacity: 0.6;
+}
+.lock-tooltip {
+  position: absolute;
+  bottom: calc(50% + 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--cadet);
+  color: var(--champagne);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.lock-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--cadet);
+}
+.card-lock-overlay:hover .lock-tooltip {
+  opacity: 1;
+}
+@keyframes card-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.intervention-card.shake {
+  animation: card-shake 0.4s ease;
+}
+.intervention-card.unlocking .lock-icon {
+  transition: opacity 0.4s, transform 0.4s;
+  opacity: 0;
+  transform: scale(1.3);
+}
+.intervention-card.unlocking {
+  transition: opacity 0.4s;
+  opacity: 1;
+}
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.card-number {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cadet);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cadet);
+  flex: 1;
+  line-height: 1.4;
+}
+.leverage-chip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  flex-shrink: 0;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+.chip-parameter {
+  background: rgba(203, 120, 88, 0.15);
+  color: var(--sienna);
+}
+.chip-rules {
+  background: rgba(203, 120, 88, 0.35);
+  color: var(--sienna);
+}
+.chip-goals {
+  background: rgba(39, 50, 72, 0.12);
+  color: var(--cadet);
+}
+.card-body {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  max-width: 64ch;
+}
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-meta {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.card-meta .result-value {
+  font-weight: 600;
+  color: var(--cadet);
+}
+.card-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.voting-bloc-label {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.voting-bloc-label.visible {
+  display: flex;
+}
+.voting-bloc-label input {
+  accent-color: var(--sienna);
+}
+.voting-bloc-label:focus-within {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* -- systems map -- */
+.systems-map-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  min-height: 300px;
+}
+#systems-map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* -- card detail & why -- */
+.card-detail-toggle {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--sienna);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 8px;
+}
+.card-detail-toggle:hover {
+  text-decoration: underline;
+}
+.card-detail-toggle:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.card-detail {
+  display: none;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: rgba(39, 50, 72, 0.04);
+  border-left: 2px solid var(--rule);
+}
+.card-detail.open {
+  display: block;
+}
+.card-detail dt {
+  font-weight: 600;
+  color: var(--cadet);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+.card-detail dt:first-child {
+  margin-top: 0;
+}
+.card-detail dd {
+  margin: 2px 0 0 0;
+}
+.card-why {
+  display: none;
+  font-size: 12px;
+  color: var(--cadet);
+  line-height: 1.6;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(177, 80, 67, 0.06);
+  border-left: 2px solid var(--sienna);
+}
+.card-why.open {
+  display: block;
+}
+.card-why em {
+  color: var(--sienna);
+  font-style: italic;
+}
+
+/* -- screen: pattern -- */
+.screen-pattern {
+  flex-direction: column;
+  align-items: center;
+  padding: 48px;
+}
+.pattern-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--on-dark);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.pattern-chart-wrap {
+  width: 100%;
+  max-width: 800px;
+  height: 360px;
+  position: relative;
+}
+.pattern-caption {
+  font-size: 15px;
+  color: var(--on-dark-muted);
+  text-align: center;
+  max-width: 56ch;
+  margin-top: 24px;
+  line-height: 1.7;
+  font-style: italic;
+}
+.pattern-btn-wrap {
+  margin-top: 32px;
+}
+.insight-blocks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 800px;
+  width: 100%;
+  margin-top: 32px;
+}
+.insight-block {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 20px;
+  border-radius: 2px;
+  color: var(--cadet);
+}
+.insight-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 8px;
+}
+.insight-body {
+  font-size: 14px;
+  color: var(--cadet);
+  line-height: 1.6;
+}
+.calibration-note {
+  font-size: 12px;
+  color: var(--on-dark-muted);
+  font-style: italic;
+  text-align: center;
+  max-width: 56ch;
+  margin-top: 20px;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .insight-blocks { grid-template-columns: 1fr; }
+}
+
+/* -- mailing list CTA -- */
+.mailing-cta {
+  max-width: 800px;
+  width: 100%;
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid var(--rule-dark);
+  text-align: center;
+}
+.mailing-cta-text {
+  font-size: 14px;
+  color: var(--on-dark-muted);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  max-width: 52ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mailing-form {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.mailing-input {
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-dark);
+  background: rgba(255,255,255,0.08);
+  color: var(--on-dark);
+  width: 260px;
+  max-width: 100%;
+}
+.mailing-input:focus {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.mailing-input::placeholder {
+  color: var(--on-dark-muted);
+}
+.mailing-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  background: var(--sienna);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.mailing-btn:hover { opacity: 0.9; }
+.mailing-btn:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.mailing-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.mailing-success {
+  font-size: 13px;
+  color: var(--sienna);
+  font-weight: 600;
+  margin-top: 8px;
+  min-height: 20px;
+}
+
+/* -- screen: handoff -- */
+.screen-handoff {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px;
+}
+.handoff-text {
+  font-size: 18px;
+  line-height: 2;
+  color: var(--on-dark);
+  max-width: 44ch;
+  margin-bottom: 48px;
+}
+.handoff-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.handoff-footer {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-top: 48px;
+}
+
+/* -- modal -- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(39, 50, 72, 0.6);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active {
+  display: flex;
+}
+.modal-dialog {
+  background: #fff;
+  border: 1px solid var(--rule);
+  padding: 40px;
+  max-width: 520px;
+  width: 90%;
+  animation: modalIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-dialog { animation: none; }
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.modal-body {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 28px;
+  font-style: italic;
+  max-width: 64ch;
+}
+.modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* committee modal */
+.committee-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+}
+.committee-list li {
+  font-size: 14px;
+  color: var(--cadet);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+}
+.committee-list li:last-child {
+  border-bottom: none;
+}
+.committee-role {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* -- endpoint labels on chart -- */
+.endpoint-labels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.endpoint-label {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+/* see pattern button */
+.see-pattern-btn {
+  display: none;
+  margin-top: 12px;
+  color: var(--cadet);
+}
+.see-pattern-btn.visible {
+  display: inline-block;
+}
+
+/* scrollbar styling for cards column */
+.decisions-left::-webkit-scrollbar {
+  width: 4px;
+}
+.decisions-left::-webkit-scrollbar-track {
+  background: transparent;
+}
+.decisions-left::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border-radius: 2px;
+}
+
+/* -- onboarding hints -- */
+.onboard-hint {
+  position: absolute;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  pointer-events: none;
+  animation: hintFadeIn 0.6s ease forwards, hintPulse 2s 1.5s ease-in-out 3;
+}
+@media (prefers-reduced-motion: reduce) {
+  .onboard-hint { animation: none; opacity: 1; }
+}
+.onboard-hint-arrow {
+  font-size: 24px;
+  color: var(--sienna);
+  line-height: 1;
+}
+.onboard-hint-text {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--champagne);
+  max-width: 200px;
+  background: rgba(39, 50, 72, 0.9);
+  padding: 8px 12px;
+  backdrop-filter: blur(8px);
+}
+@keyframes hintFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes hintPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.onboard-hint-cards {
+  top: 72px;
+  left: 140px;
+}
+
+/* -- stacked charts (primary + secondary) -- */
+.charts-stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 8px;
+}
+.decisions-chart-wrap {
+  flex: 1 1 auto;
+}
+.secondary-wrap {
+  flex: 0 0 auto;
+  height: 40%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.secondary-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0 4px;
+}
+.secondary-divider-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--sienna);
+  opacity: 0.45;
+}
+.secondary-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  white-space: nowrap;
+}
+.secondary-chart-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+/* -- trade-off follow-up within surprise check -- */
+.tradeoff-wrap {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rule);
+}
+.tradeoff-prompt {
+  font-size: 12px;
+  color: var(--cadet);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* -- trade-off copy inside card-why -- */
+.card-why .tradeoff-line {
+  display: block;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(203, 120, 88, 0.3);
+  font-size: 12px;
+  color: var(--cadet);
+}
+.card-why .tradeoff-line::before {
+  content: 'trade-off: ';
+  font-weight: 700;
+  color: var(--redwood);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+/* -- teacher's guide link -- */
+.tg-link {
+  position: fixed;
+  top: 28px;
+  right: 24px;
+  z-index: 100;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--on-dark-muted);
+  text-decoration: none;
+  letter-spacing: 0;
+}
+.tg-link:hover { text-decoration: underline; }
+.tg-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* -- hypothesis textarea inside commit-confirm -- */
+.hypo-wrap { text-align: left; margin-bottom: 24px; }
+.hypo-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+.hypo-textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+}
+.hypo-textarea:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 1px;
+}
+.hypo-textarea::placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+.hypo-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.hypo-counter.over { color: var(--redwood); }
+
+/* -- surprise check -- */
+.surprise-wrap {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(39, 50, 72, 0.04);
+  border-left: 2px solid var(--cadet);
+}
+.surprise-prompt {
+  font-size: 12px;
+  color: var(--cadet);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.surprise-chips {
+  display: flex;
+  gap: 6px;
+}
+.surprise-chip {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: none;
+  border: 1.5px solid var(--cadet);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.surprise-chip:hover { background: var(--cadet); color: var(--champagne); }
+.surprise-chip:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.surprise-chip[aria-pressed="true"] {
+  background: var(--cadet);
+  color: var(--champagne);
+}
+
+/* -- summary export -- */
+.export-wrap {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 32px;
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 24px;
+  color: var(--cadet);
+}
+.export-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 8px;
+}
+.export-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 4px;
+}
+.export-mandate {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.export-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.export-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.export-section p { font-size: 13px; color: var(--cadet); line-height: 1.55; }
+.export-section em { color: var(--muted); font-style: italic; }
+.export-list { list-style: none; padding: 0; margin: 0; }
+.export-list li {
+  font-size: 12px;
+  color: var(--cadet);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+.export-list li:last-child { border-bottom: none; }
+.export-li-num { font-weight: 700; min-width: 18px; }
+.export-li-title { flex: 1 1 200px; }
+.export-li-tier {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: rgba(203, 120, 88, 0.15);
+  color: var(--sienna);
+}
+.export-li-surprise { font-style: italic; color: var(--muted); }
+.export-li-value { font-variant-numeric: tabular-nums; color: var(--cadet); font-weight: 600; }
+.shifted-textarea {
+  width: 100%;
+  min-height: 56px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  margin-top: 6px;
+}
+.shifted-textarea:focus-visible { outline: 3px solid #3B82F6; outline-offset: 1px; }
+.export-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.export-toast {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--sienna);
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.export-toast.visible { opacity: 1; }
+
+/* -- print: only summary export, fits A4 -- */
+@media print {
+  @page { size: A4; margin: 18mm; }
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-top: 0 !important;
+  }
+  .page-header { display: none !important; }
+  body * { visibility: hidden !important; }
+  #reflection-export, #reflection-export * { visibility: visible !important; }
+  #reflection-export {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    background: #fff !important;
+    border: none !important;
+    padding: 0 !important;
+    font-size: 11pt;
+    color: #000 !important;
+  }
+  #reflection-export .export-eyebrow,
+  #reflection-export .export-title,
+  #reflection-export .export-section-label { color: #273248 !important; }
+  #reflection-export .export-actions { display: none !important; }
+  #reflection-export .shifted-textarea {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+  }
+}
+
+/* -- dosage sliders -- */
+.dosage-slider-wrap {
+  width: 100%;
+}
+.dosage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.dosage-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.dosage-dosage {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cadet);
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: right;
+}
+.dosage-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+  outline: none;
+  margin: 0;
+  cursor: pointer;
+}
+.dosage-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cadet);
+  border: 2px solid var(--champagne);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  margin-top: -6px;
+}
+.dosage-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.dosage-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cadet);
+  border: 2px solid var(--champagne);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  cursor: pointer;
+}
+.dosage-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+}
+.dosage-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+}
+.dosage-slider:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.dosage-slider-wrap .card-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dosage-slider::-webkit-slider-thumb { transition: none; }
+}
+
+/* -- right-panel tabs -- */
+.right-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule-dark);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.right-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--on-dark-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.right-tab:hover {
+  color: var(--on-dark);
+}
+.right-tab.active {
+  color: var(--on-dark);
+  border-bottom-color: var(--sienna);
+}
+.right-tab:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: -2px;
+}
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.right-panel-hidden {
+  display: none;
+}
+
+/* systems map panel */
+#panel-map .systems-map-wrap {
+  margin-top: 0;
+  padding: 0;
+  border-top: none;
+  min-height: 400px;
+  height: 100%;
+}
+
+/* wide screen: side-by-side charts + map */
+@media (min-width: 1400px) {
+  .right-tabs { display: none; }
+  .right-panel,
+  .right-panel.right-panel-hidden {
+    display: flex;
+  }
+  .decisions-right {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+  }
+  #panel-charts {
+    flex: 3;
+    min-width: 0;
+  }
+  #panel-map {
+    flex: 2;
+    border-left: 1px solid var(--rule-dark);
+    padding-left: 16px;
+    max-height: 100%;
+    overflow: hidden;
+  }
+  #panel-map .systems-map-wrap {
+    min-height: 0;
+    height: 100%;
+  }
+}
+
+/* mobile layout */
+@media (max-width: 768px) {
+  .screen-decisions { height: auto; min-height: 100vh; }
+  .screen-decisions { flex-direction: column; }
+  .decisions-left { width: 100%; min-width: 0; max-width: none; border-right: none; border-bottom: 1px solid var(--rule-dark); max-height: 45vh; }
+  .decisions-right { height: 55vh; }
+  .right-tabs {
+    position: sticky;
+    top: 0;
+    background: var(--cadet);
+    z-index: 5;
+  }
+  #panel-map .systems-map-wrap {
+    padding: 0;
+    min-height: 250px;
+  }
+  .insight-blocks { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- wordmark -->
+<header class="page-header" role="banner">
+  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+  <nav class="scenario-picker" aria-label="switch scenario">
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab active" aria-current="page" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+  </nav>
+</header>
+<!-- teacher's guide link moved to facilitator dashboard -->
+
+<!-- screen 1: mandate -->
+<div id="screen-mandate" class="screen screen-mandate active" role="region" aria-label="the mandate">
+  <div class="mandate-title">lakeshore college sustainability committee</div>
+  <div class="mandate-rule"></div>
+  <div class="mandate-text">
+    bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.
+  </div>
+  <button class="btn" id="btn-begin" aria-label="begin the simulator">begin</button>
+  <div class="mandate-sub">25 years. 11 members. 5 decisions.</div>
+  <button class="committee-link" id="btn-committee" aria-label="see the committee composition">see the committee</button>
+</div>
+
+<!-- screen 2: baseline -->
+<div id="screen-baseline" class="screen screen-baseline" role="region" aria-label="baseline trajectory">
+  <div class="baseline-title">without intervention.</div>
+  <div class="baseline-subtitle">the campus emits more in 2050 than it does today.</div>
+  <div class="baseline-chart-wrap">
+    <canvas id="chart-baseline" aria-label="baseline emissions trajectory rising from 18,600 in 2025 to approximately 16,500 in 2050"></canvas>
+  </div>
+  <div class="baseline-btn-wrap">
+    <button class="btn" id="btn-decide" aria-label="make a decision">make a decision</button>
+  </div>
+</div>
+
+<!-- screen 3: decisions -->
+<div id="screen-decisions" class="screen screen-decisions" role="region" aria-label="intervention decisions">
+  <div class="decisions-left">
+    <div class="explore-prompt" id="explore-prompt">
+      <div class="explore-header">
+        <strong>which intervention would you choose?</strong>
+        <button class="info-btn" id="info-btn" aria-label="how to use this simulator" aria-expanded="false" type="button">?</button>
+        <div class="info-tooltip" id="info-tooltip" role="tooltip">read all five. expand the details. when you're ready, click "this is my decision" on the one you think will reduce emissions the most. you won't see the data until you commit.</div>
+      </div>
+    </div>
+    <div class="card-stack-title">interventions</div>
+    <div id="card-stack"></div>
+  </div>
+  <div class="decisions-right">
+    <div class="right-tabs" role="tablist" aria-label="right panel view">
+      <button class="right-tab active" id="tab-charts" role="tab" aria-selected="true" aria-controls="panel-charts">charts</button>
+      <button class="right-tab" id="tab-map" role="tab" aria-selected="false" aria-controls="panel-map">systems map</button>
+    </div>
+    <div class="right-panel" id="panel-charts" role="tabpanel" aria-labelledby="tab-charts">
+      <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
+      <div class="charts-stack">
+        <div class="decisions-chart-wrap">
+          <div class="chart-placeholder" id="chart-placeholder">
+            <span class="chart-placeholder-text">expand an intervention on the left and drag its slider to see the trajectory here.</span>
+          </div>
+          <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
+          <div class="chart-legend" id="legend-decisions">
+            <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--rule);"></span> baseline</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--champagne);"></span> net-zero target</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--sienna);"></span> intervention</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--champagne);"></span> combined (recharter)</span>
+          </div>
+          <div class="endpoint-labels" id="endpoint-labels"></div>
+        </div>
+        <div class="secondary-wrap" id="secondary-wrap" aria-hidden="false">
+          <div class="secondary-divider">
+            <span class="secondary-divider-rule" aria-hidden="true"></span>
+            <span class="secondary-label">political capital</span>
+            <span class="secondary-divider-rule" aria-hidden="true"></span>
+          </div>
+          <div class="secondary-chart-wrap">
+            <canvas id="chart-secondary" aria-label="political-capital trajectories chart"></canvas>
+            <div class="chart-legend" id="legend-secondary">
+              <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--rule);"></span> baseline (1.0)</span>
+              <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--sienna);"></span> intervention</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pc-meter-wrap">
+        <div class="pc-label">political capital</div>
+        <div class="pc-bar-outer">
+          <div class="pc-bar-indicator" id="pc-indicator" style="left: calc(50% - 8px);"></div>
+        </div>
+        <div class="pc-warning" id="pc-warning"></div>
+      </div>
+      <button class="btn btn-small see-pattern-btn" id="btn-see-pattern" aria-label="see the pattern">see the pattern</button>
+    </div>
+    <div class="right-panel right-panel-hidden" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
+      <div class="systems-map-wrap" id="systems-map-wrap"></div>
+    </div>
+  </div>
+  <div class="onboard-hint onboard-hint-cards" id="hint-cards" style="display:none">
+    <span class="onboard-hint-text">now drag each slider to see what the system does over 25 years. start with your choice — then try the others.</span>
+    <span class="onboard-hint-arrow">&#8595;</span>
+  </div>
+</div>
+
+<!-- screen 4: pattern -->
+<div id="screen-pattern" class="screen screen-pattern" role="region" aria-label="the pattern across all five interventions">
+  <div class="pattern-title">five decisions. one shape.</div>
+  <div class="pattern-chart-wrap">
+    <canvas id="chart-pattern" aria-label="all five intervention trajectories overlaid, showing increasing effectiveness from parameter-level to paradigm-level changes"></canvas>
+  </div>
+  <div class="secondary-divider" style="width:100%;max-width:800px;margin-top:16px;">
+    <span class="secondary-divider-rule" aria-hidden="true"></span>
+    <span class="secondary-label">political capital</span>
+    <span class="secondary-divider-rule" aria-hidden="true"></span>
+  </div>
+  <div class="pattern-chart-wrap" style="height:180px;margin-top:4px;">
+    <canvas id="chart-pattern-secondary" aria-label="political-capital trajectories across all five interventions"></canvas>
+  </div>
+  <div class="pattern-caption" style="margin-top:12px;font-size:13px;">the move that bends the primary the most is rarely the move that protects the secondary. notice which interventions cost what — and which, eventually, pay back more than they cost.</div>
+  <div class="pattern-caption">
+    the higher you push on the leverage ladder, the more the system bends. the bottom of the ladder produces a sag and a recovery. the top of the ladder produces a structural break.
+  </div>
+  <div class="insight-blocks">
+    <div class="insight-block">
+      <div class="insight-eyebrow">what this system is like</div>
+      <div class="insight-body">a campus is a slow-growth system with long feedback delays. emissions rise not because of one bad decision, but because the default structure rewards expansion and defers consequences.</div>
+    </div>
+    <div class="insight-block">
+      <div class="insight-eyebrow">how to spot the pattern</div>
+      <div class="insight-body">parameter tweaks (pricing, efficiency) produce a dip, then a recovery — the system absorbs them. structural changes (governance, purpose) bend the curve permanently because they change which questions get asked.</div>
+    </div>
+    <div class="insight-block">
+      <div class="insight-eyebrow">which lever matters most</div>
+      <div class="insight-body">the highest-leverage intervention is not the most expensive one. it is the one that changes the rules under which every other decision is made. meadows called this "the power to transcend paradigms."</div>
+    </div>
+  </div>
+  <div class="calibration-note">
+    note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual emissions. the relative ordering of interventions — not the absolute numbers — is the lesson.
+  </div>
+
+  <section class="export-wrap" id="reflection-export" aria-label="take this with you">
+    <div class="export-eyebrow">take this with you</div>
+    <div class="export-title" id="export-scenario-name">lakeshore college sustainability committee</div>
+    <p class="export-mandate" id="export-mandate">bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.</p>
+    <p class="export-mandate" id="export-tradeoff-headline" style="display:none;color:var(--cadet);font-style:normal;font-weight:500;"></p>
+
+    <div class="export-section">
+      <div class="export-section-label">your committed decision</div>
+      <p id="export-committed-title"><em>none committed.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">your hypothesis</div>
+      <p id="export-hypothesis"><em>none recorded.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">interventions</div>
+      <ul class="export-list" id="export-interventions"></ul>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label"><label for="shifted-textarea">one sentence — what shifted?</label></div>
+      <textarea id="shifted-textarea" class="shifted-textarea" maxlength="280" rows="2" placeholder="what changed in how you saw the system?"></textarea>
+    </div>
+
+    <div class="export-actions">
+      <button class="btn btn-small" id="btn-export-pdf" aria-label="download as pdf">download as pdf</button>
+      <button class="btn btn-small" id="btn-export-copy" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);" aria-label="copy summary to clipboard">copy to clipboard</button>
+      <span class="export-toast" id="export-toast" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <div class="mailing-cta" aria-label="stay informed about teaching tools">
+    <p class="mailing-cta-text">if you want to be aware of other winded.vertigo tools, add your email and join our mailing list to receive updates on tools that can support your teaching practice.</p>
+    <form class="mailing-form" id="mailing-form">
+      <input class="mailing-input" type="email" id="mailing-email" placeholder="your email address" required aria-label="email address for mailing list">
+      <button class="mailing-btn" type="submit">join the list</button>
+    </form>
+    <div class="mailing-success" id="mailing-success" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="pattern-btn-wrap">
+    <button class="btn" id="btn-handoff" aria-label="what does this mean for us?">what does this mean for us?</button>
+  </div>
+</div>
+
+<!-- screen 5: handoff -->
+<div id="screen-handoff" class="screen screen-handoff" role="region" aria-label="the handoff">
+  <div class="handoff-text">
+    the same five decisions exist in your institution.<br><br>
+    they are not always called "interventions."<br>
+    they are called: a parking memo, a capital plan,<br>
+    a building code, a committee charter, a mission<br>
+    statement.<br><br>
+    the question is not "which one works?"<br><br>
+    it is "which one would you have known to make?"
+  </div>
+  <div class="handoff-links">
+    <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
+    <a class="btn" href="/portfolio/assets/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
+  </div>
+  <div class="handoff-footer">ppcs 2026 · session 1A · w.v × prme · simulator v1.0</div>
+</div>
+
+<!-- committee modal -->
+<div class="modal-overlay" id="modal-committee" role="dialog" aria-label="committee composition" aria-modal="true">
+  <div class="modal-dialog">
+    <div class="modal-title">lakeshore college sustainability committee</div>
+    <ul class="committee-list">
+      <li><span>chair</span><span class="committee-role">VP for operations</span></li>
+      <li><span>faculty rep</span><span class="committee-role">environmental studies</span></li>
+      <li><span>faculty rep</span><span class="committee-role">economics</span></li>
+      <li><span>student rep</span><span class="committee-role">undergraduate senate</span></li>
+      <li><span>student rep</span><span class="committee-role">graduate council</span></li>
+      <li><span>staff rep</span><span class="committee-role">facilities & grounds</span></li>
+      <li><span>staff rep</span><span class="committee-role">dining services</span></li>
+      <li><span>trustee liaison</span><span class="committee-role">investment committee</span></li>
+      <li><span>town liaison</span><span class="committee-role">municipal sustainability office</span></li>
+      <li><span>external advisor</span><span class="committee-role">regional utility</span></li>
+      <li><span>recording secretary</span><span class="committee-role">provost's office</span></li>
+    </ul>
+    <button class="btn btn-small btn-ghost" id="btn-close-committee" aria-label="close committee list">close</button>
+  </div>
+</div>
+
+<!-- recharter modal -->
+<div class="modal-overlay" id="modal-recharter" role="dialog" aria-label="re-charter confirmation" aria-modal="true">
+  <div class="modal-dialog">
+    <div class="modal-title">selecting this re-routes every other decision through a different question.</div>
+    <div class="modal-body">
+      every intervention you have run, and every intervention you have not, is now being asked: does this steward the watershed?
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="btn-recharter-continue" aria-label="continue with re-charter">continue</button>
+      <button class="btn btn-ghost" id="btn-recharter-back" aria-label="go back">go back</button>
+    </div>
+  </div>
+</div>
+
+<div class="commit-confirm" id="commit-confirm" role="dialog" aria-label="confirm your decision">
+  <div class="commit-confirm-inner">
+    <div class="commit-confirm-title" id="commit-confirm-title"></div>
+    <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention — starting with yours.</div>
+    <div class="hypo-wrap">
+      <label class="hypo-label" for="hypo-textarea">one sentence — I chose this because I think the bottleneck is&hellip;</label>
+      <textarea id="hypo-textarea" class="hypo-textarea" maxlength="240" rows="3" placeholder="e.g., price, trust, how we measure success, who gets to decide&hellip;" aria-describedby="hypo-counter"></textarea>
+      <div class="hypo-meta">
+        <span><span id="hypo-counter">0</span>&thinsp;/&thinsp;240</span>
+        <span id="hypo-hint">at least 10 characters.</span>
+      </div>
+    </div>
+    <div class="commit-confirm-actions">
+      <button class="btn btn-small" id="btn-commit-back" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);">go back</button>
+      <button class="btn btn-small" id="btn-commit-confirm" disabled>lock it in</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ────────────────────────────────────────────
+// state
+// ────────────────────────────────────────────
+const state = {
+  screen: 'mandate',
+  committed: false,
+  committedId: null,
+  interventionsRun: [],
+  trajectories: {},
+  politicalCapital: 1.0,
+  politicalCapitalHistory: {},
+  withVotingBloc: { 1: false, 2: false, 3: false },
+  detailOpen: {},
+  rechartered: false,
+  animating: false,
+  sliderActive: false,
+  currentAnimYear: 2025,
+  dosages: {},
+  hypothesis: '',
+  surprise: {},
+  tradeoffNoticed: {},
+  shifted: '',
+};
+
+// ────────────────────────────────────────────
+// session logger — fire-and-forget event logging
+// ────────────────────────────────────────────
+class SessionLogger {
+  constructor() {
+    this.sessionCode = null;
+    this.participantId = null;
+    this.config = {};
+    this.sliderDebounce = {};
+    try {
+      const raw = sessionStorage.getItem('st-session');
+      if (raw) {
+        const data = JSON.parse(raw);
+        this.sessionCode = data.code || null;
+        this.participantId = data.pid || null;
+        this.config = data.config || {};
+      }
+    } catch (e) { /* solo mode */ }
+  }
+  get active() { return !!(this.sessionCode && this.participantId); }
+  log(type, data) {
+    if (!this.active) return;
+    const payload = JSON.stringify({
+      sessionCode: this.sessionCode,
+      participantId: this.participantId,
+      type,
+      data: { scenario: 'lakeshore', ...data },
+    });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/session/log', payload);
+    } else {
+      fetch('/api/session/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  }
+  logSlider(interventionId, dosage) {
+    if (!this.active) return;
+    if (this.sliderDebounce[interventionId]) return;
+    this.sliderDebounce[interventionId] = true;
+    setTimeout(() => { this.sliderDebounce[interventionId] = false; }, 1000);
+    this.log('slider_move', { interventionId, dosage });
+  }
+}
+const logger = new SessionLogger();
+logger.log('scenario_started', { scenario: 'lakeshore' });
+
+// ────────────────────────────────────────────
+// secondary stock: political capital
+// ────────────────────────────────────────────
+const SECONDARY = {
+  name: 'political capital',
+  units: 'index',
+  baseline: 1.0,
+  goodDirection: 'up',
+  yMin: 0.4,
+  yMax: 1.5,
+};
+
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ────────────────────────────────────────────
+// session persistence (reflective prompts)
+// ────────────────────────────────────────────
+const REFLECT_KEY = 'st-lakeshore-reflect';
+
+function loadReflect() {
+  try {
+    const raw = sessionStorage.getItem(REFLECT_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (typeof data.hypothesis === 'string') state.hypothesis = data.hypothesis;
+    if (data.surprise && typeof data.surprise === 'object') state.surprise = data.surprise;
+    if (data.tradeoffNoticed && typeof data.tradeoffNoticed === 'object') state.tradeoffNoticed = data.tradeoffNoticed;
+    if (typeof data.shifted === 'string') state.shifted = data.shifted;
+  } catch (e) { /* ignore */ }
+}
+
+function saveReflect() {
+  try {
+    sessionStorage.setItem(REFLECT_KEY, JSON.stringify({
+      hypothesis: state.hypothesis,
+      surprise: state.surprise,
+      tradeoffNoticed: state.tradeoffNoticed,
+      shifted: state.shifted,
+    }));
+  } catch (e) { /* ignore */ }
+}
+
+function clearReflect() {
+  try { sessionStorage.removeItem(REFLECT_KEY); } catch (e) { /* ignore */ }
+}
+
+function setState(patch) {
+  Object.assign(state, patch);
+  render();
+}
+
+// ────────────────────────────────────────────
+// constants
+// ────────────────────────────────────────────
+const YEARS = Array.from({ length: 26 }, (_, i) => 2025 + i);
+const STAT_0 = 14000;
+const MOB_0 = 3200;
+const EMB_0 = 1400;
+const TOTAL_0 = STAT_0 + MOB_0 + EMB_0; // 18,600
+const FLOOR_GROWTH = 0.02;
+// baseline: stationary flat (grid decarb ≈ floor growth), mobile flat, embodied grows
+// total rises from 18,600 to ~19,497 — "emits more in 2050 than today"
+const NET_ZERO_LINE = TOTAL_0 * 0.10; // 1,860
+
+const COLORS = {
+  cadet: '#273248',
+  redwood: '#B15043',
+  sienna: '#CB7858',
+  champagne: '#FFEBD2',
+  muted: '#6B7589',
+  rule: '#EAD9BD',
+  softCard: '#ffffff',
+  chartTick: '#B5BBC9',
+  chartGrid: 'rgba(255,235,210,0.08)',
+};
+
+// ────────────────────────────────────────────
+// model — calibrated to §2 targets (±2pp)
+//
+// baseline 2050: ~19,497 (stat 14k flat + mob 3.2k flat + emb ~2,297)
+// intervention 1 (parking):       ~3% reduction  → ~18,510
+// intervention 2 (heat pump):     ~28% reduction → ~13,742
+// intervention 3 (living bldg):   ~22% reduction → ~14,887
+// intervention 4 (votes):         ~38% reduction → ~11,833
+// intervention 5 (recharter):     ~90% reduction → ~1,909
+// ────────────────────────────────────────────
+
+function baselineAt(t) {
+  const stat = STAT_0; // flat
+  const mob = MOB_0;   // flat
+  const floorMult = Math.pow(1 + FLOOR_GROWTH, t);
+  const emb = EMB_0 * floorMult;
+  return { stat, mob, emb, floorMult, total: stat + mob + emb };
+}
+
+function computeBaseline() {
+  return YEARS.map((_, t) => baselineAt(t).total);
+}
+
+const baseline = computeBaseline();
+
+function runIntervention(id, dosageFraction, opts = {}) {
+  if (dosageFraction === undefined) dosageFraction = 1;
+  if (id === 5) return combinedTrajectory(dosageFraction);
+
+  const traj = [];
+  const pcTimeline = [];
+  const withBloc = opts.withVotingBloc || false;
+  const df = dosageFraction;
+
+  for (let t = 0; t < 26; t++) {
+    const bl = baselineAt(t);
+    let stat = bl.stat;
+    let mob = bl.mob;
+    let emb = bl.emb;
+    let drift = 1.0;
+    let pc = 1.0;
+
+    if (id === 1) {
+      // parking permit: sag-and-rebound on mobile — scaled by dosage
+      let mfBase;
+      if (t === 0)      mfBase = 0.72;
+      else if (t === 1)  mfBase = 0.68;
+      else if (t <= 6)   mfBase = 0.68 + (0.82 - 0.68) * ((t - 1) / 5);
+      else               mfBase = 0.82;
+      // scale reduction from 1.0 by dosage
+      mob = MOB_0 * (1 - (1 - mfBase) * df);
+
+      const pcDrop = (withBloc ? 0.075 : 0.15) * df;
+      pc = t < 4 ? 1.0 - pcDrop * Math.max(0, 1 - t / 4) : 1.0;
+    }
+
+    else if (id === 2) {
+      // heat pump: 12-year deployment ramp — scaled by dosage
+      const ramp = Math.min(Math.pow(t / 12, 1.6), 1.0);
+      const postDrift = t > 12 ? Math.pow(1 - 0.004, t - 12) : 1.0;
+      stat = STAT_0 * (1 - ramp * 0.355 * df) * postDrift;
+
+      const pcDrop = (withBloc ? 0.10 : 0.20) * df;
+      pc = t < 8 ? 1.0 - pcDrop * Math.max(0, 1 - t / 8) : 1.0;
+    }
+
+    else if (id === 3) {
+      // living building: new construction savings — scaled by dosage
+      if (t >= 1) {
+        const newFrac = 1 - 1 / bl.floorMult;
+        stat = STAT_0 * (1 - newFrac * 0.85 * df);
+        emb = bl.emb * (1 - newFrac * 0.75 * df);
+      }
+      if (t >= 1) drift *= Math.pow(1 - 0.002 * df, t - 1);
+
+      const pcDrop = (withBloc ? 0.05 : 0.10) * df;
+      if (t >= 2 && t < 5) pc = 1.0 - pcDrop * (1 - (t - 2) / 3);
+    }
+
+    else if (id === 4) {
+      // votes: exogenous drift — scaled by dosage
+      if (t >= 3) drift *= Math.pow(1 - 0.022 * df, t - 3);
+      pc = t < 2 ? 1.0 - 0.05 * df : 1.0;
+    }
+
+    traj.push(Math.max((stat + mob + emb) * drift, 0));
+    pcTimeline.push(pc);
+  }
+
+  return { trajectory: traj, pcTimeline };
+}
+
+function combinedTrajectory(dosageFraction) {
+  if (dosageFraction === undefined) dosageFraction = 1;
+  // recharter: all 1–4 with multipliers + purpose drift, scaled by dosage
+  const MBase = { 1: 1.6, 2: 1.4, 3: 1.5, 4: 1.3 };
+  // scale multiplier boost by dosage: at df=0 multiplier=1 (no boost), at df=1 full boost
+  const M = {};
+  for (const k in MBase) M[k] = 1 + (MBase[k] - 1) * dosageFraction;
+  const df = dosageFraction;
+  const traj = [];
+  const pcTimeline = [];
+
+  for (let t = 0; t < 26; t++) {
+    const bl = baselineAt(t);
+
+    // intervention 1 — parking (scaled multiplier)
+    const settle1 = 0.18 * M[1];
+    const peak1 = 0.32 * M[1];
+    let mf;
+    if (t === 0)      mf = 1 - 0.28 * M[1];
+    else if (t === 1)  mf = 1 - peak1;
+    else if (t <= 6)   mf = (1 - peak1) + ((1 - settle1) - (1 - peak1)) * ((t - 1) / 5);
+    else               mf = 1 - settle1;
+    mf = Math.max(mf, 0.10);
+    const mob = MOB_0 * mf;
+
+    // intervention 2 — heat pump (scaled multiplier)
+    const ramp = Math.min(Math.pow(t / 12, 1.6), 1.0);
+    const postDrift2 = t > 12 ? Math.pow(1 - 0.004, t - 12) : 1.0;
+    let stat = STAT_0 * Math.max((1 - ramp * 0.355 * M[2]) * postDrift2, 0.05);
+
+    // intervention 3 — living building (scaled multiplier)
+    let emb = bl.emb;
+    if (t >= 1) {
+      const nf = 1 - 1 / bl.floorMult;
+      const sr = Math.min(0.85 * M[3], 1.0);
+      const er = Math.min(0.75 * M[3], 1.0);
+      stat *= (1 - nf * sr);
+      stat = Math.max(stat, 0);
+      emb *= (1 - nf * er);
+      emb = Math.max(emb, 0);
+    }
+    let mandateDrift = t >= 1 ? Math.pow(1 - 0.002 * M[3], t - 1) : 1;
+
+    // intervention 4 — votes (scaled multiplier)
+    let votesDrift = t >= 3 ? Math.pow(1 - 0.022 * M[4], t - 3) : 1;
+
+    // intervention 5 — purpose drift scaled by dosage
+    let purposeDrift = t >= 4 ? Math.pow(1 - 0.045 * df, t - 4) : 1;
+
+    const total = Math.max((stat + mob + emb) * mandateDrift * votesDrift * purposeDrift, 0);
+    traj.push(total);
+
+    // political capital: deep drop then recovery above 1.0, scaled by dosage
+    let pc;
+    const pcDip = 0.30 * df;
+    const pcRecovery = 0.30 * df;
+    if (t <= 1) pc = 1.0 - pcDip;
+    else if (t <= 6) pc = (1.0 - pcDip) + ((1.0 + pcRecovery) - (1.0 - pcDip)) * ((t - 1) / 5);
+    else pc = 1.0 + pcRecovery;
+    pcTimeline.push(pc);
+  }
+
+  return { trajectory: traj, pcTimeline };
+}
+
+function computeAllTrajectories() {
+  const all = {};
+  for (let i = 1; i <= 4; i++) all[i] = runIntervention(i, 1).trajectory;
+  all[5] = combinedTrajectory(1).trajectory;
+  return all;
+}
+
+// ────────────────────────────────────────────
+// chart instances
+// ────────────────────────────────────────────
+let chartBaseline = null;
+let chartDecisions = null;
+let chartPattern = null;
+let chartSecondary = null;
+let chartPatternSecondary = null;
+
+function makeSecondaryChartOptions() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    scales: {
+      x: {
+        type: 'linear', min: 2025, max: 2050,
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: "'Inter', sans-serif", size: 10 }, callback: v => String(v) },
+        grid: { color: COLORS.chartGrid, drawTicks: false },
+        border: { color: COLORS.chartGrid },
+      },
+      y: {
+        type: 'linear', min: SECONDARY.yMin, max: SECONDARY.yMax,
+        ticks: {
+          color: COLORS.chartTick, font: { family: "'Inter', sans-serif", size: 10 },
+          callback: (v) => v.toFixed(1),
+        },
+        grid: { color: COLORS.chartGrid, drawTicks: false },
+        border: { color: COLORS.chartGrid },
+        title: {
+          display: true, text: SECONDARY.units, color: COLORS.chartTick,
+          font: { family: "'Inter', sans-serif", size: 10, weight: '500' },
+        },
+      },
+    },
+    animation: { duration: reducedMotion ? 0 : 800, easing: 'easeOutQuart' },
+    transitions: { active: { animation: { duration: 0 } } },
+    elements: { point: { radius: 0 }, line: { tension: 0.3 } },
+  };
+}
+
+function makeSecondaryBaselineDataset() {
+  return {
+    label: 'baseline',
+    data: YEARS.map(y => ({ x: y, y: SECONDARY.baseline })),
+    borderColor: COLORS.rule,
+    borderWidth: 1.5,
+    borderDash: [6, 4],
+    pointRadius: 0,
+    order: 9,
+  };
+}
+
+function makeChartOptions(overrides = {}) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    scales: {
+      x: {
+        type: 'linear', min: 2025, max: 2050,
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: "'Inter', sans-serif", size: 11 }, callback: v => String(v) },
+        grid: { color: COLORS.chartGrid, drawTicks: false },
+        border: { color: COLORS.chartGrid },
+      },
+      y: {
+        type: 'linear', min: 0, max: 20000,
+        ticks: {
+          stepSize: 4000, color: COLORS.chartTick,
+          font: { family: "'Inter', sans-serif", size: 11 },
+          callback: (v) => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v,
+        },
+        grid: { color: COLORS.chartGrid, drawTicks: false },
+        border: { color: COLORS.chartGrid },
+        title: {
+          display: true, text: 'tons CO₂e per year', color: COLORS.chartTick,
+          font: { family: "'Inter', sans-serif", size: 11, weight: '500' },
+        },
+      },
+    },
+    animation: { duration: reducedMotion ? 0 : (overrides.animDuration || 800), easing: 'easeOutQuart' },
+    transitions: { active: { animation: { duration: 0 } } },
+    elements: { point: { radius: 0 }, line: { tension: 0.3 } },
+  };
+}
+
+function makeNetZeroDataset() {
+  return {
+    label: 'net-zero target',
+    data: YEARS.map(y => ({ x: y, y: NET_ZERO_LINE })),
+    borderColor: COLORS.champagne,
+    borderDash: [8, 4],
+    borderWidth: 1.5,
+    pointRadius: 0,
+    order: 10,
+  };
+}
+
+function makeBaselineDataset(opacity = 1.0) {
+  return {
+    label: 'baseline',
+    data: YEARS.map((y, i) => ({ x: y, y: baseline[i] })),
+    borderColor: opacity < 1 ? `rgba(234, 217, 189, ${opacity})` : COLORS.rule,
+    borderWidth: opacity < 1 ? 1 : 2,
+    pointRadius: 0,
+    order: 9,
+  };
+}
+
+// ── systems map canvas renderer ───────────────────────────
+// tidal-pool-style reactive visualisation
+// shared between simulator.html and lakeshore-simulator.html
+(function(window) {
+  'use strict';
+
+  const NODE_RADIUS = 28;
+  const NODE_BORDER = 3;
+  const ARROW_SIZE = 8;
+  const LABEL_FONT = '500 11px "Inter", system-ui, sans-serif';
+  const VALUE_FONT = '700 14px "Inter", system-ui, sans-serif';
+  const ICON_FONT = '20px serif';
+  const CONNECTION_COLORS = {
+    amplifying: 'rgba(34, 197, 94, 0.6)',
+    dampening:  'rgba(239, 68, 68, 0.6)',
+    delayed:    'rgba(59, 130, 246, 0.6)',
+    threshold:  'rgba(245, 158, 11, 0.6)',
+  };
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resizeCanvas(mapCtx) {
+    const { canvas, ctx } = mapCtx;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    mapCtx.dpr = dpr;
+    scaleNodes(mapCtx);
+  }
+
+  function scaleNodes(mapCtx) {
+    const { nodes, canvas, dpr } = mapCtx;
+    if (!nodes || nodes.length === 0) return;
+    const cw = canvas.width / dpr;
+    const ch = canvas.height / dpr;
+    const padding = 60;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    nodes.forEach(n => { minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x); minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y); });
+    const dataW = Math.max(maxX - minX, 1);
+    const dataH = Math.max(maxY - minY, 1);
+    const scaleX = (cw - padding * 2) / dataW;
+    const scaleY = (ch - padding * 2) / dataH;
+    const scale = Math.min(scaleX, scaleY);
+    const offsetX = (cw - dataW * scale) / 2 - minX * scale;
+    const offsetY = (ch - dataH * scale) / 2 - minY * scale;
+    nodes.forEach(n => {
+      n.renderX = n.x * scale + offsetX;
+      n.renderY = n.y * scale + offsetY;
+    });
+  }
+
+  function computeNodeValues(nodes, edges, dosages, interventions) {
+    if (!nodes || !interventions) return;
+    nodes.forEach(n => { n.displayValue = n.baseValue; n.directlyInfluenced = false; });
+    interventions.forEach(intv => {
+      const frac = (dosages[intv.id] || 0);
+      if (frac === 0) return;
+      const influences = intv.influences || (intv.mapHighlight || []).map(nid => ({ nodeId: nid, weight: 1.0 }));
+      influences.forEach(inf => {
+        const node = nodes.find(n => n.id === inf.nodeId);
+        if (!node) return;
+        const delta = frac * inf.weight * 40;
+        node.displayValue = Math.max(0, Math.min(100, node.displayValue + delta));
+        node.directlyInfluenced = true;
+      });
+    });
+    nodes.forEach(n => {
+      if (n.directlyInfluenced) return;
+      edges.forEach(e => {
+        if (e.to !== n.id) return;
+        const src = nodes.find(s => s.id === e.from);
+        if (!src) return;
+        const srcDelta = src.displayValue - src.baseValue;
+        if (Math.abs(srcDelta) < 0.5) return;
+        const propagated = srcDelta * (e.strength || 0.5) * (e.type === 'dampening' ? -0.3 : 0.3);
+        n.displayValue = Math.max(0, Math.min(100, n.displayValue + propagated));
+      });
+    });
+    nodes.forEach(n => {
+      n.valuePct = Math.max(0, Math.min(1, n.displayValue / 100));
+    });
+  }
+
+  function drawConnection(ctx, edge, nodes, tick) {
+    const from = nodes.find(n => n.id === edge.from);
+    const to = nodes.find(n => n.id === edge.to);
+    if (!from || !to) return;
+    const fx = from.renderX, fy = from.renderY;
+    const tx = to.renderX, ty = to.renderY;
+    const dx = tx - fx, dy = ty - fy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) return;
+    const ux = dx / dist, uy = dy / dist;
+    const startX = fx + ux * (NODE_RADIUS + 4);
+    const startY = fy + uy * (NODE_RADIUS + 4);
+    const endX = tx - ux * (NODE_RADIUS + 4);
+    const endY = ty - uy * (NODE_RADIUS + 4);
+
+    const color = CONNECTION_COLORS[edge.type || 'amplifying'];
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2 + (edge.strength || 0.5) * 2;
+    ctx.setLineDash(edge.type === 'delayed' ? [6, 4] : []);
+    if (edge.type === 'delayed' && !prefersReducedMotion) ctx.lineDashOffset = -(tick * 2);
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - ux * ARROW_SIZE - uy * ARROW_SIZE * 0.5, endY - uy * ARROW_SIZE + ux * ARROW_SIZE * 0.5);
+    ctx.lineTo(endX - ux * ARROW_SIZE + uy * ARROW_SIZE * 0.5, endY - uy * ARROW_SIZE - ux * ARROW_SIZE * 0.5);
+    ctx.closePath();
+    ctx.fill();
+
+    const midX = (startX + endX) / 2, midY = (startY + endY) / 2;
+    const typeLabel = edge.type === 'dampening' ? '\u2212' : edge.type === 'delayed' ? '\u23F1' : edge.type === 'threshold' ? '\u26A1' : '+';
+    ctx.font = '600 12px "Inter", system-ui, sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(typeLabel, midX, midY - 8);
+    ctx.restore();
+  }
+
+  function drawNode(ctx, node, tick, isHighlighted, isIndirect) {
+    const x = node.renderX, y = node.renderY;
+    if (x === undefined || y === undefined) return;
+    const value = node.displayValue !== undefined ? node.displayValue : node.baseValue;
+    const valuePct = node.valuePct !== undefined ? node.valuePct : value / 100;
+
+    const pulseAmp = prefersReducedMotion ? 0 : (1 + valuePct * 1.5);
+    const pulse = Math.sin(tick * 0.1 + value * 0.05) * pulseAmp;
+    const radius = NODE_RADIUS + pulse;
+
+    if (isHighlighted) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 235, 210, 0.4)';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 235, 210, 0.15)';
+      ctx.fill();
+      ctx.restore();
+    } else if (isIndirect) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 235, 210, 0.2)';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 235, 210, 0.06)';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(30, 39, 56, 0.9)';
+    ctx.fill();
+
+    if (valuePct > 0) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * valuePct);
+      ctx.strokeStyle = node.color || '#CB7858';
+      ctx.lineWidth = NODE_BORDER;
+      ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius - NODE_BORDER - 1, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(39, 50, 72, 0.95)';
+    ctx.fill();
+
+    if (node.icon) {
+      ctx.font = ICON_FONT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(node.icon, x, y - 4);
+    }
+
+    ctx.font = VALUE_FONT;
+    ctx.fillStyle = '#ffebd2';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(Math.round(value).toString(), x, y + 14);
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = LABEL_FONT;
+    ctx.fillStyle = 'rgba(255, 235, 210, 0.7)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const lines = (node.label || '').split('\n');
+    lines.forEach((line, i) => {
+      ctx.fillText(line, x, y + radius + 6 + i * 13);
+    });
+    ctx.restore();
+  }
+
+  function drawMap(mapCtx) {
+    const { ctx, canvas, dpr, nodes, edges, tick, dosages, interventions } = mapCtx;
+    if (!ctx || !canvas) return;
+    const w = canvas.width / dpr;
+    const h = canvas.height / dpr;
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.6);
+    grad.addColorStop(0, 'rgba(39, 50, 72, 1)');
+    grad.addColorStop(1, 'rgba(30, 39, 56, 1)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.fillStyle = 'rgba(255, 235, 210, 0.04)';
+    for (let gx = 40; gx < w; gx += 40) {
+      for (let gy = 40; gy < h; gy += 40) {
+        ctx.beginPath();
+        ctx.arc(gx, gy, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    (edges || []).forEach(e => drawConnection(ctx, e, nodes, tick));
+
+    const highlightedIds = new Set();
+    const indirectIds = new Set();
+    if (interventions && dosages) {
+      interventions.forEach(intv => {
+        if ((dosages[intv.id] || 0) > 0) {
+          const influences = intv.influences || (intv.mapHighlight || []).map(nid => ({ nodeId: nid, weight: 1.0 }));
+          influences.forEach(inf => highlightedIds.add(inf.nodeId));
+        }
+      });
+      (edges || []).forEach(e => {
+        if (highlightedIds.has(e.from) && !highlightedIds.has(e.to)) indirectIds.add(e.to);
+        if (highlightedIds.has(e.to) && !highlightedIds.has(e.from)) indirectIds.add(e.from);
+      });
+    }
+
+    (nodes || []).forEach(n => {
+      drawNode(ctx, n, tick, highlightedIds.has(n.id), indirectIds.has(n.id));
+    });
+
+    ctx.restore();
+  }
+
+  function startAnimation(mapCtx) {
+    if (mapCtx.animId) return;
+    mapCtx.visible = true;
+    function loop() {
+      if (!mapCtx.visible) { mapCtx.animId = null; return; }
+      if (!prefersReducedMotion) mapCtx.tick++;
+      drawMap(mapCtx);
+      mapCtx.animId = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  function stopAnimation(mapCtx) {
+    mapCtx.visible = false;
+    if (mapCtx.animId) {
+      cancelAnimationFrame(mapCtx.animId);
+      mapCtx.animId = null;
+    }
+  }
+
+  function init(container, mapData, interventions) {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'systems-map-canvas';
+    canvas.setAttribute('aria-label', 'reactive systems map showing how interventions affect system variables');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    container.textContent = '';
+    container.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    const mapCtx = {
+      canvas, ctx, dpr: 1, tick: 0, animId: null, visible: false,
+      nodes: mapData ? (mapData.nodes || []).map(n => Object.assign({}, n, { displayValue: n.baseValue, valuePct: n.baseValue / 100 })) : [],
+      edges: mapData ? (mapData.edges || []) : [],
+      interventions: interventions || [],
+      dosages: {},
+    };
+
+    resizeCanvas(mapCtx);
+
+    const ro = new ResizeObserver(() => { resizeCanvas(mapCtx); if (mapCtx.visible) drawMap(mapCtx); });
+    ro.observe(container);
+
+    return mapCtx;
+  }
+
+  window.SystemsMapCanvas = { init, compute: computeNodeValues, draw: drawMap, start: startAnimation, stop: stopAnimation, resize: resizeCanvas };
+})(window);
+
+// ────────────────────────────────────────────
+// lakeshore map data
+// ────────────────────────────────────────────
+const lakeshoreMap = {
+  nodes: [
+    { id: 0, label: 'total\nemissions', icon: '🏭', color: '#B15043', x: 260, y: 30, baseValue: 75 },
+    { id: 1, label: 'mobile', icon: '🚗', color: '#CB7858', x: 80, y: 80, baseValue: 65 },
+    { id: 2, label: 'stationary', icon: '🔥', color: '#CB7858', x: 200, y: 90, baseValue: 70 },
+    { id: 3, label: 'embodied', icon: '🏗️', color: '#CB7858', x: 350, y: 80, baseValue: 60 },
+    { id: 4, label: 'floor\narea', icon: '📐', color: '#6B7589', x: 440, y: 80, baseValue: 55 },
+    { id: 5, label: 'decision\nstructure', icon: '🏛️', color: '#3B82F6', x: 130, y: 165, baseValue: 40 },
+    { id: 6, label: 'institutional\npurpose', icon: '🌊', color: '#22C55E', x: 390, y: 165, baseValue: 35 },
+  ],
+  edges: [
+    { from: 0, to: 1, type: 'amplifying', strength: 0.5, label: '+' },
+    { from: 0, to: 2, type: 'amplifying', strength: 0.5, label: '+' },
+    { from: 0, to: 3, type: 'amplifying', strength: 0.4, label: '+' },
+    { from: 0, to: 4, type: 'amplifying', strength: 0.3, label: '+' },
+    { from: 5, to: 0, type: 'dampening', strength: 0.7, label: '−' },
+    { from: 6, to: 0, type: 'dampening', strength: 0.8, label: '−' },
+    { from: 1, to: 5, type: 'amplifying', strength: 0.4, label: '+' },
+    { from: 3, to: 6, type: 'amplifying', strength: 0.4, label: '+' },
+    { from: 2, to: 5, type: 'amplifying', strength: 0.3, label: '+' },
+    { from: 4, to: 6, type: 'amplifying', strength: 0.3, label: '+' },
+  ],
+};
+
+// ────────────────────────────────────────────
+// rendering
+// ────────────────────────────────────────────
+const interventionData = [
+  {
+    id: 1,
+    title: 'raise the parking permit price by 40%.',
+    body: 'immediate price signal to commuters. targets mobile emissions — commuter, fleet, and business travel.',
+    chip: 'parameter',
+    chipClass: 'chip-parameter',
+    dosage: { label: 'price increase', unit: '%', min: 0, max: 40 },
+    detail: {
+      targets: 'mobile emissions (commuter vehicles, fleet, business travel)',
+      timeline: 'immediate. takes effect next semester.',
+      assumptions: 'price elasticity of ~0.3 — a 40% price rise reduces driving by ~12%. some commuters shift to transit, carpool, or cycling. effect partially rebounds as people adjust.',
+      stakes: '<strong>chair:</strong> easy revenue win. <strong>facilities:</strong> less parking maintenance. <strong>student rep:</strong> hits low-income commuters hardest. <strong>trustee:</strong> minimal risk. <strong>town:</strong> spillover parking on residential streets.',
+    },
+    why: 'this is a <em>parameter-level</em> change — adjusting a number inside the existing system. the curve sags and partially recovers because the system\'s structure hasn\'t changed. people adapt around price signals. meadows calls this the weakest leverage point: "constants, parameters, numbers."',
+    tradeoff: 'every commuter who pays more is a voter on campus. the committee spends political capital fastest on the move that feels most like punishment, and it buys the least emissions for the spend.',
+    mapHighlight: [0, 1],
+    influences: [{ nodeId: 1, weight: 1.0 }, { nodeId: 0, weight: 0.4 }],
+  },
+  {
+    id: 2,
+    title: 'replace the campus boiler with a heat-pump system on a 12-year capital plan.',
+    body: 'long deployment ramp. displaces stationary emissions from heating and cooling over a decade.',
+    chip: 'parameter',
+    chipClass: 'chip-parameter',
+    dosage: { label: 'deployment commitment', unit: '% of plan', min: 0, max: 100 },
+    detail: {
+      targets: 'stationary emissions (heating, cooling, hot water)',
+      timeline: '12-year phased deployment. most reduction visible after year 8.',
+      assumptions: 'heat pumps achieve 3–4× coefficient of performance vs. gas boilers. capital cost ~$45M spread over the plan. grid continues modest decarbonisation, improving heat-pump carbon intensity over time.',
+      stakes: '<strong>chair:</strong> largest capital commitment. <strong>facilities:</strong> years of construction disruption. <strong>student rep:</strong> invisible — no one sees a boiler. <strong>trustee:</strong> $45M is endowment-level. <strong>town:</strong> reduces local air pollutants too.',
+    },
+    why: 'still a <em>parameter-level</em> change, but with a much longer time constant. the 12-year ramp means the committee must sustain political will across multiple leadership cycles. the back-loaded curve is typical of infrastructure: slow to start, powerful once complete. but it\'s still adjusting <em>what flows through</em> the existing system, not the system itself.',
+    tradeoff: 'a decade of capital disruption costs authority the committee needs for everything else. the drop in political capital during the ramp is why most institutions never finish the plan they started.',
+    mapHighlight: [0, 2],
+    influences: [{ nodeId: 2, weight: 1.0 }, { nodeId: 0, weight: 0.5 }],
+  },
+  {
+    id: 3,
+    title: 'mandate that every new building meet living building challenge standards.',
+    body: 'changes the rules for new construction. no effect on existing building stock.',
+    chip: 'rules',
+    chipClass: 'chip-rules',
+    dosage: { label: 'standard stringency', unit: '% of LBC', min: 0, max: 100 },
+    detail: {
+      targets: 'embodied + stationary emissions in new construction only',
+      timeline: 'takes effect on next building project. compounds as campus grows.',
+      assumptions: 'campus floor area grows ~2%/year. new buildings at LBC standard use ~85% less operational energy and ~75% less embodied carbon than conventional. no retrofit effect on existing stock.',
+      stakes: '<strong>chair:</strong> increases construction costs 15–20%. <strong>facilities:</strong> simpler systems, but unfamiliar. <strong>student rep:</strong> visible flagship buildings. <strong>trustee:</strong> higher per-project cost, lower lifecycle cost. <strong>town:</strong> sets a precedent for municipal code.',
+    },
+    why: 'this is a <em>rules-level</em> change — it changes what is permitted. unlike parameters, rules reshape the <em>structure</em> of future decisions. every building project from now on asks a different question. the curve bends more slowly than a parameter change but doesn\'t rebound, because the rule persists after the committee that made it is gone.',
+    tradeoff: 'a modest cost in political capital during the early cost-overrun years on new projects. rules that bite first, reward later.',
+    mapHighlight: [0, 3, 4],
+    influences: [{ nodeId: 3, weight: 0.8 }, { nodeId: 4, weight: 0.6 }, { nodeId: 0, weight: 0.3 }],
+  },
+  {
+    id: 4,
+    title: 'give the student rep and the town liaison binding votes on capital-project approvals.',
+    body: 'changes who decides. does not directly reduce emissions — changes which interventions get approved next.',
+    chip: 'rules',
+    chipClass: 'chip-rules',
+    dosage: { label: 'governance reform depth', unit: '% adoption', min: 0, max: 100 },
+    detail: {
+      targets: 'decision-making structure (indirect effect on all emission categories)',
+      timeline: 'governance change takes effect immediately. emission effects emerge over 3–5 years as different projects get approved.',
+      assumptions: 'new voting members have stronger sustainability preferences. their influence creates an exogenous drift toward lower-carbon capital decisions. the effect is indirect — they don\'t reduce emissions, they change which proposals pass.',
+      stakes: '<strong>chair:</strong> loses control of capital agenda. <strong>facilities:</strong> may get mandates they didn\'t ask for. <strong>student rep:</strong> <em>gains binding power</em> for the first time. <strong>trustee:</strong> dilution of fiduciary influence. <strong>town:</strong> <em>gains binding power</em> — campus decisions now affect town planning.',
+    },
+    why: 'this is a deeper <em>rules-level</em> change — it changes <em>who decides</em>, not just what\'s permitted. the curve shows an indirect but compounding effect because every future decision now passes through a different filter. if you\'re playing roles, this is the moment the student rep and town liaison feel the shift — they\'ve just gained real power at the table.',
+    tradeoff: 'the chair loses a lever and spends early political capital to accept the loss. by year two the system has absorbed the new composition; by year five the chair\'s authority is restored at a new equilibrium.',
+    mapHighlight: [0, 5, 6],
+    influences: [{ nodeId: 5, weight: 1.0 }, { nodeId: 6, weight: 0.5 }, { nodeId: 0, weight: 0.2 }],
+  },
+  {
+    id: 5,
+    title: 'reframe the institution\'s purpose statement to include stewardship of the watershed. re-charter every decision-making body to be accountable to both.',
+    body: 'changes the question every other intervention is being asked. paradigm-level shift.',
+    chip: 'goals & paradigms',
+    chipClass: 'chip-goals',
+    dosage: { label: 'purpose reframe depth', unit: '% commitment', min: 0, max: 100 },
+    detail: {
+      targets: 'all emission categories simultaneously — reframes every prior intervention',
+      timeline: 'immediate reframing. effects compound as institutional culture shifts.',
+      assumptions: 'every existing intervention (run or not) is now evaluated against a dual mandate: educational mission + watershed stewardship. this multiplies the effectiveness of all other interventions and adds a purpose-driven drift that compounds annually.',
+      stakes: '<strong>chair:</strong> accountability expands beyond operations. <strong>facilities:</strong> every maintenance decision becomes a stewardship decision. <strong>student rep:</strong> this is what they came for. <strong>trustee:</strong> fiduciary duty now includes ecological duty. <strong>town:</strong> the institution becomes a watershed partner, not just a neighbour.',
+    },
+    why: 'this is a <em>paradigm-level</em> change — the highest leverage point. it doesn\'t just change parameters, rules, or even goals. it changes the <em>question</em> every other decision is being asked. the curve drops furthest because every intervention is now multiplied by institutional purpose. meadows: "the power to transcend paradigms" — the system bends because its identity has shifted.',
+    tradeoff: 'a deep early fall in political capital as factions realign — then a recovery above baseline. the re-charter is the only intervention that eventually returns more authority than it spends. for eighteen months, it looks like committee suicide.',
+    mapHighlight: [0, 1, 2, 3, 4, 5, 6],
+    influences: [{ nodeId: 6, weight: 1.0 }, { nodeId: 5, weight: 0.7 }, { nodeId: 0, weight: 0.6 }, { nodeId: 1, weight: 0.3 }, { nodeId: 2, weight: 0.3 }, { nodeId: 3, weight: 0.3 }, { nodeId: 4, weight: 0.3 }],
+  },
+];
+
+function hasOppositeTradeoff(id) {
+  // primary is emissions (↓ good); secondary is PC (↑ good)
+  // opposite-direction move = primary down (improvement) while secondary drops (cost)
+  // in lakeshore every non-neutral run costs some PC — but we only surface the follow-up
+  // when the secondary end-value remains below baseline (still a net cost) AND primary improved
+  const traj = state.trajectories[id];
+  const pcHist = state.politicalCapitalHistory[id];
+  if (!traj || !pcHist) return false;
+  const primaryEnd = traj[traj.length - 1];
+  const primaryBaseEnd = baseline[baseline.length - 1];
+  const primaryImproved = primaryEnd < primaryBaseEnd; // emissions down = good
+  const secondaryEnd = pcHist[pcHist.length - 1];
+  const secondaryHarmed = secondaryEnd < SECONDARY.baseline - 0.01; // PC below baseline = cost
+  // Also surface if there's a meaningful mid-run dip even when end recovers
+  const minPc = Math.min(...pcHist);
+  const midDip = minPc < SECONDARY.baseline - 0.12;
+  return primaryImproved && (secondaryHarmed || midDip);
+}
+
+function buildCards() {
+  const stack = document.getElementById('card-stack');
+  stack.innerHTML = '';
+  interventionData.forEach(d => {
+    const wasRun = state.interventionsRun.includes(d.id);
+    const result = state.trajectories[d.id];
+    const lastVal = result ? result[result.length - 1] : null;
+    const blLast = baseline[baseline.length - 1];
+    const reductionPct = lastVal !== null ? ((1 - lastVal / blLast) * 100).toFixed(0) : null;
+
+    const card = document.createElement('div');
+    const isLocked = state.committed && d.id === 5 && state.interventionsRun.length < 2 && !wasRun;
+    const isCommitted = state.committedId === d.id;
+    card.className = 'intervention-card' + (wasRun ? ' was-run' : '') + (isLocked ? ' locked' : '') + (isCommitted ? ' committed' : '');
+    const detailOpen = state.detailOpen && state.detailOpen[d.id];
+    card.innerHTML = `
+      ${isLocked ? `<div class="card-lock-overlay"><span class="lock-icon" aria-hidden="true">&#x1F512;</span><span class="lock-tooltip">run at least 2 interventions first</span></div>` : ''}
+      <div class="card-header">
+        <span class="card-number">${d.id}.</span>
+        <span class="card-title">${d.title}</span>
+        <span class="leverage-chip ${d.chipClass}">${d.chip}</span>${isCommitted ? '<span class="committed-badge">your choice</span>' : ''}
+      </div>
+      <div class="card-body">${d.body}</div>
+      <button class="card-detail-toggle" data-detail-id="${d.id}" aria-expanded="${detailOpen ? 'true' : 'false'}">${detailOpen ? '− less detail' : '+ more detail'}</button>
+      <div class="card-detail ${detailOpen ? 'open' : ''}" id="detail-${d.id}">
+        <dl>
+          <dt>targets</dt><dd>${d.detail.targets}</dd>
+          <dt>timeline</dt><dd>${d.detail.timeline}</dd>
+          <dt>assumptions</dt><dd>${d.detail.assumptions}</dd>
+          <dt>at the table</dt><dd>${d.detail.stakes}</dd>
+        </dl>
+      </div>
+      ${wasRun ? `
+        <div class="surprise-wrap" data-surprise-card="${d.id}">
+          <div class="surprise-prompt" id="surprise-prompt-${d.id}">did that match what you expected?</div>
+          <div class="surprise-chips" role="radiogroup" aria-labelledby="surprise-prompt-${d.id}">
+            ${['yes', 'sort of', 'no'].map((v, i) => {
+              const chosen = state.surprise[d.id];
+              const isChosen = chosen === v;
+              const isFirstFocusable = chosen ? isChosen : i === 0;
+              return `<button type="button" class="surprise-chip" data-surprise-id="${d.id}" data-surprise-val="${v}" role="radio" aria-pressed="${isChosen ? 'true' : 'false'}" tabindex="${isFirstFocusable ? '0' : '-1'}">${v}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+      ${wasRun && state.surprise[d.id] ? `<div class="card-why open">${d.why}${d.tradeoff ? '<span class="tradeoff-line">' + d.tradeoff + '</span>' : ''}</div>` : ''}
+      ${wasRun && state.surprise[d.id] && hasOppositeTradeoff(d.id) && !state.tradeoffNoticed[d.id] ? `
+        <div class="tradeoff-wrap">
+          <div class="tradeoff-prompt" id="tradeoff-prompt-${d.id}">notice the second chart — was that trade-off visible to you when you chose?</div>
+          <div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-${d.id}">
+            <button type="button" class="surprise-chip" data-tradeoff-id="${d.id}" data-tradeoff-val="yes" role="radio" aria-pressed="false" tabindex="0">yes</button>
+            <button type="button" class="surprise-chip" data-tradeoff-id="${d.id}" data-tradeoff-val="no" role="radio" aria-pressed="false" tabindex="-1">no</button>
+          </div>
+        </div>
+      ` : ''}
+      ${wasRun && state.surprise[d.id] && hasOppositeTradeoff(d.id) && state.tradeoffNoticed[d.id] ? `
+        <div class="tradeoff-wrap">
+          <div class="tradeoff-prompt" id="tradeoff-prompt-${d.id}">notice the second chart — was that trade-off visible to you when you chose?</div>
+          <div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-${d.id}">
+            ${['yes','no'].map((v,i) => {
+              const chosen = state.tradeoffNoticed[d.id];
+              const isChosen = chosen === v;
+              return `<button type="button" class="surprise-chip" data-tradeoff-id="${d.id}" data-tradeoff-val="${v}" role="radio" aria-pressed="${isChosen ? 'true' : 'false'}" tabindex="${isChosen ? '0' : '-1'}">${v}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+      <div class="card-footer">
+        ${state.committed ? (function() {
+          const intv = interventionData.find(x => x.id === d.id);
+          const dosageInfo = intv.dosage;
+          const currentDosage = state.dosages[d.id] || 0;
+          const currentVal = dosageInfo
+            ? Math.round(dosageInfo.min + currentDosage * (dosageInfo.max - dosageInfo.min))
+            : Math.round(currentDosage * 100);
+          const unit = dosageInfo ? dosageInfo.unit : '%';
+          const label = dosageInfo ? dosageInfo.label : 'dosage';
+          const votingRow = d.id <= 3 && state.interventionsRun.includes(4) && !state.rechartered
+            ? '<label class="voting-bloc-label visible" aria-label="run with new voting bloc"><input type="checkbox" ' + (state.withVotingBloc[d.id] ? 'checked' : '') + ' data-voting-id="' + d.id + '"><span>with new voting bloc</span></label>'
+            : '';
+          return '<div class="dosage-slider-wrap">' +
+            '<div class="dosage-header">' +
+              '<span class="dosage-label">' + label + '</span>' +
+              '<span class="dosage-dosage">' + currentVal + unit + '</span>' +
+            '</div>' +
+            '<input type="range" class="dosage-slider" data-slider-id="' + d.id + '" min="0" max="100" value="' + Math.round(currentDosage * 100) + '" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(currentDosage * 100) + '">' +
+            '<span class="card-meta">25-year reduction: ' + (reductionPct !== null ? '<span class="result-value">~' + reductionPct + '%</span>' : '\u2014') + '</span>' +
+            votingRow +
+          '</div>';
+        })() : '<span class="card-meta"></span><button class="btn-choose" data-choose-id="' + d.id + '" aria-label="choose intervention ' + d.id + '">this is my decision</button>'}
+      </div>
+    `;
+    stack.appendChild(card);
+  });
+
+  // bind lock overlay shake
+  stack.querySelectorAll('.card-lock-overlay').forEach(overlay => {
+    overlay.addEventListener('click', () => {
+      const card = overlay.closest('.intervention-card');
+      card.classList.remove('shake');
+      void card.offsetWidth; // reflow to re-trigger
+      card.classList.add('shake');
+    });
+  });
+
+  // bind detail toggles
+  stack.querySelectorAll('[data-detail-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.detailId);
+      const newOpen = { ...state.detailOpen };
+      newOpen[id] = !newOpen[id];
+      setState({ detailOpen: newOpen });
+      // update systems map
+      updateCanvasMap();
+    });
+  });
+
+  // bind dosage sliders (analysis mode)
+  stack.querySelectorAll('.dosage-slider').forEach(slider => {
+    let debounceTimer = null;
+    slider.addEventListener('input', () => {
+      state.sliderActive = true;
+      const id = parseInt(slider.dataset.sliderId);
+      const dosageEl = slider.closest('.dosage-slider-wrap').querySelector('.dosage-dosage');
+      const metaEl = slider.closest('.dosage-slider-wrap').querySelector('.card-meta');
+      const intv = interventionData.find(x => x.id === id);
+      const fraction = parseInt(slider.value) / 100;
+      const displayVal = intv.dosage
+        ? Math.round(intv.dosage.min + fraction * (intv.dosage.max - intv.dosage.min))
+        : slider.value;
+      const unit = intv.dosage ? intv.dosage.unit : '%';
+      if (dosageEl) dosageEl.textContent = displayVal + unit;
+      slider.setAttribute('aria-valuenow', slider.value);
+      if (debounceTimer) cancelAnimationFrame(debounceTimer);
+      debounceTimer = requestAnimationFrame(() => {
+        handleRunIntervention(id, fraction);
+        logger.logSlider(id, fraction);
+        // update result value in-place without rebuilding cards
+        if (metaEl) {
+          const result = state.trajectories[id];
+          const lastVal = result ? result[result.length - 1] : null;
+          const blLast = baseline[baseline.length - 1];
+          if (lastVal !== null) {
+            const pct = ((1 - lastVal / blLast) * 100).toFixed(0);
+            metaEl.textContent = '';
+            metaEl.append('25-year reduction: ');
+            const span = document.createElement('span');
+            span.className = 'result-value';
+            span.textContent = '~' + pct + '%';
+            metaEl.appendChild(span);
+          }
+        }
+      });
+    });
+    slider.addEventListener('change', () => {
+      state.sliderActive = false;
+      buildCards();
+    });
+  });
+
+  // bind choose buttons (explore mode)
+  stack.querySelectorAll('[data-choose-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.chooseId);
+      showCommitConfirm(id);
+    });
+  });
+  // bind surprise chips
+  stack.querySelectorAll('.surprise-chips').forEach(group => {
+    const chips = Array.from(group.querySelectorAll('.surprise-chip'));
+    chips.forEach((chip, idx) => {
+      chip.addEventListener('click', () => {
+        const id = parseInt(chip.dataset.surpriseId);
+        const val = chip.dataset.surpriseVal;
+        chips.forEach(c => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
+        const newSurprise = { ...state.surprise, [id]: val };
+        setState({ surprise: newSurprise });
+        saveReflect();
+        logger.log('surprise_response', { interventionId: id, response: val });
+      });
+      chip.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = chips[(idx + 1) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          next.setAttribute('tabindex', '0');
+          next.focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prev = chips[(idx - 1 + chips.length) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          prev.setAttribute('tabindex', '0');
+          prev.focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          chip.click();
+        }
+      });
+    });
+  });
+
+  // bind trade-off follow-up chips
+  stack.querySelectorAll('[data-tradeoff-id]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const id = parseInt(chip.dataset.tradeoffId);
+      const val = chip.dataset.tradeoffVal;
+      const newTn = { ...state.tradeoffNoticed, [id]: val };
+      setState({ tradeoffNoticed: newTn });
+      saveReflect();
+      logger.log('tradeoff_noticed', { interventionId: id, response: val });
+    });
+  });
+
+  stack.querySelectorAll('[data-voting-id]').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      const id = parseInt(cb.dataset.votingId);
+      const newBloc = { ...state.withVotingBloc };
+      newBloc[id] = e.target.checked;
+      setState({ withVotingBloc: newBloc });
+      if (state.interventionsRun.includes(id)) {
+        handleRunIntervention(id, state.dosages[id] || 1);
+      }
+    });
+  });
+}
+
+function updateCanvasMap() {
+  if (window._mapCtx) {
+    SystemsMapCanvas.compute(window._mapCtx.nodes, window._mapCtx.edges, state.dosages, interventionData);
+    if (!window._mapCtx.visible) SystemsMapCanvas.draw(window._mapCtx);
+  }
+}
+
+function handleRunIntervention(id, dosageFraction) {
+  // dismiss onboarding hint & chart placeholder
+  const hintCards = document.getElementById('hint-cards');
+  if (hintCards) hintCards.style.display = 'none';
+  const placeholder = document.getElementById('chart-placeholder');
+  if (placeholder) placeholder.classList.add('hidden');
+
+  const df = dosageFraction !== undefined ? dosageFraction : 1;
+
+  // eagerly update dosage so canvas map reflects current slider position
+  state.dosages = { ...state.dosages, [id]: df };
+
+  // intervention 5: show recharter modal on first activation
+  if (id === 5 && !state.rechartered && df > 0) {
+    state._pendingRecharterDosage = df;
+    document.getElementById('modal-recharter').classList.add('active');
+    return;
+  }
+
+  if (id === 5) {
+    const result = combinedTrajectory(df);
+    const newTrajectories = { ...state.trajectories };
+    // re-run 1–4 with boosted multipliers (voting bloc on)
+    for (let i = 1; i <= 4; i++) {
+      newTrajectories[i] = runIntervention(i, state.dosages[i] || 1, { withVotingBloc: true }).trajectory;
+    }
+    newTrajectories[5] = result.trajectory;
+    const newRun = [1, 2, 3, 4, 5].filter(i => state.interventionsRun.includes(i) || i === 5);
+    setState({
+      interventionsRun: newRun.length === 5 ? newRun : [...new Set([...state.interventionsRun, 5])],
+      trajectories: newTrajectories,
+      dosages: { ...state.dosages, [id]: df },
+      politicalCapital: result.pcTimeline[result.pcTimeline.length - 1],
+      politicalCapitalHistory: { ...state.politicalCapitalHistory, 5: result.pcTimeline },
+      currentAnimYear: 2050,
+    });
+    updateDecisionsChart(id);
+    updateEndpointLabels();
+    updateCanvasMap();
+    return;
+  }
+
+  const opts = { withVotingBloc: id <= 3 && state.withVotingBloc[id] };
+  const result = runIntervention(id, df, opts);
+  const newRun = state.interventionsRun.includes(id)
+    ? state.interventionsRun
+    : [...state.interventionsRun, id];
+
+  // update year ticker to 2050 on first interaction
+  const ticker = document.getElementById('year-ticker');
+  if (ticker) ticker.textContent = '2050';
+
+  setState({
+    interventionsRun: newRun,
+    trajectories: { ...state.trajectories, [id]: result.trajectory },
+    dosages: { ...state.dosages, [id]: df },
+    politicalCapital: result.pcTimeline[result.pcTimeline.length - 1],
+    politicalCapitalHistory: { ...state.politicalCapitalHistory, [id]: result.pcTimeline },
+    currentAnimYear: 2050,
+  });
+
+  updateDecisionsChart(id);
+  updateEndpointLabels();
+  updateCanvasMap();
+}
+
+function handleRecharterContinue() {
+  document.getElementById('modal-recharter').classList.remove('active');
+
+  const df = state._pendingRecharterDosage || 1;
+  const result = combinedTrajectory(df);
+  const newTrajectories = { ...state.trajectories };
+  for (let i = 1; i <= 4; i++) {
+    newTrajectories[i] = runIntervention(i, state.dosages[i] || 1, { withVotingBloc: true }).trajectory;
+  }
+  newTrajectories[5] = result.trajectory;
+
+  const ticker = document.getElementById('year-ticker');
+  if (ticker) ticker.textContent = '2050';
+
+  setState({
+    interventionsRun: [...new Set([...state.interventionsRun, 5])],
+    trajectories: newTrajectories,
+    dosages: { ...state.dosages, 5: df },
+    politicalCapital: result.pcTimeline[result.pcTimeline.length - 1],
+    politicalCapitalHistory: { ...state.politicalCapitalHistory, 5: result.pcTimeline },
+    rechartered: true,
+    currentAnimYear: 2050,
+  });
+
+  updateDecisionsChart(5);
+  updateEndpointLabels();
+  updateCanvasMap();
+  logger.log('recharter_confirmed', { dosage: df });
+}
+
+function getTrajectoryColor(id, forPattern = false) {
+  // intervention 5 = goals & paradigms (highest leverage); champagne contrasts on cadet bg
+  if (id === 5) return COLORS.champagne;
+  if (forPattern) {
+    if (id <= 2) return 'rgba(203, 120, 88, 0.55)';
+    if (id === 3) return 'rgba(203, 120, 88, 0.75)';
+    if (id === 4) return 'rgba(203, 120, 88, 0.95)';
+  }
+  return COLORS.sienna;
+}
+
+function updateDecisionsChart(highlightId = null) {
+  const canvas = document.getElementById('chart-decisions');
+  const ctx = canvas.getContext('2d');
+
+  const datasets = [makeBaselineDataset(0.5), makeNetZeroDataset()];
+
+  state.interventionsRun.forEach(id => {
+    const traj = state.trajectories[id];
+    if (!traj) return;
+    const isHighlight = id === highlightId;
+    datasets.push({
+      label: 'intervention ' + id,
+      data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
+      borderWidth: isHighlight ? 2.5 : 1.5,
+      pointRadius: 0,
+      order: isHighlight ? 1 : 5,
+    });
+  });
+
+  if (chartDecisions) {
+    chartDecisions.data.datasets = datasets;
+    chartDecisions.options.animation = { duration: reducedMotion ? 0 : 800, easing: 'easeOutQuart' };
+    chartDecisions.update();
+  } else {
+    chartDecisions = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: makeChartOptions(),
+    });
+  }
+
+  updateSecondaryChart(highlightId);
+}
+
+function updateSecondaryChart(highlightId = null) {
+  const canvas = document.getElementById('chart-secondary');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const datasets = [makeSecondaryBaselineDataset()];
+
+  state.interventionsRun.forEach(id => {
+    const pcHist = state.politicalCapitalHistory[id];
+    if (!pcHist) return;
+    const isHighlight = id === highlightId;
+    datasets.push({
+      label: 'intervention ' + id,
+      data: YEARS.map((y, i) => ({ x: y, y: pcHist[i] })),
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
+      borderWidth: isHighlight ? 2.5 : 1.5,
+      pointRadius: 0,
+      order: isHighlight ? 1 : 5,
+    });
+  });
+
+  if (chartSecondary) {
+    chartSecondary.data.datasets = datasets;
+    chartSecondary.options.animation = { duration: reducedMotion ? 0 : 800, easing: 'easeOutQuart' };
+    chartSecondary.update();
+  } else {
+    chartSecondary = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: makeSecondaryChartOptions(),
+    });
+  }
+}
+
+function updateEndpointLabels() {
+  const container = document.getElementById('endpoint-labels');
+  if (!container || !chartDecisions) return;
+  container.innerHTML = '';
+
+  const chart = chartDecisions;
+
+  state.interventionsRun.forEach(id => {
+    const traj = state.trajectories[id];
+    if (!traj) return;
+
+    const dsIdx = chart.data.datasets.findIndex(ds => ds.label === 'intervention ' + id);
+    if (dsIdx < 0) return;
+    const dsMeta = chart.getDatasetMeta(dsIdx);
+    if (!dsMeta || !dsMeta.data || dsMeta.data.length === 0) return;
+
+    const lastPoint = dsMeta.data[dsMeta.data.length - 1];
+    if (!lastPoint) return;
+
+    const label = document.createElement('div');
+    label.className = 'endpoint-label';
+    label.style.color = id === 5 ? COLORS.cadet : COLORS.sienna;
+    label.style.left = (lastPoint.x + 6) + 'px';
+    label.style.top = (lastPoint.y - 8) + 'px';
+    label.textContent = id;
+    container.appendChild(label);
+  });
+}
+
+function updatePcMeter(value) {
+  const indicator = document.getElementById('pc-indicator');
+  const warning = document.getElementById('pc-warning');
+  const pct = Math.max(0, Math.min(1, value / 2)) * 100;
+  indicator.style.left = 'calc(' + pct + '% - 8px)';
+  warning.textContent = value < 0.5 ? 'the committee is at the edge of its authority.' : '';
+}
+
+function initBaselineChart() {
+  const canvas = document.getElementById('chart-baseline');
+  const ctx = canvas.getContext('2d');
+
+  chartBaseline = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'baseline',
+          data: YEARS.map((y, i) => ({ x: y, y: baseline[i] })),
+          borderColor: COLORS.sienna,
+          borderWidth: 2.5,
+          pointRadius: 0,
+          fill: false,
+        },
+        makeNetZeroDataset(),
+      ],
+    },
+    options: makeChartOptions({ animDuration: 2000 }),
+  });
+}
+
+function initPatternChart() {
+  const canvas = document.getElementById('chart-pattern');
+  const ctx = canvas.getContext('2d');
+
+  const allTrajs = computeAllTrajectories();
+  const datasets = [makeBaselineDataset(0.3), makeNetZeroDataset()];
+
+  [1, 2, 3, 4, 5].forEach(id => {
+    datasets.push({
+      label: 'intervention ' + id,
+      data: YEARS.map((y, i) => ({ x: y, y: allTrajs[id][i] })),
+      borderColor: getTrajectoryColor(id, true),
+      borderWidth: id === 5 ? 3 : 2,
+      pointRadius: 0,
+      order: id === 5 ? 1 : 5,
+    });
+  });
+
+  if (chartPattern) chartPattern.destroy();
+
+  chartPattern = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: makeChartOptions({ animDuration: 1500 }),
+  });
+
+  // secondary pattern chart
+  const sCanvas = document.getElementById('chart-pattern-secondary');
+  if (!sCanvas) return;
+  const sCtx = sCanvas.getContext('2d');
+
+  const allPc = {};
+  for (let i = 1; i <= 4; i++) allPc[i] = runIntervention(i, 1).pcTimeline;
+  allPc[5] = combinedTrajectory(1).pcTimeline;
+
+  const sDatasets = [makeSecondaryBaselineDataset()];
+  [1, 2, 3, 4, 5].forEach(id => {
+    sDatasets.push({
+      label: 'intervention ' + id,
+      data: YEARS.map((y, i) => ({ x: y, y: allPc[id][i] })),
+      borderColor: getTrajectoryColor(id, true),
+      borderWidth: id === 5 ? 3 : 2,
+      pointRadius: 0,
+      order: id === 5 ? 1 : 5,
+    });
+  });
+
+  if (chartPatternSecondary) chartPatternSecondary.destroy();
+  chartPatternSecondary = new Chart(sCtx, {
+    type: 'line',
+    data: { datasets: sDatasets },
+    options: makeSecondaryChartOptions(),
+  });
+}
+
+// ────────────────────────────────────────────
+// screen management
+// ────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (el) el.classList.add('active');
+  setState({ screen: name });
+
+  if (name === 'baseline' && !chartBaseline) {
+    setTimeout(initBaselineChart, 50);
+  }
+  if (name === 'decisions') {
+    updateExploreMode();
+    buildCards();
+    if (state.committed && !chartDecisions) setTimeout(() => updateDecisionsChart(null), 50);
+    if (state.committed) updatePcMeter(state.politicalCapital);
+  }
+  if (name === 'pattern') {
+    setTimeout(initPatternChart, 50);
+    renderExport();
+  }
+}
+
+function updateExploreMode() {
+  const screen = document.getElementById('screen-decisions');
+  const prompt = document.getElementById('explore-prompt');
+  if (!state.committed) {
+    screen.classList.add('decisions-explore');
+    if (prompt) prompt.style.display = '';
+  } else {
+    screen.classList.remove('decisions-explore');
+    if (prompt) prompt.style.display = 'none';
+  }
+}
+
+function render() {
+  if (state.screen === 'decisions') {
+    if (!state.sliderActive) buildCards();
+    updateExploreMode();
+    if (state.committed) updatePcMeter(state.politicalCapital);
+    const patternBtn = document.getElementById('btn-see-pattern');
+    if (patternBtn) patternBtn.classList.toggle('visible', state.rechartered);
+  }
+}
+
+// ────────────────────────────────────────────
+// commitment flow
+// ────────────────────────────────────────────
+let pendingCommitId = null;
+
+function showCommitConfirm(id) {
+  pendingCommitId = id;
+  const intv = interventionData.find(x => x.id === id);
+  document.getElementById('commit-confirm-title').textContent = 'your decision: "' + intv.title + '"';
+  const ta = document.getElementById('hypo-textarea');
+  if (ta) {
+    ta.value = state.hypothesis || '';
+    updateHypoUi();
+    setTimeout(() => ta.focus(), 50);
+  }
+  document.getElementById('commit-confirm').classList.add('visible');
+}
+
+function updateHypoUi() {
+  const ta = document.getElementById('hypo-textarea');
+  const counter = document.getElementById('hypo-counter');
+  const hint = document.getElementById('hypo-hint');
+  const btn = document.getElementById('btn-commit-confirm');
+  if (!ta || !btn) return;
+  const len = ta.value.length;
+  const trimmedLen = ta.value.trim().length;
+  if (counter) counter.textContent = String(len);
+  if (counter) counter.classList.toggle('over', len >= 240);
+  if (hint) hint.textContent = trimmedLen >= 10 ? '\u00A0' : 'at least 10 characters.';
+  btn.disabled = trimmedLen < 10;
+}
+
+// ────────────────────────────────────────────
+// summary export
+// ────────────────────────────────────────────
+function buildExportPlainText() {
+  const lines = [];
+  lines.push('LAKESHORE COLLEGE SUSTAINABILITY COMMITTEE');
+  lines.push('mandate: bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.');
+  lines.push('');
+  // trade-off headline
+  const ran = state.interventionsRun;
+  const withOpposite = ran.filter(id => hasOppositeTradeoff(id));
+  const noticed = withOpposite.filter(id => state.tradeoffNoticed[id] === 'yes');
+  if (ran.length > 0) {
+    lines.push('you ran ' + ran.length + ' intervention' + (ran.length === 1 ? '' : 's') + '. ' + withOpposite.length + ' of them improved the primary while damaging the secondary. you noticed ' + noticed.length + ' of those at the time.');
+    lines.push('');
+  }
+  const committed = state.committedId ? interventionData.find(x => x.id === state.committedId) : null;
+  lines.push('your committed decision: ' + (committed ? committed.title : '(none committed)'));
+  lines.push('your hypothesis: ' + (state.hypothesis || '(none recorded)'));
+  lines.push('');
+  lines.push('interventions (primary: emissions tCO2e · secondary: political capital, 1.0 = neutral):');
+  interventionData.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const pcHist = state.politicalCapitalHistory[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const lastPc = pcHist ? pcHist[pcHist.length - 1] : null;
+    const surprise = state.surprise[d.id] || 'not run';
+    const tn = state.tradeoffNoticed[d.id];
+    const primaryStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO2e' : '—';
+    const secondaryStr = lastPc !== null ? lastPc.toFixed(2) + ' PC' : '—';
+    const tnStr = tn ? ' — trade-off noticed: ' + tn : '';
+    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + tnStr + ' — primary: ' + primaryStr + ' — secondary: ' + secondaryStr);
+  });
+  lines.push('');
+  lines.push('what shifted: ' + (state.shifted || '(blank)'));
+  return lines.join('\n');
+}
+
+function renderExport() {
+  const titleEl = document.getElementById('export-committed-title');
+  const hypoEl = document.getElementById('export-hypothesis');
+  const list = document.getElementById('export-interventions');
+  const shiftedTa = document.getElementById('shifted-textarea');
+  if (!list) return;
+
+  if (state.committedId) {
+    const c = interventionData.find(x => x.id === state.committedId);
+    titleEl.innerHTML = c ? c.title : '<em>none committed.</em>';
+  } else {
+    titleEl.innerHTML = '<em>none committed.</em>';
+  }
+  hypoEl.innerHTML = state.hypothesis ? state.hypothesis.replace(/&/g,'&amp;').replace(/</g,'&lt;') : '<em>none recorded.</em>';
+
+  list.innerHTML = '';
+  interventionData.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const pcHist = state.politicalCapitalHistory[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const lastPc = pcHist ? pcHist[pcHist.length - 1] : null;
+    const surprise = state.surprise[d.id];
+    const tn = state.tradeoffNoticed[d.id];
+    const valStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO\u2082e' : '—';
+    const pcStr = lastPc !== null ? 'PC ' + lastPc.toFixed(2) : 'PC —';
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="export-li-num">' + d.id + '.</span>' +
+      '<span class="export-li-title">' + d.title.replace(/</g,'&lt;') + '</span>' +
+      '<span class="export-li-tier">' + d.chip + '</span>' +
+      '<span class="export-li-surprise">surprise: ' + (surprise || 'not run') + (tn ? ' · trade-off noticed: ' + tn : '') + '</span>' +
+      '<span class="export-li-value">' + valStr + ' · ' + pcStr + '</span>';
+    list.appendChild(li);
+  });
+
+  // trade-off headline
+  const headlineEl = document.getElementById('export-tradeoff-headline');
+  if (headlineEl) {
+    const ran = state.interventionsRun;
+    const withOpposite = ran.filter(id => hasOppositeTradeoff(id));
+    const noticed = withOpposite.filter(id => state.tradeoffNoticed[id] === 'yes');
+    if (ran.length > 0) {
+      headlineEl.textContent = 'you ran ' + ran.length + ' intervention' + (ran.length === 1 ? '' : 's') + '. ' + withOpposite.length + ' of them improved the primary while damaging the secondary. you noticed ' + noticed.length + ' of those at the time.';
+      headlineEl.style.display = '';
+    } else {
+      headlineEl.style.display = 'none';
+    }
+  }
+
+  if (shiftedTa && shiftedTa.value !== state.shifted) {
+    shiftedTa.value = state.shifted || '';
+  }
+}
+
+// ────────────────────────────────────────────
+// event bindings
+// ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadReflect();
+
+  const hypoTa = document.getElementById('hypo-textarea');
+  if (hypoTa) {
+    hypoTa.addEventListener('input', () => {
+      state.hypothesis = hypoTa.value;
+      updateHypoUi();
+      saveReflect();
+    });
+    updateHypoUi();
+  }
+
+  document.getElementById('btn-commit-back').addEventListener('click', () => {
+    document.getElementById('commit-confirm').classList.remove('visible');
+    pendingCommitId = null;
+  });
+
+  document.getElementById('btn-commit-confirm').addEventListener('click', () => {
+    if (state.hypothesis.trim().length < 10) return;
+    document.getElementById('commit-confirm').classList.remove('visible');
+    const id = pendingCommitId;
+    pendingCommitId = null;
+    setState({ committed: true, committedId: id, dosages: { ...state.dosages, [id]: 1 } });
+    logger.log('committed', { interventionId: id, hypothesis: state.hypothesis });
+    setTimeout(() => handleRunIntervention(id, 1), 400);
+  });
+
+  // shifted textarea (export)
+  const shiftedTa = document.getElementById('shifted-textarea');
+  if (shiftedTa) {
+    shiftedTa.value = state.shifted || '';
+    shiftedTa.addEventListener('input', () => {
+      state.shifted = shiftedTa.value;
+      saveReflect();
+    });
+  }
+
+  // export buttons
+  const btnPdf = document.getElementById('btn-export-pdf');
+  if (btnPdf) btnPdf.addEventListener('click', () => window.print());
+
+  const btnCopy = document.getElementById('btn-export-copy');
+  const toast = document.getElementById('export-toast');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', async () => {
+      const txt = buildExportPlainText();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(txt);
+        } else {
+          const tmp = document.createElement('textarea');
+          tmp.value = txt;
+          document.body.appendChild(tmp);
+          tmp.select();
+          document.execCommand('copy');
+          document.body.removeChild(tmp);
+        }
+        if (toast) {
+          toast.textContent = 'copied.';
+          toast.classList.add('visible');
+          setTimeout(() => toast.classList.remove('visible'), 1800);
+        }
+      } catch (e) {
+        if (toast) {
+          toast.textContent = 'copy failed.';
+          toast.classList.add('visible');
+          setTimeout(() => toast.classList.remove('visible'), 1800);
+        }
+      }
+    });
+  }
+
+  // initialise canvas systems map
+  const mapContainer = document.getElementById('systems-map-wrap');
+  if (mapContainer) {
+    window._mapCtx = SystemsMapCanvas.init(mapContainer, lakeshoreMap, interventionData);
+    // on wide screens both panels are visible — auto-start animation
+    if (window.matchMedia('(min-width: 1400px)').matches && window._mapCtx) {
+      SystemsMapCanvas.start(window._mapCtx);
+    }
+  }
+
+  // tab toggle: charts vs systems map
+  const tabCharts = document.getElementById('tab-charts');
+  const tabMap = document.getElementById('tab-map');
+  const panelCharts = document.getElementById('panel-charts');
+  const panelMap = document.getElementById('panel-map');
+  if (tabCharts && tabMap && panelCharts && panelMap) {
+    tabCharts.addEventListener('click', () => {
+      tabCharts.classList.add('active');
+      tabCharts.setAttribute('aria-selected', 'true');
+      tabMap.classList.remove('active');
+      tabMap.setAttribute('aria-selected', 'false');
+      panelCharts.classList.remove('right-panel-hidden');
+      panelMap.classList.add('right-panel-hidden');
+      if (window._mapCtx) SystemsMapCanvas.stop(window._mapCtx);
+    });
+    tabMap.addEventListener('click', () => {
+      tabMap.classList.add('active');
+      tabMap.setAttribute('aria-selected', 'true');
+      tabCharts.classList.remove('active');
+      tabCharts.setAttribute('aria-selected', 'false');
+      panelMap.classList.remove('right-panel-hidden');
+      panelCharts.classList.add('right-panel-hidden');
+      if (window._mapCtx) {
+        SystemsMapCanvas.resize(window._mapCtx);
+        SystemsMapCanvas.start(window._mapCtx);
+      }
+    });
+  }
+
+  // info tooltip toggle
+  const infoBtn = document.getElementById('info-btn');
+  if (infoBtn) {
+    infoBtn.addEventListener('click', () => {
+      const expanded = infoBtn.classList.toggle('active');
+      infoBtn.setAttribute('aria-expanded', expanded);
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#info-btn') && !e.target.closest('#info-tooltip')) {
+        infoBtn.classList.remove('active');
+        infoBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  document.getElementById('btn-begin').addEventListener('click', () => showScreen('decisions'));
+  document.getElementById('btn-decide').addEventListener('click', () => showScreen('decisions'));
+  document.getElementById('btn-see-pattern').addEventListener('click', () => showScreen('pattern'));
+  // mailing list form
+  document.getElementById('mailing-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('mailing-email').value.trim();
+    if (!email) return;
+    if (typeof sessionLogger !== 'undefined') {
+      sessionLogger.log('mailing_signup', { email });
+    }
+    document.getElementById('mailing-email').disabled = true;
+    document.getElementById('mailing-form').querySelector('.mailing-btn').disabled = true;
+    document.getElementById('mailing-success').textContent = 'thank you — we\'ll keep you posted.';
+  });
+
+  document.getElementById('btn-handoff').addEventListener('click', () => showScreen('handoff'));
+  document.getElementById('btn-restart').addEventListener('click', () => {
+    Object.assign(state, {
+      screen: 'mandate',
+      committed: false,
+      committedId: null,
+      interventionsRun: [],
+      trajectories: {},
+      politicalCapital: 1.0,
+      politicalCapitalHistory: {},
+      withVotingBloc: { 1: false, 2: false, 3: false },
+      detailOpen: {},
+      rechartered: false,
+      animating: false,
+      sliderActive: false,
+      currentAnimYear: 2025,
+      dosages: {},
+      hypothesis: '',
+      surprise: {},
+      tradeoffNoticed: {},
+      shifted: '',
+    });
+    clearReflect();
+    const ta = document.getElementById('hypo-textarea');
+    if (ta) { ta.value = ''; updateHypoUi(); }
+    const sta = document.getElementById('shifted-textarea');
+    if (sta) sta.value = '';
+    if (chartDecisions) { chartDecisions.destroy(); chartDecisions = null; }
+    if (chartSecondary) { chartSecondary.destroy(); chartSecondary = null; }
+    if (chartBaseline) { chartBaseline.destroy(); chartBaseline = null; }
+    if (chartPattern) { chartPattern.destroy(); chartPattern = null; }
+    if (chartPatternSecondary) { chartPatternSecondary.destroy(); chartPatternSecondary = null; }
+    document.getElementById('endpoint-labels').innerHTML = '';
+    const ph = document.getElementById('chart-placeholder');
+    if (ph) ph.classList.remove('hidden');
+    const hint = document.getElementById('hint-cards');
+    if (hint) { hint.style.display = ''; hint.dataset.shown = ''; }
+    showScreen('mandate');
+  });
+
+  document.getElementById('btn-committee').addEventListener('click', () => {
+    document.getElementById('modal-committee').classList.add('active');
+  });
+  document.getElementById('btn-close-committee').addEventListener('click', () => {
+    document.getElementById('modal-committee').classList.remove('active');
+  });
+
+  document.getElementById('btn-recharter-continue').addEventListener('click', handleRecharterContinue);
+  document.getElementById('btn-recharter-back').addEventListener('click', () => {
+    document.getElementById('modal-recharter').classList.remove('active');
+  });
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.remove('active');
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+    }
+  });
+});
+</script>
+</body>
+</html>

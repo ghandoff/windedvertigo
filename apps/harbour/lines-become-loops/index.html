@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lines become loops — w.v × prme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --cadet: #273248;
+  --redwood: #B15043;
+  --sienna: #CB7858;
+  --champagne: #FFEBD2;
+  --muted: #6B7589;
+  --rule: #EAD9BD;
+  --soft-card: #FFF6E5;
+  --on-dark: #FFEBD2;
+  --on-dark-muted: #B5BBC9;
+  --rule-dark: rgba(255,235,210,0.12);
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html {
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--on-dark);
+  background: var(--cadet);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  padding-top: 146px;
+}
+@media (max-width: 640px) { body { padding-top: 130px; } }
+
+/* -- page header (fixed) -- */
+.page-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: var(--cadet);
+  padding: 16px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wordmark { display: inline-block; line-height: 0; }
+.wordmark img { display: block; width: 160px; height: auto; }
+@media (max-width: 640px) {
+  .wordmark img { width: 120px; }
+}
+
+/* -- scenario picker (lives inside .page-header) -- */
+.scenario-picker {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule-dark);
+  margin: 0 -24px;
+  padding: 0 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scenario-picker::-webkit-scrollbar { display: none; }
+.scenario-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: block;
+  transition: color 0.15s, border-color 0.15s;
+}
+.scenario-tab:hover { color: var(--on-dark); }
+.scenario-tab.active,
+.scenario-tab[aria-current="page"] {
+  color: var(--on-dark);
+  border-bottom-color: var(--sienna);
+}
+
+/* -- screens -- */
+.screen {
+  display: none;
+  min-height: calc(100vh - 146px);
+}
+@media (max-width: 640px) {
+  .screen { min-height: calc(100vh - 130px); }
+}
+.screen.active {
+  display: block;
+}
+
+/* -- landing -- */
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 146px);
+  padding: 24px 24px 48px;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .landing { min-height: calc(100vh - 130px); }
+}
+.landing-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-bottom: 24px;
+}
+.landing-headline {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--on-dark);
+  line-height: 1.2;
+  max-width: 18ch;
+  margin-bottom: 24px;
+}
+.landing-rule {
+  width: 320px;
+  height: 1px;
+  background: var(--rule-dark);
+  margin: 0 auto 32px;
+}
+.landing-body {
+  font-size: 16px;
+  color: var(--on-dark-muted);
+  max-width: 52ch;
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+.landing-skills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 600px;
+  margin-bottom: 48px;
+}
+.skill-chip {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1px solid var(--rule-dark);
+  color: var(--cadet);
+  background: #fff;
+}
+.landing-how {
+  max-width: 480px;
+  text-align: left;
+  margin-bottom: 48px;
+}
+.landing-how-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-bottom: 16px;
+  text-align: center;
+}
+.landing-how ol {
+  list-style: none;
+  counter-reset: steps;
+}
+.landing-how li {
+  counter-increment: steps;
+  font-size: 14px;
+  color: var(--on-dark);
+  line-height: 1.6;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule-dark);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.landing-how li:last-child {
+  border-bottom: none;
+}
+.landing-how li::before {
+  content: counter(steps);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sienna);
+  flex-shrink: 0;
+  width: 24px;
+  text-align: right;
+}
+.btn {
+  display: inline-block;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: #fff;
+  border: none;
+  padding: 14px 32px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.btn:hover {
+  opacity: 0.9;
+}
+.btn:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.landing-footer {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-top: 48px;
+}
+
+/* -- scenarios menu -- */
+.scenarios {
+  padding: 24px 24px 48px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.scenarios-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.scenarios-headline {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--on-dark);
+  text-align: center;
+  margin-bottom: 40px;
+}
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.scenario-card {
+  background: #fff;
+  border: 1px solid var(--rule-dark);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s;
+}
+.scenario-card:hover {
+  border-color: var(--sienna);
+}
+.scenario-card.coming-soon {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.scenario-number {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.scenario-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cadet);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.scenario-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  flex: 1;
+  margin-bottom: 16px;
+}
+/* scenario cards are white bg, so internal text stays cadet/muted (unchanged) */
+.scenario-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.scenario-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.scenario-chip {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: rgba(203, 120, 88, 0.12);
+  color: var(--sienna);
+}
+.scenario-link {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--champagne);
+  background: var(--cadet);
+  border: none;
+  padding: 6px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.scenario-link:hover {
+  opacity: 0.9;
+}
+.scenario-link:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.scenario-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-style: italic;
+}
+.back-link {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--sienna);
+  text-decoration: none;
+  margin-bottom: 24px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--font);
+  padding: 0;
+}
+.back-link:hover {
+  text-decoration: underline;
+}
+.back-link:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* -- teacher's guide links -- */
+.scenario-tg {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-muted);
+  text-decoration: none;
+}
+.scenario-tg:hover { color: var(--sienna); text-decoration: underline; }
+.scenario-tg:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+.landing-secondary {
+  margin-top: 16px;
+}
+.landing-secondary a {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--sienna);
+  text-decoration: none;
+}
+.landing-secondary a:hover { text-decoration: underline; }
+.landing-secondary a:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+.scenarios-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.for-teachers-link {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--sienna);
+  text-decoration: none;
+}
+.for-teachers-link:hover { text-decoration: underline; }
+.for-teachers-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* session join */
+.session-join-wrap {
+  margin-bottom: 16px;
+}
+.session-join-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  display: block;
+  margin-bottom: 6px;
+}
+.session-join-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.session-join-input {
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border: 1px solid var(--rule-dark);
+  background: rgba(255,255,255,0.1);
+  color: var(--on-dark);
+  width: 120px;
+  text-align: center;
+}
+.session-join-input:focus {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.session-join-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 8px 16px;
+  border: 1px solid var(--on-dark);
+  background: var(--on-dark);
+  color: var(--cadet);
+  cursor: pointer;
+}
+.session-join-btn:hover { opacity: 0.9; }
+.session-join-btn:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.session-join-error {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--redwood);
+  margin-top: 4px;
+  min-height: 16px;
+}
+.facilitator-link {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-muted);
+  text-decoration: none;
+  margin-top: 8px;
+}
+.facilitator-link:hover { color: var(--sienna); text-decoration: underline; }
+.facilitator-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<!-- wordmark -->
+<header class="page-header" role="banner">
+  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+  <nav class="scenario-picker" aria-label="switch scenario">
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+  </nav>
+</header>
+
+<!-- screen 1: landing -->
+<div id="screen-landing" class="screen active" role="region" aria-label="introduction">
+  <div class="landing">
+    <div class="landing-title">lines become loops</div>
+    <div class="landing-headline">every system is perfectly designed to produce the results it gets.</div>
+    <div class="landing-rule"></div>
+    <div class="landing-body">
+      four scenarios. four stocks. three leverage tiers.<br><br>
+      each scenario gives you a system with a mandate and three decisions. some change parameters. some change rules. some change the goal itself.<br><br>
+      your job is not to find the right answer. it is to notice which kind of decision bends the system — and why.
+    </div>
+    <div class="landing-skills">
+      <span class="skill-chip">systems dynamics</span>
+      <span class="skill-chip">leverage points</span>
+      <span class="skill-chip">stakeholder negotiation</span>
+      <span class="skill-chip">causal-loop reasoning</span>
+      <span class="skill-chip">paradigm recognition</span>
+    </div>
+    <div class="landing-how">
+      <div class="landing-how-title">how to play</div>
+      <ol>
+        <li>choose a scenario from the menu.</li>
+        <li>read the mandate. understand what the system is doing.</li>
+        <li>read each intervention. expand the detail. discuss.</li>
+        <li>run an intervention. watch the trajectory.</li>
+        <li>after each run, read the "why" — it names the leverage tier.</li>
+        <li>after all three, look for the pattern across interventions.</li>
+      </ol>
+    </div>
+    <button class="btn" id="btn-scenarios" aria-label="choose a scenario">choose a scenario</button>
+    <div class="landing-secondary">
+      <div class="session-join-wrap">
+        <label class="session-join-label" for="session-code-input">have a session code?</label>
+        <div class="session-join-row">
+          <input class="session-join-input" id="session-code-input" type="text" maxlength="6" placeholder="ABC123" autocomplete="off" aria-label="session code">
+          <button class="session-join-btn" id="btn-join-session">join</button>
+        </div>
+        <div class="session-join-error" id="join-error" role="alert"></div>
+      </div>
+      <a class="facilitator-link" href="/portfolio/assets/lines-become-loops/facilitator.html">facilitator dashboard &rarr;</a>
+    </div>
+    <div class="landing-footer">w.v × prme · ppcs 2026</div>
+  </div>
+</div>
+
+<!-- screen 2: scenario menu -->
+<div id="screen-scenarios" class="screen" role="region" aria-label="scenario selection">
+  <div class="scenarios">
+    <button class="back-link" id="btn-back-landing" aria-label="back to introduction">&larr; back</button>
+    <div class="scenarios-title">choose a scenario</div>
+    <div class="scenarios-headline">four scenarios. four stocks. one pattern.</div>
+    <div class="scenario-grid">
+      <!-- anchor: Lakeshore (live, full model) -->
+      <div class="scenario-card">
+        <div class="scenario-number">anchor scenario</div>
+        <div class="scenario-name">lakeshore college</div>
+        <div class="scenario-desc">a small liberal arts college must reach net-zero by 2050. three interventions, from parking permits to rechartering the institution's purpose. full five-stock model.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">higher ed</span>
+            <span class="scenario-chip">emissions</span>
+          </div>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
+        </div>
+      </div>
+      <!-- 1. SaaS Churn -->
+      <div class="scenario-card">
+        <div class="scenario-number">scenario 01 · business</div>
+        <div class="scenario-name">saas churn</div>
+        <div class="scenario-desc">stock: active paying customers. reinforcing loop. three interventions from discount renewals to repositioning the product entirely.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">business</span>
+            <span class="scenario-chip">retention</span>
+          </div>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=churn" aria-label="play saas churn scenario">play</a>
+        </div>
+      </div>
+      <!-- 2. Team Burnout -->
+      <div class="scenario-card">
+        <div class="scenario-number">scenario 02 · business</div>
+        <div class="scenario-name">team burnout</div>
+        <div class="scenario-desc">stock: sustainable team energy. reinforcing loop. three interventions from hiring contractors to redefining what success means.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">business</span>
+            <span class="scenario-chip">wellbeing</span>
+          </div>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=burnout" aria-label="play team burnout scenario">play</a>
+        </div>
+      </div>
+      <!-- 3. Sleep Debt -->
+      <div class="scenario-card">
+        <div class="scenario-number">scenario 03 · personal</div>
+        <div class="scenario-name">sleep debt</div>
+        <div class="scenario-desc">stock: average nightly sleep. reinforcing loop. three interventions from blackout curtains to redefining productivity.</div>
+        <div class="scenario-meta">
+          <div class="scenario-chips">
+            <span class="scenario-chip">personal</span>
+            <span class="scenario-chip">wellbeing</span>
+          </div>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=sleep" aria-label="play sleep debt scenario">play</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('btn-scenarios').addEventListener('click', () => {
+  document.getElementById('screen-landing').classList.remove('active');
+  document.getElementById('screen-scenarios').classList.add('active');
+  window.scrollTo(0, 0);
+});
+document.getElementById('btn-back-landing').addEventListener('click', () => {
+  document.getElementById('screen-scenarios').classList.remove('active');
+  document.getElementById('screen-landing').classList.add('active');
+  window.scrollTo(0, 0);
+});
+
+// session join
+document.getElementById('btn-join-session').addEventListener('click', async () => {
+  const input = document.getElementById('session-code-input');
+  const err = document.getElementById('join-error');
+  const code = input.value.toUpperCase().trim();
+  err.textContent = '';
+
+  if (!/^[A-Z0-9]{6}$/.test(code)) {
+    err.textContent = 'enter a 6-character session code.';
+    return;
+  }
+
+  const btn = document.getElementById('btn-join-session');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/session/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'could not join session');
+    // store session info for the simulator to pick up
+    sessionStorage.setItem('st-session', JSON.stringify({
+      code: data.sessionCode,
+      pid: data.participantId,
+      config: data.config,
+    }));
+    // proceed to scenario selection
+    document.getElementById('screen-landing').classList.remove('active');
+    document.getElementById('screen-scenarios').classList.add('active');
+    window.scrollTo(0, 0);
+  } catch (e) {
+    err.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+// allow Enter key in session code input
+document.getElementById('session-code-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-join-session').click();
+});
+</script>
+</body>
+</html>

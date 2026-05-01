@@ -1,0 +1,31 @@
+{
+  "name": "@windedvertigo/auth",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared harbour auth — factory config, adapter, cookies, route handler, and types for cross-app SSO on .windedvertigo.com.",
+  "scripts": {
+    "build": "echo 'auth: no build step'"
+  },
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./route-handler": "./route-handler.ts",
+    "./types": "./types.ts",
+    "./harbour-nav": "./harbour-nav.tsx"
+  },
+  "files": [
+    "index.ts",
+    "config.ts",
+    "adapter.ts",
+    "cookies.ts",
+    "route-handler.ts",
+    "types.ts",
+    "harbour-nav.tsx"
+  ],
+  "peerDependencies": {
+    "@auth/core": "^0.41.0",
+    "@vercel/postgres": "^0.10.0",
+    "next": ">=15",
+    "next-auth": "^5.0.0-beta.30"
+  }
+}

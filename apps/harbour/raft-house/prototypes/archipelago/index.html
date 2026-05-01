@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>raft.house — archipelago</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --deep: #0f2a2e;
+      --teal: #0d4f4f;
+      --cyan: #17858a;
+      --foam: #7dd3d8;
+      --sand: #f0e6d3;
+      --sand-light: #faf6ee;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: var(--deep);
+      touch-action: none;
+    }
+
+    #ocean {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at 30% 40%, #0d5b7a 0%, #0a3d5c 40%, #071e2e 100%);
+      overflow: hidden;
+    }
+
+    .wave {
+      position: absolute;
+      width: 200%; height: 200%;
+      border-radius: 43%;
+      opacity: 0.07;
+      background: radial-gradient(ellipse, var(--foam) 0%, transparent 70%);
+    }
+    .wave-1 { top: -60%; left: -30%; animation: spin1 22s linear infinite; }
+    .wave-2 { top: -50%; left: -10%; animation: spin2 31s linear infinite; opacity: 0.04; }
+    .wave-3 { top: -70%; left: -50%; animation: spin3 18s linear infinite; opacity: 0.05; }
+
+    @keyframes spin1 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes spin2 { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+    @keyframes spin3 { from { transform: rotate(20deg); } to { transform: rotate(380deg); } }
+
+    .sparkle {
+      position: absolute;
+      width: 2px; height: 2px;
+      border-radius: 50%;
+      background: var(--foam);
+      opacity: 0;
+      animation: twinkle var(--d, 4s) ease-in-out var(--delay, 0s) infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 0.6; transform: scale(1.5); }
+    }
+
+    #fog {
+      position: fixed; inset: 0; pointer-events: none; z-index: 10;
+      background: radial-gradient(ellipse at 50% 50%,
+        transparent 40%,
+        rgba(10,25,35,0.25) 65%,
+        rgba(7,18,26,0.7) 100%
+      );
+    }
+
+    #world-wrap {
+      position: fixed; inset: 0;
+      cursor: grab;
+      user-select: none;
+    }
+    #world-wrap.dragging { cursor: grabbing; }
+
+    #world {
+      position: absolute;
+      width: 2000px; height: 1500px;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .island {
+      position: absolute;
+      cursor: pointer;
+      transform-origin: center center;
+    }
+
+    .island-body {
+      position: relative;
+      transition: filter 0.3s ease, transform 0.3s ease;
+    }
+    .island:hover .island-body { filter: brightness(1.15); transform: scale(1.03); }
+    .island.selected .island-body { filter: brightness(1.2); }
+
+    .island-svg { display: block; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5)); }
+
+    .island-label {
+      position: absolute;
+      left: 50%; transform: translateX(-50%);
+      bottom: -28px;
+      white-space: nowrap;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--sand);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.8), 0 0 12px rgba(0,0,0,0.6);
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    .island { animation: bob var(--bob-dur, 4s) ease-in-out var(--bob-delay, 0s) infinite; }
+
+    .marker {
+      position: absolute;
+      cursor: pointer;
+      z-index: 5;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .marker-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--sand-light);
+      border: 2px solid rgba(255,255,255,0.6);
+      box-shadow: 0 0 8px rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.5);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    }
+    .marker:hover .marker-dot {
+      transform: scale(1.5);
+      box-shadow: 0 0 14px rgba(125,211,216,0.8), 0 2px 8px rgba(0,0,0,0.4);
+      background: var(--foam);
+    }
+
+    .marker-label {
+      position: absolute;
+      left: 50%; transform: translateX(-50%);
+      top: -22px;
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--sand);
+      white-space: nowrap;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .island.selected .marker-label,
+    .show-labels .marker-label { opacity: 1; }
+    .island.selected .marker-dot { width: 13px; height: 13px; }
+
+    #detail-card {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 100;
+      background: linear-gradient(180deg, rgba(13,44,50,0.97) 0%, rgba(10,30,38,0.99) 100%);
+      border-top: 1px solid rgba(125,211,216,0.2);
+      border-radius: 20px 20px 0 0;
+      padding: 0 0 env(safe-area-inset-bottom, 0);
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.32,0.72,0,1);
+      max-height: 45vh;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+    }
+    #detail-card.open { transform: translateY(0); }
+
+    .card-handle {
+      width: 36px; height: 4px;
+      background: rgba(125,211,216,0.3);
+      border-radius: 2px;
+      margin: 12px auto 0;
+    }
+
+    .card-inner { padding: 16px 24px 24px; }
+
+    .card-discipline {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--foam);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      opacity: 0.7;
+    }
+
+    .card-game-name {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--sand-light);
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .card-description {
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(240,230,211,0.7);
+      margin-bottom: 20px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-launch {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--teal) 100%);
+      border: none;
+      border-radius: 100px;
+      color: var(--sand-light);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      box-shadow: 0 4px 16px rgba(23,133,138,0.4);
+    }
+    .btn-launch:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(23,133,138,0.6);
+      filter: brightness(1.1);
+    }
+    .btn-launch:active { transform: translateY(0); }
+
+    .btn-close {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(125,211,216,0.2);
+      background: rgba(125,211,216,0.08);
+      color: var(--foam);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s ease;
+      margin-left: auto;
+    }
+    .btn-close:hover { background: rgba(125,211,216,0.15); }
+
+    #compass {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      z-index: 20;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    #logo {
+      position: fixed;
+      top: 20px; left: 24px;
+      z-index: 20;
+      color: var(--foam);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      opacity: 0.8;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+    }
+
+    #hint {
+      position: fixed;
+      bottom: 28px; left: 50%; transform: translateX(-50%);
+      z-index: 20;
+      font-size: 11px;
+      color: var(--foam);
+      opacity: 0;
+      letter-spacing: 0.06em;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+      transition: opacity 1s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #hint.visible { opacity: 0.5; }
+
+    #zoom-controls {
+      position: fixed;
+      top: 20px; right: 24px;
+      z-index: 20;
+      display: flex;
+      gap: 6px;
+    }
+    .zoom-btn {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid rgba(125,211,216,0.2);
+      background: rgba(13,44,50,0.7);
+      color: var(--foam);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px);
+      transition: background 0.2s ease;
+      font-weight: 300;
+    }
+    .zoom-btn:hover { background: rgba(23,133,138,0.3); }
+  </style>
+</head>
+<body>
+
+<div id="ocean">
+  <div class="wave wave-1"></div>
+  <div class="wave wave-2"></div>
+  <div class="wave wave-3"></div>
+</div>
+
+<div id="fog"></div>
+
+<div id="world-wrap">
+  <div id="world"></div>
+</div>
+
+<div id="logo">raft.house</div>
+
+<div id="zoom-controls">
+  <button class="zoom-btn" id="zoom-in" aria-label="zoom in">+</button>
+  <button class="zoom-btn" id="zoom-out" aria-label="zoom out">&#8722;</button>
+</div>
+
+<div id="hint">drag to explore &middot; tap an island</div>
+
+<svg id="compass" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+  <circle cx="28" cy="28" r="26" fill="none" stroke="rgba(125,211,216,0.3)" stroke-width="1"/>
+  <circle cx="28" cy="28" r="3" fill="rgba(125,211,216,0.5)"/>
+  <polygon points="28,6 31,28 28,24 25,28" fill="rgba(125,211,216,0.7)"/>
+  <polygon points="28,50 25,28 28,32 31,28" fill="rgba(125,211,216,0.3)"/>
+  <polygon points="6,28 28,25 24,28 28,31" fill="rgba(125,211,216,0.3)"/>
+  <polygon points="50,28 28,31 32,28 28,25" fill="rgba(125,211,216,0.3)"/>
+  <text x="28" y="4" text-anchor="middle" fill="rgba(125,211,216,0.5)" font-size="5" font-family="Inter,sans-serif" font-weight="600">N</text>
+</svg>
+
+<div id="detail-card" role="dialog" aria-modal="true" aria-labelledby="card-game-name">
+  <div class="card-handle"></div>
+  <div class="card-inner">
+    <div class="card-discipline" id="card-discipline"></div>
+    <div class="card-game-name" id="card-game-name"></div>
+    <div class="card-description" id="card-description"></div>
+    <div class="card-actions">
+      <button class="btn-launch" id="card-launch">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        launch
+      </button>
+      <button class="btn-close" id="card-close" aria-label="close">&#215;</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── island data ───────────────────────────────────────────────────────────────
+var ISLANDS = [
+  {
+    id: 'math', name: 'mathematics', theme: 'theme-math',
+    x: 780, y: 200, size: 130, bobDur: '4.2s', bobDelay: '0s',
+    fill: '#2d6a4f', peak: '#40916c', sand: '#d4a574', foliage: '#2d6a4f', trunk: '#8B6914',
+    games: [
+      { id: 'fold.space', name: 'fold.space', desc: 'explore non-euclidean geometry by folding a 2D plane into higher dimensions. find paths that should not exist.', cx: 0.35, cy: 0.30 },
+      { id: 'infinity.hotel', name: 'infinity.hotel', desc: 'hilbert\'s paradox as a puzzle game. manage an infinite hotel with infinite guests. every room is always full.', cx: 0.60, cy: 0.55 },
+      { id: 'variable.engine', name: 'variable.engine', desc: 'build algebraic machines by placing symbolic gears. watch equations solve themselves through mechanical logic.', cx: 0.25, cy: 0.65 }
+    ]
+  },
+  {
+    id: 'cs', name: 'computer science', theme: 'theme-cs',
+    x: 1000, y: 140, size: 115, bobDur: '3.8s', bobDelay: '0.7s',
+    fill: '#1b4332', peak: '#2d6a4f', sand: '#c9a96e', foliage: '#1b4332', trunk: '#7a5c12',
+    games: [
+      { id: 'race.condition', name: 'race.condition', desc: 'concurrent programming as a strategy game. threads race for shared resources. deadlocks are the enemy.', cx: 0.40, cy: 0.40 },
+      { id: 'type.tower', name: 'type.tower', desc: 'a tower defense game where your walls are type signatures. only well-typed code blocks the invaders.', cx: 0.65, cy: 0.60 },
+      { id: 'state.craft', name: 'state.craft', desc: 'build state machines that govern tiny civilizations. every transition is a law. every bug is a revolution.', cx: 0.20, cy: 0.65 }
+    ]
+  },
+  {
+    id: 'phys', name: 'physics', theme: 'theme-phys',
+    x: 880, y: 380, size: 120, bobDur: '5.1s', bobDelay: '1.2s',
+    fill: '#1a3a4a', peak: '#2d6b8a', sand: '#d4b483', foliage: '#1a3a5a', trunk: '#6b4a18',
+    games: [
+      { id: 'frame.shift', name: 'frame.shift', desc: 'special relativity from the inside. solve puzzles by switching reference frames. time dilates. lengths contract.', cx: 0.35, cy: 0.35 },
+      { id: 'entropy.garden', name: 'entropy.garden', desc: 'a garden that only grows toward disorder. plant order, watch chaos bloom. the second law as aesthetic.', cx: 0.62, cy: 0.55 },
+      { id: 'field.canvas', name: 'field.canvas', desc: 'paint electromagnetic fields by placing charges. watch field lines emerge like brushstrokes.', cx: 0.28, cy: 0.70 }
+    ]
+  },
+  {
+    id: 'bio', name: 'biology', theme: 'theme-bio',
+    x: 520, y: 550, size: 125, bobDur: '4.7s', bobDelay: '0.4s',
+    fill: '#2d5a27', peak: '#4a8c3f', sand: '#c8b56a', foliage: '#2d5a27', trunk: '#8a6010',
+    games: [
+      { id: 'selection.pressure', name: 'selection.pressure', desc: 'play as natural selection itself. choose which traits survive. watch populations drift across fitness landscapes.', cx: 0.38, cy: 0.38 },
+      { id: 'express.ion', name: 'express.ion', desc: 'gene expression as a mixing board. dial up proteins, silence regulators. watch the organism respond in real time.', cx: 0.62, cy: 0.52 },
+      { id: 'web.pulse', name: 'web.pulse', desc: 'an ecosystem food web where you control energy flow. too much intervention and the whole network collapses.', cx: 0.30, cy: 0.70 }
+    ]
+  },
+  {
+    id: 'chem', name: 'chemistry', theme: 'theme-chem',
+    x: 720, y: 630, size: 110, bobDur: '3.9s', bobDelay: '1.8s',
+    fill: '#3d2b69', peak: '#6b4fa0', sand: '#d4a574', foliage: '#3d2b69', trunk: '#8a5010',
+    games: [
+      { id: 'bond.craft', name: 'bond.craft', desc: 'build molecules by snapping atoms together. electronegativity pulls, steric strain pushes. find stable configurations.', cx: 0.42, cy: 0.35 },
+      { id: 'equilibrium.dance', name: 'equilibrium.dance', desc: 'a reaction at equilibrium is a dance. add heat, add pressure, watch the system negotiate its new balance.', cx: 0.63, cy: 0.60 },
+      { id: 'reaction.path', name: 'reaction.path', desc: 'navigate the energy landscape of a reaction. find the activation peak. catalysts are your terrain shapers.', cx: 0.22, cy: 0.65 }
+    ]
+  },
+  {
+    id: 'econ', name: 'economics', theme: 'theme-econ',
+    x: 300, y: 300, size: 118, bobDur: '4.4s', bobDelay: '0.9s',
+    fill: '#6b4226', peak: '#a0643c', sand: '#e0c080', foliage: '#4a5a26', trunk: '#8a5c14',
+    games: [
+      { id: 'margin.call', name: 'margin.call', desc: 'a trading floor simulation at the edge of rational behavior. watch prices emerge from collective belief and panic.', cx: 0.40, cy: 0.38 },
+      { id: 'trade.winds', name: 'trade.winds', desc: 'comparative advantage as navigation. sail goods between islands to find the trades that benefit everyone.', cx: 0.62, cy: 0.55 },
+      { id: 'commons.game', name: 'commons.game', desc: 'the tragedy of the commons, but playable. cooperate or defect? the resource regenerates only if you let it.', cx: 0.28, cy: 0.70 }
+    ]
+  },
+  {
+    id: 'psyc', name: 'psychology', theme: 'theme-psyc',
+    x: 180, y: 520, size: 112, bobDur: '5.3s', bobDelay: '2.1s',
+    fill: '#6b2d5e', peak: '#9e4488', sand: '#ddb0b0', foliage: '#5a2d50', trunk: '#7a3a14',
+    games: [
+      { id: 'mirror.maze', name: 'mirror.maze', desc: 'navigate a maze where every wall is a cognitive bias. the exit is where you think it is not.', cx: 0.40, cy: 0.38 },
+      { id: 'anchor.drift', name: 'anchor.drift', desc: 'negotiation puzzles built on anchoring effects. first numbers thrown cast long shadows.', cx: 0.65, cy: 0.55 },
+      { id: 'story.self', name: 'story.self', desc: 'narrative psychology as role assignment. rewrite the story a character tells about themselves. watch behavior shift.', cx: 0.28, cy: 0.70 }
+    ]
+  },
+  {
+    id: 'phil', name: 'philosophy', theme: 'theme-phil',
+    x: 350, y: 740, size: 108, bobDur: '4.0s', bobDelay: '1.5s',
+    fill: '#3d4a1a', peak: '#6b8029', sand: '#d8c87a', foliage: '#3d4a1a', trunk: '#8a6810',
+    games: [
+      { id: 'ought.machine', name: 'ought.machine', desc: 'a trolley problem generator that will not stop. each scenario builds on the last. find where your moral framework breaks.', cx: 0.38, cy: 0.38 },
+      { id: 'circle.read', name: 'circle.read', desc: 'hermeneutic circle as a puzzle mechanic. interpret text, update context, reinterpret. meaning spirals inward.', cx: 0.63, cy: 0.55 },
+      { id: 'lens.shift', name: 'lens.shift', desc: 'see any situation through seven philosophical traditions simultaneously. watch the disagreement happen live.', cx: 0.27, cy: 0.68 }
+    ]
+  },
+  {
+    id: 'musi', name: 'music', theme: 'theme-musi',
+    x: 140, y: 200, size: 105, bobDur: '4.8s', bobDelay: '0.3s',
+    fill: '#4a1a3a', peak: '#7d2d66', sand: '#d4a0c0', foliage: '#4a1a3a', trunk: '#6a3010',
+    games: [
+      { id: 'tone.field', name: 'tone.field', desc: 'place tones in a 2D harmonic field. intervals form visible relationships. dissonance glows red. resolution glows gold.', cx: 0.38, cy: 0.38 },
+      { id: 'voice.weave', name: 'voice.weave', desc: 'four-voice counterpoint as a weaving loom. threads must cross by the rules. bach as textile.', cx: 0.63, cy: 0.53 },
+      { id: 'sound.color', name: 'sound.color', desc: 'synesthesia as game mechanic. assign colors to frequencies, play melodies, paint by ear.', cx: 0.28, cy: 0.68 }
+    ]
+  },
+  {
+    id: 'arts', name: 'visual arts', theme: 'theme-arts',
+    x: 130, y: 760, size: 108, bobDur: '3.6s', bobDelay: '1.1s',
+    fill: '#6b3d1a', peak: '#a05c29', sand: '#e8d090', foliage: '#5a4a1a', trunk: '#7a5010',
+    games: [
+      { id: 'space.between', name: 'space.between', desc: 'negative space as the subject. draw what is not there. the puzzle is completed by what you leave out.', cx: 0.40, cy: 0.38 },
+      { id: 'hue.shift', name: 'hue.shift', desc: 'color theory puzzles where the rules are perceptual not mathematical. adjacent hues lie. context is everything.', cx: 0.63, cy: 0.55 },
+      { id: 'grid.break', name: 'grid.break', desc: 'design systems that evolve by breaking their own rules at the right moment. jazz for grid designers.', cx: 0.28, cy: 0.70 }
+    ]
+  },
+  {
+    id: 'writ', name: 'writing', theme: 'theme-writ',
+    x: 1120, y: 580, size: 112, bobDur: '4.3s', bobDelay: '0.6s',
+    fill: '#1a3d6b', peak: '#2d5fa0', sand: '#c8d8e8', foliage: '#1a3d6b', trunk: '#5a4810',
+    games: [
+      { id: 'reader.ghost', name: 'reader.ghost', desc: 'write for a reader you cannot see. their annotations appear as they read, changing the meaning of your words.', cx: 0.40, cy: 0.38 },
+      { id: 'draft.loop', name: 'draft.loop', desc: 'a sentence that rewrites itself. every edit opens new possibilities. some loops are exits. most are not.', cx: 0.62, cy: 0.55 },
+      { id: 'genre.shift', name: 'genre.shift', desc: 'the same event in five genres. retell the same scene as tragedy, comedy, thriller, elegy, and farce.', cx: 0.27, cy: 0.68 }
+    ]
+  }
+];
+
+// blob path data per island (11 unique organic shapes)
+var BLOBS = [
+  'M 65 12 C 80 8 105 15 118 32 C 130 48 128 68 115 82 C 100 98 78 102 60 98 C 40 93 18 80 12 62 C 6 44 14 22 30 15 C 44 8 50 16 65 12 Z',
+  'M 58 8 C 74 5 98 14 110 30 C 122 46 118 68 104 81 C 88 95 64 97 46 89 C 26 80 10 60 10 42 C 10 24 22 12 38 9 C 50 6 44 11 58 8 Z',
+  'M 62 10 C 78 5 104 18 116 36 C 126 52 122 74 108 86 C 92 98 68 100 50 93 C 30 85 12 68 10 50 C 8 32 20 16 38 11 C 52 6 48 15 62 10 Z',
+  'M 68 8 C 86 4 112 14 122 32 C 132 50 126 74 112 86 C 96 99 70 102 52 96 C 32 89 12 74 8 54 C 4 34 14 16 32 10 C 48 4 52 12 68 8 Z',
+  'M 55 10 C 70 6 94 16 106 32 C 118 48 114 70 100 82 C 84 95 60 97 42 89 C 22 80 8 60 8 42 C 8 24 18 12 34 9 C 46 6 40 14 55 10 Z',
+  'M 60 12 C 76 6 102 16 114 34 C 124 52 120 72 106 84 C 90 97 66 99 48 92 C 28 84 10 66 10 48 C 10 30 22 14 40 10 C 54 6 46 18 60 12 Z',
+  'M 56 10 C 72 4 96 15 108 33 C 120 50 116 72 102 84 C 86 97 62 99 44 91 C 24 82 8 62 8 44 C 8 26 20 12 38 8 C 50 4 42 16 56 10 Z',
+  'M 54 12 C 70 6 94 16 106 34 C 118 52 114 74 100 86 C 84 99 60 101 42 93 C 22 84 6 64 6 46 C 6 28 18 14 36 10 C 48 6 40 18 54 12 Z',
+  'M 52 10 C 68 4 92 16 104 34 C 116 52 112 74 98 86 C 82 99 58 101 40 93 C 20 84 4 64 4 46 C 4 28 16 14 34 10 C 46 6 38 16 52 10 Z',
+  'M 54 10 C 70 4 94 16 106 34 C 118 52 114 74 100 86 C 84 99 60 101 42 93 C 22 84 6 64 6 46 C 6 28 18 14 36 10 C 48 6 40 18 54 10 Z',
+  'M 57 10 C 73 4 97 16 109 34 C 121 52 117 74 103 86 C 87 99 63 101 45 93 C 25 84 9 64 9 46 C 9 28 21 14 39 10 C 51 6 43 16 57 10 Z'
+];
+
+// ── SVG namespace helper ──────────────────────────────────────────────────────
+var NS = 'http://www.w3.org/2000/svg';
+
+function svgEl(tag, attrs) {
+  var el = document.createElementNS(NS, tag);
+  if (attrs) {
+    Object.keys(attrs).forEach(function(k) { el.setAttribute(k, attrs[k]); });
+  }
+  return el;
+}
+
+function buildIslandSVG(island, blobPath, idx) {
+  var s = island.size;
+  var vb = 130;
+  var h = s * 0.82;
+  var vh = vb * 0.82;
+
+  var svg = svgEl('svg', {
+    width: s, height: h,
+    viewBox: '0 0 ' + vb + ' ' + vh,
+    class: 'island-svg'
+  });
+
+  var defs = svgEl('defs');
+
+  // island gradient
+  var igGrad = svgEl('radialGradient', { id: 'ig-' + idx, cx: '45%', cy: '40%', r: '60%' });
+  var s1 = svgEl('stop', { offset: '0%', 'stop-color': island.peak });
+  var s2 = svgEl('stop', { offset: '100%', 'stop-color': island.fill });
+  igGrad.appendChild(s1); igGrad.appendChild(s2);
+
+  // sand gradient
+  var sgGrad = svgEl('radialGradient', { id: 'sg-' + idx, cx: '50%', cy: '70%', r: '50%' });
+  var s3 = svgEl('stop', { offset: '0%', 'stop-color': island.sand, 'stop-opacity': '0.8' });
+  var s4 = svgEl('stop', { offset: '100%', 'stop-color': island.sand, 'stop-opacity': '0' });
+  sgGrad.appendChild(s3); sgGrad.appendChild(s4);
+
+  // drop shadow filter
+  var filter = svgEl('filter', { id: 'sf-' + idx });
+  var shadow = svgEl('feDropShadow', { dx: '0', dy: '4', stdDeviation: '6', 'flood-color': 'rgba(0,0,0,0.5)' });
+  filter.appendChild(shadow);
+
+  defs.appendChild(igGrad); defs.appendChild(sgGrad); defs.appendChild(filter);
+  svg.appendChild(defs);
+
+  // island body
+  var body = svgEl('path', { d: blobPath, fill: 'url(#ig-' + idx + ')', filter: 'url(#sf-' + idx + ')' });
+  // shore highlight
+  var shore = svgEl('path', { d: blobPath, fill: 'url(#sg-' + idx + ')', opacity: '0.4' });
+
+  // trees
+  var t1x = vb * 0.42, t1y1 = vb * 0.36, t1y2 = vb * 0.52;
+  var trunk1 = svgEl('line', { x1: t1x, y1: t1y1, x2: t1x, y2: t1y2, stroke: island.trunk, 'stroke-width': '2.5' });
+  var leaf1 = svgEl('circle', { cx: t1x, cy: vb * 0.32, r: vb * 0.08, fill: island.foliage, opacity: '0.9' });
+
+  var t2x = vb * 0.60;
+  var trunk2 = svgEl('line', { x1: t2x, y1: vb * 0.42, x2: t2x, y2: vb * 0.56, stroke: island.trunk, 'stroke-width': '2' });
+  var leaf2 = svgEl('circle', { cx: t2x, cy: vb * 0.38, r: vb * 0.065, fill: island.foliage, opacity: '0.85' });
+
+  var t3x = vb * 0.30;
+  var trunk3 = svgEl('line', { x1: t3x, y1: vb * 0.46, x2: t3x, y2: vb * 0.56, stroke: island.trunk, 'stroke-width': '1.5' });
+  var leaf3 = svgEl('circle', { cx: t3x, cy: vb * 0.43, r: vb * 0.05, fill: island.foliage, opacity: '0.8' });
+
+  // water shimmer
+  var shimmer = svgEl('ellipse', { cx: vb * 0.50, cy: vh * 0.95, rx: vb * 0.38, ry: vb * 0.06, fill: 'rgba(125,211,216,0.15)' });
+
+  [body, shore, trunk1, leaf1, trunk2, leaf2, trunk3, leaf3, shimmer].forEach(function(n) { svg.appendChild(n); });
+  return svg;
+}
+
+// ── build world ───────────────────────────────────────────────────────────────
+var worldEl = document.getElementById('world');
+
+ISLANDS.forEach(function(island, idx) {
+  var el = document.createElement('div');
+  el.className = 'island ' + island.theme;
+  el.id = 'island-' + island.id;
+  el.style.left = island.x + 'px';
+  el.style.top = island.y + 'px';
+  el.style.setProperty('--bob-dur', island.bobDur);
+  el.style.setProperty('--bob-delay', island.bobDelay);
+
+  var body = document.createElement('div');
+  body.className = 'island-body';
+
+  var svg = buildIslandSVG(island, BLOBS[idx], idx);
+  body.appendChild(svg);
+
+  var label = document.createElement('div');
+  label.className = 'island-label';
+  label.textContent = island.name;
+  body.appendChild(label);
+
+  island.games.forEach(function(game) {
+    var markerEl = document.createElement('div');
+    markerEl.className = 'marker';
+    markerEl.dataset.islandId = island.id;
+    markerEl.dataset.gameId = game.id;
+
+    var dotX = game.cx * island.size;
+    var dotY = game.cy * (island.size * 0.82);
+    markerEl.style.left = (dotX - 5) + 'px';
+    markerEl.style.top = (dotY - 5) + 'px';
+
+    var lbl = document.createElement('div');
+    lbl.className = 'marker-label';
+    lbl.textContent = game.name;
+
+    var dot = document.createElement('div');
+    dot.className = 'marker-dot';
+
+    markerEl.appendChild(lbl);
+    markerEl.appendChild(dot);
+    body.appendChild(markerEl);
+
+    markerEl.addEventListener('click', function(e) {
+      e.stopPropagation();
+      openGameCard(island, game);
+    });
+  });
+
+  el.appendChild(body);
+
+  el.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (selectedIsland === island.id) {
+      deselectIsland();
+    } else {
+      selectIsland(island);
+    }
+  });
+
+  worldEl.appendChild(el);
+});
+
+// ── sparkles ──────────────────────────────────────────────────────────────────
+(function() {
+  var ocean = document.getElementById('ocean');
+  for (var i = 0; i < 80; i++) {
+    var s = document.createElement('div');
+    s.className = 'sparkle';
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.top = (Math.random() * 100) + '%';
+    s.style.setProperty('--d', (3 + Math.random() * 5) + 's');
+    s.style.setProperty('--delay', (Math.random() * 6) + 's');
+    ocean.appendChild(s);
+  }
+})();
+
+// ── pan / zoom state ──────────────────────────────────────────────────────────
+var worldWrap = document.getElementById('world-wrap');
+var detailCard = document.getElementById('detail-card');
+var viewX = 0, viewY = 0, viewScale = 1;
+var selectedIsland = null;
+var openMarker = null;
+
+function initView() {
+  var vw = window.innerWidth, vh = window.innerHeight;
+  viewScale = Math.min(vw / 2000, vh / 1500) * 1.1;
+  viewX = (vw - 2000 * viewScale) / 2;
+  viewY = (vh - 1500 * viewScale) / 2;
+  applyTransform();
+}
+
+function applyTransform() {
+  worldEl.style.transform = 'translate(' + viewX + 'px,' + viewY + 'px) scale(' + viewScale + ')';
+  if (viewScale > 0.9) {
+    worldEl.classList.add('show-labels');
+  } else {
+    worldEl.classList.remove('show-labels');
+  }
+}
+
+function clampView() {
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var pad = 60;
+  viewX = Math.min(pad, Math.max(vw - 2000 * viewScale - pad, viewX));
+  viewY = Math.min(pad, Math.max(vh - 1500 * viewScale - pad, viewY));
+}
+
+function animateTransform() {
+  worldEl.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1)';
+  applyTransform();
+  setTimeout(function() { worldEl.style.transition = ''; }, 550);
+}
+
+// ── island selection ──────────────────────────────────────────────────────────
+function selectIsland(island) {
+  if (selectedIsland) {
+    var prev = document.getElementById('island-' + selectedIsland);
+    if (prev) prev.classList.remove('selected');
+  }
+  selectedIsland = island.id;
+  var el = document.getElementById('island-' + island.id);
+  el.classList.add('selected');
+
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var targetScale = Math.min(1.4, viewScale * 1.5);
+  viewScale = Math.min(2, Math.max(0.5, targetScale));
+  var cx = island.x + island.size / 2;
+  var cy = island.y + island.size * 0.41;
+  viewX = vw / 2 - cx * viewScale;
+  viewY = vh / 2 - cy * viewScale;
+  clampView();
+  animateTransform();
+}
+
+function deselectIsland() {
+  if (selectedIsland) {
+    var el = document.getElementById('island-' + selectedIsland);
+    if (el) el.classList.remove('selected');
+    selectedIsland = null;
+  }
+  closeCard();
+}
+
+// ── detail card ───────────────────────────────────────────────────────────────
+function openGameCard(island, game) {
+  document.getElementById('card-discipline').textContent = island.name;
+  document.getElementById('card-game-name').textContent = game.name;
+  document.getElementById('card-description').textContent = game.desc;
+  detailCard.classList.add('open');
+  openMarker = { island: island, game: game };
+}
+
+function closeCard() {
+  detailCard.classList.remove('open');
+  openMarker = null;
+}
+
+document.getElementById('card-close').addEventListener('click', closeCard);
+
+document.getElementById('card-launch').addEventListener('click', function() {
+  if (openMarker) {
+    window.alert('launching ' + openMarker.game.name + '\u2026\n\n(this would navigate to the game)');
+  }
+});
+
+// tap ocean = deselect
+worldWrap.addEventListener('click', function() {
+  deselectIsland();
+});
+
+// ── mouse pan ─────────────────────────────────────────────────────────────────
+var isDragging = false, didDrag = false;
+var dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
+
+worldWrap.addEventListener('mousedown', function(e) {
+  isDragging = true; didDrag = false;
+  dragStartX = e.clientX; dragStartY = e.clientY;
+  panStartX = viewX; panStartY = viewY;
+  worldWrap.classList.add('dragging');
+  worldEl.style.transition = '';
+});
+
+window.addEventListener('mousemove', function(e) {
+  if (!isDragging) return;
+  var dx = e.clientX - dragStartX;
+  var dy = e.clientY - dragStartY;
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag = true;
+  viewX = panStartX + dx;
+  viewY = panStartY + dy;
+  clampView();
+  applyTransform();
+});
+
+window.addEventListener('mouseup', function() {
+  isDragging = false;
+  worldWrap.classList.remove('dragging');
+});
+
+// ── scroll zoom ───────────────────────────────────────────────────────────────
+worldWrap.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  var delta = -e.deltaY * 0.001;
+  var newScale = Math.min(2, Math.max(0.5, viewScale * (1 + delta)));
+  var mx = e.clientX, my = e.clientY;
+  viewX = mx - (mx - viewX) * (newScale / viewScale);
+  viewY = my - (my - viewY) * (newScale / viewScale);
+  viewScale = newScale;
+  clampView();
+  applyTransform();
+}, { passive: false });
+
+// ── touch pan + pinch ─────────────────────────────────────────────────────────
+var lastTouchDist = null;
+var touchPanStartX = 0, touchPanStartY = 0, touchViewStartX = 0, touchViewStartY = 0;
+
+worldWrap.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+  worldEl.style.transition = '';
+  if (e.touches.length === 1) {
+    touchPanStartX = e.touches[0].clientX;
+    touchPanStartY = e.touches[0].clientY;
+    touchViewStartX = viewX;
+    touchViewStartY = viewY;
+    didDrag = false;
+    lastTouchDist = null;
+  } else if (e.touches.length === 2) {
+    var dx = e.touches[0].clientX - e.touches[1].clientX;
+    var dy = e.touches[0].clientY - e.touches[1].clientY;
+    lastTouchDist = Math.sqrt(dx*dx + dy*dy);
+  }
+}, { passive: false });
+
+worldWrap.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  if (e.touches.length === 1 && lastTouchDist === null) {
+    var dx = e.touches[0].clientX - touchPanStartX;
+    var dy = e.touches[0].clientY - touchPanStartY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag = true;
+    viewX = touchViewStartX + dx;
+    viewY = touchViewStartY + dy;
+    clampView();
+    applyTransform();
+  } else if (e.touches.length === 2) {
+    var ddx = e.touches[0].clientX - e.touches[1].clientX;
+    var ddy = e.touches[0].clientY - e.touches[1].clientY;
+    var dist = Math.sqrt(ddx*ddx + ddy*ddy);
+    if (lastTouchDist) {
+      var scale = dist / lastTouchDist;
+      var midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      var midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      var newScale = Math.min(2, Math.max(0.5, viewScale * scale));
+      viewX = midX - (midX - viewX) * (newScale / viewScale);
+      viewY = midY - (midY - viewY) * (newScale / viewScale);
+      viewScale = newScale;
+      clampView();
+      applyTransform();
+    }
+    lastTouchDist = dist;
+  }
+}, { passive: false });
+
+// ── zoom buttons ──────────────────────────────────────────────────────────────
+document.getElementById('zoom-in').addEventListener('click', function() {
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var newScale = Math.min(2, viewScale * 1.25);
+  viewX = vw/2 - (vw/2 - viewX) * (newScale / viewScale);
+  viewY = vh/2 - (vh/2 - viewY) * (newScale / viewScale);
+  viewScale = newScale;
+  clampView();
+  animateTransform();
+});
+
+document.getElementById('zoom-out').addEventListener('click', function() {
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var newScale = Math.max(0.5, viewScale * 0.8);
+  viewX = vw/2 - (vw/2 - viewX) * (newScale / viewScale);
+  viewY = vh/2 - (vh/2 - viewY) * (newScale / viewScale);
+  viewScale = newScale;
+  clampView();
+  animateTransform();
+});
+
+// ── hint ──────────────────────────────────────────────────────────────────────
+setTimeout(function() {
+  var hint = document.getElementById('hint');
+  hint.classList.add('visible');
+  setTimeout(function() { hint.classList.remove('visible'); }, 4000);
+}, 1200);
+
+// ── init ──────────────────────────────────────────────────────────────────────
+initView();
+window.addEventListener('resize', initView);
+</script>
+</body>
+</html>

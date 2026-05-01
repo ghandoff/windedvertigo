@@ -1,0 +1,237 @@
+import { sql } from "@/lib/db";
+import { notion, NOTION_DBS } from "@/lib/notion";
+import { makeSlug } from "@/lib/slugify";
+import { syncCacheTable } from "./sync-cache-table";
+import {
+  extractTitle,
+  extractRichText,
+  extractRichTextHtml,
+  extractSelect,
+  extractMultiSelect,
+  extractRelationIds,
+  extractUrl,
+  extractLastEdited,
+  extractPageId,
+  extractCover,
+  type NotionPage,
+} from "./extract";
+import { syncImageToR2, imageUrl } from "./sync-image";
+import { fetchPageBodyHtml } from "./blocks";
+
+interface VaultActivityRow {
+  notionId: string;
+  name: string;
+  headline: string | null;
+  headlineHtml: string | null;
+  duration: string | null;
+  format: string[];
+  type: string[];
+  skillsDeveloped: string[];
+  tags: string[];
+  tier: string | null;
+  ageRange: string | null;
+  groupSize: string | null;
+  warmupPrompt: string | null;
+  warmupPromptHtml: string | null;
+  connectionPrompt: string | null;
+  connectionPromptHtml: string | null;
+  transferPrompt: string | null;
+  transferPromptHtml: string | null;
+  materialsNeeded: string[];
+  videoUrl: string | null;
+  coverSourceUrl: string | null;
+  lastEdited: string;
+  relatedActivityIds: string[];
+}
+
+function parseVaultActivityPage(page: NotionPage): VaultActivityRow {
+  const props = page.properties;
+  return {
+    notionId: extractPageId(page),
+    name: extractTitle(props, "name"),
+    headline: extractRichText(props, "headline"),
+    headlineHtml: extractRichTextHtml(props, "headline"),
+    duration: extractSelect(props, "duration"),
+    format: extractMultiSelect(props, "format"),
+    type: extractMultiSelect(props, "type"),
+    skillsDeveloped: extractMultiSelect(props, "skills developed"),
+    tags: extractMultiSelect(props, "tags"),
+    tier: extractSelect(props, "tier"),
+    ageRange: extractSelect(props, "age range"),
+    groupSize: extractSelect(props, "group size"),
+    warmupPrompt: extractRichText(props, "warm-up prompt"),
+    warmupPromptHtml: extractRichTextHtml(props, "warm-up prompt"),
+    connectionPrompt: extractRichText(props, "connection prompt"),
+    connectionPromptHtml: extractRichTextHtml(props, "connection prompt"),
+    transferPrompt: extractRichText(props, "transfer prompt"),
+    transferPromptHtml: extractRichTextHtml(props, "transfer prompt"),
+    materialsNeeded: extractMultiSelect(props, "materials needed"),
+    videoUrl: extractUrl(props, "video url"),
+    coverSourceUrl: extractCover(page)?.url ?? null,
+    lastEdited: extractLastEdited(page),
+    relatedActivityIds: extractRelationIds(props, "related activities"),
+  };
+}
+
+export async function syncVaultActivities() {
+  return syncCacheTable<VaultActivityRow>({
+    databaseId: NOTION_DBS.vault,
+    label: "vault activities",
+    parsePage: parseVaultActivityPage,
+    upsertRow: async (row) => {
+      // Check if this page has changed since last sync — skip expensive
+      // image downloads and block fetches for unchanged pages.
+      const existing = await sql`
+        SELECT cover_r2_key, cover_url, body_html, content_md, notion_last_edited
+        FROM vault_activities_cache
+        WHERE notion_id = ${row.notionId}
+      `;
+      const prev = existing.rows[0] as {
+        cover_r2_key: string | null;
+        cover_url: string | null;
+        body_html: string | null;
+        content_md: string | null;
+        notion_last_edited: Date | string | null;
+      } | undefined;
+      // Postgres returns Date objects for timestamp columns; Notion gives ISO strings.
+      // Normalise both to ISO strings for comparison.
+      const prevEdited = prev?.notion_last_edited instanceof Date
+        ? prev.notion_last_edited.toISOString()
+        : prev?.notion_last_edited;
+      const pageUnchanged = prevEdited === row.lastEdited;
+      if (pageUnchanged && prev?.cover_r2_key && prev?.body_html) {
+        console.log(`[sync]   ↳ ${row.name}: unchanged, reusing cached data`);
+      } else {
+        console.log(`[sync]   ↳ ${row.name}: ${prev ? "updated" : "new"}, syncing...`);
+      }
+
+      // Sync cover image to R2 — skip if page unchanged and R2 key exists
+      let coverR2Key: string | null = null;
+      let coverUrl: string | null = null;
+      if (row.coverSourceUrl) {
+        if (pageUnchanged && prev?.cover_r2_key) {
+          coverR2Key = prev.cover_r2_key;
+          coverUrl = prev.cover_url;
+        } else {
+          coverR2Key = await syncImageToR2(row.coverSourceUrl, row.notionId, "cover");
+          coverUrl = imageUrl(coverR2Key);
+        }
+      }
+
+      // Fetch page body content — skip if page unchanged and body exists
+      let bodyHtml: string | null = null;
+      let contentMd: string | null = null;
+      if (pageUnchanged && prev?.body_html) {
+        bodyHtml = prev.body_html;
+        contentMd = prev.content_md;
+      } else {
+        try {
+          bodyHtml = await fetchPageBodyHtml(notion(), row.notionId);
+          contentMd = bodyHtml
+            ? bodyHtml
+                .replace(/<h2[^>]*>/g, "## ")
+                .replace(/<h3[^>]*>/g, "### ")
+                .replace(/<\/h[23]>/g, "\n")
+                .replace(/<li>/g, "- ")
+                .replace(/<\/li>/g, "\n")
+                .replace(/<[^>]+>/g, "")
+                .trim()
+            : null;
+        } catch {
+          // Non-blocking — body content is supplementary
+        }
+      }
+
+      await sql`
+        INSERT INTO vault_activities_cache (
+          notion_id, slug, name, headline, headline_html,
+          duration, format, type, skills_developed, tags,
+          tier, age_range, group_size,
+          warmup_prompt, warmup_prompt_html,
+          connection_prompt, connection_prompt_html,
+          transfer_prompt, transfer_prompt_html,
+          materials_needed, video_url,
+          cover_r2_key, cover_url,
+          body_html, content_md,
+          notion_last_edited, synced_at
+        ) VALUES (
+          ${row.notionId}, ${makeSlug(row.name)}, ${row.name},
+          ${row.headline}, ${row.headlineHtml},
+          ${row.duration}, ${JSON.stringify(row.format)},
+          ${JSON.stringify(row.type)}, ${JSON.stringify(row.skillsDeveloped)},
+          ${JSON.stringify(row.tags)},
+          ${row.tier ?? "prme"}, ${row.ageRange}, ${row.groupSize},
+          ${row.warmupPrompt}, ${row.warmupPromptHtml},
+          ${row.connectionPrompt}, ${row.connectionPromptHtml},
+          ${row.transferPrompt}, ${row.transferPromptHtml},
+          ${JSON.stringify(row.materialsNeeded)}, ${row.videoUrl},
+          ${coverR2Key}, ${coverUrl},
+          ${bodyHtml}, ${contentMd},
+          ${row.lastEdited}, NOW()
+        )
+        ON CONFLICT (notion_id) DO UPDATE SET
+          name = EXCLUDED.name,
+          headline = EXCLUDED.headline,
+          headline_html = EXCLUDED.headline_html,
+          duration = EXCLUDED.duration,
+          format = EXCLUDED.format,
+          type = EXCLUDED.type,
+          skills_developed = EXCLUDED.skills_developed,
+          tags = EXCLUDED.tags,
+          tier = EXCLUDED.tier,
+          age_range = EXCLUDED.age_range,
+          group_size = EXCLUDED.group_size,
+          warmup_prompt = EXCLUDED.warmup_prompt,
+          warmup_prompt_html = EXCLUDED.warmup_prompt_html,
+          connection_prompt = EXCLUDED.connection_prompt,
+          connection_prompt_html = EXCLUDED.connection_prompt_html,
+          transfer_prompt = EXCLUDED.transfer_prompt,
+          transfer_prompt_html = EXCLUDED.transfer_prompt_html,
+          materials_needed = EXCLUDED.materials_needed,
+          video_url = EXCLUDED.video_url,
+          cover_r2_key = EXCLUDED.cover_r2_key,
+          cover_url = EXCLUDED.cover_url,
+          body_html = EXCLUDED.body_html,
+          content_md = EXCLUDED.content_md,
+          notion_last_edited = EXCLUDED.notion_last_edited,
+          synced_at = NOW()
+      `;
+    },
+    cleanupStale: async (activeNotionIds) => {
+      // Hard-delete stale vault activities (no other tables reference them yet)
+      await sql.query(
+        `DELETE FROM vault_activities_cache
+         WHERE notion_id != ALL($1::text[])`,
+        [activeNotionIds],
+      );
+    },
+    resolveRelations: async (pages) => {
+      // Resolve self-referencing "related activities" relation
+      for (const page of pages) {
+        const row = parseVaultActivityPage(page);
+        const activityResult = await sql`
+          SELECT id FROM vault_activities_cache WHERE notion_id = ${row.notionId}
+        `;
+        if (activityResult.rows.length === 0) continue;
+        const activityId = activityResult.rows[0].id;
+
+        // Clear existing relations for this activity
+        await sql`DELETE FROM vault_related_activities WHERE vault_activity_id = ${activityId}`;
+
+        // Insert new relations
+        for (const relatedNotionId of row.relatedActivityIds) {
+          const relatedResult = await sql`
+            SELECT id FROM vault_activities_cache WHERE notion_id = ${relatedNotionId}
+          `;
+          if (relatedResult.rows.length > 0) {
+            await sql`
+              INSERT INTO vault_related_activities (vault_activity_id, related_activity_id)
+              VALUES (${activityId}, ${relatedResult.rows[0].id})
+              ON CONFLICT DO NOTHING
+            `;
+          }
+        }
+      }
+    },
+  });
+}

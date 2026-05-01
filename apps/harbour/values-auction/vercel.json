@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "ignoreCommand": "npx turbo-ignore @harbour/values-auction",
+  "rewrites": [
+    { "source": "/harbour/values-auction/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/harbour/values-auction/(.*)", "destination": "/index.html" }
+  ]
+}

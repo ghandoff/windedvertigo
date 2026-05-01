@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@import "@windedvertigo/tokens/index.css";
+
+@source "../../packages/feedback";
+@source "../../packages/auth";
+
+:root {
+  /* raft.house brand tokens — teal/cyan water crossing aesthetic */
+  --rh-deep: #0f2a2e;
+  --rh-teal: #0d4f4f;
+  --rh-cyan: #17858a;
+  --rh-foam: #7dd3d8;
+  --rh-sand: #f0e6d3;
+  --rh-sand-light: #faf6ee;
+  --rh-text: #0f2a2e;
+  --rh-text-muted: rgba(15, 42, 46, 0.6);
+  --rh-text-on-dark: #ffffff;
+  --rh-text-on-dark-muted: rgba(255, 255, 255, 0.65);
+
+  /* phase colors */
+  --phase-encounter: #f59e0b;
+  --phase-struggle: #ef4444;
+  --phase-threshold: #8b5cf6;
+  --phase-integration: #06b6d4;
+  --phase-application: #22c55e;
+}
+
+body {
+  background-color: var(--rh-sand-light);
+  color: var(--rh-text);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* ── skip link ───────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: var(--rh-teal);
+  color: white;
+  border-radius: 0 0 0.5rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ── phase indicator dots ─────────────────────────────────── */
+
+.phase-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+}
+
+.phase-encounter { background: var(--phase-encounter); }
+.phase-struggle { background: var(--phase-struggle); }
+.phase-threshold { background: var(--phase-threshold); }
+.phase-integration { background: var(--phase-integration); }
+.phase-application { background: var(--phase-application); }
+
+/* ── pulse animation for live indicator ───────────────────── */
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-live {
+  animation: pulse-live 2s ease-in-out infinite;
+}
+
+/* ── slide-down for notifications ────────────────────────── */
+
+@keyframes slide-down {
+  from { transform: translateY(-1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+/* ── reduced motion ───────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-live,
+  .animate-slide-down {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "@windedvertigo/raft-house",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3007",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "party:dev": "npx partykit dev",
+    "party:deploy": "npx partykit deploy"
+  },
+  "dependencies": {
+    "@auth/core": "^0.41.0",
+    "@neondatabase/serverless": "^0.10.0",
+    "@notionhq/client": "^2.3.0",
+    "@windedvertigo/auth": "*",
+    "@windedvertigo/feedback": "*",
+    "@windedvertigo/stripe": "*",
+    "html-to-image": "^1.11.13",
+    "next": "^16.2.3",
+    "next-auth": "^5.0.0-beta.30",
+    "partysocket": "^1.1.3",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "stripe": "^17.7.0",
+    "@windedvertigo/security": "*"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "^1.19.1",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.1.6",
+    "partykit": "^0.0.115",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5",
+    "wrangler": "^4.81.1"
+  }
+}

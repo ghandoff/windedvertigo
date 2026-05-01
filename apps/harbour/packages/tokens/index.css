@@ -1,0 +1,876 @@
+/* ═══════════════════════════════════════════════════════════════════
+   @windedvertigo/tokens — shared design tokens
+   import this file in every app's global stylesheet.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── brand palette ────────────────────────────────────────────────
+   these are the canonical winded.vertigo brand colours.
+   never hardcode hex values in components — reference these vars.  */
+
+:root {
+  --wv-cadet:     #273248;
+  --wv-redwood:   #b15043;
+  --wv-sienna:    #cb7858;
+  --wv-champagne: #ffebd2;
+  --wv-white:     #ffffff;
+  --wv-cream:     #fff6e8;  /* kid-surface background. champagne stays text-only. */
+}
+
+/* ── complementary colours (internal brand guidelines, page 21) ──
+   supporting accents — use sparingly to enhance, not replace, the
+   primary palette. reserved for phase accents, kid mode highlights,
+   and contextual visual cues.
+
+   two families: cool (blue/purple) and warm (green/teal).
+   each family has four values: dark → mid → light → pale.          */
+
+:root {
+  /* cool family — discovery, calm, gentle */
+  --wv-navy:       #436db1;   /* dark blue   — find phase deep    */
+  --wv-cornflower: #5872cb;   /* mid blue    — find phase accent  */
+  --wv-periwinkle: #d5d2ff;   /* light lilac — gentle highlights  */
+
+  /* warm family — growth, mastery, nature */
+  --wv-moss:       #434824;   /* dark green  — nature contexts    */
+  --wv-forest:     #482d27;   /* deep brown  — grounding          */
+  --wv-teal:       #43b187;   /* mid green   — growth/mastery     */
+  --wv-seafoam:    #58cbb2;   /* light teal  — find again phase   */
+  --wv-mint:       #d2fdff;   /* pale mint   — kid mode surfaces  */
+}
+
+/* ── semantic colours ─────────────────────────────────────────────
+   map brand colours to function. all text/background combos are
+   tested to WCAG AAA (7:1) unless noted otherwise.                */
+
+:root {
+  /* text on light backgrounds */
+  --color-text-primary:   var(--wv-cadet);          /* #273248 on white = 11.4:1 */
+  --color-text-secondary: #4b5563;                   /* gray-600 on white = 7.5:1 AAA */
+  --color-text-muted:     #6b7280;                   /* gray-500 on white = 5.0:1 AA  */
+
+  /* text on dark (cadet) backgrounds */
+  --color-text-on-dark:         var(--wv-champagne); /* #ffebd2 on #273248 = 9.8:1 */
+  --color-text-on-dark-muted:   rgba(255, 235, 210, 0.85); /* AAA */
+
+  /* text on kid-surface / phase-tint light backgrounds.
+     retires the `--wv-champagne: #3a3024` hijack that used to live
+     inside .cw-find-bg — now every component can ask for
+     var(--color-text-on-cream) and get a readable dark tone
+     regardless of which phase surface it renders on.               */
+  --color-text-on-cream:        var(--wv-cadet);     /* #273248 on #fff6e8 = 10.3:1 AAA */
+  --color-text-on-cream-muted:  rgba(39, 50, 72, 0.65); /* on cream ≈ 5.5:1 AA */
+  --color-text-on-tint:         #3a3024;             /* warm near-black on phase tints ≈ 9:1 AAA */
+
+  /* surfaces */
+  --color-surface-raised:       #1e2738;             /* card/panel on cadet bg */
+  --color-surface-cream:        var(--wv-cream);     /* #fff6e8 — kid-surface default */
+
+  /* interactive */
+  --color-focus:    #3B82F6;                          /* blue-500 — focus rings only */
+  --color-link:     #1e40af;                          /* blue-800 on white = 9.4:1 AAA */
+  --color-link-on-dark: #93c5fd;                      /* blue-300 on cadet = 7.8:1 AAA */
+
+  /* accent (cta buttons, highlights) */
+  --color-accent:       var(--wv-redwood);            /* #b15043 */
+  --color-accent-hover: var(--wv-sienna);             /* #cb7858 */
+  --color-accent-on-dark: #e09878;                    /* lightened sienna on cadet = 5.5:1 AA */
+
+  /* status — each pair is background + text, AAA compliant */
+  --color-error:          #7c2d12;                    /* on error-bg = 7.2:1 */
+  --color-error-bg:       #fee2e2;
+  --color-error-border:   #dc2626;
+  --color-success:        #15803d;                    /* on success-bg = 5.8:1 AA+ */
+  --color-success-vivid:  #2a9d50;                    /* inline success indicator   */
+  --color-success-bg:     #dcfce7;
+  --color-success-border: #22c55e;
+  --color-warning:        #78350f;                    /* on warning-bg = 8.1:1 AAA */
+  --color-warning-bg:     #fef3c7;
+  --color-warning-border: #f59e0b;
+}
+
+/* ── spacing scale ────────────────────────────────────────────────
+   use multiples of 4. consistent across all apps.                 */
+
+:root {
+  --space-xs:  0.25rem;  /*  4px */
+  --space-sm:  0.5rem;   /*  8px */
+  --space-md:  1rem;     /* 16px */
+  --space-lg:  1.5rem;   /* 24px */
+  --space-xl:  2rem;     /* 32px */
+  --space-2xl: 3rem;     /* 48px */
+  --space-3xl: 4rem;     /* 64px */
+}
+
+/* ── typography ───────────────────────────────────────────────────
+   inter is the brand font. these defaults improve readability for
+   dyslexic users and reduce cognitive load for everyone.          */
+
+:root {
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --line-height-body:     1.6;
+  --letter-spacing-body:  0.02em;
+  --word-spacing-body:    0.04em;
+  --max-line-length:      70ch;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   foundation rules — inclusive defaults
+   these apply globally when this file is imported.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── reduced motion ───────────────────────────────────────────────
+   when the OS says reduce motion, kill all animation globally.
+   individual apps can allowlist specific subtle transitions.      */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── focus-visible ────────────────────────────────────────────────
+   clear, consistent focus ring on keyboard navigation.
+   uses :focus-visible so mouse clicks don't trigger it.           */
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── high contrast preference ─────────────────────────────────────
+   bump colours when the OS requests more contrast.                */
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-text-primary:   #000000;
+    --color-text-secondary: #1f2937;
+    --color-link:           #1e3a8a;
+  }
+}
+
+/* ── skip-to-content link ─────────────────────────────────────────
+   visually hidden until focused; essential a11y affordance on
+   every harbour app.                                              */
+
+.skip-link {
+  position: fixed;
+  top: -48px;
+  left: 12px;
+  z-index: 100;
+  padding: 8px 14px;
+  background: var(--wv-champagne);
+  color: var(--wv-cadet);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  transition: top 160ms ease;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   shared component styles — footer + header
+   these are the canonical winded.vertigo chrome elements.
+   both the static site and react apps use these classes directly.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── footer ──────────────────────────────────────────────────────
+   dark strip at the bottom of every page.                         */
+
+.wv-footer {
+  padding: var(--space-lg) 0;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 235, 210, 0.1);
+  background-color: var(--wv-cadet);
+}
+
+.wv-footer-inner {
+  max-width: 100%;
+  padding: 0 30px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wv-footer-copyright {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0;
+}
+
+.wv-footer-social {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.wv-footer-social a {
+  color: var(--wv-white);
+  transition: color 0.2s ease;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wv-footer-social a:hover {
+  color: var(--wv-champagne);
+}
+
+/* footer brand — logo linking to parent windedvertigo.com homepage.
+   displayed on the left side of the footer inner row.                */
+
+.wv-footer-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+.wv-footer-brand:hover {
+  opacity: 0.8;
+}
+
+.wv-footer-brand-img {
+  display: block;
+  width: 120px;
+  height: auto;
+}
+
+@media (max-width: 640px) {
+  .wv-footer-inner {
+    flex-direction: column;
+    gap: var(--space-md);
+    text-align: center;
+  }
+
+  .wv-footer-brand {
+    justify-content: center;
+  }
+
+  .wv-footer-brand-img {
+    width: 100px;
+  }
+}
+
+/* ── header ──────────────────────────────────────────────────────
+   fixed/absolute dark bar at the top of every page.               */
+
+.wv-header {
+  padding: 12px 30px;
+  background-color: var(--wv-cadet);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wv-header-brand {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--wv-white);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.wv-header-brand:hover {
+  opacity: 0.8;
+}
+
+.wv-header-nav {
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+/* Let Tailwind's hidden/sm:flex control visibility on mobile.
+   Only set display:flex at the sm breakpoint so it doesn't
+   override Tailwind's `hidden` utility on narrow screens. */
+@media (min-width: 640px) {
+  .wv-header-nav {
+    display: flex;
+  }
+}
+
+.wv-header-nav a {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--wv-white);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.wv-header-nav a:hover {
+  opacity: 0.8;
+}
+
+.wv-header-nav a[data-accent],
+.wv-header-nav-link[data-accent] {
+  color: var(--color-accent-on-dark);
+}
+
+.wv-header-nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--wv-white);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.wv-header-nav-link:hover {
+  opacity: 0.8;
+}
+
+.wv-header-email {
+  font-size: 0.75rem;
+  color: var(--color-text-on-dark-muted);
+}
+
+.wv-header-signout {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-accent-on-dark);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.wv-header-signout:hover {
+  opacity: 0.8;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   harbour nav — minimal top bar + signature "harbour drawer"
+   used by the shared HarbourNav component from @windedvertigo/auth.
+   mobile-first; one persistent anchor + one full-height drawer of
+   19 apps organised across two piers.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── persistent top bar ──────────────────────────────────────────
+   one coherent header for every harbour app. breadcrumb + drawer
+   anchor on the left, page action / sign-in on the right. a thin
+   gradient line in the current app's accent colour lives just below
+   the bottom border — a subtle "dock stripe" that telegraphs which
+   app you're in before you've read a word.                         */
+
+.harbour-topbar {
+  --topbar-accent: rgba(255, 235, 210, 0.12);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 52px;
+  padding: 0 14px;
+  padding-top: env(safe-area-inset-top, 0px);
+  background-color: var(--wv-cadet);
+  border-bottom: 1px solid rgba(255, 235, 210, 0.08);
+  color: var(--color-text-on-dark);
+}
+
+.harbour-topbar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--topbar-accent) 10%,
+    var(--topbar-accent) 90%,
+    transparent 100%
+  );
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .harbour-topbar {
+    height: 56px;
+    padding: 0 22px;
+  }
+}
+
+.harbour-topbar-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.harbour-anchor {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 6px 10px 6px 8px;
+  margin-left: -8px;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 220ms ease;
+}
+
+.harbour-anchor:hover {
+  background: rgba(255, 235, 210, 0.06);
+}
+
+.harbour-anchor:active {
+  transform: scale(0.97);
+}
+
+.harbour-anchor-sigil {
+  width: 17px;
+  height: 17px;
+  color: var(--wv-white);
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.harbour-anchor-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--wv-white);
+  opacity: 0.75;
+}
+
+.harbour-anchor-sep {
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.harbour-anchor-sep::before {
+  content: "";
+  position: absolute;
+  inset: 50% 4px auto 4px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-0.5px);
+}
+
+.harbour-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--wv-white);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 160ms ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 55vw;
+}
+
+.harbour-breadcrumb:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@media (min-width: 640px) {
+  .harbour-anchor-label {
+    font-size: 0.875rem;
+  }
+  .harbour-breadcrumb {
+    font-size: 1rem;
+    max-width: none;
+  }
+}
+
+.harbour-topbar-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.harbour-signin {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-accent-on-dark);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  transition: background-color 160ms ease;
+}
+
+.harbour-signin:hover {
+  background: rgba(255, 235, 210, 0.06);
+}
+
+/* ── harbour drawer ──────────────────────────────────────────────
+   <dialog> element. native modal → native focus trap + ESC.
+   full-screen on mobile, 480px right-sheet on desktop. slides in
+   from the right via @starting-style transition.                  */
+
+.harbour-drawer {
+  padding: 0;
+  margin: 0;
+  border: none;
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+
+  width: 100%;
+  max-width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+
+  background-color: var(--wv-cadet);
+  color: var(--color-text-on-dark);
+  box-shadow: -24px 0 60px -20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+
+  transform: translateX(100%);
+  opacity: 0;
+  transition:
+    transform 220ms ease-out,
+    opacity 180ms ease-out,
+    overlay 220ms allow-discrete,
+    display 220ms allow-discrete;
+}
+
+.harbour-drawer[open] {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+@starting-style {
+  .harbour-drawer[open] {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.harbour-drawer::backdrop {
+  background: rgba(15, 20, 31, 0.6);
+  opacity: 0;
+  transition:
+    opacity 180ms ease-out,
+    overlay 220ms allow-discrete,
+    display 220ms allow-discrete;
+}
+
+.harbour-drawer[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .harbour-drawer[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+@media (min-width: 640px) {
+  .harbour-drawer {
+    max-width: 480px;
+    border-left: 1px solid rgba(255, 235, 210, 0.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .harbour-drawer {
+    transition:
+      opacity 120ms ease-out,
+      overlay 120ms allow-discrete,
+      display 120ms allow-discrete;
+    transform: none !important;
+  }
+  @starting-style {
+    .harbour-drawer[open] { transform: none; }
+  }
+}
+
+.harbour-drawer-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (min-width: 640px) {
+  .harbour-drawer-inner {
+    padding: 28px 24px 32px;
+  }
+}
+
+/* drawer header */
+
+.harbour-drawer-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 235, 210, 0.08);
+}
+
+.harbour-drawer-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text-on-dark);
+}
+
+.harbour-tide {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--color-text-on-dark-muted);
+  opacity: 0.7;
+  min-width: 6ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.harbour-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 235, 210, 0.06);
+  border: none;
+  border-radius: 8px;
+  color: var(--color-text-on-dark);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.harbour-close:hover {
+  background: rgba(255, 235, 210, 0.14);
+}
+
+/* lost-at-sea fallback */
+
+.harbour-lost {
+  padding: 14px 14px;
+  margin: 0 0 16px;
+  background: rgba(255, 235, 210, 0.04);
+  border: 1px dashed rgba(255, 235, 210, 0.18);
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  color: var(--color-text-on-dark-muted);
+}
+
+.harbour-lost p {
+  margin: 0 0 10px;
+}
+
+.harbour-lost-action {
+  color: var(--color-accent-on-dark);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.harbour-lost-action:hover {
+  text-decoration: underline;
+}
+
+/* pier sections */
+
+.harbour-pier {
+  margin-bottom: 20px;
+}
+
+.harbour-pier:last-of-type {
+  margin-bottom: 24px;
+}
+
+.harbour-pier-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-accent-on-dark);
+  opacity: 0.85;
+}
+
+.harbour-pier-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 235, 210, 0.1);
+}
+
+.harbour-pier-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* dock card — one per app */
+
+.harbour-dock {
+  --dock-accent: var(--wv-sienna);
+  display: grid;
+  grid-template-columns: 6px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--color-text-on-dark);
+  transition:
+    background-color 150ms ease,
+    transform 220ms ease-out;
+}
+
+.harbour-dock:hover {
+  background: rgba(255, 235, 210, 0.045);
+}
+
+.harbour-dock:active {
+  transform: translateX(2px);
+}
+
+.harbour-dock-chip {
+  width: 4px;
+  align-self: stretch;
+  margin: 8px 0;
+  border-radius: 2px;
+  background: var(--dock-accent);
+}
+
+.harbour-dock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.harbour-dock-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--color-text-on-dark);
+}
+
+.harbour-dock-tagline {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-on-dark-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.harbour-dock-trail {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-text-on-dark-muted);
+  opacity: 0.6;
+  transition:
+    color 150ms ease,
+    opacity 150ms ease;
+}
+
+.harbour-dock:hover .harbour-dock-trail {
+  opacity: 1;
+  color: var(--color-accent-on-dark);
+}
+
+/* currently-docked app */
+
+.harbour-dock.is-docked {
+  background: rgba(255, 235, 210, 0.06);
+  box-shadow: inset 2px 0 0 var(--wv-champagne);
+}
+
+.harbour-dock.is-docked .harbour-dock-chip {
+  width: 6px;
+}
+
+.harbour-dock.is-docked .harbour-dock-label {
+  color: var(--wv-champagne);
+}
+
+.harbour-dock.is-docked .harbour-dock-trail {
+  color: var(--color-accent-on-dark);
+  opacity: 1;
+  font-style: italic;
+}
+
+/* drawer footer */
+
+.harbour-drawer-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 235, 210, 0.08);
+  font-size: 0.8125rem;
+}
+
+.harbour-user {
+  color: var(--color-text-on-dark-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.harbour-drawer-link {
+  color: var(--color-text-on-dark);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background-color 150ms ease;
+  white-space: nowrap;
+}
+
+.harbour-drawer-link[data-accent] {
+  color: var(--color-accent-on-dark);
+}
+
+.harbour-drawer-link:hover {
+  background: rgba(255, 235, 210, 0.06);
+}

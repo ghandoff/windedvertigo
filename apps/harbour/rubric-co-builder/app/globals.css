@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cadet: #273248;
+  --color-redwood: #b15043;
+  --color-sienna: #cb7858;
+  --color-champagne: #ffebd2;
+  --color-soft-green: #a8c4a1;
+  --color-wv-white: #ffffff;
+  --color-focus: #3b82f6;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-wv-white);
+    color: #000000;
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+  }
+
+  h1, h2, h3, h4 {
+    color: var(--color-cadet);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  *:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    body {
+      color: #000000;
+    }
+    /* strengthen interactive borders for high-contrast environments */
+    input, textarea, button, [role="button"] {
+      border-color: var(--color-cadet) !important;
+    }
+  }
+}
+
+@utility btn-primary {
+  background: var(--color-cadet);
+  color: var(--color-wv-white);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: transform 150ms ease, background 150ms ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-cadet) 88%, #000);
+    transform: translateY(-1px);
+  }
+}
+
+@utility btn-secondary {
+  background: transparent;
+  color: var(--color-cadet);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid var(--color-cadet);
+  font-weight: 500;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: var(--color-champagne);
+  }
+}
+
+@utility surface-champagne {
+  background: var(--color-champagne);
+  color: var(--color-cadet);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--color-cadet);
+  color: var(--color-wv-white);
+  padding: 0.75rem 1rem;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+  .btn-primary,
+  .btn-secondary,
+  .skip-link,
+  header[class*="tracking-widest"] {
+    display: none !important;
+  }
+  .surface-champagne {
+    background: #fff !important;
+  }
+}

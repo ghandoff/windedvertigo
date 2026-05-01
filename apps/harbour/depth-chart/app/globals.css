@@ -1,0 +1,68 @@
+@import "tailwindcss";
+@import "@windedvertigo/tokens/index.css";
+
+@source "../../packages/feedback";
+@source "../../packages/auth";
+
+/* ── depth-chart-specific tokens ─────────────────────────────────── */
+
+:root {
+  --dc-section-gap: 4rem;
+
+  /* match harbour — white text on dark cadet background */
+  --color-text-on-dark:       #ffffff;
+  --color-text-on-dark-muted: rgba(255, 255, 255, 0.7);
+
+  /* bloom's level colours */
+  --dc-bloom-remember:   #6b7280;
+  --dc-bloom-understand: #3b82f6;
+  --dc-bloom-apply:      #10b981;
+  --dc-bloom-analyse:    #f59e0b;
+  --dc-bloom-evaluate:   #ef4444;
+  --dc-bloom-create:     #8b5cf6;
+
+  /* webb's DOK colours (warm progression: sand → amber → orange → red) */
+  --dc-dok-1: #d4a574;
+  --dc-dok-2: #e8a849;
+  --dc-dok-3: #e07b3a;
+  --dc-dok-4: #c94a2e;
+
+  /* SOLO taxonomy colours (cool progression: slate → teal → cyan → blue → indigo) */
+  --dc-solo-pre:       #6b7280;
+  --dc-solo-uni:       #5eaaa8;
+  --dc-solo-multi:     #3bb4c1;
+  --dc-solo-relational:#2d8cc4;
+  --dc-solo-extended:  #6366f1;
+}
+
+/* ── skip-link (a11y) ──────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1.5rem;
+  background: var(--wv-champagne);
+  color: var(--wv-cadet);
+  font-weight: 700;
+  border-radius: 0 0 0.5rem 0.5rem;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ── smooth scrolling ──────────────────────────────────────────── */
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

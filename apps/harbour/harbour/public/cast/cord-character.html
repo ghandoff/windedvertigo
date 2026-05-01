@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>cord — harbour character sketch v5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:    #fff4e0;
+    --paper:    #f1e3c8;
+    --ink:      #241c1e;
+    --ink-soft: #3a2e2f;
+    --rope-lt:  #f3cd74;
+    --rope:     #d89f3a;
+    --rope-dk:  #6e4a13;
+    --blush:    #e89b8a;
+    --sand:     #d9bf8a;
+    --sand-dk:  #8a6f47;
+    --sky:      #9dbbcf;
+    --cream-dk: #ead8b5;
+  }
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 48px 24px 96px;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px; line-height: 1.6;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.14  0 0 0 0 0.11  0 0 0 0 0.12  0 0 0 0.18 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+    background-size: 300px 300px;
+    mix-blend-mode: multiply;
+    pointer-events: none; z-index: 50; opacity: 0.9;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; position: relative; z-index: 1; }
+
+  header { text-align: center; margin-bottom: 56px; }
+  .kicker {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: lowercase; color: var(--rope-dk); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: clamp(56px, 10vw, 112px); letter-spacing: -0.025em;
+    margin: 0 0 4px; line-height: 0.92;
+    font-variation-settings: "opsz" 144;
+    transform: rotate(-1.2deg);
+  }
+  .subtitle {
+    font-size: 18px; opacity: 0.7; margin: 8px 0 0;
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-variation-settings: "opsz" 14;
+  }
+
+  h2 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 32px;
+    letter-spacing: -0.01em; margin: 0 0 4px;
+    font-variation-settings: "opsz" 72;
+  }
+  .section-kicker {
+    font-size: 11px; letter-spacing: 0.14em; font-weight: 700;
+    opacity: 0.55; margin: 0 0 28px;
+  }
+  section { margin-bottom: 56px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 820px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .card {
+    background: var(--paper);
+    border-radius: 18px;
+    padding: 14px 10px 16px;
+    text-align: center;
+    transition: transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 10px 24px -18px rgba(42,28,22,0.25);
+  }
+  .card:hover { transform: rotate(-1.5deg) scale(1.02); }
+  .card:nth-child(2n):hover { transform: rotate(1.8deg) scale(1.02); }
+
+  .card svg { width: 100%; height: auto; display: block; }
+  .card .label { font-size: 13px; font-weight: 600; margin: 8px 0 0; letter-spacing: 0.02em; }
+  .card .caption {
+    font-size: 11px; opacity: 0.55; margin: 2px 0 0; letter-spacing: 0.03em;
+    font-style: italic; font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 14;
+  }
+
+  .adult { position: relative; z-index: 100; }
+  .adult .card {
+    background: #ffffff;
+    box-shadow: none;
+    border: 1px solid #eee;
+    border-radius: 10px;
+  }
+  .adult .card:hover { transform: none; }
+  .adult .card .caption { font-style: normal; font-family: 'Inter', sans-serif; }
+
+  .featured {
+    margin: 24px 0 56px;
+    padding: 32px 24px 40px;
+    background: var(--paper);
+    border-radius: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .featured::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.4  0 0 0 0 0.2  0 0 0 0.1 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+    background-size: 300px 300px;
+    mix-blend-mode: multiply;
+    pointer-events: none; opacity: 0.7;
+  }
+  .morpher {
+    width: 100%; max-width: 460px; height: auto; display: block;
+    margin: 0 auto; cursor: pointer;
+    transition: filter 200ms ease, opacity 200ms ease;
+  }
+  .morpher.morphing {
+    filter: blur(2.5px);
+    opacity: 0.9;
+  }
+
+  .featured-caption {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 14px; opacity: 0.7; margin: 12px 0 0;
+    font-variation-settings: "opsz" 14;
+  }
+  .featured-pose {
+    font-family: 'Fraunces', serif;
+    font-size: 22px; margin: 6px 0 0;
+    font-variation-settings: "opsz" 72;
+  }
+  .tip {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    color: var(--ink); background: var(--cream);
+    border-radius: 999px; padding: 6px 14px;
+    margin-top: 16px; opacity: 0.75;
+  }
+
+  .breathe { animation: breathe 4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  .breathe.a { animation-delay: -1s; }
+  .breathe.b { animation-delay: -2s; }
+  .breathe.c { animation-delay: -3s; }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50%      { transform: scale(1.012) rotate(0.5deg); }
+  }
+  .shimmy { animation: shimmy 6s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes shimmy {
+    0%, 92%, 100% { transform: rotate(0deg); }
+    94% { transform: rotate(-2deg); }
+    96% { transform: rotate(3deg); }
+    98% { transform: rotate(-1.5deg); }
+  }
+  .blink { animation: blink 5.2s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes blink {
+    0%, 96%, 100% { transform: scaleY(1); }
+    98% { transform: scaleY(0.1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .breathe, .shimmy, .blink { animation: none; }
+    .card, .morpher { transition: none; }
+  }
+
+  aside {
+    margin-top: 64px;
+    padding: 32px;
+    background: var(--cream-dk);
+    border-radius: 20px;
+    font-size: 14px; line-height: 1.75;
+  }
+  aside h3 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px;
+    margin: 0 0 12px; font-variation-settings: "opsz" 72;
+  }
+  aside ul { margin: 0; padding-left: 20px; }
+  aside li { margin-bottom: 8px; }
+  aside li code {
+    background: var(--cream); padding: 1px 6px; border-radius: 4px;
+    font-size: 12px; font-family: ui-monospace, monospace;
+  }
+
+  .divider {
+    border: none; height: 1px;
+    background: linear-gradient(to right, transparent, rgba(42,28,22,0.18), transparent);
+    margin: 48px 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">harbour character sketch — v5</p>
+  <h1>cord</h1>
+  <p class="subtitle">a rope with a silly streak</p>
+</header>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="edgeWobble" x="-3%" y="-3%" width="106%" height="106%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="9"/>
+      <feDisplacementMap in="SourceGraphic" scale="2.6"/>
+    </filter>
+    <symbol id="splatter" viewBox="0 0 200 160">
+      <circle cx="14" cy="22" r="1.4" fill="var(--ink)" opacity="0.55"/>
+      <circle cx="24" cy="18" r="0.8" fill="var(--ink)" opacity="0.4"/>
+      <circle cx="180" cy="30" r="1.2" fill="var(--ink)" opacity="0.5"/>
+      <ellipse cx="188" cy="42" rx="0.9" ry="1.4" fill="var(--ink)" opacity="0.45" transform="rotate(30 188 42)"/>
+      <circle cx="10" cy="135" r="1.6" fill="var(--ink)" opacity="0.6"/>
+      <circle cx="22" cy="142" r="0.7" fill="var(--ink)" opacity="0.35"/>
+      <circle cx="170" cy="140" r="1.1" fill="var(--blush)" opacity="0.7"/>
+      <ellipse cx="186" cy="132" rx="1.8" ry="0.7" fill="var(--blush)" opacity="0.5" transform="rotate(-20 186 132)"/>
+      <circle cx="100" cy="8" r="0.8" fill="var(--ink)" opacity="0.3"/>
+      <circle cx="190" cy="90" r="0.6" fill="var(--ink)" opacity="0.35"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- featured morpher — tap for real path interpolation -->
+<div class="featured">
+  <svg class="morpher" id="morpher" viewBox="-20 -20 240 200" aria-label="tap to watch cord shape-shift">
+    <use href="#splatter" x="-20" y="-20" width="240" height="200"/>
+    <g class="shimmy">
+      <g class="breathe">
+        <path id="m-blush"
+              fill="none" stroke="var(--blush)" stroke-width="22"
+              stroke-linecap="round" stroke-linejoin="round"
+              transform="translate(4 5)"/>
+        <path id="m-outline"
+              fill="none" stroke="var(--ink)" stroke-width="26"
+              stroke-linecap="round" stroke-linejoin="round"
+              filter="url(#edgeWobble)"/>
+        <path id="m-body"
+              fill="none" stroke="var(--rope)" stroke-width="22"
+              stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- ticks (path-aware twist lines) regenerated per pose -->
+        <g id="m-ticks"></g>
+        <g id="m-extras"></g>
+        <g id="m-eyes" class="blink"></g>
+      </g>
+    </g>
+  </svg>
+  <p class="featured-caption">tap cord. watch it transform.</p>
+  <p class="featured-pose" id="morpher-pose">base — just cord</p>
+  <span class="tip">click / tap to cycle</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     KID MODE — twist ticks generated from path tangents (run on load)
+     ═══════════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>kid mode</h2>
+  <p class="section-kicker">creaseworks · sampler · play dashboards</p>
+
+  <div class="grid">
+
+    <div class="card">
+      <svg viewBox="-20 -20 240 200" aria-label="cord, at rest">
+        <use href="#splatter" x="-20" y="-20" width="240" height="200"/>
+        <g class="shimmy">
+          <g class="breathe rope-group" data-stroke="22" data-spacing="8">
+            <path class="rope-blush"
+                  d="M 170 60 Q 175 30 130 30 Q 85 30 85 60 Q 85 90 120 90 Q 145 90 140 68 Q 138 58 120 60"
+                  fill="none" stroke="var(--blush)" stroke-width="22"
+                  stroke-linecap="round" stroke-linejoin="round" transform="translate(4 5)"/>
+            <path class="rope-outline"
+                  d="M 170 60 Q 175 30 130 30 Q 85 30 85 60 Q 85 90 120 90 Q 145 90 140 68 Q 138 58 120 60"
+                  fill="none" stroke="var(--ink)" stroke-width="26"
+                  stroke-linecap="round" stroke-linejoin="round" filter="url(#edgeWobble)"/>
+            <path class="rope-body"
+                  d="M 170 60 Q 175 30 130 30 Q 85 30 85 60 Q 85 90 120 90 Q 145 90 140 68 Q 138 58 120 60"
+                  fill="none" stroke="var(--rope)" stroke-width="22"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            <g class="rope-ticks"></g>
+            <!-- FRAYED-END TELL — 5 thin strands radiating out of the
+                 cord's right-side cut end (the visible "outside" end).
+                 distinguishes cord from a generic closed loop at the
+                 silhouette level. -->
+            <g class="rope-frays" stroke="var(--rope-dk)" stroke-width="1.3"
+               stroke-linecap="round" fill="none" opacity="0.85">
+              <path d="M 174 54 Q 180 47 185 42"/>
+              <path d="M 176 58 Q 184 56 188 54"/>
+              <path d="M 178 62 Q 186 62 192 62"/>
+              <path d="M 176 66 Q 184 68 190 72"/>
+              <path d="M 174 70 Q 180 74 184 80"/>
+            </g>
+            <g class="blink">
+              <circle cx="118" cy="58" r="3.4" fill="var(--ink)"/>
+              <circle cx="133" cy="58" r="3.4" fill="var(--ink)"/>
+              <circle cx="119.2" cy="56.8" r="0.9" fill="var(--cream)"/>
+              <circle cx="134.2" cy="56.8" r="0.9" fill="var(--cream)"/>
+            </g>
+          </g>
+        </g>
+      </svg>
+      <p class="label">base</p>
+      <p class="caption">just cord</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="-20 -20 240 200" aria-label="cord as a skipping rope">
+        <use href="#splatter" x="-20" y="-20" width="240" height="200"/>
+        <g class="shimmy">
+          <g class="breathe a rope-group" data-stroke="22" data-spacing="8">
+            <path class="rope-blush"
+                  d="M 30 150 L 30 108 Q 55 22 100 22 Q 145 22 170 108 L 170 150"
+                  fill="none" stroke="var(--blush)" stroke-width="22"
+                  stroke-linecap="round" stroke-linejoin="round" transform="translate(4 5)"/>
+            <path class="rope-outline"
+                  d="M 30 150 L 30 108 Q 55 22 100 22 Q 145 22 170 108 L 170 150"
+                  fill="none" stroke="var(--ink)" stroke-width="26"
+                  stroke-linecap="round" stroke-linejoin="round" filter="url(#edgeWobble)"/>
+            <path class="rope-body"
+                  d="M 30 150 L 30 108 Q 55 22 100 22 Q 145 22 170 108 L 170 150"
+                  fill="none" stroke="var(--rope)" stroke-width="22"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            <g class="rope-ticks"></g>
+            <path d="M 44 58 Q 100 38 156 58" fill="none" stroke="var(--ink)"
+                  stroke-width="2" stroke-linecap="round"
+                  stroke-dasharray="1 9" opacity="0.4"/>
+            <g class="blink">
+              <circle cx="93" cy="28" r="3.4" fill="var(--ink)"/>
+              <circle cx="109" cy="28" r="3.4" fill="var(--ink)"/>
+              <circle cx="94.2" cy="26.8" r="0.9" fill="var(--cream)"/>
+              <circle cx="110.2" cy="26.8" r="0.9" fill="var(--cream)"/>
+            </g>
+          </g>
+        </g>
+      </svg>
+      <p class="label">skip rope</p>
+      <p class="caption">function · play</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="-20 -20 240 200" aria-label="cord as a bridge">
+        <use href="#splatter" x="-20" y="-20" width="240" height="200"/>
+        <g class="shimmy">
+          <g class="breathe b rope-group" data-stroke="20" data-spacing="8">
+            <rect x="12" y="70" width="16" height="88" rx="3" fill="var(--ink-soft)"/>
+            <rect x="172" y="70" width="16" height="88" rx="3" fill="var(--ink-soft)"/>
+            <path class="rope-blush" d="M 25 78 Q 100 132 175 78"
+                  fill="none" stroke="var(--blush)" stroke-width="20"
+                  stroke-linecap="round" transform="translate(4 5)"/>
+            <path class="rope-outline" d="M 25 78 Q 100 132 175 78"
+                  fill="none" stroke="var(--ink)" stroke-width="24"
+                  stroke-linecap="round" filter="url(#edgeWobble)"/>
+            <path class="rope-body" d="M 25 78 Q 100 132 175 78"
+                  fill="none" stroke="var(--rope)" stroke-width="20"
+                  stroke-linecap="round"/>
+            <g class="rope-ticks"></g>
+            <circle cx="26" cy="80" r="7" fill="var(--ink-soft)"/>
+            <circle cx="174" cy="80" r="7" fill="var(--ink-soft)"/>
+            <g class="blink">
+              <circle cx="92" cy="117" r="3.2" fill="var(--ink)"/>
+              <circle cx="108" cy="117" r="3.2" fill="var(--ink)"/>
+              <circle cx="93" cy="116" r="0.9" fill="var(--cream)"/>
+              <circle cx="109" cy="116" r="0.9" fill="var(--cream)"/>
+            </g>
+          </g>
+        </g>
+      </svg>
+      <p class="label">bridge</p>
+      <p class="caption">function · span</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="-20 -20 240 200" aria-label="cord coiled into a nest">
+        <use href="#splatter" x="-20" y="-20" width="240" height="200"/>
+        <g class="shimmy">
+          <g class="breathe c rope-group" data-stroke="22" data-spacing="9">
+            <path class="rope-blush"
+                  d="M 100 63 C 38 63, 38 127, 100 127 C 162 127, 162 63, 100 63 Z"
+                  fill="none" stroke="var(--blush)" stroke-width="22"
+                  transform="translate(4 5)"/>
+            <path class="rope-outline"
+                  d="M 100 63 C 38 63, 38 127, 100 127 C 162 127, 162 63, 100 63 Z"
+                  fill="none" stroke="var(--ink)" stroke-width="26"
+                  filter="url(#edgeWobble)"/>
+            <path class="rope-body"
+                  d="M 100 63 C 38 63, 38 127, 100 127 C 162 127, 162 63, 100 63 Z"
+                  fill="none" stroke="var(--rope)" stroke-width="22"/>
+            <g class="rope-ticks"></g>
+            <ellipse cx="100" cy="100" rx="11" ry="14"
+                     fill="var(--sky)" stroke="var(--ink)" stroke-width="2.5"/>
+            <ellipse cx="97" cy="97" rx="2.5" ry="3" fill="var(--cream)" opacity="0.75"/>
+            <g class="blink">
+              <circle cx="78" cy="88" r="3" fill="var(--ink)"/>
+              <circle cx="122" cy="88" r="3" fill="var(--ink)"/>
+              <circle cx="79" cy="87" r="0.9" fill="var(--cream)"/>
+              <circle cx="123" cy="87" r="0.9" fill="var(--cream)"/>
+            </g>
+          </g>
+        </g>
+      </svg>
+      <p class="label">nest</p>
+      <p class="caption">function · shelter</p>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     ADULT MODE — path-aware ticks, simpler palette, icon-clean
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="adult">
+  <h2>adult mode</h2>
+  <p class="section-kicker">vertigo vault · depth chart · research surfaces</p>
+
+  <div class="grid">
+
+    <div class="card">
+      <svg viewBox="-20 -20 240 200" aria-label="cord, restrained">
+        <g class="adult-rope-group" data-stroke="14" data-spacing="10">
+          <path class="rope-outline"
+                d="M 170 60 Q 175 30 130 30 Q 85 30 85 60 Q 85 90 120 90 Q 145 90 140 68 Q 138 58 120 60"
+                fill="none" stroke="var(--ink)" stroke-width="18"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="rope-body"
+                d="M 170 60 Q 175 30 130 30 Q 85 30 85 60 Q 85 90 120 90 Q 145 90 140 68 Q 138 58 120 60"
+                fill="none" stroke="var(--sand)" stroke-width="14"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <g class="rope-ticks"></g>
+          <!-- frayed-end tell, muted adult palette -->
+          <g stroke="var(--sand-dk)" stroke-width="1.3" stroke-linecap="round"
+             fill="none" opacity="0.75">
+            <path d="M 174 54 Q 180 47 185 42"/>
+            <path d="M 176 58 Q 184 56 188 54"/>
+            <path d="M 178 62 Q 186 62 192 62"/>
+            <path d="M 176 66 Q 184 68 190 72"/>
+            <path d="M 174 70 Q 180 74 184 80"/>
+          </g>
+        </g>
+        <circle cx="119" cy="58" r="2" fill="var(--ink)"/>
+        <circle cx="133" cy="58" r="2" fill="var(--ink)"/>
+      </svg>
+      <p class="label">base</p>
+      <p class="caption">at rest</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="-20 -20 240 200" aria-label="cord as a line held at both ends">
+        <g class="adult-rope-group" data-stroke="14" data-spacing="10">
+          <path class="rope-outline"
+                d="M 30 150 L 30 108 Q 55 22 100 22 Q 145 22 170 108 L 170 150"
+                fill="none" stroke="var(--ink)" stroke-width="18"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="rope-body"
+                d="M 30 150 L 30 108 Q 55 22 100 22 Q 145 22 170 108 L 170 150"
+                fill="none" stroke="var(--sand)" stroke-width="14"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <g class="rope-ticks"></g>
+        </g>
+        <circle cx="94" cy="28" r="2" fill="var(--ink)"/>
+        <circle cx="108" cy="28" r="2" fill="var(--ink)"/>
+      </svg>
+      <p class="label">arc</p>
+      <p class="caption">a line held at both ends</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="-20 -20 240 200" aria-label="cord spanning">
+        <rect x="16" y="72" width="12" height="84" rx="2" fill="var(--ink)"/>
+        <rect x="172" y="72" width="12" height="84" rx="2" fill="var(--ink)"/>
+        <g class="adult-rope-group" data-stroke="12" data-spacing="10">
+          <path class="rope-outline" d="M 22 80 Q 100 128 178 80"
+                fill="none" stroke="var(--ink)" stroke-width="16"
+                stroke-linecap="round"/>
+          <path class="rope-body" d="M 22 80 Q 100 128 178 80"
+                fill="none" stroke="var(--sand)" stroke-width="12"
+                stroke-linecap="round"/>
+          <g class="rope-ticks"></g>
+        </g>
+        <circle cx="94" cy="114" r="2" fill="var(--ink)"/>
+        <circle cx="106" cy="114" r="2" fill="var(--ink)"/>
+      </svg>
+      <p class="label">span</p>
+      <p class="caption">across a gap</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="-20 -20 240 200" aria-label="cord as a ring">
+        <g class="adult-rope-group" data-stroke="14" data-spacing="11">
+          <path class="rope-outline"
+                d="M 100 63 C 38 63, 38 127, 100 127 C 162 127, 162 63, 100 63 Z"
+                fill="none" stroke="var(--ink)" stroke-width="18"/>
+          <path class="rope-body"
+                d="M 100 63 C 38 63, 38 127, 100 127 C 162 127, 162 63, 100 63 Z"
+                fill="none" stroke="var(--sand)" stroke-width="14"/>
+          <g class="rope-ticks"></g>
+        </g>
+        <ellipse cx="100" cy="100" rx="45" ry="16"
+                 fill="none" stroke="var(--ink)" stroke-width="1.5" opacity="0.25"/>
+        <circle cx="80" cy="89" r="2" fill="var(--ink)"/>
+        <circle cx="120" cy="89" r="2" fill="var(--ink)"/>
+      </svg>
+      <p class="label">ring</p>
+      <p class="caption">a shape that holds</p>
+    </div>
+
+  </div>
+</section>
+
+<aside>
+  <h3>what changed between v4 and v5 — the two big ones</h3>
+  <ul>
+    <li><strong>twist lines now follow the rope.</strong> replaced the <code>stroke="url(#pattern)"</code> approach (which painted the rope with screen-fixed diagonals — hence the "background" feel) with <em>path-aware ticks</em>. a JS function walks each rope's centerline using <code>getPointAtLength()</code>, computes the tangent at each step, builds a perpendicular vector, rotates it by 28°, and draws one short line from inner edge to outer edge. one diagonal line per twist, anchored to the rope's sides — exactly what you described.</li>
+    <li><strong>real path tween.</strong> the morpher now does actual interpolation à la Flash. on page load, each pose's path is sampled into 48 equally-spaced points along its arc length. clicking the morpher runs a 900ms <code>requestAnimationFrame</code> loop that lerps point-by-point between the current sample array and the next, rebuilding an interpolated path every frame. no external library — it's ~30 lines of math. result: cord actually bends/stretches/reorganises between shapes, rather than fading through intermediates.</li>
+  </ul>
+
+  <h3 style="margin-top: 32px;">how the "lower res during transition" works</h3>
+  <ul>
+    <li>the user intuited that this should cost something — it doesn't, because no images exist. it's 48 float pairs × 3 paths, updated per frame. that's negligible.</li>
+    <li>but I still lower the fidelity visually because it <em>feels</em> right: during the morph the SVG gets <code>filter: blur(2.5px)</code>, the wobble filter on the outline is temporarily removed (saves feDisplacementMap cost per frame), eyes + ticks disappear (they'd jitter), and the outline opacity drops slightly. all restored on settle.</li>
+    <li>that blur isn't just optimization — it's the "dream dissolve" that makes the transition feel like metamorphosis rather than a mechanical shape-swap.</li>
+  </ul>
+
+  <h3 style="margin-top: 32px;">the twist-tick math, for anyone curious</h3>
+  <ul>
+    <li><code>getPointAtLength(d)</code> gives you a point on the path at arc-distance <code>d</code>.</li>
+    <li>differencing two nearby points (at <code>d-ε</code> and <code>d+ε</code>) gives the tangent direction — i.e., which way the rope is running at that spot.</li>
+    <li>rotating the tangent 90° gives perpendicular-to-rope (straight across). rotating <em>that</em> by 28° gives the rope-twist direction. drawing a line from <code>-halfWidth</code> to <code>+halfWidth</code> along that direction crosses the rope at the right angle.</li>
+    <li>because the computation uses the path's local tangent, ticks automatically follow curves. on the nest ring, ticks radiate around. on the bridge sag, they follow the sag. on the skip-rope arc, they arc.</li>
+  </ul>
+</aside>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const TWIST_ANGLE_DEG = 28;
+
+  const makeEl = (tag, attrs) => {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  };
+  const clear = (el) => { while (el.firstChild) el.removeChild(el.firstChild); };
+
+  // ── path-aware twist tick generator ──────────────────────────────
+  function generateTwistTicks(pathEl, opts) {
+    const strokeWidth = opts.strokeWidth || 22;
+    const spacing = opts.spacing || 8;
+    const angleDeg = opts.angle || TWIST_ANGLE_DEG;
+    const length = pathEl.getTotalLength();
+    if (length === 0) return [];
+    // span edge-to-edge: tick reaches the body's outer boundary on both sides
+    const halfW = strokeWidth / 2;
+    const rad = (angleDeg * Math.PI) / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+    const ticks = [];
+
+    for (let d = spacing / 2; d < length; d += spacing) {
+      const p = pathEl.getPointAtLength(d);
+      const before = pathEl.getPointAtLength(Math.max(0, d - 0.3));
+      const after  = pathEl.getPointAtLength(Math.min(length, d + 0.3));
+      let tx = after.x - before.x;
+      let ty = after.y - before.y;
+      const mag = Math.sqrt(tx * tx + ty * ty) || 1;
+      tx /= mag; ty /= mag;
+      // perpendicular (90° CCW from tangent)
+      const perpX = -ty, perpY = tx;
+      // rotate perpendicular by angleDeg to get tilt
+      const dirX = perpX * cos - perpY * sin;
+      const dirY = perpX * sin + perpY * cos;
+      ticks.push({
+        x1: p.x - dirX * halfW, y1: p.y - dirY * halfW,
+        x2: p.x + dirX * halfW, y2: p.y + dirY * halfW
+      });
+    }
+    return ticks;
+  }
+
+  // ── path sampler (for tween) ─────────────────────────────────────
+  // lazily create our own hidden svg holder so we don't depend on
+  // dom ordering — previous version referenced an element that came
+  // after this script and threw null errors at init.
+  let _sampleSvg = null;
+  function ensureSampleHolder() {
+    if (_sampleSvg) return _sampleSvg;
+    _sampleSvg = document.createElementNS(NS, 'svg');
+    _sampleSvg.setAttribute('width', '0');
+    _sampleSvg.setAttribute('height', '0');
+    _sampleSvg.setAttribute('aria-hidden', 'true');
+    _sampleSvg.style.position = 'absolute';
+    _sampleSvg.style.pointerEvents = 'none';
+    document.body.appendChild(_sampleSvg);
+    return _sampleSvg;
+  }
+  function samplePath(d, numPoints) {
+    const tmp = makeEl('path', { d: d });
+    const holder = ensureSampleHolder();
+    holder.appendChild(tmp);
+    const length = tmp.getTotalLength();
+    const pts = [];
+    for (let i = 0; i < numPoints; i++) {
+      const t = numPoints === 1 ? 0 : (i / (numPoints - 1));
+      const p = tmp.getPointAtLength(t * length);
+      pts.push([p.x, p.y]);
+    }
+    holder.removeChild(tmp);
+    return pts;
+  }
+  function pointsToPath(pts) {
+    if (!pts.length) return '';
+    let d = 'M ' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
+    for (let i = 1; i < pts.length; i++) {
+      d += ' L ' + pts[i][0].toFixed(2) + ' ' + pts[i][1].toFixed(2);
+    }
+    return d;
+  }
+  function lerpPoints(from, to, t) {
+    const out = [];
+    for (let i = 0; i < from.length; i++) {
+      out.push([
+        from[i][0] + (to[i][0] - from[i][0]) * t,
+        from[i][1] + (to[i][1] - from[i][1]) * t
+      ]);
+    }
+    return out;
+  }
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  // ── render ticks into a container ────────────────────────────────
+  function renderTicksInto(container, pathEl, opts, style) {
+    clear(container);
+    const ticks = generateTwistTicks(pathEl, opts);
+    ticks.forEach(t => {
+      container.appendChild(makeEl('line', {
+        x1: t.x1.toFixed(2), y1: t.y1.toFixed(2),
+        x2: t.x2.toFixed(2), y2: t.y2.toFixed(2),
+        stroke: style.stroke,
+        'stroke-width': style.width,
+        'stroke-linecap': 'round',
+        opacity: style.opacity
+      }));
+    });
+  }
+
+  // ── page-load: fill ticks for every static rope group ────────────
+  function initStaticTicks() {
+    // kid mode groups
+    document.querySelectorAll('.rope-group').forEach(group => {
+      const body = group.querySelector('.rope-body');
+      const container = group.querySelector('.rope-ticks');
+      if (!body || !container) return;
+      const strokeWidth = parseFloat(group.dataset.stroke) || 22;
+      const spacing = parseFloat(group.dataset.spacing) || 8;
+      renderTicksInto(container, body, { strokeWidth, spacing }, {
+        stroke: 'var(--rope-dk)', width: '1.1', opacity: '0.5'
+      });
+    });
+    // adult mode groups (thinner ticks, spaced further apart, subtler color)
+    document.querySelectorAll('.adult-rope-group').forEach(group => {
+      const body = group.querySelector('.rope-body');
+      const container = group.querySelector('.rope-ticks');
+      if (!body || !container) return;
+      const strokeWidth = parseFloat(group.dataset.stroke) || 14;
+      const spacing = parseFloat(group.dataset.spacing) || 10;
+      renderTicksInto(container, body, { strokeWidth, spacing }, {
+        stroke: 'var(--sand-dk)', width: '1.6', opacity: '0.8'
+      });
+    });
+  }
+
+  // ── pose data for the morpher ────────────────────────────────────
+  const POSES = [
+    {
+      name: 'base — just cord',
+      d: 'M 170 60 Q 175 30 130 30 Q 85 30 85 60 Q 85 90 120 90 Q 145 90 140 68 Q 138 58 120 60',
+      eyes: [[118, 58], [133, 58]],
+      extras: []
+    },
+    {
+      name: 'skip rope — function: play',
+      d: 'M 30 150 L 30 108 Q 55 22 100 22 Q 145 22 170 108 L 170 150',
+      eyes: [[93, 28], [109, 28]],
+      extras: [
+        {tag: 'path', attrs: {d: 'M 44 58 Q 100 38 156 58', fill: 'none', stroke: 'var(--ink)', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-dasharray': '1 9', opacity: '0.4'}}
+      ]
+    },
+    {
+      name: 'bridge — function: span',
+      d: 'M 25 78 Q 100 132 175 78',
+      eyes: [[92, 117], [108, 117]],
+      extras: [
+        {tag: 'rect', attrs: {x: '12', y: '70', width: '16', height: '88', rx: '3', fill: 'var(--ink-soft)'}},
+        {tag: 'rect', attrs: {x: '172', y: '70', width: '16', height: '88', rx: '3', fill: 'var(--ink-soft)'}},
+        {tag: 'circle', attrs: {cx: '26', cy: '80', r: '7', fill: 'var(--ink-soft)'}},
+        {tag: 'circle', attrs: {cx: '174', cy: '80', r: '7', fill: 'var(--ink-soft)'}}
+      ]
+    },
+    {
+      name: 'nest — function: shelter',
+      d: 'M 100 63 C 38 63, 38 127, 100 127 C 162 127, 162 63, 100 63 Z',
+      eyes: [[80, 90], [122, 90]],
+      extras: [
+        {tag: 'ellipse', attrs: {cx: '100', cy: '100', rx: '11', ry: '14', fill: 'var(--sky)', stroke: 'var(--ink)', 'stroke-width': '2.5'}},
+        {tag: 'ellipse', attrs: {cx: '97', cy: '97', rx: '2.5', ry: '3', fill: 'var(--cream)', opacity: '0.75'}}
+      ]
+    }
+  ];
+
+  // sample all poses at load for smooth interpolation
+  const SAMPLE_COUNT = 48;
+  POSES.forEach(p => { p.samples = samplePath(p.d, SAMPLE_COUNT); });
+
+  // ── morpher rendering ────────────────────────────────────────────
+  const svg = document.getElementById('morpher');
+  const label = document.getElementById('morpher-pose');
+  const bodyPath = document.getElementById('m-body');
+  const outlinePath = document.getElementById('m-outline');
+  const blushPath = document.getElementById('m-blush');
+  const ropeLayers = [blushPath, outlinePath, bodyPath];
+  const eyesG = document.getElementById('m-eyes');
+  const extrasG = document.getElementById('m-extras');
+  const ticksG = document.getElementById('m-ticks');
+
+  function renderPose(p) {
+    const d = p.d;
+    ropeLayers.forEach(el => el.setAttribute('d', d));
+    label.textContent = p.name;
+
+    clear(eyesG);
+    p.eyes.forEach(coords => {
+      const cx = coords[0], cy = coords[1];
+      eyesG.appendChild(makeEl('circle', {cx: cx, cy: cy, r: '3.4', fill: 'var(--ink)'}));
+      eyesG.appendChild(makeEl('circle', {cx: cx + 1.2, cy: cy - 1.2, r: '0.9', fill: 'var(--cream)'}));
+    });
+    clear(extrasG);
+    p.extras.forEach(e => extrasG.appendChild(makeEl(e.tag, e.attrs)));
+
+    // regenerate path-aware ticks
+    renderTicksInto(ticksG, bodyPath, { strokeWidth: 22, spacing: 8 }, {
+      stroke: 'var(--rope-dk)', width: '1.1', opacity: '0.5'
+    });
+  }
+
+  // ── tween: real path interpolation ───────────────────────────────
+  let idx = 0;
+  let morphing = false;
+
+  function animateMorph(fromIdx, toIdx) {
+    const from = POSES[fromIdx];
+    const to = POSES[toIdx];
+    const duration = 900;
+    const start = performance.now();
+
+    morphing = true;
+    svg.classList.add('morphing');
+    clear(eyesG);
+    clear(extrasG);
+    clear(ticksG);
+    outlinePath.removeAttribute('filter'); // disable wobble during morph
+    label.textContent = from.name + '  ↓  ' + to.name;
+
+    function frame(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = easeInOutCubic(t);
+      const lerped = lerpPoints(from.samples, to.samples, eased);
+      const d = pointsToPath(lerped);
+      ropeLayers.forEach(el => el.setAttribute('d', d));
+
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        // settle
+        outlinePath.setAttribute('filter', 'url(#edgeWobble)');
+        svg.classList.remove('morphing');
+        renderPose(to);
+        morphing = false;
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ── init ─────────────────────────────────────────────────────────
+  renderPose(POSES[0]);
+  initStaticTicks();
+
+  svg.addEventListener('click', () => {
+    if (morphing) return;
+    const from = idx;
+    idx = (idx + 1) % POSES.length;
+    animateMorph(from, idx);
+  });
+})();
+</script>
+
+</body>
+</html>

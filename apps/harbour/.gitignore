@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+
+# Next.js build outputs
+.next/
+out/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Local-only inputs to scripts (e.g. seed-test recipient lists)
+*.local.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude Code MCP config (contains token refs)
+.mcp.json
+
+# IDE
+.vscode/
+.idea/
+
+# Vercel
+.vercel/
+
+# Cloudflare Workers (OpenNext build output + wrangler state)
+.open-next/
+.wrangler/
+.dev.vars
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Temporary files
+*.tmp
+*.swp
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vercel
+
+# Turborepo cache
+.turbo/
+
+# Expo
+.expo/
+dist/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# Claude Code
+.claude/*
+!.claude/evergreen.md
+logs/

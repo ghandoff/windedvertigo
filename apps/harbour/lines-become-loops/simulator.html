@@ -1,0 +1,3882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lines become loops</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cadet: #273248;
+  --redwood: #B15043;
+  --sienna: #CB7858;
+  --champagne: #FFEBD2;
+  --muted: #6B7589;
+  --rule: #EAD9BD;
+  --soft-card: #fff;
+  --on-dark: #FFEBD2;
+  --on-dark-muted: #B5BBC9;
+  --rule-dark: rgba(255,235,210,0.12);
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html {
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--on-dark);
+  background: var(--cadet);
+  -webkit-font-smoothing: antialiased;
+}
+
+body { min-height: 100vh; padding-top: 146px; }
+@media (max-width: 640px) { body { padding-top: 130px; } }
+
+.page-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: var(--cadet);
+  padding: 16px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wordmark { display: inline-block; line-height: 0; }
+.wordmark img { display: block; width: 160px; height: auto; }
+@media (max-width: 640px) {
+  .wordmark img { width: 120px; }
+}
+
+.screen {
+  display: none;
+  min-height: calc(100vh - 146px);
+}
+@media (max-width: 640px) {
+  .screen { min-height: calc(100vh - 130px); }
+}
+.screen.active {
+  display: flex;
+}
+
+/* -- mandate -- */
+.screen-mandate {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+}
+.mandate-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-bottom: 16px;
+}
+.mandate-title {
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--on-dark);
+  max-width: 36ch;
+  line-height: 1.3;
+  margin-bottom: 24px;
+}
+.mandate-stock {
+  font-size: 13px;
+  color: var(--on-dark-muted);
+  margin-bottom: 8px;
+}
+.mandate-loop {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 32px;
+}
+.mandate-footer {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-top: 32px;
+}
+
+.btn {
+  display: inline-block;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: #fff;
+  border: none;
+  padding: 14px 32px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn:hover { opacity: 0.9; background: var(--on-dark); color: var(--cadet); }
+.btn:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-small { padding: 8px 20px; font-size: 13px; }
+
+/* -- baseline -- */
+.screen-baseline {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+.baseline-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--on-dark);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.baseline-subtitle {
+  font-size: 15px;
+  color: var(--on-dark-muted);
+  text-align: center;
+  margin-bottom: 32px;
+  max-width: 48ch;
+}
+.baseline-chart-wrap {
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  position: relative;
+}
+.baseline-btn-wrap { margin-top: 32px; }
+
+/* -- decisions -- */
+.screen-decisions {
+  flex-direction: column;
+  height: calc(100vh - 146px);
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .screen-decisions { height: calc(100vh - 130px); }
+}
+.decisions-content {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow: hidden;
+}
+.decisions-left {
+  width: 420px;
+  flex-shrink: 0;
+  padding: 24px;
+  overflow-y: auto;
+  border-right: 1px solid var(--rule-dark);
+}
+.decisions-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow: hidden;
+}
+.card-stack-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-bottom: 16px;
+}
+
+/* intervention cards */
+.intervention-card {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+  color: var(--cadet);
+}
+.intervention-card.was-run {
+  border-color: var(--sienna);
+}
+.intervention-card.locked {
+  opacity: 0.55;
+  pointer-events: none;
+  position: relative;
+}
+.intervention-card.locked .card-lock-overlay {
+  pointer-events: auto;
+  cursor: not-allowed;
+}
+.card-lock-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  align-items: center;
+  justify-content: center;
+}
+.locked .card-lock-overlay { display: flex; }
+.lock-icon { font-size: 28px; opacity: 0.6; }
+.lock-tooltip {
+  position: absolute;
+  bottom: calc(50% + 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--cadet);
+  color: var(--champagne);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.lock-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--cadet);
+}
+.card-lock-overlay:hover .lock-tooltip { opacity: 1; }
+@keyframes card-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.intervention-card.shake { animation: card-shake 0.4s ease; }
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.card-number {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cadet);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cadet);
+  flex: 1;
+  line-height: 1.4;
+}
+.card-body {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* leverage chips */
+.leverage-chip {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.chip-parameter { background: rgba(203,120,88,0.12); color: var(--sienna); }
+.chip-rules { background: rgba(177,80,67,0.12); color: var(--redwood); }
+.chip-goals { background: rgba(39,50,72,0.15); color: var(--cadet); }
+
+/* detail expand */
+.card-detail-toggle {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sienna);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  letter-spacing: 0.04em;
+}
+.card-detail-toggle:hover { text-decoration: underline; }
+.card-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.card-detail.open { max-height: 400px; }
+.card-detail dl {
+  padding: 12px;
+  background: rgba(39,50,72,0.03);
+  border: 1px solid var(--rule);
+  margin-top: 8px;
+}
+.card-detail dt {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.card-detail dt:first-child { margin-top: 0; }
+.card-detail dd {
+  font-size: 13px;
+  color: var(--cadet);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+/* post-run why */
+.card-why {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  font-size: 13px;
+  color: var(--cadet);
+  line-height: 1.6;
+  background: rgba(203,120,88,0.06);
+  border-left: 3px solid var(--sienna);
+  padding: 0 12px;
+  margin-top: 8px;
+}
+.card-why.open {
+  max-height: 300px;
+  padding: 12px;
+}
+
+/* card footer */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+}
+.card-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.result-value {
+  font-weight: 700;
+  color: var(--sienna);
+}
+
+/* chart area */
+.decisions-chart-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+.chart-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  background: rgba(255, 246, 229, 0.85);
+  transition: opacity 0.4s;
+  color: var(--cadet);
+}
+.chart-placeholder.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.chart-placeholder-text {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 220px;
+}
+.year-ticker {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--on-dark-muted);
+  opacity: 0.08;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.year-ticker.animating { opacity: 0.25; }
+.endpoint-labels {
+  position: absolute;
+  right: 16px;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.endpoint-label {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+
+/* onboarding hint */
+.hint-cards {
+  font-size: 12px;
+  color: var(--sienna);
+  background: rgba(203,120,88,0.08);
+  border: 1px dashed var(--sienna);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+/* resource meter */
+.resource-meter-wrap {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule-dark);
+}
+.resource-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-bottom: 6px;
+}
+.resource-bar {
+  height: 6px;
+  background: var(--rule-dark);
+  position: relative;
+  overflow: hidden;
+}
+.resource-fill {
+  height: 100%;
+  background: var(--sienna);
+  transition: width 0.6s ease;
+}
+.resource-value {
+  font-size: 11px;
+  color: var(--on-dark-muted);
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* -- systems map canvas -- */
+.systems-map-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+#systems-map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* see pattern button */
+.see-pattern-btn {
+  display: none;
+  margin-top: 16px;
+  color: var(--cadet);
+}
+.see-pattern-btn.visible { display: inline-block; }
+
+/* enhanced mandate */
+.mandate-intro {
+  font-size: 15px;
+  color: var(--on-dark-muted);
+  max-width: 48ch;
+  line-height: 1.7;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+/* -- explore mode (pre-commitment) -- */
+.decisions-explore .decisions-right { display: none; }
+.decisions-explore .decisions-left {
+  width: 100%;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+  border-right: none;
+  max-height: none;
+  overflow-y: auto;
+}
+.explore-prompt {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--cadet);
+  line-height: 1.6;
+}
+.explore-prompt strong { font-weight: 600; }
+.explore-prompt .explore-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.btn-choose {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: none;
+  border: 1.5px solid var(--cadet);
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-choose:hover { background: var(--cadet); color: var(--champagne); }
+.btn-choose:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* committed card marker */
+.intervention-card.committed {
+  border-color: var(--cadet);
+  border-width: 2px;
+}
+.committed-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--cadet);
+  color: var(--champagne);
+  padding: 2px 8px;
+  margin-left: 8px;
+}
+
+/* commitment confirmation overlay */
+.commit-confirm {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(39, 50, 72, 0.85);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+.commit-confirm.visible { display: flex; }
+.commit-confirm-inner {
+  background: #fff;
+  padding: 40px;
+  max-width: 480px;
+  color: var(--cadet);
+}
+.commit-confirm-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 12px;
+}
+.commit-confirm-body {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.commit-confirm-actions { display: flex; gap: 12px; justify-content: center; }
+
+/* -- scenario picker (lives inside .page-header) -- */
+.scenario-picker {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule-dark);
+  margin: 0 -24px;
+  padding: 0 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scenario-picker::-webkit-scrollbar { display: none; }
+.scenario-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  text-decoration: none;
+  display: block;
+}
+.scenario-tab:hover { color: var(--on-dark); }
+.scenario-tab.active,
+.scenario-tab[aria-current="page"] {
+  color: var(--on-dark);
+  border-bottom-color: var(--sienna);
+}
+
+/* -- pattern screen -- */
+.screen-pattern {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+.pattern-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--on-dark);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.pattern-chart-wrap {
+  width: 100%;
+  max-width: 800px;
+  height: 360px;
+  position: relative;
+}
+.pattern-caption {
+  font-size: 15px;
+  color: var(--on-dark-muted);
+  text-align: center;
+  max-width: 56ch;
+  margin-top: 24px;
+  line-height: 1.7;
+  font-style: italic;
+}
+.pattern-btn-wrap { margin-top: 32px; }
+
+.insight-blocks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 800px;
+  width: 100%;
+  margin-top: 32px;
+}
+.insight-block {
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 20px;
+  border-radius: 2px;
+  color: var(--cadet);
+}
+.insight-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 8px;
+}
+.insight-body {
+  font-size: 14px;
+  color: var(--cadet);
+  line-height: 1.6;
+}
+.calibration-note {
+  font-size: 12px;
+  color: var(--on-dark-muted);
+  font-style: italic;
+  text-align: center;
+  max-width: 56ch;
+  margin-top: 20px;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .insight-blocks { grid-template-columns: 1fr; }
+}
+
+/* -- mailing list CTA -- */
+.mailing-cta {
+  max-width: 800px;
+  width: 100%;
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid var(--rule-dark);
+  text-align: center;
+}
+.mailing-cta-text {
+  font-size: 14px;
+  color: var(--on-dark-muted);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  max-width: 52ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mailing-form {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.mailing-input {
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-dark);
+  background: rgba(255,255,255,0.08);
+  color: var(--on-dark);
+  width: 260px;
+  max-width: 100%;
+}
+.mailing-input:focus {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.mailing-input::placeholder {
+  color: var(--on-dark-muted);
+}
+.mailing-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  background: var(--sienna);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.mailing-btn:hover { opacity: 0.9; }
+.mailing-btn:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.mailing-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.mailing-success {
+  font-size: 13px;
+  color: var(--sienna);
+  font-weight: 600;
+  margin-top: 8px;
+  min-height: 20px;
+}
+
+/* -- handoff -- */
+.screen-handoff {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+}
+.handoff-text {
+  font-size: 18px;
+  color: var(--on-dark);
+  line-height: 1.7;
+  max-width: 42ch;
+  margin-bottom: 32px;
+}
+.handoff-footer {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  margin-top: 24px;
+}
+.handoff-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .screen-decisions { height: auto; min-height: 100vh; }
+  .decisions-content { flex-direction: column; }
+  .decisions-left { width: 100%; border-right: none; border-bottom: 1px solid var(--rule-dark); max-height: 45vh; }
+  .decisions-right { min-height: 50vh; flex-direction: column; }
+}
+
+/* -- stacked charts -- */
+.charts-stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 8px;
+}
+.decisions-chart-wrap { flex: 1 1 auto; }
+.secondary-wrap {
+  flex: 0 0 auto;
+  height: 38%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.secondary-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0 4px;
+}
+.secondary-divider-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--rule-dark);
+  opacity: 0.45;
+}
+.secondary-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+  white-space: nowrap;
+}
+.secondary-chart-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+/* -- trade-off follow-up within surprise check -- */
+.tradeoff-wrap {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rule);
+}
+.tradeoff-prompt {
+  font-size: 12px;
+  color: var(--cadet);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* -- trade-off copy inside card-why -- */
+.card-why .tradeoff-line {
+  display: block;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(203, 120, 88, 0.3);
+  font-size: 12px;
+  color: var(--cadet);
+}
+.card-why .tradeoff-line::before {
+  content: 'trade-off: ';
+  font-weight: 700;
+  color: var(--redwood);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+/* -- teacher's guide link -- */
+.tg-link {
+  position: fixed;
+  top: 28px;
+  right: 24px;
+  z-index: 100;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--on-dark-muted);
+  text-decoration: none;
+}
+.tg-link:hover { text-decoration: underline; }
+.tg-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* -- hypothesis textarea -- */
+.hypo-wrap { text-align: left; margin-bottom: 24px; }
+.hypo-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+.hypo-textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+}
+.hypo-textarea:focus-visible { outline: 3px solid #3B82F6; outline-offset: 1px; }
+.hypo-textarea::placeholder { color: var(--muted); font-style: italic; }
+.hypo-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.hypo-counter.over { color: var(--redwood); }
+
+/* -- surprise check -- */
+.surprise-wrap {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(39, 50, 72, 0.04);
+  border-left: 2px solid var(--cadet);
+}
+.surprise-prompt {
+  font-size: 12px;
+  color: var(--cadet);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.surprise-chips { display: flex; gap: 6px; }
+.surprise-chip {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cadet);
+  background: none;
+  border: 1.5px solid var(--cadet);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.surprise-chip:hover { background: var(--cadet); color: var(--champagne); }
+.surprise-chip:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+.surprise-chip[aria-pressed="true"] {
+  background: var(--cadet);
+  color: var(--champagne);
+}
+
+/* override card-why default to hide unless we open it ourselves */
+.intervention-card .card-why { max-height: 0; padding: 0 12px; }
+.intervention-card .card-why.open { max-height: 300px; padding: 12px; }
+
+/* -- summary export -- */
+.export-wrap {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 32px;
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 24px;
+  color: var(--cadet);
+}
+.export-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sienna);
+  margin-bottom: 8px;
+}
+.export-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cadet);
+  margin-bottom: 4px;
+}
+.export-mandate {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.export-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.export-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.export-section p { font-size: 13px; color: var(--cadet); line-height: 1.55; }
+.export-section em { color: var(--muted); font-style: italic; }
+.export-list { list-style: none; padding: 0; margin: 0; }
+.export-list li {
+  font-size: 12px;
+  color: var(--cadet);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+.export-list li:last-child { border-bottom: none; }
+.export-li-num { font-weight: 700; min-width: 18px; }
+.export-li-title { flex: 1 1 200px; }
+.export-li-tier {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: rgba(203, 120, 88, 0.15);
+  color: var(--sienna);
+}
+.export-li-surprise { font-style: italic; color: var(--muted); }
+.export-li-value { font-variant-numeric: tabular-nums; color: var(--cadet); font-weight: 600; }
+.shifted-textarea {
+  width: 100%;
+  min-height: 56px;
+  resize: vertical;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cadet);
+  background: var(--soft-card);
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  margin-top: 6px;
+}
+.shifted-textarea:focus-visible { outline: 3px solid #3B82F6; outline-offset: 1px; }
+.export-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.export-toast {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--sienna);
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.export-toast.visible { opacity: 1; }
+
+/* -- print -- */
+@media print {
+  @page { size: A4; margin: 18mm; }
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-top: 0 !important;
+  }
+  .page-header { display: none !important; }
+  body * { visibility: hidden !important; }
+  #reflection-export, #reflection-export * { visibility: visible !important; }
+  #reflection-export {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    background: #fff !important;
+    border: none !important;
+    padding: 0 !important;
+    font-size: 11pt;
+    color: #000 !important;
+  }
+  #reflection-export .export-eyebrow,
+  #reflection-export .export-title,
+  #reflection-export .export-section-label { color: #273248 !important; }
+  #reflection-export .export-actions { display: none !important; }
+  #reflection-export .shifted-textarea {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+  }
+}
+
+/* -- dosage sliders -- */
+.dosage-slider-wrap {
+  width: 100%;
+}
+.dosage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.dosage-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.dosage-dosage {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cadet);
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: right;
+}
+.dosage-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+  outline: none;
+  margin: 0;
+  cursor: pointer;
+}
+.dosage-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cadet);
+  border: 2px solid var(--champagne);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  margin-top: -6px;
+}
+.dosage-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.dosage-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cadet);
+  border: 2px solid var(--champagne);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  cursor: pointer;
+}
+.dosage-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+}
+.dosage-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+}
+.dosage-slider:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+.dosage-slider-wrap .card-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dosage-slider::-webkit-slider-thumb { transition: none; }
+}
+
+/* -- mode toggle -- */
+.mode-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule-dark);
+}
+.mode-toggle-wrap .mode-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+}
+.mode-toggle {
+  display: flex;
+  border: 1px solid var(--rule-dark);
+  overflow: hidden;
+}
+.mode-btn {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--on-dark-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.mode-btn:hover { background: rgba(203,120,88,0.06); }
+.mode-btn.active {
+  background: var(--cadet);
+  color: var(--champagne);
+}
+.mode-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.mode-btn:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: -2px;
+}
+.mode-unlock-hint {
+  font-size: 10px;
+  color: var(--on-dark-muted);
+  font-style: italic;
+}
+
+/* -- accordion cards (individual mode) -- */
+.individual-mode .intervention-card {
+  cursor: pointer;
+}
+.individual-mode .intervention-card .card-body,
+.individual-mode .intervention-card .card-detail-toggle,
+.individual-mode .intervention-card .card-detail,
+.individual-mode .intervention-card .card-footer,
+.individual-mode .intervention-card .card-why,
+.individual-mode .intervention-card .surprise-wrap,
+.individual-mode .intervention-card .tradeoff-wrap {
+  max-height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-top: none;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.2s ease, margin 0.3s ease;
+}
+.individual-mode .intervention-card.accordion-open .card-body {
+  max-height: 200px;
+  opacity: 1;
+  margin-bottom: 8px;
+}
+.individual-mode .intervention-card.accordion-open .card-detail-toggle {
+  max-height: 30px;
+  opacity: 1;
+}
+.individual-mode .intervention-card.accordion-open .card-detail {
+  opacity: 1;
+}
+.individual-mode .intervention-card.accordion-open .card-detail.open {
+  max-height: 400px;
+}
+.individual-mode .intervention-card.accordion-open .card-footer {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+}
+.individual-mode .intervention-card.accordion-open .card-why {
+  opacity: 1;
+}
+.individual-mode .intervention-card.accordion-open .card-why.open {
+  max-height: 300px;
+  padding: 12px;
+}
+.individual-mode .intervention-card.accordion-open .surprise-wrap,
+.individual-mode .intervention-card.accordion-open .tradeoff-wrap {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 8px;
+}
+/* active card border highlight */
+.individual-mode .intervention-card.accordion-open {
+  border-color: var(--sienna);
+}
+
+/* -- combined mode -- */
+.combined-mode .intervention-card {
+  padding: 12px 16px;
+}
+.combined-mode .intervention-card .card-body,
+.combined-mode .intervention-card .card-detail-toggle,
+.combined-mode .intervention-card .card-detail,
+.combined-mode .intervention-card .card-why,
+.combined-mode .intervention-card .surprise-wrap,
+.combined-mode .intervention-card .tradeoff-wrap {
+  display: none;
+}
+.combined-mode .intervention-card .card-footer {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: none;
+}
+/* combined trajectory legend */
+.combined-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: rgba(39,50,72,0.03);
+  border: 1px solid var(--rule);
+  font-size: 11px;
+  color: var(--on-dark-muted);
+}
+.combined-legend-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .individual-mode .intervention-card .card-body,
+  .individual-mode .intervention-card .card-detail-toggle,
+  .individual-mode .intervention-card .card-footer,
+  .individual-mode .intervention-card .card-why,
+  .individual-mode .intervention-card .surprise-wrap,
+  .individual-mode .intervention-card .tradeoff-wrap {
+    transition: none;
+  }
+}
+
+/* -- right-panel tabs -- */
+.right-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule-dark);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.right-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--on-dark-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.right-tab:hover {
+  color: var(--on-dark);
+}
+.right-tab.active {
+  color: var(--on-dark);
+  border-bottom-color: var(--sienna);
+}
+.right-tab:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: -2px;
+}
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.right-panel-hidden {
+  display: none;
+}
+
+/* systems map panel — constrained height */
+#panel-map .systems-map-wrap {
+  margin-top: 0;
+  padding: 0;
+  border-top: none;
+  min-height: 300px;
+}
+
+/* systems map caption — explains 0-100 pressure scale */
+.systems-map-caption {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--on-dark);
+  opacity: 0.75;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: rgba(39,50,72,0.5);
+  border-left: 2px solid var(--sienna);
+  border-radius: 0 4px 4px 0;
+}
+
+/* onboarding hints — transient cards on first decisions screen visit */
+.onboarding-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  transition: opacity 0.3s ease-out;
+  opacity: 1;
+}
+.onboarding-hints[hidden] {
+  display: none;
+  opacity: 0;
+}
+.onboarding-hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--on-dark);
+  padding: 8px 12px;
+  background: rgba(39,50,72,0.6);
+  border-left: 2px solid var(--champagne);
+  border-radius: 0 4px 4px 0;
+}
+.onboarding-hint strong {
+  color: var(--champagne);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-hints { transition: none; }
+}
+
+/* pattern screen legend — colour-coded labels for each trajectory */
+.pattern-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 18px;
+  margin: 8px auto 16px;
+  padding: 10px 16px;
+  max-width: 820px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--on-dark);
+  opacity: 0.9;
+}
+.pattern-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+}
+.pattern-legend-item.is-dominant {
+  font-weight: 600;
+}
+.pattern-legend-item:not(.is-dominant) .pattern-legend-swatch {
+  opacity: 0.55;
+  height: 2px;
+}
+.pattern-legend-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 3px;
+  background: var(--swatch, var(--cadet));
+  flex-shrink: 0;
+}
+.pattern-legend-swatch.is-dashed {
+  background: repeating-linear-gradient(
+    to right,
+    var(--swatch, var(--cadet)) 0 4px,
+    transparent 4px 7px
+  );
+}
+
+/* -- wide screen: side-by-side charts + map -- */
+@media (min-width: 1400px) {
+  .right-tabs { display: none; }
+  .right-panel,
+  .right-panel.right-panel-hidden {
+    display: flex;
+  }
+  .decisions-right {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+  }
+  #panel-charts {
+    flex: 3;
+    min-width: 0;
+  }
+  #panel-map {
+    flex: 2;
+    border-left: 1px solid var(--rule-dark);
+    padding-left: 16px;
+    max-height: 100%;
+    overflow: hidden;
+  }
+}
+
+/* -- mobile: vertical stack with collapsible map -- */
+@media (max-width: 768px) {
+  .right-tabs {
+    position: sticky;
+    top: 0;
+    background: var(--cadet);
+    z-index: 5;
+  }
+  .decisions-right {
+    padding: 12px;
+  }
+  #panel-map .systems-map-wrap {
+    padding: 0;
+    min-height: 250px;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="page-header" role="banner">
+  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+  <nav class="scenario-picker" id="scenario-picker" aria-label="switch scenario">
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+  </nav>
+</header>
+<!-- teacher's guide link moved to facilitator dashboard -->
+
+<!-- screen 1: mandate -->
+<div id="screen-mandate" class="screen active screen-mandate" role="region" aria-label="the mandate">
+  <div class="mandate-eyebrow" id="mandate-eyebrow"></div>
+  <div class="mandate-intro" id="mandate-intro"></div>
+  <div class="mandate-title" id="mandate-title"></div>
+  <div class="mandate-stock" id="mandate-stock"></div>
+  <div class="mandate-loop" id="mandate-loop"></div>
+  <button class="btn" id="btn-begin" aria-label="begin the simulator">begin</button>
+  <div class="mandate-footer">ppcs 2026 · session 1A · w.v × prme</div>
+</div>
+
+<!-- screen 2: baseline -->
+<div id="screen-baseline" class="screen screen-baseline" role="region" aria-label="baseline trajectory">
+  <div class="baseline-title">without intervention.</div>
+  <div class="baseline-subtitle" id="baseline-subtitle"></div>
+  <div class="baseline-chart-wrap">
+    <canvas id="chart-baseline" aria-label="baseline trajectory"></canvas>
+  </div>
+  <div class="baseline-btn-wrap">
+    <button class="btn" id="btn-decide" aria-label="make a decision">make a decision</button>
+  </div>
+</div>
+
+<!-- screen 3: decisions -->
+<div id="screen-decisions" class="screen screen-decisions" role="region" aria-label="intervention decisions">
+  <div class="decisions-content">
+  <div class="decisions-left">
+    <div class="explore-prompt" id="explore-prompt">
+      <strong>which intervention would you choose?</strong>
+      <div class="explore-sub">read all three. expand the details. when you're ready, click "this is my decision" on the one you think will move the stock the most. you won't see the data until you commit.</div>
+    </div>
+    <div class="hint-cards" id="hint-cards" style="display:none;">
+      now run each intervention to see what the system does over 25 years. start with your choice — then try the others.
+    </div>
+    <div id="mode-toggle-wrap" class="mode-toggle-wrap" style="display:none;">
+      <span class="mode-label">mode</span>
+      <div class="mode-toggle" role="tablist" aria-label="play mode">
+        <button class="mode-btn active" id="btn-mode-individual" role="tab" aria-selected="true">individual</button>
+        <button class="mode-btn" id="btn-mode-combined" role="tab" aria-selected="false" disabled>combined</button>
+      </div>
+      <span class="mode-unlock-hint" id="mode-unlock-hint">explore all 3 to unlock</span>
+    </div>
+    <div class="card-stack-title" id="card-stack-title">interventions</div>
+    <div id="combined-legend" class="combined-legend" style="display:none;">
+      <span><span class="combined-legend-swatch" style="background:var(--cadet);"></span> combined</span>
+      <span><span class="combined-legend-swatch" style="background:var(--sienna);opacity:0.3;"></span> individual (ghost)</span>
+    </div>
+    <div id="card-stack"></div>
+  </div>
+  <div class="decisions-right">
+    <div class="onboarding-hints" id="onboarding-hints" aria-live="polite" hidden>
+      <div class="onboarding-hint"><strong>charts</strong> — how each intervention bends the stock over 25 years. run a slider on the left to draw a line.</div>
+      <div class="onboarding-hint"><strong>systems map</strong> — how pressure ripples through the parts of the system. numbers are 0–100 pressure, not the slider units.</div>
+    </div>
+    <div class="right-tabs" role="tablist" aria-label="right panel view">
+      <button class="right-tab active" id="tab-charts" role="tab" aria-selected="true" aria-controls="panel-charts">charts</button>
+      <button class="right-tab" id="tab-map" role="tab" aria-selected="false" aria-controls="panel-map">systems map</button>
+    </div>
+    <div class="right-panel" id="panel-charts" role="tabpanel" aria-labelledby="tab-charts">
+      <div class="year-ticker" id="year-ticker" aria-live="polite">2025</div>
+      <div class="charts-stack">
+        <div class="decisions-chart-wrap">
+          <div class="chart-placeholder" id="chart-placeholder">
+            <span class="chart-placeholder-text">expand an intervention on the left and drag its slider to see the trajectory here.</span>
+          </div>
+          <canvas id="chart-decisions" aria-label="trajectories chart"></canvas>
+          <div class="endpoint-labels" id="endpoint-labels"></div>
+        </div>
+        <div class="secondary-wrap" id="secondary-wrap" aria-hidden="false">
+          <div class="secondary-divider">
+            <span class="secondary-divider-rule" aria-hidden="true"></span>
+            <span class="secondary-label" id="secondary-label"></span>
+            <span class="secondary-divider-rule" aria-hidden="true"></span>
+          </div>
+          <div class="secondary-chart-wrap">
+            <canvas id="chart-secondary" aria-label="secondary stock trajectories chart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="resource-meter-wrap" id="resource-meter-wrap">
+        <div class="resource-label" id="resource-label"></div>
+        <div class="resource-bar"><div class="resource-fill" id="resource-fill"></div></div>
+        <div class="resource-value" id="resource-value"></div>
+      </div>
+      <button class="btn btn-small see-pattern-btn" id="btn-see-pattern" aria-label="see the pattern">see the pattern</button>
+    </div>
+    <div class="right-panel right-panel-hidden" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
+      <div class="systems-map-caption">
+        numbers inside each circle show that node's pressure on a 0–100 scale. they're separate from the slider units on the left — sliders set how much of an intervention you apply; circles show how that ripple reaches each part of the system.
+      </div>
+      <div class="systems-map-wrap" id="systems-map-wrap"></div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- screen 4: pattern -->
+<div id="screen-pattern" class="screen screen-pattern" role="region" aria-label="the pattern across all three interventions">
+  <div class="pattern-title">three decisions. one shape.</div>
+  <div class="pattern-legend" id="pattern-legend" aria-label="chart legend"></div>
+  <div class="pattern-chart-wrap">
+    <canvas id="chart-pattern" aria-label="all three intervention trajectories overlaid"></canvas>
+  </div>
+  <div class="secondary-divider" id="pattern-secondary-divider" style="width:100%;max-width:800px;margin-top:16px;display:none;">
+    <span class="secondary-divider-rule" aria-hidden="true"></span>
+    <span class="secondary-label" id="pattern-secondary-label"></span>
+    <span class="secondary-divider-rule" aria-hidden="true"></span>
+  </div>
+  <div class="pattern-chart-wrap" id="pattern-secondary-wrap" style="height:180px;margin-top:4px;display:none;">
+    <canvas id="chart-pattern-secondary" aria-label="secondary stock across all three interventions"></canvas>
+  </div>
+  <div class="pattern-caption" id="pattern-tradeoff-line" style="margin-top:12px;font-size:13px;display:none;">the move that bends the primary the most is rarely the move that protects the secondary. notice which interventions cost what.</div>
+  <div class="pattern-caption" id="pattern-caption">
+    the higher you push on the leverage ladder, the more the system bends. parameter changes produce a dip and a recovery. goal changes produce a structural break.
+  </div>
+  <div class="insight-blocks">
+    <div class="insight-block">
+      <div class="insight-eyebrow">what this system is like</div>
+      <div class="insight-body" id="insight-what"></div>
+    </div>
+    <div class="insight-block">
+      <div class="insight-eyebrow">how to spot the pattern</div>
+      <div class="insight-body" id="insight-spot">parameter tweaks produce a dip, then a recovery — the system absorbs them. structural changes bend the curve permanently because they change which questions get asked.</div>
+    </div>
+    <div class="insight-block">
+      <div class="insight-eyebrow">which lever matters most</div>
+      <div class="insight-body" id="insight-lever">the highest-leverage intervention is not the most expensive one. it is the one that changes the rules under which every other decision is made.</div>
+    </div>
+  </div>
+  <div class="calibration-note">
+    note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual outcomes. the relative ordering of interventions — not the absolute numbers — is the lesson.
+  </div>
+
+  <section class="export-wrap" id="reflection-export" aria-label="take this with you">
+    <div class="export-eyebrow">take this with you</div>
+    <div class="export-title" id="export-scenario-name"></div>
+    <p class="export-mandate" id="export-mandate"></p>
+    <p class="export-mandate" id="export-tradeoff-headline" style="display:none;color:var(--cadet);font-style:normal;font-weight:500;"></p>
+
+    <div class="export-section">
+      <div class="export-section-label">your committed decision</div>
+      <p id="export-committed-title"><em>none committed.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">your hypothesis</div>
+      <p id="export-hypothesis"><em>none recorded.</em></p>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label">interventions</div>
+      <ul class="export-list" id="export-interventions"></ul>
+    </div>
+
+    <div class="export-section">
+      <div class="export-section-label"><label for="shifted-textarea">one sentence — what shifted?</label></div>
+      <textarea id="shifted-textarea" class="shifted-textarea" maxlength="280" rows="2" placeholder="what changed in how you saw the system?"></textarea>
+    </div>
+
+    <div class="export-actions">
+      <button class="btn btn-small" id="btn-export-pdf" aria-label="download as pdf">download as pdf</button>
+      <button class="btn btn-small" id="btn-export-copy" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);" aria-label="copy summary to clipboard">copy to clipboard</button>
+      <span class="export-toast" id="export-toast" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <div class="mailing-cta" aria-label="stay informed about teaching tools">
+    <p class="mailing-cta-text">if you want to be aware of other winded.vertigo tools, add your email and join our mailing list to receive updates on tools that can support your teaching practice.</p>
+    <form class="mailing-form" id="mailing-form">
+      <input class="mailing-input" type="email" id="mailing-email" placeholder="your email address" required aria-label="email address for mailing list">
+      <button class="mailing-btn" type="submit">join the list</button>
+    </form>
+    <div class="mailing-success" id="mailing-success" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="pattern-btn-wrap">
+    <button class="btn" id="btn-handoff" aria-label="what does this mean?">what does this mean?</button>
+  </div>
+</div>
+
+<!-- screen 5: handoff -->
+<div id="screen-handoff" class="screen screen-handoff" role="region" aria-label="the handoff">
+  <div class="handoff-text">
+    the same three decisions exist in every system you manage.<br><br>
+    they are not always called "interventions."<br>
+    they are called: a form, a budget line, a policy,<br>
+    a charter, a mission statement.<br><br>
+    the question is not "which one works?"<br><br>
+    it is "which one would you have known to make?"
+  </div>
+  <div class="handoff-links">
+    <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
+    <a class="btn" href="/portfolio/assets/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
+  </div>
+  <div class="handoff-footer">ppcs 2026 · session 1A · w.v × prme · simulator v1.0</div>
+</div>
+
+<div class="commit-confirm" id="commit-confirm" role="dialog" aria-label="confirm your decision">
+  <div class="commit-confirm-inner">
+    <div class="commit-confirm-title" id="commit-confirm-title"></div>
+    <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention — starting with yours.</div>
+    <div class="hypo-wrap">
+      <label class="hypo-label" for="hypo-textarea">one sentence — I chose this because I think the bottleneck is&hellip;</label>
+      <textarea id="hypo-textarea" class="hypo-textarea" maxlength="240" rows="3" placeholder="e.g., price, trust, how we measure success, who gets to decide&hellip;" aria-describedby="hypo-counter"></textarea>
+      <div class="hypo-meta">
+        <span><span id="hypo-counter">0</span>&thinsp;/&thinsp;240</span>
+        <span id="hypo-hint">at least 10 characters.</span>
+      </div>
+    </div>
+    <div class="commit-confirm-actions">
+      <button class="btn btn-small" id="btn-commit-back" style="background:none;color:var(--cadet);border:1.5px solid var(--cadet);">go back</button>
+      <button class="btn btn-small" id="btn-commit-confirm" disabled>lock it in</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── systems map canvas renderer ───────────────────────────
+// tidal-pool-style reactive visualisation
+// shared between simulator.html and lakeshore-simulator.html
+(function(window) {
+  'use strict';
+
+  const NODE_RADIUS = 28;
+  const NODE_BORDER = 3;
+  const ARROW_SIZE = 8;
+  const LABEL_FONT = '500 11px "Inter", system-ui, sans-serif';
+  const VALUE_FONT = '700 14px "Inter", system-ui, sans-serif';
+  const ICON_FONT = '20px serif';
+  const CONNECTION_COLORS = {
+    amplifying: 'rgba(34, 197, 94, 0.6)',
+    dampening:  'rgba(239, 68, 68, 0.6)',
+    delayed:    'rgba(59, 130, 246, 0.6)',
+    threshold:  'rgba(245, 158, 11, 0.6)',
+  };
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resizeCanvas(mapCtx) {
+    const { canvas, ctx } = mapCtx;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    mapCtx.dpr = dpr;
+    scaleNodes(mapCtx);
+  }
+
+  function scaleNodes(mapCtx) {
+    const { nodes, canvas, dpr } = mapCtx;
+    if (!nodes || nodes.length === 0) return;
+    const cw = canvas.width / dpr;
+    const ch = canvas.height / dpr;
+    const padding = 60;
+    // find data bounds
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    nodes.forEach(n => { minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x); minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y); });
+    const dataW = Math.max(maxX - minX, 1);
+    const dataH = Math.max(maxY - minY, 1);
+    const scaleX = (cw - padding * 2) / dataW;
+    const scaleY = (ch - padding * 2) / dataH;
+    const scale = Math.min(scaleX, scaleY);
+    const offsetX = (cw - dataW * scale) / 2 - minX * scale;
+    const offsetY = (ch - dataH * scale) / 2 - minY * scale;
+    nodes.forEach(n => {
+      n.renderX = n.x * scale + offsetX;
+      n.renderY = n.y * scale + offsetY;
+    });
+  }
+
+  function computeNodeValues(nodes, edges, dosages, interventions) {
+    if (!nodes || !interventions) return;
+    // pass 1: direct influences
+    nodes.forEach(n => { n.displayValue = n.baseValue; n.directlyInfluenced = false; });
+    interventions.forEach(intv => {
+      const frac = (dosages[intv.id] || 0);
+      if (frac === 0) return;
+      const influences = intv.influences || (intv.mapHighlight || []).map(nid => ({ nodeId: nid, weight: 1.0 }));
+      influences.forEach(inf => {
+        const node = nodes.find(n => n.id === inf.nodeId);
+        if (!node) return;
+        // for dampening nodes (like price-to-value, attrition), intervention REDUCES their value
+        // for amplifying nodes, intervention INCREASES their value
+        const delta = frac * inf.weight * 40;
+        node.displayValue = Math.max(0, Math.min(100, node.displayValue + delta));
+        node.directlyInfluenced = true;
+      });
+    });
+    // pass 2: single-hop edge propagation
+    nodes.forEach(n => {
+      if (n.directlyInfluenced) return; // skip already-influenced
+      edges.forEach(e => {
+        if (e.to !== n.id) return;
+        const src = nodes.find(s => s.id === e.from);
+        if (!src) return;
+        const srcDelta = src.displayValue - src.baseValue;
+        if (Math.abs(srcDelta) < 0.5) return;
+        const propagated = srcDelta * (e.strength || 0.5) * (e.type === 'dampening' ? -0.3 : 0.3);
+        n.displayValue = Math.max(0, Math.min(100, n.displayValue + propagated));
+      });
+    });
+    // compute valuePct
+    nodes.forEach(n => {
+      n.valuePct = Math.max(0, Math.min(1, n.displayValue / 100));
+    });
+  }
+
+  function drawConnection(ctx, edge, nodes, tick) {
+    const from = nodes.find(n => n.id === edge.from);
+    const to = nodes.find(n => n.id === edge.to);
+    if (!from || !to) return;
+    const fx = from.renderX, fy = from.renderY;
+    const tx = to.renderX, ty = to.renderY;
+    const dx = tx - fx, dy = ty - fy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) return;
+    const ux = dx / dist, uy = dy / dist;
+    const startX = fx + ux * (NODE_RADIUS + 4);
+    const startY = fy + uy * (NODE_RADIUS + 4);
+    const endX = tx - ux * (NODE_RADIUS + 4);
+    const endY = ty - uy * (NODE_RADIUS + 4);
+
+    const color = CONNECTION_COLORS[edge.type || 'amplifying'];
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2 + (edge.strength || 0.5) * 2;
+    ctx.setLineDash(edge.type === 'delayed' ? [6, 4] : []);
+    if (edge.type === 'delayed' && !prefersReducedMotion) ctx.lineDashOffset = -(tick * 2);
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    // arrowhead
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - ux * ARROW_SIZE - uy * ARROW_SIZE * 0.5, endY - uy * ARROW_SIZE + ux * ARROW_SIZE * 0.5);
+    ctx.lineTo(endX - ux * ARROW_SIZE + uy * ARROW_SIZE * 0.5, endY - uy * ARROW_SIZE - ux * ARROW_SIZE * 0.5);
+    ctx.closePath();
+    ctx.fill();
+
+    // polarity label at midpoint
+    const midX = (startX + endX) / 2, midY = (startY + endY) / 2;
+    const typeLabel = edge.type === 'dampening' ? '\u2212' : edge.type === 'delayed' ? '\u23F1' : edge.type === 'threshold' ? '\u26A1' : '+';
+    ctx.font = '600 12px "Inter", system-ui, sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(typeLabel, midX, midY - 8);
+    ctx.restore();
+  }
+
+  function drawNode(ctx, node, tick, isHighlighted, isIndirect) {
+    const x = node.renderX, y = node.renderY;
+    if (x === undefined || y === undefined) return;
+    const value = node.displayValue !== undefined ? node.displayValue : node.baseValue;
+    const valuePct = node.valuePct !== undefined ? node.valuePct : value / 100;
+
+    // pulse
+    const pulseAmp = prefersReducedMotion ? 0 : (1 + valuePct * 1.5);
+    const pulse = Math.sin(tick * 0.1 + value * 0.05) * pulseAmp;
+    const radius = NODE_RADIUS + pulse;
+
+    // glow for directly influenced nodes
+    if (isHighlighted) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 235, 210, 0.4)';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 235, 210, 0.15)';
+      ctx.fill();
+      ctx.restore();
+    } else if (isIndirect) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 235, 210, 0.2)';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 235, 210, 0.06)';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // outer circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(30, 39, 56, 0.9)';
+    ctx.fill();
+
+    // value arc
+    if (valuePct > 0) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * valuePct);
+      ctx.strokeStyle = node.color || '#CB7858';
+      ctx.lineWidth = NODE_BORDER;
+      ctx.stroke();
+    }
+
+    // inner circle
+    ctx.beginPath();
+    ctx.arc(x, y, radius - NODE_BORDER - 1, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(39, 50, 72, 0.95)';
+    ctx.fill();
+
+    // icon
+    if (node.icon) {
+      ctx.font = ICON_FONT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(node.icon, x, y - 4);
+    }
+
+    // value number
+    ctx.font = VALUE_FONT;
+    ctx.fillStyle = '#ffebd2';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(Math.round(value).toString(), x, y + 14);
+    ctx.restore();
+
+    // label below (handle multiline with \n)
+    ctx.save();
+    ctx.font = LABEL_FONT;
+    ctx.fillStyle = 'rgba(255, 235, 210, 0.7)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const lines = (node.label || '').split('\n');
+    lines.forEach((line, i) => {
+      ctx.fillText(line, x, y + radius + 6 + i * 13);
+    });
+    ctx.restore();
+  }
+
+  function drawMap(mapCtx) {
+    const { ctx, canvas, dpr, nodes, edges, tick, dosages, interventions } = mapCtx;
+    if (!ctx || !canvas) return;
+    const w = canvas.width / dpr;
+    const h = canvas.height / dpr;
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    // subtle radial gradient background
+    const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.6);
+    grad.addColorStop(0, 'rgba(39, 50, 72, 1)');
+    grad.addColorStop(1, 'rgba(30, 39, 56, 1)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // subtle grid dots
+    ctx.fillStyle = 'rgba(255, 235, 210, 0.04)';
+    for (let gx = 40; gx < w; gx += 40) {
+      for (let gy = 40; gy < h; gy += 40) {
+        ctx.beginPath();
+        ctx.arc(gx, gy, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // draw edges
+    (edges || []).forEach(e => drawConnection(ctx, e, nodes, tick));
+
+    // determine which nodes are highlighted
+    const highlightedIds = new Set();
+    const indirectIds = new Set();
+    if (interventions && dosages) {
+      interventions.forEach(intv => {
+        if ((dosages[intv.id] || 0) > 0) {
+          const influences = intv.influences || (intv.mapHighlight || []).map(nid => ({ nodeId: nid, weight: 1.0 }));
+          influences.forEach(inf => highlightedIds.add(inf.nodeId));
+        }
+      });
+      // indirect = nodes connected to highlighted but not themselves highlighted
+      (edges || []).forEach(e => {
+        if (highlightedIds.has(e.from) && !highlightedIds.has(e.to)) indirectIds.add(e.to);
+        if (highlightedIds.has(e.to) && !highlightedIds.has(e.from)) indirectIds.add(e.from);
+      });
+    }
+
+    // draw nodes
+    (nodes || []).forEach(n => {
+      drawNode(ctx, n, tick, highlightedIds.has(n.id), indirectIds.has(n.id));
+    });
+
+    ctx.restore();
+  }
+
+  function startAnimation(mapCtx) {
+    if (mapCtx.animId) return;
+    mapCtx.visible = true;
+    function loop() {
+      if (!mapCtx.visible) { mapCtx.animId = null; return; }
+      if (!prefersReducedMotion) mapCtx.tick++;
+      drawMap(mapCtx);
+      mapCtx.animId = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  function stopAnimation(mapCtx) {
+    mapCtx.visible = false;
+    if (mapCtx.animId) {
+      cancelAnimationFrame(mapCtx.animId);
+      mapCtx.animId = null;
+    }
+  }
+
+  function init(container, mapData, interventions) {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'systems-map-canvas';
+    canvas.setAttribute('aria-label', 'reactive systems map showing how interventions affect system variables');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    container.innerHTML = '';
+    container.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    const mapCtx = {
+      canvas, ctx, dpr: 1, tick: 0, animId: null, visible: false,
+      nodes: mapData ? (mapData.nodes || []).map(n => Object.assign({}, n, { displayValue: n.baseValue, valuePct: n.baseValue / 100 })) : [],
+      edges: mapData ? (mapData.edges || []) : [],
+      interventions: interventions || [],
+      dosages: {},
+    };
+
+    resizeCanvas(mapCtx);
+
+    const ro = new ResizeObserver(() => { resizeCanvas(mapCtx); if (mapCtx.visible) drawMap(mapCtx); });
+    ro.observe(container);
+
+    return mapCtx;
+  }
+
+  window.SystemsMapCanvas = { init, compute: computeNodeValues, draw: drawMap, start: startAnimation, stop: stopAnimation, resize: resizeCanvas };
+})(window);
+
+// ────────────────────────────────────────────
+// scenario data
+// ────────────────────────────────────────────
+const SCENARIOS = {
+
+  churn: {
+    name: 'saas churn',
+    category: 'business',
+    stock: 'active paying customers',
+    stockUnit: 'customers',
+    loop: 'reinforcing',
+    baselineValue: 2400,
+    baselineDirection: 'down',
+    baselineRate: -0.012,
+    dominantId: 1,
+    intro: 'a mid-stage B2B SaaS company sells a project-management tool to small agencies. annual recurring revenue has plateaued. the customer base is churning at 8% monthly — not catastrophically, but faster than new sign-ups replace losses. the product team believes the tool needs more features. the sales team believes the pricing is wrong. the CEO believes the brand needs repositioning. the data shows something simpler: customers who activate three features in their first week almost never leave. most never activate the first.',
+    insightSpot: 'the higher-tier interventions produce familiar shapes — onboarding restructures the experience, repositioning shifts who arrives. but the parameter-level discount barely decays. that\'s the signature of a binding constraint: when the bottleneck is at the parameter layer, a parameter fix holds. meadows warned the leverage point is not always where you expect it.',
+    insightLever: 'in this system, the dominant lever is intervention (1) — the discount. price-to-value is the binding constraint. the product works; customers leave because perceived value doesn\'t justify the cost at the current activation rate. the paradigm shift is valuable but slower and less certain than directly releasing the bottleneck.',
+    map: {
+      nodes: [
+        { id: 0, label: 'active\ncustomers', icon: '\uD83D\uDC65', color: '#CB7858', x: 240, y: 30, baseValue: 55 },
+        { id: 1, label: 'word-of-\nmouth', icon: '\uD83D\uDCE2', color: '#22C55E', x: 80, y: 90, baseValue: 45 },
+        { id: 2, label: 'activation\nrate', icon: '\u26A1', color: '#3B82F6', x: 400, y: 90, baseValue: 40 },
+        { id: 3, label: 'price-to-value\nratio', icon: '\uD83D\uDCB0', color: '#B15043', x: 120, y: 175, baseValue: 60 },
+        { id: 4, label: 'product\npositioning', icon: '\uD83C\uDFAF', color: '#F59E0B', x: 360, y: 175, baseValue: 35 },
+      ],
+      edges: [
+        { from: 0, to: 1, type: 'amplifying', strength: 0.7, label: '+' },
+        { from: 1, to: 0, type: 'amplifying', strength: 0.5, label: '+' },
+        { from: 2, to: 0, type: 'amplifying', strength: 0.6, label: '+' },
+        { from: 3, to: 0, type: 'dampening', strength: 0.8, label: '\u2212' },
+        { from: 4, to: 2, type: 'amplifying', strength: 0.5, label: '+' },
+        { from: 4, to: 1, type: 'amplifying', strength: 0.4, label: '+' },
+      ],
+    },
+    mandate: 'reverse the customer attrition trend and build a base that grows itself through retention and referral.',
+    baselineCaption: 'churn compounds — each lost customer weakens word-of-mouth, which accelerates the next loss.',
+    insight: 'this is a system with a binding constraint. churn looks like many problems — pricing, support, positioning — but the data shows one variable that predicts retention almost perfectly: early activation. most interventions address symptoms downstream of this single bottleneck. the lever is not the highest tier. it is the one that releases the constraint.',
+    interventions: [
+      {
+        id: 1, title: 'offer a 20% discount on annual renewals.',
+        body: 'prices loyalty. in this system, price is the binding variable — most churned users cited cost-to-value ratio.',
+        chip: 'parameter', chipClass: 'chip-parameter',
+        detail: { targets: 'renewal rate via price incentive', timeline: 'immediate retention bump, sustained because price IS the constraint', assumptions: 'in most systems, discounts decay as expectations reset. in this system, the product delivers value — the price-to-value ratio is the bottleneck. adjusting it releases the constraint directly.', stakes: 'margin erosion, but the LTV increase outweighs the discount cost.' },
+        why: 'this looks like a standard <em>parameter-level</em> change — and in most systems, it would decay. but in this system, price is the <em>binding constraint</em>. the product works; customers leave because the perceived value doesn\'t justify the price at the current activation rate. the discount releases the bottleneck directly. meadows warned: "the leverage point is not always where you expect it."',
+        effect: { type: 'parameter', magnitude: 0.42, decayRate: 0.08 },
+        dosage: { label: 'discount on annual renewals', unit: '%', min: 0, max: 40 },
+        mapHighlight: [0, 3],
+        influences: [{ nodeId: 3, weight: 1.0 }, { nodeId: 0, weight: 0.5 }],
+      },
+      {
+        id: 2, title: 'redesign the onboarding flow so new users reach value in the first session.',
+        body: 'changes the first experience. changes what "using the product" means.',
+        chip: 'rules', chipClass: 'chip-rules',
+        detail: { targets: 'time-to-value for new customers', timeline: 'one quarter to redesign, effects compound', assumptions: 'customers who reach value quickly stay longer. onboarding is the highest-leverage moment in the customer lifecycle.', stakes: 'requires engineering investment. high payoff if executed well.' },
+        why: 'this is a <em>rules-level</em> change. it restructures the critical first experience so that value is reached before doubt sets in. the curve bends modestly — it helps, but the binding constraint (price-to-value) is partially addressed by activation, not fully by onboarding alone.',
+        effect: { type: 'rules', magnitude: 0.22 },
+        dosage: { label: 'onboarding redesign depth', unit: '% of funnel rebuilt', min: 0, max: 100 },
+        mapHighlight: [0, 2],
+        influences: [{ nodeId: 2, weight: 1.0 }, { nodeId: 0, weight: 0.3 }],
+      },
+      {
+        id: 3, title: 'reposition the product: from "tool for X" to "platform for the outcome customers actually want."',
+        body: 'changes what the product claims to be — and therefore who it attracts and why they stay.',
+        chip: 'goals & paradigms', chipClass: 'chip-goals',
+        detail: { targets: 'the identity of the product and its customer base', timeline: 'immediate repositioning, market shift over quarters', assumptions: 'repositioning changes who arrives. customers who come for the right reason churn less. the referral loop strengthens because the message is clearer.', stakes: 'profound. requires alignment across product, marketing, and sales. some existing customers won\'t recognise the new positioning.' },
+        why: 'this is a <em>paradigm-level</em> change. repositioning changes who arrives, which eventually addresses the activation problem upstream. but it is slower and more uncertain than directly releasing the binding constraint. in this system, the paradigm shift is valuable but not dominant — the bottleneck was at the parameter layer all along.',
+        effect: { type: 'goals', magnitude: 0.35, compoundRate: 0.15 },
+        dosage: { label: 'repositioning commitment', unit: 'quarters invested', min: 0, max: 4 },
+        mapHighlight: [0, 1, 2, 3, 4],
+        influences: [{ nodeId: 4, weight: 1.0 }, { nodeId: 1, weight: 0.6 }, { nodeId: 0, weight: 0.4 }],
+      },
+    ],
+  },
+
+  burnout: {
+    name: 'team burnout',
+    category: 'business',
+    stock: 'sustainable team energy',
+    stockUnit: 'energy index',
+    loop: 'reinforcing',
+    baselineValue: 68,
+    baselineDirection: 'down',
+    baselineRate: -0.010,
+    dominantId: 2,
+    intro: 'a 14-person product team at a mid-size company ships a release every two weeks. velocity has been rising for three quarters — and so has attrition. two senior engineers left in the last six months; exit interviews cited "unsustainable pace." the remaining team absorbs the work. the planning process sets sprint scope based on the previous sprint\'s output, which means every good sprint raises the bar for the next one. the people burning out don\'t sit at the planning table.',
+    insightSpot: 'the contractors and no-meeting fridays share the same shape: a brief recovery that the system absorbs. the planning process ratchets — every good sprint raises the bar. the parameter intervention subsidises coping while the structural load keeps increasing. the scope cap breaks the ratchet.',
+    insightLever: 'in this system, the dominant lever is the scope cap — intervention (2). it puts the captured party (the team) at the planning table structurally. the planning process can no longer use last sprint\'s output as next sprint\'s floor. the paradigm shift helps, but without the structural mechanism change, the ratchet reasserts.',
+    map: {
+      nodes: [
+        { id: 0, label: 'team\nenergy', icon: '\uD83D\uDD0B', color: '#22C55E', x: 240, y: 100, baseValue: 45 },
+        { id: 1, label: 'velocity', icon: '\uD83D\uDE80', color: '#3B82F6', x: 70, y: 30, baseValue: 55 },
+        { id: 2, label: 'sprint\nscope', icon: '\uD83D\uDCCB', color: '#F59E0B', x: 410, y: 30, baseValue: 65 },
+        { id: 3, label: 'attrition', icon: '\uD83D\uDEAA', color: '#B15043', x: 70, y: 175, baseValue: 50 },
+        { id: 4, label: 'planning\nprocess', icon: '\uD83D\uDCCA', color: '#CB7858', x: 410, y: 175, baseValue: 60 },
+      ],
+      edges: [
+        { from: 0, to: 1, type: 'amplifying', strength: 0.7, label: '+' },
+        { from: 1, to: 2, type: 'amplifying', strength: 0.6, label: '+' },
+        { from: 2, to: 0, type: 'dampening', strength: 0.8, label: '\u2212' },
+        { from: 0, to: 3, type: 'dampening', strength: 0.5, label: '\u2212' },
+        { from: 3, to: 0, type: 'dampening', strength: 0.6, label: '\u2212' },
+        { from: 4, to: 2, type: 'amplifying', strength: 0.7, label: '+' },
+      ],
+    },
+    interventions: [
+      {
+        id: 1, title: 'hire contractors to absorb overflow work.',
+        body: 'adds capacity. doesn\'t change how much work enters the system.',
+        chip: 'parameter', chipClass: 'chip-parameter',
+        detail: { targets: 'team workload distribution', timeline: 'immediate relief', assumptions: 'contractors handle overflow but create coordination overhead. work expands to fill available capacity.', stakes: 'expensive. risk of induced demand — more capacity invites more scope.' },
+        why: 'this is the strongest <em>parameter-level</em> intervention. it genuinely reduces load in the short term. but without a scope cap, the system absorbs the new capacity and returns to overload.',
+        effect: { type: 'parameter', magnitude: 0.08 },
+        dosage: { label: 'overflow contractors', unit: 'headcount', min: 0, max: 6 },
+        mapHighlight: [0, 1, 2],
+        influences: [{ nodeId: 0, weight: 0.8 }, { nodeId: 1, weight: 0.4 }],
+      },
+      {
+        id: 2, title: 'cap sprint scope at 80% of estimated capacity. the remaining 20% is protected slack.',
+        body: 'changes the rules of how much work enters the system.',
+        chip: 'rules', chipClass: 'chip-rules',
+        detail: { targets: 'the structural relationship between capacity and demand', timeline: 'one sprint to see effects, compounds over quarters', assumptions: 'a hard cap prevents scope creep at the source. 20% slack allows recovery, learning, and absorption of surprises.', stakes: 'requires leadership to defend the cap against scope pressure. high friction, high payoff.' },
+        why: 'this is a <em>rules-level</em> change — and in this system, it is the dominant lever. the scope cap puts the captured party (the team) at the planning table structurally: the cap exists because someone measured their capacity and made it binding. energy recovers because the loop that was draining it has been structurally interrupted. the planning process can no longer ratchet.',
+        effect: { type: 'rules', magnitude: 0.52 },
+        dosage: { label: 'protected slack', unit: '% of capacity', min: 0, max: 30 },
+        mapHighlight: [0, 2, 4],
+        influences: [{ nodeId: 2, weight: 1.0 }, { nodeId: 4, weight: 0.8 }, { nodeId: 0, weight: 0.5 }],
+      },
+      {
+        id: 3, title: 'redefine success: from "shipping features" to "sustainable delivery of value."',
+        body: 'changes what the team is optimising for.',
+        chip: 'goals & paradigms', chipClass: 'chip-goals',
+        detail: { targets: 'the team\'s identity and what it means to do good work', timeline: 'immediate reframing, cultural shift over quarters', assumptions: 'when "success" includes sustainability, every sprint planning conversation changes. overwork stops being heroic and starts being a system failure.', stakes: 'profound. requires executive alignment. some high-performers will resist the redefinition.' },
+        why: 'this is a <em>paradigm-level</em> change. it redefines what the team optimises for — but in this system, the reinforcing loop is driven by the planning process, not by culture alone. redefining success helps, but unless the planning mechanism changes, the loop reasserts. the paradigm shift is necessary but not sufficient; the structural cap is the lever.',
+        effect: { type: 'goals', magnitude: 0.40, compoundRate: 0.15 },
+        dosage: { label: 'definition shift depth', unit: '% adoption', min: 0, max: 100 },
+        mapHighlight: [0, 1, 2, 3, 4],
+        influences: [{ nodeId: 4, weight: 0.7 }, { nodeId: 0, weight: 0.6 }, { nodeId: 3, weight: 0.5 }],
+      },
+    ],
+  },
+
+  sleep: {
+    name: 'sleep debt',
+    category: 'personal',
+    stock: 'average nightly sleep',
+    stockUnit: 'hours',
+    loop: 'reinforcing',
+    baselineValue: 5.8,
+    baselineDirection: 'down',
+    baselineRate: -0.004,
+    mandate: 'restore average nightly sleep to a sustainable level before the compounding effects of sleep debt become chronic.',
+    baselineCaption: 'sleep erodes slowly — each short night makes the next one more likely.',
+    insight: 'this is a reinforcing loop in decline. less sleep \u2192 lower cognitive function \u2192 worse time management \u2192 later bedtime \u2192 less sleep. the debt compounds silently.',
+    map: {
+      nodes: [
+        { id: 0, label: 'nightly\nsleep', icon: '\uD83D\uDE34', color: '#CB7858', x: 240, y: 50, baseValue: 40 },
+        { id: 1, label: 'cognitive\nfunction', icon: '\uD83E\uDDE0', color: '#B15043', x: 80, y: 140, baseValue: 45 },
+        { id: 2, label: 'time\nmanagement', icon: '\u23F0', color: '#6B7589', x: 240, y: 220, baseValue: 40 },
+        { id: 3, label: 'bedtime\ndiscipline', icon: '\uD83C\uDF19', color: '#3B82F6', x: 400, y: 140, baseValue: 35 },
+        { id: 4, label: 'sleep\nenvironment', icon: '\uD83D\uDECF\uFE0F', color: '#22C55E', x: 400, y: 50, baseValue: 50 },
+        { id: 5, label: 'productivity\nidentity', icon: '\uD83D\uDCA1', color: '#F59E0B', x: 80, y: 50, baseValue: 30 },
+      ],
+      edges: [
+        { from: 0, to: 1, type: 'amplifying', strength: 0.8, label: '+' },
+        { from: 1, to: 2, type: 'amplifying', strength: 0.6, label: '+' },
+        { from: 2, to: 3, type: 'amplifying', strength: 0.7, label: '+' },
+        { from: 3, to: 0, type: 'amplifying', strength: 0.9, label: '+' },
+        { from: 4, to: 0, type: 'amplifying', strength: 0.3, label: '+' },
+        { from: 5, to: 3, type: 'dampening', strength: 0.7, label: '\u2212' },
+        { from: 5, to: 0, type: 'dampening', strength: 0.5, label: '\u2212' },
+      ],
+    },
+    interventions: [
+      {
+        id: 1, title: 'install blackout curtains.',
+        body: 'optimises the environment. doesn\'t change the behaviour.',
+        chip: 'parameter', chipClass: 'chip-parameter',
+        detail: { targets: 'sleep environment quality', timeline: 'immediate', assumptions: 'a darker room helps sleep quality. it doesn\'t help you get to bed on time.', stakes: 'small investment, small effect.' },
+        why: 'this is a <em>parameter-level</em> change. a better environment improves quality at the margins but doesn\'t address why you\'re going to bed late.',
+        effect: { type: 'parameter', magnitude: 0.03 },
+        dosage: { label: 'room darkness level', unit: '% light blocked', min: 0, max: 100 },
+        mapHighlight: [0, 4],
+        influences: [{ nodeId: 4, weight: 1.0 }, { nodeId: 0, weight: 0.3 }],
+      },
+      {
+        id: 2, title: 'set a consistent bedtime rule: lights out by 10:30 p.m., no screens after 10:00 p.m.',
+        body: 'creates a hard boundary. changes the rules of the evening.',
+        chip: 'rules', chipClass: 'chip-rules',
+        detail: { targets: 'the structural boundary between evening activity and sleep', timeline: 'one week to establish, compounds over months', assumptions: 'a consistent rule creates a rhythm. the body adapts. the hard part is defending the boundary against late-night work, social pressure, or "one more episode."', stakes: 'requires real discipline. high payoff for those who hold it.' },
+        why: 'this is a <em>rules-level</em> change. it creates a structural boundary that the reinforcing loop can\'t easily erode. sleep stabilises because the input side \u2014 bedtime \u2014 is now governed by a rule, not a negotiation.',
+        effect: { type: 'rules', magnitude: 0.30 },
+        dosage: { label: 'bedtime consistency', unit: 'nights per week', min: 0, max: 7 },
+        mapHighlight: [0, 2, 3],
+        influences: [{ nodeId: 3, weight: 1.0 }, { nodeId: 0, weight: 0.7 }, { nodeId: 2, weight: 0.4 }],
+      },
+      {
+        id: 3, title: 'redefine productivity: from "hours worked" to "quality of decisions made when rested."',
+        body: 'changes what you optimise for. sleep becomes an investment, not a cost.',
+        chip: 'goals & paradigms', chipClass: 'chip-goals',
+        detail: { targets: 'your definition of what it means to be productive', timeline: 'immediate reframing, cultural shift if applied to a team', assumptions: 'when productivity is redefined, staying up late stops being "dedicated" and starts being "counterproductive." the incentive structure inverts.', stakes: 'no cost. high psychological difficulty. requires letting go of the "I\'ll sleep when I\'m dead" identity.' },
+        why: 'this is a <em>paradigm-level</em> change. it removes the pressure that creates sleep debt \u2014 the belief that more hours awake = more output. the curve rises most because the system\'s purpose has changed.',
+        effect: { type: 'goals', magnitude: 0.55 },
+        dosage: { label: 'redefinition commitment', unit: '% belief shift', min: 0, max: 100 },
+        mapHighlight: [0, 3, 5],
+        influences: [{ nodeId: 5, weight: 1.0 }, { nodeId: 3, weight: 0.6 }, { nodeId: 0, weight: 0.5 }],
+      },
+    ],
+  },
+};
+
+// ────────────────────────────────────────────
+// secondary stocks per scenario (phase 2)
+// ────────────────────────────────────────────
+const SCENARIO_SECONDARIES = {
+  churn: {
+    meta: { name: 'revenue per customer', units: 'USD / month', baseline: 80, goodDirection: 'up', yMin: 55, yMax: 95 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0.20, polarity: -1, decayRate: 0 },
+      2: { type: 'rules', magnitude: 0.12, polarity: 1 },
+      3: { type: 'goals', magnitude: 0.15, polarity: 1, fn: (t) => 80 * (1 - 0.10 * Math.max(0, 1 - t * 3) + 0.18 * Math.min(1, t * 1.3)) },
+    },
+    tradeoffs: {
+      1: 'the customers stay, but the margin per customer drops by the size of the discount. counting heads can disguise a bleeding ledger.',
+      3: 'mismatched accounts churn in the short run, then customers willing to pay more arrive. two motions; one chart.',
+    },
+  },
+  burnout: {
+    meta: { name: 'sprint velocity', units: 'points / sprint', baseline: 40, goodDirection: 'up', yMin: 25, yMax: 55 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0.15, polarity: 1, decayRate: 0.1 },
+      2: { type: 'rules', magnitude: 0.20, polarity: -1, fn: (t) => 40 * (1 - 0.20 * Math.max(0, 1 - t * 2.5) - 0.05) },
+      3: { type: 'goals', magnitude: 0.10, polarity: -1, fn: (t) => 40 * (1 - 0.08 - 0.04 * Math.max(0, 1 - t * 3)) },
+    },
+    tradeoffs: {
+      1: 'contractors buy velocity short-term. work expands to fill available capacity; the next quarter\'s baseline now assumes them.',
+      2: 'year one looks like a velocity cut. year two shows what the old velocity was actually costing in defects, attrition, and planning accuracy.',
+      3: 'raw story-point velocity drops as the denominator changes. the chart is measuring an old thing during a redefinition of what output is.',
+    },
+  },
+
+  sleep: {
+    meta: { name: 'self-reported productivity', units: 'focused hrs/day', baseline: 9.0, goodDirection: 'up', yMin: 6.5, yMax: 10 },
+    interventions: {
+      1: { type: 'parameter', magnitude: 0, polarity: 0 },
+      2: { type: 'rules', magnitude: 0.15, polarity: -1, fn: (t) => 9.0 * (1 - 0.17 * Math.max(0, 1 - t * 2) + 0.02 * t) },
+      3: { type: 'goals', magnitude: 0.10, polarity: 1 },
+    },
+    tradeoffs: {
+      2: 'for six months, the new bedtime looks like a productivity cut. the chart recovers as quality replaces quantity.',
+      3: 'self-reported hours of focused work drop numerically, but the metric re-anchors. what counts has changed.',
+    },
+  },
+};
+
+// ────────────────────────────────────────────
+// load scenario from query param
+// ────────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const scenarioSlug = params.get('s');
+const scenario = SCENARIOS[scenarioSlug];
+const secondarySpec = SCENARIO_SECONDARIES[scenarioSlug] || null;
+
+// ────────────────────────────────────────────
+// session logging (Phase 6)
+// ────────────────────────────────────────────
+class SessionLogger {
+  constructor() {
+    this.sessionCode = null;
+    this.participantId = null;
+    this.config = {};
+    this.sliderDebounce = {};
+    try {
+      const raw = sessionStorage.getItem('st-session');
+      if (raw) {
+        const data = JSON.parse(raw);
+        this.sessionCode = data.code || null;
+        this.participantId = data.pid || null;
+        this.config = data.config || {};
+      }
+    } catch (e) { /* solo mode */ }
+  }
+  get active() { return !!(this.sessionCode && this.participantId); }
+  log(type, data) {
+    if (!this.active) return;
+    const payload = JSON.stringify({
+      sessionCode: this.sessionCode,
+      participantId: this.participantId,
+      type,
+      data: { scenario: scenarioSlug, ...data },
+    });
+    // sendBeacon for fire-and-forget (survives page unload)
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/session/log', payload);
+    } else {
+      fetch('/api/session/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  }
+  // debounced slider logging — max 1 event per second per intervention
+  logSlider(interventionId, dosage) {
+    if (!this.active) return;
+    if (this.sliderDebounce[interventionId]) return;
+    this.sliderDebounce[interventionId] = true;
+    setTimeout(() => { this.sliderDebounce[interventionId] = false; }, 1000);
+    this.log('slider_move', { interventionId, dosage });
+  }
+}
+const logger = new SessionLogger();
+
+// log scenario start
+logger.log('scenario_started', { scenario: scenarioSlug });
+
+if (!scenario) {
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#273248;text-align:center;padding:24px;"><div><h2>scenario not found.</h2><p style="color:#6B7589;margin:16px 0;">the scenario "' + (scenarioSlug || '') + '" doesn\'t exist yet.</p><a href="/portfolio/assets/lines-become-loops/" style="color:#CB7858;">back to all scenarios</a></div></div>';
+  throw new Error('unknown scenario: ' + scenarioSlug);
+}
+
+// ────────────────────────────────────────────
+// model
+// ────────────────────────────────────────────
+const YEARS = Array.from({ length: 26 }, (_, i) => 2025 + i);
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// for "up" stocks (bad thing increasing), higher = worse → interventions reduce it
+// for "down" stocks (good thing decreasing), lower = worse → interventions increase it
+// for "flat" stocks, they drift slightly in the bad direction
+const isStockBad = scenario.baselineDirection === 'up'; // true if stock going up is bad (e.g. plastic)
+
+function generateBaseline() {
+  const vals = [scenario.baselineValue];
+  for (let i = 1; i < 26; i++) {
+    const prev = vals[i - 1];
+    // reinforcing loops compound; balancing loops flatten
+    const rate = scenario.baselineRate;
+    const loopFactor = scenario.loop === 'reinforcing' ? 1 + Math.abs(rate) * i * 0.02 : 1;
+    vals.push(prev * (1 + rate * loopFactor));
+  }
+  return vals;
+}
+
+const baseline = generateBaseline();
+
+function runSecondary(id, dosageFraction) {
+  if (dosageFraction === undefined) dosageFraction = 1;
+  if (!secondarySpec) return null;
+  const meta = secondarySpec.meta;
+  const eff = secondarySpec.interventions[id];
+  if (!eff) return Array(26).fill(meta.baseline);
+  if (eff.fn) return Array.from({ length: 26 }, (_, i) => eff.fn(i / 25));
+  if (eff.polarity === 0 || eff.magnitude === 0) return Array(26).fill(meta.baseline);
+
+  const result = [meta.baseline];
+  const onsetRate = eff.onsetRate ?? (eff.type === 'parameter' ? 4 : eff.type === 'rules' ? 3 : 2);
+  const decayRate = eff.decayRate ?? (eff.type === 'parameter' ? 0.4 : 0);
+  const compoundRate = eff.compoundRate ?? (eff.type === 'goals' ? 0.3 : 0);
+
+  for (let i = 1; i < 26; i++) {
+    const t = i / 25;
+    const onset = eff.type === 'parameter'
+      ? Math.min(1, t * onsetRate)
+      : 1 - Math.exp(-t * onsetRate);
+    let m;
+    if (decayRate > 0) m = eff.magnitude * dosageFraction * onset * Math.max(0.2, 1 - t * decayRate);
+    else if (compoundRate > 0) m = eff.magnitude * dosageFraction * onset * (1 + t * compoundRate);
+    else m = eff.magnitude * dosageFraction * onset;
+
+    // polarity +1 moves the stock toward "good", -1 away from it
+    // goodUp=true: +1 → increase; goodUp=false (↓good): +1 → decrease
+    const goodUp = meta.goodDirection === 'up';
+    const signed = (goodUp ? 1 : -1) * eff.polarity * m;
+    result.push(meta.baseline * (1 + signed));
+  }
+  return result;
+}
+
+function runIntervention(id, dosageFraction) {
+  if (dosageFraction === undefined) dosageFraction = 1;
+  const intv = scenario.interventions.find(x => x.id === id);
+  if (!intv) return baseline.slice();
+
+  const effect = intv.effect;
+  const result = [baseline[0]];
+  const mag = effect.magnitude * dosageFraction;
+
+  // per-intervention curve overrides (defaults by type)
+  const onsetRate = effect.onsetRate ?? (effect.type === 'parameter' ? 4 : effect.type === 'rules' ? 3 : 2);
+  const decayRate = effect.decayRate ?? (effect.type === 'parameter' ? 0.4 : 0);
+  const compoundRate = effect.compoundRate ?? (effect.type === 'goals' ? 0.3 : 0);
+
+  for (let i = 1; i < 26; i++) {
+    const t = i / 25;
+    let multiplier;
+
+    const onset = effect.type === 'parameter'
+      ? Math.min(1, t * onsetRate)
+      : 1 - Math.exp(-t * onsetRate);
+
+    if (decayRate > 0) {
+      const decay = 1 - t * decayRate;
+      multiplier = mag * onset * Math.max(0.2, decay);
+    } else if (compoundRate > 0) {
+      const compound = 1 + t * compoundRate;
+      multiplier = mag * onset * compound;
+    } else {
+      multiplier = mag * onset;
+    }
+
+    if (isStockBad) {
+      result.push(baseline[i] * (1 - multiplier));
+    } else {
+      const ceiling = scenario.baselineValue * 2.5;
+      const room = ceiling - baseline[i];
+      result.push(baseline[i] + room * multiplier);
+    }
+  }
+  return result;
+}
+
+function runCombined(dosages) {
+  // independent-probability model: combined = 1 - ∏(1 - individual_i)
+  // preserves natural diminishing returns without new parameters
+  const result = [baseline[0]];
+  const individual = {};
+  scenario.interventions.forEach(intv => {
+    const df = dosages[intv.id] || 0;
+    if (df > 0) individual[intv.id] = runIntervention(intv.id, df);
+  });
+  const activeIds = Object.keys(individual).map(Number);
+
+  for (let i = 1; i < 26; i++) {
+    if (activeIds.length === 0) {
+      result.push(baseline[i]);
+      continue;
+    }
+    // compute each intervention's fractional effect vs baseline
+    let product = 1;
+    activeIds.forEach(id => {
+      const intvVal = individual[id][i];
+      let effect;
+      if (isStockBad) {
+        // effect = fraction of baseline reduction achieved
+        effect = (baseline[i] - intvVal) / baseline[i];
+      } else {
+        const ceiling = scenario.baselineValue * 2.5;
+        const room = ceiling - baseline[i];
+        if (room > 0) {
+          effect = (intvVal - baseline[i]) / room;
+        } else {
+          effect = 0;
+        }
+      }
+      product *= (1 - Math.max(0, Math.min(1, effect)));
+    });
+    const combinedEffect = 1 - product;
+
+    if (isStockBad) {
+      result.push(baseline[i] * (1 - combinedEffect));
+    } else {
+      const ceiling = scenario.baselineValue * 2.5;
+      const room = ceiling - baseline[i];
+      result.push(baseline[i] + room * combinedEffect);
+    }
+  }
+  return result;
+}
+
+function runCombinedSecondary(dosages) {
+  if (!secondarySpec) return null;
+  // for secondary, use simple additive model (effects can harm)
+  const meta = secondarySpec.meta;
+  const result = Array(26).fill(meta.baseline);
+  scenario.interventions.forEach(intv => {
+    const df = dosages[intv.id] || 0;
+    if (df <= 0) return;
+    const secTraj = runSecondary(intv.id, df);
+    if (!secTraj) return;
+    for (let i = 0; i < 26; i++) {
+      result[i] += (secTraj[i] - meta.baseline);
+    }
+  });
+  return result;
+}
+
+// ────────────────────────────────────────────
+// pre-compute y-axis bounds (fixed across all interventions)
+// ────────────────────────────────────────────
+function computeYBounds() {
+  let min = Infinity, max = -Infinity;
+  baseline.forEach(v => { if (v < min) min = v; if (v > max) max = v; });
+  scenario.interventions.forEach(intv => {
+    const traj = runIntervention(intv.id, 1);
+    traj.forEach(v => { if (v < min) min = v; if (v > max) max = v; });
+  });
+  const pad = (max - min) * 0.1;
+  return { yMin: Math.max(0, Math.floor(min - pad)), yMax: Math.ceil(max + pad) };
+}
+const yBounds = computeYBounds();
+
+// ────────────────────────────────────────────
+// state
+// ────────────────────────────────────────────
+const state = {
+  screen: 'mandate',
+  committed: false,
+  committedId: null,
+  interventionsRun: [],
+  trajectories: {},
+  secondaryTrajectories: {},
+  detailOpen: {},
+  allRun: false,
+  animating: false,
+  currentAnimYear: 2025,
+  hypothesis: '',
+  surprise: {},
+  tradeoffNoticed: {},
+  shifted: '',
+  dosages: {},
+  sliderActive: false,
+  mode: 'individual',        // 'individual' | 'combined'
+  activeIntervention: null,  // id of expanded card in individual mode
+  exploredInterventions: [], // ids where slider has been moved from 0
+};
+
+// session persistence (reflective prompts) — keyed per scenario slug
+const REFLECT_KEY = 'st-' + scenarioSlug + '-reflect';
+
+function loadReflect() {
+  try {
+    const raw = sessionStorage.getItem(REFLECT_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (typeof data.hypothesis === 'string') state.hypothesis = data.hypothesis;
+    if (data.surprise && typeof data.surprise === 'object') state.surprise = data.surprise;
+    if (data.tradeoffNoticed && typeof data.tradeoffNoticed === 'object') state.tradeoffNoticed = data.tradeoffNoticed;
+    if (typeof data.shifted === 'string') state.shifted = data.shifted;
+  } catch (e) { /* ignore */ }
+}
+function saveReflect() {
+  try {
+    sessionStorage.setItem(REFLECT_KEY, JSON.stringify({
+      hypothesis: state.hypothesis,
+      surprise: state.surprise,
+      tradeoffNoticed: state.tradeoffNoticed,
+      shifted: state.shifted,
+    }));
+  } catch (e) { /* ignore */ }
+}
+// debounced reflection logger — fires 2s after last keystroke
+let reflectLogTimer = null;
+function logReflectChange(type, text) {
+  if (reflectLogTimer) clearTimeout(reflectLogTimer);
+  reflectLogTimer = setTimeout(() => {
+    logger.log(type, { text });
+  }, 2000);
+}
+function clearReflect() {
+  try { sessionStorage.removeItem(REFLECT_KEY); } catch (e) { /* ignore */ }
+}
+
+function setState(patch) {
+  Object.assign(state, patch);
+  render();
+}
+
+// ────────────────────────────────────────────
+// populate mandate screen
+// ────────────────────────────────────────────
+document.getElementById('mandate-eyebrow').textContent = scenario.category;
+document.getElementById('mandate-intro').textContent = scenario.intro || '';
+document.getElementById('mandate-title').textContent = scenario.mandate;
+document.getElementById('mandate-stock').textContent = 'stock: ' + scenario.stock;
+document.getElementById('mandate-loop').textContent = scenario.loop + ' loop';
+document.getElementById('baseline-subtitle').textContent = scenario.baselineCaption;
+document.getElementById('insight-what').textContent = scenario.insight;
+if (scenario.insightSpot) document.getElementById('insight-spot').textContent = scenario.insightSpot;
+if (scenario.insightLever) document.getElementById('insight-lever').textContent = scenario.insightLever;
+// per-scenario pattern caption — default assumes (5) wins; override when dominant is lower-tier
+if (scenario.dominantId && scenario.dominantId !== 3) {
+  const domIntv = scenario.interventions.find(x => x.id === scenario.dominantId);
+  const domTier = domIntv ? domIntv.chip : 'parameter';
+  document.getElementById('pattern-caption').textContent = 'three decisions. one shape — but not the shape you might expect. in this system, the dominant trajectory is a ' + domTier + '-level intervention. the leverage point is where the system\'s structure asks for it, not where the ladder predicts.';
+}
+document.title = scenario.name + ' — lines become loops';
+
+// secondary stock label + pattern-screen reveal
+if (secondarySpec) {
+  const labelEl = document.getElementById('secondary-label');
+  if (labelEl) labelEl.textContent = secondarySpec.meta.name;
+  const patLabelEl = document.getElementById('pattern-secondary-label');
+  if (patLabelEl) patLabelEl.textContent = secondarySpec.meta.name;
+  document.getElementById('pattern-secondary-divider').style.display = '';
+  document.getElementById('pattern-secondary-wrap').style.display = '';
+  document.getElementById('pattern-tradeoff-line').style.display = '';
+} else {
+  const sw = document.getElementById('secondary-wrap');
+  if (sw) sw.style.display = 'none';
+}
+
+// pre-fill export header
+const exportName = document.getElementById('export-scenario-name');
+const exportMandate = document.getElementById('export-mandate');
+if (exportName) exportName.textContent = scenario.name;
+if (exportMandate) exportMandate.textContent = scenario.mandate || '';
+
+// hide resource meter (lakeshore-only feature)
+document.getElementById('resource-meter-wrap').style.display = 'none';
+
+// mark the active tab in the page-header scenario picker
+document.querySelectorAll('.scenario-tab').forEach(tab => {
+  const tabUrl = new URL(tab.href, location.origin);
+  if (tabUrl.searchParams.get('s') === scenarioSlug) {
+    tab.classList.add('active');
+    tab.setAttribute('aria-current', 'page');
+  }
+});
+
+// render systems map if defined
+if (scenario.map) {
+  const mapContainer = document.getElementById('systems-map-wrap');
+  window._mapCtx = SystemsMapCanvas.init(mapContainer, scenario.map, scenario.interventions);
+  // on wide screens both panels are visible — auto-start animation
+  if (window.matchMedia('(min-width: 1400px)').matches && window._mapCtx) {
+    SystemsMapCanvas.start(window._mapCtx);
+  }
+}
+
+// ────────────────────────────────────────────
+// charts
+// ────────────────────────────────────────────
+const COLORS = {
+  cadet: '#273248',
+  sienna: '#CB7858',
+  redwood: '#B15043',
+  champagne: '#FFEBD2',
+  muted: '#6B7589',
+  rule: '#EAD9BD',
+  chartTick: '#B5BBC9',
+  chartGrid: 'rgba(255,235,210,0.08)',
+};
+
+let chartBaseline = null;
+let chartDecisions = null;
+let chartPattern = null;
+let chartSecondary = null;
+let chartPatternSecondary = null;
+
+function makeSecondaryChartOptions() {
+  if (!secondarySpec) return makeChartOptions('');
+  const m = secondarySpec.meta;
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    animation: { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' },
+    scales: {
+      x: {
+        type: 'linear', min: 2025, max: 2050,
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 10 }, callback: v => String(v) },
+        grid: { color: COLORS.chartGrid },
+      },
+      y: {
+        type: 'linear', min: m.yMin, max: m.yMax,
+        ticks: { color: COLORS.chartTick, font: { family: 'Inter', size: 10 } },
+        grid: { color: COLORS.chartGrid },
+        title: { display: true, text: m.units, color: COLORS.chartTick, font: { family: 'Inter', size: 10 } },
+      },
+    },
+    elements: { point: { radius: 0 }, line: { tension: 0.3 } },
+  };
+}
+
+function makeSecondaryBaselineDataset() {
+  if (!secondarySpec) return null;
+  return {
+    label: 'baseline',
+    data: YEARS.map(y => ({ x: y, y: secondarySpec.meta.baseline })),
+    borderColor: COLORS.rule,
+    borderWidth: 1.5,
+    borderDash: [6, 4],
+    pointRadius: 0,
+    order: 9,
+  };
+}
+
+function makeChartOptions(yLabel) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: reducedMotion ? 0 : 2500, easing: 'easeInOutQuart' },
+    scales: {
+      x: {
+        type: 'linear',
+        min: 2025,
+        max: 2050,
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 11 }, callback: v => String(v) },
+        grid: { color: COLORS.chartGrid },
+      },
+      y: {
+        type: 'linear',
+        min: yBounds.yMin,
+        max: yBounds.yMax,
+        ticks: { color: COLORS.chartTick, font: { family: 'Inter', size: 11 } },
+        grid: { color: COLORS.chartGrid },
+        title: yLabel ? { display: true, text: yLabel, color: COLORS.chartTick, font: { family: 'Inter', size: 11 } } : undefined,
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: COLORS.cadet,
+        titleFont: { family: 'Inter' },
+        bodyFont: { family: 'Inter' },
+      },
+    },
+  };
+}
+
+function makeBaselineDataset(alpha) {
+  return {
+    label: 'baseline',
+    data: YEARS.map((y, i) => ({ x: y, y: baseline[i] })),
+    borderColor: COLORS.muted + (alpha < 1 ? Math.round(alpha * 255).toString(16).padStart(2, '0') : ''),
+    borderWidth: 1.5,
+    borderDash: [6, 3],
+    pointRadius: 0,
+    order: 10,
+  };
+}
+
+function getTrajectoryColor(id) {
+  const intv = scenario.interventions.find(x => x.id === id);
+  if (!intv) return COLORS.sienna;
+  // goals & paradigms = champagne (highest leverage, brightest contrast on cadet bg)
+  if (intv.effect.type === 'goals') return COLORS.champagne;
+  if (intv.effect.type === 'rules') return COLORS.redwood;
+  return COLORS.sienna;
+}
+
+function updateDecisionsChart(highlightId) {
+  const canvas = document.getElementById('chart-decisions');
+  const ctx = canvas.getContext('2d');
+
+  const datasets = [makeBaselineDataset(0.5)];
+
+  state.interventionsRun.forEach(id => {
+    const traj = state.trajectories[id];
+    if (!traj) return;
+    const isHighlight = id === highlightId;
+    datasets.push({
+      label: 'intervention ' + id,
+      data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
+      borderWidth: isHighlight ? 2.5 : 1.5,
+      pointRadius: 0,
+      order: isHighlight ? 1 : 5,
+    });
+  });
+
+  if (chartDecisions) {
+    chartDecisions.data.datasets = datasets;
+    chartDecisions.options.animation = { duration: 0 };
+    chartDecisions.update('none');
+  } else {
+    chartDecisions = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: makeChartOptions(scenario.stockUnit),
+    });
+  }
+
+  updateSecondaryChart(highlightId);
+}
+
+function updateSecondaryChart(highlightId) {
+  if (!secondarySpec) return;
+  const canvas = document.getElementById('chart-secondary');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const datasets = [makeSecondaryBaselineDataset()];
+  state.interventionsRun.forEach(id => {
+    const traj = state.secondaryTrajectories[id];
+    if (!traj) return;
+    const isHighlight = id === highlightId;
+    datasets.push({
+      label: 'intervention ' + id,
+      data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
+      borderWidth: isHighlight ? 2.5 : 1.5,
+      pointRadius: 0,
+      order: isHighlight ? 1 : 5,
+    });
+  });
+
+  if (chartSecondary) {
+    chartSecondary.data.datasets = datasets;
+    chartSecondary.options.animation = { duration: 0 };
+    chartSecondary.update('none');
+  } else {
+    chartSecondary = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: makeSecondaryChartOptions(),
+    });
+  }
+}
+
+function animateDecisionsChart(highlightId) {
+  updateDecisionsChart(highlightId);
+
+  if (reducedMotion) {
+    state.animating = false;
+    state.currentAnimYear = 2050;
+    buildCards();
+    render();
+    return;
+  }
+
+  const duration = 2500;
+  const start = performance.now();
+  const ticker = document.getElementById('year-ticker');
+  ticker.classList.add('animating');
+
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const year = Math.round(2025 + 25 * progress);
+    ticker.textContent = year;
+    state.currentAnimYear = year;
+
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      ticker.classList.remove('animating');
+      state.animating = false;
+      state.currentAnimYear = 2050;
+      buildCards();
+      render();
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+function initBaselineChart() {
+  const canvas = document.getElementById('chart-baseline');
+  const ctx = canvas.getContext('2d');
+  const datasets = [makeBaselineDataset(1)];
+  chartBaseline = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: makeChartOptions(scenario.stockUnit),
+  });
+}
+
+function initPatternChart() {
+  const canvas = document.getElementById('chart-pattern');
+  const ctx = canvas.getContext('2d');
+  const datasets = [makeBaselineDataset(0.4)];
+
+  const domId = scenario.dominantId || 3;
+  scenario.interventions.forEach(intv => {
+    const traj = runIntervention(intv.id, 1);
+    const isDominant = intv.id === domId;
+    datasets.push({
+      label: intv.title.split('.')[0],
+      data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
+      borderColor: isDominant ? getTrajectoryColor(intv.id) : getTrajectoryColor(intv.id) + 'CC',
+      borderWidth: isDominant ? 2.5 : 1.5,
+      borderDash: intv.effect.type === 'parameter' && !isDominant ? [4, 2] : [],
+      pointRadius: 0,
+      order: isDominant ? 1 : 5,
+    });
+  });
+
+  chartPattern = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: makeChartOptions(scenario.stockUnit),
+  });
+
+  const legend = document.getElementById('pattern-legend');
+  if (legend) {
+    legend.innerHTML = '';
+    const items = [
+      { label: 'baseline (no intervention)', color: COLORS.muted, dashed: true, dominant: false },
+    ];
+    scenario.interventions.forEach(intv => {
+      const isDominant = intv.id === domId;
+      items.push({
+        label: intv.title.split('.')[0].trim() + (isDominant ? ' — dominant lever' : ''),
+        color: getTrajectoryColor(intv.id),
+        dashed: intv.effect.type === 'parameter' && !isDominant,
+        dominant: isDominant,
+      });
+    });
+    items.forEach(it => {
+      const el = document.createElement('span');
+      el.className = 'pattern-legend-item' + (it.dominant ? ' is-dominant' : '');
+      const swatch = document.createElement('span');
+      swatch.className = 'pattern-legend-swatch' + (it.dashed ? ' is-dashed' : '');
+      swatch.style.setProperty('--swatch', it.color);
+      el.appendChild(swatch);
+      el.appendChild(document.createTextNode(it.label));
+      legend.appendChild(el);
+    });
+  }
+
+  if (!secondarySpec) return;
+  const sCanvas = document.getElementById('chart-pattern-secondary');
+  if (!sCanvas) return;
+  const sCtx = sCanvas.getContext('2d');
+  const allSec = {};
+  scenario.interventions.forEach(intv => { allSec[intv.id] = runSecondary(intv.id, 1); });
+  const sDatasets = [makeSecondaryBaselineDataset()];
+  scenario.interventions.forEach(intv => {
+    const isDom = intv.id === domId;
+    sDatasets.push({
+      label: 'intervention ' + intv.id,
+      data: YEARS.map((y, i) => ({ x: y, y: allSec[intv.id][i] })),
+      borderColor: isDom ? getTrajectoryColor(intv.id) : getTrajectoryColor(intv.id) + 'CC',
+      borderWidth: isDom ? 2.5 : 1.5,
+      borderDash: intv.effect.type === 'parameter' && !isDom ? [4, 2] : [],
+      pointRadius: 0,
+      order: isDom ? 1 : 5,
+    });
+  });
+  if (chartPatternSecondary) chartPatternSecondary.destroy();
+  chartPatternSecondary = new Chart(sCtx, {
+    type: 'line',
+    data: { datasets: sDatasets },
+    options: makeSecondaryChartOptions(),
+  });
+}
+
+// ────────────────────────────────────────────
+// trade-off helpers
+// ────────────────────────────────────────────
+function hasOppositeTradeoff(id) {
+  if (!secondarySpec) return false;
+  const traj = state.trajectories[id];
+  const secTraj = state.secondaryTrajectories[id];
+  if (!traj || !secTraj) return false;
+  // primary improvement direction
+  const primaryEnd = traj[traj.length - 1];
+  const primaryStart = baseline[0];
+  const primaryGoodUp = !isStockBad;
+  const primaryImproved = primaryGoodUp ? primaryEnd > primaryStart : primaryEnd < primaryStart;
+  // secondary harmed direction (moved AWAY from good)
+  const secEnd = secTraj[secTraj.length - 1];
+  const secBase = secondarySpec.meta.baseline;
+  const secGoodUp = secondarySpec.meta.goodDirection === 'up';
+  const endHarmed = secGoodUp ? secEnd < secBase * 0.99 : secEnd > secBase * 1.01;
+  // also surface if there's a meaningful mid-run dip even when end recovers
+  const extreme = secGoodUp ? Math.min(...secTraj) : Math.max(...secTraj);
+  const threshold = 0.08; // 8% deviation from baseline
+  const midDip = secGoodUp
+    ? extreme < secBase * (1 - threshold)
+    : extreme > secBase * (1 + threshold);
+  return primaryImproved && (endHarmed || midDip);
+}
+
+function getTradeoffCopy(id) {
+  if (!secondarySpec || !secondarySpec.tradeoffs) return null;
+  return secondarySpec.tradeoffs[id] || null;
+}
+
+// ────────────────────────────────────────────
+// cards
+// ────────────────────────────────────────────
+function buildCards() {
+  const stack = document.getElementById('card-stack');
+  stack.innerHTML = '';
+
+  scenario.interventions.forEach(d => {
+    const wasRun = state.interventionsRun.includes(d.id);
+    const result = state.trajectories[d.id];
+    const lastVal = result ? result[result.length - 1] : null;
+    const blLast = baseline[baseline.length - 1];
+    let changePct = null;
+    if (lastVal !== null) {
+      if (isStockBad) {
+        changePct = ((1 - lastVal / blLast) * 100).toFixed(0);
+      } else {
+        changePct = (((lastVal - blLast) / blLast) * 100).toFixed(0);
+      }
+    }
+
+    const card = document.createElement('div');
+    const isLocked = state.committed && d.id === scenario.interventions.length && state.interventionsRun.length < (scenario.interventions.length - 2) && !wasRun;
+    const isCommitted = state.committedId === d.id;
+    const isAccordionOpen = state.mode === 'individual' && state.activeIntervention === d.id;
+    card.className = 'intervention-card' + (wasRun ? ' was-run' : '') + (isLocked ? ' locked' : '') + (isCommitted ? ' committed' : '') + (isAccordionOpen ? ' accordion-open' : '');
+    const detailOpen = state.detailOpen && state.detailOpen[d.id];
+
+    card.innerHTML = `
+      ${isLocked ? '<div class="card-lock-overlay"><span class="lock-icon" aria-hidden="true">&#x1F512;</span><span class="lock-tooltip">run at least 2 interventions first</span></div>' : ''}
+      <div class="card-header">
+        <span class="card-number">${d.id}.</span>
+        <span class="card-title">${d.title}</span>
+        <span class="leverage-chip ${d.chipClass}">${d.chip}</span>${isCommitted ? '<span class="committed-badge">your choice</span>' : ''}
+      </div>
+      <div class="card-body">${d.body}</div>
+      <button class="card-detail-toggle" data-detail-id="${d.id}" aria-expanded="${detailOpen ? 'true' : 'false'}">${detailOpen ? '− less detail' : '+ more detail'}</button>
+      <div class="card-detail ${detailOpen ? 'open' : ''}" id="detail-${d.id}">
+        <dl>
+          <dt>targets</dt><dd>${d.detail.targets}</dd>
+          <dt>timeline</dt><dd>${d.detail.timeline}</dd>
+          <dt>assumptions</dt><dd>${d.detail.assumptions}</dd>
+          <dt>stakes</dt><dd>${d.detail.stakes}</dd>
+        </dl>
+      </div>
+      ${wasRun ? (function() {
+        const chosen = state.surprise[d.id];
+        const chips = ['yes','sort of','no'].map((v,i) => {
+          const isChosen = chosen === v;
+          const focusable = chosen ? isChosen : i === 0;
+          return '<button type="button" class="surprise-chip" data-surprise-id="' + d.id + '" data-surprise-val="' + v + '" role="radio" aria-pressed="' + (isChosen ? 'true' : 'false') + '" tabindex="' + (focusable ? '0' : '-1') + '">' + v + '</button>';
+        }).join('');
+        return '<div class="surprise-wrap" data-surprise-card="' + d.id + '"><div class="surprise-prompt" id="surprise-prompt-' + d.id + '">did that match what you expected?</div><div class="surprise-chips" role="radiogroup" aria-labelledby="surprise-prompt-' + d.id + '">' + chips + '</div></div>';
+      })() : ''}
+      ${wasRun && state.surprise[d.id] ? '<div class="card-why open">' + d.why + (getTradeoffCopy(d.id) ? '<span class="tradeoff-line">' + getTradeoffCopy(d.id) + '</span>' : '') + '</div>' : ''}
+      ${wasRun && state.surprise[d.id] && hasOppositeTradeoff(d.id) ? (function() {
+        const chosen = state.tradeoffNoticed[d.id];
+        const chips = ['yes','no'].map((v,i) => {
+          const isChosen = chosen === v;
+          const focusable = chosen ? isChosen : i === 0;
+          return '<button type="button" class="surprise-chip" data-tradeoff-id="' + d.id + '" data-tradeoff-val="' + v + '" role="radio" aria-pressed="' + (isChosen ? 'true' : 'false') + '" tabindex="' + (focusable ? '0' : '-1') + '">' + v + '</button>';
+        }).join('');
+        return '<div class="tradeoff-wrap"><div class="tradeoff-prompt" id="tradeoff-prompt-' + d.id + '">notice the second chart — was that trade-off visible to you when you chose?</div><div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-' + d.id + '">' + chips + '</div></div>';
+      })() : ''}
+      <div class="card-footer">
+        ${state.committed ? (function() {
+          const intv = scenario.interventions.find(x => x.id === d.id);
+          const dosageInfo = intv.dosage;
+          const currentDosage = state.dosages[d.id] || 0;
+          const currentVal = dosageInfo
+            ? Math.round(dosageInfo.min + currentDosage * (dosageInfo.max - dosageInfo.min))
+            : Math.round(currentDosage * 100);
+          const unit = dosageInfo ? dosageInfo.unit : '%';
+          const label = dosageInfo ? dosageInfo.label : 'dosage';
+          return '<div class="dosage-slider-wrap">' +
+            '<div class="dosage-header">' +
+              '<span class="dosage-label">' + label + '</span>' +
+              '<span class="dosage-dosage">' + currentVal + unit + '</span>' +
+            '</div>' +
+            '<input type="range" class="dosage-slider" data-slider-id="' + d.id + '" min="0" max="100" value="' + Math.round(currentDosage * 100) + '" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(currentDosage * 100) + '">' +
+            '<span class="card-meta">25-year change: ' + (changePct !== null ? '<span class="result-value">' + (isStockBad ? '\u2212' : '+') + changePct + '%</span>' : '\u2014') + '</span>' +
+          '</div>';
+        })() : '<span class="card-meta"></span><button class="btn-choose" data-choose-id="' + d.id + '" aria-label="choose intervention ' + d.id + '">this is my decision</button>'}
+      </div>
+    `;
+    stack.appendChild(card);
+  });
+
+  // bind lock overlay shake
+  stack.querySelectorAll('.card-lock-overlay').forEach(overlay => {
+    overlay.addEventListener('click', () => {
+      const card = overlay.closest('.intervention-card');
+      card.classList.remove('shake');
+      void card.offsetWidth;
+      card.classList.add('shake');
+    });
+  });
+
+  // bind detail toggles
+  stack.querySelectorAll('[data-detail-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.detailId);
+      const newOpen = { ...state.detailOpen };
+      newOpen[id] = !newOpen[id];
+      setState({ detailOpen: newOpen });
+      // update systems map canvas
+      if (window._mapCtx) {
+        SystemsMapCanvas.compute(window._mapCtx.nodes, window._mapCtx.edges, state.dosages, scenario.interventions);
+        if (!window._mapCtx.visible) SystemsMapCanvas.draw(window._mapCtx);
+      }
+    });
+  });
+
+  // bind dosage sliders (analysis mode)
+  stack.querySelectorAll('.dosage-slider').forEach(slider => {
+    let debounceTimer = null;
+    slider.addEventListener('input', () => {
+      state.sliderActive = true;
+      const id = parseInt(slider.dataset.sliderId);
+      const dosageEl = slider.closest('.dosage-slider-wrap').querySelector('.dosage-dosage');
+      const metaEl = slider.closest('.dosage-slider-wrap').querySelector('.card-meta');
+      const intv = scenario.interventions.find(x => x.id === id);
+      const fraction = parseInt(slider.value) / 100;
+      const displayVal = intv.dosage
+        ? Math.round(intv.dosage.min + fraction * (intv.dosage.max - intv.dosage.min))
+        : slider.value;
+      const unit = intv.dosage ? intv.dosage.unit : '%';
+      if (dosageEl) dosageEl.textContent = displayVal + unit;
+      slider.setAttribute('aria-valuenow', slider.value);
+      if (debounceTimer) cancelAnimationFrame(debounceTimer);
+      debounceTimer = requestAnimationFrame(() => {
+        handleRunIntervention(id, fraction);
+        logger.logSlider(id, fraction);
+        // update result value in-place without rebuilding cards
+        if (metaEl) {
+          const result = state.trajectories[id];
+          const lastVal = result ? result[result.length - 1] : null;
+          const blLast = baseline[baseline.length - 1];
+          if (lastVal !== null) {
+            const pct = isStockBad
+              ? ((1 - lastVal / blLast) * 100).toFixed(0)
+              : (((lastVal - blLast) / blLast) * 100).toFixed(0);
+            const sign = isStockBad ? '\u2212' : '+';
+            metaEl.textContent = '';
+            metaEl.append('25-year change: ');
+            const span = document.createElement('span');
+            span.className = 'result-value';
+            span.textContent = sign + pct + '%';
+            metaEl.appendChild(span);
+          }
+        }
+        // update systems map canvas
+        if (window._mapCtx) {
+          window._mapCtx.dosages = state.dosages;
+          SystemsMapCanvas.compute(window._mapCtx.nodes, window._mapCtx.edges, state.dosages, scenario.interventions);
+          if (!window._mapCtx.visible) SystemsMapCanvas.draw(window._mapCtx);
+        }
+      });
+    });
+    slider.addEventListener('change', () => {
+      state.sliderActive = false;
+      buildCards();
+    });
+  });
+
+  // bind choose buttons (explore mode)
+  stack.querySelectorAll('[data-choose-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.chooseId);
+      showCommitConfirm(id);
+    });
+  });
+
+  // bind accordion headers (individual mode)
+  if (state.mode === 'individual' && state.committed) {
+    stack.querySelectorAll('.intervention-card .card-header').forEach(header => {
+      header.style.cursor = 'pointer';
+      header.addEventListener('click', (e) => {
+        // don't toggle if clicking a button inside header
+        if (e.target.closest('button')) return;
+        const card = header.closest('.intervention-card');
+        const numEl = card.querySelector('.card-number');
+        if (!numEl) return;
+        const id = parseInt(numEl.textContent);
+        if (state.activeIntervention === id) {
+          // collapse
+          state.activeIntervention = null;
+        } else {
+          state.activeIntervention = id;
+          // highlight on chart
+          if (state.trajectories[id]) {
+            updateDecisionsChart(id);
+          }
+          // update systems map canvas
+          if (window._mapCtx) {
+            SystemsMapCanvas.compute(window._mapCtx.nodes, window._mapCtx.edges, state.dosages, scenario.interventions);
+            if (!window._mapCtx.visible) SystemsMapCanvas.draw(window._mapCtx);
+          }
+        }
+        buildCards();
+      });
+    });
+  }
+
+  // bind trade-off follow-up chips
+  stack.querySelectorAll('[data-tradeoff-id]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const id = parseInt(chip.dataset.tradeoffId);
+      const val = chip.dataset.tradeoffVal;
+      const newTn = { ...state.tradeoffNoticed, [id]: val };
+      setState({ tradeoffNoticed: newTn });
+      saveReflect();
+      logger.log('tradeoff_noticed', { interventionId: id, response: val });
+    });
+  });
+
+  // bind surprise chips
+  stack.querySelectorAll('.surprise-chips').forEach(group => {
+    const chips = Array.from(group.querySelectorAll('.surprise-chip'));
+    chips.forEach((chip, idx) => {
+      chip.addEventListener('click', () => {
+        const id = parseInt(chip.dataset.surpriseId);
+        const val = chip.dataset.surpriseVal;
+        chips.forEach(c => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
+        const newSurprise = { ...state.surprise, [id]: val };
+        setState({ surprise: newSurprise });
+        saveReflect();
+        logger.log('surprise_answered', { interventionId: id, response: val });
+      });
+      chip.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = chips[(idx + 1) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          next.setAttribute('tabindex', '0');
+          next.focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prev = chips[(idx - 1 + chips.length) % chips.length];
+          chips.forEach(c => c.setAttribute('tabindex', '-1'));
+          prev.setAttribute('tabindex', '0');
+          prev.focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          chip.click();
+        }
+      });
+    });
+  });
+}
+
+function handleRunIntervention(id, dosageFraction) {
+  // dismiss hints & placeholder
+  const hintCards = document.getElementById('hint-cards');
+  if (hintCards) hintCards.style.display = 'none';
+  const placeholder = document.getElementById('chart-placeholder');
+  if (placeholder) placeholder.classList.add('hidden');
+
+  const df = dosageFraction !== undefined ? dosageFraction : 1;
+  const result = runIntervention(id, df);
+  const secResult = secondarySpec ? runSecondary(id, df) : null;
+  const newRun = state.interventionsRun.includes(id)
+    ? state.interventionsRun
+    : [...state.interventionsRun, id];
+  const newTraj = { ...state.trajectories, [id]: result };
+  const newSecTraj = secResult ? { ...state.secondaryTrajectories, [id]: secResult } : state.secondaryTrajectories;
+  const newDosages = { ...state.dosages, [id]: df };
+  const allRun = newRun.length === scenario.interventions.length;
+
+  // track explored interventions (slider moved from 0)
+  const newExplored = state.exploredInterventions.includes(id)
+    ? state.exploredInterventions
+    : [...state.exploredInterventions, id];
+
+  setState({
+    interventionsRun: newRun,
+    trajectories: newTraj,
+    secondaryTrajectories: newSecTraj,
+    dosages: newDosages,
+    allRun,
+    exploredInterventions: newExplored,
+  });
+
+  // update mode toggle availability
+  updateModeToggle();
+
+  if (state.mode === 'combined') {
+    updateCombinedChart();
+  } else {
+    updateDecisionsChart(id);
+  }
+}
+
+// ────────────────────────────────────────────
+// play mode management
+// ────────────────────────────────────────────
+function updateModeToggle() {
+  const wrap = document.getElementById('mode-toggle-wrap');
+  const btnCombined = document.getElementById('btn-mode-combined');
+  const hint = document.getElementById('mode-unlock-hint');
+  if (!wrap || !btnCombined) return;
+
+  // show toggle only after commitment
+  if (state.committed) {
+    wrap.style.display = '';
+  }
+
+  const allExplored = state.exploredInterventions.length >= scenario.interventions.length;
+  btnCombined.disabled = !allExplored;
+  if (hint) hint.style.display = allExplored ? 'none' : '';
+}
+
+function switchMode(newMode) {
+  state.mode = newMode;
+  logger.log('mode_switched', { mode: newMode });
+  const cardStack = document.getElementById('card-stack');
+  const legend = document.getElementById('combined-legend');
+  const btnIndiv = document.getElementById('btn-mode-individual');
+  const btnComb = document.getElementById('btn-mode-combined');
+  const title = document.getElementById('card-stack-title');
+
+  if (newMode === 'combined') {
+    cardStack.parentElement.classList.remove('individual-mode');
+    cardStack.parentElement.classList.add('combined-mode');
+    if (legend) legend.style.display = '';
+    if (btnIndiv) { btnIndiv.classList.remove('active'); btnIndiv.setAttribute('aria-selected', 'false'); }
+    if (btnComb) { btnComb.classList.add('active'); btnComb.setAttribute('aria-selected', 'true'); }
+    if (title) title.textContent = 'combine interventions';
+    buildCards();
+    updateCombinedChart();
+  } else {
+    cardStack.parentElement.classList.remove('combined-mode');
+    cardStack.parentElement.classList.add('individual-mode');
+    if (legend) legend.style.display = 'none';
+    if (btnIndiv) { btnIndiv.classList.add('active'); btnIndiv.setAttribute('aria-selected', 'true'); }
+    if (btnComb) { btnComb.classList.remove('active'); btnComb.setAttribute('aria-selected', 'false'); }
+    if (title) title.textContent = 'interventions';
+    buildCards();
+    if (state.activeIntervention) {
+      updateDecisionsChart(state.activeIntervention);
+    }
+  }
+}
+
+function updateCombinedChart() {
+  const canvas = document.getElementById('chart-decisions');
+  const ctx = canvas.getContext('2d');
+
+  const datasets = [makeBaselineDataset(0.5)];
+
+  // ghost individual lines
+  scenario.interventions.forEach(intv => {
+    const df = state.dosages[intv.id] || 0;
+    if (df <= 0) return;
+    const traj = state.trajectories[intv.id] || runIntervention(intv.id, df);
+    datasets.push({
+      label: intv.title,
+      data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
+      borderColor: getTrajectoryColor(intv.id) + '40',
+      borderWidth: 1,
+      borderDash: [4, 3],
+      pointRadius: 0,
+      order: 5,
+    });
+  });
+
+  // combined trajectory
+  const combined = runCombined(state.dosages);
+  datasets.push({
+    label: 'combined',
+    data: YEARS.map((y, i) => ({ x: y, y: combined[i] })),
+    borderColor: COLORS.cadet,
+    borderWidth: 3,
+    pointRadius: 0,
+    order: 1,
+  });
+
+  if (chartDecisions) {
+    chartDecisions.data.datasets = datasets;
+    chartDecisions.options.animation = { duration: 0 };
+    chartDecisions.update('none');
+  } else {
+    chartDecisions = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: makeChartOptions(scenario.stockUnit),
+    });
+  }
+
+  // combined secondary
+  if (secondarySpec) {
+    const secCombined = runCombinedSecondary(state.dosages);
+    const canvas2 = document.getElementById('chart-secondary');
+    if (!canvas2) return;
+    const ctx2 = canvas2.getContext('2d');
+
+    const secDatasets = [makeSecondaryBaselineDataset()];
+    if (secCombined) {
+      secDatasets.push({
+        label: 'combined',
+        data: YEARS.map((y, i) => ({ x: y, y: secCombined[i] })),
+        borderColor: COLORS.cadet,
+        borderWidth: 3,
+        pointRadius: 0,
+        order: 1,
+      });
+    }
+
+    if (chartSecondary) {
+      chartSecondary.data.datasets = secDatasets;
+      chartSecondary.options.animation = { duration: 0 };
+      chartSecondary.update('none');
+    } else {
+      chartSecondary = new Chart(ctx2, {
+        type: 'line',
+        data: { datasets: secDatasets },
+        options: makeSecondaryChartOptions(),
+      });
+    }
+  }
+}
+
+// ────────────────────────────────────────────
+// screen transitions
+// ────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (el) el.classList.add('active');
+  state.screen = name;
+
+  if (name === 'baseline' && !chartBaseline) initBaselineChart();
+  if (name === 'decisions') {
+    updateExploreMode();
+    if (state.committed) {
+      const left = document.querySelector('.decisions-left');
+      if (left) {
+        left.classList.toggle('individual-mode', state.mode === 'individual');
+        left.classList.toggle('combined-mode', state.mode === 'combined');
+      }
+      updateModeToggle();
+      if (!chartDecisions) {
+        if (state.mode === 'combined') updateCombinedChart();
+        else updateDecisionsChart();
+      }
+    }
+    buildCards();
+    if (!sessionStorage.getItem('st.hints.shown')) {
+      const hints = document.getElementById('onboarding-hints');
+      if (hints) {
+        hints.hidden = false;
+        sessionStorage.setItem('st.hints.shown', '1');
+        const dismiss = () => { hints.hidden = true; };
+        setTimeout(dismiss, 8000);
+        document.querySelector('.decisions-right')?.addEventListener('click', dismiss, { once: true });
+      }
+    }
+  }
+  if (name === 'pattern') {
+    initPatternChart();
+    renderExport();
+  }
+}
+
+function updateExploreMode() {
+  const content = document.querySelector('.decisions-content');
+  const prompt = document.getElementById('explore-prompt');
+  if (!state.committed) {
+    content.classList.add('decisions-explore');
+    if (prompt) prompt.style.display = '';
+  } else {
+    content.classList.remove('decisions-explore');
+    if (prompt) prompt.style.display = 'none';
+  }
+}
+
+function render() {
+  if (state.screen === 'decisions') {
+    if (!state.sliderActive) buildCards();
+    updateExploreMode();
+    const patternBtn = document.getElementById('btn-see-pattern');
+    if (patternBtn) patternBtn.classList.toggle('visible', state.allRun);
+
+    const hintCards = document.getElementById('hint-cards');
+    if (hintCards && !hintCards.dataset.shown && state.committed && state.interventionsRun.length === 0) {
+      hintCards.style.display = '';
+      hintCards.dataset.shown = 'true';
+    }
+  }
+}
+
+// ────────────────────────────────────────────
+// commitment flow
+// ────────────────────────────────────────────
+let pendingCommitId = null;
+
+function showCommitConfirm(id) {
+  pendingCommitId = id;
+  const intv = scenario.interventions.find(x => x.id === id);
+  document.getElementById('commit-confirm-title').textContent = 'your decision: "' + intv.title + '"';
+  const ta = document.getElementById('hypo-textarea');
+  if (ta) {
+    ta.value = state.hypothesis || '';
+    updateHypoUi();
+    setTimeout(() => ta.focus(), 50);
+  }
+  document.getElementById('commit-confirm').classList.add('visible');
+}
+
+function updateHypoUi() {
+  const ta = document.getElementById('hypo-textarea');
+  const counter = document.getElementById('hypo-counter');
+  const hint = document.getElementById('hypo-hint');
+  const btn = document.getElementById('btn-commit-confirm');
+  if (!ta || !btn) return;
+  const len = ta.value.length;
+  const trimmedLen = ta.value.trim().length;
+  if (counter) counter.textContent = String(len);
+  if (counter) counter.classList.toggle('over', len >= 240);
+  if (hint) hint.textContent = trimmedLen >= 10 ? '\u00A0' : 'at least 10 characters.';
+  btn.disabled = trimmedLen < 10;
+}
+
+// ────────────────────────────────────────────
+// summary export
+// ────────────────────────────────────────────
+function formatStockValue(v, unit) {
+  if (v === null || v === undefined) return '—';
+  const rounded = Math.abs(v) >= 100 ? Math.round(v).toLocaleString() : v.toFixed(2);
+  return rounded + (unit ? ' ' + unit : '');
+}
+
+function buildExportPlainText() {
+  const lines = [];
+  lines.push(scenario.name.toUpperCase());
+  if (scenario.mandate) lines.push('mandate: ' + scenario.mandate);
+  lines.push('');
+  const ran = state.interventionsRun;
+  const withOpposite = ran.filter(id => hasOppositeTradeoff(id));
+  const noticed = withOpposite.filter(id => state.tradeoffNoticed[id] === 'yes');
+  if (ran.length > 0 && secondarySpec) {
+    lines.push('you ran ' + ran.length + ' intervention' + (ran.length === 1 ? '' : 's') + '. ' + withOpposite.length + ' of them improved the primary while damaging the secondary. you noticed ' + noticed.length + ' of those at the time.');
+    lines.push('');
+  }
+  const committed = state.committedId ? scenario.interventions.find(x => x.id === state.committedId) : null;
+  lines.push('your committed decision: ' + (committed ? committed.title : '(none committed)'));
+  lines.push('your hypothesis: ' + (state.hypothesis || '(none recorded)'));
+  lines.push('');
+  const secName = secondarySpec ? secondarySpec.meta.name : null;
+  lines.push('interventions (primary: ' + scenario.stock + (secName ? ' · secondary: ' + secName : '') + '):');
+  scenario.interventions.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const secTraj = state.secondaryTrajectories[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const secLast = secTraj ? secTraj[secTraj.length - 1] : null;
+    const surprise = state.surprise[d.id] || 'not run';
+    const tn = state.tradeoffNoticed[d.id];
+    const primaryStr = formatStockValue(lastVal, scenario.stockUnit);
+    const secStr = secondarySpec ? ' · secondary: ' + formatStockValue(secLast, secondarySpec.meta.units) : '';
+    const tnStr = tn ? ' — trade-off noticed: ' + tn : '';
+    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + tnStr + ' — primary: ' + primaryStr + secStr);
+  });
+  lines.push('');
+  lines.push('what shifted: ' + (state.shifted || '(blank)'));
+  return lines.join('\n');
+}
+
+function renderExport() {
+  const titleEl = document.getElementById('export-committed-title');
+  const hypoEl = document.getElementById('export-hypothesis');
+  const list = document.getElementById('export-interventions');
+  const shiftedTa = document.getElementById('shifted-textarea');
+  if (!list) return;
+
+  if (state.committedId) {
+    const c = scenario.interventions.find(x => x.id === state.committedId);
+    titleEl.innerHTML = c ? c.title.replace(/</g,'&lt;') : '<em>none committed.</em>';
+  } else {
+    titleEl.innerHTML = '<em>none committed.</em>';
+  }
+  hypoEl.innerHTML = state.hypothesis ? state.hypothesis.replace(/&/g,'&amp;').replace(/</g,'&lt;') : '<em>none recorded.</em>';
+
+  list.innerHTML = '';
+  scenario.interventions.forEach(d => {
+    const traj = state.trajectories[d.id];
+    const secTraj = state.secondaryTrajectories[d.id];
+    const lastVal = traj ? traj[traj.length - 1] : null;
+    const secLast = secTraj ? secTraj[secTraj.length - 1] : null;
+    const surprise = state.surprise[d.id];
+    const tn = state.tradeoffNoticed[d.id];
+    const valStr = formatStockValue(lastVal, scenario.stockUnit);
+    const secStr = secondarySpec ? ' · ' + formatStockValue(secLast, secondarySpec.meta.units) : '';
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="export-li-num">' + d.id + '.</span>' +
+      '<span class="export-li-title">' + d.title.replace(/</g,'&lt;') + '</span>' +
+      '<span class="export-li-tier">' + d.chip + '</span>' +
+      '<span class="export-li-surprise">surprise: ' + (surprise || 'not run') + (tn ? ' · trade-off noticed: ' + tn : '') + '</span>' +
+      '<span class="export-li-value">' + valStr + secStr + '</span>';
+    list.appendChild(li);
+  });
+
+  // trade-off headline
+  const headlineEl = document.getElementById('export-tradeoff-headline');
+  if (headlineEl) {
+    const ran = state.interventionsRun;
+    const withOpposite = ran.filter(id => hasOppositeTradeoff(id));
+    const noticed = withOpposite.filter(id => state.tradeoffNoticed[id] === 'yes');
+    if (ran.length > 0 && secondarySpec) {
+      headlineEl.textContent = 'you ran ' + ran.length + ' intervention' + (ran.length === 1 ? '' : 's') + '. ' + withOpposite.length + ' of them improved the primary while damaging the secondary. you noticed ' + noticed.length + ' of those at the time.';
+      headlineEl.style.display = '';
+    } else {
+      headlineEl.style.display = 'none';
+    }
+  }
+
+  if (shiftedTa && shiftedTa.value !== state.shifted) {
+    shiftedTa.value = state.shifted || '';
+  }
+}
+
+// ────────────────────────────────────────────
+// reflective-prompt event bindings
+// ────────────────────────────────────────────
+loadReflect();
+
+const hypoTaEl = document.getElementById('hypo-textarea');
+if (hypoTaEl) {
+  hypoTaEl.addEventListener('input', () => {
+    state.hypothesis = hypoTaEl.value;
+    updateHypoUi();
+    saveReflect();
+  });
+  updateHypoUi();
+}
+
+const shiftedTaEl = document.getElementById('shifted-textarea');
+if (shiftedTaEl) {
+  shiftedTaEl.value = state.shifted || '';
+  shiftedTaEl.addEventListener('input', () => {
+    state.shifted = shiftedTaEl.value;
+    saveReflect();
+  });
+}
+
+const btnPdfEl = document.getElementById('btn-export-pdf');
+if (btnPdfEl) btnPdfEl.addEventListener('click', () => window.print());
+
+const btnCopyEl = document.getElementById('btn-export-copy');
+const toastEl = document.getElementById('export-toast');
+if (btnCopyEl) {
+  btnCopyEl.addEventListener('click', async () => {
+    const txt = buildExportPlainText();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(txt);
+      } else {
+        const tmp = document.createElement('textarea');
+        tmp.value = txt;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        document.body.removeChild(tmp);
+      }
+      if (toastEl) {
+        toastEl.textContent = 'copied.';
+        toastEl.classList.add('visible');
+        setTimeout(() => toastEl.classList.remove('visible'), 1800);
+      }
+    } catch (e) {
+      if (toastEl) {
+        toastEl.textContent = 'copy failed.';
+        toastEl.classList.add('visible');
+        setTimeout(() => toastEl.classList.remove('visible'), 1800);
+      }
+    }
+  });
+}
+
+document.getElementById('btn-commit-back').addEventListener('click', () => {
+  document.getElementById('commit-confirm').classList.remove('visible');
+  pendingCommitId = null;
+});
+
+document.getElementById('btn-commit-confirm').addEventListener('click', () => {
+  if (state.hypothesis.trim().length < 10) return;
+  document.getElementById('commit-confirm').classList.remove('visible');
+  const id = pendingCommitId;
+  pendingCommitId = null;
+
+  logger.log('hypothesis_written', { text: state.hypothesis });
+  setState({ committed: true, committedId: id, activeIntervention: id, mode: 'individual' });
+
+  // set up individual mode
+  const left = document.querySelector('.decisions-left');
+  if (left) left.classList.add('individual-mode');
+  updateModeToggle();
+
+  // auto-run the committed intervention after a brief pause
+  setTimeout(() => handleRunIntervention(id, 1), 400);
+});
+
+// ────────────────────────────────────────────
+// event bindings
+// ────────────────────────────────────────────
+document.getElementById('btn-begin').addEventListener('click', () => showScreen('decisions'));
+document.getElementById('btn-decide').addEventListener('click', () => showScreen('decisions'));
+document.getElementById('btn-see-pattern').addEventListener('click', () => showScreen('pattern'));
+// mailing list form
+document.getElementById('mailing-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const email = document.getElementById('mailing-email').value.trim();
+  if (!email) return;
+  // log via session if active
+  if (typeof sessionLogger !== 'undefined') {
+    sessionLogger.log('mailing_signup', { email });
+  }
+  document.getElementById('mailing-email').disabled = true;
+  document.getElementById('mailing-form').querySelector('.mailing-btn').disabled = true;
+  document.getElementById('mailing-success').textContent = 'thank you — we\'ll keep you posted.';
+});
+
+document.getElementById('btn-handoff').addEventListener('click', () => showScreen('handoff'));
+document.getElementById('btn-restart').addEventListener('click', () => {
+  Object.assign(state, {
+    screen: 'mandate',
+    committed: false,
+    committedId: null,
+    interventionsRun: [],
+    trajectories: {},
+    secondaryTrajectories: {},
+    detailOpen: {},
+    allRun: false,
+    animating: false,
+    currentAnimYear: 2025,
+    hypothesis: '',
+    surprise: {},
+    tradeoffNoticed: {},
+    shifted: '',
+    dosages: {},
+    sliderActive: false,
+    mode: 'individual',
+    activeIntervention: null,
+    exploredInterventions: [],
+  });
+  clearReflect();
+  const ta = document.getElementById('hypo-textarea');
+  if (ta) { ta.value = ''; updateHypoUi(); }
+  const sta = document.getElementById('shifted-textarea');
+  if (sta) sta.value = '';
+  if (chartDecisions) { chartDecisions.destroy(); chartDecisions = null; }
+  if (chartSecondary) { chartSecondary.destroy(); chartSecondary = null; }
+  if (chartBaseline) { chartBaseline.destroy(); chartBaseline = null; }
+  if (chartPattern) { chartPattern.destroy(); chartPattern = null; }
+  if (chartPatternSecondary) { chartPatternSecondary.destroy(); chartPatternSecondary = null; }
+  document.getElementById('endpoint-labels').innerHTML = '';
+  const ph = document.getElementById('chart-placeholder');
+  if (ph) ph.classList.remove('hidden');
+  const hint = document.getElementById('hint-cards');
+  if (hint) { hint.style.display = ''; hint.dataset.shown = ''; }
+  showScreen('mandate');
+});
+// shifted textarea logging
+const shiftedTa = document.getElementById('shifted-textarea');
+if (shiftedTa) {
+  shiftedTa.addEventListener('input', () => {
+    state.shifted = shiftedTa.value;
+    saveReflect();
+    logReflectChange('shifted_written', shiftedTa.value);
+  });
+}
+
+// mode toggle
+document.getElementById('btn-mode-individual').addEventListener('click', () => switchMode('individual'));
+document.getElementById('btn-mode-combined').addEventListener('click', function() {
+  if (!this.disabled) switchMode('combined');
+});
+
+// right-panel tab switching
+function switchRightTab(tabId) {
+  document.querySelectorAll('.right-tab').forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+  });
+  document.querySelectorAll('.right-panel').forEach(p => {
+    p.classList.add('right-panel-hidden');
+  });
+  const tab = document.getElementById('tab-' + tabId);
+  const panel = document.getElementById('panel-' + tabId);
+  if (tab) { tab.classList.add('active'); tab.setAttribute('aria-selected', 'true'); }
+  if (panel) panel.classList.remove('right-panel-hidden');
+}
+document.getElementById('tab-charts').addEventListener('click', () => {
+  switchRightTab('charts');
+  if (window._mapCtx) SystemsMapCanvas.stop(window._mapCtx);
+});
+document.getElementById('tab-map').addEventListener('click', () => {
+  switchRightTab('map');
+  if (window._mapCtx) {
+    SystemsMapCanvas.resize(window._mapCtx);
+    SystemsMapCanvas.start(window._mapCtx);
+  }
+});
+// keyboard navigation between tabs
+document.querySelectorAll('.right-tab').forEach((tab, idx, tabs) => {
+  tab.addEventListener('keydown', (e) => {
+    let target = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      target = tabs[(idx + 1) % tabs.length];
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      target = tabs[(idx - 1 + tabs.length) % tabs.length];
+    }
+    if (target) {
+      target.focus();
+      target.click();
+    }
+  });
+});
+
+</script>
+</body>
+</html>

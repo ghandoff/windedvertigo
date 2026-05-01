@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>font playground — kid mode display decision</title>
+
+<!-- Nunito: current, warm, rounded. Full range so headlines can push to 900. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+
+<!-- Fraunces: variable serif with SOFT + WONK axes.
+     SOFT 100 + WONK 1 gives an organic, hand-cut, Oliver-Jeffers-adjacent feel. -->
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1&display=swap" rel="stylesheet">
+
+<!-- Caprasimo: chunky display serif, inspired by Cooper Black lineage.
+     Single weight (regular), meant to be used large. -->
+<link href="https://fonts.googleapis.com/css2?family=Caprasimo&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --wv-cream:      #FFF6E8;  /* proposed new kid surface */
+  --wv-cadet:      #273248;  /* text on cream (11.4:1 AAA) */
+  --wv-redwood:    #b15043;
+  --wv-sienna:     #cb7858;
+  --wv-champagne:  #ffebd2;  /* TEXT ONLY per brand rule */
+  --wv-cornflower: #5872cb;
+  --wv-teal:       #43b187;
+  --wv-seafoam:    #58cbb2;
+  --wv-periwinkle: #d5d2ff;
+  --wv-mint:       #d2fdff;
+  --ink-soft:      #3a4666;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f3e9d4;
+  color: var(--wv-cadet);
+  font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  padding: 32px 16px 96px;
+  letter-spacing: 0.01em;
+}
+
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.page-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wv-redwood);
+  margin: 0 0 10px;
+}
+
+.page-title {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: clamp(32px, 5vw, 48px);
+  letter-spacing: -0.015em;
+  margin: 0 0 8px;
+  color: var(--wv-cadet);
+}
+
+.page-sub {
+  font-size: 15px;
+  opacity: 0.72;
+  max-width: 600px;
+  margin: 0 auto 4px;
+}
+
+.page-note {
+  display: inline-block;
+  font-size: 12px;
+  padding: 8px 14px;
+  background: var(--wv-periwinkle);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  margin-top: 16px;
+  font-weight: 600;
+}
+
+/* ── column layout — 3 sample hero panels side by side ─────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media (max-width: 1040px) {
+  .grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+}
+
+.sample {
+  background: var(--wv-cream);
+  border-radius: 24px;
+  padding: 28px 22px 32px;
+  position: relative;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 18px 40px -28px rgba(39, 50, 72, 0.28);
+  display: flex;
+  flex-direction: column;
+}
+
+.sample-badge {
+  position: absolute;
+  top: -12px; left: 20px;
+  background: var(--wv-cadet);
+  color: var(--wv-champagne);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+.sample-badge.is-current {
+  background: var(--wv-teal);
+  color: var(--wv-cadet);
+}
+
+.sample-meta {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wv-redwood);
+  margin: 10px 0 18px;
+}
+
+/* the hero headline — this is what each font treatment actually tries out */
+.sample-hero {
+  font-size: clamp(38px, 4.2vw, 56px);
+  line-height: 1;
+  margin: 0 0 14px;
+  color: var(--wv-cadet);
+  letter-spacing: -0.015em;
+}
+
+/* ── FONT TREATMENT A — Nunito only (current baseline) ─────────────── */
+.sample.a .sample-hero {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.sample.a .sample-subtitle {
+  font-weight: 500;
+}
+
+/* ── FONT TREATMENT B — Nunito body + Fraunces display ─────────────── */
+.sample.b .sample-hero {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 1;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+
+/* ── FONT TREATMENT C — Nunito body + Caprasimo display ────────────── */
+.sample.c .sample-hero {
+  font-family: 'Caprasimo', serif;
+  font-weight: 400; /* Caprasimo is single-weight, meant big */
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+}
+
+.sample-subtitle {
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  opacity: 0.78;
+  margin: 0 0 20px;
+  line-height: 1.4;
+}
+
+/* ── material tile row (proxy for MaterialPickerHero) ──────────────── */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.tile {
+  aspect-ratio: 1 / 1;
+  border-radius: 20px 22px 18px 24px; /* irregular squircle */
+  background: var(--wv-mint);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+}
+.tile:nth-child(1) { background: var(--wv-periwinkle); transform: rotate(-2deg); }
+.tile:nth-child(2) { background: var(--wv-seafoam); }
+.tile:nth-child(3) { background: var(--wv-champagne); transform: rotate(1.5deg); }
+.tile-glyph {
+  font-size: 30px;
+  line-height: 1;
+}
+.tile-name {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--wv-cadet);
+}
+
+/* ── cta button ────────────────────────────────────────────────────── */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  background: var(--wv-redwood);
+  color: var(--wv-champagne);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--wv-cadet);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.cta:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--wv-cadet); }
+.cta:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--wv-cadet); }
+
+/* ── tradeoff note at bottom of each sample ────────────────────────── */
+.tradeoff {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px dashed rgba(39, 50, 72, 0.2);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.tradeoff strong {
+  display: block;
+  color: var(--wv-cadet);
+  font-weight: 800;
+  margin-bottom: 4px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── second section: scale audit per treatment ─────────────────────── */
+.scale-section {
+  margin-top: 64px;
+  background: white;
+  border-radius: 24px;
+  padding: 32px 28px;
+}
+.scale-section h2 {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: 24px;
+  margin: 0 0 4px;
+}
+.scale-section .section-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wv-redwood);
+  margin: 0 0 24px;
+}
+.scale-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(39,50,72,0.08);
+  align-items: center;
+}
+.scale-row:last-child { border-bottom: none; }
+.scale-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.scale-specimen {
+  line-height: 1.05;
+}
+.specimen-nunito { font-family: 'Nunito', sans-serif; font-weight: 900; letter-spacing: -0.015em; }
+.specimen-fraunces { font-family: 'Fraunces', serif; font-weight: 600; font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 1; letter-spacing: -0.015em; }
+.specimen-caprasimo { font-family: 'Caprasimo', serif; letter-spacing: -0.005em; }
+
+/* ── how-to-choose panel ───────────────────────────────────────────── */
+.chooser {
+  margin-top: 48px;
+  padding: 28px;
+  background: white;
+  border-radius: 24px;
+  border: 2px solid var(--wv-cadet);
+}
+.chooser h2 {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+.chooser ul { margin: 0; padding-left: 20px; }
+.chooser li { margin-bottom: 8px; font-size: 14px; }
+.chooser em {
+  font-style: normal;
+  font-weight: 800;
+  color: var(--wv-redwood);
+}
+
+/* reduced motion — kill tile rotations */
+@media (prefers-reduced-motion: reduce) {
+  .tile { transform: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="page-header">
+    <p class="page-kicker">kid mode · display font decision</p>
+    <h1 class="page-title">what does the hero headline want to feel like?</h1>
+    <p class="page-sub">Nunito stays. It's the body font and the everyday tile/label voice. The only question is whether the BIG hero headline ("what do you have?") gets its own display face, or whether Nunito 900 does enough.</p>
+    <p class="page-note">three options, same sample, same palette — pick the one that feels like a crayon drawer</p>
+  </header>
+
+  <section class="grid">
+
+    <!-- TREATMENT A — Nunito only -->
+    <article class="sample a">
+      <span class="sample-badge is-current">current · option a</span>
+      <p class="sample-meta">nunito everywhere</p>
+      <h2 class="sample-hero">what do you have?</h2>
+      <p class="sample-subtitle">pick a material to play with.</p>
+
+      <div class="tiles">
+        <div class="tile"><span class="tile-glyph">🪢</span><span class="tile-name">rope</span></div>
+        <div class="tile"><span class="tile-glyph">🫙</span><span class="tile-name">jug</span></div>
+        <div class="tile"><span class="tile-glyph">🪵</span><span class="tile-name">stick</span></div>
+      </div>
+
+      <button class="cta">let's play →</button>
+
+      <div class="tradeoff">
+        <strong>tradeoff</strong>
+        Consistent, calm, reads as confident design rather than costume. Weakness: at hero scale the headline has less personality than the illustration-heavy references you called out (Sago Mini, Oliver Jeffers). Needs illustration + colour to carry the whimsy.
+      </div>
+    </article>
+
+    <!-- TREATMENT B — Nunito + Fraunces -->
+    <article class="sample b">
+      <span class="sample-badge">option b</span>
+      <p class="sample-meta">nunito body · fraunces display</p>
+      <h2 class="sample-hero">what do you have?</h2>
+      <p class="sample-subtitle">pick a material to play with.</p>
+
+      <div class="tiles">
+        <div class="tile"><span class="tile-glyph">🪢</span><span class="tile-name">rope</span></div>
+        <div class="tile"><span class="tile-glyph">🫙</span><span class="tile-name">jug</span></div>
+        <div class="tile"><span class="tile-glyph">🪵</span><span class="tile-name">stick</span></div>
+      </div>
+
+      <button class="cta">let's play →</button>
+
+      <div class="tradeoff">
+        <strong>tradeoff</strong>
+        Fraunces variable with SOFT=100 + WONK=1 gives a hand-cut, storybook feel (close to Oliver Jeffers / Maira Kalman). Still serif, still readable, but with personality that Nunito-only doesn't carry. Weakness: adds a font dependency; adults may read it as "children's book", not general-purpose.
+      </div>
+    </article>
+
+    <!-- TREATMENT C — Nunito + Caprasimo -->
+    <article class="sample c">
+      <span class="sample-badge">option c</span>
+      <p class="sample-meta">nunito body · caprasimo display</p>
+      <h2 class="sample-hero">what do you have?</h2>
+      <p class="sample-subtitle">pick a material to play with.</p>
+
+      <div class="tiles">
+        <div class="tile"><span class="tile-glyph">🪢</span><span class="tile-name">rope</span></div>
+        <div class="tile"><span class="tile-glyph">🫙</span><span class="tile-name">jug</span></div>
+        <div class="tile"><span class="tile-glyph">🪵</span><span class="tile-name">stick</span></div>
+      </div>
+
+      <button class="cta">let's play →</button>
+
+      <div class="tradeoff">
+        <strong>tradeoff</strong>
+        Caprasimo is Cooper Black's descendant — chunky, generous terminals, very children's book cover. Maximally playful; least subtle. Weakness: single weight + display-only (won't scale down), and can dominate a page so hard the rest of the UI has to quiet down to accommodate.
+      </div>
+    </article>
+
+  </section>
+
+  <!-- scale audit: see each candidate at common display sizes -->
+  <section class="scale-section">
+    <h2>scale audit</h2>
+    <p class="section-kicker">the same line at four real sizes, per candidate</p>
+
+    <div class="scale-row">
+      <span class="scale-label">72px / hero</span>
+      <div>
+        <div class="scale-specimen specimen-nunito" style="font-size: 72px;">let's play</div>
+        <div class="scale-specimen specimen-fraunces" style="font-size: 72px;">let's play</div>
+        <div class="scale-specimen specimen-caprasimo" style="font-size: 72px;">let's play</div>
+      </div>
+    </div>
+
+    <div class="scale-row">
+      <span class="scale-label">48px / section</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: baseline;">
+        <span class="scale-specimen specimen-nunito" style="font-size: 48px;">let's play</span>
+        <span class="scale-specimen specimen-fraunces" style="font-size: 48px;">let's play</span>
+        <span class="scale-specimen specimen-caprasimo" style="font-size: 48px;">let's play</span>
+      </div>
+    </div>
+
+    <div class="scale-row">
+      <span class="scale-label">32px / card title</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: baseline;">
+        <span class="scale-specimen specimen-nunito" style="font-size: 32px;">let's play</span>
+        <span class="scale-specimen specimen-fraunces" style="font-size: 32px;">let's play</span>
+        <span class="scale-specimen specimen-caprasimo" style="font-size: 32px;">let's play</span>
+      </div>
+    </div>
+
+    <div class="scale-row">
+      <span class="scale-label">22px / subhead</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: baseline;">
+        <span class="scale-specimen specimen-nunito" style="font-size: 22px;">let's play</span>
+        <span class="scale-specimen specimen-fraunces" style="font-size: 22px;">let's play</span>
+        <span class="scale-specimen specimen-caprasimo" style="font-size: 22px;">let's play</span>
+      </div>
+    </div>
+  </section>
+
+  <aside class="chooser">
+    <h2>how to pick, the short version</h2>
+    <ul>
+      <li><em>Pick A (Nunito only)</em> if you trust illustration + colour + shape to carry the playfulness. Simplest, lowest risk, no new dependency. Fits the "crayon drawer, warm" vibe through warmth, not flourish.</li>
+      <li><em>Pick B (+ Fraunces)</em> if you want the hero to feel hand-made and literary — the Oliver Jeffers tilt. Works because Fraunces soft/wonk isn't stunt-typography; it's calibrated warmth. Strongest pair with the ink + bark character rendering.</li>
+      <li><em>Pick C (+ Caprasimo)</em> if you want maximum children's-book-cover energy. Strongest personality, loudest pair. Best if the rest of the UI is willing to sit back (quieter palette, fewer rotations, let Caprasimo be the thing).</li>
+    </ul>
+    <p style="margin-top: 16px; font-size: 13px; color: var(--ink-soft);">
+      My read: <strong style="color: var(--wv-cadet);">B is the best fit</strong> for the Sago Mini / Oliver Jeffers references and the character cast (the ink-and-bark rendering wants a hand-cut serif). A is the right default if you want to ship the refresh without adding a font dependency. C is fun but louder than your illustration layer needs help to be.
+    </p>
+  </aside>
+
+</div>
+
+</body>
+</html>

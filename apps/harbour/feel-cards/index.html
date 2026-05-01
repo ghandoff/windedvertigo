@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#273248" />
+  <title>Feel Cards — a quiet game of interpretation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cobalt: #273248;
+      --cream: #FAF7F1;
+      --sand: #F2E8D5;
+      --rose: #E8C5C1;
+      --sage: #BFCBB0;
+      --teal: #2E4A52;
+      --terracotta: #C97B5D;
+      --twilight: #5B6B8C;
+      --gold: #E8C05C;
+      --plum: #6B4C6E;
+      --ink: #262428;
+      --ink-soft: #4A4850;
+      --line: #DAD3C3;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--cobalt);
+      color: var(--cream);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    body {
+      background-image: radial-gradient(circle at 20% 10%, rgba(255,255,255,0.05), transparent 40%),
+                        radial-gradient(circle at 80% 90%, rgba(255,255,255,0.07), transparent 45%);
+    }
+    .serif { font-family: 'Inter', sans-serif; }
+    .screen {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: 28px 22px calc(28px + env(safe-area-inset-bottom));
+      max-width: 640px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    button {
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      padding: 14px 26px;
+      border-radius: 999px;
+      transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--cream);
+      color: var(--cobalt);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+    }
+    .btn-primary:hover { background: #FFFFFF; }
+    .btn-primary:disabled {
+      background: rgba(250,247,241,0.18);
+      color: rgba(250,247,241,0.38);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: rgba(250,247,241,0.65);
+      padding: 10px 18px;
+      font-size: 14px;
+    }
+    .btn-ghost:hover { color: var(--cream); }
+    h1, h2, h3 { font-family: 'Inter', sans-serif; font-weight: 700; margin: 0; }
+    h1 { font-size: 40px; letter-spacing: -0.02em; line-height: 1.05; }
+    h2 { font-size: 28px; letter-spacing: -0.015em; line-height: 1.15; }
+    h3 { font-size: 20px; }
+    .muted { color: rgba(250,247,241,0.70); }
+    .tiny { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(250,247,241,0.58); }
+    .prompt {
+      font-family: 'Inter', sans-serif;
+      font-size: 26px;
+      line-height: 1.25;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .card {
+      aspect-ratio: 2/3;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 3px 14px rgba(38,36,40,0.08), 0 1px 3px rgba(38,36,40,0.04);
+      transition: transform 220ms cubic-bezier(.2,.8,.3,1), box-shadow 220ms ease, outline-offset 150ms ease;
+      cursor: pointer;
+      position: relative;
+      outline: 3px solid transparent;
+      outline-offset: 0;
+      -webkit-tap-highlight-color: transparent;
+      background: var(--line);
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(38,36,40,0.14), 0 2px 6px rgba(38,36,40,0.06);
+    }
+    .card.selected {
+      outline-color: var(--cream);
+      outline-offset: 4px;
+      transform: translateY(-3px);
+    }
+    .card-art {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .card-art svg { width: 100%; height: 100%; display: block; }
+    .card-label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 18px 10px 10px;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-style: italic;
+      color: var(--ink);
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+      background: linear-gradient(to top, rgba(250,247,241,0.96) 0%, rgba(250,247,241,0.88) 55%, rgba(250,247,241,0) 100%);
+      pointer-events: none;
+    }
+    .card-xl {
+      max-width: 320px;
+      width: 100%;
+      margin: 0 auto;
+      aspect-ratio: 2/3;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 16px 48px rgba(38,36,40,0.18), 0 3px 10px rgba(38,36,40,0.08);
+      background: var(--line);
+      position: relative;
+    }
+    .card-xl .card-art svg { width: 100%; height: 100%; display: block; }
+    .card-xl .card-label {
+      padding: 40px 18px 22px;
+      font-size: 20px;
+      background: linear-gradient(to top, rgba(250,247,241,0.98) 10%, rgba(250,247,241,0.9) 60%, rgba(250,247,241,0) 100%);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(250,247,241,0.15);
+      color: rgba(250,247,241,0.8);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .divider {
+      height: 1px;
+      background: rgba(250,247,241,0.2);
+      margin: 20px 0;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInSlow {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.94); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .fade-in { animation: fadeIn 420ms ease both; }
+    .fade-in-slow { animation: fadeInSlow 900ms ease both; }
+    .scale-in { animation: scaleIn 500ms cubic-bezier(.2,.8,.3,1) both; }
+    .stagger > * { opacity: 0; animation: fadeIn 500ms ease forwards; }
+    .stagger > *:nth-child(1) { animation-delay: 40ms; }
+    .stagger > *:nth-child(2) { animation-delay: 110ms; }
+    .stagger > *:nth-child(3) { animation-delay: 180ms; }
+    .stagger > *:nth-child(4) { animation-delay: 250ms; }
+    .position-picker {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .position-btn {
+      aspect-ratio: 1;
+      border-radius: 16px;
+      background: var(--sand);
+      border: 2px solid transparent;
+      font-family: 'Inter', sans-serif;
+      font-size: 48px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 200ms ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .position-btn:hover { background: var(--rose); }
+    .position-btn.active {
+      background: var(--ink);
+      color: var(--cream);
+      transform: scale(1.02);
+    }
+    .difficulty-picker {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 22px;
+    }
+    .difficulty-btn {
+      width: 100%;
+      text-align: left;
+      background: var(--sand);
+      border: 2px solid transparent;
+      border-radius: 18px;
+      padding: 20px 22px;
+      cursor: pointer;
+      transition: all 220ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .difficulty-btn:hover { background: var(--rose); }
+    .difficulty-btn .d-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .difficulty-btn .d-blurb {
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--ink-soft);
+      margin-top: 4px;
+      font-family: 'Inter', sans-serif;
+    }
+    .difficulty-btn.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      transform: scale(1.01);
+    }
+    .difficulty-btn.active .d-label,
+    .difficulty-btn.active .d-blurb {
+      color: var(--cream);
+    }
+    .role-banner {
+      padding: 18px 20px;
+      border-radius: 18px;
+      margin: 16px 0 24px;
+      text-align: center;
+    }
+    .role-banner.holder {
+      background: linear-gradient(135deg, var(--rose) 0%, var(--sand) 100%);
+    }
+    .role-banner.interpreter {
+      background: linear-gradient(135deg, var(--sage) 0%, var(--sand) 100%);
+    }
+    .role-banner .tiny { color: rgba(38,36,40,0.6); }
+    .role-banner h2 { margin-top: 6px; }
+    .progress-dots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(250,247,241,0.25);
+      transition: background 300ms ease, transform 300ms ease;
+    }
+    .dot.done { background: rgba(250,247,241,0.55); }
+    .dot.active { background: var(--cream); transform: scale(1.3); }
+    .countdown {
+      font-family: 'Inter', sans-serif;
+      font-size: 120px;
+      line-height: 1;
+      color: var(--cream);
+      font-weight: 300;
+    }
+    .spacer { flex: 1; }
+    .reveal-hint {
+      text-align: center;
+      padding: 14px 20px;
+      margin-top: 20px;
+      border-radius: 16px;
+      background: rgba(250,247,241,0.12);
+      color: rgba(250,247,241,0.8);
+      font-size: 14px;
+    }
+    .echo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .echo-q {
+      padding: 16px 20px;
+      border-radius: 14px;
+      background: var(--sand);
+      font-family: 'Inter', sans-serif;
+      font-size: 17px;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+    .solution-input {
+      width: 100%;
+      margin-top: 22px;
+      padding: 16px 18px;
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 17px;
+      line-height: 1.45;
+      color: var(--ink);
+      background: #FFFCF5;
+      resize: none;
+      -webkit-appearance: none;
+      transition: border-color 180ms ease, background 180ms ease;
+      box-sizing: border-box;
+    }
+    .solution-input:focus {
+      outline: none;
+      border-color: var(--ink);
+      background: #FFFFFF;
+    }
+    .solution-input::placeholder { color: var(--line); font-style: italic; }
+    .reflection-card {
+      margin-top: 30px;
+      padding: 26px 22px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--rose) 0%, var(--sand) 100%);
+    }
+    .reflection-card .prompt {
+      font-size: 22px;
+      line-height: 1.3;
+      margin-top: 10px;
+    }
+    .solutions-recap {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 22px;
+    }
+    .solution-card {
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--sand);
+      border-left: 3px solid var(--terracotta);
+    }
+    .solution-card .scenario {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-style: italic;
+      color: var(--ink-soft);
+      line-height: 1.35;
+      margin-top: 4px;
+    }
+    .solution-card .move {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+      color: var(--ink);
+      margin-top: 10px;
+    }
+    .solution-card .move.empty {
+      color: var(--ink-soft);
+      font-style: italic;
+    }
+    .footer-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .role-banner h2 { color: var(--ink); }
+    .role-banner .muted { color: var(--ink-soft); }
+    .reflection-card .tiny { color: rgba(38,36,40,0.6); }
+    .solution-card { color: var(--ink); }
+    @media (min-width: 500px) {
+      .card-grid { grid-template-columns: repeat(4, 1fr); }
+      h1 { font-size: 52px; }
+      .prompt { font-size: 32px; }
+    }
+    @media (max-width: 340px) {
+      .prompt { font-size: 22px; }
+      h1 { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    // ============================================================
+    // FEEL CARDS — a quiet game of interpretation
+    // Built for winded.vertigo, April 2026
+    // ============================================================
+
+    // ---------- CARD DECK ----------
+    // 12 composition archetypes × 3 palette variants = 36 cards
+    // Palettes (background, primary, accent, shadow)
+    const PAL = {
+      dawn:     { bg: '#F2E8D5', p: '#C97B5D', a: '#E8C05C', s: '#6B4C6E' },
+      dusk:     { bg: '#5B6B8C', p: '#E8C05C', a: '#E8C5C1', s: '#2E4A52' },
+      fog:      { bg: '#DAD3C3', p: '#4A4850', a: '#BFCBB0', s: '#2E4A52' },
+      rose:     { bg: '#E8C5C1', p: '#6B4C6E', a: '#C97B5D', s: '#2E4A52' },
+      sea:      { bg: '#2E4A52', p: '#BFCBB0', a: '#F2E8D5', s: '#1A2C33' },
+      meadow:   { bg: '#BFCBB0', p: '#2E4A52', a: '#C97B5D', s: '#4A4850' },
+      ember:    { bg: '#C97B5D', p: '#F2E8D5', a: '#6B4C6E', s: '#2E4A52' },
+      night:    { bg: '#6B4C6E', p: '#E8C05C', a: '#E8C5C1', s: '#2E4A52' },
+    };
+
+    // Composition renderers — each returns an inner SVG string
+    // Canvas: 200x300 viewBox
+    const COMP = {
+      horizon: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <rect y="190" width="200" height="110" fill="${p.s}" opacity="0.18"/>
+        <circle cx="100" cy="155" r="42" fill="${p.a}"/>
+        <line x1="0" y1="190" x2="200" y2="190" stroke="${p.p}" stroke-width="1.5" opacity="0.5"/>`,
+      wave: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M-10 180 Q 50 120, 100 180 T 210 180 L 210 310 L -10 310 Z" fill="${p.p}" opacity="0.85"/>
+        <path d="M-10 220 Q 60 160, 110 220 T 220 220 L 220 310 L -10 310 Z" fill="${p.s}" opacity="0.55"/>
+        <circle cx="160" cy="80" r="20" fill="${p.a}" opacity="0.9"/>`,
+      doorway: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M60 260 L60 140 Q60 70, 100 70 Q140 70, 140 140 L140 260 Z" fill="${p.p}"/>
+        <path d="M76 260 L76 145 Q76 88, 100 88 Q124 88, 124 145 L124 260 Z" fill="${p.a}" opacity="0.95"/>
+        <circle cx="100" cy="155" r="6" fill="${p.bg}"/>`,
+      mountain: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M0 260 L60 140 L100 190 L155 110 L200 170 L200 300 L0 300 Z" fill="${p.p}"/>
+        <path d="M0 260 L40 200 L80 240 L130 180 L200 240 L200 300 L0 300 Z" fill="${p.s}" opacity="0.55"/>
+        <circle cx="50" cy="70" r="14" fill="${p.a}" opacity="0.85"/>`,
+      spiral: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <g transform="translate(100 150)">
+          <path d="M0 0 Q 30 -30, 60 0 T 90 50 Q 60 100, 10 80 Q -50 50, -30 -10 Q 0 -60, 40 -40" fill="none" stroke="${p.p}" stroke-width="6" stroke-linecap="round"/>
+          <path d="M0 0 Q 15 -15, 30 0 T 40 20" fill="none" stroke="${p.a}" stroke-width="4" stroke-linecap="round"/>
+          <circle r="5" fill="${p.s}"/>
+        </g>`,
+      broken_circle: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M100 60 A 80 80 0 1 1 40 200" fill="none" stroke="${p.p}" stroke-width="14" stroke-linecap="round"/>
+        <circle cx="150" cy="220" r="10" fill="${p.a}"/>
+        <circle cx="60" cy="100" r="6" fill="${p.s}" opacity="0.6"/>`,
+      threads: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <line x1="20" y1="30" x2="60" y2="270" stroke="${p.p}" stroke-width="3" stroke-linecap="round"/>
+        <line x1="80" y1="40" x2="140" y2="260" stroke="${p.s}" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+        <line x1="160" y1="35" x2="180" y2="265" stroke="${p.a}" stroke-width="3" stroke-linecap="round"/>
+        <line x1="50" y1="80" x2="170" y2="220" stroke="${p.p}" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <line x1="30" y1="220" x2="160" y2="90" stroke="${p.s}" stroke-width="2" stroke-linecap="round" opacity="0.5"/>`,
+      pool: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <ellipse cx="100" cy="170" rx="78" ry="68" fill="${p.p}"/>
+        <ellipse cx="100" cy="170" rx="52" ry="44" fill="${p.s}" opacity="0.55"/>
+        <ellipse cx="100" cy="170" rx="24" ry="20" fill="${p.a}"/>
+        <circle cx="130" cy="60" r="5" fill="${p.p}" opacity="0.6"/>
+        <circle cx="70" cy="80" r="3" fill="${p.p}" opacity="0.4"/>`,
+      fracture: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <rect x="30" y="50" width="140" height="200" fill="${p.p}" opacity="0.85"/>
+        <path d="M100 50 L 85 130 L 110 160 L 95 250" fill="none" stroke="${p.bg}" stroke-width="5" stroke-linejoin="miter"/>
+        <path d="M100 50 L 115 110 L 95 145 L 120 250" fill="none" stroke="${p.a}" stroke-width="3" opacity="0.8"/>`,
+      column: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <rect x="80" y="40" width="40" height="220" fill="${p.p}"/>
+        <rect x="70" y="40" width="60" height="14" fill="${p.s}"/>
+        <rect x="70" y="246" width="60" height="14" fill="${p.s}"/>
+        <circle cx="100" cy="150" r="8" fill="${p.a}"/>`,
+      branching: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M100 270 L100 170" stroke="${p.p}" stroke-width="5" stroke-linecap="round"/>
+        <path d="M100 170 L 60 110" stroke="${p.p}" stroke-width="4" stroke-linecap="round"/>
+        <path d="M100 170 L 140 110" stroke="${p.p}" stroke-width="4" stroke-linecap="round"/>
+        <path d="M100 170 L 100 90" stroke="${p.p}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M60 110 L 40 70" stroke="${p.s}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M140 110 L 160 70" stroke="${p.s}" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="40" cy="70" r="5" fill="${p.a}"/>
+        <circle cx="160" cy="70" r="5" fill="${p.a}"/>
+        <circle cx="100" cy="90" r="5" fill="${p.a}"/>`,
+      echo: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <circle cx="100" cy="150" r="22" fill="${p.p}"/>
+        <circle cx="100" cy="150" r="44" fill="none" stroke="${p.p}" stroke-width="2.5" opacity="0.75"/>
+        <circle cx="100" cy="150" r="68" fill="none" stroke="${p.p}" stroke-width="2" opacity="0.5"/>
+        <circle cx="100" cy="150" r="92" fill="none" stroke="${p.p}" stroke-width="1.5" opacity="0.3"/>
+        <circle cx="100" cy="150" r="10" fill="${p.a}"/>`,
+    };
+
+    // Build a 36-card deck: each composition × 3 distinct palettes
+    const PALETTE_ORDER = [
+      ['dawn','sea','fog'],
+      ['rose','sea','meadow'],
+      ['dusk','sand','ember'],
+      ['fog','night','dawn'],
+      ['ember','meadow','rose'],
+      ['sea','rose','sand'],
+      ['night','dawn','fog'],
+      ['meadow','dusk','ember'],
+      ['sand','night','rose'],
+      ['rose','meadow','sea'],
+      ['dusk','fog','ember'],
+      ['night','ember','meadow'],
+    ];
+    const PALETTE_MAP = { sand: PAL.dawn, dawn: PAL.dawn, dusk: PAL.dusk, fog: PAL.fog, rose: PAL.rose, sea: PAL.sea, meadow: PAL.meadow, ember: PAL.ember, night: PAL.night };
+
+    // Feeling + observable workplace action — one per card, ordered to match PALETTE_ORDER.
+    // Every label pairs an internal state with a behavior you could literally watch
+    // a person do in an office: writing a note, stepping out for water, DMing someone,
+    // keeping their face neutral, closing the camera, etc. Universal across all 10 scenarios.
+    const LABELS = {
+      horizon:        ["I'm calm, I write myself a note",     "I feel steady, I raise it in our 1:1", "I'm unsure, I listen before I speak"],
+      wave:           ["I'm swept up, I pause before replying","I'm flooded, I step out for water",    "I feel washed over, I stay quiet"],
+      doorway:        ["I feel pulled in, I speak up",         "I'm uncertain, I ask what they mean",  "I'm not welcome, I keep showing up"],
+      mountain:       ["I feel heavy, my voice stays steady",  "I'm tired, I push through the meeting","I feel proud, I sit up straighter"],
+      spiral:         ["it stays with me, I message a friend", "I feel defeated, I close my camera",   "I'm spinning, I step outside a minute"],
+      broken_circle:  ["something breaks, I go silent",        "I feel the gap, I keep working",       "I'm hurt, I cry in private later"],
+      threads:        ["I feel alert, I watch who nods",       "I'm tangled, I ask for a recap",       "I feel alone, I text my work person"],
+      pool:           ["I need stillness, I take a breath",    "I'm stunned, I ask for a moment",      "I need space, I block time later"],
+      fracture:       ["I'm hurt, I keep my face straight",    "something splinters, I smile it off",  "I'm breaking, I excuse myself"],
+      column:         ["I'm shaken, I stay in my chair",       "I'm centered, my voice stays even",    "I feel alone, I don't leave the room"],
+      branching:      ["I feel open, I offer another angle",   "I feel stuck, I DM a mentor",          "I feel tender, I note what to try"],
+      echo:           ["it ripples, I journal about it later", "this feels familiar, I guard my words","I feel dismissed, I raise it in 1:1"],
+    };
+
+    function buildDeck() {
+      const compNames = Object.keys(COMP);
+      const deck = [];
+      let id = 0;
+      compNames.forEach((name, i) => {
+        const palettes = PALETTE_ORDER[i] || ['dawn','fog','sea'];
+        const labels = LABELS[name] || ['', '', ''];
+        palettes.forEach((palName, j) => {
+          const p = PALETTE_MAP[palName];
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice">${COMP[name](p)}</svg>`;
+          deck.push({ id: id++, name: `${name}-${palName}`, label: labels[j] || '', svg });
+        });
+      });
+      return deck;
+    }
+
+    const DECK = buildDeck();
+
+    // ---------- SCENARIOS ----------
+    // 50 concrete workplace scenarios with emotional + cross-cultural charge.
+    // Second person; specific enough to ground discussion, open enough to
+    // produce divergent readings of how one might feel or respond.
+    // Span: meetings, feedback, remote/cross-border, identity, hierarchy,
+    // money/power, small daily moments. Mix of cross-cultural and purely
+    // emotional registers.
+    const PROMPTS = [
+      // Meetings & visibility
+      "Your manager gives you critical feedback in front of the team during a stand-up. Your face feels hot before you've processed the words.",
+      "In a meeting, you propose an idea. It gets passed over. Ten minutes later, a senior colleague says the same thing — and the room nods.",
+      "You're on a video call with colleagues across three time zones. You start to speak and two people talk over you. You pause. No one notices.",
+      "You're facilitating a meeting. A senior person interrupts you and takes over. The agenda you prepared never gets finished.",
+      "A colleague calls you 'the creative one' in front of the CEO. It's said warmly. You leave feeling smaller.",
+      "In a brainstorm, you share an idea. The room goes quiet. Someone else moves on. You can't tell if it was a bad idea or just a quiet room.",
+      "You raise a concern in a Town Hall Q&A. Leadership thanks you warmly, then pivots to the next question. No follow-up arrives.",
+
+      // Feedback & performance
+      "You give a direct report honest feedback in a 1:1. They cry. You weren't expecting that.",
+      "Your manager writes feedback that feels harsh. When you bring it up in person, they soften it and say it 'wasn't a big deal.'",
+      "A 360 review comes back with one comment that stings for days. You think you know who wrote it — but you're not sure.",
+      "You're asked to give upward feedback on a manager everyone is quietly afraid of.",
+      "A friend at work asks for your feedback on their presentation. It wasn't good.",
+      "In your performance review, your manager tells you to be 'more assertive.' In your culture, that word is not a compliment.",
+      "A promotion cycle closes. Your peer is promoted. You weren't told you'd been under consideration.",
+
+      // Cross-border & remote work
+      "You're negotiating with a client whose communication style is so indirect you genuinely can't tell whether they've agreed, declined, or just asked another question.",
+      "Your team is reorganizing. The decision affects you most. You find out about it in a Slack announcement on a Friday afternoon.",
+      "A colleague keeps scheduling 7am meetings in your time zone — then asks, as she books them, if that works for you.",
+      "You're asked to lead a client launch in a country you've never worked in. Two weeks to prepare, no cultural briefing, and the stakeholder is 'too busy for a call.'",
+      "A colleague from another region sends you a message at midnight your time, marked URGENT. It could have waited.",
+      "You're in a meeting where half the room is switching into a language that's your second. You follow the words but keep missing the jokes.",
+      "Your team adopted a new Slack norm you didn't pick up on. You've been active in the wrong channel for three weeks.",
+      "A vendor greets everyone with formality levels that feel over-the-top to your team. After the call, your colleagues laugh about it.",
+      "A new client sends you a personal gift that's above your company's policy limit. Refusing feels like an insult to them.",
+      "You're the only remote person in a 'hybrid' meeting. Everyone is laughing at something on the whiteboard. You can't see it.",
+
+      // Identity & belonging
+      "A teammate jokes about how 'people from [your country] always do things a certain way.' Everyone laughs. You're from there.",
+      "You're the only person from your background on the leadership team. In a meeting with the CEO, a peer turns to you and asks what your community 'thinks about this.'",
+      "A senior executive mixes up your name with another colleague from your ethnic background — for the third time. No one corrects them.",
+      "Your colleagues are planning a team dinner at a restaurant that doesn't accommodate your dietary needs. You haven't said anything yet.",
+      "A colleague asks where you're 'really from' — for the third time this year. They mean it kindly.",
+      "A leadership off-site includes an activity that's inaccessible to one of your teammates. No one notices until the bus is leaving.",
+      "In a company photo, you're placed at the front. It's explained, quietly, as 'for diversity.' You weren't asked.",
+      "You're invited to a diversity panel as the representative of your group. You're asked to open with your personal story.",
+      "A pregnant colleague is being left out of a high-visibility project 'because of her situation.' She hasn't been asked.",
+      "A senior leader refers to you by the wrong pronouns in a public presentation. You've corrected this before.",
+      "At lunch, a colleague asks you to 'say something in [your language]' for the rest of the table. It's meant as a compliment.",
+
+      // Hierarchy & authority
+      "Your skip-level asks you — confidentially — for candid feedback on your manager. You have a 1:1 with your manager tomorrow morning.",
+      "A founder overrides your team's decision in a casual Slack message. Your manager is not in the thread.",
+      "A senior executive places a reassuring hand on your shoulder during a tense moment. You freeze. They don't notice.",
+      "You're asked to translate live for a client meeting. The client is focused on your executive. You're the conduit.",
+
+      // Conflict & emotional weather
+      "A colleague posts a passive-aggressive message in a public Slack channel. Others react with thumbs-up emojis. You're the target.",
+      "Your direct report pushes back on your decision in front of the team. Mid-sentence, you realize they're right.",
+      "Two senior peers are in a power struggle. Both expect you to quietly take their side. Neither has asked.",
+      "A colleague's baby cries in the background of every video call for two weeks. No one says anything. You're the only other parent on the team.",
+      "Someone you respect has started avoiding eye contact with you after a difficult project. You don't know what happened.",
+
+      // Onboarding, exits, transitions
+      "A new hire from your team won't make eye contact when you speak. It's their first week.",
+      "A colleague you mentored leaves for a better job. Their farewell email thanks everyone by name — except you.",
+      "A new teammate from a culture where seniority matters more than in yours defers to you on everything. It feels wrong.",
+
+      // Money & power
+      "You discover a newer colleague, doing less senior work, is paid more than you.",
+      "Your company sends a celebratory internal email about a donation to a cause your community is deeply divided on.",
+      "In a salary negotiation, the hiring manager says 'we don't typically see that range from candidates with your background.'",
+    ];
+
+    // ---------- DIFFICULTY ----------
+    // Per-scenario difficulty tag (parallel to PROMPTS — index matches).
+    // light  — everyday friction, quiet moments, not too emotionally loaded
+    // real   — the fuller texture of work, emotionally charged but manageable
+    // tender — identity, power, and the hardest ground (microaggressions,
+    //          exclusion, wounds that carry weight)
+    const PROMPT_DIFFICULTY = [
+      // 0-6 · meetings & visibility
+      'real','real','light','light','real','light','real',
+      // 7-13 · feedback & performance
+      'real','real','real','real','light','tender','real',
+      // 14-23 · cross-border & remote
+      'light','real','light','real','light','light','light','light','light','light',
+      // 24-34 · identity & belonging
+      'tender','tender','tender','real','tender','tender','tender','real','tender','tender','tender',
+      // 35-38 · hierarchy & authority
+      'real','real','tender','real',
+      // 39-43 · conflict & emotional weather
+      'real','real','real','light','real',
+      // 44-46 · onboarding, exits, transitions
+      'light','real','real',
+      // 47-49 · money & power
+      'tender','tender','tender',
+    ];
+
+    const DIFFICULTY_META = {
+      light:  { label: 'light',  blurb: 'everyday friction and quiet moments' },
+      real:   { label: 'real',   blurb: 'the fuller texture of work, charged but everyday' },
+      tender: { label: 'tender', blurb: 'identity, power, the hardest ground' },
+    };
+
+    // ---------- REFLECTION QUESTIONS ----------
+    // Post-reveal, per round. Arc: self (emotional) → context (cross-cultural) → collective (integrative).
+    const REFLECTIONS = [
+      "Look at what you picked. Does it match what you'd actually do — or the version you'd perform at work?",
+      "Where did your response come from? Who in your life — mentor, family, culture — taught you to meet moments like this that way?",
+      "Your trio chose three different moves. What would a team need to make room for all three?",
+    ];
+
+    // ---------- SOLVE PROMPTS ----------
+    // Per-round creative tasks. Escalating: name a move → honor difference → design a practice.
+    const SOLVE_PROMPTS = [
+      "Together, write one concrete move your trio would make. Who does what? What gets said?",
+      "Together, write a move that honors each of your three cultural defaults. What would each of you contribute?",
+      "Together, design a small practice your team could try — something that holds what you learned across all three rounds.",
+    ];
+
+    // ---------- STATE ----------
+    const state = {
+      screen: 'welcome',
+      position: null,        // 1, 2, or 3 — which student in the trio
+      difficulty: null,      // 'light' | 'real' | 'tender' — chosen at setup, session-wide
+      round: 0,              // 0, 1, 2
+      hand: [],              // 4 cards drawn this round
+      selectedCardId: null,
+      usedPrompts: [],       // prompt indices used
+      currentPromptIdx: null,
+      solutions: ['', '', ''],  // typed solution text per round, logged on this device
+    };
+
+    // ---------- UTILS ----------
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function dealHand(size = 4) {
+      return shuffle(DECK).slice(0, size);
+    }
+
+    function pickPrompt() {
+      // Filter the scenario pool by chosen difficulty (if set).
+      const allowed = state.difficulty
+        ? PROMPTS.map((_, i) => i).filter(i => PROMPT_DIFFICULTY[i] === state.difficulty)
+        : PROMPTS.map((_, i) => i);
+      const unused = allowed.filter(i => !state.usedPrompts.includes(i));
+      const pool = unused.length ? unused : allowed;
+      const idx = pool[Math.floor(Math.random() * pool.length)];
+      state.usedPrompts.push(idx);
+      state.currentPromptIdx = idx;
+      return PROMPTS[idx];
+    }
+
+    function holderForRound(round) {
+      // round 0 → pos 1 holds, round 1 → pos 2 holds, round 2 → pos 3 holds
+      return round + 1;
+    }
+
+    function isHolder() {
+      return state.position === holderForRound(state.round);
+    }
+
+    // ---------- RENDER ----------
+    function render() {
+      const app = document.getElementById('app');
+      app.innerHTML = screens[state.screen]();
+      wireEvents();
+    }
+
+    function go(screenName) {
+      state.screen = screenName;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      render();
+    }
+
+    // ---------- SCREENS ----------
+    const screens = {
+      welcome: () => `
+        <div class="screen fade-in">
+          <div style="padding-top: 40px;">
+            <div class="tiny">winded.vertigo · feel cards</div>
+            <h1 class="serif" style="margin-top: 14px;">Feel<br/>Cards</h1>
+            <p class="muted" style="margin-top: 22px; font-size: 17px; max-width: 420px;">
+              Three people. One scenario. Three different readings of what it asks. You'll each choose a card that meets the moment — then everyone shows their card at the same time.
+            </p>
+          </div>
+          <div class="spacer"></div>
+          <div style="margin-top: 40px;">
+            <button class="btn-primary" data-go="setup" style="width: 100%;">Begin</button>
+            <div class="muted tiny" style="text-align: center; margin-top: 18px;">~12 minutes · three rounds · no wrong answers</div>
+          </div>
+        </div>`,
+
+      setup: () => `
+        <div class="screen fade-in">
+          <div class="tiny">setup</div>
+          <h2 class="serif" style="margin-top: 10px;">Find your trio.</h2>
+          <p class="muted" style="margin-top: 14px;">Gather two other people nearby. Decide who is 1, who is 2, and who is 3. Then tap your number below.</p>
+          <div class="position-picker">
+            <button class="position-btn ${state.position === 1 ? 'active' : ''}" data-pos="1">1</button>
+            <button class="position-btn ${state.position === 2 ? 'active' : ''}" data-pos="2">2</button>
+            <button class="position-btn ${state.position === 3 ? 'active' : ''}" data-pos="3">3</button>
+          </div>
+          <div class="muted tiny" style="margin-top: 18px;">Each round, a different number will hold. 1 holds first, then 2, then 3.</div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-go="difficulty" ${state.position ? '' : 'disabled'} style="width: 100%;">Continue</button>
+        </div>`,
+
+      difficulty: () => `
+        <div class="screen fade-in">
+          <div class="tiny">set your pace</div>
+          <h2 class="serif" style="margin-top: 10px;">Where is your trio today?</h2>
+          <p class="muted" style="margin-top: 14px; font-size: 15px;">
+            Pick together. The three of you should land on the same pace — it shapes which scenarios come up.
+          </p>
+          <div class="difficulty-picker">
+            ${['light','real','tender'].map(d => `
+              <button class="difficulty-btn ${state.difficulty === d ? 'active' : ''}" data-diff="${d}">
+                <div class="d-label">${DIFFICULTY_META[d].label}</div>
+                <div class="d-blurb">${DIFFICULTY_META[d].blurb}</div>
+              </button>
+            `).join('')}
+          </div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-go="roundIntro" ${state.difficulty ? '' : 'disabled'} style="width: 100%;">Begin the first round</button>
+        </div>`,
+
+      roundIntro: () => {
+        const holder = holderForRound(state.round);
+        const iAmHolder = isHolder();
+        return `
+        <div class="screen fade-in">
+          <div class="progress-dots">
+            ${[0,1,2].map(i => `<div class="dot ${i < state.round ? 'done' : ''} ${i === state.round ? 'active' : ''}"></div>`).join('')}
+          </div>
+          <div class="tiny" style="text-align: center; margin-top: 22px;">round ${state.round + 1} of 3</div>
+          <div class="role-banner ${iAmHolder ? 'holder' : 'interpreter'} scale-in" style="margin-top: 30px;">
+            <div class="tiny">this round</div>
+            <h2 class="serif">${iAmHolder ? 'You are the holder.' : `Number ${holder} is the holder.`}</h2>
+            <p class="muted" style="margin-top: 10px; font-size: 15px; padding: 0 10px;">
+              ${iAmHolder
+                ? 'Pick the card that best captures how the scenario lands for you, personally.'
+                : 'Pick the card you think your holder would resonate with. Trust your reading of them.'}
+            </p>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-go="prompt" style="width: 100%;">Read the scenario</button>
+        </div>`;
+      },
+
+      prompt: () => {
+        if (state.currentPromptIdx === null || !state.hand.length) {
+          pickPrompt();
+          state.hand = dealHand(4);
+          state.selectedCardId = null;
+        }
+        return `
+          <div class="screen fade-in">
+            <div class="tiny">scenario · round ${state.round + 1}</div>
+            <div style="margin-top: 24px; padding: 26px 22px; background: var(--sand); border-radius: 18px;">
+              <div class="prompt serif">${PROMPTS[state.currentPromptIdx]}</div>
+            </div>
+            <p class="muted" style="margin-top: 20px; font-size: 14px;">
+              ${isHolder()
+                ? 'Let the scenario settle. Choose the card that meets it for you.'
+                : 'Let it settle. Choose the card you think your holder would meet it with.'}
+            </p>
+            <div class="card-grid stagger">
+              ${state.hand.map(card => `
+                <div class="card ${state.selectedCardId === card.id ? 'selected' : ''}" data-pick="${card.id}">
+                  <div class="card-art">${card.svg}</div>
+                  <div class="card-label">${card.label}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="spacer"></div>
+            <button class="btn-primary" data-go="wait" ${state.selectedCardId === null ? 'disabled' : ''} style="width: 100%; margin-top: 20px;">
+              ${state.selectedCardId === null ? 'Pick a card' : 'I\'ve chosen'}
+            </button>
+          </div>`;
+      },
+
+      wait: () => `
+        <div class="screen fade-in">
+          <div class="tiny">waiting</div>
+          <div class="spacer"></div>
+          <div style="text-align: center;">
+            <div class="serif" style="font-size: 54px; line-height: 1.1; font-weight: 300; color: var(--cream);">Your card<br/>is ready.</div>
+            <p class="muted" style="margin-top: 24px; font-size: 16px; max-width: 340px; margin-left: auto; margin-right: auto;">
+              Keep your screen turned away from your trio. When your facilitator counts down, everyone will reveal together.
+            </p>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-go="reveal" style="width: 100%;">Reveal on the count</button>
+          <button class="btn-ghost" data-back="prompt" style="width: 100%; margin-top: 6px;">Change my card</button>
+        </div>`,
+
+      reveal: () => {
+        const card = state.hand.find(c => c.id === state.selectedCardId);
+        return `
+          <div class="screen fade-in-slow">
+            <div class="tiny">round ${state.round + 1} · reveal</div>
+            <p class="muted serif" style="font-size: 18px; margin-top: 14px; font-style: italic;">"${PROMPTS[state.currentPromptIdx]}"</p>
+            <div style="margin-top: 26px;" class="scale-in">
+              <div class="card-xl">
+                <div class="card-art">${card.svg}</div>
+                <div class="card-label">${card.label}</div>
+              </div>
+            </div>
+            <div class="reveal-hint fade-in-slow">
+              Turn your phone so your trio can see. Take a moment to notice how the three cards sit together.
+            </div>
+            <div class="spacer"></div>
+            <button class="btn-primary" data-go="reflect" style="width: 100%;">Open reflection →</button>
+          </div>`;
+      },
+
+      reflect: () => `
+        <div class="screen fade-in">
+          <div class="progress-dots">
+            ${[0,1,2].map(i => `<div class="dot ${i < state.round ? 'done' : ''} ${i === state.round ? 'active' : ''}"></div>`).join('')}
+          </div>
+          <div class="tiny" style="text-align: center; margin-top: 20px;">round ${state.round + 1} · reflection</div>
+          <div class="reflection-card scale-in">
+            <div class="tiny">for your trio</div>
+            <div class="prompt serif">${REFLECTIONS[state.round]}</div>
+          </div>
+          <p class="muted" style="margin-top: 22px; font-size: 14px;">
+            Take a minute each to answer. Read the question aloud if it helps.
+          </p>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-go="solve" style="width: 100%;">We've shared → write our move</button>
+        </div>`,
+
+      solve: () => {
+        const existing = state.solutions[state.round] || '';
+        const ready = existing.trim().length >= 3;
+        const nextTarget = state.round < 2 ? 'nextRound' : 'echo';
+        const nextLabel = state.round < 2 ? 'Log it → next round' : 'Log it → close the circle';
+        return `
+          <div class="screen fade-in">
+            <div class="tiny">round ${state.round + 1} · your trio's move</div>
+            <h2 class="serif" style="margin-top: 12px;">Write it together.</h2>
+            <div style="margin-top: 16px; padding: 18px 20px; background: var(--sand); border-radius: 14px;">
+              <div class="prompt serif" style="font-size: 18px; line-height: 1.35;">${SOLVE_PROMPTS[state.round]}</div>
+            </div>
+            <textarea id="solution-input" class="solution-input" placeholder="One or two concrete sentences…" rows="5">${existing}</textarea>
+            <p class="muted tiny" style="margin-top: 10px;">Everyone writes their own version on their own device. This stays with you.</p>
+            <div class="spacer"></div>
+            <button class="btn-primary" data-go="${nextTarget}" ${ready ? '' : 'disabled'} id="solve-continue" style="width: 100%;">
+              ${ready ? nextLabel : 'Write to continue'}
+            </button>
+          </div>`;
+      },
+
+      echo: () => `
+        <div class="screen fade-in">
+          <div class="tiny">echo · your trio's three moves</div>
+          <h2 class="serif" style="margin-top: 10px;">What you made together.</h2>
+          <p class="muted" style="margin-top: 14px; font-size: 15px;">
+            Three scenarios, three moves your trio built. Screenshot this if you want to carry it with you.
+          </p>
+          <div class="solutions-recap">
+            ${state.solutions.map((s, i) => {
+              const scenarioIdx = state.usedPrompts[i];
+              const scenario = scenarioIdx !== undefined ? PROMPTS[scenarioIdx] : '(scenario not recorded)';
+              const short = scenario.length > 95 ? scenario.slice(0, 95) + '…' : scenario;
+              const move = (s || '').trim();
+              return `
+                <div class="solution-card">
+                  <div class="tiny">round ${i + 1}</div>
+                  <div class="scenario">"${short}"</div>
+                  <div class="move ${move ? '' : 'empty'}">${move || 'not logged'}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <div class="echo-list" style="margin-top: 24px;">
+            <div class="echo-q">Looking at all three: which move is your trio most likely to actually try?</div>
+            <div class="echo-q">Which of your own responses surprised you?</div>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-go="close" style="width: 100%;">I'm ready to close</button>
+        </div>`,
+
+      close: () => `
+        <div class="screen fade-in">
+          <div class="spacer"></div>
+          <div style="text-align: center;">
+            <div class="serif" style="font-size: 44px; line-height: 1.1; font-weight: 300;">Thank you<br/>for reading<br/>with us.</div>
+            <p class="muted" style="margin-top: 28px; font-size: 15px; max-width: 320px; margin-left: auto; margin-right: auto;">
+              Three readings are not three answers. They are three ways a room can hold the same moment.
+            </p>
+          </div>
+          <div class="spacer"></div>
+          <div class="footer-actions">
+            <div class="muted tiny">winded.vertigo · feel cards</div>
+            <button class="btn-ghost" data-go="welcome">Play again</button>
+          </div>
+        </div>`,
+    };
+
+    // ---------- EVENT WIRING ----------
+    function wireEvents() {
+      // Navigation buttons
+      document.querySelectorAll('[data-go]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          if (btn.hasAttribute('disabled')) return;
+          const target = btn.getAttribute('data-go');
+          if (target === 'nextRound') {
+            state.round += 1;
+            state.hand = [];
+            state.selectedCardId = null;
+            state.currentPromptIdx = null;
+            // solutions array is preserved intentionally
+            go('roundIntro');
+          } else if (target === 'welcome') {
+            // Full reset
+            state.position = null;
+            state.difficulty = null;
+            state.round = 0;
+            state.hand = [];
+            state.selectedCardId = null;
+            state.usedPrompts = [];
+            state.currentPromptIdx = null;
+            state.solutions = ['', '', ''];
+            go('welcome');
+          } else {
+            go(target);
+          }
+        });
+      });
+
+      // Back buttons
+      document.querySelectorAll('[data-back]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-back');
+          go(target);
+        });
+      });
+
+      // Position picker
+      document.querySelectorAll('[data-pos]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.position = parseInt(btn.getAttribute('data-pos'), 10);
+          render();
+        });
+      });
+
+      // Difficulty picker
+      document.querySelectorAll('[data-diff]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.difficulty = btn.getAttribute('data-diff');
+          render();
+        });
+      });
+
+      // Card picker
+      document.querySelectorAll('[data-pick]').forEach(card => {
+        card.addEventListener('click', () => {
+          const id = parseInt(card.getAttribute('data-pick'), 10);
+          state.selectedCardId = id;
+          render();
+        });
+      });
+
+      // Solution textarea — update state & toggle continue button without re-rendering
+      const ta = document.getElementById('solution-input');
+      if (ta) {
+        ta.addEventListener('input', () => {
+          state.solutions[state.round] = ta.value;
+          const btn = document.getElementById('solve-continue');
+          if (btn) {
+            const ready = ta.value.trim().length >= 3;
+            if (ready) {
+              btn.removeAttribute('disabled');
+              btn.textContent = state.round < 2 ? 'Log it → next round' : 'Log it → close the circle';
+            } else {
+              btn.setAttribute('disabled', '');
+              btn.textContent = 'Write to continue';
+            }
+          }
+        });
+      }
+    }
+
+    // ---------- INIT ----------
+    render();
+  </script>
+</body>
+</html>

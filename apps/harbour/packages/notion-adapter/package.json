@@ -1,0 +1,25 @@
+{
+  "name": "@windedvertigo/notion-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Thin adapter package isolating @notionhq/client v2-vs-v5 API divergence (databases.query → dataSources.query). Lets the eventual creaseworks→CF Workers (v5) migration touch one file instead of every notion call site.",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "build": "echo 'notion-adapter: no build step (consumed via tsx / bundler)'"
+  },
+  "peerDependencies": {
+    "@notionhq/client": "^2.3.0 || ^5.0.0"
+  },
+  "devDependencies": {
+    "@notionhq/client": "^2.3.0",
+    "typescript": "^5.6.3"
+  }
+}

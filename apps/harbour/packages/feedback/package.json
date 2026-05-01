@@ -1,0 +1,15 @@
+{
+  "name": "@windedvertigo/feedback",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "dependencies": {
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "peerDependencies": {
+    "next": "^16.0.0",
+    "next-auth": "5.0.0-beta.30"
+  }
+}

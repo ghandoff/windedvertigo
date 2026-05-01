@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>drip — harbour character sketch v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:     #fff4e0;
+    --paper:     #f1e3c8;
+    --ink:       #241c1e;
+    --ink-soft:  #3a2e2f;
+    --drip:      #5a9fc4;  /* water body — cornflower blue */
+    --drip-lt:   #bde0f0;  /* pale cyan — catches top light */
+    --drip-dk:   #2b5e80;  /* shadow — deeper water */
+    --drip-deep: #153a52;  /* deepest shadow — near-navy */
+    --gloss:     #ffffff;  /* cartoon-water shine (the tell) */
+    --blush:     #e89b8a;
+    --sand:      #d9cdb0;
+    --sand-dk:   #7d6a45;
+    --leaf:      #8fa67a;
+    --cream-dk:  #ead8b5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 48px 24px 96px;
+    background: var(--cream); color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px; line-height: 1.6; position: relative;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='77'/><feColorMatrix values='0 0 0 0 0.14  0 0 0 0 0.11  0 0 0 0 0.12  0 0 0 0.18 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+    background-size: 300px 300px;
+    mix-blend-mode: multiply;
+    pointer-events: none; z-index: 50; opacity: 0.9;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; position: relative; z-index: 1; }
+  header { text-align: center; margin-bottom: 56px; }
+  .kicker {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: lowercase; color: var(--drip-dk); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: clamp(56px, 10vw, 112px); letter-spacing: -0.025em;
+    margin: 0 0 4px; line-height: 0.92;
+    font-variation-settings: "opsz" 144;
+    transform: rotate(-0.8deg);
+  }
+  .subtitle {
+    font-size: 18px; opacity: 0.7; margin: 8px 0 0;
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-variation-settings: "opsz" 14;
+  }
+  h2 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 32px;
+    letter-spacing: -0.01em; margin: 0 0 4px;
+    font-variation-settings: "opsz" 72;
+  }
+  .section-kicker {
+    font-size: 11px; letter-spacing: 0.14em; font-weight: 700;
+    opacity: 0.55; margin: 0 0 28px;
+  }
+  section { margin-bottom: 56px; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .card {
+    background: var(--paper); border-radius: 18px;
+    padding: 14px 10px 16px; text-align: center;
+    position: relative;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 10px 24px -18px rgba(42,28,22,0.25);
+  }
+  .card svg { width: 100%; height: auto; display: block; }
+  .card .label { font-size: 13px; font-weight: 600; margin: 8px 0 0; letter-spacing: 0.02em; }
+  .card .caption {
+    font-size: 11px; opacity: 0.55; margin: 2px 0 0; letter-spacing: 0.03em;
+    font-style: italic; font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 14;
+  }
+
+  .adult { position: relative; z-index: 100; }
+  .adult .card {
+    background: #ffffff; box-shadow: none;
+    border: 1px solid #eee; border-radius: 10px;
+  }
+  .adult .card .caption { font-style: normal; font-family: 'Inter', sans-serif; }
+
+  .featured {
+    margin: 24px 0 56px; padding: 32px 24px 40px;
+    background: var(--paper); border-radius: 24px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .featured svg {
+    width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto;
+  }
+  .featured-caption {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 14px; opacity: 0.7; margin: 12px 0 0;
+    font-variation-settings: "opsz" 14;
+  }
+  .featured-pose {
+    font-family: 'Fraunces', serif; font-size: 22px; margin: 6px 0 0;
+    font-variation-settings: "opsz" 72;
+  }
+
+  /* drip's personality: fluid adaptability. the body undulates gently
+     like surface tension settling — slightly faster and more wave-like
+     than mud's slowshift, slower than cord's shimmy. Eyes wink
+     occasionally rather than blink (drip is awake and observant).      */
+  .flow {
+    animation: flow 6s ease-in-out infinite;
+    transform-origin: center; transform-box: fill-box;
+  }
+  @keyframes flow {
+    0%, 100% { transform: scale(1, 1) rotate(0deg); }
+    25%      { transform: scale(1.015, 0.985) rotate(-0.4deg); }
+    50%      { transform: scale(0.99, 1.015) rotate(0.3deg); }
+    75%      { transform: scale(1.005, 0.995) rotate(-0.2deg); }
+  }
+  .flow.a { animation-delay: -1.5s; }
+  .flow.b { animation-delay: -3s; }
+  .flow.c { animation-delay: -4.5s; }
+
+  .wink {
+    animation: wink 5s ease-in-out infinite;
+    transform-origin: center; transform-box: fill-box;
+  }
+  @keyframes wink {
+    0%, 94%, 100% { transform: scaleY(1); }
+    97% { transform: scaleY(0.15); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flow, .wink { animation: none; }
+  }
+
+  /* morpher — tap to cycle through the four function poses. drip's
+     tween duration splits the difference between mud (1200ms, takes
+     its time) and crate (900ms, decisive). 1000ms feels liquid.      */
+  .morpher { cursor: pointer; transition: filter 280ms ease, opacity 280ms ease; }
+  .morpher.morphing {
+    filter: blur(1.8px);
+    opacity: 0.78;
+    transition: filter 200ms ease, opacity 200ms ease;
+  }
+  .morpher.morphing .flow { animation: none; }
+  .tip {
+    display: inline-block; font-size: 11px; letter-spacing: 0.14em;
+    text-transform: lowercase; opacity: 0.55; margin-top: 8px;
+  }
+
+  aside {
+    margin-top: 64px; padding: 32px;
+    background: var(--cream-dk); border-radius: 20px;
+    font-size: 14px; line-height: 1.75;
+  }
+  aside h3 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px;
+    margin: 0 0 12px; font-variation-settings: "opsz" 72;
+  }
+  aside ul { margin: 0; padding-left: 20px; }
+  aside li { margin-bottom: 8px; }
+  aside li code {
+    background: var(--cream); padding: 1px 6px; border-radius: 4px;
+    font-size: 12px; font-family: ui-monospace, monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">harbour character sketch · 07</p>
+  <h1>drip</h1>
+  <p class="subtitle">a shape that takes whatever form you give it</p>
+</header>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="edgeWobble" x="-3%" y="-3%" width="106%" height="106%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="77"/>
+      <feDisplacementMap in="SourceGraphic" scale="2"/>
+    </filter>
+
+    <symbol id="splatter" viewBox="0 0 200 160">
+      <circle cx="14" cy="22" r="1.4" fill="var(--ink)" opacity="0.55"/>
+      <circle cx="24" cy="18" r="0.8" fill="var(--ink)" opacity="0.4"/>
+      <circle cx="180" cy="30" r="1.2" fill="var(--ink)" opacity="0.5"/>
+      <ellipse cx="188" cy="42" rx="0.9" ry="1.4" fill="var(--ink)" opacity="0.45" transform="rotate(30 188 42)"/>
+      <circle cx="10" cy="135" r="1.6" fill="var(--ink)" opacity="0.6"/>
+      <circle cx="22" cy="142" r="0.7" fill="var(--ink)" opacity="0.35"/>
+      <circle cx="170" cy="140" r="1.1" fill="var(--drip-lt)" opacity="0.7"/>
+      <ellipse cx="186" cy="132" rx="1.8" ry="0.7" fill="var(--drip-lt)" opacity="0.5" transform="rotate(-20 186 132)"/>
+      <circle cx="100" cy="8" r="0.8" fill="var(--ink)" opacity="0.3"/>
+      <circle cx="190" cy="90" r="0.6" fill="var(--ink)" opacity="0.35"/>
+    </symbol>
+
+    <!-- ─── drip-kid — base pose ───────────────────────────────────
+         a single teardrop at rest. narrow top (surface-tension point)
+         bulging to a round bottom. the white gloss crescent on the
+         upper-left curve is the silhouette-level tell: every pose
+         carries that same highlight in roughly the same relative
+         position, so drip reads as "a liquid" even when the body
+         reshapes entirely.                                             -->
+    <symbol id="drip-kid" viewBox="0 0 200 160">
+      <!-- ground-contact pool (small — the drop barely touches down) -->
+      <ellipse cx="100" cy="146" rx="28" ry="2.5" fill="var(--drip-deep)" opacity="0.28"/>
+
+      <!-- blush misregister halo of the teardrop -->
+      <g transform="translate(4 5)" opacity="0.5">
+        <path d="M 100 22 C 94 40 72 90 72 114 C 72 138 128 138 128 114 C 128 90 106 40 100 22 Z"
+              fill="var(--blush)"/>
+      </g>
+
+      <!-- TEARDROP BODY — properly POINTED top (viscosity: liquid column
+           narrows to a cusp as it necks), wide ROUND bottom bulb. the
+           first cubic control (94, 40) is directly below the top point,
+           which forces the curve to LEAVE the start going down-inward,
+           creating the pointed tip rather than a flat cap.             -->
+      <path d="M 100 22
+               C 94 40 72 90 72 114
+               C 72 138 128 138 128 114
+               C 128 90 106 40 100 22 Z"
+            fill="var(--drip)"
+            stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+
+      <!-- inner shadow on the lower-right curve (volume suggestion) -->
+      <path d="M 112 92 Q 122 112 118 128 Q 112 136 100 136"
+            fill="none" stroke="var(--drip-dk)" stroke-width="3"
+            stroke-linecap="round" opacity="0.45"/>
+
+      <!-- top-edge highlight (subtle, follows the narrow pointed neck) -->
+      <path d="M 98 32 Q 88 60 82 86"
+            fill="none" stroke="var(--drip-lt)" stroke-width="2"
+            stroke-linecap="round" opacity="0.7"/>
+
+      <!-- GLOSS TELL — white crescent sliver on upper-left body -->
+      <ellipse cx="82" cy="86" rx="4" ry="16"
+               fill="var(--gloss)" opacity="0.78"
+               transform="rotate(-14 82 86)"/>
+      <!-- second smaller sparkle below the main gloss -->
+      <ellipse cx="88" cy="116" rx="2" ry="5"
+               fill="var(--gloss)" opacity="0.55"
+               transform="rotate(-10 88 116)"/>
+
+      <!-- eyes on the round bulb — round + cream catchlight -->
+      <g class="wink">
+        <circle cx="92" cy="108" r="3.2" fill="var(--ink)"/>
+        <circle cx="108" cy="108" r="3.2" fill="var(--ink)"/>
+        <circle cx="93.2" cy="106.8" r="0.9" fill="var(--cream)"/>
+        <circle cx="109.2" cy="106.8" r="0.9" fill="var(--cream)"/>
+      </g>
+    </symbol>
+
+    <!-- ─── drip-kid-pool — function: pooling ───────────────────────
+         spread-out flat puddle. wider + flatter than mud's puddle
+         because liquid settles more aggressively to the lowest point.
+         surface reflections + satellite droplets signal "this is water,
+         not mud." the gloss tell moves to a horizontal crescent on the
+         upper rim — same signature, different pose.                    -->
+    <symbol id="drip-kid-pool" viewBox="0 0 200 160">
+      <!-- A puddle on the ground: pointed at the ends, depth in the
+           middle. shape is like a skinny american football (horizontal
+           vesica). no floating shadow, no satellite droplets — the
+           puddle IS the character, sitting directly on the ground.    -->
+
+      <!-- blush halo of the puddle -->
+      <g transform="translate(4 5)" opacity="0.5">
+        <path d="M 14 132 Q 50 114 100 116 Q 150 114 186 132 Q 150 148 100 146 Q 50 148 14 132 Z"
+              fill="var(--blush)"/>
+      </g>
+
+      <!-- FOOTBALL-SHAPED PUDDLE — pointed at both ends, depth y=116..148 -->
+      <path d="M 14 132
+               Q 50 114 100 116
+               Q 150 114 186 132
+               Q 150 148 100 146
+               Q 50 148 14 132 Z"
+            fill="var(--drip)"
+            stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+
+      <!-- wet inner band — darker centre showing depth -->
+      <path d="M 42 130 Q 70 122 100 124 Q 130 122 158 130 Q 130 140 100 138 Q 70 140 42 130 Z"
+            fill="var(--drip-dk)" opacity="0.4"/>
+
+      <!-- GLOSS TELL — horizontal crescent catches light on upper surface -->
+      <ellipse cx="74" cy="122" rx="22" ry="1.6"
+               fill="var(--gloss)" opacity="0.78"/>
+      <ellipse cx="130" cy="124" rx="14" ry="1.3"
+               fill="var(--gloss)" opacity="0.65"/>
+
+      <!-- thin reflection line across the pool surface -->
+      <ellipse cx="100" cy="134" rx="48" ry="0.9" fill="var(--drip-lt)" opacity="0.5"/>
+
+      <!-- eyes on the upper surface of the puddle -->
+      <g class="wink">
+        <circle cx="88" cy="128" r="3.2" fill="var(--ink)"/>
+        <circle cx="104" cy="128" r="3.2" fill="var(--ink)"/>
+        <circle cx="89.2" cy="126.8" r="0.9" fill="var(--cream)"/>
+        <circle cx="105.2" cy="126.8" r="0.9" fill="var(--cream)"/>
+      </g>
+    </symbol>
+
+    <!-- ─── drip-kid-pour — function: pouring ───────────────────────
+         a flowing column descending into a wider catch-pool at the
+         base. the stream has a subtle s-wave to signal motion, and a
+         secondary drop is about to fall from the top. eyes live in the
+         pool (the "body" is down there while the stream is a momentary
+         shape being poured in).                                        -->
+    <symbol id="drip-kid-pour" viewBox="0 0 200 160">
+      <!-- Drip being poured from a TIPPED glass pitcher. the whole
+           pitcher is rotated ~30° clockwise (tipping right), so the
+           water inside is level in world-frame while the pitcher walls
+           are at an angle. water flows out of the spout in a curved
+           arc, trailing to a detaching droplet at the bottom. no catch
+           pool below — this pose is JUST the pour, mid-motion.         -->
+
+      <!-- ═══ TIPPED PITCHER ASSEMBLY ═══
+           rotated 30° CW around (100 70). everything inside this group
+           tips with the pitcher: outline, handle, water, eyes.         -->
+      <g transform="rotate(30 100 70)">
+        <!-- handle (drawn first, behind pitcher body) -->
+        <path d="M 56 50 Q 38 60 40 80 Q 42 94 56 92"
+              fill="none" stroke="var(--ink)" stroke-width="1.8"
+              stroke-linecap="round" opacity="0.28"/>
+
+        <!-- pitcher body outline — invisible glass (low opacity ink) -->
+        <path d="M 60 30
+                 L 60 108
+                 Q 60 118 70 118
+                 L 120 118
+                 Q 130 118 130 108
+                 L 130 38
+                 L 148 26
+                 L 140 38 Z"
+              fill="none" stroke="var(--ink)" stroke-width="1.8"
+              stroke-linejoin="round" stroke-linecap="round" opacity="0.3"/>
+
+        <!-- water INSIDE pitcher. drawn in LOCAL frame with a sloped
+             top — when the group rotates 30° CW, the slope becomes
+             horizontal in world frame (water settles level under
+             gravity). water fills the lower portion of the tipped
+             pitcher and spills up over the spout lip.                  -->
+        <path d="M 62 82
+                 L 128 42
+                 L 140 38
+                 L 146 28
+                 L 138 44
+                 L 128 116
+                 Q 128 116 72 116
+                 Q 62 116 62 106
+                 L 62 82 Z"
+              fill="var(--drip)" opacity="0.9"/>
+
+        <!-- water surface highlight (along the sloped top) -->
+        <path d="M 66 80 L 126 44"
+              fill="none" stroke="var(--drip-lt)" stroke-width="1.4"
+              stroke-linecap="round" opacity="0.95"/>
+
+        <!-- gloss on inside-front of pitcher (glass refraction hint) -->
+        <path d="M 66 60 Q 64 80 66 100"
+              fill="none" stroke="var(--gloss)" stroke-width="2"
+              stroke-linecap="round" opacity="0.6"/>
+
+        <!-- eyes inside the water, rotate with the pitcher -->
+        <g class="wink">
+          <circle cx="84" cy="94" r="3.2" fill="var(--ink)"/>
+          <circle cx="104" cy="78" r="3.2" fill="var(--ink)"/>
+          <circle cx="85.2" cy="92.8" r="0.9" fill="var(--cream)"/>
+          <circle cx="105.2" cy="76.8" r="0.9" fill="var(--cream)"/>
+        </g>
+      </g>
+
+      <!-- ═══ POUR STREAM ═══
+           drawn in WORLD coords (not rotated). starts at a SINGLE POINT
+           at the spout lip (164, 52) where the two edges of the stream
+           converge in a cusp — reads as "water pinching as it spills
+           over the spout" rather than a grafted-on column. widens as
+           gravity pulls it down, ends at a detaching droplet.          -->
+      <path d="M 164 52
+               Q 180 78 186 104
+               Q 190 128 188 138
+               Q 184 142 180 138
+               Q 180 128 178 106
+               Q 176 84 164 52 Z"
+            fill="var(--drip)" stroke="var(--ink)" stroke-width="1.4"
+            stroke-linejoin="round"/>
+
+      <!-- stream gloss — white highlight along the outer edge -->
+      <path d="M 166 58 Q 182 88 186 124"
+            fill="none" stroke="var(--gloss)" stroke-width="1.8"
+            stroke-linecap="round" opacity="0.8"/>
+
+      <!-- small droplet detaching from the stream's end -->
+      <path d="M 184 144 C 180 146 180 152 180 154
+               C 180 158 190 158 190 154
+               C 190 152 190 146 186 144 C 185 144 185 144 184 144 Z"
+            fill="var(--drip)" stroke="var(--ink)" stroke-width="1"
+            stroke-linejoin="round"/>
+      <ellipse cx="182" cy="150" rx="1" ry="2.5" fill="var(--gloss)"
+               opacity="0.75" transform="rotate(-10 182 150)"/>
+    </symbol>
+
+    <!-- ─── drip-kid-soak — function: soaking ───────────────────────
+         drip absorbed into a porous substrate. the sponge body with
+         its holes shows the material doing the absorbing; the bleed-
+         stain on top is drip diffusing INTO that material — inner
+         core saturated, outer halo feathered, spatter dots where
+         stray bleed landed on dry sponge. soak is drip's 4th
+         function: paint/ink/water meeting another surface and
+         being taken in.                                                -->
+    <symbol id="drip-kid-soak" viewBox="0 0 200 160">
+      <!-- SOAK — bleed stain on sponge substrate. sponge body (warm
+           yellow porous rectangle) shows the absorbent material; the
+           bleed stain on top is drip diffusing INTO the sponge —
+           inner core saturated (drip), outer halo feathered (drip-lt),
+           stray spatter dots on dry sponge around the wet zone.     -->
+
+      <!-- ═══ SPONGE SUBSTRATE ═══
+           warm yellow rounded rectangle, with sand-dk porous holes
+           scattered across its surface. the absorbent material.
+           positioned at y=45 (not 40) so the sponge center (y=85)
+           aligns with the bleed halo center (y~83.7) and with drip's
+           eye-line (y=88) — the halo reads as centred within the
+           sponge's top and bottom edges.                            -->
+      <rect x="20" y="45" width="160" height="80" rx="10" fill="#f4e0b4"
+            stroke="var(--ink)" stroke-width="1.4" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+      <!-- sponge holes (visible everywhere on the dry sponge) -->
+      <g fill="var(--sand-dk)" opacity="0.35">
+        <circle cx="38" cy="63" r="2.5"/>
+        <circle cx="52" cy="77" r="3.5"/>
+        <circle cx="72" cy="60" r="2"/>
+        <circle cx="162" cy="67" r="2.6"/>
+        <circle cx="158" cy="105" r="3"/>
+        <circle cx="42" cy="110" r="2.4"/>
+        <circle cx="148" cy="55" r="2"/>
+        <circle cx="172" cy="93" r="1.8"/>
+      </g>
+
+      <!-- spatter dots — stray bleed on dry sponge area around wet -->
+      <circle cx="44" cy="97" r="1.6" fill="var(--drip)" opacity="0.6"/>
+      <circle cx="156" cy="75" r="1.8" fill="var(--drip)" opacity="0.55"/>
+      <circle cx="158" cy="115" r="1.3" fill="var(--drip)" opacity="0.5"/>
+      <circle cx="48" cy="65" r="1.2" fill="var(--drip)" opacity="0.55"/>
+
+      <!-- ═══ BLEED STAIN ═══
+           drip absorbed into the sponge. three layers:
+             1. blush halo (offset misregister, pink warmth)
+             2. outer feathered bloom (drip-lt, soft edges)
+             3. inner saturated bloom (drip, ink-outlined, wobbled).  -->
+      <g transform="translate(4 5)" opacity="0.5">
+        <path d="M 100 48 Q 138 54 146 78 Q 152 102 130 114 Q 108 122 84 118 Q 56 110 54 84 Q 52 62 72 52 Q 86 48 100 48 Z"
+              fill="var(--blush)"/>
+      </g>
+      <!-- outer feathered bloom -->
+      <path d="M 100 48 Q 138 54 146 78 Q 152 102 130 114 Q 108 122 84 118 Q 56 110 54 84 Q 52 62 72 52 Q 86 48 100 48 Z"
+            fill="var(--drip-lt)" opacity="0.65"/>
+      <!-- inner saturated bloom -->
+      <path d="M 100 58 Q 128 64 132 80 Q 136 98 118 106 Q 100 112 86 108 Q 72 102 70 86 Q 70 72 84 64 Q 92 58 100 58 Z"
+            fill="var(--drip)" stroke="var(--ink)" stroke-width="1.4"
+            stroke-linejoin="round" filter="url(#edgeWobble)"/>
+
+      <!-- holes showing through the wet bloom (darker blue — sponge's
+           porous structure visible through the saturated area) -->
+      <circle cx="88" cy="78" r="2" fill="var(--drip-deep)" opacity="0.6"/>
+      <circle cx="114" cy="88" r="2.4" fill="var(--drip-deep)" opacity="0.6"/>
+      <circle cx="102" cy="72" r="1.6" fill="var(--drip-deep)" opacity="0.55"/>
+
+      <!-- gloss on the wet bloom -->
+      <ellipse cx="86" cy="72" rx="4" ry="2" fill="var(--gloss)" opacity="0.55"
+               transform="rotate(-12 86 72)"/>
+
+      <!-- eyes on the inner bloom -->
+      <g class="wink">
+        <circle cx="92" cy="88" r="3" fill="var(--ink)"/>
+        <circle cx="108" cy="88" r="3" fill="var(--ink)"/>
+        <circle cx="93" cy="87" r="0.8" fill="var(--cream)"/>
+        <circle cx="109" cy="87" r="0.8" fill="var(--cream)"/>
+      </g>
+    </symbol>
+
+    <!-- ─── drip-adult ─────────────────────────────────────────────
+         flat teardrop, muted sand palette, no wobble filter. gloss
+         tell still present but tiny — the adult register is focused
+         not sparkly.                                                   -->
+    <symbol id="drip-adult" viewBox="0 0 200 160">
+      <!-- ground shadow -->
+      <ellipse cx="100" cy="144" rx="32" ry="2.5" fill="var(--sand-dk)" opacity="0.25"/>
+      <!-- teardrop body — narrow pointed top, ROUND bottom bulb -->
+      <path d="M 100 32
+               C 82 34 78 92 78 114
+               C 78 134 122 134 122 114
+               C 122 92 118 34 100 32 Z"
+            fill="var(--sand)"
+            stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+      <!-- muted gloss tell — present but quiet in adult register -->
+      <ellipse cx="84" cy="88" rx="2.5" ry="12"
+               fill="var(--cream)" opacity="0.55"
+               transform="rotate(-14 84 88)"/>
+      <!-- eyes (open, not winking) -->
+      <circle cx="92" cy="108" r="2" fill="var(--ink)"/>
+      <circle cx="108" cy="108" r="2" fill="var(--ink)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- FEATURED MORPHER — tap to cycle through the four function poses.
+     the silhouette path-tweens between base → pool → pour → soak,
+     while pose-specific extras (satellite drops, bubbles, sponge
+     substrate, spatter dots) clear during the morph and re-render
+     on settle.                                                      -->
+<div class="featured">
+  <svg class="morpher" id="morpher" viewBox="0 0 200 160" aria-label="tap to watch drip transform">
+    <use href="#splatter" x="0" y="0" width="200" height="160"/>
+    <g class="flow">
+      <!-- pose-specific bg extras (behind silhouette): ground pools,
+           sponge substrate, spatter dots, halo feathering paths     -->
+      <g id="m-bg-extras"></g>
+      <!-- blush misregister halo — tweens with the silhouette -->
+      <g transform="translate(4 5)" opacity="0.5">
+        <path id="m-halo" fill="var(--blush)"/>
+      </g>
+      <!-- main body silhouette — path-tweens between poses -->
+      <path id="m-body"
+            fill="var(--drip)"
+            stroke="var(--ink)" stroke-width="2.4"
+            stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+      <!-- pose-specific fg extras (in front of silhouette): gloss tell,
+           satellite drops, bubbles, reflections, mouth details -->
+      <g id="m-fg-extras"></g>
+      <!-- eyes — round with cream catchlight, winks periodically -->
+      <g id="m-eyes" class="wink"></g>
+    </g>
+  </svg>
+  <p class="featured-caption">drip takes whatever shape you give it. tap to see.</p>
+  <p class="featured-pose" id="morpher-pose">base — just a drop</p>
+  <span class="tip">click / tap to cycle</span>
+</div>
+
+<!-- KID MODE GRID -->
+<section>
+  <h2>kid mode</h2>
+  <p class="section-kicker">creaseworks · sampler · play dashboards</p>
+
+  <div class="grid">
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="drip, a single droplet at rest">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="flow">
+          <use href="#drip-kid" x="0" y="0" width="200" height="160"/>
+        </g>
+      </svg>
+      <p class="label">base</p>
+      <p class="caption">just drip</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="drip spread out as a puddle">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="flow a">
+          <use href="#drip-kid-pool" x="0" y="0" width="200" height="160"/>
+        </g>
+      </svg>
+      <p class="label">pool</p>
+      <p class="caption">function · pooling</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="drip as a flowing stream">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="flow b">
+          <use href="#drip-kid-pour" x="0" y="0" width="200" height="160"/>
+        </g>
+      </svg>
+      <p class="label">pour</p>
+      <p class="caption">function · pouring</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="drip mid-soak — bleed stain on sponge substrate">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="flow c">
+          <use href="#drip-kid-soak" x="0" y="0" width="200" height="160"/>
+        </g>
+      </svg>
+      <p class="label">soak</p>
+      <p class="caption">function · soaking</p>
+    </div>
+  </div>
+</section>
+
+<!-- ADULT MODE -->
+<section class="adult">
+  <h2>adult mode</h2>
+  <p class="section-kicker">vertigo vault · depth chart · research surfaces</p>
+
+  <div class="grid">
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="drip, restrained">
+        <use href="#drip-adult" x="0" y="0" width="200" height="160"/>
+      </svg>
+      <p class="label">base</p>
+      <p class="caption">at rest</p>
+    </div>
+  </div>
+</section>
+
+<aside>
+  <h3>drip sketch — v1</h3>
+  <ul>
+    <li>Archetype: the adaptive one. Validates "it's okay to let the situation shape you." Drip is the character who doesn't fight its context — it fills whatever vessel holds it.</li>
+    <li>Form: liquid. Hosts DB <code>form_primary</code> values like <em>liquid</em>, <em>water</em>, <em>paint</em>, <em>ink</em>, <em>glue</em>, <em>slime</em>, <em>juice</em>, <em>milk</em>.</li>
+    <li>Motion vocabulary: <em>fluid, wave-like oscillation</em>. <code>.flow</code> runs a 6-second cycle of scale (±1.5%) and rotation (±0.4°) — the body breathes like surface tension settling. Slightly faster and wavier than mud's slowshift (11s, subtler) because liquid is more mobile than malleable solid. The <code>.wink</code> eye animation fires every 5s with a quick scaleY squash. Stagger variants (<code>.a</code>, <code>.b</code>, <code>.c</code>) keep the tiles from flowing in lockstep.</li>
+    <li>Silhouette rule: <strong>the gloss highlight is the tell</strong>. Every pose carries a white cartoon-water crescent in the upper-left body area — silhouette-level signature that says "this is a liquid, not a solid." Applied with <code>--gloss</code> at 0.75–0.78 opacity. The crescent's orientation and size adapts per pose but its function (catches light on the body's shoulder) stays constant.</li>
+    <li>Secondary silhouette signals: <em>satellite droplets</em> around pool (small teardrops free-floating near the main body), <em>bubbles</em> in the pour (small highlighted circles rising through the stream), <em>spatter dots</em> across the soak substrate (dry drip marks around the bleed stain). These amplify "this is liquid" without being the primary tell.</li>
+    <li>Palette: <code>--drip</code> #5a9fc4 (cornflower water blue, body), <code>--drip-lt</code> #bde0f0 (pale cyan top-light), <code>--drip-dk</code> #2b5e80 (shadow), <code>--drip-deep</code> #153a52 (deepest shadow + ground-contact), <code>--gloss</code> #ffffff (the tell). Cool blues complement mud's warm browns — liquid vs earth.</li>
+    <li>Eyes: round + cream catchlight (same pattern as Cord/Jugs/Twig/Swatch/Crate — not sleepy like Mud). The double catchlight reinforces the "sparkly water" feel. Eyes sit in the body's lower round section on each pose. <code>.wink</code> animation is a quick scaleY dip — faster than Jugs's slowblink, same pattern as Cord's blink.</li>
+    <li>Function poses: <em>base</em> (single teardrop, narrow top → round bottom — the canonical "drop of liquid"), <em>pool</em> (spread out flat with surface reflections + satellite droplets — "liquid takes the shape of its container"), <em>pour</em> (vertical stream descending into a catch-pool, with bubbles rising and a next-drop forming at the top — "liquid transferred"), <em>soak</em> (watercolour bleed stain spreading across a porous sponge substrate — concentric bloom rings + dry spatter dots — "liquid absorbed into another material"). The four-pose arc reads as a lifecycle: drop → pool → pour → soak → back to drop.</li>
+    <li>Adult mode: flat rendering, muted sand palette, no wobble filter. Tiny gloss highlight remains (the tell) but at 0.55 opacity so it's present-but-quiet. Round open eyes (no catchlights, no winking) — adult drip reads as <em>focused</em> rather than <em>sparkly</em>.</li>
+    <li>Relationship to mud: they're sibling characters. Mud is malleable-solid (stays pressed), Drip is liquid (takes the shape but doesn't hold it). Their poses echo each other (puddle/pool, shape/drop) but their motion vocabularies are opposite — Mud is stillness-adjacent (11s slow breath), Drip is wave-like motion (6s undulation).</li>
+  </ul>
+</aside>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const makeEl = (tag, attrs, text) => {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    if (text !== undefined) el.textContent = text;
+    return el;
+  };
+  const clear = (el) => { while (el.firstChild) el.removeChild(el.firstChild); };
+
+  // ── path sampling for the tween ─────────────────────────────────
+  // we sample each pose's silhouette at N evenly-spaced points along
+  // the path length, lerp between corresponding points on each frame,
+  // and rebuild the path as an L-segmented polyline.
+  let _sampleSvg = null;
+  function ensureSampleHolder() {
+    if (_sampleSvg) return _sampleSvg;
+    _sampleSvg = document.createElementNS(NS, 'svg');
+    _sampleSvg.setAttribute('width', '0');
+    _sampleSvg.setAttribute('height', '0');
+    _sampleSvg.style.position = 'absolute';
+    document.body.appendChild(_sampleSvg);
+    return _sampleSvg;
+  }
+  function samplePath(d, numPoints) {
+    const tmp = makeEl('path', { d: d });
+    const holder = ensureSampleHolder();
+    holder.appendChild(tmp);
+    const length = tmp.getTotalLength();
+    const pts = [];
+    for (let i = 0; i < numPoints; i++) {
+      const t = numPoints === 1 ? 0 : (i / (numPoints - 1));
+      const p = tmp.getPointAtLength(t * length);
+      pts.push([p.x, p.y]);
+    }
+    holder.removeChild(tmp);
+    return pts;
+  }
+  function pointsToPath(pts) {
+    if (!pts.length) return '';
+    let d = 'M ' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
+    for (let i = 1; i < pts.length; i++) {
+      d += ' L ' + pts[i][0].toFixed(2) + ' ' + pts[i][1].toFixed(2);
+    }
+    return d + ' Z';
+  }
+  function lerpPoints(from, to, t) {
+    const out = [];
+    for (let i = 0; i < from.length; i++) {
+      out.push([
+        from[i][0] + (to[i][0] - from[i][0]) * t,
+        from[i][1] + (to[i][1] - from[i][1]) * t
+      ]);
+    }
+    return out;
+  }
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  // ── pose data ──────────────────────────────────────────────────
+  // each pose has d (silhouette path, tweens), eyes (cx/cy pairs),
+  // bg (behind silhouette), fg (in front of silhouette). all four
+  // silhouettes are simple closed loops so the polyline tween never
+  // self-crosses. satellite droplets and ripples are bg/fg extras
+  // that clear during morph and re-render on settle.
+
+  const POSES = [
+    {
+      name: 'base — just a drop',
+      // classic teardrop: POINTED top (viscosity), ROUND bottom bulb.
+      d: 'M 100 22 C 94 40 72 90 72 114 C 72 138 128 138 128 114 C 128 90 106 40 100 22 Z',
+      eyes: [[92, 108], [108, 108]],
+      bg: [
+        { tag: 'ellipse', attrs: { cx: 100, cy: 146, rx: 28, ry: 2.5, fill: 'var(--drip-deep)', opacity: '0.28' } }
+      ],
+      fg: [
+        { tag: 'path', attrs: { d: 'M 112 92 Q 122 112 118 128 Q 112 136 100 136', fill: 'none', stroke: 'var(--drip-dk)', 'stroke-width': '3', 'stroke-linecap': 'round', opacity: '0.45' } },
+        { tag: 'path', attrs: { d: 'M 98 32 Q 88 60 82 86', fill: 'none', stroke: 'var(--drip-lt)', 'stroke-width': '2', 'stroke-linecap': 'round', opacity: '0.7' } },
+        { tag: 'ellipse', attrs: { cx: 82, cy: 86, rx: 4, ry: 16, fill: 'var(--gloss)', opacity: '0.78', transform: 'rotate(-14 82 86)' } },
+        { tag: 'ellipse', attrs: { cx: 88, cy: 116, rx: 2, ry: 5, fill: 'var(--gloss)', opacity: '0.55', transform: 'rotate(-10 88 116)' } }
+      ]
+    },
+    {
+      name: 'pool — water on the ground',
+      // pointed-end football shape. no floating shadow, no satellites —
+      // the puddle sits directly on the ground.
+      d: 'M 14 132 Q 50 114 100 116 Q 150 114 186 132 Q 150 148 100 146 Q 50 148 14 132 Z',
+      eyes: [[88, 128], [104, 128]],
+      bg: [],
+      fg: [
+        { tag: 'path', attrs: { d: 'M 42 130 Q 70 122 100 124 Q 130 122 158 130 Q 130 140 100 138 Q 70 140 42 130 Z', fill: 'var(--drip-dk)', opacity: '0.4' } },
+        { tag: 'ellipse', attrs: { cx: 74, cy: 122, rx: 22, ry: 1.6, fill: 'var(--gloss)', opacity: '0.78' } },
+        { tag: 'ellipse', attrs: { cx: 130, cy: 124, rx: 14, ry: 1.3, fill: 'var(--gloss)', opacity: '0.65' } },
+        { tag: 'ellipse', attrs: { cx: 100, cy: 134, rx: 48, ry: 0.9, fill: 'var(--drip-lt)', opacity: '0.5' } }
+      ]
+    },
+    {
+      name: 'pour — from a tipped pitcher',
+      // silhouette is the CURVING STREAM with a POINTY top (cusp at
+      // 164,52 where water converges as it exits the spout). tipped
+      // pitcher + water inside appear on settle as bg extras.
+      d: 'M 164 52 Q 180 78 186 104 Q 190 128 188 138 Q 184 142 180 138 Q 180 128 178 106 Q 176 84 164 52 Z',
+      // eye coords pre-rotated to world frame (30° CW around 100,70):
+      // local (84,94)→(74,83), local (104,78)→(99,79). matches the
+      // tile's rendered eye position inside the tipped pitcher.
+      eyes: [[74, 83], [99, 79]],
+      bg: [
+        // tipped pitcher assembly — rotation baked into the extras
+        // via individual transform attrs on each piece
+        // handle (behind body)
+        { tag: 'path', attrs: { d: 'M 56 50 Q 38 60 40 80 Q 42 94 56 92', fill: 'none', stroke: 'var(--ink)', 'stroke-width': '1.8', 'stroke-linecap': 'round', opacity: '0.28', transform: 'rotate(30 100 70)' } },
+        // pitcher body outline
+        { tag: 'path', attrs: { d: 'M 60 30 L 60 108 Q 60 118 70 118 L 120 118 Q 130 118 130 108 L 130 38 L 148 26 L 140 38 Z', fill: 'none', stroke: 'var(--ink)', 'stroke-width': '1.8', 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: '0.3', transform: 'rotate(30 100 70)' } },
+        // water INSIDE pitcher
+        { tag: 'path', attrs: { d: 'M 62 82 L 128 42 L 140 38 L 146 28 L 138 44 L 128 116 Q 128 116 72 116 Q 62 116 62 106 L 62 82 Z', fill: 'var(--drip)', opacity: '0.9', transform: 'rotate(30 100 70)' } },
+        // water surface highlight
+        { tag: 'path', attrs: { d: 'M 66 80 L 126 44', fill: 'none', stroke: 'var(--drip-lt)', 'stroke-width': '1.4', 'stroke-linecap': 'round', opacity: '0.95', transform: 'rotate(30 100 70)' } },
+        // gloss on inside-front of pitcher
+        { tag: 'path', attrs: { d: 'M 66 60 Q 64 80 66 100', fill: 'none', stroke: 'var(--gloss)', 'stroke-width': '2', 'stroke-linecap': 'round', opacity: '0.6', transform: 'rotate(30 100 70)' } }
+      ],
+      fg: [
+        // stream gloss — highlight along outer edge of the pouring stream
+        { tag: 'path', attrs: { d: 'M 166 58 Q 182 88 186 124', fill: 'none', stroke: 'var(--gloss)', 'stroke-width': '1.8', 'stroke-linecap': 'round', opacity: '0.8' } },
+        // small detaching droplet at the stream's end
+        { tag: 'path', attrs: { d: 'M 184 144 C 180 146 180 152 180 154 C 180 158 190 158 190 154 C 190 152 190 146 186 144 C 185 144 185 144 184 144 Z', fill: 'var(--drip)', stroke: 'var(--ink)', 'stroke-width': '1', 'stroke-linejoin': 'round' } },
+        { tag: 'ellipse', attrs: { cx: 182, cy: 150, rx: 1, ry: 2.5, fill: 'var(--gloss)', opacity: '0.75', transform: 'rotate(-10 182 150)' } }
+      ]
+    },
+    {
+      name: 'soak — bleed stain on sponge substrate',
+      // silhouette is the INNER saturated bloom (the smaller, darker
+      // concentrated wet zone). the outer feathered bloom and sponge
+      // substrate go in bg extras (rendered behind the body). the halo
+      // path-tween system automatically traces a blush offset around
+      // this silhouette, giving the bleed its watercolour halo edge.
+      d: 'M 100 58 Q 128 64 132 80 Q 136 98 118 106 Q 100 112 86 108 Q 72 102 70 86 Q 70 72 84 64 Q 92 58 100 58 Z',
+      eyes: [[92, 88], [108, 88]],
+      bg: [
+        // SPONGE SUBSTRATE — warm cream rectangle with rounded corners,
+        // the "paper" that gets soaked. f4e0b4 is softened sand tone.
+        // y=45 (not 40) so sponge center aligns with bleed halo center
+        // — halo reads as centred within the sponge's top/bottom edges.
+        { tag: 'path', attrs: { d: 'M 30 45 Q 20 45 20 55 L 20 115 Q 20 125 30 125 L 170 125 Q 180 125 180 115 L 180 55 Q 180 45 170 45 Z', fill: '#f4e0b4', stroke: 'var(--ink)', 'stroke-width': '1.4', 'stroke-linejoin': 'round' } },
+        // pore holes (sand-dk, low opacity) — scattered across substrate
+        { tag: 'circle', attrs: { cx: 38, cy: 63, r: 2.5, fill: 'var(--sand-dk)', opacity: '0.35' } },
+        { tag: 'circle', attrs: { cx: 52, cy: 77, r: 3.5, fill: 'var(--sand-dk)', opacity: '0.35' } },
+        { tag: 'circle', attrs: { cx: 170, cy: 69, r: 2.8, fill: 'var(--sand-dk)', opacity: '0.35' } },
+        { tag: 'circle', attrs: { cx: 158, cy: 87, r: 3.2, fill: 'var(--sand-dk)', opacity: '0.35' } },
+        { tag: 'circle', attrs: { cx: 40, cy: 105, r: 2.2, fill: 'var(--sand-dk)', opacity: '0.35' } },
+        { tag: 'circle', attrs: { cx: 60, cy: 117, r: 2.6, fill: 'var(--sand-dk)', opacity: '0.35' } },
+        { tag: 'circle', attrs: { cx: 164, cy: 113, r: 2.4, fill: 'var(--sand-dk)', opacity: '0.35' } },
+        { tag: 'circle', attrs: { cx: 146, cy: 57, r: 2.1, fill: 'var(--sand-dk)', opacity: '0.35' } },
+        // spatter dots (drip colour) — dry bleed marks on sponge edges
+        { tag: 'circle', attrs: { cx: 44, cy: 97, r: 1.6, fill: 'var(--drip)', opacity: '0.6' } },
+        { tag: 'circle', attrs: { cx: 156, cy: 75, r: 1.8, fill: 'var(--drip)', opacity: '0.55' } },
+        { tag: 'circle', attrs: { cx: 158, cy: 115, r: 1.3, fill: 'var(--drip)', opacity: '0.5' } },
+        { tag: 'circle', attrs: { cx: 48, cy: 65, r: 1.2, fill: 'var(--drip)', opacity: '0.55' } },
+        // OUTER FEATHERED BLOOM — drip-lt at 0.65 opacity, sits under
+        // the body's inner saturated bloom to create the watercolour
+        // "wet halo" effect (bleed spreading into paper fibers).
+        { tag: 'path', attrs: { d: 'M 100 48 Q 138 54 146 78 Q 152 102 130 114 Q 108 122 84 118 Q 56 110 54 84 Q 52 62 72 52 Q 86 48 100 48 Z', fill: 'var(--drip-lt)', opacity: '0.65' } }
+      ],
+      fg: [
+        // wet-area darker holes — drip-deep spots that show through the
+        // concentrated bloom (where the paper is most saturated)
+        { tag: 'circle', attrs: { cx: 88, cy: 78, r: 2, fill: 'var(--drip-deep)', opacity: '0.6' } },
+        { tag: 'circle', attrs: { cx: 114, cy: 88, r: 2.4, fill: 'var(--drip-deep)', opacity: '0.6' } },
+        { tag: 'circle', attrs: { cx: 102, cy: 72, r: 1.6, fill: 'var(--drip-deep)', opacity: '0.55' } },
+        // gloss — small crescent on the upper-left of the wet zone
+        { tag: 'ellipse', attrs: { cx: 86, cy: 72, rx: 4, ry: 2, fill: 'var(--gloss)', opacity: '0.55', transform: 'rotate(-12 86 72)' } }
+      ]
+    }
+  ];
+
+  function createExtra(e) {
+    if (e.tag === 'g' && e.children) {
+      const g = makeEl('g', e.attrs || {});
+      e.children.forEach(child => g.appendChild(createExtra(child)));
+      return g;
+    }
+    return makeEl(e.tag, e.attrs, e.text);
+  }
+
+  // sample every pose on load. 72 points per pose — enough to
+  // approximate the teardrop's narrow neck and the pour's subtle
+  // s-wave without pixelation.
+  const SAMPLE_COUNT = 72;
+  POSES.forEach(p => { p.samples = samplePath(p.d, SAMPLE_COUNT); });
+
+  const svg = document.getElementById('morpher');
+  const haloPath = document.getElementById('m-halo');
+  const bodyPath = document.getElementById('m-body');
+  const eyesG = document.getElementById('m-eyes');
+  const bgExtras = document.getElementById('m-bg-extras');
+  const fgExtras = document.getElementById('m-fg-extras');
+  const poseLabel = document.getElementById('morpher-pose');
+
+  function renderExtras(container, list) {
+    clear(container);
+    list.forEach(e => container.appendChild(createExtra(e)));
+  }
+
+  // round + cream catchlight eyes (drip's default treatment — not
+  // sleepy like mud). each eye = outer ink circle + tiny cream
+  // catchlight offset up-left for glisten.
+  function renderEyes(p) {
+    clear(eyesG);
+    p.eyes.forEach(([cx, cy]) => {
+      eyesG.appendChild(makeEl('circle', {
+        cx, cy, r: '3.2', fill: 'var(--ink)'
+      }));
+      eyesG.appendChild(makeEl('circle', {
+        cx: cx + 1.2, cy: cy - 1.2, r: '0.9', fill: 'var(--cream)'
+      }));
+    });
+  }
+
+  function renderPose(p) {
+    const d = p.d;
+    haloPath.setAttribute('d', d);
+    bodyPath.setAttribute('d', d);
+    poseLabel.textContent = p.name;
+    renderEyes(p);
+    renderExtras(bgExtras, p.bg);
+    renderExtras(fgExtras, p.fg);
+  }
+
+  let idx = 0;
+  let morphing = false;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function animateMorph(fromIdx, toIdx) {
+    const from = POSES[fromIdx];
+    const to = POSES[toIdx];
+
+    if (reducedMotion) {
+      renderPose(to);
+      return;
+    }
+
+    const duration = 1000;  // drip sits between mud (1200) and crate (900)
+    const start = performance.now();
+
+    morphing = true;
+    svg.classList.add('morphing');
+
+    clear(eyesG);
+    clear(bgExtras);
+    clear(fgExtras);
+    bodyPath.removeAttribute('filter');
+    poseLabel.textContent = from.name + '  ↓  ' + to.name;
+
+    function frame(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = easeInOutCubic(t);
+      const d = pointsToPath(lerpPoints(from.samples, to.samples, eased));
+      haloPath.setAttribute('d', d);
+      bodyPath.setAttribute('d', d);
+
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        bodyPath.setAttribute('filter', 'url(#edgeWobble)');
+        svg.classList.remove('morphing');
+        renderPose(to);
+        morphing = false;
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  renderPose(POSES[0]);
+
+  svg.addEventListener('click', () => {
+    if (morphing) return;
+    const from = idx;
+    idx = (idx + 1) % POSES.length;
+    animateMorph(from, idx);
+  });
+})();
+</script>
+
+</body>
+</html>

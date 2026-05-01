@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>the cuts catalogue.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    :root {
+      --cadet: #273248;
+      --cadet-dark: #1E2636;
+      --champagne: #FFEBD2;
+      --champagne-light: #FFF7E8;
+      --redwood: #B15043;
+      --sienna: #CB7858;
+      --muted: #9A8577;
+      --t1: #D4A84C;
+      --t2: #CB7858;
+      --t3: #B15043;
+      --t4: #7E3A47;
+      --t5: #4A2540;
+      --sidebar-w: 280px;
+      --header-h: 90px;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+      background: var(--champagne);
+      color: var(--cadet);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    :focus-visible {
+      outline: 3px solid #3B82F6;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ── header ── */
+    .site-header {
+      background: var(--cadet);
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .header-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--champagne);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+
+    .header-title p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+      letter-spacing: 0.04em;
+    }
+
+    .wordmark {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      user-select: none;
+    }
+    .wordmark-wv { color: var(--champagne); }
+    .wordmark-period { color: var(--redwood); }
+
+    /* ── layout ── */
+    .layout {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ── sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--champagne);
+      border-right: 1px solid rgba(39,50,72,0.12);
+      position: sticky;
+      top: var(--header-h);
+      height: calc(100vh - var(--header-h));
+      overflow-y: auto;
+      padding: 20px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* ── sidebar backdrop (mobile) ── */
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(39,50,72,0.45);
+      z-index: 140;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .sidebar-backdrop.open { opacity: 1; }
+
+    /* ── mobile filter button ── */
+    .mobile-filter-btn {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--cadet);
+      color: var(--champagne);
+      border: none;
+      border-radius: 24px;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      z-index: 130;
+      box-shadow: 0 4px 16px rgba(39,50,72,0.3);
+      gap: 6px;
+      align-items: center;
+      transition: background 0.12s;
+    }
+    .mobile-filter-btn:hover { background: var(--cadet-dark); }
+
+    /* ── sidebar close (mobile only) ── */
+    .sidebar-close {
+      display: none;
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--muted);
+      padding: 4px 8px;
+      line-height: 1;
+      border-radius: 4px;
+    }
+    .sidebar-close:hover { color: var(--cadet); }
+
+    /* ── search ── */
+    .search-wrap { position: relative; }
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid rgba(39,50,72,0.2);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      background: var(--champagne-light);
+      color: var(--cadet);
+      transition: border-color 0.12s;
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: var(--cadet); outline: none; }
+    .search-input:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+    /* ── filter groups ── */
+    .filter-group { display: flex; flex-direction: column; gap: 8px; }
+
+    .filter-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--redwood);
+      text-transform: lowercase;
+    }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    .chip {
+      padding: 4px 9px;
+      border-radius: 4px;
+      border: 1px solid rgba(154,133,119,0.45);
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: background 0.1s, color 0.1s, border-color 0.1s;
+    }
+    .chip:hover { border-color: var(--cadet); color: var(--cadet); }
+    .chip.active { background: var(--cadet); color: var(--champagne); border-color: var(--cadet); }
+
+    /* tier chips — colored borders and active states */
+    .chip-t[data-value="1"] { border-color: var(--t1); color: var(--t1); }
+    .chip-t[data-value="2"] { border-color: var(--t2); color: var(--t2); }
+    .chip-t[data-value="3"] { border-color: var(--t3); color: var(--t3); }
+    .chip-t[data-value="4"] { border-color: var(--t4); color: var(--t4); }
+    .chip-t[data-value="5"] { border-color: var(--t5); color: var(--t5); }
+    .chip-t[data-value="1"].active { background: var(--t1); border-color: var(--t1); color: var(--champagne); }
+    .chip-t[data-value="2"].active { background: var(--t2); border-color: var(--t2); color: var(--champagne); }
+    .chip-t[data-value="3"].active { background: var(--t3); border-color: var(--t3); color: var(--champagne); }
+    .chip-t[data-value="4"].active { background: var(--t4); border-color: var(--t4); color: var(--champagne); }
+    .chip-t[data-value="5"].active { background: var(--t5); border-color: var(--t5); color: var(--champagne); }
+
+    /* ── tristate (assessable) ── */
+    .tristate {
+      display: flex;
+      border: 1px solid rgba(154,133,119,0.45);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .tristate-btn {
+      flex: 1;
+      padding: 5px 4px;
+      border: none;
+      background: transparent;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      transition: background 0.1s, color 0.1s;
+    }
+    .tristate-btn + .tristate-btn { border-left: 1px solid rgba(154,133,119,0.45); }
+    .tristate-btn.active { background: var(--cadet); color: var(--champagne); }
+
+    /* ── time range slider ── */
+    .range-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .range-slider { position: relative; height: 24px; }
+    .range-track {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      width: 100%; height: 4px;
+      background: rgba(154,133,119,0.25);
+      border-radius: 2px;
+    }
+    .range-fill {
+      position: absolute;
+      height: 4px;
+      background: var(--cadet);
+      border-radius: 2px;
+      top: 0;
+    }
+    .range-slider input[type="range"] {
+      position: absolute;
+      width: 100%; height: 4px;
+      top: 50%; transform: translateY(-50%);
+      background: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+      pointer-events: none;
+      margin: 0;
+    }
+    .range-slider input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--cadet);
+      border: 2px solid var(--champagne);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .range-slider input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--cadet);
+      border: 2px solid var(--champagne);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .range-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* ── sidebar footer ── */
+    .sidebar-foot {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid rgba(39,50,72,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .result-count {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .reset-btn {
+      padding: 7px 14px;
+      border: 1px solid rgba(154,133,119,0.45);
+      border-radius: 4px;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      transition: border-color 0.1s, color 0.1s;
+      text-align: left;
+    }
+    .reset-btn:hover { border-color: var(--redwood); color: var(--redwood); }
+
+    /* ── main content ── */
+    .main-content { flex: 1; padding: 24px; min-width: 0; }
+
+    /* ── cards grid ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    /* ── card ── */
+    .card {
+      display: flex;
+      background: var(--champagne-light);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(39,50,72,0.07);
+    }
+    .card-bar { width: 4px; flex-shrink: 0; }
+    .card-body {
+      flex: 1;
+      padding: 11px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+    }
+    .tier-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .tier-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: lowercase;
+      white-space: nowrap;
+    }
+    .time-chip {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      color: var(--champagne);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .card-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--cadet);
+      line-height: 1.3;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--muted);
+      row-gap: 2px;
+    }
+    .bdot { color: var(--muted); opacity: 0.4; padding: 0 1px; }
+    .sdot { font-size: 8px; line-height: 1; }
+    .sdots { display: inline-flex; gap: 2px; align-items: center; }
+    .btag { color: var(--muted); }
+    .assess-yes { color: var(--cadet); font-weight: 700; }
+    .assess-no  { color: var(--muted); opacity: 0.5; }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--cadet-dark);
+      line-height: 1.5;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    /* ── card expand ── */
+    .card { cursor: pointer; }
+    .card:hover { box-shadow: 0 2px 8px rgba(39,50,72,0.14); }
+    .tier-row-right { display: flex; align-items: center; gap: 6px; }
+    .expand-icon {
+      font-size: 11px;
+      color: var(--muted);
+      display: inline-block;
+      line-height: 1;
+      transition: transform 0.15s;
+      flex-shrink: 0;
+    }
+    .card.expanded .expand-icon { transform: rotate(180deg); }
+    .card-expand {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(39,50,72,0.1);
+    }
+    .card.expanded .card-expand { display: block; }
+    .expand-ctx {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 6px;
+    }
+    .expand-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--redwood);
+      text-transform: lowercase;
+    }
+    .expand-ex { margin-top: 6px; }
+    .expand-list {
+      list-style: decimal;
+      padding-left: 16px;
+      margin-top: 3px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .expand-list li {
+      font-size: 12px;
+      color: var(--cadet-dark);
+      line-height: 1.5;
+    }
+
+    /* ── empty state ── */
+    .empty-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 32px;
+      text-align: center;
+      gap: 16px;
+    }
+    .empty-state p { color: var(--muted); font-size: 14px; }
+
+    /* ── footer ── */
+    .site-footer {
+      padding: 20px 32px;
+      border-top: 1px solid rgba(39,50,72,0.1);
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+
+    /* ── responsive ── */
+    @media (max-width: 900px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      :root { --header-h: 72px; }
+      .site-header { padding: 0 20px; }
+      .header-title h1 { font-size: 18px; }
+
+      .mobile-filter-btn { display: flex; }
+      .sidebar-close { display: block; }
+      .sidebar-backdrop { display: block; }
+
+      .sidebar {
+        position: fixed;
+        top: 0; left: 0;
+        height: 100vh;
+        width: min(100vw, 320px);
+        z-index: 150;
+        transform: translateX(-100%);
+        transition: transform 0.22s ease;
+        padding-top: 52px;
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      .main-content { padding: 16px; }
+    }
+
+    @media (max-width: 400px) {
+      .tier-lbl { font-size: 9px; }
+      .card-name { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<script id="cuts-data" type="application/json">
+{
+  "schema_version": "1.0",
+  "generated": "2026-04-20",
+  "source": "PPCS Session 3A — Active Learning Strategies",
+  "filter_dimensions": {
+    "tier": { "type": "enum", "values": [1,2,3,4,5], "labels": ["retrieval","apply","analyze","integrate","transfer"] },
+    "time_min": { "type": "integer", "unit": "minutes", "range": [1,10] },
+    "class_size": { "type": "multi", "values": ["small","medium","large"], "brackets": {"small":"≤30","medium":"30–100","large":"100+"} },
+    "prep": { "type": "enum", "values": ["zero","light","heavy"] },
+    "tech": { "type": "enum", "values": ["none","poll","projector","shared-board"] },
+    "position": { "type": "multi", "values": ["opening","middle","closing"] },
+    "stakes": { "type": "enum", "values": ["low","medium","high"] },
+    "assessable": { "type": "boolean" },
+    "async": { "type": "enum", "values": ["sync-only","sync-preferred","async-ok"] }
+  },
+  "tiers": [
+    {"id":1,"name":"retrieval","color_hex":"#D4A84C","ask":"recall what you already know.","when":"the opening of the session."},
+    {"id":2,"name":"apply","color_hex":"#CB7858","ask":"use the concept on a familiar case.","when":"right after introducing a concept."},
+    {"id":3,"name":"analyze","color_hex":"#B15043","ask":"pick the concept apart.","when":"when a concept has been applied and now needs stress-testing."},
+    {"id":4,"name":"integrate","color_hex":"#7E3A47","ask":"combine with other concepts.","when":"toward the back half of the session."},
+    {"id":5,"name":"transfer","color_hex":"#4A2540","ask":"apply to something new.","when":"the session's close."}
+  ],
+  "moves": [
+    {"id":"quick-quiz","name":"quick quiz","tier":1,"description":"three recall questions from the last session, 60 seconds to answer on paper or a poll tool.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"poll","position":["opening"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"write-to-recall","name":"write-to-recall","tier":1,"description":"2-min silent write: \"list everything you remember about X from last week.\"","time_min":2,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"hand-raise-poll","name":"hand-raise poll","tier":1,"description":"\"who can define the term we closed on yesterday?\" — thumbs-up or hand.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening"],"stakes":"medium","assessable":false,"async":"sync-only"},
+    {"id":"brain-dump","name":"brain dump","tier":1,"description":"timed free-write: every term, example, and diagram they remember on a topic.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"key-term-call-and-response","name":"key-term call-and-response","tier":1,"description":"pose a concept; students call out the definition together.","time_min":1,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"medium","assessable":false,"async":"sync-only"},
+    {"id":"silent-retrieval","name":"silent retrieval","tier":1,"description":"no talking, no peeking, 90 seconds — then compare with a neighbour.","time_min":2,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"flash-card-swap","name":"flash-card swap","tier":1,"description":"each student writes one recall question, swaps with a neighbour, answers.","time_min":3,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"prior-knowledge-mcq","name":"prior-knowledge MCQ","tier":1,"description":"live poll with 4 options; cohort commits before you teach.","time_min":1,"class_size":["small","medium","large"],"prep":"light","tech":"poll","position":["opening"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"retrieval-sketch","name":"retrieval sketch","tier":1,"description":"draw the framework from memory — arrows, boxes, labels.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"concept-recognition","name":"concept recognition","tier":1,"description":"show a mixed list; mark which terms appeared in the reading.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["opening","middle"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"reverse-definition","name":"reverse definition","tier":1,"description":"show a definition; students name the concept it defines.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"projector","position":["opening","middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"date-and-definition","name":"date-and-definition","tier":1,"description":"pose the year or event; students name the concept it anchored.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"medium","assessable":false,"async":"sync-preferred"},
+    {"id":"chain-recall","name":"chain recall","tier":1,"description":"student one names a concept; student two names a related one; continue.","time_min":3,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"medium","assessable":false,"async":"sync-only"},
+    {"id":"pair-retrieve","name":"pair-retrieve","tier":1,"description":"60 sec with a partner; both list everything they remember.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"open-book---closed-book","name":"open-book / closed-book","tier":1,"description":"first minute no notes; second minute with notes — compare what was missing.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"one-slide-back-recall","name":"one-slide-back recall","tier":1,"description":"\"what was the key finding three slides ago?\" — tests attention.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-only"},
+    {"id":"sticky-note-recall","name":"sticky-note recall","tier":1,"description":"each student writes one remembered concept on a sticky; post on the wall.","time_min":3,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["opening"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"missing-word-slide","name":"missing-word slide","tier":1,"description":"show prior content with key words removed; students fill in.","time_min":1,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["opening","middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"matchbox","name":"matchbox","tier":1,"description":"two columns on the board; match concept to example.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["opening","middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"retrieval-ticket","name":"retrieval ticket","tier":1,"description":"students can't sit until they name one thing from last week.","time_min":1,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["opening"],"stakes":"medium","assessable":false,"async":"sync-only"},
+    {"id":"think-pair-share","name":"think-pair-share","tier":2,"description":"1 min think, 2 min pair, 1 min share. the workhorse of active learning.","time_min":4,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"live-mcq-poll","name":"live MCQ poll","tier":2,"description":"Mentimeter or Poll Everywhere; 30-sec commit; show the distribution.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"poll","position":["middle"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"worked-example-pause","name":"worked example pause","tier":2,"description":"mid-worked-example, freeze, ask \"what's the next step?\" before revealing.","time_min":2,"class_size":["small","medium","large"],"prep":"zero","tech":"projector","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"one-minute-problem","name":"one-minute problem","tier":2,"description":"short numerical or logical application; silent work; show solution.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"none","position":["middle"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"mini-case-application","name":"mini-case application","tier":2,"description":"three-paragraph scenario; apply the framework in pairs.","time_min":6,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"reverse-engineering","name":"reverse engineering","tier":2,"description":"show a result; ask which concept produced it.","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"name-the-frame","name":"name the frame","tier":2,"description":"show a situation; students pick which framework applies and defend.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"medium","assessable":false,"async":"sync-preferred"},
+    {"id":"guided-then-solo","name":"guided-then-solo","tier":2,"description":"walk through one worked example; students do the next alone.","time_min":5,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"error-spotting","name":"error-spotting","tier":2,"description":"show a worked example with a deliberate mistake; find it.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"apply-and-defend","name":"apply-and-defend","tier":2,"description":"pick a concept, apply to a mini-case, defend the choice in one sentence.","time_min":3,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"three-framework-fit","name":"three-framework fit","tier":2,"description":"show a case; which of three frameworks fits best? why?","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"decision-scramble","name":"decision scramble","tier":2,"description":"scramble a decision sequence; students reorder into the correct flow.","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"worked-example-pair","name":"worked-example pair","tier":2,"description":"student A explains the first half; student B the second.","time_min":5,"class_size":["small","medium"],"prep":"light","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"snap-judgment","name":"snap judgment","tier":2,"description":"15-second gut call on a scenario; defend in 30 more.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"medium","assessable":false,"async":"sync-only"},
+    {"id":"tag-the-mechanism","name":"tag the mechanism","tier":2,"description":"which mechanism from the reading is at play in this case?","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"medium","assessable":false,"async":"sync-preferred"},
+    {"id":"quick-sketch-diagram","name":"quick-sketch diagram","tier":2,"description":"in 2 min, draw the process the concept describes.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"if-then-chain","name":"if-then chain","tier":2,"description":"\"if X changes, what happens to Y — and then to Z?\"","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"match-the-tool","name":"match-the-tool","tier":2,"description":"list five concepts and five cases; match them in pairs.","time_min":4,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"role-swap-application","name":"role-swap application","tier":2,"description":"student plays the consultant; applies the framework aloud.","time_min":4,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle"],"stakes":"high","assessable":false,"async":"sync-only"},
+    {"id":"case-compare-pair","name":"case-compare pair","tier":2,"description":"two similar mini-cases; apply the same concept; compare outcomes.","time_min":5,"class_size":["small","medium"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"minute-paper","name":"minute paper","tier":3,"description":"2-min write: what's the flaw in this argument? collect at the door.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"pros-and-cons-card","name":"pros-and-cons card","tier":3,"description":"1-min list for each side; fold the card; pass to a neighbour.","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"none","position":["middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"predict-and-compare","name":"predict-and-compare","tier":3,"description":"predict the outcome before the reveal; compare prediction to result.","time_min":2,"class_size":["small","medium","large"],"prep":"zero","tech":"projector","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"devils-advocate","name":"devil's advocate","tier":3,"description":"student argues against a concept they just accepted.","time_min":4,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle"],"stakes":"high","assessable":false,"async":"sync-only"},
+    {"id":"assumption-hunt","name":"assumption hunt","tier":3,"description":"list the three assumptions behind the framework; which is weakest?","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"counterexample-search","name":"counterexample search","tier":3,"description":"find a case where the concept fails; defend why.","time_min":4,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"medium","assessable":true,"async":"async-ok"},
+    {"id":"boundary-case","name":"boundary case","tier":3,"description":"\"where does this stop working?\" — push the concept to its edge.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"source-critique","name":"source critique","tier":3,"description":"read a claim; evaluate the evidence behind it.","time_min":5,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"async-ok"},
+    {"id":"bias-detection","name":"bias detection","tier":3,"description":"find the implicit bias in a case or a dataset.","time_min":4,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"high","assessable":true,"async":"sync-preferred"},
+    {"id":"compare-and-contrast","name":"compare-and-contrast","tier":3,"description":"two frameworks side by side; where do they agree, disagree, overlap?","time_min":5,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"strongest-weakest","name":"strongest-weakest","tier":3,"description":"rank the sub-arguments in a paper from most to least persuasive.","time_min":4,"class_size":["small","medium","large"],"prep":"heavy","tech":"none","position":["middle"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"dissect-the-disagreement","name":"dissect the disagreement","tier":3,"description":"why do two experts disagree? what's the crux?","time_min":5,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"stakeholder-split","name":"stakeholder split","tier":3,"description":"same decision, three stakeholders, three separate analyses.","time_min":6,"class_size":["small","medium"],"prep":"heavy","tech":"none","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"what-if-inversion","name":"what-if inversion","tier":3,"description":"\"what if the opposite were true?\" — analyze the counterfactual.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"evidence-weighting","name":"evidence weighting","tier":3,"description":"rank five pieces of evidence by rigor; defend the ranking.","time_min":4,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"mechanism-breakdown","name":"mechanism breakdown","tier":3,"description":"break the cause-effect chain into its discrete steps.","time_min":4,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"hidden-variable","name":"hidden variable","tier":3,"description":"what's missing from this model that would change its predictions?","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"outlier-spotlight","name":"outlier spotlight","tier":3,"description":"which data point breaks the trend? why?","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"frame-swap-analysis","name":"frame-swap analysis","tier":3,"description":"analyze the case through two different frameworks; which fits better?","time_min":6,"class_size":["small","medium"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"meta-analysis-card","name":"meta-analysis card","tier":3,"description":"compare how two readings treat the same question.","time_min":5,"class_size":["small","medium","large"],"prep":"heavy","tech":"none","position":["middle"],"stakes":"medium","assessable":true,"async":"async-ok"},
+    {"id":"peer-teach-in-pairs","name":"peer-teach in pairs","tier":4,"description":"2 min each, teach a partner using two concepts from different weeks.","time_min":5,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"medium","assessable":false,"async":"sync-preferred"},
+    {"id":"concept-map","name":"concept map","tier":4,"description":"5-min sketch: central concept with arrows to three+ related ideas.","time_min":6,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"two-concept-synthesis","name":"two-concept synthesis","tier":4,"description":"paragraph using two concepts from different weeks of the course.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"case-with-constraint","name":"case-with-constraint","tier":4,"description":"\"solve this using concepts from weeks 3 and 6\" — forced integration.","time_min":8,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle","closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"bridge-building","name":"bridge-building","tier":4,"description":"explicitly connect today's concept to one from last month.","time_min":4,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"framework-mash-up","name":"framework mash-up","tier":4,"description":"apply two frameworks simultaneously to one case.","time_min":7,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle","closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"timeline-weave","name":"timeline weave","tier":4,"description":"place three concepts on a timeline; show their interactions.","time_min":6,"class_size":["small","medium","large"],"prep":"light","tech":"shared-board","position":["middle","closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"story-integration","name":"story integration","tier":4,"description":"tell a short story using three+ concepts; narrative forces the links.","time_min":5,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"medium","assessable":true,"async":"async-ok"},
+    {"id":"counterintuitive-integration","name":"counterintuitive integration","tier":4,"description":"how does X (seemingly unrelated) relate to Y?","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"projector","position":["middle","closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"spider-diagram","name":"spider diagram","tier":4,"description":"one central concept; arms to four+ related concepts with labels.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"sequence-build","name":"sequence-build","tier":4,"description":"order five concepts into a coherent argument.","time_min":5,"class_size":["small","medium","large"],"prep":"light","tech":"shared-board","position":["middle","closing"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"elevator-pitch","name":"elevator pitch","tier":4,"description":"60-second synthesis using multiple concepts for a lay audience.","time_min":4,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"high","assessable":false,"async":"sync-only"},
+    {"id":"question-sequence","name":"question-sequence","tier":4,"description":"write three questions that each require combining two+ concepts.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"reflective-seed","name":"reflective seed","tier":4,"description":"write the opening three sentences of an essay that integrates two ideas.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"cross-course-bridge","name":"cross-course bridge","tier":4,"description":"connect this course's concept to one from a course you teach or took.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":false,"async":"async-ok"},
+    {"id":"multi-stakeholder-synthesis","name":"multi-stakeholder synthesis","tier":4,"description":"integrate perspectives across stakeholders into one position.","time_min":8,"class_size":["small","medium"],"prep":"heavy","tech":"projector","position":["middle","closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"systems-diagram","name":"systems diagram","tier":4,"description":"draw feedback loops between three+ concepts; show reinforcing and balancing.","time_min":8,"class_size":["small","medium","large"],"prep":"zero","tech":"shared-board","position":["middle","closing"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"strategic-memo","name":"strategic memo","tier":4,"description":"half-page memo applying two to three concepts to a decision.","time_min":10,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"medium","assessable":true,"async":"async-ok"},
+    {"id":"contradiction-resolution","name":"contradiction resolution","tier":4,"description":"two concepts that seem to conflict; integrate them into one stance.","time_min":5,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"classic-to-current-bridge","name":"classic-to-current bridge","tier":4,"description":"how does this classic framework apply to a current business issue?","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"exit-ticket","name":"exit ticket","tier":5,"description":"apply today's concept to a company you personally follow; one sentence.","time_min":2,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"case-flip","name":"case flip","tier":5,"description":"new case, cold; apply the framework without a setup.","time_min":7,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"design-in-novel-context","name":"design-in-novel-context","tier":5,"description":"propose a solution in a setting we haven't discussed.","time_min":10,"class_size":["small","medium","large"],"prep":"light","tech":"none","position":["closing"],"stakes":"medium","assessable":true,"async":"async-ok"},
+    {"id":"industry-transfer","name":"industry transfer","tier":5,"description":"apply the concept from one industry to a very different one.","time_min":6,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"era-transfer","name":"era transfer","tier":5,"description":"apply to a business from a different historical era; what changes?","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"personal-transfer","name":"personal transfer","tier":5,"description":"apply to your own organisation or future role.","time_min":4,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"real-time-current-event","name":"real-time current event","tier":5,"description":"apply to something from today's news in 90 seconds.","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"role-rotation-transfer","name":"role-rotation transfer","tier":5,"description":"apply as consultant, then regulator, then employee — three takes.","time_min":8,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["closing"],"stakes":"high","assessable":false,"async":"sync-only"},
+    {"id":"micro-strategy-memo","name":"micro-strategy memo","tier":5,"description":"one-page memo to a real CEO applying today's concept.","time_min":10,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"medium","assessable":true,"async":"async-ok"},
+    {"id":"venture-design","name":"venture design","tier":5,"description":"in 5 min, sketch a venture that would use this framework.","time_min":6,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"medium","assessable":true,"async":"async-ok"},
+    {"id":"policy-design","name":"policy design","tier":5,"description":"design a policy that addresses the issue the concept names.","time_min":8,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"medium","assessable":true,"async":"async-ok"},
+    {"id":"cross-cultural-transfer","name":"cross-cultural transfer","tier":5,"description":"apply in a different cultural context; what bends, what breaks?","time_min":6,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"medium","assessable":false,"async":"sync-preferred"},
+    {"id":"scale-transfer","name":"scale transfer","tier":5,"description":"apply to a much larger — or much smaller — company.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"real-org-transfer","name":"real-org transfer","tier":5,"description":"take the concept to a real problem in your own organisation.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"predict-the-future","name":"predict-the-future","tier":5,"description":"use the framework to predict how an industry will change in a decade.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"artefact-design","name":"artefact design","tier":5,"description":"design a tool, template, or checklist another faculty member could use.","time_min":8,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"teachback-to-lay-audience","name":"teachback to lay audience","tier":5,"description":"present the concept to someone without a business background.","time_min":5,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["closing"],"stakes":"high","assessable":false,"async":"sync-only"},
+    {"id":"cross-disciplinary-transfer","name":"cross-disciplinary transfer","tier":5,"description":"apply the concept to a non-business domain — medicine, education, law.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"novel-data-transfer","name":"novel-data transfer","tier":5,"description":"apply to an unfamiliar dataset; what does the framework surface?","time_min":8,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"commitment-design","name":"commitment design","tier":5,"description":"commit to applying the concept in the next seven days; tell a partner.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"}
+  ]
+}
+</script>
+
+<header class="site-header">
+  <div class="header-title">
+    <h1>the cuts catalogue.</h1>
+    <p>100 active-learning moves, filterable.</p>
+  </div>
+  <div class="wordmark" aria-label="winded.vertigo">
+    <span class="wordmark-wv">w.v</span><span class="wordmark-period">.</span>
+  </div>
+</header>
+
+<div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+
+<button class="mobile-filter-btn" id="mobile-filter-btn" aria-expanded="false" aria-controls="sidebar" aria-label="open filter panel">
+  filter <span id="filter-badge"></span>
+</button>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="filter moves">
+    <button class="sidebar-close" id="sidebar-close" aria-label="close filter panel">✕</button>
+
+    <div class="filter-group">
+      <label for="search-input" class="filter-label">search</label>
+      <div class="search-wrap">
+        <input type="search" id="search-input" class="search-input"
+          placeholder="name or description…" autocomplete="off" aria-label="search moves by name or description">
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label" id="lbl-tier">tier</div>
+      <div class="chip-group" role="group" aria-labelledby="lbl-tier">
+        <button class="chip chip-t" data-filter="tier" data-value="1" aria-pressed="false">retrieval</button>
+        <button class="chip chip-t" data-filter="tier" data-value="2" aria-pressed="false">apply</button>
+        <button class="chip chip-t" data-filter="tier" data-value="3" aria-pressed="false">analyze</button>
+        <button class="chip chip-t" data-filter="tier" data-value="4" aria-pressed="false">integrate</button>
+        <button class="chip chip-t" data-filter="tier" data-value="5" aria-pressed="false">transfer</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label" id="lbl-time">time (min)</div>
+      <div class="range-wrap" role="group" aria-labelledby="lbl-time">
+        <div class="range-slider">
+          <div class="range-track"><div class="range-fill" id="range-fill"></div></div>
+          <input type="range" id="time-min" min="1" max="10" value="1" step="1" aria-label="minimum minutes">
+          <input type="range" id="time-max" min="1" max="10" value="10" step="1" aria-label="maximum minutes">
+        </div>
+        <div class="range-labels">
+          <span id="lbl-tmin">1 min</span>
+          <span id="lbl-tmax">10 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label" id="lbl-size">class size</div>
+      <div class="chip-group" role="group" aria-labelledby="lbl-size">
+        <button class="chip" data-filter="classSize" data-value="small" aria-pressed="false">small ≤30</button>
+        <button class="chip" data-filter="classSize" data-value="medium" aria-pressed="false">medium 30–100</button>
+        <button class="chip" data-filter="classSize" data-value="large" aria-pressed="false">large 100+</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label" id="lbl-prep">prep</div>
+      <div class="chip-group" role="group" aria-labelledby="lbl-prep">
+        <button class="chip" data-filter="prep" data-value="zero" aria-pressed="false">zero</button>
+        <button class="chip" data-filter="prep" data-value="light" aria-pressed="false">light</button>
+        <button class="chip" data-filter="prep" data-value="heavy" aria-pressed="false">heavy</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label" id="lbl-tech">tech</div>
+      <div class="chip-group" role="group" aria-labelledby="lbl-tech">
+        <button class="chip" data-filter="tech" data-value="none" aria-pressed="false">none</button>
+        <button class="chip" data-filter="tech" data-value="poll" aria-pressed="false">poll</button>
+        <button class="chip" data-filter="tech" data-value="projector" aria-pressed="false">projector</button>
+        <button class="chip" data-filter="tech" data-value="shared-board" aria-pressed="false">shared-board</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label" id="lbl-pos">position</div>
+      <div class="chip-group" role="group" aria-labelledby="lbl-pos">
+        <button class="chip" data-filter="position" data-value="opening" aria-pressed="false">opening</button>
+        <button class="chip" data-filter="position" data-value="middle" aria-pressed="false">middle</button>
+        <button class="chip" data-filter="position" data-value="closing" aria-pressed="false">closing</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label" id="lbl-stakes">stakes</div>
+      <div class="chip-group" role="group" aria-labelledby="lbl-stakes">
+        <button class="chip" data-filter="stakes" data-value="low" aria-pressed="false">low</button>
+        <button class="chip" data-filter="stakes" data-value="medium" aria-pressed="false">medium</button>
+        <button class="chip" data-filter="stakes" data-value="high" aria-pressed="false">high</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label" id="lbl-assess">assessable</div>
+      <div class="tristate" role="group" aria-labelledby="lbl-assess">
+        <button class="tristate-btn active" data-tri="any" aria-pressed="true">any</button>
+        <button class="tristate-btn" data-tri="yes" aria-pressed="false">yes</button>
+        <button class="tristate-btn" data-tri="no" aria-pressed="false">no</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label" id="lbl-async">async</div>
+      <div class="chip-group" role="group" aria-labelledby="lbl-async">
+        <button class="chip" data-filter="async" data-value="sync-only" aria-pressed="false">sync-only</button>
+        <button class="chip" data-filter="async" data-value="sync-preferred" aria-pressed="false">sync-pref</button>
+        <button class="chip" data-filter="async" data-value="async-ok" aria-pressed="false">async-ok</button>
+      </div>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="result-count" id="result-count" aria-live="polite" aria-atomic="true">showing 100 of 100 moves</div>
+      <button class="reset-btn" id="reset-btn">reset filters</button>
+    </div>
+  </aside>
+
+  <main class="main-content" id="main-content">
+    <div id="cards-grid" class="cards-grid" role="list" aria-label="active learning moves"></div>
+    <div id="empty-state" class="empty-state" role="status" aria-live="polite">
+      <p>no moves match. try widening a filter.</p>
+      <button class="reset-btn" id="empty-reset-btn">reset filters</button>
+    </div>
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>PPCS 2026 · session 3A · the cuts catalogue</p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const data = JSON.parse(document.getElementById('cuts-data').textContent);
+  const moves = data.moves;
+  const tierMap = {};
+  data.tiers.forEach(function (t) { tierMap[t.id] = t; });
+
+  // ── examples ───────────────────────────────────────────────────────────────
+  var EXAMPLES = {
+    "quick-quiz": [
+      "pose three short questions about last week's Porter's Five Forces lecture — students respond individually on paper.",
+      "open a finance session with a Mentimeter quiz testing recall of DCF components before introducing new content."
+    ],
+    "write-to-recall": [
+      "ask students to list everything they remember about stakeholder theory before introducing corporate governance.",
+      "open a strategy session with: 'you have two minutes — write everything you recall about the resource-based view.'"
+    ],
+    "hand-raise-poll": [
+      "'who can define moral hazard in one sentence?' — have three students attempt before moving to new content.",
+      "before a pricing module, ask 'who can name the four pricing strategies from the reading?' and cold-call a raised hand."
+    ],
+    "brain-dump": [
+      "'write every concept, person, and framework you associate with supply chain resilience — three minutes.'",
+      "before a sustainability session, ask for a full free-write on what students know about ESG reporting."
+    ],
+    "key-term-call-and-response": [
+      "'competitive advantage!' — class responds: 'a sustainable edge that allows a firm to outperform rivals.'",
+      "'sunk cost!' — class responds: 'a cost already incurred that cannot be recovered.'"
+    ],
+    "silent-retrieval": [
+      "90 seconds of silent note-making on everything students remember about agency theory, then compare lists with a neighbour.",
+      "before discussing negotiation tactics, silent write of every tactic recalled, then a paired comparison."
+    ],
+    "flash-card-swap": [
+      "student A writes 'what is the principal-agent problem?' on a card, swaps with student B, who answers in writing.",
+      "each student writes a definition question about price elasticity; swap and answer; then compare responses."
+    ],
+    "prior-knowledge-mcq": [
+      "'which of these is NOT a characteristic of a perfectly competitive market?' — students commit before the concept is taught.",
+      "'which statement best describes path dependency?' — commit via poll before hearing the explanation."
+    ],
+    "retrieval-sketch": [
+      "'draw the BCG matrix from memory — axes, quadrants, and the strategic logic of each cell.'",
+      "students sketch the value chain framework with all primary and support activities labelled."
+    ],
+    "concept-recognition": [
+      "show a mixed list of 15 terms; students circle only those covered in this week's reading on organisational learning.",
+      "display 20 strategy concepts; mark only those that belong to Porter's generic strategies."
+    ],
+    "reverse-definition": [
+      "'a situation where one party has more information than the other in a transaction' — students call out: 'information asymmetry.'",
+      "'the tendency to over-weight the first piece of information encountered' — students name: 'anchoring bias.'"
+    ],
+    "date-and-definition": [
+      "'2008' — students name the concept anchored to the global financial crisis case: 'systemic risk.'",
+      "'1962' — students recall the concept from the Chandler reading: 'structure follows strategy.'"
+    ],
+    "chain-recall": [
+      "student A: 'agency theory.' student B: 'moral hazard.' student C: 'adverse selection.' continue until the chain breaks.",
+      "start with 'competitive advantage' and chain through related concepts: Porter, value chain, sustainability, dynamic capabilities."
+    ],
+    "pair-retrieve": [
+      "'60 seconds with your neighbour — list every concept from the corporate finance module you can both recall.'",
+      "before a leadership session, pairs list every leadership theory they remember from the programme so far."
+    ],
+    "open-book---closed-book": [
+      "students write recall notes on transaction cost economics for 90 seconds — then open readings and note what was missing.",
+      "closed write on agency theory; open notes; discuss: which gaps surprised you?"
+    ],
+    "one-slide-back-recall": [
+      "'what was the main critique of the BCG matrix on the slide before this one?'",
+      "'three slides ago we saw a case — what was the company, and what was the strategic challenge?'"
+    ],
+    "sticky-note-recall": [
+      "each student writes one concept from last week's reading on a sticky note and posts it on the wall — scan for patterns.",
+      "before a negotiation session, everyone posts one remembered tactic; group them by theme."
+    ],
+    "missing-word-slide": [
+      "display 'the _____ framework distinguishes between price takers and price makers' — students fill in the blank.",
+      "show a partially completed SWOT matrix with cells blanked out; students recall what belongs in each."
+    ],
+    "matchbox": [
+      "left column: 'economies of scale, scope, and network effects' — right column: 'volume, variety, users.' match each.",
+      "left: transaction cost types; right: real-world examples — students draw the connecting lines."
+    ],
+    "retrieval-ticket": [
+      "students must name one concept from the pre-reading before taking their seat for the strategy session.",
+      "entry requirement for the breakout: name one failure mode from the assigned case."
+    ],
+    "think-pair-share": [
+      "after introducing prospect theory: 'is this decision framing a gain or a loss? think, then compare with your neighbour.'",
+      "after the stakeholder salience model: 'which stakeholders are most salient in this case? 1 min think, 2 min pair, share.'"
+    ],
+    "live-mcq-poll": [
+      "'which market entry mode best fits this case: greenfield, acquisition, or JV?' — students commit before you reveal the analysis.",
+      "after explaining the BCG matrix, show a product portfolio: 'where does this product fit?' — live poll before discussion."
+    ],
+    "worked-example-pause": [
+      "mid-way through calculating WACC on the board, pause: 'what is the next step? write it before I continue.'",
+      "freeze a value chain analysis at the inbound logistics stage: 'what competitive advantage could this firm build here?'"
+    ],
+    "one-minute-problem": [
+      "'calculate the net present value of this cash flow at 8% discount rate — 60 seconds, silent work.'",
+      "'a product sells 1,000 units per month at £50 with £30 variable cost — what is the contribution margin?'"
+    ],
+    "mini-case-application": [
+      "three-paragraph case about a retail chain entering a new market — apply Porter's Five Forces in pairs.",
+      "short case on a family firm's succession dilemma — apply the stewardship theory framework with your partner."
+    ],
+    "reverse-engineering": [
+      "show a company's decision to vertically integrate: 'which theory predicted this — transaction cost, resource dependency, or agency?'",
+      "show a startup's pricing strategy: 'which pricing framework is at work here?'"
+    ],
+    "name-the-frame": [
+      "'a firm is diversifying into an unrelated industry to reduce risk' — which framework best explains this move?",
+      "show a negotiation breakdown: 'is this a distributive or integrative bargaining failure?'"
+    ],
+    "guided-then-solo": [
+      "walk through a complete NPV calculation together, then: 'now apply the same method to the second case independently.'",
+      "demonstrate one full stakeholder mapping exercise, then students map a new case alone."
+    ],
+    "error-spotting": [
+      "show a SWOT analysis with internal factors mislabelled as external: 'find the error and fix it.'",
+      "present a partially correct value chain with support activities misclassified: 'identify and correct the mistake.'"
+    ],
+    "apply-and-defend": [
+      "'apply agency theory to the relationship between shareholders and the board in this case — defend your choice in one sentence.'",
+      "'use the resource-based view to explain this firm's competitive position — then defend why it fits.'"
+    ],
+    "three-framework-fit": [
+      "show a monopoly pricing case: 'which fits better — industrial organisation, transaction cost, or resource-based view?'",
+      "'which of these three theories of the firm best explains why this merger happened?'"
+    ],
+    "decision-scramble": [
+      "five steps of a due diligence process are shuffled — reorder into the correct sequence.",
+      "the stages of a market entry strategy are scrambled — reconstruct the logical order."
+    ],
+    "worked-example-pair": [
+      "student A explains steps 1–3 of a VRIN analysis; student B explains steps 4–5 and the strategic implications.",
+      "student A works through the revenue side of a business model canvas; student B works through the cost side."
+    ],
+    "snap-judgment": [
+      "'15 seconds: should this firm enter the Chinese market? gut call.' then 30 seconds to defend.",
+      "'15-second instinct: is this a blue ocean or a red ocean move?' then justify."
+    ],
+    "tag-the-mechanism": [
+      "'which mechanism from the reading — network effects, switching costs, or economies of scale — is operating in this case?'",
+      "'tag the resource-based view mechanism in this firm's moat: rareness, inimitability, or non-substitutability?'"
+    ],
+    "quick-sketch-diagram": [
+      "'in 2 minutes, draw the adoption S-curve and mark where this company sits on it.'",
+      "'sketch the supply and demand curves for this market — label equilibrium and show the effect of the proposed policy.'"
+    ],
+    "if-then-chain": [
+      "'if labour costs rise by 30%, what happens to the firm's sourcing strategy — and then to its competitive position?'",
+      "'if the regulator removes this entry barrier, what happens to margins — and then to the incumbent's strategy?'"
+    ],
+    "match-the-tool": [
+      "five strategy frameworks and five case situations — match each framework to the situation it best addresses.",
+      "five negotiation tactics and five real-world deal scenarios — pair each tactic to its matching scenario."
+    ],
+    "role-swap-application": [
+      "student takes the role of a McKinsey consultant and applies the 7-S framework aloud to the case company.",
+      "'you are the CFO — apply the capital structure framework to justify this financing decision to the board.'"
+    ],
+    "case-compare-pair": [
+      "two retail cases with different competitive dynamics — apply Porter's Five Forces to both and compare the conclusions.",
+      "two M&A case summaries — apply due diligence criteria to each; what accounts for the different outcomes?"
+    ],
+    "minute-paper": [
+      "'what is the weakest assumption in the efficient market hypothesis argument we just heard?'",
+      "'write the one flaw in the stakeholder theory claim that most concerns you — 2 minutes, collect at the door.'"
+    ],
+    "pros-and-cons-card": [
+      "one side: advantages of the matrix structure; other side: disadvantages — 1 minute each, fold and pass to a neighbour.",
+      "pros and cons of offshoring production — fold and pass; compare both sides simultaneously."
+    ],
+    "predict-and-compare": [
+      "before showing a firm's actual market share data: 'predict the outcome using the framework, then compare.'",
+      "'predict which theory the author will use before turning to the conclusion — then check.'"
+    ],
+    "devils-advocate": [
+      "a student who just defended Porter's Five Forces as universally applicable must now argue it is fundamentally limited.",
+      "'you just supported market liberalisation — now argue the strongest case against it.'"
+    ],
+    "assumption-hunt": [
+      "'list the three assumptions underlying the agency theory argument — which one is most likely to break down in practice?'",
+      "'what must be true for the BCG matrix to be useful? identify the weakest assumption.'"
+    ],
+    "counterexample-search": [
+      "'find one real company that achieved sustained competitive advantage without a unique resource base — why does it break the theory?'",
+      "'identify a case where price competition did not lead to a race to the bottom — what conditions prevented it?'"
+    ],
+    "boundary-case": [
+      "'at what point does the transaction cost argument break down? what market conditions make hierarchy more expensive than markets?'",
+      "'where does the resource-based view stop explaining competitive advantage? identify the boundary.'"
+    ],
+    "source-critique": [
+      "'read this market research claim — what evidence supports it, what is missing, and what alternative interpretations exist?'",
+      "'evaluate the validity of this case study: what limitations should a strategist acknowledge before acting on it?'"
+    ],
+    "bias-detection": [
+      "'what survivorship bias is present in this success story, and how does it affect the strategic lesson?'",
+      "'this dataset only covers listed firms — what selection bias does that introduce into the analysis?'"
+    ],
+    "compare-and-contrast": [
+      "'compare transaction cost economics and agency theory: where do they agree, where do they diverge, and where does one outperform the other?'",
+      "'stakeholder theory vs. shareholder primacy: what assumptions differ at the root?'"
+    ],
+    "strongest-weakest": [
+      "'rank the three supporting arguments in this case from most to least convincing, and defend your ranking.'",
+      "'which of the author's four claims is most robustly supported by evidence? which least?'"
+    ],
+    "dissect-the-disagreement": [
+      "'Porter and Mintzberg disagree on the nature of strategy — what is the crux of their disagreement?'",
+      "'Friedman vs. Freeman: where exactly does the shareholder primacy argument break with stakeholder theory?'"
+    ],
+    "stakeholder-split": [
+      "student A analyses the merger from the perspective of equity holders; student B from employees; student C from regulators.",
+      "'three stakeholders, one case: the pension reform debate — what does each group prioritise and why?'"
+    ],
+    "what-if-inversion": [
+      "'what if competitive advantage were not sustainable — how would Porter's framework change?'",
+      "'what if all information were perfectly symmetric — how would capital markets behave differently?'"
+    ],
+    "evidence-weighting": [
+      "'rank these five pieces of evidence for the diversification-profitability relationship by methodological rigour, and defend the ranking.'",
+      "'which two of these six data sources would you weight most heavily in advising this CEO — and why?'"
+    ],
+    "mechanism-breakdown": [
+      "'walk through the exact causal steps between interest rate rises and a reduction in consumer spending.'",
+      "'map the mechanism from a firm's R&D investment to its eventual market-share gain — every discrete step.'"
+    ],
+    "hidden-variable": [
+      "'what variable, absent from this model, might explain why firms in this industry consistently outperform the prediction?'",
+      "'which omitted factor most undermines the BCG matrix's prescriptive power?'"
+    ],
+    "outlier-spotlight": [
+      "'one data point defies the trend in this scatter plot — which company is it, and what structural factor explains its deviation?'",
+      "'this firm outperforms its peer group despite weak resources — what hidden variable breaks the pattern?'"
+    ],
+    "frame-swap-analysis": [
+      "'analyse this acquisition through both the resource-based view and transaction cost theory — which gives the better explanation?'",
+      "'apply both institutional theory and resource dependence to this alliance — compare their insights.'"
+    ],
+    "meta-analysis-card": [
+      "'compare how Barney (1991) and Teece (1997) treat the question of sustainable competitive advantage: same phenomenon, different lens.'",
+      "'both readings address innovation strategy — where do they agree, where do they conflict?'"
+    ],
+    "peer-teach-in-pairs": [
+      "student A teaches principal-agent theory using the board-CEO relationship; student B teaches transaction cost theory using the make-or-buy decision.",
+      "'two minutes each: teach your partner one concept from week 3 and one from week 7, and show how they relate.'"
+    ],
+    "concept-map": [
+      "central concept: competitive advantage — draw arrows to resource-based view, five forces, dynamic capabilities, value chain, and VRIN.",
+      "central: stakeholder theory — link to corporate governance, agency theory, CSR, and the business case for sustainability."
+    ],
+    "two-concept-synthesis": [
+      "write a paragraph using both transaction cost economics and resource dependency theory to explain a firm's vertical integration decision.",
+      "synthesise dynamic capabilities and organisational learning theory in a single paragraph applied to a technology firm."
+    ],
+    "case-with-constraint": [
+      "'analyse this turnaround case using only concepts from weeks 3 (agency theory) and 6 (dynamic capabilities) — no other frameworks.'",
+      "'your analysis of this market entry must integrate both Porter's Five Forces and the institutional environment frameworks.'"
+    ],
+    "bridge-building": [
+      "'connect today's session on innovation management to the ambidexterity concept from month two — how are they related?'",
+      "'draw an explicit link between the stakeholder salience model from last month and the corporate political strategy framework from today.'"
+    ],
+    "framework-mash-up": [
+      "apply both the balanced scorecard and OKR frameworks simultaneously to this firm's strategy execution challenge.",
+      "'use Porter's Five Forces and the dynamic capabilities framework together to analyse this industry at a moment of disruption.'"
+    ],
+    "timeline-weave": [
+      "place transaction cost economics (1937), agency theory (1976), and resource-based view (1984) on a timeline — show how each responded to the limitations of its predecessor.",
+      "map three concepts from the course on a 20-year timeline of a case company, showing when each became relevant."
+    ],
+    "story-integration": [
+      "tell a two-minute narrative of a firm's growth using agency theory, resource-based view, and institutional theory — the story must require all three.",
+      "'write a short story in which a new CEO must navigate information asymmetry, dynamic capabilities, and stakeholder legitimacy simultaneously.'"
+    ],
+    "counterintuitive-integration": [
+      "'how does behavioural economics — seemingly about individual irrationality — connect to corporate governance theory?'",
+      "'link prospect theory (individual psychology) to capital structure decisions (corporate finance) — what is the connecting thread?'"
+    ],
+    "spider-diagram": [
+      "central concept: organisational resilience — draw arms to dynamic capabilities, ambidexterity, stakeholder theory, resource dependency, and institutional theory.",
+      "map 'value creation' to five related concepts from different parts of the course — label each arm with the nature of the relationship."
+    ],
+    "sequence-build": [
+      "'arrange these five concepts into a coherent argument for why firms diversify: agency theory, information asymmetry, transaction cost, resource dependency, economies of scope.'",
+      "'order these concepts to explain a firm's internationalisation decision: institutional theory, OLI paradigm, transaction cost, resource-based view, learning curve.'"
+    ],
+    "elevator-pitch": [
+      "'in 60 seconds, explain to a non-MBA audience why sustained competitive advantage is hard to maintain, using at least three concepts from the course.'",
+      "'pitch the core argument of value-based strategy to a sceptical CFO — use at least two frameworks but speak no jargon.'"
+    ],
+    "question-sequence": [
+      "write three exam questions that each require combining two or more concepts — Q1 must integrate agency theory and corporate governance.",
+      "'write three questions that force a student to connect dynamic capabilities to at least one other framework in each answer.'"
+    ],
+    "reflective-seed": [
+      "write the opening three sentences of an essay arguing that dynamic capabilities and transaction cost theory together explain why platform firms outperform traditional firms.",
+      "draft the first paragraph of a reflection paper that integrates personal leadership experience with distributed leadership theory and stakeholder theory."
+    ],
+    "cross-course-bridge": [
+      "'connect this session's discussion of institutional theory to a concept from your economics or sociology courses — where do they meet?'",
+      "'draw an explicit link between Porter's value chain from this course and the lean operations concepts from your operations management programme.'"
+    ],
+    "multi-stakeholder-synthesis": [
+      "'integrate the perspectives of equity holders, employees, and regulators into one coherent strategic recommendation for this privatisation case.'",
+      "'synthesise the shareholder, community, and supply chain perspectives into a single position on this firm's offshore outsourcing decision.'"
+    ],
+    "systems-diagram": [
+      "'draw feedback loops between competitive rivalry, margin pressure, and innovation investment — label reinforcing and balancing loops.'",
+      "map the reinforcing feedback between network effects, user growth, and data accumulation — then add the balancing loop that limits platform dominance."
+    ],
+    "strategic-memo": [
+      "'half-page memo to the board: recommend a market entry mode using agency theory, transaction cost, and resource-based view as your three lenses.'",
+      "'write a memo advising a CEO on organisational restructuring that explicitly integrates concepts from weeks 4, 7, and 9.'"
+    ],
+    "contradiction-resolution": [
+      "'agency theory says managers are self-interested; stewardship theory says they are trustworthy — reconcile these into one nuanced position.'",
+      "'economic rationality assumes full information; behavioural economics denies it — integrate both into one view of strategic decision-making.'"
+    ],
+    "classic-to-current-bridge": [
+      "'how does Chandler's structure-follows-strategy argument apply to platform businesses like Uber or Airbnb?'",
+      "'apply Weber's bureaucracy theory to the governance challenges of a modern multinational — what holds, what needs revision?'"
+    ],
+    "exit-ticket": [
+      "'apply today's dynamic capabilities concept to one company you personally follow — one sentence, hand it in as you leave.'",
+      "'name one organisation in your own network where today's stakeholder salience model would change how they operate.'"
+    ],
+    "case-flip": [
+      "present a cold case from a sector not discussed in the course: 'apply the full value chain framework — no setup, no hints.'",
+      "'here is a case from a non-profit context you have not seen — apply Porter's Five Forces from scratch.'"
+    ],
+    "design-in-novel-context": [
+      "'design a governance structure for a decentralised autonomous organisation using the principal-agent framework — a context we have never discussed.'",
+      "'propose a pricing architecture for a healthcare startup using value-based pricing principles — a new application domain.'"
+    ],
+    "industry-transfer": [
+      "'take the dynamic capabilities framework we applied to tech firms — now apply it to a traditional newspaper publisher.'",
+      "'transfer the BCG matrix logic from consumer products to a university's portfolio of degree programmes.'"
+    ],
+    "era-transfer": [
+      "'apply Porter's Five Forces to the British textile industry in 1820 — what changes, what holds?'",
+      "'how would agency theory apply to the owner-manager relationships of a Victorian railway company?'"
+    ],
+    "personal-transfer": [
+      "'apply today's stakeholder theory framework to your own organisation or most recent employer — who are the salient stakeholders?'",
+      "'use the dynamic capabilities lens to assess your own team's ability to adapt — what is strong, what needs development?'"
+    ],
+    "real-time-current-event": [
+      "'this morning's news reports a major merger — apply Porter's Five Forces to the combined entity in 90 seconds.'",
+      "'a central bank just raised rates — trace the strategic implications for a leveraged buyout using today's capital structure framework.'"
+    ],
+    "role-rotation-transfer": [
+      "apply dynamic capabilities to the same case as the incumbent CEO, then as an activist investor, then as a front-line manager.",
+      "'three roles, one case: analyse the outsourcing decision as the CFO (cost), the HR director (capability), and the CSR officer (reputation).'"
+    ],
+    "micro-strategy-memo": [
+      "'write a one-page memo to the CEO of a real company you follow applying today's ambidexterity framework to their current innovation challenge.'",
+      "'draft a memo to the board of a FTSE 100 firm applying this session's governance concepts to a live board composition issue.'"
+    ],
+    "venture-design": [
+      "'in 5 minutes, sketch a venture that would use the platform network effects framework we discussed today as its core logic.'",
+      "'design a micro-consulting firm whose business model is built explicitly on the resource-based view — sketch the key activities.'"
+    ],
+    "policy-design": [
+      "'design a competition policy that addresses the platform monopoly problem the framework identifies — what would it require?'",
+      "'draft a corporate governance regulation that closes the principal-agent gap we analysed — what mechanisms would you mandate?'"
+    ],
+    "cross-cultural-transfer": [
+      "'apply the stakeholder theory framework to a Japanese keiretsu — what bends, what breaks in a collective ownership context?'",
+      "'transfer the individualistic agency theory assumptions to a German co-determination context — how does the framework need to flex?'"
+    ],
+    "scale-transfer": [
+      "'apply the dynamic capabilities framework to a 15-person consultancy — what changes compared to our multinational case?'",
+      "'transfer the BCG matrix logic to a portfolio of three products in a micro-enterprise — does it still hold?'"
+    ],
+    "real-org-transfer": [
+      "'take today's framework and apply it to a real strategic challenge in your organisation — what action does it suggest?'",
+      "'identify one decision your own team faces that this session's analytical tools could improve — outline the application.'"
+    ],
+    "predict-the-future": [
+      "'using the industry life cycle model and five forces, predict how the ride-hailing industry will evolve over the next decade.'",
+      "'apply the disruptive innovation framework to predict which sectors face the most significant restructuring in the next 15 years.'"
+    ],
+    "artefact-design": [
+      "'design a one-page faculty guide that helps a non-strategy lecturer use Porter's Five Forces in their own discipline.'",
+      "'create a facilitation checklist for running a stakeholder mapping workshop based on today's salient stakeholder model.'"
+    ],
+    "teachback-to-lay-audience": [
+      "present the efficient market hypothesis to a family member without a finance background — 5 minutes, no jargon.",
+      "'explain the principal-agent problem to someone who runs a small business — make it immediately relevant to their context.'"
+    ],
+    "cross-disciplinary-transfer": [
+      "'apply agency theory to the relationship between a surgeon and a hospital — how does the non-business context change the framework?'",
+      "'transfer transaction cost economics to the question of whether a school should outsource its IT support — what does the framework recommend?'"
+    ],
+    "novel-data-transfer": [
+      "'here is a dataset of financial ratios from an industry you have not studied — apply the performance frontier concept to identify which firms are above the efficiency frontier.'",
+      "'use the competitive dynamics framework to interpret this unfamiliar market share data — what competitive moves does it suggest?'"
+    ],
+    "commitment-design": [
+      "'commit to applying today's stakeholder theory in one real conversation or meeting in the next seven days — tell your partner what you will do and when.'",
+      "'pair with a neighbour, commit to one specific action where you will use today's concept, and agree to check in next week.'"
+    ]
+  };
+
+  // ── state ──────────────────────────────────────────────────────────────────
+  function fresh() {
+    return { q: '', tier: [], timeMin: 1, timeMax: 10, classSize: [], prep: [], tech: [], position: [], stakes: [], assessable: 'any', async: [] };
+  }
+  var st = fresh();
+
+  // ── elements ───────────────────────────────────────────────────────────────
+  var searchEl    = document.getElementById('search-input');
+  var timeMinEl   = document.getElementById('time-min');
+  var timeMaxEl   = document.getElementById('time-max');
+  var fillEl      = document.getElementById('range-fill');
+  var lblTmin     = document.getElementById('lbl-tmin');
+  var lblTmax     = document.getElementById('lbl-tmax');
+  var countEl     = document.getElementById('result-count');
+  var gridEl      = document.getElementById('cards-grid');
+  var emptyEl     = document.getElementById('empty-state');
+  var resetBtn    = document.getElementById('reset-btn');
+  var emptyReset  = document.getElementById('empty-reset-btn');
+  var sidebarEl   = document.getElementById('sidebar');
+  var backdropEl  = document.getElementById('sidebar-backdrop');
+  var mobileBtn   = document.getElementById('mobile-filter-btn');
+  var closeBtn    = document.getElementById('sidebar-close');
+  var badgeEl     = document.getElementById('filter-badge');
+  var allChips    = document.querySelectorAll('.chip[data-filter]');
+  var triBtns     = document.querySelectorAll('.tristate-btn');
+
+  // ── URL sync ───────────────────────────────────────────────────────────────
+  function readURL() {
+    var p = new URLSearchParams(location.search);
+    if (p.has('q'))      st.q = p.get('q');
+    if (p.has('tier'))   st.tier = p.get('tier').split(',').map(Number).filter(function(n){return n>=1&&n<=5;});
+    if (p.has('tmin'))   st.timeMin = Math.max(1, Math.min(10, parseInt(p.get('tmin')) || 1));
+    if (p.has('tmax'))   st.timeMax = Math.max(1, Math.min(10, parseInt(p.get('tmax')) || 10));
+    if (p.has('size'))   st.classSize = p.get('size').split(',').filter(Boolean);
+    if (p.has('prep'))   st.prep = p.get('prep').split(',').filter(Boolean);
+    if (p.has('tech'))   st.tech = p.get('tech').split(',').filter(Boolean);
+    if (p.has('pos'))    st.position = p.get('pos').split(',').filter(Boolean);
+    if (p.has('stakes')) st.stakes = p.get('stakes').split(',').filter(Boolean);
+    if (p.has('assess')) { var a = p.get('assess'); if (['any','yes','no'].indexOf(a)>-1) st.assessable = a; }
+    if (p.has('async'))  st.async = p.get('async').split(',').filter(Boolean);
+  }
+
+  function writeURL() {
+    var p = new URLSearchParams();
+    if (st.q)                          p.set('q',      st.q);
+    if (st.tier.length)                p.set('tier',   st.tier.join(','));
+    if (st.timeMin > 1)                p.set('tmin',   st.timeMin);
+    if (st.timeMax < 10)               p.set('tmax',   st.timeMax);
+    if (st.classSize.length)           p.set('size',   st.classSize.join(','));
+    if (st.prep.length)                p.set('prep',   st.prep.join(','));
+    if (st.tech.length)                p.set('tech',   st.tech.join(','));
+    if (st.position.length)            p.set('pos',    st.position.join(','));
+    if (st.stakes.length)              p.set('stakes', st.stakes.join(','));
+    if (st.assessable !== 'any')       p.set('assess', st.assessable);
+    if (st.async.length)               p.set('async',  st.async.join(','));
+    var s = p.toString();
+    history.replaceState(null, '', s ? ('?' + s) : location.pathname);
+  }
+
+  // ── filtering ──────────────────────────────────────────────────────────────
+  function filtered() {
+    return moves.filter(function (m) {
+      if (st.q) {
+        var q = st.q.toLowerCase();
+        if (m.name.toLowerCase().indexOf(q) === -1 && m.description.toLowerCase().indexOf(q) === -1) return false;
+      }
+      if (st.tier.length && st.tier.indexOf(m.tier) === -1) return false;
+      if (m.time_min < st.timeMin || m.time_min > st.timeMax) return false;
+      if (st.classSize.length && !st.classSize.some(function(s){return m.class_size.indexOf(s)>-1;})) return false;
+      if (st.prep.length && st.prep.indexOf(m.prep) === -1) return false;
+      if (st.tech.length && st.tech.indexOf(m.tech) === -1) return false;
+      if (st.position.length && !st.position.some(function(p){return m.position.indexOf(p)>-1;})) return false;
+      if (st.stakes.length && st.stakes.indexOf(m.stakes) === -1) return false;
+      if (st.assessable === 'yes' && !m.assessable) return false;
+      if (st.assessable === 'no'  &&  m.assessable) return false;
+      if (st.async.length && st.async.indexOf(m.async) === -1) return false;
+      return true;
+    }).sort(function (a, b) {
+      return a.tier !== b.tier ? a.tier - b.tier : a.time_min - b.time_min;
+    });
+  }
+
+  // ── card rendering ─────────────────────────────────────────────────────────
+  function posLabel(pos) {
+    var o = pos.indexOf('opening') > -1, m = pos.indexOf('middle') > -1, c = pos.indexOf('closing') > -1;
+    if (o && m && c) return 'any';
+    if (o && m)      return 'open/mid';
+    if (m && c)      return 'mid/close';
+    if (o && c)      return 'open/close';
+    if (o)           return 'open';
+    if (m)           return 'mid';
+    return 'close';
+  }
+
+  var PREP = { zero: '—', light: '✱', heavy: '✱✱✱' };
+  var TECH = { none: 'no tech', poll: 'poll', projector: 'projector', 'shared-board': 'board' };
+  var ASYNC = { 'sync-only': 'sync-only', 'sync-preferred': 'sync-pref', 'async-ok': 'async-ok' };
+  var STAKES_C = { low: '#22C55E', medium: '#F59E0B', high: '#EF4444' };
+  var SIZES = ['small', 'medium', 'large'];
+
+  function card(m) {
+    var tier = tierMap[m.tier];
+    var tc = tier.color_hex;
+    var szLabel = SIZES.filter(function(s){return m.class_size.indexOf(s)>-1;}).join(', ');
+    var dots = SIZES.map(function(s){
+      var f = m.class_size.indexOf(s) > -1;
+      return '<span class="sdot' + (f ? '" style="color:' + tc : ' btag') + '" aria-hidden="true" title="' + s + '">●</span>';
+    }).join('');
+    var prepTxt = PREP[m.prep];
+    var stakesC = STAKES_C[m.stakes];
+    var aLabel = 'class size: ' + szLabel + '; prep: ' + m.prep + '; tech: ' + m.tech + '; position: ' + m.position.join(', ') + '; stakes: ' + m.stakes + '; assessable: ' + (m.assessable ? 'yes' : 'no') + '; async: ' + m.async;
+    var examples = EXAMPLES[m.id] || [];
+    var expandHtml = '<div class="card-expand" aria-hidden="true">'
+      + '<div class="expand-ctx"><span class="expand-lbl">ask ·</span> ' + tier.ask + ' <span class="expand-lbl">when ·</span> ' + tier.when + '</div>'
+      + (examples.length ? '<div class="expand-ex"><span class="expand-lbl">examples</span><ol class="expand-list">' + examples.map(function(ex){return '<li>'+ex+'</li>';}).join('') + '</ol></div>' : '')
+      + '</div>';
+
+    return '<article class="card" role="listitem" tabindex="0" aria-expanded="false" aria-label="' + m.name + ', tier ' + m.tier + ' ' + tier.name + ', ' + m.time_min + ' min. press enter to expand.">'
+      + '<div class="card-bar" style="background:' + tc + '" aria-hidden="true"></div>'
+      + '<div class="card-body">'
+        + '<div class="tier-row">'
+          + '<span class="tier-lbl" style="color:' + tc + '">tier ' + m.tier + ' · ' + tier.name + '</span>'
+          + '<div class="tier-row-right">'
+            + '<span class="time-chip" style="background:' + tc + '">' + m.time_min + ' min</span>'
+            + '<span class="expand-icon" aria-hidden="true">▾</span>'
+          + '</div>'
+        + '</div>'
+        + '<h2 class="card-name">' + m.name + '</h2>'
+        + '<div class="badges" aria-label="' + aLabel + '">'
+          + '<span class="sdots" aria-hidden="true">' + dots + '</span>'
+          + '<span class="bdot" aria-hidden="true">·</span>'
+          + '<span aria-hidden="true" style="color:' + tc + ';font-weight:600">' + prepTxt + '</span>'
+          + '<span class="bdot" aria-hidden="true">·</span>'
+          + '<span class="btag">' + TECH[m.tech] + '</span>'
+          + '<span class="bdot" aria-hidden="true">·</span>'
+          + '<span class="btag">' + posLabel(m.position) + '</span>'
+          + '<span class="bdot" aria-hidden="true">·</span>'
+          + '<span class="sdot" style="color:' + stakesC + '" aria-hidden="true">●</span>'
+          + '<span class="btag">' + m.stakes + '</span>'
+          + '<span class="bdot" aria-hidden="true">·</span>'
+          + '<span class="' + (m.assessable ? 'assess-yes' : 'assess-no') + '" aria-hidden="true">' + (m.assessable ? '✓' : '—') + '</span>'
+          + '<span class="bdot" aria-hidden="true">·</span>'
+          + '<span class="btag">' + ASYNC[m.async] + '</span>'
+        + '</div>'
+        + '<p class="card-desc">' + m.description + '</p>'
+        + expandHtml
+      + '</div>'
+    + '</article>';
+  }
+
+  // ── render ─────────────────────────────────────────────────────────────────
+  function render() {
+    var f = filtered();
+    countEl.textContent = 'showing ' + f.length + ' of ' + moves.length + ' moves';
+    updateBadge();
+    if (f.length === 0) {
+      gridEl.style.display = 'none';
+      emptyEl.style.display = 'flex';
+    } else {
+      emptyEl.style.display = 'none';
+      gridEl.style.display = 'grid';
+      gridEl.innerHTML = f.map(card).join('');
+    }
+    writeURL();
+  }
+
+  // ── sync UI to state ───────────────────────────────────────────────────────
+  function syncUI() {
+    searchEl.value = st.q;
+    timeMinEl.value = st.timeMin;
+    timeMaxEl.value = st.timeMax;
+    lblTmin.textContent = st.timeMin + ' min';
+    lblTmax.textContent = st.timeMax + ' min';
+    updateFill();
+
+    allChips.forEach(function (chip) {
+      var f = chip.dataset.filter;
+      var v = chip.dataset.value;
+      var active = f === 'tier' ? st.tier.indexOf(parseInt(v)) > -1 : st[f].indexOf(v) > -1;
+      chip.classList.toggle('active', active);
+      chip.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+    triBtns.forEach(function (btn) {
+      var active = btn.dataset.tri === st.assessable;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function updateFill() {
+    var mn = parseInt(timeMinEl.value), mx = parseInt(timeMaxEl.value);
+    var p1 = ((mn - 1) / 9) * 100, p2 = ((mx - 1) / 9) * 100;
+    fillEl.style.left = p1 + '%';
+    fillEl.style.width = (p2 - p1) + '%';
+  }
+
+  function updateBadge() {
+    var n = st.tier.length + st.classSize.length + st.prep.length + st.tech.length
+          + st.position.length + st.stakes.length + st.async.length
+          + (st.q ? 1 : 0)
+          + (st.timeMin > 1 || st.timeMax < 10 ? 1 : 0)
+          + (st.assessable !== 'any' ? 1 : 0);
+    badgeEl.textContent = n > 0 ? '(' + n + ')' : '';
+  }
+
+  // ── reset ──────────────────────────────────────────────────────────────────
+  function reset() {
+    Object.assign(st, fresh());
+    syncUI();
+    render();
+  }
+
+  // ── events ─────────────────────────────────────────────────────────────────
+  searchEl.addEventListener('input', function () { st.q = searchEl.value.trim(); render(); });
+
+  timeMinEl.addEventListener('input', function () {
+    var mn = parseInt(timeMinEl.value), mx = parseInt(timeMaxEl.value);
+    if (mn > mx) { mx = mn; timeMaxEl.value = mx; }
+    st.timeMin = mn; st.timeMax = mx;
+    lblTmin.textContent = mn + ' min'; lblTmax.textContent = mx + ' min';
+    updateFill(); render();
+  });
+
+  timeMaxEl.addEventListener('input', function () {
+    var mn = parseInt(timeMinEl.value), mx = parseInt(timeMaxEl.value);
+    if (mx < mn) { mn = mx; timeMinEl.value = mn; }
+    st.timeMin = mn; st.timeMax = mx;
+    lblTmin.textContent = mn + ' min'; lblTmax.textContent = mx + ' min';
+    updateFill(); render();
+  });
+
+  allChips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var f = chip.dataset.filter;
+      var v = f === 'tier' ? parseInt(chip.dataset.value) : chip.dataset.value;
+      var arr = st[f];
+      var idx = arr.indexOf(v);
+      if (idx === -1) arr.push(v); else arr.splice(idx, 1);
+      var active = idx === -1;
+      chip.classList.toggle('active', active);
+      chip.setAttribute('aria-pressed', active ? 'true' : 'false');
+      render();
+    });
+  });
+
+  triBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      st.assessable = btn.dataset.tri;
+      triBtns.forEach(function (b) {
+        var a = b.dataset.tri === st.assessable;
+        b.classList.toggle('active', a);
+        b.setAttribute('aria-pressed', a ? 'true' : 'false');
+      });
+      render();
+    });
+  });
+
+  resetBtn.addEventListener('click', reset);
+  emptyReset.addEventListener('click', reset);
+
+  // ── card expand/collapse ───────────────────────────────────────────────────
+  function toggleCard(c) {
+    var open = c.classList.toggle('expanded');
+    c.setAttribute('aria-expanded', open ? 'true' : 'false');
+    var exp = c.querySelector('.card-expand');
+    if (exp) exp.setAttribute('aria-hidden', open ? 'false' : 'true');
+  }
+
+  gridEl.addEventListener('click', function (e) {
+    var c = e.target.closest('article.card');
+    if (c) toggleCard(c);
+  });
+
+  gridEl.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var c = e.target.closest('article.card');
+    if (!c) return;
+    e.preventDefault();
+    toggleCard(c);
+  });
+
+  // ── mobile drawer ──────────────────────────────────────────────────────────
+  function openSidebar() {
+    sidebarEl.classList.add('open');
+    backdropEl.classList.add('open');
+    backdropEl.removeAttribute('aria-hidden');
+    mobileBtn.setAttribute('aria-expanded', 'true');
+    closeBtn.focus();
+  }
+
+  function closeSidebar() {
+    sidebarEl.classList.remove('open');
+    backdropEl.classList.remove('open');
+    backdropEl.setAttribute('aria-hidden', 'true');
+    mobileBtn.setAttribute('aria-expanded', 'false');
+    mobileBtn.focus();
+  }
+
+  mobileBtn.addEventListener('click', openSidebar);
+  closeBtn.addEventListener('click', closeSidebar);
+  backdropEl.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && sidebarEl.classList.contains('open')) closeSidebar();
+  });
+
+  // ── init ───────────────────────────────────────────────────────────────────
+  readURL();
+  syncUI();
+  render();
+}());
+</script>
+</body>
+</html>

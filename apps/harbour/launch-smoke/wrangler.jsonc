@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "wv-launch-smoke",
+  "main": "src/index.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "triggers": {
+    "crons": ["*/30 * * * *"]
+  },
+
+  "kv_namespaces": [
+    {
+      "binding": "SMOKE_LATEST",
+      "id": "b67fcfef7da04135999738370da62c8f"
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}

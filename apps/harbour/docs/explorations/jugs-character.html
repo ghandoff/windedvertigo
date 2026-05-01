@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>jugs — harbour character sketch v5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:    #fff4e0;
+    --paper:    #f1e3c8;
+    --ink:      #241c1e;
+    --ink-soft: #3a2e2f;
+    --jug-lt:   #fdf7ec;
+    --jug:      #f0ecdf;
+    --jug-sh:   #cfc4aa;
+    --jug-in:   #a69b7e;
+    --seam:     #a89f85;
+    --blush:    #e89b8a;
+    --redwood:  #b15043;
+    --sienna:   #cb7858;
+    --sand:     #d9cdb0;
+    --sand-dk:  #7d6a45;
+    --sand-in:  #9b8862;
+    --sky:      #9dbbcf;
+    --water:    #7aa9bf;
+    --cream-dk: #ead8b5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 48px 24px 96px;
+    background: var(--cream); color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px; line-height: 1.6; position: relative;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.14  0 0 0 0 0.11  0 0 0 0 0.12  0 0 0 0.18 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+    background-size: 300px 300px;
+    mix-blend-mode: multiply;
+    pointer-events: none; z-index: 50; opacity: 0.9;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; position: relative; z-index: 1; }
+  header { text-align: center; margin-bottom: 56px; }
+  .kicker {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: lowercase; color: var(--sand-dk); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: clamp(56px, 10vw, 112px); letter-spacing: -0.025em;
+    margin: 0 0 4px; line-height: 0.92;
+    font-variation-settings: "opsz" 144;
+    transform: rotate(-1deg);
+  }
+  .subtitle {
+    font-size: 18px; opacity: 0.7; margin: 8px 0 0;
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-variation-settings: "opsz" 14;
+  }
+  h2 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 32px;
+    letter-spacing: -0.01em; margin: 0 0 4px;
+    font-variation-settings: "opsz" 72;
+  }
+  .section-kicker {
+    font-size: 11px; letter-spacing: 0.14em; font-weight: 700;
+    opacity: 0.55; margin: 0 0 28px;
+  }
+  section { margin-bottom: 56px; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .card {
+    background: var(--paper); border-radius: 18px;
+    padding: 14px 10px 16px; text-align: center;
+    transition: transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 10px 24px -18px rgba(42,28,22,0.25);
+  }
+  .card:hover { transform: rotate(-1.5deg) scale(1.02); }
+  .card:nth-child(2n):hover { transform: rotate(1.5deg) scale(1.02); }
+  .card svg { width: 100%; height: auto; display: block; }
+  .card .label { font-size: 13px; font-weight: 600; margin: 8px 0 0; letter-spacing: 0.02em; }
+  .card .caption {
+    font-size: 11px; opacity: 0.55; margin: 2px 0 0; letter-spacing: 0.03em;
+    font-style: italic; font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 14;
+  }
+
+  .adult { position: relative; z-index: 100; }
+  .adult .card {
+    background: #ffffff; box-shadow: none;
+    border: 1px solid #eee; border-radius: 10px;
+  }
+  .adult .card:hover { transform: none; }
+  .adult .card .caption { font-style: normal; font-family: 'Inter', sans-serif; }
+
+  .featured {
+    margin: 24px 0 56px; padding: 32px 24px 40px;
+    background: var(--paper); border-radius: 24px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .featured::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.4  0 0 0 0 0.2  0 0 0 0.1 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+    background-size: 300px 300px;
+    mix-blend-mode: multiply; pointer-events: none; opacity: 0.7;
+  }
+  .morpher {
+    width: 100%; max-width: 460px; height: auto; display: block;
+    margin: 0 auto; cursor: pointer;
+    transition: filter 300ms ease, opacity 300ms ease;
+  }
+  .morpher.morphing { filter: blur(3.5px); opacity: 0.7; }
+
+  /* pose rotation via CSS style.transform so it transitions smoothly */
+  #m-jug-group {
+    transition: transform 620ms cubic-bezier(0.34, 1.65, 0.64, 1);
+  }
+  .morpher.morphing #m-jug-group {
+    transition: transform 320ms cubic-bezier(0.5, 0.0, 0.6, 0.3);
+  }
+
+  .featured-caption {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 14px; opacity: 0.7; margin: 12px 0 0;
+    font-variation-settings: "opsz" 14;
+  }
+  .featured-pose {
+    font-family: 'Fraunces', serif; font-size: 22px; margin: 6px 0 0;
+    font-variation-settings: "opsz" 72;
+  }
+  .tip {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    color: var(--ink); background: var(--cream);
+    border-radius: 999px; padding: 6px 14px;
+    margin-top: 16px; opacity: 0.75;
+  }
+
+  .settle { animation: settle 5s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  .settle.a { animation-delay: -1.4s; }
+  .settle.b { animation-delay: -2.8s; }
+  .settle.c { animation-delay: -4.2s; }
+  @keyframes settle {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(0.8px) scale(1.004); }
+  }
+  .heft { animation: heft 9s ease-in-out infinite; transform-origin: 100px 140px; transform-box: view-box; }
+  @keyframes heft {
+    0%, 85%, 100% { transform: rotate(0deg); }
+    88% { transform: rotate(-1.2deg); }
+    92% { transform: rotate(1.8deg); }
+    96% { transform: rotate(-0.6deg); }
+  }
+  .slowblink { animation: slowblink 7s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes slowblink {
+    0%, 94%, 100% { transform: scaleY(1); }
+    97% { transform: scaleY(0.15); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .settle, .heft, .slowblink { animation: none; }
+    .card, .morpher, #m-jug-group { transition: none; }
+  }
+
+  aside {
+    margin-top: 64px; padding: 32px;
+    background: var(--cream-dk); border-radius: 20px;
+    font-size: 14px; line-height: 1.75;
+  }
+  aside h3 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px;
+    margin: 0 0 12px; font-variation-settings: "opsz" 72;
+  }
+  aside ul { margin: 0; padding-left: 20px; }
+  aside li { margin-bottom: 8px; }
+  aside li code {
+    background: var(--cream); padding: 1px 6px; border-radius: 4px;
+    font-size: 12px; font-family: ui-monospace, monospace;
+  }
+  .divider {
+    border: none; height: 1px;
+    background: linear-gradient(to right, transparent, rgba(42,28,22,0.18), transparent);
+    margin: 48px 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">harbour character sketch · 02</p>
+  <h1>jugs</h1>
+  <p class="subtitle">a vessel who says yes to almost everyone</p>
+</header>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="edgeWobble" x="-3%" y="-3%" width="106%" height="106%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="11"/>
+      <feDisplacementMap in="SourceGraphic" scale="2.4"/>
+    </filter>
+
+    <clipPath id="boat-clip" clipPathUnits="userSpaceOnUse">
+      <rect x="0" y="42" width="200" height="118"/>
+    </clipPath>
+    <clipPath id="drum-clip" clipPathUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="200" height="118"/>
+    </clipPath>
+
+    <symbol id="splatter" viewBox="0 0 200 160">
+      <circle cx="14" cy="22" r="1.4" fill="var(--ink)" opacity="0.55"/>
+      <circle cx="24" cy="18" r="0.8" fill="var(--ink)" opacity="0.4"/>
+      <circle cx="180" cy="30" r="1.2" fill="var(--ink)" opacity="0.5"/>
+      <ellipse cx="188" cy="42" rx="0.9" ry="1.4" fill="var(--ink)" opacity="0.45" transform="rotate(30 188 42)"/>
+      <circle cx="10" cy="135" r="1.6" fill="var(--ink)" opacity="0.6"/>
+      <circle cx="22" cy="142" r="0.7" fill="var(--ink)" opacity="0.35"/>
+      <circle cx="170" cy="140" r="1.1" fill="var(--blush)" opacity="0.7"/>
+      <ellipse cx="186" cy="132" rx="1.8" ry="0.7" fill="var(--blush)" opacity="0.5" transform="rotate(-20 186 132)"/>
+      <circle cx="100" cy="8" r="0.8" fill="var(--ink)" opacity="0.3"/>
+      <circle cx="190" cy="90" r="0.6" fill="var(--ink)" opacity="0.35"/>
+    </symbol>
+
+    <!-- ─── jug-kid — flush silhouette with large grip hole in top-right ──
+         body is a continuous shape (no external bulge); the grip is a big
+         rounded-rectangle opening carved through the upper-right corner.
+         8 units of "handle arm" material to the right of the hole.        -->
+    <symbol id="jug-kid" viewBox="0 0 200 160">
+      <!-- blush halo -->
+      <g transform="translate(4 5)" opacity="0.5" fill="var(--blush)">
+        <path fill-rule="evenodd"
+              d="M 88 14 L 112 14 L 112 32 Q 116 42 128 48 Q 142 50 142 62 L 142 128 Q 142 140 130 140 L 70 140 Q 58 140 58 128 L 58 62 Q 58 50 72 48 Q 84 42 88 32 Z
+                 M 118 68 L 130 68 Q 134 68 134 72 L 134 98 Q 134 102 130 102 L 118 102 Q 114 102 114 98 L 114 72 Q 114 68 118 68 Z"/>
+      </g>
+
+      <!-- body + carved grip hole, one path, evenodd rule subtracts the hole -->
+      <path fill-rule="evenodd"
+            d="M 88 14 L 112 14 L 112 32 Q 116 42 128 48 Q 142 50 142 62 L 142 128 Q 142 140 130 140 L 70 140 Q 58 140 58 128 L 58 62 Q 58 50 72 48 Q 84 42 88 32 Z
+               M 118 68 L 130 68 Q 134 68 134 72 L 134 98 Q 134 102 130 102 L 118 102 Q 114 102 114 98 L 114 72 Q 114 68 118 68 Z"
+            fill="var(--jug)" stroke="var(--ink)" stroke-width="2.6"
+            stroke-linejoin="round" filter="url(#edgeWobble)"/>
+
+      <!-- cap with CHIPPED LIP TELL — small V-notch in the upper edge,
+           slightly left of centre (x=91..97, depth 5). distinguishes
+           jugs at silhouette level from a generic stoppered bottle. -->
+      <path d="M 89 2 L 91 2 L 94 7 L 97 2 L 114 2 Q 117 2 117 5 L 117 10 Q 117 13 114 13 L 89 13 Q 86 13 86 10 L 86 5 Q 86 2 89 2 Z"
+            fill="var(--redwood)" stroke="var(--ink)" stroke-width="1.6"
+            stroke-linejoin="round"/>
+      <line x1="88" y1="8" x2="112" y2="8"
+            stroke="var(--ink)" stroke-width="0.6" opacity="0.5"/>
+
+      <!-- mold seam (down the centre, avoiding the grip hole) -->
+      <line x1="100" y1="52" x2="100" y2="135"
+            stroke="var(--seam)" stroke-width="1" stroke-dasharray="1 3" opacity="0.5"/>
+
+      <!-- condensation droplets -->
+      <ellipse cx="75" cy="70" rx="1.3" ry="1.8" fill="var(--water)" opacity="0.4"/>
+      <ellipse cx="80" cy="94" rx="1.1" ry="1.5" fill="var(--water)" opacity="0.35"/>
+      <ellipse cx="72" cy="115" rx="1.4" ry="1.9" fill="var(--water)" opacity="0.4"/>
+      <ellipse cx="100" cy="120" rx="1.1" ry="1.5" fill="var(--water)" opacity="0.3"/>
+
+      <!-- label -->
+      <rect x="70" y="112" width="42" height="14" rx="1.5"
+            fill="none" stroke="var(--ink)" stroke-width="0.9" opacity="0.28"/>
+
+      <!-- left edge highlight -->
+      <path d="M 66 62 Q 64 92 68 126"
+            fill="none" stroke="var(--jug-lt)" stroke-width="4"
+            stroke-linecap="round" opacity="0.8"/>
+    </symbol>
+
+    <!-- jug-adult: flat rendering -->
+    <symbol id="jug-adult" viewBox="0 0 200 160">
+      <path fill-rule="evenodd"
+            d="M 88 14 L 112 14 L 112 32 Q 116 42 128 48 Q 142 50 142 62 L 142 128 Q 142 140 130 140 L 70 140 Q 58 140 58 128 L 58 62 Q 58 50 72 48 Q 84 42 88 32 Z
+               M 118 68 L 130 68 Q 134 68 134 72 L 134 98 Q 134 102 130 102 L 118 102 Q 114 102 114 98 L 114 72 Q 114 68 118 68 Z"
+            fill="var(--sand)" stroke="var(--ink)" stroke-width="2.2"
+            stroke-linejoin="round"/>
+      <!-- cap with chipped-lip tell (same notch as kid variant, muted palette) -->
+      <path d="M 89 2 L 91 2 L 94 7 L 97 2 L 114 2 Q 117 2 117 5 L 117 10 Q 117 13 114 13 L 89 13 Q 86 13 86 10 L 86 5 Q 86 2 89 2 Z"
+            fill="var(--sand-dk)" stroke="var(--ink)" stroke-width="1.4"
+            stroke-linejoin="round"/>
+      <line x1="100" y1="52" x2="100" y2="135"
+            stroke="var(--sand-dk)" stroke-width="1" opacity="0.5"/>
+    </symbol>
+
+    <!-- shower-head spray: origin at cap TIP (50, 128) — water emerges from the cap,
+         not from the neck behind it -->
+    <symbol id="shower-water" viewBox="0 0 200 160">
+      <g stroke="var(--water)" stroke-width="1.1" stroke-linecap="round" fill="none">
+        <path d="M 50 128 Q 32 140 16 156" opacity="0.85"/>
+        <path d="M 50 128 Q 38 144 28 158" opacity="0.85"/>
+        <path d="M 50 128 Q 46 144 42 158" opacity="0.85"/>
+        <path d="M 50 128 Q 52 144 54 158" opacity="0.85"/>
+        <path d="M 50 128 Q 58 144 66 158" opacity="0.85"/>
+        <path d="M 50 128 Q 66 142 80 156" opacity="0.85"/>
+        <path d="M 50 128 Q 72 140 92 150" opacity="0.85"/>
+      </g>
+      <g fill="var(--water)" stroke="var(--ink)" stroke-width="0.5">
+        <circle cx="16" cy="156" r="1.2"/>
+        <circle cx="28" cy="158" r="1.3"/>
+        <circle cx="42" cy="158" r="1.2"/>
+        <circle cx="54" cy="158" r="1.4"/>
+        <circle cx="66" cy="158" r="1.3"/>
+        <circle cx="80" cy="156" r="1.4"/>
+        <circle cx="92" cy="150" r="1.2"/>
+      </g>
+      <g fill="var(--water)" opacity="0.7">
+        <circle cx="36" cy="144" r="0.7"/>
+        <circle cx="50" cy="144" r="0.8"/>
+        <circle cx="64" cy="144" r="0.7"/>
+      </g>
+    </symbol>
+
+    <!-- opening ellipse — shifted left 10, up 3 from body-top-centre alignment -->
+    <symbol id="boat-opening" viewBox="0 0 200 160">
+      <ellipse cx="118" cy="53" rx="35" ry="5"
+               fill="#1a1214" stroke="var(--ink)" stroke-width="2.4"/>
+      <path d="M 86 51 Q 118 48 150 51"
+            fill="none" stroke="var(--jug-lt)" stroke-width="1.4" opacity="0.85"/>
+    </symbol>
+
+    <!-- adult-mode opening (flat) — shifted left 10, up 3 -->
+    <symbol id="boat-opening-adult" viewBox="0 0 200 160">
+      <ellipse cx="118" cy="53" rx="35" ry="5"
+               fill="var(--sand-in)" stroke="var(--ink)" stroke-width="2.2"/>
+    </symbol>
+
+    <symbol id="waves" viewBox="0 0 200 160">
+      <path d="M 0 138 Q 25 132 50 138 T 100 138 T 150 138 T 200 138"
+            fill="none" stroke="var(--water)" stroke-width="2.2"
+            stroke-linecap="round" opacity="0.78"/>
+      <path d="M 0 150 Q 30 144 60 150 T 120 150 T 200 150"
+            fill="none" stroke="var(--water)" stroke-width="1.6"
+            stroke-linecap="round" opacity="0.5"/>
+    </symbol>
+
+    <!-- drumsticks — just sticks + beads, no marks around the heads -->
+    <symbol id="sticks" viewBox="0 0 200 160">
+      <g stroke="var(--ink)" stroke-width="3" stroke-linecap="round">
+        <line x1="42" y1="14" x2="80" y2="46"/>
+        <line x1="158" y1="14" x2="120" y2="46"/>
+      </g>
+      <circle cx="80" cy="46" r="4.8" fill="var(--sienna)" stroke="var(--ink)" stroke-width="1.5"/>
+      <circle cx="120" cy="46" r="4.8" fill="var(--sienna)" stroke="var(--ink)" stroke-width="1.5"/>
+    </symbol>
+
+    <!-- drum body vibration marks (wiggle lines on each side of the drum) -->
+    <symbol id="drum-wiggle" viewBox="0 0 200 160">
+      <g stroke="var(--ink)" stroke-width="1.3" stroke-linecap="round" fill="none" opacity="0.6">
+        <!-- left side wiggles -->
+        <path d="M 54 66 Q 50 74 54 82"/>
+        <path d="M 46 58 Q 38 76 46 94"/>
+        <!-- right side wiggles -->
+        <path d="M 146 66 Q 150 74 146 82"/>
+        <path d="M 154 58 Q 162 76 154 94"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- FEATURED MORPHER: everything character-related inside .heft/.settle so it wobbles as one piece -->
+<div class="featured">
+  <svg class="morpher" id="morpher" viewBox="0 0 200 160" aria-label="tap to watch jugs shape-shift">
+    <use href="#splatter" x="0" y="0" width="200" height="160"/>
+    <g class="heft">
+      <g class="settle">
+        <!-- back-extras INSIDE the wobble chain so the shower moves with the jug -->
+        <g id="m-extras-back"></g>
+        <g id="m-clip-wrap">
+          <g id="m-jug-group">
+            <use href="#jug-kid" x="0" y="0" width="200" height="160"/>
+          </g>
+        </g>
+        <!-- pose-specific extras attached to the character — all inside .settle -->
+        <g id="m-boat-opening" opacity="0">
+          <use href="#boat-opening" x="0" y="0" width="200" height="160"/>
+        </g>
+        <line id="m-drum-cut" x1="58" y1="118" x2="142" y2="118"
+              stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round" opacity="0"/>
+        <g id="m-drum-wiggle" opacity="0">
+          <use href="#drum-wiggle" x="0" y="0" width="200" height="160"/>
+        </g>
+        <g id="m-extras-front"></g>
+        <g id="m-eyes" class="slowblink"></g>
+      </g>
+    </g>
+  </svg>
+  <p class="featured-caption">tap jugs. watch them become another thing.</p>
+  <p class="featured-pose" id="morpher-pose">base — just jugs</p>
+  <span class="tip">click / tap to cycle</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     KID MODE — eyes are now inside the .heft/.settle groups
+     ═══════════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>kid mode</h2>
+  <p class="section-kicker">creaseworks · sampler · play dashboards</p>
+
+  <div class="grid">
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="jugs, at rest">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="heft">
+          <g class="settle">
+            <use href="#jug-kid" x="0" y="0" width="200" height="160"/>
+            <g class="slowblink">
+              <circle cx="86" cy="62" r="3.2" fill="var(--ink)"/>
+              <circle cx="98" cy="62" r="3.2" fill="var(--ink)"/>
+              <circle cx="87.2" cy="60.8" r="0.9" fill="var(--cream)"/>
+              <circle cx="99.2" cy="60.8" r="0.9" fill="var(--cream)"/>
+            </g>
+          </g>
+        </g>
+      </svg>
+      <p class="label">base</p>
+      <p class="caption">just jugs</p>
+    </div>
+
+    <!-- watering can: rotate(-135 100 98) translate(14 40) centres bbox at (100, 76);
+         spout lands at (59, 119); shower INSIDE .heft/.settle so it wobbles with the jug -->
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="jugs as a watering can">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="heft">
+          <g class="settle a">
+            <use href="#shower-water" x="0" y="0" width="200" height="160"/>
+            <g transform="rotate(-135 100 98) translate(14 40)">
+              <use href="#jug-kid" x="0" y="0" width="200" height="160"/>
+            </g>
+            <g class="slowblink">
+              <circle cx="101" cy="94" r="3.2" fill="var(--ink)"/>
+              <circle cx="94" cy="87" r="3.2" fill="var(--ink)"/>
+              <circle cx="102.2" cy="92.8" r="0.9" fill="var(--cream)"/>
+              <circle cx="95.2" cy="85.8" r="0.9" fill="var(--cream)"/>
+            </g>
+          </g>
+        </g>
+      </svg>
+      <p class="label">watering can</p>
+      <p class="caption">function · nurture</p>
+    </div>
+
+    <!-- boat: rotate(-90 100 98) translate(5 25) raises the body 5px; opening
+         at cy=56 sits on new body top (y=51); eyes dropped to y=92 -->
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="jugs as a boat">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="heft">
+          <g class="settle b">
+            <g transform="rotate(-90 100 98) translate(5 25)">
+              <use href="#jug-kid" x="0" y="0" width="200" height="160"/>
+            </g>
+            <use href="#boat-opening" x="0" y="0" width="200" height="160"/>
+            <g class="slowblink">
+              <circle cx="118" cy="92" r="3.2" fill="var(--ink)"/>
+              <circle cx="138" cy="92" r="3.2" fill="var(--ink)"/>
+              <circle cx="119.2" cy="90.8" r="0.9" fill="var(--cream)"/>
+              <circle cx="139.2" cy="90.8" r="0.9" fill="var(--cream)"/>
+            </g>
+          </g>
+        </g>
+        <use href="#waves" x="0" y="0" width="200" height="160"/>
+      </svg>
+      <p class="label">boat</p>
+      <p class="caption">function · float</p>
+    </div>
+
+    <!-- drum: sticks + wiggles INSIDE the wobble chain so they move with the drum -->
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="jugs as a drum">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="heft">
+          <g class="settle c">
+            <g clip-path="url(#drum-clip)">
+              <g transform="rotate(180 100 95)">
+                <use href="#jug-kid" x="0" y="0" width="200" height="160"/>
+              </g>
+            </g>
+            <line x1="58" y1="118" x2="142" y2="118"
+                  stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/>
+            <use href="#drum-wiggle" x="0" y="0" width="200" height="160"/>
+            <use href="#sticks" x="0" y="0" width="200" height="160"/>
+            <g class="slowblink">
+              <circle cx="92" cy="78" r="3.2" fill="var(--ink)"/>
+              <circle cx="108" cy="78" r="3.2" fill="var(--ink)"/>
+              <circle cx="93.2" cy="76.8" r="0.9" fill="var(--cream)"/>
+              <circle cx="109.2" cy="76.8" r="0.9" fill="var(--cream)"/>
+            </g>
+          </g>
+        </g>
+      </svg>
+      <p class="label">drum</p>
+      <p class="caption">function · rhythm</p>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<section class="adult">
+  <h2>adult mode</h2>
+  <p class="section-kicker">vertigo vault · depth chart · research surfaces</p>
+
+  <div class="grid">
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="jugs, restrained">
+        <use href="#jug-adult" x="0" y="0" width="200" height="160"/>
+        <circle cx="88" cy="62" r="2" fill="var(--ink)"/>
+        <circle cx="98" cy="62" r="2" fill="var(--ink)"/>
+      </svg>
+      <p class="label">base</p>
+      <p class="caption">at rest</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="jugs pouring">
+        <g fill="none" stroke="var(--sand-dk)" stroke-width="1" stroke-linecap="round" opacity="0.75">
+          <path d="M 59 119 Q 42 135 24 155"/>
+          <path d="M 59 119 Q 54 140 48 158"/>
+          <path d="M 59 119 Q 66 140 72 158"/>
+          <path d="M 59 119 Q 78 134 98 145"/>
+        </g>
+        <g transform="rotate(-135 100 98) translate(14 40)">
+          <use href="#jug-adult" x="0" y="0" width="200" height="160"/>
+        </g>
+        <circle cx="101" cy="94" r="2" fill="var(--ink)"/>
+        <circle cx="94" cy="87" r="2" fill="var(--ink)"/>
+      </svg>
+      <p class="label">pouring</p>
+      <p class="caption">vessel · sprayed</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="jugs as an open trough">
+        <g transform="rotate(-90 100 98) translate(5 25)">
+          <use href="#jug-adult" x="0" y="0" width="200" height="160"/>
+        </g>
+        <use href="#boat-opening-adult" x="0" y="0" width="200" height="160"/>
+        <path d="M 0 138 Q 50 132 100 138 T 200 138"
+              fill="none" stroke="var(--sand-dk)" stroke-width="1.6"
+              stroke-linecap="round" opacity="0.7"/>
+        <circle cx="118" cy="92" r="2" fill="var(--ink)"/>
+        <circle cx="138" cy="92" r="2" fill="var(--ink)"/>
+      </svg>
+      <p class="label">float</p>
+      <p class="caption">open trough</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="jugs as a cylinder">
+        <g clip-path="url(#drum-clip)">
+          <g transform="rotate(180 100 95)">
+            <use href="#jug-adult" x="0" y="0" width="200" height="160"/>
+          </g>
+        </g>
+        <line x1="58" y1="118" x2="142" y2="118" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="92" cy="78" r="2" fill="var(--ink)"/>
+        <circle cx="108" cy="78" r="2" fill="var(--ink)"/>
+      </svg>
+      <p class="label">drum</p>
+      <p class="caption">cylinder form</p>
+    </div>
+
+  </div>
+</section>
+
+<aside>
+  <h3>what changed in v5</h3>
+  <ul>
+    <li><strong>grip hole carved into top-right, no external bulge.</strong> the body silhouette is now a continuous shape with a clean right edge. the grip is a rounded-rectangle cavity (20 × 34 units, roughly twice the previous size) positioned in the upper right. about 8 units of "handle arm" material to the right of the hole — enough to read as a handle without forcing a bulge.</li>
+    <li><strong>watering jug raised to translate(0 -50).</strong> the full silhouette + spout are now in the upper portion of the tile; the shower spray has clear room below it. seven streams radiate from the spout mouth with droplets at the ends.</li>
+    <li><strong>boat gets a proper rim opening.</strong> an ellipse at (102, 42) with ry=7 stands in for the flat cut line — fills with a darker interior tone, gets its own ink outline, and includes a subtle light curve along the back suggesting the far rim edge. reads exactly like a cup seen from slightly above.</li>
+    <li><strong>drum follows the new silhouette.</strong> same rotate + clip as before, just with the cleaner jug shape under it. the spout cut-edge stays as a horizontal ink line along the bottom.</li>
+    <li><strong>eyes wiggle with the body now.</strong> eyes moved <em>inside</em> the <code>.heft</code> + <code>.settle</code> groups (but still <em>outside</em> the pose rotation group), so they participate in the shimmy and breathing animations while staying screen-upright when the jug rotates.</li>
+  </ul>
+
+  <h3 style="margin-top: 32px;">structure for reference</h3>
+  <pre style="font-size: 12px; background: var(--cream); padding: 12px; border-radius: 8px; overflow-x: auto;">
+&lt;g class="heft"&gt;              <em>← heft wobble applies here</em>
+  &lt;g class="settle"&gt;           <em>← breathing applies here</em>
+    &lt;g id="m-clip-wrap"&gt;       <em>← clip for boat/drum</em>
+      &lt;g id="m-jug-group"&gt;     <em>← pose rotation (set by JS)</em>
+        &lt;use href="#jug-kid"/&gt;
+      &lt;/g&gt;
+    &lt;/g&gt;
+    &lt;g class="slowblink"&gt;      <em>← eyes — wiggle + breathe + blink,
+                                     but NOT rotate with the pose</em>
+      ...eyes...
+    &lt;/g&gt;
+  &lt;/g&gt;
+&lt;/g&gt;</pre>
+</aside>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const makeEl = (tag, attrs) => {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  };
+  const clear = (el) => { while (el.firstChild) el.removeChild(el.firstChild); };
+
+  const POSES = [
+    {
+      name: 'base — just jugs',
+      transform: '',
+      clip: '',
+      eyes: [[86, 62], [98, 62]],
+      backExtras: [],
+      frontExtras: [],
+      showBoatOpening: false,
+      showDrumCut: false
+    },
+    {
+      name: 'watering can — function: nurture',
+      transform: 'rotate(-135 100 98) translate(14 40)',
+      clip: '',
+      eyes: [[101, 94], [94, 87]],
+      backExtras: [{tag: 'use', attrs: {href: '#shower-water', x: '0', y: '0', width: '200', height: '160'}}],
+      frontExtras: [],
+      showBoatOpening: false,
+      showDrumCut: false
+    },
+    {
+      name: 'boat — function: float',
+      transform: 'rotate(-90 100 98) translate(5 25)',
+      clip: '',
+      eyes: [[118, 92], [138, 92]],
+      backExtras: [],
+      frontExtras: [{tag: 'use', attrs: {href: '#waves', x: '0', y: '0', width: '200', height: '160'}}],
+      showBoatOpening: true,
+      showDrumCut: false
+    },
+    {
+      name: 'drum — function: rhythm',
+      transform: 'rotate(180 100 95)',
+      clip: 'url(#drum-clip)',
+      eyes: [[92, 78], [108, 78]],
+      backExtras: [],
+      frontExtras: [{tag: 'use', attrs: {href: '#sticks', x: '0', y: '0', width: '200', height: '160'}}],
+      showBoatOpening: false,
+      showDrumCut: true
+    }
+  ];
+
+  const svg = document.getElementById('morpher');
+  const label = document.getElementById('morpher-pose');
+  const clipWrap = document.getElementById('m-clip-wrap');
+  const jugGroup = document.getElementById('m-jug-group');
+  const eyesG = document.getElementById('m-eyes');
+  const backG = document.getElementById('m-extras-back');
+  const frontG = document.getElementById('m-extras-front');
+  const boatOpening = document.getElementById('m-boat-opening');
+  const drumCut = document.getElementById('m-drum-cut');
+  const drumWiggle = document.getElementById('m-drum-wiggle');
+
+  // split into two phases so rotation can happen MID-morph while the opening/cut/wiggle
+  // decorations stay hidden until the new pose settles — alongside eyes/extras
+  function applyPoseTransform(pose) {
+    if (pose.transform) {
+      jugGroup.setAttribute('transform', pose.transform);
+    } else {
+      jugGroup.removeAttribute('transform');
+    }
+    if (pose.clip) {
+      clipWrap.setAttribute('clip-path', pose.clip);
+    } else {
+      clipWrap.removeAttribute('clip-path');
+    }
+  }
+
+  function applyPoseDecorations(pose) {
+    boatOpening.setAttribute('opacity', pose.showBoatOpening ? '1' : '0');
+    drumCut.setAttribute('opacity', pose.showDrumCut ? '1' : '0');
+    drumWiggle.setAttribute('opacity', pose.showDrumCut ? '1' : '0');
+  }
+
+  function renderPose(pose) {
+    applyPoseTransform(pose);
+    applyPoseDecorations(pose);
+    label.textContent = pose.name;
+    clear(eyesG);
+    pose.eyes.forEach(([cx, cy]) => {
+      eyesG.appendChild(makeEl('circle', {cx: cx, cy: cy, r: '3.2', fill: 'var(--ink)'}));
+      eyesG.appendChild(makeEl('circle', {cx: cx + 1.2, cy: cy - 1.2, r: '0.9', fill: 'var(--cream)'}));
+    });
+    clear(backG);
+    pose.backExtras.forEach(e => backG.appendChild(makeEl(e.tag, e.attrs)));
+    clear(frontG);
+    pose.frontExtras.forEach(e => frontG.appendChild(makeEl(e.tag, e.attrs)));
+  }
+
+  renderPose(POSES[0]);
+
+  let idx = 0;
+  let morphing = false;
+  svg.addEventListener('click', () => {
+    if (morphing) return;
+    morphing = true;
+    svg.classList.add('morphing');
+    clear(eyesG); clear(backG); clear(frontG);
+    boatOpening.setAttribute('opacity', '0');
+    drumCut.setAttribute('opacity', '0');
+    drumWiggle.setAttribute('opacity', '0');
+
+    // mid-morph: rotate jug + switch clip only. decorations stay hidden.
+    setTimeout(() => {
+      idx = (idx + 1) % POSES.length;
+      const pose = POSES[idx];
+      applyPoseTransform(pose);
+      label.textContent = pose.name;
+    }, 220);
+
+    // on settle: reveal all decorations + eyes + extras in one beat
+    setTimeout(() => {
+      svg.classList.remove('morphing');
+      renderPose(POSES[idx]);
+      morphing = false;
+    }, 820);
+  });
+})();
+</script>
+
+</body>
+</html>

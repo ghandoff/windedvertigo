@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>raft.house — treasure map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --parchment-light: #e8c99a;
+    --parchment-mid: #d4a574;
+    --parchment-dark: #c4956a;
+    --ink: #3d2b1f;
+    --ink-faint: rgba(61, 43, 31, 0.25);
+    --ink-mid: rgba(61, 43, 31, 0.5);
+    --fog-color: rgba(15, 42, 46, 0.88);
+    --font-main: 'Inter', sans-serif;
+    --font-map: Georgia, 'Times New Roman', serif;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0f2a2e;
+    font-family: var(--font-main);
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  #viewport {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  #map-world {
+    position: absolute;
+    width: 1800px;
+    height: 1400px;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+
+  #parchment {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, #e8d0a0 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 15%, #dfc090 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 50%, #d4b07a 0%, transparent 60%),
+      radial-gradient(ellipse at 10% 80%, #c8956a 0%, transparent 40%),
+      radial-gradient(ellipse at 90% 85%, #c09060 0%, transparent 45%),
+      linear-gradient(135deg, #d9b880 0%, #c8a060 30%, #d4b070 60%, #c09050 100%);
+    box-shadow:
+      inset 0 0 120px rgba(80, 40, 10, 0.5),
+      inset 0 0 60px rgba(80, 40, 10, 0.3);
+  }
+
+  #parchment::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .sea-area {
+    position: absolute;
+    background: linear-gradient(135deg, #9bc4d4 0%, #7aa8b8 50%, #6898a8 100%);
+    border-radius: 50% / 30%;
+    opacity: 0.55;
+  }
+
+  .region-label {
+    position: absolute;
+    font-family: var(--font-map);
+    font-style: italic;
+    color: var(--ink-mid);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .region-label .region-name {
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    display: block;
+    color: rgba(61, 43, 31, 0.35);
+  }
+  .region-label .region-subtitle {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(61, 43, 31, 0.25);
+    display: block;
+    margin-top: 3px;
+  }
+
+  #paths-svg {
+    position: absolute;
+    inset: 0;
+    width: 1800px;
+    height: 1400px;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .hic-text {
+    position: absolute;
+    font-family: var(--font-map);
+    font-style: italic;
+    color: rgba(61, 43, 31, 0.18);
+    font-size: 16px;
+    letter-spacing: 2px;
+    pointer-events: none;
+    transform: rotate(-15deg);
+  }
+
+  #compass {
+    position: absolute;
+    bottom: 80px;
+    right: 80px;
+    width: 90px;
+    height: 90px;
+    pointer-events: none;
+  }
+  .compass-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--ink-mid);
+    background: rgba(212, 165, 116, 0.6);
+  }
+  .compass-dir {
+    position: absolute;
+    font-family: var(--font-map);
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--ink);
+    opacity: 0.7;
+    text-align: center;
+  }
+  .compass-dir.n { top: 6px; left: 50%; transform: translateX(-50%); }
+  .compass-dir.s { bottom: 6px; left: 50%; transform: translateX(-50%); }
+  .compass-dir.e { right: 8px; top: 50%; transform: translateY(-50%); }
+  .compass-dir.w { left: 8px; top: 50%; transform: translateY(-50%); }
+  .compass-needle-n {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 0; height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 30px solid #8b2020;
+    transform: translate(-50%, -100%);
+    opacity: 0.8;
+  }
+  .compass-needle-s {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 0; height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 26px solid var(--ink);
+    transform: translate(-50%, 0%);
+    opacity: 0.6;
+  }
+  .compass-center {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 8px; height: 8px;
+    background: var(--ink);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.8;
+  }
+
+  #map-title {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    text-align: center;
+    z-index: 1;
+  }
+  #map-title::before {
+    content: '';
+    position: absolute;
+    inset: -12px -40px;
+    background: linear-gradient(135deg, rgba(180, 120, 60, 0.5), rgba(212, 165, 116, 0.7), rgba(180, 120, 60, 0.5));
+    border-top: 2px solid var(--ink-mid);
+    border-bottom: 2px solid var(--ink-mid);
+    clip-path: polygon(20px 0%, calc(100% - 20px) 0%, 100% 50%, calc(100% - 20px) 100%, 20px 100%, 0% 50%);
+  }
+  #map-title .title-main {
+    font-family: var(--font-map);
+    font-size: 28px;
+    font-style: italic;
+    color: var(--ink);
+    opacity: 0.75;
+    letter-spacing: 4px;
+    position: relative;
+  }
+  #map-title .title-sub {
+    font-family: var(--font-map);
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    position: relative;
+    margin-top: 3px;
+  }
+
+  .game-marker {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 5;
+    transition: opacity 0.3s;
+  }
+  .game-marker .marker-core {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,200,0.9) 0%, rgba(255, 215, 0, 0.8) 50%, rgba(200, 150, 0, 0.7) 100%);
+    box-shadow:
+      0 0 8px 3px rgba(255, 215, 0, 0.6),
+      0 0 20px 8px rgba(255, 215, 0, 0.25),
+      inset 0 1px 3px rgba(255,255,255,0.5);
+    animation: marker-pulse 2.5s ease-in-out infinite;
+  }
+  .game-marker.completed .marker-core {
+    background: radial-gradient(circle at 35% 35%, rgba(180,255,180,0.9) 0%, rgba(34, 197, 94, 0.85) 50%, rgba(20, 140, 60, 0.7) 100%);
+    box-shadow:
+      0 0 8px 3px rgba(34, 197, 94, 0.7),
+      0 0 20px 8px rgba(34, 197, 94, 0.3),
+      inset 0 1px 3px rgba(255,255,255,0.5);
+  }
+  .game-marker .marker-x {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: rgba(61, 43, 31, 0.85);
+    z-index: 1;
+    text-shadow: 0 0 4px rgba(255,220,100,0.5);
+  }
+  .game-marker.completed .marker-x {
+    color: rgba(20, 80, 40, 0.9);
+  }
+  @keyframes marker-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.25); opacity: 0.85; }
+  }
+
+  #fog-canvas {
+    position: absolute;
+    inset: 0;
+    width: 1800px;
+    height: 1400px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .sparkle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 15;
+    animation: sparkle-out var(--dur, 0.8s) ease-out forwards;
+  }
+  @keyframes sparkle-out {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+    z-index: 20;
+    animation: confetti-fall var(--dur, 1.2s) ease-in forwards;
+  }
+  @keyframes confetti-fall {
+    0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0.3); opacity: 0; }
+  }
+
+  #hud-top {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: rgba(212, 165, 116, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1.5px solid rgba(61, 43, 31, 0.3);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .hud-brand {
+    font-family: var(--font-main);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+    flex: 1;
+  }
+  .hud-brand span { opacity: 0.5; }
+  .hud-stats {
+    display: flex;
+    gap: 24px;
+    flex: 2;
+    justify-content: center;
+  }
+  .hud-stat { text-align: center; }
+  .hud-stat .stat-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(61, 43, 31, 0.55);
+    display: block;
+    margin-bottom: 1px;
+  }
+  .hud-stat .stat-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .hud-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  #reset-btn {
+    font-family: var(--font-main);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: rgba(61, 43, 31, 0.6);
+    background: none;
+    border: 1px solid rgba(61, 43, 31, 0.25);
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #reset-btn:hover { background: rgba(61, 43, 31, 0.08); color: var(--ink); }
+
+  #hint-toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 42, 46, 0.85);
+    color: rgba(255, 215, 0, 0.9);
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 10px 22px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    z-index: 200;
+    transition: opacity 0.8s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #hint-toast.hidden { opacity: 0; }
+
+  #bottom-sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(180deg, rgba(232, 200, 150, 0.98) 0%, rgba(212, 165, 116, 0.99) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 2px solid rgba(61, 43, 31, 0.3);
+    border-radius: 20px 20px 0 0;
+    padding: 0 24px 40px;
+    z-index: 300;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  #bottom-sheet.open { transform: translateY(0); }
+  .sheet-handle {
+    width: 40px;
+    height: 4px;
+    background: rgba(61, 43, 31, 0.3);
+    border-radius: 2px;
+    margin: 14px auto 20px;
+  }
+  .sheet-discipline-badge {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  #sheet-game-name {
+    font-family: var(--font-main);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  #sheet-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(61, 43, 31, 0.75);
+    margin-bottom: 24px;
+  }
+  .sheet-actions {
+    display: flex;
+    gap: 12px;
+  }
+  .btn-launch {
+    flex: 1;
+    font-family: var(--font-main);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 14px;
+    background: var(--ink);
+    color: var(--parchment-light);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+  .btn-launch:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn-complete {
+    flex: 1;
+    font-family: var(--font-main);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 14px;
+    background: rgba(34, 197, 94, 0.2);
+    color: rgba(20, 100, 50, 0.9);
+    border: 1.5px solid rgba(34, 197, 94, 0.5);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-complete:hover { background: rgba(34, 197, 94, 0.35); }
+  .btn-complete.done {
+    background: rgba(34, 197, 94, 0.3);
+    color: rgba(20, 100, 50, 0.9);
+    cursor: default;
+  }
+  .btn-close-sheet {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(61, 43, 31, 0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--ink);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .btn-close-sheet:hover { opacity: 1; }
+
+  .badge-mathematics  { background: rgba(99,102,241,0.15); color:#4338ca; border:1px solid rgba(99,102,241,0.3); }
+  .badge-cs           { background: rgba(6,182,212,0.15);  color:#0e7490; border:1px solid rgba(6,182,212,0.3); }
+  .badge-physics      { background: rgba(139,92,246,0.15); color:#6d28d9; border:1px solid rgba(139,92,246,0.3); }
+  .badge-biology      { background: rgba(34,197,94,0.15);  color:#166534; border:1px solid rgba(34,197,94,0.3); }
+  .badge-chemistry    { background: rgba(245,158,11,0.15); color:#92400e; border:1px solid rgba(245,158,11,0.3); }
+  .badge-economics    { background: rgba(234,179,8,0.15);  color:#713f12; border:1px solid rgba(234,179,8,0.3); }
+  .badge-psychology   { background: rgba(236,72,153,0.15); color:#9d174d; border:1px solid rgba(236,72,153,0.3); }
+  .badge-philosophy   { background: rgba(168,85,247,0.15); color:#6b21a8; border:1px solid rgba(168,85,247,0.3); }
+  .badge-music        { background: rgba(249,115,22,0.15); color:#9a3412; border:1px solid rgba(249,115,22,0.3); }
+  .badge-visual-arts  { background: rgba(239,68,68,0.15);  color:#991b1b; border:1px solid rgba(239,68,68,0.3); }
+  .badge-writing      { background: rgba(20,184,166,0.15); color:#115e59; border:1px solid rgba(20,184,166,0.3); }
+  .badge-crosscutting { background: rgba(107,114,128,0.15);color:#374151; border:1px solid rgba(107,114,128,0.3); }
+
+  .wave-deco {
+    position: absolute;
+    width: 60px;
+    height: 20px;
+    border-bottom: 2px solid rgba(90, 130, 150, 0.35);
+    border-radius: 0 0 50% 50%;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="map-world">
+    <div id="parchment"></div>
+
+    <!-- sea areas -->
+    <div class="sea-area" style="width:400px;height:300px;top:-80px;left:-80px;transform:rotate(-15deg);"></div>
+    <div class="sea-area" style="width:350px;height:280px;top:-60px;right:-60px;transform:rotate(20deg);"></div>
+    <div class="sea-area" style="width:450px;height:320px;bottom:-100px;left:-100px;transform:rotate(10deg);"></div>
+    <div class="sea-area" style="width:380px;height:260px;bottom:-80px;right:-80px;transform:rotate(-25deg);"></div>
+
+    <!-- wave decorations -->
+    <div class="wave-deco" style="top:60px;left:60px;transform:rotate(-10deg);"></div>
+    <div class="wave-deco" style="top:90px;left:110px;transform:rotate(5deg);"></div>
+    <div class="wave-deco" style="top:50px;left:160px;transform:rotate(-5deg);"></div>
+    <div class="wave-deco" style="top:40px;right:100px;transform:rotate(15deg);"></div>
+    <div class="wave-deco" style="top:75px;right:55px;transform:rotate(-8deg);"></div>
+    <div class="wave-deco" style="bottom:70px;left:80px;transform:rotate(12deg);"></div>
+    <div class="wave-deco" style="bottom:90px;left:140px;transform:rotate(-4deg);"></div>
+    <div class="wave-deco" style="bottom:60px;right:90px;transform:rotate(6deg);"></div>
+    <div class="wave-deco" style="bottom:85px;right:150px;transform:rotate(-15deg);"></div>
+
+    <!-- here be dragons -->
+    <div class="hic-text" style="top:130px;left:60px;">hic svnt dracones</div>
+    <div class="hic-text" style="bottom:120px;right:80px;transform:rotate(8deg);">beyond lies the unknown</div>
+    <div class="hic-text" style="top:160px;right:100px;transform:rotate(-12deg);">terra incognita</div>
+    <div class="hic-text" style="bottom:150px;left:70px;transform:rotate(5deg);">here be wonders</div>
+
+    <!-- paths SVG -->
+    <svg id="paths-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="dot" markerWidth="4" markerHeight="4" refX="2" refY="2">
+          <circle cx="2" cy="2" r="1.5" fill="rgba(61,43,31,0.3)"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <!-- region labels — injected with safe DOM -->
+    <div id="region-labels"></div>
+
+    <!-- compass rose -->
+    <div id="compass">
+      <div class="compass-ring"></div>
+      <div class="compass-dir n">N</div>
+      <div class="compass-dir s">S</div>
+      <div class="compass-dir e">E</div>
+      <div class="compass-dir w">W</div>
+      <div class="compass-needle-n"></div>
+      <div class="compass-needle-s"></div>
+      <div class="compass-center"></div>
+    </div>
+
+    <!-- map title -->
+    <div id="map-title">
+      <div class="title-main">raft.house</div>
+      <div class="title-sub">the treasure map — 45 games await</div>
+    </div>
+
+    <!-- fog canvas -->
+    <canvas id="fog-canvas" width="1800" height="1400"></canvas>
+
+    <!-- markers injected by JS -->
+    <div id="markers-container"></div>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud-top">
+  <div class="hud-brand">raft<span>.</span>house</div>
+  <div class="hud-stats">
+    <div class="hud-stat">
+      <span class="stat-label">discovered</span>
+      <span class="stat-value" id="stat-discovered">0 / 45</span>
+    </div>
+    <div class="hud-stat">
+      <span class="stat-label">completed</span>
+      <span class="stat-value" id="stat-completed">0 / 45</span>
+    </div>
+  </div>
+  <div class="hud-right">
+    <button id="reset-btn">reset map</button>
+  </div>
+</div>
+
+<div id="hint-toast">tap the fog to explore</div>
+
+<!-- bottom sheet -->
+<div id="bottom-sheet">
+  <button class="btn-close-sheet" id="sheet-close" aria-label="close">&#x2715;</button>
+  <div class="sheet-handle"></div>
+  <div id="sheet-discipline-badge" class="sheet-discipline-badge"></div>
+  <div id="sheet-game-name"></div>
+  <div id="sheet-description"></div>
+  <div class="sheet-actions">
+    <button class="btn-launch" id="btn-launch">launch game &rarr;</button>
+    <button class="btn-complete" id="btn-complete">mark complete &#x2713;</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// GAME DATA
+// ═══════════════════════════════════════════
+const GAMES = [
+  // mathematics — mountains of form
+  { id:'fold-space',        name:'fold.space',         discipline:'mathematics',  badge:'badge-mathematics',  x:320,  y:250,  desc:'bend spatial logic — fold dimensions to find the hidden path.' },
+  { id:'infinity-hotel',    name:'infinity.hotel',     discipline:'mathematics',  badge:'badge-mathematics',  x:430,  y:310,  desc:'fill an infinite hotel with infinite guests — and always find room.' },
+  { id:'variable-engine',   name:'variable.engine',    discipline:'mathematics',  badge:'badge-mathematics',  x:530,  y:240,  desc:'pilot equations through unknown territory using symbolic fuel.' },
+  { id:'proof-garden',      name:'proof.garden',       discipline:'crosscutting', badge:'badge-crosscutting', x:460,  y:380,  desc:'grow logical proofs like plants — each step a seed of truth.' },
+  // cs — crystal towers
+  { id:'race-condition',    name:'race.condition',     discipline:'cs',           badge:'badge-cs',           x:700,  y:220,  desc:'two processes enter. only the right sequence wins.' },
+  { id:'type-tower',        name:'type.tower',         discipline:'cs',           badge:'badge-cs',           x:800,  y:180,  desc:'stack your types carefully — one mismatch topples everything.' },
+  { id:'state-craft',       name:'state.craft',        discipline:'cs',           badge:'badge-cs',           x:880,  y:260,  desc:'govern a living system — manage state before chaos takes hold.' },
+  { id:'code-weave',        name:'code.weave',         discipline:'cs',           badge:'badge-cs',           x:760,  y:310,  desc:'weave subroutines into tapestry — elegant programs from simple threads.' },
+  // physics — observatory
+  { id:'frame-shift',       name:'frame.shift',        discipline:'physics',      badge:'badge-physics',      x:1060, y:200,  desc:'jump reference frames — same event, radically different story.' },
+  { id:'entropy-garden',    name:'entropy.garden',     discipline:'physics',      badge:'badge-physics',      x:1180, y:240,  desc:'watch order dissolve into beautiful disorder — fight or flow?' },
+  { id:'field-canvas',      name:'field.canvas',       discipline:'physics',      badge:'badge-physics',      x:1250, y:175,  desc:'paint invisible fields that move everything — without touching.' },
+  { id:'time-prism',        name:'time.prism',         discipline:'crosscutting', badge:'badge-crosscutting', x:1130, y:310,  desc:'split time like light through glass — past, present, possible.' },
+  // biology — deep forest
+  { id:'selection-pressure',name:'selection.pressure', discipline:'biology',      badge:'badge-biology',      x:560,  y:520,  desc:'shape a species across generations — survive the changing world.' },
+  { id:'express-ion',       name:'express.ion',        discipline:'biology',      badge:'badge-biology',      x:650,  y:600,  desc:'flip genetic switches to express hidden traits in living cells.' },
+  { id:'web-pulse',         name:'web.pulse',          discipline:'biology',      badge:'badge-biology',      x:720,  y:510,  desc:'trace energy through an ecosystem — everything feeds everything.' },
+  { id:'emerge-box',        name:'emerge.box',         discipline:'crosscutting', badge:'badge-crosscutting', x:600,  y:650,  desc:'simple rules, stunning complexity — watch life emerge from nothing.' },
+  // chemistry — alchemist's vale
+  { id:'bond-craft',        name:'bond.craft',         discipline:'chemistry',    badge:'badge-chemistry',    x:900,  y:560,  desc:'forge molecular bonds with precision — one wrong bond breaks all.' },
+  { id:'equilibrium-dance', name:'equilibrium.dance',  discipline:'chemistry',    badge:'badge-chemistry',    x:1000, y:640,  desc:'balance opposing reactions in a dance that never truly stops.' },
+  { id:'reaction-path',     name:'reaction.path',      discipline:'chemistry',    badge:'badge-chemistry',    x:1080, y:560,  desc:'chart the fastest route from reactant to product through energy.' },
+  { id:'orbit-lab',         name:'orbit.lab',          discipline:'crosscutting', badge:'badge-crosscutting', x:960,  y:480,  desc:'build atomic models — electrons in motion, energy in flux.' },
+  // writing — great library
+  { id:'reader-ghost',      name:'reader.ghost',       discipline:'writing',      badge:'badge-writing',      x:1330, y:390,  desc:'write for a reader who sees only what you show — no more, no less.' },
+  { id:'draft-loop',        name:'draft.loop',         discipline:'writing',      badge:'badge-writing',      x:1420, y:450,  desc:'revise endlessly — each pass transforms chaos into clarity.' },
+  { id:'genre-shift',       name:'genre.shift',        discipline:'writing',      badge:'badge-writing',      x:1300, y:500,  desc:'rewrite the same story in six genres — form changes everything.' },
+  { id:'signal-flow',       name:'signal.flow',        discipline:'crosscutting', badge:'badge-crosscutting', x:1400, y:340,  desc:'trace how meaning travels — from intention to interpretation.' },
+  // philosophy — temple of reason
+  { id:'ought-machine',     name:'ought.machine',      discipline:'philosophy',   badge:'badge-philosophy',   x:1500, y:640,  desc:'program an ethical agent — is and ought will never agree.' },
+  { id:'circle-read',       name:'circle.read',        discipline:'philosophy',   badge:'badge-philosophy',   x:1580, y:730,  desc:'every argument circles back — find the hidden assumption.' },
+  { id:'lens-shift',        name:'lens.shift',         discipline:'philosophy',   badge:'badge-philosophy',   x:1480, y:770,  desc:'see the same event through five philosophical lenses.' },
+  { id:'liminal-pass',      name:'liminal.pass',       discipline:'crosscutting', badge:'badge-crosscutting', x:1560, y:570,  desc:'cross the threshold of knowing — what changes when you learn?' },
+  // music — concert grove
+  { id:'tone-field',        name:'tone.field',         discipline:'music',        badge:'badge-music',        x:230,  y:640,  desc:'map a sonic landscape — every frequency has a place and feeling.' },
+  { id:'voice-weave',       name:'voice.weave',        discipline:'music',        badge:'badge-music',        x:310,  y:720,  desc:'layer voices in counterpoint until harmony surprises you.' },
+  { id:'sound-color',       name:'sound.color',        discipline:'music',        badge:'badge-music',        x:200,  y:750,  desc:'translate timbre into color — what does a cello look like?' },
+  { id:'rhythm-lab',        name:'rhythm.lab',         discipline:'crosscutting', badge:'badge-crosscutting', x:330,  y:610,  desc:'build polyrhythmic structures — where pattern becomes pulse.' },
+  // visual arts — painter's coast
+  { id:'space-between',     name:'space.between',      discipline:'visual-arts',  badge:'badge-visual-arts',  x:200,  y:940,  desc:'negative space is the loudest thing in the room — use it.' },
+  { id:'hue-shift',         name:'hue.shift',          discipline:'visual-arts',  badge:'badge-visual-arts',  x:300,  y:1000, desc:'shift a single hue through context — same color, new emotion.' },
+  { id:'grid-break',        name:'grid.break',         discipline:'visual-arts',  badge:'badge-visual-arts',  x:190,  y:1050, desc:'break the grid at precisely the right moment — rule and ruin.' },
+  { id:'pattern-weave',     name:'pattern.weave',      discipline:'crosscutting', badge:'badge-crosscutting', x:320,  y:880,  desc:'weave recurring motifs until the whole becomes more than parts.' },
+  // economics — trading port
+  { id:'margin-call',       name:'margin.call',        discipline:'economics',    badge:'badge-economics',    x:700,  y:1150, desc:'hold your position or cut losses — every second costs.' },
+  { id:'trade-winds',       name:'trade.winds',        discipline:'economics',    badge:'badge-economics',    x:800,  y:1200, desc:'navigate shifting trade flows — what you export shapes who you are.' },
+  { id:'commons-game',      name:'commons.game',       discipline:'economics',    badge:'badge-economics',    x:880,  y:1130, desc:'manage a shared resource — cooperate or harvest until nothing remains.' },
+  { id:'market-mind',       name:'market.mind',        discipline:'crosscutting', badge:'badge-crosscutting', x:760,  y:1060, desc:'model a market as a mind — collective intelligence or madness?' },
+  // psychology — mirror lake
+  { id:'mirror-maze',       name:'mirror.maze',        discipline:'psychology',   badge:'badge-psychology',   x:1160, y:1030, desc:'navigate self-reflection — every turn shows a different you.' },
+  { id:'anchor-drift',      name:'anchor.drift',       discipline:'psychology',   badge:'badge-psychology',   x:1260, y:1100, desc:'first impressions anchor everything — spot the drift before it sets.' },
+  { id:'story-self',        name:'story.self',         discipline:'psychology',   badge:'badge-psychology',   x:1200, y:1170, desc:'the self is a story you keep revising — what chapter are you on?' },
+  { id:'bias-lens',         name:'bias.lens',          discipline:'crosscutting', badge:'badge-crosscutting', x:1100, y:1130, desc:'see through every cognitive filter — your brain misleads beautifully.' },
+  { id:'scale-shift',       name:'scale.shift',        discipline:'crosscutting', badge:'badge-crosscutting', x:950,  y:1050, desc:'zoom from atom to universe — the same patterns repeat at every scale.' },
+];
+
+const REGIONS = [
+  { name:'mountains of form', subtitle:'mathematics',    x:430,  y:180 },
+  { name:'crystal towers',    subtitle:'computer science',x:780,  y:155 },
+  { name:'the observatory',   subtitle:'physics',        x:1130, y:175 },
+  { name:'the deep forest',   subtitle:'biology',        x:640,  y:540 },
+  { name:"alchemist's vale",  subtitle:'chemistry',      x:950,  y:600 },
+  { name:'the great library', subtitle:'writing',        x:1320, y:490 },
+  { name:'temple of reason',  subtitle:'philosophy',     x:1500, y:700 },
+  { name:'concert grove',     subtitle:'music',          x:230,  y:700 },
+  { name:"painter's coast",   subtitle:'visual arts',    x:200,  y:990 },
+  { name:'trading port',      subtitle:'economics',      x:750,  y:1150 },
+  { name:'mirror lake',       subtitle:'psychology',     x:1200, y:1100 },
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let reveals = [];
+let discovered = new Set();
+let completed = new Set();
+let activeGame = null;
+
+let panX = 0, panY = 0, scale = 0.7;
+let isDragging = false, lastPanPoint = null, hasMoved = false;
+let pointerDownPos = null;
+let lastPinchDist = null;
+
+const MAP_W = 1800, MAP_H = 1400;
+const MIN_SCALE = 0.35, MAX_SCALE = 2.2;
+
+const INITIAL_REVEALS = [
+  { x:430, y:310, radius:165 },
+  { x:800, y:210, radius:148 },
+  { x:650, y:575, radius:155 },
+  { x:1180, y:240, radius:130 },
+  { x:260, y:700, radius:140 },
+];
+
+// ═══════════════════════════════════════════
+// ELEMENTS
+// ═══════════════════════════════════════════
+const viewport      = document.getElementById('viewport');
+const mapWorld      = document.getElementById('map-world');
+const fogCanvas     = document.getElementById('fog-canvas');
+const fogCtx        = fogCanvas.getContext('2d');
+const markersEl     = document.getElementById('markers-container');
+const bottomSheet   = document.getElementById('bottom-sheet');
+const hintToast     = document.getElementById('hint-toast');
+const statDisc      = document.getElementById('stat-discovered');
+const statComp      = document.getElementById('stat-completed');
+
+// ═══════════════════════════════════════════
+// BUILD DOM ELEMENTS
+// ═══════════════════════════════════════════
+function buildRegionLabels() {
+  const container = document.getElementById('region-labels');
+  REGIONS.forEach(r => {
+    const wrap = document.createElement('div');
+    wrap.className = 'region-label';
+    wrap.style.left = r.x + 'px';
+    wrap.style.top  = r.y + 'px';
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'region-name';
+    nameEl.textContent = r.name;
+
+    const subEl = document.createElement('span');
+    subEl.className = 'region-subtitle';
+    subEl.textContent = r.subtitle;
+
+    wrap.appendChild(nameEl);
+    wrap.appendChild(subEl);
+    container.appendChild(wrap);
+  });
+}
+
+function buildMarkers() {
+  GAMES.forEach(game => {
+    const wrap = document.createElement('div');
+    wrap.className = 'game-marker';
+    wrap.id = 'marker-' + game.id;
+    wrap.style.left   = game.x + 'px';
+    wrap.style.top    = game.y + 'px';
+    wrap.style.opacity = '0';
+    wrap.dataset.id   = game.id;
+
+    const core = document.createElement('div');
+    core.className = 'marker-core';
+
+    const label = document.createElement('div');
+    label.className = 'marker-x';
+    label.textContent = '\u2715';  // ✕
+
+    wrap.appendChild(core);
+    wrap.appendChild(label);
+
+    wrap.addEventListener('click', function(e) {
+      if (hasMoved) return;
+      e.stopPropagation();
+      openSheet(game);
+    });
+
+    markersEl.appendChild(wrap);
+  });
+}
+
+function drawPaths() {
+  const svg = document.getElementById('paths-svg');
+  const byDiscipline = {};
+  GAMES.forEach(g => {
+    if (!byDiscipline[g.discipline]) byDiscipline[g.discipline] = [];
+    byDiscipline[g.discipline].push(g);
+  });
+
+  Object.values(byDiscipline).forEach(group => {
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        const a = group[i], b = group[j];
+        const d = dist(a.x, a.y, b.x, b.y);
+        if (d < 280) {
+          const mx = (a.x + b.x) / 2 + (Math.random() - 0.5) * 55;
+          const my = (a.y + b.y) / 2 + (Math.random() - 0.5) * 55;
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', 'M ' + a.x + ' ' + a.y + ' Q ' + mx + ' ' + my + ' ' + b.x + ' ' + b.y);
+          path.setAttribute('stroke', 'rgba(61,43,31,0.22)');
+          path.setAttribute('stroke-width', '1.5');
+          path.setAttribute('stroke-dasharray', '5 6');
+          path.setAttribute('fill', 'none');
+          path.setAttribute('stroke-linecap', 'round');
+          svg.appendChild(path);
+        }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// FOG
+// ═══════════════════════════════════════════
+function drawFog() {
+  fogCtx.clearRect(0, 0, MAP_W, MAP_H);
+  fogCtx.fillStyle = 'rgba(15,42,46,0.88)';
+  fogCtx.fillRect(0, 0, MAP_W, MAP_H);
+
+  fogCtx.globalCompositeOperation = 'destination-out';
+  reveals.forEach(r => {
+    const grad = fogCtx.createRadialGradient(r.x, r.y, 0, r.x, r.y, r.radius);
+    grad.addColorStop(0,   'rgba(0,0,0,1)');
+    grad.addColorStop(0.7, 'rgba(0,0,0,0.9)');
+    grad.addColorStop(0.9, 'rgba(0,0,0,0.4)');
+    grad.addColorStop(1,   'rgba(0,0,0,0)');
+    fogCtx.fillStyle = grad;
+    fogCtx.beginPath();
+    fogCtx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+    fogCtx.fill();
+  });
+  fogCtx.globalCompositeOperation = 'source-over';
+}
+
+function revealAt(mapX, mapY, targetRadius, isCompletion) {
+  const existing = reveals.find(r => dist(r.x, r.y, mapX, mapY) < 50);
+  if (existing && !isCompletion) {
+    existing.targetRadius = Math.max(existing.targetRadius, targetRadius);
+    animateReveal(existing);
+    return;
+  }
+  const r = { x: mapX, y: mapY, radius: 0, targetRadius: targetRadius, growing: true };
+  reveals.push(r);
+  animateReveal(r);
+  spawnSparkles(mapX, mapY);
+}
+
+function animateReveal(r) {
+  const duration = 650;
+  const startRadius = r.radius;
+  const start = performance.now();
+  r.growing = true;
+  function frame(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    r.radius = startRadius + (r.targetRadius - startRadius) * eased;
+    drawFog();
+    checkDiscoveries();
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      r.growing = false;
+      r.radius = r.targetRadius;
+      drawFog();
+      checkDiscoveries();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════
+// DISCOVERY
+// ═══════════════════════════════════════════
+function dist(x1, y1, x2, y2) {
+  return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+}
+
+function isRevealed(game) {
+  return reveals.some(r => dist(r.x, r.y, game.x, game.y) < r.radius * 0.85);
+}
+
+function checkDiscoveries() {
+  let changed = false;
+  GAMES.forEach(game => {
+    if (!discovered.has(game.id) && isRevealed(game)) {
+      discovered.add(game.id);
+      changed = true;
+      const el = document.getElementById('marker-' + game.id);
+      if (el) { el.style.opacity = '1'; el.style.transition = 'opacity 0.5s ease'; }
+    }
+  });
+  if (changed) updateStats();
+}
+
+function updateStats() {
+  statDisc.textContent = discovered.size + ' / 45';
+  statComp.textContent = completed.size + ' / 45';
+}
+
+// ═══════════════════════════════════════════
+// SPARKLES
+// ═══════════════════════════════════════════
+function spawnSparkles(mapX, mapY) {
+  const vx = mapX * scale + panX;
+  const vy = mapY * scale + panY + 56;
+  const colors = ['#ffd700','#fff4aa','#ffb700','#fffde0','#ffcc44'];
+  for (let i = 0; i < 10; i++) {
+    const el = document.createElement('div');
+    el.className = 'sparkle';
+    const angle = (i / 10) * Math.PI * 2 + Math.random() * 0.5;
+    const len   = 40 + Math.random() * 70;
+    const size  = 4 + Math.random() * 6;
+    const dur   = (0.5 + Math.random() * 0.5).toFixed(2) + 's';
+    el.style.cssText = [
+      'left:' + vx + 'px',
+      'top:' + vy + 'px',
+      'width:' + size + 'px',
+      'height:' + size + 'px',
+      'background:' + colors[Math.floor(Math.random() * colors.length)],
+      '--tx:' + (Math.cos(angle) * len).toFixed(1) + 'px',
+      '--ty:' + (Math.sin(angle) * len).toFixed(1) + 'px',
+      '--dur:' + dur,
+      'box-shadow:0 0 ' + size + 'px ' + colors[0],
+    ].join(';');
+    document.body.appendChild(el);
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 1200);
+  }
+}
+
+function spawnConfetti(mapX, mapY) {
+  const vx = mapX * scale + panX;
+  const vy = mapY * scale + panY + 56;
+  const colors = ['#ffd700','#34c55a','#ff6b6b','#60a5fa','#f472b6','#a78bfa','#34d399'];
+  for (let i = 0; i < 30; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const angle = Math.random() * Math.PI * 2;
+    const len   = 60 + Math.random() * 120;
+    const dur   = (0.8 + Math.random() * 0.8).toFixed(2) + 's';
+    const rot   = (Math.random() * 720 - 360).toFixed(0) + 'deg';
+    el.style.cssText = [
+      'left:' + vx + 'px',
+      'top:' + vy + 'px',
+      'background:' + colors[Math.floor(Math.random() * colors.length)],
+      'border-radius:' + (Math.random() > 0.5 ? '50%' : '2px'),
+      '--tx:' + (Math.cos(angle) * len).toFixed(1) + 'px',
+      '--ty:' + ((Math.sin(angle) * len) + 80).toFixed(1) + 'px',
+      '--rot:' + rot,
+      '--dur:' + dur,
+    ].join(';');
+    document.body.appendChild(el);
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 2000);
+  }
+}
+
+// ═══════════════════════════════════════════
+// BOTTOM SHEET
+// ═══════════════════════════════════════════
+function openSheet(game) {
+  activeGame = game;
+  const badge = document.getElementById('sheet-discipline-badge');
+  badge.textContent = game.discipline;
+  badge.className = 'sheet-discipline-badge ' + game.badge;
+
+  document.getElementById('sheet-game-name').textContent = game.name;
+  document.getElementById('sheet-description').textContent = game.desc;
+
+  const btnComplete = document.getElementById('btn-complete');
+  if (completed.has(game.id)) {
+    btnComplete.textContent = 'completed \u2713';
+    btnComplete.classList.add('done');
+    btnComplete.disabled = true;
+  } else {
+    btnComplete.textContent = 'mark complete \u2713';
+    btnComplete.classList.remove('done');
+    btnComplete.disabled = false;
+  }
+  bottomSheet.classList.add('open');
+}
+
+function closeSheet() {
+  bottomSheet.classList.remove('open');
+  activeGame = null;
+}
+
+document.getElementById('sheet-close').addEventListener('click', closeSheet);
+
+document.getElementById('btn-launch').addEventListener('click', function() {
+  if (!activeGame) return;
+  const name = activeGame.name;
+  closeSheet();
+  setTimeout(function() {
+    window.alert('launching ' + name + '...\n\n(prototype — game would open here)');
+  }, 200);
+});
+
+document.getElementById('btn-complete').addEventListener('click', function() {
+  if (!activeGame || completed.has(activeGame.id)) return;
+  const game = activeGame;
+  completed.add(game.id);
+
+  const el = document.getElementById('marker-' + game.id);
+  if (el) {
+    el.classList.add('completed');
+    el.querySelector('.marker-x').textContent = '\u2713';
+  }
+
+  revealAt(game.x, game.y, 230, true);
+  spawnConfetti(game.x, game.y);
+  updateStats();
+  closeSheet();
+});
+
+// ═══════════════════════════════════════════
+// PAN / ZOOM
+// ═══════════════════════════════════════════
+function applyTransform() {
+  mapWorld.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')';
+}
+
+function clampPan() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight - 56;
+  panX = Math.max(vw - MAP_W * scale - 60, Math.min(60, panX));
+  panY = Math.max(vh - MAP_H * scale - 60, Math.min(60, panY));
+}
+
+function viewportToMap(vx, vy) {
+  return { x: (vx - panX) / scale, y: (vy - 56 - panY) / scale };
+}
+
+function zoomAround(cx, cy, factor) {
+  const ns = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * factor));
+  const ratio = ns / scale;
+  panX = cx - ratio * (cx - panX);
+  panY = cy - ratio * (cy - panY);
+  scale = ns;
+  clampPan();
+  applyTransform();
+}
+
+// ═══════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════
+function bindEvents() {
+  viewport.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    isDragging = true;
+    hasMoved = false;
+    lastPanPoint = { x: e.clientX, y: e.clientY };
+    pointerDownPos = { x: e.clientX, y: e.clientY };
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    const dx = e.clientX - lastPanPoint.x;
+    const dy = e.clientY - lastPanPoint.y;
+    const d = Math.sqrt(Math.pow(e.clientX - pointerDownPos.x, 2) + Math.pow(e.clientY - pointerDownPos.y, 2));
+    if (d > 5) hasMoved = true;
+    panX += dx; panY += dy;
+    lastPanPoint = { x: e.clientX, y: e.clientY };
+    clampPan(); applyTransform();
+  });
+  window.addEventListener('mouseup', function() { isDragging = false; });
+  viewport.addEventListener('click', function(e) {
+    if (hasMoved) return;
+    if (bottomSheet.classList.contains('open')) { closeSheet(); return; }
+    const mp = viewportToMap(e.clientX, e.clientY);
+    if (mp.x < 0 || mp.x > MAP_W || mp.y < 0 || mp.y > MAP_H) return;
+    revealAt(mp.x, mp.y, 132);
+  });
+  viewport.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    zoomAround(e.clientX, e.clientY - 56, e.deltaY < 0 ? 1.1 : 0.9);
+  }, { passive: false });
+
+  viewport.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    hasMoved = false;
+    if (e.touches.length === 1) {
+      isDragging = true;
+      lastPanPoint = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      pointerDownPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      lastPinchDist = null;
+    } else if (e.touches.length === 2) {
+      isDragging = false;
+      lastPinchDist = pinchDist(e.touches);
+    }
+  }, { passive: false });
+
+  viewport.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if (e.touches.length === 1 && isDragging) {
+      const t = e.touches[0];
+      const dx = t.clientX - lastPanPoint.x, dy = t.clientY - lastPanPoint.y;
+      const d = Math.sqrt(Math.pow(t.clientX - pointerDownPos.x, 2) + Math.pow(t.clientY - pointerDownPos.y, 2));
+      if (d > 8) hasMoved = true;
+      panX += dx; panY += dy;
+      lastPanPoint = { x: t.clientX, y: t.clientY };
+      clampPan(); applyTransform();
+    } else if (e.touches.length === 2 && lastPinchDist) {
+      const nd = pinchDist(e.touches);
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      zoomAround(cx, cy - 56, nd / lastPinchDist);
+      lastPinchDist = nd;
+      hasMoved = true;
+    }
+  }, { passive: false });
+
+  viewport.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    if (e.touches.length < 2) lastPinchDist = null;
+    if (e.touches.length === 0) {
+      isDragging = false;
+      if (!hasMoved && e.changedTouches.length === 1) {
+        if (bottomSheet.classList.contains('open')) { closeSheet(); return; }
+        const t = e.changedTouches[0];
+        const mp = viewportToMap(t.clientX, t.clientY);
+        if (mp.x >= 0 && mp.x <= MAP_W && mp.y >= 0 && mp.y <= MAP_H) revealAt(mp.x, mp.y, 132);
+      }
+    }
+  }, { passive: false });
+
+  document.getElementById('reset-btn').addEventListener('click', resetMap);
+
+  if (window.DeviceOrientationEvent) {
+    let base = null;
+    window.addEventListener('deviceorientation', function(e) {
+      if (!base) { base = { g: e.gamma, b: e.beta }; return; }
+      panX -= (e.gamma - base.g) * 0.08;
+      panY -= (e.beta - base.b) * 0.05;
+      clampPan(); applyTransform();
+    });
+  }
+}
+
+function pinchDist(touches) {
+  const dx = touches[0].clientX - touches[1].clientX;
+  const dy = touches[0].clientY - touches[1].clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+// ═══════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════
+function resetMap() {
+  reveals = [];
+  discovered.clear();
+  completed.clear();
+  activeGame = null;
+  closeSheet();
+
+  document.querySelectorAll('.game-marker').forEach(function(el) {
+    el.style.opacity = '0';
+    el.classList.remove('completed');
+    el.querySelector('.marker-x').textContent = '\u2715';
+  });
+
+  INITIAL_REVEALS.forEach(function(r) {
+    reveals.push({ x: r.x, y: r.y, radius: r.radius, targetRadius: r.radius, growing: false });
+  });
+  drawFog(); checkDiscoveries(); updateStats();
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+function centerMap() {
+  const vw = window.innerWidth, vh = window.innerHeight - 56;
+  panX = (vw - MAP_W * scale) / 2;
+  panY = (vh - MAP_H * scale) / 2;
+  clampPan(); applyTransform();
+}
+
+window.addEventListener('load', function() {
+  buildRegionLabels();
+  buildMarkers();
+  drawPaths();
+  INITIAL_REVEALS.forEach(function(r) {
+    reveals.push({ x: r.x, y: r.y, radius: r.radius, targetRadius: r.radius, growing: false });
+  });
+  drawFog(); checkDiscoveries();
+  centerMap();
+  bindEvents();
+  setTimeout(function() { hintToast.classList.add('hidden'); }, 5000);
+});
+</script>
+</body>
+</html>

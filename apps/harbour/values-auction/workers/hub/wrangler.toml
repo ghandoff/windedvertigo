@@ -1,0 +1,16 @@
+name = "values-auction-hub"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[durable_objects.bindings]]
+name = "HUB_SESSION"
+class_name = "HubSession"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["HubSession"]
+
+[[kv_namespaces]]
+binding = "EVENTS_KV"
+id = "820ee98f1e3e4f3d886d1d81e4b70be5"

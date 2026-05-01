@@ -1,0 +1,66 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-harbour-harbour",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-harbour-harbour"
+    }
+  ],
+
+  // ISR incremental cache (OpenNext on CF Workers) + tile image bucket
+  // for cover images synced from Notion via scripts/sync-tiles-to-r2.mjs.
+  // creaseworks-evidence is shared across vault/creaseworks/site for any
+  // user-uploaded content; tile images live under harbour-tiles/ prefix.
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "wv-harbour-cache"
+    },
+    {
+      "binding": "TILE_IMAGES",
+      "bucket_name": "creaseworks-evidence"
+    }
+  ],
+
+  // Direct CF Workers Routes for auth endpoints — these bypass the site proxy
+  // (wv-site Worker at windedvertigo.com/*) so that Auth.js's 302-to-Google
+  // reaches the browser rather than being followed server-side by Next.js rewrites.
+  // Same pattern as depth-chart's direct routes.  Applies only to the /api/auth
+  // subtree; all other /harbour/* traffic still goes through the site proxy.
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/api/auth",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/api/auth/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/api/auth",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/api/auth/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ]
+
+  // Auth secrets — set via: wrangler secret put AUTH_SECRET
+  // For local dev, create .dev.vars with:
+  //   AUTH_SECRET=...
+  //   AUTH_GOOGLE_ID=...
+  //   AUTH_GOOGLE_SECRET=...
+}

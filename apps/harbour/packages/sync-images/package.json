@@ -1,0 +1,21 @@
+{
+  "name": "@windedvertigo/sync-images",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared Notion-to-R2 image sync helper. Each consumer app injects its own R2 uploadBuffer/getPublicUrl primitives so the same download/size-guard/retry/failure-counter logic is run identically across creaseworks, vertigo-vault, and (future) any other harbour app that mirrors Notion images into R2.",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "build": "echo 'sync-images: no build step (consumed source-level via TS workspace resolution)'"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

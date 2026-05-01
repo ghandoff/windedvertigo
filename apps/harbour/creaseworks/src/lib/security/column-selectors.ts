@@ -1,0 +1,171 @@
+/**
+ * Column-selection helpers for the three-tier anti-leak model.
+ *
+ * Every query that returns playdate/material data to a client must use
+ * one of these selectors so that internal-only fields are never fetched
+ * in the first place.
+ *
+ * Note: we read `cover_r2_key` (not `cover_url`) so that the public URL is
+ * computed at query time from `R2_PUBLIC_URL` + the key. This decouples
+ * stored data from the R2 bucket URL — future R2 account migrations only
+ * need an env-var update, not a DB migration. Use `mapCreaseworksRow()`
+ * from `lib/queries/cover-row.ts` to attach `cover_url` to query results.
+ */
+
+// ── playdates ────────────────────────────────────────────────────────────
+
+/** Teaser tier — public sampler page, unauthenticated visitors.
+ *  Includes phase content so sampler playdates can be enjoyed in full.
+ *  The entitled tier adds material tips, substitutions, and PDF access. */
+export const PLAYDATE_TEASER_COLUMNS = [
+  "id",
+  "slug",
+  "title",
+  "headline",
+  "headline_html",
+  "release_channel",
+  "status",
+  "primary_function",
+  "arc_emphasis",
+  "context_tags",
+  "friction_dial",
+  "start_in_120s",
+  "required_forms",
+  "rails_sentence",
+  "age_range",
+  "energy_level",
+  "tinkering_tier",
+  "cover_r2_key",
+  "gallery_visible_fields",
+  /* phase content — shown in full on sampler pages */
+  "find",
+  "fold",
+  "unfold",
+  "find_html",
+  "fold_html",
+  "unfold_html",
+  "find_again_mode",
+  "find_again_prompt",
+  "find_again_prompt_html",
+] as const;
+
+/** Entitled tier — authenticated users whose org owns the pack. */
+export const PLAYDATE_ENTITLED_COLUMNS = [
+  ...PLAYDATE_TEASER_COLUMNS,
+  "slots_optional",
+  "slots_notes",
+  "substitutions_notes",
+  "substitutions_notes_html",
+  "body_html",
+  "illustration_url",
+] as const;
+
+/** Collective tier — windedvertigo.com team. Entitled + design context. */
+export const PLAYDATE_COLLECTIVE_COLUMNS = [
+  ...PLAYDATE_ENTITLED_COLUMNS,
+  "design_rationale",
+  "developmental_notes",
+  "author_notes",
+] as const;
+
+/** Internal-only — admin dashboard. Includes everything. */
+export const PLAYDATE_INTERNAL_COLUMNS = [
+  ...PLAYDATE_COLLECTIVE_COLUMNS,
+  "ip_tier",
+  "notion_id",
+  "notion_last_edited",
+  "synced_at",
+] as const;
+
+// ── materials ───────────────────────────────────────────────────────────
+
+/** Teaser tier — only the basics shown alongside playdate teasers. */
+export const MATERIAL_TEASER_COLUMNS = [
+  "id",
+  "title",
+  "form_primary",
+  "functions",
+  "context_tags",
+] as const;
+
+/** Entitled tier — full material details for purchased playdates. */
+export const MATERIAL_ENTITLED_COLUMNS = [
+  ...MATERIAL_TEASER_COLUMNS,
+  "connector_modes",
+  "shareability",
+  "min_qty_size",
+  "examples_notes",
+  "generation_notes",
+  "generation_prompts",
+  "source",
+] as const;
+
+/** Internal-only — admin dashboard. */
+export const MATERIAL_INTERNAL_COLUMNS = [
+  ...MATERIAL_ENTITLED_COLUMNS,
+  "do_not_use",
+  "do_not_use_reason",
+  "notion_id",
+  "notion_last_edited",
+  "synced_at",
+] as const;
+
+// ── vault activities ─────────────────────────────────────────────────────
+
+/** Teaser tier — browsable catalog, enough to entice but not enough to run. */
+export const VAULT_TEASER_COLUMNS = [
+  "id",
+  "slug",
+  "name",
+  "headline",
+  "headline_html",
+  "duration",
+  "format",
+  "type",
+  "skills_developed",
+  "tags",
+  "tier",
+  "age_range",
+  "group_size",
+  "cover_r2_key",
+] as const;
+
+/**
+ * Entitled tier — user owns the Explorer pack ($9.99).
+ * Adds the full activity body, content, and materials list.
+ */
+export const VAULT_ENTITLED_COLUMNS = [
+  ...VAULT_TEASER_COLUMNS,
+  "body_html",
+  "content_md",
+  "materials_needed",
+] as const;
+
+/**
+ * Practitioner tier — user owns the Practitioner pack ($19.99).
+ * Adds expert-level facilitator notes and video walkthroughs.
+ */
+export const VAULT_PRACTITIONER_COLUMNS = [
+  ...VAULT_ENTITLED_COLUMNS,
+  "facilitator_notes",
+  "facilitator_notes_html",
+  "video_url",
+] as const;
+
+/** Internal-only — admin dashboard. Includes sync metadata. */
+export const VAULT_INTERNAL_COLUMNS = [
+  ...VAULT_PRACTITIONER_COLUMNS,
+  "notion_id",
+  "notion_last_edited",
+  "synced_at",
+] as const;
+
+// ── helper ──────────────────────────────────────────────────────────────
+
+/**
+ * Build a SQL column list string from a selector array.
+ * E.g. `columnsToSql(PLAYDATE_TEASER_COLUMNS)` → `"id, slug, title, …"`
+ */
+export function columnsToSql(columns: readonly string[]): string {
+  return columns.join(", ");
+}

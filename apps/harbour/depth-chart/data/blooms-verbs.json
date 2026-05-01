@@ -1,0 +1,37 @@
+{
+  "remember": [
+    "list", "define", "recall", "name", "identify", "recognise", "recognize",
+    "state", "label", "describe", "match", "select", "locate", "memorise",
+    "memorize", "repeat", "reproduce", "outline", "enumerate", "retrieve"
+  ],
+  "understand": [
+    "explain", "summarise", "summarize", "classify", "describe", "interpret",
+    "paraphrase", "compare", "discuss", "distinguish", "predict", "illustrate",
+    "infer", "generalise", "generalize", "exemplify", "translate", "restate",
+    "clarify", "categorise", "categorize"
+  ],
+  "apply": [
+    "solve", "demonstrate", "use", "execute", "implement", "calculate",
+    "apply", "perform", "operate", "practice", "compute", "modify",
+    "construct", "produce", "show", "complete", "employ", "schedule",
+    "sketch", "determine"
+  ],
+  "analyse": [
+    "compare", "differentiate", "examine", "attribute", "deconstruct",
+    "distinguish", "organise", "organize", "analyse", "analyze", "contrast",
+    "investigate", "relate", "categorise", "categorize", "correlate",
+    "diagram", "dissect", "integrate", "map", "test"
+  ],
+  "evaluate": [
+    "critique", "judge", "assess", "justify", "argue", "defend", "appraise",
+    "prioritise", "prioritize", "evaluate", "rate", "rank", "support",
+    "validate", "recommend", "select", "convince", "conclude", "weigh",
+    "criticise", "criticize"
+  ],
+  "create": [
+    "design", "construct", "formulate", "compose", "produce", "plan",
+    "devise", "synthesise", "synthesize", "create", "develop", "generate",
+    "invent", "assemble", "propose", "build", "imagine", "author",
+    "elaborate", "hypothesise", "hypothesize"
+  ]
+}

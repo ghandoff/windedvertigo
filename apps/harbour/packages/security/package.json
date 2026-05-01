@@ -1,0 +1,26 @@
+{
+  "name": "@windedvertigo/security",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CF Workers security-header wrapper for OpenNext-emitted Next.js workers. Solves the gap where Next.js next.config.ts headers() are not honoured by OpenNext on Cloudflare Workers.",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./cf-headers": "./cf-headers.ts"
+  },
+  "files": [
+    "index.ts",
+    "cf-headers.ts",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "build": "echo 'security: no build step (consumed via tsx by opennextjs-cloudflare)'",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250410.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-harbour-depth-chart",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-harbour-depth-chart"
+    }
+  ],
+
+  // ISR incremental cache (OpenNext on CF Workers)
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "wv-depth-chart-cache"
+    }
+  ],
+
+  // Direct CF Workers route — bypass the site router entirely for depth-chart
+  // paths. The site router proxies /harbour/depth-chart/* via Next.js rewrites,
+  // but Next.js's app-router not-found.tsx intercepts certain GET requests (e.g.
+  // /api/auth/callback/google) before the rewrite fires, returning a cached 404.
+  // CF routes operate at the edge before any worker code runs and use most-specific-
+  // match, so this overrides the wv-site worker's broader windedvertigo.com/* route
+  // for depth-chart traffic.
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/depth-chart",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/depth-chart/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/depth-chart",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/depth-chart/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ]
+
+  // Auth secrets — set via: wrangler secret put AUTH_SECRET
+  // For local dev, create .dev.vars with:
+  //   AUTH_SECRET=...
+  //   AUTH_GOOGLE_ID=...
+  //   AUTH_GOOGLE_SECRET=...
+}

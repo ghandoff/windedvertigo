@@ -1,0 +1,34 @@
+/**
+ * Custom 404 page — shown when a route doesn't match.
+ *
+ * Branded with the creaseworks colour palette and lowercase style.
+ */
+export default function NotFound() {
+  return (
+    <main
+      className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center"
+      style={{ backgroundColor: "var(--wv-cadet)", color: "var(--wv-champagne)" }}
+    >
+      <h1
+        className="text-6xl font-bold font-serif tracking-tight mb-2"
+        style={{ color: "var(--wv-sienna)" }}
+      >
+        404
+      </h1>
+
+      <p className="text-lg font-medium mb-1">page not found</p>
+
+      <p className="text-sm opacity-60 mb-8 max-w-sm">
+        the page you&apos;re looking for doesn&apos;t exist or has been moved.
+      </p>
+
+      <a
+        href="/"
+        className="px-4 py-2 text-sm font-medium rounded hover:opacity-80 transition-opacity"
+        style={{ backgroundColor: "var(--wv-sienna)", color: "var(--wv-cadet)" }}
+      >
+        back to homepage
+      </a>
+    </main>
+  );
+}

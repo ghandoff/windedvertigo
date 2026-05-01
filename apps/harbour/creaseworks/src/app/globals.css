@@ -1,0 +1,1297 @@
+@import "tailwindcss";
+
+/* ── shared design tokens ─────────────────────────────────────────
+   brand palette, semantic colours, spacing, focus, reduced-motion.
+   single source of truth — packages/tokens/index.css              */
+@import "@windedvertigo/tokens/index.css";
+
+/* ── creaseworks-specific overrides ───────────────────────────────
+   the app uses a light background with cadet text by default.     */
+
+:root {
+  --background: #fff4e8; /* warm peach — the craft table */
+  --foreground: var(--wv-cadet);
+  --shadow-soft: 0 2px 8px rgba(203, 120, 88, 0.15);
+  --shadow-warm: 0 6px 20px rgba(203, 120, 88, 0.18);
+
+  /* playful accent palette — vivid, high saturation */
+  --cw-coral:     #ff7b6b;   /* warm action red-orange  */
+  --cw-sunshine:  #ffcc33;   /* bright yellow           */
+  --cw-sky:       #5ba8ff;   /* friendly blue           */
+  --cw-mint:      #4cd9a0;   /* fresh green             */
+  --cw-lavender:  #b07cff;   /* playful purple          */
+  --cw-peach:     #ffad85;   /* soft orange accent      */
+
+  /* theme-aware component tokens */
+  --cw-text: #2a3450;
+  --cw-text-muted: rgba(42, 52, 80, 0.6);
+  --cw-border: rgba(255, 123, 107, 0.2);
+  --cw-toggle-off: rgba(203, 120, 88, 0.25);
+  --cw-card-bg: #ffffff;
+  --cw-skeleton-bg: rgba(255, 173, 133, 0.15);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cadet: var(--wv-cadet);
+  --color-redwood: var(--wv-redwood);
+  --color-sienna: var(--wv-sienna);
+  --color-champagne: var(--wv-champagne);
+  /* kid-surface token — use for backgrounds instead of champagne */
+  --color-cream: var(--wv-cream);
+  /* complementary palette — phase accents */
+  --color-navy: var(--wv-navy);
+  --color-cornflower: var(--wv-cornflower);
+  --color-periwinkle: var(--wv-periwinkle);
+  --color-moss: var(--wv-moss);
+  --color-forest: var(--wv-forest);
+  --color-teal: var(--wv-teal);
+  --color-seafoam: var(--wv-seafoam);
+  --color-mint: var(--wv-mint);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  /* display serif — Fraunces variable with WONK axis.
+     use font-serif Tailwind class for h1/h2 display headings only. */
+  --font-serif: var(--font-fraunces), Georgia, ui-serif, serif;
+  --font-size-2xs: 0.625rem;           /* 10px — micro labels, badges, timestamps */
+  --font-size-2xs--line-height: 1rem;   /* 16px line-height for readability */
+  --shadow-soft: 0 1px 3px rgba(39, 50, 72, 0.06);
+  --shadow-warm: 0 2px 8px rgba(203, 120, 88, 0.08);
+}
+
+/* ── Fraunces WONK axis ─────────────────────────────────────────
+   WONK 0 = straight/editorial; WONK 1 = fully irregular/playful.
+   Kid mode (default): 0.65. Grownup mode: 0 (via html.grownup-mode).
+   font-variation-settings cannot be set from the @theme block, so
+   we target the Tailwind utility class directly.               */
+:root { --wf-wonk: 0.65; }
+html.grownup-mode { --wf-wonk: 0; }
+.font-serif { font-variation-settings: "WONK" var(--wf-wonk, 0.65); }
+
+/* ── phase colour tokens ─────────────────────────────────────────
+   each creative cycle phase gets a distinct accent colour.
+   find → discovery blue, fold → warm making, unfold → reflection,
+   find again → expansive teal. used in nav, badges, and borders. */
+
+:root {
+  /* saturated phase colours — rainbow-bright */
+  --cw-phase-find:       #5ba8ff;   /* sky blue       */
+  --cw-phase-fold:       #ff7b6b;   /* coral          */
+  --cw-phase-unfold:     #ffcc33;   /* sunshine       */
+  --cw-phase-find-again: #4cd9a0;   /* mint green     */
+}
+
+/* ── base styles ──────────────────────────────────────────────── */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  line-height: var(--line-height-body);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+/* ── display font for headings ────────────────────────────────────
+   Nunito: rounded geometric sans — warm, playful, highly legible.
+   aligns with brand verbal identity: "creative but not frivolous".
+
+   IMPORTANT: this must live in @layer base so that the font-serif
+   Tailwind utility (@layer utilities) can properly override it.
+   Unlayered rules beat all layered rules regardless of specificity —
+   leaving this unlayered means .font-serif never fires.            */
+
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+/* all UI copy is lowercase per brand guidelines — except user-generated content */
+h1, h2, h3, h4, h5, h6,
+button, a, label, th, nav {
+  text-transform: lowercase;
+}
+
+/* opt-in lowercase for dynamic UI labels in spans/divs/p tags */
+.wv-lowercase { text-transform: lowercase; }
+
+/* ── prose readability ────────────────────────────────────────── */
+
+p, li, dd {
+  max-width: var(--max-line-length);
+}
+
+/* ── skip link ───────────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-md);
+  z-index: 100;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--wv-cadet);
+  color: var(--wv-champagne);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0 0 4px 4px;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ── notion rich-text formatting ──────────────────────────────────
+   Styles for HTML rendered from Notion's rich text annotations
+   via extractRichTextHtml(). Keeps inline formatting consistent
+   with the surrounding brand typography.                           */
+
+.notion-rich-text a {
+  color: var(--wv-redwood);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.notion-rich-text a:hover {
+  opacity: 0.8;
+}
+.notion-rich-text code {
+  background: color-mix(in srgb, var(--wv-cadet) 8%, transparent);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* ── CMS page body ───────────────────────────────────────────────
+   Typography for full-page Notion content rendered by
+   fetchPageBodyHtml(). Covers headings, paragraphs, lists,
+   blockquotes, callouts, toggles, figures, code blocks, and
+   dividers. Applied via the .cms-body class on <article> wrappers
+   in CMS-powered pages (/we/, /do/).                                */
+
+.cms-body h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  color: var(--wv-cadet);
+}
+.cms-body h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--wv-cadet);
+}
+.cms-body h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--wv-cadet);
+}
+/* remove top margin on the first element so page starts flush */
+.cms-body > :first-child { margin-top: 0; }
+
+.cms-body p {
+  margin-bottom: 1rem;
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+
+.cms-body a {
+  color: var(--wv-redwood);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.cms-body a:hover { opacity: 0.8; }
+
+.cms-body strong { font-weight: 600; }
+
+.cms-body ul, .cms-body ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+.cms-body ul { list-style-type: disc; }
+.cms-body ol { list-style-type: decimal; }
+.cms-body li {
+  margin-bottom: 0.35rem;
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+
+.cms-body blockquote {
+  margin: 1.5rem 0;
+  padding: 0.75rem 1.25rem;
+  border-left: 3px solid var(--wv-champagne);
+  color: color-mix(in srgb, var(--wv-cadet) 70%, transparent);
+  font-style: italic;
+}
+
+.cms-body .callout {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--wv-champagne) 15%, transparent);
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+.cms-body .callout::before {
+  content: attr(data-icon);
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.cms-body details {
+  margin: 1rem 0;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--wv-cadet) 10%, transparent);
+}
+.cms-body details summary {
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+  user-select: none;
+}
+.cms-body details > :not(summary) {
+  padding: 0 0.75rem 0.5rem;
+}
+
+.cms-body hr {
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--wv-cadet) 10%, transparent);
+  margin: 2rem 0;
+}
+
+.cms-body figure {
+  margin: 1.5rem 0;
+}
+.cms-body figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.cms-body figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: color-mix(in srgb, var(--wv-cadet) 50%, transparent);
+  text-align: center;
+}
+
+.cms-body pre {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--wv-cadet) 6%, transparent);
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.cms-body pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.cms-body code {
+  background: color-mix(in srgb, var(--wv-cadet) 8%, transparent);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.cms-body .bookmark {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  margin: 0.75rem 0;
+  border: 1px solid color-mix(in srgb, var(--wv-cadet) 12%, transparent);
+  border-radius: 6px;
+  color: var(--wv-redwood);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.cms-body .bookmark:hover {
+  background: color-mix(in srgb, var(--wv-champagne) 10%, transparent);
+}
+
+.cms-body .embed {
+  margin: 1rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--wv-cadet) 12%, transparent);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
+.cms-body .todo {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+
+.cms-body table {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.cms-body td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--wv-cadet) 12%, transparent);
+  color: color-mix(in srgb, var(--wv-cadet) 80%, transparent);
+}
+
+/* ── warm shadow utilities ──────────────────────────────────────── */
+
+.shadow-soft { box-shadow: var(--shadow-soft); }
+.shadow-warm { box-shadow: var(--shadow-warm); }
+
+/* ── staggered entry animation ───────────────────────────────────
+   Apply .wv-stagger to a grid container. Direct children fade+rise
+   into view with a staggered delay per item (up to 12 items).
+   Respects reduced-motion preferences.                              */
+
+@keyframes wv-fade-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.wv-stagger > * {
+  opacity: 0;
+  animation: wv-fade-rise 0.4s ease-out forwards;
+}
+
+.wv-stagger > *:nth-child(1)  { animation-delay: 0ms; }
+.wv-stagger > *:nth-child(2)  { animation-delay: 50ms; }
+.wv-stagger > *:nth-child(3)  { animation-delay: 100ms; }
+.wv-stagger > *:nth-child(4)  { animation-delay: 150ms; }
+.wv-stagger > *:nth-child(5)  { animation-delay: 200ms; }
+.wv-stagger > *:nth-child(6)  { animation-delay: 250ms; }
+.wv-stagger > *:nth-child(7)  { animation-delay: 300ms; }
+.wv-stagger > *:nth-child(8)  { animation-delay: 350ms; }
+.wv-stagger > *:nth-child(9)  { animation-delay: 400ms; }
+.wv-stagger > *:nth-child(10) { animation-delay: 450ms; }
+.wv-stagger > *:nth-child(11) { animation-delay: 500ms; }
+.wv-stagger > *:nth-child(12) { animation-delay: 550ms; }
+.wv-stagger > *:nth-child(n+13) { animation-delay: 550ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wv-stagger > * {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* app-level reduce-motion class — supplements OS prefers-reduced-motion.
+   users toggle this in profile settings → accessibility.                */
+html.reduce-motion .wv-stagger > * {
+  animation: none;
+  opacity: 1;
+}
+
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ── grownup mode ──────────────────────────────────────────────
+   The CSS-only placeholder (de-wobble + 12% desaturate) has been
+   retired in favour of real character-register swapping via
+   CharacterVariantProvider in @windedvertigo/characters/variant-context.
+   When the cw-ui-mode cookie is 'grownup', the root layout wraps
+   children in <CharacterVariantProvider variant="adult">, and every
+   client consumer that reads useCharacterVariant() passes an explicit
+   variant="adult" to CharacterSlot — a true sand-palette flat
+   rendering rather than a filter trick.
+
+   A few remnants of the old behaviour (tile wobble quieting) can be
+   re-added per-surface if needed, but the blanket CSS hack is gone —
+   surface chrome stays consistent between registers by default.   */
+
+/* ── dyslexia-friendly font ─────────────────────────────────────
+   Switches to Atkinson Hyperlegible when .dyslexia-font is on
+   <html>. Characters have distinct shapes to reduce mirroring
+   confusion (b/d, p/q, etc.).                                     */
+
+html.dyslexia-font body,
+html.dyslexia-font input,
+html.dyslexia-font textarea,
+html.dyslexia-font select,
+html.dyslexia-font button {
+  font-family: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  word-spacing: 0.05em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   calm theme — low-stimulation dark mode for sensory sensitivity
+   ═══════════════════════════════════════════════════════════════════
+
+   Designed for autism spectrum, migraines, ADHD overstimulation, or
+   anyone who needs less visual stimulation. Key design decisions:
+
+   1. WARM darks — not pitch black (reduces harsh contrast)
+   2. Desaturated accents — colours are present but quieter
+   3. Reduced contrast — still WCAG AA, but softer than default
+   4. Pairs naturally with reduce-motion for full sensory support
+
+   Architecture:
+   - Override brand palette vars on `body` (main content area)
+   - Re-scope dark values on .wv-header / .wv-footer (already dark)
+   - Use !important sparingly for inline-style overrides             */
+
+/* ── calm semantic tokens ──────────────────────────────────────── */
+
+html.calm-theme {
+  --background: #1c2536;
+  --foreground: #c8bfb0;
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-warm: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  /* component tokens */
+  --cw-text: #c8bfb0;
+  --cw-text-muted: rgba(200, 191, 176, 0.5);
+  --cw-border: rgba(200, 191, 176, 0.08);
+  --cw-toggle-off: rgba(200, 191, 176, 0.18);
+  --cw-card-bg: #232f42;
+  --cw-skeleton-bg: rgba(200, 191, 176, 0.06);
+
+  /* override shared semantic tokens from tokens/index.css */
+  --color-text-primary: #c8bfb0;
+  --color-text-secondary: #9a9188;
+  --color-text-muted: #706860;
+  --color-accent: #c0786d;
+  --color-accent-hover: #b89480;
+  --color-accent-on-dark: #b89480;
+  --color-link: #8ab4d4;
+  --color-link-on-dark: #8ab4d4;
+
+  /* status colours — muted for calm context */
+  --color-error: #d4837a;
+  --color-error-bg: #2d1f1f;
+  --color-error-border: #8b4040;
+  --color-success: #6aa878;
+  --color-success-bg: #1f2d22;
+  --color-success-border: #4a7a52;
+  --color-success-vivid: #6aa878;
+  --color-warning: #c4a060;
+  --color-warning-bg: #2d2818;
+  --color-warning-border: #8a7030;
+}
+
+/* ── main content area — remap brand palette ──────────────────────
+   Components use var(--wv-cadet) for text and var(--wv-white) for
+   backgrounds. In calm mode, we swap those roles. The header/footer
+   are re-scoped below to preserve their dark-bg appearance.         */
+
+html.calm-theme body {
+  --wv-cadet: #c8bfb0;
+  --wv-white: #232f42;
+  --wv-champagne: #2a3548;
+  --wv-redwood: #c0786d;
+  --wv-sienna: #b89480;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* ── header — keep dark bg, calmer text ──────────────────────────
+   The header already has a dark cadet background. In calm mode,
+   deepen it slightly and mute the text for less contrast.           */
+
+html.calm-theme .wv-header {
+  --wv-cadet: #151d2c;
+  --wv-white: #b0a898;
+  --wv-champagne: #b0a898;
+  --wv-sienna: #a08878;
+  --color-accent-on-dark: #a08878;
+  background-color: #151d2c;
+}
+
+/* calm override for footer brand logo — reduce brightness */
+html.calm-theme .wv-footer-brand-img {
+  opacity: 0.5;
+  filter: brightness(0.8) saturate(0.6);
+}
+html.calm-theme .wv-footer-brand:hover .wv-footer-brand-img {
+  opacity: 0.7;
+}
+
+/* ── footer — match header treatment ──────────────────────────── */
+
+html.calm-theme .wv-footer {
+  --wv-cadet: #151d2c;
+  --wv-white: #b0a898;
+  --wv-champagne: #b0a898;
+  background-color: #151d2c;
+}
+html.calm-theme .wv-footer-copyright {
+  color: rgba(176, 168, 152, 0.6);
+}
+
+/* ── mobile bottom tab bar ───────────────────────────────────────
+   Override the inline white background on the fixed bottom nav.
+   !important needed to beat the inline style={{ backgroundColor }}.*/
+
+html.calm-theme nav[aria-label="quick navigation"] {
+  background-color: #1c2536 !important;
+  border-color: rgba(200, 191, 176, 0.06) !important;
+}
+
+/* ── skip link ───────────────────────────────────────────────── */
+
+html.calm-theme .skip-link {
+  background: #232f42;
+  color: #c8bfb0;
+}
+
+/* ── loading skeletons ─────────────────────────────────────────── */
+
+html.calm-theme .animate-pulse {
+  background-color: var(--cw-skeleton-bg) !important;
+}
+
+/* ── profile page cards + inline-styled borders ───────────────── */
+
+html.calm-theme .cw-a11y-card {
+  background-color: var(--cw-card-bg);
+}
+
+/* ── tailwind border utilities on card-like elements ─────────── */
+
+html.calm-theme .rounded-xl.border,
+html.calm-theme .rounded-lg.border {
+  border-color: var(--cw-border);
+}
+
+/* ── Tailwind text colour overrides for opacity-based inline styles
+   Some components use style={{ color: "var(--wv-cadet)", opacity: N }}
+   The var remap on body handles the base colour; these handle the
+   few remaining hardcoded rgba patterns.                            */
+
+html.calm-theme .text-cadet\/40 {
+  color: rgba(200, 191, 176, 0.4) !important;
+}
+
+/* ── colour-mix based CMS/rich-text ──────────────────────────────
+   CMS body uses color-mix(in srgb, var(--wv-cadet) N%, transparent).
+   Since --wv-cadet is now light (#c8bfb0) in body scope, these
+   automatically produce muted light text on dark backgrounds.
+   No explicit overrides needed — the variable cascade handles it.
+
+   Same applies to .notion-rich-text — it references var(--wv-redwood)
+   and var(--wv-cadet) which are already remapped.                    */
+
+/* ── @theme overrides for Tailwind v4 ────────────────────────────
+   Tailwind 4's @theme reads from custom properties. Since we've
+   overridden the semantic vars, classes like bg-background and
+   text-foreground will automatically use calm values.                */
+
+/* ═══════════════════════════════════════════════════════════════════
+   the craft table — playful UI for everyone
+   ═══════════════════════════════════════════════════════════════════
+
+   creaseworks looks and feels like a colourful art table covered in
+   paper, paint pots, and stickers. bright but not garish, textured
+   but not cluttered. this is the default — no toggle needed.
+
+   Design principles:
+   1. COLOUR — vivid, saturated, joyful. warm peach background with
+      punchy phase colours. white cards pop against coloured bg.
+   2. TEXTURE — subtle dot grid background, coloured card borders,
+      layered shadows that feel physical/3D.
+   3. SHAPE — pill-round everything, wobbly hover states, thick
+      borders that feel drawn with a marker.
+   4. SIZE — 18px base, 52px+ touch targets, generous padding.
+   5. TYPOGRAPHY — Nunito 800 everywhere, playful letter-spacing.
+   6. MOTION — springy overshoots, squish on press, bounce on enter.
+   7. DELIGHT — active states feel like pressing a real button,
+      hover wobble, colourful focus rings, rainbow tag pills.        */
+
+/* ── playful keyframes ─────────────────────────────────────────── */
+
+@keyframes cw-bounce {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.15); }
+  70%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cw-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%  { transform: rotate(-2deg); }
+  75%  { transform: rotate(2deg); }
+}
+
+@keyframes cw-pop-in {
+  0%   { opacity: 0; transform: scale(0.8) translateY(16px); }
+  60%  { opacity: 1; transform: scale(1.05) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes cw-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+/* ── page background texture ─────────────────────────────────────
+   subtle dot grid — like graph paper on the craft table.
+   uses radial-gradient so it's pure CSS, no image needed.         */
+
+body {
+  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  background-color: var(--background);
+  background-image:
+    radial-gradient(circle, rgba(203, 120, 88, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── typography — Nunito everywhere, bolder, bouncier ──────────── */
+
+input,
+textarea,
+select,
+button {
+  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--cw-coral);
+}
+
+h2 {
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+/* ── rounder EVERYTHING ────────────────────────────────────────── */
+
+.rounded-xl { border-radius: 1.5rem; }
+.rounded-lg { border-radius: 1.25rem; }
+.rounded-md { border-radius: 0.875rem; }
+
+/* ── cards — physical, tactile, layered ────────────────────────── */
+
+.rounded-xl.border,
+.rounded-lg.border,
+[role="group"] {
+  border-color: rgba(255, 123, 107, 0.2);
+  border-width: 2.5px;
+  background-color: var(--cw-card-bg);
+  box-shadow:
+    0 2px 0 rgba(255, 123, 107, 0.08),
+    0 4px 12px rgba(203, 120, 88, 0.1);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease;
+}
+
+.rounded-xl.border:hover,
+.rounded-lg.border:hover,
+[role="group"]:hover {
+  transform: translateY(-4px) rotate(-0.5deg);
+  box-shadow:
+    0 4px 0 rgba(255, 123, 107, 0.1),
+    0 8px 24px rgba(203, 120, 88, 0.15);
+}
+
+/* more spacing inside cards */
+.p-4 { padding: 1.375rem; }
+.p-5 { padding: 1.5rem; }
+.p-6 { padding: 1.875rem; }
+.px-4 { padding-left: 1.375rem; padding-right: 1.375rem; }
+.py-2 { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+.gap-3 { gap: 1rem; }
+.gap-4 { gap: 1.375rem; }
+.space-y-4 > * + * { margin-top: 1.375rem; }
+.space-y-6 > * + * { margin-top: 1.875rem; }
+.grid { gap: 1.375rem; }
+
+/* ── bigger touch targets & inputs ─────────────────────────────── */
+
+button,
+a.inline-flex,
+[role="switch"] {
+  min-height: 52px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="search"],
+textarea,
+select {
+  font-size: 17px;
+  padding: 0.875rem 1.125rem;
+  border-radius: 1rem;
+  border-width: 2.5px;
+  border-color: rgba(255, 123, 107, 0.2);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--cw-sky);
+  box-shadow:
+    0 0 0 4px rgba(91, 168, 255, 0.15),
+    0 2px 8px rgba(91, 168, 255, 0.1);
+  transform: scale(1.01);
+}
+
+/* ── buttons — chunky, 3D, satisfying to press ──────────────── */
+
+button[type="submit"],
+.bg-redwood {
+  border-radius: 1rem;
+  font-weight: 800;
+  font-size: 1.0625rem;
+  padding: 0.875rem 1.75rem;
+  border: none;
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(177, 80, 67, 0.2);
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.12s ease;
+  position: relative;
+}
+
+button[type="submit"]:hover,
+.bg-redwood:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 5px 0 rgba(0, 0, 0, 0.15),
+    0 8px 16px rgba(177, 80, 67, 0.25);
+}
+
+button[type="submit"]:active,
+.bg-redwood:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(177, 80, 67, 0.15);
+}
+
+/* secondary buttons also get chunky treatment */
+button:not([type="submit"]):not(.wv-header-signout) {
+  border-radius: 0.875rem;
+  font-weight: 700;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+button:not([type="submit"]):not(.wv-header-signout):active {
+  transform: scale(0.95);
+}
+
+/* ── tag pills — rainbow-coloured by position ──────────────── */
+
+.rounded-full[style*="background"] {
+  font-weight: 700;
+  border-width: 2px;
+  border-color: transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ── links — brighter, bolder ──────────────────────────────── */
+
+a:not(.wv-header-nav-link):not(.wv-header-brand):not(nav a) {
+  font-weight: 600;
+}
+
+/* ── playful header — gradient bg, bigger brand ──────────────── */
+
+.wv-header {
+  --wv-champagne: #ffe8c8;
+  background: linear-gradient(135deg, #2a3450 0%, #3a4a6a 100%) !important;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.wv-header-brand {
+  font-size: 1.2rem;
+  font-weight: 900;
+  font-family: var(--font-nunito), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.03em;
+  animation: cw-float 3s ease-in-out infinite;
+}
+
+.wv-header-nav-link {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+/* ── bottom tab bar — THE hero element ──────────────────────── */
+
+nav[aria-label="quick navigation"] {
+  padding-top: 0.75rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  background: linear-gradient(to top, #fff8f0, #ffffff) !important;
+  border-color: rgba(255, 123, 107, 0.15) !important;
+  border-top-width: 2px !important;
+  box-shadow: 0 -4px 20px rgba(203, 120, 88, 0.08);
+}
+
+nav[aria-label="quick navigation"] a {
+  min-width: 60px;
+  min-height: 56px;
+  border-radius: 14px;
+  gap: 0.25rem;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background-color 0.2s ease;
+}
+
+nav[aria-label="quick navigation"] a:active {
+  transform: scale(0.9);
+}
+
+nav[aria-label="quick navigation"] svg,
+nav[aria-label="quick navigation"] .cw-nav-icon {
+  width: 32px;
+  height: 32px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+nav[aria-label="quick navigation"] span {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* active tab — vivid coloured pill with bounce */
+nav[aria-label="quick navigation"] a[style*="background"] {
+  transform: scale(1.08);
+  border-radius: 14px;
+}
+
+nav[aria-label="quick navigation"] a[style*="background"] svg,
+nav[aria-label="quick navigation"] a[style*="background"] .cw-nav-icon {
+  animation: cw-bounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── stagger animation — pop in with overshoot ──────────────── */
+
+.wv-stagger > * {
+  animation-name: cw-pop-in;
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── emoji & icon scaling ──────────────────────────────────── */
+
+.text-2xl { font-size: 1.875rem; }
+.text-3xl { font-size: 2.5rem; }
+.text-5xl { font-size: 4rem; }
+
+/* ── profile page cards ──────────────────────────────────────── */
+
+.cw-a11y-card {
+  background-color: var(--cw-card-bg);
+  border-color: rgba(255, 123, 107, 0.18);
+  border-width: 2.5px;
+  border-radius: 1.25rem;
+  box-shadow: 0 3px 0 rgba(255, 123, 107, 0.06);
+}
+
+/* ── dashed borders — crayon-style ─────────────────────────── */
+
+.border-dashed {
+  border-width: 3px;
+  border-color: var(--cw-coral);
+  border-radius: 1.25rem;
+  opacity: 0.6;
+}
+
+/* ── focus rings — colourful, thick, obvious ──────────────── */
+
+:focus-visible {
+  outline: 3px solid var(--cw-sky);
+  outline-offset: 3px;
+  border-radius: inherit;
+}
+
+/* ── selection colour ──────────────────────────────────────── */
+
+::selection {
+  background: rgba(255, 204, 51, 0.35);
+  color: inherit;
+}
+
+/* ── scrollbar — colourful on webkit ───────────────────────── */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 173, 133, 0.08);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--cw-peach), var(--cw-coral));
+  border-radius: 10px;
+  border: 2px solid var(--background);
+}
+
+/* ── skip link ─────────────────────────────────────────────── */
+
+.skip-link {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  padding: 0.875rem 1.375rem;
+  border-radius: 0 0 1rem 1rem;
+  background: var(--cw-sunshine);
+  color: var(--cw-text);
+}
+
+/* ── co-play FAB — bouncy ───────────────────────────────────── */
+
+a[aria-label="play together"] {
+  width: 56px !important;
+  height: 56px !important;
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 16px rgba(203, 120, 88, 0.25) !important;
+  animation: cw-float 2.5s ease-in-out infinite;
+}
+
+a[aria-label="play together"]:active {
+  transform: scale(0.9) !important;
+  animation: none;
+}
+
+/* ── phase page backgrounds — coloured "rooms" ─────────────────
+   each cycle phase gets a distinct tinted background so users
+   know where they are by colour alone. tints are mixed with white
+   (not champagne) for legibility and visual contrast.             */
+
+.cw-find-bg {
+  background-color: #eef5ff;
+  background: linear-gradient(175deg, #e4effe 0%, #eef5ff 50%, #f4f8ff 100%);
+}
+
+.cw-fold-bg {
+  background-color: #fff0ed;
+  background: linear-gradient(175deg, #ffe8e4 0%, #fff0ed 50%, #fff6f4 100%);
+}
+
+.cw-unfold-bg {
+  background-color: #fff8e6;
+  background: linear-gradient(175deg, #fff3d6 0%, #fff8e6 50%, #fffbf0 100%);
+}
+
+.cw-find-again-bg {
+  background-color: #edfaf4;
+  background: linear-gradient(175deg, #e2f7ed 0%, #edfaf4 50%, #f4fcf8 100%);
+}
+
+/* phase rooms (.cw-find-bg + siblings) used to hijack --wv-champagne
+   to a dark brown so legacy text-on-cadet inline styles rendered
+   legibly on light phase tints. that hijack broke every component
+   that also used champagne as a background (result card swap callout,
+   floating decorations) — both sides rendering dark produced near-
+   illegible <1.5:1 contrast.
+
+   retired 2026-04-22. the shared tokens now expose
+   --color-text-on-cream / --color-text-on-cream-muted /
+   --color-text-on-tint — components that sit on light phase
+   surfaces reference those tokens directly. brand tokens (--wv-*)
+   stay pure brand constants, never surface-dependent.              */
+
+/* ── animated origami nav icons ──────────────────────────────────
+   subtle CSS-only animations on the four cycle phase icons.
+   triggered on active state (current section). each icon has a
+   distinct motion matching its origami metaphor.
+   respects reduced-motion + app-level reduce-motion toggle.       */
+
+/* bottom tab: reduced-motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  nav[aria-label="quick navigation"] a svg,
+  nav[aria-label="quick navigation"] a .cw-nav-icon { animation: none; }
+}
+html.reduce-motion nav[aria-label="quick navigation"] a svg,
+html.reduce-motion nav[aria-label="quick navigation"] a .cw-nav-icon { animation: none; }
+
+/* ── PWA install banner ─────────────────────────────────────────── */
+
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: var(--wv-cadet);
+  color: var(--wv-white);
+  padding: 0.75rem 1rem;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
+  /* iOS safe-area for bottom bar */
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  animation: pwa-slide-up 0.3s ease-out;
+}
+
+@keyframes pwa-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.reduce-motion .pwa-install-banner { animation: none; }
+
+.pwa-install-content {
+  max-width: 40rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pwa-install-text {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.pwa-install-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.pwa-install-btn {
+  background: var(--wv-sienna);
+  color: var(--wv-white);
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pwa-install-btn:hover { background: var(--wv-redwood); }
+.pwa-install-btn:focus-visible { outline: 2px solid var(--wv-champagne); outline-offset: 2px; }
+
+.pwa-install-dismiss {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: none;
+  font-size: 1.125rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+  border-radius: 0.25rem;
+}
+
+.pwa-install-dismiss:hover { color: var(--wv-white); }
+.pwa-install-dismiss:focus-visible { outline: 2px solid var(--wv-champagne); outline-offset: 2px; }
+
+/* ── notification bell + dropdown ────────────────────────────── */
+
+.notif-bell-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notif-bell-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.notif-bell-btn:hover { background: rgba(255, 235, 210, 0.1); }
+.notif-bell-btn:focus-visible { outline: 2px solid var(--wv-champagne); outline-offset: 2px; }
+
+.notif-bell-icon { color: var(--wv-champagne); }
+
+.notif-bell-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--wv-redwood);
+  color: var(--wv-white);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  max-height: 420px;
+  background: var(--wv-white);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(39, 50, 72, 0.18), 0 1px 4px rgba(39, 50, 72, 0.08);
+  overflow: hidden;
+  z-index: 100;
+  animation: notif-slide-in 0.15s ease-out;
+}
+
+@keyframes notif-slide-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reduce-motion .notif-dropdown { animation: none; }
+
+.notif-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cw-border);
+}
+
+.notif-dropdown-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wv-cadet);
+}
+
+.notif-mark-all-btn {
+  font-size: 12px;
+  color: var(--wv-sienna);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.notif-mark-all-btn:hover { text-decoration: underline; }
+.notif-mark-all-btn:focus-visible { outline: 2px solid var(--wv-sienna); outline-offset: 2px; }
+
+.notif-dropdown-list {
+  overflow-y: auto;
+  max-height: 370px;
+}
+
+.notif-item-link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+.notif-item-link:hover .notif-item { background: rgba(39, 50, 72, 0.03); }
+.notif-item-link:focus-visible { outline: 2px solid var(--wv-sienna); outline-offset: -2px; border-radius: 4px; }
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(39, 50, 72, 0.05);
+  transition: background 0.1s;
+}
+
+.notif-item-unread {
+  background: rgba(203, 120, 88, 0.04);
+}
+
+.notif-item-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 22px;
+  width: 22px;
+  text-align: center;
+}
+
+.notif-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--wv-cadet);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.notif-item-desc {
+  font-size: 12px;
+  color: var(--cw-text-muted);
+  margin: 2px 0 0;
+  line-height: 1.3;
+}
+
+.notif-item-time {
+  font-size: 11px;
+  color: var(--cw-text-muted);
+  margin-top: 3px;
+  display: block;
+}
+
+.notif-item-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wv-sienna);
+  margin-top: 7px;
+}
+
+.notif-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--cw-text-muted);
+  font-size: 13px;
+}
+
+/* mobile: full-width dropdown positioned from top */
+@media (max-width: 639px) {
+  .notif-dropdown {
+    position: fixed;
+    top: 48px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: calc(100vh - 120px);
+  }
+}

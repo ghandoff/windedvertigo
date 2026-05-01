@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>facilitator dashboard — lines become loops</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--cadet:#273248;--redwood:#B15043;--sienna:#CB7858;--champagne:#FFEBD2;--muted:#6B7589;--rule:#EAD9BD;--soft:#FFF6E5;--on-dark:#FFEBD2;--on-dark-muted:#B5BBC9;--rule-dark:rgba(255,235,210,0.12);--font:'Inter',system-ui,-apple-system,sans-serif}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+html{font-family:var(--font);font-size:16px;line-height:1.55;color:var(--on-dark);background:var(--cadet);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding-top:146px}
+@media (max-width:640px){body{padding-top:130px}}
+.page-header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--cadet);padding:16px 24px 0 24px;display:flex;flex-direction:column;gap:12px}
+.wordmark{display:inline-block;line-height:0}
+.wordmark img{display:block;width:160px;height:auto}
+@media (max-width:640px){.wordmark img{width:120px}}
+.scenario-picker{display:flex;gap:0;border-bottom:1px solid var(--rule-dark);margin:0 -24px;padding:0 24px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scenario-picker::-webkit-scrollbar{display:none}
+.scenario-tab{font-family:var(--font);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--on-dark-muted);background:none;border:none;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;white-space:nowrap;text-decoration:none;display:block;transition:color .15s,border-color .15s}
+.scenario-tab:hover{color:var(--on-dark)}
+.scenario-tab.active,.scenario-tab[aria-current="page"]{color:var(--on-dark);border-bottom-color:var(--sienna)}
+.wrap{max-width:720px;margin:0 auto;padding:24px 24px 48px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:8px}
+h1{font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--on-dark);margin-bottom:16px;line-height:1.2}
+.intro{font-size:14px;color:var(--on-dark-muted);line-height:1.7;margin-bottom:32px;max-width:55ch}
+
+/* auth screen */
+.auth-screen,.dashboard-screen{display:none}
+.auth-screen.active,.dashboard-screen.active{display:block}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:6px}
+.form-input{font-family:var(--font);font-size:16px;padding:10px 14px;border:1px solid var(--rule-dark);background:rgba(255,255,255,0.1);color:var(--on-dark);width:100%;max-width:280px}
+.form-input:focus{outline:3px solid #3B82F6;outline-offset:2px}
+.form-hint{font-size:11px;color:var(--on-dark-muted);margin-top:4px}
+.btn{display:inline-block;font-family:var(--font);font-size:14px;font-weight:600;letter-spacing:.04em;color:var(--cadet);background:#fff;border:none;padding:12px 24px;cursor:pointer}
+.btn:hover{opacity:.9}
+.btn:focus-visible{outline:3px solid #3B82F6;outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-secondary{background:transparent;color:var(--sienna);border:1px solid var(--rule-dark);padding:10px 20px;font-size:13px}
+.btn-secondary:hover{background:rgba(203,120,88,.12)}
+.error{color:var(--redwood);font-size:12px;font-weight:600;margin-top:8px;min-height:18px}
+.or-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--on-dark-muted);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--rule-dark)}
+
+/* dashboard */
+.session-code-display{font-size:48px;font-weight:700;letter-spacing:.15em;color:var(--on-dark);font-variant-numeric:tabular-nums;margin:16px 0;user-select:all}
+.session-meta{font-size:12px;color:var(--on-dark-muted);margin-bottom:24px}
+.section{margin-bottom:32px}
+.section-title{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--rule-dark)}
+.student-count{font-size:20px;font-weight:700;color:var(--on-dark);margin-bottom:8px}
+.student-list{list-style:none}
+.student-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--rule-dark);font-size:13px}
+.student-id{font-family:monospace;font-size:11px;color:var(--on-dark-muted)}
+.student-scenario{font-weight:600;color:var(--on-dark)}
+.student-progress{font-size:11px;color:var(--sienna)}
+
+/* config */
+.config-row{display:flex;align-items:center;gap:12px;padding:10px 0}
+.config-label{font-size:13px;color:var(--on-dark);flex:1}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--rule-dark);border-radius:11px;transition:background .2s}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:18px;height:18px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.toggle input:checked+.toggle-track{background:var(--sienna)}
+.toggle input:checked+.toggle-track+.toggle-thumb{transform:translateX(18px)}
+.toggle input:focus-visible+.toggle-track{outline:3px solid #3B82F6;outline-offset:2px}
+
+/* export buttons */
+.export-row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* teacher guide links */
+.guide-list{list-style:none}
+.guide-list li{padding:8px 0;border-bottom:1px solid var(--rule-dark)}
+.guide-list a{font-size:14px;font-weight:600;color:var(--on-dark);text-decoration:none}
+.guide-list a:hover{color:var(--sienna)}
+.guide-list a:focus-visible{outline:3px solid #3B82F6;outline-offset:2px}
+.guide-cat{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:2px}
+
+.back{display:inline-block;margin-top:24px;font-size:12px;font-weight:600;color:var(--sienna);text-decoration:none}
+.back:hover{text-decoration:underline}
+.back:focus-visible{outline:3px solid #3B82F6;outline-offset:2px}
+
+@page{size:A4;margin:14mm}
+@media print{body{padding-top:0}.page-header{position:static;padding:0;background:transparent}.scenario-picker{display:none}.wordmark{position:static;margin-bottom:8px}.wordmark img{width:80px;height:auto}.wrap{padding:0;max-width:none}.btn,.btn-secondary,.export-row,.config-row .toggle{display:none}}
+</style>
+</head>
+<body>
+<header class="page-header" role="banner">
+  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+  <nav class="scenario-picker" aria-label="switch scenario">
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div class="eyebrow">facilitator dashboard</div>
+  <h1>session management.</h1>
+
+  <!-- auth screen -->
+  <div class="auth-screen active" id="auth-screen">
+    <p class="intro">create a new session for your class, or rejoin an existing one with your session code and PIN.</p>
+
+    <div class="form-group">
+      <label class="form-label" for="pin-input">4-digit PIN</label>
+      <input class="form-input" id="pin-input" type="password" inputmode="numeric" maxlength="4" pattern="\d{4}" placeholder="0000" autocomplete="off" aria-describedby="pin-hint">
+      <div class="form-hint" id="pin-hint">you'll need this to access the dashboard later.</div>
+    </div>
+    <button class="btn" id="btn-create">create new session</button>
+
+    <div class="or-divider">or rejoin existing</div>
+
+    <div class="form-group">
+      <label class="form-label" for="rejoin-code">session code</label>
+      <input class="form-input" id="rejoin-code" type="text" maxlength="6" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase;letter-spacing:.1em">
+    </div>
+    <button class="btn btn-secondary" id="btn-rejoin">rejoin session</button>
+    <div class="error" id="auth-error" role="alert"></div>
+  </div>
+
+  <!-- dashboard screen -->
+  <div class="dashboard-screen" id="dashboard-screen">
+    <div class="section">
+      <div class="section-title">session code — share with students</div>
+      <div class="session-code-display" id="display-code" aria-label="session code"></div>
+      <div class="session-meta" id="display-meta"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">connected students</div>
+      <div class="student-count" id="student-count">0 students</div>
+      <ul class="student-list" id="student-list"></ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">session config</div>
+      <div class="config-row">
+        <span class="config-label">collect written reflections</span>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-reflections" checked>
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+      <div class="form-hint">when off, hypothesis and "what shifted" text responses are not stored. slider and interaction data is always collected.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">export session data</div>
+      <div class="export-row">
+        <button class="btn btn-secondary" id="btn-export-json">download JSON</button>
+        <button class="btn btn-secondary" id="btn-export-csv">download CSV</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">teacher's guides</div>
+      <ul class="guide-list">
+        <li>
+          <div class="guide-cat">anchor</div>
+          <a href="teacher-guides/lakeshore.html">lakeshore college sustainability committee</a>
+        </li>
+        <li>
+          <div class="guide-cat">business</div>
+          <a href="teacher-guides/churn.html">saas churn</a>
+        </li>
+        <li>
+          <div class="guide-cat">business</div>
+          <a href="teacher-guides/burnout.html">team burnout</a>
+        </li>
+        <li>
+          <div class="guide-cat">personal</div>
+          <a href="teacher-guides/sleep.html">sleep debt</a>
+        </li>
+      </ul>
+    </div>
+
+    <a class="back" href="index.html">&larr; back to simulator</a>
+  </div>
+</main>
+
+<script>
+const API_BASE = '/api/session';
+let sessionState = { code: null, pin: null };
+
+// strip non-digits live — prevents invisible autofill/paste characters from tripping validation
+const pinInput = document.getElementById('pin-input');
+pinInput.addEventListener('input', () => {
+  const cleaned = pinInput.value.replace(/\D/g, '').slice(0, 4);
+  if (cleaned !== pinInput.value) pinInput.value = cleaned;
+});
+
+// ── auth ──
+document.getElementById('btn-create').addEventListener('click', async () => {
+  const pin = document.getElementById('pin-input').value.trim().replace(/\D/g, '');
+  const err = document.getElementById('auth-error');
+  err.textContent = '';
+
+  if (!/^\d{4}$/.test(pin)) {
+    err.textContent = 'PIN must be exactly 4 digits.';
+    return;
+  }
+
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true;
+  try {
+    const res = await fetch(API_BASE + '/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'failed to create session');
+    sessionState = { code: data.code, pin };
+    showDashboard();
+  } catch (e) {
+    err.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('btn-rejoin').addEventListener('click', async () => {
+  const code = document.getElementById('rejoin-code').value.toUpperCase();
+  const pin = document.getElementById('pin-input').value.trim().replace(/\D/g, '');
+  const err = document.getElementById('auth-error');
+  err.textContent = '';
+
+  if (!/^\d{4}$/.test(pin)) {
+    err.textContent = 'PIN must be exactly 4 digits.';
+    return;
+  }
+  if (!/^[A-Z0-9]{6}$/.test(code)) {
+    err.textContent = 'session code must be 6 characters.';
+    return;
+  }
+
+  const btn = document.getElementById('btn-rejoin');
+  btn.disabled = true;
+  try {
+    const res = await fetch(API_BASE + '/status?code=' + code + '&pin=' + pin);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'could not rejoin');
+    sessionState = { code, pin };
+    showDashboard();
+  } catch (e) {
+    err.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ── dashboard ──
+function showDashboard() {
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('dashboard-screen').classList.add('active');
+  document.getElementById('display-code').textContent = sessionState.code;
+  pollStatus();
+}
+
+let pollTimer = null;
+async function pollStatus() {
+  try {
+    const res = await fetch(API_BASE + '/status?code=' + sessionState.code + '&pin=' + sessionState.pin);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    document.getElementById('display-meta').textContent =
+      'created ' + new Date(data.createdAt).toLocaleString() + ' · expires in ~24 hours';
+
+    document.getElementById('student-count').textContent =
+      data.studentCount + ' student' + (data.studentCount === 1 ? '' : 's');
+
+    const list = document.getElementById('student-list');
+    list.textContent = '';
+    data.students.forEach(s => {
+      const li = document.createElement('li');
+      li.className = 'student-item';
+      const scenarios = Object.keys(s.progress || {});
+      li.textContent = '';
+      const idSpan = document.createElement('span');
+      idSpan.className = 'student-id';
+      idSpan.textContent = s.participantId.slice(0, 8);
+      const scenSpan = document.createElement('span');
+      scenSpan.className = 'student-scenario';
+      scenSpan.textContent = s.currentScenario || 'lobby';
+      const progSpan = document.createElement('span');
+      progSpan.className = 'student-progress';
+      progSpan.textContent = scenarios.length + ' scenario' + (scenarios.length === 1 ? '' : 's') + ' touched';
+      li.appendChild(idSpan);
+      li.appendChild(scenSpan);
+      li.appendChild(progSpan);
+      list.appendChild(li);
+    });
+
+    // sync reflection toggle
+    const toggle = document.getElementById('toggle-reflections');
+    if (data.config) toggle.checked = data.config.collectReflections !== false;
+  } catch (e) {
+    console.warn('poll failed:', e);
+  }
+  pollTimer = setTimeout(pollStatus, 8000);
+}
+
+// ── config toggle ──
+document.getElementById('toggle-reflections').addEventListener('change', async (e) => {
+  try {
+    await fetch(API_BASE + '/config', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: sessionState.code,
+        pin: sessionState.pin,
+        collectReflections: e.target.checked,
+      }),
+    });
+  } catch (err) {
+    console.warn('config update failed:', err);
+  }
+});
+
+// ── export ──
+function doExport(format) {
+  const url = API_BASE + '/export?code=' + sessionState.code + '&pin=' + sessionState.pin + '&format=' + format;
+  window.open(url, '_blank');
+}
+document.getElementById('btn-export-json').addEventListener('click', () => doExport('json'));
+document.getElementById('btn-export-csv').addEventListener('click', () => doExport('csv'));
+</script>
+</body>
+</html>

@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>mud — harbour character sketch v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:    #fff4e0;
+    --paper:    #f1e3c8;
+    --ink:      #241c1e;
+    --ink-soft: #3a2e2f;
+    --mud:      #a6794a;  /* mud body — warm mid-brown */
+    --mud-dk:   #6e4a20;  /* thumbprint depression + shadow */
+    --mud-lt:   #c89a6d;  /* highlight crest */
+    --mud-deep: #4f3414;  /* deepest shadow (below mud-dk) */
+    --blush:    #e89b8a;
+    --sand:     #d9cdb0;
+    --sand-dk:  #7d6a45;
+    --leaf:     #8fa67a;
+    --sky:      #9dbbcf;
+    --cream-dk: #ead8b5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 48px 24px 96px;
+    background: var(--cream); color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px; line-height: 1.6; position: relative;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='44'/><feColorMatrix values='0 0 0 0 0.14  0 0 0 0 0.11  0 0 0 0 0.12  0 0 0 0.18 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+    background-size: 300px 300px;
+    mix-blend-mode: multiply;
+    pointer-events: none; z-index: 50; opacity: 0.9;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; position: relative; z-index: 1; }
+  header { text-align: center; margin-bottom: 56px; }
+  .kicker {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: lowercase; color: var(--mud-dk); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: clamp(56px, 10vw, 112px); letter-spacing: -0.025em;
+    margin: 0 0 4px; line-height: 0.92;
+    font-variation-settings: "opsz" 144;
+    transform: rotate(-0.8deg);
+  }
+  .subtitle {
+    font-size: 18px; opacity: 0.7; margin: 8px 0 0;
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-variation-settings: "opsz" 14;
+  }
+  h2 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 32px;
+    letter-spacing: -0.01em; margin: 0 0 4px;
+    font-variation-settings: "opsz" 72;
+  }
+  .section-kicker {
+    font-size: 11px; letter-spacing: 0.14em; font-weight: 700;
+    opacity: 0.55; margin: 0 0 28px;
+  }
+  section { margin-bottom: 56px; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .card {
+    background: var(--paper); border-radius: 18px;
+    padding: 14px 10px 16px; text-align: center;
+    position: relative;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 10px 24px -18px rgba(42,28,22,0.25);
+  }
+  .card svg { width: 100%; height: auto; display: block; }
+  .card .label { font-size: 13px; font-weight: 600; margin: 8px 0 0; letter-spacing: 0.02em; }
+  .card .caption {
+    font-size: 11px; opacity: 0.55; margin: 2px 0 0; letter-spacing: 0.03em;
+    font-style: italic; font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 14;
+  }
+
+  .adult { position: relative; z-index: 100; }
+  .adult .card {
+    background: #ffffff; box-shadow: none;
+    border: 1px solid #eee; border-radius: 10px;
+  }
+  .adult .card .caption { font-style: normal; font-family: 'Inter', sans-serif; }
+
+  .featured {
+    margin: 24px 0 56px; padding: 32px 24px 40px;
+    background: var(--paper); border-radius: 24px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .featured svg {
+    width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto;
+  }
+  .featured-caption {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 14px; opacity: 0.7; margin: 12px 0 0;
+    font-variation-settings: "opsz" 14;
+  }
+  .featured-pose {
+    font-family: 'Fraunces', serif; font-size: 22px; margin: 6px 0 0;
+    font-variation-settings: "opsz" 72;
+  }
+
+  /* mud's personality: stillness is the rule. the body gently shifts
+     like it's dreaming — slower and more organic than crate. no thunks,
+     no twitches, just slow amorphous drift + the rare sleepy blink.    */
+  .slowshift {
+    animation: slowshift 11s ease-in-out infinite;
+    transform-origin: center; transform-box: fill-box;
+  }
+  @keyframes slowshift {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25%      { transform: scale(1.008, 0.994) rotate(-0.8deg); }
+    50%      { transform: scale(0.994, 1.01) rotate(0.5deg); }
+    75%      { transform: scale(1.006, 0.996) rotate(-0.3deg); }
+  }
+  .slowshift.a { animation-delay: -3s; }
+  .slowshift.b { animation-delay: -6s; }
+  .slowshift.c { animation-delay: -9s; }
+
+  .sleepyblink {
+    animation: sleepyblink 7.5s ease-in-out infinite;
+    transform-origin: center; transform-box: fill-box;
+  }
+  @keyframes sleepyblink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    96% { transform: scaleY(0.1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slowshift, .sleepyblink { animation: none; }
+  }
+
+  /* morpher — tap to cycle through the four function poses.
+     mud morphs more slowly than crate (1200ms vs 900ms) and the
+     blur is gentler, because mud's whole personality is "takes
+     its time, doesn't mind changing its mind."                 */
+  .morpher { cursor: pointer; transition: filter 320ms ease, opacity 320ms ease; }
+  .morpher.morphing {
+    filter: blur(2px);
+    opacity: 0.75;
+    transition: filter 220ms ease, opacity 220ms ease;
+  }
+  /* pause the ambient slowshift while a morph is in progress,
+     so the path-tween isn't multiplied by the breathing scale. */
+  .morpher.morphing .slowshift { animation: none; }
+  .tip {
+    display: inline-block; font-size: 11px; letter-spacing: 0.14em;
+    text-transform: lowercase; opacity: 0.55; margin-top: 8px;
+  }
+
+  aside {
+    margin-top: 64px; padding: 32px;
+    background: var(--cream-dk); border-radius: 20px;
+    font-size: 14px; line-height: 1.75;
+  }
+  aside h3 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px;
+    margin: 0 0 12px; font-variation-settings: "opsz" 72;
+  }
+  aside ul { margin: 0; padding-left: 20px; }
+  aside li { margin-bottom: 8px; }
+  aside li code {
+    background: var(--cream); padding: 1px 6px; border-radius: 4px;
+    font-size: 12px; font-family: ui-monospace, monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">harbour character sketch · 06</p>
+  <h1>mud</h1>
+  <p class="subtitle">a slow shape that doesn't mind changing its mind</p>
+</header>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="edgeWobble" x="-3%" y="-3%" width="106%" height="106%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="44"/>
+      <feDisplacementMap in="SourceGraphic" scale="2.2"/>
+    </filter>
+
+    <symbol id="splatter" viewBox="0 0 200 160">
+      <circle cx="14" cy="22" r="1.4" fill="var(--ink)" opacity="0.55"/>
+      <circle cx="24" cy="18" r="0.8" fill="var(--ink)" opacity="0.4"/>
+      <circle cx="180" cy="30" r="1.2" fill="var(--ink)" opacity="0.5"/>
+      <circle cx="10" cy="135" r="1.6" fill="var(--ink)" opacity="0.6"/>
+      <circle cx="22" cy="142" r="0.7" fill="var(--ink)" opacity="0.35"/>
+      <circle cx="170" cy="140" r="1.1" fill="var(--leaf)" opacity="0.7"/>
+      <ellipse cx="186" cy="132" rx="1.8" ry="0.7" fill="var(--blush)" opacity="0.5" transform="rotate(-20 186 132)"/>
+      <circle cx="100" cy="8" r="0.8" fill="var(--ink)" opacity="0.3"/>
+    </symbol>
+
+    <!-- ─── mud-kid — base pose ────────────────────────────────────
+         amorphous low blob. all curves, no corners. the silhouette
+         is asymmetric on purpose — one side slightly more plump than
+         the other so it doesn't read as a simple oval. the thumbprint
+         tell sits slightly left of centre on the upper surface.       -->
+    <symbol id="mud-kid" viewBox="0 0 200 160">
+      <!-- A proper illustrated mud PUDDLE. Flat spread of mud on the ground
+           with a darker wet pool at the centre (light reflecting off water),
+           scattered pebbles in the drier outer rim, and small grass tufts
+           peeking behind the top edges. Eyes on the rim — the character is
+           "in" the puddle, peering out. Very different silhouette from the
+           bunny / castle / bridge in other poses — which is the whole point:
+           mud doesn't mind changing its mind.                                 -->
+
+      <!-- grass tufts on the back-left and back-right edges (small green spikes) -->
+      <g stroke="var(--leaf)" stroke-width="1.4" stroke-linecap="round" fill="none">
+        <path d="M 12 108 Q 10 100 12 92"/>
+        <path d="M 18 106 Q 20 98 16 92"/>
+        <path d="M 24 108 Q 22 100 26 94"/>
+      </g>
+      <g stroke="var(--leaf)" stroke-width="1.4" stroke-linecap="round" fill="none">
+        <path d="M 176 104 Q 174 96 176 90"/>
+        <path d="M 182 104 Q 184 96 180 90"/>
+        <path d="M 188 106 Q 186 98 192 92"/>
+      </g>
+
+      <!-- blush misregister halo of the puddle -->
+      <g transform="translate(4 5)" opacity="0.5">
+        <path d="M 22 112
+                 Q 12 124 16 136
+                 Q 22 150 42 151
+                 Q 86 153 122 151
+                 Q 162 148 180 138
+                 Q 192 126 184 112
+                 Q 168 102 140 104
+                 Q 100 98 62 104
+                 Q 32 102 22 112 Z"
+              fill="var(--blush)"/>
+      </g>
+
+      <!-- PUDDLE outer silhouette — wide flat spread, drier outer mud rim -->
+      <path d="M 22 112
+               Q 12 124 16 136
+               Q 22 150 42 151
+               Q 86 153 122 151
+               Q 162 148 180 138
+               Q 192 126 184 112
+               Q 168 102 140 104
+               Q 100 98 62 104
+               Q 32 102 22 112 Z"
+            fill="var(--mud)"
+            stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+
+      <!-- WET INNER POOL — darker reflective center, nested inside the rim -->
+      <path d="M 42 124
+               Q 34 134 48 140
+               Q 84 144 118 142
+               Q 148 142 160 134
+               Q 160 124 142 120
+               Q 100 116 70 120
+               Q 46 120 42 124 Z"
+            fill="var(--mud-deep)" opacity="0.85"/>
+
+      <!-- wet reflections — thin elongated lighter ovals suggest light
+           bouncing off the water's surface -->
+      <ellipse cx="70" cy="128" rx="10" ry="1.2" fill="var(--mud-lt)" opacity="0.55"/>
+      <ellipse cx="118" cy="132" rx="8" ry="1" fill="var(--mud-lt)" opacity="0.45"/>
+      <ellipse cx="94" cy="136" rx="6" ry="0.8" fill="var(--mud-lt)" opacity="0.4"/>
+
+      <!-- pebbles scattered in the drier outer rim (not in the wet pool) -->
+      <ellipse cx="36" cy="126" rx="3.5" ry="2.3" fill="var(--sand)" stroke="var(--ink)" stroke-width="0.8"/>
+      <ellipse cx="56" cy="112" rx="3" ry="2" fill="var(--sand)" stroke="var(--ink)" stroke-width="0.7"/>
+      <ellipse cx="166" cy="120" rx="4" ry="2.5" fill="var(--sand)" stroke="var(--ink)" stroke-width="0.8"/>
+      <ellipse cx="148" cy="110" rx="2.5" ry="1.7" fill="var(--sand)" stroke="var(--ink)" stroke-width="0.6"/>
+      <ellipse cx="96" cy="110" rx="2.2" ry="1.5" fill="var(--sand)" stroke="var(--ink)" stroke-width="0.6"/>
+
+      <!-- THUMBPRINT TELL — on the drier outer rim, upper-left area -->
+      <g>
+        <ellipse cx="72" cy="108" rx="6.5" ry="4.2"
+                 fill="var(--mud-dk)" opacity="0.7"
+                 transform="rotate(-12 72 108)"/>
+        <ellipse cx="72" cy="108" rx="3.5" ry="2.2"
+                 fill="var(--mud-deep)" opacity="0.75"
+                 transform="rotate(-12 72 108)"/>
+        <path d="M 67 111 Q 72 113 77 111"
+              fill="none" stroke="var(--mud-lt)" stroke-width="0.7"
+              stroke-linecap="round" opacity="0.6"/>
+      </g>
+
+      <!-- eyes on the outer rim, sleepy — peering out of the puddle -->
+      <g class="sleepyblink">
+        <path d="M 110 108 Q 115 106 120 108"
+              fill="none" stroke="var(--ink)" stroke-width="1.5"
+              stroke-linecap="round"/>
+        <circle cx="115" cy="109" r="1.4" fill="var(--ink)"/>
+        <path d="M 130 108 Q 135 106 140 108"
+              fill="none" stroke="var(--ink)" stroke-width="1.5"
+              stroke-linecap="round"/>
+        <circle cx="135" cy="109" r="1.4" fill="var(--ink)"/>
+      </g>
+    </symbol>
+
+    <!-- ─── mud-kid-shape — function: shaping ───────────────────────
+         mud pinched and pulled UP into a rabbit silhouette. a single
+         continuous outline traces chest → face → ears → back → tail
+         → belly — so it reads as one lump of mud sculpted in place,
+         not as stacked clumps. cast-iron doorstop energy, soft edges.  -->
+    <symbol id="mud-kid-shape" viewBox="0 0 200 160">
+      <!-- Pinched-and-pulled rabbit (facing LEFT): the nose pokes out
+           to the far left, two soft peaks rise above the head as ears,
+           the body stretches right and pinches a small tail bump at
+           the rear. One path, one sculpt.                                 -->
+
+      <!-- blush halo for the whole silhouette (matches main path, offset) -->
+      <g transform="translate(4 5)" opacity="0.5">
+        <path d="M 30 144 Q 18 128 24 108 Q 30 90 42 84 Q 28 80 22 72 Q 26 64 42 62 Q 38 52 42 44 Q 46 26 54 22 Q 60 28 58 44 Q 62 50 66 52 Q 68 34 74 24 Q 82 22 84 42 Q 86 54 92 62 Q 140 56 176 72 Q 190 82 192 108 Q 194 128 188 138 Q 182 144 160 145 Q 100 147 50 145 Q 34 144 30 144 Z"
+              fill="var(--blush)"/>
+      </g>
+
+      <!-- ground-contact pool -->
+      <ellipse cx="102" cy="146" rx="80" ry="4" fill="var(--mud-deep)" opacity="0.28"/>
+
+      <!-- RABBIT SINGLE PATH — chest up → nose pull → up forehead →
+           first ear peak → dip → second ear peak → back of head →
+           body top → rear curve with tail pinch → belly → close.       -->
+      <path d="M 30 144
+               Q 18 128 24 108
+               Q 30 90 42 84
+               Q 28 80 22 72
+               Q 26 64 42 62
+               Q 38 52 42 44
+               Q 46 26 54 22
+               Q 60 28 58 44
+               Q 62 50 66 52
+               Q 68 34 74 24
+               Q 82 22 84 42
+               Q 86 54 92 62
+               Q 140 56 176 72
+               Q 190 82 192 108
+               Q 194 128 188 138
+               Q 182 144 160 145
+               Q 100 147 50 145
+               Q 34 144 30 144 Z"
+            fill="var(--mud)"
+            stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+
+      <!-- inner-ear shading: darker oval nested inside each pulled peak -->
+      <ellipse cx="54" cy="34" rx="2.4" ry="8"
+               fill="var(--mud-dk)" opacity="0.55"
+               transform="rotate(-8 54 34)"/>
+      <ellipse cx="76" cy="34" rx="2.4" ry="8"
+               fill="var(--mud-dk)" opacity="0.55"
+               transform="rotate(6 76 34)"/>
+
+      <!-- back highlight — catches light on the arched top of the body -->
+      <path d="M 100 68 Q 140 64 176 78"
+            fill="none" stroke="var(--mud-lt)" stroke-width="3"
+            stroke-linecap="round" opacity="0.55"/>
+
+      <!-- head highlight — small glint on the forehead between the ears -->
+      <path d="M 46 50 Q 58 46 72 52"
+            fill="none" stroke="var(--mud-lt)" stroke-width="1.8"
+            stroke-linecap="round" opacity="0.55"/>
+
+      <!-- under-belly shadow -->
+      <path d="M 50 144 Q 110 147 170 144"
+            fill="none" stroke="var(--mud-dk)" stroke-width="3"
+            stroke-linecap="round" opacity="0.4"/>
+
+      <!-- tiny nose dot at the pulled-out tip of the face -->
+      <circle cx="26" cy="72" r="1.6" fill="var(--mud-deep)"/>
+
+      <!-- THUMBPRINT TELL — pressed into the body flank -->
+      <g>
+        <ellipse cx="120" cy="108" rx="6.5" ry="4.2"
+                 fill="var(--mud-dk)" opacity="0.7"
+                 transform="rotate(-12 120 108)"/>
+        <ellipse cx="120" cy="108" rx="3.5" ry="2.2"
+                 fill="var(--mud-deep)" opacity="0.75"
+                 transform="rotate(-12 120 108)"/>
+        <path d="M 115 111 Q 120 113 125 111"
+              fill="none" stroke="var(--mud-lt)" stroke-width="0.7"
+              stroke-linecap="round" opacity="0.6"/>
+      </g>
+
+      <!-- eyes on the face — two small sleepy dots below the ear base -->
+      <g class="sleepyblink">
+        <path d="M 34 58 Q 38 56 42 58"
+              fill="none" stroke="var(--ink)" stroke-width="1.5"
+              stroke-linecap="round"/>
+        <circle cx="38" cy="59" r="1.3" fill="var(--ink)"/>
+        <path d="M 48 56 Q 52 54 56 56"
+              fill="none" stroke="var(--ink)" stroke-width="1.5"
+              stroke-linecap="round"/>
+        <circle cx="52" cy="57" r="1.3" fill="var(--ink)"/>
+      </g>
+    </symbol>
+
+    <!-- ─── mud-kid-mould — function: moulding ─────────────────────
+         mud pressed into a star mould. the star's crisp geometric
+         outline is the "press edge" — visible where the cookie-cutter
+         stamped into the mud. body still has its soft puddle around
+         the mould so the character's form-language stays amorphous.   -->
+    <symbol id="mud-kid-mould" viewBox="0 0 200 160">
+      <!-- A small SANDCASTLE moulded from the mud: a wide puddle at the
+           bottom (the "beach"), two short battlement blocks on either side,
+           a taller tower in the middle, topped with a flag. All blocks have
+           rounded mud edges (they're shaped, not carved). The puddle shows
+           how much mud remains below — mostly matching the base pose volume. -->
+
+      <!-- ground-contact pool -->
+      <ellipse cx="100" cy="142" rx="76" ry="4" fill="var(--mud-deep)" opacity="0.28"/>
+
+      <!-- blush halo of the whole castle silhouette -->
+      <g transform="translate(4 5)" opacity="0.5">
+        <path d="M 28 140
+                 Q 18 130 26 122
+                 Q 40 120 42 118
+                 L 42 96 Q 42 90 48 90 L 74 90 Q 80 90 80 96 L 80 118
+                 Q 82 118 84 118
+                 L 84 70 Q 84 64 90 64 L 110 64 Q 116 64 116 70 L 116 118
+                 Q 118 118 120 118
+                 L 120 96 Q 120 90 126 90 L 152 90 Q 158 90 158 96 L 158 118
+                 Q 160 120 174 122
+                 Q 182 130 172 140
+                 Q 140 144 100 144
+                 Q 60 144 28 140 Z"
+              fill="var(--blush)"/>
+      </g>
+
+      <!-- puddle base (remaining mud below the castle) -->
+      <path d="M 28 140
+               Q 18 130 26 122
+               Q 54 116 100 118
+               Q 146 116 174 122
+               Q 182 130 172 140
+               Q 140 144 100 144
+               Q 60 144 28 140 Z"
+            fill="var(--mud)"
+            stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+
+      <!-- LEFT BATTLEMENT (short moulded block) -->
+      <path d="M 42 120 Q 40 118 42 114 L 42 96 Q 40 90 46 90 L 76 90 Q 82 90 80 96 L 80 114 Q 82 118 78 120 Z"
+            fill="var(--mud)"
+            stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+
+      <!-- CENTRAL TOWER (taller block) -->
+      <path d="M 82 120 Q 80 118 82 114 L 82 70 Q 80 64 86 64 L 114 64 Q 120 64 118 70 L 118 114 Q 120 118 116 120 Z"
+            fill="var(--mud)"
+            stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+
+      <!-- RIGHT BATTLEMENT (mirror of left) -->
+      <path d="M 122 120 Q 120 118 122 114 L 122 96 Q 120 90 126 90 L 156 90 Q 162 90 160 96 L 160 114 Q 162 118 158 120 Z"
+            fill="var(--mud)"
+            stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+
+      <!-- block highlights (soft upper-left shine on each) -->
+      <path d="M 48 94 Q 58 92 70 94" fill="none" stroke="var(--mud-lt)" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+      <path d="M 88 68 Q 100 66 112 68" fill="none" stroke="var(--mud-lt)" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+      <path d="M 128 94 Q 140 92 152 94" fill="none" stroke="var(--mud-lt)" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+
+      <!-- "press lines" — faint vertical creases on each block showing
+           it was moulded (gentle signal, not dominant) -->
+      <line x1="48" y1="98" x2="48" y2="114" stroke="var(--mud-dk)" stroke-width="0.6" opacity="0.35"/>
+      <line x1="74" y1="98" x2="74" y2="114" stroke="var(--mud-dk)" stroke-width="0.6" opacity="0.35"/>
+      <line x1="88" y1="72" x2="88" y2="114" stroke="var(--mud-dk)" stroke-width="0.6" opacity="0.35"/>
+      <line x1="112" y1="72" x2="112" y2="114" stroke="var(--mud-dk)" stroke-width="0.6" opacity="0.35"/>
+      <line x1="128" y1="98" x2="128" y2="114" stroke="var(--mud-dk)" stroke-width="0.6" opacity="0.35"/>
+      <line x1="154" y1="98" x2="154" y2="114" stroke="var(--mud-dk)" stroke-width="0.6" opacity="0.35"/>
+
+      <!-- flag atop the central tower -->
+      <line x1="100" y1="64" x2="100" y2="42" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M 100 42 L 118 48 L 100 54 Z"
+            fill="var(--sky)" stroke="var(--ink)" stroke-width="1.2" stroke-linejoin="round"/>
+
+      <!-- THUMBPRINT TELL — on the puddle base, consistent left-of-centre -->
+      <g>
+        <ellipse cx="50" cy="132" rx="6.5" ry="4.2"
+                 fill="var(--mud-dk)" opacity="0.7"
+                 transform="rotate(-12 50 132)"/>
+        <ellipse cx="50" cy="132" rx="3.5" ry="2.2"
+                 fill="var(--mud-deep)" opacity="0.75"
+                 transform="rotate(-12 50 132)"/>
+        <path d="M 45 135 Q 50 137 55 135"
+              fill="none" stroke="var(--mud-lt)" stroke-width="0.7"
+              stroke-linecap="round" opacity="0.6"/>
+      </g>
+
+      <!-- eyes on the central tower (the castle IS the character) -->
+      <g class="sleepyblink">
+        <path d="M 89 96 Q 94 93 99 96"
+              fill="none" stroke="var(--ink)" stroke-width="1.6"
+              stroke-linecap="round"/>
+        <circle cx="94" cy="97.5" r="1.4" fill="var(--ink)"/>
+        <path d="M 103 96 Q 108 93 113 96"
+              fill="none" stroke="var(--ink)" stroke-width="1.6"
+              stroke-linecap="round"/>
+        <circle cx="108" cy="97.5" r="1.4" fill="var(--ink)"/>
+      </g>
+    </symbol>
+
+    <!-- ─── mud-kid-stick — function: sticking ─────────────────────
+         a mud patty bridging two small stones. the mud is a gloopy
+         pad in the middle; stones are rounded pebbles on either side
+         with the mud visibly oozing onto their top surfaces (showing
+         it's adhering, not just resting).                               -->
+    <symbol id="mud-kid-stick" viewBox="0 0 200 160">
+      <!-- Kids' marshmallow-and-straw bridge, but the marshmallows are
+           little mud blobs. Two A-frame (triangular) trusses on either
+           side of a horizontal deck stick. Every joint where sticks meet
+           gets a mud blob. A BIGGER central mud blob on the deck is
+           the character's body — thumbprint and eyes live there.          -->
+
+      <!-- ground-contact pools under each truss base -->
+      <ellipse cx="40" cy="140" rx="30" ry="3.5" fill="var(--mud-deep)" opacity="0.25"/>
+      <ellipse cx="160" cy="140" rx="30" ry="3.5" fill="var(--mud-deep)" opacity="0.25"/>
+
+      <!-- ══ STICKS ══ drawn first; mud joints overlay the intersections ══ -->
+
+      <!-- LEFT TRUSS: base + two slopes (A-frame triangle) -->
+      <line x1="20" y1="130" x2="60" y2="130" stroke="var(--mud-deep)" stroke-width="10" stroke-linecap="round"/>
+      <line x1="20" y1="130" x2="60" y2="130" stroke="var(--sand-dk)" stroke-width="6" stroke-linecap="round"/>
+      <line x1="20" y1="130" x2="40" y2="90" stroke="var(--mud-deep)" stroke-width="10" stroke-linecap="round"/>
+      <line x1="20" y1="130" x2="40" y2="90" stroke="var(--sand-dk)" stroke-width="6" stroke-linecap="round"/>
+      <line x1="60" y1="130" x2="40" y2="90" stroke="var(--mud-deep)" stroke-width="10" stroke-linecap="round"/>
+      <line x1="60" y1="130" x2="40" y2="90" stroke="var(--sand-dk)" stroke-width="6" stroke-linecap="round"/>
+
+      <!-- RIGHT TRUSS: base + two slopes -->
+      <line x1="140" y1="130" x2="180" y2="130" stroke="var(--mud-deep)" stroke-width="10" stroke-linecap="round"/>
+      <line x1="140" y1="130" x2="180" y2="130" stroke="var(--sand-dk)" stroke-width="6" stroke-linecap="round"/>
+      <line x1="140" y1="130" x2="160" y2="90" stroke="var(--mud-deep)" stroke-width="10" stroke-linecap="round"/>
+      <line x1="140" y1="130" x2="160" y2="90" stroke="var(--sand-dk)" stroke-width="6" stroke-linecap="round"/>
+      <line x1="180" y1="130" x2="160" y2="90" stroke="var(--mud-deep)" stroke-width="10" stroke-linecap="round"/>
+      <line x1="180" y1="130" x2="160" y2="90" stroke="var(--sand-dk)" stroke-width="6" stroke-linecap="round"/>
+
+      <!-- DECK — horizontal stick spanning the two truss apexes -->
+      <line x1="30" y1="90" x2="170" y2="90" stroke="var(--mud-deep)" stroke-width="10" stroke-linecap="round"/>
+      <line x1="30" y1="90" x2="170" y2="90" stroke="var(--sand-dk)" stroke-width="6" stroke-linecap="round"/>
+
+      <!-- ══ MUD JOINT BLOBS ══ small blobs where sticks meet ══ -->
+
+      <!-- left truss base corners (2 sticks meet each) -->
+      <path d="M 14 126 Q 12 132 18 134 Q 26 134 26 128 Q 24 122 18 122 Q 14 124 14 126 Z"
+            fill="var(--mud)" stroke="var(--ink)" stroke-width="1.3" stroke-linejoin="round"/>
+      <path d="M 54 126 Q 52 132 58 134 Q 66 134 66 128 Q 64 122 60 122 Q 54 124 54 126 Z"
+            fill="var(--mud)" stroke="var(--ink)" stroke-width="1.3" stroke-linejoin="round"/>
+
+      <!-- left apex (3 sticks meet: deck + 2 slopes) — slightly bigger blob -->
+      <path d="M 30 84 Q 26 92 32 96 Q 42 98 48 94 Q 52 88 48 84 Q 44 80 40 82 Q 34 80 30 84 Z"
+            fill="var(--mud)" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/>
+
+      <!-- right apex (3 sticks meet) -->
+      <path d="M 152 84 Q 148 92 154 96 Q 164 98 170 94 Q 174 88 170 84 Q 166 80 162 82 Q 156 80 152 84 Z"
+            fill="var(--mud)" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/>
+
+      <!-- right truss base corners -->
+      <path d="M 134 126 Q 132 132 138 134 Q 146 134 146 128 Q 144 122 138 122 Q 134 124 134 126 Z"
+            fill="var(--mud)" stroke="var(--ink)" stroke-width="1.3" stroke-linejoin="round"/>
+      <path d="M 174 126 Q 172 132 178 134 Q 186 134 186 128 Q 184 122 180 122 Q 174 124 174 126 Z"
+            fill="var(--mud)" stroke="var(--ink)" stroke-width="1.3" stroke-linejoin="round"/>
+
+      <!-- ══ MAIN CENTRAL MUD ══ bigger blob at the middle of the deck.
+           The character's body. Visibly gripping the deck stick from above. -->
+      <g transform="translate(4 5)" opacity="0.45">
+        <path d="M 78 78 Q 70 84 76 92 Q 88 98 106 96 Q 124 94 126 86 Q 124 76 110 74 Q 90 72 78 78 Z"
+              fill="var(--blush)"/>
+      </g>
+      <path d="M 78 78 Q 70 84 76 92 Q 88 98 106 96 Q 124 94 126 86 Q 124 76 110 74 Q 90 72 78 78 Z"
+            fill="var(--mud)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+
+      <!-- small drip hanging off main mud (shows it's sticky) -->
+      <path d="M 90 94 Q 88 100 92 104 Q 96 100 94 94"
+            fill="var(--mud)" stroke="var(--ink)" stroke-width="1.2" stroke-linejoin="round"/>
+
+      <!-- highlight on main mud -->
+      <path d="M 84 78 Q 100 76 118 80"
+            fill="none" stroke="var(--mud-lt)" stroke-width="2"
+            stroke-linecap="round" opacity="0.55"/>
+
+      <!-- THUMBPRINT TELL on main mud, upper-left -->
+      <g>
+        <ellipse cx="86" cy="82" rx="5" ry="3.3"
+                 fill="var(--mud-dk)" opacity="0.7"
+                 transform="rotate(-12 86 82)"/>
+        <ellipse cx="86" cy="82" rx="2.5" ry="1.7"
+                 fill="var(--mud-deep)" opacity="0.75"
+                 transform="rotate(-12 86 82)"/>
+        <path d="M 82 84 Q 86 86 90 84"
+              fill="none" stroke="var(--mud-lt)" stroke-width="0.6"
+              stroke-linecap="round" opacity="0.6"/>
+      </g>
+
+      <!-- eyes on main mud, right-of-centre -->
+      <g class="sleepyblink">
+        <path d="M 104 86 Q 109 84 114 86"
+              fill="none" stroke="var(--ink)" stroke-width="1.4"
+              stroke-linecap="round"/>
+        <circle cx="109" cy="87" r="1.3" fill="var(--ink)"/>
+        <path d="M 118 86 Q 122 84 126 86"
+              fill="none" stroke="var(--ink)" stroke-width="1.4"
+              stroke-linecap="round"/>
+        <circle cx="122" cy="87" r="1.3" fill="var(--ink)"/>
+      </g>
+    </symbol>
+
+    <!-- mud-adult: flat, muted sand palette, no wobble filter, open eyes -->
+    <symbol id="mud-adult" viewBox="0 0 200 160">
+      <!-- ground shadow -->
+      <ellipse cx="100" cy="140" rx="62" ry="3" fill="var(--sand-dk)" opacity="0.25"/>
+      <!-- body -->
+      <path d="M 40 108
+               Q 32 90 46 76
+               Q 62 58 88 56
+               Q 116 52 140 64
+               Q 162 74 164 94
+               Q 166 114 152 124
+               Q 130 138 100 140
+               Q 70 142 52 132
+               Q 40 124 40 108 Z"
+            fill="var(--sand)"
+            stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+      <!-- subtle thumbprint tell (still present, muted) -->
+      <ellipse cx="82" cy="86" rx="5" ry="3"
+               fill="var(--sand-dk)" opacity="0.55"
+               transform="rotate(-12 82 86)"/>
+      <!-- eyes -->
+      <circle cx="116" cy="100" r="2" fill="var(--ink)"/>
+      <circle cx="138" cy="100" r="2" fill="var(--ink)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- FEATURED MORPHER — tap to cycle through the four function poses.
+     the main silhouette path-tweens between poses (base puddle →
+     pinched rabbit → sandcastle → truss bridge), while pose-specific
+     extras (pebbles, inner-ear shading, battlements, straw sticks)
+     are cleared during the morph and re-rendered when it settles.   -->
+<div class="featured">
+  <svg class="morpher" id="morpher" viewBox="0 0 200 160" aria-label="tap to watch mud transform">
+    <use href="#splatter" x="0" y="0" width="200" height="160"/>
+    <g class="slowshift">
+      <!-- pose-specific bg extras (behind silhouette): ground-contact
+           pool, grass tufts on the base pose -->
+      <g id="m-bg-extras"></g>
+      <!-- blush misregister halo — tweens with the silhouette -->
+      <g transform="translate(4 5)" opacity="0.5">
+        <path id="m-halo" fill="var(--blush)"/>
+      </g>
+      <!-- main body silhouette — the path that tweens between poses -->
+      <path id="m-body"
+            fill="var(--mud)"
+            stroke="var(--ink)" stroke-width="2.4"
+            stroke-linejoin="round"
+            filter="url(#edgeWobble)"/>
+      <!-- pose-specific fg extras (in front of silhouette): wet inner
+           pool, highlights, thumbprint, sticks + joints, flags, etc. -->
+      <g id="m-fg-extras"></g>
+      <!-- sleepy eyes — Q-curve lid + small filled dot -->
+      <g id="m-eyes" class="sleepyblink"></g>
+    </g>
+  </svg>
+  <p class="featured-caption">mud is in no hurry. mud has all the time.</p>
+  <p class="featured-pose" id="morpher-pose">base — just mud</p>
+  <span class="tip">click / tap to cycle</span>
+</div>
+
+<!-- KID MODE GRID -->
+<section>
+  <h2>kid mode</h2>
+  <p class="section-kicker">creaseworks · sampler · play dashboards</p>
+
+  <div class="grid">
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="mud, resting">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="slowshift">
+          <use href="#mud-kid" x="0" y="0" width="200" height="160"/>
+        </g>
+      </svg>
+      <p class="label">base</p>
+      <p class="caption">just mud</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="mud pinched and pulled into a rabbit">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="slowshift a">
+          <use href="#mud-kid-shape" x="0" y="0" width="200" height="160"/>
+        </g>
+      </svg>
+      <p class="label">shape</p>
+      <p class="caption">function · shaping</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="mud pressed into a star mould">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="slowshift b">
+          <use href="#mud-kid-mould" x="0" y="0" width="200" height="160"/>
+        </g>
+      </svg>
+      <p class="label">mould</p>
+      <p class="caption">function · moulding</p>
+    </div>
+
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="mud bridging two stones">
+        <use href="#splatter" x="0" y="0" width="200" height="160"/>
+        <g class="slowshift c">
+          <use href="#mud-kid-stick" x="0" y="0" width="200" height="160"/>
+        </g>
+      </svg>
+      <p class="label">stick</p>
+      <p class="caption">function · sticking</p>
+    </div>
+  </div>
+</section>
+
+<!-- ADULT MODE -->
+<section class="adult">
+  <h2>adult mode</h2>
+  <p class="section-kicker">vertigo vault · depth chart · research surfaces</p>
+
+  <div class="grid">
+    <div class="card">
+      <svg viewBox="0 0 200 160" aria-label="mud, restrained">
+        <use href="#mud-adult" x="0" y="0" width="200" height="160"/>
+      </svg>
+      <p class="label">base</p>
+      <p class="caption">at rest</p>
+    </div>
+  </div>
+</section>
+
+<aside>
+  <h3>mud sketch — v1</h3>
+  <ul>
+    <li>Archetype: the patient shaper. Validates "it's okay to be slow and to change your mind." Mud is the character who sits with an idea until it becomes something.</li>
+    <li>Form: malleable / granular. Hosts DB <code>form_primary</code> values like <em>malleable</em>, <em>volume</em>, <em>substrate</em>, <em>clay</em>, <em>dough</em>, <em>putty</em>, <em>plasticine</em>, <em>mud</em>, <em>silt</em>, <em>sand</em>, <em>granular</em>, <em>foam</em>.</li>
+    <li>Motion vocabulary: <em>slow amorphous shifts, no sharp edges</em>. <code>.slowshift</code> runs an 11-second cycle of subtle scale (±1%) and rotation (±0.8°) — the body gently breathes/settles. <code>.sleepyblink</code> fires every 7.5s with a quick scaleY squish. The animation-delay variants (<code>.a</code>, <code>.b</code>, <code>.c</code>) stagger the cards so they don't all drift in sync — reinforces "each one is its own slow moment."</li>
+    <li>Mud's motion principle is even more extreme than Crate's: <em>stillness is the rule, and even the motion is stillness-adjacent</em>. No thunks, no twitches, no drifts across the canvas — just a faint, continuous shape-memory adjustment.</li>
+    <li>Silhouette rule: <strong>all curves, no corners</strong>. Every outline uses Q curves. The one exception — the star mould impression in the <em>mould</em> pose — is deliberate: the sharp geometry reads as an <em>alien</em> shape that was <em>pressed INTO</em> the otherwise soft body, which is exactly the function being demonstrated.</li>
+    <li>Tell: a <strong>thumbprint impression</strong> — a small rotated oval depression (outer <code>--mud-dk</code> + inner <code>--mud-deep</code> slot + a tiny highlight rim on the lower edge). Always positioned slightly left of centre on the upper body surface. Rotated -12° for a "pressed with a thumb tip" angle. Visible on all four poses. Scale stays consistent at rx=6.5, ry=4.2 so it reads as the same fingerprint across the cast.</li>
+    <li>Secondary silhouette detail: a <em>ground-contact pool</em> ellipse beneath the body on every pose — reinforces mud's weight and its relationship with the surface it's on (mud sits, sags, settles).</li>
+    <li>Palette: <code>--mud</code> #a6794a (warm mid-brown body), <code>--mud-lt</code> #c89a6d (top highlight crest), <code>--mud-dk</code> #6e4a20 (thumbprint outer + under-belly shadow), <code>--mud-deep</code> #4f3414 (thumbprint inner slot + ground-contact pool). Feels earthy, warm, not muddy-grey. Reads as clay/earth, not dirt.</li>
+    <li>Eyes: half-closed sleepy lids (Q-curve line over a small filled dot) in place of the round open eyes used by other characters. Conveys "contemplative, not asleep — just patient." Eyes are placed on the right side of the body to avoid fighting the tell for attention.</li>
+    <li>Function poses: <em>base</em> (a proper illustrated puddle — flat wet pool with pebbles, reflections, grass tufts on the edges — reads as "mud at rest, settled"), <em>shape</em> (pinched-and-pulled rabbit — a single continuous outline traces chest → nose → ears → back → belly, so it reads as sculpted-from-one-lump rather than built from clumps), <em>mould</em> (sandcastle pressed from the same mud — two low battlements + a taller middle tower with a flag — demonstrates "pressed against a form"), <em>stick</em> (marshmallow-and-straw bridge — sticks engineered with mud blobs joining them — demonstrates adhesion). The dramatic variance across the four poses is intentional: it illustrates the slow shape that doesn't mind changing its mind. Morpher ships with a 1200ms cubic-eased path-tween (slower than Crate's 900ms — mud takes its time). The silhouette tweens as a single closed path between all four poses; pose-specific extras (pebbles, inner-ear shading, battlements, truss sticks) clear during the morph and re-render when it settles, so the animation stays legible. All four silhouettes share the same topology (simple closed loop) so the polyline tween doesn't self-cross — the stick pose uses a gentle arched puddle with sticks as fg decoration rather than a hole-in-middle bridge shape.</li>
+    <li>Adult mode: same silhouette, sand palette, tell still present but muted. Eyes fully open as dots (not sleepy) so the grown-up version reads as <em>focused</em> rather than <em>dreaming</em>.</li>
+  </ul>
+</aside>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const makeEl = (tag, attrs, text) => {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    if (text !== undefined) el.textContent = text;
+    return el;
+  };
+  const clear = (el) => { while (el.firstChild) el.removeChild(el.firstChild); };
+
+  // ── path sampling for the tween ─────────────────────────────────
+  // we sample each pose's silhouette at N evenly-spaced points along
+  // the path length, lerp between corresponding points on each frame,
+  // and rebuild the path as an L-segmented polyline. losing the Q
+  // curves during tween is fine because the edgeWobble filter is
+  // stripped anyway, and 72 samples is smooth enough for mud.
+  let _sampleSvg = null;
+  function ensureSampleHolder() {
+    if (_sampleSvg) return _sampleSvg;
+    _sampleSvg = document.createElementNS(NS, 'svg');
+    _sampleSvg.setAttribute('width', '0');
+    _sampleSvg.setAttribute('height', '0');
+    _sampleSvg.style.position = 'absolute';
+    document.body.appendChild(_sampleSvg);
+    return _sampleSvg;
+  }
+  function samplePath(d, numPoints) {
+    const tmp = makeEl('path', { d: d });
+    const holder = ensureSampleHolder();
+    holder.appendChild(tmp);
+    const length = tmp.getTotalLength();
+    const pts = [];
+    for (let i = 0; i < numPoints; i++) {
+      const t = numPoints === 1 ? 0 : (i / (numPoints - 1));
+      const p = tmp.getPointAtLength(t * length);
+      pts.push([p.x, p.y]);
+    }
+    holder.removeChild(tmp);
+    return pts;
+  }
+  function pointsToPath(pts) {
+    if (!pts.length) return '';
+    let d = 'M ' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
+    for (let i = 1; i < pts.length; i++) {
+      d += ' L ' + pts[i][0].toFixed(2) + ' ' + pts[i][1].toFixed(2);
+    }
+    return d + ' Z';
+  }
+  function lerpPoints(from, to, t) {
+    const out = [];
+    for (let i = 0; i < from.length; i++) {
+      out.push([
+        from[i][0] + (to[i][0] - from[i][0]) * t,
+        from[i][1] + (to[i][1] - from[i][1]) * t
+      ]);
+    }
+    return out;
+  }
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  // ── pose data ──────────────────────────────────────────────────
+  // Each pose provides:
+  //   d    — outer silhouette path (what tweens). all four poses
+  //          are simple closed loops (no holes, no subpaths) so the
+  //          polyline interpolation never self-crosses.
+  //   eyes — [cx, cy] pairs; cy is the lid midpoint, dot sits at cy+1
+  //   bg   — extras drawn BEHIND the silhouette (ground pool, grass)
+  //   fg   — extras drawn IN FRONT of the silhouette (wet pool,
+  //          highlights, thumbprint, truss sticks, mud-blob joints)
+
+  const POSES = [
+    {
+      name: 'base — just mud',
+      // puddle silhouette — ported verbatim from the #mud-kid tile symbol
+      d: 'M 22 112 Q 12 124 16 136 Q 22 150 42 151 Q 86 153 122 151 Q 162 148 180 138 Q 192 126 184 112 Q 168 102 140 104 Q 100 98 62 104 Q 32 102 22 112 Z',
+      // eyes on the upper-right rim, peering out of the puddle
+      eyes: [[115, 108], [135, 108]],
+      bg: [
+        // 6 grass tufts — 3 on the back-left edge, 3 on the back-right edge
+        { tag: 'path', attrs: { d: 'M 12 108 Q 10 100 12 92', fill: 'none', stroke: 'var(--leaf)', 'stroke-width': '1.4', 'stroke-linecap': 'round' } },
+        { tag: 'path', attrs: { d: 'M 18 106 Q 20 98 16 92', fill: 'none', stroke: 'var(--leaf)', 'stroke-width': '1.4', 'stroke-linecap': 'round' } },
+        { tag: 'path', attrs: { d: 'M 24 108 Q 22 100 26 94', fill: 'none', stroke: 'var(--leaf)', 'stroke-width': '1.4', 'stroke-linecap': 'round' } },
+        { tag: 'path', attrs: { d: 'M 176 104 Q 174 96 176 90', fill: 'none', stroke: 'var(--leaf)', 'stroke-width': '1.4', 'stroke-linecap': 'round' } },
+        { tag: 'path', attrs: { d: 'M 182 104 Q 184 96 180 90', fill: 'none', stroke: 'var(--leaf)', 'stroke-width': '1.4', 'stroke-linecap': 'round' } },
+        { tag: 'path', attrs: { d: 'M 188 106 Q 186 98 192 92', fill: 'none', stroke: 'var(--leaf)', 'stroke-width': '1.4', 'stroke-linecap': 'round' } }
+      ],
+      fg: [
+        // wet inner pool — darker reflective centre, inset from the rim
+        { tag: 'path', attrs: { d: 'M 42 124 Q 34 134 48 140 Q 84 144 118 142 Q 148 142 160 134 Q 160 124 142 120 Q 100 116 70 120 Q 46 120 42 124 Z', fill: 'var(--mud-deep)', opacity: '0.85' } },
+        // 3 thin elongated reflections — positions ported from tile
+        { tag: 'ellipse', attrs: { cx: 70, cy: 128, rx: 10, ry: 1.2, fill: 'var(--mud-lt)', opacity: '0.55' } },
+        { tag: 'ellipse', attrs: { cx: 118, cy: 132, rx: 8, ry: 1, fill: 'var(--mud-lt)', opacity: '0.45' } },
+        { tag: 'ellipse', attrs: { cx: 94, cy: 136, rx: 6, ry: 0.8, fill: 'var(--mud-lt)', opacity: '0.4' } },
+        // 5 sand pebbles scattered on the drier outer rim — ellipses with
+        // ink outline (NOT coloured dots), matching the tile exactly
+        { tag: 'ellipse', attrs: { cx: 36, cy: 126, rx: 3.5, ry: 2.3, fill: 'var(--sand)', stroke: 'var(--ink)', 'stroke-width': '0.8' } },
+        { tag: 'ellipse', attrs: { cx: 56, cy: 112, rx: 3, ry: 2, fill: 'var(--sand)', stroke: 'var(--ink)', 'stroke-width': '0.7' } },
+        { tag: 'ellipse', attrs: { cx: 166, cy: 120, rx: 4, ry: 2.5, fill: 'var(--sand)', stroke: 'var(--ink)', 'stroke-width': '0.8' } },
+        { tag: 'ellipse', attrs: { cx: 148, cy: 110, rx: 2.5, ry: 1.7, fill: 'var(--sand)', stroke: 'var(--ink)', 'stroke-width': '0.6' } },
+        { tag: 'ellipse', attrs: { cx: 96, cy: 110, rx: 2.2, ry: 1.5, fill: 'var(--sand)', stroke: 'var(--ink)', 'stroke-width': '0.6' } },
+        // thumbprint on the drier outer rim, upper-LEFT (not centre)
+        { tag: 'g', children: [
+          { tag: 'ellipse', attrs: { cx: 72, cy: 108, rx: 6.5, ry: 4.2, fill: 'var(--mud-dk)', opacity: '0.7', transform: 'rotate(-12 72 108)' } },
+          { tag: 'ellipse', attrs: { cx: 72, cy: 108, rx: 3.5, ry: 2.2, fill: 'var(--mud-deep)', opacity: '0.75', transform: 'rotate(-12 72 108)' } },
+          { tag: 'path', attrs: { d: 'M 67 111 Q 72 113 77 111', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '0.7', 'stroke-linecap': 'round', opacity: '0.6' } }
+        ]}
+      ]
+    },
+    {
+      name: 'shape — pinched into a rabbit',
+      // single-path pinched rabbit (facing left): chest up → nose pull
+      // → two ear peaks → back → tail pinch → belly → close
+      d: 'M 30 144 Q 18 128 24 108 Q 30 90 42 84 Q 28 80 22 72 Q 26 64 42 62 Q 38 52 42 44 Q 46 26 54 22 Q 60 28 58 44 Q 62 50 66 52 Q 68 34 74 24 Q 82 22 84 42 Q 86 54 92 62 Q 140 56 176 72 Q 190 82 192 108 Q 194 128 188 138 Q 182 144 160 145 Q 100 147 50 145 Q 34 144 30 144 Z',
+      eyes: [[38, 58], [52, 56]],
+      bg: [
+        // ground-contact pool (matches tile at cx=102 cy=146 rx=80 ry=4)
+        { tag: 'ellipse', attrs: { cx: 102, cy: 146, rx: 80, ry: 4, fill: 'var(--mud-deep)', opacity: '0.28' } }
+      ],
+      fg: [
+        // inner-ear shading (darker oval nested inside each pulled peak)
+        { tag: 'ellipse', attrs: { cx: 54, cy: 34, rx: 2.4, ry: 8, fill: 'var(--mud-dk)', opacity: '0.55', transform: 'rotate(-8 54 34)' } },
+        { tag: 'ellipse', attrs: { cx: 76, cy: 34, rx: 2.4, ry: 8, fill: 'var(--mud-dk)', opacity: '0.55', transform: 'rotate(6 76 34)' } },
+        // back highlight along the arched top of the body
+        { tag: 'path', attrs: { d: 'M 100 68 Q 140 64 176 78', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '3', 'stroke-linecap': 'round', opacity: '0.55' } },
+        // head highlight between the ears
+        { tag: 'path', attrs: { d: 'M 46 50 Q 58 46 72 52', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '1.8', 'stroke-linecap': 'round', opacity: '0.55' } },
+        // under-belly shadow
+        { tag: 'path', attrs: { d: 'M 50 144 Q 110 147 170 144', fill: 'none', stroke: 'var(--mud-dk)', 'stroke-width': '3', 'stroke-linecap': 'round', opacity: '0.4' } },
+        // tiny nose dot at the pulled-out tip of the face
+        { tag: 'circle', attrs: { cx: 26, cy: 72, r: 1.6, fill: 'var(--mud-deep)' } },
+        // thumbprint on the body flank
+        { tag: 'g', children: [
+          { tag: 'ellipse', attrs: { cx: 120, cy: 108, rx: 6.5, ry: 4.2, fill: 'var(--mud-dk)', opacity: '0.7', transform: 'rotate(-12 120 108)' } },
+          { tag: 'ellipse', attrs: { cx: 120, cy: 108, rx: 3.5, ry: 2.2, fill: 'var(--mud-deep)', opacity: '0.75', transform: 'rotate(-12 120 108)' } },
+          { tag: 'path', attrs: { d: 'M 115 111 Q 120 113 125 111', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '0.7', 'stroke-linecap': 'round', opacity: '0.6' } }
+        ]}
+      ]
+    },
+    {
+      name: 'mould — pressed into a sandcastle',
+      // silhouette is the gentle PUDDLE BASE from the tile — the three
+      // battlement blocks are drawn on top as separate fg paths (each
+      // with its own edge-wobble), exactly like the #mud-kid-mould tile.
+      // the star/corner edges on the blocks are the one time mud's
+      // all-curves rule deliberately breaks — that's the "press edge".
+      d: 'M 28 140 Q 18 130 26 122 Q 54 116 100 118 Q 146 116 174 122 Q 182 130 172 140 Q 140 144 100 144 Q 60 144 28 140 Z',
+      // eyes on the central tower face
+      eyes: [[94, 97.5], [108, 97.5]],
+      bg: [
+        // ground-contact pool (matches tile at cx=100 cy=142 rx=76 ry=4)
+        { tag: 'ellipse', attrs: { cx: 100, cy: 142, rx: 76, ry: 4, fill: 'var(--mud-deep)', opacity: '0.28' } },
+        // additional blush halos behind the 3 tower blocks — the morpher
+        // silhouette only covers the puddle, so the towers need their
+        // own translated blush to match the tile's combined halo.
+        { tag: 'path', attrs: { d: 'M 42 120 Q 40 118 42 114 L 42 96 Q 40 90 46 90 L 76 90 Q 82 90 80 96 L 80 114 Q 82 118 78 120 Z', fill: 'var(--blush)', opacity: '0.5', transform: 'translate(4 5)' } },
+        { tag: 'path', attrs: { d: 'M 82 120 Q 80 118 82 114 L 82 70 Q 80 64 86 64 L 114 64 Q 120 64 118 70 L 118 114 Q 120 118 116 120 Z', fill: 'var(--blush)', opacity: '0.5', transform: 'translate(4 5)' } },
+        { tag: 'path', attrs: { d: 'M 122 120 Q 120 118 122 114 L 122 96 Q 120 90 126 90 L 156 90 Q 162 90 160 96 L 160 114 Q 162 118 158 120 Z', fill: 'var(--blush)', opacity: '0.5', transform: 'translate(4 5)' } }
+      ],
+      fg: [
+        // LEFT BATTLEMENT (short moulded block) — with edge wobble
+        { tag: 'path', attrs: { d: 'M 42 120 Q 40 118 42 114 L 42 96 Q 40 90 46 90 L 76 90 Q 82 90 80 96 L 80 114 Q 82 118 78 120 Z', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '2', 'stroke-linejoin': 'round', filter: 'url(#edgeWobble)' } },
+        // CENTRAL TOWER (taller block)
+        { tag: 'path', attrs: { d: 'M 82 120 Q 80 118 82 114 L 82 70 Q 80 64 86 64 L 114 64 Q 120 64 118 70 L 118 114 Q 120 118 116 120 Z', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '2', 'stroke-linejoin': 'round', filter: 'url(#edgeWobble)' } },
+        // RIGHT BATTLEMENT (mirror of left)
+        { tag: 'path', attrs: { d: 'M 122 120 Q 120 118 122 114 L 122 96 Q 120 90 126 90 L 156 90 Q 162 90 160 96 L 160 114 Q 162 118 158 120 Z', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '2', 'stroke-linejoin': 'round', filter: 'url(#edgeWobble)' } },
+        // block highlights (soft upper-left shine arc on each)
+        { tag: 'path', attrs: { d: 'M 48 94 Q 58 92 70 94', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '2', 'stroke-linecap': 'round', opacity: '0.55' } },
+        { tag: 'path', attrs: { d: 'M 88 68 Q 100 66 112 68', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '2', 'stroke-linecap': 'round', opacity: '0.55' } },
+        { tag: 'path', attrs: { d: 'M 128 94 Q 140 92 152 94', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '2', 'stroke-linecap': 'round', opacity: '0.55' } },
+        // "press lines" — faint vertical creases showing each block was moulded
+        { tag: 'line', attrs: { x1: 48, y1: 98, x2: 48, y2: 114, stroke: 'var(--mud-dk)', 'stroke-width': '0.6', opacity: '0.35' } },
+        { tag: 'line', attrs: { x1: 74, y1: 98, x2: 74, y2: 114, stroke: 'var(--mud-dk)', 'stroke-width': '0.6', opacity: '0.35' } },
+        { tag: 'line', attrs: { x1: 88, y1: 72, x2: 88, y2: 114, stroke: 'var(--mud-dk)', 'stroke-width': '0.6', opacity: '0.35' } },
+        { tag: 'line', attrs: { x1: 112, y1: 72, x2: 112, y2: 114, stroke: 'var(--mud-dk)', 'stroke-width': '0.6', opacity: '0.35' } },
+        { tag: 'line', attrs: { x1: 128, y1: 98, x2: 128, y2: 114, stroke: 'var(--mud-dk)', 'stroke-width': '0.6', opacity: '0.35' } },
+        { tag: 'line', attrs: { x1: 154, y1: 98, x2: 154, y2: 114, stroke: 'var(--mud-dk)', 'stroke-width': '0.6', opacity: '0.35' } },
+        // flag atop the central tower — sky-blue pennant (not blush, per tile)
+        { tag: 'line', attrs: { x1: 100, y1: 64, x2: 100, y2: 42, stroke: 'var(--ink)', 'stroke-width': '1.6', 'stroke-linecap': 'round' } },
+        { tag: 'path', attrs: { d: 'M 100 42 L 118 48 L 100 54 Z', fill: 'var(--sky)', stroke: 'var(--ink)', 'stroke-width': '1.2', 'stroke-linejoin': 'round' } },
+        // thumbprint on the puddle apron, left-of-centre (at 50, 132)
+        { tag: 'g', children: [
+          { tag: 'ellipse', attrs: { cx: 50, cy: 132, rx: 6.5, ry: 4.2, fill: 'var(--mud-dk)', opacity: '0.7', transform: 'rotate(-12 50 132)' } },
+          { tag: 'ellipse', attrs: { cx: 50, cy: 132, rx: 3.5, ry: 2.2, fill: 'var(--mud-deep)', opacity: '0.75', transform: 'rotate(-12 50 132)' } },
+          { tag: 'path', attrs: { d: 'M 45 135 Q 50 137 55 135', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '0.7', 'stroke-linecap': 'round', opacity: '0.6' } }
+        ]}
+      ]
+    },
+    {
+      name: 'stick — a mud-and-straw bridge',
+      // silhouette is the MAIN CENTRAL MUD BLOB — the character's body
+      // sitting on top of the deck. the two A-frame TRUSSES + the DECK
+      // stick + 6 mud-blob JOINTS are all drawn in bg (behind the body),
+      // ported verbatim from the #mud-kid-stick tile.
+      d: 'M 78 78 Q 70 84 76 92 Q 88 98 106 96 Q 124 94 126 86 Q 124 76 110 74 Q 90 72 78 78 Z',
+      // eyes on the main mud blob, right-of-centre
+      eyes: [[109, 87], [122, 87]],
+      bg: [
+        // 2 ground-contact pools, one under each truss
+        { tag: 'ellipse', attrs: { cx: 40, cy: 140, rx: 30, ry: 3.5, fill: 'var(--mud-deep)', opacity: '0.25' } },
+        { tag: 'ellipse', attrs: { cx: 160, cy: 140, rx: 30, ry: 3.5, fill: 'var(--mud-deep)', opacity: '0.25' } },
+        // LEFT TRUSS: base + 2 slopes (A-frame). each stick is 2 lines —
+        // outer mud-deep outline (10px) + inner sand-dk fill (6px) — so
+        // they read as "sticks with a dark contour"
+        { tag: 'line', attrs: { x1: 20, y1: 130, x2: 60, y2: 130, stroke: 'var(--mud-deep)', 'stroke-width': '10', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 20, y1: 130, x2: 60, y2: 130, stroke: 'var(--sand-dk)', 'stroke-width': '6', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 20, y1: 130, x2: 40, y2: 90, stroke: 'var(--mud-deep)', 'stroke-width': '10', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 20, y1: 130, x2: 40, y2: 90, stroke: 'var(--sand-dk)', 'stroke-width': '6', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 60, y1: 130, x2: 40, y2: 90, stroke: 'var(--mud-deep)', 'stroke-width': '10', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 60, y1: 130, x2: 40, y2: 90, stroke: 'var(--sand-dk)', 'stroke-width': '6', 'stroke-linecap': 'round' } },
+        // RIGHT TRUSS: base + 2 slopes
+        { tag: 'line', attrs: { x1: 140, y1: 130, x2: 180, y2: 130, stroke: 'var(--mud-deep)', 'stroke-width': '10', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 140, y1: 130, x2: 180, y2: 130, stroke: 'var(--sand-dk)', 'stroke-width': '6', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 140, y1: 130, x2: 160, y2: 90, stroke: 'var(--mud-deep)', 'stroke-width': '10', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 140, y1: 130, x2: 160, y2: 90, stroke: 'var(--sand-dk)', 'stroke-width': '6', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 180, y1: 130, x2: 160, y2: 90, stroke: 'var(--mud-deep)', 'stroke-width': '10', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 180, y1: 130, x2: 160, y2: 90, stroke: 'var(--sand-dk)', 'stroke-width': '6', 'stroke-linecap': 'round' } },
+        // DECK — horizontal stick spanning the two truss apexes
+        { tag: 'line', attrs: { x1: 30, y1: 90, x2: 170, y2: 90, stroke: 'var(--mud-deep)', 'stroke-width': '10', 'stroke-linecap': 'round' } },
+        { tag: 'line', attrs: { x1: 30, y1: 90, x2: 170, y2: 90, stroke: 'var(--sand-dk)', 'stroke-width': '6', 'stroke-linecap': 'round' } },
+        // MUD JOINT BLOBS — small irregular blobs where sticks meet,
+        // showing the "glue". 2 left base, 1 left apex, 1 right apex,
+        // 2 right base. shapes ported verbatim from the tile.
+        { tag: 'path', attrs: { d: 'M 14 126 Q 12 132 18 134 Q 26 134 26 128 Q 24 122 18 122 Q 14 124 14 126 Z', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '1.3', 'stroke-linejoin': 'round' } },
+        { tag: 'path', attrs: { d: 'M 54 126 Q 52 132 58 134 Q 66 134 66 128 Q 64 122 60 122 Q 54 124 54 126 Z', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '1.3', 'stroke-linejoin': 'round' } },
+        { tag: 'path', attrs: { d: 'M 30 84 Q 26 92 32 96 Q 42 98 48 94 Q 52 88 48 84 Q 44 80 40 82 Q 34 80 30 84 Z', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '1.5', 'stroke-linejoin': 'round' } },
+        { tag: 'path', attrs: { d: 'M 152 84 Q 148 92 154 96 Q 164 98 170 94 Q 174 88 170 84 Q 166 80 162 82 Q 156 80 152 84 Z', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '1.5', 'stroke-linejoin': 'round' } },
+        { tag: 'path', attrs: { d: 'M 134 126 Q 132 132 138 134 Q 146 134 146 128 Q 144 122 138 122 Q 134 124 134 126 Z', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '1.3', 'stroke-linejoin': 'round' } },
+        { tag: 'path', attrs: { d: 'M 174 126 Q 172 132 178 134 Q 186 134 186 128 Q 184 122 180 122 Q 174 124 174 126 Z', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '1.3', 'stroke-linejoin': 'round' } }
+      ],
+      fg: [
+        // small drip hanging off the main mud blob — shows it's sticky
+        { tag: 'path', attrs: { d: 'M 90 94 Q 88 100 92 104 Q 96 100 94 94', fill: 'var(--mud)', stroke: 'var(--ink)', 'stroke-width': '1.2', 'stroke-linejoin': 'round' } },
+        // highlight arc on the top of the main mud blob
+        { tag: 'path', attrs: { d: 'M 84 78 Q 100 76 118 80', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '2', 'stroke-linecap': 'round', opacity: '0.55' } },
+        // thumbprint on the main mud, upper-left (at 86, 82) — smaller
+        // than other poses because the blob itself is smaller
+        { tag: 'g', children: [
+          { tag: 'ellipse', attrs: { cx: 86, cy: 82, rx: 5, ry: 3.3, fill: 'var(--mud-dk)', opacity: '0.7', transform: 'rotate(-12 86 82)' } },
+          { tag: 'ellipse', attrs: { cx: 86, cy: 82, rx: 2.5, ry: 1.7, fill: 'var(--mud-deep)', opacity: '0.75', transform: 'rotate(-12 86 82)' } },
+          { tag: 'path', attrs: { d: 'M 82 84 Q 86 86 90 84', fill: 'none', stroke: 'var(--mud-lt)', 'stroke-width': '0.6', 'stroke-linecap': 'round', opacity: '0.6' } }
+        ]}
+      ]
+    }
+  ];
+
+  // Recursively build extras (supports <g> containers with child lists)
+  function createExtra(e) {
+    if (e.tag === 'g' && e.children) {
+      const g = makeEl('g', e.transform ? { transform: e.transform } : {});
+      e.children.forEach(child => g.appendChild(createExtra(child)));
+      return g;
+    }
+    return makeEl(e.tag, e.attrs, e.text);
+  }
+
+  // sample every pose once on load — mud uses 72 points (higher than
+  // crate's 48) because the pinched-rabbit has sharper concave dips
+  // around the nose and ear dip that benefit from denser sampling
+  const SAMPLE_COUNT = 72;
+  POSES.forEach(p => { p.samples = samplePath(p.d, SAMPLE_COUNT); });
+
+  // ── refs ────────────────────────────────────────────────────────
+  const svg = document.getElementById('morpher');
+  const haloPath = document.getElementById('m-halo');
+  const bodyPath = document.getElementById('m-body');
+  const eyesG = document.getElementById('m-eyes');
+  const bgExtras = document.getElementById('m-bg-extras');
+  const fgExtras = document.getElementById('m-fg-extras');
+  const poseLabel = document.getElementById('morpher-pose');
+
+  function renderExtras(container, list) {
+    clear(container);
+    list.forEach(e => container.appendChild(createExtra(e)));
+  }
+
+  // sleepy eyes — Q-curve lid over a small filled dot. this is mud's
+  // signature eye treatment; other characters use round eyes with
+  // cream catchlights. cy is the lid midpoint; dot sits at cy+1.
+  function renderEyes(p) {
+    clear(eyesG);
+    p.eyes.forEach(([cx, cy]) => {
+      eyesG.appendChild(makeEl('path', {
+        d: `M ${cx - 4} ${cy} Q ${cx} ${cy - 2} ${cx + 4} ${cy}`,
+        fill: 'none', stroke: 'var(--ink)',
+        'stroke-width': '1.5', 'stroke-linecap': 'round'
+      }));
+      eyesG.appendChild(makeEl('circle', {
+        cx, cy: cy + 1, r: '1.3', fill: 'var(--ink)'
+      }));
+    });
+  }
+
+  function renderPose(p) {
+    const d = p.d;
+    haloPath.setAttribute('d', d);
+    bodyPath.setAttribute('d', d);
+    poseLabel.textContent = p.name;
+    renderEyes(p);
+    renderExtras(bgExtras, p.bg);
+    renderExtras(fgExtras, p.fg);
+  }
+
+  // ── tween ───────────────────────────────────────────────────────
+  let idx = 0;
+  let morphing = false;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function animateMorph(fromIdx, toIdx) {
+    const from = POSES[fromIdx];
+    const to = POSES[toIdx];
+
+    // honour OS reduced-motion: skip the tween, snap to the new pose
+    if (reducedMotion) {
+      renderPose(to);
+      return;
+    }
+
+    const duration = 1200;  // mud takes its time (crate = 900ms)
+    const start = performance.now();
+
+    morphing = true;
+    svg.classList.add('morphing');
+
+    // strip extras + wobble filter during morph — feDisplacementMap
+    // re-runs per frame and jitters atop the blur; the wobble is
+    // restored after the polyline settles on the target shape.
+    clear(eyesG);
+    clear(bgExtras);
+    clear(fgExtras);
+    bodyPath.removeAttribute('filter');
+    poseLabel.textContent = from.name + '  ↓  ' + to.name;
+
+    function frame(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = easeInOutCubic(t);
+      const d = pointsToPath(lerpPoints(from.samples, to.samples, eased));
+      haloPath.setAttribute('d', d);
+      bodyPath.setAttribute('d', d);
+
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        bodyPath.setAttribute('filter', 'url(#edgeWobble)');
+        svg.classList.remove('morphing');
+        renderPose(to);
+        morphing = false;
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // init at base pose
+  renderPose(POSES[0]);
+
+  svg.addEventListener('click', () => {
+    if (morphing) return;
+    const from = idx;
+    idx = (idx + 1) % POSES.length;
+    animateMorph(from, idx);
+  });
+})();
+</script>
+
+</body>
+</html>

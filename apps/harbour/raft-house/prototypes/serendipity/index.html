@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>serendipity engine — raft.house</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --deep:       #0f2a2e;
+      --teal:       #0d4f4f;
+      --cyan:       #17858a;
+      --foam:       #7dd3d8;
+      --sand:       #f0e6d3;
+      --sand-light: #faf6ee;
+      --text-primary:   #f0e6d3;
+      --text-secondary: rgba(240,230,211,0.6);
+      --text-muted:     rgba(240,230,211,0.35);
+      --card-bg:     rgba(255,255,255,0.04);
+      --card-border: rgba(125,211,216,0.15);
+      --card-hover:  rgba(255,255,255,0.07);
+
+      --transition-screen: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-bounce: 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--deep);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── BACKGROUND ───────────────────────────────────────── */
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-gradient {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(23,133,138,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(13,79,79,0.25) 0%, transparent 60%),
+        linear-gradient(160deg, #0f2a2e 0%, #0a1e22 50%, #061518 100%);
+    }
+
+    .particles {
+      position: absolute;
+      inset: 0;
+    }
+
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--foam);
+      opacity: 0;
+      animation: float linear infinite;
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+      5%   { opacity: 1; }
+      90%  { opacity: 0.6; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: orb-drift 12s ease-in-out infinite alternate;
+    }
+    .glow-orb-1 {
+      width: 400px; height: 400px;
+      background: rgba(23,133,138,0.12);
+      top: -100px; left: -100px;
+      animation-duration: 15s;
+    }
+    .glow-orb-2 {
+      width: 300px; height: 300px;
+      background: rgba(125,211,216,0.08);
+      bottom: -80px; right: -80px;
+      animation-duration: 18s;
+      animation-delay: -6s;
+    }
+
+    @keyframes orb-drift {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(40px,30px) scale(1.1); }
+    }
+
+    /* ─── APP SHELL ─────────────────────────────────────────── */
+
+    #app {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── PROGRESS BAR ──────────────────────────────────────── */
+
+    .progress-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px 24px 0;
+      transition: opacity 300ms ease;
+    }
+
+    .progress-bar.hidden { opacity: 0; pointer-events: none; }
+
+    .progress-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: all 300ms ease;
+    }
+    .progress-dot.active { background: var(--foam); transform: scale(1.4); }
+    .progress-dot.done   { background: var(--cyan); }
+
+    /* ─── SCREEN SYSTEM ─────────────────────────────────────── */
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px 40px;
+      transition:
+        transform var(--transition-screen),
+        opacity  var(--transition-screen);
+      will-change: transform, opacity;
+    }
+
+    .screen.hidden-left  { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+    .screen.hidden-right { transform: translateX(100%);  opacity: 0; pointer-events: none; }
+    .screen.active       { transform: translateX(0);     opacity: 1; pointer-events: auto; }
+
+    /* ─── WELCOME SCREEN ────────────────────────────────────── */
+
+    .welcome-brand {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--foam);
+      text-transform: lowercase;
+      margin-bottom: 48px;
+      opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--foam);
+      display: inline-block;
+    }
+
+    .welcome-heading {
+      font-size: clamp(2rem, 7vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--sand);
+      text-align: center;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .welcome-sub {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 340px;
+      line-height: 1.6;
+      margin-bottom: 56px;
+    }
+
+    .welcome-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    /* ─── BUTTONS ───────────────────────────────────────────── */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all var(--transition-bounce);
+      min-height: 52px;
+      width: 100%;
+      padding: 0 24px;
+      border: none;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active { transform: scale(0.96); }
+
+    .btn-primary {
+      background: var(--cyan);
+      color: var(--deep);
+    }
+    .btn-primary:hover {
+      background: var(--foam);
+      box-shadow: 0 0 24px rgba(125,211,216,0.3);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--foam);
+      border: 1.5px solid rgba(125,211,216,0.35);
+    }
+    .btn-outline:hover {
+      background: rgba(125,211,216,0.08);
+      border-color: rgba(125,211,216,0.6);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 500;
+      min-height: 40px;
+      width: auto;
+      padding: 0 12px;
+      border-radius: 8px;
+    }
+    .btn-ghost:hover {
+      color: var(--foam);
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* ─── QUESTION SCREENS ──────────────────────────────────── */
+
+    .question-screen {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .question-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--foam);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      opacity: 0.7;
+    }
+
+    .question-heading {
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--sand);
+      line-height: 1.2;
+      margin-bottom: 32px;
+    }
+
+    .option-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all var(--transition-bounce);
+      min-height: 72px;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(125,211,216,0.06) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+
+    .option-card:hover {
+      background: var(--card-hover);
+      border-color: rgba(125,211,216,0.35);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+    .option-card:hover::before { opacity: 1; }
+    .option-card:active { transform: scale(0.97); }
+
+    .option-card.selected {
+      background: rgba(23,133,138,0.2);
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(23,133,138,0.2), inset 0 0 20px rgba(23,133,138,0.05);
+      transform: scale(0.97);
+    }
+    .option-card.selected::before { opacity: 1; }
+
+    .option-emoji {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+      width: 40px;
+      text-align: center;
+      transition: transform 200ms ease;
+    }
+    .option-card:hover .option-emoji { transform: scale(1.1); }
+
+    .option-content { flex: 1; }
+
+    .option-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--sand);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .option-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      display: block;
+      line-height: 1.4;
+    }
+
+    .option-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid var(--card-border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 200ms ease;
+    }
+    .option-card.selected .option-check {
+      background: var(--cyan);
+      border-color: var(--cyan);
+    }
+
+    .check-svg {
+      width: 12px; height: 12px;
+      opacity: 0;
+      transition: opacity 150ms ease 50ms;
+    }
+    .option-card.selected .check-svg { opacity: 1; }
+
+    /* ─── DISCIPLINE GRID ───────────────────────────────────── */
+
+    .disc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    .disc-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 16px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all var(--transition-bounce);
+      min-height: 48px;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .disc-pill:hover {
+      background: var(--card-hover);
+      border-color: rgba(125,211,216,0.35);
+      transform: scale(1.02);
+    }
+    .disc-pill:active { transform: scale(0.97); }
+
+    .disc-pill.selected {
+      border-color: var(--disc-color);
+      background: color-mix(in srgb, var(--disc-color) 15%, transparent);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--disc-color) 20%, transparent);
+    }
+
+    .disc-pill-anything { grid-column: 1 / -1; }
+
+    .disc-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--disc-color, var(--foam));
+      flex-shrink: 0;
+    }
+
+    .disc-name {
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: var(--sand);
+    }
+    .disc-pill.selected .disc-name { font-weight: 600; }
+
+    .disc-scroll {
+      width: 100%;
+      max-height: calc(100dvh - 280px);
+      overflow-y: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .disc-scroll::-webkit-scrollbar { display: none; }
+
+    /* ─── RESULTS SCREEN ────────────────────────────────────── */
+
+    .results-screen {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding-top: 48px;
+    }
+
+    .results-scroll {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 16px;
+    }
+    .results-scroll::-webkit-scrollbar { display: none; }
+
+    .results-heading {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--sand);
+      margin-bottom: 4px;
+    }
+
+    .results-sub {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .results-section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      margin-top: 20px;
+    }
+    .results-section-label:first-of-type { margin-top: 0; }
+
+    .game-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .game-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      opacity: 0;
+      transform: translateY(40px);
+      transition:
+        opacity    400ms ease,
+        transform  400ms cubic-bezier(0.34,1.56,0.64,1),
+        background 200ms ease,
+        border-color 200ms ease;
+    }
+    .game-card.visible { opacity: 1; transform: translateY(0); }
+    .game-card:hover {
+      background: var(--card-hover);
+      border-color: rgba(125,211,216,0.3);
+    }
+
+    .game-card.wildcard {
+      border-style: dashed;
+      border-color: rgba(125,211,216,0.3);
+      background: rgba(125,211,216,0.03);
+    }
+    .game-card.wildcard:hover {
+      background: rgba(125,211,216,0.07);
+      border-color: rgba(125,211,216,0.5);
+    }
+
+    .game-card-main { flex: 1; min-width: 0; }
+
+    .game-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+
+    .game-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--sand);
+      letter-spacing: -0.02em;
+    }
+
+    .game-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid;
+    }
+
+    .wildcard-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 6px;
+      color: var(--foam);
+      border: 1px solid rgba(125,211,216,0.4);
+      background: rgba(125,211,216,0.08);
+    }
+
+    .game-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .game-play-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(23,133,138,0.2);
+      border: 1px solid rgba(23,133,138,0.3);
+      color: var(--foam);
+      cursor: pointer;
+      transition: all var(--transition-bounce);
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .game-play-btn:hover {
+      background: rgba(23,133,138,0.4);
+      transform: scale(1.1);
+      box-shadow: 0 0 12px rgba(23,133,138,0.3);
+    }
+    .game-play-btn:active { transform: scale(0.95); }
+
+    .results-footer {
+      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .try-again-btn { width: 100%; max-width: 420px; }
+
+    .random-link {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 200ms ease;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 4px 8px;
+    }
+    .random-link:hover { color: var(--foam); }
+
+    /* ─── MAGIC RING ────────────────────────────────────────── */
+
+    .magic-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+    .magic-overlay.visible { opacity: 1; pointer-events: auto; }
+
+    .magic-ring {
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      border: 2px solid var(--foam);
+      animation: magic-pulse 600ms ease forwards;
+    }
+    @keyframes magic-pulse {
+      0%   { transform: scale(0); opacity: 1; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+
+    /* ─── BACK NAV ──────────────────────────────────────────── */
+
+    .back-nav {
+      position: absolute;
+      top: 16px; left: 16px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 10px;
+      transition: all 200ms ease;
+      background: none;
+      border: none;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .back-nav:hover {
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.05);
+    }
+    .back-nav.hidden { opacity: 0; pointer-events: none; }
+
+    /* ─── THINKING ──────────────────────────────────────────── */
+
+    .thinking-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .thinking-dots { display: flex; gap: 8px; }
+
+    .thinking-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--foam);
+      animation: thinking-bounce 1.2s ease-in-out infinite;
+    }
+    .thinking-dot:nth-child(2) { animation-delay: 0.15s; }
+    .thinking-dot:nth-child(3) { animation-delay: 0.30s; }
+    @keyframes thinking-bounce {
+      0%,80%,100% { transform: scale(0.7); opacity: 0.4; }
+      40%          { transform: scale(1);   opacity: 1; }
+    }
+
+    .thinking-text {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    /* ─── SAFE AREA ─────────────────────────────────────────── */
+
+    @supports (padding: max(0px)) {
+      .screen {
+        padding-bottom: max(40px, env(safe-area-inset-bottom));
+        padding-left:   max(24px, env(safe-area-inset-left));
+        padding-right:  max(24px, env(safe-area-inset-right));
+      }
+    }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────── */
+
+    @media (min-width: 600px) {
+      .disc-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .disc-pill-anything { grid-column: 1 / -1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg">
+  <div class="bg-gradient"></div>
+  <div class="particles" id="particles"></div>
+  <div class="glow-orb glow-orb-1"></div>
+  <div class="glow-orb glow-orb-2"></div>
+</div>
+
+<!-- App -->
+<div id="app">
+
+  <!-- Progress -->
+  <div class="progress-bar hidden" id="progress-bar">
+    <div class="progress-dot" id="dot-0"></div>
+    <div class="progress-dot" id="dot-1"></div>
+    <div class="progress-dot" id="dot-2"></div>
+  </div>
+
+  <!-- Back -->
+  <button class="back-nav hidden" id="back-btn" onclick="goBack()">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+    </svg>
+    back
+  </button>
+
+  <!-- Screen: Welcome -->
+  <div class="screen active" id="screen-welcome">
+    <div class="welcome-brand">
+      <span class="brand-dot"></span>
+      🛶 raft.house
+    </div>
+    <h1 class="welcome-heading">what are you in<br>the mood for?</h1>
+    <p class="welcome-sub">answer 3 quick questions and we'll find your game</p>
+    <div class="welcome-actions">
+      <button class="btn btn-primary" onclick="startFlow()">
+        let's go
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+      <button class="btn btn-outline" onclick="surpriseMe()">
+        🎲 surprise me
+      </button>
+    </div>
+  </div>
+
+  <!-- Screen: Q1 Energy -->
+  <div class="screen hidden-right" id="screen-q1">
+    <div class="question-screen">
+      <div class="question-label">question 1 of 3</div>
+      <h2 class="question-heading">how much energy does your group have?</h2>
+      <div class="option-cards" id="energy-options">
+        <div class="option-card" data-type="energy" data-value="contemplative">
+          <div class="option-emoji">🌊</div>
+          <div class="option-content">
+            <span class="option-label">contemplative</span>
+            <span class="option-desc">we want to think deeply</span>
+          </div>
+          <div class="option-check">
+            <svg class="check-svg" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 6l3 3 5-5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="option-card" data-type="energy" data-value="energized">
+          <div class="option-emoji">⚡</div>
+          <div class="option-content">
+            <span class="option-label">energized</span>
+            <span class="option-desc">we're ready to compete</span>
+          </div>
+          <div class="option-check">
+            <svg class="check-svg" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 6l3 3 5-5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="option-card" data-type="energy" data-value="playful">
+          <div class="option-emoji">🎭</div>
+          <div class="option-content">
+            <span class="option-label">playful</span>
+            <span class="option-desc">we want to explore and create</span>
+          </div>
+          <div class="option-check">
+            <svg class="check-svg" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 6l3 3 5-5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen: Q2 Social -->
+  <div class="screen hidden-right" id="screen-q2">
+    <div class="question-screen">
+      <div class="question-label">question 2 of 3</div>
+      <h2 class="question-heading">how will your group work?</h2>
+      <div class="option-cards" id="social-options">
+        <div class="option-card" data-type="social" data-value="solo">
+          <div class="option-emoji">👤</div>
+          <div class="option-content">
+            <span class="option-label">solo</span>
+            <span class="option-desc">everyone works independently</span>
+          </div>
+          <div class="option-check">
+            <svg class="check-svg" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 6l3 3 5-5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="option-card" data-type="social" data-value="collaborative">
+          <div class="option-emoji">🤝</div>
+          <div class="option-content">
+            <span class="option-label">collaborative</span>
+            <span class="option-desc">we'll work together</span>
+          </div>
+          <div class="option-check">
+            <svg class="check-svg" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 6l3 3 5-5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="option-card" data-type="social" data-value="asymmetric">
+          <div class="option-emoji">🧩</div>
+          <div class="option-content">
+            <span class="option-label">asymmetric</span>
+            <span class="option-desc">different roles, different info</span>
+          </div>
+          <div class="option-check">
+            <svg class="check-svg" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 6l3 3 5-5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen: Q3 Discipline -->
+  <div class="screen hidden-right" id="screen-q3">
+    <div class="question-screen">
+      <div class="question-label">question 3 of 3</div>
+      <h2 class="question-heading">what world do you want to explore?</h2>
+      <div class="disc-scroll">
+        <div class="disc-grid" id="disc-options"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen: Thinking -->
+  <div class="screen hidden-right" id="screen-thinking">
+    <div class="thinking-screen">
+      <div class="thinking-dots">
+        <div class="thinking-dot"></div>
+        <div class="thinking-dot"></div>
+        <div class="thinking-dot"></div>
+      </div>
+      <div class="thinking-text">finding your games...</div>
+    </div>
+  </div>
+
+  <!-- Screen: Results -->
+  <div class="screen hidden-right" id="screen-results">
+    <div class="results-screen">
+      <div class="results-scroll">
+        <div class="results-heading">we found your games</div>
+        <div class="results-sub" id="results-sub">based on your answers</div>
+
+        <div class="results-section-label">your matches</div>
+        <div class="game-cards" id="matched-cards"></div>
+
+        <div class="results-section-label">🎲 wildcard</div>
+        <div class="game-cards" id="wildcard-card"></div>
+      </div>
+      <div class="results-footer">
+        <button class="btn btn-outline try-again-btn" onclick="tryAgain()">not feeling it? try again</button>
+        <button class="random-link" onclick="surpriseMe()">deal me a random game</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Magic ring overlay -->
+<div class="magic-overlay" id="magic-overlay">
+  <div class="magic-ring"></div>
+</div>
+
+<script>
+  // ─── GAME DATA ─────────────────────────────────────────────────────────
+
+  const GAMES = [
+    // Mathematics
+    { name:'fold.space',         discipline:'mathematics',  energy:'playful',       social:'solo',          desc:'fold geometric space to reveal hidden structures' },
+    { name:'infinity.hotel',     discipline:'mathematics',  energy:'energized',     social:'asymmetric',    desc:"hilbert's paradox as a live capacity management game" },
+    { name:'variable.engine',    discipline:'mathematics',  energy:'energized',     social:'collaborative', desc:'co-pilot an algebraic machine through shifting constraints' },
+    { name:'proof.garden',       discipline:'mathematics',  energy:'contemplative', social:'solo',          desc:'grow a garden of mathematical proofs from axiom seeds' },
+    { name:'pattern.weave',      discipline:'mathematics',  energy:'contemplative', social:'solo',          desc:'discover and extend hidden numerical patterns' },
+    // CS
+    { name:'race.condition',     discipline:'cs',           energy:'energized',     social:'collaborative', desc:'synchronize competing processes before the system crashes' },
+    { name:'type.tower',         discipline:'cs',           energy:'playful',       social:'solo',          desc:'build a type-safe tower from abstract data primitives' },
+    { name:'state.craft',        discipline:'cs',           energy:'contemplative', social:'collaborative', desc:'model the mind of a machine through state transitions' },
+    { name:'signal.flow',        discipline:'cs',           energy:'energized',     social:'collaborative', desc:'route signals through a live network under pressure' },
+    { name:'code.weave',         discipline:'cs',           energy:'energized',     social:'solo',          desc:'weave algorithmic threads into elegant solutions' },
+    // Physics
+    { name:'frame.shift',        discipline:'physics',      energy:'playful',       social:'asymmetric',    desc:'solve puzzles that change depending on your reference frame' },
+    { name:'entropy.garden',     discipline:'physics',      energy:'contemplative', social:'solo',          desc:'tend a garden where disorder is the only certainty' },
+    { name:'field.canvas',       discipline:'physics',      energy:'playful',       social:'collaborative', desc:'paint invisible forces and watch matter respond' },
+    { name:'orbit.lab',          discipline:'physics',      energy:'playful',       social:'collaborative', desc:'design stable orbital systems with gravitational constraints' },
+    { name:'time.prism',         discipline:'physics',      energy:'contemplative', social:'asymmetric',    desc:'different players experience different timelines simultaneously' },
+    // Biology
+    { name:'selection.pressure', discipline:'biology',      energy:'energized',     social:'collaborative', desc:'steer a population through evolutionary bottlenecks' },
+    { name:'express.ion',        discipline:'biology',      energy:'playful',       social:'asymmetric',    desc:'read the genome — different players hold different gene fragments' },
+    { name:'web.pulse',          discipline:'biology',      energy:'contemplative', social:'collaborative', desc:'map and maintain a living food web' },
+    { name:'emerge.box',         discipline:'biology',      energy:'energized',     social:'collaborative', desc:'trigger emergent behavior from simple biological rules' },
+    // Chemistry
+    { name:'bond.craft',         discipline:'chemistry',    energy:'playful',       social:'asymmetric',    desc:'negotiate molecular bonds with competing atomic interests' },
+    { name:'equilibrium.dance',  discipline:'chemistry',    energy:'energized',     social:'collaborative', desc:'choreograph a reaction system to dynamic equilibrium' },
+    { name:'reaction.path',      discipline:'chemistry',    energy:'contemplative', social:'solo',          desc:'trace the elegant path of a chemical transformation' },
+    // Economics
+    { name:'margin.call',        discipline:'economics',    energy:'energized',     social:'solo',          desc:'survive a cascading market collapse with limited information' },
+    { name:'trade.winds',        discipline:'economics',    energy:'playful',       social:'asymmetric',    desc:'different players command different trade routes and resources' },
+    { name:'commons.game',       discipline:'economics',    energy:'contemplative', social:'collaborative', desc:'collectively manage a shared resource across generations' },
+    { name:'scale.shift',        discipline:'economics',    energy:'playful',       social:'collaborative', desc:'build micro to macro: what works locally vs globally?' },
+    { name:'market.mind',        discipline:'economics',    energy:'energized',     social:'asymmetric',    desc:"second-guess the market — each player models others' beliefs" },
+    // Psychology
+    { name:'mirror.maze',        discipline:'psychology',   energy:'contemplative', social:'solo',          desc:'navigate a self-model through cognitive distortions' },
+    { name:'anchor.drift',       discipline:'psychology',   energy:'energized',     social:'collaborative', desc:'spot anchoring bias before it derails the group decision' },
+    { name:'story.self',         discipline:'psychology',   energy:'playful',       social:'asymmetric',    desc:'construct competing narratives of the same event' },
+    { name:'bias.lens',          discipline:'psychology',   energy:'contemplative', social:'asymmetric',    desc:'each player sees the scene through a different cognitive bias' },
+    // Philosophy
+    { name:'ought.machine',      discipline:'philosophy',   energy:'energized',     social:'solo',          desc:'build a moral system that holds under adversarial edge cases' },
+    { name:'circle.read',        discipline:'philosophy',   energy:'contemplative', social:'collaborative', desc:'hermeneutic circle: text meaning emerges through the group' },
+    { name:'lens.shift',         discipline:'philosophy',   energy:'playful',       social:'asymmetric',    desc:'each player inhabits a different philosophical tradition' },
+    { name:'liminal.pass',       discipline:'philosophy',   energy:'playful',       social:'asymmetric',    desc:"navigate threshold concepts — some players have crossed, some haven't" },
+    // Music
+    { name:'tone.field',         discipline:'music',        energy:'contemplative', social:'collaborative', desc:'co-compose a living harmonic landscape in real time' },
+    { name:'voice.weave',        discipline:'music',        energy:'playful',       social:'asymmetric',    desc:'polyphonic storytelling: each voice carries a different melody' },
+    { name:'sound.color',        discipline:'music',        energy:'playful',       social:'solo',          desc:'map synesthetic space — translate color perception to sound' },
+    { name:'rhythm.lab',         discipline:'music',        energy:'playful',       social:'collaborative', desc:'build emergent rhythms from individual pattern contributions' },
+    // Visual Arts
+    { name:'space.between',      discipline:'visual-arts',  energy:'contemplative', social:'solo',          desc:'learn to see negative space as the primary subject' },
+    { name:'hue.shift',          discipline:'visual-arts',  energy:'playful',       social:'collaborative', desc:'co-paint a composition where color theory determines moves' },
+    { name:'grid.break',         discipline:'visual-arts',  energy:'energized',     social:'solo',          desc:'speed-sketch against a grid that fights back' },
+    // Writing
+    { name:'reader.ghost',       discipline:'writing',      energy:'playful',       social:'asymmetric',    desc:'writer and reader inhabit the same text differently' },
+    { name:'draft.loop',         discipline:'writing',      energy:'contemplative', social:'solo',          desc:'recursive revision: each pass reveals a deeper layer' },
+    { name:'genre.shift',        discipline:'writing',      energy:'energized',     social:'asymmetric',    desc:'same scene rewritten in 3 genres simultaneously by different players' },
+  ];
+
+  const DISC_COLORS = {
+    'mathematics': '#f59e0b',
+    'cs':          '#3b82f6',
+    'physics':     '#6366f1',
+    'biology':     '#22c55e',
+    'chemistry':   '#a855f7',
+    'economics':   '#ef4444',
+    'psychology':  '#ec4899',
+    'philosophy':  '#8b5cf6',
+    'music':       '#f97316',
+    'visual-arts': '#14b8a6',
+    'writing':     '#6366f1',
+  };
+
+  const DISC_LIST = [
+    { id:'mathematics', label:'mathematics' },
+    { id:'cs',          label:'computer science' },
+    { id:'physics',     label:'physics' },
+    { id:'biology',     label:'biology' },
+    { id:'chemistry',   label:'chemistry' },
+    { id:'economics',   label:'economics' },
+    { id:'psychology',  label:'psychology' },
+    { id:'philosophy',  label:'philosophy' },
+    { id:'music',       label:'music' },
+    { id:'visual-arts', label:'visual arts' },
+    { id:'writing',     label:'writing' },
+  ];
+
+  // ─── STATE ─────────────────────────────────────────────────────────────
+
+  const state = {
+    energy: null,
+    social: null,
+    discipline: null,
+    currentScreen: 'welcome',
+    history: [],
+  };
+
+  // ─── BUILD DISCIPLINE GRID ─────────────────────────────────────────────
+
+  function buildDiscGrid() {
+    const grid = document.getElementById('disc-options');
+
+    // "anything" pill
+    const anything = document.createElement('div');
+    anything.className = 'disc-pill disc-pill-anything';
+    anything.style.setProperty('--disc-color', '#7dd3d8');
+    anything.dataset.discId = 'anything';
+
+    const anythingDot = document.createElement('div');
+    anythingDot.className = 'disc-dot';
+    const anythingName = document.createElement('span');
+    anythingName.className = 'disc-name';
+    anythingName.textContent = 'anything ✦';
+    anything.appendChild(anythingDot);
+    anything.appendChild(anythingName);
+    anything.addEventListener('click', () => selectDisc('anything', anything));
+    grid.appendChild(anything);
+
+    DISC_LIST.forEach(({ id, label }) => {
+      const pill = document.createElement('div');
+      pill.className = 'disc-pill';
+      pill.style.setProperty('--disc-color', DISC_COLORS[id] || '#7dd3d8');
+      pill.dataset.discId = id;
+
+      const dot = document.createElement('div');
+      dot.className = 'disc-dot';
+      const name = document.createElement('span');
+      name.className = 'disc-name';
+      name.textContent = label;
+
+      pill.appendChild(dot);
+      pill.appendChild(name);
+      pill.addEventListener('click', () => selectDisc(id, pill));
+      grid.appendChild(pill);
+    });
+  }
+
+  // ─── SCREEN MANAGEMENT ─────────────────────────────────────────────────
+
+  function showScreen(id, direction) {
+    const prev = document.querySelector('.screen.active');
+    const next = document.getElementById('screen-' + id);
+    if (!next || prev === next) return;
+
+    if (prev) {
+      prev.classList.remove('active');
+      prev.classList.add(direction === 'forward' ? 'hidden-left' : 'hidden-right');
+    }
+    next.classList.remove('hidden-left', 'hidden-right');
+    next.classList.add('active');
+
+    state.currentScreen = id;
+    updateProgress();
+    updateBackBtn();
+  }
+
+  function updateProgress() {
+    const bar = document.getElementById('progress-bar');
+    const idx = ['q1','q2','q3'].indexOf(state.currentScreen);
+    if (idx === -1) { bar.classList.add('hidden'); return; }
+    bar.classList.remove('hidden');
+    for (let i = 0; i < 3; i++) {
+      const dot = document.getElementById('dot-' + i);
+      dot.classList.remove('active','done');
+      if (i < idx) dot.classList.add('done');
+      else if (i === idx) dot.classList.add('active');
+    }
+  }
+
+  function updateBackBtn() {
+    const btn = document.getElementById('back-btn');
+    const showOn = ['q1','q2','q3'];
+    if (showOn.includes(state.currentScreen)) btn.classList.remove('hidden');
+    else btn.classList.add('hidden');
+  }
+
+  // ─── FLOW ───────────────────────────────────────────────────────────────
+
+  function startFlow() {
+    state.history.push(state.currentScreen);
+    showScreen('q1', 'forward');
+  }
+
+  function goBack() {
+    const prev = state.history.pop();
+    if (prev) showScreen(prev, 'back');
+  }
+
+  // Wire up option card clicks via event delegation
+  document.getElementById('energy-options').addEventListener('click', function(e) {
+    const card = e.target.closest('.option-card');
+    if (!card) return;
+    this.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    state.energy = card.dataset.value;
+    setTimeout(() => {
+      state.history.push(state.currentScreen);
+      showScreen('q2', 'forward');
+    }, 420);
+  });
+
+  document.getElementById('social-options').addEventListener('click', function(e) {
+    const card = e.target.closest('.option-card');
+    if (!card) return;
+    this.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    state.social = card.dataset.value;
+    setTimeout(() => {
+      state.history.push(state.currentScreen);
+      showScreen('q3', 'forward');
+    }, 420);
+  });
+
+  function selectDisc(value, el) {
+    document.querySelectorAll('.disc-pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    state.discipline = value === 'anything' ? null : value;
+    setTimeout(() => {
+      showScreen('thinking', 'forward');
+      setTimeout(() => {
+        computeResults(false);
+        showScreen('results', 'forward');
+      }, 900);
+    }, 400);
+  }
+
+  function surpriseMe() {
+    // Magic ring effect
+    const overlay = document.getElementById('magic-overlay');
+    const ring = overlay.querySelector('.magic-ring');
+    overlay.classList.add('visible');
+    ring.style.animation = 'none';
+    void ring.offsetWidth;
+    ring.style.animation = '';
+    setTimeout(() => overlay.classList.remove('visible'), 700);
+
+    state.energy = null;
+    state.social = null;
+    state.discipline = null;
+    showScreen('thinking', 'forward');
+    setTimeout(() => {
+      computeResults(true);
+      showScreen('results', 'forward');
+    }, 900);
+  }
+
+  function tryAgain() {
+    state.energy = null;
+    state.social = null;
+    state.discipline = null;
+    state.history = [];
+    document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.disc-pill').forEach(p => p.classList.remove('selected'));
+    showScreen('q1', 'back');
+  }
+
+  // ─── MATCHING ──────────────────────────────────────────────────────────
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function computeResults(isSurprise) {
+    let matches, wildcard;
+
+    if (isSurprise) {
+      const s = shuffle(GAMES);
+      matches = s.slice(0, 3);
+      wildcard = s[3];
+    } else {
+      const { energy, social, discipline } = state;
+
+      let pool = GAMES.filter(g =>
+        (!energy || g.energy === energy) &&
+        (!social || g.social === social) &&
+        (!discipline || g.discipline === discipline)
+      );
+      if (pool.length < 3) {
+        pool = GAMES.filter(g =>
+          (!energy || g.energy === energy) &&
+          (!social || g.social === social)
+        );
+      }
+      if (pool.length < 3) {
+        pool = GAMES.filter(g => !energy || g.energy === energy);
+      }
+      if (pool.length < 3) pool = [...GAMES];
+
+      const s = shuffle(pool);
+      matches = s.slice(0, 3);
+
+      const matchNames = new Set(matches.map(g => g.name));
+      let wcPool = GAMES.filter(g => !matchNames.has(g.name));
+      const contrasting = wcPool.filter(g =>
+        (energy && g.energy !== energy) ||
+        (social && g.social !== social) ||
+        (discipline && g.discipline !== discipline)
+      );
+      if (contrasting.length > 0) wcPool = contrasting;
+      wildcard = wcPool[Math.floor(Math.random() * wcPool.length)];
+    }
+
+    renderResults(matches, wildcard, isSurprise);
+  }
+
+  // ─── RENDER RESULTS ────────────────────────────────────────────────────
+
+  function renderResults(matches, wildcard, isSurprise) {
+    // Update subtitle
+    const sub = document.getElementById('results-sub');
+    if (isSurprise) {
+      sub.textContent = 'a fresh deal — no questions asked';
+    } else {
+      const parts = [];
+      if (state.energy) parts.push(state.energy);
+      if (state.social) parts.push(state.social);
+      if (state.discipline) parts.push(state.discipline.replace('-', ' '));
+      sub.textContent = parts.length > 0 ? parts.join(' · ') : 'your perfect match';
+    }
+
+    // Matched cards
+    const matchedEl = document.getElementById('matched-cards');
+    matchedEl.textContent = '';
+    matches.forEach((game, i) => matchedEl.appendChild(buildGameCard(game, false)));
+
+    // Wildcard
+    const wildcardEl = document.getElementById('wildcard-card');
+    wildcardEl.textContent = '';
+    wildcardEl.appendChild(buildGameCard(wildcard, true));
+
+    // Stagger animate
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.game-card').forEach((card, i) => {
+        setTimeout(() => card.classList.add('visible'), i * 110);
+      });
+    });
+  }
+
+  function buildGameCard(game, isWildcard) {
+    const card = document.createElement('div');
+    card.className = isWildcard ? 'game-card wildcard' : 'game-card';
+
+    const main = document.createElement('div');
+    main.className = 'game-card-main';
+
+    const header = document.createElement('div');
+    header.className = 'game-card-header';
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'game-name';
+    nameEl.textContent = game.name;
+    header.appendChild(nameEl);
+
+    if (isWildcard) {
+      const badge = document.createElement('span');
+      badge.className = 'wildcard-badge';
+      badge.textContent = '🎲 wildcard';
+      header.appendChild(badge);
+    } else {
+      const color = DISC_COLORS[game.discipline] || '#7dd3d8';
+      const badge = document.createElement('span');
+      badge.className = 'game-badge';
+      badge.style.color = color;
+      badge.style.borderColor = color + '44';
+      badge.style.background = color + '18';
+      badge.textContent = game.discipline.replace('-', ' ');
+      header.appendChild(badge);
+    }
+
+    main.appendChild(header);
+
+    const desc = document.createElement('div');
+    desc.className = 'game-desc';
+    desc.textContent = game.desc;
+    main.appendChild(desc);
+
+    card.appendChild(main);
+
+    const playBtn = document.createElement('button');
+    playBtn.className = 'game-play-btn';
+    playBtn.setAttribute('aria-label', 'play ' + game.name);
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '14');
+    svg.setAttribute('height', '14');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2.5');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('d', 'M9 5l7 7-7 7');
+    svg.appendChild(path);
+    playBtn.appendChild(svg);
+
+    card.appendChild(playBtn);
+    return card;
+  }
+
+  // ─── PARTICLES ─────────────────────────────────────────────────────────
+
+  function initParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 22; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 3 + 1;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.left = (Math.random() * 100) + '%';
+      p.style.animationDuration = (Math.random() * 18 + 14) + 's';
+      p.style.animationDelay = (Math.random() * -20) + 's';
+      container.appendChild(p);
+    }
+  }
+
+  // ─── INIT ───────────────────────────────────────────────────────────────
+
+  buildDiscGrid();
+  initParticles();
+  updateProgress();
+  updateBackBtn();
+</script>
+</body>
+</html>

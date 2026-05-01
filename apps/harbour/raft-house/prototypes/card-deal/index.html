@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>raft.house — card deal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+
+    /* ─── Brand tokens ───────────────────────────────────────── */
+    :root {
+      --deep:       #0f2a2e;
+      --teal:       #0d4f4f;
+      --cyan:       #17858a;
+      --foam:       #7dd3d8;
+      --sand:       #f0e6d3;
+      --sand-light: #faf6ee;
+      --radius-card: 14px;
+      --card-w: 160px;
+      --card-h: 230px;
+    }
+    @media (min-width: 480px) {
+      :root { --card-w: 180px; --card-h: 260px; }
+    }
+    @media (min-width: 700px) {
+      :root { --card-w: 200px; --card-h: 290px; }
+    }
+
+    /* ─── Table surface ──────────────────────────────────────── */
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(ellipse at 50% 30%, #1a4a3a 0%, #0f2a2e 60%),
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 4px,
+          rgba(255,255,255,0.013) 4px,
+          rgba(255,255,255,0.013) 5px
+        );
+      background-blend-mode: normal;
+      color: var(--sand-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px);
+      z-index: 0;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────── */
+    .header {
+      position: relative;
+      z-index: 10;
+      padding: 20px 24px 10px;
+      text-align: center;
+      width: 100%;
+    }
+    .header .wordmark {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: lowercase;
+      color: var(--foam);
+      opacity: 0.7;
+    }
+    .header h1 {
+      font-size: clamp(18px, 4vw, 26px);
+      font-weight: 700;
+      color: var(--sand-light);
+      margin-top: 4px;
+      letter-spacing: -0.02em;
+    }
+    .header p {
+      font-size: 13px;
+      color: rgba(240,230,211,0.55);
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    /* ─── Stage ──────────────────────────────────────────────── */
+    .stage {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
+
+    /* ─── Deck ───────────────────────────────────────────────── */
+    .deck-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .deck-wrap {
+      position: relative;
+      width: var(--card-w);
+      height: var(--card-h);
+      cursor: pointer;
+    }
+    .deck-card {
+      position: absolute;
+      width: var(--card-w);
+      height: var(--card-h);
+      border-radius: var(--radius-card);
+      background: var(--teal);
+      border: 1px solid rgba(125,211,216,0.15);
+    }
+    .deck-card:nth-child(1) { transform: translateX(-6px) translateY(-6px) rotate(-2deg); opacity: 0.45; }
+    .deck-card:nth-child(2) { transform: translateX(-3px) translateY(-3px) rotate(-1deg); opacity: 0.65; }
+    .deck-card:nth-child(3) { transform: none; }
+    .deck-card::after {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border-radius: 9px;
+      border: 1.5px solid rgba(125,211,216,0.22);
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          transparent, transparent 5px,
+          rgba(125,211,216,0.07) 5px, rgba(125,211,216,0.07) 6px
+        );
+    }
+    .deck-card:nth-child(3)::before {
+      content: '🛶';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 32px;
+      z-index: 1;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+    }
+    .deck-count {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--foam);
+      opacity: 0.6;
+      z-index: 2;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    @keyframes deck-idle {
+      0%, 100% { transform: rotate(0deg); }
+      25%  { transform: rotate(0.6deg) translateY(-1px); }
+      75%  { transform: rotate(-0.6deg) translateY(-1px); }
+    }
+    .deck-wrap.idle { animation: deck-idle 3.5s ease-in-out infinite; }
+
+    /* ─── Buttons ────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 32px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-deal {
+      background: var(--cyan);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(23,133,138,0.45), 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .btn-deal:hover { box-shadow: 0 6px 28px rgba(23,133,138,0.6), 0 1px 4px rgba(0,0,0,0.3); transform: translateY(-1px); }
+    .btn-redeal {
+      background: rgba(13,79,79,0.7);
+      color: var(--foam);
+      border: 1.5px solid rgba(125,211,216,0.3);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      font-size: 13px;
+      padding: 10px 22px;
+    }
+    .btn-redeal:hover { background: rgba(23,133,138,0.4); }
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* ─── Cards area ─────────────────────────────────────────── */
+    .cards-area {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* ─── Single card ────────────────────────────────────────── */
+    .game-card {
+      position: absolute;
+      width: var(--card-w);
+      height: var(--card-h);
+      perspective: 900px;
+      pointer-events: auto;
+      cursor: pointer;
+      transform-origin: center center;
+      transition: none;
+    }
+    .game-card.dealing {
+      transition: top 0.55s cubic-bezier(0.22,1,0.36,1),
+                  left 0.55s cubic-bezier(0.22,1,0.36,1),
+                  transform 0.55s cubic-bezier(0.22,1,0.36,1),
+                  opacity 0.3s;
+    }
+    .game-card.leaving {
+      transition: top 0.4s cubic-bezier(0.55,0,1,0.45),
+                  left 0.4s cubic-bezier(0.55,0,1,0.45),
+                  transform 0.4s cubic-bezier(0.55,0,1,0.45),
+                  opacity 0.4s;
+    }
+    .game-card.saving {
+      transition: top 0.5s cubic-bezier(0.22,1,0.36,1),
+                  left 0.5s cubic-bezier(0.22,1,0.36,1),
+                  transform 0.5s cubic-bezier(0.22,1,0.36,1),
+                  opacity 0.4s 0.1s;
+    }
+    .game-card.expanded {
+      z-index: 100;
+      transition: top 0.3s cubic-bezier(0.22,1,0.36,1),
+                  left 0.3s cubic-bezier(0.22,1,0.36,1),
+                  transform 0.3s cubic-bezier(0.22,1,0.36,1),
+                  opacity 0.3s;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.23,1,0.32,1);
+      border-radius: var(--radius-card);
+    }
+    .card-inner.flipped { transform: rotateY(180deg); }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-card);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    /* Back */
+    .card-back {
+      background: var(--teal);
+      border: 1px solid rgba(125,211,216,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .card-back::after {
+      content: '';
+      position: absolute;
+      inset: 10px;
+      border-radius: 9px;
+      border: 1.5px solid rgba(125,211,216,0.2);
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          transparent, transparent 5px,
+          rgba(125,211,216,0.065) 5px, rgba(125,211,216,0.065) 6px
+        );
+    }
+    .card-back-icon {
+      font-size: 36px;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 3px 8px rgba(0,0,0,0.5));
+    }
+
+    /* Front */
+    .card-front {
+      background: var(--sand-light);
+      transform: rotateY(180deg);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 14px 14px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.55), 0 3px 10px rgba(0,0,0,0.35);
+      overflow: hidden;
+      gap: 8px;
+    }
+    .card-front::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-card);
+      background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .card-discipline {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      align-self: flex-start;
+      flex-shrink: 0;
+    }
+    .card-name {
+      font-size: clamp(16px, 3.5vw, 20px);
+      font-weight: 800;
+      color: #0f2a2e;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      flex-shrink: 0;
+    }
+    .card-desc {
+      font-size: 11px;
+      font-weight: 400;
+      color: #4a7070;
+      line-height: 1.45;
+      flex: 1;
+      overflow: hidden;
+    }
+    .card-save-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      background: rgba(15,42,46,0.12);
+      color: #0f2a2e;
+      transition: background 0.15s;
+      z-index: 5;
+      line-height: 1;
+    }
+    .card-save-btn:hover { background: rgba(15,42,46,0.22); }
+    .card-save-btn.saved { background: rgba(23,133,138,0.25); }
+    .card-play-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      width: 100%;
+      padding: 9px 0;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #fff;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+    .card-play-btn:hover { opacity: 0.85; }
+    .swipe-hint {
+      position: absolute;
+      bottom: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9.5px;
+      font-weight: 500;
+      color: rgba(125,211,216,0.5);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .game-card:hover .swipe-hint,
+    .game-card.show-hint .swipe-hint { opacity: 1; }
+
+    /* Discipline badge colours */
+    .disc-mathematics { background: #dbeafe; color: #1d4ed8; }
+    .disc-cs          { background: #d1fae5; color: #065f46; }
+    .disc-physics     { background: #ede9fe; color: #5b21b6; }
+    .disc-biology     { background: #d1fae5; color: #064e3b; }
+    .disc-chemistry   { background: #fef3c7; color: #92400e; }
+    .disc-economics   { background: #fce7f3; color: #831843; }
+    .disc-psychology  { background: #fef9c3; color: #713f12; }
+    .disc-philosophy  { background: #f3e8ff; color: #4c1d95; }
+    .disc-music       { background: #ffe4e6; color: #9f1239; }
+    .disc-visual-arts { background: #fef3c7; color: #78350f; }
+    .disc-writing     { background: #e0f2fe; color: #0c4a6e; }
+    .disc-original    { background: #f0fdf4; color: #14532d; }
+
+    /* Play button colours by discipline */
+    .play-mathematics { background: #3b82f6; }
+    .play-cs          { background: #10b981; }
+    .play-physics     { background: #8b5cf6; }
+    .play-biology     { background: #059669; }
+    .play-chemistry   { background: #f59e0b; }
+    .play-economics   { background: #ec4899; }
+    .play-psychology  { background: #d97706; }
+    .play-philosophy  { background: #7c3aed; }
+    .play-music       { background: #e11d48; }
+    .play-visual-arts { background: #d97706; }
+    .play-writing     { background: #0284c7; }
+    .play-original    { background: #17858a; }
+
+    /* ─── Overlay ────────────────────────────────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,42,46,0.7);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+    .overlay.visible { opacity: 1; pointer-events: auto; }
+
+    /* ─── Hand area ──────────────────────────────────────────── */
+    .hand-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 30;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgba(10,30,34,0.95) 0%, rgba(10,30,34,0.7) 70%, transparent 100%);
+      min-height: 64px;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .hand-area.has-cards { pointer-events: auto; }
+    .hand-label {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(125,211,216,0.45);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .hand-card {
+      width: 52px;
+      height: 74px;
+      border-radius: 8px;
+      background: var(--teal);
+      border: 1.5px solid rgba(125,211,216,0.3);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 4px 3px;
+      gap: 3px;
+      position: relative;
+      overflow: hidden;
+      pointer-events: auto;
+      flex-shrink: 0;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+    }
+    .hand-card:hover { transform: translateY(-6px); box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+    .hand-card-name {
+      font-size: 7.5px;
+      font-weight: 700;
+      color: var(--sand-light);
+      text-align: center;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+    .hand-card-disc {
+      font-size: 6.5px;
+      font-weight: 600;
+      color: var(--foam);
+      opacity: 0.7;
+      text-align: center;
+    }
+    .hand-card-remove {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.3);
+      border: none;
+      cursor: pointer;
+      font-size: 8px;
+      color: rgba(255,255,255,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-family: 'Inter', sans-serif;
+    }
+    .hand-card:hover .hand-card-remove,
+    .hand-card.long-pressed .hand-card-remove { display: flex; }
+
+    /* ─── Toast ──────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(23,133,138,0.95);
+      color: #fff;
+      padding: 9px 20px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 200;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ─── Hand hint ──────────────────────────────────────────── */
+    .hand-hint {
+      font-size: 10.5px;
+      color: rgba(125,211,216,0.35);
+      text-align: center;
+      letter-spacing: 0.03em;
+      pointer-events: none;
+      padding-top: 6px;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="wordmark">🛶 raft.house</div>
+  <h1>what do you want to play?</h1>
+  <p>deal 3 cards to discover a game</p>
+</div>
+
+<div class="stage" id="stage">
+  <div class="deck-area" id="deckArea">
+    <div class="deck-wrap idle" id="deckWrap">
+      <div class="deck-card"></div>
+      <div class="deck-card"></div>
+      <div class="deck-card">
+        <span class="deck-count" id="deckCount">45 remaining</span>
+      </div>
+    </div>
+    <div class="btn-row" id="btnRow">
+      <button class="btn btn-deal" id="dealBtn">✦ deal</button>
+      <button class="btn btn-redeal hidden" id="redealBtn">↺ re-deal</button>
+    </div>
+  </div>
+  <div class="cards-area" id="cardsArea"></div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="hand-area" id="handArea">
+  <span class="hand-label" id="handLabel">your hand</span>
+  <span class="hand-hint" id="handHint">swipe a card down to save it here</span>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DATA — all authored, no user input touches DOM
+══════════════════════════════════════════════════════════════ */
+var GAMES = [
+  { id:'fold.space',        name:'fold.space',        discipline:'Mathematics',    disc_key:'mathematics',  desc:'explore non-euclidean geometry by folding 2d space into unexpected shapes.' },
+  { id:'infinity.hotel',    name:'infinity.hotel',    discipline:'Mathematics',    disc_key:'mathematics',  desc:'manage a hotel with infinite rooms — a paradox in hospitality and set theory.' },
+  { id:'variable.engine',   name:'variable.engine',   discipline:'Mathematics',    disc_key:'mathematics',  desc:'build equations by assembling moving parts — algebra as a mechanical system.' },
+  { id:'race.condition',    name:'race.condition',    discipline:'Computer Science',disc_key:'cs',          desc:'navigate concurrent processes that compete for the same shared resources.' },
+  { id:'type.tower',        name:'type.tower',        discipline:'Computer Science',disc_key:'cs',          desc:'construct type-safe architectures by stacking compatible data structures.' },
+  { id:'state.craft',       name:'state.craft',       discipline:'Computer Science',disc_key:'cs',          desc:'govern a system of changing states — predict and control program flow.' },
+  { id:'frame.shift',       name:'frame.shift',       discipline:'Physics',        disc_key:'physics',      desc:'switch reference frames to reveal hidden forces and relative motion.' },
+  { id:'entropy.garden',    name:'entropy.garden',    discipline:'Physics',        disc_key:'physics',      desc:'cultivate order in a system that always wants to fall into chaos.' },
+  { id:'field.canvas',      name:'field.canvas',      discipline:'Physics',        disc_key:'physics',      desc:'paint invisible force fields and watch particles dance along the lines.' },
+  { id:'selection.pressure',name:'selection.pressure',discipline:'Biology',        disc_key:'biology',      desc:'steer a species through generations of change under shifting environments.' },
+  { id:'express.ion',       name:'express.ion',       discipline:'Biology',        disc_key:'biology',      desc:'turn genes on and off to shape protein expression in a living cell.' },
+  { id:'web.pulse',         name:'web.pulse',         discipline:'Biology',        disc_key:'biology',      desc:'trace energy through a food web as populations rise, fall, and cascade.' },
+  { id:'bond.craft',        name:'bond.craft',        discipline:'Chemistry',      disc_key:'chemistry',    desc:'forge and break molecular bonds to synthesize unstable compounds in time.' },
+  { id:'equilibrium.dance', name:'equilibrium.dance', discipline:'Chemistry',      disc_key:'chemistry',    desc:'balance a reversible reaction by adjusting pressure, temperature, and concentration.' },
+  { id:'reaction.path',     name:'reaction.path',     discipline:'Chemistry',      disc_key:'chemistry',    desc:'find the lowest-energy route through a complex reaction landscape.' },
+  { id:'margin.call',       name:'margin.call',       discipline:'Economics',      disc_key:'economics',    desc:'manage leverage and risk as market conditions shift without warning.' },
+  { id:'trade.winds',       name:'trade.winds',       discipline:'Economics',      disc_key:'economics',    desc:'navigate global supply chains where comparative advantage is always in flux.' },
+  { id:'commons.game',      name:'commons.game',      discipline:'Economics',      disc_key:'economics',    desc:'coordinate shared resource use before the tragedy of the commons unfolds.' },
+  { id:'mirror.maze',       name:'mirror.maze',       discipline:'Psychology',     disc_key:'psychology',   desc:'navigate social perception — who sees whom clearly, and who is distorted?' },
+  { id:'anchor.drift',      name:'anchor.drift',      discipline:'Psychology',     disc_key:'psychology',   desc:'observe how initial information bends every judgment that follows.' },
+  { id:'story.self',        name:'story.self',        discipline:'Psychology',     disc_key:'psychology',   desc:'shape personal narrative and watch how identity shifts with each retelling.' },
+  { id:'ought.machine',     name:'ought.machine',     discipline:'Philosophy',     disc_key:'philosophy',   desc:'program an ethical decision engine — can duty and consequence ever agree?' },
+  { id:'circle.read',       name:'circle.read',       discipline:'Philosophy',     disc_key:'philosophy',   desc:'argue a text from every hermeneutic position simultaneously.' },
+  { id:'lens.shift',        name:'lens.shift',        discipline:'Philosophy',     disc_key:'philosophy',   desc:'swap philosophical frameworks mid-argument and see what survives the switch.' },
+  { id:'tone.field',        name:'tone.field',        discipline:'Music',          disc_key:'music',        desc:'plant tones in a spatial grid and discover emergent harmonic relationships.' },
+  { id:'voice.weave',       name:'voice.weave',       discipline:'Music',          disc_key:'music',        desc:'interlock independent melodic voices until counterpoint becomes composition.' },
+  { id:'sound.color',       name:'sound.color',       discipline:'Music',          disc_key:'music',        desc:'map timbre to a chromatic palette — synesthesia as compositional strategy.' },
+  { id:'space.between',     name:'space.between',     discipline:'Visual Arts',    disc_key:'visual-arts',  desc:'work with negative space until what is missing becomes the subject.' },
+  { id:'hue.shift',         name:'hue.shift',         discipline:'Visual Arts',    disc_key:'visual-arts',  desc:'cycle through colour relationships to unlock emotional resonance in a palette.' },
+  { id:'grid.break',        name:'grid.break',        discipline:'Visual Arts',    disc_key:'visual-arts',  desc:'start with a rigid grid and strategically violate it for visual tension.' },
+  { id:'reader.ghost',      name:'reader.ghost',      discipline:'Writing',        disc_key:'writing',      desc:'write to an imagined reader who changes with every draft you create.' },
+  { id:'draft.loop',        name:'draft.loop',        discipline:'Writing',        disc_key:'writing',      desc:'cycle through constraints — each new draft adds one rule, removes another.' },
+  { id:'genre.shift',       name:'genre.shift',       discipline:'Writing',        disc_key:'writing',      desc:'tell the same story through three genres and find what each one reveals.' },
+  { id:'orbit.lab',         name:'orbit.lab',         discipline:'Original',       disc_key:'original',     desc:'simulate gravitational systems — balance orbits or watch everything collapse.' },
+  { id:'proof.garden',      name:'proof.garden',      discipline:'Original',       disc_key:'original',     desc:'grow logical arguments like plants — prune contradictions, harvest truths.' },
+  { id:'signal.flow',       name:'signal.flow',       discipline:'Original',       disc_key:'original',     desc:'trace meaning through layers of noise and transformation.' },
+  { id:'bias.lens',         name:'bias.lens',         discipline:'Original',       disc_key:'original',     desc:'examine your own cognition through a series of revealing micro-experiments.' },
+  { id:'scale.shift',       name:'scale.shift',       discipline:'Original',       disc_key:'original',     desc:'zoom from subatomic to cosmic — how does context reframe everything?' },
+  { id:'pattern.weave',     name:'pattern.weave',     discipline:'Original',       disc_key:'original',     desc:'find and extend hidden patterns across seemingly unrelated domains.' },
+  { id:'market.mind',       name:'market.mind',       discipline:'Original',       disc_key:'original',     desc:'map attention as a resource — where it flows, value follows.' },
+  { id:'rhythm.lab',        name:'rhythm.lab',        discipline:'Original',       disc_key:'original',     desc:'isolate rhythmic patterns and reconstruct them across new contexts.' },
+  { id:'code.weave',        name:'code.weave',        discipline:'Original',       disc_key:'original',     desc:'write programs that write programs — meta-creation as a learning loop.' },
+  { id:'time.prism',        name:'time.prism',        discipline:'Original',       disc_key:'original',     desc:'refract a single moment through multiple temporal perspectives.' },
+  { id:'liminal.pass',      name:'liminal.pass',      discipline:'Original',       disc_key:'original',     desc:'inhabit in-between states — thresholds as sites of transformation.' },
+  { id:'emerge.box',        name:'emerge.box',        discipline:'Original',       disc_key:'original',     desc:'simple rules, surprising complexity — observe emergence from scratch.' },
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════════════ */
+var deck       = shuffleArr(GAMES.slice());
+var dealtCards = [];   // [{game, el}]
+var hand       = [];   // [{game, handEl}]
+var isDealing  = false;
+var expandedId = null;
+var touchStartY = {};
+var longPressTimer = null;
+
+/* ═══════════════════════════════════════════════════════════════
+   ELEMENTS
+══════════════════════════════════════════════════════════════ */
+var cardsArea = document.getElementById('cardsArea');
+var deckWrap  = document.getElementById('deckWrap');
+var deckCount = document.getElementById('deckCount');
+var dealBtn   = document.getElementById('dealBtn');
+var redealBtn = document.getElementById('redealBtn');
+var overlay   = document.getElementById('overlay');
+var handArea  = document.getElementById('handArea');
+var handHint  = document.getElementById('handHint');
+var toastEl   = document.getElementById('toast');
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════════════ */
+function shuffleArr(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  return arr;
+}
+
+function getCardSize() {
+  var style = getComputedStyle(document.documentElement);
+  return {
+    w: parseInt(style.getPropertyValue('--card-w')),
+    h: parseInt(style.getPropertyValue('--card-h'))
+  };
+}
+
+function getDeckCenter() {
+  var r = deckWrap.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+}
+
+function getCardPositions() {
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var s = getCardSize();
+  var cy = vh * 0.42;
+  var spread = Math.min(vw * 0.28, 200);
+  return [
+    { x: vw / 2 - spread - s.w / 2, y: cy - s.h / 2 },
+    { x: vw / 2            - s.w / 2, y: cy - s.h / 2 - 12 },
+    { x: vw / 2 + spread - s.w / 2, y: cy - s.h / 2 }
+  ];
+}
+
+function updateDeckCount() {
+  deckCount.textContent = deck.length + ' remaining';
+}
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(function() { toastEl.classList.remove('show'); }, 2000);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BUILD CARD — DOM-only, no innerHTML with data
+══════════════════════════════════════════════════════════════ */
+function buildCard(game) {
+  var card = document.createElement('div');
+  card.className = 'game-card';
+  card.dataset.id = game.id;
+
+  // ── inner flip container ──
+  var inner = document.createElement('div');
+  inner.className = 'card-inner';
+  inner.id = 'inner-' + game.id;
+
+  // ── BACK ──
+  var back = document.createElement('div');
+  back.className = 'card-face card-back';
+  var backIcon = document.createElement('span');
+  backIcon.className = 'card-back-icon';
+  backIcon.textContent = '🛶';
+  back.appendChild(backIcon);
+
+  // ── FRONT ──
+  var front = document.createElement('div');
+  front.className = 'card-face card-front';
+
+  var badge = document.createElement('span');
+  badge.className = 'card-discipline disc-' + game.disc_key;
+  badge.textContent = game.discipline;
+
+  var nameEl = document.createElement('div');
+  nameEl.className = 'card-name';
+  nameEl.textContent = game.name;
+
+  var descEl = document.createElement('div');
+  descEl.className = 'card-desc';
+  descEl.textContent = game.desc;
+
+  var saveBtn = document.createElement('button');
+  saveBtn.className = 'card-save-btn';
+  saveBtn.title = 'save to hand';
+  saveBtn.textContent = '+';
+  saveBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    saveCardToHand(game.id);
+  });
+
+  var playBtn = document.createElement('button');
+  playBtn.className = 'card-play-btn play-' + game.disc_key;
+  playBtn.textContent = '▶ play this';
+  playBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    showToast('launching ' + game.name + ' →');
+  });
+
+  front.appendChild(badge);
+  front.appendChild(nameEl);
+  front.appendChild(descEl);
+  front.appendChild(saveBtn);
+  front.appendChild(playBtn);
+
+  // ── swipe hint ──
+  var hint = document.createElement('div');
+  hint.className = 'swipe-hint';
+  hint.textContent = 'swipe down to save';
+
+  inner.appendChild(back);
+  inner.appendChild(front);
+  card.appendChild(inner);
+  card.appendChild(hint);
+
+  // tap expand
+  card.addEventListener('click', function() {
+    if (expandedId === game.id) { collapseCard(); }
+    else { expandCard(game.id); }
+  });
+
+  // touch swipe-down
+  card.addEventListener('touchstart', function(e) {
+    touchStartY[game.id] = e.touches[0].clientY;
+    card.classList.add('show-hint');
+  }, { passive: true });
+
+  card.addEventListener('touchend', function(e) {
+    var dy = e.changedTouches[0].clientY - (touchStartY[game.id] || 0);
+    card.classList.remove('show-hint');
+    if (dy > 60) { saveCardToHand(game.id); }
+    delete touchStartY[game.id];
+  }, { passive: true });
+
+  return card;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DEAL
+══════════════════════════════════════════════════════════════ */
+function deal(isRedeal) {
+  if (isDealing) return;
+  if (deck.length < 3) {
+    var handIds = hand.map(function(h) { return h.game.id; });
+    deck = shuffleArr(GAMES.filter(function(g) { return handIds.indexOf(g.id) === -1; }));
+    updateDeckCount();
+  }
+
+  isDealing = true;
+  deckWrap.classList.remove('idle');
+  dealBtn.disabled = true;
+  redealBtn.disabled = true;
+
+  if (isRedeal && dealtCards.length) {
+    var leavers = dealtCards.slice();
+    dealtCards = [];
+    leavers.forEach(function(entry, i) {
+      entry.el.classList.add('leaving');
+      var dir = i === 1 ? 0 : (i === 0 ? -1 : 1);
+      entry.el.style.opacity = '0';
+      entry.el.style.transform = 'translateX(' + (dir * 120) + 'px) translateY(-40px) rotate(' + (dir * 15) + 'deg)';
+      setTimeout(function() { entry.el.remove(); }, 450);
+    });
+    setTimeout(dealNew, 300);
+  } else {
+    dealNew();
+  }
+}
+
+function dealNew() {
+  var positions = getCardPositions();
+  var dc = getDeckCenter();
+  var s = getCardSize();
+  var drawn = deck.splice(0, 3);
+  updateDeckCount();
+
+  drawn.forEach(function(game, i) {
+    var card = buildCard(game);
+    card.style.left    = (dc.x - s.w / 2) + 'px';
+    card.style.top     = (dc.y - s.h / 2) + 'px';
+    card.style.transform = 'scale(0.6)';
+    card.style.opacity = '0';
+    cardsArea.appendChild(card);
+
+    var delay = i * 120;
+
+    setTimeout(function() {
+      card.classList.add('dealing');
+      card.style.left = positions[i].x + 'px';
+      card.style.top  = positions[i].y + 'px';
+      card.style.transform = 'scale(1)';
+      card.style.opacity = '1';
+    }, delay + 30);
+
+    setTimeout(function() {
+      var inner = document.getElementById('inner-' + game.id);
+      if (inner) { inner.classList.add('flipped'); }
+    }, delay + 580);
+
+    dealtCards.push({ game: game, el: card });
+  });
+
+  setTimeout(function() {
+    isDealing = false;
+    dealBtn.disabled = false;
+    redealBtn.disabled = false;
+    redealBtn.classList.remove('hidden');
+    deckWrap.classList.add('idle');
+  }, 3 * 120 + 700);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPAND / COLLAPSE
+══════════════════════════════════════════════════════════════ */
+function expandCard(id) {
+  if (expandedId) { collapseCard(false); }
+  expandedId = id;
+  var entry = dealtCards.find(function(c) { return c.game.id === id; });
+  if (!entry) return;
+
+  overlay.classList.add('visible');
+
+  var s = getCardSize();
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var scale = Math.min((vw * 0.85) / s.w, (vh * 0.72) / s.h, 1.6);
+  var cx = vw / 2 - s.w / 2;
+  var cy = vh / 2 - s.h / 2 - 30;
+
+  entry.el.classList.add('expanded');
+  entry.el.style.left = cx + 'px';
+  entry.el.style.top  = cy + 'px';
+  entry.el.style.transform = 'scale(' + scale + ')';
+  entry.el.style.zIndex = '100';
+}
+
+function collapseCard(clearExpanded) {
+  if (clearExpanded === undefined) clearExpanded = true;
+  if (!expandedId) return;
+  var id = expandedId;
+  if (clearExpanded) expandedId = null;
+
+  overlay.classList.remove('visible');
+
+  var entry = dealtCards.find(function(c) { return c.game.id === id; });
+  if (!entry) return;
+
+  var positions = getCardPositions();
+  var idx = dealtCards.indexOf(entry);
+  var pos = positions[idx] || positions[1];
+
+  entry.el.classList.remove('expanded');
+  entry.el.style.left = pos.x + 'px';
+  entry.el.style.top  = pos.y + 'px';
+  entry.el.style.transform = 'scale(1)';
+  entry.el.style.zIndex = '';
+}
+
+overlay.addEventListener('click', function() { collapseCard(); });
+
+/* ═══════════════════════════════════════════════════════════════
+   SAVE TO HAND
+══════════════════════════════════════════════════════════════ */
+function saveCardToHand(id) {
+  var entry = dealtCards.find(function(c) { return c.game.id === id; });
+  if (!entry) return;
+  if (hand.some(function(h) { return h.game.id === id; })) {
+    showToast('already in your hand');
+    return;
+  }
+
+  if (expandedId === id) { collapseCard(); }
+
+  var handRect = handArea.getBoundingClientRect();
+  var s = getCardSize();
+  entry.el.classList.add('saving');
+  entry.el.style.left = (window.innerWidth / 2 - s.w / 2) + 'px';
+  entry.el.style.top  = (handRect.top - s.h / 2) + 'px';
+  entry.el.style.transform = 'scale(0.3)';
+  entry.el.style.opacity = '0';
+
+  var idx = dealtCards.indexOf(entry);
+  if (idx > -1) { dealtCards.splice(idx, 1); }
+
+  var savedGame = entry.game;
+  setTimeout(function() {
+    entry.el.remove();
+    addHandCard(savedGame);
+  }, 500);
+
+  showToast(entry.game.name + ' saved to hand');
+}
+
+function addHandCard(game) {
+  handHint.classList.add('hidden');
+  handArea.classList.add('has-cards');
+
+  var hc = document.createElement('div');
+  hc.className = 'hand-card';
+  hc.dataset.id = game.id;
+
+  var nameEl = document.createElement('span');
+  nameEl.className = 'hand-card-name';
+  nameEl.textContent = game.name;
+
+  var discEl = document.createElement('span');
+  discEl.className = 'hand-card-disc';
+  discEl.textContent = game.discipline.toLowerCase();
+
+  var removeBtn = document.createElement('button');
+  removeBtn.className = 'hand-card-remove';
+  removeBtn.title = 'remove';
+  removeBtn.textContent = 'x';
+
+  hc.appendChild(nameEl);
+  hc.appendChild(discEl);
+  hc.appendChild(removeBtn);
+
+  hc.addEventListener('click', function(e) {
+    if (e.target === removeBtn) return;
+    expandHandCard(game, hc);
+  });
+
+  removeBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    removeFromHand(game.id);
+  });
+
+  hc.addEventListener('touchstart', function() {
+    longPressTimer = setTimeout(function() {
+      hc.classList.add('long-pressed');
+    }, 500);
+  }, { passive: true });
+  hc.addEventListener('touchend', function() {
+    clearTimeout(longPressTimer);
+  });
+
+  handArea.appendChild(hc);
+  hand.push({ game: game, handEl: hc });
+}
+
+function removeFromHand(id) {
+  var idx = -1;
+  for (var i = 0; i < hand.length; i++) {
+    if (hand[i].game.id === id) { idx = i; break; }
+  }
+  if (idx === -1) return;
+  var entry = hand[idx];
+  hand.splice(idx, 1);
+  entry.handEl.remove();
+  deck.push(entry.game);
+  shuffleArr(deck);
+  updateDeckCount();
+  if (hand.length === 0) {
+    handHint.classList.remove('hidden');
+    handArea.classList.remove('has-cards');
+  }
+  showToast(entry.game.name + ' returned to deck');
+}
+
+function expandHandCard(game, hc) {
+  var s = getCardSize();
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var hcRect = hc.getBoundingClientRect();
+
+  var card = buildCard(game);
+  card.style.left = (hcRect.left + hcRect.width / 2 - s.w / 2) + 'px';
+  card.style.top  = (hcRect.top  + hcRect.height / 2 - s.h / 2) + 'px';
+  card.style.transform = 'scale(0.3)';
+  card.style.opacity = '0';
+  cardsArea.appendChild(card);
+
+  var inner = document.getElementById('inner-' + game.id);
+  if (inner) { inner.classList.add('flipped'); }
+
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      var scale = Math.min((vw * 0.85) / s.w, (vh * 0.72) / s.h, 1.6);
+      card.classList.add('expanded');
+      card.style.cssText += ';left:' + (vw/2 - s.w/2) + 'px'
+        + ';top:' + (vh/2 - s.h/2 - 30) + 'px'
+        + ';transform:scale(' + scale + ')'
+        + ';opacity:1'
+        + ';z-index:100'
+        + ';transition:all 0.3s cubic-bezier(0.22,1,0.36,1)';
+      overlay.classList.add('visible');
+    });
+  });
+
+  function dismiss() {
+    overlay.removeEventListener('click', dismiss);
+    card.removeEventListener('click', dismiss);
+    overlay.classList.remove('visible');
+    card.style.transform = 'scale(0.3)';
+    card.style.opacity = '0';
+    card.style.left = (hcRect.left + hcRect.width / 2 - s.w / 2) + 'px';
+    card.style.top  = (hcRect.top  + hcRect.height / 2 - s.h / 2) + 'px';
+    setTimeout(function() { card.remove(); }, 350);
+  }
+  overlay.addEventListener('click', dismiss);
+  card.addEventListener('click', dismiss);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LISTENERS & INIT
+══════════════════════════════════════════════════════════════ */
+dealBtn.addEventListener('click', function() { deal(false); });
+redealBtn.addEventListener('click', function() { deal(true); });
+
+window.addEventListener('resize', function() {
+  if (dealtCards.length === 0) return;
+  var positions = getCardPositions();
+  dealtCards.forEach(function(entry, i) {
+    if (expandedId && entry.el.dataset.id === expandedId) return;
+    entry.el.style.left = positions[i].x + 'px';
+    entry.el.style.top  = positions[i].y + 'px';
+  });
+});
+
+updateDeckCount();
+</script>
+</body>
+</html>

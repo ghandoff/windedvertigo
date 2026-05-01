@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+  <title>raft.house — find your game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --deep: #0f2a2e; --teal: #0d4f4f; --cyan: #17858a;
+      --foam: #7dd3d8; --sand: #f0e6d3; --sand-light: #faf6ee;
+    }
+
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #1b4a52;
+      -webkit-font-smoothing: antialiased;
+      touch-action: none;
+    }
+
+    /* ═══ WATER ═══════════════════════════════════════════ */
+
+    #water {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 120% 80% at 40% 60%, #1f6068 0%, transparent 60%),
+        radial-gradient(ellipse 100% 70% at 70% 40%, #1a5560 0%, transparent 50%),
+        linear-gradient(180deg, #3a8a8f 0%, #1b5a62 35%, #153e48 70%, #0f2a2e 100%);
+    }
+
+    .water-shine {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 20% at 35% 25%, rgba(125,211,216,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 15% at 65% 35%, rgba(255,255,255,0.06) 0%, transparent 70%);
+    }
+
+    .wave-line {
+      position: fixed; z-index: 1; pointer-events: none;
+      width: 100%; height: 2px; left: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(125,211,216,0.08) 30%, rgba(125,211,216,0.15) 50%, rgba(125,211,216,0.08) 70%, transparent 100%);
+      animation: wave-drift var(--dur) ease-in-out infinite alternate;
+    }
+    @keyframes wave-drift { from { transform: translateX(-5%); } to { transform: translateX(5%); } }
+
+    /* ═══ MODE CONTAINER ═════════════════════════════════ */
+
+    #app { position: relative; z-index: 2; width: 100%; height: 100dvh; overflow: hidden; }
+
+    .mode-view {
+      position: absolute; inset: 0;
+      transition: transform 500ms cubic-bezier(0.4,0,0.2,1), opacity 400ms ease;
+      will-change: transform, opacity;
+    }
+    .mode-view.active { transform: translateX(0); opacity: 1; pointer-events: auto; }
+    .mode-view.hidden-right { transform: translateX(100%); opacity: 0; pointer-events: none; }
+    .mode-view.hidden-left { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+
+    /* ═══ MODE BAR ═══════════════════════════════════════ */
+
+    .mode-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      display: flex; justify-content: center;
+      padding: 0 16px max(12px, env(safe-area-inset-bottom));
+      pointer-events: none;
+    }
+    .mode-toggle {
+      display: flex; gap: 2px; padding: 4px;
+      background: rgba(15,42,46,0.75); backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(125,211,216,0.15); border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3); pointer-events: auto;
+    }
+    .mode-tab {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 18px; border-radius: 12px;
+      font-size: 0.82rem; font-weight: 500; color: rgba(240,230,211,0.5);
+      cursor: pointer; transition: all 250ms ease;
+      border: none; background: none; font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mode-tab:hover { color: rgba(240,230,211,0.8); }
+    .mode-tab.active {
+      background: var(--cyan); color: white; font-weight: 600;
+      box-shadow: 0 2px 12px rgba(23,133,138,0.4);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       SERENDIPITY ENGINE
+    ═══════════════════════════════════════════════════════ */
+
+    #serendipity { display: flex; flex-direction: column; overflow: hidden; }
+
+    .screen {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 24px 80px;
+      transition: transform 400ms cubic-bezier(0.4,0,0.2,1), opacity 400ms ease;
+    }
+    .screen.s-hidden-left  { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+    .screen.s-hidden-right { transform: translateX(100%);  opacity: 0; pointer-events: none; }
+    .screen.s-active       { transform: translateX(0);     opacity: 1; pointer-events: auto; }
+
+    /* progress */
+    .progress-bar {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; padding: 20px 24px 0; transition: opacity 300ms ease;
+    }
+    .progress-bar.hidden { opacity: 0; pointer-events: none; }
+    .pdot { width: 6px; height: 6px; border-radius: 50%; background: rgba(240,230,211,0.2); transition: all 300ms ease; }
+    .pdot.active { background: var(--foam); transform: scale(1.5); }
+    .pdot.done { background: var(--cyan); }
+
+    /* back */
+    .back-nav {
+      position: absolute; top: 16px; left: 16px; z-index: 10;
+      display: flex; align-items: center; gap: 6px;
+      color: rgba(240,230,211,0.5); font-size: 0.82rem; font-weight: 500;
+      cursor: pointer; padding: 8px 12px; border-radius: 10px;
+      transition: all 200ms ease; background: none; border: none; font-family: inherit;
+    }
+    .back-nav:hover { color: var(--sand); background: rgba(255,255,255,0.06); }
+    .back-nav.hidden { opacity: 0; pointer-events: none; }
+
+    /* welcome */
+    .welcome-brand {
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em;
+      color: var(--foam); text-transform: lowercase;
+      margin-bottom: 48px; opacity: 0.7;
+    }
+    .welcome-heading {
+      font-size: clamp(2rem, 7vw, 3.2rem); font-weight: 700; letter-spacing: -0.03em;
+      color: var(--sand); text-align: center; line-height: 1.15; margin-bottom: 16px;
+    }
+    .welcome-sub {
+      font-size: 1rem; color: rgba(240,230,211,0.55);
+      text-align: center; max-width: 340px; line-height: 1.6; margin-bottom: 56px;
+    }
+    .welcome-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 320px; }
+
+    /* buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: inherit; font-size: 0.95rem; font-weight: 600;
+      border-radius: 14px; cursor: pointer; transition: all 200ms cubic-bezier(0.34,1.56,0.64,1);
+      min-height: 52px; width: 100%; padding: 0 24px; border: none; outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: var(--cyan); color: white; }
+    .btn-primary:hover { background: var(--foam); color: var(--deep); box-shadow: 0 0 24px rgba(125,211,216,0.3); }
+    .btn-outline { background: transparent; color: var(--foam); border: 1.5px solid rgba(125,211,216,0.3); }
+    .btn-outline:hover { background: rgba(125,211,216,0.08); border-color: rgba(125,211,216,0.5); }
+
+    /* question screens */
+    .question-screen { width: 100%; max-width: 420px; }
+    .question-label {
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
+      color: var(--foam); text-transform: uppercase; margin-bottom: 12px; opacity: 0.6;
+    }
+    .question-heading {
+      font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 700; letter-spacing: -0.03em;
+      color: var(--sand); line-height: 1.2; margin-bottom: 32px;
+    }
+
+    /* option cards */
+    .option-cards { display: flex; flex-direction: column; gap: 12px; }
+    .option-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 18px 20px; background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(125,211,216,0.12); border-radius: 16px;
+      cursor: pointer; transition: all 200ms cubic-bezier(0.34,1.56,0.64,1);
+      min-height: 72px; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .option-card:hover { background: rgba(255,255,255,0.08); border-color: rgba(125,211,216,0.25); transform: translateY(-1px); }
+    .option-card:active { transform: scale(0.97); }
+    .option-card.selected { background: rgba(23,133,138,0.2); border-color: var(--cyan); box-shadow: 0 0 20px rgba(23,133,138,0.15); }
+    .option-emoji { font-size: 1.6rem; flex-shrink: 0; width: 40px; text-align: center; }
+    .option-content { flex: 1; }
+    .option-label { font-size: 0.95rem; font-weight: 600; color: var(--sand); display: block; margin-bottom: 2px; }
+    .option-desc { font-size: 0.78rem; color: rgba(240,230,211,0.5); display: block; line-height: 1.4; }
+    .option-check {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 1.5px solid rgba(125,211,216,0.2); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; transition: all 200ms ease;
+    }
+    .option-card.selected .option-check { background: var(--cyan); border-color: var(--cyan); }
+    .check-svg { width: 12px; height: 12px; opacity: 0; transition: opacity 150ms ease 50ms; }
+    .option-card.selected .check-svg { opacity: 1; }
+
+    /* discipline pills */
+    .disc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+    .disc-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 16px; background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(125,211,216,0.1); border-radius: 12px;
+      cursor: pointer; transition: all 200ms cubic-bezier(0.34,1.56,0.64,1);
+      user-select: none; -webkit-tap-highlight-color: transparent;
+    }
+    .disc-pill:hover { background: rgba(255,255,255,0.07); }
+    .disc-pill:active { transform: scale(0.97); }
+    .disc-pill.selected { border-color: var(--disc-color); background: color-mix(in srgb, var(--disc-color) 15%, transparent); }
+    .disc-pill-anything { grid-column: 1 / -1; }
+    .disc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--disc-color, var(--foam)); flex-shrink: 0; }
+    .disc-name { font-size: 0.83rem; font-weight: 500; color: var(--sand); }
+    .disc-scroll { width: 100%; max-height: calc(100dvh - 280px); overflow-y: auto; scrollbar-width: none; }
+    .disc-scroll::-webkit-scrollbar { display: none; }
+
+    /* thinking */
+    .thinking-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+    .thinking-dots { display: flex; gap: 8px; }
+    .thinking-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--foam); animation: tb 1.2s ease-in-out infinite; }
+    .thinking-dot:nth-child(2) { animation-delay: 0.15s; }
+    .thinking-dot:nth-child(3) { animation-delay: 0.30s; }
+    @keyframes tb { 0%,80%,100% { transform: scale(0.7); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+    .thinking-text { font-size: 0.9rem; color: rgba(240,230,211,0.5); }
+
+    /* results */
+    .results-screen { width: 100%; max-width: 460px; display: flex; flex-direction: column; height: 100%; padding-top: 48px; }
+    .results-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 16px; }
+    .results-scroll::-webkit-scrollbar { display: none; }
+    .results-heading { font-size: 1.5rem; font-weight: 700; color: var(--sand); margin-bottom: 4px; }
+    .results-sub { font-size: 0.85rem; color: rgba(240,230,211,0.5); margin-bottom: 24px; }
+    .results-section-label {
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(240,230,211,0.3); margin-bottom: 10px; margin-top: 20px;
+    }
+    .results-section-label:first-of-type { margin-top: 0; }
+    .game-cards { display: flex; flex-direction: column; gap: 10px; }
+    .game-card {
+      background: rgba(255,255,255,0.06); border: 1.5px solid rgba(125,211,216,0.12);
+      border-radius: 16px; padding: 18px 20px;
+      display: flex; align-items: center; gap: 14px; cursor: pointer;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 400ms ease, transform 400ms cubic-bezier(0.34,1.56,0.64,1), background 200ms ease;
+    }
+    .game-card.visible { opacity: 1; transform: translateY(0); }
+    .game-card:hover { background: rgba(255,255,255,0.1); }
+    .game-card.wildcard { border-style: dashed; border-color: rgba(125,211,216,0.2); }
+    .game-card-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .game-card-main { flex: 1; min-width: 0; }
+    .game-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+    .game-name { font-size: 1rem; font-weight: 700; color: var(--sand); }
+    .game-badge {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 6px; border: 1px solid;
+    }
+    .game-desc { font-size: 0.8rem; color: rgba(240,230,211,0.55); line-height: 1.5; }
+    .game-play-btn {
+      flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(23,133,138,0.2); border: 1px solid rgba(23,133,138,0.3);
+      color: var(--foam); cursor: pointer; transition: all 200ms ease;
+      display: flex; align-items: center; justify-content: center;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+    }
+    .game-play-btn:hover { background: rgba(23,133,138,0.4); transform: scale(1.1); }
+    .results-footer { padding-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; flex-shrink: 0; }
+    .try-again-btn { width: 100%; max-width: 420px; }
+    .random-link {
+      font-size: 0.8rem; color: rgba(240,230,211,0.3); cursor: pointer;
+      background: none; border: none; font-family: inherit; padding: 4px 8px;
+      transition: color 200ms ease;
+    }
+    .random-link:hover { color: var(--foam); }
+
+    /* ═══════════════════════════════════════════════════════
+       ARCHIPELAGO — islands + moored rafts
+    ═══════════════════════════════════════════════════════ */
+
+    #archipelago { overflow: hidden; cursor: grab; user-select: none; }
+    #archipelago.dragging { cursor: grabbing; }
+
+    #map-world {
+      position: absolute;
+      width: 1800px; height: 2600px;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    /* ── discipline islands ── */
+    .map-island {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+
+    /* water ripples — concentric rings that pulse outward */
+    .map-island-ripple {
+      position: absolute;
+      border: 1.5px solid rgba(125,211,216,0.12);
+      border-radius: inherit;
+      pointer-events: none;
+      animation: ripple-out 4s ease-out infinite;
+    }
+    .map-island-ripple:nth-child(2) { animation-delay: -1.3s; }
+    .map-island-ripple:nth-child(3) { animation-delay: -2.6s; }
+    @keyframes ripple-out {
+      0%   { inset: -4px;  opacity: 0.5; border-color: rgba(125,211,216,0.18); }
+      100% { inset: -28px; opacity: 0;   border-color: rgba(125,211,216,0.02); }
+    }
+
+    /* sandy shoreline ring */
+    .map-island-shore {
+      position: absolute; inset: -8px;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center,
+        transparent 50%,
+        rgba(210,185,140,0.25) 62%,
+        rgba(210,185,140,0.35) 72%,
+        rgba(180,160,120,0.18) 82%,
+        transparent 92%
+      );
+    }
+
+    /* shallow water glow around shore */
+    .map-island-shallows {
+      position: absolute; inset: -18px;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center,
+        transparent 45%,
+        rgba(90,190,180,0.08) 60%,
+        rgba(70,170,165,0.12) 70%,
+        rgba(50,150,150,0.06) 82%,
+        transparent 95%
+      );
+      filter: blur(3px);
+    }
+
+    /* island body — the landmass */
+    .map-island-body {
+      width: 100%; height: 100%;
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow:
+        0 2px 6px rgba(0,0,0,0.3),
+        0 6px 24px rgba(0,0,0,0.2),
+        inset 0 -8px 20px rgba(0,0,0,0.25),
+        inset 0 4px 10px rgba(255,255,255,0.06);
+      border: 2px solid rgba(210,185,140,0.3);
+    }
+
+    /* terrain texture overlay */
+    .map-island-body::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.06) 0%, transparent 40%),
+        radial-gradient(circle at 70% 65%, rgba(0,0,0,0.1) 0%, transparent 35%);
+      pointer-events: none;
+    }
+
+    .map-island-name {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(240,230,211,0.9);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8), 0 0 12px rgba(0,0,0,0.4);
+      text-align: center;
+      line-height: 1.3;
+      max-width: 90%;
+      position: relative; z-index: 1;
+    }
+
+    /* ── mooring lines ── */
+    .mooring-line {
+      position: absolute;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── rafts (game sessions) ── */
+    .raft {
+      position: absolute;
+      cursor: pointer;
+      transition: filter 0.3s ease;
+      z-index: 2;
+    }
+    .raft:hover { filter: brightness(1.15); }
+    .raft:hover .raft-deck { transform: scale(1.08); }
+
+    /* water ring — tiny ripple around each raft */
+    .raft-wake {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px solid rgba(125,211,216,0.1);
+      animation: raft-ripple 3s ease-out infinite;
+      pointer-events: none;
+    }
+    @keyframes raft-ripple {
+      0%   { inset: -4px;  opacity: 0.4; }
+      100% { inset: -14px; opacity: 0;   }
+    }
+
+    /* the raft platform — horizontal logs lashed together */
+    .raft-deck {
+      width: 56px; height: 38px;
+      border-radius: 6px;
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      /* horizontal log lines — tightly spaced, visible gaps */
+      background:
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,0.35) 0px,
+          rgba(0,0,0,0.2) 1px,
+          transparent 2px,
+          transparent 6px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          rgba(120,90,40,0.3) 0px,
+          transparent 1px,
+          transparent 6px
+        ),
+        linear-gradient(90deg,
+          #8a6c40 0%,
+          #a08050 20%,
+          #8b6d42 50%,
+          #a08050 80%,
+          #8a6c40 100%
+        );
+      box-shadow:
+        0 2px 8px rgba(0,0,0,0.45),
+        0 4px 16px rgba(0,0,0,0.2),
+        inset 0 1px 2px rgba(220,200,160,0.15),
+        inset 0 -2px 4px rgba(0,0,0,0.15);
+    }
+
+    /* vertical rope bindings */
+    .raft-deck::before,
+    .raft-deck::after {
+      content: '';
+      position: absolute;
+      top: 2px; bottom: 2px;
+      width: 3px;
+      border-radius: 1.5px;
+      background: var(--raft-accent, #7dd3d8);
+      opacity: 0.65;
+      box-shadow: 0 0 3px rgba(0,0,0,0.2);
+    }
+    .raft-deck::before { left: 10px; }
+    .raft-deck::after  { right: 10px; }
+
+    .raft-icon {
+      font-size: 1.15rem;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+      position: relative; z-index: 1;
+    }
+
+    .raft-label {
+      position: absolute;
+      left: 50%; transform: translateX(-50%);
+      bottom: -18px;
+      white-space: nowrap;
+      font-size: 8.5px; font-weight: 600; letter-spacing: 0.04em;
+      color: var(--sand);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
+      pointer-events: none; opacity: 0.8;
+    }
+
+    /* compass */
+    .compass {
+      position: fixed; bottom: 80px; right: 16px; z-index: 50;
+      width: 44px; height: 44px;
+      background: rgba(15,42,46,0.6); border: 1px solid rgba(125,211,216,0.15);
+      border-radius: 50%; backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--foam); font-size: 0.7rem; font-weight: 700;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      pointer-events: none; opacity: 0.6;
+    }
+
+    /* filter pills overlay */
+    .arch-filter-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      padding: 12px 12px 8px;
+      display: flex; gap: 6px;
+      overflow-x: auto; scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      background: linear-gradient(180deg, rgba(15,42,46,0.8) 0%, rgba(15,42,46,0.4) 70%, transparent 100%);
+      pointer-events: auto;
+    }
+    .arch-filter-bar::-webkit-scrollbar { display: none; }
+
+    .fchip {
+      flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 500;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(125,211,216,0.12);
+      color: rgba(240,230,211,0.5); cursor: pointer; transition: all 200ms ease;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+    }
+    .fchip:hover { background: rgba(255,255,255,0.12); color: var(--sand); }
+    .fchip.active { background: var(--cyan); color: white; border-color: var(--cyan); }
+
+    /* bobbing */
+    @keyframes bob {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-3px) rotate(0.5deg); }
+      50% { transform: translateY(-5px) rotate(0deg); }
+      75% { transform: translateY(-3px) rotate(-0.5deg); }
+    }
+
+    /* ═══ DETAIL SHEET ═══════════════════════════════════ */
+
+    .detail-overlay {
+      position: fixed; inset: 0; z-index: 300;
+      display: flex; align-items: flex-end; justify-content: center;
+      pointer-events: none; opacity: 0; transition: opacity 300ms ease;
+    }
+    .detail-overlay.visible { pointer-events: auto; opacity: 1; }
+    .detail-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(10,20,25,0.5);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+    .detail-sheet {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 480px; max-height: 70vh;
+      background: linear-gradient(180deg, #1a3f4a 0%, #0f2a2e 100%);
+      border: 1px solid rgba(125,211,216,0.15);
+      border-radius: 24px 24px 0 0;
+      padding: 28px 24px max(24px, env(safe-area-inset-bottom));
+      transform: translateY(100%);
+      transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1);
+      overflow-y: auto;
+    }
+    .detail-overlay.visible .detail-sheet { transform: translateY(0); }
+    .detail-handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(125,211,216,0.2); margin: 0 auto 20px; }
+    .detail-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .detail-name { font-size: 1.4rem; font-weight: 700; color: var(--sand); margin-bottom: 4px; }
+    .detail-disc { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+    .detail-desc { font-size: 0.95rem; color: rgba(240,230,211,0.6); line-height: 1.6; margin-bottom: 20px; }
+    .detail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
+    .detail-tag { font-size: 0.72rem; font-weight: 500; padding: 4px 10px; border-radius: 8px; background: rgba(125,211,216,0.1); color: var(--foam); }
+    .detail-play {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 14px; border-radius: 14px;
+      background: var(--cyan); color: white; font-size: 0.95rem; font-weight: 600;
+      border: none; cursor: pointer; font-family: inherit; transition: all 200ms ease;
+    }
+    .detail-play:hover { background: var(--foam); color: var(--deep); }
+
+    /* ═══ RESPONSIVE ═════════════════════════════════════ */
+
+    @media (min-width: 600px) { .disc-grid { grid-template-columns: 1fr 1fr 1fr; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+    @supports (padding: max(0px)) {
+      .screen { padding-bottom: max(80px, calc(env(safe-area-inset-bottom) + 60px)); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="water"></div>
+<div class="water-shine"></div>
+<div id="wave-lines"></div>
+
+<div id="app">
+  <!-- SERENDIPITY -->
+  <div id="serendipity" class="mode-view active">
+    <div class="progress-bar hidden" id="progress-bar">
+      <div class="pdot" id="dot-0"></div>
+      <div class="pdot" id="dot-1"></div>
+      <div class="pdot" id="dot-2"></div>
+    </div>
+    <button class="back-nav hidden" id="back-btn" aria-label="go back">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      back
+    </button>
+    <div class="screen s-active" id="screen-welcome">
+      <div class="welcome-brand">&#x1F6F6; raft.house</div>
+      <h1 class="welcome-heading">what are you in<br>the mood for?</h1>
+      <p class="welcome-sub">answer 3 quick questions and we'll find your perfect session</p>
+      <div class="welcome-actions" id="welcome-actions"></div>
+    </div>
+    <div class="screen s-hidden-right" id="screen-q1">
+      <div class="question-screen">
+        <div class="question-label">question 1 of 3</div>
+        <h2 class="question-heading">how much energy does your group have?</h2>
+        <div class="option-cards" id="energy-options"></div>
+      </div>
+    </div>
+    <div class="screen s-hidden-right" id="screen-q2">
+      <div class="question-screen">
+        <div class="question-label">question 2 of 3</div>
+        <h2 class="question-heading">how will your group work?</h2>
+        <div class="option-cards" id="social-options"></div>
+      </div>
+    </div>
+    <div class="screen s-hidden-right" id="screen-q3">
+      <div class="question-screen">
+        <div class="question-label">question 3 of 3</div>
+        <h2 class="question-heading">what world do you want to explore?</h2>
+        <div class="disc-scroll"><div class="disc-grid" id="disc-options"></div></div>
+      </div>
+    </div>
+    <div class="screen s-hidden-right" id="screen-thinking">
+      <div class="thinking-screen">
+        <div class="thinking-dots"><div class="thinking-dot"></div><div class="thinking-dot"></div><div class="thinking-dot"></div></div>
+        <div class="thinking-text">finding your games...</div>
+      </div>
+    </div>
+    <div class="screen s-hidden-right" id="screen-results">
+      <div class="results-screen">
+        <div class="results-scroll">
+          <div class="results-heading">we found your games</div>
+          <div class="results-sub" id="results-sub"></div>
+          <div class="results-section-label">your matches</div>
+          <div class="game-cards" id="matched-cards"></div>
+          <div class="results-section-label" id="wildcard-label"></div>
+          <div class="game-cards" id="wildcard-card"></div>
+        </div>
+        <div class="results-footer" id="results-footer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHIPELAGO -->
+  <div id="archipelago" class="mode-view hidden-right">
+    <div class="arch-filter-bar" id="arch-filter-bar"></div>
+    <div id="map-world"></div>
+    <div class="compass">N</div>
+  </div>
+</div>
+
+<!-- Detail -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-backdrop" id="detail-backdrop"></div>
+  <div class="detail-sheet" id="detail-sheet">
+    <div class="detail-handle"></div>
+    <div class="detail-icon" id="detail-icon"></div>
+    <div class="detail-name" id="detail-name"></div>
+    <div class="detail-disc" id="detail-disc"></div>
+    <div class="detail-desc" id="detail-desc"></div>
+    <div class="detail-tags" id="detail-tags"></div>
+    <button class="detail-play" id="detail-play-btn"></button>
+  </div>
+</div>
+
+<!-- Mode bar -->
+<div class="mode-bar">
+  <div class="mode-toggle">
+    <button class="mode-tab active" id="tab-discover">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      discover
+    </button>
+    <button class="mode-tab" id="tab-browse">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      explore map
+    </button>
+  </div>
+</div>
+
+<script>
+  // ─── DATA ─────────────────────────────────────────────────────────────
+  var GAMES = [
+    { name:'fold.space',         icon:'\u{1F4D0}', disc:'mathematics',  energy:'playful',       social:'solo',          desc:'fold geometric space to reveal hidden structures' },
+    { name:'infinity.hotel',     icon:'\u{1F3E8}', disc:'mathematics',  energy:'energized',     social:'asymmetric',    desc:"hilbert's paradox as a live capacity management game" },
+    { name:'variable.engine',    icon:'\u2699\uFE0F', disc:'mathematics',  energy:'energized',     social:'collaborative', desc:'co-pilot an algebraic machine through shifting constraints' },
+    { name:'proof.garden',       icon:'\u{1F33F}', disc:'mathematics',  energy:'contemplative', social:'solo',          desc:'grow a garden of mathematical proofs from axiom seeds' },
+    { name:'pattern.weave',      icon:'\u{1F9F6}', disc:'mathematics',  energy:'contemplative', social:'solo',          desc:'discover and extend hidden numerical patterns' },
+    { name:'race.condition',     icon:'\u{1F3C1}', disc:'cs',           energy:'energized',     social:'collaborative', desc:'synchronize competing processes before the system crashes' },
+    { name:'type.tower',         icon:'\u{1F5FC}', disc:'cs',           energy:'playful',       social:'solo',          desc:'build a type-safe tower from abstract data primitives' },
+    { name:'state.craft',        icon:'\u{1F916}', disc:'cs',           energy:'contemplative', social:'collaborative', desc:'model the mind of a machine through state transitions' },
+    { name:'signal.flow',        icon:'\u{1F4E1}', disc:'cs',           energy:'energized',     social:'collaborative', desc:'route signals through a live network under pressure' },
+    { name:'code.weave',         icon:'\u{1F9EC}', disc:'cs',           energy:'energized',     social:'solo',          desc:'weave algorithmic threads into elegant solutions' },
+    { name:'frame.shift',        icon:'\u{1F30C}', disc:'physics',      energy:'playful',       social:'asymmetric',    desc:'solve puzzles that change depending on your reference frame' },
+    { name:'entropy.garden',     icon:'\u{1F331}', disc:'physics',      energy:'contemplative', social:'solo',          desc:'tend a garden where disorder is the only certainty' },
+    { name:'field.canvas',       icon:'\u{1F9F2}', disc:'physics',      energy:'playful',       social:'collaborative', desc:'paint invisible forces and watch matter respond' },
+    { name:'orbit.lab',          icon:'\u{1FA90}', disc:'physics',      energy:'playful',       social:'collaborative', desc:'design stable orbital systems with gravitational constraints' },
+    { name:'time.prism',         icon:'\u{1F52E}', disc:'physics',      energy:'contemplative', social:'asymmetric',    desc:'different players experience different timelines simultaneously' },
+    { name:'selection.pressure', icon:'\u{1F98E}', disc:'biology',      energy:'energized',     social:'collaborative', desc:'steer a population through evolutionary bottlenecks' },
+    { name:'express.ion',        icon:'\u{1F9EC}', disc:'biology',      energy:'playful',       social:'asymmetric',    desc:'read the genome \u2014 different players hold different gene fragments' },
+    { name:'web.pulse',          icon:'\u{1F578}\uFE0F', disc:'biology',      energy:'contemplative', social:'collaborative', desc:'map and maintain a living food web' },
+    { name:'emerge.box',         icon:'\u{1F4E6}', disc:'biology',      energy:'energized',     social:'collaborative', desc:'trigger emergent behavior from simple biological rules' },
+    { name:'bond.craft',         icon:'\u269B\uFE0F', disc:'chemistry',    energy:'playful',       social:'asymmetric',    desc:'negotiate molecular bonds with competing atomic interests' },
+    { name:'equilibrium.dance',  icon:'\u{1FA69}', disc:'chemistry',    energy:'energized',     social:'collaborative', desc:'choreograph a reaction system to dynamic equilibrium' },
+    { name:'reaction.path',      icon:'\u{1F9EA}', disc:'chemistry',    energy:'contemplative', social:'solo',          desc:'trace the elegant path of a chemical transformation' },
+    { name:'margin.call',        icon:'\u{1F4B9}', disc:'economics',    energy:'energized',     social:'solo',          desc:'survive a cascading market collapse with limited information' },
+    { name:'trade.winds',        icon:'\u26F5', disc:'economics',    energy:'playful',       social:'asymmetric',    desc:'different players command different trade routes and resources' },
+    { name:'commons.game',       icon:'\u{1F33E}', disc:'economics',    energy:'contemplative', social:'collaborative', desc:'collectively manage a shared resource across generations' },
+    { name:'scale.shift',        icon:'\u2696\uFE0F', disc:'economics',    energy:'playful',       social:'collaborative', desc:'build micro to macro: what works locally vs globally?' },
+    { name:'market.mind',        icon:'\u{1F4C8}', disc:'economics',    energy:'energized',     social:'asymmetric',    desc:"second-guess the market \u2014 each player models others' beliefs" },
+    { name:'mirror.maze',        icon:'\u{1FA9E}', disc:'psychology',   energy:'contemplative', social:'solo',          desc:'navigate a self-model through cognitive distortions' },
+    { name:'anchor.drift',       icon:'\u2693', disc:'psychology',   energy:'energized',     social:'collaborative', desc:'spot anchoring bias before it derails the group decision' },
+    { name:'story.self',         icon:'\u{1F4D6}', disc:'psychology',   energy:'playful',       social:'asymmetric',    desc:'construct competing narratives of the same event' },
+    { name:'bias.lens',          icon:'\u{1F50D}', disc:'psychology',   energy:'contemplative', social:'asymmetric',    desc:'each player sees the scene through a different cognitive bias' },
+    { name:'ought.machine',      icon:'\u{1F914}', disc:'philosophy',   energy:'energized',     social:'solo',          desc:'build a moral system that holds under adversarial edge cases' },
+    { name:'circle.read',        icon:'\u{1F504}', disc:'philosophy',   energy:'contemplative', social:'collaborative', desc:'hermeneutic circle: text meaning emerges through the group' },
+    { name:'lens.shift',         icon:'\u{1F453}', disc:'philosophy',   energy:'playful',       social:'asymmetric',    desc:'each player inhabits a different philosophical tradition' },
+    { name:'liminal.pass',       icon:'\u{1F6AA}', disc:'philosophy',   energy:'playful',       social:'asymmetric',    desc:"navigate threshold concepts \u2014 some players have crossed, some haven't" },
+    { name:'tone.field',         icon:'\u{1F3B5}', disc:'music',        energy:'contemplative', social:'collaborative', desc:'co-compose a living harmonic landscape in real time' },
+    { name:'voice.weave',        icon:'\u{1F3BC}', disc:'music',        energy:'playful',       social:'asymmetric',    desc:'polyphonic storytelling: each voice carries a different melody' },
+    { name:'sound.color',        icon:'\u{1F3A8}', disc:'music',        energy:'playful',       social:'solo',          desc:'map synesthetic space \u2014 translate color perception to sound' },
+    { name:'rhythm.lab',         icon:'\u{1F3B6}', disc:'music',        energy:'playful',       social:'collaborative', desc:'build emergent rhythms from individual pattern contributions' },
+    { name:'space.between',      icon:'\u25FB\uFE0F', disc:'visual-arts',  energy:'contemplative', social:'solo',          desc:'learn to see negative space as the primary subject' },
+    { name:'hue.shift',          icon:'\u{1F308}', disc:'visual-arts',  energy:'playful',       social:'collaborative', desc:'co-paint a composition where color theory determines moves' },
+    { name:'grid.break',         icon:'\u{1F4CF}', disc:'visual-arts',  energy:'energized',     social:'solo',          desc:'speed-sketch against a grid that fights back' },
+    { name:'reader.ghost',       icon:'\u{1F47B}', disc:'writing',      energy:'playful',       social:'asymmetric',    desc:'writer and reader inhabit the same text differently' },
+    { name:'draft.loop',         icon:'\u{1F501}', disc:'writing',      energy:'contemplative', social:'solo',          desc:'recursive revision: each pass reveals a deeper layer' },
+    { name:'genre.shift',        icon:'\u{1F4DD}', disc:'writing',      energy:'energized',     social:'asymmetric',    desc:'same scene rewritten in 3 genres simultaneously by different players' },
+  ];
+
+  var DC = {
+    'mathematics':'#d97706','cs':'#3b82f6','physics':'#6366f1','biology':'#22c55e',
+    'chemistry':'#9333ea','economics':'#dc2626','psychology':'#ec4899',
+    'philosophy':'#8b5cf6','music':'#f97316','visual-arts':'#0d9488','writing':'#6366f1'
+  };
+  var DL = {
+    'mathematics':'mathematics','cs':'computer science','physics':'physics','biology':'biology',
+    'chemistry':'chemistry','economics':'economics','psychology':'psychology',
+    'philosophy':'philosophy','music':'music','visual-arts':'visual arts','writing':'writing'
+  };
+  var DLIST = ['mathematics','cs','physics','biology','chemistry','economics','psychology','philosophy','music','visual-arts','writing'];
+
+  // ─── HELPERS ──────────────────────────────────────────────────────────
+  function el(tag,cls,txt) { var e=document.createElement(tag); if(cls)e.className=cls; if(txt)e.textContent=txt; return e; }
+  function svgArrow() {
+    var s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    s.setAttribute('width','14'); s.setAttribute('height','14'); s.setAttribute('fill','none');
+    s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('stroke','currentColor'); s.setAttribute('stroke-width','2.5');
+    var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('stroke-linecap','round'); p.setAttribute('stroke-linejoin','round'); p.setAttribute('d','M9 5l7 7-7 7');
+    s.appendChild(p); return s;
+  }
+  function checkSvg() {
+    var s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    s.setAttribute('class','check-svg'); s.setAttribute('viewBox','0 0 12 12'); s.setAttribute('fill','none');
+    s.setAttribute('stroke','white'); s.setAttribute('stroke-width','2');
+    var p=document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M2 6l3 3 5-5');
+    s.appendChild(p); return s;
+  }
+  function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}return b;}
+
+  // ─── STATE ────────────────────────────────────────────────────────────
+  var S = { energy:null, social:null, disc:null, screen:'welcome', history:[], mode:'discover', game:null };
+
+  // ─── WAVE LINES ───────────────────────────────────────────────────────
+  (function(){
+    var c=document.getElementById('wave-lines');
+    for(var i=0;i<8;i++){
+      var w=el('div','wave-line');
+      w.style.top=(20+i*10)+'%';
+      w.style.setProperty('--dur',(14+Math.random()*10)+'s');
+      w.style.animationDelay=(-Math.random()*10)+'s';
+      w.style.opacity=0.3+Math.random()*0.5;
+      c.appendChild(w);
+    }
+  })();
+
+  // ─── MODE SWITCH ──────────────────────────────────────────────────────
+  function switchMode(m) {
+    if(m===S.mode) return; S.mode=m;
+    var ser=document.getElementById('serendipity'), arch=document.getElementById('archipelago');
+    var td=document.getElementById('tab-discover'), tb=document.getElementById('tab-browse');
+    if(m==='browse'){
+      ser.className='mode-view hidden-left'; arch.className='mode-view active';
+      td.classList.remove('active'); tb.classList.add('active');
+    } else {
+      arch.className='mode-view hidden-right'; ser.className='mode-view active';
+      tb.classList.remove('active'); td.classList.add('active');
+    }
+  }
+  document.getElementById('tab-discover').addEventListener('click',function(){switchMode('discover');});
+  document.getElementById('tab-browse').addEventListener('click',function(){switchMode('browse');});
+
+  // ─── SERENDIPITY ──────────────────────────────────────────────────────
+  function showScreen(id,dir){
+    var prev=document.querySelector('.screen.s-active'), next=document.getElementById('screen-'+id);
+    if(!next||prev===next)return;
+    if(prev){prev.classList.remove('s-active');prev.classList.add(dir==='forward'?'s-hidden-left':'s-hidden-right');}
+    next.classList.remove('s-hidden-left','s-hidden-right'); next.classList.add('s-active');
+    S.screen=id; updateProgress(); updateBack();
+  }
+  function updateProgress(){
+    var bar=document.getElementById('progress-bar'),idx=['q1','q2','q3'].indexOf(S.screen);
+    if(idx===-1){bar.classList.add('hidden');return;} bar.classList.remove('hidden');
+    for(var i=0;i<3;i++){var d=document.getElementById('dot-'+i);d.classList.remove('active','done');if(i<idx)d.classList.add('done');else if(i===idx)d.classList.add('active');}
+  }
+  function updateBack(){var b=document.getElementById('back-btn');if(['q1','q2','q3'].includes(S.screen))b.classList.remove('hidden');else b.classList.add('hidden');}
+  function startFlow(){S.history.push(S.screen);showScreen('q1','forward');}
+  function goBack(){var p=S.history.pop();if(p)showScreen(p,'back');}
+  document.getElementById('back-btn').addEventListener('click',goBack);
+
+  // welcome
+  (function(){
+    var a=document.getElementById('welcome-actions');
+    var go=el('button','btn btn-primary',"let's go "); go.appendChild(svgArrow()); go.addEventListener('click',startFlow); a.appendChild(go);
+    var sur=el('button','btn btn-outline','\u{1F3B2} surprise me'); sur.addEventListener('click',surpriseMe); a.appendChild(sur);
+  })();
+
+  // option cards builder
+  function mkOpt(emoji,label,desc,val){
+    var c=el('div','option-card'); c.dataset.value=val;
+    c.appendChild(el('div','option-emoji',emoji));
+    var ct=el('div','option-content'); ct.appendChild(el('span','option-label',label)); ct.appendChild(el('span','option-desc',desc)); c.appendChild(ct);
+    var ck=el('div','option-check'); ck.appendChild(checkSvg()); c.appendChild(ck); return c;
+  }
+
+  (function(){
+    var e=document.getElementById('energy-options');
+    e.appendChild(mkOpt('\u{1F30A}','contemplative','we want to think deeply','contemplative'));
+    e.appendChild(mkOpt('\u26A1','energized',"we're ready to compete",'energized'));
+    e.appendChild(mkOpt('\u{1F3AD}','playful','we want to explore and create','playful'));
+    var s=document.getElementById('social-options');
+    s.appendChild(mkOpt('\u{1F464}','solo','everyone works independently','solo'));
+    s.appendChild(mkOpt('\u{1F91D}','collaborative',"we'll work together",'collaborative'));
+    s.appendChild(mkOpt('\u{1F9E9}','asymmetric','different roles, different info','asymmetric'));
+  })();
+
+  document.getElementById('energy-options').addEventListener('click',function(e){
+    var c=e.target.closest('.option-card'); if(!c)return;
+    this.querySelectorAll('.option-card').forEach(function(x){x.classList.remove('selected');});
+    c.classList.add('selected'); S.energy=c.dataset.value;
+    setTimeout(function(){S.history.push(S.screen);showScreen('q2','forward');},420);
+  });
+  document.getElementById('social-options').addEventListener('click',function(e){
+    var c=e.target.closest('.option-card'); if(!c)return;
+    this.querySelectorAll('.option-card').forEach(function(x){x.classList.remove('selected');});
+    c.classList.add('selected'); S.social=c.dataset.value;
+    setTimeout(function(){S.history.push(S.screen);showScreen('q3','forward');},420);
+  });
+
+  // disc grid
+  function selectDisc(v,pill){
+    document.querySelectorAll('.disc-pill').forEach(function(p){p.classList.remove('selected');});
+    pill.classList.add('selected'); S.disc=v==='anything'?null:v;
+    setTimeout(function(){
+      showScreen('thinking','forward');
+      setTimeout(function(){computeResults(false);showScreen('results','forward');},900);
+    },400);
+  }
+  (function(){
+    var g=document.getElementById('disc-options');
+    var any=el('div','disc-pill disc-pill-anything'); any.style.setProperty('--disc-color','#17858a');
+    any.appendChild(el('div','disc-dot')); any.appendChild(el('span','disc-name','anything \u2726'));
+    any.addEventListener('click',function(){selectDisc('anything',any);}); g.appendChild(any);
+    DLIST.forEach(function(id){
+      var p=el('div','disc-pill'); p.style.setProperty('--disc-color',DC[id]||'#17858a');
+      p.appendChild(el('div','disc-dot')); p.appendChild(el('span','disc-name',DL[id]));
+      p.addEventListener('click',function(){selectDisc(id,p);}); g.appendChild(p);
+    });
+  })();
+
+  // results footer
+  (function(){
+    var f=document.getElementById('results-footer');
+    var tb=el('button','btn btn-outline try-again-btn','not feeling it? try again'); tb.addEventListener('click',tryAgain); f.appendChild(tb);
+    var rl=el('button','random-link','deal me a random game'); rl.addEventListener('click',surpriseMe); f.appendChild(rl);
+    document.getElementById('wildcard-label').textContent='\u{1F3B2} wildcard';
+  })();
+
+  function surpriseMe(){S.energy=null;S.social=null;S.disc=null;showScreen('thinking','forward');setTimeout(function(){computeResults(true);showScreen('results','forward');},900);}
+  function tryAgain(){
+    S.energy=null;S.social=null;S.disc=null;S.history=[];
+    document.querySelectorAll('.option-card').forEach(function(c){c.classList.remove('selected');});
+    document.querySelectorAll('.disc-pill').forEach(function(p){p.classList.remove('selected');});
+    showScreen('q1','back');
+  }
+
+  function computeResults(surp){
+    var matches,wc;
+    if(surp){var s=shuffle(GAMES);matches=s.slice(0,3);wc=s[3];}
+    else{
+      var pool=GAMES.filter(function(g){return(!S.energy||g.energy===S.energy)&&(!S.social||g.social===S.social)&&(!S.disc||g.disc===S.disc);});
+      if(pool.length<3)pool=GAMES.filter(function(g){return(!S.energy||g.energy===S.energy)&&(!S.social||g.social===S.social);});
+      if(pool.length<3)pool=GAMES.filter(function(g){return!S.energy||g.energy===S.energy;});
+      if(pool.length<3)pool=GAMES.slice();
+      var s2=shuffle(pool);matches=s2.slice(0,3);
+      var mn={};matches.forEach(function(g){mn[g.name]=1;});
+      var wp=GAMES.filter(function(g){return!mn[g.name];});
+      wc=wp[Math.floor(Math.random()*wp.length)];
+    }
+    renderResults(matches,wc,surp);
+  }
+
+  function renderResults(matches,wc,surp){
+    var sub=document.getElementById('results-sub');
+    if(surp){sub.textContent='a fresh deal \u2014 no questions asked';}
+    else{var p=[];if(S.energy)p.push(S.energy);if(S.social)p.push(S.social);if(S.disc)p.push(DL[S.disc]||S.disc);sub.textContent=p.join(' \u00B7 ')||'your perfect match';}
+    var mc=document.getElementById('matched-cards');mc.textContent='';
+    matches.forEach(function(g){mc.appendChild(mkGameCard(g,false));});
+    var wce=document.getElementById('wildcard-card');wce.textContent='';wce.appendChild(mkGameCard(wc,true));
+    requestAnimationFrame(function(){document.querySelectorAll('.game-card').forEach(function(c,i){setTimeout(function(){c.classList.add('visible');},i*120);});});
+  }
+
+  function mkGameCard(g,isWC){
+    var c=el('div',isWC?'game-card wildcard':'game-card');
+    c.addEventListener('click',function(){openDetail(g);});
+    c.appendChild(el('div','game-card-icon',g.icon));
+    var m=el('div','game-card-main'), h=el('div','game-card-header');
+    h.appendChild(el('span','game-name',g.name));
+    if(isWC){h.appendChild(el('span','game-badge','\u{1F3B2} wildcard'));h.lastChild.style.color='#7dd3d8';h.lastChild.style.borderColor='rgba(125,211,216,0.3)';h.lastChild.style.background='rgba(125,211,216,0.1)';}
+    else{var b=el('span','game-badge',DL[g.disc]||g.disc);var co=DC[g.disc]||'#7dd3d8';b.style.color=co;b.style.borderColor=co+'44';b.style.background=co+'18';h.appendChild(b);}
+    m.appendChild(h); m.appendChild(el('div','game-desc',g.desc)); c.appendChild(m);
+    var pb=el('button','game-play-btn'); pb.appendChild(svgArrow()); pb.addEventListener('click',function(e){e.stopPropagation();openDetail(g);}); c.appendChild(pb);
+    return c;
+  }
+
+  // ─── ARCHIPELAGO — spatial island map ─────────────────────────────────
+
+  // Island positions — hand-placed for organic archipelago feel
+  // Each discipline is an island; games are rafts moored around it
+  var CLUSTERS = {
+    'mathematics':  { cx: 350, cy: 250, color: '#d97706', bg: '#7a5a20', shore: '#a8842e', size: 130 },
+    'cs':           { cx: 950, cy: 220, color: '#3b82f6', bg: '#2a4a3a', shore: '#3d6b52', size: 140 },
+    'physics':      { cx: 200, cy: 620, color: '#6366f1', bg: '#4a3d28', shore: '#6b5a3a', size: 140 },
+    'biology':      { cx: 780, cy: 530, color: '#22c55e', bg: '#2d5a25', shore: '#4a8a3a', size: 120 },
+    'chemistry':    { cx: 1300, cy: 400, color: '#9333ea', bg: '#3a3040', shore: '#5a4a60', size: 110 },
+    'economics':    { cx: 480, cy: 950, color: '#dc2626', bg: '#5a3020', shore: '#8a5030', size: 140 },
+    'psychology':   { cx: 1100, cy: 780, color: '#ec4899', bg: '#4a2838', shore: '#6b3a50', size: 120 },
+    'philosophy':   { cx: 300, cy: 1280, color: '#8b5cf6', bg: '#3a3548', shore: '#5a5060', size: 120 },
+    'music':        { cx: 850, cy: 1100, color: '#f97316', bg: '#5a3a1a', shore: '#8a6030', size: 120 },
+    'visual-arts':  { cx: 1250, cy: 1150, color: '#0d9488', bg: '#1a4a40', shore: '#2a6a58', size: 110 },
+    'writing':      { cx: 550, cy: 1500, color: '#6366f1', bg: '#3a3848', shore: '#5a5560', size: 110 },
+  };
+
+  // organic blob shapes for islands
+  var BLOBS = [
+    '42% 58% 55% 45% / 48% 40% 60% 52%',
+    '55% 45% 40% 60% / 52% 55% 45% 48%',
+    '48% 52% 58% 42% / 45% 48% 52% 55%',
+    '60% 40% 45% 55% / 42% 58% 42% 58%',
+    '45% 55% 52% 48% / 55% 42% 58% 42%',
+    '52% 48% 42% 58% / 58% 45% 55% 45%',
+    '38% 62% 50% 50% / 50% 38% 62% 50%',
+    '62% 38% 48% 52% / 40% 55% 45% 55%',
+    '50% 50% 42% 58% / 58% 42% 52% 48%',
+    '44% 56% 60% 40% / 50% 44% 56% 50%',
+    '58% 42% 44% 56% / 46% 52% 48% 52%',
+  ];
+
+  var activeFilter = null;
+
+  function buildArchipelago() {
+    var world = document.getElementById('map-world');
+    world.textContent = '';
+
+    var groups = {};
+    GAMES.forEach(function(g) { if (!groups[g.disc]) groups[g.disc] = []; groups[g.disc].push(g); });
+
+    DLIST.forEach(function(discId, discIdx) {
+      var games = groups[discId];
+      if (!games) return;
+      if (activeFilter && discId !== activeFilter) return;
+
+      var cluster = CLUSTERS[discId];
+      var islandSize = cluster.size;
+      var blobShape = BLOBS[discIdx % BLOBS.length];
+
+      // ── the island (discipline) ──
+      var island = el('div', 'map-island');
+      island.style.left = (cluster.cx - islandSize/2) + 'px';
+      island.style.top = (cluster.cy - islandSize/2) + 'px';
+      island.style.width = islandSize + 'px';
+      island.style.height = islandSize + 'px';
+
+      // water ripples (3 concentric animated rings)
+      for (var r = 0; r < 3; r++) {
+        var ripple = el('div', 'map-island-ripple');
+        ripple.style.borderRadius = blobShape;
+        island.appendChild(ripple);
+      }
+
+      // shallow water glow
+      var shallows = el('div', 'map-island-shallows');
+      shallows.style.borderRadius = blobShape;
+      island.appendChild(shallows);
+
+      // sandy shoreline ring
+      var shore = el('div', 'map-island-shore');
+      shore.style.borderRadius = blobShape;
+      island.appendChild(shore);
+
+      // island body — earthy landmass
+      var body = el('div', 'map-island-body');
+      body.style.borderRadius = blobShape;
+      // green-brown terrain gradient with lighter highlight
+      body.style.background = 'radial-gradient(ellipse 90% 80% at 38% 32%, ' +
+        mixColor(cluster.bg, '#8aad6a', 0.25) + ' 0%, ' +
+        mixColor(cluster.bg, '#5a7a3a', 0.15) + ' 30%, ' +
+        cluster.bg + ' 60%, ' +
+        mixColor(cluster.bg, '#1a2a1e', 0.5) + ' 100%)';
+
+      var nameEl = el('div', 'map-island-name', DL[discId]);
+      body.appendChild(nameEl);
+      island.appendChild(body);
+
+      world.appendChild(island);
+
+      // ── mooring lines + rafts ──
+      var n = games.length;
+      var angleStart = (discIdx * 137.5 * Math.PI / 180) % (Math.PI * 2); // golden angle offset per island
+      var mooringRadius = islandSize / 2 + 40; // distance from island center to raft
+
+      games.forEach(function(game, i) {
+        // distribute rafts evenly around the island
+        var angle = angleStart + (i / n) * Math.PI * 2;
+        // add slight jitter so it's not perfectly circular
+        var jitter = (i % 3 - 1) * 12;
+        var rx = cluster.cx + Math.cos(angle) * (mooringRadius + jitter);
+        var ry = cluster.cy + Math.sin(angle) * (mooringRadius + jitter);
+
+        // mooring line (SVG line from island edge to raft)
+        var lineEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        lineEl.setAttribute('class', 'mooring-line');
+        var x1 = cluster.cx + Math.cos(angle) * (islandSize / 2 - 5);
+        var y1 = cluster.cy + Math.sin(angle) * (islandSize / 2 - 5);
+        // compute bounding box
+        var minX = Math.min(x1, rx) - 5, minY = Math.min(y1, ry) - 5;
+        var maxX = Math.max(x1, rx) + 5, maxY = Math.max(y1, ry) + 5;
+        lineEl.style.left = minX + 'px';
+        lineEl.style.top = minY + 'px';
+        lineEl.style.width = (maxX - minX) + 'px';
+        lineEl.style.height = (maxY - minY) + 'px';
+        lineEl.setAttribute('viewBox', '0 0 ' + (maxX - minX) + ' ' + (maxY - minY));
+        lineEl.setAttribute('fill', 'none');
+        var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1 - minX);
+        line.setAttribute('y1', y1 - minY);
+        line.setAttribute('x2', rx - minX);
+        line.setAttribute('y2', ry - minY);
+        line.setAttribute('stroke', 'rgba(160,130,80,0.25)');
+        line.setAttribute('stroke-width', '1.5');
+        line.setAttribute('stroke-dasharray', '4 3');
+        lineEl.appendChild(line);
+        world.appendChild(lineEl);
+
+        // the raft
+        var raft = el('div', 'raft');
+        raft.style.left = (rx - 28) + 'px';
+        raft.style.top = (ry - 19) + 'px';
+        // accent color from the island's shore/identity color
+        var shoreColor = cluster.shore;
+        raft.style.setProperty('--raft-accent', shoreColor);
+        raft.style.animation = 'bob ' + (3.5 + Math.random() * 2.5) + 's ease-in-out ' + (-Math.random() * 5) + 's infinite';
+
+        // water wake
+        raft.appendChild(el('div', 'raft-wake'));
+
+        // deck (the raft platform)
+        var deck = el('div', 'raft-deck');
+        deck.appendChild(el('span', 'raft-icon', game.icon));
+        raft.appendChild(deck);
+
+        raft.appendChild(el('div', 'raft-label', game.name));
+
+        raft.addEventListener('click', function() { openDetail(game); });
+        world.appendChild(raft);
+      });
+    });
+  }
+
+  function mixColor(c1, c2, t) {
+    function hex2rgb(h) {
+      h = h.replace('#','');
+      return [parseInt(h.substring(0,2),16), parseInt(h.substring(2,4),16), parseInt(h.substring(4,6),16)];
+    }
+    var a = hex2rgb(c1), b = hex2rgb(c2);
+    var r = Math.round(a[0]*(1-t)+b[0]*t);
+    var g = Math.round(a[1]*(1-t)+b[1]*t);
+    var bl = Math.round(a[2]*(1-t)+b[2]*t);
+    return '#' + ((1<<24)+(r<<16)+(g<<8)+bl).toString(16).slice(1);
+  }
+
+  // filter bar
+  (function(){
+    var bar = document.getElementById('arch-filter-bar');
+    var all = el('button','fchip active','all');
+    all.addEventListener('click', function(){ filterArch(null); });
+    bar.appendChild(all);
+    DLIST.forEach(function(id){
+      var chip = el('button','fchip', DL[id]);
+      chip.dataset.filterId = id;
+      chip.addEventListener('click', function(){ filterArch(id); });
+      bar.appendChild(chip);
+    });
+  })();
+
+  function filterArch(id) {
+    activeFilter = id;
+    document.querySelectorAll('.fchip').forEach(function(c){c.classList.remove('active');});
+    if (id) {
+      var m = document.querySelector('.fchip[data-filter-id="'+id+'"]');
+      if (m) m.classList.add('active');
+    } else {
+      document.querySelector('.fchip').classList.add('active');
+    }
+    buildArchipelago();
+    // center on the cluster if filtering
+    if (id && CLUSTERS[id]) {
+      var cl = CLUSTERS[id];
+      var vw = window.innerWidth, vh = window.innerHeight;
+      mapX = vw/2 - cl.cx * mapScale;
+      mapY = vh/2 - cl.cy * mapScale;
+      applyMapTransform();
+    }
+  }
+
+  // ─── MAP PAN/ZOOM ─────────────────────────────────────────────────────
+
+  var mapX = 0, mapY = 0, mapScale = 0.8;
+  var dragging = false, lastX = 0, lastY = 0;
+
+  function applyMapTransform() {
+    document.getElementById('map-world').style.transform =
+      'translate(' + mapX + 'px,' + mapY + 'px) scale(' + mapScale + ')';
+  }
+
+  function centerMap() {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    mapX = vw/2 - 700 * mapScale;
+    mapY = -50;
+    applyMapTransform();
+  }
+
+  var archEl = document.getElementById('archipelago');
+
+  archEl.addEventListener('pointerdown', function(e) {
+    if (e.target.closest('.fchip') || e.target.closest('.island')) return;
+    dragging = true; lastX = e.clientX; lastY = e.clientY;
+    archEl.classList.add('dragging');
+    archEl.setPointerCapture(e.pointerId);
+  });
+  archEl.addEventListener('pointermove', function(e) {
+    if (!dragging) return;
+    mapX += e.clientX - lastX;
+    mapY += e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    applyMapTransform();
+  });
+  archEl.addEventListener('pointerup', function() { dragging = false; archEl.classList.remove('dragging'); });
+  archEl.addEventListener('pointercancel', function() { dragging = false; archEl.classList.remove('dragging'); });
+
+  archEl.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? 0.9 : 1.1;
+    var ns = Math.max(0.3, Math.min(2, mapScale * delta));
+    var rect = archEl.getBoundingClientRect();
+    var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    mapX = mx - (mx - mapX) * (ns / mapScale);
+    mapY = my - (my - mapY) * (ns / mapScale);
+    mapScale = ns;
+    applyMapTransform();
+  }, { passive: false });
+
+  // pinch zoom
+  var lastDist = 0;
+  archEl.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 2) {
+      lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    }
+  }, { passive: true });
+  archEl.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 2) {
+      var dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      if (lastDist > 0) {
+        var delta = dist / lastDist;
+        var ns = Math.max(0.3, Math.min(2, mapScale * delta));
+        var cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        var cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        mapX = cx - (cx - mapX) * (ns / mapScale);
+        mapY = cy - (cy - mapY) * (ns / mapScale);
+        mapScale = ns;
+        applyMapTransform();
+      }
+      lastDist = dist;
+    }
+  }, { passive: true });
+  archEl.addEventListener('touchend', function() { lastDist = 0; }, { passive: true });
+
+  // ─── DETAIL SHEET ─────────────────────────────────────────────────────
+
+  function openDetail(g) {
+    S.game = g;
+    document.getElementById('detail-icon').textContent = g.icon;
+    document.getElementById('detail-name').textContent = g.name;
+    var d = document.getElementById('detail-disc');
+    d.textContent = DL[g.disc] || g.disc;
+    d.style.color = DC[g.disc] || '#7dd3d8';
+    document.getElementById('detail-desc').textContent = g.desc;
+    var tags = document.getElementById('detail-tags');
+    tags.textContent = '';
+    [g.energy, g.social].forEach(function(t){ tags.appendChild(el('span','detail-tag',t)); });
+    var pb = document.getElementById('detail-play-btn');
+    pb.textContent = 'start session ';
+    pb.appendChild(svgArrow());
+    document.getElementById('detail-overlay').classList.add('visible');
+  }
+  function closeDetail() { document.getElementById('detail-overlay').classList.remove('visible'); }
+  document.getElementById('detail-backdrop').addEventListener('click', closeDetail);
+  document.getElementById('detail-play-btn').addEventListener('click', function(){
+    if(S.game) alert('launching ' + S.game.name + '...');
+    closeDetail();
+  });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeDetail(); });
+
+  // ─── INIT ─────────────────────────────────────────────────────────────
+  buildArchipelago();
+  centerMap();
+  updateProgress();
+  updateBack();
+</script>
+</body>
+</html>

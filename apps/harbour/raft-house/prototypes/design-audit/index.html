@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>raft.house — 45 game design audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf8f4;--surface:#fff;--surface-alt:#f5f1ea;
+  --ink:#1a1a1a;--ink-muted:#666;--ink-faint:#aaa;
+  --teal:#17858a;--teal-light:#e0f4f4;--teal-dark:#0d4f4f;
+  --red:#d64545;--red-light:#fde8e8;
+  --amber:#d97706;--amber-light:#fef3c7;
+  --green:#15803d;--green-light:#dcfce7;
+  --purple:#7c3aed;--purple-light:#ede9fe;
+  --blue:#2563eb;--blue-light:#dbeafe;
+  --pink:#db2777;--pink-light:#fce7f3;
+  --radius:12px;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-hand:'Caveat',cursive;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{font-family:var(--font-body);color:var(--ink);background:var(--bg);scroll-behavior:smooth;font-size:15px;line-height:1.6}
+body{max-width:1200px;margin:0 auto;padding:24px 20px 120px}
+.audit-header{padding:48px 0 40px;border-bottom:2px solid var(--ink);margin-bottom:40px}
+.audit-header h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;line-height:1.1;margin-bottom:8px}
+.audit-header .subtitle{font-size:1.1rem;color:var(--ink-muted);max-width:640px}
+.audit-header .meta{display:flex;gap:16px;margin-top:16px;font-size:0.8rem;color:var(--ink-faint);font-family:var(--font-mono)}
+.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:48px}
+.stat-card{background:var(--surface);border:1px solid rgba(0,0,0,0.08);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--teal)}
+.stat-card.warn::before{background:var(--amber)}
+.stat-card.danger::before{background:var(--red)}
+.stat-card.ok::before{background:var(--green)}
+.stat-number{font-size:2rem;font-weight:700;font-family:var(--font-mono);line-height:1}
+.stat-label{font-size:0.78rem;color:var(--ink-muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em}
+.section{margin-bottom:56px}
+.section-title{font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:6px}
+.section-desc{color:var(--ink-muted);margin-bottom:24px;max-width:720px}
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.filter-chip{padding:6px 14px;border-radius:99px;border:1px solid rgba(0,0,0,0.12);background:var(--surface);font-size:0.78rem;font-weight:500;cursor:pointer;transition:all 200ms}
+.filter-chip:hover{border-color:var(--teal);color:var(--teal)}
+.filter-chip.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.game-card{background:var(--surface);border:1px solid rgba(0,0,0,0.06);border-radius:var(--radius);padding:20px;transition:all 200ms;cursor:pointer;position:relative}
+.game-card:hover{border-color:var(--teal);box-shadow:0 4px 20px rgba(0,0,0,0.06)}
+.game-card.expanded{grid-column:1/-1;cursor:default}
+.game-top{display:flex;align-items:flex-start;gap:12px}
+.game-icon{font-size:1.6rem;flex-shrink:0;width:36px;text-align:center}
+.game-name{font-weight:600;font-size:0.95rem}
+.game-disc{font-size:0.72rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px}
+.game-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;font-size:0.68rem;font-weight:500;font-family:var(--font-mono)}
+.badge.grade{background:var(--teal-light);color:var(--teal-dark)}
+.badge.grade.high{background:var(--red-light);color:var(--red)}
+.badge.grade.mid{background:var(--amber-light);color:var(--amber)}
+.badge.grade.low{background:var(--green-light);color:var(--green)}
+.badge.jargon{background:var(--purple-light);color:var(--purple)}
+.badge.activity{background:var(--blue-light);color:var(--blue)}
+.game-detail{display:none;margin-top:16px;padding-top:16px;border-top:1px dashed rgba(0,0,0,0.1)}
+.game-card.expanded .game-detail{display:block}
+.issue-list{list-style:none;margin:12px 0}
+.issue-list li{padding:8px 12px;border-radius:8px;margin-bottom:6px;font-size:0.85rem;line-height:1.5;position:relative;padding-left:28px}
+.issue-list li::before{position:absolute;left:8px;top:10px;font-size:0.85rem}
+.issue-list li.jargon{background:var(--purple-light)}
+.issue-list li.jargon::before{content:'\1F524'}
+.issue-list li.reading{background:var(--amber-light)}
+.issue-list li.reading::before{content:'\1F4D6'}
+.issue-list li.ux{background:var(--blue-light)}
+.issue-list li.ux::before{content:'\1F3A8'}
+.comparison{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.comparison>div{padding:12px 14px;border-radius:8px;font-size:0.82rem;line-height:1.5}
+.comparison .before{background:#fde8e8;border:1px solid rgba(214,69,69,0.15)}
+.comparison .after{background:#dcfce7;border:1px solid rgba(21,128,61,0.15)}
+.comparison .label{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);margin-bottom:4px;font-weight:600}
+.systemic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.systemic-card{background:var(--surface);border-radius:var(--radius);padding:24px;border:1px solid rgba(0,0,0,0.06);border-left:4px solid var(--red)}
+.systemic-card.medium{border-left-color:var(--amber)}
+.systemic-card.low{border-left-color:var(--green)}
+.systemic-card h3{font-size:1rem;font-weight:600;margin-bottom:6px}
+.systemic-card p{font-size:0.85rem;color:var(--ink-muted);line-height:1.5}
+.systemic-card .fix{margin-top:10px;padding:10px 12px;background:var(--surface-alt);border-radius:8px;font-size:0.82rem}
+.systemic-card .fix strong{color:var(--teal-dark)}
+.aesthetic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.aesthetic-card{border-radius:var(--radius);padding:24px;position:relative;overflow:hidden;min-height:180px;display:flex;flex-direction:column;justify-content:flex-end}
+.aesthetic-card .disc-label{font-family:var(--font-hand);font-size:1.4rem;font-weight:600;margin-bottom:4px}
+.aesthetic-card p{font-size:0.82rem;line-height:1.5;opacity:0.85}
+.aesthetic-card .swatch{display:flex;gap:4px;margin-top:8px}
+.aesthetic-card .swatch span{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,0.3)}
+.a-math{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#e0e0ff}
+.a-cs{background:linear-gradient(135deg,#0d1b2a,#1b2a4a);color:#c8f0d4}
+.a-physics{background:linear-gradient(135deg,#2d1b69,#11001c);color:#e8d5ff}
+.a-bio{background:linear-gradient(135deg,#1a3c2a,#0a2e1a);color:#c8f0d4}
+.a-chem{background:linear-gradient(135deg,#3b1a1a,#1a0a0a);color:#ffd4d4}
+.a-econ{background:linear-gradient(135deg,#2a2a0a,#1a1a00);color:#fff8d4}
+.a-psych{background:linear-gradient(135deg,#1a2a3b,#0a1a2e);color:#d4e8ff}
+.a-phil{background:linear-gradient(135deg,#2a1a2a,#1a0a1a);color:#f0d4ff}
+.a-music{background:linear-gradient(135deg,#0a2a2a,#001a1a);color:#d4fff0}
+.a-art{background:linear-gradient(135deg,#3b2a1a,#2a1a0a);color:#ffe8d4}
+.a-writing{background:linear-gradient(135deg,#1a1a1a,#2a2a2a);color:#f0f0f0}
+.matrix{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:16px}
+.matrix-cell{padding:20px;border-radius:var(--radius);border:1px solid rgba(0,0,0,0.06)}
+.matrix-cell h4{font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.matrix-cell.q1{background:#fde8e8;border-color:rgba(214,69,69,0.15)}
+.matrix-cell.q2{background:var(--amber-light);border-color:rgba(217,119,6,0.15)}
+.matrix-cell.q3{background:var(--blue-light);border-color:rgba(37,99,235,0.15)}
+.matrix-cell.q4{background:var(--green-light);border-color:rgba(21,128,61,0.15)}
+.matrix-cell ul{list-style:none;font-size:0.82rem}
+.matrix-cell li{padding:3px 0;border-bottom:1px solid rgba(0,0,0,0.04)}
+.matrix-cell li:last-child{border-bottom:none}
+.annotation{font-family:var(--font-hand);font-size:1.1rem;color:var(--teal-dark);transform:rotate(-1deg);display:inline-block;margin:8px 0}
+.scorecard{width:100%;border-collapse:collapse;font-size:0.85rem}
+.scorecard th{text-align:left;padding:10px 8px;border-bottom:2px solid var(--ink)}
+.scorecard th.center{text-align:center}
+.scorecard td{padding:8px;border-bottom:1px solid rgba(0,0,0,0.06)}
+.scorecard td.center{text-align:center}
+.scorecard td.score{text-align:center;font-weight:700}
+@media(max-width:680px){
+  .game-grid,.systemic-grid,.aesthetic-grid,.matrix{grid-template-columns:1fr}
+  .comparison{grid-template-columns:1fr}
+  .dashboard{grid-template-columns:repeat(2,1fr)}
+  body{padding:16px 12px 80px}
+  .audit-header h1{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<header class="audit-header">
+  <h1>raft.house design audit</h1>
+  <p class="subtitle">smoketest of all 45 game experiences — language accessibility, visual identity, and kid-friendliness evaluation</p>
+  <div class="meta">
+    <span>apr 2, 2026</span>
+    <span>45 games</span>
+    <span>11 disciplines</span>
+    <span>~210 activities</span>
+  </div>
+</header>
+
+<!-- DASHBOARD -->
+<section class="section">
+  <h2 class="section-title">overview</h2>
+  <p class="section-desc">aggregate findings across all 45 games. reading levels are estimated grade equivalents for the primary question/prompt text each participant sees.</p>
+  <div class="dashboard">
+    <div class="stat-card danger"><div class="stat-number">31</div><div class="stat-label">games above 8th grade reading level</div></div>
+    <div class="stat-card warn"><div class="stat-number">127</div><div class="stat-label">jargon terms flagged</div></div>
+    <div class="stat-card"><div class="stat-number">14</div><div class="stat-label">games accessible to ages 10-12</div></div>
+    <div class="stat-card ok"><div class="stat-number">0</div><div class="stat-label">games accessible to ages 8-10</div></div>
+  </div>
+  <p class="annotation">^ zero games work for the youngest kids right now. that's the headline.</p>
+</section>
+
+<!-- SYSTEMIC ISSUES -->
+<section class="section">
+  <h2 class="section-title">systemic issues</h2>
+  <p class="section-desc">problems that repeat across multiple games — fix these at the system level, not game by game.</p>
+  <div class="systemic-grid">
+    <div class="systemic-card"><h3>academic voice in participant prompts</h3><p>35 of 45 games use academic sentence structures: "the threshold concept reveals that..." / "what does this teach about the relationship between local correctness and global correctness?" kids don't talk or think like journal articles.</p><div class="fix"><strong>fix:</strong> rewrite all prompts in conversational second-person. "what do you notice?" beats "describe the emergent properties of the system." test every prompt by reading it aloud — if it sounds like a textbook, rewrite.</div></div>
+    <div class="systemic-card"><h3>reflection prompts assume adult life experience</h3><p>nearly every reflection asks participants to connect to "your work," "a project you're designing," "your current workflow." kids don't have workflows or design projects. these prompts will produce blank stares.</p><div class="fix"><strong>fix:</strong> create age-adaptive prompt variants. for ages 10-14: "think about a time at school when..." / "imagine you and your friends are..." keep adult versions as facilitator-selectable options.</div></div>
+    <div class="systemic-card"><h3>reveal prompts lecture instead of land</h3><p>reveal prompts often read like mini-lectures: "the threshold: mathematical truth is not monolithic." this is telling, not crossing. 28 of 45 reveals are expositions.</p><div class="fix"><strong>fix:</strong> rewrite reveals as questions or provocations. "wait — so the same statement can be true in one system and false in another?" let the participant's own confusion become the insight.</div></div>
+    <div class="systemic-card medium"><h3>jargon introduced without scaffolding</h3><p>terms like "cantor's diagonal argument," "coffman conditions," "overjustification effect," "le chatelier's principle," "hermeneutic circle" appear with no glossary or simpler explanation. 127 such terms across all games.</p><div class="fix"><strong>fix:</strong> add a hint system. each jargon term gets a tap-to-reveal explanation. or rewrite the prompt to not need the term. "the principle that reactions push back against changes" teaches le chatelier without naming it.</div></div>
+    <div class="systemic-card medium"><h3>asymmetric role descriptions are walls of text</h3><p>every asymmetric activity has 3-4 roles with 3-4 sentences of dense info. on a phone, this is 6+ lines of tiny text. kids will skim or skip.</p><div class="fix"><strong>fix:</strong> cap role descriptions at 2 short sentences + 1 bold key fact. consider audio narration as an alternative.</div></div>
+    <div class="systemic-card medium"><h3>minimum text lengths on reflections</h3><p>most reflections require 50-80 character minimums. for kids who struggle with writing fluency, this creates anxiety. the character counter becomes a "not good enough yet" signal.</p><div class="fix"><strong>fix:</strong> remove minLength for younger audiences. replace with encouraging prompts: "want to add more?" voice input could transform reflections for reluctant writers.</div></div>
+    <div class="systemic-card low"><h3>time pressure may cause anxiety</h3><p>14 games have time limits under 60 seconds on predictions. timed activities can trigger anxiety in younger or neurodivergent participants.</p><div class="fix"><strong>fix:</strong> make timers facilitator-optional, not baked into the activity. show "take your time" instead of countdown for younger groups.</div></div>
+    <div class="systemic-card low"><h3>no visual/spatial activities for kinesthetic learners</h3><p>canvas (2D pin placement) is the only spatial interaction. all other activities are text-heavy: read, think, type. the original prototype had gesture-based interaction — that was lost in conversion.</p><div class="fix"><strong>fix:</strong> expand drawing mode in open-response. add drag-and-drop puzzle pieces. consider "sketch your thinking" alongside every text reflection.</div></div>
+  </div>
+</section>
+
+<!-- PRIORITY MATRIX -->
+<section class="section">
+  <h2 class="section-title">priority matrix</h2>
+  <p class="section-desc">what to fix first, based on impact and effort.</p>
+  <div class="matrix">
+    <div class="matrix-cell q1"><h4>high impact, low effort — do first</h4><ul><li>rewrite reflection prompts: school/friend/game contexts instead of "your work"</li><li>remove minLength on reflections (or make facilitator-configurable)</li><li>simplify reveal prompts — question format instead of lecture</li><li>add age-level selector to discover page</li></ul></div>
+    <div class="matrix-cell q2"><h4>high impact, high effort — plan for</h4><ul><li>create kid-language variants of all 45 games</li><li>add tap-to-explain glossary for 127 jargon terms</li><li>audio narration for role descriptions</li><li>voice input for reflections (speech-to-text)</li></ul></div>
+    <div class="matrix-cell q3"><h4>low impact, low effort — batch fix</h4><ul><li>make timers facilitator-optional</li><li>increase canvas grid line opacity (10% to 20%)</li><li>enlarge sorting category pill touch targets</li><li>add emoji to phase labels</li></ul></div>
+    <div class="matrix-cell q4"><h4>low impact, high effort — nice to have</h4><ul><li>drag-and-drop puzzle pieces</li><li>animated data visualizations for reveals</li><li>per-discipline visual themes</li><li>sketch/drawing mode for all reflections</li></ul></div>
+  </div>
+</section>
+
+<!-- PER-GAME AUDIT -->
+<section class="section" id="games">
+  <h2 class="section-title">per-game audit</h2>
+  <p class="section-desc">click any game to expand its specific issues, flagged jargon, and proposed rewrites.</p>
+  <div class="filter-bar" id="filters"></div>
+  <div class="game-grid" id="gameGrid"></div>
+</section>
+
+<!-- AESTHETIC RECOMMENDATIONS -->
+<section class="section">
+  <h2 class="section-title">aesthetic identity per discipline</h2>
+  <p class="section-desc">each discipline cluster should have a distinct visual personality — not just different shore colors, but different typographic moods, animation styles, and interaction textures.</p>
+  <div class="aesthetic-grid" id="aestheticGrid"></div>
+</section>
+
+<!-- LANGUAGE REWRITES -->
+<section class="section">
+  <h2 class="section-title">before / after: language rewrites</h2>
+  <p class="section-desc">concrete examples of how to transform academic jargon into kid-accessible language without losing intellectual substance.</p>
+  <div id="rewriteExamples"></div>
+  <p class="annotation">notice: the "after" versions teach the same concept. they just don't require you to already know the vocabulary to engage.</p>
+</section>
+
+<!-- SCORECARD -->
+<section class="section">
+  <h2 class="section-title">kid-friendliness scorecard by discipline</h2>
+  <p class="section-desc">how well does each discipline cluster currently serve younger audiences (ages 10-14)?</p>
+  <table class="scorecard" id="scorecard"></table>
+</section>
+
+<script>
+// All data is defined as safe static content — no user input, no XSS risk.
+// Using DOM APIs exclusively for rendering.
+
+const GAMES=[
+{name:"fold.space",icon:"\u{1F9A2}",disc:"mathematics",grade:8,gradeLabel:"8-10th",jargon:["vertex","topology","transformation","flat-fold theorem","mountain/valley folds","petal fold"],issues:["flat-fold theorem cited without explanation","reflection asks about 'symbolic proof' vs physical proof","origami terminology assumes prior knowledge"],rwBefore:"the flat-fold theorem says any crease pattern that folds flat must have an even number of creases meeting at each vertex, alternating mountain and valley.",rwAfter:"here's a rule that always works: at every point where fold lines meet, the number of folds going up and down must balance out. try it \u2014 fold a piece of paper and count."},
+{name:"infinity.hotel",icon:"\u{1F3E8}",disc:"mathematics",grade:10,gradeLabel:"9-11th",jargon:["countable infinity","uncountable infinity","cantor's diagonal argument","1-to-1 correspondence","power set","irrational numbers"],issues:["cantor's diagonal argument cited without explanation","sorting task has 8 cards \u2014 cognitively heavy","'countable vs uncountable' is graduate-level","reflection asks about 'domains you work in'"],rwBefore:"sort each set into 'countable infinity' (can be listed 1, 2, 3...) or 'uncountable infinity' (cannot be listed, no matter what)",rwAfter:"some infinities can be put in a list (like 1, 2, 3...) and some are too big to list \u2014 no matter how clever you are. sort these: which ones can you list?"},
+{name:"variable.engine",icon:"\u2699\ufe0f",disc:"mathematics",grade:8,gradeLabel:"7-9th",jargon:["coefficients","exponent","cascading","composition","polynomial","rational expression"],issues:["sorting uses technical categories: polynomial, rational, logarithmic","formula display assumes algebraic fluency","reflection about 'upstream changes' is adult-coded"],rwBefore:"algebraic expressions have different structures that determine their behavior.",rwAfter:"these math machines grow at different speeds. some grow steady, some speed up, some explode. sort them by how fast they grow."},
+{name:"proof.garden",icon:"\u{1F333}",disc:"mathematics",grade:11,gradeLabel:"10-12th",jargon:["irrational","proof by contradiction","axioms","platonism","formalism","intuitionism","G\u00f6del's theorem","euclidean","hyperbolic"],issues:["highest jargon density in any math game","asymmetric roles require philosophical maturity","reflection references G\u00f6del by name","entire game assumes comfort with symbolic proof"],rwBefore:"godel proved in 1931 that any consistent system powerful enough to describe arithmetic must contain true statements it cannot prove.",rwAfter:"here's the wildest thing in all of math: there are true things that can never, ever be proven. not because we're not smart enough \u2014 because proof itself has limits."},
+{name:"pattern.weave",icon:"\u{1F9F6}",disc:"mathematics",grade:7,gradeLabel:"7-9th",jargon:["recursive","formulaic","fibonacci","harmonic","oblong numbers","quadratic"],issues:["'oblong numbers' is obscure","sandbox uses 'quadratic coefficient' labels","sorting categories use 'recursive' and 'formulaic'"],rwBefore:"sequences have fundamentally different characters based on their growth patterns.",rwAfter:"some number patterns need to know what came before. others have a shortcut that lets you jump to any spot. sort these by how they work."},
+{name:"race.condition",icon:"\u{1F3C1}",disc:"computer-science",grade:10,gradeLabel:"9-11th",jargon:["concurrent","thread","lock","deadlock","preemption","mutual exclusion","non-deterministic","Coffman conditions","compare-and-swap"],issues:["highest jargon density in any CS game","role descriptions are 4+ sentences of dense technical info","Coffman et al. (1971) cited by name","prevention strategies use specialized terminology"],rwBefore:"coffman et al. (1971) identified four conditions that must ALL hold simultaneously for a deadlock to occur.",rwAfter:"there are four things that must all be true at the same time for a freeze-up to happen. break even one, and the freeze can't occur."},
+{name:"type.tower",icon:"\u{1F5FC}",disc:"computer-science",grade:9,gradeLabel:"8-10th",jargon:["type system","type error","coercion","boolean","null","array","function signature"],issues:["'11'+1-1 assumes JS knowledge","sorting uses programming types (array<string>)","reflection about 'API documentation' is adult-coded"],rwBefore:"in a strictly typed language, some operations are safe and some will crash.",rwAfter:"in careful programming languages, you can't mix things that don't go together \u2014 like adding a word to a number. sort these: which ones work, which ones break?"},
+{name:"state.craft",icon:"\u{1F6AA}",disc:"computer-science",grade:7,gradeLabel:"7-9th",jargon:["state machine","transition","sensor","finite automata"],issues:["uses real-world examples (traffic lights, elevators) \u2014 accessible","\u2705 door lock puzzle is intuitive","reflection about non-technical processes works for any age"],rwBefore:null,rwAfter:null},
+{name:"signal.flow",icon:"\u26a1",disc:"computer-science",grade:7,gradeLabel:"7-9th",jargon:["logic gate","boolean algebra","XOR","NAND","NOR","XNOR"],issues:["gate names are jargon but concepts are explained","real-world sorting examples make gates intuitive","\u2705 nuclear launch / fire alarm analogies work for any age"],rwBefore:null,rwAfter:null},
+{name:"code.weave",icon:"\u{1F9F5}",disc:"computer-science",grade:7,gradeLabel:"7-9th",jargon:["algorithm","loop","iteration","bubble sort","edge case","metacognitive"],issues:["\u2705 most accessible CS game","loop tracing is a genuine kid puzzle","asymmetric roles (programmer/debugger/tester) are intuitive","'metacognitive' in reflection is unnecessary jargon"],rwBefore:"debugging is really a metacognitive skill \u2014 thinking about your own thinking.",rwAfter:"debugging is really about thinking about how you think. the problem usually isn't the code \u2014 it's an assumption you forgot you were making."},
+{name:"frame.shift",icon:"\u{1F682}",disc:"physics",grade:7,gradeLabel:"6-8th",jargon:["velocity","Galilean relativity","reference frame","parabolic arc"],issues:["\u2705 train + ball scenario is classic and accessible","'Galilean relativity' in hints is jargon but concept is simple","canvas mapping is spatially intuitive"],rwBefore:null,rwAfter:null},
+{name:"entropy.garden",icon:"\u{1F33F}",disc:"physics",grade:9,gradeLabel:"8-10th",jargon:["entropy","thermodynamics","second law","decay rate","energy dissipation"],issues:["sandbox uses exponential decay formula","'second law of thermodynamics' cited directly","reflection about 'inevitable decay' is existentially heavy for kids"],rwBefore:"the second law of thermodynamics says entropy always increases in a closed system.",rwAfter:"everything falls apart over time. no matter how carefully you build something, energy leaks away and order turns to mess. that's not a flaw \u2014 it's a fundamental rule of the universe."},
+{name:"field.canvas",icon:"\u{1F9F2}",disc:"physics",grade:8,gradeLabel:"7-9th",jargon:["electromagnetic field","electric field lines","charge","coulomb","superposition"],issues:["canvas placement is intuitive but axis labels use physics notation","sorting field types assumes physics knowledge","\u2705 collaborative placement is kid-friendly"],rwBefore:null,rwAfter:null},
+{name:"orbit.lab",icon:"\u{1FA90}",disc:"physics",grade:8,gradeLabel:"7-9th",jargon:["orbital mechanics","Kepler's laws","gravitational parameter","escape velocity"],issues:["sandbox with orbital parameters is engaging but labels are technical","\u2705 canvas plotting is spatially fun","'Kepler's insights' referenced by name"],rwBefore:null,rwAfter:null},
+{name:"time.prism",icon:"\u{1F52E}",disc:"physics",grade:10,gradeLabel:"9-11th",jargon:["quantum mechanics","Copenhagen interpretation","wave function","Heisenberg uncertainty","superposition"],issues:["heaviest physics game \u2014 requires QM background","asymmetric roles require understanding measurement in QM","poll on 'observation creates reality' is philosophically dense"],rwBefore:"does the act of measurement create the property being measured, or does it reveal a pre-existing value?",rwAfter:"here's the question that broke physics: when you measure something, does the measurement create the answer? or was the answer already there, waiting for you to look?"},
+{name:"selection.pressure",icon:"\u{1F98E}",disc:"biology",grade:8,gradeLabel:"7-9th",jargon:["natural selection","fitness","adaptation","environmental pressure","selection coefficient"],issues:["\u2705 core concept (control environment, not organisms) is powerful for any age","sandbox has biology-specific parameters","canvas 'adaptation landscape' is abstract"],rwBefore:null,rwAfter:null},
+{name:"express.ion",icon:"\u{1F9EC}",disc:"biology",grade:9,gradeLabel:"8-10th",jargon:["gene expression","transcription factor","promoter region","RNA polymerase","regulatory element"],issues:["puzzle requires molecular biology knowledge","'transcription factor' and 'promoter region' are college-level","sorting regulatory elements assumes bio background"],rwBefore:"gene expression is a lock-and-key system where transcription factors bind to promoter regions.",rwAfter:"your DNA has thousands of instructions, but most are turned off. special molecules act like keys \u2014 they unlock specific instructions when the cell needs them. which key fits which lock?"},
+{name:"web.pulse",icon:"\u{1F578}\ufe0f",disc:"biology",grade:7,gradeLabel:"7-8th",jargon:["food web","trophic cascade","keystone species","biodiversity"],issues:["\u2705 most kid-friendly biology game","jenga metaphor (remove species, watch cascades) is intuitive","asymmetric roles as different species is fun"],rwBefore:null,rwAfter:null},
+{name:"emerge.box",icon:"\u{1F4E6}",disc:"biology",grade:8,gradeLabel:"7-9th",jargon:["cellular automata","emergence","edge of chaos","Conway's Game of Life"],issues:["\u2705 sandbox is hands-on and visual","'edge of chaos' is poetic enough to work","Conway's Game of Life assumes CS/math exposure"],rwBefore:null,rwAfter:null},
+{name:"bond.craft",icon:"\u2697\ufe0f",disc:"chemistry",grade:10,gradeLabel:"9-11th",jargon:["ionic bond","covalent bond","metallic bond","hydrogen bond","electronegativity","electron cloud"],issues:["sorting requires knowledge of 4 bond types","asymmetric roles as atoms is creative but needs chem background","canvas maps electronegativity"],rwBefore:"sort each molecule by its primary bonding type: ionic (electron transfer), covalent (electron sharing), metallic (electron sea), or hydrogen (weak electrostatic).",rwAfter:"atoms stick together in different ways \u2014 some share, some trade, some swim in a pool of electrons. sort these molecules by how their atoms connect."},
+{name:"equilibrium.dance",icon:"\u2696\ufe0f",disc:"chemistry",grade:10,gradeLabel:"9-11th",jargon:["le chatelier's principle","equilibrium constant","Haber process","exothermic","endothermic","N\u2082O\u2084/NO\u2082"],issues:["chemical formulas in participant text","le chatelier named directly","sandbox uses Haber process parameters","sorting assumes equilibrium knowledge"],rwBefore:"a sealed flask contains N\u2082O\u2084 (colorless) in equilibrium with NO\u2082 (brown). you cool the flask.",rwAfter:"you have a sealed bottle of gas. right now it's light brown. you put it in a bowl of ice. predict: darker, lighter, or the same?"},
+{name:"reaction.path",icon:"\u{1F9EA}",disc:"chemistry",grade:10,gradeLabel:"9-11th",jargon:["activation energy","Arrhenius equation","catalyst","SN2 mechanism","energy landscape","transition state"],issues:["puzzle requires organic chemistry knowledge (SN2)","'Arrhenius-style' formula in sandbox","energy diagram canvas assumes thermodynamics"],rwBefore:"put these steps of an SN2 nucleophilic substitution in the correct mechanistic order.",rwAfter:"a chemical reaction happens in steps \u2014 like a ball rolling over a hill. put these steps in order to show how molecules change partners."},
+{name:"margin.call",icon:"\u{1F4C8}",disc:"economics",grade:9,gradeLabel:"8-10th",jargon:["Lehman Brothers","short selling","put options","hedge","yield curve","leading indicator","lagging indicator"],issues:["flash crash scenario assumes financial markets","sorting economic indicators requires macro knowledge","'hedge \u2014 buy put options' is professional trading"],rwBefore:"hedge \u2014 buy put options to protect downside",rwAfter:"protect yourself \u2014 buy insurance against the drop"},
+{name:"trade.winds",icon:"\u26f5",disc:"economics",grade:9,gradeLabel:"8-10th",jargon:["comparative advantage","Ricardo","trade surplus","tariff","specialization"],issues:["asymmetric country roles are engaging but assume trade theory","'Ricardo's comparative advantage' cited by name","canvas mapping is abstract for kids"],rwBefore:null,rwAfter:null},
+{name:"commons.game",icon:"\u{1F41F}",disc:"economics",grade:7,gradeLabel:"7-8th",jargon:["tragedy of the commons","collective action","governance","free rider"],issues:["\u2705 strongest kid-friendly economics game","sharing/taking resources is immediately relatable","governance rule writing is creative","\u2705 'tragedy of the commons' is jargon but concept is intuitive"],rwBefore:null,rwAfter:null},
+{name:"scale.shift",icon:"\u{1F52C}",disc:"economics",grade:9,gradeLabel:"9-10th",jargon:["paradox of thrift","microeconomics","macroeconomics","composition fallacy","aggregate demand"],issues:["asymmetric roles require econ background","'paradox of thrift' is graduate-level","sorting micro vs macro assumes course knowledge"],rwBefore:"the paradox of thrift: if everyone saves more during a recession, total spending drops, businesses lay off workers, and incomes fall.",rwAfter:"here's a brain-breaker: if everyone tries to save more money at the same time, everyone ends up with LESS money. how can doing the smart thing individually make things worse for everyone?"},
+{name:"market.mind",icon:"\u{1F9E0}",disc:"economics",grade:9,gradeLabel:"8-10th",jargon:["endowment effect","supply/demand","price elasticity","cognitive bias","efficient markets hypothesis"],issues:["endowment effect experiment is engaging","sandbox with supply/demand is educational","sorting cognitive biases requires psychology","reflection on EMH is graduate-level"],rwBefore:null,rwAfter:null},
+{name:"mirror.maze",icon:"\u{1FA9E}",disc:"psychology",grade:9,gradeLabel:"8-10th",jargon:["inattentional blindness","Simons & Chabris","mentalizer","Johari window","metacognition"],issues:["asymmetric scene interpretation is strong","Simons & Chabris cited by name","Johari window canvas labels are jargon","role labels need explanation"],rwBefore:"simons and chabris (1999) showed that 50% of people watching a basketball video miss a gorilla walking through.",rwAfter:"in a famous experiment, people counted basketball passes while someone in a gorilla costume walked right through the middle. half the people didn't see it."},
+{name:"anchor.drift",icon:"\u2693",disc:"psychology",grade:8,gradeLabel:"8-9th",jargon:["anchoring bias","Tversky & Kahneman","availability heuristic","representativeness","cognitive bias taxonomy"],issues:["\u2705 game-show format is kid-friendly","anchoring experiment is surprising and fun","sorting bias taxonomy uses specialized names","researcher names are unnecessary for concept"],rwBefore:"tversky and kahneman (1974) asked participants to estimate the percentage of african countries in the UN.",rwAfter:"scientists spun a wheel with a random number on it. then they asked people a totally unrelated question. people who saw a big number gave bigger answers. a random number changed their thinking. how?"},
+{name:"story.self",icon:"\u{1F4D6}",disc:"psychology",grade:9,gradeLabel:"8-10th",jargon:["narrative identity","McAdams","redemption sequence","contamination sequence"],issues:["puzzle sequencing life events is accessible","role labels (redemption/contamination/absurdist) are academic","McAdams cited by name","\u2705 six-word memoir is fun for any age"],rwBefore:null,rwAfter:null},
+{name:"bias.lens",icon:"\u{1F441}\ufe0f",disc:"psychology",grade:10,gradeLabel:"9-11th",jargon:["IAT","implicit association","implicit cognition","bias blind spot","in-group favoritism","confirmation bias"],issues:["IAT reference assumes psychology knowledge","hiring scenario may not resonate with kids","sorting biases into families is academic taxonomy"],rwBefore:"the IAT (implicit association test) consistently finds that approximately what percentage of white americans show an implicit preference...",rwAfter:"scientists created a speed test that measures snap judgments \u2014 the kind that happen before you even think. what percentage of people showed a preference they didn't know they had?"},
+{name:"ought.machine",icon:"\u2696\ufe0f",disc:"philosophy",grade:10,gradeLabel:"10-11th",jargon:["trolley problem","utilitarian","deontologist","virtue ethicist","care ethicist","Haidt","moral intuitionism"],issues:["asymmetric moral debate is powerful but role names are academic","Singer's argument assumes philosophical knowledge","Haidt cited in reflection","trolley problem data is engaging opener"],rwBefore:null,rwAfter:null},
+{name:"circle.read",icon:"\u{1F4DC}",disc:"philosophy",grade:11,gradeLabel:"10-12th",jargon:["hermeneutic circle","reader-response theory","historicist","deconstructionist","pragmatist","phenomenologist","Ricoeur"],issues:["highest reading level of any game","every role is a named philosophical tradition","'hermeneutic circle' is graduate-level","Declaration of Independence may be US-centric"],rwBefore:"the hermeneutic circle describes how understanding a text requires understanding its parts, but understanding the parts requires understanding the whole.",rwAfter:"here's a weird loop: to understand a story, you need to understand each sentence. but to understand each sentence, you need the whole story. each time around the loop, you understand a little more."},
+{name:"lens.shift",icon:"\u{1F4F7}",disc:"philosophy",grade:10,gradeLabel:"10-11th",jargon:["phenomenology","Sapir-Whorf","epistemology","pragmatist","existentialist","rationalist","empiricist","Berlin's hedgehog/fox"],issues:["Sapir-Whorf prediction is engaging","asymmetric roles as philosophical traditions are academic","sorting requires philosophy course knowledge","Berlin's hedgehog/fox is obscure"],rwBefore:null,rwAfter:null},
+{name:"liminal.pass",icon:"\u{1F6AA}",disc:"philosophy",grade:10,gradeLabel:"10-11th",jargon:["liminality","threshold concepts","Meyer & Land","Van Gennep","Turner","transformative","irreversible"],issues:["self-referential game about threshold concepts is clever but meta","Meyer & Land cited by name","Van Gennep/Turner is anthropology-level","requires understanding the concept being taught"],rwBefore:null,rwAfter:null},
+{name:"tone.field",icon:"\u{1F3B5}",disc:"music",grade:8,gradeLabel:"7-9th",jargon:["consonance","dissonance","interval","octave","semitone","tritone","perfect fifth"],issues:["sorting intervals is engaging with music background","hints use Jaws/Here Comes the Bride \u2014 great accessibility","'consonant/dissonant' could be 'stable/tense'","Pauline Oliveros referenced"],rwBefore:"how many of the 12 possible intervals within an octave are traditionally considered consonant?",rwAfter:"play two notes at the same time. some combos sound peaceful, some sound tense. out of 12 possible combos, how many sound peaceful?"},
+{name:"voice.weave",icon:"\u{1F3A4}",disc:"music",grade:7,gradeLabel:"7-8th",jargon:["harmony","drone","pulse","polyrhythm","Meredith Monk"],issues:["\u2705 most embodied music game \u2014 about singing together","asymmetric vocal parts are accessible","artist references may not resonate with kids"],rwBefore:null,rwAfter:null},
+{name:"sound.color",icon:"\u{1F3A8}",disc:"music",grade:7,gradeLabel:"7-8th",jargon:["synesthesia","cross-modal perception","Kandinsky","Messiaen"],issues:["\u2705 'what color is this sound?' is pure kid joy","sorting sounds by visual quality is genuinely fun","artist references are informational, not blocking"],rwBefore:null,rwAfter:null},
+{name:"rhythm.lab",icon:"\u{1F941}",disc:"music",grade:8,gradeLabel:"7-9th",jargon:["polyrhythm","subdivision","son clave","Steve Reich","phasing"],issues:["sandbox with beat parameters is hands-on","puzzle sequencing rhythm layers is engaging","'son clave' and 'phasing' are deep references","\u2705 simple patterns \u2192 complex rhythms works for any age"],rwBefore:null,rwAfter:null},
+{name:"space.between",icon:"\u{1F4F8}",disc:"visual-arts",grade:7,gradeLabel:"7-8th",jargon:["negative space","rule of thirds","golden ratio","leading lines"],issues:["\u2705 most accessible game in any discipline","composition principles are concrete and visual","sorting uses familiar design concepts","\u2705 'what's NOT in the picture' is a great kid question"],rwBefore:null,rwAfter:null},
+{name:"hue.shift",icon:"\u{1F308}",disc:"visual-arts",grade:7,gradeLabel:"7-8th",jargon:["RGB","HSL","Josef Albers","color context"],issues:["\u2705 color matching is viscerally engaging","sandbox with RGB sliders is hands-on fun","concept (color changes with context) is immediately demonstrable"],rwBefore:null,rwAfter:null},
+{name:"grid.break",icon:"\u{1F4D0}",disc:"visual-arts",grade:8,gradeLabel:"7-9th",jargon:["design constraints","Eames","Saul Bass","Oulipo","Stravinsky"],issues:["\u2705 asymmetric constraints are genuinely fun","concept that limits drive creativity is powerful","artist references are inspirational","poll comparing work is engaging"],rwBefore:null,rwAfter:null},
+{name:"reader.ghost",icon:"\u{1F47B}",disc:"writing",grade:8,gradeLabel:"8-9th",jargon:["rhetoric","audience awareness","Aristotle","Peter Elbow","Wayne Booth"],issues:["writing then getting asymmetric reader reactions is clever","too many literary theorists cited","concept is accessible but framing is academic"],rwBefore:null,rwAfter:null},
+{name:"draft.loop",icon:"\u{1F504}",disc:"writing",grade:7,gradeLabel:"7-8th",jargon:["thesis","counterargument","rhetorical function","Hemingway","Anne Lamott"],issues:["\u2705 puzzle sequencing paragraphs is kid-friendly","sorting writing elements uses clear labels","concept (rearranging makes writing better) is intuitive"],rwBefore:null,rwAfter:null},
+{name:"genre.shift",icon:"\u{1F3AD}",disc:"writing",grade:8,gradeLabel:"7-9th",jargon:["genre conventions","Bakhtin","McLuhan","Claudia Rankine"],issues:["\u2705 genre rewrites (noir/fairy tale/academic/poetry) is fun for kids","same content, different style = different meaning is powerful","'Bakhtin's dialogism' in reflection is grad-level"],rwBefore:null,rwAfter:null}
+];
+
+const DISCIPLINES=["mathematics","computer-science","physics","biology","chemistry","economics","psychology","philosophy","music","visual-arts","writing"];
+const DISC_LABELS={"mathematics":"math","computer-science":"cs","physics":"physics","biology":"bio","chemistry":"chem","economics":"econ","psychology":"psych","philosophy":"phil","music":"music","visual-arts":"art","writing":"writing"};
+
+const AESTHETICS=[
+{disc:"mathematics",cls:"a-math",label:"mathematics",desc:"geometric precision. grid patterns, clean line art, folding animations. think origami paper textures + blueprint grids. the math island should feel like graph paper come alive.",colors:["#4f46e5","#818cf8","#e0e7ff","#1e1b4b"]},
+{disc:"computer-science",cls:"a-cs",label:"computer science",desc:"terminal green on dark. monospace type, cursor blinks, state machine diagrams that draw themselves. retro-computing warmth (not cold tech). think early macintosh, not corporate SaaS.",colors:["#22c55e","#0d9488","#0a0a0a","#fde68a"]},
+{disc:"physics",cls:"a-physics",label:"physics",desc:"cosmic and spectral. dark backgrounds with light trails, prismatic color shifts, particle effects. the physics island should feel like you're inside a particle accelerator's control room.",colors:["#7c3aed","#06b6d4","#f472b6","#0f172a"]},
+{disc:"biology",cls:"a-bio",label:"biology",desc:"organic and growing. cell-membrane curves, chlorophyll greens, mycelium network patterns. animations should feel alive \u2014 breathing, pulsing, branching. microscope lens vignette on activity screens.",colors:["#15803d","#86efac","#fbbf24","#052e16"]},
+{disc:"chemistry",cls:"a-chem",label:"chemistry",desc:"molecular and reactive. bubble/sphere motifs, bond-line diagrams as decoration, color changes that mimic litmus tests. the chemistry island should feel like a glowing reaction in progress.",colors:["#ef4444","#f97316","#3b82f6","#1e1b4b"]},
+{disc:"economics",cls:"a-econ",label:"economics",desc:"financial editorial. newsprint textures, ticker tape animations, chart-line decorations. a wall street journal meets monopoly board energy \u2014 serious subject, playful frame.",colors:["#ca8a04","#1a1a1a","#fef3c7","#991b1b"]},
+{disc:"psychology",cls:"a-psych",label:"psychology",desc:"optical illusion energy. ambiguous figures, shifting perceptions, mirror effects. soft gradients that resolve differently depending on focus. the island should mess with your perception.",colors:["#2563eb","#7c3aed","#f0f9ff","#1e293b"]},
+{disc:"philosophy",cls:"a-phil",label:"philosophy",desc:"ancient library. parchment textures, serif typography, marginalia-style annotations. dialogue trees as visual elements. the island should feel like a well-worn book in a candlelit room.",colors:["#78350f","#fef3c7","#451a03","#d97706"]},
+{disc:"music",cls:"a-music",label:"music",desc:"waveform and rhythm. oscilloscope lines, beat grids, frequency spectrum colors. the music island should feel like sound made visible \u2014 vibrating, resonating, layering.",colors:["#06b6d4","#ec4899","#0f172a","#fbbf24"]},
+{disc:"visual-arts",cls:"a-art",label:"visual arts",desc:"gallery white with explosive color. clean negative space, then sudden saturation. paint splatter accents, composition grids as overlays. the island should feel like a blank canvas about to be filled.",colors:["#f5f5f5","#ef4444","#eab308","#3b82f6"]},
+{disc:"writing",cls:"a-writing",label:"writing",desc:"typewriter + red pen. monospace text, crossed-out words, marginal notes, revision marks. the island should feel like a manuscript in progress \u2014 alive with edits, never finished.",colors:["#1a1a1a","#dc2626","#f5f5f0","#6b7280"]}
+];
+
+const REWRITES=[
+{label:"proof.garden reveal",before:"the threshold: mathematical truth is not monolithic. different axiom systems yield different truths. the parallel postulate is true in euclidean geometry and false in hyperbolic geometry.",after:"wait \u2014 the same rule can be true on a flat surface and false on a curved one? and neither is wrong? that means math doesn't have just ONE set of rules."},
+{label:"race.condition discussion",before:"concurrency bugs aren't caused by bad code \u2014 they're caused by the gap between how we think (sequentially) and how systems execute (interleaved, parallel, non-deterministic).",after:"these bugs happen because our brains think in straight lines \u2014 first this, then that. but computers do a bunch of things at once, and the order changes every time."},
+{label:"equilibrium.dance prediction",before:"a sealed flask contains N\u2082O\u2084 (colorless) in equilibrium with NO\u2082 (brown). you cool the flask in an ice bath. predict: what happens to the color?",after:"you have a sealed bottle of gas. right now it's light brown. you put it in a bowl of ice. predict: will the gas get darker, lighter, or stay the same?"},
+{label:"bias.lens prediction",before:"the IAT (implicit association test) consistently finds that approximately what percentage of white americans show an implicit preference for white faces over black faces?",after:"scientists created a speed test that measures snap judgments \u2014 the kind that happen before you even think. what percentage of people showed a preference they didn't know they had?"},
+{label:"anchor.drift prediction",before:"tversky and kahneman (1974) asked participants to estimate the percentage of african countries in the UN. participants saw a random number first.",after:"scientists spun a wheel with a random number on it. then they asked people a totally unrelated question. people who saw a big number gave bigger answers. a random number changed their thinking."}
+];
+
+const SCORECARD_DATA=[
+{disc:"mathematics",games:5,avgGrade:"9.2",jargon:18,score:"2/10",scoreColor:"var(--red)",verdict:"proof.garden and infinity.hotel require mathematical maturity. fold.space and pattern.weave are closest to kid-ready."},
+{disc:"computer science",games:5,avgGrade:"9.0",jargon:16,score:"3/10",scoreColor:"var(--red)",verdict:"race.condition is grad-level. signal.flow, code.weave and state.craft are approachable with rewrites."},
+{disc:"physics",games:5,avgGrade:"8.4",jargon:14,score:"4/10",scoreColor:"var(--amber)",verdict:"frame.shift is the most accessible (trains!). entropy.garden and time.prism assume physics background."},
+{disc:"biology",games:4,avgGrade:"8.0",jargon:11,score:"5/10",scoreColor:"var(--amber)",verdict:"web.pulse (food web jenga) and emerge.box are genuinely fun for kids. express.ion needs biology prereqs."},
+{disc:"chemistry",games:3,avgGrade:"9.5",jargon:15,score:"2/10",scoreColor:"var(--red)",verdict:"heaviest jargon density. every game references specific formulas, named principles, and molecular notation."},
+{disc:"economics",games:5,avgGrade:"8.6",jargon:13,score:"4/10",scoreColor:"var(--amber)",verdict:"commons.game has strong kid potential (sharing resources!). margin.call and trade.winds assume financial literacy."},
+{disc:"psychology",games:4,avgGrade:"8.8",jargon:12,score:"4/10",scoreColor:"var(--amber)",verdict:"anchor.drift is the sleeper hit. mirror.maze and bias.lens cite too many researchers by name."},
+{disc:"philosophy",games:4,avgGrade:"10.2",jargon:14,score:"1/10",scoreColor:"var(--red)",verdict:"hardest discipline. every game references named philosophers and technical frameworks."},
+{disc:"music",games:4,avgGrade:"7.8",jargon:8,score:"6/10",scoreColor:"var(--green)",verdict:"best discipline for kids overall. rhythm.lab and sound.color use sensory language."},
+{disc:"visual arts",games:3,avgGrade:"7.4",jargon:6,score:"7/10",scoreColor:"var(--green)",verdict:"most accessible discipline. space.between and grid.break use concrete, visual language."},
+{disc:"writing",games:3,avgGrade:"8.2",jargon:7,score:"5/10",scoreColor:"var(--amber)",verdict:"draft.loop is solid for any age. genre.shift and reader.ghost reference rhetorical theory."}
+];
+
+// ── render functions (DOM API only, no innerHTML) ──
+
+function createEl(tag, attrs, children) {
+  const el = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === 'className') el.className = v;
+    else if (k === 'textContent') el.textContent = v;
+    else if (k.startsWith('data')) el.setAttribute(k.replace(/([A-Z])/g, '-$1').toLowerCase(), v);
+    else el.setAttribute(k, v);
+  });
+  if (children) {
+    if (typeof children === 'string') el.textContent = children;
+    else if (Array.isArray(children)) children.forEach(c => { if (c) el.appendChild(c); });
+    else el.appendChild(children);
+  }
+  return el;
+}
+
+function renderFilters() {
+  const bar = document.getElementById('filters');
+  const allChip = createEl('button', {className:'filter-chip active','data-filter':'all'}, 'all (45)');
+  bar.appendChild(allChip);
+  DISCIPLINES.forEach(d => {
+    const count = GAMES.filter(g=>g.disc===d).length;
+    const chip = createEl('button', {className:'filter-chip','data-filter':d}, DISC_LABELS[d]+' ('+count+')');
+    bar.appendChild(chip);
+  });
+  bar.addEventListener('click', e => {
+    const chip = e.target.closest('.filter-chip');
+    if (!chip) return;
+    bar.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    renderGameGrid(chip.getAttribute('data-filter'));
+  });
+}
+
+function renderGameGrid(filter) {
+  const grid = document.getElementById('gameGrid');
+  while (grid.firstChild) grid.removeChild(grid.firstChild);
+  const filtered = filter === 'all' ? GAMES : GAMES.filter(g => g.disc === filter);
+  filtered.forEach(g => {
+    const card = createEl('div', {className:'game-card'});
+    // top row
+    const top = createEl('div', {className:'game-top'});
+    top.appendChild(createEl('div', {className:'game-icon'}, g.icon));
+    const info = createEl('div');
+    info.appendChild(createEl('div', {className:'game-name'}, g.name));
+    info.appendChild(createEl('div', {className:'game-disc'}, g.disc));
+    top.appendChild(info);
+    card.appendChild(top);
+    // badges
+    const badges = createEl('div', {className:'game-badges'});
+    const gradeClass = g.grade >= 10 ? 'high' : g.grade >= 8 ? 'mid' : 'low';
+    badges.appendChild(createEl('span', {className:'badge grade '+gradeClass}, 'grade '+g.gradeLabel));
+    badges.appendChild(createEl('span', {className:'badge activity'}, g.jargon.length+' terms'));
+    g.jargon.slice(0,4).forEach(j => badges.appendChild(createEl('span', {className:'badge jargon'}, j)));
+    if (g.jargon.length > 4) badges.appendChild(createEl('span', {className:'badge jargon'}, '+'+(g.jargon.length-4)+' more'));
+    card.appendChild(badges);
+    // detail
+    if (g.issues.length || g.rwBefore) {
+      const detail = createEl('div', {className:'game-detail'});
+      const list = createEl('ul', {className:'issue-list'});
+      g.issues.forEach(iss => {
+        const cls = iss.includes('jargon') || iss.includes('terminology') || iss.includes('cited') ? 'jargon' :
+                    iss.includes('\u2705') ? 'ux' :
+                    iss.includes('assumes') || iss.includes('requires') ? 'reading' : 'reading';
+        list.appendChild(createEl('li', {className:cls}, iss));
+      });
+      detail.appendChild(list);
+      if (g.rwBefore) {
+        detail.appendChild(createEl('h4', {style:'font-size:0.82rem;font-weight:600;margin-top:12px;margin-bottom:4px'}, 'proposed rewrite:'));
+        const comp = createEl('div', {className:'comparison'});
+        const bef = createEl('div', {className:'before'});
+        bef.appendChild(createEl('div', {className:'label'}, 'current'));
+        bef.appendChild(document.createTextNode(g.rwBefore));
+        comp.appendChild(bef);
+        const aft = createEl('div', {className:'after'});
+        aft.appendChild(createEl('div', {className:'label'}, 'kid-friendly'));
+        aft.appendChild(document.createTextNode(g.rwAfter));
+        comp.appendChild(aft);
+        detail.appendChild(comp);
+      }
+      card.appendChild(detail);
+    }
+    card.addEventListener('click', () => {
+      if (card.classList.contains('expanded')) { card.classList.remove('expanded'); }
+      else { grid.querySelectorAll('.game-card.expanded').forEach(c=>c.classList.remove('expanded')); card.classList.add('expanded'); }
+    });
+    grid.appendChild(card);
+  });
+}
+
+function renderAesthetics() {
+  const grid = document.getElementById('aestheticGrid');
+  AESTHETICS.forEach(a => {
+    const card = createEl('div', {className:'aesthetic-card '+a.cls});
+    card.appendChild(createEl('div', {className:'disc-label'}, a.label));
+    card.appendChild(createEl('p', {}, a.desc));
+    const swatch = createEl('div', {className:'swatch'});
+    a.colors.forEach(c => swatch.appendChild(createEl('span', {style:'background:'+c})));
+    card.appendChild(swatch);
+    grid.appendChild(card);
+  });
+}
+
+function renderRewriteExamples() {
+  const container = document.getElementById('rewriteExamples');
+  REWRITES.forEach(r => {
+    const comp = createEl('div', {className:'comparison'});
+    const bef = createEl('div', {className:'before'});
+    bef.appendChild(createEl('div', {className:'label'}, 'before ('+r.label+')'));
+    bef.appendChild(document.createTextNode(r.before));
+    comp.appendChild(bef);
+    const aft = createEl('div', {className:'after'});
+    aft.appendChild(createEl('div', {className:'label'}, 'after (kid-friendly)'));
+    aft.appendChild(document.createTextNode(r.after));
+    comp.appendChild(aft);
+    container.appendChild(comp);
+  });
+}
+
+function renderScorecard() {
+  const table = document.getElementById('scorecard');
+  const thead = createEl('thead');
+  const hr = createEl('tr');
+  ['discipline','games','avg grade','jargon terms','kid score','verdict'].forEach((h,i) => {
+    hr.appendChild(createEl('th', {className: i>0&&i<5?'center':''}, h));
+  });
+  thead.appendChild(hr);
+  table.appendChild(thead);
+  const tbody = createEl('tbody');
+  SCORECARD_DATA.forEach(d => {
+    const row = createEl('tr');
+    row.appendChild(createEl('td', {}, d.disc));
+    row.appendChild(createEl('td', {className:'center'}, String(d.games)));
+    const gradeCell = createEl('td', {className:'center'});
+    gradeCell.style.color = parseFloat(d.avgGrade) >= 9 ? 'var(--red)' : parseFloat(d.avgGrade) >= 8 ? 'var(--amber)' : 'var(--green)';
+    gradeCell.textContent = d.avgGrade;
+    row.appendChild(gradeCell);
+    row.appendChild(createEl('td', {className:'center'}, String(d.jargon)));
+    const scoreCell = createEl('td', {className:'score'});
+    scoreCell.style.color = d.scoreColor;
+    scoreCell.textContent = d.score;
+    row.appendChild(scoreCell);
+    row.appendChild(createEl('td', {}, d.verdict));
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+}
+
+// init
+renderFilters();
+renderGameGrid('all');
+renderAesthetics();
+renderRewriteExamples();
+renderScorecard();
+</script>
+</body>
+</html>

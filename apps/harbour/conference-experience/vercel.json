@@ -1,0 +1,4 @@
+{
+  "outputDirectory": ".",
+  "ignoreCommand": "npx turbo-ignore @windedvertigo/conference-experience"
+}

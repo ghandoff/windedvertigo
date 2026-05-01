@@ -1,0 +1,21 @@
+{
+  "name": "@windedvertigo/characters",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared harbour character cast (Cord, Jugs, Twig, Swatch, Crate, Mud, Drip) — inline SVG renderer, form→character resolver, kid and adult registers. Used by every harbour app that speaks the material-as-character brand vocabulary.",
+  "scripts": {
+    "build": "echo 'characters: no build step'"
+  },
+  "main": "index.tsx",
+  "exports": {
+    ".": "./index.tsx",
+    "./variant-context": "./variant-context.tsx"
+  },
+  "files": [
+    "index.tsx",
+    "variant-context.tsx"
+  ],
+  "peerDependencies": {
+    "react": ">=18"
+  }
+}

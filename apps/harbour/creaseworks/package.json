@@ -1,0 +1,51 @@
+{
+  "name": "creaseworks",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:a11y": "node scripts/a11y-audit.mjs"
+  },
+  "dependencies": {
+    "@auth/core": "^0.41.0",
+    "@aws-sdk/client-s3": "^3.1013.0",
+    "@aws-sdk/s3-request-presigner": "^3.1013.0",
+    "@neondatabase/serverless": "^0.10.0",
+    "@notionhq/client": "^2.3.0",
+    "@windedvertigo/auth": "*",
+    "@windedvertigo/characters": "*",
+    "@windedvertigo/feedback": "*",
+    "@windedvertigo/notion-adapter": "*",
+    "@windedvertigo/stripe": "*",
+    "@windedvertigo/sync-images": "*",
+    "@windedvertigo/tokens": "*",
+    "next": "^16.2.3",
+    "next-auth": "^5.0.0-beta.30",
+    "pdf-lib": "^1.17.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "resend": "^6.9.2",
+    "slugify": "^1.6.6",
+    "stripe": "^17.7.0"
+  },
+  "devDependencies": {
+    "@axe-core/cli": "^4.10.0",
+    "@opennextjs/cloudflare": "^1.19.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.4",
+    "eslint": "9.39.3",
+    "eslint-config-next": "^16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^4.0.18",
+    "wrangler": "^4.81.1"
+  }
+}

@@ -1,0 +1,13 @@
+dist/
+node_modules/
+.vite/
+server/events.log
+coverage/
+.DS_Store
+playwright-report/
+test-results/
+.vercel
+.env*.local
+workers/hub/.dev.vars
+workers/hub/node_modules/
+workers/hub/.wrangler/

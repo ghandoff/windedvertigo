@@ -1,0 +1,75 @@
+{
+  "name": "windedvertigo",
+  "private": true,
+  "packageManager": "npm@11.8.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:creaseworks": "npm run dev -w apps/creaseworks",
+    "build:creaseworks": "npm run build -w apps/creaseworks",
+    "dev:vault": "npm run dev -w apps/vertigo-vault",
+    "build:vault": "npm run build -w apps/vertigo-vault",
+    "dev:deep-deck": "npm run dev -w apps/deep-deck",
+    "build:deep-deck": "npm run build -w apps/deep-deck",
+    "dev:depth-chart": "npm run dev -w apps/depth-chart",
+    "build:depth-chart": "npm run build -w apps/depth-chart",
+    "dev:raft": "npm run dev -w apps/raft-house",
+    "build:raft": "npm run build -w apps/raft-house",
+    "dev:harbour": "npm run dev -w apps/harbour",
+    "build:harbour": "npm run build -w apps/harbour",
+    "dev:tidal-pool": "npm run dev -w apps/tidal-pool",
+    "build:tidal-pool": "npm run build -w apps/tidal-pool",
+    "dev:paper-trail": "npm run dev -w apps/paper-trail",
+    "build:paper-trail": "npm run build -w apps/paper-trail",
+    "dev:mirror-log": "npm run dev -w apps/mirror-log",
+    "build:mirror-log": "npm run build -w apps/mirror-log",
+    "dev:orbit-lab": "npm run dev -w apps/orbit-lab",
+    "build:orbit-lab": "npm run build -w apps/orbit-lab",
+    "dev:proof-garden": "npm run dev -w apps/proof-garden",
+    "build:proof-garden": "npm run build -w apps/proof-garden",
+    "dev:bias-lens": "npm run dev -w apps/bias-lens",
+    "build:bias-lens": "npm run build -w apps/bias-lens",
+    "dev:scale-shift": "npm run dev -w apps/scale-shift",
+    "build:scale-shift": "npm run build -w apps/scale-shift",
+    "dev:pattern-weave": "npm run dev -w apps/pattern-weave",
+    "build:pattern-weave": "npm run build -w apps/pattern-weave",
+    "dev:market-mind": "npm run dev -w apps/market-mind",
+    "build:market-mind": "npm run build -w apps/market-mind",
+    "dev:rhythm-lab": "npm run dev -w apps/rhythm-lab",
+    "build:rhythm-lab": "npm run build -w apps/rhythm-lab",
+    "dev:code-weave": "npm run dev -w apps/code-weave",
+    "build:code-weave": "npm run build -w apps/code-weave",
+    "dev:time-prism": "npm run dev -w apps/time-prism",
+    "build:time-prism": "npm run build -w apps/time-prism",
+    "dev:liminal-pass": "npm run dev -w apps/liminal-pass",
+    "build:liminal-pass": "npm run build -w apps/liminal-pass",
+    "dev:emerge-box": "npm run dev -w apps/emerge-box",
+    "build:emerge-box": "npm run build -w apps/emerge-box",
+    "dev:rubric": "npm run dev -w apps/rubric-co-builder",
+    "build:rubric": "npm run build -w apps/rubric-co-builder",
+    "test": "npm run test -w apps/creaseworks",
+    "test:a11y": "npm run test:a11y -w apps/creaseworks",
+    "lint": "npm run lint -w apps/creaseworks"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.3.0",
+    "node-fetch": "^3.3.2"
+  },
+  "optionalDependencies": {
+    "@next/swc-linux-arm64-gnu": "^16.2.0"
+  },
+  "devDependencies": {
+    "turbo": "^2.8.13"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": {
+    "fast-xml-parser": "5.5.8",
+    "next": "16.2.3"
+  }
+}

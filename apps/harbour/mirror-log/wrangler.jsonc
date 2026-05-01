@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-harbour-mirror-log",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-harbour-mirror-log"
+    }
+  ]
+
+  // Auth secrets — set via: wrangler secret put AUTH_SECRET
+  // For local dev, create .dev.vars with:
+  //   AUTH_SECRET=...
+  //   AUTH_GOOGLE_ID=...
+  //   AUTH_GOOGLE_SECRET=...
+
+  // Uncomment for ISR:
+  // "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "wv-mirror-log-cache" }]
+}

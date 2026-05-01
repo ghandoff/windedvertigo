@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>harbour material cast — illustration brief for aaron fruit</title>
+<link rel="stylesheet" href="data:,"> <!-- placeholder -->
+<style>
+  /* ── typography + canvas ────────────────────────────────────────── */
+  :root {
+    --wv-cadet:      #273248;
+    --wv-redwood:    #b15043;
+    --wv-sienna:     #cb7858;
+    --wv-champagne:  #ffebd2;
+    --wv-cream:      #fff6e8;
+    --wv-cornflower: #5872cb;
+    --wv-teal:       #43b187;
+    --wv-seafoam:    #58cbb2;
+    --wv-periwinkle: #d5d2ff;
+    --wv-mint:       #d2fdff;
+    --sand:          #d9bf8a;
+    --sand-dk:       #7d6a45;
+    --ink:           #241c1e;
+    --blush:         #e89b8a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--wv-cream);
+    color: var(--wv-cadet);
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    letter-spacing: 0.005em;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 64px 32px 128px;
+  }
+
+  h1, h2, h3, h4 {
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    color: var(--wv-cadet);
+  }
+  h1 { font-size: 2.75rem; line-height: 1.1; margin: 0 0 8px; }
+  h2 { font-size: 1.65rem; margin: 80px 0 24px; border-top: 2px solid rgba(39,50,72,0.08); padding-top: 48px; }
+  h3 { font-size: 1.25rem; margin: 32px 0 12px; }
+  h4 { font-size: 0.95rem; margin: 20px 0 6px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--wv-sienna); }
+
+  p { margin: 12px 0; }
+  strong { color: var(--wv-redwood); font-weight: 700; }
+  em { color: var(--wv-sienna); font-style: italic; }
+  a { color: var(--wv-redwood); text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+  a:hover { color: var(--wv-sienna); }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--wv-sienna);
+    margin: 0 0 24px;
+  }
+
+  .subhead {
+    font-size: 1.15rem;
+    color: var(--wv-cadet);
+    opacity: 0.7;
+    margin: 0 0 48px;
+    max-width: 60ch;
+  }
+
+  /* ── the three-word vibe ────────────────────────────────────────── */
+  .vibe {
+    display: inline-block;
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--wv-redwood);
+    padding: 16px 32px;
+    background: rgba(177, 80, 67, 0.08);
+    border-radius: 999px;
+    margin: 8px 0 24px;
+  }
+
+  /* ── references + anti-patterns ─────────────────────────────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 24px;
+  }
+  @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+
+  .col h4 { margin-top: 0; }
+  .col ul { padding-left: 20px; margin: 8px 0; }
+  .col li { margin: 4px 0; line-height: 1.5; }
+
+  .col.lean-in { background: rgba(203, 120, 88, 0.08); padding: 24px; border-radius: 16px; }
+  .col.avoid    { background: rgba(39, 50, 72, 0.05); padding: 24px; border-radius: 16px; }
+
+  /* ── cast overview strip ────────────────────────────────────────── */
+  .cast-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin: 32px 0 16px;
+    padding: 32px 16px;
+    background: rgba(203, 120, 88, 0.06);
+    border-radius: 24px;
+  }
+  @media (max-width: 720px) { .cast-strip { grid-template-columns: repeat(4, 1fr); } }
+
+  .cast-strip figure { margin: 0; text-align: center; }
+  .cast-strip figcaption {
+    margin-top: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--wv-cadet);
+  }
+  .cast-strip .identity {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--wv-sienna);
+    opacity: 0.85;
+    display: block;
+    margin-top: 2px;
+  }
+  .cast-strip svg { width: 72px; height: 72px; display: inline-block; }
+
+  /* ── per-character section ──────────────────────────────────────── */
+  .character {
+    margin: 64px 0 0;
+    padding: 40px;
+    background: var(--wv-white, white);
+    border-radius: 28px;
+    box-shadow: 0 2px 0 rgba(39,50,72,0.04), 0 18px 40px -28px rgba(39,50,72,0.2);
+  }
+
+  .character-head {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .character-head h2 {
+    margin: 0;
+    border: none;
+    padding: 0;
+    font-size: 2.25rem;
+  }
+  .character-head .identity {
+    font-size: 1rem;
+    color: var(--wv-sienna);
+    font-weight: 600;
+    padding-bottom: 6px;
+  }
+
+  .palette {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .swatch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    padding: 4px 10px 4px 4px;
+    border-radius: 999px;
+    background: rgba(39,50,72,0.04);
+    color: var(--wv-cadet);
+    font-family: 'SF Mono', ui-monospace, monospace;
+  }
+  .swatch .chip {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1px solid rgba(39,50,72,0.08);
+  }
+
+  /* ── iframe wrapper — Aaron sees all 4 poses + adult + morpher ─── */
+  .exploration {
+    margin: 20px 0;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(39,50,72,0.08);
+    background: #f7f1e3;
+  }
+  .exploration iframe {
+    display: block;
+    width: 100%;
+    height: 900px;
+    border: 0;
+    background: transparent;
+  }
+  .exploration .fallback {
+    padding: 32px;
+    text-align: center;
+    color: var(--wv-cadet);
+    opacity: 0.7;
+    font-size: 0.9rem;
+  }
+  .exploration .fallback a {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 16px;
+    background: var(--wv-redwood);
+    color: white;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .notes h4 { color: var(--wv-sienna); }
+  .notes p { color: var(--wv-cadet); opacity: 0.85; }
+  .notes ul { padding-left: 20px; }
+
+  /* ── UI/UX placement section ────────────────────────────────────── */
+  .placement {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+    margin: 32px 0;
+    padding: 28px;
+    background: rgba(203, 120, 88, 0.05);
+    border-radius: 20px;
+  }
+  @media (max-width: 720px) { .placement { grid-template-columns: 1fr; } }
+
+  .placement-visual {
+    background: var(--wv-cadet);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+    position: relative;
+    overflow: hidden;
+  }
+  .placement-visual.cream { background: var(--wv-cream); border: 1px solid rgba(39,50,72,0.08); }
+
+  .placement-visual svg { max-width: 100%; height: auto; }
+
+  .placement-caption { font-size: 0.75rem; color: white; opacity: 0.7; margin-top: 8px; letter-spacing: 0.04em; }
+  .placement-visual.cream .placement-caption { color: var(--wv-cadet); }
+
+  .placement-body h3 { margin: 0 0 8px; font-size: 1.25rem; }
+  .placement-body .status {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  .placement-body .status.shipped { background: rgba(67, 177, 135, 0.15); color: #2d7d5a; }
+  .placement-body .status.proposed { background: rgba(88, 114, 203, 0.15); color: var(--wv-cornflower); }
+
+  /* ── mini cast lineup (for placement mockups) ───────────────────── */
+  .mini-lineup { display: flex; gap: 10px; align-items: center; justify-content: center; }
+  .mini-lineup svg { width: 48px; height: 48px; }
+
+  /* ── questions for aaron ────────────────────────────────────────── */
+  .questions {
+    background: rgba(177, 80, 67, 0.06);
+    border-left: 4px solid var(--wv-redwood);
+    padding: 24px 28px;
+    border-radius: 0 16px 16px 0;
+    margin: 24px 0;
+  }
+  .questions ol { padding-left: 20px; margin: 12px 0; }
+  .questions li { margin: 10px 0; line-height: 1.55; }
+
+  /* ── footer ─────────────────────────────────────────────────────── */
+  footer {
+    margin-top: 96px;
+    padding-top: 32px;
+    border-top: 2px solid rgba(39,50,72,0.08);
+    font-size: 0.85rem;
+    color: var(--wv-cadet);
+    opacity: 0.6;
+  }
+  footer a { color: var(--wv-sienna); }
+
+  /* ── print ──────────────────────────────────────────────────────── */
+  @media print {
+    main { max-width: 100%; padding: 24px; }
+    .exploration iframe { height: 600px; }
+    a { text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HEADER
+     ═════════════════════════════════════════════════════════════════ -->
+<header>
+  <p class="eyebrow">illustration brief · v1 · april 2026</p>
+  <h1>harbour material cast</h1>
+  <p class="subhead">
+    A brief for <strong>Aaron Fruit</strong> — everything you need to know
+    about our seven characters, their four poses each, the palette, the
+    motion, and how they want to live across the harbour. What we've built
+    so far is a working sketch; what we're asking you to do is make them
+    sing.
+  </p>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     THE CAST, AT A GLANCE
+     ═════════════════════════════════════════════════════════════════ -->
+<section id="cast-overview">
+<h2>The cast, at a glance</h2>
+<p>
+  Seven characters, each the "host" of one way matter behaves. They're
+  not mascots and they're not illustrations of specific objects — they're
+  the <em>family heads</em> of form×function. Every material a kid might
+  bring into a playdate (button, bottle, blanket, marshmallow, paint)
+  belongs to one of these seven families. The characters ARE the
+  taxonomy, but nobody says so out loud; kids discover it through
+  repetition.
+</p>
+
+<div class="cast-strip">
+  <figure>
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><filter id="cw" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="7"/><feDisplacementMap in="SourceGraphic" scale="1.5"/></filter></defs>
+      <g transform="translate(50 52)" filter="url(#cw)">
+        <path d="M -20 -4 Q -24 4 -18 10 Q -10 14 -2 10 Q 4 4 2 -4 Q -2 -12 -12 -12 Q -22 -10 -20 -4 Z" fill="var(--sand)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+        <circle cx="-10" cy="0" r="1.6" fill="var(--ink)"/><circle cx="-5" cy="0" r="1.6" fill="var(--ink)"/>
+      </g>
+    </svg>
+    <figcaption>Cord <span class="identity">flexible · linear</span></figcaption>
+  </figure>
+  <figure>
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(50 50) rotate(30)">
+        <rect x="-28" y="-3" width="56" height="6" rx="3" fill="var(--sand-dk)" stroke="var(--ink)" stroke-width="1.5"/>
+        <circle cx="-4" cy="0" r="1.3" fill="var(--ink)"/><circle cx="4" cy="0" r="1.3" fill="var(--ink)"/>
+      </g>
+    </svg>
+    <figcaption>Twig <span class="identity">rigid · linear</span></figcaption>
+  </figure>
+  <figure>
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(50 50)">
+        <path d="M -22 -22 L 22 -22 L 22 18 Q 18 22 14 22 L -22 22 Z" fill="var(--wv-champagne)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+        <line x1="-22" y1="-22" x2="22" y2="22" stroke="var(--ink)" stroke-width="0.8" opacity="0.3"/>
+        <circle cx="-4" cy="0" r="1.6" fill="var(--ink)"/><circle cx="6" cy="0" r="1.6" fill="var(--ink)"/>
+      </g>
+    </svg>
+    <figcaption>Swatch <span class="identity">flat · soft</span></figcaption>
+  </figure>
+  <figure>
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(50 56)">
+        <path d="M -12 -28 L 12 -28 L 12 -20 L 18 -18 L 18 18 Q 18 22 12 22 L -12 22 Q -18 22 -18 18 L -18 -18 L -12 -20 Z" fill="white" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+        <rect x="-12" y="-32" width="24" height="6" rx="1" fill="var(--wv-redwood)" stroke="var(--ink)" stroke-width="1.2"/>
+        <rect x="3" y="-6" width="10" height="14" rx="1" fill="none" stroke="var(--ink)" stroke-width="1"/>
+        <circle cx="-6" cy="-4" r="1.5" fill="var(--ink)"/><circle cx="0" cy="-4" r="1.5" fill="var(--ink)"/>
+      </g>
+    </svg>
+    <figcaption>Jugs <span class="identity">rigid · hollow</span></figcaption>
+  </figure>
+  <figure>
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(50 54)">
+        <path d="M -22 -14 L 22 -14 L 26 -10 L 26 18 L -26 18 L -26 -10 Z" fill="#c99460" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+        <line x1="-26" y1="-10" x2="22" y2="-10" stroke="var(--ink)" stroke-width="1"/>
+        <path d="M -3 -14 L 3 -24 L 6 -14" fill="none" stroke="var(--wv-redwood)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="-6" cy="4" r="1.5" fill="var(--ink)"/><circle cx="6" cy="4" r="1.5" fill="var(--ink)"/>
+      </g>
+    </svg>
+    <figcaption>Crate <span class="identity">rigid · box</span></figcaption>
+  </figure>
+  <figure>
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(50 60)">
+        <ellipse cx="0" cy="0" rx="28" ry="10" fill="#5a3a28" stroke="var(--ink)" stroke-width="1.8"/>
+        <ellipse cx="-4" cy="-3" rx="18" ry="6" fill="#7d5942" opacity="0.6"/>
+        <path d="M -22 -10 Q -20 -16 -18 -10 M 16 -8 Q 20 -14 20 -8" stroke="#3d7a4a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <circle cx="-5" cy="-2" r="1.4" fill="var(--ink)"/><circle cx="5" cy="-2" r="1.4" fill="var(--ink)"/>
+      </g>
+    </svg>
+    <figcaption>Mud <span class="identity">malleable</span></figcaption>
+  </figure>
+  <figure>
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(50 52)">
+        <path d="M 0 -26 Q -14 -5 -16 10 Q -16 22 0 22 Q 16 22 16 10 Q 14 -5 0 -26 Z" fill="#5a9fc4" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+        <ellipse cx="-6" cy="-8" rx="3" ry="6" fill="white" opacity="0.6" transform="rotate(-20 -6 -8)"/>
+        <circle cx="-4" cy="10" r="1.4" fill="var(--ink)"/><circle cx="4" cy="10" r="1.4" fill="var(--ink)"/>
+      </g>
+    </svg>
+    <figcaption>Drip <span class="identity">liquid</span></figcaption>
+  </figure>
+</div>
+
+<p style="margin-top: 24px; font-size: 0.95rem; color: var(--wv-cadet); opacity: 0.75;">
+  Thumbnails above are the <strong>current placeholder sketches</strong>
+  (inline SVG, kid register). They work at tile size (40–48px) but
+  feel handmade-but-unfinished. Aaron's brief: preserve the silhouettes
+  and palettes, elevate the craft to Sago Mini / Oliver Jeffers range.
+  Each character also has a full interactive exploration file below with
+  all four poses.
+</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     THE VIBE
+     ═════════════════════════════════════════════════════════════════ -->
+<section id="vibe">
+<h2>The three-word vibe</h2>
+<p>When in doubt, lean toward these three words:</p>
+<div class="vibe">crayon drawer, warm</div>
+<p>
+  Think about the specific shade of cream in a child's scribble journal.
+  Think about the way Jon Klassen's hats sit lopsided on his rabbits.
+  Think about the surface of a favourite wooden toy after three years
+  of being slept with. We're not after polish — we're after
+  <em>treasured</em>. The characters should feel like objects a kid
+  would pick up off a rug and put back down gently.
+</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     REFERENCES + ANTI-PATTERNS
+     ═════════════════════════════════════════════════════════════════ -->
+<section id="references">
+<h2>Reference aesthetic</h2>
+
+<div class="two-col">
+  <div class="col lean-in">
+    <h4>Lean into</h4>
+    <ul>
+      <li><strong>ABC Duolingo</strong> — simplicity that reads at tiny sizes.</li>
+      <li><strong>Sago Mini</strong> — warm textures, character-first, big eyes with soft weight.</li>
+      <li><strong>Oliver Jeffers</strong> — expressive line, emotive stillness, dignified goofiness.</li>
+      <li><strong>Jon Klassen</strong> — flatness that carries story, restrained palette.</li>
+      <li><strong>Richard Scarry's cleanest work</strong> — multi-character scenes with consistent language.</li>
+    </ul>
+  </div>
+  <div class="col avoid">
+    <h4>Avoid</h4>
+    <ul>
+      <li>Comic Sans infantilism (nothing about the cast condescends).</li>
+      <li>Rainbow gradients, neon, skeuomorphic shadows.</li>
+      <li>Calarts / Disney-style mouth-wide-open expressions.</li>
+      <li>Generic flat-illustration Dribbble "corporate Memphis."</li>
+      <li>Clipart-style outlines at uniform stroke weight.</li>
+      <li>Anything with a <em>brand mascot</em> vibe — these are a cast, not spokespeople.</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DESIGN LANGUAGE
+     ═════════════════════════════════════════════════════════════════ -->
+<section id="language">
+<h2>Shared design language</h2>
+
+<h3>Silhouette tells</h3>
+<p>
+  Each character has <strong>one signature detail</strong> that makes
+  their silhouette recognisable at thumbnail size without the body. A
+  kid should be able to say "that's a Drip" from the gloss highlight
+  alone. This is the load-bearing craft decision of each character —
+  preserve and elevate. (Per-character tells are listed in each section
+  below.)
+</p>
+
+<h3>Eyes + catchlights</h3>
+<p>
+  Every character (except Mud) uses the same eye primitive: ink circle
+  + cream catchlight offset up-left by 1.2px. That offset is what gives
+  them a <em>present</em> look rather than a blank-stare-at-the-camera
+  look. Mud is the exception — sleepy eyes (half-closed crescents)
+  because malleable matter is the stillest of the seven.
+</p>
+
+<h3>Motion vocabulary</h3>
+<p>
+  Characters breathe. Each has an idle animation matching its material
+  behaviour:
+</p>
+<ul>
+  <li><strong>Cord</strong> — slow sway, 5s cycle, ±3° rotation from pivot.</li>
+  <li><strong>Twig</strong> — impatient tap, 4s cycle, brief tip-quiver.</li>
+  <li><strong>Swatch</strong> — corner ripple, 6s cycle, gentle corner lift.</li>
+  <li><strong>Jugs</strong> — slow blink, 8s cycle, eyes close for 80ms.</li>
+  <li><strong>Crate</strong> — settle, 7s cycle, 1px vertical nudge.</li>
+  <li><strong>Mud</strong> — slow breath, 11s cycle, subtle scale (±0.02).</li>
+  <li><strong>Drip</strong> — undulation, 6s cycle, surface tension wobble.</li>
+</ul>
+<p>
+  We reserve the right to revise these once your illustrations land —
+  the motion should emerge from the form you draw. Consider them a
+  starting point.
+</p>
+
+<h3>Two registers — kid and adult</h3>
+<p>
+  Each character has <strong>two variants</strong>:
+</p>
+<ul>
+  <li><strong>Kid register</strong> — bright saturated colours, textured
+      ink-wobble strokes, cream catchlights in the eyes. Used in
+      creaseworks, paper.trail, feel-cards — anything kid-facing.</li>
+  <li><strong>Adult register</strong> — muted sand palette, flat
+      rendering, no wobble filter. Used in vertigo-vault, depth-chart,
+      rubric-co-builder — anything adult-facing (research, assessment,
+      professional-development surfaces).</li>
+</ul>
+<p>
+  The adult register is NOT just "desaturated kid register." It's a
+  <em>quieter</em> version of the same character — same silhouette,
+  same identity, different energy. Think: a children's-book character
+  on the cover (kid) versus the author's working sketch (adult).
+</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PER-CHARACTER DEEP DIVES
+     ═════════════════════════════════════════════════════════════════ -->
+<section id="deep-dives">
+<h2>The seven characters — all four poses each</h2>
+<p>
+  Each character below embeds its current interactive exploration page.
+  You'll see four function poses, the adult register variant, and a
+  path-tween morpher that cycles through the poses. Click the morpher
+  to watch the transitions. <strong>Note:</strong> iframes require this
+  file to be served over HTTP (run <code>python3 -m http.server</code>
+  from the <code>docs/explorations/</code> folder, then open
+  <code>http://localhost:8000/character-illustration-brief.html</code>).
+  If opened directly from disk, follow the fallback links.
+</p>
+
+<!-- ─── Cord ──────────────────────────────────────────────────────── -->
+<article class="character" id="cord">
+  <header class="character-head">
+    <h2 style="border: none; margin: 0; padding: 0;">Cord</h2>
+    <div class="identity">flexible · linear · the bendy rhyme</div>
+  </header>
+
+  <div class="palette">
+    <span class="swatch"><span class="chip" style="background:#c99460"></span>sand #c99460</span>
+    <span class="swatch"><span class="chip" style="background:var(--sand-dk)"></span>sand-dk #7d6a45</span>
+    <span class="swatch"><span class="chip" style="background:var(--blush)"></span>blush #e89b8a</span>
+    <span class="swatch"><span class="chip" style="background:var(--ink)"></span>ink #241c1e</span>
+  </div>
+
+  <div class="notes">
+    <h4>Identity</h4>
+    <p>
+      Cord is a short rope at rest, a curl when tired, a knot when
+      solving, a bridge when asked. Hosts: pipe cleaner, rubber band,
+      yarn, ribbon, twine, wire, zip tie, string — anything kids can
+      bend. The silhouette tell is the <strong>frayed end</strong>:
+      a tiny threadbare tip that says "this was once longer."
+    </p>
+
+    <h4>Four poses (names in production)</h4>
+    <ul>
+      <li><strong>base</strong> — the curl at rest, eyes forward.</li>
+      <li><strong>knot</strong> — tied in a loose overhand, expression pleased.</li>
+      <li><strong>coil</strong> — wound flat, eyes closed in concentration.</li>
+      <li><strong>bridge</strong> — stretched taut between two points, eyes alert.</li>
+    </ul>
+
+    <h4>What to preserve</h4>
+    <ul>
+      <li>Frayed end — non-negotiable silhouette tell.</li>
+      <li>Ochre / sand colourway — Cord is earthy, not synthetic.</li>
+      <li>Slow sway motion vocabulary.</li>
+    </ul>
+
+    <h4>Invitations</h4>
+    <ul>
+      <li>Texture of the cord — right now it's a smooth solid shape.
+          Could it have a faint braid, a twisted fibre, a painted grain?</li>
+      <li>The frayed end could become signature character-specific
+          (individual hairs, a specific frayed direction per pose).</li>
+      <li>Expression range: Cord is the goofiest of the seven —
+          lean into mischief on knot and bridge.</li>
+    </ul>
+  </div>
+
+  <div class="exploration">
+    <iframe src="./cord-character.html" loading="lazy" title="Cord character exploration"></iframe>
+    <div class="fallback">
+      If the frame is blank, open directly:
+      <a href="./cord-character.html">cord-character.html →</a>
+    </div>
+  </div>
+</article>
+
+<!-- ─── Twig ──────────────────────────────────────────────────────── -->
+<article class="character" id="twig">
+  <header class="character-head">
+    <h2 style="border: none; margin: 0; padding: 0;">Twig</h2>
+    <div class="identity">rigid · linear · the stiff rhyme</div>
+  </header>
+
+  <div class="palette">
+    <span class="swatch"><span class="chip" style="background:var(--sand-dk)"></span>sand-dk #7d6a45</span>
+    <span class="swatch"><span class="chip" style="background:#5a4a2f"></span>bark #5a4a2f</span>
+    <span class="swatch"><span class="chip" style="background:var(--blush)"></span>blush #e89b8a</span>
+    <span class="swatch"><span class="chip" style="background:var(--ink)"></span>ink #241c1e</span>
+  </div>
+
+  <div class="notes">
+    <h4>Identity</h4>
+    <p>
+      Twig is Cord's stiff rival — pointing, direct, a bit impatient.
+      Hosts: pencil, crayon, popsicle stick, toothpick, nail, straw,
+      chalk, marker. The silhouette tell is the <strong>knot bump</strong>:
+      one small protrusion along the shaft that marks where a branch
+      used to grow. It breaks the line just enough to read as organic.
+    </p>
+
+    <h4>Four poses</h4>
+    <ul>
+      <li><strong>base</strong> — horizontal stick, eyes midway.</li>
+      <li><strong>point</strong> — held up at angle, eyes looking up.</li>
+      <li><strong>cross</strong> — two Twigs crossed (maybe the single character pose shows an X of two limbs).</li>
+      <li><strong>snap</strong> — broken mid-shaft, eyes surprised.</li>
+    </ul>
+
+    <h4>What to preserve</h4>
+    <ul>
+      <li>Knot bump — silhouette tell.</li>
+      <li>Bark texture (not smooth like Cord).</li>
+      <li>Impatient micro-motion.</li>
+    </ul>
+
+    <h4>Invitations</h4>
+    <ul>
+      <li>Is Twig one stick or could it host pencils too? The character
+          should feel natural in either context (forest twig OR coloured
+          pencil).</li>
+      <li>Consider a painted-tip variant for mark-maker contexts (chalk,
+          crayon).</li>
+    </ul>
+  </div>
+
+  <div class="exploration">
+    <iframe src="./twig-character.html" loading="lazy" title="Twig character exploration"></iframe>
+    <div class="fallback">
+      If the frame is blank, open directly:
+      <a href="./twig-character.html">twig-character.html →</a>
+    </div>
+  </div>
+</article>
+
+<!-- ─── Swatch ────────────────────────────────────────────────────── -->
+<article class="character" id="swatch">
+  <header class="character-head">
+    <h2 style="border: none; margin: 0; padding: 0;">Swatch</h2>
+    <div class="identity">flat · soft · the drape rhyme</div>
+  </header>
+
+  <div class="palette">
+    <span class="swatch"><span class="chip" style="background:var(--wv-champagne)"></span>champagne #ffebd2</span>
+    <span class="swatch"><span class="chip" style="background:var(--sand)"></span>sand #d9bf8a</span>
+    <span class="swatch"><span class="chip" style="background:var(--blush)"></span>blush #e89b8a</span>
+    <span class="swatch"><span class="chip" style="background:var(--ink)"></span>ink #241c1e</span>
+  </div>
+
+  <div class="notes">
+    <h4>Identity</h4>
+    <p>
+      Swatch drapes, folds, layers, wraps. Hosts: paper, foil, fabric
+      scrap, felt, construction paper, cardstock, bandana, napkin. The
+      silhouette tell is the <strong>folded corner</strong> — one upper
+      corner turned back to show a slightly darker underside, visible
+      in every pose.
+    </p>
+
+    <h4>Four poses</h4>
+    <ul>
+      <li><strong>base</strong> — flat square at rest with folded corner.</li>
+      <li><strong>cover</strong> — draped over an invisible lump.</li>
+      <li><strong>wrap</strong> — folded around something, visible seam.</li>
+      <li><strong>cushion</strong> — bunched up into a puff.</li>
+    </ul>
+
+    <h4>What to preserve</h4>
+    <ul>
+      <li>Folded corner — silhouette tell.</li>
+      <li>Champagne / cream fill (Swatch is the lightest of the seven).</li>
+      <li>Ink strokes should show the paper weight — not too clean.</li>
+    </ul>
+
+    <h4>Invitations</h4>
+    <ul>
+      <li>Can Swatch have a faint texture suggesting either paper or
+          fabric depending on context? We don't need two variants, just
+          a texture that reads as "soft sheet."</li>
+      <li>Swatch's expression when cushion-ed is hard to place — invite
+          your interpretation.</li>
+    </ul>
+  </div>
+
+  <div class="exploration">
+    <iframe src="./swatch-character.html" loading="lazy" title="Swatch character exploration"></iframe>
+    <div class="fallback">
+      If the frame is blank, open directly:
+      <a href="./swatch-character.html">swatch-character.html →</a>
+    </div>
+  </div>
+</article>
+
+<!-- ─── Jugs ──────────────────────────────────────────────────────── -->
+<article class="character" id="jugs">
+  <header class="character-head">
+    <h2 style="border: none; margin: 0; padding: 0;">Jugs</h2>
+    <div class="identity">rigid · hollow · the vessel rhyme</div>
+  </header>
+
+  <div class="palette">
+    <span class="swatch"><span class="chip" style="background:white"></span>white #ffffff</span>
+    <span class="swatch"><span class="chip" style="background:var(--wv-redwood)"></span>redwood cap #b15043</span>
+    <span class="swatch"><span class="chip" style="background:var(--blush)"></span>blush #e89b8a</span>
+    <span class="swatch"><span class="chip" style="background:var(--ink)"></span>ink #241c1e</span>
+  </div>
+
+  <div class="notes">
+    <h4>Identity</h4>
+    <p>
+      Jugs holds things. Hosts: plastic bottle, bottle cap, jar, water
+      bottle, trash bin, cup, jug. The silhouette tell is the
+      <strong>chipped lip</strong> — one small notch in the mouth of the
+      vessel. It's the detail that says "this has been used."
+    </p>
+
+    <h4>Four poses</h4>
+    <ul>
+      <li><strong>base</strong> — empty vessel at rest.</li>
+      <li><strong>hold</strong> — something peeking out the top.</li>
+      <li><strong>tip</strong> — rotated to pour (nothing coming out yet).</li>
+      <li><strong>empty</strong> — upside down, eyes closed.</li>
+    </ul>
+
+    <h4>What to preserve</h4>
+    <ul>
+      <li>Chipped lip — silhouette tell.</li>
+      <li>Redwood cap — the one saturated colour on Jugs.</li>
+      <li>Slow-blink motion (Jugs is the stillest of the kid register).</li>
+    </ul>
+
+    <h4>Invitations</h4>
+    <ul>
+      <li>Could the body suggest both plastic (bottle) and ceramic
+          (jug)? The character hosts both materially.</li>
+      <li>The label rectangle on the front is where our brand could
+          show up subtly — invite your read.</li>
+    </ul>
+  </div>
+
+  <div class="exploration">
+    <iframe src="./jugs-character.html" loading="lazy" title="Jugs character exploration"></iframe>
+    <div class="fallback">
+      If the frame is blank, open directly:
+      <a href="./jugs-character.html">jugs-character.html →</a>
+    </div>
+  </div>
+</article>
+
+<!-- ─── Crate ─────────────────────────────────────────────────────── -->
+<article class="character" id="crate">
+  <header class="character-head">
+    <h2 style="border: none; margin: 0; padding: 0;">Crate</h2>
+    <div class="identity">rigid · box · the stack rhyme</div>
+  </header>
+
+  <div class="palette">
+    <span class="swatch"><span class="chip" style="background:#c99460"></span>cardboard #c99460</span>
+    <span class="swatch"><span class="chip" style="background:#a07040"></span>cardboard-dk #a07040</span>
+    <span class="swatch"><span class="chip" style="background:var(--wv-redwood)"></span>redwood arrow #b15043</span>
+    <span class="swatch"><span class="chip" style="background:var(--ink)"></span>ink #241c1e</span>
+  </div>
+
+  <div class="notes">
+    <h4>Identity</h4>
+    <p>
+      Crate stacks, contains, builds. Hosts: shoebox, cardboard box, lego
+      brick, cereal box, tissue box, cube-ish anything. The silhouette
+      tell is the <strong>fragile arrow</strong> — a tiny red "this way
+      up" arrow drawn quickly on one face, as if stamped with a
+      handheld.
+    </p>
+
+    <h4>Four poses</h4>
+    <ul>
+      <li><strong>base</strong> — closed cube at rest.</li>
+      <li><strong>contain</strong> — lid slightly lifted, something inside peeking.</li>
+      <li><strong>stack</strong> — one Crate on top of another (or stacked-shape).</li>
+      <li><strong>fort</strong> — inverted with a doorway cut.</li>
+    </ul>
+
+    <h4>What to preserve</h4>
+    <ul>
+      <li>Fragile arrow — silhouette tell.</li>
+      <li>Cardboard brown palette (Crate is the warmest brown of the cast).</li>
+      <li>Creases / fold lines visible on faces.</li>
+    </ul>
+
+    <h4>Invitations</h4>
+    <ul>
+      <li>Could Crate's face be expressive via the arrow rotation?
+          (arrow up = content, arrow tilted = confused, etc.)</li>
+      <li>Explore tape or strap decorations that don't overpower the box.</li>
+    </ul>
+  </div>
+
+  <div class="exploration">
+    <iframe src="./crate-character.html" loading="lazy" title="Crate character exploration"></iframe>
+    <div class="fallback">
+      If the frame is blank, open directly:
+      <a href="./crate-character.html">crate-character.html →</a>
+    </div>
+  </div>
+</article>
+
+<!-- ─── Mud ───────────────────────────────────────────────────────── -->
+<article class="character" id="mud">
+  <header class="character-head">
+    <h2 style="border: none; margin: 0; padding: 0;">Mud</h2>
+    <div class="identity">malleable · the shape-shift rhyme</div>
+  </header>
+
+  <div class="palette">
+    <span class="swatch"><span class="chip" style="background:#5a3a28"></span>mud #5a3a28</span>
+    <span class="swatch"><span class="chip" style="background:#7d5942"></span>mud-lt #7d5942</span>
+    <span class="swatch"><span class="chip" style="background:#3d7a4a"></span>grass #3d7a4a</span>
+    <span class="swatch"><span class="chip" style="background:var(--ink)"></span>ink #241c1e</span>
+  </div>
+
+  <div class="notes">
+    <h4>Identity</h4>
+    <p>
+      Mud takes the shape of whatever touches it. Hosts: dirt, clay,
+      dough, malleable anything. Unique among the cast in that Mud has
+      <strong>sleepy eyes</strong> (half-closed crescents) rather than
+      round open eyes — malleable matter is the stillest behaviour. The
+      silhouette tell is the <strong>grass tufts</strong>: two small
+      green sprouts rising from opposite edges.
+    </p>
+
+    <h4>Four poses</h4>
+    <ul>
+      <li><strong>base</strong> — mound at rest, sleepy eyes.</li>
+      <li><strong>shape</strong> — small bump from something pressed in.</li>
+      <li><strong>mould</strong> — flattened by a hand (visible handprint).</li>
+      <li><strong>stick</strong> — something stuck halfway in (a Twig perhaps?).</li>
+    </ul>
+
+    <h4>What to preserve</h4>
+    <ul>
+      <li>Sleepy eyes (the one character with this trait).</li>
+      <li>Grass tufts — silhouette tell.</li>
+      <li>Slow-breath motion (11s — the slowest of the seven).</li>
+      <li>Warm brown palette (Mud is the warmest of the cast).</li>
+    </ul>
+
+    <h4>Invitations</h4>
+    <ul>
+      <li>Texture: Mud could be clay, dough, modelling compound, or
+          genuine earth. Does your illustration lean toward one?</li>
+      <li>When Mud "stick"-poses, consider that a Twig character is
+          in the scene — cross-character cameos are a future possibility.</li>
+    </ul>
+  </div>
+
+  <div class="exploration">
+    <iframe src="./mud-character.html" loading="lazy" title="Mud character exploration"></iframe>
+    <div class="fallback">
+      If the frame is blank, open directly:
+      <a href="./mud-character.html">mud-character.html →</a>
+    </div>
+  </div>
+</article>
+
+<!-- ─── Drip ──────────────────────────────────────────────────────── -->
+<article class="character" id="drip">
+  <header class="character-head">
+    <h2 style="border: none; margin: 0; padding: 0;">Drip</h2>
+    <div class="identity">liquid · the flow rhyme</div>
+  </header>
+
+  <div class="palette">
+    <span class="swatch"><span class="chip" style="background:#5a9fc4"></span>drip #5a9fc4</span>
+    <span class="swatch"><span class="chip" style="background:#bde0f0"></span>drip-lt #bde0f0</span>
+    <span class="swatch"><span class="chip" style="background:#2b5e80"></span>drip-dk #2b5e80</span>
+    <span class="swatch"><span class="chip" style="background:#153a52"></span>drip-deep #153a52</span>
+  </div>
+
+  <div class="notes">
+    <h4>Identity</h4>
+    <p>
+      Drip flows, pools, pours, soaks. The youngest sibling — built last
+      and the most ambitious technically (soak pose shows a bleed stain
+      spreading across a sponge substrate). Hosts: water, glue, paint,
+      ink, juice, milk. The silhouette tell is the
+      <strong>gloss highlight</strong> — a small white crescent in the
+      upper-left of the body in every pose, reading as "this is a
+      liquid, not a solid."
+    </p>
+
+    <h4>Four poses</h4>
+    <ul>
+      <li><strong>base</strong> — a single teardrop (the canonical drop of liquid).</li>
+      <li><strong>pool</strong> — spread flat with surface reflections + satellite droplets.</li>
+      <li><strong>pour</strong> — vertical stream into a catch-pool, bubbles rising.</li>
+      <li><strong>soak</strong> — bleed stain spreading across a porous sponge substrate with spatter dots.</li>
+    </ul>
+
+    <h4>What to preserve</h4>
+    <ul>
+      <li>Gloss highlight — silhouette tell, present in every pose.</li>
+      <li>Cool blue palette (complements Mud's warm browns —
+          they're sibling characters).</li>
+      <li>Undulation motion (6s wave-like body oscillation).</li>
+    </ul>
+
+    <h4>Invitations</h4>
+    <ul>
+      <li>Drip's mouth/expression under the eyes is new territory —
+          we've been eyes-only, but consider if expression could
+          emerge in pour and soak poses.</li>
+      <li>The soak pose is our most narratively ambitious — it shows
+          Drip interacting with a sponge-like substrate. Invite your
+          interpretation of how much of the sponge to draw.</li>
+    </ul>
+  </div>
+
+  <div class="exploration">
+    <iframe src="./drip-character.html" loading="lazy" title="Drip character exploration"></iframe>
+    <div class="fallback">
+      If the frame is blank, open directly:
+      <a href="./drip-character.html">drip-character.html →</a>
+    </div>
+  </div>
+</article>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     UI/UX PLACEMENTS
+     ═════════════════════════════════════════════════════════════════ -->
+<section id="placements">
+<h2>Where the cast lives in the product</h2>
+<p>
+  Seven surfaces they touch today, and five we want to build next. Your
+  illustrations need to hold up in all twelve contexts. The sizes and
+  spaces matter — no character should read ambiguously at any scale
+  we'll display them.
+</p>
+
+<h3>Shipped today</h3>
+
+<div class="placement">
+  <div class="placement-visual cream">
+    <div class="mini-lineup">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g transform="translate(50 52)"><path d="M -20 -4 Q -24 4 -18 10 Q -10 14 -2 10 Q 4 4 2 -4 Q -2 -12 -12 -12 Q -22 -10 -20 -4 Z" fill="var(--sand)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="-10" cy="0" r="1.6" fill="var(--ink)"/><circle cx="-5" cy="0" r="1.6" fill="var(--ink)"/></g></svg>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g transform="translate(50 50) rotate(30)"><rect x="-28" y="-3" width="56" height="6" rx="3" fill="var(--sand-dk)" stroke="var(--ink)" stroke-width="1.5"/><circle cx="-4" cy="0" r="1.3" fill="var(--ink)"/><circle cx="4" cy="0" r="1.3" fill="var(--ink)"/></g></svg>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g transform="translate(50 50)"><path d="M -22 -22 L 22 -22 L 22 18 Q 18 22 14 22 L -22 22 Z" fill="var(--wv-champagne)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="-4" cy="0" r="1.6" fill="var(--ink)"/><circle cx="6" cy="0" r="1.6" fill="var(--ink)"/></g></svg>
+    </div>
+    <div class="placement-caption">size: 48–56px · tile interior</div>
+  </div>
+  <div class="placement-body">
+    <span class="status shipped">Shipped</span>
+    <h3>Tile icons in pickers</h3>
+    <p>
+      In <strong>creaseworks</strong>, characters render inside
+      material-picker tiles as the primary icon (fallback: PNG, then
+      emoji). Used in the classic size-sorted picker, room explorer,
+      challenge grid, and logged-out hero. <strong>Size range:
+      40–56px.</strong> Must read clearly against cream tile bg with
+      accent-chip dot in one corner and label below. Silhouettes carry
+      the weight at this size — no interior detail needed.
+    </p>
+  </div>
+</div>
+
+<div class="placement">
+  <div class="placement-visual">
+    <div class="mini-lineup" style="gap: 8px;">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;"><g transform="translate(50 52)"><path d="M -20 -4 Q -24 4 -18 10 Q -10 14 -2 10 Q 4 4 2 -4 Q -2 -12 -12 -12 Q -22 -10 -20 -4 Z" fill="var(--sand)" stroke="var(--ink)" stroke-width="1.8"/><circle cx="-10" cy="0" r="1.6" fill="var(--ink)"/><circle cx="-5" cy="0" r="1.6" fill="var(--ink)"/></g></svg>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;"><g transform="translate(50 50) rotate(30)"><rect x="-28" y="-3" width="56" height="6" rx="3" fill="var(--sand-dk)" stroke="var(--ink)" stroke-width="1.5"/></g></svg>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;"><g transform="translate(50 50)"><path d="M -22 -22 L 22 -22 L 22 18 Q 18 22 14 22 L -22 22 Z" fill="var(--wv-champagne)" stroke="var(--ink)" stroke-width="1.8"/></g></svg>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;"><g transform="translate(50 56)"><path d="M -12 -28 L 12 -28 L 12 -20 L 18 -18 L 18 18 Q 18 22 12 22 L -12 22 Q -18 22 -18 18 L -18 -18 L -12 -20 Z" fill="white" stroke="var(--ink)" stroke-width="1.5"/><rect x="-12" y="-32" width="24" height="6" rx="1" fill="var(--wv-redwood)"/></g></svg>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;"><g transform="translate(50 54)"><path d="M -22 -14 L 22 -14 L 26 -10 L 26 18 L -26 18 L -26 -10 Z" fill="#c99460" stroke="var(--ink)" stroke-width="1.8"/></g></svg>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;"><g transform="translate(50 60)"><ellipse cx="0" cy="0" rx="28" ry="10" fill="#5a3a28" stroke="var(--ink)" stroke-width="1.8"/></g></svg>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;"><g transform="translate(50 52)"><path d="M 0 -26 Q -14 -5 -16 10 Q -16 22 0 22 Q 16 22 16 10 Q 14 -5 0 -26 Z" fill="#5a9fc4" stroke="var(--ink)" stroke-width="1.8"/></g></svg>
+    </div>
+    <div class="placement-caption">size: 88px · harbour hub parade</div>
+  </div>
+  <div class="placement-body">
+    <span class="status shipped">Shipped</span>
+    <h3>Cast parade on harbour landing</h3>
+    <p>
+      All seven characters appear together in a cream panel on the
+      <a href="https://windedvertigo.com/harbour/" target="_blank"
+         rel="noreferrer">windedvertigo.com/harbour/</a> landing page,
+      between the hero and the GameDock. <strong>This placement needs
+      a rethink</strong> — Garrett's current read is that a static
+      lineup reads as "so what?" — so we're looking for a more clever
+      introduction. Your illustrations will unlock options: animated
+      interactions between the cast, scene-based vignettes, conversational
+      poses, etc.
+    </p>
+  </div>
+</div>
+
+<h3>Where we want to take them</h3>
+
+<div class="placement">
+  <div class="placement-visual cream">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:64px;height:64px;"><g transform="translate(50 50)"><path d="M -22 -22 L 22 -22 L 22 18 Q 18 22 14 22 L -22 22 Z" fill="var(--wv-champagne)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="-4" cy="0" r="1.6" fill="var(--ink)"/><circle cx="6" cy="0" r="1.6" fill="var(--ink)"/></g></svg>
+      <div style="background: white; padding: 8px 12px; border-radius: 12px; border: 1.5px solid rgba(39,50,72,0.1); font-size: 0.7rem; color: var(--wv-cadet); font-weight: 500; max-width: 140px; position: relative;">
+        <span style="position: absolute; left: -6px; top: 50%; width: 12px; height: 12px; background: white; border-left: 1.5px solid rgba(39,50,72,0.1); border-bottom: 1.5px solid rgba(39,50,72,0.1); transform: translateY(-50%) rotate(45deg);"></span>
+        you can fold me 16 ways
+      </div>
+    </div>
+    <div class="placement-caption">size: 64px + speech bubble</div>
+  </div>
+  <div class="placement-body">
+    <span class="status proposed">Proposed</span>
+    <h3>Speech / thought bubbles on playdate results</h3>
+    <p>
+      Garrett's direct ask: "why aren't the characters involved in this,
+      with some thought bubble or speech bubble when they look at the
+      packs?" When a playdate result card renders, the matched material's
+      character could peek from the corner with a one-liner about what
+      the material is good for. Gives the cast a
+      <strong>storytelling voice</strong> and turns dry result cards
+      into conversations. Your illustrations need
+      <em>peeking/leaning</em> poses that work with bubbles.
+    </p>
+  </div>
+</div>
+
+<div class="placement">
+  <div class="placement-visual cream">
+    <div style="display: flex; align-items: center; gap: 16px; justify-content: center;">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;"><g transform="translate(50 52)"><path d="M -20 -4 Q -24 4 -18 10 Q -10 14 -2 10 Q 4 4 2 -4 Q -2 -12 -12 -12 Q -22 -10 -20 -4 Z" fill="var(--sand)" stroke="var(--ink)" stroke-width="1.8"/><circle cx="-10" cy="0" r="1.6" fill="var(--ink)"/><circle cx="-5" cy="0" r="1.6" fill="var(--ink)"/></g></svg>
+      <div style="font-size: 1.25rem; color: var(--wv-sienna);">✕</div>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;"><g transform="translate(50 54)"><path d="M -22 -14 L 22 -14 L 26 -10 L 26 18 L -26 18 L -26 -10 Z" fill="#c99460" stroke="var(--ink)" stroke-width="1.8"/><line x1="-26" y1="-10" x2="22" y2="-10" stroke="var(--ink)" stroke-width="1"/><circle cx="-6" cy="4" r="1.5" fill="var(--ink)"/><circle cx="6" cy="4" r="1.5" fill="var(--ink)"/></g></svg>
+    </div>
+    <div class="placement-caption">"cord meets crate" — a playdate pairing</div>
+  </div>
+  <div class="placement-body">
+    <span class="status proposed">Proposed</span>
+    <h3>Playdate results as character pairings</h3>
+    <p>
+      Every playdate uses a specific combination of material families —
+      that means every playdate IS a character pairing. "Pipe cleaners +
+      shoebox" reads as <em>Cord meets Crate: bendy thing visits holding
+      thing</em>. Turning result cards into named pairings gives each
+      playdate a <strong>cast-based identity</strong> that makes the
+      pedagogy visible. Your illustrations need to work in pair + trio
+      compositions.
+    </p>
+  </div>
+</div>
+
+<div class="placement">
+  <div class="placement-visual">
+    <div style="color: white; font-size: 0.75rem; letter-spacing: 0.08em; opacity: 0.7; margin-bottom: 8px;">vertigo.vault · adult surface</div>
+    <div class="mini-lineup">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:52px;height:52px;"><g transform="translate(50 52)"><path d="M -20 -4 Q -24 4 -18 10 Q -10 14 -2 10 Q 4 4 2 -4 Q -2 -12 -12 -12 Q -22 -10 -20 -4 Z" fill="#a09070" stroke="#3a3024" stroke-width="1.2" stroke-linejoin="round" opacity="0.75"/><circle cx="-10" cy="0" r="1.2" fill="#3a3024"/><circle cx="-5" cy="0" r="1.2" fill="#3a3024"/></g></svg>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:52px;height:52px;"><g transform="translate(50 50) rotate(15)"><rect x="-28" y="-3" width="56" height="6" rx="3" fill="#6a5a3a" stroke="#3a3024" stroke-width="1" opacity="0.75"/></g></svg>
+    </div>
+    <div class="placement-caption">adult register — muted sand, no wobble</div>
+  </div>
+  <div class="placement-body">
+    <span class="status proposed">Proposed</span>
+    <h3>Adult register across research surfaces</h3>
+    <p>
+      Vertigo Vault, Depth Chart, Rubric Co-Builder, and other
+      adult-facing harbour apps should use the <strong>adult register</strong>
+      variant of each character — muted sand palette, flat rendering,
+      no textured stroke-wobble. Same silhouettes, same identities,
+      quieter energy. Both registers need your hand so they feel like
+      the same cast in two moods.
+    </p>
+  </div>
+</div>
+
+<div class="placement">
+  <div class="placement-visual cream">
+    <div style="font-size: 0.75rem; color: var(--wv-cadet); opacity: 0.6; margin-bottom: 12px;">onboarding · paper.trail first run</div>
+    <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" style="max-width: 200px;">
+      <g transform="translate(30 50)">
+        <path d="M -20 -4 Q -24 4 -18 10 Q -10 14 -2 10 Q 4 4 2 -4 Q -2 -12 -12 -12 Q -22 -10 -20 -4 Z" fill="var(--sand)" stroke="var(--ink)" stroke-width="1.8"/>
+        <circle cx="-10" cy="0" r="1.6" fill="var(--ink)"/><circle cx="-5" cy="0" r="1.6" fill="var(--ink)"/>
+      </g>
+      <path d="M 55 50 Q 75 30 95 50" fill="none" stroke="var(--wv-sienna)" stroke-width="2" stroke-dasharray="3 3"/>
+      <g transform="translate(120 50)">
+        <text y="0" fill="var(--wv-cadet)" font-size="11" font-weight="600" font-family="Inter">I'll show you</text>
+        <text y="14" fill="var(--wv-cadet)" font-size="11" font-weight="600" font-family="Inter">how it works</text>
+      </g>
+    </svg>
+    <div class="placement-caption">storytelling companion, 40–72px</div>
+  </div>
+  <div class="placement-body">
+    <span class="status proposed">Proposed</span>
+    <h3>Onboarding companions</h3>
+    <p>
+      When a kid opens a new harbour app for the first time, a
+      character meets them — Cord walks them through paper.trail,
+      Crate welcomes them to creaseworks' first playdate, Drip greets
+      them in feel-cards' reflection screen. Each character becomes
+      the <strong>welcome ambassador</strong> for one app, based on a
+      form-to-app affinity. Your illustrations need gesture-rich
+      <em>guiding</em> poses — pointing, leaning forward, watching.
+    </p>
+  </div>
+</div>
+
+<div class="placement">
+  <div class="placement-visual cream">
+    <div style="font-size: 0.7rem; color: var(--wv-cadet); opacity: 0.5; letter-spacing: 0.1em;">NAVIGATION · HARBOUR DRAWER</div>
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; width: 100%; max-width: 220px;">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(39,50,72,0.04); border-radius: 10px;">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px;"><g transform="translate(50 54)"><path d="M -22 -14 L 22 -14 L 26 -10 L 26 18 L -26 18 L -26 -10 Z" fill="#c99460" stroke="var(--ink)" stroke-width="2"/></g></svg>
+        <span style="font-size: 0.8rem; font-weight: 600; color: var(--wv-cadet);">creaseworks</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(39,50,72,0.04); border-radius: 10px;">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px;"><g transform="translate(50 52)"><path d="M -20 -4 Q -24 4 -18 10 Q -10 14 -2 10 Q 4 4 2 -4 Q -2 -12 -12 -12 Q -22 -10 -20 -4 Z" fill="var(--sand)" stroke="var(--ink)" stroke-width="2"/></g></svg>
+        <span style="font-size: 0.8rem; font-weight: 600; color: var(--wv-cadet);">paper.trail</span>
+      </div>
+    </div>
+    <div class="placement-caption" style="margin-top: 16px;">24–32px · nav stamp</div>
+  </div>
+  <div class="placement-body">
+    <span class="status proposed">Proposed</span>
+    <h3>App affinity stamps in nav</h3>
+    <p>
+      Each harbour app could carry a character stamp next to its name
+      in the harbour drawer nav — Crate for creaseworks (structural
+      play), Cord for paper.trail (flexible, connective reflection),
+      Drip for feel-cards (liquid emotion), etc. The stamp is a
+      <strong>tiny character portrait at icon-scale</strong> — 24–32px.
+      Your illustrations need to read at this small scale without
+      losing identity. The silhouette carries the whole burden here.
+    </p>
+  </div>
+</div>
+
+<div class="placement">
+  <div class="placement-visual cream">
+    <div style="font-size: 0.7rem; color: var(--wv-cadet); opacity: 0.5; letter-spacing: 0.1em; margin-bottom: 12px;">AMBIENT · BETWEEN SECTIONS</div>
+    <svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg" style="max-width: 240px;">
+      <g transform="translate(20 40) scale(0.5)"><path d="M -20 -4 Q -24 4 -18 10 Q -10 14 -2 10 Q 4 4 2 -4 Q -2 -12 -12 -12 Q -22 -10 -20 -4 Z" fill="var(--sand)" opacity="0.5"/></g>
+      <line x1="45" y1="40" x2="195" y2="40" stroke="var(--wv-sienna)" stroke-width="1" opacity="0.4" stroke-dasharray="2 4"/>
+      <g transform="translate(220 40) scale(0.5)"><path d="M 0 -26 Q -14 -5 -16 10 Q -16 22 0 22 Q 16 22 16 10 Q 14 -5 0 -26 Z" fill="#5a9fc4" opacity="0.5"/></g>
+    </svg>
+    <div class="placement-caption">ghosted decoration, 20–30% opacity</div>
+  </div>
+  <div class="placement-body">
+    <span class="status proposed">Proposed</span>
+    <h3>Ambient decoration between long-form sections</h3>
+    <p>
+      On long scrolling pages (vertigo.vault articles, depth.chart
+      skill pages) a character could drift faintly in the margin as
+      connective tissue between sections. Not interactive, not a
+      character "doing" anything — just present. Your illustrations
+      need a <strong>drawn-but-ghosted</strong> variant that reads at
+      20–30% opacity without turning to mush.
+    </p>
+  </div>
+</div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     QUESTIONS FOR AARON
+     ═════════════════════════════════════════════════════════════════ -->
+<section id="questions">
+<h2>Open questions for your process</h2>
+
+<div class="questions">
+<p>These are the specific decisions we'd love your read on before you dig too deep:</p>
+<ol>
+  <li>
+    <strong>Stroke weight consistency.</strong> Current placeholders use
+    an ink-wobble filter (0.018 frequency, 2px displacement). Does your
+    natural line weight lend itself to the same filter, or do you
+    prefer to draw the wobble? Either works — we need to know so we
+    don't double-apply.
+  </li>
+  <li>
+    <strong>Texture vs. flat fill.</strong> Sago Mini-level texture
+    is beautiful but can be noisy at 40px. What's your opinion on a
+    tiered texture system (flat at thumbnail, textured at hero size)?
+  </li>
+  <li>
+    <strong>Expression vocabulary.</strong> Right now only eyes do
+    expression work. Are you comfortable keeping eyes as the only
+    expressive element, or do you want to invite eyebrow/mouth
+    variations?
+  </li>
+  <li>
+    <strong>Adult register.</strong> The current muted-sand variants are
+    rough — is a single colour family the right direction for the
+    quieter voice, or would you rather explore a completely different
+    palette system (e.g. desaturated version of each character's kid
+    palette)?
+  </li>
+  <li>
+    <strong>Cross-character scenes.</strong> Future work includes
+    poses where characters interact (Cord knotted around Twig, Swatch
+    draped over Crate). Do you want to design those as a set of
+    dedicated illustrations, or compose them from the base character
+    poses?
+  </li>
+  <li>
+    <strong>Naming.</strong> Cord / Jugs / Twig / Swatch / Crate / Mud
+    / Drip are working placeholders pending a naming session with the
+    collective. If any name is holding you back visually, flag it —
+    the name can change to match what you draw.
+  </li>
+  <li>
+    <strong>Delivery format.</strong> We'll want SVG primarily (our
+    render path is inline SVG). But we'd also love the original
+    illustration files (Procreate, Illustrator, Fresco — whatever you
+    work in) so we can pull alternate angles later.
+  </li>
+</ol>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FOOTER
+     ═════════════════════════════════════════════════════════════════ -->
+<footer>
+  <p>
+    <strong>Harbour material cast — illustration brief v1</strong><br>
+    Last updated: April 2026 · Owner: Garrett Jaeger, winded.vertigo
+  </p>
+  <p>
+    Supporting files in this folder:
+    <a href="./cord-character.html">cord</a> ·
+    <a href="./twig-character.html">twig</a> ·
+    <a href="./swatch-character.html">swatch</a> ·
+    <a href="./jugs-character.html">jugs</a> ·
+    <a href="./crate-character.html">crate</a> ·
+    <a href="./mud-character.html">mud</a> ·
+    <a href="./drip-character.html">drip</a>
+  </p>
+  <p>
+    Serve this folder with <code>python3 -m http.server</code> and open
+    at <code>http://localhost:8000/character-illustration-brief.html</code>
+    to see the iframes working correctly.
+  </p>
+</footer>
+
+</main>
+</body>
+</html>

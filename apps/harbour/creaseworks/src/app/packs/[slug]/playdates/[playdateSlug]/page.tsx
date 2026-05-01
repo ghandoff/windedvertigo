@@ -1,0 +1,113 @@
+import { notFound } from "next/navigation";
+import { headers } from "next/headers";
+import Link from "next/link";
+import Image from "next/image";
+import { requireAuth } from "@/lib/auth-helpers";
+import { getPackBySlug, getPackBySlugCollective, isPlaydateInPack } from "@/lib/queries/packs";
+import { checkEntitlement } from "@/lib/queries/entitlements";
+import { logAccess } from "@/lib/queries/audit";
+import {
+  getEntitledPlaydateBySlug,
+  getCollectivePlaydateBySlug,
+  getTeaserMaterialsForPlaydate,
+} from "@/lib/queries/playdates";
+import EntitledPlaydateView from "@/components/ui/entitled-playdate-view";
+
+export const dynamic = "force-dynamic";
+
+interface Props {
+  params: Promise<{ slug: string; playdateSlug: string }>;
+  searchParams: Promise<{ from?: string }>;
+}
+
+export default async function EntitledPlaydatePage({ params, searchParams }: Props) {
+  const session = await requireAuth();
+  const { slug: packSlug, playdateSlug } = await params;
+  const { from } = await searchParams;
+
+  // resolve pack — collective can see draft packs
+  const pack = session.isInternal
+    ? await getPackBySlugCollective(packSlug)
+    : await getPackBySlug(packSlug);
+  if (!pack) return notFound();
+
+  // check entitlement — collective auto-entitled
+  const isEntitled =
+    session.isInternal || (await checkEntitlement(session.orgId, pack.id, session.userId));
+  if (!isEntitled) return notFound();
+
+  // resolve playdate — collective gets extra fields + can see drafts
+  const playdate = session.isInternal
+    ? await getCollectivePlaydateBySlug(playdateSlug)
+    : await getEntitledPlaydateBySlug(playdateSlug);
+  if (!playdate) return notFound();
+
+  // verify playdate belongs to this pack
+  const inPack = await isPlaydateInPack(playdate.id, pack.id);
+  if (!inPack) return notFound();
+
+  // fetch materials
+  const materials = await getTeaserMaterialsForPlaydate(playdate.id);
+
+  // log access
+  const fieldsAccessed = [
+    "find",
+    "fold",
+    "unfold",
+    "rails_sentence",
+    "find_again_mode",
+    "find_again_prompt",
+    "slots_notes",
+    "substitutions_notes",
+    "body_html",
+    "illustration_url",
+    ...(session.isInternal
+      ? ["design_rationale", "developmental_notes", "author_notes"]
+      : []),
+  ].filter((f) => playdate[f] != null);
+
+  const hdrs = await headers();
+  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
+  await logAccess(
+    session.userId,
+    session.orgId,
+    playdate.id,
+    pack.id,
+    session.isInternal ? "view_collective" : "view_entitled",
+    ip,
+    fieldsAccessed,
+  );
+
+  return (
+    <main className="min-h-screen px-6 py-16 max-w-3xl mx-auto">
+      <Link
+        href={from === "sampler" ? "/sampler" : `/packs/${packSlug}`}
+        className="text-sm text-cadet/50 hover:text-cadet mb-6 inline-block"
+      >
+        &larr; {from === "sampler" ? "back to playdates" : `back to ${pack.title}`}
+      </Link>
+
+      {playdate.cover_url && (
+        <div className="relative w-full h-[240px] sm:h-[320px] rounded-xl overflow-hidden bg-cadet/5 mb-6">
+          <Image
+            src={playdate.cover_url}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 768px"
+          />
+        </div>
+      )}
+
+      <h1 className="text-3xl font-semibold tracking-tight font-serif mb-4">
+        {playdate.title}
+      </h1>
+
+      <EntitledPlaydateView
+        playdate={playdate}
+        materials={materials}
+        packSlug={packSlug}
+      />
+    </main>
+  );
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@windedvertigo/feel-cards",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo 'Static site — no build needed'"
+  }
+}

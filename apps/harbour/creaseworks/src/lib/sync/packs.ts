@@ -1,0 +1,123 @@
+import { sql } from "@/lib/db";
+import { notion, NOTION_DBS } from "@/lib/notion";
+import { makeSlug } from "@/lib/slugify";
+import { syncCacheTable } from "./sync-cache-table";
+import {
+  extractTitle,
+  extractRichText,
+  extractRichTextHtml,
+  extractSelect,
+  extractRelationIds,
+  extractLastEdited,
+  extractPageId,
+  extractCover,
+  type NotionPage,
+} from "./extract";
+import { syncImageToR2, imageUrl } from "./sync-image";
+import { fetchPageBodyHtml } from "./blocks";
+
+function parsePackPage(page: NotionPage) {
+  const props = page.properties;
+  return {
+    notionId: extractPageId(page),
+    title: extractTitle(props, "pack"),
+    description: extractRichText(props, "description"),
+    descriptionHtml: extractRichTextHtml(props, "description"),
+    status: extractSelect(props, "status") || "draft",
+    lastEdited: extractLastEdited(page),
+    playdateRelationIds: extractRelationIds(props, "playdates included"),
+    coverSourceUrl: extractCover(page)?.url ?? null,
+  };
+}
+
+export async function syncPacks() {
+  return syncCacheTable<ReturnType<typeof parsePackPage>>({
+    databaseId: NOTION_DBS.packs,
+    label: "packs",
+    parsePage: parsePackPage,
+    upsertRow: async (row) => {
+      // Sync cover image to R2 (never throws — null on failure)
+      let coverR2Key: string | null = null;
+      let coverUrl: string | null = null;
+      if (row.coverSourceUrl) {
+        coverR2Key = await syncImageToR2(row.coverSourceUrl, row.notionId, "cover");
+        coverUrl = imageUrl(coverR2Key);
+      }
+
+      // Tier 4: fetch page body content as HTML
+      let bodyHtml: string | null = null;
+      try {
+        bodyHtml = await fetchPageBodyHtml(notion(), row.notionId);
+      } catch {
+        // Non-blocking — body content is supplementary
+      }
+
+      await sql`
+        INSERT INTO packs_cache (
+          notion_id, title, description, description_html, status,
+          notion_last_edited, synced_at, slug,
+          cover_r2_key, cover_url, body_html
+        ) VALUES (
+          ${row.notionId}, ${row.title}, ${row.description},
+          ${row.descriptionHtml}, ${row.status}, ${row.lastEdited},
+          NOW(), ${makeSlug(row.title)},
+          ${coverR2Key}, ${coverUrl}, ${bodyHtml}
+        )
+        ON CONFLICT (notion_id) DO UPDATE SET
+          title = EXCLUDED.title,
+          description = EXCLUDED.description,
+          description_html = EXCLUDED.description_html,
+          status = EXCLUDED.status,
+          notion_last_edited = EXCLUDED.notion_last_edited,
+          synced_at = NOW(),
+          cover_r2_key = EXCLUDED.cover_r2_key,
+          cover_url = EXCLUDED.cover_url,
+          body_html = EXCLUDED.body_html
+      `;
+    },
+    cleanupStale: async (activeNotionIds) => {
+      // Soft-delete packs removed from Notion rather than hard-deleting,
+      // because packs_catalogue and purchases reference packs_cache.
+      //
+      // The notion_id ~ '^[0-9a-f]{8}-' guard scopes the sweep to rows that
+      // actually came from Notion (UUID-shaped IDs). Without it, seeded
+      // commerce SKUs like dc-assessment-pro / harbour-bundle / dd-full-deck
+      // (added by migrations 033 + 052 with kebab-case notion_ids as a
+      // placeholder discriminator) get archived on every sync. Those rows
+      // have Stripe prices and entitlements wired and must not be touched.
+      await sql.query(
+        `UPDATE packs_cache
+         SET status = 'archived', synced_at = NOW()
+         WHERE notion_id ~ '^[0-9a-f]{8}-'
+           AND notion_id != ALL($1::text[])`,
+        [activeNotionIds],
+      );
+    },
+    resolveRelations: async (pages) => {
+      // Resolve pack → playdate relations
+      for (const page of pages) {
+        const row = parsePackPage(page);
+        const packResult = await sql`
+          SELECT id FROM packs_cache WHERE notion_id = ${row.notionId}
+        `;
+        if (packResult.rows.length === 0) continue;
+        const packId = packResult.rows[0].id;
+
+        await sql`DELETE FROM pack_playdates WHERE pack_id = ${packId}`;
+
+        for (const playdateNotionId of row.playdateRelationIds) {
+          const playdateResult = await sql`
+            SELECT id FROM playdates_cache WHERE notion_id = ${playdateNotionId}
+          `;
+          if (playdateResult.rows.length > 0) {
+            await sql`
+              INSERT INTO pack_playdates (pack_id, playdate_id)
+              VALUES (${packId}, ${playdateResult.rows[0].id})
+              ON CONFLICT DO NOTHING
+            `;
+          }
+        }
+      }
+    },
+  });
+}

@@ -1,0 +1,4 @@
+# intentionally empty — do NOT add a `/* https://www.windedvertigo.com/...` rule here.
+# the site rewrite (windedvertigo/site/next.config.ts) reverse-proxies this Pages
+# project from /portfolio/assets/values-auction/. a canonicalisation 301 here loops
+# back through that proxy and triggers Cloudflare Error 1019.

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":pinAllExceptPeerDependencies",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "schedule": ["before 9am on Monday"],
+  "timezone": "America/Chicago",
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 9am on Monday"]
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "dependencies"],
+    "schedule": ["at any time"],
+    "prCreation": "immediate",
+    "minimumReleaseAge": "0 days"
+  },
+  "packageRules": [
+    {
+      "description": "P1 — Frameworks: group Next.js + React + Tailwind",
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "eslint-config-next",
+        "tailwindcss",
+        "@tailwindcss/postcss"
+      ],
+      "groupName": "frameworks",
+      "schedule": ["before 9am on the first day of the month"]
+    },
+    {
+      "description": "P2 — SDKs: group API client libraries",
+      "matchPackageNames": [
+        "@anthropic-ai/sdk",
+        "@notionhq/client",
+        "stripe",
+        "@slack/web-api",
+        "resend",
+        "openai",
+        "@vercel/postgres",
+        "@vercel/kv",
+        "@vercel/blob"
+      ],
+      "groupName": "sdks",
+      "schedule": ["before 9am on the first day of the month in every 3rd month"]
+    },
+    {
+      "description": "P2 — AWS SDK: group all @aws-sdk packages",
+      "matchPackageNames": ["@aws-sdk/**"],
+      "groupName": "aws-sdk",
+      "automerge": true
+    },
+    {
+      "description": "P3 — Dev tools: group linters, type-checkers, test runners",
+      "matchPackageNames": [
+        "typescript",
+        "eslint",
+        "vitest",
+        "@vitejs/plugin-react",
+        "@types/node",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "groupName": "dev-tools",
+      "automerge": true
+    },
+    {
+      "description": "Automerge patch updates after CI passes",
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
+      "description": "HOLD — next-auth beta: do not auto-update",
+      "matchPackageNames": ["next-auth", "@auth/core"],
+      "enabled": false
+    },
+    {
+      "description": "HOLD — Notion client v5: major rewrite, evaluate manually",
+      "matchPackageNames": ["@notionhq/client"],
+      "allowedVersions": "<5.0.0"
+    },
+    {
+      "description": "HOLD — autoprefixer removed from sqr-rct (now built into tailwindcss v4)",
+      "matchPackageNames": ["autoprefixer"],
+      "matchFileNames": ["apps/nordic-sqr-rct/package.json"],
+      "enabled": false
+    }
+  ]
+}
