@@ -41,11 +41,15 @@ function eventDurationHours(event: CalendarEvent): number {
   return (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60);
 }
 
+/**
+ * Returns null if the token lacks calendar scope (401/403 from Google).
+ * Returns an empty array only when the date range genuinely has no events.
+ */
 async function fetchCalendarEvents(
   accessToken: string,
   from: string,
   to: string,
-): Promise<CalendarEvent[]> {
+): Promise<CalendarEvent[] | null> {
   const calendarId = "primary";
   const events: CalendarEvent[] = [];
   let pageToken: string | undefined;
@@ -65,10 +69,11 @@ async function fetchCalendarEvents(
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
-    if (res.status === 401) {
-      // Token expired mid-sync — return what we have
-      console.warn("[calendar/sync] access token expired during fetch");
-      break;
+    // 401 = token expired; 403 = missing calendar scope (token pre-dates scope addition).
+    // Both cases require the user to sign out and back in.
+    if (res.status === 401 || res.status === 403) {
+      console.warn(`[calendar/sync] Google returned ${res.status} — token missing calendar scope or expired`);
+      return null;
     }
 
     if (!res.ok) {
@@ -119,8 +124,18 @@ export async function POST(req: NextRequest) {
 
   console.log(`[calendar/sync] user=${email} personId=${personId ?? "not found"} range=${from}→${to}`);
 
-  // Fetch all calendar events in the date range (handles pagination automatically)
+  // Fetch all calendar events in the date range (handles pagination automatically).
+  // Returns null when the token lacks calendar scope — user must re-authenticate.
   const allEvents = await fetchCalendarEvents(accessToken, from, to);
+  if (allEvents === null) {
+    return NextResponse.json(
+      {
+        error: "no_calendar_token",
+        message: "Your session doesn't have calendar access. Please sign out and sign back in — Google will ask you to allow calendar access.",
+      },
+      { status: 403 },
+    );
+  }
 
   // Keep only events the user accepted with a real duration (not all-day, not cancelled)
   const validEvents = allEvents.filter((ev) => {
