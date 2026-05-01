@@ -67,12 +67,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "host not found" }, { status: 404 });
   }
 
-  // 10-minute state TTL — plenty for the consent flow
+  // 10-minute state TTL — plenty for the consent flow.
+  // adminToken is embedded so the callback can include it in the redirect back
+  // to /admin/booking/connect, keeping the admin page authorized.
   const nonce = crypto.randomUUID();
   const state = await mint<OauthStateTokenPayload>({
     hostId: host.id,
     nonce,
     exp: nowSec() + 600,
+    adminToken: adminToken!, // verified above — safe to carry through state
   });
 
   console.log("[booking.oauth.start] consent redirect", { hostSlug, hostId: host.id });
