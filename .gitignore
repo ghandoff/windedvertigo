@@ -1,5 +1,6 @@
 node_modules/
 .next/
+.open-next/
 .DS_Store
 .vercel/
 .turbo/
@@ -14,8 +15,8 @@ node_modules/
 CLAUDE.md
 .brain/
 
-# Nested git repos — register as submodules via terminal (git submodule add)
-port/
+# Nested git repos — Phase A.2 dissolved port/ nested-clone 2026-05-01
+# port/ is now tracked as ordinary monorepo content
 
 # Wrangler local state
 .wrangler/

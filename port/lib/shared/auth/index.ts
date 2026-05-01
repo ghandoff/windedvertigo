@@ -1,0 +1,207 @@
+/**
+ * Shared Auth.js v5 configuration — Google SSO.
+ *
+ * Access is granted to:
+ * 1. Any @windedvertigo.com Google Workspace account (domain check)
+ * 2. Specific external emails listed in ALLOWED_EMAILS env var
+ *
+ * The signIn callback enforces both checks server-side.
+ *
+ * Usage in each app:
+ *   import { handlers, auth, signIn, signOut } from "@/lib/shared/auth";
+ */
+
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import { neon } from "@neondatabase/serverless";
+
+const ALLOWED_DOMAIN = "windedvertigo.com";
+
+/**
+ * Check if an email appears in any tree_members row (ancestry app).
+ * Uses @neondatabase/serverless for a one-shot query — no connection pool.
+ * Fails silently if DATABASE_URL is unset or the table doesn't exist,
+ * so non-ancestry apps are unaffected.
+ */
+async function isTreeMember(email: string): Promise<boolean> {
+  try {
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) return false;
+    const sql = neon(dbUrl);
+    const rows = await sql`
+      SELECT 1 FROM tree_members WHERE member_email = ${email} LIMIT 1
+    `;
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/** Parse comma-separated email allowlist from env, lowercased and trimmed. */
+const ALLOWED_EMAILS = new Set(
+  (process.env.ALLOWED_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  basePath: "/api/auth",
+
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // Request offline access so Google issues a refresh token, enabling
+      // calendar sync without requiring the user to be actively signed in.
+      // Adding calendar.readonly here means the first sign-in after this
+      // deploy will show a Google consent screen requesting calendar read access.
+      authorization: {
+        params: {
+          access_type: "offline",
+          scope: [
+            "openid",
+            "email",
+            "profile",
+            "https://www.googleapis.com/auth/calendar.readonly",
+          ].join(" "),
+        },
+      },
+    }),
+  ],
+
+  // Cookie config: ensure cookies are scoped to the proxy domain (www.windedvertigo.com)
+  // not the backend Vercel domain. Without this, PKCE state cookies set on the
+  // proxy target don't get sent back on the Google callback, causing 400 errors.
+  //
+  // IMPORTANT: sessionToken must include maxAge matching session.maxAge.
+  // Without it the browser treats it as a session cookie and deletes it on close.
+  cookies: {
+    pkceCodeVerifier: {
+      name: "authjs.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    state: {
+      name: "authjs.state",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    callbackUrl: {
+      name: "authjs.callback-url",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    sessionToken: {
+      name: process.env.NODE_ENV === "production"
+        ? "__Secure-authjs.session-token"
+        : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 90 * 24 * 60 * 60, // 90 days — must match session.maxAge
+      },
+    },
+  },
+
+  session: {
+    strategy: "jwt",
+    maxAge: 90 * 24 * 60 * 60, // 90 days — persistent across app reopens
+    updateAge: 24 * 60 * 60,   // refresh token silently every 24 hours
+  },
+
+  callbacks: {
+    async signIn({ profile }) {
+      const email = profile?.email?.toLowerCase();
+      if (!email) return false;
+
+      // Allow windedvertigo.com domain
+      if (email.endsWith(`@${ALLOWED_DOMAIN}`)) return true;
+
+      // Allow specific external emails
+      if (ALLOWED_EMAILS.has(email)) return true;
+
+      // Allow anyone invited to a tree (ancestry app)
+      // Gracefully skips if tree_members table doesn't exist (other apps)
+      if (await isTreeMember(email)) return true;
+
+      return false;
+    },
+
+    async jwt({ token, account, profile }) {
+      // On initial sign-in, account carries the OAuth tokens from Google.
+      if (account) {
+        token.accessToken  = account.access_token;
+        token.refreshToken = account.refresh_token;
+        token.expiresAt    = account.expires_at; // seconds since epoch
+      }
+
+      // Store first name + email from Google profile for "logged by" auto-fill
+      if (profile?.given_name) {
+        token.firstName = (profile as { given_name?: string }).given_name?.toLowerCase();
+      }
+      if (profile?.email) {
+        token.email = profile.email;
+      }
+
+      // Proactively refresh the access token if it has expired or will within 60s.
+      // This keeps the calendar sync working without requiring a new sign-in.
+      const expiresAt = token.expiresAt as number | undefined;
+      if (token.refreshToken && expiresAt && Date.now() / 1000 > expiresAt - 60) {
+        try {
+          const res = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id:     process.env.GOOGLE_CLIENT_ID!,
+              client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+              grant_type:    "refresh_token",
+              refresh_token: token.refreshToken as string,
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json() as { access_token?: string; expires_in?: number; refresh_token?: string };
+            token.accessToken = data.access_token;
+            token.expiresAt   = Math.floor(Date.now() / 1000) + (data.expires_in ?? 3600);
+            // Google only returns a new refresh token occasionally; keep the old one if absent
+            if (data.refresh_token) token.refreshToken = data.refresh_token;
+          }
+        } catch {
+          // Non-fatal: existing token may still work; let the next request retry
+        }
+      }
+
+      return token;
+    },
+
+    session({ session, token }) {
+      // Expose first name + access token to server components / API routes
+      if (token.firstName) {
+        (session as unknown as Record<string, unknown>).firstName = token.firstName;
+      }
+      if (token.accessToken) {
+        (session as unknown as Record<string, unknown>).accessToken = token.accessToken;
+      }
+      return session;
+    },
+  },
+
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+});

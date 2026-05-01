@@ -1,0 +1,89 @@
+import { NextRequest } from "next/server";
+import { getTimesheet, updateTimesheet, archiveTimesheet } from "@/lib/notion/timesheets";
+import { json, withNotionError } from "@/lib/api-helpers";
+import { auth } from "@/lib/auth";
+import { inngest } from "@/lib/inngest/client";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { publishJob } from "@windedvertigo/job-queue";
+import type { TimesheetStatusJob } from "@windedvertigo/job-queue/types";
+import type { PortCfEnv } from "@/lib/cf-env";
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  return withNotionError(() => getTimesheet(id));
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const body = await req.json();
+
+  // Capture previous status before update (only if status is changing)
+  let previousStatus: string | undefined;
+  if (body.status) {
+    try {
+      const before = await getTimesheet(id);
+      previousStatus = before.status;
+    } catch {
+      // If we can't read the previous state, proceed without it
+    }
+  }
+
+  const result = await withNotionError(() => updateTimesheet(id, body));
+
+  // Fire job on meaningful status transitions (fire-and-forget)
+  // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
+  if (body.status && body.status !== previousStatus) {
+    const approverEmail = await getCallerEmail(req);
+    const timesheetPayload: TimesheetStatusJob = {
+      type: "timesheet/status-changed",
+      timesheetId: id,
+      newStatus: body.status,
+      previousStatus,
+      approverEmail,
+      changedAt: new Date().toISOString(),
+    };
+    try {
+      const { env } = getCloudflareContext();
+      publishJob(env.TIMESHEET_QUEUE, timesheetPayload).catch((err) => {
+        console.warn("[timesheets] failed to enqueue status job:", err);
+      });
+    } catch {
+      inngest.send({
+        name: "timesheet/status.changed",
+        data: { timesheetId: id, newStatus: body.status, previousStatus, approverEmail },
+      }).catch((err) => {
+        console.warn("[inngest] failed to send timesheet event:", err);
+      });
+    }
+  }
+
+  return result;
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  return withNotionError(async () => {
+    await archiveTimesheet(id);
+    return json({ archived: true });
+  });
+}
+
+// ── helpers ──────────────────────────────────────────────
+
+async function getCallerEmail(req: NextRequest): Promise<string> {
+  try {
+    const session = await auth();
+    return session?.user?.email ?? "system";
+  } catch {
+    return "system";
+  }
+}

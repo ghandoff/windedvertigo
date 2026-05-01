@@ -1,0 +1,24 @@
+{
+  "name": "@windedvertigo/job-queue",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared CF Queues + Durable Objects helpers — publish jobs, create consumers, standardize retry/DLQ config across wv CF Worker apps.",
+  "scripts": {
+    "build": "echo 'job-queue: no build step'"
+  },
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./types": "./types.ts"
+  },
+  "files": [
+    "*.ts"
+  ],
+  "peerDependencies": {
+    "@cloudflare/workers-types": ">=4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250510.0",
+    "typescript": "^5.0.0"
+  }
+}

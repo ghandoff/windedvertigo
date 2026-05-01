@@ -1,0 +1,165 @@
+{
+  "builds": [{ "src": "package.json", "use": "@vercel/next" }],
+  "crons": [
+    {
+      "path": "/api/cron/sync-replies",
+      "schedule": "55 8 * * *"
+    },
+    {
+      "path": "/api/cron/campaigns",
+      "schedule": "7 9 * * *"
+    },
+    {
+      "path": "/api/cron/refresh-linkedin",
+      "schedule": "0 9 1 * *"
+    },
+    {
+      "path": "/api/cron/relationship-alerts",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/meeting-briefings",
+      "schedule": "30 11 * * 1-5"
+    },
+    {
+      "path": "/api/cron/deadline-reminders",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/linkedin-monitor",
+      "schedule": "0 9 5 * *"
+    },
+    {
+      "path": "/api/rfp-radar/poll-rss",
+      "schedule": "15 8 * * *"
+    },
+    {
+      "path": "/api/cron/rfp-gmail-scanner",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/rfp-radar/poll-feedly",
+      "schedule": "30 8 * * *"
+    },
+    {
+      "path": "/api/cron/sync-calendar-time",
+      "schedule": "0 14 * * 1-5"
+    },
+    {
+      "path": "/api/cron/deadline-risk",
+      "schedule": "30 13 * * 1-5"
+    },
+    {
+      "path": "/api/cron/weekly-digest",
+      "schedule": "0 14 * * 1"
+    },
+    {
+      "path": "/api/cron/ingest-meeting-notes",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/gusto/sync",
+      "schedule": "0 13 * * 1"
+    },
+    {
+      "path": "/api/cron/sync-allowances",
+      "schedule": "0 9 28 * *"
+    },
+    {
+      "path": "/api/cron/sync-allowances-pilot",
+      "schedule": "0 9 28 * *"
+    },
+    {
+      "path": "/api/cron/sync-members-pilot",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-email-templates-pilot",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-activities-pilot",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/morning-digest",
+      "schedule": "0 9 * * 1-5"
+    },
+    {
+      "path": "/api/cron/sync-rfp-feeds-pilot",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/sync-deals-pilot",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-social-pilot",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/sync-campaigns-pilot",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/sync-campaign-steps-pilot",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/sync-organizations-pilot",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-contacts-pilot",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-rfp-pilot",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/sync-work-items",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-timesheets",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/generate-pdfs",
+      "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/sync-milestones-pilot",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-events-pilot",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/sync-projects-pilot",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-bd-assets-pilot",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/sweep-stuck-proposals",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/sync-cycles-pilot",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-competitors-pilot",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/sync-blueprints-pilot",
+      "schedule": "0 5 * * *"
+    }
+  ]
+}

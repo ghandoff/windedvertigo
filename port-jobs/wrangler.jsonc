@@ -1,0 +1,81 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-port-jobs",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // ── Queue consumers ───────────────────────────────────────────────
+  // Each queue is bound to this worker as a consumer. Batches are routed
+  // internally by batch.queue name in the queue() handler.
+  //
+  // Queue names must match the producer bindings in port/wrangler.jsonc
+  // (added in Phase G.2.1 when port migrates to CF Workers).
+  "queues": {
+    "consumers": [
+      {
+        "queue": "wv-port-proposal-queue",
+        // Proposal generation is slow (3–4 min for Claude call).
+        // Small batch size + generous timeout prevents partial batches
+        // from holding the DLQ too long.
+        "max_batch_size": 1,
+        "max_batch_timeout": 30,
+        "max_retries": 3,
+        "dead_letter_queue": "wv-port-proposal-queue-dlq"
+      },
+      {
+        "queue": "wv-port-timesheet-queue",
+        // Lightweight: fetch timesheet → send email → post Slack.
+        "max_batch_size": 10,
+        "max_batch_timeout": 15,
+        "max_retries": 5,
+        "dead_letter_queue": "wv-port-timesheet-queue-dlq"
+      },
+      {
+        "queue": "wv-port-rfp-document-queue",
+        // 2-pass Claude call + R2 upload. One at a time to avoid concurrent
+        // writes to the same RFP document slot in Supabase/Notion.
+        "max_batch_size": 1,
+        "max_batch_timeout": 30,
+        "max_retries": 3,
+        "dead_letter_queue": "wv-port-rfp-document-queue-dlq"
+      },
+      {
+        "queue": "wv-port-proposal-queue-dlq",
+        // DLQ consumer: replaces Inngest generateProposalFailureHandler.
+        // Fires when proposal-queue exhausts maxRetries. Resets proposalStatus
+        // to "failed" so the UI escape hatch shows + posts Slack alert.
+        "max_batch_size": 5,
+        "max_batch_timeout": 30,
+        "max_retries": 1
+      }
+    ]
+  },
+
+  // ── Secrets (set via `wrangler secret put --name wv-port-jobs`) ──
+  // Required secrets:
+  //   ANTHROPIC_API_KEY      — Claude API (proposal generation + RFP parsing)
+  //   RESEND_API_KEY         — Transactional email (timesheet notifications)
+  //   SLACK_WEBHOOK_URL      — Slack incoming webhook (channel posts)
+  //   SLACK_BOT_TOKEN        — Slack bot token (DMs + Block Kit)
+  //   NOTION_TOKEN           — Notion read/write (proposal output)
+  //   SUPABASE_URL           — wv-port-pilot project URL
+  //   SUPABASE_SERVICE_KEY   — Service role key (bypasses RLS for job writes)
+  //
+  // Copy values from wv-port Vercel environment (same secrets):
+  //   vercel env pull .env.port-jobs --project wv-port --environment production
+  //   Then: cat .env.port-jobs | grep -E 'ANTHROPIC|RESEND|SLACK|NOTION|SUPABASE' | xargs -I{} wrangler secret put {} --name wv-port-jobs
+
+  // ── Plain-text vars ──────────────────────────────────────────────
+  // R2_PUBLIC_URL: the public domain for the port-assets R2 bucket.
+  // NOT a secret — visible in wrangler deploy output.
+  "vars": {
+    "R2_PUBLIC_URL": "https://pub-ae6933715be744649a1f2fd99346225a.r2.dev"
+  },
+
+  // ── R2 binding ───────────────────────────────────────────────────
+  // Used by parse-rfp-questions consumer to store parsed question JSON.
+  "r2_buckets": [
+    { "binding": "PORT_ASSETS", "bucket_name": "port-assets" }
+  ]
+}

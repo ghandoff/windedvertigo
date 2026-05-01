@@ -178,6 +178,47 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 
 ## Engineering (Claude Code)
 
+### PRs pending Garrett merge (2026-05-01 — plan reconfigured)
+
+> Full reconfigured plan: `~/.claude/plans/graceful-popping-willow.md`
+> Monitor running: task `bo2te4fe8` watches #20/#21/#22 (wv-port) + #25 (monorepo) for merge
+
+**wv-port (`ghandoff/wv-port`) — merge in order:**
+- PR #20 `feat/rfp-proposals-supabase-atomic-v2` — Phase G.1 complete: all list-GET routes → Supabase + atomic proposal claim ✅ green
+- PR #21 `feat/campaign-weekly-analytics` — weekly pulse summary card on /campaigns ✅ green
+- PR #22 `feat/agent-write-tools-v2` — createCampaign + updateContact agent write tools ✅ green
+- ~~PR #19~~ closed ✓ | ~~PR #17~~ closed ✓ | ~~PR #14~~ closed ✓
+
+**Monorepo (`ghandoff/windedvertigo`) — merge in order:**
+1. PR #25 `restructure/phase-a1-cleanup-and-ops-merge` — Phase E.2+E.3: `@windedvertigo/email-templates` + `@windedvertigo/notion-crm` ✅ green
+2. PR #26 `feat/ops-marketing-module` — CMO marketing module (base: PR #25) ✅ green
+3. PR #28 `feat/booking-package-e4-clean` — Phase E.4: `@windedvertigo/booking` (base: PR #25) ✅ green
+4. PR #30 `feat/systems-thinking-portfolio` — systems-thinking simulator + teacher guides ✅ green
+5. PR #16, #17, #13 — lines-become-loops fixes + ops Supabase wiring (any order) ✅ green
+6. ~~PR #29~~ — **close** (superseded by direct main commit beefb4f)
+7. ~~PR #9~~ — **close** (stale draft, security audit reversal)
+- ~~PR #27~~ closed ✓ | ~~PR #14~~ closed ✓
+
+### After PRs merge — autonomous (Claude Code)
+
+- [ ] **Site CF Workers redeploy** — after PR #25 merges: `cd site && npx opennextjs-cloudflare build && wrangler deploy`
+  (PPCS launch countdown tool + systems-thinking redirect need this deploy)
+- [x] ~~**Phase A.2: port nested-clone resolution**~~ (2026-05-01) — `port/.git` dissolved; archive ref pushed to `wv-port-archive`; `gh repo archive ghandoff/wv-port` complete.
+- [ ] **Vercel project cleanup** — delete ~22 dormant projects after Garrett confirms list (see plan file)
+- [x] ~~**Phase G.2.1: port → CF Workers (OpenNext)**~~ (2026-05-01) — `wv-port.windedvertigo.workers.dev` live; middleware.ts naming fix; wrangler.jsonc with queue producer bindings + hourly cron.
+- [x] ~~**Phase G.2.2: Inngest functions → CF Queue consumers (port-jobs)**~~ (2026-05-01) — `port-jobs/src/index.ts` implements proposalConsumer, proposalDlqConsumer, timesheetConsumer, rfpDocumentConsumer. `seedProcessEnv()` bridge pattern. Native R2 binding for rfp-document consumer.
+- [x] ~~**Phase G.2.3: Inngest send() → CF Queues dual-dispatch (all 6 call sites)**~~ (2026-05-01) — All 6 inngest.send() replaced with `publishJob()` + `getCloudflareContext()` in port API routes. `port/lib/cf-env.ts` augments `CloudflareEnv` global. CF canary confirmed live with all 3 queue producer bindings. commit `14f5a71`.
+- [ ] **Phase G.2.4: 7-day parity canary** — started 2026-05-01. Compare `wv-port.windedvertigo.workers.dev` vs Vercel prod. Ends ~2026-05-08. After: G.2.5 DNS cutover.
+  - **`wv-port-jobs` deploy (Garrett action needed)**: Run `cd port-jobs && bash deploy.sh` to provision 7 secrets + deploy CF Queue consumer. Script is safe — secrets piped directly into wrangler, never printed to stdout. Queues have 1 message each from G.2.3 testing that will process immediately on deploy.
+  - Bugs fixed pre-deploy: R2_PUBLIC_URL was pointing at `creaseworks-evidence` bucket instead of `port-assets` (commit `57267e8`). Now reads from `wrangler.jsonc [vars]` with correct domain `pub-ae6933715be744649a1f2fd99346225a.r2.dev`.
+- [ ] **Phase B: harbour-apps subtree merge** — BLOCKED: 7 open PRs in harbour-apps (gate requires 0). Close stale PRs then re-run Phase 0 check.
+
+### Vercel cleanup — pending Garrett confirmation
+
+~22 dormant Vercel projects identified. Full list in `~/.claude/plans/graceful-popping-willow.md` under "Vercel project cleanup". Projects that are safe to delete are all now live on CF Workers. Key ones: `harbour`, `depth-chart`, `harbour-apps`, `wv-crm`, `port`, `systems-thinking`, and 16 individual harbour app projects.
+
+**Confirm these are OK to delete, then Claude Code handles the rest.**
+
 ### CRM — Phase 1: Data Visibility (this week)
 - [x] ~~**Aggregate campaign dashboard**~~ (2026-03-29) — Stats strip on `/campaigns`: active / total, emails sent, avg open rate, avg click rate.
 - [x] ~~**Resend webhook → Notion sync**~~ (2026-03-29) — Route was implemented but blocked by middleware (returning 401). Fixed public allowlist. **Still needed:** register webhook URL + `RESEND_WEBHOOK_SECRET` in Resend dashboard.
@@ -192,13 +233,13 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 - [x] ~~**Sequence step scheduling**~~ (2026-03-29) — `api/cron/campaigns` runs daily at 9:07am (was incorrectly hourly — fixed). Evaluates `sendDate` or `campaignStart + cumulativeDelayDays` per step. Auto-marks campaign complete when all steps sent/skipped.
 
 ### CMO / Marketing Infrastructure (NEW)
-- [ ] **Ops dashboard: marketing module** — content calendar widget, campaign metrics widget, pipeline summary widget. Full spec in `.brain/memory/marketing/claude-code-prompt.md`
-- [ ] **CRM: content drafting workspace** — new `/content` route for drafting social posts and newsletter content, saves to Notion "content calendar" DB
-- [ ] **CRM: campaign analytics enhancement** — weekly summary card on `/campaigns` page
-- [ ] **Notion: create content calendar DB** — properties: title, channel, body, scheduled date, status, author
-- [ ] **KV keys for marketing data** — add `marketing:content-calendar`, `marketing:campaign-metrics`, `marketing:pipeline-summary` to ops API
-- [ ] **TypeScript types for MarketingSnapshot** — add to `ops/lib/types.ts`
-- [ ] **Nav updates** — add "marketing" to ops sidebar, "content" to CRM sidebar
+- [x] ~~**Ops dashboard: marketing module**~~ (2026-05-01) — content calendar, campaign metrics, pipeline widgets in `ops/app/marketing/page.tsx`. PR #26 pending merge.
+- [x] ~~**CRM: content drafting workspace**~~ (2026-04-30) — `/content` route live; merged to wv-port main in `cf4056b`. Uses Notion contentCalendar DB (env-var driven).
+- [x] ~~**CRM: campaign analytics enhancement**~~ (2026-05-01) — weekly pulse card on `/campaigns` (this week vs last week deltas). PR #21 pending merge.
+- [ ] **Notion: create content calendar DB** — properties: title, channel, body, scheduled date, status, author ← **Cowork action**: create DB + set `NOTION_CONTENT_CALENDAR_DB_ID` in wv-port Vercel env
+- [x] ~~**KV keys for marketing data**~~ (2026-05-01) — `marketing:campaign-metrics`, `marketing:pipeline-summary` in `ops/app/api/marketing/route.ts`. PR #26.
+- [x] ~~**TypeScript types for MarketingSnapshot**~~ (2026-05-01) — `ContentItem`, `CampaignMetrics`, `PipelineSummary` in `ops/lib/types.ts`. PR #26.
+- [x] ~~**Nav updates**~~ (2026-05-01) — ops: marketing tab in DashboardShell (PR #26). CRM: "content" nav item in `app/components/nav-config.ts` (merged in cf4056b).
 
 ### raft.house — Next Waves
 - [x] ~~**Wave 1: core platform**~~ (2026-03-31) — PartyKit server, 4 activity types (poll, prediction, reflection, open-response), facilitator dashboard, participant mobile view, join flow, timer, pause/resume

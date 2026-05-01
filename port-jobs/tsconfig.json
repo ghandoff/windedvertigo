@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "paths": {
+      "@windedvertigo/job-queue": ["../packages/job-queue/index.ts"],
+      "@windedvertigo/job-queue/types": ["../packages/job-queue/types.ts"],
+      // Resolves @/lib/... imports from port/lib/ so consumers can reuse
+      // the existing business logic without duplicating it.
+      "@/*": ["../port/*"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
