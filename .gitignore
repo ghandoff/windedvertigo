@@ -28,3 +28,4 @@ port/
 # locally-generated booking secrets — never commit
 .secrets-do-not-commit/
 */.secrets-do-not-commit/
+.vercel
