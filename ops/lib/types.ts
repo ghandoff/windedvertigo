@@ -54,3 +54,31 @@ export interface FinancialMetric {
   currency?: boolean;
   hasData: boolean;
 }
+
+export interface ContentItem {
+  id: string;
+  title: string;
+  channel: string;
+  body?: string;
+  scheduledDate?: string;
+  status: string;
+}
+
+export interface CampaignMetrics {
+  campaignId: string;
+  name: string;
+  emailsSent: number;
+  openRate: number;
+  clickRate: number;
+  replyRate: number;
+  status: string;
+}
+
+export interface PipelineSummary {
+  identified: number;
+  pitched: number;
+  proposal: number;
+  won: number;
+  lost: number;
+  totalValue?: number;
+}
