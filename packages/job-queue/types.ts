@@ -23,8 +23,16 @@ export interface TimesheetStatusJob {
   changedAt: string; // ISO timestamp
 }
 
+export interface RfpDocumentUploadedJob {
+  type: "rfp/document-uploaded";
+  rfpId: string;
+  documentUrl: string;
+  contentType: string; // "text/plain" | "application/pdf"
+  uploadedAt: string; // ISO timestamp
+}
+
 /** Union of all job payload shapes. Add new job types here. */
-export type JobPayload = RfpProposalJob | TimesheetStatusJob;
+export type JobPayload = RfpProposalJob | TimesheetStatusJob | RfpDocumentUploadedJob;
 
 // ── Consumer / handler types ──────────────────────────────────────
 
@@ -49,7 +57,20 @@ export interface QueueBindings {
   /** CF Queue binding — injected by wrangler at runtime. */
   PROPOSAL_QUEUE: Queue<RfpProposalJob>;
   TIMESHEET_QUEUE: Queue<TimesheetStatusJob>;
+  RFP_DOCUMENT_QUEUE: Queue<RfpDocumentUploadedJob>;
 }
+
+// ── Cron function signatures (for CF scheduled() handler) ─────────
+
+/**
+ * Functions that were Inngest cron-triggered are mapped to CF Worker
+ * scheduled() handlers. These fire on the same UTC schedule via
+ * wrangler.jsonc `cron_triggers`.
+ *
+ * submission-followup → cron: "0 8 * * *"   (daily 8am UTC)
+ * bd-asset-health     → cron: "0 9 * * 1"   (Monday 9am UTC)
+ */
+export type ScheduledHandler = (controller: ScheduledController, env: QueueBindings & Record<string, unknown>, ctx: ExecutionContext) => Promise<void>;
 
 // ── Durable Object base types ─────────────────────────────────────
 
