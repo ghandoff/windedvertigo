@@ -2,7 +2,7 @@
   "name": "windedvertigo-site",
   "private": true,
   "workspaces": [
-    "harbour",
+    "site",
     "port",
     "ops",
     "ancestry",
