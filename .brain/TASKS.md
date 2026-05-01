@@ -178,6 +178,18 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 
 ## Engineering (Claude Code)
 
+### PRs pending Garrett merge (2026-05-01)
+
+**Monorepo (`ghandoff/windedvertigo`) — suggested merge order:**
+1. PR #25 `restructure/phase-a1-cleanup-and-ops-merge` — Phase E.2+E.3: `@windedvertigo/email-templates` + `@windedvertigo/notion-crm` packages — **MERGEABLE**
+2. PR #26 `feat/ops-marketing-module` — CMO marketing module (content calendar, campaigns, pipeline widgets) — **MERGEABLE** — base is PR #25
+3. PR #28 `feat/booking-package-e4-clean` — Phase E.4: `@windedvertigo/booking` package — **MERGEABLE** — base is PR #25
+- ~~PR #27~~ — superseded by PR #28 (close the old PR)
+
+**wv-port (`ghandoff/wv-port`):**
+- PR #20 `feat/rfp-proposals-supabase-atomic-v2` — Phase G.1 complete: all list-GET routes → Supabase — replaces PR #19 (CONFLICTING) — **MERGEABLE**
+- PR #21 `feat/campaign-weekly-analytics` — weekly pulse summary card on /campaigns
+
 ### CRM — Phase 1: Data Visibility (this week)
 - [x] ~~**Aggregate campaign dashboard**~~ (2026-03-29) — Stats strip on `/campaigns`: active / total, emails sent, avg open rate, avg click rate.
 - [x] ~~**Resend webhook → Notion sync**~~ (2026-03-29) — Route was implemented but blocked by middleware (returning 401). Fixed public allowlist. **Still needed:** register webhook URL + `RESEND_WEBHOOK_SECRET` in Resend dashboard.
@@ -192,13 +204,13 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 - [x] ~~**Sequence step scheduling**~~ (2026-03-29) — `api/cron/campaigns` runs daily at 9:07am (was incorrectly hourly — fixed). Evaluates `sendDate` or `campaignStart + cumulativeDelayDays` per step. Auto-marks campaign complete when all steps sent/skipped.
 
 ### CMO / Marketing Infrastructure (NEW)
-- [ ] **Ops dashboard: marketing module** — content calendar widget, campaign metrics widget, pipeline summary widget. Full spec in `.brain/memory/marketing/claude-code-prompt.md`
-- [ ] **CRM: content drafting workspace** — new `/content` route for drafting social posts and newsletter content, saves to Notion "content calendar" DB
-- [ ] **CRM: campaign analytics enhancement** — weekly summary card on `/campaigns` page
-- [ ] **Notion: create content calendar DB** — properties: title, channel, body, scheduled date, status, author
-- [ ] **KV keys for marketing data** — add `marketing:content-calendar`, `marketing:campaign-metrics`, `marketing:pipeline-summary` to ops API
-- [ ] **TypeScript types for MarketingSnapshot** — add to `ops/lib/types.ts`
-- [ ] **Nav updates** — add "marketing" to ops sidebar, "content" to CRM sidebar
+- [x] ~~**Ops dashboard: marketing module**~~ (2026-05-01) — content calendar, campaign metrics, pipeline widgets in `ops/app/marketing/page.tsx`. PR #26 MERGEABLE.
+- [x] ~~**CRM: content drafting workspace**~~ (2026-04-30) — `/content` route live; merged to wv-port main in `cf4056b`. Uses Notion contentCalendar DB (env-var driven).
+- [x] ~~**CRM: campaign analytics enhancement**~~ (2026-05-01) — weekly pulse card on `/campaigns` (this week vs last week deltas). PR #21 on wv-port.
+- [ ] **Notion: create content calendar DB** — properties: title, channel, body, scheduled date, status, author ← **Cowork action**: create DB + set `NOTION_CONTENT_CALENDAR_DB_ID` in wv-port Vercel env
+- [x] ~~**KV keys for marketing data**~~ (2026-05-01) — `marketing:campaign-metrics`, `marketing:pipeline-summary` in `ops/app/api/marketing/route.ts`. PR #26.
+- [x] ~~**TypeScript types for MarketingSnapshot**~~ (2026-05-01) — `ContentItem`, `CampaignMetrics`, `PipelineSummary` in `ops/lib/types.ts`. PR #26.
+- [x] ~~**Nav updates**~~ (2026-05-01) — ops: marketing tab in DashboardShell (PR #26). CRM: "content" nav item in `app/components/nav-config.ts` (merged in cf4056b).
 
 ### raft.house — Next Waves
 - [x] ~~**Wave 1: core platform**~~ (2026-03-31) — PartyKit server, 4 activity types (poll, prediction, reflection, open-response), facilitator dashboard, participant mobile view, join flow, timer, pause/resume
