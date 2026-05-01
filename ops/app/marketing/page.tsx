@@ -60,7 +60,13 @@ const EMPTY_PIPELINE: PipelineSummary = {
 
 async function fetchContentItems(): Promise<ContentItem[]> {
   try {
+<<<<<<< HEAD
     const { data } = await getSupabase()
+=======
+    const sb = getSupabase();
+    if (!sb) return PLACEHOLDER_CONTENT;
+    const { data } = await sb
+>>>>>>> 260fe89 (fix(ops): align supabase client to getSupabase() null-return pattern)
       .from("social_drafts")
       .select("notion_page_id, content, platform, status, scheduled_for")
       .order("scheduled_for", { ascending: true })
