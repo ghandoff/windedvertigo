@@ -12,6 +12,7 @@ import type { Timesheet, TimesheetFilters } from "@/lib/notion/types";
 import { GustoSyncButton } from "./gusto-sync-button";
 import { TimeTutorialWrapper } from "./time-tutorial-wrapper";
 import { TimeViewToggle } from "./time-view-toggle";
+import { CalendarSyncButton } from "./calendar-sync-button";
 import { formatDateWithYear } from "@/lib/format";
 
 export const revalidate = 120;
@@ -431,6 +432,8 @@ export default async function TimePage({ searchParams }: Props) {
           <ChevronRight className="h-4 w-4" />
         </Link>
       </div>
+
+      <CalendarSyncButton />
 
       <Suspense fallback={<div className="text-center py-8 text-muted-foreground text-sm">loading time entries...</div>}>
         <TimesheetList ctx={ctx} resolvedView={resolved} members={members} />

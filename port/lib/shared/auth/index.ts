@@ -52,9 +52,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // No prompt override — Google will silently reuse the active session
-      // when only one account is signed in, avoiding an unnecessary picker.
-      // The picker still appears naturally when multiple accounts are present.
+      // Request offline access so Google issues a refresh token, enabling
+      // calendar sync without requiring the user to be actively signed in.
+      // Adding calendar.readonly here means the first sign-in after this
+      // deploy will show a Google consent screen requesting calendar read access.
+      authorization: {
+        params: {
+          access_type: "offline",
+          scope: [
+            "openid",
+            "email",
+            "profile",
+            "https://www.googleapis.com/auth/calendar.readonly",
+          ].join(" "),
+        },
+      },
     }),
   ],
 
@@ -130,21 +142,59 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return false;
     },
 
-    jwt({ token, profile }) {
-      // Store first name from Google profile for "logged by" auto-fill
+    async jwt({ token, account, profile }) {
+      // On initial sign-in, account carries the OAuth tokens from Google.
+      if (account) {
+        token.accessToken  = account.access_token;
+        token.refreshToken = account.refresh_token;
+        token.expiresAt    = account.expires_at; // seconds since epoch
+      }
+
+      // Store first name + email from Google profile for "logged by" auto-fill
       if (profile?.given_name) {
-        token.firstName = profile.given_name.toLowerCase();
+        token.firstName = (profile as { given_name?: string }).given_name?.toLowerCase();
       }
       if (profile?.email) {
         token.email = profile.email;
       }
+
+      // Proactively refresh the access token if it has expired or will within 60s.
+      // This keeps the calendar sync working without requiring a new sign-in.
+      const expiresAt = token.expiresAt as number | undefined;
+      if (token.refreshToken && expiresAt && Date.now() / 1000 > expiresAt - 60) {
+        try {
+          const res = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id:     process.env.GOOGLE_CLIENT_ID!,
+              client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+              grant_type:    "refresh_token",
+              refresh_token: token.refreshToken as string,
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json() as { access_token?: string; expires_in?: number; refresh_token?: string };
+            token.accessToken = data.access_token;
+            token.expiresAt   = Math.floor(Date.now() / 1000) + (data.expires_in ?? 3600);
+            // Google only returns a new refresh token occasionally; keep the old one if absent
+            if (data.refresh_token) token.refreshToken = data.refresh_token;
+          }
+        } catch {
+          // Non-fatal: existing token may still work; let the next request retry
+        }
+      }
+
       return token;
     },
 
     session({ session, token }) {
-      // Expose first name + email to client session
+      // Expose first name + access token to server components / API routes
       if (token.firstName) {
         (session as unknown as Record<string, unknown>).firstName = token.firstName;
+      }
+      if (token.accessToken) {
+        (session as unknown as Record<string, unknown>).accessToken = token.accessToken;
       }
       return session;
     },
