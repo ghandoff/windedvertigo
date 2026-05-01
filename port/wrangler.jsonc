@@ -23,11 +23,13 @@
     ]
   },
 
-  // ── Cron trigger — single hourly router ──────────────────────────────────
-  // Replaces 32 vercel.json cron entries. The scheduled() handler in
-  // port/lib/scheduled.ts routes each :00 tick to the right API routes.
+  // ── Cron triggers ────────────────────────────────────────────────────────
+  // Two triggers:
+  //   "0 * * * *"   — hourly router (replaces 39 vercel.json crons via CRON_TABLE)
+  //   "*/5 * * * *" — sweep-stuck-proposals (every 5 min; can't use hourly router)
+  // The scheduled() handler in port/lib/scheduled.ts distinguishes by controller.cron.
   "triggers": {
-    "crons": ["0 * * * *"]
+    "crons": ["0 * * * *", "*/5 * * * *"]
   },
 
   // ── R2 binding ───────────────────────────────────────────────────────────

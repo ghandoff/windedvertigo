@@ -92,12 +92,23 @@ const CRON_TABLE: CronEntry[] = [
   { path: "/api/cron/sync-contacts-pilot",      hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
   { path: "/api/cron/sync-organizations-pilot", hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
   { path: "/api/cron/sync-work-items",          hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
+  { path: "/api/cron/sync-milestones-pilot",    hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
+  { path: "/api/cron/sync-projects-pilot",      hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
+  { path: "/api/cron/sync-cycles-pilot",        hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
 
   // ── Every 4 hours ───────────────────────────────────────────────────────────
   { path: "/api/cron/ingest-meeting-notes",   hours: [0,4,8,12,16,20] },
   { path: "/api/cron/sync-activities-pilot",  hours: [0,4,8,12,16,20] },
   { path: "/api/cron/sync-social-pilot",      hours: [0,4,8,12,16,20] },
   { path: "/api/cron/sync-timesheets",        hours: [0,4,8,12,16,20] },
+
+  // ── Every 6 hours ───────────────────────────────────────────────────────────
+  { path: "/api/cron/sync-competitors-pilot", hours: [0,6,12,18] },
+
+  // ── Fixed nightly (3am/4am/5am) ──────────────────────────────────────────────
+  { path: "/api/cron/sync-events-pilot",     hours: [3] },
+  { path: "/api/cron/sync-bd-assets-pilot",  hours: [4] },
+  { path: "/api/cron/sync-blueprints-pilot", hours: [5] },
 
   // ── 2am daily seed ──────────────────────────────────────────────────────────
   { path: "/api/cron/sync-members-pilot",          hours: [2] },
@@ -108,6 +119,10 @@ const CRON_TABLE: CronEntry[] = [
   { path: "/api/cron/sync-campaign-steps-pilot" },
   { path: "/api/cron/sync-rfp-pilot" },
 ];
+
+// sweep-stuck-proposals runs every 5 minutes — handled by the */5 trigger,
+// NOT via CRON_TABLE (hourly router would under-fire it to once per hour).
+const SWEEP_PATH = "/api/cron/sweep-stuck-proposals";
 
 // ── Dispatch logic ────────────────────────────────────────────────────────────
 
@@ -148,12 +163,19 @@ async function dispatch(
 // ── Main scheduled handler ────────────────────────────────────────────────────
 
 export async function scheduled(
-  _controller: ScheduledController,
+  controller: ScheduledController,
   env: ScheduledEnv,
   ctx: ExecutionContext,
 ): Promise<void> {
-  const now = new Date();
+  // sweep-stuck-proposals fires on its own */5 trigger — dispatch immediately
+  // and return. The hourly router does not run sweep-stuck-proposals.
+  if (controller.cron === "*/5 * * * *") {
+    await dispatch({ path: SWEEP_PATH }, env, ctx);
+    return;
+  }
 
+  // All other triggers go through the hourly routing table
+  const now = new Date();
   for (const entry of CRON_TABLE) {
     if (shouldRun(entry, now)) {
       await dispatch(entry, env, ctx);
