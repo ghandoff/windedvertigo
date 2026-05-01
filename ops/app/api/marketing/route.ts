@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { kvGet } from "@/lib/kv";
-import { supabase } from "@/lib/supabase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import type { CampaignMetrics, PipelineSummary, ContentItem } from "@/lib/types";
 
 const EMPTY_PIPELINE: PipelineSummary = {
@@ -15,7 +15,7 @@ export async function GET() {
   const [campaignMetrics, pipelineSummary, draftsResult] = await Promise.all([
     kvGet<CampaignMetrics[]>("marketing:campaign-metrics"),
     kvGet<PipelineSummary>("marketing:pipeline-summary"),
-    supabase
+    getSupabase()
       .from("social_drafts")
       .select("notion_page_id, content, platform, status, scheduled_for, updated_at")
       .order("scheduled_for", { ascending: true })
