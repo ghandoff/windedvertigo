@@ -298,6 +298,10 @@ export function DashboardShell({ data, user, dataAsOf }: DashboardShellProps) {
             <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-ops-border/40 text-[9px] text-ops-text-muted font-mono">
               ⌘K
             </kbd>
+            <nav className="hidden sm:flex items-center gap-3 ml-2 text-[11px] text-ops-text-muted">
+              <a href="/" className="text-ops-heading lowercase font-medium">dashboard</a>
+              <a href="/marketing" className="hover:text-ops-text transition-colors lowercase">marketing</a>
+            </nav>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-ops-text-muted">
             <KioskToggle onClick={() => setKioskMode(true)} />
