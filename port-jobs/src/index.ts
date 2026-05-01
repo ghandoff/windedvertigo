@@ -34,7 +34,20 @@ import {
   getRfpOpportunity,
   updateRfpOpportunity,
 } from "@/lib/notion/rfp-radar";
-import type { QuestionBank } from "@/lib/inngest/functions/parse-rfp-questions";
+// Inlined from port/lib/inngest/functions/parse-rfp-questions.ts
+// (avoids a hard dependency on the inngest module path, which is deleted post-G.2.4)
+interface QuestionBankEntry {
+  number: string;
+  text: string;
+  suggestedAssets: Array<{ assetId: string; assetName: string; relevanceNote: string }>;
+  draftResponse: string;
+}
+interface QuestionBank {
+  rfpId: string;
+  rfpName: string;
+  generatedAt: string;
+  questions: QuestionBankEntry[];
+}
 import { getOrganization } from "@/lib/notion/organizations";
 import { getActivitiesForOrg } from "@/lib/notion/activities";
 import { queryBdAssets, incrementBdAssetUsage } from "@/lib/notion/bd-assets";
