@@ -2,12 +2,16 @@
  * Invoice generation logic — resolves the timesheet→task→project→org chain
  * and produces structured invoice data + branded HTML.
  *
+ * Two modes:
+ *   - resolveInvoiceData: single-project, approved+billable timesheets only (client billing)
+ *   - resolveMonthlyInvoiceData: all timesheets for a month, grouped by project (monthly summary)
+ *
  * Used by both the preview API route and the send route.
  */
 
 import { getProject } from "@/lib/notion/projects";
 import { getOrganization } from "@/lib/notion/organizations";
-import { queryWorkItems } from "@/lib/notion/work-items";
+import { queryWorkItems, getWorkItem } from "@/lib/notion/work-items";
 import { queryTimesheets } from "@/lib/notion/timesheets";
 import { getActiveMembers } from "@/lib/notion/members";
 import type { Timesheet, Project, Organization } from "@/lib/notion/types";
@@ -421,6 +425,332 @@ export function buildInvoiceHtml(data: InvoiceData): string {
 
     <!-- footer -->
     <div style="padding:16px 32px;background:${brand.cadet};text-align:center;">
+      <div style="font-size:11px;color:${brand.champagne};opacity:0.85;">winded.vertigo LLC · San Francisco, CA · windedvertigo.com</div>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+// ── monthly invoice ─────────────────────────────────────────
+
+/** Inline SVG wordmark — works in email, PDF, and browser without network requests. */
+const WV_WORDMARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 48" width="240" height="38" aria-label="winded.vertigo" style="display:block;">
+  <g transform="skewX(-6)">
+    <text x="0" y="36" font-family="Inter,system-ui,sans-serif" font-weight="700" font-size="30" fill="${brand.cadet}" letter-spacing="-1">winded<tspan fill="${brand.redwood}">.</tspan>vertigo</text>
+  </g>
+</svg>`;
+
+export interface MonthlyInvoiceSection {
+  projectId: string | null;
+  projectName: string;
+  lineItems: InvoiceLineItem[];
+  sectionHours: number;
+  sectionAmount: number;
+  hasRates: boolean;
+}
+
+export interface MonthlyInvoiceData {
+  invoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string;
+  month: string;
+  periodStart: string;
+  periodEnd: string;
+  sections: MonthlyInvoiceSection[];
+  totalHours: number;
+  total: number;
+  hasAnyRates: boolean;
+  timesheetIds: string[];
+  warnings: string[];
+}
+
+/**
+ * Resolves all timesheets for a month, groups them by project (via work item
+ * associations), and returns structured monthly invoice data.
+ *
+ * Unlike resolveInvoiceData, this does NOT filter by status or billable flag —
+ * it's designed for monthly summaries that include all tracked time.
+ */
+export async function resolveMonthlyInvoiceData(
+  startDate: string,
+  endDate: string,
+  personId?: string | null,
+): Promise<MonthlyInvoiceData> {
+  const [{ data: timesheets }, members] = await Promise.all([
+    queryTimesheets(
+      {
+        dateAfter:  startDate,
+        dateBefore: endDate,
+        ...(personId ? { personId } : {}),
+      },
+      { pageSize: 500 },
+    ),
+    getActiveMembers(),
+  ]);
+
+  const warnings: string[] = [];
+  const memberMap = new Map(members.map((m) => [m.id, m]));
+
+  // Collect all unique task IDs to batch-resolve → project name
+  const allTaskIds = [...new Set(timesheets.flatMap((ts) => ts.taskIds))];
+
+  // Fetch work items concurrently (cap at 20 to avoid rate limit)
+  const taskIdBatch = allTaskIds.slice(0, 20);
+  const workItemResults = await Promise.allSettled(
+    taskIdBatch.map((id) => getWorkItem(id)),
+  );
+
+  // Build taskId → projectId map
+  const taskToProjectId = new Map<string, string>();
+  workItemResults.forEach((result, idx) => {
+    if (result.status === "fulfilled" && result.value.projectIds.length > 0) {
+      taskToProjectId.set(taskIdBatch[idx], result.value.projectIds[0]);
+    }
+  });
+
+  // Fetch project names for unique projectIds
+  const uniqueProjectIds = [...new Set(taskToProjectId.values())];
+  const projectResults = await Promise.allSettled(
+    uniqueProjectIds.map((id) => getProject(id)),
+  );
+  const projectNameMap = new Map<string, string>();
+  projectResults.forEach((result, idx) => {
+    if (result.status === "fulfilled") {
+      projectNameMap.set(uniqueProjectIds[idx], result.value.project);
+    }
+  });
+
+  // Resolve each timesheet → its project (or null for unlinked)
+  const sectionMap = new Map<string | null, { projectName: string; timesheets: Timesheet[] }>();
+
+  for (const ts of timesheets) {
+    let projectId: string | null = null;
+    let projectName = "general";
+
+    for (const taskId of ts.taskIds) {
+      const pid = taskToProjectId.get(taskId);
+      if (pid) {
+        projectId = pid;
+        projectName = projectNameMap.get(pid) ?? "project";
+        break;
+      }
+    }
+
+    const key = projectId ?? "__general__";
+    if (!sectionMap.has(key)) {
+      sectionMap.set(key, { projectName, timesheets: [] });
+    }
+    sectionMap.get(key)!.timesheets.push(ts);
+  }
+
+  // Build sections — project-linked ones first, general last
+  const sections: MonthlyInvoiceSection[] = [];
+  let totalHours = 0;
+  let total = 0;
+  let hasAnyRates = false;
+
+  const generalEntry = sectionMap.get("__general__");
+  const projectEntries = [...sectionMap.entries()].filter(([k]) => k !== "__general__");
+
+  for (const [projectId, { projectName, timesheets: ts }] of [
+    ...projectEntries,
+    ...(generalEntry ? [["__general__", generalEntry] as const] : []),
+  ]) {
+    const { lineItems, nullRateCount } = computeLineItems(ts, memberMap);
+    const sectionHours = lineItems
+      .filter((li) => !li.isReimbursement)
+      .reduce((sum, li) => sum + li.hours, 0);
+    const sectionAmount = lineItems.reduce((sum, li) => sum + li.amount, 0);
+    const hasRates = lineItems.some((li) => li.rate > 0);
+
+    if (nullRateCount > 0 && hasRates) {
+      warnings.push(`${nullRateCount} ${projectName} entr${nullRateCount > 1 ? "ies have" : "y has"} no rate — shown as $0.`);
+    }
+
+    sections.push({
+      projectId: projectId === "__general__" ? null : projectId,
+      projectName,
+      lineItems,
+      sectionHours,
+      sectionAmount,
+      hasRates,
+    });
+
+    totalHours += sectionHours;
+    total += sectionAmount;
+    if (hasRates) hasAnyRates = true;
+  }
+
+  if (timesheets.some((ts) => ts.taskIds.length === 0)) {
+    warnings.push("Some entries aren't linked to work items — they appear under 'general'. Link them to projects in Notion to categorize them.");
+  }
+
+  const invoiceDate = new Date().toISOString().slice(0, 10);
+  const due = new Date();
+  due.setDate(due.getDate() + 30);
+  const dueDate = due.toISOString().slice(0, 10);
+
+  const [year, m] = startDate.split("-").map(Number);
+  const month = new Date(year, m - 1).toLocaleString("en-US", { month: "long", year: "numeric" });
+
+  return {
+    invoiceNumber: generateInvoiceNumber(year),
+    invoiceDate,
+    dueDate,
+    month,
+    periodStart: startDate,
+    periodEnd: endDate,
+    sections,
+    totalHours,
+    total,
+    hasAnyRates,
+    timesheetIds: timesheets.map((ts) => ts.id),
+    warnings,
+  };
+}
+
+// ── monthly HTML builder ────────────────────────────────────
+
+export function buildMonthlyInvoiceHtml(data: MonthlyInvoiceData): string {
+  const sectionRows = data.sections
+    .map((section) => {
+      const rows = section.lineItems
+        .map((li) => `
+          <tr>
+            <td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#6b7280;white-space:nowrap;">${li.date}</td>
+            <td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#111827;">${li.description}</td>
+            <td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#6b7280;">${li.member}</td>
+            <td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#374151;text-align:right;">${li.hours > 0 ? li.hours.toFixed(1) : "—"}</td>
+            ${data.hasAnyRates ? `<td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#374151;text-align:right;">${li.rate > 0 ? formatCurrency(li.rate) : "—"}</td>
+            <td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#111827;text-align:right;font-weight:500;">${li.amount > 0 ? formatCurrency(li.amount) : "—"}</td>` : ""}
+          </tr>`)
+        .join("");
+
+      const subtotalRow = `
+        <tr style="background:${brand.cadet}10;">
+          <td colspan="${data.hasAnyRates ? 3 : 3}" style="padding:8px 12px;font-size:12px;font-weight:600;color:${brand.cadet};">${section.projectName} — subtotal</td>
+          <td style="padding:8px 12px;font-size:13px;font-weight:600;color:${brand.cadet};text-align:right;">${section.sectionHours.toFixed(1)}h</td>
+          ${data.hasAnyRates ? `<td style="padding:8px 12px;"></td>
+          <td style="padding:8px 12px;font-size:13px;font-weight:600;color:${brand.cadet};text-align:right;">${section.sectionAmount > 0 ? formatCurrency(section.sectionAmount) : "—"}</td>` : ""}
+        </tr>`;
+
+      return `
+        <!-- project section: ${section.projectName} -->
+        <tr>
+          <td colspan="${data.hasAnyRates ? 6 : 4}" style="padding:12px 12px 6px;background:${brand.cadet};font-size:11px;font-weight:700;color:${brand.champagne};text-transform:uppercase;letter-spacing:0.08em;">${section.projectName}</td>
+        </tr>
+        ${rows}
+        ${subtotalRow}
+        <tr><td colspan="${data.hasAnyRates ? 6 : 4}" style="padding:4px 0;"></td></tr>`;
+    })
+    .join("");
+
+  const colSpan = data.hasAnyRates ? 6 : 4;
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monthly Invoice — ${data.month}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .invoice-container { box-shadow: none !important; border: none !important; max-width: 100% !important; margin: 0 !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;font-family:${typography.fontFamily};background:#f9fafb;">
+  <div class="invoice-container" style="max-width:820px;margin:32px auto;background:#fff;border-radius:8px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;">
+
+    <!-- letterhead -->
+    <div style="padding:32px 32px 20px;border-bottom:3px solid ${brand.cadet};">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="vertical-align:top;">
+            ${WV_WORDMARK_SVG}
+            <div style="font-size:12px;color:#6b7280;margin-top:6px;">San Francisco, CA</div>
+            <div style="font-size:12px;color:#6b7280;">garrett@windedvertigo.com · windedvertigo.com</div>
+          </td>
+          <td style="text-align:right;vertical-align:top;">
+            <div style="font-size:26px;font-weight:700;color:${brand.cadet};letter-spacing:0.05em;margin-bottom:8px;">INVOICE</div>
+            <table style="border-collapse:collapse;margin-left:auto;">
+              <tr>
+                <td style="padding:2px 14px 2px 0;font-size:12px;color:#9ca3af;text-align:right;">Invoice No.</td>
+                <td style="padding:2px 0;font-size:13px;color:#111827;font-weight:600;">${data.invoiceNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding:2px 14px 2px 0;font-size:12px;color:#9ca3af;text-align:right;">Date</td>
+                <td style="padding:2px 0;font-size:13px;color:#111827;">${formatDateLong(data.invoiceDate)}</td>
+              </tr>
+              <tr>
+                <td style="padding:2px 14px 2px 0;font-size:12px;color:#9ca3af;text-align:right;">Due Date</td>
+                <td style="padding:2px 0;font-size:13px;color:#111827;">${formatDateLong(data.dueDate)}</td>
+              </tr>
+              <tr>
+                <td style="padding:2px 14px 2px 0;font-size:12px;color:#9ca3af;text-align:right;">Period</td>
+                <td style="padding:2px 0;font-size:13px;font-weight:600;color:${brand.cadet};">${data.month}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- line items by project -->
+    <div style="padding:20px 32px 8px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="border-bottom:2px solid ${brand.cadet};">
+            <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">Date</th>
+            <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Description</th>
+            <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Member</th>
+            <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Hours</th>
+            ${data.hasAnyRates ? `<th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Rate</th>
+            <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Amount</th>` : ""}
+          </tr>
+        </thead>
+        <tbody>
+          ${sectionRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- totals -->
+    <div style="padding:0 32px 24px;">
+      <table style="width:${data.hasAnyRates ? "320" : "220"}px;margin-left:auto;border-collapse:collapse;">
+        <tr>
+          <td style="padding:6px 0;font-size:13px;color:#6b7280;">Total Hours</td>
+          <td style="padding:6px 0;font-size:13px;color:#111827;text-align:right;font-weight:600;">${data.totalHours.toFixed(1)}</td>
+        </tr>
+        ${data.sections.length > 1 ? data.sections.map((s) => `
+        <tr>
+          <td style="padding:3px 0;font-size:12px;color:#9ca3af;padding-left:12px;">${s.projectName}</td>
+          <td style="padding:3px 0;font-size:12px;color:#9ca3af;text-align:right;">${s.sectionHours.toFixed(1)}h${data.hasAnyRates && s.sectionAmount > 0 ? ` · ${formatCurrency(s.sectionAmount)}` : ""}</td>
+        </tr>`).join("") : ""}
+        ${data.hasAnyRates ? `
+        <tr style="border-top:2px solid ${brand.cadet};">
+          <td style="padding:12px 0 6px;font-size:16px;font-weight:700;color:${brand.cadet};">Total Due</td>
+          <td style="padding:12px 0 6px;font-size:16px;font-weight:700;color:${brand.redwood};text-align:right;">${formatCurrency(data.total)}</td>
+        </tr>` : `
+        <tr style="border-top:2px solid ${brand.cadet};">
+          <td style="padding:12px 0 6px;font-size:14px;font-weight:700;color:${brand.cadet};">Total Hours</td>
+          <td style="padding:12px 0 6px;font-size:14px;font-weight:700;color:${brand.cadet};text-align:right;">${data.totalHours.toFixed(1)}</td>
+        </tr>`}
+      </table>
+    </div>
+
+    <!-- payment terms -->
+    <div style="padding:16px 32px;background:${brand.champagne}20;border-top:1px solid #e5e7eb;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;margin-bottom:6px;">Payment Terms</div>
+      <div style="font-size:13px;color:#374151;">Net 30 — payment due by ${formatDateLong(data.dueDate)}</div>
+    </div>
+
+    <!-- footer -->
+    <div style="padding:14px 32px;background:${brand.cadet};text-align:center;">
       <div style="font-size:11px;color:${brand.champagne};opacity:0.85;">winded.vertigo LLC · San Francisco, CA · windedvertigo.com</div>
     </div>
   </div>
