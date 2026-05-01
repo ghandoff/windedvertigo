@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="OpenEd logo">
-  <rect width="240" height="240" fill="#ffebd2"/>
-  <circle cx="120" cy="72" r="22" fill="#cb7858"/>
-  <path d="M48 156 L120 132 L192 156 L192 188 L120 164 L48 188 Z" fill="none" stroke="#273248" stroke-width="6" stroke-linejoin="round"/>
-  <path d="M120 132 L120 164" stroke="#273248" stroke-width="4"/>
-  <text x="120" y="220" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">OpenEd</text>
-</svg>

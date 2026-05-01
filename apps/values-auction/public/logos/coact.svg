@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="CoAct logo">
-  <rect width="240" height="240" fill="#ffebd2"/>
-  <path d="M72 112 A48 48 0 0 1 168 112" fill="none" stroke="#273248" stroke-width="6" stroke-linecap="round"/>
-  <path d="M168 112 A48 48 0 0 1 72 112" fill="none" stroke="#cb7858" stroke-width="6" stroke-linecap="round"/>
-  <path d="M168 104 L168 120 L180 112 Z" fill="#273248"/>
-  <path d="M72 120 L72 104 L60 112 Z" fill="#cb7858"/>
-  <text x="120" y="212" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">CoAct</text>
-</svg>
