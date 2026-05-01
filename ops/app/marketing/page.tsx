@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { kvGet } from "@/lib/kv";
-import { supabase } from "@/lib/supabase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import type { ContentItem, CampaignMetrics, PipelineSummary } from "@/lib/types";
 
 /* ─────────────────────────────────────────────────────────────────
@@ -60,7 +60,9 @@ const EMPTY_PIPELINE: PipelineSummary = {
 
 async function fetchContentItems(): Promise<ContentItem[]> {
   try {
-    const { data } = await supabase
+    const sb = getSupabase();
+    if (!sb) return PLACEHOLDER_CONTENT;
+    const { data } = await sb
       .from("social_drafts")
       .select("notion_page_id, content, platform, status, scheduled_for")
       .order("scheduled_for", { ascending: true })

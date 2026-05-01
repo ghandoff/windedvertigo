@@ -1,4 +1,4 @@
-import { supabase } from "./client";
+import { getSupabase } from "./client";
 import type { TeamMember } from "@/lib/types";
 
 interface TeamMemberRow {
@@ -10,7 +10,9 @@ interface TeamMemberRow {
 
 export async function fetchTeamMembers(): Promise<TeamMember[] | null> {
   try {
-    const { data, error } = await supabase
+    const sb = getSupabase();
+    if (!sb) return null;
+    const { data, error } = await sb
       .from("ops_team_members")
       .select("slug, name, role, focus")
       .eq("active", true)
