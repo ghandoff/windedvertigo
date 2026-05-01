@@ -7,7 +7,7 @@ import { resolveUserContext, canSee, getNotionUserMap, type UserContext } from "
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, CheckCircle2, FileText, DollarSign, AlertTriangle, UserX, Receipt } from "lucide-react";
+import { Clock, CheckCircle2, FileText, DollarSign, AlertTriangle, UserX, Receipt, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Timesheet, TimesheetFilters } from "@/lib/notion/types";
 import { GustoSyncButton } from "./gusto-sync-button";
 import { TimeTutorialWrapper } from "./time-tutorial-wrapper";
@@ -35,6 +35,12 @@ interface ResolvedView {
   view: TimeView;
   personId: string | undefined;
   memberId: string | undefined;
+  /** "April 2026" — for display in the month nav */
+  monthLabel: string;
+  /** ISO date string: first day of the selected month, e.g. "2026-04-01" */
+  dateAfter: string;
+  /** ISO date string: first day of the month after, e.g. "2026-05-01" */
+  dateBefore: string;
 }
 
 function resolveView(
@@ -42,23 +48,41 @@ function resolveView(
   ctx: UserContext,
   canSeeTeam: boolean,
 ): ResolvedView {
+  // Parse ?month=YYYY-MM, default to the current calendar month
+  const now = new Date();
+  const monthParam = params.month;
+  const [year, month] = monthParam
+    ? monthParam.split("-").map(Number)
+    : [now.getFullYear(), now.getMonth() + 1];
+
+  const dateAfter   = `${year}-${String(month).padStart(2, "0")}-01`;
+  const nextYear    = month === 12 ? year + 1 : year;
+  const nextMonth   = month === 12 ? 1 : month + 1;
+  const dateBefore  = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
+  const monthLabel  = new Date(year, month - 1).toLocaleString("en-US", {
+    month: "long",
+    year:  "numeric",
+  });
+
+  const dateRange = { dateAfter, dateBefore, monthLabel };
+
   // Non-team users always see their own
   if (!canSeeTeam) {
-    return { view: "mine", personId: ctx.notionUserId ?? undefined, memberId: undefined };
+    return { view: "mine", personId: ctx.notionUserId ?? undefined, memberId: undefined, ...dateRange };
   }
 
   // ?member={notionUserId} → individual member view
   if (params.member) {
-    return { view: "member", personId: params.member, memberId: params.member };
+    return { view: "member", personId: params.member, memberId: params.member, ...dateRange };
   }
 
   // ?view=collective → all entries
   if (params.view === "collective") {
-    return { view: "collective", personId: undefined, memberId: undefined };
+    return { view: "collective", personId: undefined, memberId: undefined, ...dateRange };
   }
 
   // Default for admin/team: own entries
-  return { view: "mine", personId: ctx.notionUserId ?? undefined, memberId: undefined };
+  return { view: "mine", personId: ctx.notionUserId ?? undefined, memberId: undefined, ...dateRange };
 }
 
 // ── Payroll summary (admin/finance only) ────────────────
@@ -166,9 +190,11 @@ async function TimesheetList({
     return <UnlinkedAccountNotice email={ctx.email} />;
   }
 
-  const filters: TimesheetFilters | undefined = personId
-    ? { personId }
-    : undefined;
+  const filters: TimesheetFilters = {
+    ...(personId ? { personId } : {}),
+    dateAfter:  resolvedView.dateAfter,
+    dateBefore: resolvedView.dateBefore,
+  };
 
   const { data: entries } = await queryTimesheets(filters, { pageSize: 200 });
 

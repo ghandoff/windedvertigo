@@ -1,11 +1,14 @@
 /**
- * Auth proxy — protect all port routes except login, public pages, and
+ * Auth middleware — protect all port routes except login, public pages, and
  * authenticated automation (cron/webhook) requests.
+ *
+ * Renamed from proxy.ts (G.2.1): Next.js only recognises this file when it is
+ * named middleware.ts and exports a function named `middleware`.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow auth routes, login page, public pages, and static assets through
@@ -15,7 +18,6 @@ export async function proxy(req: NextRequest) {
     pathname.startsWith("/api/resubscribe") ||
     pathname.startsWith("/api/email/webhooks") ||
     pathname.startsWith("/api/agent/slack") ||
-    pathname.startsWith("/api/inngest") ||
     pathname === "/api/revalidate" ||
     pathname === "/api/extract-text" ||
     pathname === "/login" ||

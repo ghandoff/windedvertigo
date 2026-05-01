@@ -36,6 +36,9 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    // CF Workers files — consumed by @opennextjs/cloudflare build, not Next.js tsc
+    "open-next.config.ts",
+    "lib/scheduled.ts"
   ]
 }

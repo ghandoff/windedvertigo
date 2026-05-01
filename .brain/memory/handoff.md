@@ -9,10 +9,20 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** thu 1 may 2026, ~10:00 PT (claude code, plan reconfiguration session)
+**last synced:** thu 1 may 2026, ~20:00 PT (claude code, Phase G.2.1 DONE)
 
 **where we are right now:**
-plan reconfigured (graceful-popping-willow.md). all PRs green, waiting on Garrett merges. monitor running (task `bo2te4fe8`) watching wv-port #20/#21/#22 + monorepo #25 for merge — will trigger site CF Workers redeploy automatically when #25 merges. Phase A.2 (port nested-clone resolution) unblocked the moment wv-port PRs land. Phase G.2 (port → CF Workers + Inngest → CF Queues) is the next major engineering work.
+**G.2.1 DONE — wv-port live on CF Workers (canary).** Worker deployed to `https://wv-port.windedvertigo.workers.dev`. All bindings confirmed: PROPOSAL_QUEUE, TIMESHEET_QUEUE, RFP_DOCUMENT_QUEUE (CF Queues), PORT_ASSETS (R2), hourly cron trigger. Production route commented out in wrangler.jsonc — Vercel prod unchanged during G.2.4 parity window.
+
+**Key G.2.1 decisions:**
+- `port/proxy.ts` → `port/middleware.ts` (renamed + export `proxy` → `middleware`): Next.js 16 deprecated `middleware` in favour of `proxy`, but OpenNext 1.19.5 still requires the old convention. The build works.
+- 3 CF Queues created: `wv-port-proposal-queue`, `wv-port-timesheet-queue`, `wv-port-rfp-document-queue`
+- `port/.open-next/` added to `.gitignore`
+- `port/tsconfig.json` excludes `lib/scheduled.ts` + `open-next.config.ts` from Next.js tsc
+
+**Next step: G.2.4 parity canary** — 7 days of comparing `wv-port.windedvertigo.workers.dev` vs `port.windedvertigo.com` (Vercel). Run smoke checks against workers.dev URL. Then G.2.5 DNS cutover.
+
+**Parallel: G.2.2** — migrate 3 Inngest event functions → CF Queue consumers in `port-jobs/src/index.ts`. Start immediately alongside canary.
 
 ### PR merge queue (Garrett action needed)
 
@@ -36,11 +46,11 @@ Monitor task `bo2te4fe8` watching — will trigger:
 cd site && npx opennextjs-cloudflare build && wrangler deploy
 ```
 
-**after wv-port PRs #20/#21/#22 merge: Claude Code runs Phase A.2**
-- push `wv-port-archive` ref → `rm -rf port/.git` → commit → `gh repo archive ghandoff/wv-port`
+~~**after wv-port PRs #20/#21/#22 merge: Phase A.2 — DONE 2026-05-01**~~
+wv-port archived. port/ is now monorepo content at commit f83e435.
 
-**then: confirm Vercel project cleanup list (22 dormant projects)**
-Full list in `~/.claude/plans/graceful-popping-willow.md`. Say "confirmed" to trigger deletions.
+~~**then: confirm Vercel project cleanup list — DONE 2026-05-01**~~
+23 projects deleted. 8 remain: wv-ancestry, wv-ops, windedvertigo (parking), wv-port, nordic-sqr-rct, creaseworks, vertigo-vault, pocket-prompts.
 
 ### open threads
 

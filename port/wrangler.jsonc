@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wv-port",
   "main": ".open-next/worker.js",
-  "compatibility_date": "2024-09-23",
+  "compatibility_date": "2025-03-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 
   // OpenNext build output
@@ -44,12 +44,14 @@
   },
 
   // ── Routes ───────────────────────────────────────────────────────────────
-  "routes": [
-    {
-      "pattern": "port.windedvertigo.com/*",
-      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
-    }
-  ],
+  // Production route is COMMENTED OUT during G.2.4 parity canary.
+  // Uncomment at G.2.5 DNS cutover once 7-day canary passes.
+  // "routes": [
+  //   {
+  //     "pattern": "port.windedvertigo.com/*",
+  //     "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+  //   }
+  // ],
 
   // ── Secrets (set via `wrangler secret put`) ───────────────────────────────
   // Required secrets (same as Vercel env vars for this app):

@@ -76,6 +76,23 @@ export function isAdmin(email: string): boolean {
   return ADMIN_EMAILS.has(email.toLowerCase());
 }
 
+// ── finance detection ────────────────────────────────────
+
+/**
+ * Finance-tier users can see payroll summaries and generate invoices.
+ * Set via FINANCE_EMAILS env var (comma-separated, e.g. "payton@windedvertigo.com,garrett@windedvertigo.com").
+ */
+const FINANCE_EMAILS = new Set(
+  (process.env.FINANCE_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+export function isFinance(email: string): boolean {
+  return FINANCE_EMAILS.has(email.toLowerCase());
+}
+
 // ── Notion workspace user mapping ───────────────────────
 
 /**
@@ -137,9 +154,12 @@ export const resolveUserContext = cache(
       getNotionUserMap(),
     ]);
 
-    // Determine tier: admin emails get full access, everyone else gets "self"
-    // Future: read from VISIBILITY_TIER_DEFAULT env var or per-member Notion field
-    const tier: VisibilityTier = isAdmin(email) ? "admin" : "self";
+    // Determine tier: admin > finance > self
+    // Set via ADMIN_EMAILS and FINANCE_EMAILS env vars (comma-separated).
+    const tier: VisibilityTier =
+      isAdmin(email)   ? "admin"   :
+      isFinance(email) ? "finance" :
+      "self";
 
     return {
       email,
