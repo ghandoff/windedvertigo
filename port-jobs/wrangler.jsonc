@@ -1,0 +1,60 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-port-jobs",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // ── Queue consumers ───────────────────────────────────────────────
+  // Each queue is bound to this worker as a consumer. Batches are routed
+  // internally by batch.queue name in the queue() handler.
+  //
+  // Queue names must match the producer bindings in port/wrangler.jsonc
+  // (added in Phase G.2.1 when port migrates to CF Workers).
+  "queues": {
+    "consumers": [
+      {
+        "queue": "wv-port-proposal-queue",
+        // Proposal generation is slow (3–4 min for Claude call).
+        // Small batch size + generous timeout prevents partial batches
+        // from holding the DLQ too long.
+        "max_batch_size": 1,
+        "max_batch_timeout": 30,
+        "max_retries": 3,
+        "dead_letter_queue": "wv-port-proposal-queue-dlq"
+      },
+      {
+        "queue": "wv-port-timesheet-queue",
+        // Lightweight: fetch timesheet → send email → post Slack.
+        "max_batch_size": 10,
+        "max_batch_timeout": 15,
+        "max_retries": 5,
+        "dead_letter_queue": "wv-port-timesheet-queue-dlq"
+      },
+      {
+        "queue": "wv-port-rfp-document-queue",
+        // 2-pass Claude call + R2 upload. One at a time to avoid concurrent
+        // writes to the same RFP document slot in Supabase/Notion.
+        "max_batch_size": 1,
+        "max_batch_timeout": 30,
+        "max_retries": 3,
+        "dead_letter_queue": "wv-port-rfp-document-queue-dlq"
+      }
+    ]
+  },
+
+  // ── Secrets (set via `wrangler secret put` — never commit values) ─
+  // Required secrets:
+  //   ANTHROPIC_API_KEY      — Claude API (proposal generation + RFP parsing)
+  //   RESEND_API_KEY         — Transactional email (timesheet notifications)
+  //   SLACK_BOT_TOKEN        — Slack posting (timesheet + cron summaries)
+  //   NOTION_TOKEN           — Notion read/write (proposal output)
+  //   SUPABASE_URL           — wv-port-pilot project URL
+  //   SUPABASE_SERVICE_KEY   — Service role key (bypasses RLS for job writes)
+
+  // ── R2 binding ───────────────────────────────────────────────────
+  // Used by parse-rfp-questions consumer to store parsed question JSON.
+  "r2_buckets": [
+    { "binding": "PORT_ASSETS", "bucket_name": "port-assets" }
+  ]
+}
