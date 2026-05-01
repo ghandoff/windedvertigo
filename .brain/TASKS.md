@@ -203,10 +203,13 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 
 - [ ] **Site CF Workers redeploy** — after PR #25 merges: `cd site && npx opennextjs-cloudflare build && wrangler deploy`
   (PPCS launch countdown tool + systems-thinking redirect need this deploy)
-- [ ] **Phase A.2: port nested-clone resolution** — after wv-port #20/#21/#22 merge:
-  push `wv-port-archive` ref → `rm -rf port/.git` → commit → `gh repo archive ghandoff/wv-port`
+- [x] ~~**Phase A.2: port nested-clone resolution**~~ (2026-05-01) — `port/.git` dissolved; archive ref pushed to `wv-port-archive`; `gh repo archive ghandoff/wv-port` complete.
 - [ ] **Vercel project cleanup** — delete ~22 dormant projects after Garrett confirms list (see plan file)
-- [ ] **Phase G.2: port → CF Workers + Inngest → CF Queues** — NEXT MAJOR WORK (80–120h), starts after A.2
+- [x] ~~**Phase G.2.1: port → CF Workers (OpenNext)**~~ (2026-05-01) — `wv-port.windedvertigo.workers.dev` live; middleware.ts naming fix; wrangler.jsonc with queue producer bindings + hourly cron.
+- [x] ~~**Phase G.2.2: Inngest functions → CF Queue consumers (port-jobs)**~~ (2026-05-01) — `port-jobs/src/index.ts` implements proposalConsumer, proposalDlqConsumer, timesheetConsumer, rfpDocumentConsumer. `seedProcessEnv()` bridge pattern. Native R2 binding for rfp-document consumer.
+- [x] ~~**Phase G.2.3: Inngest send() → CF Queues dual-dispatch (all 6 call sites)**~~ (2026-05-01) — All 6 inngest.send() replaced with `publishJob()` + `getCloudflareContext()` in port API routes. `port/lib/cf-env.ts` augments `CloudflareEnv` global. CF canary confirmed live with all 3 queue producer bindings. commit `14f5a71`.
+- [ ] **Phase G.2.4: 7-day parity canary** — started 2026-05-01. Compare `wv-port.windedvertigo.workers.dev` vs Vercel prod. Ends ~2026-05-08. After: G.2.5 DNS cutover.
+- [ ] **Phase B: harbour-apps subtree merge** — BLOCKED: 7 open PRs in harbour-apps (gate requires 0). Close stale PRs then re-run Phase 0 check.
 
 ### Vercel cleanup — pending Garrett confirmation
 
