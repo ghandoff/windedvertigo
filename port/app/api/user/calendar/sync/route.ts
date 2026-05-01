@@ -23,6 +23,9 @@ import { auth } from "@/lib/auth";
 import { createTimesheet, queryTimesheets } from "@/lib/notion/timesheets";
 import { getNotionUserMap } from "@/lib/role";
 
+// Backfill can create hundreds of Notion entries sequentially — allow up to 5 min.
+export const maxDuration = 300;
+
 // ── Google Calendar helpers ──────────────────────────────
 
 interface CalendarEvent {
