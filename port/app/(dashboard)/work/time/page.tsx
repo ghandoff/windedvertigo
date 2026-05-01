@@ -371,7 +371,22 @@ export default async function TimePage({ searchParams }: Props) {
       .filter((m) => m.notionUserId); // only members with Notion accounts
   }
 
-  const resolvedView = resolveView(params, ctx, canSeeTeam);
+  const resolved = resolveView(params, ctx, canSeeTeam);
+
+  // Month navigation link helpers (preserves member/view params)
+  const [navYear, navMonth] = resolved.dateAfter.split("-").map(Number);
+  const prevM = navMonth === 1 ? 12 : navMonth - 1;
+  const prevY = navMonth === 1 ? navYear - 1 : navYear;
+  const nextM = navMonth === 12 ? 1 : navMonth + 1;
+  const nextY = navMonth === 12 ? navYear + 1 : navYear;
+  const prevMonthParam = `${prevY}-${String(prevM).padStart(2, "0")}`;
+  const nextMonthParam = `${nextY}-${String(nextM).padStart(2, "0")}`;
+  const extraQs = [
+    params.member ? `member=${params.member}` : "",
+    params.view === "collective" ? `view=collective` : "",
+  ].filter(Boolean).join("&");
+  const prevHref = `/work/time?month=${prevMonthParam}${extraQs ? `&${extraQs}` : ""}`;
+  const nextHref = `/work/time?month=${nextMonthParam}${extraQs ? `&${extraQs}` : ""}`;
 
   return (
     <>
@@ -397,8 +412,28 @@ export default async function TimePage({ searchParams }: Props) {
           </Link>
         )}
       </PageHeader>
+
+      {/* Month navigation — outside Suspense so it renders immediately */}
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          href={prevHref}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          prev
+        </Link>
+        <span className="text-sm font-medium">{resolved.monthLabel}</span>
+        <Link
+          href={nextHref}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          next
+          <ChevronRight className="h-4 w-4" />
+        </Link>
+      </div>
+
       <Suspense fallback={<div className="text-center py-8 text-muted-foreground text-sm">loading time entries...</div>}>
-        <TimesheetList ctx={ctx} resolvedView={resolvedView} members={members} />
+        <TimesheetList ctx={ctx} resolvedView={resolved} members={members} />
       </Suspense>
     </>
   );
