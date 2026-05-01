@@ -18,6 +18,10 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/api/resubscribe") ||
     pathname.startsWith("/api/email/webhooks") ||
     pathname.startsWith("/api/agent/slack") ||
+    // Inngest webhook — Inngest cloud POSTs here to deliver events.
+    // Required on Vercel during G.2.4 canary (fallback path for inngest.send()).
+    // Remove after G.2.5 DNS cutover + inngest route deletion.
+    pathname.startsWith("/api/inngest") ||
     pathname === "/api/revalidate" ||
     pathname === "/api/extract-text" ||
     pathname === "/login" ||
