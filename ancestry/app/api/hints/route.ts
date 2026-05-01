@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@windedvertigo/auth";
 import { getOrCreateTree, getHintsForTree, getPerson } from "@/lib/db/queries";
-import { formatFuzzyDate } from "@/lib/db";
+import { formatFuzzyDate } from "@/lib/db/utils";
 import type { HintStatus } from "@/lib/types";
 
 export async function GET(req: NextRequest) {

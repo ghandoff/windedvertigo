@@ -1,4 +1,4 @@
-import type { FuzzyDate } from "./db";
+import type { FuzzyDate } from "./db/utils";
 
 export type Sex = "M" | "F" | "X" | "U";
 

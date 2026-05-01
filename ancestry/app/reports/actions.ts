@@ -6,7 +6,7 @@ import {
   getTreePersons,
   getTreeRelationships,
 } from "@/lib/db/queries";
-import { formatFuzzyDate } from "@/lib/db";
+import { formatFuzzyDate } from "@/lib/db/utils";
 import type { Person, Relationship } from "@/lib/types";
 import { PARENT_TYPES } from "@/lib/types";
 

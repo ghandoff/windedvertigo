@@ -2,7 +2,7 @@ import { auth } from "@windedvertigo/auth";
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getPerson, getPersonRelatives, getOrCreateTree } from "@/lib/db/queries";
-import { formatFuzzyDate } from "@/lib/db";
+import { formatFuzzyDate } from "@/lib/db/utils";
 
 export async function POST(req: Request) {
   const session = await auth();
