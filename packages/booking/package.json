@@ -1,0 +1,16 @@
+{
+  "name": "@windedvertigo/booking",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portable booking utilities — slot generation, HMAC signing, crypto helpers, prefill tokens, and intake routing.",
+  "scripts": {
+    "build": "echo 'booking: no build step'"
+  },
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "files": [
+    "*.ts"
+  ]
+}
