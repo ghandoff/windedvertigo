@@ -26,7 +26,7 @@ cd "$(dirname "$0")"
 
 # Pull using explicit flags — avoids orgId config issues
 # ghandoffs-projects owns wv-port (prj_rlsjo62EFnVofPUyjt0eYgzcrjmC)
-vercel env pull "${ENV_FILE}" --environment production --scope ghandoffs-projects --yes 2>&1 | grep -v "^$"
+vercel env pull "${ENV_FILE}" --environment production --scope ghandoffs-projects --project wv-port --yes 2>&1 | grep -v "^$"
 
 echo "▶ Setting secrets on ${WORKER_NAME}..."
 
