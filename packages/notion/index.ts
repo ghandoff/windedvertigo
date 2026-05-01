@@ -59,3 +59,16 @@ export { withFallback, readFallback } from "./fallback";
 // pagination
 export { queryDatabase } from "./pagination";
 export type { PaginatedResult } from "./pagination";
+
+// CRM contact operations (dedup-by-email + upsert)
+export {
+  WV_CRM_CONTACTS_DB,
+  resolveDataSourceId,
+  upsertCrmContact,
+} from "./crm";
+export type {
+  ContactWarmth,
+  RelationshipStage,
+  UpsertContactParams,
+  UpsertContactResult,
+} from "./crm";

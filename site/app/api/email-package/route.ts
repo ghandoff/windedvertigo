@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { Client } from "@notionhq/client";
+import { upsertCrmContact } from "@windedvertigo/notion";
 import { sendPackageEmail } from "@/lib/email/send-package";
 
 /* ── constants ── */
@@ -57,22 +58,6 @@ const QUADRANT_LABELS: Record<string, string> = {
   "product-research": "product × research",
 };
 
-// CRM contacts database ID. In Notion API v5 (2025-09-03) we query the
-// underlying data source, not the database itself; resolved + cached
-// per process via getCrmDataSourceId() below.
-const CRM_CONTACTS_DB = "829cd552-4516-45b7-a65b-2bcd8d47ff81";
-
-let cachedCrmDataSourceId: string | null = null;
-async function getCrmDataSourceId(notion: Client): Promise<string> {
-  if (cachedCrmDataSourceId) return cachedCrmDataSourceId;
-  const db = await notion.databases.retrieve({ database_id: CRM_CONTACTS_DB });
-  if (!("data_sources" in db) || db.data_sources.length === 0) {
-    throw new Error("no data sources found for CRM contacts database");
-  }
-  cachedCrmDataSourceId = db.data_sources[0].id;
-  return cachedCrmDataSourceId;
-}
-
 /* ── rate limiting (in-memory, per-instance) ── */
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -108,6 +93,8 @@ function isRateLimited(email: string): boolean {
 
 /* ── notion contact logging ── */
 
+let _notionClient: Client | null = null;
+
 async function logContactToNotion(params: {
   name: string;
   email: string;
@@ -121,57 +108,17 @@ async function logContactToNotion(params: {
     return;
   }
 
-  const notion = new Client({ auth: token });
+  if (!_notionClient) _notionClient = new Client({ auth: token });
   const label = QUADRANT_LABELS[params.quadrant] ?? params.quadrant;
   const nextAction = `package inquiry: ${label} — ${params.focus.join(", ")} — ${params.goals.join(", ")}`;
-  const today = new Date().toISOString().split("T")[0];
 
-  // check for existing contact by email
-  try {
-    const data_source_id = await getCrmDataSourceId(notion);
-    const existing = await notion.dataSources.query({
-      data_source_id,
-      filter: {
-        property: "email",
-        email: { equals: params.email },
-      },
-      page_size: 1,
-    });
-
-    if (existing.results.length > 0) {
-      // update existing contact
-      const pageId = existing.results[0].id;
-      await notion.pages.update({
-        page_id: pageId,
-        properties: {
-          "last contacted": { date: { start: today } },
-          "next action": {
-            rich_text: [{ text: { content: nextAction } }],
-          },
-        },
-      });
-      return;
-    }
-  } catch (err) {
-    // if query fails (e.g. API version mismatch), fall through to create
-    console.warn("[email-package] contact dedup query failed:", err);
-  }
-
-  // create new contact
-  await notion.pages.create({
-    parent: { database_id: CRM_CONTACTS_DB },
-    properties: {
-      "first & last name": {
-        title: [{ text: { content: params.name } }],
-      },
-      "email": { email: params.email },
-      "contact warmth": { select: { name: "lukewarm" } },
-      "relationship stage": { select: { name: "introduced" } },
-      "last contacted": { date: { start: today } },
-      "next action": {
-        rich_text: [{ text: { content: nextAction } }],
-      },
-    },
+  await upsertCrmContact({
+    client: _notionClient,
+    email: params.email,
+    name: params.name,
+    warmth: "lukewarm",
+    stage: "introduced",
+    nextAction,
   });
 }
 
