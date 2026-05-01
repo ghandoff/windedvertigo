@@ -20,11 +20,27 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createTimesheet, queryTimesheets } from "@/lib/notion/timesheets";
+import { getNotionUserMap } from "@/lib/role";
 
 function verifyCronAuth(req: NextRequest): boolean {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) return false;
   return authHeader.replace("Bearer ", "") === process.env.CRON_SECRET;
+}
+
+// ── Google OAuth helpers ──────────────────────────────────
+
+/**
+ * Ask Google "who owns this token?" — returns the account email.
+ * Used to attribute synced entries to the correct Notion person.
+ */
+async function getCalendarOwnerEmail(accessToken: string): Promise<string | null> {
+  const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) return null;
+  const data = await res.json() as { email?: string };
+  return data.email ?? null;
 }
 
 // ── Google Calendar REST API ──────────────────────────────
@@ -107,6 +123,18 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // Resolve the Notion user ID for whoever owns this calendar credential,
+  // so synced entries are attributed to the correct person.
+  const [ownerEmail, notionUserMap] = await Promise.all([
+    getCalendarOwnerEmail(accessToken),
+    getNotionUserMap(),
+  ]);
+  const ownerNotionId = ownerEmail
+    ? (notionUserMap.get(ownerEmail.toLowerCase()) ?? null)
+    : null;
+
+  console.log(`[sync-calendar-time] calendar owner: ${ownerEmail ?? "unknown"}, notionId: ${ownerNotionId ?? "not found"}`);
+
   const events = await getYesterdayEvents(accessToken);
 
   // Filter to valid events: has duration, not cancelled, not declined
@@ -150,6 +178,8 @@ export async function GET(req: NextRequest) {
         status: "draft",
         billable: false, // default to non-billable, team confirms
         dateAndTime: { start: dateStr, end: null },
+        // Link to the calendar owner so the entry appears in their personal view
+        ...(ownerNotionId ? { personIds: [ownerNotionId] } : {}),
       });
       created++;
     } catch (err) {
