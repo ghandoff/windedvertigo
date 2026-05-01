@@ -9,10 +9,58 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** sun 26 apr 2026, ~21:08 PT (cowork, context-sync dispatch)
+**last synced:** thu 1 may 2026, ~09:00 PT (claude code, end-of-session)
 
 **where we are right now:**
-cash position is the strongest in the company's history at $28,208 (+$26K mtd, PRME revenue landed cleanly). harbour public launch sits ~6 weeks out with phase 0-5a closed in code; the entire pre-launch path is gated by three small user actions (one google OAuth redirect URI, one deploy script, one slack webhook URL). the immediate week is dominated by the PPCS programme launch on thu apr 30 — anchor-leg prep with maria sits straight after tomorrow's whirlpool — plus an unanswered PRME comms thread with metz at UN global compact. health insurance enrolment in gusto closes thursday (4 days) and the amna at 10 follow-up is 31 days overdue.
+booking system is fully wired (Supabase schema, Google OAuth, free/busy, Turnstile, admin host-connect UI at `/admin/booking/connect`). PPCS launch countdown tool is live. Port agent has full Phase G.1 Supabase read migration + atomic proposal claim ready to ship (PR #20). Two new agent write tools (createCampaign + updateContact) staged in PR #22. All CI is green across both repos. The merge queue below is the only gate before the next production deploy.
+
+### PR merge queue (Garrett action needed)
+
+**windedvertigo monorepo — merge in order:**
+1. **PR #25** `restructure/phase-a1-cleanup-and-ops-merge` — Phase E.2+E.3: `@windedvertigo/email-templates` + `@windedvertigo/notion-crm` shared packages ✅ green
+2. **PR #26** `feat/ops-marketing-module` — CMO marketing module in ops dashboard ✅ green (lazy Supabase fix applied)
+3. **PR #28** `feat/booking-package-e4-clean` — Phase E.4: `@windedvertigo/booking` package ✅ green
+4. **PR #30** `feat/systems-thinking-portfolio` — systems-thinking simulator + teacher guides ✅ green
+5. PR #16, #17, #13 — lines-become-loops wordmark/KV fixes + ops Supabase wiring ✅ green — independent, any order
+6. ~~PR #29~~ — close it; TASKS.md was updated directly on main (beefb4f)
+
+**wv-port — merge in order:**
+1. **PR #20** `feat/rfp-proposals-supabase-atomic-v2` — Phase G.1 complete, all list-GET routes → Supabase ✅ builds pass on merge (lazy Supabase fix on main)
+2. **PR #21** `feat/campaign-weekly-analytics` — weekly pulse card on /campaigns
+3. **PR #22** `feat/agent-write-tools-v2` — createCampaign + updateContact write tools (just created this session)
+
+**after merges: deploy site to CF Workers**
+```bash
+cd site && npx opennextjs-cloudflare build && wrangler deploy
+```
+(ops + port Vercel-auto deploy on main merge; only site needs manual wrangler deploy)
+
+### open threads
+
+| project | last action | next action | link |
+|---------|-------------|-------------|------|
+| booking system | admin connect UI live + 5 hosts + 8 event types seeded; Turnstile live | **Garrett: connect Google Calendars** via `/admin/booking/connect` (one OAuth flow per host) | port.windedvertigo.com/admin/booking/connect |
+| harbour oauth gate | code deployed | **30-sec user action**: add redirect URI `https://www.windedvertigo.com/harbour/api/auth/callback/google` to OAuth client `160968051904-…` | gcp console |
+| 16-app CF wrapper rollout | prep committed | run `cd harbour-apps && ./scripts/deploy-cf-wrappers.sh --include-depth-chart` | terminal |
+| smoke alert webhook | worker live, 40/40 green | create wv-claw incoming webhook → `wrangler secret put WV_CLAW_WEBHOOK --name wv-launch-smoke` | slack |
+| Notion content calendar DB | CRM `/content` route wired, waiting for DB | **Cowork action**: create content calendar DB in Notion (title, channel, body, scheduled date, status, author) → set `NOTION_CONTENT_CALENDAR_DB_ID` in wv-port Vercel env | notion |
+| port agent write tools | PR #22 staged | merge PR #22 → test createCampaign + updateContact in Slack DM | wv-port |
+| PRME 2026 | contract active, PO approved, first invoice submitted | sync with meredith on facilitation guide timeline | gmail |
+| IDB Salvador | documentation submitted apr 10, receipt confirmed apr 24 | passive monitor — evaluation in progress | — |
+
+### environment handoffs
+
+**Cowork → Claude Code:**
+- after PR merges: run `cd site && npx opennextjs-cloudflare build && wrangler deploy` to push site to CF Workers
+- creaseworks content + refactor — notion covers for playdates/packs/collections
+- CF cleanup — revoke temp CF API token, close anotheroption CF account (consolidation complete as of apr 24)
+- resend webhook — register URL + `RESEND_WEBHOOK_SECRET` in resend dashboard
+
+**Claude Code → Cowork:**
+- **Notion content calendar DB** — create it so CRM `/content` route has a real data source; set env var
+- PRME comms — any pending meredith/metz threads
+- ADP + QuickBooks — routine log-and-pay
+- booking → Google Calendar OAuth — walk Garrett through connecting all 5 hosts
 
 ### open threads
 
