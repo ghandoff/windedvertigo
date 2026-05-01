@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# Deploy the windedvertigo-site Vercel project (windedvertigo.com) from the monorepo root.
+# Deploy the wv-site Cloudflare Worker (windedvertigo.com) via OpenNext + Wrangler.
 #
-# The Vercel project has its Root Directory configured as `site`, so deploys
-# must originate from the monorepo root (not from inside site/). This script
-# temporarily swaps .vercel/project.json to target windedvertigo-site,
-# deploys, then restores the default (legacy windedvertigo project).
+# The site is served from Cloudflare Workers using @opennextjs/cloudflare.
+# This script builds the Next.js app + converts it for CF Workers, then deploys.
 #
 # Usage:
-#   ./scripts/deploy-site.sh            # production deploy
-#   ./scripts/deploy-site.sh --preview  # preview deploy
+#   ./scripts/deploy-site.sh              # production deploy
+#   ./scripts/deploy-site.sh --preview    # wrangler --env preview (dev tail)
 
 set -euo pipefail
 
@@ -16,31 +14,28 @@ set -euo pipefail
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERCEL_DIR="$REPO_ROOT/.vercel"
-PROJECT_JSON="$VERCEL_DIR/project.json"
-BACKUP_JSON="$VERCEL_DIR/project.json.bak"
+SITE_DIR="$REPO_ROOT/site"
 
-SITE_PROJECT_ID="prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx"
-ORG_ID="team_wrpRda7ZzXdu7nKcEVVXY3th"
-
-DEPLOY_FLAGS="--prod"
+PREVIEW=false
 if [[ "${1:-}" == "--preview" ]]; then
-  DEPLOY_FLAGS=""
+  PREVIEW=true
 fi
 
-echo "→ Swapping .vercel/project.json to target windedvertigo-site"
-cp "$PROJECT_JSON" "$BACKUP_JSON"
+echo "→ Building site with OpenNext for Cloudflare Workers"
+cd "$SITE_DIR"
 
-cleanup() {
-  echo "→ Restoring .vercel/project.json"
-  mv "$BACKUP_JSON" "$PROJECT_JSON"
-}
-trap cleanup EXIT
+# Install deps if needed (workspace hoisting means this is usually a no-op)
+# npm install --prefix "$REPO_ROOT" --silent 2>/dev/null || true
 
-printf '{"projectId":"%s","orgId":"%s","projectName":"windedvertigo-site"}\n' \
-  "$SITE_PROJECT_ID" "$ORG_ID" > "$PROJECT_JSON"
+# @opennextjs/cloudflare build wraps next build + CF Workers adapter
+npx --yes @opennextjs/cloudflare build
 
-echo "→ Deploying from monorepo root"
-cd "$REPO_ROOT"
-VERCEL_BIN="${VERCEL_BIN:-$(command -v vercel 2>/dev/null || echo /opt/homebrew/bin/vercel)}"
-"$VERCEL_BIN" deploy $DEPLOY_FLAGS
+if $PREVIEW; then
+  echo "→ Deploying preview Worker (wrangler deploy --env preview)"
+  wrangler deploy --env preview
+else
+  echo "→ Deploying production Worker (wrangler deploy)"
+  wrangler deploy
+fi
+
+echo "✓ wv-site deployed — windedvertigo.com is live"
