@@ -9,31 +9,38 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** thu 1 may 2026, ~09:00 PT (claude code, end-of-session)
+**last synced:** thu 1 may 2026, ~10:00 PT (claude code, plan reconfiguration session)
 
 **where we are right now:**
-booking system is fully wired (Supabase schema, Google OAuth, free/busy, Turnstile, admin host-connect UI at `/admin/booking/connect`). PPCS launch countdown tool is live. Port agent has full Phase G.1 Supabase read migration + atomic proposal claim ready to ship (PR #20). Two new agent write tools (createCampaign + updateContact) staged in PR #22. All CI is green across both repos. The merge queue below is the only gate before the next production deploy.
+plan reconfigured (graceful-popping-willow.md). all PRs green, waiting on Garrett merges. monitor running (task `bo2te4fe8`) watching wv-port #20/#21/#22 + monorepo #25 for merge — will trigger site CF Workers redeploy automatically when #25 merges. Phase A.2 (port nested-clone resolution) unblocked the moment wv-port PRs land. Phase G.2 (port → CF Workers + Inngest → CF Queues) is the next major engineering work.
 
 ### PR merge queue (Garrett action needed)
 
-**windedvertigo monorepo — merge in order:**
-1. **PR #25** `restructure/phase-a1-cleanup-and-ops-merge` — Phase E.2+E.3: `@windedvertigo/email-templates` + `@windedvertigo/notion-crm` shared packages ✅ green
-2. **PR #26** `feat/ops-marketing-module` — CMO marketing module in ops dashboard ✅ green (lazy Supabase fix applied)
-3. **PR #28** `feat/booking-package-e4-clean` — Phase E.4: `@windedvertigo/booking` package ✅ green
-4. **PR #30** `feat/systems-thinking-portfolio` — systems-thinking simulator + teacher guides ✅ green
-5. PR #16, #17, #13 — lines-become-loops wordmark/KV fixes + ops Supabase wiring ✅ green — independent, any order
-6. ~~PR #29~~ — close it; TASKS.md was updated directly on main (beefb4f)
-
-**wv-port — merge in order:**
-1. **PR #20** `feat/rfp-proposals-supabase-atomic-v2` — Phase G.1 complete, all list-GET routes → Supabase ✅ builds pass on merge (lazy Supabase fix on main)
+**wv-port — merge in order (all ✅ green):**
+1. **PR #20** `feat/rfp-proposals-supabase-atomic-v2` — Phase G.1 complete, all list-GET routes → Supabase + atomic proposal claim
 2. **PR #21** `feat/campaign-weekly-analytics` — weekly pulse card on /campaigns
-3. **PR #22** `feat/agent-write-tools-v2` — createCampaign + updateContact write tools (just created this session)
+3. **PR #22** `feat/agent-write-tools-v2` — createCampaign + updateContact write tools
 
-**after merges: deploy site to CF Workers**
+**windedvertigo monorepo — merge in order (all ✅ green):**
+1. **PR #25** `restructure/phase-a1-cleanup-and-ops-merge` — Phase E.2+E.3: `@windedvertigo/email-templates` + `@windedvertigo/notion-crm` packages
+2. **PR #26** `feat/ops-marketing-module` — CMO marketing module in ops dashboard (base: PR #25)
+3. **PR #28** `feat/booking-package-e4-clean` — Phase E.4: `@windedvertigo/booking` package (base: PR #25)
+4. **PR #30** `feat/systems-thinking-portfolio` — systems-thinking simulator + teacher guides
+5. PR #16, #17, #13 — lines-become-loops fixes + ops Supabase wiring (any order)
+6. ~~PR #29~~ — **close** (TASKS.md updated directly on main beefb4f)
+7. ~~PR #9~~ — **close** (stale security audit draft)
+
+**after monorepo PR #25 merges: Claude Code auto-deploys site to CF Workers**
+Monitor task `bo2te4fe8` watching — will trigger:
 ```bash
 cd site && npx opennextjs-cloudflare build && wrangler deploy
 ```
-(ops + port Vercel-auto deploy on main merge; only site needs manual wrangler deploy)
+
+**after wv-port PRs #20/#21/#22 merge: Claude Code runs Phase A.2**
+- push `wv-port-archive` ref → `rm -rf port/.git` → commit → `gh repo archive ghandoff/wv-port`
+
+**then: confirm Vercel project cleanup list (22 dormant projects)**
+Full list in `~/.claude/plans/graceful-popping-willow.md`. Say "confirmed" to trigger deletions.
 
 ### open threads
 

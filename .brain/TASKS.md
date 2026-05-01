@@ -178,24 +178,41 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 
 ## Engineering (Claude Code)
 
-### PRs pending Garrett merge (2026-05-01)
+### PRs pending Garrett merge (2026-05-01 — plan reconfigured)
 
-**Monorepo (`ghandoff/windedvertigo`) — suggested merge order:**
-1. PR #25 `restructure/phase-a1-cleanup-and-ops-merge` — Phase E.2+E.3: `@windedvertigo/email-templates` + `@windedvertigo/notion-crm` packages — **MERGEABLE**
-2. PR #26 `feat/ops-marketing-module` — CMO marketing module (content calendar, campaigns, pipeline widgets) — **MERGEABLE** — base is PR #25
-3. PR #28 `feat/booking-package-e4-clean` — Phase E.4: `@windedvertigo/booking` package — **MERGEABLE** — base is PR #25
-4. PR #29 `chore/update-tasks-md` — TASKS.md housekeeping (superseded by this direct update — close #29)
-5. PR #30 `feat/systems-thinking-portfolio` — systems-thinking simulator + teacher guides
-- ~~PR #27~~ closed (superseded by #28) ✓
-- ~~PR #14~~ closed (superseded by #26) ✓
+> Full reconfigured plan: `~/.claude/plans/graceful-popping-willow.md`
+> Monitor running: task `bo2te4fe8` watches #20/#21/#22 (wv-port) + #25 (monorepo) for merge
 
-**wv-port (`ghandoff/wv-port`):**
-- PR #20 `feat/rfp-proposals-supabase-atomic-v2` — Phase G.1 complete: all list-GET routes → Supabase — **MERGEABLE**
-- PR #21 `feat/campaign-weekly-analytics` — weekly pulse summary card on /campaigns
-- PR #22 `feat/agent-write-tools-v2` — createCampaign + updateContact agent write tools (cherry-pick of a3073f3 onto current main)
-- ~~PR #19~~ closed (superseded by #20) ✓
-- ~~PR #17~~ closed (content-workspace was already squashed into main via cf4056b) ✓
-- ~~PR #14~~ closed (superseded by #22) ✓
+**wv-port (`ghandoff/wv-port`) — merge in order:**
+- PR #20 `feat/rfp-proposals-supabase-atomic-v2` — Phase G.1 complete: all list-GET routes → Supabase + atomic proposal claim ✅ green
+- PR #21 `feat/campaign-weekly-analytics` — weekly pulse summary card on /campaigns ✅ green
+- PR #22 `feat/agent-write-tools-v2` — createCampaign + updateContact agent write tools ✅ green
+- ~~PR #19~~ closed ✓ | ~~PR #17~~ closed ✓ | ~~PR #14~~ closed ✓
+
+**Monorepo (`ghandoff/windedvertigo`) — merge in order:**
+1. PR #25 `restructure/phase-a1-cleanup-and-ops-merge` — Phase E.2+E.3: `@windedvertigo/email-templates` + `@windedvertigo/notion-crm` ✅ green
+2. PR #26 `feat/ops-marketing-module` — CMO marketing module (base: PR #25) ✅ green
+3. PR #28 `feat/booking-package-e4-clean` — Phase E.4: `@windedvertigo/booking` (base: PR #25) ✅ green
+4. PR #30 `feat/systems-thinking-portfolio` — systems-thinking simulator + teacher guides ✅ green
+5. PR #16, #17, #13 — lines-become-loops fixes + ops Supabase wiring (any order) ✅ green
+6. ~~PR #29~~ — **close** (superseded by direct main commit beefb4f)
+7. ~~PR #9~~ — **close** (stale draft, security audit reversal)
+- ~~PR #27~~ closed ✓ | ~~PR #14~~ closed ✓
+
+### After PRs merge — autonomous (Claude Code)
+
+- [ ] **Site CF Workers redeploy** — after PR #25 merges: `cd site && npx opennextjs-cloudflare build && wrangler deploy`
+  (PPCS launch countdown tool + systems-thinking redirect need this deploy)
+- [ ] **Phase A.2: port nested-clone resolution** — after wv-port #20/#21/#22 merge:
+  push `wv-port-archive` ref → `rm -rf port/.git` → commit → `gh repo archive ghandoff/wv-port`
+- [ ] **Vercel project cleanup** — delete ~22 dormant projects after Garrett confirms list (see plan file)
+- [ ] **Phase G.2: port → CF Workers + Inngest → CF Queues** — NEXT MAJOR WORK (80–120h), starts after A.2
+
+### Vercel cleanup — pending Garrett confirmation
+
+~22 dormant Vercel projects identified. Full list in `~/.claude/plans/graceful-popping-willow.md` under "Vercel project cleanup". Projects that are safe to delete are all now live on CF Workers. Key ones: `harbour`, `depth-chart`, `harbour-apps`, `wv-crm`, `port`, `systems-thinking`, and 16 individual harbour app projects.
+
+**Confirm these are OK to delete, then Claude Code handles the rest.**
 
 ### CRM — Phase 1: Data Visibility (this week)
 - [x] ~~**Aggregate campaign dashboard**~~ (2026-03-29) — Stats strip on `/campaigns`: active / total, emails sent, avg open rate, avg click rate.
