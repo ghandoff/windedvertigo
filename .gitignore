@@ -16,7 +16,6 @@ CLAUDE.md
 
 # Nested git repos — register as submodules via terminal (git submodule add)
 port/
-ops-dashboard/
 
 # Wrangler local state
 .wrangler/

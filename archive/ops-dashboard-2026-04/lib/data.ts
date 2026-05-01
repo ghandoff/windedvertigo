@@ -1,0 +1,314 @@
+// Dashboard data configuration
+// This file will be replaced with Notion API calls in the future
+
+export interface Project {
+  id: string;
+  name: string;
+  status: 'green' | 'yellow' | 'red';
+  deadline?: string;
+  owner?: string;
+  description?: string;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  focus: string[];
+}
+
+export interface Meeting {
+  id: string;
+  title: string;
+  day: string;
+  time: string;
+  timezone: string;
+  attendees?: string[];
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  category: string;
+  assigned?: string;
+  subtasks?: string[];
+}
+
+export interface DispatchTask {
+  id: string;
+  name: string;
+  schedule: string;
+  lastRan: string;
+  status: 'success' | 'pending';
+}
+
+export interface FinancialMetric {
+  label: string;
+  value?: string | number;
+  currency?: boolean;
+  hasData: boolean;
+}
+
+// Projects
+export const projects: Project[] = [
+  {
+    id: 'idb-salvador',
+    name: 'IDB Salvador',
+    status: 'yellow',
+    deadline: 'April 10, 2026',
+    owner: 'Maria',
+    description: 'Ed-tech modernization procurement SDP 01/2026',
+  },
+  {
+    id: 'prme-2026',
+    name: 'PRME 2026',
+    status: 'yellow',
+    deadline: 'TBD',
+    owner: 'Meredith / Sam',
+    description: 'Contract with UN Global Compact',
+  },
+  {
+    id: 'amna-at-10',
+    name: 'Amna at 10',
+    status: 'green',
+    owner: 'Team',
+    description: 'Evidence synthesis & impact report',
+  },
+  {
+    id: 'lego-superskills',
+    name: 'LEGO / Superskills!',
+    status: 'green',
+    owner: 'Team',
+    description: 'Cross-cutting skills certification',
+  },
+  {
+    id: 'sesame-workshop',
+    name: 'Sesame Workshop',
+    status: 'green',
+    owner: 'Team',
+    description: 'Learning design engagement',
+  },
+  {
+    id: 'unicef',
+    name: 'UNICEF',
+    status: 'green',
+    owner: 'Team',
+    description: 'Learning design engagement',
+  },
+  {
+    id: 'website-launch',
+    name: 'Website Launch',
+    status: 'green',
+    owner: 'Payton',
+    description: 'windedvertigo.com soft launched Mar 27',
+  },
+  {
+    id: '401k-cpa',
+    name: '401k / CPA',
+    status: 'yellow',
+    owner: 'Garrett',
+    description: 'Plan #156733 with ADP — final 5500 + testing',
+  },
+];
+
+// Team members
+export const teamMembers: TeamMember[] = [
+  {
+    id: 'garrett',
+    name: 'Garrett Jaeger',
+    role: 'Founder & Legal Rep',
+    focus: ['IDB Salvador', 'PRME 2026', 'Ops & Strategy'],
+  },
+  {
+    id: 'payton',
+    name: 'Payton Jaeger',
+    role: 'Communications',
+    focus: ['Website', 'Outreach', 'Circulation'],
+  },
+  {
+    id: 'lamis',
+    name: 'Lamis Sabra',
+    role: 'w.v Collective',
+    focus: ['Weekly Sync', 'Coordination'],
+  },
+  {
+    id: 'maria',
+    name: 'Maria Altamirano G.',
+    role: 'Operations',
+    focus: ['IDB Salvador Lead', 'Operations', 'Admin'],
+  },
+  {
+    id: 'apoorva',
+    name: 'Apoorva Shivaram',
+    role: 'Learning Design',
+    focus: ['PRME Workshops', 'Survey Design'],
+  },
+  {
+    id: 'kristin',
+    name: 'Kristin Lansing',
+    role: 'Research',
+    focus: ['Research', 'Evidence'],
+  },
+  {
+    id: 'james',
+    name: 'James Galpin',
+    role: 'w.v Collective',
+    focus: ['Collective Work'],
+  },
+  {
+    id: 'kim',
+    name: 'Kim Yerrie',
+    role: 'w.v Collective',
+    focus: ['Collective Work'],
+  },
+];
+
+// Upcoming meetings & deadlines
+export const upcomingMeetings: Meeting[] = [
+  {
+    id: 'whirlpool-1',
+    title: 'whirlpool x Press Play',
+    day: 'Monday',
+    time: '4:00 PM',
+    timezone: 'UTC',
+    attendees: ['Lamis', 'Payton', 'Maria'],
+  },
+  {
+    id: 'lamis-sync',
+    title: 'lamis x garrett',
+    day: 'Tuesday',
+    time: '4:00 PM',
+    timezone: 'UTC',
+    attendees: ['Lamis', 'Garrett'],
+  },
+  {
+    id: 'randall',
+    title: 'Randall call',
+    day: 'Tuesday',
+    time: '5:00 PM',
+    timezone: 'UTC',
+    attendees: ['Randall', 'Gina'],
+  },
+  {
+    id: 'maria-sync',
+    title: 'garrett x maria (pt i)',
+    day: 'Tuesday',
+    time: '6:00 PM',
+    timezone: 'UTC',
+    attendees: ['Garrett', 'Maria'],
+  },
+  {
+    id: 'prme-hold',
+    title: 'PRME hold',
+    day: 'Tuesday',
+    time: '7:00 PM',
+    timezone: 'UTC',
+    attendees: ['Meredith', 'Sam'],
+  },
+  {
+    id: 'rnd-meeting',
+    title: 'R&D meeting',
+    day: 'Friday',
+    time: '6:00 PM',
+    timezone: 'UTC',
+    attendees: ['Gina'],
+  },
+];
+
+// Deadlines
+export const deadlines = [
+  {
+    id: 'idb-deadline',
+    title: 'IDB Salvador deadline',
+    date: 'April 10, 2026',
+    project: 'IDB Salvador',
+    priority: 'high',
+  },
+];
+
+// Tasks
+export const tasks: Task[] = [
+  {
+    id: 'idb-docs-1',
+    title: 'IDB: Collect missing documents',
+    category: 'IDB Salvador',
+    assigned: 'Jamie / Maria',
+    subtasks: ['Jamie: 3 items pending', 'Maria: 1 item pending'],
+  },
+  {
+    id: 'idb-docs-2',
+    title: 'IDB: Garrett pull docs from Drive',
+    category: 'IDB Salvador',
+    assigned: 'Garrett',
+  },
+  {
+    id: 'prme-contract',
+    title: 'PRME: Sign contract',
+    category: 'PRME 2026',
+    assigned: 'Garrett',
+  },
+  {
+    id: 'amna-await',
+    title: 'Amna: Await response on proposal',
+    category: 'Amna at 10',
+    assigned: 'Team',
+  },
+  {
+    id: '401k-testing',
+    title: '401k: Final 5500 + year-end testing',
+    category: '401k / CPA',
+    assigned: 'CPA / Garrett',
+  },
+  {
+    id: 'financial-populate',
+    title: 'Financial: Populate cash position, revenue, CPA info',
+    category: 'Finance',
+    assigned: 'Garrett',
+  },
+];
+
+// Dispatch status
+export const dispatchTasks: DispatchTask[] = [
+  {
+    id: 'weekly-cfo',
+    name: 'weekly-cfo-review',
+    schedule: 'Mon 9:05 AM',
+    lastRan: 'Mar 23, 2026',
+    status: 'success',
+  },
+  {
+    id: 'invoice-proc',
+    name: 'invoice-processor',
+    schedule: 'Daily 9:00 AM',
+    lastRan: 'Mar 28, 2026',
+    status: 'success',
+  },
+];
+
+// Financial metrics (placeholder structure)
+export const financialMetrics: FinancialMetric[] = [
+  {
+    label: 'Revenue Pipeline',
+    value: undefined,
+    currency: true,
+    hasData: false,
+  },
+  {
+    label: 'Monthly Burn',
+    value: undefined,
+    currency: true,
+    hasData: false,
+  },
+  {
+    label: 'Cash Position',
+    value: undefined,
+    currency: true,
+    hasData: false,
+  },
+  {
+    label: 'Outstanding Invoices',
+    value: undefined,
+    currency: true,
+    hasData: false,
+  },
+];
