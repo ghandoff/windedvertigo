@@ -131,7 +131,7 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 ## Active
 
 ### Urgent — deploy to CF Workers
-- [ ] **Redeploy site to Cloudflare Workers** — `ppcs-launch` countdown tool + `next.config.ts` redirect rule committed and pushed to GitHub (commit `350c772`) but site DNS points to CF Workers (`wv-site`), not Vercel. Need Wrangler/OpenNext deploy to get `windedvertigo.com/tools/ppcs-launch` live. **Needed before Monday 9am PT whirlpool.** File: `site/public/tools/ppcs-launch/index.html`. Redirect: `/tools/ppcs-launch` → `/tools/ppcs-launch/index.html`.
+- [x] ~~**Redeploy site to Cloudflare Workers**~~ (2026-05-01) — `wv-site` redeployed. `windedvertigo.com/tools/ppcs-launch` → 200. systems-thinking redirect live. Commit `350c772` + site session commits.
 
 ### Infrastructure follow-ups (post 2026-04-25 consolidation)
 - [ ] **Notion content work — page covers** — Add page covers to playdates/packs/collections in Notion (creaseworks side, ~85 pages).
@@ -211,7 +211,18 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 - [ ] **Phase G.2.4: 7-day parity canary** — started 2026-05-01. Compare `wv-port.windedvertigo.workers.dev` vs Vercel prod. Ends ~2026-05-08. After: G.2.5 DNS cutover.
   - **`wv-port-jobs` deploy (Garrett action needed)**: Run `cd port-jobs && bash deploy.sh` to provision 7 secrets + deploy CF Queue consumer. Script is safe — secrets piped directly into wrangler, never printed to stdout. Queues have 1 message each from G.2.3 testing that will process immediately on deploy.
   - Bugs fixed pre-deploy: R2_PUBLIC_URL was pointing at `creaseworks-evidence` bucket instead of `port-assets` (commit `57267e8`). Now reads from `wrangler.jsonc [vars]` with correct domain `pub-ae6933715be744649a1f2fd99346225a.r2.dev`.
+  - G.2.5 cutover runbook: `port/G2.5-CUTOVER.md` (commit `a82b156`)
 - [ ] **Phase B: harbour-apps subtree merge** — BLOCKED: 7 open PRs in harbour-apps (gate requires 0). Close stale PRs then re-run Phase 0 check.
+
+### PRs opened this session (2026-05-01 hardening pass)
+
+> All 4 PRs are independent of each other and can be merged in any order.
+> PRs #31 + #32 are security/correctness fixes — merge before the others.
+
+- [ ] **PR #31** `fix/ops-supabase-lazy-init` — ops: lazy-initialize Supabase client (prevented wv-ops preview build crash on missing env vars)
+- [ ] **PR #32** `fix/ops-middleware-rename` — **security**: `ops/proxy.ts` → `middleware.ts`, export `middleware()` — auth guard was never running; all ops routes were unprotected
+- [ ] **PR #33** `chore/gitignore-supabase-temp` — add `**/supabase/.temp/` to `.gitignore` (removes noisy untracked dirs)
+- [ ] **PR #25** `restructure/phase-a1-cleanup-and-ops-merge` — E.2+E.3 shared packages (conflicts resolved, now mergeable) — triggers PRs #26→#28→#30→#16/#17/#13 chain
 
 ### Vercel cleanup — pending Garrett confirmation
 
@@ -252,7 +263,7 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 - [x] ~~**Session history**~~ (2026-03-31) — Auto-saves completed sessions to Notion "session results" DB. Facilitator can browse past sessions at /facilitate/history and view detailed results.
 
 ### Ops / Infrastructure
-- [ ] **Verify ops OAuth flow** — Garrett: visit ops.windedvertigo.com incognito → should redirect to /login → SSO → dashboard with sign-out button
+- [ ] **Verify ops OAuth flow** — Garrett: visit ops.windedvertigo.com incognito → should redirect to /login → SSO → dashboard with sign-out button. **(Gate: PR #32 must be merged + Vercel redeployed first.)**
 - [x] ~~**Set up Cloudflare KV for ops data**~~ — KV wired: API routes read from KV with static fallback, POST /api/kv for dispatch writes (2026-03-29)
 - [x] ~~**Connect wv-ops to GitHub**~~ — Auto-deploy: `ghandoff/windedvertigo` → rootDirectory `ops/` (2026-03-29)
 - [x] ~~**Ops dashboard: project tracker**~~ — Notion integration fetches from shared projects DB with static fallback (2026-03-29)
@@ -260,7 +271,7 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 - [ ] **Wire QuickBooks into ops dashboard** — Cowork dispatch task pushes P&L, cash flow, invoices to KV → ops reads from KV (Cowork task)
 - [ ] **Wire Gusto into ops dashboard** — Cowork dispatch task pushes payroll, team, contractor data to KV (Cowork task)
 - [x] ~~**Shared auth package**~~ (2026-03-29) — Extracted to `packages/auth`. CRM + ops re-export from `@windedvertigo/auth`.
-- [ ] **Middleware → proxy migration** — Scoped: ~1hr, low risk. Rename middleware.ts → proxy.ts in both apps. Park until next deploy cycle.
+- [x] ~~**Middleware → proxy migration**~~ (2026-05-01) — `ops/proxy.ts` → `ops/middleware.ts`, export renamed to `middleware()`. PR #32. Auth guard was dead before this fix.
 
 ## Someday
 - [x] ~~**Monthly close scheduled task**~~ (2026-03-29) — Runs 1st of month 9am ET. Pulls P&L + cash flow from QuickBooks, pushes to ops KV.

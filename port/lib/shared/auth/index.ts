@@ -52,13 +52,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // Request offline access so Google issues a refresh token, enabling
-      // calendar sync without requiring the user to be actively signed in.
-      // Adding calendar.readonly here means the first sign-in after this
-      // deploy will show a Google consent screen requesting calendar read access.
+      // prompt: "consent" forces Google to always show the full consent screen
+      // and always issue a new refresh_token. Without this, Google silently
+      // reuses existing consent and never prompts for new scopes (like
+      // calendar.readonly) that were added after the user's first sign-in.
+      // access_type: "offline" alone is not enough — Google only gives a
+      // refresh_token on first auth OR when prompt=consent is used.
       authorization: {
         params: {
           access_type: "offline",
+          prompt:      "consent",
           scope: [
             "openid",
             "email",
