@@ -63,6 +63,9 @@ export interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
 
+  // Plain-text vars (set in wrangler.jsonc [vars])
+  R2_PUBLIC_URL: string; // public domain for port-assets bucket
+
   // Native R2 binding (used directly — not via S3 SDK)
   PORT_ASSETS: R2Bucket;
 }
@@ -74,8 +77,8 @@ const QUEUE_TIMESHEET    = "wv-port-timesheet-queue";
 const QUEUE_RFP_DOCUMENT = "wv-port-rfp-document-queue";
 const QUEUE_PROPOSAL_DLQ = "wv-port-proposal-queue-dlq";
 
-// R2 public URL — used to construct the question bank JSON URL
-const R2_PUBLIC_URL = "https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev";
+// R2 public URL is read from env.R2_PUBLIC_URL (wrangler.jsonc [vars]).
+// The constant below is a fallback for type safety only — the env value always wins.
 
 // ── process.env seed ──────────────────────────────────────────────────────────
 // port/lib/ modules read process.env.*. With the nodejs_compat flag, process.env
@@ -659,7 +662,9 @@ Return ONLY valid JSON: an array matching the input question order.`,
 const rfpDocumentConsumer = createQueueConsumer<RfpDocumentUploadedJob>(
   async (payload, env) => {
     seedProcessEnv(env as unknown as Env);
-    const r2 = (env as unknown as Env).PORT_ASSETS;
+    const typedEnv = env as unknown as Env;
+    const r2 = typedEnv.PORT_ASSETS;
+    const r2PublicUrl = typedEnv.R2_PUBLIC_URL;
     const { rfpId, documentUrl, contentType } = payload;
 
     // 1. Fetch RFP + BD assets
@@ -708,7 +713,7 @@ const rfpDocumentConsumer = createQueueConsumer<RfpDocumentUploadedJob>(
     const key = `rfp-docs/${rfpId}/question-bank.json`;
     const body = JSON.stringify(bank, null, 2);
     await r2.put(key, body, { httpMetadata: { contentType: "application/json" } });
-    const publicUrl = `${R2_PUBLIC_URL}/${key}`;
+    const publicUrl = `${r2PublicUrl}/${key}`;
 
     // 6. Update Notion
     await updateRfpOpportunity(rfpId, {

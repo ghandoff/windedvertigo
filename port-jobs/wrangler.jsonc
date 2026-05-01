@@ -66,6 +66,13 @@
   //   vercel env pull .env.port-jobs --project wv-port --environment production
   //   Then: cat .env.port-jobs | grep -E 'ANTHROPIC|RESEND|SLACK|NOTION|SUPABASE' | xargs -I{} wrangler secret put {} --name wv-port-jobs
 
+  // ── Plain-text vars ──────────────────────────────────────────────
+  // R2_PUBLIC_URL: the public domain for the port-assets R2 bucket.
+  // NOT a secret — visible in wrangler deploy output.
+  "vars": {
+    "R2_PUBLIC_URL": "https://pub-ae6933715be744649a1f2fd99346225a.r2.dev"
+  },
+
   // ── R2 binding ───────────────────────────────────────────────────
   // Used by parse-rfp-questions consumer to store parsed question JSON.
   "r2_buckets": [
