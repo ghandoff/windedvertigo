@@ -209,6 +209,8 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 - [x] ~~**Phase G.2.2: Inngest functions → CF Queue consumers (port-jobs)**~~ (2026-05-01) — `port-jobs/src/index.ts` implements proposalConsumer, proposalDlqConsumer, timesheetConsumer, rfpDocumentConsumer. `seedProcessEnv()` bridge pattern. Native R2 binding for rfp-document consumer.
 - [x] ~~**Phase G.2.3: Inngest send() → CF Queues dual-dispatch (all 6 call sites)**~~ (2026-05-01) — All 6 inngest.send() replaced with `publishJob()` + `getCloudflareContext()` in port API routes. `port/lib/cf-env.ts` augments `CloudflareEnv` global. CF canary confirmed live with all 3 queue producer bindings. commit `14f5a71`.
 - [ ] **Phase G.2.4: 7-day parity canary** — started 2026-05-01. Compare `wv-port.windedvertigo.workers.dev` vs Vercel prod. Ends ~2026-05-08. After: G.2.5 DNS cutover.
+  - **`wv-port-jobs` deploy (Garrett action needed)**: Run `cd port-jobs && bash deploy.sh` to provision 7 secrets + deploy CF Queue consumer. Script is safe — secrets piped directly into wrangler, never printed to stdout. Queues have 1 message each from G.2.3 testing that will process immediately on deploy.
+  - Bugs fixed pre-deploy: R2_PUBLIC_URL was pointing at `creaseworks-evidence` bucket instead of `port-assets` (commit `57267e8`). Now reads from `wrangler.jsonc [vars]` with correct domain `pub-ae6933715be744649a1f2fd99346225a.r2.dev`.
 - [ ] **Phase B: harbour-apps subtree merge** — BLOCKED: 7 open PRs in harbour-apps (gate requires 0). Close stale PRs then re-run Phase 0 check.
 
 ### Vercel cleanup — pending Garrett confirmation
