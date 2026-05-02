@@ -8,6 +8,7 @@
     "ancestry",
     "port-jobs",
     "packages/*",
+    "apps/harbour/packages/security",
     "apps/harbour/values-auction",
     "apps/nordic-sqr-rct"
   ],

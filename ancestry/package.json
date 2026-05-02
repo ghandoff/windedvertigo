@@ -15,6 +15,7 @@
     "@opennextjs/cloudflare": "^1.4.0",
     "@vercel/blob": "^2.3.3",
     "@windedvertigo/auth": "*",
+    "@windedvertigo/security": "*",
     "@windedvertigo/tokens": "*",
     "@xyflow/react": "^12.6.0",
     "clsx": "^2.1.1",

@@ -24,6 +24,22 @@ const nextConfig: NextConfig = {
     loaderFile: "./src/lib/cloudflare-image-loader.ts",
   },
 
+  // Prevent @aws-sdk packages from being code-split into hashed webpack
+  // chunks (e.g. "@aws-sdk/client-s3-6e8156e6832c031e") that OpenNext's
+  // esbuild bundler cannot resolve. Marking them as webpack externals leaves
+  // a plain require("@aws-sdk/client-s3") that esbuild CAN resolve from
+  // standalone/node_modules and bundle into the CF Workers output.
+  webpack: (config) => {
+    config.externals = [
+      ...((config.externals as unknown[]) ?? []),
+      {
+        "@aws-sdk/client-s3": "commonjs @aws-sdk/client-s3",
+        "@aws-sdk/s3-request-presigner": "commonjs @aws-sdk/s3-request-presigner",
+      },
+    ];
+    return config;
+  },
+
   async headers() {
     return [
       {
