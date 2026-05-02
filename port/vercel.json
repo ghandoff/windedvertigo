@@ -62,6 +62,10 @@
       "schedule": "0 13 * * 1"
     },
     {
+      "path": "/api/cron/payroll-reminder",
+      "schedule": "0 9 26 * *"
+    },
+    {
       "path": "/api/cron/sync-allowances",
       "schedule": "0 9 28 * *"
     },

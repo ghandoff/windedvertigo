@@ -78,8 +78,9 @@ const CRON_TABLE: CronEntry[] = [
 
   // ── Monday-only ─────────────────────────────────────────────────────────────
   { path: "/api/cron/weekly-digest",  hours: [14], weekdays: [1] },
-  { path: "/api/gusto/sync",          hours: [13], weekdays: [1] },
-  { path: "/api/cron/generate-pdfs",  hours: [6],  weekdays: [1] },
+  { path: "/api/gusto/sync",             hours: [13], weekdays: [1] },
+  { path: "/api/cron/generate-pdfs",    hours: [6],  weekdays: [1] },
+  { path: "/api/cron/payroll-reminder", hours: [9],  dayOfMonth: 26 },
 
   // ── Monthly (specific day) ──────────────────────────────────────────────────
   { path: "/api/cron/refresh-linkedin",      hours: [9], dayOfMonth: 1 },

@@ -1,36 +1,31 @@
 /**
- * Gusto timesheet sync — pushes approved timesheets to Gusto for payroll.
+ * Gusto timesheet sync — pushes approved Notion timesheets into the open
+ * Gusto payroll for the matching pay period.
  *
  * Flow:
- *   1. Query approved timesheets from Notion
- *   2. Filter out already-synced entries (explanation starts with "[gusto:")
- *   3. Map port members to Gusto employees/contractors by email
- *   4. POST time entries (employees) or contractor payments (contractors)
- *   5. Update Notion timesheet status to "invoiced" with Gusto reference
+ *   1. Query approved, un-synced Notion timesheets
+ *   2. Group by pay-period month and by person
+ *   3. Build email → Gusto employee map (employees only — no contractors)
+ *   4. For each person+month group:
+ *        a. Find the unprocessed Gusto payroll for that month
+ *        b. Skip salaried employees (payment_unit !== "Hour")
+ *        c. Aggregate total hours
+ *        d. PUT the payroll with updated Regular hours
+ *        e. Mark Notion timesheets as "invoiced"
  *
- * Gusto API endpoints used:
- *   - GET  /v1/companies/{uuid}/employees — roster lookup
- *   - GET  /v1/companies/{uuid}/contractors — contractor roster lookup
- *   - POST /v1/companies/{uuid}/contractor_payments — contractor payment
- *   - POST /v1/companies/{uuid}/payrolls/{id}/calculate — employee time
- *     (Note: Employee payroll entries use the payrolls endpoint. If a custom
- *      time tracking endpoint is available, swap the POST target below.)
- *
- * Rate handling: Sequential processing with 200ms delay between API calls.
+ * Already-synced guard: timesheet.explanation starts with "[gusto:"
  */
 
 import { queryTimesheets, updateTimesheet } from "@/lib/notion/timesheets";
 import { getActiveMembers, type Member } from "@/lib/notion/members";
 import {
   listEmployees,
-  listContractors,
-  gustoPost,
+  findOpenPayroll,
+  putEmployeeHours,
   type GustoEmployee,
-  type GustoContractor,
 } from "./client";
 
-/** Default hourly rate when a timesheet entry has no rate set */
-const DEFAULT_HOURLY_RATE = 50;
+const DEFAULT_JOB_UUID = ""; // fallback — prefer job UUID from employee record
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -39,7 +34,7 @@ export interface SyncDetail {
   entry: string;
   memberEmail: string;
   status: "synced" | "skipped" | "failed" | "unmapped";
-  gustoId?: string;
+  gustoPayrollUuid?: string;
   error?: string;
 }
 
@@ -51,48 +46,45 @@ export interface SyncResult {
   details: SyncDetail[];
 }
 
+interface RosterEntry {
+  uuid: string;
+  jobUuid: string;
+  paymentUnit: "Hour" | "Week" | "Month" | "Year" | "Paycheck";
+}
+
 // ── Helpers ────────────────────────────────────────────────
 
 function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((res) => setTimeout(res, ms));
 }
 
-type RosterType = "employee" | "contractor";
-
-interface RosterEntry {
-  uuid: string;
-  type: RosterType;
+/** YYYY-MM from an ISO date string — used as the pay-period bucket key. */
+function yearMonth(dateStr: string): string {
+  return dateStr.slice(0, 7); // "2026-04"
 }
 
 /**
- * Build a lowercase-email -> RosterEntry map from Gusto employees + contractors.
- * Employees use work_email (falling back to email); contractors use email.
+ * Build a lowercase-email → RosterEntry map from the Gusto employee list.
+ * Uses work_email (falling back to email).
  */
-function buildRosterMap(
-  employees: GustoEmployee[],
-  contractors: GustoContractor[],
-): Map<string, RosterEntry> {
+function buildRosterMap(employees: GustoEmployee[]): Map<string, RosterEntry> {
   const map = new Map<string, RosterEntry>();
-
   for (const emp of employees) {
     const email = (emp.work_email ?? emp.email ?? "").toLowerCase();
-    if (email) map.set(email, { uuid: emp.uuid, type: "employee" });
+    if (!email) continue;
+    const primaryJob = emp.jobs?.[0];
+    map.set(email, {
+      uuid: emp.uuid,
+      jobUuid: primaryJob?.uuid ?? DEFAULT_JOB_UUID,
+      paymentUnit: (primaryJob?.payment_unit ?? "Month") as RosterEntry["paymentUnit"],
+    });
   }
-
-  for (const con of contractors) {
-    const email = (con.email ?? "").toLowerCase();
-    if (email) map.set(email, { uuid: con.uuid, type: "contractor" });
-  }
-
   return map;
 }
 
-/** Build a Notion person ID -> Member map for quick lookup. */
 function buildMemberIdMap(members: Member[]): Map<string, Member> {
   const map = new Map<string, Member>();
-  for (const m of members) {
-    map.set(m.id, m);
-  }
+  for (const m of members) map.set(m.id, m);
   return map;
 }
 
@@ -100,45 +92,36 @@ function buildMemberIdMap(members: Member[]): Map<string, Member> {
 
 export async function runGustoSync(): Promise<SyncResult> {
   const companyUuid = process.env.GUSTO_COMPANY_UUID;
-  if (!companyUuid) {
-    throw new Error("[gusto] Missing required env var: GUSTO_COMPANY_UUID");
-  }
+  if (!companyUuid) throw new Error("[gusto] Missing GUSTO_COMPANY_UUID");
 
-  // 1. Fetch approved timesheets
+  // 1. Fetch approved timesheets, skip already-synced
   const { data: timesheets } = await queryTimesheets(
     { status: "approved" },
     { pageSize: 200 },
   );
 
-  // 2. Filter out already-synced (explanation starts with "[gusto:")
   const pending = timesheets.filter(
     (ts) => !ts.explanation?.startsWith("[gusto:"),
   );
-
   const skippedCount = timesheets.length - pending.length;
 
   if (pending.length === 0) {
-    return {
-      synced: 0,
-      skipped: skippedCount,
-      failed: 0,
-      unmapped: 0,
-      details: [],
-    };
+    return { synced: 0, skipped: skippedCount, failed: 0, unmapped: 0, details: [] };
   }
 
-  // 3. Build member + Gusto roster maps
+  // 2. Build lookup maps
   const members = await getActiveMembers();
   const memberIdMap = buildMemberIdMap(members);
+  const employees = await listEmployees(companyUuid);
+  const rosterMap = buildRosterMap(employees);
 
-  const [employees, contractors] = await Promise.all([
-    listEmployees(companyUuid),
-    listContractors(companyUuid),
-  ]);
+  // 3. Group pending timesheets by [yearMonth]-[memberEmail]
+  //    Key: "2026-04::payton@windedvertigo.com"
+  const groups = new Map<
+    string,
+    { roster: RosterEntry; email: string; tsIds: string[]; totalHours: number }
+  >();
 
-  const rosterMap = buildRosterMap(employees, contractors);
-
-  // 4. Process each timesheet sequentially
   const result: SyncResult = {
     synced: 0,
     skipped: skippedCount,
@@ -148,7 +131,6 @@ export async function runGustoSync(): Promise<SyncResult> {
   };
 
   for (const ts of pending) {
-    // Find the port member by person ID
     const personId = ts.personIds[0];
     const member = personId ? memberIdMap.get(personId) : undefined;
 
@@ -159,7 +141,7 @@ export async function runGustoSync(): Promise<SyncResult> {
         entry: ts.entry,
         memberEmail: "",
         status: "unmapped",
-        error: `No port member found for personId ${personId ?? "(none)"}`,
+        error: `No member for personId ${personId ?? "(none)"}`,
       });
       continue;
     }
@@ -174,92 +156,99 @@ export async function runGustoSync(): Promise<SyncResult> {
         entry: ts.entry,
         memberEmail: email,
         status: "unmapped",
-        error: `Member ${member.name} (${email}) not found in Gusto roster`,
+        error: `${member.name} (${email}) not found in Gusto roster`,
       });
       continue;
     }
 
-    const isReimbursement = ts.type === "reimbursement";
-    const hours = ts.hours ?? 0;
-    const rate = ts.rate ?? DEFAULT_HOURLY_RATE;
-    const reimbursementAmount = ts.amount ?? 0;
-    const date = ts.dateAndTime?.start?.split("T")[0] ?? new Date().toISOString().split("T")[0];
-
-    try {
-      let gustoId: string;
-
-      if (roster.type === "contractor") {
-        // POST contractor payment — time entries use hourly_rate+hours,
-        // reimbursements use the non-taxable reimbursement field.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const payload: Record<string, any> = {
-          contractor_uuid: roster.uuid,
-          date,
-          payment_method: "Direct Deposit",
-          memo: ts.entry,
-        };
-
-        if (isReimbursement) {
-          payload.reimbursement = String(reimbursementAmount);
-        } else {
-          payload.hourly_rate = String(rate);
-          payload.hours = String(hours);
-        }
-
-        const payment = await gustoPost<{ uuid: string }>(
-          `/v1/companies/${companyUuid}/contractor_payments`,
-          payload,
-        );
-        gustoId = payment.uuid;
-      } else {
-        // For employees, post to the time tracking endpoint.
-        // Gusto's employee time entries use:
-        //   POST /v1/companies/{uuid}/employees/{emp_uuid}/time_off_activities
-        // or the payrolls endpoint depending on plan. We use a general
-        // contractor-style approach here; adjust the endpoint to match your
-        // Gusto plan's employee time entry API.
-        const entry = await gustoPost<{ uuid: string }>(
-          `/v1/companies/${companyUuid}/payrolls/employee_hours`,
-          {
-            employee_uuid: roster.uuid,
-            date,
-            hours: isReimbursement ? "0" : String(hours),
-            memo: isReimbursement
-              ? `[reimbursement: $${reimbursementAmount}] ${ts.entry}`
-              : ts.entry,
-          },
-        );
-        gustoId = entry.uuid;
-      }
-
-      // 5. Update Notion: set status to "invoiced", prepend Gusto reference
-      const existingExplanation = ts.explanation ?? "";
-      await updateTimesheet(ts.id, {
-        status: "invoiced",
-        explanation: `[gusto:${gustoId}] ${existingExplanation}`.trim(),
-      });
-
-      result.synced++;
+    // Skip salaried employees — Gusto pays them automatically
+    if (roster.paymentUnit !== "Hour") {
+      result.skipped++;
       result.details.push({
         timesheetId: ts.id,
         entry: ts.entry,
         memberEmail: email,
-        status: "synced",
-        gustoId,
+        status: "skipped",
+        error: `${member.name} is salaried (${roster.paymentUnit}) — no hours to push`,
       });
-    } catch (err) {
-      result.failed++;
-      result.details.push({
-        timesheetId: ts.id,
-        entry: ts.entry,
-        memberEmail: email,
-        status: "failed",
-        error: err instanceof Error ? err.message : String(err),
-      });
+      continue;
     }
 
-    // Rate limiting: 200ms delay between Gusto API calls
-    await delay(200);
+    const date = ts.dateAndTime?.start?.split("T")[0]
+      ?? new Date().toISOString().split("T")[0];
+    const month = yearMonth(date);
+    const groupKey = `${month}::${email}`;
+
+    if (!groups.has(groupKey)) {
+      groups.set(groupKey, { roster, email, tsIds: [], totalHours: 0 });
+    }
+    const group = groups.get(groupKey)!;
+    group.tsIds.push(ts.id);
+    group.totalHours += (ts.hours ?? 0) + (ts.minutes ?? 0) / 60;
+  }
+
+  // 4. Push each group to Gusto
+  for (const [groupKey, group] of groups) {
+    const [month] = groupKey.split("::");
+    const dateStr = `${month}-01`;
+
+    try {
+      const payroll = await findOpenPayroll(companyUuid, dateStr);
+
+      if (!payroll) {
+        for (const tsId of group.tsIds) {
+          result.failed++;
+          result.details.push({
+            timesheetId: tsId,
+            entry: "",
+            memberEmail: group.email,
+            status: "failed",
+            error: `No open payroll found for ${month}`,
+          });
+        }
+        continue;
+      }
+
+      // PUT hours into the payroll
+      await putEmployeeHours(
+        companyUuid,
+        payroll.uuid,
+        group.roster.uuid,
+        group.roster.jobUuid,
+        group.totalHours,
+      );
+
+      // Mark Notion timesheets as invoiced
+      for (const tsId of group.tsIds) {
+        await updateTimesheet(tsId, {
+          status: "invoiced",
+          explanation: `[gusto:${payroll.uuid}] pushed ${group.totalHours.toFixed(2)}h for ${month}`,
+        });
+        result.synced++;
+        result.details.push({
+          timesheetId: tsId,
+          entry: "",
+          memberEmail: group.email,
+          status: "synced",
+          gustoPayrollUuid: payroll.uuid,
+        });
+        await delay(100);
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      for (const tsId of group.tsIds) {
+        result.failed++;
+        result.details.push({
+          timesheetId: tsId,
+          entry: "",
+          memberEmail: group.email,
+          status: "failed",
+          error,
+        });
+      }
+    }
+
+    await delay(300); // rate limiting between groups
   }
 
   return result;
