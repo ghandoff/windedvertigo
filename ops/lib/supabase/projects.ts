@@ -1,4 +1,4 @@
-import { supabase } from "./client";
+import { getSupabase } from "./client";
 import type { Project } from "@/lib/types";
 
 interface ProjectRow {
@@ -12,7 +12,7 @@ interface ProjectRow {
 
 export async function fetchProjectsFromSupabase(): Promise<Project[] | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from("ops_projects")
       .select("slug, name, status, deadline, owner, description")
       .eq("archived", false)

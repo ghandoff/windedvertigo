@@ -13,7 +13,7 @@
     "@windedvertigo/auth": "*",
     "@windedvertigo/notion": "*",
     "@windedvertigo/tokens": "*",
-    "next": "^16.1.6",
+    "next": "^16.2.4",
     "next-auth": "^5.0.0-beta.30",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
