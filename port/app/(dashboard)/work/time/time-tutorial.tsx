@@ -58,17 +58,31 @@ const SHARED_STEPS: Step[] = [
   },
   {
     icon: <CalendarDays className="h-5 w-5" />,
-    title: "use GCal to block time and track it",
+    title: "naming events for invoice-accurate time tracking",
     description:
-      "your Google Calendar isn\u2019t just for meetings \u2014 it\u2019s your time tracker. block focused work sessions as calendar events and they\u2019ll automatically become timesheet entries.",
+      "how you name calendar events directly determines how they appear on invoices. clear, consistent naming makes the monthly invoice readable and defensible to clients.",
     details: [
-      "create events for deep work: \u201cPRME \u2014 evidence framework\u201d, \u201cIDB \u2014 proposal writing\u201d",
-      "include the project name so the sync can match it automatically",
-      "blocked time protects your calendar from meetings AND logs your hours",
-      "even 30-min blocks add up \u2014 this is how the collective pulse tracks your workload",
-      "tip: use recurring blocks for steady work (e.g., \u201cweekly admin\u201d every Friday 2\u20133pm)",
+      "format: \"Project \u2014 description\" \u2014 e.g. \"PRME \u2014 evidence framework\", \"IDB \u2014 proposal writing\"",
+      "put the project name first so the sync can group entries correctly",
+      "avoid vague names like \"call\" or \"work\" \u2014 they create unhelpful line items on invoices",
+      "multi-project event? pick the primary client or split it into two events",
+      "recurring blocks (weekly syncs, admin time) should be explicit: \"weekly admin \u2014 ops\"",
     ],
     accent: "blue",
+  },
+  {
+    icon: <Zap className="h-5 w-5" />,
+    title: "duration accuracy = billing accuracy",
+    description:
+      "the sync pulls hours directly from your event start/end times. what's on your calendar is what appears on the invoice \u2014 so keep event durations honest.",
+    details: [
+      "set realistic start/end times \u2014 don't create a 30-min block for 2 hours of work",
+      "all-day events have no time data and are skipped by the sync",
+      "meetings you declined are also skipped \u2014 only accepted/tentative events sync",
+      "to log async work (email, review, research), create a timed block on your calendar",
+      "if you ran over on an event, edit the end time before the month closes",
+    ],
+    accent: "amber",
   },
   {
     icon: <CheckCircle2 className="h-5 w-5" />,
@@ -123,12 +137,14 @@ const ADMIN_EXTRA_STEPS: Step[] = [
     icon: <FileText className="h-5 w-5" />,
     title: "invoice generation",
     description:
-      "use \"generate invoice\" in the header to create branded invoices from approved billable timesheets. select a project and month, preview the invoice, then send or print.",
+      "use \"generate invoice\" in the header to create branded invoices. two modes: monthly summary (all your time, grouped by project) or per-project (approved billable entries only, for client billing).",
     details: [
-      "invoices pull line items from approved billable entries for the selected project + period",
-      "the invoice number is editable (format: WV-YYYY-NNN)",
-      "send directly via email or use print/PDF for manual delivery",
+      "monthly summary: all timesheet entries for the month, grouped by project — good for internal records",
+      "per-project: approved + billable entries only — use when billing a specific client",
+      "the wv wordmark auto-populates in the letterhead; invoice number is editable (WV-YYYY-MMDD)",
+      "send directly via email (Resend) or print/PDF for manual delivery",
       "sent invoices mark their timesheets as \"invoiced\" automatically",
+      "tip: run backfill sync before generating invoices to make sure all calendar events are captured",
     ],
     accent: "amber",
   },
@@ -146,10 +162,10 @@ function buildSteps(tier: VisibilityTier): Step[] {
     ],
   };
 
-  const base = [entryStep, SHARED_STEPS[1], SHARED_STEPS[2]];
+  const base = [entryStep, SHARED_STEPS[1], SHARED_STEPS[2], SHARED_STEPS[3]];
 
   if (isAdminLike) {
-    return [...base, ...ADMIN_EXTRA_STEPS];
+    return [...base, SHARED_STEPS[4], ...ADMIN_EXTRA_STEPS];
   }
 
   return base;
@@ -168,22 +184,23 @@ const ACCENT_MAP: Record<string, { bg: string; text: string; border: string; dot
 const ADMIN_QUICKSTART = (
   <>
     <span className="font-medium text-foreground">quick start:</span>{" "}
-    check that your calendar sync is running, approve any draft entries,
-    then hit &quot;sync to Gusto&quot; to push hours to payroll.
+    sync your calendar, approve draft entries, then use &quot;generate invoice&quot;
+    to create a monthly summary — or &quot;sync to Gusto&quot; for payroll.
   </>
 );
 
 const MEMBER_QUICKSTART = (
   <>
     <span className="font-medium text-foreground">quick start:</span>{" "}
-    your calendar events sync automatically. check that draft entries
-    look correct, then they&apos;ll move through the approval flow.
+    sync your calendar (use backfill for previous months), name events
+    clearly with project names, and check draft entries look right.
   </>
 );
 
 // ── localStorage hook ───────────────────────────────────
 
-const STORAGE_KEY = "time_tutorial_dismissed";
+// Bumped key version so users see the updated GCal best-practices content
+const STORAGE_KEY = "time_tutorial_dismissed_v2";
 
 export function useTimeTutorial() {
   const [open, setOpen] = useState(false);
