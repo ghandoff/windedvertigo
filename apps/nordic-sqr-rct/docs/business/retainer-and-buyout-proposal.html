@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Retainer + Buyout Proposal — Winded Vertigo × Nordic Naturals</title>
+<style>
+:root {
+  --ink:#1a1a1a; --dim:#5a6570; --rule:#d9dde1; --bg:#fafaf7; --card:#ffffff;
+  --accent:#2b6cb0; --warn:#b45309; --green:#15803d; --red:#b91c1c;
+  --amber-bg:#fff8e6; --amber-rule:#e8c88a; --green-bg:#f0fdf4; --green-rule:#86efac;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ink:#e8e8e8; --dim:#9aa4ae; --rule:#2d3339; --bg:#15181b; --card:#1c2025; --accent:#6aa6e0; --warn:#f4a547; --green:#6cd192; --red:#ef7d7d; --amber-bg:#28231a; --amber-rule:#5a4620; --green-bg:#18241d; --green-rule:#2a5940; }
+}
+* { box-sizing: border-box; }
+html { font-size: 16px; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Georgia,serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
+.page { max-width:880px; margin:0 auto; padding:3rem 1.5rem 6rem; }
+header.masthead { border-bottom:1px solid var(--rule); padding-bottom:1.5rem; margin-bottom:2.5rem; }
+.eyebrow { font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--dim); }
+h1 { font-size:2rem; margin:0.25rem 0 0.5rem; line-height:1.2; }
+.meta { color:var(--dim); font-size:0.875rem; }
+.meta strong { color:var(--ink); }
+h2 { font-size:1.375rem; margin:2.5rem 0 0.75rem; border-bottom:1px solid var(--rule); padding-bottom:0.5rem; }
+h3 { font-size:1.125rem; margin:2rem 0 0.5rem; color:var(--accent); }
+h4 { font-size:1rem; margin:1.5rem 0 0.5rem; }
+p { margin:0.75rem 0; }
+ol, ul { padding-left:1.5rem; margin:0.5rem 0; }
+li { margin:0.4rem 0; }
+code { font-family:"SF Mono",Menlo,Consolas,monospace; font-size:0.875em; background:var(--card); border:1px solid var(--rule); border-radius:3px; padding:0.05em 0.3em; }
+table { width:100%; border-collapse:collapse; margin:1rem 0 1.5rem; font-size:0.9rem; }
+th, td { text-align:left; padding:0.5rem 0.75rem; border-bottom:1px solid var(--rule); vertical-align:top; }
+th { background:var(--card); font-weight:600; font-size:0.825rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; }
+tr:nth-child(even) td { background:rgba(0,0,0,0.015); }
+@media (prefers-color-scheme: dark) { tr:nth-child(even) td { background:rgba(255,255,255,0.02); } }
+.callout { border-radius:0 6px 6px 0; padding:1rem 1.25rem; margin:1.25rem 0; }
+.callout-amber { background:var(--amber-bg); border-left:4px solid var(--amber-rule); }
+.callout-amber strong { color:var(--warn); }
+.callout-green { background:var(--green-bg); border-left:4px solid var(--green-rule); }
+.tldr { background:var(--card); border:1px solid var(--rule); border-radius:8px; padding:1.25rem 1.5rem; margin:1.5rem 0 2rem; }
+.tldr h4 { margin-top:0; color:var(--accent); font-size:0.875rem; text-transform:uppercase; letter-spacing:0.1em; }
+.tier-card { background:var(--card); border:1px solid var(--rule); border-radius:8px; padding:1rem 1.25rem; margin:0.75rem 0; }
+.tier-card h4 { margin:0 0 0.5rem; color:var(--accent); }
+.tier-card .fee { font-size:1.5rem; font-weight:700; color:var(--ink); }
+.tier-card .unit { font-size:0.875rem; color:var(--dim); font-weight:400; margin-left:0.25rem; }
+.grid-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem; margin:1rem 0; }
+a { color:var(--accent); text-decoration:none; }
+a:hover { text-decoration:underline; }
+footer { border-top:1px solid var(--rule); padding-top:1.5rem; margin-top:3rem; color:var(--dim); font-size:0.875rem; }
+@media print { body{background:white;color:black;font-size:11pt;} .page{padding:1rem 0;max-width:100%;} h2,h3{break-after:avoid;} table,.callout,.tier-card{break-inside:avoid;} }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div class="eyebrow">Commercial Proposal · Draft for Internal Review</div>
+  <h1>Retainer + Buyout Proposal</h1>
+  <div class="meta">
+    <strong>From</strong> Garrett Jaeger · Winded Vertigo &nbsp;·&nbsp; <strong>For</strong> Nordic Naturals (SQR-RCT + PCS Platform) &nbsp;·&nbsp; <strong>Date</strong> 2026-04-22
+  </div>
+</header>
+
+<div class="tldr">
+  <h4>TL;DR</h4>
+  <p>A production regulated-data platform built on LLM-backed pipelines doesn't stand still. Three categories of ongoing work — security maintenance, LLM vendor management, and Nordic-side data evolution — warrant a monthly retainer rather than a project-based engagement. This proposal structures that retainer, defines a clean wind-down or accelerated-buyout clause that protects both parties, and scopes a separate <strong>Wave 10 "Evergreen Extraction"</strong> deliverable that reduces Anthropic dependency by migrating appropriate workloads to deterministic parsers and open-source LLMs.</p>
+  <p><strong>Target shape:</strong> $6,000/mo Priority-tier retainer, 12-month auto-renewing term, 60-day notice, 6× monthly buyout fee on accelerated exit. Wave 10 scoped at $20–35k, optionally pre-committed in the first 90 days.</p>
+</div>
+
+<h2>1. Why a retainer, not just a project fee</h2>
+<p>The work to date has delivered a live production platform: PCS documents, canonical claims, label import, SQR-RCT scoring, weekly digests, nightly re-pings, ingredient-safety escalations, in-app feedback fan-out to Slack, bcrypt-authenticated multi-role auth with 1h access tokens and live role re-verification, and an audit trail for all mutations. That platform does not stand still. Three categories of work recur:</p>
+<ol>
+  <li><strong>Security maintenance</strong> — password policy, token rotation, dependency patches, vendor-breach response, regulatory updates (FDA DSHEA, FTC Green Guides, GDPR, CCPA), penetration-test findings, audit-log reviews.</li>
+  <li><strong>LLM ecosystem churn</strong> — Claude, OpenAI, and every downstream LLM provider ship breaking changes on ~quarterly cadence (pricing, rate limits, retention defaults, API shape, model deprecations). Each one is a live risk.</li>
+  <li><strong>Nordic-side data hygiene</strong> — new products, new claim templates, label format revisions, Lauren's template updates, canonical-claim deduplication, study intake changes.</li>
+</ol>
+<p>A one-time build fee covers none of these. Project-based engagement creates feast/famine dynamics where Nordic only pays when something is already broken. A <strong>retainer</strong> aligns incentives: predictable revenue funds proactive maintenance, and Nordic has a committed owner for the platform without renegotiating every quarter.</p>
+
+<h2>2. What the retainer covers</h2>
+
+<h3>Included in monthly retainer</h3>
+<table>
+  <tr><th>Category</th><th>Scope</th></tr>
+  <tr><td><strong>Security patching</strong></td><td>Dependency updates, CVE response, credential rotation, vendor-breach assessment (Notion, Vercel, Anthropic).</td></tr>
+  <tr><td><strong>LLM vendor management</strong></td><td>Monitor Claude/OpenAI changelogs, model deprecations, pricing shifts. Adjust prompts and pipelines. Negotiate addenda (ZDR, BAA) on Nordic's behalf.</td></tr>
+  <tr><td><strong>Data hygiene</strong></td><td>Operate existing backfill scripts, duplicate audits, canonical-claim merges. Triage intake-queue anomalies.</td></tr>
+  <tr><td><strong>Minor feature work</strong></td><td>Small additive features (≤ ~4h each), UI polish, copy changes, role adjustments, new Slack channels, template tweaks. Cap: 8h/mo standard tier, carryover 1 month max.</td></tr>
+  <tr><td><strong>Incident response</strong></td><td>Triage production issues within SLA. Revert via audit trail when appropriate. After-action writeup.</td></tr>
+  <tr><td><strong>Quarterly security review</strong></td><td>Audit log review, access-pattern analysis, capability audit, Notion workspace membership review, Vercel env hygiene. Written report to Nordic leadership.</td></tr>
+  <tr><td><strong>Light advisory</strong></td><td>Up to 2h/mo of strategy conversations, vendor selection advice, architectural recommendations on Nordic-initiated questions.</td></tr>
+</table>
+
+<h3>NOT included (scoped separately as project work)</h3>
+<table>
+  <tr><th>Category</th><th>Notes</th></tr>
+  <tr><td>Major feature builds</td><td>New waves (Wave 8 C-D inline editing, Wave 9 real-time, Wave 10 OSS migration, Wave 11 Supabase, etc.). Each gets its own SOW.</td></tr>
+  <tr><td>LLM platform migration</td><td>See §5 — specific Wave 10 project.</td></tr>
+  <tr><td>Large one-time data migrations</td><td>Hundreds of PCS docs, ERP integrations, taxonomy reworks. Project-priced.</td></tr>
+  <tr><td>Training deliverables</td><td>Written runbooks beyond baseline, video walkthroughs, new-hire onboarding. Hourly.</td></tr>
+  <tr><td>Custom integrations</td><td>Bespoke connectors to Nordic's warehouse, accounting, LIMS. Each is a project.</td></tr>
+  <tr><td>Legal / compliance attestations</td><td>SOC 2, HIPAA BAA prep, FDA regulatory docs. Nordic engages specialists; I collaborate hourly.</td></tr>
+</table>
+
+<h2>3. Proposed retainer structure</h2>
+<p>Dollar figures are anchor estimates for conversation; Garrett's attorney and Nordic's procurement will adjust.</p>
+
+<div class="grid-cards">
+  <div class="tier-card">
+    <h4>Standard</h4>
+    <div><span class="fee">$4,000</span><span class="unit">/mo</span></div>
+    <ul style="font-size:0.825rem;margin-top:0.75rem;">
+      <li>P1 response: 24 business hr</li>
+      <li>P2 response: 3 business days</li>
+      <li>8 hours/mo feature work</li>
+    </ul>
+  </div>
+  <div class="tier-card" style="border-color:var(--accent);border-width:2px;">
+    <h4>Priority · recommended</h4>
+    <div><span class="fee">$6,000</span><span class="unit">/mo</span></div>
+    <ul style="font-size:0.825rem;margin-top:0.75rem;">
+      <li>P1 response: 4 business hr</li>
+      <li>P2 response: 1 business day</li>
+      <li>16 hours/mo feature work</li>
+    </ul>
+  </div>
+  <div class="tier-card">
+    <h4>Dedicated</h4>
+    <div><span class="fee">$9,000</span><span class="unit">/mo</span></div>
+    <ul style="font-size:0.825rem;margin-top:0.75rem;">
+      <li>P1 response: 1 business hr</li>
+      <li>P2 response: 4 business hr</li>
+      <li>24 hours/mo + named backup</li>
+    </ul>
+  </div>
+</div>
+
+<p><strong>Over-limit hours:</strong> $200/hr (standard) or $175/hr (priority+). <strong>Term:</strong> 12-month initial, auto-renewing 12-month increments. <strong>Notice:</strong> 60-day mutual for non-renewal or tier change. <strong>Price adjustment:</strong> CPI-linked annual review, capped at 5%/yr.</p>
+
+<div class="callout callout-green">
+  <p><strong>Rationale anchor:</strong> 10–20% of estimated first-year build value = $60k – $85k/year retainer. Market-standard for a production platform with regulated-data characteristics.</p>
+</div>
+
+<h2>4. Buyout / termination / transition</h2>
+<p>The most important section for risk posture: what happens if Nordic decides to stop paying.</p>
+
+<h3>Path A — Wind-down (default)</h3>
+<p>Nordic gives 60-day notice. A 90-day wind-down begins.</p>
+<ul>
+  <li>Retainer continues at current rate through wind-down.</li>
+  <li>Transition package delivered: complete handoff runbook (<code>docs/handoff/*</code>), credentials transfer to Nordic-named successor (Notion, Vercel, Anthropic, Slack, GitHub), live walkthrough sessions (up to 8h), dependency/vendor map + cost attribution, 30-day post-termination email availability (short answers, no billable hours).</li>
+  <li><strong>Open-source migration NOT included</strong> in wind-down. If the platform's LLM features matter, Nordic either continues the Anthropic contract themselves or commissions Wave 10 (§5) <em>before</em> terminating.</li>
+</ul>
+
+<h3>Path B — Accelerated buyout</h3>
+<p>Nordic wants immediate exit (no 90-day wind-down).</p>
+<ul>
+  <li><strong>Exit fee = 6 × current monthly retainer</strong>, paid on termination.</li>
+  <li>Includes Path A deliverables compressed into 30 days.</li>
+  <li>Protects revenue runway during transition to next engagement.</li>
+</ul>
+
+<h3>Termination for cause</h3>
+<p>If termination is for documented cause (breach, gross negligence, willful misconduct), no buyout fee. Ordinary performance disagreements do NOT constitute cause.</p>
+
+<h3>Non-solicitation (recommended optional clause)</h3>
+<p>If signed, Garrett does not accept engagements from direct Nordic Naturals competitors (US supplement category, top 20 by revenue) for contract term + 12 months post-termination. Addresses Nordic's IP-leak concern without requiring full-time exclusivity.</p>
+
+<h2>5. The LLM dependency problem</h2>
+
+<div class="callout callout-amber">
+  <p><strong>The risk (frank assessment).</strong> The platform's most valuable capabilities — PCS extraction, label OCR, auto-scoring, claim drafting, reformulation suggestions — all depend on Anthropic's Claude API. If that breaks (pricing shock, account suspension, provider bankruptcy, regulatory ban, model deprecation, or Nordic stops paying), affected features fail within hours. This is <em>vendor concentration risk</em>.</p>
+  <p>It's also why Nordic should retain rather than build-and-abandon: the hardest work is NOT in React code or Notion schema — it's in prompt engineering, confidence gates, extraction validation, and the accumulated corpus of "what Claude gets wrong on Nordic's specific template." That knowledge is not recoverable from a code read-through.</p>
+</div>
+
+<h3>Wave 10 — Evergreen Extraction (separate project)</h3>
+<p>Reduces LLM dependency through a phased migration:</p>
+<ol>
+  <li><strong>Deterministic parsers first.</strong> Replace LLM calls for well-structured fields with rule-based extraction (SKU/FMT/PCS ID patterns, dose regex, formula-line structure from tables). Free, fast, version-stable, never hallucinate.</li>
+  <li><strong>Open-source LLMs via managed hosts.</strong> Add Llama 3 / Mistral / DeepSeek via Groq, Together.ai, or Replicate as second provider. Adapter pattern — rest of codebase is model-agnostic. Costs drop ~80–95% vs. Claude; models are fungible.</li>
+  <li><strong>Self-hosted OSS fallback.</strong> For most-sensitive content, a self-hosted Llama variant on Vercel Fluid Compute or cheap EC2 GPU. Only warranted if DPO posture requires zero third-party inference.</li>
+  <li><strong>Vision holdout.</strong> Claude vision remains best for label OCR until OSS vision catches up (watch Qwen-VL, InternVL, Pixtral). Keep Claude for labels specifically, OSS for everything else. Clear audit line: "Nordic label images visit Anthropic; nothing else does."</li>
+  <li><strong>Aggressive caching.</strong> Extraction results persisted with content hashes. Re-uploading the same PDF doesn't re-hit any API. Mostly in place; Wave 10 formalizes.</li>
+</ol>
+
+<div class="callout callout-green">
+  <p><strong>Wave 10 budget:</strong> $20,000 – $35,000 one-time. Delivered over 6-10 weeks. Retainer continues throughout — Wave 10 is the retainer's purpose, not its replacement.</p>
+</div>
+
+<h3>If Nordic terminates before Wave 10 ships</h3>
+<p>This is the scenario the retainer is designed to protect against: "build the hard thing, then get kicked off before the evergreen version lands." Three protections:</p>
+<ol>
+  <li><strong>The retainer itself.</strong> If the LLM features matter to Nordic, they need ongoing maintenance. Terminating without replacement means those features degrade. Nordic's own interest aligns with retention through transition.</li>
+  <li><strong>Buyout fee (§4).</strong> 6× monthly retainer on accelerated exit recoups some of the platform-specific IP investment.</li>
+  <li><strong>Wave 10 pre-commitment.</strong> Strong recommendation: Wave 10 scoping conversation happens in the first 90 days of the retainer. If Nordic commits to Wave 10 funding up front, both parties have aligned incentive to see it through.</li>
+</ol>
+
+<h2>6. SLA specifics</h2>
+
+<h3>Incident severity</h3>
+<table>
+  <tr><th>Severity</th><th>Definition</th></tr>
+  <tr><td><strong>P1</strong></td><td>Production down or data loss in progress. Platform unreachable, auth broken for all users, data being corrupted, breach in progress.</td></tr>
+  <tr><td><strong>P2</strong></td><td>Significant feature broken, workaround exists. PCS imports failing, scoring stuck, one role's access broken.</td></tr>
+  <tr><td><strong>P3</strong></td><td>Minor bug, cosmetic issue, non-blocking degradation.</td></tr>
+  <tr><td><strong>P4</strong></td><td>Enhancement request, question, non-urgent feature.</td></tr>
+</table>
+
+<h3>Communication</h3>
+<ul>
+  <li>Primary: Slack (once Nordic workspace onboarding completes)</li>
+  <li>Secondary: email to garrett@windedvertigo.com</li>
+  <li>P1 only: SMS/phone fallback to agreed number</li>
+</ul>
+
+<h3>Availability windows</h3>
+<ul>
+  <li>Business hours: US Eastern, Monday–Friday, 9 AM – 6 PM ET</li>
+  <li>After-hours P1: best-effort within 2 hours; guaranteed next-morning response</li>
+  <li>Vacation coverage: 2 weeks' notice for absences &gt; 3 days, designated backup contact or reduced-SLA hold during those windows</li>
+</ul>
+
+<h2>7. Roadmap of separately-scoped projects</h2>
+<table>
+  <tr><th>Wave</th><th>Title</th><th>Hours</th><th>Fee</th><th>Depends on</th></tr>
+  <tr><td><strong>Wave 8 remainder</strong></td><td>Living PCS (versioning + inline edit + revisions panel)</td><td>20–24</td><td>$8,000–$12,000</td><td>—</td></tr>
+  <tr><td>Wave 9</td><td>Real-time collaborative editing (CRDT)</td><td>60–100</td><td>$25,000–$45,000</td><td>Wave 8</td></tr>
+  <tr><td><strong>Wave 10</strong></td><td>Evergreen Extraction — OSS LLM migration</td><td>40–80</td><td>$20,000–$35,000</td><td>— (prefer post Wave 8)</td></tr>
+  <tr><td>Wave 11</td><td>Supabase migration (Notion → Postgres + RLS)</td><td>80–160</td><td>$35,000–$70,000</td><td>Wave 10</td></tr>
+  <tr><td>Wave 12</td><td>HIPAA BAA + SOC 2 Type 1 preparation</td><td>60–120 + legal</td><td>$30,000–$60,000 + legal</td><td>Wave 11</td></tr>
+</table>
+<p>All estimates are anchors. Scope review before each wave starts.</p>
+
+<h2>8. Why Nordic should sign this</h2>
+<ol>
+  <li><strong>Predictable monthly cost</strong> vs. panic-fee emergencies when something breaks.</li>
+  <li><strong>Named technical owner</strong> — research team knows who to call and their response-time commitment.</li>
+  <li><strong>Security maturity baseline</strong> — quarterly reviews + ongoing patching is what auditors want to see.</li>
+  <li><strong>Vendor-risk management</strong> — Nordic doesn't have to become expert in Anthropic's changelogs or Notion's upgrade paths.</li>
+  <li><strong>Optionality on LLM migration</strong> — Wave 10 available at a known price, known outcomes.</li>
+  <li><strong>Protection against institutional-knowledge loss</strong> — platform carries tacit knowledge not recoverable from a code read-through.</li>
+</ol>
+
+<h2>9. Next steps</h2>
+<ol>
+  <li><strong>Garrett:</strong> Retain tech-contracts attorney. Walk them through this doc + the data-breach-liability analysis (Wave 8 plan Appendix A). Clause-by-clause legal review.</li>
+  <li><strong>Garrett:</strong> Purchase Tech E&O + Cyber Liability policy ($1M–$2M per occurrence, $2M–$5M aggregate, 5-year tail).</li>
+  <li><strong>Nordic:</strong> Review at leadership level. Flag scope gaps or sticker-shock issues before negotiation.</li>
+  <li><strong>Both:</strong> Target signature date. 6-week runway from today is realistic.</li>
+  <li><strong>After sign:</strong> Wave 8 C-D lands under retainer. Wave 10 scoping in first 90 days.</li>
+</ol>
+
+<h2>Appendix A — Pricing worksheet (Garrett's internal use)</h2>
+<table>
+  <tr><th>Line item</th><th>Amount</th></tr>
+  <tr><td>Retainer target income (Priority tier)</td><td>$72,000 / year = $6,000/mo</td></tr>
+  <tr><td>Buyout protection (6 × monthly)</td><td><strong>$36,000 exit fee</strong></td></tr>
+  <tr><td>Wave 10 target budget (60h × $350/hr)</td><td>$21,000 (low end of $20–35k)</td></tr>
+  <tr><td>Wave 8 C-D</td><td>~$10,000</td></tr>
+  <tr><td><strong>First-year total to Nordic</strong> (retainer + Wave 8 + Wave 10)</td><td><strong>$107,000</strong></td></tr>
+  <tr><td>Insurance (Tech E&O + Cyber Liability)</td><td>~$2,000 / year (reimbursable per §2 of liability analysis)</td></tr>
+  <tr><td><strong>Net to Garrett year-one</strong></td><td><strong>~$105,000</strong></td></tr>
+</table>
+
+<p style="font-size:0.875rem;color:var(--dim);margin-top:2rem;">Market-consistent for solo consultant running a regulated-data platform with documented SLA in 2026 US.</p>
+
+<footer>
+  <p>Retainer + Buyout Proposal · Winded Vertigo × Nordic Naturals · Draft 2026-04-22 · Companion doc: <code>docs/business/retainer-and-buyout-proposal.md</code></p>
+</footer>
+
+</div>
+</body>
+</html>

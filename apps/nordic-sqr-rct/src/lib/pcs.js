@@ -1,0 +1,152 @@
+/**
+ * PCS (Product Claim Substantiation) Notion client
+ *
+ * Queries and updates the Evidence Library and Evidence Packets databases
+ * in the PCS system. Uses the same NOTION_TOKEN as SQR-RCT since both
+ * systems share the same Notion integration.
+ */
+
+import { notion } from './notion.js';
+
+// wrap with retry (same pattern as notion.js)
+
+const PCS_EVIDENCE_DB = process.env.NOTION_PCS_EVIDENCE_DB;
+const PCS_EVIDENCE_PACKETS_DB = process.env.NOTION_PCS_EVIDENCE_PACKETS_DB;
+
+// ─── Evidence Library ────────────────────────────────────────────────
+
+export async function getAllEvidenceEntries() {
+  let allResults = [];
+  let cursor = undefined;
+  do {
+    const res = await notion.databases.query({
+      database_id: PCS_EVIDENCE_DB,
+      start_cursor: cursor,
+    });
+    allResults = allResults.concat(res.results);
+    cursor = res.has_more ? res.next_cursor : undefined;
+  } while (cursor);
+  return allResults.map(parseEvidencePage);
+}
+
+function parseEvidencePage(page) {
+  const p = page.properties;
+  return {
+    id: page.id,
+    name: extractTitle(p['Name']),
+    citation: extractRichText(p['Citation']),
+    doi: extractRichText(p['DOI']),
+    pmid: extractRichText(p['PMID']),
+    publicationYear: p['Publication year']?.number ?? null,
+    summary: extractRichText(p['Canonical research summary']),
+    ingredients: p['Ingredient']?.multi_select?.map(s => s.name) || [],
+    sqrScore: p['SQR-RCT score']?.number ?? null,
+    sqrRiskOfBias: p['SQR-RCT risk of bias']?.select?.name ?? null,
+    sqrReviewed: p['SQR-RCT reviewed']?.checkbox ?? false,
+    sqrReviewDate: p['SQR-RCT review date']?.date?.start ?? null,
+    sqrReviewUrl: p['SQR-RCT review URL']?.url ?? null,
+    pdf: extractFileUrl(p['PDF']),
+  };
+}
+
+export async function updateEvidenceEntry(pageId, { score, riskOfBias, reviewDate, reviewUrl }) {
+  const properties = {
+    'SQR-RCT score': { number: score },
+    'SQR-RCT risk of bias': { select: { name: riskOfBias } },
+    'SQR-RCT reviewed': { checkbox: true },
+    'SQR-RCT review date': { date: { start: reviewDate } },
+    'SQR-RCT review URL': { url: reviewUrl },
+  };
+  return notion.pages.update({ page_id: pageId, properties });
+}
+
+// ─── Ingredient Backfill ─────────────────────────────────────────────
+
+/**
+ * Fetch Evidence Library entries that have no Ingredient tags.
+ * Returns text fields needed for keyword detection.
+ */
+export async function getUntaggedEvidence() {
+  let allResults = [];
+  let cursor = undefined;
+  do {
+    const res = await notion.databases.query({
+      database_id: PCS_EVIDENCE_DB,
+      filter: {
+        property: 'Ingredient',
+        multi_select: { is_empty: true },
+      },
+      start_cursor: cursor,
+    });
+    allResults = allResults.concat(res.results);
+    cursor = res.has_more ? res.next_cursor : undefined;
+  } while (cursor);
+  return allResults.map(parseEvidenceForBackfill);
+}
+
+function parseEvidenceForBackfill(page) {
+  const p = page.properties;
+  return {
+    id: page.id,
+    name: extractTitle(p['Name']),
+    citation: extractRichText(p['Citation']),
+    summary: extractRichText(p['Canonical research summary']),
+  };
+}
+
+/**
+ * Set Ingredient multi-select on an Evidence Library entry.
+ * @param {string} pageId
+ * @param {string[]} ingredients — array of option names, e.g. ['EPA', 'DHA']
+ */
+export async function updateEvidenceIngredients(pageId, ingredients) {
+  return notion.pages.update({
+    page_id: pageId,
+    properties: {
+      Ingredient: {
+        multi_select: ingredients.map(name => ({ name })),
+      },
+    },
+  });
+}
+
+// ─── Evidence Packets ────────────────────────────────────────────────
+
+export async function getPacketsForEvidence(evidencePageId) {
+  const res = await notion.databases.query({
+    database_id: PCS_EVIDENCE_PACKETS_DB,
+    filter: {
+      property: 'Evidence Item',
+      relation: { contains: evidencePageId },
+    },
+  });
+  return res.results.map(page => ({
+    id: page.id,
+    meetsThreshold: page.properties['Meets SQR-RCT threshold']?.checkbox ?? false,
+  }));
+}
+
+export async function updatePacketThreshold(packetId, meetsThreshold) {
+  return notion.pages.update({
+    page_id: packetId,
+    properties: {
+      'Meets SQR-RCT threshold': { checkbox: meetsThreshold },
+    },
+  });
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────
+
+function extractTitle(prop) {
+  return prop?.title?.[0]?.plain_text || '';
+}
+
+function extractRichText(prop) {
+  return (prop?.rich_text || []).map(t => t.plain_text).join('');
+}
+
+function extractFileUrl(prop) {
+  const file = prop?.files?.[0];
+  if (!file) return null;
+  return file.external?.url || file.file?.url || null;
+}

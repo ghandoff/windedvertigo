@@ -1,0 +1,200 @@
+/* ============================================================
+   Word-template layout — Wave 8 Phase B
+   Mimics Lauren's 10-table Word template for PCS documents so
+   the Research team sees a familiar layout when transitioning
+   off Word-doc editing.
+   ============================================================ */
+
+.document {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #111;
+  background: #fff;
+  max-width: 9in;
+  margin: 0 auto;
+  padding: 1in;
+}
+
+/* ---- Section headers ---- */
+.sectionHeader {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #111;
+  border-bottom: 2px solid #333;
+  padding-bottom: 0.25rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ---- Document header block ---- */
+.headerBlock {
+  border: 1px solid #333;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1.5rem;
+}
+
+.headerBlock h1 {
+  grid-column: 1 / -1;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0 0 0.75rem 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.headerField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.headerLabel {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 8pt;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  font-weight: 600;
+}
+
+.headerValue {
+  font-size: 10pt;
+  color: #111;
+}
+
+/* ---- Shared table styles ---- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10pt;
+  margin-bottom: 1rem;
+}
+
+.table th,
+.table td {
+  border: 1px solid #333;
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  background: #f0f0f0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 9pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #333;
+}
+
+.table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+/* ---- No-data placeholder ---- */
+.noData {
+  border: 1px dashed #ccc;
+  padding: 0.75rem 1rem;
+  color: #888;
+  font-style: italic;
+  font-size: 10pt;
+  border-radius: 2px;
+  margin-bottom: 1rem;
+}
+
+/* ---- Claims group ---- */
+.benefitGroup {
+  margin-bottom: 1.25rem;
+}
+
+.benefitHeading {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 11pt;
+  font-weight: 600;
+  color: #024a87;
+  margin: 0 0 0.4rem 0;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid #b8d7f0;
+}
+
+/* ---- Evidence cards ---- */
+.evidenceCard {
+  border: 1px solid #ccc;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  page-break-inside: avoid;
+}
+
+.evidenceCardTitle {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 10pt;
+  font-weight: 700;
+  margin: 0 0 0.4rem 0;
+}
+
+.evidenceMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 9pt;
+  color: #555;
+  margin-bottom: 0.4rem;
+}
+
+.evidenceTakeaway {
+  font-size: 10pt;
+  margin-top: 0.4rem;
+  border-top: 1px solid #eee;
+  padding-top: 0.4rem;
+}
+
+/* ---- Revision history section ---- */
+.revisionSection {
+  page-break-before: always;
+}
+
+/* ---- Mobile: reduce margins ---- */
+@media screen and (max-width: 768px) {
+  .document {
+    padding: 1rem;
+    max-width: 100%;
+  }
+}
+
+/* ---- Print styles ---- */
+@media print {
+  .document {
+    padding: 0;
+    max-width: 100%;
+  }
+  .table th,
+  .table td { font-size: 9pt; }
+  .table tbody tr { break-inside: avoid; }
+  .evidenceCard { break-inside: avoid; }
+  .benefitGroup { break-inside: avoid; }
+  .revisionSection { page-break-before: always; }
+}
+
+/* ---- Dark mode ---- */
+@media (prefers-color-scheme: dark) {
+  .document { background: #1a1a1a; color: #e8e8e8; }
+  .headerBlock { border-color: #555; background: #222; }
+  .headerLabel { color: #aaa; }
+  .headerValue { color: #e8e8e8; }
+  .sectionHeader { color: #e8e8e8; border-bottom-color: #555; }
+  .table th,
+  .table td { border-color: #555; color: #e8e8e8; }
+  .table thead th { background: #2a2a2a; color: #ccc; }
+  .table tbody tr:nth-child(even) { background: #222; }
+  .evidenceCard { border-color: #555; background: #222; }
+  .benefitHeading { color: #84bce5; border-bottom-color: #2a3a50; }
+  .evidenceTakeaway { border-top-color: #444; }
+  .noData { border-color: #444; color: #777; }
+}
