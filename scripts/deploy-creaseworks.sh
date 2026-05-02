@@ -28,8 +28,11 @@ for arg in "$@"; do
   esac
 done
 
-echo "==> Step 1: Building Next.js (from monorepo root)..."
-cd "$REPO_ROOT"
+HARBOUR_ROOT="$REPO_ROOT/apps/harbour"
+
+echo "==> Step 1: Building Next.js (from harbour sub-monorepo root)..."
+# creaseworks lives in apps/harbour/ which is its own npm workspaces monorepo.
+cd "$HARBOUR_ROOT"
 npm run build -w creaseworks
 
 echo "==> Step 2: Bundling for Cloudflare Workers (OpenNext)..."
