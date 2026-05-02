@@ -4,6 +4,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/auth", "@windedvertigo/tokens"],
 
+  // CF Workers: Auth.js requires AUTH_TRUST_HOST=true so it doesn't reject
+  // the x-forwarded-host header injected by Cloudflare's reverse proxy.
+  // AUTH_URL must also be set as a wrangler secret (https://ops.windedvertigo.com).
+  env: {
+    AUTH_TRUST_HOST: process.env.CF_WORKERS_ENV === "1" ? "true" : (process.env.AUTH_TRUST_HOST ?? ""),
+  },
+
   async headers() {
     return [
       {
