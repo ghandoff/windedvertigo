@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   basePath: "/harbour/vertigo-vault",
   poweredByHeader: false,
+  // Required by OpenNext/CF Workers — produces .next/standalone for bundling.
+  output: "standalone",
   transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
 
   // Required for Auth.js v5 on CF Workers: trusts the X-Forwarded-Host header

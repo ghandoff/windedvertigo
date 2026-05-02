@@ -35,6 +35,19 @@ echo "==> Step 1: Building Next.js (from harbour sub-monorepo root)..."
 cd "$HARBOUR_ROOT"
 npm run build -w creaseworks
 
+echo "==> Step 1.5: Fixing standalone path for OpenNext monorepo detection..."
+# OpenNext detects apps/harbour/ as the monorepo root (nearest package-lock.json),
+# so it expects .next/standalone/creaseworks/. But Next.js standalone outputs
+# relative to the windedvertigo/ root: .next/standalone/apps/harbour/creaseworks/.
+# Create a symlink so OpenNext finds the files where it expects them.
+cd "$APP_DIR"
+STANDALONE_ACTUAL=".next/standalone/apps/harbour/creaseworks"
+STANDALONE_EXPECTED=".next/standalone/creaseworks"
+if [ -d "$STANDALONE_ACTUAL" ] && [ ! -e "$STANDALONE_EXPECTED" ]; then
+  (cd .next/standalone && ln -sf apps/harbour/creaseworks creaseworks)
+  echo "  symlink: .next/standalone/creaseworks -> apps/harbour/creaseworks"
+fi
+
 echo "==> Step 2: Bundling for Cloudflare Workers (OpenNext)..."
 cd "$APP_DIR"
 npx @opennextjs/cloudflare build --skipNextBuild

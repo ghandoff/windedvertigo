@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Required by OpenNext/CF Workers — produces .next/standalone for bundling.
+  output: "standalone",
   transpilePackages: ["@windedvertigo/auth", "@windedvertigo/tokens"],
 
   // Required for Auth.js v5 on CF Workers: trusts the X-Forwarded-Host header
