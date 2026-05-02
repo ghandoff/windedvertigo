@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wave 7.3.0 — Email-as-Key Migration</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --dim: #5a6570;
+    --rule: #d9dde1;
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --accent: #2b6cb0;
+    --warn: #b45309;
+    --green: #15803d;
+    --red: #b91c1c;
+    --amber-bg: #fff8e6;
+    --amber-rule: #e8c88a;
+    --green-bg: #f0fdf4;
+    --green-rule: #86efac;
+    --blue-bg: #eff6ff;
+    --blue-rule: #93c5fd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e8e8e8; --dim:#9aa4ae; --rule:#2d3339; --bg:#15181b; --card:#1c2025; --accent:#6aa6e0; --warn:#f4a547; --green:#6cd192; --red:#ef7d7d; --amber-bg:#28231a; --amber-rule:#5a4620; --green-bg:#18241d; --green-rule:#2a5940; --blue-bg:#17202c; --blue-rule:#2f4a74; }
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Georgia, serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 880px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  header.masthead { border-bottom: 1px solid var(--rule); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+  h1 { font-size: 2rem; margin: 0.25rem 0 0.5rem; line-height: 1.2; }
+  .meta { color: var(--dim); font-size: 0.875rem; }
+  .meta strong { color: var(--ink); }
+  h2 { font-size: 1.375rem; margin: 2.5rem 0 0.75rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.5rem; }
+  h3 { font-size: 1.125rem; margin: 2rem 0 0.5rem; color: var(--accent); }
+  h4 { font-size: 1rem; margin: 1.5rem 0 0.5rem; }
+  p { margin: 0.75rem 0; }
+  ol, ul { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin: 0.4rem 0; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.875em; background: var(--card); border: 1px solid var(--rule); border-radius: 3px; padding: 0.05em 0.3em; }
+  pre { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; overflow-x: auto; font-size: 0.825rem; line-height: 1.5; }
+  pre code { background: none; border: none; padding: 0; font-size: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { background: var(--card); font-weight: 600; font-size: 0.825rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
+  @media (prefers-color-scheme: dark) { tr:nth-child(even) td { background: rgba(255,255,255,0.02); } }
+  .callout { border-radius: 0 6px 6px 0; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+  .callout-amber { background: var(--amber-bg); border-left: 4px solid var(--amber-rule); }
+  .callout-amber strong { color: var(--warn); }
+  .callout-green { background: var(--green-bg); border-left: 4px solid var(--green-rule); }
+  .callout-green strong { color: var(--green); }
+  .callout-blue { background: var(--blue-bg); border-left: 4px solid var(--blue-rule); }
+  .callout-blue strong { color: var(--accent); }
+  .question-block { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .question-block .q-num { font-size: 0.75rem; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+  .question-block h4 { margin: 0.25rem 0 0.5rem; }
+  .tldr { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0 2rem; }
+  .tldr h4 { margin-top: 0; color: var(--accent); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .phase-label { display: inline-block; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.75rem; background: var(--accent); color: white; padding: 0.1em 0.5em; border-radius: 3px; margin-right: 0.4em; }
+  footer { border-top: 1px solid var(--rule); padding-top: 1.5rem; margin-top: 3rem; color: var(--dim); font-size: 0.875rem; }
+  @media print {
+    body { background: white; color: black; font-size: 11pt; }
+    .page { padding: 1rem 0; max-width: 100%; }
+    h2, h3 { break-after: avoid; }
+    table, pre, .callout, .tldr, .question-block { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div class="eyebrow">Wave 7.3.0 · Planning Artifact</div>
+  <h1>Email-as-Key Migration</h1>
+  <div class="meta">
+    <strong>Status</strong> Planning — no code yet &nbsp;·&nbsp; <strong>Date</strong> 2026-04-22 &nbsp;·&nbsp; <strong>Gates</strong> Wave 7.2.0 · 7.3.1 · 7.4 &nbsp;·&nbsp; <strong>Burn-in</strong> 1 week in prod
+  </div>
+</header>
+
+<div class="tldr">
+  <h4>TL;DR — Why this wave is the gate</h4>
+  <p>Everything downstream in Wave 7 — shared workspace shell, <code>/login</code>, magic links, 2FA, the role-aware sidebar — assumes a <strong>stable, unique, deliverable</strong> identifier on every user record. Today that identifier is <code>alias</code>, which is mutable display-name. This wave promotes <code>email</code> to primary key across the Reviewers DB, adds a one-time confirmation banner for stragglers, teaches <code>/api/auth/login</code> to accept email, and seeds an <code>email</code> claim into the JWT. Alias stays everywhere as display-name; nothing gets deleted. One week of burn-in before Wave 7.2.0 is allowed to start.</p>
+</div>
+
+<h2>§1. Context — why this wave, why now</h2>
+<p>Wave 7 reshapes the workspace around <strong>one door, many roles</strong>. The shape of that door — magic links for external reviewers, email + password for internal users, 2FA for super-user — assumes a single, stable, deliverable identifier on every user record. That identifier has to be email. You cannot send a magic link to an alias.</p>
+<p>Today the Reviewers DB (<code>b74c6186-d782-4499-85ac-3dee528a1977</code>, data source <code>020a7d2e-1123-43a3-b90d-68f518c9787a</code>) treats <code>Alias</code> as the uniqueness contract. Login resolves <code>alias → reviewer</code> and issues a JWT whose primary identity claim is also <code>alias</code>. Every sensitive code path — <code>authenticatePcsWrite</code>, admin checks, <code>parseReviewerPage</code>, <code>/api/auth/login</code>, <code>/api/auth/register</code>, the JWT claim set — is alias-keyed.</p>
+<div class="callout callout-amber">
+  <p><strong>Master plan §3.3 names this the single most-likely-to-slip step in Wave 7</strong> — not because it is technically hard but because it touches every user record and cannot be rolled forward if data is mis-backfilled. A wrong email binding locks a user out of their own account. That failure mode is why this wave gets a dry-run step, a confirmation banner, and a one-week burn-in before 7.2.0 is allowed to start.</p>
+</div>
+<p>Concrete consequences of <em>not</em> doing this wave first:</p>
+<ul>
+  <li><strong>No magic links.</strong> Wave 7.3.1's <code>/invite/{token}</code> flow depends on a unique, present, deliverable email per reviewer.</li>
+  <li><strong>No role-aware sidebar.</strong> Wave 7.4 needs an email-scoped localStorage namespace for sticky preferences. Alias is mutable; email is not.</li>
+  <li><strong>No 2FA enrollment.</strong> TOTP / WebAuthn factors bind to the primary identifier.</li>
+  <li><strong>No SSO ever.</strong> Every enterprise IdP (Okta, Azure AD, Google Workspace) expects email as the unique subject claim.</li>
+</ul>
+
+<h2>§2. Problem statement</h2>
+<p>Current auth trusts <code>alias</code> as the uniqueness key on the Reviewers DB. That assumption fails in three named ways:</p>
+<ol>
+  <li><strong>Alias collisions.</strong> As reviewers grow (Wave 8 community of practice is 30–50 external reviewers), first-name collisions are inevitable. <code>sharon</code> today, <code>sharon2</code> tomorrow, <code>sharon-k</code> next year. No stable secondary key exists.</li>
+  <li><strong>Magic-link infrastructure needs a deliverable identity.</strong> Magic links are <code>email → token → session</code>. You cannot mail an alias.</li>
+  <li><strong>SSO is foreclosed.</strong> Every IdP binds on email. Migrating today is a no-regret move; migrating in three years with 50 reviewers and thousands of linked scores is a wire-and-splice job.</li>
+</ol>
+<p>Silent fourth failure: <strong>audit log legibility</strong>. Alias-keyed audit entries rot as users rename themselves. Email is stable; alias is display-name.</p>
+
+<h2>§3. What changes</h2>
+<table>
+  <tr><th>Change</th><th>Shape</th><th>Risk</th></tr>
+  <tr><td>Email becomes unique-indexed</td><td>Enforced in <code>createReviewer()</code> + write helpers via pre-write query (Notion does not enforce DB-level uniqueness)</td><td>Low — additive; rollback = remove the check</td></tr>
+  <tr><td>Alias stays as display-name</td><td>No schema change; no code change; remains on rubric</td><td>None</td></tr>
+  <tr><td>Login accepts email OR alias</td><td><code>/api/auth/login</code> schema widens to <code>{ identifier, password }</code>; legacy <code>{ alias, password }</code> still works</td><td>Low — additive path</td></tr>
+  <tr><td>JWT claim adds <code>email</code></td><td>Additive; <code>alias</code> claim unchanged; no consumer reads the new claim in 7.3.0</td><td>None</td></tr>
+  <tr><td>New <code>Email confirmed at</code> column</td><td>Stamped by the confirmation banner on first login-under-new-model</td><td>None — nullable, additive</td></tr>
+</ol>
+
+<h2>§4. Migration phases</h2>
+
+<h3><span class="phase-label">7.3.0a</span> Read-only audit</h3>
+<p>Ship <code>scripts/audit-reviewer-emails.mjs</code>. No writes. Emits a diff report covering rows missing email, rows with duplicates, rows with malformed email (no <code>@</code>, no domain, trailing whitespace, comma, mixed-case domain), rows where alias looks reversed with email, rows where <code>@nordicnaturals.com</code> domain doesn't match alias local-part.</p>
+<p><strong>Output:</strong> stdout + <code>tmp/audit-reviewer-emails-&lt;ISO&gt;.json</code>. Exit 0 if clean, 1 if flags exist.</p>
+
+<h3><span class="phase-label">7.3.0b</span> Resolve ambiguities</h3>
+<p>Human phase. Garrett + any affected user (probably 1–5 rows given 6 reviewers today) reconcile each flag. Missing emails get supplied. Duplicates get a canonical winner + deprecated sibling. Malformed emails get corrected via Notion or the backfill script.</p>
+<p><strong>Goal:</strong> audit script exits 0 on re-run.</p>
+
+<h3><span class="phase-label">7.3.0c</span> Email Confirmation Banner</h3>
+<p>One-time blocking banner that appears on next login for any user whose <code>Email</code> is empty, or whose <code>Email confirmed at</code> is null, or whose email looks malformed. Posts to a new <code>/api/auth/confirm-email</code> endpoint which re-validates, pre-checks uniqueness, updates the reviewer, and stamps the confirmation timestamp.</p>
+<p><strong>Component:</strong> <code>src/components/auth/EmailConfirmationBanner.js</code>.</p>
+<div class="callout callout-blue">
+  <p><strong>Draft copy (Garrett to finalize):</strong><br>
+  "We need to confirm your email before you keep going. Nordic Research is moving to email-based sign-in. This is the email we'll use for your magic-link invitations, password resets, and future sign-in."</p>
+</div>
+
+<h3><span class="phase-label">7.3.0d</span> Uniqueness constraint in code</h3>
+<p>Notion doesn't enforce DB-level uniqueness, so we enforce it in code. Every write path that touches <code>Email</code> runs a pre-write query. Duplicates throw <code>EmailAlreadyInUseError</code>; <code>/api/auth/register</code> maps that to a 409 with a legible message.</p>
+<p>Race window is real (two simultaneous registrations could both pass pre-check) but acceptable at Nordic's write volume. The audit cron is the backstop.</p>
+
+<h3><span class="phase-label">7.3.0e</span> Email login path</h3>
+<p><code>/api/auth/login</code> accepts <code>{ identifier, password }</code>. If <code>identifier</code> contains <code>@</code>, try email first, alias second. Else try alias first, email second. Everything else — password check, bcrypt migration, reset-grant, dual-token issue — is unchanged.</p>
+<p>Login form field renames to "Email or alias" with a small subtitle: "Use your email going forward — alias login will retire in a future update."</p>
+
+<h3><span class="phase-label">7.3.0f</span> JWT claim expansion</h3>
+<p><code>signAccessToken()</code> adds <code>email</code> to the claim set alongside <code>alias</code>. Additive only; no consumer reads <code>email</code> from the JWT in 7.3.0. The claim is seeded for Wave 7.2.0 + 7.3.1 to consume without another auth round-trip.</p>
+
+<h3><span class="phase-label">7.3.0g</span> One-week burn-in</h3>
+<p>No new code. One week in production, observing:</p>
+<ul>
+  <li>Login-failure rate (flat or down).</li>
+  <li>Banner-dismissal convergence toward 100% of MAU.</li>
+  <li>Zero <code>EmailAlreadyInUseError</code> events after first 48h.</li>
+  <li>Zero user-side reports of banner confusion.</li>
+</ul>
+
+<h2>§5. Schema deltas</h2>
+
+<h3>Reviewers DB</h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Default</th><th>Notes</th></tr>
+  <tr><td><code>Email</code></td><td>Email <em>(exists)</em></td><td>—</td><td>No schema change. Uniqueness in code.</td></tr>
+  <tr><td><code>Email confirmed at</code></td><td>Date <em>(new)</em></td><td><code>null</code></td><td>Stamped by <code>/api/auth/confirm-email</code>.</td></tr>
+  <tr><td><code>Alias</code></td><td>Rich text <em>(exists)</em></td><td>—</td><td>Unchanged. Remains display-name-on-rubric.</td></tr>
+</table>
+<div class="callout callout-amber">
+  <p><strong>Notion enforcement reality.</strong> Notion does not have DB-level unique constraints. Our three mitigations: (1) pre-write query in every helper that writes email, (2) weekly cron of the audit script with alerting on duplicates, (3) internal team trained to edit profiles via the app, not Notion UI.</p>
+</div>
+
+<h2>§6. Script specs</h2>
+
+<h3>6.1 <code>scripts/audit-reviewer-emails.mjs</code></h3>
+<p>Read-only. Flags: <code>--verbose</code>, <code>--json-out=&lt;path&gt;</code>, <code>--include-no-consent</code>. Exit 0 if clean, 1 if anything flagged. JSON output shape:</p>
+<pre><code>{
+  "ranAt": "2026-04-22T12:34:56Z",
+  "totalRows": 6,
+  "flagged": {
+    "missingEmail": [...],
+    "duplicateEmails": [{ "email": "...", "pageIds": [...] }],
+    "malformedEmail": [{ "pageId": "...", "email": "...", "reason": "..." }],
+    "aliasLooksLikeEmail": [],
+    "domainAliasMismatch": []
+  },
+  "healthyCount": 5
+}</code></pre>
+
+<h3>6.2 <code>scripts/backfill-reviewer-emails.mjs</code></h3>
+<p>Write-only-with-confirm. Flags: <code>--confirm</code> (required to write), <code>--reviewer-id=&lt;page_id&gt;</code> (required), <code>--email=&lt;value&gt;</code>, <code>--verbose</code>.</p>
+<p><strong>No <code>--all</code> flag. No batch mode.</strong> Every backfill is a named, logged, one-row operation. Pre-write uniqueness check. Writes <code>Email</code> + <code>Email confirmed at</code> atomically. Emits <code>email.migration.backfill</code> audit event.</p>
+
+<h2>§7. Code deltas</h2>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>src/lib/notion.js</code></td><td>Add <code>getReviewerByEmail()</code>; extend <code>parseReviewerPage()</code> with <code>emailConfirmedAt</code>; export <code>EmailAlreadyInUseError</code>; pre-write duplicate check in <code>createReviewer()</code>; new <code>updateReviewerEmail()</code> helper.</td></tr>
+  <tr><td><code>src/app/api/auth/login/route.js</code></td><td>Accept <code>{ identifier, password }</code> OR legacy <code>{ alias, password }</code>. Email-first lookup if <code>identifier</code> contains <code>@</code>.</td></tr>
+  <tr><td><code>src/app/api/auth/register/route.js</code></td><td>Map <code>EmailAlreadyInUseError</code> → 409.</td></tr>
+  <tr><td><code>src/app/api/auth/confirm-email/route.js</code> <em>(new)</em></td><td>Auth-required endpoint. Validates, pre-checks uniqueness, updates <code>Email</code> + stamps <code>Email confirmed at</code>, emits audit event.</td></tr>
+  <tr><td><code>src/lib/auth.js</code></td><td><code>signAccessToken()</code> carries new <code>email</code> claim (additive).</td></tr>
+  <tr><td><code>src/components/auth/EmailConfirmationBanner.js</code> <em>(new)</em></td><td>Blocking banner; reads from auth context; posts to confirm endpoint.</td></tr>
+</table>
+
+<h2>§8. Verification plan</h2>
+<table>
+  <tr><th>Phase</th><th>Check</th><th>Expected</th></tr>
+  <tr><td>7.3.0a</td><td>Run audit against prod</td><td>JSON lands; exit code reflects flag state</td></tr>
+  <tr><td>7.3.0b</td><td>Re-run after each fix</td><td>Flag count strictly decreases to zero</td></tr>
+  <tr><td>7.3.0c</td><td>Log in as empty-email test reviewer (Preview)</td><td>Banner blocks, submit writes, stamps timestamp, dismisses</td></tr>
+  <tr><td>7.3.0d</td><td>Register with existing email</td><td>409 with legible error</td></tr>
+  <tr><td>7.3.0e</td><td>Log in with email + correct password</td><td>200 + session issued + JWT decodable</td></tr>
+  <tr><td>7.3.0f</td><td>Decode access token post-login</td><td><code>claims.email</code> and <code>claims.alias</code> both populated</td></tr>
+  <tr><td>7.3.0g</td><td>Weekly audit cron for 1 week</td><td>Zero new duplicates; zero stuck users</td></tr>
+</table>
+
+<h2>§9. Rollback plan</h2>
+<div class="callout callout-green">
+  <p><strong>Alias uniqueness is preserved throughout 7.3.0.</strong> Nothing we do removes alias as a working login key. Every phase is individually flaggable off:</p>
+  <ul>
+    <li><code>WAVE_7_3_0_BANNER=false</code> → banner renders null.</li>
+    <li>Revert pre-write check → creates still work; duplicate protection relaxes.</li>
+    <li>Ignore <code>identifier</code> on login → legacy alias path resumes.</li>
+    <li>Remove email claim → additive, no consumer breaks.</li>
+  </ul>
+</div>
+<p><strong>Irreversible point:</strong> Wave 7.2.0 is the first consumer that stops emitting alias-first semantics. 7.3.0 itself is fully reversible up to and including 7.3.0g. The burn-in window exists precisely to discover any reason to roll back <em>before</em> 7.2.0 starts.</p>
+
+<h2>§10. Effort estimate</h2>
+<table>
+  <tr><th>Phase</th><th>Description</th><th>Hours</th></tr>
+  <tr><td>7.3.0a</td><td>Audit script (read-only)</td><td>2</td></tr>
+  <tr><td>7.3.0b</td><td>Reconcile ambiguities (human-driven)</td><td>1–4</td></tr>
+  <tr><td>7.3.0c</td><td>Banner + confirm endpoint</td><td>4</td></tr>
+  <tr><td>7.3.0d</td><td>Uniqueness constraint + tests</td><td>3</td></tr>
+  <tr><td>7.3.0e</td><td>Email login path</td><td>2</td></tr>
+  <tr><td>7.3.0f</td><td>JWT claim expansion</td><td>1</td></tr>
+  <tr><td>7.3.0g</td><td>Burn-in (observation only)</td><td>0</td></tr>
+  <tr><td colspan="2"><strong>Total engineering</strong></td><td><strong>~12–15 hours</strong></td></tr>
+  <tr><td colspan="2"><strong>Wall clock incl. burn-in</strong></td><td><strong>~2 weeks</strong></td></tr>
+</table>
+
+<h2>§11. Dependencies</h2>
+<p><strong>Inbound (shipped):</strong> Wave 7.0.7 (dual-token + bcrypt backfill pattern reused for env loading + one-shot reviewer-row edits), Wave 7.1 (capabilities scaffold — not touched here since auth endpoints aren't capability-gated).</p>
+<p><strong>Outbound (unblocks):</strong> Wave 7.2.0 (needs email claim + guaranteed email), Wave 7.3.1 (magic links), Wave 7.3.2 (per-user welcome), Wave 7.4 (email-scoped localStorage).</p>
+
+<h2>§12. Gates for starting Wave 7.2.0</h2>
+<div class="callout callout-blue">
+  <p>7.2.0 does <strong>not</strong> start until all five are true:</p>
+  <ol>
+    <li>7.3.0g burn-in has run <strong>one full week</strong> in production (Monday → Monday).</li>
+    <li><code>audit-reviewer-emails.mjs</code> exits 0 against production.</li>
+    <li>Zero <code>EmailAlreadyInUseError</code> events in the 48h preceding kickoff.</li>
+    <li>Zero Slack reports from the Research team about banner confusion.</li>
+    <li>At least one email-path login logged for every internal user; 80%+ for external reviewers.</li>
+  </ol>
+</div>
+
+<h2>§13. Open questions for Garrett</h2>
+
+<div class="question-block">
+  <div class="q-num">Q1</div>
+  <h4>Shared mailboxes — forbid or support?</h4>
+  <p>Husband-and-wife reviewer pair on one inbox. Cleanest answer: <strong>forbid</strong> — one email = one reviewer. Supporting shared inboxes tangles magic-link UX (whose session does the link create?) and muddies audit logs. But the call is yours before 7.3.0d ships.</p>
+</div>
+
+<div class="question-block">
+  <div class="q-num">Q2</div>
+  <h4>Email case sensitivity — normalize to lowercase?</h4>
+  <p>RFC 5321 technically case-sensitive, but every modern provider treats the local-part as case-insensitive. <strong>Recommend: lowercase on write, lowercase on compare.</strong> Side-effect: we canonicalize a display field for the user. Some users dislike that. Confirm before 7.3.0d.</p>
+</div>
+
+<div class="question-block">
+  <div class="q-num">Q3</div>
+  <h4>Confirm-via-mail loop — require it in 7.3.0, or defer?</h4>
+  <p>Strictest: banner submission triggers a one-time email link; email is verified only when clicked. Catches typos before they lock out the user on the next password reset. Cost is a new endpoint + template + second-step UX. <strong>Lean: defer</strong> — rely on the first successful magic-link in 7.3.1 as implicit verification. Genuine judgment call.</p>
+</div>
+
+<div class="question-block">
+  <div class="q-num">Q4</div>
+  <h4>Banner + forced password reset — bundle or keep separate?</h4>
+  <p>If a user's email <em>and</em> password-reset state are both stale, cleaner flow might be "confirm your email and rotate your password while you're here". <strong>Lean: keep separate</strong> — one banner, one job. But if 7.3.0a surfaces rows where both are stale, worth a quick re-think.</p>
+</div>
+
+<footer>
+  <p>Planning artifact only. No code, no schema edits, no backfill writes until phase-by-phase approval. Sits within <code>docs/plans/wave-7-master-architecture.md</code> §2.6 / §3.2 / §3.3.</p>
+</footer>
+
+</div>
+</body>
+</html>

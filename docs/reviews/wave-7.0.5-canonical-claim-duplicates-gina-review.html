@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Canonical Claim Duplicate Review — for Gina</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --dim: #5a6570;
+    --rule: #d9dde1;
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --accent: #2b6cb0;
+    --warn: #b45309;
+    --green: #15803d;
+    --red: #b91c1c;
+    --amber-bg: #fff8e6;
+    --amber-rule: #e8c88a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e8e8e8; --dim:#9aa4ae; --rule:#2d3339; --bg:#15181b; --card:#1c2025; --accent:#6aa6e0; --warn:#f4a547; --green:#6cd192; --red:#ef7d7d; --amber-bg:#28231a; --amber-rule:#5a4620; }
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Georgia, serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  header.masthead {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+  h1 { font-size: 2rem; margin: 0.25rem 0 0.5rem; line-height: 1.2; }
+  .meta { color: var(--dim); font-size: 0.875rem; }
+  .meta strong { color: var(--ink); }
+  h2 { font-size: 1.375rem; margin: 2.5rem 0 0.75rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.5rem; }
+  h3 { font-size: 1.125rem; margin: 2rem 0 0.5rem; color: var(--accent); }
+  h4 { font-size: 1rem; margin: 1.5rem 0 0.5rem; }
+  p { margin: 0.75rem 0; }
+  ol, ul { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin: 0.25rem 0; }
+  code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.875em;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 0.05em 0.3em;
+  }
+  pre {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.825rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.9rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th { background: var(--card); font-weight: 600; font-size: 0.825rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
+  @media (prefers-color-scheme: dark) { tr:nth-child(even) td { background: rgba(255,255,255,0.02); } }
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .summary-card table { margin: 0; }
+  .summary-card th, .summary-card td { border: none; padding: 0.3rem 0.75rem; }
+  .amber-callout {
+    background: var(--amber-bg);
+    border-left: 4px solid var(--amber-rule);
+    padding: 1rem 1.25rem;
+    border-radius: 0 6px 6px 0;
+    margin: 1.25rem 0;
+  }
+  .amber-callout strong { color: var(--warn); }
+  .checkbox {
+    display: inline-block;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 2px solid var(--dim);
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-right: 0.25rem;
+  }
+  .short-id { font-family: "SF Mono", Menlo, monospace; font-size: 0.825rem; color: var(--dim); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .cluster-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .cluster-meta { font-size: 0.825rem; color: var(--dim); font-style: italic; }
+  .row-count-pill {
+    display: inline-block;
+    padding: 0.1rem 0.6rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    background: var(--amber-bg);
+    color: var(--warn);
+    border: 1px solid var(--amber-rule);
+    font-weight: 600;
+  }
+  .tldr {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .tldr h4 { margin-top: 0; color: var(--accent); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 1.5rem;
+    margin-top: 3rem;
+    color: var(--dim);
+    font-size: 0.875rem;
+  }
+  @media print {
+    body { background: white; color: black; font-size: 11pt; }
+    .page { padding: 1rem 0; max-width: 100%; }
+    h2, h3 { break-after: avoid; }
+    table { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div class="eyebrow">Wave 7.0.5 · Decision Request</div>
+  <h1>Canonical Claim Duplicate Review</h1>
+  <div class="meta">
+    <strong>For</strong> Gina &nbsp;·&nbsp; <strong>From</strong> Garrett + PCS engineering &nbsp;·&nbsp; <strong>Date</strong> 2026-04-22
+  </div>
+</header>
+
+<div class="tldr">
+  <h4>TL;DR — What we're asking</h4>
+  <p>The new canonical-claim identity key found <strong>21 clusters of rows that look like duplicates</strong> in your Canonical Claims database. We need you to tell us which row to keep as the survivor in each cluster — nothing merges until you sign off. There's also a <strong>17-row "orphan" cluster</strong> that is NOT duplicates but rows with missing taxonomy; those need a different fix (backfilling prefix + benefit + AI), not merging.</p>
+</div>
+
+<h2>What this is about</h2>
+<p>A <strong>canonical claim</strong> is our single source-of-truth phrasing for a health benefit tied to a specific active ingredient (AI), form, sensitivity profile, and dose context. Every downstream artifact — formula lines, evidence packets, label copy — eventually traces back to one of these canonical rows in Notion. If we have two rows that <em>mean the same thing</em>, any downstream consumer has to guess which one is authoritative, and two reviewers can end up citing two different "canonical" statements for the same underlying claim. That's the problem we're closing out.</p>
+
+<p>In Wave 7.0.5 we shipped a new <strong>canonical identity key</strong> that fingerprints each claim by <code>prefix : coreBenefit : AI : AI form : sensitivity : dose : demographics</code>. Running that key across all <strong>94 canonical claims</strong> currently in Notion surfaced <strong>21 groups where two or more rows share the same fingerprint</strong> — in total, <strong>71 rows</strong> fall into a duplicate cluster.</p>
+
+<p><strong>What we need from you:</strong> for each cluster, tell us which row should survive, and which should be retired (or whether the cluster is a false positive and all rows are legitimately distinct). Once you mark up your decisions, we run the Wave 7.0.5 T8.1 merge script — no automatic merging happens without your sign-off.</p>
+
+<h2>How to use this document</h2>
+<ol>
+  <li>Open each Notion link to view the candidate row.</li>
+  <li>Tick the checkbox next to the row you want to keep as the <strong>Survivor</strong>.</li>
+  <li>For retired rows, add a note if you want specific wording or evidence carried into the survivor — otherwise we'll assume the survivor stands as-is.</li>
+  <li>If a cluster looks wrong — the rows are really distinct and the key is too blunt — tick <strong>"Keep all (key needs a nuance tweak)"</strong> and tell us what distinguishes them. We'll refine the fingerprint.</li>
+</ol>
+<p><strong>Return format:</strong> whatever's easiest — mark up this file, send a Slack message with the cluster numbers and survivor IDs, or jump on a quick call with Garrett.</p>
+
+<h2>Summary at a glance</h2>
+<div class="summary-card">
+<table>
+  <tr><th>Metric</th><th>Value</th></tr>
+  <tr><td>Canonical claims inspected</td><td><strong>94</strong></td></tr>
+  <tr><td>Duplicate-key clusters</td><td><strong>21</strong></td></tr>
+  <tr><td>Rows inside a cluster</td><td><strong>71</strong></td></tr>
+  <tr><td>Sensitivity = <code>dose_gated</code></td><td>23</td></tr>
+  <tr><td>Sensitivity = <code>dose_agnostic</code></td><td>37</td></tr>
+  <tr><td>Sensitivity = <code>dose_qualified</code></td><td>8</td></tr>
+  <tr><td>Sensitivity = <code>not_applicable</code></td><td>26</td></tr>
+</table>
+</div>
+
+<h2>Cluster 1 — The "orphan" cluster <span class="row-count-pill">17 rows</span></h2>
+<p><em>Key: <code>v1:::::not_applicable::</code></em></p>
+
+<div class="amber-callout">
+<p><strong>These are NOT duplicates.</strong> All 17 rows collapse to the same fingerprint because they're missing the prefix relation in Notion. They're canonical claims whose taxonomy metadata (prefix, core benefit, AI linkage) was never populated, so the fingerprint comes out empty on every axis.</p>
+<p><strong>Recommended action:</strong> do <strong>not</strong> merge these. Walk through the list and assign each a proper prefix + core benefit + AI. Once their metadata is filled in, re-running the audit will give each either its own unique fingerprint, or surface it as a real duplicate of a well-formed canonical row — which we'd bring back to you in a future pass.</p>
+</div>
+
+<table>
+  <tr><th>#</th><th>Current title</th><th>Page</th><th>Next step</th></tr>
+  <tr><td>1</td><td>Promotes healthy activity levels</td><td><a href="https://www.notion.so/0781aaa732f84fdc9926e628f278ccd7">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>2</td><td>Supports cellular energy production</td><td><a href="https://www.notion.so/17afefaa287d40ca9dbb48e1a70feda9">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>3</td><td>Supports a healthy stress response</td><td><a href="https://www.notion.so/27970437-90c3-49d4-bf19-800ddc652a85">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>4</td><td>Supports bone / skeletal health</td><td><a href="https://www.notion.so/319e4ee74ba4813a8c9ecd9306d99b23">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>5</td><td>Supports healthy sleep</td><td><a href="https://www.notion.so/38070ba4e20a4ad2af0659700356393a">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>6</td><td>Supports (healthy) cardiovascular function / heart health</td><td><a href="https://www.notion.so/529ed4302b474d1aa478a33956515d97">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>7</td><td>Supports a healthy mind and body</td><td><a href="https://www.notion.so/6c34c01f7e3a47c5ad8c630e5953427c">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>8</td><td>Supports normal muscle relaxation</td><td><a href="https://www.notion.so/733f3ae1b7d148a990320418c3f5e42e">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>9</td><td>Supports mental relaxation / a relaxed state of mind</td><td><a href="https://www.notion.so/7bbf6f2cdb1d4cd68a0ad39dcc90b00d">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>10</td><td>Supports normal muscle function / activity</td><td><a href="https://www.notion.so/87981e1fb4894c87b05d882ba50ccf52">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>11</td><td>Supports normal cognitive / brain health</td><td><a href="https://www.notion.so/91ade78117bf40f8b5ee5ff128338aab">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>12</td><td>Supports normal cell/cellular signaling</td><td><a href="https://www.notion.so/92c3030263e743d19f6acfb28896d79c">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>13</td><td>Supports mood balance</td><td><a href="https://www.notion.so/9708b593efdf4ae8a0a545bcb751e51b">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>14</td><td>Highly bioavailable/absorbable form of magnesium</td><td><a href="https://www.notion.so/9c7578c71f40459cab09451f4fd82500">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>15</td><td>Less likely to cause digestive discomfort than other forms of Mg²⁺</td><td><a href="https://www.notion.so/a96e5979692a4e849e888ca099e17e88">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>16</td><td>Supports normal sleep</td><td><a href="https://www.notion.so/e1a2dda7671041e2b8bce0a151406493">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+  <tr><td>17</td><td>Supports cell/cellular and metabolic health/function</td><td><a href="https://www.notion.so/e79a0afbc9d0497f87c98187e446d68a">open</a></td><td>Assign prefix + benefit + AI</td></tr>
+</table>
+
+<p><em>Heads-up: rows 8, 9, 10, and 14 look thematically close to some of the real duplicate clusters below (muscle/mental relaxation, bioavailable magnesium). Once you backfill taxonomy they may fall naturally into those groups.</em></p>
+
+<h2>Clusters 2–10 — Real semantic duplicates</h2>
+<p>These are the clusters where rows share the same prefix, same core benefit, and same AI — they collided on the fingerprint because they genuinely appear to be saying the same thing. Please pick a survivor for each.</p>
+
+<h3>Cluster 2 — "normal muscle/muscular relaxation" <span class="row-count-pill">6 rows · dose_agnostic</span></h3>
+<p class="cluster-meta">Why these collided: same prefix, same core benefit (muscle relaxation), same AI, sensitivity = dose_agnostic.</p>
+<table>
+  <tr><th>Survivor?</th><th>Short ID</th><th>Title</th><th>Page</th></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…db6ea4931ce0</td><td>normal muscle/muscular relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba481368d3bdb6ea4931ce0">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…d1f92005fbd3</td><td>normal muscle/muscular relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba481458c1cd1f92005fbd3">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…c7dcb6c6f9f8</td><td>normal muscle/muscular relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba481968840c7dcb6c6f9f8">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…e49facf95487</td><td>normal muscle/muscular relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba4819bab32e49facf95487">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…c1c5838058ba</td><td>normal muscle/muscular relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba481d5bb95c1c5838058ba">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…d6897555039c</td><td>normal muscle/muscular relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba481d78726d6897555039c">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td colspan="3"><td colspan="3"><strong>Keep all (key needs a nuance tweak)</strong> — note: __________________________</td></tr>
+</table>
+
+<h3>Cluster 3 — "normal mental relaxation" <span class="row-count-pill">4 rows · dose_agnostic</span></h3>
+<p class="cluster-meta">Why these collided: same prefix, same core benefit (mental relaxation), same AI, dose_agnostic.</p>
+<table>
+  <tr><th>Survivor?</th><th>Short ID</th><th>Title</th><th>Page</th></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…d59913cf8193</td><td>normal mental relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba48117b85ad59913cf8193">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…d8df710e5d66</td><td>normal mental relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba48189a9d4d8df710e5d66">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…f2155f653b29</td><td>normal mental relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba481c09727f2155f653b29">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…e23e983d2067</td><td>normal mental relaxation*</td><td><a href="https://www.notion.so/348e4ee74ba481e2a2ede23e983d2067">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td colspan="3"><strong>Keep all (key needs a nuance tweak)</strong> — note: __________________________</td></tr>
+</table>
+
+<h3>Cluster 4 — "a healthy mind and body" <span class="row-count-pill">3 rows · dose_agnostic</span></h3>
+<table>
+  <tr><th>Survivor?</th><th>Short ID</th><th>Title</th><th>Page</th></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…de711c3a9a33</td><td>a healthy mind and body*</td><td><a href="https://www.notion.so/348e4ee74ba481008f93de711c3a9a33">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…cc0c4cbfb772</td><td>a healthy mind and body*</td><td><a href="https://www.notion.so/348e4ee74ba48124bb67cc0c4cbfb772">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…d46529de6ca3</td><td>a healthy mind and body*</td><td><a href="https://www.notion.so/348e4ee74ba481f78a32d46529de6ca3">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td colspan="3"><strong>Keep all (key needs a nuance tweak)</strong> — note: __________________________</td></tr>
+</table>
+
+<h3>Cluster 5 — "cellular energy production" <span class="row-count-pill">3 rows · dose_agnostic</span></h3>
+<table>
+  <tr><th>Survivor?</th><th>Short ID</th><th>Title</th><th>Page</th></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…dcef6a1b2468</td><td>cellular energy production*</td><td><a href="https://www.notion.so/348e4ee74ba481128861dcef6a1b2468">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…ea65b7fe1d39</td><td>cellular energy production*</td><td><a href="https://www.notion.so/348e4ee74ba4816d86f8ea65b7fe1d39">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…fc4e20ba6e0b</td><td>cellular energy production*</td><td><a href="https://www.notion.so/348e4ee74ba481bab06bfc4e20ba6e0b">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td colspan="3"><strong>Keep all (key needs a nuance tweak)</strong> — note: __________________________</td></tr>
+</table>
+
+<h3>Cluster 6 — "NA" <span class="row-count-pill">3 rows · not_applicable</span></h3>
+<p class="cluster-meta">Titles are literally "NA" — worth checking whether all three should just be archived rather than merged.</p>
+<table>
+  <tr><th>Survivor?</th><th>Short ID</th><th>Title</th><th>Page</th></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…f65d2d133241</td><td>NA</td><td><a href="https://www.notion.so/348e4ee74ba481129e75f65d2d133241">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…f4b0ae62910a</td><td>NA</td><td><a href="https://www.notion.so/348e4ee74ba4816a924ef4b0ae62910a">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…ca35282b5954</td><td>NA</td><td><a href="https://www.notion.so/348e4ee74ba481f89464ca35282b5954">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td colspan="3"><strong>Archive all three</strong> — note: __________________________</td></tr>
+  <tr><td><span class="checkbox"></span></td><td colspan="3"><strong>Keep all (key needs a nuance tweak)</strong> — note: __________________________</td></tr>
+</table>
+
+<h3>Cluster 7 — "Highly bioavailable/absorbable forms of magnesium" <span class="row-count-pill">3 rows · not_applicable</span></h3>
+<p class="cluster-meta">Orphan row #14 is also about bioavailable magnesium and likely belongs here once backfilled.</p>
+<table>
+  <tr><th>Survivor?</th><th>Short ID</th><th>Title</th><th>Page</th></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…f44fb1ab0b9f</td><td>Highly bioavailable/absorbable forms of magnesium*</td><td><a href="https://www.notion.so/348e4ee74ba4812b8281f44fb1ab0b9f">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…c481cec6c3d9</td><td>Highly bioavailable/absorbable forms of magnesium*</td><td><a href="https://www.notion.so/348e4ee74ba4813bac23c481cec6c3d9">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…d1c4ba09d2be</td><td>Highly bioavailable/absorbable forms of magnesium*</td><td><a href="https://www.notion.so/348e4ee74ba4817cb10dd1c4ba09d2be">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td colspan="3"><strong>Keep all (key needs a nuance tweak)</strong> — note: __________________________</td></tr>
+</table>
+
+<h3>Cluster 8 — "cell/cellular health/function" <span class="row-count-pill">3 rows · dose_agnostic</span></h3>
+<table>
+  <tr><th>Survivor?</th><th>Short ID</th><th>Title</th><th>Page</th></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…fd15310b81c3</td><td>cell/cellular health/function*</td><td><a href="https://www.notion.so/348e4ee74ba4814f9ffffd15310b81c3">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…fe491f53cdf0</td><td>cell/cellular health/function*</td><td><a href="https://www.notion.so/348e4ee74ba4818d846efe491f53cdf0">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…e8cca3cf710c</td><td>cell/cellular health/function*</td><td><a href="https://www.notion.so/348e4ee74ba481f1a645e8cca3cf710c">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td colspan="3"><strong>Keep all (key needs a nuance tweak)</strong> — note: __________________________</td></tr>
+</table>
+
+<h3>Cluster 9 — "normal cognitive/brain health" <span class="row-count-pill">3 rows · dose_agnostic</span></h3>
+<table>
+  <tr><th>Survivor?</th><th>Short ID</th><th>Title</th><th>Page</th></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…c26e80186459</td><td>normal cognitive/brain health*</td><td><a href="https://www.notion.so/348e4ee74ba48179a190c26e80186459">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…fffc6d470e63</td><td>normal cognitive/brain health*</td><td><a href="https://www.notion.so/348e4ee74ba481c4a452fffc6d470e63">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…c53c9ed6b245</td><td>normal cognitive/brain health*</td><td><a href="https://www.notion.so/348e4ee74ba481c9b7bac53c9ed6b245">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td colspan="3"><strong>Keep all (key needs a nuance tweak)</strong> — note: __________________________</td></tr>
+</table>
+
+<h3>Cluster 10 — "normal muscle activity/function" <span class="row-count-pill">3 rows · dose_agnostic</span></h3>
+<table>
+  <tr><th>Survivor?</th><th>Short ID</th><th>Title</th><th>Page</th></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…d7eb54f4e421</td><td>normal muscle activity/function*</td><td><a href="https://www.notion.so/348e4ee74ba4817fa687d7eb54f4e421">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…cf4ca3d566d8</td><td>normal muscle activity/function*</td><td><a href="https://www.notion.so/348e4ee74ba481aaa8c7cf4ca3d566d8">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td class="short-id">…caec58f3c66f</td><td>normal muscle activity/function*</td><td><a href="https://www.notion.so/348e4ee74ba481e39af3caec58f3c66f">open</a></td></tr>
+  <tr><td><span class="checkbox"></span></td><td colspan="3"><strong>Keep all (key needs a nuance tweak)</strong> — note: __________________________</td></tr>
+</table>
+
+<h2>Clusters 11–21 — Not yet itemized</h2>
+<p>The first dry-run output truncated after Cluster 10 ("…and 11 more"). These 11 additional clusters exist and contribute to the 71-row total, but we didn't capture their page IDs in the first pass. We can either:</p>
+<ul>
+  <li><strong>Treat Clusters 2–10 as a first batch,</strong> execute those merges, then return with Clusters 11–21 as a second review.</li>
+  <li><strong>Pause until all 21 are itemized,</strong> then you review once.</li>
+</ul>
+<p>Your preference? Either works on our side.</p>
+
+<h2>How to decide which row survives</h2>
+<p>If you don't have a strong opinion, these heuristics almost always give a reasonable answer:</p>
+<ol>
+  <li><strong>Prefer the oldest row</strong> — it's most likely to have the longest history of downstream references.</li>
+  <li><strong>Prefer the row with the most downstream links</strong> — if one row is pointed at by more formula lines, evidence packets, or label copy, merging <em>into</em> that row causes the least disruption.</li>
+  <li><strong>Prefer the row with the most complete metadata</strong> — full demographics, populated evidence block, attached citations.</li>
+  <li><strong>Prefer the cleaner title</strong> — if one row has slightly nicer canonical phrasing, make that the survivor.</li>
+</ol>
+<p>If two rows are genuinely tied, flip a coin — the merge script preserves history on both sides either way, so you're not losing information, just picking which page ID becomes "the" ID going forward.</p>
+
+<h2>What happens next</h2>
+<ol>
+  <li>You walk through Clusters 1–10 above, tick survivors, add notes where useful.</li>
+  <li>You (or we) re-run the audit to pull Clusters 11–21 and do a second pass.</li>
+  <li>Engineering implements <strong>Wave 7.0.5 T8.1</strong> — the merge-execution script — which takes your decisions and:
+    <ul>
+      <li>archives the non-survivor rows in Notion (not deleted; recoverable),</li>
+      <li>rewires every downstream reference to point at the survivor,</li>
+      <li>logs every change in an audit trail we hand back to you for sign-off.</li>
+    </ul>
+  </li>
+  <li>We re-run the canonical-key audit and confirm the duplicate count drops to zero for the clusters you signed off on.</li>
+</ol>
+<p>No merges happen without your explicit go-ahead on a per-cluster basis. If anything here is unclear or the framing feels off, flag it and we'll adjust.</p>
+
+<footer>
+  <p>Thanks, Gina — this review is the unblocker for getting the canonical-claim layer clean enough that everything downstream stops being ambiguous.</p>
+  <p>— Garrett + the PCS platform</p>
+</footer>
+
+</div>
+</body>
+</html>

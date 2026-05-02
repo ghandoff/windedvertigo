@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <!-- Wave shape -->
+  <path d="M10 45 Q30 30 50 38 Q70 46 90 35 Q110 24 130 32 Q150 40 170 30 Q185 23 195 28" stroke="#266474" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Sun circle -->
+  <circle cx="160" cy="18" r="10" fill="#FCC015" opacity="0.9"/>
+  <!-- Sun rays -->
+  <line x1="160" y1="4" x2="160" y2="0" stroke="#FCC015" stroke-width="2" stroke-linecap="round"/>
+  <line x1="170" y1="7" x2="173" y2="4" stroke="#FCC015" stroke-width="2" stroke-linecap="round"/>
+  <line x1="174" y1="18" x2="178" y2="18" stroke="#FCC015" stroke-width="2" stroke-linecap="round"/>
+  <line x1="170" y1="29" x2="173" y2="32" stroke="#FCC015" stroke-width="2" stroke-linecap="round"/>
+  <line x1="150" y1="7" x2="147" y2="4" stroke="#FCC015" stroke-width="2" stroke-linecap="round"/>
+  <line x1="146" y1="18" x2="142" y2="18" stroke="#FCC015" stroke-width="2" stroke-linecap="round"/>
+  <line x1="150" y1="29" x2="147" y2="32" stroke="#FCC015" stroke-width="2" stroke-linecap="round"/>
+</svg>

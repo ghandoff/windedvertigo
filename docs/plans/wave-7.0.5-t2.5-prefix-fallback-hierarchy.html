@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wave 7.0.5 T2.5 — Prefix Fallback Hierarchy + Essential-Nutrient Gate</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --dim: #5a6570;
+    --rule: #d9dde1;
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --accent: #2b6cb0;
+    --warn: #b45309;
+    --green: #15803d;
+    --red: #b91c1c;
+    --amber-bg: #fff8e6;
+    --amber-rule: #e8c88a;
+    --green-bg: #f0fdf4;
+    --green-rule: #86efac;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e8e8e8; --dim:#9aa4ae; --rule:#2d3339; --bg:#15181b; --card:#1c2025; --accent:#6aa6e0; --warn:#f4a547; --green:#6cd192; --red:#ef7d7d; --amber-bg:#28231a; --amber-rule:#5a4620; --green-bg:#18241d; --green-rule:#2a5940; }
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Georgia, serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 880px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  header.masthead { border-bottom: 1px solid var(--rule); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+  h1 { font-size: 2rem; margin: 0.25rem 0 0.5rem; line-height: 1.2; }
+  .meta { color: var(--dim); font-size: 0.875rem; }
+  .meta strong { color: var(--ink); }
+  h2 { font-size: 1.375rem; margin: 2.5rem 0 0.75rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.5rem; }
+  h3 { font-size: 1.125rem; margin: 2rem 0 0.5rem; color: var(--accent); }
+  h4 { font-size: 1rem; margin: 1.5rem 0 0.5rem; }
+  p { margin: 0.75rem 0; }
+  ol, ul { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin: 0.4rem 0; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.875em; background: var(--card); border: 1px solid var(--rule); border-radius: 3px; padding: 0.05em 0.3em; }
+  pre { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; overflow-x: auto; font-size: 0.825rem; line-height: 1.5; }
+  pre code { background: none; border: none; padding: 0; font-size: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { background: var(--card); font-weight: 600; font-size: 0.825rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
+  @media (prefers-color-scheme: dark) { tr:nth-child(even) td { background: rgba(255,255,255,0.02); } }
+  .callout { border-radius: 0 6px 6px 0; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+  .callout-amber { background: var(--amber-bg); border-left: 4px solid var(--amber-rule); }
+  .callout-amber strong { color: var(--warn); }
+  .callout-green { background: var(--green-bg); border-left: 4px solid var(--green-rule); }
+  .callout-green strong { color: var(--green); }
+  .question-block { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .question-block .q-num { font-size: 0.75rem; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+  .question-block h4 { margin: 0.25rem 0 0.5rem; }
+  .tldr { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0 2rem; }
+  .tldr h4 { margin-top: 0; color: var(--accent); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .rank-1 { color: var(--green); font-weight: 600; }
+  .rank-2 { color: var(--warn); font-weight: 600; }
+  .rank-3 { color: var(--red); font-weight: 600; }
+  footer { border-top: 1px solid var(--rule); padding-top: 1.5rem; margin-top: 3rem; color: var(--dim); font-size: 0.875rem; }
+  @media print {
+    body { background: white; color: black; font-size: 11pt; }
+    .page { padding: 1rem 0; max-width: 100%; }
+    h2, h3 { break-after: avoid; }
+    table, pre, .callout, .tldr, .question-block { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div class="eyebrow">Wave 7.0.5 T2.5 · Planning Artifact</div>
+  <h1>Prefix Fallback Hierarchy + Essential-Nutrient Gate</h1>
+  <div class="meta">
+    <strong>Status</strong> Planning — no code, no schema edits yet &nbsp;·&nbsp; <strong>Date</strong> 2026-04-22 &nbsp;·&nbsp; <strong>Inputs</strong> Gina's 2026-04-22 reply on the combo-prefix rows
+  </div>
+</header>
+
+<div class="tldr">
+  <h4>TL;DR — What this wave does</h4>
+  <p>Gina's "try <span class="rank-1">Supports</span> first, fall back to <span class="rank-2">Nutritional Support for</span>, last-resort <span class="rank-3">Required for</span>" hierarchy lives only in her head today. This wave encodes it: adds a <code>Fallback rank</code> + essential-nutrient gate to the Claim Prefixes database, splits three combo rows into nine atomic rows, builds a <code>recommendPrefix()</code> helper, and wires it into the claim-authoring UI so PD and Marketing can self-serve. Four open questions for Gina gate implementation.</p>
+</div>
+
+<h2>§1. Problem statement</h2>
+<p>Today's Claim Prefixes DB carries three rows whose Name fields enumerate <strong>multiple</strong> prefix phrases separated by slashes:</p>
+<ul>
+  <li>"Required for / Plays a critical role in / Supports"</li>
+  <li>"Required for / Plays a critical role in / Nutritional Support for"</li>
+  <li>"Required for / Plays a critical role in / Nutritional Support for (certain aspects of)"</li>
+</ul>
+<p>These combo rows are not cosmetic — they paper over a <strong>fallback hierarchy</strong> that Researchers walk down when authoring a claim. The hierarchy depends jointly on evidence tier, product dose vs. the RCT-backed minimum dose, and whether the Active Ingredient (AI) is an <strong>essential nutrient</strong> (a vitamin, mineral, essential fatty acid, essential amino acid).</p>
+
+<div class="callout callout-amber">
+<p><strong>Two consequences follow:</strong></p>
+<ol>
+  <li><strong>The recommender cannot work.</strong> A <code>recommendPrefix()</code> helper has no way to pick the right prefix because the preference order is not encoded. Downstream, PD and Marketing cannot self-serve a claim draft without a Research round-trip.</li>
+  <li><strong>The essential-nutrient gate is unenforced.</strong> Today nothing prevents an operator from authoring <em>"Curcumin is required for healthy sleep"</em> — a statement Gina flags as legally indefensible because curcumin is not required for anything. The guardrail exists only as tribal knowledge.</li>
+</ol>
+</div>
+
+<h2>§2. Schema deltas</h2>
+
+<h3>Active Ingredients DB</h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Default</th><th>Notes</th></tr>
+  <tr>
+    <td><code>Is essential nutrient</code></td>
+    <td>Checkbox</td>
+    <td><code>false</code></td>
+    <td>Gina backfills <code>true</code> for vitamins, minerals, essential fatty acids (EFAs), essential amino acids (EAAs).</td>
+  </tr>
+</table>
+<p>Backfill is bounded — the essential-nutrient set is a closed list (a few dozen rows at most). Non-essentials (botanicals, probiotics, peptides, carotenoid extracts) remain <code>false</code> and by construction cannot unlock rank-3 prefixes.</p>
+
+<h3>Claim Prefixes DB <span class="meta">(id: <code>7ed1891c-cd48-405f-b4f4-8384c1a4ed41</code>)</span></h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Values</th><th>Notes</th></tr>
+  <tr>
+    <td><code>Fallback rank</code></td>
+    <td>Number</td>
+    <td><span class="rank-1">1</span> | <span class="rank-2">2</span> | <span class="rank-3">3</span></td>
+    <td>1 = strongest (<code>Supports</code>); 2 = mid (<code>Nutritional Support for</code>); 3 = last-ditch (<code>Required for</code>).</td>
+  </tr>
+  <tr>
+    <td><code>Requires essential nutrient</code></td>
+    <td>Checkbox</td>
+    <td><code>true</code> / <code>false</code></td>
+    <td><code>true</code> only on rank-3 rows. Recommender filters these out when AI is not essential.</td>
+  </tr>
+  <tr>
+    <td><code>Fallback group</code></td>
+    <td>Text</td>
+    <td>free-text key</td>
+    <td>Groups atomic prefix rows that share a benefit domain (e.g. <code>sleep</code>, <code>immunity</code>, <code>cognitive</code>).</td>
+  </tr>
+</table>
+
+<h2>§3. Data migration — three combo rows → nine atomic rows</h2>
+<p>Each combo row splits into three atomic rows. The middle rank ("Plays a critical role in") carries an ambiguity flagged in <a href="#q1">Q1</a> — the table shows the <strong>proposed</strong> ranking with the ambiguous cell marked <code>?</code>.</p>
+
+<h3>Split 1 — "Required for / Plays a critical role in / Supports"</h3>
+<table>
+  <tr><th>New row</th><th>Fallback rank</th><th>Requires essential</th><th>Dose sensitivity</th></tr>
+  <tr><td><code>Supports …</code></td><td class="rank-1">1</td><td><code>false</code></td><td><code>dose_gated</code></td></tr>
+  <tr><td><code>Plays a critical role in …</code></td><td>?</td><td><code>false</code></td><td><code>dose_agnostic</code></td></tr>
+  <tr><td><code>Required for …</code></td><td class="rank-3">3</td><td><code>true</code></td><td><code>dose_agnostic</code></td></tr>
+</table>
+
+<h3>Split 2 — "Required for / Plays a critical role in / Nutritional Support for"</h3>
+<table>
+  <tr><th>New row</th><th>Fallback rank</th><th>Requires essential</th><th>Dose sensitivity</th></tr>
+  <tr><td><code>Nutritional Support for …</code></td><td class="rank-2">2</td><td><code>false</code></td><td><code>dose_qualified</code></td></tr>
+  <tr><td><code>Plays a critical role in …</code></td><td>?</td><td><code>false</code></td><td><code>dose_agnostic</code></td></tr>
+  <tr><td><code>Required for …</code></td><td class="rank-3">3</td><td><code>true</code></td><td><code>dose_agnostic</code></td></tr>
+</table>
+
+<h3>Split 3 — "Required for / Plays a critical role in / Nutritional Support for (certain aspects of)"</h3>
+<table>
+  <tr><th>New row</th><th>Fallback rank</th><th>Requires essential</th><th>Dose sensitivity</th></tr>
+  <tr><td><code>Nutritional Support for (certain aspects of) …</code></td><td class="rank-2">2</td><td><code>false</code></td><td><code>dose_qualified</code></td></tr>
+  <tr><td><code>Plays a critical role in …</code></td><td>?</td><td><code>false</code></td><td><code>dose_agnostic</code></td></tr>
+  <tr><td><code>Required for …</code></td><td class="rank-3">3</td><td><code>true</code></td><td><code>dose_agnostic</code></td></tr>
+</table>
+
+<p><strong>Deduplication note:</strong> Splits 1/2/3 each produce a "Plays a critical role in" and a "Required for" row. If the <code>Fallback group</code> keys match across splits, the implementer should collapse duplicates into a single atomic row per (phrase, group) pair. Final count may therefore be <strong>fewer than 9</strong> rows depending on group assignment. Confirm collapse policy with Gina during migration.</p>
+
+<h2>§4. <code>recommendPrefix()</code> algorithm</h2>
+<p>Pure function — no Notion calls in the hot path; prefixes are loaded once at boot and cached. Lives at <code>src/lib/pcs-prefix-recommender.js</code> (new file).</p>
+
+<h4>Signature</h4>
+<pre><code>/**
+ * @param {object} args
+ * @param {object} args.activeIngredient      // { id, name, isEssentialNutrient: boolean }
+ * @param {string} args.evidenceTier          // 'clinical_rct' | 'clinical_other' | 'preclinical' | 'mechanistic'
+ * @param {number} args.doseInProduct         // numeric, same unit as rctMinDose
+ * @param {number} args.rctMinDose            // numeric; may be null if no RCT floor exists
+ * @param {string} args.fallbackGroup         // e.g. 'sleep'
+ * @returns {{ prefix: Prefix, rank: 1|2|3, rationale: string } | { prefix: null, reason: string }}
+ */</code></pre>
+
+<h4>Pseudocode</h4>
+<pre><code>function recommendPrefix({ activeIngredient, evidenceTier, doseInProduct, rctMinDose, fallbackGroup }) {
+  const candidates = prefixes
+    .filter(p =&gt; p.fallbackGroup === fallbackGroup)
+    .filter(p =&gt; !(p.requiresEssentialNutrient &amp;&amp; !activeIngredient.isEssentialNutrient))
+    .sort((a, b) =&gt; a.fallbackRank - b.fallbackRank)
+
+  for (const p of candidates) {
+    if (p.fallbackRank === 1) {
+      // "Supports" — strongest; requires RCT evidence AND dose &gt;= RCT floor
+      if (evidenceTier === 'clinical_rct' &amp;&amp; rctMinDose != null &amp;&amp; doseInProduct &gt;= rctMinDose) {
+        return { prefix: p, rank: 1, rationale: `Dose ${doseInProduct} &gt;= RCT floor ${rctMinDose}; RCT evidence.` }
+      }
+      continue
+    }
+    if (p.fallbackRank === 2) {
+      // "Nutritional Support for" — evidence exists, product dose sub-therapeutic
+      if (rctMinDose != null &amp;&amp; doseInProduct &lt; rctMinDose) {
+        return { prefix: p, rank: 2, rationale: `Dose ${doseInProduct} below RCT floor ${rctMinDose}; qualifying claim.` }
+      }
+      continue
+    }
+    if (p.fallbackRank === 3) {
+      // "Required for" — essentials only, last-ditch mechanistic claim
+      return {
+        prefix: p,
+        rank: 3,
+        rationale: `${activeIngredient.name} is an essential nutrient; mechanistic claim permitted regardless of dose.`,
+      }
+    }
+  }
+
+  return {
+    prefix: null,
+    reason: `No valid prefix for AI=${activeIngredient.name}, evidence=${evidenceTier}, dose=${doseInProduct}/${rctMinDose}, group=${fallbackGroup}.`,
+  }
+}</code></pre>
+
+<h4>Truth table — Gina's three examples</h4>
+<table>
+  <tr><th>AI</th><th>Essential?</th><th>Dose (product)</th><th>RCT min dose</th><th>Evidence tier</th><th>Recommended</th><th>Rank</th><th>Why</th></tr>
+  <tr>
+    <td>Vitamin D</td>
+    <td><code>true</code></td>
+    <td>10 IU</td>
+    <td>600 IU</td>
+    <td>clinical_rct</td>
+    <td><code>Required for …</code></td>
+    <td class="rank-3">3</td>
+    <td>Essential; dose below RCT floor; ranks 1/2 don't fit.</td>
+  </tr>
+  <tr>
+    <td>Curcumin</td>
+    <td><code>false</code></td>
+    <td>200 mg</td>
+    <td>600 mg</td>
+    <td>clinical_rct</td>
+    <td><code>Nutritional Support for …</code></td>
+    <td class="rank-2">2</td>
+    <td>Non-essential; sub-dose; rank 3 locked by essential gate.</td>
+  </tr>
+  <tr>
+    <td>Magnesium glycinate</td>
+    <td><code>true</code></td>
+    <td>400 mg</td>
+    <td>400 mg</td>
+    <td>clinical_rct</td>
+    <td><code>Supports …</code></td>
+    <td class="rank-1">1</td>
+    <td>At RCT floor with RCT evidence; strongest claim available.</td>
+  </tr>
+</table>
+
+<h4>Edge cases</h4>
+<ul>
+  <li><strong>No RCT floor exists.</strong> <code>rctMinDose === null</code> → rank 1 disqualified; rank 2 also disqualified (needs a floor to compare against); falls through to rank 3 if essential, else returns <code>{ prefix: null }</code>.</li>
+  <li><strong>Evidence below RCT.</strong> Rank 1 requires <code>evidenceTier === 'clinical_rct'</code>; non-RCT evidence falls through to rank 2 or 3.</li>
+  <li><strong>Non-essential AI, sub-dose, no rank 2 row in group.</strong> Returns <code>{ prefix: null, reason }</code>. UI surfaces as "no claim available at this dose — either raise dose to RCT floor or drop the claim."</li>
+</ul>
+
+<h2>§5. UI integration</h2>
+<ol>
+  <li><strong>Recommendation surfaces as the form populates.</strong> When operator selects an AI and enters a dose, the form calls <code>recommendPrefix()</code> and shows the recommended prefix above the prefix dropdown: <em>"Recommended: <code>Nutritional Support for …</code> — product dose 200 mg is below RCT floor 600 mg; <code>Required for</code> unavailable because curcumin is not an essential nutrient."</em></li>
+  <li><strong>Operator can override.</strong> The prefix dropdown stays fully enabled. Picking a non-recommended prefix triggers a <strong>yellow, non-blocking warning</strong>: <em>"You picked <code>Supports</code>; recommender says <code>Nutritional Support for</code>. Reason for override?"</em> — with a text field saved to the claim's audit log.</li>
+  <li><strong>List views flag mismatches.</strong> Claim list views (Research queue, Marketing audit mode, PD drilldown) render a small warning icon next to any claim whose stored prefix disagrees with a fresh <code>recommendPrefix()</code> call. Icon is dim, non-blocking; hover expands to show the recommended alternative.</li>
+  <li><strong>Audit trail.</strong> Every override writes a row to the Claim Audit Log DB (<code>user_id</code>, <code>claim_id</code>, <code>recommended_prefix</code>, <code>chosen_prefix</code>, <code>reason</code>, <code>timestamp</code>). Legal asks for this; it also gives Research a source for "why are we drifting from the recommender" retros.</li>
+</ol>
+
+<h2>§6. Effort estimate</h2>
+<table>
+  <tr><th>Phase</th><th>Estimate</th></tr>
+  <tr><td>Notion schema edits + Gina collab to classify essential nutrients</td><td>30 min</td></tr>
+  <tr><td>Split 3 combo rows into atomic rows with ranks populated (via MCP)</td><td>30 min</td></tr>
+  <tr><td>Implement <code>recommendPrefix()</code> helper</td><td>60 min</td></tr>
+  <tr><td>Unit tests (<code>tests/prefix-recommender.verify.mjs</code>)</td><td>30 min</td></tr>
+  <tr><td>UI integration (form, list icons, override audit)</td><td>90 min</td></tr>
+  <tr><td><strong>Total</strong></td><td><strong>~4 hours</strong></td></tr>
+</table>
+<p>Assumes Gina's open questions (§7) are answered before implementation starts. If Q1 is unresolved, the split step stalls.</p>
+
+<h2>§7. Open questions for Gina</h2>
+
+<div class="question-block" id="q1">
+  <div class="q-num">Q1 · Blocking</div>
+  <h4>Is "Plays a critical role in" rank 1 (equivalent to <code>Supports</code>) or rank 2 (equivalent to <code>Nutritional Support for</code>)?</h4>
+  <p>The phrase reads mechanistic, which argues for a separate rank; but we need a single numeric rank to sort candidates. <strong>Recommended default:</strong> rank 2, dose_agnostic, non-essential-gated. But confirm, because this blocks the row-split migration.</p>
+</div>
+
+<div class="question-block" id="q2">
+  <div class="q-num">Q2 · Algorithm behavior</div>
+  <h4>For essential nutrients at or above the RCT dose, is <code>Required for</code> ever preferred over <code>Supports</code>?</h4>
+  <p>Current algorithm says <code>Supports</code> always wins rank 1; we never reach rank 3 for an at-dose essential. Is that correct, or are there cases where <code>Required for</code> is preferred even when dose is adequate?</p>
+</div>
+
+<div class="question-block" id="q3">
+  <div class="q-num">Q3 · Scope of the gate</div>
+  <h4>Are there essential nutrients where <code>Required for</code> is inappropriate regardless of dose?</h4>
+  <p>Example: fiber is required for healthy bowel function, but <em>"fiber required for weight loss"</em> would be overreach. If yes, we need an (AI × benefit domain) allowlist, not a single AI-level flag. The schema decision depends on your answer.</p>
+</div>
+
+<div class="question-block" id="q4">
+  <div class="q-num">Q4 · Orphan-claim default</div>
+  <h4>For the 17 orphan canonical claims (no prefix on file), do we default them to rank-1 <code>Supports</code> templates during a one-time backfill, or hold for case-by-case Research review?</h4>
+  <p>Defaulting is faster but lossy; per-claim review is slower but safer. Your call.</p>
+</div>
+
+<h2>§8. Dependencies</h2>
+<table>
+  <tr><th>Wave / task</th><th>Status</th><th>Relationship</th></tr>
+  <tr><td>T1 — <code>dose_sensitivity</code> on Claim Prefixes DB</td><td>Shipped</td><td>Per-rank rows inherit dose sensitivity; hash input.</td></tr>
+  <tr><td>T2 — canonical-claim identity key</td><td>Shipped</td><td>Rank-aware prefix still hashes via same canonical-claim identity.</td></tr>
+  <tr><td>T6 — AI Form source attributes</td><td>Shipped</td><td>Recommender reads AI's essential-nutrient flag + form attributes.</td></tr>
+  <tr><td><strong>T2.5 — this wave</strong></td><td>Planning</td><td>Ships schema + recommender + UI.</td></tr>
+  <tr><td>T8.1 — duplicate-merge executor</td><td>Future</td><td>Independent; can run in parallel.</td></tr>
+</table>
+
+<h2>§9. Acceptance criteria</h2>
+<ul>
+  <li>☐ <strong>Schema.</strong> Active Ingredients DB has <code>Is essential nutrient</code> checkbox; all essential nutrients classified by Gina.</li>
+  <li>☐ <strong>Schema.</strong> Claim Prefixes DB has <code>Fallback rank</code>, <code>Requires essential nutrient</code>, and <code>Fallback group</code> fields populated on all rows.</li>
+  <li>☐ <strong>Migration.</strong> The 3 combo rows replaced by atomic rows (target: 9 rows; may collapse fewer if duplicates across splits share a fallback group).</li>
+  <li>☐ <strong>Code.</strong> <code>src/lib/pcs-prefix-recommender.js</code> exports <code>recommendPrefix()</code> with the algorithm in §4.</li>
+  <li>☐ <strong>Tests.</strong> <code>tests/prefix-recommender.verify.mjs</code> covers Gina's 3 truth-table examples, the essential-nutrient gate (curcumin at any dose never returns rank 3), the no-match fallback, and the null <code>rctMinDose</code> edge case.</li>
+  <li>☐ <strong>UI.</strong> Claim-authoring form shows recommended prefix + rationale; override fires a yellow warning and writes an audit row.</li>
+  <li>☐ <strong>UI.</strong> List views render a dim warning icon next to claims whose stored prefix disagrees with a live <code>recommendPrefix()</code> call.</li>
+  <li>☐ <strong>Audit.</strong> Legal-visible audit trail captures every prefix override (operator, timestamp, recommended vs. chosen, reason).</li>
+</ul>
+
+<footer>
+  <p>Wave 7.0.5 T2.5 · Authored by Claude + Garrett · Markdown source: <code>docs/plans/wave-7.0.5-t2.5-prefix-fallback-hierarchy.md</code></p>
+</footer>
+
+</div>
+</body>
+</html>

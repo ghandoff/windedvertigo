@@ -1,0 +1,26 @@
+/* Wave 7.4 preview — minimal CSS. Tailwind handles most styling; this file
+   exists for the collapsible group animation which can't easily be expressed
+   via Tailwind utility classes without arbitrary max-height values. */
+
+.groupBody {
+  overflow: hidden;
+  transition: max-height 180ms ease-out, opacity 120ms ease-out;
+}
+
+.groupBodyOpen {
+  max-height: 600px;
+  opacity: 1;
+}
+
+.groupBodyClosed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.chevron {
+  transition: transform 160ms ease-out;
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}

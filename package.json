@@ -1,0 +1,48 @@
+{
+  "name": "nordic-sqr-rct",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "verify:rob2": "node tests/rob2-mapping.verify.mjs",
+    "verify:applicability": "node tests/applicability-scoring.verify.mjs",
+    "verify:nutrigrade": "node tests/nutrigrade.verify.mjs",
+    "verify:llm-reliability": "node tests/llm-reliability.verify.mjs",
+    "verify:capabilities": "node tests/capabilities.verify.mjs",
+    "verify:revisions": "node tests/pcs-revisions.verify.mjs",
+    "verify:email-audit": "node tests/audit-reviewer-emails.verify.mjs",
+    "verify:llm-adapter": "node tests/llm-adapter.verify.mjs",
+    "verify:all": "node tests/rob2-mapping.verify.mjs && node tests/applicability-scoring.verify.mjs && node tests/nutrigrade.verify.mjs && node tests/llm-reliability.verify.mjs && node tests/capabilities.verify.mjs && node tests/pcs-revisions.verify.mjs && node tests/merge-canonical-claims.verify.mjs && node tests/audit-reviewer-emails.verify.mjs && node tests/llm-adapter.verify.mjs",
+    "ingest:labels": "node scripts/ingest-label-intake.mjs",
+    "merge:canonical-claims": "node scripts/merge-canonical-claims.mjs",
+    "audit:emails": "node scripts/audit-reviewer-emails.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.90.0",
+    "@notionhq/client": "^5.19.0",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "docx": "^9.6.1",
+    "jose": "^6.2.2",
+    "mammoth": "^1.12.0",
+    "next": "^16.2.4",
+    "openai": "^6.34.0",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^2.4.5",
+    "pdfkit": "^0.18.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "recharts": "^3.8.1",
+    "workflow": "^4.2.4"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.1"
+  }
+}
