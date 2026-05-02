@@ -11,8 +11,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
     "@jalez/react-flow-smart-edge": "^4.0.0",
-    "postgres": "^3.4.5",
-    "@vercel/analytics": "^2.0.1",
+    "@neondatabase/serverless": "^0.10.4",
+    "@opennextjs/cloudflare": "^1.4.0",
     "@vercel/blob": "^2.3.3",
     "@windedvertigo/auth": "*",
     "@windedvertigo/tokens": "*",

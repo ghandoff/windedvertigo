@@ -3,7 +3,7 @@
 import { auth } from "@windedvertigo/auth";
 import { getOrCreateTree, getPerson, getPersonMedia, deleteMedia, setPersonThumbnail, logActivity } from "@/lib/db/queries";
 import { revalidatePath } from "next/cache";
-import { del } from "@vercel/blob";
+import { deleteMediaByUrl } from "@/lib/storage";
 
 export type MediaItem = {
   id: string;
@@ -41,13 +41,9 @@ export async function deleteMediaAction(mediaId: string, personId: string) {
   const person = await getPerson(personId);
   if (!person || person.tree_id !== tree.id) throw new Error("person not found");
 
-  const blobUrl = await deleteMedia(mediaId);
-  if (blobUrl) {
-    try {
-      await del(blobUrl);
-    } catch {
-      // blob may already be deleted — not critical
-    }
+  const mediaUrl = await deleteMedia(mediaId);
+  if (mediaUrl) {
+    await deleteMediaByUrl(mediaUrl); // silently ignores errors internally
   }
 
   await logActivity({

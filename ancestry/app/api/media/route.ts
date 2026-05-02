@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put } from "@vercel/blob";
 import { auth } from "@windedvertigo/auth";
 import { getOrCreateTree, updatePersonThumbnail } from "@/lib/db/queries";
 import { getDb } from "@/lib/db";
+import { uploadMedia } from "@/lib/storage";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -40,14 +40,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "person not found" }, { status: 404 });
   }
 
-  // upload to vercel blob
-  const filename = `ancestry/${tree.id}/${personId}/${Date.now()}-${file.name}`;
-  const blob = await put(filename, file, { access: "public" });
+  // upload to R2 (CF Workers) or @vercel/blob (Vercel)
+  const key = `ancestry/${tree.id}/${personId}/${Date.now()}-${file.name}`;
+  let mediaUrl: string;
+  try {
+    mediaUrl = await uploadMedia(file, key);
+  } catch (err) {
+    console.error("[media/upload] storage upload failed:", err);
+    return NextResponse.json({ error: "upload failed" }, { status: 500 });
+  }
 
   // create media record
   const media = await sql`
     INSERT INTO media (tree_id, media_type, url, filename, mime_type, size_bytes)
-    VALUES (${tree.id}, 'photo', ${blob.url}, ${file.name}, ${file.type}, ${file.size})
+    VALUES (${tree.id}, 'photo', ${mediaUrl}, ${file.name}, ${file.type}, ${file.size})
     RETURNING id
   `;
   const mediaId = media[0].id;
@@ -60,8 +66,9 @@ export async function POST(req: NextRequest) {
 
   // auto-set thumbnail if person doesn't have one
   if (!person[0].thumbnail_url) {
-    await updatePersonThumbnail(personId, blob.url);
+    await updatePersonThumbnail(personId, mediaUrl);
   }
 
-  return NextResponse.json({ id: mediaId, url: blob.url });
+  console.log(`[media/upload] person=${personId} mediaId=${mediaId} size=${file.size}`);
+  return NextResponse.json({ id: mediaId, url: mediaUrl });
 }

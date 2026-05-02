@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/auth", "@windedvertigo/tokens"],
 
+  // Required for Auth.js v5 on CF Workers: trusts the X-Forwarded-Host header
+  // injected by Cloudflare's edge so AUTH_URL doesn't need to match exactly.
+  env: {
+    AUTH_TRUST_HOST: process.env.CF_WORKERS_ENV ? "true" : (process.env.AUTH_TRUST_HOST ?? ""),
+  },
+
   async headers() {
     return [
       {

@@ -1,0 +1,56 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-ancestry",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "r2_buckets": [
+    {
+      "binding": "ANCESTRY_MEDIA",
+      "bucket_name": "ancestry-media"
+    }
+  ],
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-ancestry"
+    }
+  ],
+
+  // Cron triggers — mirrors vercel.json crons.
+  // scheduled() in worker.ts dispatches each cron via WORKER_SELF_REFERENCE.
+  "triggers": {
+    "crons": [
+      "*/5 * * * *",   // notifications: every 5 min
+      "0 8 * * 1"      // weekly-digest: Mondays 08:00 UTC
+    ]
+  },
+
+  "vars": {
+    "CF_WORKERS_ENV": "1",
+    "NEXT_PUBLIC_APP_URL": "https://ancestry.windedvertigo.com"
+  }
+
+  // Secrets — set via: wrangler secret put <NAME> --name wv-ancestry
+  // Required:
+  //   AUTH_SECRET         (Google OAuth session secret)
+  //   GOOGLE_CLIENT_ID
+  //   GOOGLE_CLIENT_SECRET
+  //   AUTH_URL            (https://ancestry.windedvertigo.com/api/auth)
+  //   AUTH_TRUST_HOST     (true — set inline above via next.config.ts CF_WORKERS_ENV check)
+  //   DATABASE_URL        (Supabase pooled connection string — PR #13 migrated from Neon)
+  //   RESEND_API_KEY
+  //   EMAIL_FROM
+  //   CRON_SECRET
+  //   ANCESTRY_MEDIA_PUBLIC_URL  (R2 public URL for ancestry-media bucket)
+  //   ANTHROPIC_API_KEY   (used by /api/research-assist and /api/hints/generate)
+}
