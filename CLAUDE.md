@@ -86,7 +86,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **Google Calendar** | Scheduling, meeting cadence, time blocking |
 | **Google Drive** | Document storage, shared folders, proposals |
 | **Cloudflare** | Primary hosting (Workers via OpenNext: site, harbour, depth-chart), DNS, R2 storage, edge |
-| **Vercel** | Hosting for port (CRM), creaseworks, vault, nordic — apps that depend on Workflow DevKit / Vercel Blob |
+| **Vercel** | Hosting for port (CRM), ops, creaseworks, vault — nordic in CF Workers canary (Phase F.4) |
 | **Cowork (Claude)** | CFO/COO operations, memory system, scheduled tasks, file management |
 | **Otter AI** | Meeting transcription (archived in Notion) |
 | **ADP** | 401k plan administration |
@@ -153,7 +153,8 @@ windedvertigo/
 | wv-launch-smoke | wv-launch-smoke.windedvertigo.workers.dev | CF Workers | `wv-launch-smoke` (cron `*/30 * * * *`, KV `SMOKE_LATEST`) | Live — 40-target probe, posts to wv-claw on red |
 | Port (CRM) | port.windedvertigo.com | Vercel | `wv-crm` | Live |
 | Port agent | Slack DM @wv-claw | Vercel (worker `wv-claw`) | App `A0AUA3VQHFH` / bot `U0AUPLEA8RL` / audit DB `f2f48a9998d84cd69598efdc79a44f1e` | Live end-to-end |
-| Nordic | nordic.windedvertigo.com | Vercel | `nordic-sqr-rct` (rootDir: `apps/nordic-sqr-rct`, monorepo-linked 2026-05-02 — stays on Vercel: `workflow` SDK + `@vercel/blob`) | Live — Phase C complete |
+| Nordic (Vercel) | nordic.windedvertigo.com | Vercel | `nordic-sqr-rct` (rootDir: `apps/nordic-sqr-rct`, monorepo-linked 2026-05-02) | Live — production (cutover pending Phase F.5 ~May 5-7) |
+| Nordic (CF canary) | wv-nordic.windedvertigo.workers.dev | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs` binding, `workflow` SDK removed, Supabase saga for ingredient-safety) | Canary live — Phase F.4 (started 2026-05-02, cutover after 3-day clean) |
 | Ops | ops.windedvertigo.com | Vercel | `wv-ops` | Deployed — auth flow needs verification |
 | Creaseworks, Vault | — | Vercel | (kept on Vercel) | Live |
 
