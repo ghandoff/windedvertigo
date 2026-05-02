@@ -612,11 +612,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://unpkg.com https://cdn.jsdelivr.net",
+              "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com https://port.windedvertigo.com https://vitals.vercel-insights.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com https://*.windedvertigo.workers.dev wss://*.windedvertigo.workers.dev",
+              "connect-src 'self' https://api.notion.com https://port.windedvertigo.com wss://*.partykit.dev wss://*.partykit.io https://script.google.com https://script.googleusercontent.com https://*.windedvertigo.workers.dev wss://*.windedvertigo.workers.dev",
               "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",

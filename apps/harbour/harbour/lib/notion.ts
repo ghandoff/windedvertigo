@@ -43,27 +43,52 @@ function tileImageUrl(slug: string): string {
 // data_source_id once per database ID to keep call sites compact.
 const dataSourceCache = new Map<string, string>();
 
-async function getDataSourceId(databaseId: string): Promise<string> {
+async function getDataSourceId(databaseId: string): Promise<string | null> {
   const cached = dataSourceCache.get(databaseId);
   if (cached) return cached;
-  const db = await notion.databases.retrieve({ database_id: databaseId });
-  if (!("data_sources" in db) || db.data_sources.length === 0) {
-    throw new Error(`no data sources found for database ${databaseId}`);
+  try {
+    const db = await notion.databases.retrieve({ database_id: databaseId });
+    if (
+      "data_sources" in db &&
+      Array.isArray((db as { data_sources?: { id: string }[] }).data_sources) &&
+      (db as { data_sources: { id: string }[] }).data_sources.length > 0
+    ) {
+      const id = (db as { data_sources: { id: string }[] }).data_sources[0].id;
+      dataSourceCache.set(databaseId, id);
+      return id;
+    }
+  } catch {
+    // If retrieval fails, fall through to databases.query() fallback
   }
-  const id = db.data_sources[0].id;
-  dataSourceCache.set(databaseId, id);
-  return id;
+  // data_sources absent or empty — signal to use databases.query() fallback
+  return null;
 }
 
-/** Query a data source by the legacy database ID. Resolves and caches
- *  the data_source_id transparently so call sites read like the old
- *  notion.databases.query(...) shape. */
+/** Query a data source by the legacy database ID.
+ *
+ *  Tries the v5 `dataSources.query()` API first (which requires a
+ *  `data_source_id`). If the Notion workspace doesn't expose `data_sources`
+ *  on the database (some workspaces still use the v4 shape), falls back to
+ *  `databases.query()` which works identically for our purposes.
+ */
 async function queryDataSource(
   databaseId: string,
   params: Omit<QueryDataSourceParameters, "data_source_id">,
 ): Promise<QueryDataSourceResponse> {
-  const data_source_id = await getDataSourceId(databaseId);
-  return notion.dataSources.query({ data_source_id, ...params });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = notion as any;
+
+  const dataSourceId = await getDataSourceId(databaseId);
+
+  if (
+    dataSourceId &&
+    typeof client.dataSources?.query === "function"
+  ) {
+    return client.dataSources.query({ data_source_id: dataSourceId, ...params });
+  }
+
+  // Fallback: v4-style databases.query() — same response shape for our extractors
+  return client.databases.query({ database_id: databaseId, ...params }) as Promise<QueryDataSourceResponse>;
 }
 
 // ── database IDs ──────────────────────────────────────────
