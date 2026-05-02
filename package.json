@@ -8,7 +8,8 @@
     "ancestry",
     "port-jobs",
     "packages/*",
-    "apps/harbour/values-auction"
+    "apps/harbour/values-auction",
+    "apps/nordic-sqr-rct"
   ],
   "scripts": {
     "sync:footer": "node scripts/sync-footer.mjs",

@@ -19,11 +19,11 @@
 - [x] **C4 — launch monitoring runbook** — `harbour-apps/docs/runbooks/launch-monitoring.md`. Triage trees, monitoring URLs, wrangler tail filters, smoke worker KV inspection, rollback procedures.
 - [x] **Forward-roadmap plan written** — `~/.claude/plans/partitioned-painting-pascal.md` Phase A/B/C/D, sequencing, risks, done-when criteria. ONE 30-second user gate (A.1) for the entire pre-launch path.
 
-### Pending (user actions to unblock)
+### Completed (previously pending — done 2026-05-01/02)
 
-- [ ] **A.1 (30 sec)**: add `https://www.windedvertigo.com/harbour/api/auth/callback/google` redirect URI to Google OAuth client `160968051904-ud88va6odnnjlp76j5dlc4qfd8upq2lp`.
-- [ ] **A2 + A4 deploy**: run `cd harbour-apps && ./scripts/deploy-cf-wrappers.sh --include-depth-chart` (rolls out wrapper to 16 apps + redeploys depth-chart with new AUTH_URL).
-- [ ] **A3**: create incoming webhook on wv-claw Slack app, then `echo "$URL" | wrangler secret put WV_CLAW_WEBHOOK --name wv-launch-smoke`.
+- [x] **A.1**: harbour Google OAuth redirect URI confirmed in GCP client (Garrett confirmed 2026-05-01).
+- [x] **A2 + A4**: `deploy-cf-wrappers.sh --include-depth-chart` run 2026-05-02 — all 16 apps + depth-chart live with `@windedvertigo/security` wrapper, 6 headers verified.
+- [x] **A3**: `WV_CLAW_WEBHOOK` secret set on `wv-launch-smoke` — webhook to `#garrett-code-tasks` on wv-claw Slack app (2026-05-01).
 
 ## Completed 2026-04-25 — port infra consolidation session
 

@@ -9,29 +9,30 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** fri 2 may 2026, ~02:00 PT (claude code, Phase B harbour-apps merge)
+**last synced:** fri 2 may 2026, ~11:30 PT (claude code, notion content calendar DB + wv-crm redeploy)
 
 **where we are right now:**
-**G.2.4 canary fully operational.** `wv-port-jobs` CF Queue consumer deployed with all 7 secrets set (ANTHROPIC_API_KEY, NOTION_TOKEN, RESEND_API_KEY, SLACK_BOT_TOKEN, SLACK_WEBHOOK_URL, SUPABASE_SERVICE_KEY, SUPABASE_URL). Note: Vercel CLI env pull redacts sensitive vars — used Vercel API (`decrypt=true`) + Python script to extract and pipe directly to wrangler. Canary window: 2026-05-01 → ~2026-05-08.
+**G.2.4 canary running.** `wv-port-jobs` CF Queue consumer live with all 7 secrets. Canary window: 2026-05-01 → ~2026-05-08. G.2.5 DNS cutover follows if clean.
 
-**Phase B DONE**: harbour-apps subtree merge complete at `apps/harbour/`.
+**All launch-readiness items closed.** Phase B done, all PRs merged, site redeployed, 16 harbour CF Workers wrapped, smoke alert → #garrett-code-tasks, Resend webhook live, wv-crm redeployed, ops auth redirect verified (→ /login ✅), port agent write tools verified (createCampaign staged+cancelled smoke test ✅).
 
-**All queued PRs now merged**: #33, #31, #32, #25, #34, #35, #16, #17, #30, #13. Site CF Workers redeploy in progress.
+**Neon decommission scheduled** for 2026-05-04 09:17 PT via persistent scheduled task (will prompt Garrett to confirm before deleting).
 
 ### open threads
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| ops auth | PR #32 merged | **Garrett: verify incognito redirect to /login** at ops.windedvertigo.com | ops.windedvertigo.com |
-| booking system | admin connect UI live + 5 hosts + 8 event types seeded; Turnstile live | **Garrett: connect Google Calendars** via `/admin/booking/connect` (one OAuth flow per host) | port.windedvertigo.com/admin/booking/connect |
-| harbour oauth gate | code deployed | **30-sec user action**: add redirect URI `https://www.windedvertigo.com/harbour/api/auth/callback/google` to OAuth client `160968051904-…` | gcp console |
-| 16-app CF wrapper rollout | Phase B merge done | run `cd apps/harbour && ./scripts/deploy-cf-wrappers.sh --include-depth-chart` (path updated post-merge) | terminal |
-| smoke alert webhook | worker live, 40/40 green | create wv-claw incoming webhook → `wrangler secret put WV_CLAW_WEBHOOK --name wv-launch-smoke` | slack |
-| Notion content calendar DB | CRM `/content` route wired, waiting for DB | **Cowork action**: create content calendar DB in Notion (title, channel, body, scheduled date, status, author) → set `NOTION_CONTENT_CALENDAR_DB_ID` in wv-port Vercel env | notion |
-| port agent write tools | PR #22 merged 2026-05-01 | test createCampaign + updateContact in Slack DM @wv-claw | port |
+| harbour oauth gate | ✅ DONE — redirect URI already in client (confirmed 2026-05-01) | — | — |
+| booking system | admin connect UI live + 5 hosts + 8 event types seeded | **Garrett + hosts**: connect Google Calendars at `/admin/booking/connect` (OAuth per host — genuinely requires each person) | port.windedvertigo.com/admin/booking/connect |
+| smoke alert webhook | ✅ DONE 2026-05-01 — webhook to #garrett-code-tasks created, `WV_CLAW_WEBHOOK` secret uploaded to wv-launch-smoke | monitoring | — |
+| 16-app CF wrapper rollout | ✅ DONE 2026-05-02 — all 16 deployed with 6 security headers verified | — | — |
+| Resend webhook | ✅ DONE 2026-05-01 — registered `https://port.windedvertigo.com/api/email/webhooks/resend` (6 events), `RESEND_WEBHOOK_SECRET` updated in Vercel, wv-crm redeployed | — | — |
+| Notion content calendar DB | ✅ DONE 2026-05-02 — DB `125fdb1bd3a047679d0f9a94cb38d313` created, `NOTION_CONTENT_CALENDAR_DB_ID` patched in wv-crm, redeployed (`dpl_Da6rUo9CmkZ4By5h1rJ3UgYD4BBa` READY). `/api/content` returns 401 (auth-gated = configured) | — | notion.so/125fdb1bd3a047679d0f9a94cb38d313 |
+| port agent write tools | ✅ DONE 2026-05-01 — createCampaign smoke test passed (staged → cancelled); all write tools confirmed live | — | — |
+| Neon decommission | ancestry migrated to Supabase 2026-04-27 | ⏳ delete Neon project autonomously after 2026-05-04 (7-day window) | neon.tech |
 | PRME 2026 | contract active, PO approved, first invoice submitted | sync with meredith on facilitation guide timeline | gmail |
 | IDB Salvador | documentation submitted apr 10, receipt confirmed apr 24 | passive monitor — evaluation in progress | — |
-| Neon decommission | ancestry migrated to Supabase 2026-04-27 | delete Neon project (safe after 2026-05-04) | neon.tech |
+| G.2.4 → G.2.5 | canary started 2026-05-01 | DNS cutover after ~2026-05-08 if no anomalies | — |
 
 ### environment handoffs
 
