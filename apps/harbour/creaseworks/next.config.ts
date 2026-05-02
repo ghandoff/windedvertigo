@@ -1,12 +1,20 @@
-import type { NextConfig } from "next"; // trigger deploy
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* creaseworks is served at windedvertigo.com/harbour/creaseworks via Vercel
-     multi-zone rewrites (see apps/site/vercel.json). basePath ensures Next.js
-     generates correct asset URLs and internal links under that prefix. */
+  /* creaseworks is served at windedvertigo.com/harbour/creaseworks via the
+     site proxy rewrites. basePath ensures Next.js generates correct asset
+     URLs and internal links under that prefix. */
   basePath: "/harbour/creaseworks",
   poweredByHeader: false,
+  // Required by OpenNext/CF Workers — produces .next/standalone for bundling.
+  output: "standalone",
   transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
+
+  // CF Workers: Auth.js requires AUTH_TRUST_HOST=true so it doesn't reject
+  // the x-forwarded-host header injected by Cloudflare's reverse proxy.
+  env: {
+    AUTH_TRUST_HOST: process.env.CF_WORKERS_ENV === "1" ? "true" : (process.env.AUTH_TRUST_HOST ?? ""),
+  },
 
   /* Custom loader routes all next/image requests through Cloudflare CDN
      (cdn.creaseworks.co) instead of Vercel's /_next/image proxy.
@@ -40,7 +48,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self'",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.stripe.com https://vitals.vercel-insights.com",
+              "connect-src 'self' https://api.stripe.com",
               "frame-src https://js.stripe.com",
               "worker-src 'self'",
               "base-uri 'self'",

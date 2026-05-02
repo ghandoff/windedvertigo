@@ -26,9 +26,8 @@ function buildInviteHtml({
 }: Omit<SendInviteParams, "to">): string {
   const baseUrl =
     process.env.NEXTAUTH_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000");
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://windedvertigo.com/harbour/creaseworks";
 
   const packList = packNames
     .map(

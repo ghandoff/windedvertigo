@@ -29,14 +29,12 @@ export async function sendDomainVerificationEmail({
     return { success: false, error: "email service not configured" };
   }
 
-  // Audit-2 M4: explicit parens to clarify operator precedence.
-  // NEXTAUTH_URL is preferred; fall back to VERCEL_URL with https prefix;
-  // fall back to localhost for local dev.
+  // NEXTAUTH_URL is preferred; fall back to NEXT_PUBLIC_APP_URL (CF Workers);
+  // fall back to the production URL as a safe default.
   const baseUrl =
     process.env.NEXTAUTH_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000");
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://windedvertigo.com/harbour/creaseworks";
 
   const verifyUrl = `${baseUrl}/api/team/domains/verify?token=${encodeURIComponent(token)}`;
 

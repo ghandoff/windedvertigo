@@ -15,16 +15,12 @@
  * names, retry policy, etc.).
  */
 
-// Today: only the v2 implementation is wired (creaseworks + vault both
-// pin `@notionhq/client@^2.3.0`).
-export { queryDataSource, queryAllPages } from "./v2-impl";
-
-// TODO: import v5-impl when creaseworks migrates to CF Workers (Phase
-// 5b of the macro stack-migration). v2 cannot run on Workers because
-// it uses `node:https.request`; v5 uses `fetch` and works there. When
-// that migration lands, swap the import above to `./v5-impl` (or
-// branch on a build-time flag if both apps haven't migrated yet).
-// export { queryDataSource, queryAllPages } from "./v5-impl";
+// v5-impl uses fetch() (CF Workers compatible). Creaseworks migrated to
+// CF Workers (Phase H.2) and upgraded to @notionhq/client@^5.x — v2
+// used node:https.request which CF Workers cannot polyfill. v5-impl is
+// also forward-compatible with vault (Phase H.3). v2-impl preserved for
+// any Vercel-hosted apps that haven't yet migrated.
+export { queryDataSource, queryAllPages } from "./v5-impl";
 
 export type {
   QueryDataSourceOptions,

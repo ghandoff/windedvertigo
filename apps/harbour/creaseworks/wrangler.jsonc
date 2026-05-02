@@ -1,10 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wv-harbour-creaseworks",
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
   "account_id": "097c92553b268f8360b74f625f6d980a",
   "compatibility_date": "2025-04-01",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
 
   "assets": {
     "directory": ".open-next/assets",
@@ -16,14 +17,57 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "wv-harbour-creaseworks"
     }
+  ],
+
+  // Cron triggers — mirrors vercel.json crons.
+  // scheduled() in worker.ts dispatches each cron via WORKER_SELF_REFERENCE.
+  "triggers": {
+    "crons": [
+      "0 6 * * *",   // sync-notion: daily 06:00 UTC
+      "0 9 * * 1",   // send-digests: Mondays 09:00 UTC
+      "0 8 * * *"    // send-nudges: daily 08:00 UTC
+    ]
+  },
+
+  "vars": {
+    "CF_WORKERS_ENV": "1",
+    "NEXT_PUBLIC_APP_URL": "https://windedvertigo.com/harbour/creaseworks"
+  },
+
+  // Direct CF Workers Routes for auth endpoints — bypass the site proxy
+  // so Auth.js's 302-to-Google reaches the browser instead of being
+  // followed server-side by Next.js rewrites (same pattern as harbour hub).
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/creaseworks/api/auth",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/creaseworks/api/auth/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/creaseworks/api/auth",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/creaseworks/api/auth/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
   ]
 
-  // Auth secrets — set via: wrangler secret put AUTH_SECRET
-  // For local dev, create .dev.vars with:
-  //   AUTH_SECRET=...
-  //   AUTH_GOOGLE_ID=...
-  //   AUTH_GOOGLE_SECRET=...
-
-  // Uncomment for ISR:
-  // "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "wv-creaseworks-cache" }]
+  // Secrets — set via: wrangler secret put <NAME> --name wv-harbour-creaseworks
+  // Required:
+  //   AUTH_SECRET         (Pool A — shared with vault, depth-chart, harbour-hub)
+  //   GOOGLE_CLIENT_ID    (from @windedvertigo/auth)
+  //   GOOGLE_CLIENT_SECRET
+  //   AUTH_URL            (https://windedvertigo.com/harbour/creaseworks/api/auth)
+  //   POSTGRES_URL        (Neon pooled connection string)
+  //   NOTION_TOKEN
+  //   RESEND_API_KEY
+  //   EMAIL_FROM
+  //   CRON_SECRET
+  //   STRIPE_SECRET_KEY   (if Stripe is enabled)
+  //   STRIPE_WEBHOOK_SECRET
+  //   All NOTION_DB_* database IDs
 }

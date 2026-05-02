@@ -5,11 +5,20 @@
  * shape both v2 (`databases.query`) and v5 (`dataSources.query`) callers
  * need, so the implementation file is the only thing that has to change
  * when an app migrates from v2 to v5.
+ *
+ * Note: `QueryDataSourcePage.pages` is typed as `any[]` rather than
+ * `PageObjectResponse[]` to avoid cross-version TypeScript conflicts.
+ * v2 and v5 both have a `PageObjectResponse` type but with different
+ * shapes (v5 adds `is_archived`, `is_locked`). Callers should cast to
+ * their own version's `PageObjectResponse` type as needed.
  */
-import type {
-  PageObjectResponse,
-  QueryDatabaseParameters,
-} from "@notionhq/client/build/src/api-endpoints";
+import type { QueryDatabaseParameters } from "@notionhq/client/build/src/api-endpoints";
+
+// Re-export PageObjectResponse from the adapter's own @notionhq/client so
+// callers that import this type get a consistent version. Callers on a
+// different version should import PageObjectResponse directly from their
+// local @notionhq/client instead.
+export type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
 /**
  * Filter shape accepted by `databases.query` / `dataSources.query`.
@@ -34,9 +43,8 @@ export interface QueryDataSourceOptions {
 }
 
 export interface QueryDataSourcePage {
-  pages: PageObjectResponse[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pages: any[];
   hasMore: boolean;
   nextCursor: string | null;
 }
-
-export type { PageObjectResponse };
