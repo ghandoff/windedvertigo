@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
 
+  // Required for Auth.js v5 on CF Workers: trusts the X-Forwarded-Host header
+  // that CF's edge sets so that AUTH_URL doesn't need to match exactly.
+  env: {
+    AUTH_TRUST_HOST: process.env.CF_WORKERS_ENV ? "true" : (process.env.AUTH_TRUST_HOST ?? ""),
+  },
+
   /**
    * Security headers — non-CSP headers live here as static config.
    * CSP is set per-request in proxy.ts with a nonce so we can

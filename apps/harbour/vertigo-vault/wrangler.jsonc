@@ -1,0 +1,68 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-vault",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Self-reference for OpenNext's routing — same pattern as creaseworks/harbour.
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "wv-vault" }
+  ],
+  "triggers": {
+    // Daily sync: pull vault activities from Notion → Neon Postgres
+    "crons": ["0 6 * * *"]
+  },
+  "vars": {
+    "CF_WORKERS_ENV": "1",
+    "NEXT_PUBLIC_APP_URL": "https://windedvertigo.com/harbour/vertigo-vault"
+  },
+  // Routes — vault lives under /harbour/vertigo-vault/* on the main domain.
+  // Auth routes bypass the site proxy (same pattern as harbour hub).
+  "routes": [
+    {
+      "pattern": "windedvertigo.com/harbour/vertigo-vault/api/auth",
+      "zone_name": "windedvertigo.com",
+      "custom_domain": false
+    },
+    {
+      "pattern": "windedvertigo.com/harbour/vertigo-vault/api/auth/*",
+      "zone_name": "windedvertigo.com",
+      "custom_domain": false
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/vertigo-vault/api/auth",
+      "zone_name": "windedvertigo.com",
+      "custom_domain": false
+    },
+    {
+      "pattern": "www.windedvertigo.com/harbour/vertigo-vault/api/auth/*",
+      "zone_name": "windedvertigo.com",
+      "custom_domain": false
+    }
+  ]
+  // Secrets (set via `wrangler secret put`):
+  //   AUTH_SECRET         — shared Pool A SSO key (same as creaseworks/harbour)
+  //   AUTH_URL            — https://windedvertigo.com/harbour/vertigo-vault/api/auth
+  //   AUTH_TRUST_HOST     — true
+  //   WORKERS_AUTH_PAGES_BASEPATH — /harbour/vertigo-vault
+  //   POSTGRES_URL        — Neon pooled connection string
+  //   NOTION_TOKEN        — Notion integration token
+  //   RESEND_API_KEY      — Resend email API key
+  //   EMAIL_FROM          — sender address (e.g. vault@windedvertigo.com)
+  //   CRON_SECRET         — shared cron bearer token
+  //   STRIPE_SECRET_KEY   — Stripe secret key
+  //   STRIPE_WEBHOOK_SECRET — Stripe webhook signing secret
+  //   INITIAL_ADMIN_EMAIL — first admin account email
+  //   R2_ACCOUNT_ID       — CF account ID for R2 REST API
+  //   R2_ACCESS_KEY_ID    — R2 API key ID
+  //   R2_SECRET_ACCESS_KEY — R2 API key secret
+  //   R2_BUCKET_NAME      — creaseworks-evidence (shared bucket)
+  //   R2_PUBLIC_URL       — https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev
+  //   NOTION_DB_VAULT     — Vault activities Notion DB ID
+}

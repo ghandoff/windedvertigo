@@ -68,64 +68,62 @@ export async function POST(req: Request) {
     }
 
     // ── Atomic purchase + entitlement grant ─────────────────────────
-    // Acquire a dedicated client so BEGIN/COMMIT/ROLLBACK all run on the
-    // same connection. The pool-level sql.query() can dispatch each call
-    // to a different connection, breaking transaction isolation.
-    const client = await db.connect();
+    // db.transaction() wraps all queries in a single HTTP request with
+    // automatic BEGIN/COMMIT/ROLLBACK via neon()'s transaction API.
+    let purchaseId: string;
+    let customerEmail: string | null | undefined;
+
     try {
-      await client.query("BEGIN");
+      purchaseId = await db.transaction(async (client) => {
+        const id = await createPurchase({
+          orgId: orgId || null,
+          packCatalogueId: catalogueId,
+          purchaserId: userId,
+          amountCents: session.amount_total ?? 0,
+          currency: session.currency ?? "usd",
+          paymentProvider: "stripe",
+          paymentRef: session.payment_intent as string | null,
+          stripeSessionId: session.id,
+          stripePaymentIntentId: session.payment_intent as string | null,
+        }, client);
 
-      const purchaseId = await createPurchase({
-        orgId: orgId || null,
-        packCatalogueId: catalogueId,
-        purchaserId: userId,
-        amountCents: session.amount_total ?? 0,
-        currency: session.currency ?? "usd",
-        paymentProvider: "stripe",
-        paymentRef: session.payment_intent as string | null,
-        stripeSessionId: session.id,
-        stripePaymentIntentId: session.payment_intent as string | null,
-      }, client);
+        // Grant entitlement — org-level if orgId present, user-level otherwise
+        if (orgId) {
+          await grantEntitlement(orgId, packCacheId, id, null, client);
+        } else {
+          await grantUserEntitlement(userId, packCacheId, null, id, client);
+        }
 
-      // Grant entitlement — org-level if orgId present, user-level otherwise
-      if (orgId) {
-        await grantEntitlement(orgId, packCacheId, purchaseId, null, client);
-      } else {
-        await grantUserEntitlement(userId, packCacheId, null, purchaseId, client);
-      }
+        return id;
+      });
 
-      await client.query("COMMIT");
+      customerEmail =
+        session.customer_details?.email ?? session.customer_email;
 
       console.log(
         `[webhook] purchase ${purchaseId} for pack ${packCacheId}`,
         orgId ? `(org: ${orgId})` : `(user: ${userId})`,
       );
-
-      // ── Confirmation email (fire-and-forget) ───────────────────────
-      // Send after the transaction commits so the user gets a receipt.
-      // Failures are logged but don't affect the webhook response.
-      const customerEmail =
-        session.customer_details?.email ?? session.customer_email;
-
-      if (customerEmail) {
-        sendPurchaseConfirmationEmail({
-          to: customerEmail,
-          packName: packTitle || "Vault Pack",
-          amountCents: session.amount_total ?? 0,
-          currency: session.currency ?? "usd",
-        }).catch((err) => {
-          console.error("[webhook] email send error:", err);
-        });
-      }
     } catch (err) {
-      await client.query("ROLLBACK");
-      console.error("[webhook] transaction failed, rolled back:", err);
+      console.error("[webhook] transaction failed:", err);
       return NextResponse.json(
         { error: "purchase processing failed" },
         { status: 500 },
       );
-    } finally {
-      client.release();
+    }
+
+    // ── Confirmation email (fire-and-forget) ───────────────────────
+    // Send after the transaction commits so the user gets a receipt.
+    // Failures are logged but don't affect the webhook response.
+    if (customerEmail) {
+      sendPurchaseConfirmationEmail({
+        to: customerEmail,
+        packName: packTitle || "Vault Pack",
+        amountCents: session.amount_total ?? 0,
+        currency: session.currency ?? "usd",
+      }).catch((err) => {
+        console.error("[webhook] email send error:", err);
+      });
     }
   }
 
