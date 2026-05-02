@@ -1,7 +1,16 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Required by OpenNext/CF Workers — produces .next/standalone for bundling.
+  output: 'standalone',
+  // Turbopack root — set to the monorepo root so Turbopack's security sandbox
+  // includes the hoisted node_modules at the workspace root, where `next` lives.
+  turbopack: {
+    root: path.resolve(__dirname, '../..'),
+  },
   async headers() {
     return [
       {
@@ -25,7 +34,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://vitals.vercel-insights.com",
+              "connect-src 'self'",
               "frame-src 'none'",
               "worker-src 'self'",
               "base-uri 'self'",
@@ -38,8 +47,4 @@ const nextConfig = {
   },
 };
 
-// Wave 4.5.2 — wrap with Workflow DevKit to enable `'use workflow'` / `'use step'`
-// directives. See docs/runbooks/wave-4.5.2-weekly-digest.md.
-const { withWorkflow } = require('workflow/next');
-
-module.exports = withWorkflow(nextConfig);
+module.exports = nextConfig;

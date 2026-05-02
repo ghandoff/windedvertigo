@@ -27,7 +27,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { start } from 'workflow/api';
 import { ingredientSafetySweep } from '@/workflows/ingredient-safety';
 import { getEvidence } from '@/lib/pcs-evidence';
 
@@ -114,17 +113,17 @@ export async function POST(request) {
       declaredAt: new Date().toISOString(),
     };
 
-    // Fire-and-forget — workflow handles its own durability.
+    // Fire-and-forget — saga handles its own durability via safety_sweep_pending.
     try {
-      const run = await start(ingredientSafetySweep, [input]);
-      console.log('[evidence-updated] started runId=%s evidenceId=%s ingredientId=%s',
-        run.runId, input.evidenceId, input.ingredientId);
-      return NextResponse.json({ ok: true, runId: run.runId }, { status: 202 });
+      const result = await ingredientSafetySweep(input);
+      console.log('[evidence-updated] sweep initiated evidenceId=%s ingredientId=%s mode=%s',
+        input.evidenceId, input.ingredientId, result.mode);
+      return NextResponse.json({ ok: true, result }, { status: 202 });
     } catch (err) {
-      // Workflow-start failure MUST NOT fail the Notion webhook — log and
+      // Sweep failure MUST NOT fail the Notion webhook — log and
       // ack so the Evidence update is not held back.
-      console.error('[evidence-updated] failed to start workflow:', err);
-      return NextResponse.json({ ok: false, reason: 'workflow start failed', error: err?.message || String(err) }, { status: 200 });
+      console.error('[evidence-updated] failed to initiate sweep:', err);
+      return NextResponse.json({ ok: false, reason: 'sweep failed', error: err?.message || String(err) }, { status: 200 });
     }
   } catch (err) {
     console.error('[evidence-updated] handler error:', err);

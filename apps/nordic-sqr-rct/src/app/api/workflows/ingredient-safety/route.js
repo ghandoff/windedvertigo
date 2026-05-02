@@ -23,7 +23,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { start, getRun } from 'workflow/api';
 import { ingredientSafetySweep } from '@/workflows/ingredient-safety';
 
 export const runtime = 'nodejs';
@@ -68,21 +67,13 @@ export async function POST(request) {
     declaredAt: body.declaredAt ? String(body.declaredAt) : new Date().toISOString(),
   };
 
-  const url = new URL(request.url);
-  const wait = url.searchParams.get('wait') === '1';
-
   try {
-    const run = await start(ingredientSafetySweep, [input]);
-    console.log('[ingredient-safety] started runId=%s evidenceId=%s ingredientId=%s',
-      run.runId, input.evidenceId, input.ingredientId);
-
-    if (!wait) {
-      return NextResponse.json({ ok: true, runId: run.runId }, { status: 202 });
-    }
-
-    const finished = getRun(run.runId);
-    const result = await finished.returnValue;
-    return NextResponse.json({ ok: true, runId: run.runId, result });
+    // Saga pattern: sweep completes quickly (opens requests + inserts pending rows),
+    // then resolves asynchronously via POST /api/webhooks/safety/resolve.
+    const result = await ingredientSafetySweep(input);
+    console.log('[ingredient-safety] sweep initiated evidenceId=%s ingredientId=%s mode=%s',
+      input.evidenceId, input.ingredientId, result.mode);
+    return NextResponse.json({ ok: true, result }, { status: 202 });
   } catch (err) {
     console.error('[ingredient-safety] trigger failed:', err);
     return NextResponse.json(

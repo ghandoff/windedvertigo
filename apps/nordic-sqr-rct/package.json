@@ -23,6 +23,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
     "@notionhq/client": "^5.19.0",
+    "@opennextjs/cloudflare": "^1.19.5",
+    "@supabase/supabase-js": "^2.104.1",
     "@tailwindcss/postcss": "^4.2.1",
     "@vercel/blob": "^2.3.3",
     "bcryptjs": "^3.0.3",
@@ -36,8 +38,7 @@
     "pdfkit": "^0.18.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "recharts": "^3.8.1",
-    "workflow": "^4.2.4"
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "eslint": "^9.39.4",

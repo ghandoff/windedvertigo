@@ -5,40 +5,15 @@
  * workflow finds every Active Product Label that shares the flagged
  * ingredient (with a demographic and dose overlap, when specified), opens
  * one Research Request per matched SKU routed to RA at priority='Safety',
- * posts a single digest to #ra-safety, then waits — durably — for each
- * per-request resolution webhook before firing the "sweep complete" Slack.
+ * posts a single digest to #ra-safety, then records each open request in
+ * the `safety_sweep_pending` Supabase table (saga pattern — replaces the
+ * previous Workflow DevKit `createHook()` durable-wait).
  *
- * Workflow DevKit API notes (verified against node_modules/workflow/docs):
- *   - There is NO `step.forEach` / `step.parallel` / `step.waitForWebhook`.
- *     The plan §5 sketch was aspirational — real primitives here are:
- *       · a `'use workflow'` function as the orchestrator
- *       · `'use step'` inner functions for retryable work
- *       · `createHook()` for durable waits (see docs/foundations/hooks.mdx)
- *       · `Promise.all(arr.map(...))` for parallel fan-out inside a workflow
- *       · a plain `for (const x of arr) { await step(...) }` for sequential
- *   - Each hook gets a deterministic custom token so the external resolver
- *     (the Notion webhook / manual resolve button) can reconstruct it from
- *     the Request id alone.
- *
- * Fan-out plan:
- *   Step 1 — enumerate-matches (one step, Notion reads).
- *   Step 2 — open one Request per match. Done sequentially inside the
- *            workflow body because the Notion API doesn't like a storm of
- *            parallel writes and each is already its own retryable step.
- *   Step 3 — notify-ra digest (one Slack send with all SKUs).
- *   Step 4 — for each request, create a hook keyed on
- *            `request-resolved:${requestId}` and `await` it. We run these
- *            in parallel inside the workflow so a slow ticket doesn't
- *            block the others.
- *   Step 5 — notify-complete Slack when every request resolves.
- *
- * Timeouts: the plan asks for 90d. `createHook()` does not expose a native
- * timeout option — long runtime is inherent to the DevKit — so we rely on
- * the platform-level TTL. Cancellation is manual via the Workflow run UI if
- * a safety sweep needs to be abandoned.
+ * Resolution is now handled by POST /api/webhooks/safety/resolve which marks
+ * rows resolved_at and fires the "sweep complete" Slack when all are done.
  */
 
-import { createHook } from 'workflow';
+import { getSafetySupabase } from '@/lib/supabase-safety';
 import {
   findLabelsByIngredientDoseAndDemographic,
   openSafetyReviewRequest,
@@ -51,7 +26,6 @@ const DEFAULT_SITE_URL = 'https://nordic-sqr-rct.vercel.app';
 /* -------------------------------------------------------------------------- */
 
 async function enumerateMatches(input) {
-  'use step';
 
   const matches = await findLabelsByIngredientDoseAndDemographic({
     ingredientId: input.ingredientId,
@@ -68,7 +42,6 @@ async function enumerateMatches(input) {
 /* -------------------------------------------------------------------------- */
 
 async function openRequestForLabel(input, label) {
-  'use step';
 
   try {
     const res = await openSafetyReviewRequest({
@@ -113,7 +86,6 @@ function buildSafetyDigest(requests, input) {
 }
 
 async function notifyRaDigest(requests, input) {
-  'use step';
 
   const channelOverride = process.env.SLACK_SAFETY_CHANNEL || process.env.SLACK_REQUESTS_CHANNEL || null;
   const hasBotToken = Boolean(process.env.SLACK_BOT_TOKEN);
@@ -162,7 +134,6 @@ async function notifyRaDigest(requests, input) {
 }
 
 async function notifyComplete(input, totalRequests) {
-  'use step';
 
   const channelOverride = process.env.SLACK_SAFETY_CHANNEL || process.env.SLACK_REQUESTS_CHANNEL || null;
   const hasBotToken = Boolean(process.env.SLACK_BOT_TOKEN);
@@ -216,7 +187,6 @@ async function notifyComplete(input, totalRequests) {
  * @param {string} [input.declaredAt]  ISO8601
  */
 export async function ingredientSafetySweep(input) {
-  'use workflow';
 
   if (!input || !input.evidenceId || !input.ingredientId) {
     return { ok: false, reason: 'missing evidenceId or ingredientId' };
@@ -229,8 +199,7 @@ export async function ingredientSafetySweep(input) {
     return { ok: true, mode: 'noop', reason: 'no matching labels', matches: 0 };
   }
 
-  // Step 2: open one Request per label, sequentially so Notion doesn't get
-  // hammered. Each call is its own retryable step via `'use step'`.
+  // Step 2: open one Request per label, sequentially so Notion doesn't get hammered.
   const requests = [];
   for (const label of matches) {
     const res = await openRequestForLabel(input, label);
@@ -240,32 +209,35 @@ export async function ingredientSafetySweep(input) {
   // Step 3: single digest to #ra-safety.
   await notifyRaDigest(requests, input);
 
-  // Step 4: durable wait for each successfully-opened request to resolve.
-  // The per-request hook token is `safety-request-resolved:${requestId}` so
-  // the Notion webhook or a manual operator call can reconstruct it.
+  // Step 4 (saga): record each open request in safety_sweep_pending.
+  // Resolution is now async — POST /api/webhooks/safety/resolve marks rows
+  // resolved_at and fires notifyComplete when all rows for the run are done.
   const resolvable = requests.filter(r => r.id && (r.action === 'created' || r.action === 'updated'));
   if (resolvable.length > 0) {
-    await Promise.all(resolvable.map(async (r) => {
-      // Manual disposal rather than the TC39 `using` keyword, to stay
-      // compatible with the project's current transpile target (see
-      // next.config.js — no explicit-resource-management flag set).
-      const hook = createHook({ token: `safety-request-resolved:${r.id}` });
-      try {
-        const payload = await hook;
-        console.log(`[ingredient-safety] request ${r.id} resolved:`, payload);
-        return payload;
-      } finally {
-        hook.dispose?.();
+    const runId = `${input.evidenceId}:${Date.now()}`;
+    const sb = getSafetySupabase();
+    if (sb) {
+      const rows = resolvable.map(r => ({
+        run_id: runId,
+        evidence_id: input.evidenceId,
+        ingredient_id: input.ingredientId,
+        request_id: r.id,
+        sku: r.sku || null,
+      }));
+      const { error } = await sb.from('safety_sweep_pending').upsert(rows, { onConflict: 'run_id,request_id' });
+      if (error) {
+        console.warn('[ingredient-safety] failed to insert safety_sweep_pending rows:', error.message);
+      } else {
+        console.log(`[ingredient-safety] saga: inserted ${rows.length} pending rows for runId=${runId}`);
       }
-    }));
+    } else {
+      console.warn('[ingredient-safety] SUPABASE_NORDIC_URL not configured — saga rows skipped');
+    }
   }
-
-  // Step 5: all done — post completion.
-  await notifyComplete(input, resolvable.length);
 
   return {
     ok: true,
-    mode: 'done',
+    mode: 'saga',
     matches: matches.length,
     requestsOpened: resolvable.length,
     requests: requests.map(r => ({ action: r.action, id: r.id, sku: r.sku, labelId: r.labelId })),

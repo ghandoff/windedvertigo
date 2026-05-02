@@ -30,6 +30,8 @@
     "build:ancestry": "npm run build -w @windedvertigo/ancestry",
     "deploy:ancestry": "bash scripts/deploy-ancestry.sh",
     "deploy:ancestry:preview": "bash scripts/deploy-ancestry.sh --preview",
+    "deploy:nordic": "bash scripts/deploy-nordic.sh",
+    "deploy:nordic:preview": "bash scripts/deploy-nordic.sh --preview",
     "deploy:site": "bash scripts/deploy-site.sh",
     "deploy:site:preview": "bash scripts/deploy-site.sh --preview"
   },

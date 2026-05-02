@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-nordic",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "r2_buckets": [
+    // Post-DNS-cutover: swap @vercel/blob → R2 reads/writes once nordic-pcs is confirmed healthy.
+    { "binding": "NORDIC_ASSETS", "bucket_name": "nordic-pcs" }
+  ],
+  "triggers": {
+    "crons": [
+      "*/2 * * * *",
+      "*/5 * * * *",
+      "0 8 * * *",     // sweep-label-drift
+      "0 7 * * *",     // nightly-reping
+      "0 16 * * 1"     // weekly-digest (Mondays)
+    ]
+  },
+  "vars": {
+    "NORDIC_URL": "https://nordic.windedvertigo.com",
+    "CF_WORKERS_ENV": "1"
+  }
+  // Secrets (set via `wrangler secret put --name wv-nordic`):
+  // JWT_SECRET, NOTION_TOKEN, NOTION_WEBHOOK_TOKEN, CRON_SECRET,
+  // SLACK_BOT_TOKEN, SLACK_WEBHOOK_URL, NOTION_SLACK_USER_MAP, NOTION_TEAM_LEADS,
+  // BLOB_READ_WRITE_TOKEN (for canary period — remove after R2 migration),
+  // SUPABASE_NORDIC_URL, SUPABASE_NORDIC_ANON_KEY,
+  // LLM_API_KEY, OPENAI_API_KEY,
+  // Plus all NOTION_PCS_* database IDs
+}

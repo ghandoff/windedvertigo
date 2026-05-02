@@ -38,7 +38,6 @@ const DEFAULT_SITE_URL = 'https://nordic-sqr-rct.vercel.app';
 /* -------------------------------------------------------------------------- */
 
 async function fetchOpenRequestsGroupedByAssignee() {
-  'use step';
 
   // queryRequests with filter 'all' returns all open (Status != Done) requests.
   const requests = await queryRequests({ filter: 'all' });
@@ -82,7 +81,6 @@ function parseUserMap() {
 }
 
 async function resolveSlackRecipient(group) {
-  'use step';
 
   const hasBotToken = Boolean(process.env.SLACK_BOT_TOKEN);
   const channelFallback = process.env.SLACK_REQUESTS_CHANNEL || null; // optional channel ID/name override; used by Mode B
@@ -206,7 +204,6 @@ function buildDigestFooterBlocks({ totalRequests, filterHint = 'mine', metrics =
 /* -------------------------------------------------------------------------- */
 
 async function computeMetricsSnapshot() {
-  'use step';
   console.log('[weekly-digest] computeMetricsSnapshot: start');
   try {
     const metrics = await computeAllMetrics();
@@ -232,7 +229,6 @@ async function computeMetricsSnapshot() {
  * Mode A: single consolidated digest to SLACK_WEBHOOK_URL, grouped by assignee.
  */
 async function sendConsolidatedDigestViaWebhook(groups, metrics = null) {
-  'use step';
 
   const webhook = process.env.SLACK_WEBHOOK_URL;
   if (!webhook) {
@@ -269,7 +265,6 @@ async function sendConsolidatedDigestViaWebhook(groups, metrics = null) {
  * destination = { mode: 'dm'|'channel-api', target: slackIdOrChannel }
  */
 async function sendGroupViaBotApi(destination, group, metrics = null) {
-  'use step';
 
   const token = process.env.SLACK_BOT_TOKEN;
   if (!token) throw new Error('SLACK_BOT_TOKEN missing in Mode B step');
@@ -319,7 +314,6 @@ async function sendGroupViaBotApi(destination, group, metrics = null) {
  * scheduler that understands TZ.
  */
 export async function weeklyDigestWorkflow() {
-  'use workflow';
 
   const groups = await fetchOpenRequestsGroupedByAssignee();
   if (!Array.isArray(groups) || groups.length === 0) {

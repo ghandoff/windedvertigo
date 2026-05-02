@@ -114,7 +114,6 @@ function tierFor(ageN) {
 /* -------------------------------------------------------------------------- */
 
 async function fetchStaleRequests({ minDaysSinceLastPing = 7 } = {}) {
-  'use step';
 
   const cutoff = daysAgoIso(minDaysSinceLastPing);
   const rows = await queryRequests({ filter: 'all', lastPingedBefore: cutoff });
@@ -161,7 +160,6 @@ function tierPerRowHeadline(tier, r) {
 /* -------------------------------------------------------------------------- */
 
 async function sendTierViaWebhook({ tier, requests, leadsByRole }) {
-  'use step';
 
   if (isDryRun()) {
     console.log(`[nightly-reping][DRY_RUN] Tier ${tier}: would webhook-post ${requests.length} requests.`);
@@ -201,7 +199,6 @@ async function sendTierViaWebhook({ tier, requests, leadsByRole }) {
 /* -------------------------------------------------------------------------- */
 
 async function sendBotMessage({ channel, text, blocks }) {
-  'use step';
 
   if (isDryRun()) {
     console.log(`[nightly-reping][DRY_RUN] would bot-post to ${channel}: ${text.slice(0, 120)}`);
@@ -230,7 +227,6 @@ async function sendBotMessage({ channel, text, blocks }) {
 /* -------------------------------------------------------------------------- */
 
 async function markPinged(requestId, isoDate) {
-  'use step';
 
   if (isDryRun()) {
     console.log(`[nightly-reping][DRY_RUN] would set Last pinged date on ${requestId} to ${isoDate}`);
@@ -249,7 +245,6 @@ async function markPinged(requestId, isoDate) {
  * previous day). Same DST caveat as weekly-digest applies.
  */
 export async function nightlyRepingWorkflow() {
-  'use workflow';
 
   const stale = await fetchStaleRequests({ minDaysSinceLastPing: 7 });
   if (!Array.isArray(stale) || stale.length === 0) {

@@ -1,13 +1,20 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const rawSecret = process.env.JWT_SECRET;
-if (!rawSecret) {
-  throw new Error(
-    'JWT_SECRET environment variable is required. ' +
-    'Set it in .env.local (dev) or Vercel Environment Variables (preview/production).'
-  );
+// Lazy-init: validate at call time, not at module load time, so Next.js build
+// succeeds in environments without secrets (preview deploys, local builds).
+let _JWT_SECRET = null;
+function getJwtSecret() {
+  if (_JWT_SECRET) return _JWT_SECRET;
+  const raw = process.env.JWT_SECRET;
+  if (!raw) {
+    throw new Error(
+      'JWT_SECRET environment variable is required. ' +
+      'Set it in .env.local (dev) or Vercel/Wrangler Environment Variables (production).',
+    );
+  }
+  _JWT_SECRET = new TextEncoder().encode(raw);
+  return _JWT_SECRET;
 }
-const JWT_SECRET = new TextEncoder().encode(rawSecret);
 
 // Wave 7.0.7 — access tokens are short-lived (1h) so a stolen JWT is valid
 // for at most 1h before the client is forced to refresh, at which point
@@ -30,7 +37,7 @@ export async function signToken(payload, options = {}) {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(expiresIn)
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 }
 
 /** Wave 7.0.7 — issue a short-lived access token (1h). */
@@ -53,7 +60,7 @@ export async function signRefreshToken({ reviewerId }) {
 
 export async function verifyToken(token) {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecret());
     return payload;
   } catch {
     return null;

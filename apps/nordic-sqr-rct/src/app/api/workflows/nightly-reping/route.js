@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { start, getRun } from 'workflow/api';
 import { nightlyRepingWorkflow } from '@/workflows/nightly-reping';
 
 export const runtime = 'nodejs';
@@ -28,15 +27,9 @@ async function trigger(request, { waitForCompletion = false } = {}) {
   }
 
   try {
-    const run = await start(nightlyRepingWorkflow);
-    console.log('[nightly-reping] started runId=%s', run.runId);
-
-    if (!waitForCompletion) {
-      return NextResponse.json({ ok: true, runId: run.runId });
-    }
-    const finished = getRun(run.runId);
-    const result = await finished.returnValue;
-    return NextResponse.json({ ok: true, runId: run.runId, result });
+    const result = await nightlyRepingWorkflow();
+    console.log('[nightly-reping] completed', result);
+    return NextResponse.json({ ok: true, result });
   } catch (err) {
     console.error('[nightly-reping] trigger failed:', err);
     return NextResponse.json(

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { start, getRun } from 'workflow/api';
 import { weeklyDigestWorkflow } from '@/workflows/weekly-digest';
 
 export const runtime = 'nodejs';
@@ -31,17 +30,9 @@ async function trigger(request, { waitForCompletion = false } = {}) {
   }
 
   try {
-    const run = await start(weeklyDigestWorkflow);
-    console.log('[weekly-digest] started runId=%s', run.runId);
-
-    if (!waitForCompletion) {
-      return NextResponse.json({ ok: true, runId: run.runId });
-    }
-
-    // Optional synchronous path (handy for ad-hoc manual triggers).
-    const finished = getRun(run.runId);
-    const result = await finished.returnValue;
-    return NextResponse.json({ ok: true, runId: run.runId, result });
+    const result = await weeklyDigestWorkflow();
+    console.log('[weekly-digest] completed', result);
+    return NextResponse.json({ ok: true, result });
   } catch (err) {
     console.error('[weekly-digest] trigger failed:', err);
     return NextResponse.json(
