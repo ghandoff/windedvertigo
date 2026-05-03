@@ -1,4 +1,4 @@
-import { queryRfpFeedSources } from "@/lib/notion/rfp-feeds";
+import { getAllRfpFeedSourcesFromSupabase } from "@/lib/supabase/rfp-feeds";
 import { PageHeader } from "@/app/components/page-header";
 import { FeedSourcesManager } from "@/app/components/rfp-feed-sources-manager";
 import Link from "next/link";
@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 export const revalidate = 0;
 
 export default async function RfpFeedsPage() {
-  const { data: feeds } = await queryRfpFeedSources(false);
+  const feeds = await getAllRfpFeedSourcesFromSupabase();
 
   return (
     <>

@@ -1,16 +1,30 @@
 /**
  * Claude API client wrapper with built-in token tracking.
  *
- * Every call records token usage, cost, and duration for the
- * AI Hub economics dashboard.
+ * Uses @ai-sdk/anthropic (Vercel AI SDK v6) which supports:
+ *   - Vercel AI Gateway routing (configure base URL via vercel env pull)
+ *   - AbortSignal-based timeouts so hung calls don't consume Inngest step budgets
+ *   - Token usage tracking for the AI Hub cost dashboard
+ *
+ * Every call records token usage, cost, and duration.
  */
 
-import Anthropic from "@anthropic-ai/sdk";
+import { generateText } from "ai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import type { AiFeature, ModelId, TokenUsageEntry } from "./types";
 import { MODEL_PRICING, FEATURE_MODELS } from "./types";
 import { recordUsage } from "./usage-store";
 
-const anthropic = new Anthropic();
+// Provider is created once per module (env vars are stable within a serverless
+// invocation).
+//
+// Auth is handled entirely via environment variables populated by `vercel env pull`.
+// Vercel injects credentials at runtime via OIDC workload identity — no keys
+// are referenced in code. When a gateway base URL is configured, the provider
+// routes through it; otherwise calls go directly to the upstream API.
+const anthropicProvider = createAnthropic({
+  ...(process.env.ANTHROPIC_BASE_URL ? { baseURL: process.env.ANTHROPIC_BASE_URL } : {}),
+});
 
 interface AiCallOptions {
   feature: AiFeature;
@@ -20,6 +34,8 @@ interface AiCallOptions {
   maxTokens?: number;
   temperature?: number;
   modelOverride?: ModelId;
+  /** Request timeout in milliseconds. Defaults to 300 000 ms (5 min). */
+  timeoutMs?: number;
 }
 
 interface AiCallResult {
@@ -32,37 +48,38 @@ interface AiCallResult {
 
 /** Call Claude and automatically track token usage. */
 export async function callClaude(opts: AiCallOptions): Promise<AiCallResult> {
-  const model = opts.modelOverride ?? FEATURE_MODELS[opts.feature];
-  const pricing = MODEL_PRICING[model];
+  const modelId = opts.modelOverride ?? FEATURE_MODELS[opts.feature];
+  const pricing = MODEL_PRICING[modelId];
 
   const start = Date.now();
 
-  const response = await anthropic.messages.create({
-    model,
-    max_tokens: opts.maxTokens ?? 1024,
+  // AbortSignal.timeout() cancels the request if Claude doesn't respond within
+  // the allotted time. This prevents hung API calls from consuming the entire
+  // Inngest step budget (8 min function timeout).
+  const { text, usage } = await generateText({
+    model: anthropicProvider(modelId),
+    maxOutputTokens: opts.maxTokens ?? 1024,
     temperature: opts.temperature ?? 0.7,
     system: opts.system,
-    messages: [{ role: "user", content: opts.userMessage }],
+    prompt: opts.userMessage,
+    abortSignal: AbortSignal.timeout(opts.timeoutMs ?? 300_000),
   });
 
   const durationMs = Date.now() - start;
 
-  const inputTokens = response.usage.input_tokens;
-  const outputTokens = response.usage.output_tokens;
+  // usage fields are number | undefined — some providers omit token counts
+  const inputTokens = usage.inputTokens ?? 0;
+  const outputTokens = usage.outputTokens ?? 0;
   const costUsd =
     (inputTokens / 1_000_000) * pricing.input +
     (outputTokens / 1_000_000) * pricing.output;
-
-  const firstBlock = response.content[0];
-  const text =
-    firstBlock && firstBlock.type === "text" ? firstBlock.text : "";
 
   // Record usage asynchronously — don't block the response
   const entry: TokenUsageEntry = {
     id: crypto.randomUUID(),
     timestamp: new Date().toISOString(),
     feature: opts.feature,
-    model,
+    model: modelId,
     inputTokens,
     outputTokens,
     costUsd,

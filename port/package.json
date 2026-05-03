@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.74",
     "@anthropic-ai/sdk": "^0.90.0",
     "@aws-sdk/client-s3": "^3.1032.0",
     "@base-ui/react": "^1.4.1",
@@ -28,10 +29,11 @@
     "@tiptap/react": "^3.22.4",
     "@tiptap/starter-kit": "^3.22.4",
     "@vercel/analytics": "^2.0.1",
+    "@windedvertigo/job-queue": "*",
+    "ai": "^6.0.174",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "@windedvertigo/job-queue": "*",
     "inngest": "^4.2.4",
     "lucide-react": "^1.8.0",
     "mammoth": "^1.12.0",

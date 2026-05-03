@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { queryRfpOpportunities } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { postToSlack } from "@/lib/slack";
 import type { RfpOpportunity } from "@/lib/notion/types";
 
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const { data: all } = await queryRfpOpportunities(undefined, { pageSize: 100 });
+    const { data: all } = await getRfpOpportunitiesFromSupabase({}, { pageSize: 500 });
 
     const reminders: Array<{ rfp: RfpOpportunity; days: number }> = [];
 

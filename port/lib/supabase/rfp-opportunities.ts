@@ -303,6 +303,38 @@ export async function setProposalStatus(
 }
 
 /**
+ * Write the generated proposal document URLs to Supabase immediately after
+ * generation completes so they're visible on page refresh without waiting for
+ * the 15-min sync cron. The progress tracker calls router.refresh() the moment
+ * it sees "ready-for-review", so Supabase must already have the URLs at that point.
+ * Fire-and-forget safe — never throws.
+ */
+export async function setProposalUrls(
+  notionPageId: string,
+  urls: {
+    proposalDraftUrl?: string | null;
+    coverLetterUrl?: string | null;
+    teamCvsUrl?: string | null;
+  },
+): Promise<void> {
+  const updates: Record<string, unknown> = {};
+  if (urls.proposalDraftUrl !== undefined) updates.proposal_draft_url = urls.proposalDraftUrl;
+  if (urls.coverLetterUrl !== undefined) updates.cover_letter_url = urls.coverLetterUrl;
+  if (urls.teamCvsUrl !== undefined) updates.team_cvs_url = urls.teamCvsUrl;
+
+  if (Object.keys(updates).length === 0) return;
+
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update(updates)
+    .eq("notion_page_id", notionPageId);
+
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setProposalUrls: ${error.message}`);
+  }
+}
+
+/**
  * Write the current Inngest phase during proposal generation.
  * Fire-and-forget safe — logs a warning but never throws so it can't
  * block the critical generation path.

@@ -10,11 +10,11 @@
  * Previously triggered by: Inngest cron `0 8 * * *`
  * Now triggered by: CF scheduled() hourly router in lib/scheduled.ts
  *
- * Requires env vars: CRON_SECRET, NOTION_TOKEN, SLACK_BOT_TOKEN
+ * Requires env vars: CRON_SECRET, SUPABASE_SECRET_KEY, SLACK_BOT_TOKEN
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { queryRfpOpportunities } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { postToSlack } from "@/lib/slack";
 
 export const maxDuration = 60;
@@ -40,9 +40,9 @@ export async function GET(req: NextRequest) {
 
   let rfps;
   try {
-    const result = await queryRfpOpportunities(
+    const result = await getRfpOpportunitiesFromSupabase(
       { status: "submitted" },
-      { pageSize: 100 },
+      { pageSize: 500 },
     );
     rfps = result.data;
     console.log(`[cron/submission-followup] fetched ${rfps.length} submitted RFPs`);

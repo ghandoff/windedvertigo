@@ -1,5 +1,6 @@
-import { NextRequest } from "next/server";
-import { getRfpOpportunity, updateRfpOpportunity, archiveRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { NextRequest, NextResponse } from "next/server";
+import { updateRfpOpportunity, archiveRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { json, withNotionError } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
 import { inngest } from "@/lib/inngest/client";
@@ -14,7 +15,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  return withNotionError(() => getRfpOpportunity(id));
+  try {
+    const rfp = await getRfpOpportunityByIdFromSupabase(id);
+    if (!rfp) return NextResponse.json({ error: "not found" }, { status: 404 });
+    return NextResponse.json(rfp);
+  } catch (err) {
+    console.error("[rfp-radar/GET] supabase read failed:", err);
+    return NextResponse.json({ error: "failed to load RFP" }, { status: 500 });
+  }
 }
 
 export async function PATCH(
