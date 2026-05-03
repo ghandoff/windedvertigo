@@ -16,13 +16,15 @@
  *   - Flat list (reviewer only) OR grouped sections (all other roles).
  *   - Footer: profile + logout link, plus role switcher for super-user.
  *
- * Explicit non-goal: this does NOT replace the existing Navbar. It is a
- * preview-only component rendered on the `/admin/sidebar-preview` page.
+ * Explicit non-goal: this does NOT replace the existing Navbar. The Navbar
+ * remains for top-level wayfinding; the sidebar is the per-role left rail.
  *
- * When Wave 7.4 proper lands (post-7.2.0/7.2.1/7.3.0), this file becomes
- * the `<WorkspaceShell>` sidebar slot and reads `user.roles` directly
- * rather than taking a `role` prop. The data in `sidebar-items.js` does
- * not change shape; only the prop interface here.
+ * Wave 7.4 live adoption (2026-05-03): this component is now mounted in the
+ * `/pcs/*` workspace layout (`src/app/pcs/layout.js`) via `deriveSidebarRole`,
+ * which picks the highest-precedence role from `user.roles[]`. The
+ * `/admin/sidebar-preview` page remains as a dev tool for super-users to
+ * preview each role's layout in isolation. The 7.2.0 WorkspaceShell refactor
+ * will eventually subsume this mount; until then both coexist.
  */
 
 import Link from 'next/link';

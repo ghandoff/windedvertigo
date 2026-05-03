@@ -288,3 +288,39 @@ export function shouldShowPremiumGroup(role) {
 export function isPremiumUnlocked(role) {
   return role === 'super-user';
 }
+
+/**
+ * Wave 7.4 live adoption — derive the single sidebar role to render from
+ * a user's full `user.roles[]` array.
+ *
+ * The JWT may carry multiple role strings (e.g. `['admin', 'pcs']`). The
+ * sidebar renders one layout, so we pick the highest-precedence role:
+ *
+ *   super-user > admin > ra > researcher > reviewer
+ *
+ * Legacy role aliases (`pcs`, `pcs-readonly`, `sqr-rct`) map to their
+ * Wave 7.1 successors so pre-migration JWTs still get a sensible sidebar.
+ *
+ * Returns `null` when the user is unauthenticated or has no recognizable
+ * role; the caller should not render the sidebar in that case.
+ */
+export function deriveSidebarRole(user) {
+  if (!user) return null;
+  const roles = Array.isArray(user.roles) ? user.roles : [];
+  // Legacy `isAdmin` boolean fallback (pre-roles-array JWTs).
+  const effective = roles.length > 0
+    ? roles
+    : (user.isAdmin ? ['admin'] : []);
+  if (effective.length === 0) return null;
+
+  // Precedence walk — first hit wins.
+  if (effective.includes('super-user')) return 'super-user';
+  if (effective.includes('admin'))      return 'admin';
+  if (effective.includes('ra'))         return 'ra';
+  if (effective.includes('researcher')) return 'researcher';
+  if (effective.includes('pcs'))        return 'researcher';   // legacy → researcher
+  if (effective.includes('pcs-readonly')) return 'researcher'; // legacy → researcher
+  if (effective.includes('reviewer'))   return 'reviewer';
+  if (effective.includes('sqr-rct'))    return 'reviewer';     // legacy → reviewer
+  return null;
+}

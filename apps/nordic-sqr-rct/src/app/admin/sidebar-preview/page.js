@@ -79,11 +79,11 @@ function PreviewContent() {
           </p>
         </div>
 
-        {/* Feature-flag status banner */}
-        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+        {/* Live-status banner */}
+        <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-5 py-4">
           <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 mt-0.5 shrink-0 text-amber-700"
+              className="w-5 h-5 mt-0.5 shrink-0 text-green-700"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -93,17 +93,18 @@ function PreviewContent() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                d="M5 13l4 4L19 7"
               />
             </svg>
-            <div className="text-sm text-amber-900">
-              <p className="font-semibold">Preview only — this is not live.</p>
+            <div className="text-sm text-green-900">
+              <p className="font-semibold">Live — graduated 2026-05-03.</p>
               <p className="mt-1">
-                The real sidebar lands in Wave 7.4 after Wave 7.3.0 (email
-                migration), Wave 7.2.0 (WorkspaceShell refactor), and Wave
-                7.2.1 (route moves) ship. Nothing on this page changes what
-                users see in the real app. Links route to today&apos;s paths
-                and will be rewritten post-7.2.1.
+                The role-aware sidebar is now mounted in the live PCS workspace
+                layout (<code className="text-xs bg-green-100 px-1 py-0.5 rounded">src/app/pcs/layout.js</code>),
+                rendering for every authenticated PCS user based on their
+                effective role. This page remains as a super-user dev tool to
+                preview every role&apos;s layout side-by-side without logging
+                in as each one.
               </p>
             </div>
           </div>
