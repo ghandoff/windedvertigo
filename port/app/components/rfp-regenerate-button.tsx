@@ -74,7 +74,8 @@ export function RfpRegenerateButton({ rfpId, currentStatus }: Props) {
         <button
           onClick={handleClick}
           disabled={isLoading}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
+          title="Click to queue a new AI proposal draft"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted px-2 py-1 -mx-2 rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <RefreshCw className="h-3 w-3" />
           {label}
