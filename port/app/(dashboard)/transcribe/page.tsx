@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { getActiveMembers } from "@/lib/notion/members";
-import { queryProjects } from "@/lib/notion/projects";
+import { getActiveMembersFromSupabase } from "@/lib/supabase/members";
+import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { PageHeader } from "@/app/components/page-header";
 import { TranscribeClient } from "./transcribe-client";
 
@@ -17,8 +17,8 @@ export default async function TranscribePage() {
   // Fetch members + active projects in parallel so the client can offer
   // attendee + project pickers without a second round-trip.
   const [members, { data: projects }] = await Promise.all([
-    getActiveMembers(),
-    queryProjects({ archive: false }, { pageSize: 100 }),
+    getActiveMembersFromSupabase(),
+    getProjectsFromSupabase({ archive: false }, { pageSize: 100 }),
   ]);
 
   const activeProjects = projects

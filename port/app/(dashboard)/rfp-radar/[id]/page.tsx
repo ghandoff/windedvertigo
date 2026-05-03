@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { deadlineAsPT } from "@/lib/format";
 import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
-import { getOrganization } from "@/lib/notion/organizations";
+import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,7 +81,7 @@ export default async function RfpDetailPage({ params }: Props) {
   // Look up linked organizations
   const orgs: Organization[] = rfp.organizationIds.length > 0
     ? (await Promise.all(
-        rfp.organizationIds.map((oid) => getOrganization(oid).catch(() => null)),
+        rfp.organizationIds.map((oid) => getOrganizationByIdFromSupabase(oid).catch(() => null)),
       )).filter((o): o is Organization => o !== null)
     : [];
 

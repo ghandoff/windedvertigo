@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import { auth } from "@/lib/auth";
-import { queryWorkItems } from "@/lib/notion/work-items";
-import { queryProjects } from "@/lib/notion/projects";
-import { queryTimesheets } from "@/lib/notion/timesheets";
-import { queryCycles } from "@/lib/notion/cycles";
-import { queryMilestones } from "@/lib/notion/milestones";
-import { getActiveMembers } from "@/lib/notion/members";
+import { getWorkItemsFromSupabase } from "@/lib/supabase/work-items";
+import { getProjectsFromSupabase } from "@/lib/supabase/projects";
+import { getTimesheetsFromSupabase } from "@/lib/supabase/timesheets";
+import { getCyclesFromSupabase } from "@/lib/supabase/cycles";
+import { getMilestonesFromSupabase } from "@/lib/supabase/milestones";
+import { getActiveMembersFromSupabase } from "@/lib/supabase/members";
 import type { Cycle, WorkItem } from "@/lib/notion/types";
 import { PageHeader } from "@/app/components/page-header";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
@@ -45,16 +45,16 @@ async function TimelineContent() {
     session,
     { data: projects },
     { data: milestones },
-    { data: workItems },
-    { data: timesheets },
+    workItems,
+    timesheets,
     members,
   ] = await Promise.all([
     auth(),
-    queryProjects({ archive: false }, { pageSize: 100 }),
-    queryMilestones(undefined, { pageSize: 100, fetchAll: true }),
-    queryWorkItems({ archive: false }, { pageSize: 100, fetchAll: true }),
-    queryTimesheets(undefined, { pageSize: 100, fetchAll: true }),
-    getActiveMembers(),
+    getProjectsFromSupabase({ archive: false }, { pageSize: 100 }),
+    getMilestonesFromSupabase({}, { pageSize: 500 }),
+    getWorkItemsFromSupabase(undefined, undefined, undefined, false),
+    getTimesheetsFromSupabase(),
+    getActiveMembersFromSupabase(),
   ]);
 
   // Build burn map (hours logged against each project) from non-draft
@@ -104,10 +104,10 @@ async function TimelineContent() {
 // ── contract content ─────────────────────────────────────────
 
 async function ContractContent() {
-  const [{ data: projects }, { data: workItems }, { data: timesheets }] = await Promise.all([
-    queryProjects({ archive: false }, { pageSize: 100 }),
-    queryWorkItems({ archive: false }, { pageSize: 500 }),
-    queryTimesheets(undefined, { pageSize: 100 }),
+  const [{ data: projects }, workItems, timesheets] = await Promise.all([
+    getProjectsFromSupabase({ archive: false }, { pageSize: 100 }),
+    getWorkItemsFromSupabase(undefined, undefined, undefined, false),
+    getTimesheetsFromSupabase(),
   ]);
 
   const contractProjects = projects.filter((p) => p.type === "contract");
@@ -159,11 +159,11 @@ async function StudioContent({ searchParams }: StudioProps) {
   const view = params.view ?? "cycle";
   const cycleId = params.cycleId;
 
-  const [{ data: cycles }, { data: projects }, { data: workItems }, { data: allMilestones }] = await Promise.all([
-    queryCycles(undefined, { pageSize: 20 }),
-    queryProjects({ archive: false }, { pageSize: 100 }),
-    queryWorkItems({ archive: false }, { pageSize: 500 }),
-    queryMilestones(undefined, { pageSize: 100 }),
+  const [{ data: cycles }, { data: projects }, workItems, { data: allMilestones }] = await Promise.all([
+    getCyclesFromSupabase({}, { pageSize: 20 }),
+    getProjectsFromSupabase({ archive: false }, { pageSize: 100 }),
+    getWorkItemsFromSupabase(undefined, undefined, undefined, false),
+    getMilestonesFromSupabase({}, { pageSize: 100 }),
   ]);
 
   const studioProjects = projects.filter((p) => p.type === "studio" || !p.type);

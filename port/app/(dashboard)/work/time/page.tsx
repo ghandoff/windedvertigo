@@ -1,14 +1,14 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { queryTimesheets } from "@/lib/notion/timesheets";
-import { getActiveMembers } from "@/lib/notion/members";
+import { getTimesheetsFromSupabase } from "@/lib/supabase/timesheets";
+import { getActiveMembersFromSupabase } from "@/lib/supabase/members";
 import { resolveUserContext, canSee, getNotionUserMap, type UserContext } from "@/lib/role";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, CheckCircle2, FileText, DollarSign, AlertTriangle, UserX, Receipt, ChevronLeft, ChevronRight } from "lucide-react";
-import type { Timesheet, TimesheetFilters } from "@/lib/notion/types";
+import type { Timesheet } from "@/lib/notion/types";
 import { GustoSyncButton } from "./gusto-sync-button";
 import { TimeTutorialWrapper } from "./time-tutorial-wrapper";
 import { TimeViewToggle } from "./time-view-toggle";
@@ -191,13 +191,12 @@ async function TimesheetList({
     return <UnlinkedAccountNotice email={ctx.email} />;
   }
 
-  const filters: TimesheetFilters = {
-    ...(personId ? { personId } : {}),
-    dateAfter:  resolvedView.dateAfter,
-    dateBefore: resolvedView.dateBefore,
-  };
-
-  const { data: entries } = await queryTimesheets(filters, { pageSize: 200 });
+  const entries = await getTimesheetsFromSupabase(
+    undefined,
+    personId,
+    resolvedView.dateAfter,
+    resolvedView.dateBefore,
+  );
 
   const totalHours = entries.reduce((sum, e) => sum + (e.hours ?? 0), 0);
   const draftHours = entries
@@ -361,7 +360,7 @@ export default async function TimePage({ searchParams }: Props) {
   let members: MemberOption[] = [];
   if (canSeeTeam) {
     const [activeMembers, notionUserMap] = await Promise.all([
-      getActiveMembers(),
+      getActiveMembersFromSupabase(),
       getNotionUserMap(),
     ]);
     members = activeMembers

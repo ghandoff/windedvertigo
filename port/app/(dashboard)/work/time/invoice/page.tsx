@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { queryProjects } from "@/lib/notion/projects";
+import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { PageHeader } from "@/app/components/page-header";
 import { InvoiceGenerator } from "./components/invoice-generator";
 
@@ -16,13 +16,13 @@ async function InvoiceContent({ searchParams }: Props) {
   const month = params.month;
 
   // Fetch contract projects (invoicing is for contract work)
-  const { data: projects } = await queryProjects(
+  const { data: projects } = await getProjectsFromSupabase(
     { type: "contract" },
     { pageSize: 50 },
   );
 
   // Also include in-progress projects without a type set (legacy)
-  const { data: activeProjects } = await queryProjects(
+  const { data: activeProjects } = await getProjectsFromSupabase(
     { status: "in progress" },
     { pageSize: 50 },
   );

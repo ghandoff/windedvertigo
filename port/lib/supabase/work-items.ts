@@ -62,12 +62,14 @@ export async function getWorkItemsFromSupabase(
   status?: string,
   ownerId?: string,
   projectId?: string,
+  archive?: boolean,
 ): Promise<WorkItem[]> {
   let query = supabase.from("work_items").select(SELECT_COLS);
 
   if (status) query = query.eq("status", status);
   if (ownerId) query = query.contains("owner_ids", [ownerId]);
   if (projectId) query = query.contains("project_ids", [projectId]);
+  if (archive !== undefined) query = query.eq("archive", archive);
 
   const { data, error } = await query;
 

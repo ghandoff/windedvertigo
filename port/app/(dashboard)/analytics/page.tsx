@@ -12,12 +12,12 @@
  */
 
 import Link from "next/link";
-import { queryCampaigns } from "@/lib/notion/campaigns";
+import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
+import { getOrganizationsFromSupabase } from "@/lib/supabase/organizations";
 import { queryEmailDrafts } from "@/lib/notion/email-drafts";
-import { queryOrganizations } from "@/lib/notion/organizations";
 import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { PageHeader } from "@/app/components/page-header";
-import type { Campaign, EmailDraft, RfpOpportunity } from "@/lib/notion/types";
+import type { EmailDraft, RfpOpportunity } from "@/lib/notion/types";
 
 export const revalidate = 300;
 
@@ -136,7 +136,7 @@ async function fetchRfpAnalytics() {
 }
 
 async function fetchDataHealth() {
-  const { data: orgs } = await queryOrganizations(undefined, { pageSize: 200 });
+  const { data: orgs } = await getOrganizationsFromSupabase({}, { pageSize: 200 });
   const missingWebsite = orgs.filter((o) => !o.website);
   const missingEnrichment = orgs.filter((o) => !o.enrichedAt);
   return {
@@ -148,8 +148,8 @@ async function fetchDataHealth() {
 }
 
 async function fetchAnalytics() {
-  const [{ data: campaigns }, { data: drafts }] = await Promise.all([
-    queryCampaigns(undefined, { pageSize: 200 }),
+  const [campaigns, { data: drafts }] = await Promise.all([
+    getCampaignsFromSupabase(undefined, undefined, undefined),
     queryEmailDrafts({ status: "sent" }, { pageSize: 500 }),
   ]);
 

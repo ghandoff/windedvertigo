@@ -1,4 +1,5 @@
-import { getEvent } from "@/lib/notion/events";
+import { notFound } from "next/navigation";
+import { getEventByIdFromSupabase } from "@/lib/supabase/events";
 import { EventEditForm } from "@/app/components/event-edit-form";
 import { PageHeader } from "@/app/components/page-header";
 
@@ -8,7 +9,8 @@ interface Props {
 
 export default async function EditEventPage({ params }: Props) {
   const { id } = await params;
-  const event = await getEvent(id);
+  const event = await getEventByIdFromSupabase(id);
+  if (!event) return notFound();
 
   return (
     <>
