@@ -17,7 +17,8 @@
  */
 
 import { inngest } from "@/lib/inngest/client";
-import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { updateRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import type { QuestionBank } from "@/lib/inngest/functions/parse-rfp-questions";
 import { getOrganization } from "@/lib/notion/organizations";
 import { getActivitiesForOrg } from "@/lib/notion/activities";
@@ -213,14 +214,15 @@ export const generateProposalFunction = inngest.createFunction(
     const { rfpId, triggeredBy } = event.data;
 
     // ── Step 1: fetch RFP ─────────────────────────────────
-    let rfp;
-    try {
-      rfp = await getRfpOpportunity(rfpId);
-    } catch (err) {
-      console.error("[generate-proposal] failed to fetch RFP:", err);
-      await postToSlack(`⚠️ Proposal generation failed for RFP \`${rfpId}\` — could not fetch record from Notion.`);
-      return { ok: false, reason: "rfp_not_found" };
-    }
+    // Wrapped in step.run() so Inngest checkpoints immediately — if the
+    // Supabase read fails, only this step retries (not the whole function).
+    // Previously used getRfpOpportunity() from Notion (150-300ms, no checkpoint)
+    // which caused the function to hang and restart from scratch on timeout.
+    const rfp = await step.run("fetch-rfp", async () => {
+      const rec = await getRfpOpportunityByIdFromSupabase(rfpId);
+      if (!rec) throw new Error(`RFP ${rfpId} not found in Supabase`);
+      return rec;
+    });
 
     updateRfpOpportunity(rfpId, { proposalStatus: "generating" }).catch(() => {});
     setProposalStep(rfpId, "fetching_rfp").catch(() => {});
