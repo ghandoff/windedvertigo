@@ -9,17 +9,28 @@ import { KanbanSkeleton, StatsStripSkeleton } from "@/app/components/skeletons";
 export const revalidate = 300;
 
 async function PipelineData() {
-  // Paginate through all records — Notion caps at 100 per call.
-  const organizations: Awaited<ReturnType<typeof queryOrganizations>>["data"] = [];
-  let cursor: string | undefined;
-  do {
-    const page = await queryOrganizations(undefined, { pageSize: 100, cursor });
-    organizations.push(...page.data);
-    cursor = page.nextCursor ?? undefined;
-    if (!page.hasMore) break;
-  } while (cursor);
+  try {
+    // Paginate through all records — Notion caps at 100 per call.
+    const organizations: Awaited<ReturnType<typeof queryOrganizations>>["data"] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await queryOrganizations(undefined, { pageSize: 100, cursor });
+      organizations.push(...page.data);
+      cursor = page.nextCursor ?? undefined;
+      if (!page.hasMore) break;
+    } while (cursor);
 
-  return <PipelineBoard organizations={organizations} />;
+    return <PipelineBoard organizations={organizations} />;
+  } catch (err) {
+    console.error("[dashboard/pipeline] failed to load organizations:", err);
+    return (
+      <div className="flex items-center justify-center h-48">
+        <p className="text-sm text-muted-foreground">
+          pipeline unavailable — check the Notion connection
+        </p>
+      </div>
+    );
+  }
 }
 
 export default function DashboardPage() {

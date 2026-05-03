@@ -7,7 +7,15 @@
 
 import { createNotionClient } from "@/lib/shared/notion";
 
-export const notion = createNotionClient(process.env.NOTION_TOKEN!);
+const notionToken = process.env.NOTION_TOKEN;
+if (!notionToken && process.env.NODE_ENV === "production") {
+  // Surface in Vercel runtime logs (level=error) so failures aren't silent.
+  // Pages will return 500 with a clear cause rather than a cryptic crash.
+  console.error(
+    "[notion/client] NOTION_TOKEN is not set — all Notion API calls will fail",
+  );
+}
+export const notion = createNotionClient(notionToken ?? "missing-notion-token");
 
 /**
  * Data source (collection) IDs — used with dataSources.query (API v2025-09-03).
