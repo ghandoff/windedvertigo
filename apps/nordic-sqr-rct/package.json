@@ -15,7 +15,8 @@
     "verify:revisions": "node tests/pcs-revisions.verify.mjs",
     "verify:email-audit": "node tests/audit-reviewer-emails.verify.mjs",
     "verify:llm-adapter": "node tests/llm-adapter.verify.mjs",
-    "verify:all": "node tests/rob2-mapping.verify.mjs && node tests/applicability-scoring.verify.mjs && node tests/nutrigrade.verify.mjs && node tests/llm-reliability.verify.mjs && node tests/capabilities.verify.mjs && node tests/pcs-revisions.verify.mjs && node tests/merge-canonical-claims.verify.mjs && node tests/audit-reviewer-emails.verify.mjs && node tests/llm-adapter.verify.mjs",
+    "verify:controlled-vocab": "node tests/controlled-vocab.verify.mjs",
+    "verify:all": "node tests/rob2-mapping.verify.mjs && node tests/applicability-scoring.verify.mjs && node tests/nutrigrade.verify.mjs && node tests/llm-reliability.verify.mjs && node tests/capabilities.verify.mjs && node tests/pcs-revisions.verify.mjs && node tests/merge-canonical-claims.verify.mjs && node tests/audit-reviewer-emails.verify.mjs && node tests/llm-adapter.verify.mjs && node tests/controlled-vocab.verify.mjs",
     "ingest:labels": "node scripts/ingest-label-intake.mjs",
     "merge:canonical-claims": "node scripts/merge-canonical-claims.mjs",
     "audit:emails": "node scripts/audit-reviewer-emails.mjs"
