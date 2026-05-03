@@ -1,27 +1,36 @@
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "@neondatabase/serverless";
 
-// HTTP-based driver — works on CF Workers, Vercel, and Node.js alike.
-// postgres (TCP) is not available in CF Workers; neon() uses fetch instead.
+// Pool uses TCP in Node.js (Vercel) and WebSockets in CF Workers.
+// Compatible with any PostgreSQL host including Supabase — unlike neon() which
+// targets Neon's proprietary HTTP API only.
+// See: https://github.com/neondatabase/serverless/releases/tag/v1.0.0
 
-let _neon: ReturnType<typeof neon> | null = null;
+let _pool: Pool | null = null;
 
-function getNeon() {
-  if (!_neon) {
+function getPool(): Pool {
+  if (!_pool) {
     const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     if (!connectionString) {
       throw new Error("Database not configured: set DATABASE_URL");
     }
-    _neon = neon(connectionString);
+    _pool = new Pool({ connectionString });
   }
-  return _neon;
+  return _pool;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SqlFn = (strings: TemplateStringsArray, ...values: any[]) => Promise<Record<string, any>[]>;
 
 export function getDb(): SqlFn {
-  const sql = getNeon();
+  const pool = getPool();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (strings: TemplateStringsArray, ...values: any[]) =>
-    sql(strings, ...values) as unknown as Promise<Record<string, any>[]>;
+  return (strings: TemplateStringsArray, ...values: any[]) => {
+    // Convert tagged template literal to a parameterized query ($1, $2, …)
+    let text = "";
+    strings.forEach((str, i) => {
+      text += str;
+      if (i < values.length) text += `$${i + 1}`;
+    });
+    return pool.query(text, values).then((r) => r.rows as Record<string, any>[]);
+  };
 }
