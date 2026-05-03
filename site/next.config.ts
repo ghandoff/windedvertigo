@@ -33,21 +33,25 @@ const nextConfig: NextConfig = {
         destination: "https://values-auction-d9m.pages.dev/:path*",
       },
 
-      // creaseworks
+      // creaseworks — routed to CF Workers canary (Phase H.2)
+      // Old Vercel deployment at creaseworks-ghandoffs-projects.vercel.app was
+      // stale (rootDirectory wrong after harbour-apps merge, repo disconnected).
+      // Auth routes (api/auth/*) bypass this proxy via direct CF Workers Routes
+      // defined in creaseworks/wrangler.jsonc — only non-auth paths flow through here.
       {
         source: "/harbour/creaseworks",
         destination:
-          "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks",
+          "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks",
       },
       {
         source: "/harbour/creaseworks/",
         destination:
-          "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks",
+          "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks",
       },
       {
         source: "/harbour/creaseworks/:path*",
         destination:
-          "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/:path*",
+          "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/:path*",
       },
 
       // vertigo vault
