@@ -86,7 +86,8 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests', label: 'Requests', href: '/pcs/requests', badgeKey: 'requests.withResearch' },
+          { key: 'requests',        label: 'Requests',             href: '/pcs/requests', badgeKey: 'requests.withResearch' },
+          { key: 'backfill-review', label: 'Claim Mapping Review', href: '/pcs/canonical-claims/backfill-review' },
         ],
       },
     ],
@@ -101,8 +102,9 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests', label: 'Requests', href: '/pcs/requests', badgeKey: 'requests.withRA' },
-          { key: 'drift',    label: 'Drift',    href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
+          { key: 'requests',        label: 'Requests',             href: '/pcs/requests', badgeKey: 'requests.withRA' },
+          { key: 'drift',           label: 'Drift',                href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
+          { key: 'backfill-review', label: 'Claim Mapping Review', href: '/pcs/canonical-claims/backfill-review' },
         ],
       },
       {
@@ -158,8 +160,9 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests', label: 'Requests', href: '/pcs/requests', badgeKey: 'requests.total' },
-          { key: 'drift',    label: 'Drift',    href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
+          { key: 'requests',        label: 'Requests',             href: '/pcs/requests', badgeKey: 'requests.total' },
+          { key: 'drift',           label: 'Drift',                href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
+          { key: 'backfill-review', label: 'Claim Mapping Review', href: '/pcs/canonical-claims/backfill-review' },
         ],
       },
       // Bundle 3 Phase 3.2 — AICS Library (RA + admin + super-user)
