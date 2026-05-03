@@ -16,17 +16,19 @@ export const revalidate = 300;
 
 const TERMINAL_STATUSES: RfpOpportunity["status"][] = ["won", "lost", "no-go", "missed deadline"];
 
-/** Days between today (midnight) and a date string. Negative = in the past. */
+function parseDateOnly(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d); // local midnight — avoids UTC-offset off-by-one
+}
+
+/** Days between today (local midnight) and a date-only string. Negative = in the past. */
 function daysUntil(dateStr: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dateStr);
-  due.setHours(0, 0, 0, 0);
-  return Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return Math.round((parseDateOnly(dateStr).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  return parseDateOnly(dateStr).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",

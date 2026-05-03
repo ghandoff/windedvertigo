@@ -11,6 +11,7 @@ import {
 import { AlertCircle, CalendarDays, DollarSign, ExternalLink, ChevronDown, FileText, Loader2, Upload, CheckCircle2, ListChecks, Mail, Users } from "lucide-react";
 import { computeWinProbability, WinProbabilityBadge } from "./ai-win-probability";
 import { GoNoGoModal } from "./go-no-go-modal";
+import { deadlineAsPT } from "@/lib/format";
 import type { RfpOpportunity, RfpStatus, WvFitScore } from "@/lib/notion/types";
 
 // Active pipeline columns — shown as draggable board lanes
@@ -38,14 +39,20 @@ const FIT_COLORS: Record<string, string> = {
   "TBD": "bg-blue-50 text-blue-600 border-blue-200",
 };
 
+function parseDateOnly(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d); // local midnight — avoids UTC-offset off-by-one
+}
+
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return parseDateOnly(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function daysUntil(dateStr: string | null | undefined): number | null {
   if (!dateStr) return null;
-  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return Math.ceil((parseDateOnly(dateStr).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function formatCurrency(value: number | null): string {
@@ -192,6 +199,10 @@ function RfpCard({
             <span>
               {overdue ? "overdue" : formatDate(rfp.dueDate.start)}
               {deadlineDays !== null && deadlineDays >= 0 && ` (${deadlineDays}d)`}
+              {(() => {
+                const pt = deadlineAsPT(rfp.dueDate.start, rfp.deadlineTimezone);
+                return pt ? <span className="text-muted-foreground/60"> · {pt} PT</span> : null;
+              })()}
             </span>
           </div>
         )}

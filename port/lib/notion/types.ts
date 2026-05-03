@@ -528,6 +528,12 @@ export interface RfpOpportunity {
   lessonsForNextTime: string;
   // delta capture — timestamped log of human edits to AI-generated content
   proposalNotes: string;
+  /**
+   * IANA timezone of the funder (e.g. "Europe/Copenhagen"). Populated during
+   * triage and used to convert the due date to Pacific Time for display.
+   * Stored in Supabase only (not a Notion property).
+   */
+  deadlineTimezone: string | null;
   createdTime: string;
   lastEditedTime: string;
 }

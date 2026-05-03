@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 
@@ -20,91 +20,64 @@ interface Props {
  */
 export function RfpRegenerateButton({ rfpId, currentStatus }: Props) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [triggered, setTriggered] = useState(false);
-  const [resetting, setResetting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // true while fetch is in-flight
+  const [triggered, setTriggered] = useState(false); // true once API returns ok
 
-  const isGenerating = currentStatus === "generating" || currentStatus === "queued";
+  // After triggering, keep refreshing every 5s until the Server Component
+  // picks up the "generating" status from Notion — bridges the Inngest lag.
+  useEffect(() => {
+    if (!triggered) return;
+    const id = setInterval(() => startTransition(() => router.refresh()), 5000);
+    return () => clearInterval(id);
+  }, [triggered, router]);
 
   async function handleClick() {
-    setError(null);
-    const res = await fetch(`/api/rfp-radar/${rfpId}/regenerate-proposal`, {
-      method: "POST",
-    });
-
-    if (res.status === 409) {
-      // Already generating — just refresh to show the current state
-      startTransition(() => router.refresh());
-      return;
-    }
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      setError((body as { error?: string }).error ?? "failed to trigger generation");
-      return;
-    }
-
-    setTriggered(true);
-    // Refresh the Server Component so the "generating…" badge appears
-    startTransition(() => router.refresh());
-  }
-
-  async function handleReset() {
-    setResetting(true);
+    setIsLoading(true); // immediate feedback — show spinner before network call
     setError(null);
     try {
-      const res = await fetch(`/api/rfp-radar/${rfpId}/reset-proposal-status`, {
+      const res = await fetch(`/api/rfp-radar/${rfpId}/regenerate-proposal`, {
         method: "POST",
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setError((body as { error?: string }).error ?? "reset failed");
+
+      if (res.status === 409) {
+        // Already generating — refresh to reveal the progress tracker
+        startTransition(() => router.refresh());
         return;
       }
-      // Status cleared — refresh so the generate button reappears
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError((body as { error?: string }).error ?? "failed to trigger generation");
+        return;
+      }
+
+      setTriggered(true);
       startTransition(() => router.refresh());
     } finally {
-      setResetting(false);
+      setIsLoading(false);
     }
   }
 
-  // When actively generating, show a "stuck? reset" escape hatch instead of hiding
-  if (isGenerating) {
-    return (
-      <div className="pt-1 space-y-0.5">
-        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <RefreshCw className="h-3 w-3 animate-spin" />
-          generating…
-          <span className="text-muted-foreground/50 mx-0.5">·</span>
-          <button
-            onClick={handleReset}
-            disabled={resetting || isPending}
-            className="text-xs text-muted-foreground/70 hover:text-foreground underline underline-offset-2 disabled:opacity-50 transition-colors"
-          >
-            {resetting ? "resetting…" : "stuck? reset"}
-          </button>
-        </p>
-        {error && <p className="text-xs text-destructive">{error}</p>}
-      </div>
-    );
-  }
+  const label = currentStatus ? "re-generate proposal" : "generate proposal";
+  const isBusy = isLoading || triggered;
 
   return (
     <div className="pt-1">
-      {triggered ? (
+      {isBusy ? (
         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
           <RefreshCw className="h-3 w-3 animate-spin" />
-          queued — generating with latest TOR…
+          {isLoading ? "triggering…" : "queued — generating with latest TOR…"}
         </p>
       ) : (
         <button
           onClick={handleClick}
-          disabled={isPending}
+          disabled={isLoading}
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
         >
-          <RefreshCw className={`h-3 w-3 ${isPending ? "animate-spin" : ""}`} />
-          {currentStatus ? "re-generate proposal" : "generate proposal"}
+          <RefreshCw className="h-3 w-3" />
+          {label}
         </button>
       )}
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}

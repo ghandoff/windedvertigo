@@ -34,6 +34,11 @@ export interface RfpTriageResult {
   estimatedValue?: number;
   /** Submission/proposal deadline in YYYY-MM-DD format, if found. */
   dueDate?: string;
+  /**
+   * IANA timezone for the deadline (e.g. "Europe/Copenhagen", "America/New_York").
+   * Inferred from the funder's country if not stated explicitly. Null if unknown.
+   */
+  deadlineTimezone?: string | null;
   /** 2–3 sentence summary of what work is being procured. */
   requirementsSnapshot: string;
   /** 1–2 sentence rationale for the fit score. */
@@ -152,6 +157,7 @@ Return ONLY valid JSON — no prose, no markdown fences — matching this exact 
   "geography": string array (e.g. ["Latin America", "Global"]),
   "estimatedValue": number in USD or null,
   "dueDate": "YYYY-MM-DD" or null,
+  "deadlineTimezone": IANA timezone string or null (e.g. "Europe/Copenhagen" for a Danish org, "America/New_York" for a US-based org, "Africa/Nairobi" for Kenyan. Infer from funder country/location if not stated. Use null only if truly ambiguous.),
   "requirementsSnapshot": string (2–3 sentences: what work is sought),
   "decisionNotes": string (1–2 sentences: why this fit score)
 }

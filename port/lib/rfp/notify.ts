@@ -76,10 +76,11 @@ export type NotificationSource =
 function formatDueDate(dueDate: string | undefined): string {
   if (!dueDate) return "_no deadline extracted yet_";
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
+  // Parse as local midnight so the date displayed matches the TOR's calendar date
+  // regardless of where the server is running (Vercel = UTC).
+  const [y, mo, dy] = dueDate.split("-").map(Number);
+  const due = new Date(y, mo - 1, dy);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
   const ms = due.getTime() - today.getTime();
   const days = Math.round(ms / 86_400_000);
 

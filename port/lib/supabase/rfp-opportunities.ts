@@ -41,6 +41,7 @@ interface RfpOpportunityRow {
   requirements_snapshot: string | null;
   decision_notes: string | null;
   source: string | null;
+  deadline_timezone: string | null;
 }
 
 function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
@@ -76,6 +77,7 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     clientFeedback: "",
     lessonsForNextTime: "",
     proposalNotes: "",
+    deadlineTimezone: (row as RfpOpportunityRow & { deadline_timezone?: string | null }).deadline_timezone ?? null,
     createdTime: "",
     lastEditedTime: "",
   };
@@ -111,6 +113,17 @@ export type ProposalStatus =
   | "ready-for-review"
   | "failed"
   | "skipped"
+  | null;
+
+export type ProposalStep =
+  | "fetching_rfp"
+  | "gathering_context"
+  | "reading_document"
+  | "matching_citations"
+  | "writing_draft"
+  | "building_documents"
+  | "cover_letter"
+  | "team_cvs"
   | null;
 
 const TERMINAL_STATUSES: string[] = ["ready-for-review", "failed", "skipped"];
@@ -267,6 +280,133 @@ export async function setProposalStatus(
       `[supabase/rfp-opportunities] setProposalStatus: ${error.message}`,
     );
   }
+}
+
+/**
+ * Write the current Inngest phase during proposal generation.
+ * Fire-and-forget safe — logs a warning but never throws so it can't
+ * block the critical generation path.
+ */
+export async function setProposalStep(
+  notionPageId: string,
+  step: ProposalStep,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({ proposal_step: step })
+    .eq("notion_page_id", notionPageId);
+
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setProposalStep: ${error.message}`);
+  }
+}
+
+/**
+ * Immediately sync a newly-created Notion RFP record to Supabase, including
+ * the `deadline_timezone` that the triage extracted (which the 15-min cron
+ * would otherwise miss since it reads from Notion and Notion has no timezone field).
+ *
+ * Fire-and-forget safe — logs a warning but never throws.
+ */
+export async function upsertRfpOpportunityToSupabase(
+  opp: RfpOpportunity,
+  deadlineTimezone: string | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .upsert(
+      {
+        notion_page_id: opp.id,
+        opportunity_name: opp.opportunityName ?? "",
+        status: opp.status ?? null,
+        opportunity_type: opp.opportunityType ?? null,
+        organization_ids: opp.organizationIds ?? [],
+        estimated_value: opp.estimatedValue ?? null,
+        due_date: opp.dueDate?.start ?? null,
+        wv_fit_score: opp.wvFitScore ?? null,
+        service_match: Array.isArray(opp.serviceMatch)
+          ? opp.serviceMatch.join(",") : (opp.serviceMatch ?? null),
+        category: Array.isArray(opp.category)
+          ? opp.category.join(",") : (opp.category ?? null),
+        geography: Array.isArray(opp.geography)
+          ? opp.geography.join(",") : (opp.geography ?? null),
+        proposal_status: opp.proposalStatus ?? null,
+        requirements_snapshot: opp.requirementsSnapshot ?? null,
+        decision_notes: opp.decisionNotes ?? null,
+        deadline_timezone: deadlineTimezone,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "notion_page_id" },
+    );
+
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] upsertRfpOpportunityToSupabase: ${error.message}`);
+  }
+}
+
+/**
+ * Store the funder's IANA timezone (e.g. "Europe/Copenhagen") so the
+ * UI can convert the due date to Pacific Time for display.
+ * Fire-and-forget safe — never throws.
+ */
+export async function setDeadlineTimezone(
+  notionPageId: string,
+  timezone: string | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({ deadline_timezone: timezone })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setDeadlineTimezone: ${error.message}`);
+  }
+}
+
+/**
+ * Mark a proposal as permanently failed in Supabase — called by the Inngest
+ * failure handler after all retries are exhausted. Without this, the progress
+ * tracker would keep polling Supabase forever because the failure handler only
+ * updates Notion, leaving Supabase stuck at "generating".
+ */
+export async function resetProposalToFailed(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      proposal_status: "failed",
+      proposal_step: null,
+      proposal_completed_at: new Date().toISOString(),
+    })
+    .eq("notion_page_id", notionPageId);
+
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] resetProposalToFailed: ${error.message}`);
+  }
+}
+
+/**
+ * Read proposal generation progress from Supabase — used by the
+ * status-polling API route so the client avoids slow Notion reads.
+ */
+export async function getProposalProgress(notionPageId: string): Promise<{
+  status: string | null;
+  step: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+} | null> {
+  const { data, error } = await supabase
+    .from("rfp_opportunities")
+    .select("proposal_status, proposal_step, proposal_started_at, proposal_completed_at")
+    .eq("notion_page_id", notionPageId)
+    .single();
+
+  if (error || !data) return null;
+
+  return {
+    status: data.proposal_status as string | null,
+    step: data.proposal_step as string | null,
+    startedAt: data.proposal_started_at as string | null,
+    completedAt: data.proposal_completed_at as string | null,
+  };
 }
 
 /**

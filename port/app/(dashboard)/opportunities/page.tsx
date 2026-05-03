@@ -22,8 +22,8 @@ import type { DealFilters, RfpFilters, RfpOpportunity } from "@/lib/notion/types
 export const revalidate = 300;
 
 const TABS: TabDef[] = [
-  { key: "deals", label: "deals" },
   { key: "rfps", label: "RFP lighthouse" },
+  { key: "deals", label: "deals" },
 ];
 
 const RFP_TYPE_OPTIONS = [

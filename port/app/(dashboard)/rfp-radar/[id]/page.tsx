@@ -8,6 +8,7 @@ import {
   ArrowLeft, ExternalLink, CalendarDays, DollarSign,
   FileText, Mail, Users, ListChecks, MapPin, Tag, Layers, Pencil,
 } from "lucide-react";
+import { deadlineAsPT } from "@/lib/format";
 import { getRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { getOrganization } from "@/lib/notion/organizations";
 import { PageHeader } from "@/app/components/page-header";
@@ -18,6 +19,7 @@ import { WinProbabilityBadge, computeWinProbability } from "@/app/components/ai-
 import { RfpDocumentUpload } from "@/app/components/rfp-document-upload";
 import { RfpReEnrichButton } from "@/app/components/rfp-re-enrich-button";
 import { RfpRegenerateButton } from "@/app/components/rfp-regenerate-button";
+import { ProposalProgressTracker } from "@/app/components/proposal-progress";
 import type { Organization } from "@/lib/notion/types";
 
 export const revalidate = 60;
@@ -52,16 +54,22 @@ function formatCurrency(value: number | null): string {
   }).format(value);
 }
 
+function parseDateOnly(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d); // local midnight — avoids UTC-offset off-by-one
+}
+
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  return parseDateOnly(dateStr).toLocaleDateString("en-US", {
     month: "long", day: "numeric", year: "numeric",
   });
 }
 
 function daysUntil(dateStr: string | null | undefined): number | null {
   if (!dateStr) return null;
-  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return Math.ceil((parseDateOnly(dateStr).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 export default async function RfpDetailPage({ params }: Props) {
@@ -154,6 +162,14 @@ export default async function RfpDetailPage({ params }: Props) {
                         </span>
                       )}
                     </p>
+                    {(() => {
+                      const pt = deadlineAsPT(rfp.dueDate.start, rfp.deadlineTimezone);
+                      return pt ? (
+                        <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                          ~{pt} PT (assuming 5pm client time)
+                        </p>
+                      ) : null;
+                    })()}
                   </div>
                 )}
                 {rfp.estimatedValue != null && rfp.estimatedValue > 0 && (
@@ -271,38 +287,43 @@ export default async function RfpDetailPage({ params }: Props) {
               <CardTitle className="text-base">proposal</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              {/* status indicator */}
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-xs w-16">status</span>
-                {rfp.proposalStatus === "generating" ? (
-                  <Badge variant="outline" className="text-[10px] bg-yellow-50 text-yellow-700 border-yellow-200 animate-pulse">
-                    generating…
-                  </Badge>
-                ) : rfp.proposalStatus === "ready-for-review" ? (
-                  <Badge variant="outline" className="text-[10px] bg-purple-50 text-purple-700 border-purple-200">
-                    ready for review
-                  </Badge>
-                ) : rfp.proposalStatus === "complete" ? (
-                  <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">
-                    complete
-                  </Badge>
-                ) : rfp.proposalStatus === "failed" ? (
-                  <Badge variant="outline" className="text-[10px] bg-red-50 text-red-700 border-red-200">
-                    failed
-                  </Badge>
-                ) : rfp.proposalStatus === "queued" ? (
-                  <Badge variant="outline" className="text-[10px]">queued</Badge>
-                ) : (
-                  <span className="text-xs text-muted-foreground">
-                    {rfp.status === "pursuing" || rfp.status === "submitted"
-                      ? "generating on next sync"
-                      : "move to pursuing to generate"}
-                  </span>
-                )}
-              </div>
+              {/* status indicator — progress tracker replaces badge during generation */}
+              {(rfp.proposalStatus === "generating" || rfp.proposalStatus === "queued") ? (
+                <ProposalProgressTracker
+                  rfpId={id}
+                  initialStatus={rfp.proposalStatus}
+                  questionBankUrl={rfp.questionBankUrl}
+                  questionCount={rfp.questionCount}
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-xs w-16">status</span>
+                  {rfp.proposalStatus === "ready-for-review" ? (
+                    <Badge variant="outline" className="text-[10px] bg-purple-50 text-purple-700 border-purple-200">
+                      ready for review
+                    </Badge>
+                  ) : rfp.proposalStatus === "complete" ? (
+                    <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">
+                      complete
+                    </Badge>
+                  ) : rfp.proposalStatus === "failed" ? (
+                    <Badge variant="outline" className="text-[10px] bg-red-50 text-red-700 border-red-200">
+                      failed
+                    </Badge>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      {rfp.status === "pursuing" || rfp.status === "submitted"
+                        ? "not yet generated"
+                        : "move to pursuing to generate"}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Re-generate button — shown when pursuing/submitted and not actively generating */}
-              {(rfp.status === "pursuing" || rfp.status === "submitted") && (
+              {(rfp.status === "pursuing" || rfp.status === "submitted") &&
+               rfp.proposalStatus !== "generating" &&
+               rfp.proposalStatus !== "queued" && (
                 <RfpRegenerateButton
                   rfpId={id}
                   currentStatus={rfp.proposalStatus}

@@ -77,6 +77,9 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     clientFeedback: getText(props[P.clientFeedback]),
     lessonsForNextTime: getText(props[P.lessonsForNextTime]),
     proposalNotes: getText(props[P.proposalNotes]),
+    // deadlineTimezone lives in Supabase only (not a Notion property).
+    // Callers that need it should augment from a Supabase lookup.
+    deadlineTimezone: null,
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };

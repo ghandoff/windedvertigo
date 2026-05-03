@@ -29,6 +29,7 @@ import { generateProposal, TEAM_BIOS } from "@/lib/ai/proposal-generator";
 import { matchCitations } from "@/lib/ai/citation-matcher";
 import { postToSlack } from "@/lib/slack";
 import { notion } from "@/lib/notion/client";
+import { setProposalStep, resetProposalToFailed } from "@/lib/supabase/rfp-opportunities";
 
 const CRM_BASE_URL = "https://port.windedvertigo.com";
 
@@ -181,9 +182,16 @@ export const generateProposalFailureHandler = inngest.createFunction(
     if (event.data.function_id !== "generate-proposal") return;
     const { rfpId } = event.data.event.data;
     console.warn(`[generate-proposal-failure] cleaning up stuck status for rfpId=${rfpId}`);
-    await updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch((err) => {
-      console.error("[generate-proposal-failure] could not reset proposalStatus:", err);
-    });
+    // Update both Notion AND Supabase — without the Supabase reset the progress
+    // tracker keeps polling "generating" forever since it reads from Supabase, not Notion.
+    await Promise.all([
+      updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch((err) => {
+        console.error("[generate-proposal-failure] could not reset proposalStatus in Notion:", err);
+      }),
+      resetProposalToFailed(rfpId).catch((err) => {
+        console.error("[generate-proposal-failure] could not reset proposalStatus in Supabase:", err);
+      }),
+    ]);
     await postToSlack(
       `⚠️ Proposal generation timed out or failed permanently for RFP \`${rfpId}\`. Status reset to "failed" — you can retry from the RFP page.`,
     ).catch(() => {});
@@ -215,6 +223,7 @@ export const generateProposalFunction = inngest.createFunction(
     }
 
     updateRfpOpportunity(rfpId, { proposalStatus: "generating" }).catch(() => {});
+    setProposalStep(rfpId, "fetching_rfp").catch(() => {});
 
     const rfpName = rfp.opportunityName || "Unnamed RFP";
 
@@ -234,6 +243,11 @@ export const generateProposalFunction = inngest.createFunction(
     }
 
     // ── Step 3: parallel data fetch ───────────────────────
+    // Wrapped in step.run() so Inngest checkpoints the result — if this step
+    // times out due to a slow Notion API call, it retries this step only (not
+    // the whole function from scratch). Previously these ran uncheckpointed,
+    // causing the 8-min function timeout to trigger and restart from step 1.
+    setProposalStep(rfpId, "gathering_context").catch(() => {});
     const orgId = rfp.organizationIds?.[0] ?? null;
 
     // Infer funder type from source or org type for rate reference lookup
@@ -249,13 +263,24 @@ export const generateProposalFunction = inngest.createFunction(
         : (Object.keys(funderTypeMap).find((k) => rfp.opportunityName?.toLowerCase().includes(k.toLowerCase()))
             ?? undefined);
 
-    const [org, activities, bdAssetsResult, allCitations, rateRefs] = await Promise.all([
-      orgId ? getOrganization(orgId).catch(() => null) : Promise.resolve(null),
-      orgId ? getActivitiesForOrg(orgId).then((r) => r.data).catch(() => []) : Promise.resolve([]),
-      queryBdAssets(undefined, { pageSize: 50 }).then((r) => r.data).catch(() => []),
-      queryBibliography().catch(() => []),
-      queryRateReference({ funderType: inferredFunderType, geography: rfpGeo }).catch(() => []),
-    ]);
+    // step.run returns `any` (step is typed as any in this function) — cast to preserve
+    // tuple types so TypeScript doesn't lose type info on the destructured variables.
+    const [org, activities, bdAssetsResult, allCitations, rateRefs] = (await step.run(
+      "gather-context",
+      () => Promise.all([
+        orgId ? getOrganization(orgId).catch(() => null) : Promise.resolve(null),
+        orgId ? getActivitiesForOrg(orgId).then((r) => r.data).catch(() => []) : Promise.resolve([]),
+        queryBdAssets(undefined, { pageSize: 50 }).then((r) => r.data).catch(() => []),
+        queryBibliography().catch(() => []),
+        queryRateReference({ funderType: inferredFunderType, geography: rfpGeo }).catch(() => []),
+      ]),
+    )) as [
+      Awaited<ReturnType<typeof getOrganization>> | null,
+      Awaited<ReturnType<typeof getActivitiesForOrg>>["data"],
+      Awaited<ReturnType<typeof queryBdAssets>>["data"],
+      Awaited<ReturnType<typeof queryBibliography>>,
+      Awaited<ReturnType<typeof queryRateReference>>,
+    ];
 
     // ── Step 4: note missing enriching fields (but continue) ──
     const missingEnriching: string[] = [];
@@ -270,6 +295,7 @@ export const generateProposalFunction = inngest.createFunction(
     }
 
     // ── Step 4b: fetch document requirements ─────────────
+    setProposalStep(rfpId, "reading_document").catch(() => {});
     let documentRequirements: string | null = null;
     if (rfp.rfpDocumentUrl && rfp.rfpDocumentUrl.startsWith("http")) {
       try {
@@ -293,6 +319,7 @@ export const generateProposalFunction = inngest.createFunction(
     }
 
     // ── Step 4d: match bibliography citations ─────────────
+    setProposalStep(rfpId, "matching_citations").catch(() => {});
     let relevantCitations = null;
     if (allCitations.length > 0) {
       relevantCitations = await matchCitations({
@@ -305,6 +332,7 @@ export const generateProposalFunction = inngest.createFunction(
     // ── Step 5: generate proposal draft ──────────────────
     // Wrapped in step.run() so Inngest can checkpoint and retry just this
     // expensive Claude call if it times out, without restarting from step 1.
+    setProposalStep(rfpId, "writing_draft").catch(() => {});
     let draft: import("@/lib/ai/proposal-generator").ProposalDraft;
     try {
       draft = await step.run("generate-draft", () =>
@@ -354,6 +382,7 @@ export const generateProposalFunction = inngest.createFunction(
     }
 
     // ── Step 6b: append proposal content as page blocks ──
+    setProposalStep(rfpId, "building_documents").catch(() => {});
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const blocks: any[] = [
       calloutBlock(
@@ -450,6 +479,9 @@ export const generateProposalFunction = inngest.createFunction(
     }
 
     // ── Step 6e: generate cover letter page ──────────────
+    if (draft.requiresCoverLetter && draft.coverLetter) {
+      setProposalStep(rfpId, "cover_letter").catch(() => {});
+    }
     let coverLetterUrl: string | null = null;
     if (draft.requiresCoverLetter && draft.coverLetter) {
       try {
@@ -474,6 +506,9 @@ export const generateProposalFunction = inngest.createFunction(
     }
 
     // ── Step 6f: generate team CVs page ──────────────────
+    if (draft.teamMembersForCvs.length > 0) {
+      setProposalStep(rfpId, "team_cvs").catch(() => {});
+    }
     let teamCvsUrl: string | null = null;
     if (draft.teamMembersForCvs.length > 0) {
       try {
@@ -520,6 +555,7 @@ export const generateProposalFunction = inngest.createFunction(
     }
 
     updateRfpOpportunity(rfpId, rfpUpdates).catch(() => {});
+    setProposalStep(rfpId, null).catch(() => {});
 
     // ── Step 7: Slack summary ─────────────────────────────
     const lines: string[] = [

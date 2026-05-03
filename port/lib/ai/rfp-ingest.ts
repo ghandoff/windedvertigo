@@ -20,6 +20,7 @@ import { triageRfpOpportunity } from "./rfp-triage";
 import { queryRfpOpportunities, createRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { callClaude, parseJsonResponse } from "./client";
 import { uploadAsset } from "@/lib/r2/upload";
+import { upsertRfpOpportunityToSupabase } from "@/lib/supabase/rfp-opportunities";
 import type { RfpSource } from "@/lib/notion/types";
 import type { RfpTriageResult } from "./rfp-triage";
 
@@ -727,6 +728,10 @@ export async function ingestOpportunity(input: IngestInput): Promise<IngestOutco
     url: url ?? "",
     source,
   });
+
+  // Mirror to Supabase immediately so the deadline_timezone is available
+  // without waiting for the 15-min sync cron. Fire-and-forget safe.
+  upsertRfpOpportunityToSupabase(opp, triage.deadlineTimezone ?? null).catch(() => {});
 
   // Track which TOR path (if any) set the document URL, for the outcome.
   let torStatus: TorStatus = "missing";
