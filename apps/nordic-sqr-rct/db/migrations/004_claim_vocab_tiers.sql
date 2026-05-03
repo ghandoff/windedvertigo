@@ -22,9 +22,7 @@ CREATE TABLE IF NOT EXISTS cv_claim_strengths (
   sort_order   INT  NOT NULL DEFAULT 0,
   description  TEXT
 );
-COMMENT ON TABLE cv_claim_strengths IS
-  'Phase 4.6: Tier-1.5 of the claim vocabulary. Distinguishes the regulatory weight of a claim. ' ||
-  'essential > mechanism > support > nutrition > delivery_system, roughly in decreasing substantiation strength.';
+COMMENT ON TABLE cv_claim_strengths IS 'Phase 4.6: Tier-1.5 of the claim vocabulary. Distinguishes the regulatory weight of a claim. essential > mechanism > support > nutrition > delivery_system, roughly in decreasing substantiation strength.';
 
 INSERT INTO cv_claim_strengths (code, display_name, sort_order, description) VALUES
   ('essential',       'Required for / Essential',                 1, 'Strongest claim language. "Required for [function]" implies essentiality of the AI for that function.'),
@@ -72,9 +70,7 @@ CREATE TABLE IF NOT EXISTS pcs_claims_mirror (
 CREATE INDEX IF NOT EXISTS pcs_claims_mirror_category_idx ON pcs_claims_mirror(claim_category);
 CREATE INDEX IF NOT EXISTS pcs_claims_mirror_strength_idx ON pcs_claims_mirror(claim_strength);
 CREATE INDEX IF NOT EXISTS pcs_claims_mirror_family_idx   ON pcs_claims_mirror(family_key);
-COMMENT ON TABLE pcs_claims_mirror IS
-  'Phase 4.6: structural mirror of Notion PCS Claims DB. Empty until Phase N2 lifts the mirror; ' ||
-  'used today for tier reporting and backfill staging. Notion remains source of truth.';
+COMMENT ON TABLE pcs_claims_mirror IS 'Phase 4.6: structural mirror of Notion PCS Claims DB. Empty until Phase N2 lifts the mirror; used today for tier reporting and backfill staging. Notion remains source of truth.';
 
 -- ─── Tier 3: Phrasing Variants storage ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS claim_variants (
@@ -95,11 +91,7 @@ CREATE TABLE IF NOT EXISTS claim_variants (
 CREATE INDEX IF NOT EXISTS claim_variants_family_idx        ON claim_variants(family_key);
 CREATE INDEX IF NOT EXISTS claim_variants_aics_claim_idx    ON claim_variants(aics_claim_id);
 CREATE INDEX IF NOT EXISTS claim_variants_pcs_notion_idx    ON claim_variants(pcs_claim_notion_page_id);
-COMMENT ON TABLE claim_variants IS
-  'Phase 4.6: Tier-3 of the claim vocabulary. Multiple interchangeable phrasings backed by ' ||
-  'the same evidence + dose + grade. The label writer picks one variant at label-write time. ' ||
-  'Existing slash-separated compound titles (e.g. "Required for/Plays a critical role in/Supports X") ' ||
-  'are split into N variant rows during backfill (see scripts/migrate-classify-claims.mjs).';
+COMMENT ON TABLE claim_variants IS 'Phase 4.6: Tier-3 of the claim vocabulary. Multiple interchangeable phrasings backed by the same evidence + dose + grade. The label writer picks one variant at label-write time. Existing slash-separated compound titles are split into N variant rows during backfill.';
 
 -- ─── Backfill audit log ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS claim_migration_log (

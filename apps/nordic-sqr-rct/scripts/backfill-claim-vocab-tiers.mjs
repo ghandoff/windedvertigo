@@ -51,10 +51,11 @@ if (existsSync(envPath)) {
 
 const NOTION_TOKEN              = process.env.NOTION_TOKEN;
 const PCS_CLAIMS_DB             = process.env.NOTION_PCS_CLAIMS_DB;
-const CANONICAL_CLAIMS_DB       = 'f6e58750-ed46-4355-bd31-19434c6591f2';
-const CORE_BENEFITS_DB          = 'f8aaa39f-817a-4006-bffc-26264008ebdb';
-const CLAIM_PREFIXES_DB         = '7ed1891c-cd48-405f-b4f4-8384c1a4ed41';
-const CLAIM_WORDING_VARIANTS_DB = '52c486b0-8d99-4d04-9707-bfea76165ac9';
+// IDs come from .env.local (database-level page IDs the integration has shared).
+const CANONICAL_CLAIMS_DB       = process.env.NOTION_PCS_CANONICAL_CLAIMS_DB;
+const CORE_BENEFITS_DB          = process.env.NOTION_PCS_CORE_BENEFITS_DB || process.env.NOTION_PCS_BENEFIT_CATEGORIES_DB;
+const CLAIM_PREFIXES_DB         = process.env.NOTION_PCS_PREFIXES_DB;
+const CLAIM_WORDING_VARIANTS_DB = process.env.NOTION_PCS_WORDING_VARIANTS_DB;
 
 if (!NOTION_TOKEN) { console.error('NOTION_TOKEN not set'); process.exit(1); }
 if (!PCS_CLAIMS_DB) { console.error('NOTION_PCS_CLAIMS_DB not set'); process.exit(1); }
@@ -80,7 +81,7 @@ console.log(`  Report path:           ${REPORT_PATH}\n`);
 const NOTION = 'https://api.notion.com/v1';
 const HEADERS = {
   Authorization: `Bearer ${NOTION_TOKEN}`,
-  'Notion-Version': '2025-09-03',
+  'Notion-Version': '2022-06-28',
   'Content-Type': 'application/json',
 };
 
