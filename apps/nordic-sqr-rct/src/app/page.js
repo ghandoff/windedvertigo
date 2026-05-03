@@ -35,7 +35,7 @@ const AUDIENCE_CONTENT = {
     ],
   },
   nordic: {
-    label: 'Nordic Team',
+    label: 'Nordic Team Member',
     heroTitle: 'Substantiate the Science Behind Every Claim',
     heroSubtitle: 'PCS substantiation, AICS active-ingredient research, label intake, claim review, and audit-ready compliance — built for Nordic Research, Regulatory Affairs, and Operations.',
     primaryCtaLabel: 'Sign in',
@@ -71,12 +71,17 @@ function LandingContent() {
   const content = AUDIENCE_CONTENT[audience];
 
   // Redirect based on roles. Wave 7.0.2 — uses shared hasAnyRole helper.
+  // 2026-05-03: Nordic Team Members land on /pcs (their primary workspace).
+  // External SQR-only reviewers land on /dashboard. If a user has BOTH a PCS
+  // role and an SQR role (e.g. a Nordic researcher who also reviews studies),
+  // PCS wins because that is their day-to-day surface.
   function getRedirectPath(u) {
     const hasAnyEffectiveRole = Array.isArray(u?.roles) && u.roles.length > 0;
-    const hasSqr = hasAnyRole(u, ROLE_SETS.SQR_REVIEWERS) || !hasAnyEffectiveRole;
     const hasPcs = hasAnyRole(u, ROLE_SETS.PCS_ANY);
-    if (hasSqr) return '/dashboard';
+    const hasSqr = hasAnyRole(u, ROLE_SETS.SQR_REVIEWERS);
     if (hasPcs) return '/pcs';
+    if (hasSqr) return '/dashboard';
+    if (!hasAnyEffectiveRole) return '/dashboard'; // safety: no-role users land on SQR's neutral home
     return '/dashboard';
   }
 
