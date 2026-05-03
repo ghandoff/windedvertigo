@@ -116,6 +116,17 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'evidence',  label: 'Evidence',  href: '/pcs/evidence' },
         ],
       },
+      // Bundle 3 Phase 3.2 — AICS Library. RA owns AICS reviews; this group
+      // gives them a direct surface above Operations.
+      {
+        key: 'aics',
+        label: 'AICS Library',
+        defaultOpen: false,
+        items: [
+          { key: 'aics-list',    label: 'All AICS Docs',     href: '/pcs/aics' },
+          { key: 'aics-pending', label: 'Pending RA Review', href: '/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+        ],
+      },
       {
         key: 'operations',
         label: 'Operations',
@@ -149,6 +160,16 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         items: [
           { key: 'requests', label: 'Requests', href: '/pcs/requests', badgeKey: 'requests.total' },
           { key: 'drift',    label: 'Drift',    href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
+        ],
+      },
+      // Bundle 3 Phase 3.2 — AICS Library (RA + admin + super-user)
+      {
+        key: 'aics',
+        label: 'AICS Library',
+        defaultOpen: false,
+        items: [
+          { key: 'aics-list',    label: 'All AICS Docs',     href: '/pcs/aics' },
+          { key: 'aics-pending', label: 'Pending RA Review', href: '/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
         ],
       },
       {
@@ -189,6 +210,16 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'requests',       label: 'Requests',          href: '/pcs/requests', badgeKey: 'requests.total' },
           { key: 'drift',          label: 'Drift',             href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
           { key: 'reviewer-activity', label: 'Reviewer Activity', href: '/admin/reviewers' },
+        ],
+      },
+      // Bundle 3 Phase 3.2 — AICS Library (RA + admin + super-user)
+      {
+        key: 'aics',
+        label: 'AICS Library',
+        defaultOpen: false,
+        items: [
+          { key: 'aics-list',    label: 'All AICS Docs',     href: '/pcs/aics' },
+          { key: 'aics-pending', label: 'Pending RA Review', href: '/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
         ],
       },
       {

@@ -34,6 +34,14 @@ export const PCS_DB = {
   labelIntakeQueue:  process.env.NOTION_PCS_LABEL_INTAKE_QUEUE_DB, // 4f864bd2-7f91-449b-9b62-d0c4fb677b17
   // Wave 8 Phase A — versioning infra (added 2026-04-22)
   revisions:         process.env.NOTION_PCS_REVISIONS_DB,          // 3f865414-8431-493b-b1d1-2e988705b0b6
+  // Bundle 3 Phase 3.2 — AICS (Active Ingredient Claims Substantiation).
+  // Three Notion DBs mirror the pcs_documents / pcs_versions / pcs_claims
+  // pattern for the upstream-AI substantiation entity. Env vars are not yet
+  // populated in any Vercel scope; runtime calls will throw until a separate
+  // bootstrap commit lands the IDs (see project_vercel_env_preview_parity).
+  aicsDocuments:     process.env.NOTION_AICS_DOCUMENTS_DB,
+  aicsVersions:      process.env.NOTION_AICS_VERSIONS_DB,
+  aicsClaims:        process.env.NOTION_AICS_CLAIMS_DB,
 };
 
 /** Valid enum values — shared between client dropdowns and server validation. */
@@ -554,6 +562,53 @@ export const PROPS = {
     revertedAt: 'Reverted at',     // date (null unless reverted)
     revertedBy: 'Reverted by',     // email (null unless reverted)
     revertOfRevision: 'Revert of revision', // rich_text (id of revision this undoes)
+  },
+  // Bundle 3 Phase 3.2 — AICS (Active Ingredient Claims Substantiation).
+  // Notion property names mirror the AICS-0004v0.1 RA-review template Lauren
+  // shared 2026-05-01 + the controlled-vocab fields from her 2026-04-16 doc.
+  // The schema canonical lives in db/migrations/003_aics_entity_ddl.sql.
+  aicsDocuments: {
+    aicsId:           'AICS ID',            // title — e.g. 'AICS-0004'
+    aiName:           'Active Ingredient',  // rich_text — free-text fallback when no canonical AI link
+    classification:   'Classification',
+    fileStatus:       'File status',
+    raReviewStatus:   'RA review status',   // 'Pending RA Review' / 'Approved' / etc.
+    documentNotes:    'Document notes',
+    approvedDate:     'Approved/signed date',
+    latestVersion:    'Latest Version',
+    allVersions:      'All versions',
+    archived:         'Archived',
+    templateVersion:  'Template version',
+    templateSignals:  'Template classification signals',
+  },
+  aicsVersions: {
+    version:           'Version',           // title — 'v0.1', 'v1.0'
+    aicsDocument:      'AICS Document',     // relation
+    isLatest:          'Is latest',
+    effectiveDate:     'Effective date',
+    changeDescription: 'Change description',
+    responsibleDept:   'Responsible dept',  // 'RES' / 'RA'
+    responsibleIndividual: 'Responsible individual', // initials
+    approvedBy:        'Approved by',
+    claims:            'Claims',            // relation
+    latestVersionOf:   'Latest Version Of', // relation (rollup-friendly)
+  },
+  aicsClaims: {
+    claimText:         'Claim',             // title
+    claimNo:           'Claim No',
+    claimStatus:       'Claim status',      // 'Authorized' / 'Pending' / 'Rejected'
+    benefitCategory:   'Benefit category',  // select — cv_benefit_categories.code
+    claimPrefix:       'Claim prefix',      // select — free-text per AICS-0004
+    aicsDocument:      'AICS Document',     // relation
+    aicsVersion:       'AICS Version',      // relation
+    ageGroup:          'Age group',         // select — cv_demographics_age.code
+    sex:               'Biological sex',    // select — cv_demographics_sex.code
+    minDose:           'Min dose',          // number
+    minDoseUnit:       'Min dose unit',     // select — 'mcg' / 'mg' / 'IU' / '% DV'
+    minDoseSecondary:      'Min dose secondary',
+    minDoseSecondaryUnit:  'Min dose secondary unit',
+    grade:             'Grade',             // select — cv_claim_grades.code (A/B/C)
+    fdaDsheaDisclaimerRequired: 'FDA DSHEA disclaimer required',
   },
 };
 

@@ -177,6 +177,47 @@ test('audit-trail export gate: reviewer is denied (→ 403)', () => {
 test('audit-trail export gate: researcher is allowed (→ 200)', () => {
   assertTrue(can({ roles: ['researcher'] }, 'audit:read'));
 });
+
+// ─── Bundle 3 Phase 3.2 — AICS capability matrix (5 caps × 5 roles) ──────
+const AICS_CAPS = [
+  'aics.documents:read',
+  'aics.documents:edit',
+  'aics.documents:create',
+  'aics.claims:read',
+  'aics.claims:edit',
+];
+test('AICS capabilities are registered in CAPABILITIES', () => {
+  for (const cap of AICS_CAPS) {
+    if (CAPABILITIES[cap] !== cap) throw new Error(`missing CAPABILITIES.${cap}`);
+  }
+});
+test('reviewer holds none of the AICS caps', () => {
+  for (const cap of AICS_CAPS) {
+    assertFalse(can({ roles: ['reviewer'] }, cap), `reviewer should not hold ${cap}`);
+  }
+});
+test('researcher holds AICS read caps but no edit/create', () => {
+  assertTrue(can({ roles: ['researcher'] }, 'aics.documents:read'));
+  assertTrue(can({ roles: ['researcher'] }, 'aics.claims:read'));
+  assertFalse(can({ roles: ['researcher'] }, 'aics.documents:edit'));
+  assertFalse(can({ roles: ['researcher'] }, 'aics.documents:create'));
+  assertFalse(can({ roles: ['researcher'] }, 'aics.claims:edit'));
+});
+test('ra holds every AICS capability (RA owns AICS reviews)', () => {
+  for (const cap of AICS_CAPS) {
+    assertTrue(can({ roles: ['ra'] }, cap), `ra should hold ${cap}`);
+  }
+});
+test('admin inherits every AICS capability via ra union', () => {
+  for (const cap of AICS_CAPS) {
+    assertTrue(can({ roles: ['admin'] }, cap), `admin should hold ${cap}`);
+  }
+});
+test('super-user holds every AICS capability', () => {
+  for (const cap of AICS_CAPS) {
+    assertTrue(can({ roles: ['super-user'] }, cap), `super-user should hold ${cap}`);
+  }
+});
 test('can() honors legacy isAdmin fallback → admin caps', () => {
   assertTrue(can({ isAdmin: true }, 'users:edit-role'));
 });

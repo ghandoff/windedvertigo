@@ -118,6 +118,16 @@ export const CAPABILITIES = Object.freeze({
   // these keys unblocks Wave 7.5 Batch B from migrating those routes.
   'pcs.applicability:read': 'pcs.applicability:read',
   'pcs.applicability:edit': 'pcs.applicability:edit',
+
+  // Bundle 3 Phase 3.2 — AICS (Active Ingredient Claims Substantiation),
+  // upstream sibling of PCS. RA owns AICS reviews; researchers + RA + admin
+  // can read; RA + admin can edit/create. Claims editing follows the same
+  // gating pattern as `pcs.claims:edit`.
+  'aics.documents:read': 'aics.documents:read',
+  'aics.documents:edit': 'aics.documents:edit',
+  'aics.documents:create': 'aics.documents:create',
+  'aics.claims:read': 'aics.claims:read',
+  'aics.claims:edit': 'aics.claims:edit',
 });
 
 // ─── Capability bundles (private; composed into role map below) ──────────
@@ -165,6 +175,9 @@ const RESEARCHER_CAPS = [
   // Wave 7.5 prereq — applicability rule curation (Track A of the parallel-stack plan)
   'pcs.applicability:read',
   'pcs.applicability:edit',
+  // Bundle 3 Phase 3.2 — researchers can read AICS docs + claims (RA owns the review).
+  'aics.documents:read',
+  'aics.claims:read',
 ];
 
 const RA_CAPS = [
@@ -200,6 +213,12 @@ const RA_CAPS = [
   // Wave 7.5 prereq — applicability rule curation (Track A of the parallel-stack plan)
   'pcs.applicability:read',
   'pcs.applicability:edit',
+  // Bundle 3 Phase 3.2 — RA owns AICS review + edit + creation.
+  'aics.documents:read',
+  'aics.documents:edit',
+  'aics.documents:create',
+  'aics.claims:read',
+  'aics.claims:edit',
 ];
 
 /**
