@@ -174,7 +174,7 @@ export default function AicsDetailPage() {
         {activeTab === 'cover' ? <CoverTab doc={doc} /> : null}
         {activeTab === 'raw-materials' ? <RawMaterialsTab doc={doc} /> : null}
         {activeTab === 'claims' ? <ClaimsTab claims={claims} /> : null}
-        {activeTab === 'regulatory' ? <RegulatoryTab doc={doc} /> : null}
+        {activeTab === 'regulatory' ? <RegulatoryTab doc={doc} claims={claims} /> : null}
       </div>
 
       {!canEdit ? (
@@ -328,22 +328,115 @@ function ClaimsTab({ claims }) {
   );
 }
 
-function RegulatoryTab({ doc }) {
+function RegulatoryTab({ doc, claims }) {
+  const cls = Array.isArray(claims) ? claims : [];
+  const disclaimerCount = cls.filter((c) => c.fdaDsheaDisclaimerRequired).length;
+  const grades = cls.reduce((acc, c) => { acc[c.grade || '—'] = (acc[c.grade || '—'] || 0) + 1; return acc; }, {});
+  const cClaims = cls.filter((c) => (c.grade || '').toUpperCase() === 'C' || !c.grade);
+  const hasAnyMetadata = cls.some((c) => c.substantiatingRefs || c.regulatoryMonographs || c.safetyLimit != null);
+
   return (
-    <div className="space-y-3">
-      <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-        Regulatory Review
-      </h2>
-      <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-600">
-        <p className="font-medium text-gray-700 mb-1">Phase 3.5+ — substantiating studies & monograph references</p>
-        <p>
-          The regulatory tab will surface per-claim substantiation evidence: study references, regulatory
-          monograph alignment (e.g. Health Canada, NIH ODS), and ingredient-safety limits. Today the
-          schema is in place via <code className="bg-white border border-gray-200 px-1 py-0.5 rounded text-xs">aics_documents</code> and joins
-          to <code className="bg-white border border-gray-200 px-1 py-0.5 rounded text-xs">pcs_evidence</code> via shared evidence packets, but the
-          UI wiring is on the roadmap. AICS doc id: <code className="bg-white border border-gray-200 px-1 py-0.5 rounded text-xs">{doc.id || doc.aicsId}</code>.
-        </p>
+    <div className="space-y-5">
+      <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Regulatory Review</h2>
+
+      {/* Compliance summary card */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">FDA / DSHEA disclaimer</div>
+          <div className="text-2xl font-bold text-pacific">{disclaimerCount}</div>
+          <div className="text-xs text-gray-500 mt-1">claims require disclaimer on finished product labels</div>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Substantiation grade mix</div>
+          <div className="flex items-baseline gap-2 mt-1">
+            {['A', 'B', 'C', '—'].map((g) => grades[g] ? (
+              <span key={g} className={`inline-flex items-center gap-1 text-xs ${
+                g === 'A' ? 'text-green-700' : g === 'B' ? 'text-blue-700' : g === 'C' ? 'text-yellow-700' : 'text-gray-500'
+              }`}>
+                <span className="font-bold">{g}</span><span>×{grades[g]}</span>
+              </span>
+            ) : null)}
+          </div>
+          <div className="text-xs text-gray-500 mt-2">total claims: {cls.length}</div>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Ingredient safety</div>
+          <div className="text-sm text-gray-700">
+            Tolerable Upper Intake Level pending — see <Link href="/pcs/data/ingredients" className="text-pacific-600 hover:underline">Ingredients DB</Link> for current safety limits.
+          </div>
+        </div>
       </div>
+
+      {/* Per-claim substantiation table */}
+      <div>
+        <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Per-Claim Substantiation</h3>
+        {cls.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">No claims on this AICS yet.</p>
+        ) : !hasAnyMetadata ? (
+          <div className="rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
+            <p className="font-medium text-gray-700 mb-1">Substantiation metadata not captured yet.</p>
+            <p className="text-xs">
+              Claims show grade ({Object.keys(grades).filter((g) => g !== '—').join('/') || '—'}) but no substantiating refs or monograph URLs.
+              Add &quot;Substantiating Refs&quot; / &quot;Regulatory Monographs&quot; / &quot;Safety Limit&quot; properties on the AICS Claims Notion DB
+              and they&apos;ll surface here automatically. Inline editor lands in Phase 3.5 P2.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                  <th className="text-left py-2 pr-4">Claim</th>
+                  <th className="text-left py-2 pr-4">Grade</th>
+                  <th className="text-left py-2 pr-4">Substantiating refs</th>
+                  <th className="text-left py-2 pr-4">Monographs</th>
+                  <th className="text-left py-2 pr-4">Safety limit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cls.map((c) => (
+                  <tr key={c.id} className="border-b border-gray-100 align-top">
+                    <td className="py-2 pr-4 max-w-xs">
+                      <div className="text-xs text-gray-500">{c.benefitCategory || '—'}</div>
+                      <div className="text-sm text-gray-800 line-clamp-2">{c.claimText}</div>
+                    </td>
+                    <td className="py-2 pr-4">
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
+                        c.grade === 'A' ? 'bg-green-100 text-green-800'
+                          : c.grade === 'B' ? 'bg-blue-100 text-blue-800'
+                          : c.grade === 'C' ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>{c.grade || '—'}</span>
+                    </td>
+                    <td className="py-2 pr-4 text-xs text-gray-700 max-w-sm">
+                      {c.substantiatingRefs ? <span className="whitespace-pre-wrap">{c.substantiatingRefs}</span> : <span className="text-gray-400 italic">—</span>}
+                    </td>
+                    <td className="py-2 pr-4 text-xs text-gray-700 max-w-sm">
+                      {c.regulatoryMonographs ? <span className="whitespace-pre-wrap">{c.regulatoryMonographs}</span> : <span className="text-gray-400 italic">—</span>}
+                    </td>
+                    <td className="py-2 pr-4 text-xs text-gray-700">
+                      {c.safetyLimit != null ? (
+                        <span className="font-mono">{c.safetyLimit}{c.safetyLimitUnit ? ` ${c.safetyLimitUnit}` : ''}</span>
+                      ) : <span className="text-gray-400 italic">—</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Grade-C / ungraded claims spotlight */}
+      {cClaims.length > 0 ? (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="font-semibold mb-1">Substantiation review needed</p>
+          <p className="text-xs">
+            {cClaims.length} claim{cClaims.length === 1 ? '' : 's'} carry Grade C or no grade — these warrant RA review before label use.
+            Refer to monograph alignment (Health Canada NHP, NIH ODS RDA, etc.) and document any updated grade in Notion.
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
