@@ -164,6 +164,10 @@ export const PROPS = {
     // Template-version classification — added 2026-04-21
     templateVersion: 'Template version',
     templateSignals: 'Template classification signals',
+    // Bundle 3.4 — added 2026-05-03. PCS docs reference upstream AICS
+    // substantiation by Notion DUAL relation; reverse "Linked PCS" lives on
+    // AICS Documents. Empty until RA links AICS docs in Notion or via picker UI.
+    linkedAics: 'Linked AICS',
   },
   versions: {
     version: 'Version',

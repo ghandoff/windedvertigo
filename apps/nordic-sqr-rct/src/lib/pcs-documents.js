@@ -33,6 +33,10 @@ function parsePage(page) {
     // Template-version classification — added 2026-04-21
     templateVersion: p[P.templateVersion]?.select?.name || null,
     templateSignals: (p[P.templateSignals]?.rich_text || []).map(t => t.plain_text).join(''),
+    // Bundle 3.4 — Linked AICS docs (Notion DUAL relation). Each id is a
+    // Notion page id in the AICS Documents data source. RA may link AICS
+    // docs directly in Notion; the picker UI is Phase 3.4 P2.
+    linkedAicsIds: (p[P.linkedAics]?.relation || []).map(r => r.id),
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };

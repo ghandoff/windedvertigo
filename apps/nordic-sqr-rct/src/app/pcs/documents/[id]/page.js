@@ -8,6 +8,7 @@ import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
 import PcsTable from '@/components/pcs/PcsTable';
 import WordLayoutView from '@/components/pcs/WordLayoutView';
 import RevisionSidePanel from '@/components/pcs/RevisionSidePanel';
+import AicsReferencesSection from '@/components/pcs/AicsReferencesSection';
 
 import { FORMATS } from '@/lib/pcs-config';
 
@@ -590,6 +591,9 @@ export default function PcsDocumentDetail() {
           </div>
         </div>
       </div>
+
+      {/* AICS References — Bundle 3.4 P1 */}
+      <AicsReferencesSection linkedAicsIds={doc.linkedAicsIds} />
 
       {/* Outstanding Research Requests — Wave 4.5.1 */}
       <div className={`rounded-lg border ${openRequests.length > 0 ? 'border-amber-200 bg-amber-50' : 'border-green-200 bg-green-50'} p-4 space-y-2`}>
