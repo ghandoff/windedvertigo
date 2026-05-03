@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { queryRfpOpportunities } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -65,7 +65,7 @@ function UrgencyBadge({ days }: { days: number }) {
 }
 
 export default async function DeadlinesPage() {
-  const { data: all } = await queryRfpOpportunities(undefined, { pageSize: 100 });
+  const { data: all } = await getRfpOpportunitiesFromSupabase({}, { pageSize: 100 });
 
   const upcoming = all
     .filter((rfp) => {

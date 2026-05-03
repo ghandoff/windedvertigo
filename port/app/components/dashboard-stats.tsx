@@ -7,7 +7,7 @@
 
 import Link from "next/link";
 import { queryDeals } from "@/lib/notion/deals";
-import { queryRfpOpportunities } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { queryWorkItems } from "@/lib/notion/work-items";
 
 // ── helpers ──────────────────────────────────────────────────
@@ -46,7 +46,7 @@ export async function DashboardStats() {
   // Fire all three queries in parallel — no waterfall
   const [dealsResult, rfpResult, workResult] = await Promise.all([
     queryDeals(),
-    queryRfpOpportunities(),
+    getRfpOpportunitiesFromSupabase({}, { pageSize: 200 }),
     queryWorkItems(),
   ]);
 

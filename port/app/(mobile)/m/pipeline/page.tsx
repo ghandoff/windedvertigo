@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { queryDeals } from "@/lib/notion/deals";
-import { queryRfpOpportunities } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { Badge } from "@/components/ui/badge";
 import { Handshake, Radar, DollarSign } from "lucide-react";
 import type { Deal, RfpOpportunity } from "@/lib/notion/types";
@@ -68,7 +68,7 @@ const ACTIVE_RFP_STATUSES = ["radar", "reviewing", "pursuing", "interviewing", "
 async function PipelineFeed() {
   const [{ data: deals }, { data: rfps }] = await Promise.all([
     queryDeals(undefined, { pageSize: 20 }),
-    queryRfpOpportunities(undefined, { pageSize: 20 }),
+    getRfpOpportunitiesFromSupabase({}, { pageSize: 20 }),
   ]);
 
   const activeDeals = deals.filter((d) => ACTIVE_DEAL_STAGES.includes(d.stage));

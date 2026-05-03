@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { queryDeals } from "@/lib/notion/deals";
 import { getOrganization } from "@/lib/notion/organizations";
-import { queryRfpOpportunities, getRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunitiesFromSupabase, getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
@@ -17,7 +17,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { KanbanSkeleton, StatsStripSkeleton } from "@/app/components/skeletons";
-import type { DealFilters, RfpFilters, RfpOpportunity } from "@/lib/notion/types";
+import type { DealFilters, RfpOpportunity } from "@/lib/notion/types";
+import type { RfpOpportunitySupabaseFilters } from "@/lib/supabase/rfp-opportunities";
 
 export const revalidate = 300;
 
@@ -82,12 +83,8 @@ async function DealsBoard({ searchParams }: BoardProps) {
   const uniqueRfpIds = [...new Set(deals.flatMap((d) => d.rfpOpportunityIds))].slice(0, 30);
   const rfpEntries = await Promise.all(
     uniqueRfpIds.map(async (id) => {
-      try {
-        const rfp = await getRfpOpportunity(id);
-        return [id, rfp] as const;
-      } catch {
-        return null;
-      }
+      const rfp = await getRfpOpportunityByIdFromSupabase(id);
+      return rfp ? [id, rfp] as const : null;
     }),
   );
   const rfpMap: Record<string, RfpOpportunity> = Object.fromEntries(
@@ -101,15 +98,15 @@ async function DealsBoard({ searchParams }: BoardProps) {
 
 async function RfpBoard({ searchParams }: BoardProps) {
   const params = await searchParams;
-  const filters: RfpFilters = {};
-  if (params.opportunityType) filters.opportunityType = params.opportunityType as RfpFilters["opportunityType"];
-  if (params.wvFitScore) filters.wvFitScore = params.wvFitScore as RfpFilters["wvFitScore"];
-  if (params.source) filters.source = params.source as RfpFilters["source"];
-  if (params.status) filters.status = params.status as RfpFilters["status"];
+  const filters: RfpOpportunitySupabaseFilters = {};
+  if (params.opportunityType) filters.opportunityType = params.opportunityType;
+  if (params.wvFitScore) filters.wvFitScore = params.wvFitScore;
+  if (params.source) filters.source = params.source;
+  if (params.status) filters.status = params.status;
   if (params.search) filters.search = params.search;
 
-  const { data: rfps } = await queryRfpOpportunities(
-    Object.keys(filters).length > 0 ? filters : undefined,
+  const { data: rfps } = await getRfpOpportunitiesFromSupabase(
+    filters,
     { pageSize: 100 },
   );
 

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, DollarSign, CalendarDays, Building2, ExternalLink, FileText, Radar, Mail, Users, ListChecks } from "lucide-react";
 import { getDeal } from "@/lib/notion/deals";
 import { getOrganization } from "@/lib/notion/organizations";
-import { getRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { PageHeader } from "@/app/components/page-header";
 import { AddDocumentDialog } from "@/app/components/add-document-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +77,7 @@ export default async function DealDetailPage({ params }: Props) {
 
   // Fetch linked RFP opportunity (first one if multiple)
   const rfp = deal.rfpOpportunityIds.length > 0
-    ? await getRfpOpportunity(deal.rfpOpportunityIds[0]).catch(() => null)
+    ? await getRfpOpportunityByIdFromSupabase(deal.rfpOpportunityIds[0])
     : null;
 
   const documentUrls = deal.documents

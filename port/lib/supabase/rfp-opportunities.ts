@@ -31,6 +31,8 @@ interface RfpOpportunityRow {
   status: string | null;
   opportunity_type: string | null;
   organization_ids: string[];
+  related_project_ids: string[] | null;
+  owner_ids: string[] | null;
   estimated_value: number | null;
   due_date: string | null;
   wv_fit_score: string | null;
@@ -42,6 +44,20 @@ interface RfpOpportunityRow {
   decision_notes: string | null;
   source: string | null;
   deadline_timezone: string | null;
+  url: string | null;
+  rfp_document_url: string | null;
+  proposal_draft_url: string | null;
+  question_bank_url: string | null;
+  question_count: number | null;
+  cover_letter_url: string | null;
+  team_cvs_url: string | null;
+  what_worked: string | null;
+  what_fell_flat: string | null;
+  client_feedback: string | null;
+  lessons_for_next_time: string | null;
+  proposal_notes: string | null;
+  created_time: string | null;
+  last_edited_time: string | null;
 }
 
 function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
@@ -51,8 +67,8 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     status: (row.status as RfpOpportunity["status"]) ?? "radar",
     opportunityType: (row.opportunity_type as RfpOpportunity["opportunityType"]) ?? "RFP",
     organizationIds: row.organization_ids ?? [],
-    relatedProjectIds: [],
-    ownerIds: [],
+    relatedProjectIds: row.related_project_ids ?? [],
+    ownerIds: row.owner_ids ?? [],
     dueDate: row.due_date ? { start: row.due_date, end: null } : null,
     estimatedValue: row.estimated_value ?? null,
     wvFitScore: (row.wv_fit_score as RfpOpportunity["wvFitScore"]) ?? "TBD",
@@ -64,22 +80,22 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     source: (row.source as RfpOpportunity["source"]) ?? "Manual Entry",
     requirementsSnapshot: row.requirements_snapshot ?? "",
     decisionNotes: row.decision_notes ?? "",
-    url: "",
+    url: row.url ?? "",
     proposalStatus: (row.proposal_status as RfpOpportunity["proposalStatus"]) ?? null,
-    proposalDraftUrl: null,
-    rfpDocumentUrl: null,
-    questionBankUrl: null,
-    questionCount: null,
-    coverLetterUrl: null,
-    teamCvsUrl: null,
-    whatWorked: "",
-    whatFellFlat: "",
-    clientFeedback: "",
-    lessonsForNextTime: "",
-    proposalNotes: "",
-    deadlineTimezone: (row as RfpOpportunityRow & { deadline_timezone?: string | null }).deadline_timezone ?? null,
-    createdTime: "",
-    lastEditedTime: "",
+    proposalDraftUrl: row.proposal_draft_url ?? null,
+    rfpDocumentUrl: row.rfp_document_url ?? null,
+    questionBankUrl: row.question_bank_url ?? null,
+    questionCount: row.question_count ?? null,
+    coverLetterUrl: row.cover_letter_url ?? null,
+    teamCvsUrl: row.team_cvs_url ?? null,
+    whatWorked: row.what_worked ?? "",
+    whatFellFlat: row.what_fell_flat ?? "",
+    clientFeedback: row.client_feedback ?? "",
+    lessonsForNextTime: row.lessons_for_next_time ?? "",
+    proposalNotes: row.proposal_notes ?? "",
+    deadlineTimezone: row.deadline_timezone ?? null,
+    createdTime: row.created_time ?? "",
+    lastEditedTime: row.last_edited_time ?? "",
   };
 }
 
@@ -131,9 +147,13 @@ const TERMINAL_STATUSES: string[] = ["ready-for-review", "failed", "skipped"];
 // ─── Reads ───────────────────────────────────────────────────────────────────
 
 const SELECT_COLS =
-  "notion_page_id, opportunity_name, status, opportunity_type, organization_ids, " +
-  "estimated_value, due_date, wv_fit_score, service_match, category, geography, " +
-  "proposal_status, requirements_snapshot, decision_notes, source";
+  "notion_page_id, opportunity_name, status, opportunity_type, " +
+  "organization_ids, related_project_ids, owner_ids, " +
+  "estimated_value, due_date, wv_fit_score, service_match, category, geography, source, " +
+  "proposal_status, requirements_snapshot, decision_notes, deadline_timezone, " +
+  "url, rfp_document_url, proposal_draft_url, question_bank_url, question_count, " +
+  "cover_letter_url, team_cvs_url, what_worked, what_fell_flat, client_feedback, " +
+  "lessons_for_next_time, proposal_notes, created_time, last_edited_time";
 
 /**
  * Query rfp_opportunities from Supabase with filter/pagination parity
@@ -330,9 +350,13 @@ export async function upsertRfpOpportunityToSupabase(
           ? opp.category.join(",") : (opp.category ?? null),
         geography: Array.isArray(opp.geography)
           ? opp.geography.join(",") : (opp.geography ?? null),
+        source: opp.source ?? null,
         proposal_status: opp.proposalStatus ?? null,
         requirements_snapshot: opp.requirementsSnapshot ?? null,
         decision_notes: opp.decisionNotes ?? null,
+        url: opp.url || null,
+        rfp_document_url: opp.rfpDocumentUrl ?? null,
+        proposal_draft_url: opp.proposalDraftUrl ?? null,
         deadline_timezone: deadlineTimezone,
         updated_at: new Date().toISOString(),
       },

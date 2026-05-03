@@ -15,7 +15,7 @@ import Link from "next/link";
 import { queryCampaigns } from "@/lib/notion/campaigns";
 import { queryEmailDrafts } from "@/lib/notion/email-drafts";
 import { queryOrganizations } from "@/lib/notion/organizations";
-import { queryRfpOpportunities } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { PageHeader } from "@/app/components/page-header";
 import type { Campaign, EmailDraft, RfpOpportunity } from "@/lib/notion/types";
 
@@ -51,7 +51,7 @@ function formatCurrency(value: number): string {
 }
 
 async function fetchRfpAnalytics() {
-  const { data: rfps } = await queryRfpOpportunities(undefined, { pageSize: 200 });
+  const { data: rfps } = await getRfpOpportunitiesFromSupabase({}, { pageSize: 200 });
 
   const active = rfps.filter((r: RfpOpportunity) => ACTIVE_STATUSES.has(r.status));
   const completed = rfps.filter((r: RfpOpportunity) => COMPLETED_STATUSES.has(r.status));

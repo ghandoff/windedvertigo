@@ -39,7 +39,6 @@ import {
 } from "@/lib/notion/activities";
 import { queryContacts as existingQueryContacts } from "@/lib/notion/contacts";
 import { queryDeals as existingQueryDeals, getDeal, updateDeal as existingUpdateDeal } from "@/lib/notion/deals";
-import { queryRfpOpportunities as existingQueryRfpOpportunities } from "@/lib/notion/rfp-radar";
 import { queryProjects as existingQueryProjects } from "@/lib/notion/projects";
 import { PORT_DB } from "@/lib/notion/client";
 import type { ActivityType, ActivityOutcome, RfpStatus, ProjectStatus } from "@/lib/notion/types";

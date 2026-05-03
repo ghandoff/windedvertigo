@@ -3,7 +3,7 @@
  */
 
 import { notFound } from "next/navigation";
-import { getRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { PageHeader } from "@/app/components/page-header";
 import { RfpEditForm } from "@/app/components/rfp-edit-form";
 
@@ -14,12 +14,8 @@ interface Props {
 export default async function RfpEditPage({ params }: Props) {
   const { id } = await params;
 
-  let rfp;
-  try {
-    rfp = await getRfpOpportunity(id);
-  } catch {
-    notFound();
-  }
+  const rfp = await getRfpOpportunityByIdFromSupabase(id);
+  if (!rfp) notFound();
 
   return (
     <>

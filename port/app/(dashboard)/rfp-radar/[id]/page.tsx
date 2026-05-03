@@ -9,7 +9,7 @@ import {
   FileText, Mail, Users, ListChecks, MapPin, Tag, Layers, Pencil,
 } from "lucide-react";
 import { deadlineAsPT } from "@/lib/format";
-import { getRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { getOrganization } from "@/lib/notion/organizations";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -75,12 +75,8 @@ function daysUntil(dateStr: string | null | undefined): number | null {
 export default async function RfpDetailPage({ params }: Props) {
   const { id } = await params;
 
-  let rfp;
-  try {
-    rfp = await getRfpOpportunity(id);
-  } catch {
-    notFound();
-  }
+  const rfp = await getRfpOpportunityByIdFromSupabase(id);
+  if (!rfp) notFound();
 
   // Look up linked organizations
   const orgs: Organization[] = rfp.organizationIds.length > 0

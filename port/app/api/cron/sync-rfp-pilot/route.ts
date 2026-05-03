@@ -41,6 +41,8 @@ export async function GET(req: NextRequest) {
     status: r.status ?? null,
     opportunity_type: r.opportunityType ?? null,
     organization_ids: r.organizationIds ?? [],
+    related_project_ids: r.relatedProjectIds ?? [],
+    owner_ids: r.ownerIds ?? [],
     estimated_value: r.estimatedValue ?? null,
     due_date: r.dueDate?.start ?? null,
     wv_fit_score: r.wvFitScore ?? null,
@@ -53,9 +55,26 @@ export async function GET(req: NextRequest) {
     geography: Array.isArray(r.geography)
       ? r.geography.join(",")
       : (r.geography ?? null),
+    source: r.source ?? null,
     proposal_status: r.proposalStatus ?? null,
     requirements_snapshot: r.requirementsSnapshot ?? null,
     decision_notes: r.decisionNotes ?? null,
+    url: r.url || null,
+    rfp_document_url: r.rfpDocumentUrl ?? null,
+    proposal_draft_url: r.proposalDraftUrl ?? null,
+    question_bank_url: r.questionBankUrl ?? null,
+    question_count: r.questionCount ?? null,
+    cover_letter_url: r.coverLetterUrl ?? null,
+    team_cvs_url: r.teamCvsUrl ?? null,
+    what_worked: r.whatWorked || null,
+    what_fell_flat: r.whatFellFlat || null,
+    client_feedback: r.clientFeedback || null,
+    lessons_for_next_time: r.lessonsForNextTime || null,
+    proposal_notes: r.proposalNotes || null,
+    created_time: r.createdTime || null,
+    last_edited_time: r.lastEditedTime || null,
+    // deadline_timezone intentionally excluded — managed by rfp-triage,
+    // never overwrite a value that triage already set
     updated_at: new Date().toISOString(),
   }));
 
