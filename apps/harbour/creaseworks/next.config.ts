@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
+  // Anchor standalone output to apps/harbour/ (the harbour sub-monorepo root)
+  // so Next.js sets relativeAppDir:"creaseworks" instead of "apps/harbour/creaseworks".
+  // Without this, the workspace root resolves to windedvertigo/, making the CF
+  // Workers runtime fail with "Dynamic require of '/.next/server/middleware-manifest.json'".
+  outputFileTracingRoot: path.join(__dirname, "../"),
   /* creaseworks is served at windedvertigo.com/harbour/creaseworks via the
      site proxy rewrites. basePath ensures Next.js generates correct asset
      URLs and internal links under that prefix. */

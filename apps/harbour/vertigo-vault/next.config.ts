@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
+  // Anchor standalone output to apps/harbour/ (the harbour sub-monorepo root)
+  // so Next.js sets relativeAppDir:"vertigo-vault" instead of "apps/harbour/vertigo-vault".
+  // Without this, the workspace root resolves to windedvertigo/, making the CF
+  // Workers runtime fail with "Dynamic require of '/.next/server/middleware-manifest.json'".
+  outputFileTracingRoot: path.join(__dirname, "../"),
   basePath: "/harbour/vertigo-vault",
   poweredByHeader: false,
   // Required by OpenNext/CF Workers — produces .next/standalone for bundling.

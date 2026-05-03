@@ -50,9 +50,9 @@ interface VaultWorkerEnv {
 // ─── Main export ─────────────────────────────────────────────────────────────
 
 export default {
-  fetch: wrapWithSecurityHeaders(openNextHandler.fetch, {
+  fetch: wrapWithSecurityHeaders(openNextHandler, {
     csp: HARBOUR_DEFAULT_CSP,
-  }),
+  }).fetch,
 
   async scheduled(
     controller: ScheduledController,

@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Deploy the wv-vault Cloudflare Worker from the monorepo root.
 #
-# Two-step build (same pattern as deploy-creaseworks.sh):
-#   1. Build Next.js via npm workspace from harbour sub-monorepo root.
-#   2. Bundle for CF Workers with OpenNext --skipNextBuild.
+# Two-step build:
+#   1. Build Next.js from apps/harbour/ using -w @windedvertigo/vertigo-vault.
+#      This pins the npm workspace root to apps/harbour/ (not windedvertigo/),
+#      so Next.js sets relativeAppDir:"vertigo-vault" (not "apps/harbour/vertigo-vault").
+#      Without this, the handler bundles absolute paths that fail in CF Workers
+#      with "Dynamic require of '/.next/server/middleware-manifest.json'".
+#   2. Bundle for CF Workers with OpenNext --skipNextBuild (run from app dir).
 #   3. Deploy via wrangler.
 #
 # Usage:
@@ -19,7 +23,8 @@ set -euo pipefail
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_DIR="$REPO_ROOT/apps/harbour/vertigo-vault"
+HARBOUR_ROOT="$REPO_ROOT/apps/harbour"
+APP_DIR="$HARBOUR_ROOT/vertigo-vault"
 PREVIEW=false
 
 for arg in "$@"; do
@@ -28,26 +33,18 @@ for arg in "$@"; do
   esac
 done
 
-HARBOUR_ROOT="$REPO_ROOT/apps/harbour"
-
-echo "==> Step 1: Building Next.js (from harbour sub-monorepo root)..."
+echo "==> Step 1: Building Next.js (from apps/harbour/ with -w @windedvertigo/vertigo-vault — pins harbour as workspace root)..."
+# Run from apps/harbour/ with -w so npm uses apps/harbour/ as the workspace root.
+# This makes Next.js set relativeAppDir:"vertigo-vault" (short),
+# not "apps/harbour/vertigo-vault" (absolute from windedvertigo/ root).
+# Running from the app dir alone doesn't work — npm still walks up to windedvertigo/.
 cd "$HARBOUR_ROOT"
 npm run build -w @windedvertigo/vertigo-vault
 
-echo "==> Step 1.5: Fixing standalone path for OpenNext monorepo detection..."
-# OpenNext detects apps/harbour/ as the monorepo root (nearest package-lock.json),
-# so it expects .next/standalone/vertigo-vault/. But Next.js standalone outputs
-# relative to the windedvertigo/ root: .next/standalone/apps/harbour/vertigo-vault/.
-# Create a symlink so OpenNext finds the files where it expects them.
-cd "$APP_DIR"
-STANDALONE_ACTUAL=".next/standalone/apps/harbour/vertigo-vault"
-STANDALONE_EXPECTED=".next/standalone/vertigo-vault"
-if [ -d "$STANDALONE_ACTUAL" ] && [ ! -e "$STANDALONE_EXPECTED" ]; then
-  (cd .next/standalone && ln -sf apps/harbour/vertigo-vault vertigo-vault)
-  echo "  symlink: .next/standalone/vertigo-vault -> apps/harbour/vertigo-vault"
-fi
-
 echo "==> Step 2: Bundling for Cloudflare Workers (OpenNext)..."
+# OpenNext detects apps/harbour/ as the monorepo root (nearest package-lock.json).
+# Since Next.js was built with apps/harbour/ as root, the standalone output
+# is at .next/standalone/vertigo-vault/ — no path fix needed.
 cd "$APP_DIR"
 npx @opennextjs/cloudflare build --skipNextBuild
 
