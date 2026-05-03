@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, ExternalLink, Users, Pencil } from "lucide-react";
-import { getOrganization } from "@/lib/notion/organizations";
-import { getContact } from "@/lib/notion/contacts";
-import { getActivitiesForOrg } from "@/lib/notion/activities";
+import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
+import { getContactsFromSupabase } from "@/lib/supabase/contacts";
+import { getActivitiesFromSupabase } from "@/lib/supabase/activities";
 import { queryEmailDraftsByOrg } from "@/lib/notion/email-drafts";
 import { NewContactDialog } from "@/app/components/new-contact-dialog";
 import { LogActivityDialog } from "@/app/components/log-activity-dialog";
@@ -27,33 +27,27 @@ interface Props {
 export default async function OrganizationDetailPage({ params }: Props) {
   const { id } = await params;
 
-  let org;
-  try {
-    org = await getOrganization(id);
-  } catch (e) {
-    console.error("[org-detail] getOrganization failed for id:", id, e);
-    notFound();
-  }
+  const org = await getOrganizationByIdFromSupabase(id);
+  if (!org) notFound();
 
   // Fetch activities, linked contacts, and email history in parallel
-  const [activitiesResult, linkedContacts, emailDraftsResult] = await Promise.all([
-    getActivitiesForOrg(org.id).catch((e) => {
-      console.error("[org-detail] getActivitiesForOrg failed:", e);
-      return { data: [] as import("@/lib/notion/types").Activity[] };
+  const [activities, { data: contactsData }, emailDraftsResult] = await Promise.all([
+    getActivitiesFromSupabase(org.id).catch((e) => {
+      console.error("[org-detail] getActivitiesFromSupabase failed:", e);
+      return [] as import("@/lib/notion/types").Activity[];
     }),
-    Promise.all(
-      (org.contactIds ?? []).slice(0, 10).map(async (cId) => {
-        try {
-          const c = await getContact(cId);
-          return { id: c.id, name: c.name, role: c.role, email: c.email, contactWarmth: c.contactWarmth, relationshipStage: c.relationshipStage };
-        } catch {
-          return { id: cId, name: cId.slice(0, 8) + "...", role: "", email: "", contactWarmth: null, relationshipStage: null };
-        }
-      }),
-    ),
+    getContactsFromSupabase({ orgId: org.id }, { pageSize: 20 }).catch(() => ({ data: [] as import("@/lib/notion/types").Contact[] })),
     queryEmailDraftsByOrg(org.id, { pageSize: 20 }).catch(() => ({ data: [] as import("@/lib/notion/types").EmailDraft[] })),
   ]);
-  const activities = activitiesResult.data;
+
+  const linkedContacts = contactsData.map((c) => ({
+    id: c.id,
+    name: c.name,
+    role: c.role,
+    email: c.email,
+    contactWarmth: c.contactWarmth,
+    relationshipStage: c.relationshipStage,
+  }));
   const emailDrafts = emailDraftsResult.data.filter((d) => d.status === "sent");
 
   return (

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { queryBdAssets } from "@/lib/notion/bd-assets";
+import { getBdAssetsFromSupabase } from "@/lib/supabase/bd-assets";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
@@ -114,15 +114,12 @@ interface Props {
 
 async function AssetGrid({ searchParams }: Props) {
   const params = await searchParams;
-  const { data: allAssets } = await queryBdAssets(
-    params.search ? { search: params.search } : undefined,
-    { pageSize: 100 },
+  const { data: allAssets } = await getBdAssetsFromSupabase(
+    { ...(params.search && { search: params.search }), ...(params.assetType && { assetType: params.assetType }) },
+    { pageSize: 500 },
   );
 
-  // Filter by asset type if specified
-  const assets = params.assetType
-    ? allAssets.filter((a) => a.assetType === params.assetType)
-    : allAssets;
+  const assets = allAssets;
 
   if (assets.length === 0) {
     return (

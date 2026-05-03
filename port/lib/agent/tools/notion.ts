@@ -94,8 +94,8 @@ export async function queryCampaignsTool(
     status: c.status ?? "",
     type: c.type ?? "",
     owner: c.owner ?? "",
-    startDate: c.startDate ?? null,
-    endDate: c.endDate ?? null,
+    startDate: c.startDate?.start ?? null,
+    endDate: c.endDate?.start ?? null,
   }));
   return { campaigns, hasMore: data.length > limit };
 }
@@ -119,7 +119,7 @@ export async function getOrganizationTool(input: GetOrganizationInput) {
   if (!org) throw new Error(`Organisation not found: ${input.id}`);
   return {
     id: org.id,
-    name: org.name ?? null,
+    name: org.organization ?? null,
     website: org.website ?? null,
     priority: org.derivedPriority ?? null,
     connection: org.connection ?? null,
@@ -610,7 +610,7 @@ export async function queryContactsTool(
     name: c.name ?? "",
     email: c.email ?? "",
     role: c.role ?? "",
-    orgIds: c.orgId ? [c.orgId] : [],
+    orgIds: c.organizationIds?.length ? c.organizationIds : [],
   }));
   return { contacts, hasMore: contactsTotal > limit };
 }

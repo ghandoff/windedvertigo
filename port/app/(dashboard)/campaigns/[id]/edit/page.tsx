@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { getCampaign } from "@/lib/notion/campaigns";
-import { getStepsForCampaign } from "@/lib/notion/campaign-steps";
+import { getCampaignByIdFromSupabase } from "@/lib/supabase/campaigns";
+import { getCampaignStepsFromSupabase } from "@/lib/supabase/campaign-steps";
 import { PageHeader } from "@/app/components/page-header";
 import { CampaignEditForm } from "@/app/components/campaign-edit-form";
 
@@ -11,14 +11,11 @@ interface Props {
 export default async function CampaignEditPage({ params }: Props) {
   const { id } = await params;
 
-  let campaign;
-  try {
-    campaign = await getCampaign(id);
-  } catch {
-    notFound();
-  }
-
-  const steps = await getStepsForCampaign(id);
+  const [campaign, steps] = await Promise.all([
+    getCampaignByIdFromSupabase(id),
+    getCampaignStepsFromSupabase(id),
+  ]);
+  if (!campaign) notFound();
 
   return (
     <>

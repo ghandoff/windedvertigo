@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { queryEmailTemplates } from "@/lib/notion/email-templates";
+import { getEmailTemplatesFromSupabase } from "@/lib/supabase/email-templates";
+import type { EmailTemplateSupabaseFilters } from "@/lib/supabase/email-templates";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
 import { CardGridSkeleton } from "@/app/components/skeletons";
@@ -8,7 +9,7 @@ import { FilterSelect } from "@/app/components/filter-select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Mail, Globe, Hash, Cloud, Plus, Bookmark } from "lucide-react";
-import type { EmailTemplate, EmailTemplateFilters } from "@/lib/notion/types";
+import type { EmailTemplate } from "@/lib/notion/types";
 
 export const revalidate = 300;
 
@@ -57,15 +58,12 @@ interface Props {
 
 async function TemplateGrid({ searchParams }: Props) {
   const params = await searchParams;
-  const filters: EmailTemplateFilters = {};
-  if (params.category) filters.category = params.category as EmailTemplateFilters["category"];
-  if (params.channel) filters.channel = params.channel as EmailTemplateFilters["channel"];
+  const filters: EmailTemplateSupabaseFilters = {};
+  if (params.category) filters.category = params.category;
+  if (params.channel) filters.channel = params.channel;
   if (params.search) filters.search = params.search;
 
-  const { data: templates } = await queryEmailTemplates(
-    Object.keys(filters).length > 0 ? filters : undefined,
-    { pageSize: 50 },
-  );
+  const { data: templates } = await getEmailTemplatesFromSupabase(filters, { pageSize: 50 });
 
   if (templates.length === 0) {
     return (

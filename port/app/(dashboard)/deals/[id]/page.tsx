@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, DollarSign, CalendarDays, Building2, ExternalLink, FileText, Radar, Mail, Users, ListChecks } from "lucide-react";
-import { getDeal } from "@/lib/notion/deals";
-import { getOrganization } from "@/lib/notion/organizations";
+import { getDealByIdFromSupabase } from "@/lib/supabase/deals";
+import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
 import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { PageHeader } from "@/app/components/page-header";
 import { AddDocumentDialog } from "@/app/components/add-document-dialog";
@@ -56,19 +56,15 @@ function docLabel(url: string): string {
 export default async function DealDetailPage({ params }: Props) {
   const { id } = await params;
 
-  let deal;
-  try {
-    deal = await getDeal(id);
-  } catch {
-    notFound();
-  }
+  const deal = await getDealByIdFromSupabase(id);
+  if (!deal) notFound();
 
   // Fetch linked org names in parallel (max 3)
   const orgs = await Promise.all(
     deal.organizationIds.slice(0, 3).map(async (orgId) => {
       try {
-        const org = await getOrganization(orgId);
-        return { id: org.id, name: org.organization };
+        const org = await getOrganizationByIdFromSupabase(orgId);
+        return { id: orgId, name: org?.organization ?? orgId.slice(0, 8) + "..." };
       } catch {
         return { id: orgId, name: orgId.slice(0, 8) + "..." };
       }

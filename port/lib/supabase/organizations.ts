@@ -18,6 +18,20 @@
  */
 
 import { supabase } from "./client";
+import type { Organization, Relationship } from "@/lib/notion/types";
+import { deriveRelationship, computePriority } from "@/lib/notion/derived-fields";
+
+// Relationship stage → DB connection column values (reverse of deriveRelationship).
+// Used when filtering by the derived relationship stage.
+const RELATIONSHIP_TO_CONNECTIONS: Record<string, string[]> = {
+  stranger: ["unengaged"],
+  aware: ["exploring"],
+  contacted: ["in progress"],
+  "in conversation": ["collaborating"],
+  collaborating: ["champion"],
+  "active partner": ["steward", "past client"],
+  champion: [],
+};
 
 // ── types ────────────────────────────────────────────────────────
 
@@ -35,25 +49,6 @@ interface OrganizationRow {
   fit_rating: string | null;
   notes: string | null;
   derived_priority: string | null;
-  source: string | null;
-  regions: string | null;
-  quadrant: string | null;
-}
-
-export interface OrganizationFromSupabase {
-  id: string;
-  name: string;
-  type: string | null;
-  category: string | null;
-  marketSegment: string | null;
-  website: string | null;
-  email: string | null;
-  connection: string | null;
-  outreachStatus: string | null;
-  friendship: string | null;
-  fitRating: string | null;
-  notes: string | null;
-  derivedPriority: string | null;
   source: string | null;
   regions: string | null;
   quadrant: string | null;
@@ -94,24 +89,62 @@ export interface OrganizationSupabaseSort {
 
 // ── helpers ──────────────────────────────────────────────────────
 
-function mapRowToOrganization(row: OrganizationRow): OrganizationFromSupabase {
+/** Split a comma-joined multi-select string into a trimmed array. */
+function splitMulti(v: string | null): string[] {
+  if (!v) return [];
+  return v.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+function mapRowToOrganization(row: OrganizationRow): Organization {
+  const connection = (row.connection ?? "") as Organization["connection"];
+  const outreachStatus = (row.outreach_status ?? "") as Organization["outreachStatus"];
+  const friendship = (row.friendship ?? "") as Organization["friendship"];
+  const fitRating = (row.fit_rating ?? "") as Organization["fitRating"];
+
+  const relationship = deriveRelationship(connection, outreachStatus, friendship);
+  const derivedPriority = computePriority(fitRating, relationship);
+
   return {
     id: row.notion_page_id,
-    name: row.name,
-    type: row.type,
-    category: row.category,
-    marketSegment: row.market_segment,
-    website: row.website,
-    email: row.email,
-    connection: row.connection,
-    outreachStatus: row.outreach_status,
-    friendship: row.friendship,
-    fitRating: row.fit_rating,
-    notes: row.notes,
-    derivedPriority: row.derived_priority,
-    source: row.source,
-    regions: row.regions,
-    quadrant: row.quadrant,
+    organization: row.name,
+    connection,
+    type: (row.type ?? "") as Organization["type"],
+    category: splitMulti(row.category) as Organization["category"],
+    regions: splitMulti(row.regions) as Organization["regions"],
+    source: (row.source ?? "") as Organization["source"],
+    website: row.website ?? "",
+    place: null,
+    email: row.email ?? "",
+    outreachTarget: "",
+    priority: derivedPriority as unknown as Organization["priority"],
+    fitRating,
+    friendship,
+    howTheyBuy: "" as Organization["howTheyBuy"],
+    marketSegment: row.market_segment ?? "",
+    quadrant: (row.quadrant ?? "") as Organization["quadrant"],
+    crossQuadrant: [],
+    serviceLine: [],
+    targetServices: "",
+    buyingTrigger: "",
+    buyerRole: "",
+    subject: "",
+    bespokeEmailCopy: "",
+    outreachSuggestion: "",
+    outreachStatus,
+    relationship,
+    derivedPriority,
+    notes: row.notes ?? "",
+    contactIds: [],
+    projectIds: [],
+    bdAssetIds: [],
+    competitorIds: [],
+    logo: undefined,
+    description: undefined,
+    linkedinUrl: undefined,
+    enrichedAt: undefined,
+    outreachReady: undefined,
+    createdTime: "",
+    lastEditedTime: "",
   };
 }
 
@@ -146,7 +179,7 @@ export async function getOrganizationsFromSupabase(
   filters: OrganizationSupabaseFilters = {},
   pagination: OrganizationSupabasePagination = {},
   sort: OrganizationSupabaseSort = {},
-): Promise<{ data: OrganizationFromSupabase[]; total: number }> {
+): Promise<{ data: Organization[]; total: number }> {
   const page = Math.max(1, pagination.page ?? 1);
   const pageSize = Math.min(500, Math.max(1, pagination.pageSize ?? 100));
   const from = (page - 1) * pageSize;
@@ -173,10 +206,20 @@ export async function getOrganizationsFromSupabase(
 
   // ── single-value exact-match filters ────────────────────────────
 
-  // connection / relationship (relationship is a legacy alias)
-  const connection = filters.connection ?? filters.relationship;
-  if (!isEmpty(connection)) {
-    const vals = toArray(connection!);
+  // relationship filter: translate derived stage → stored connection values
+  if (!isEmpty(filters.relationship)) {
+    const stages = toArray(filters.relationship!);
+    const connVals = stages.flatMap((s) => RELATIONSHIP_TO_CONNECTIONS[s] ?? []);
+    if (connVals.length > 0) {
+      query = connVals.length === 1
+        ? query.eq("connection", connVals[0])
+        : query.in("connection", connVals);
+    }
+  }
+
+  // connection (direct filter — legacy / API compat)
+  if (!isEmpty(filters.connection)) {
+    const vals = toArray(filters.connection!);
     query = vals.length === 1
       ? query.eq("connection", vals[0])
       : query.in("connection", vals);
@@ -276,7 +319,7 @@ export async function getOrganizationsFromSupabase(
  */
 export async function getOrganizationByIdFromSupabase(
   notionPageId: string,
-): Promise<OrganizationFromSupabase | null> {
+): Promise<Organization | null> {
   const { data, error } = await supabase
     .from("organizations")
     .select(SELECT_COLS)

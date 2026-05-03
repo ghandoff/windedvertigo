@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { queryCampaigns } from "@/lib/notion/campaigns";
-import { queryEvents } from "@/lib/notion/events";
-import { querySocialDrafts } from "@/lib/notion/social";
+import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
+import { getEventsFromSupabase } from "@/lib/supabase/events";
+import { getSocialDraftsFromSupabase } from "@/lib/supabase/social";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
@@ -19,7 +19,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CalendarDays, MapPin, Users, Clock, Pencil, Plus } from "lucide-react";
-import type { CampaignFilters, EventFilters } from "@/lib/notion/types";
 
 export const revalidate = 300;
 
@@ -72,15 +71,11 @@ interface BoardProps {
 
 async function CampaignBoard({ searchParams }: BoardProps) {
   const params = await searchParams;
-  const filters: CampaignFilters = {};
-  if (params.campaignType) filters.type = params.campaignType as CampaignFilters["type"];
-  if (params.search) filters.search = params.search;
-
-  const { data: campaigns } = await queryCampaigns(
-    Object.keys(filters).length > 0 ? filters : undefined,
-    { pageSize: 100 },
+  const campaigns = await getCampaignsFromSupabase(
+    undefined,
+    params.campaignType,
+    params.search,
   );
-
   return <CampaignKanban campaigns={campaigns} />;
 }
 
@@ -88,13 +83,13 @@ async function CampaignBoard({ searchParams }: BoardProps) {
 
 async function EventCards({ searchParams }: BoardProps) {
   const params = await searchParams;
-  const filters: EventFilters = { upcoming: true };
-  if (params.eventType) filters.type = params.eventType as EventFilters["type"];
-  if (params.whoShouldAttend) filters.whoShouldAttend = params.whoShouldAttend as EventFilters["whoShouldAttend"];
-  if (params.search) filters.search = params.search;
-
-  const { data: events } = await queryEvents(
-    Object.keys(filters).length > 0 ? filters : undefined,
+  const { data: events } = await getEventsFromSupabase(
+    {
+      upcoming: true,
+      ...(params.eventType && { type: params.eventType }),
+      ...(params.whoShouldAttend && { whoShouldAttend: params.whoShouldAttend }),
+      ...(params.search && { search: params.search }),
+    },
     { pageSize: 50 },
   );
 
@@ -211,7 +206,7 @@ async function EventCards({ searchParams }: BoardProps) {
 // ── social board ─────────────────────────────────────────────
 
 async function SocialBoard() {
-  const { data: drafts } = await querySocialDrafts(undefined, { pageSize: 100 });
+  const drafts = await getSocialDraftsFromSupabase();
 
   const grouped = STATUS_COLUMNS.map((col) => ({
     ...col,

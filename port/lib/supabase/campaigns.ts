@@ -1,11 +1,15 @@
 /**
  * Supabase read layer for campaigns.
  *
+ * Returns the canonical Notion `Campaign` type so all existing components
+ * work without modification.
+ *
  * `id` is set to `notion_page_id` (not UUID) so callers that match
  * against Notion relation arrays continue to work unchanged.
  */
 
 import { supabase } from "./client";
+import type { Campaign, CampaignType, CampaignStatus, AudienceFilter } from "@/lib/notion/types";
 
 interface CampaignRow {
   notion_page_id: string;
@@ -20,31 +24,20 @@ interface CampaignRow {
   notes: string | null;
 }
 
-export interface CampaignFromSupabase {
-  id: string;
-  name: string;
-  type: string | null;
-  status: string | null;
-  eventIds: string[];
-  audienceFilters: Record<string, unknown>;
-  owner: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  notes: string | null;
-}
-
-function mapRowToCampaign(row: CampaignRow): CampaignFromSupabase {
+function mapRowToCampaign(row: CampaignRow): Campaign {
   return {
     id: row.notion_page_id,
     name: row.name,
-    type: row.type,
-    status: row.status,
+    type: (row.type as CampaignType) ?? "email",
+    status: (row.status as CampaignStatus) ?? "draft",
     eventIds: row.event_ids ?? [],
-    audienceFilters: row.audience_filters ?? {},
-    owner: row.owner,
-    startDate: row.start_date,
-    endDate: row.end_date,
-    notes: row.notes,
+    audienceFilters: (row.audience_filters as AudienceFilter) ?? {},
+    owner: row.owner ?? "",
+    startDate: row.start_date ? { start: row.start_date, end: null } : null,
+    endDate: row.end_date ? { start: row.end_date, end: null } : null,
+    notes: row.notes ?? "",
+    createdTime: "",
+    lastEditedTime: "",
   };
 }
 
@@ -54,13 +47,34 @@ const SELECT_COLS =
 export async function getCampaignsFromSupabase(
   status?: string,
   type?: string,
-): Promise<CampaignFromSupabase[]> {
+  search?: string,
+): Promise<Campaign[]> {
   let query = supabase.from("campaigns").select(SELECT_COLS).order("name", { ascending: true });
 
   if (status) query = query.eq("status", status);
-  if (type) query = query.eq("type", type);
+  if (type)   query = query.eq("type", type);
+  if (search) query = query.ilike("name", `%${search}%`);
 
   const { data, error } = await query;
   if (error) throw new Error(`[supabase/campaigns] getCampaigns: ${error.message}`);
   return (data as CampaignRow[]).map(mapRowToCampaign);
+}
+
+/**
+ * Fetch a single campaign by its Notion page id.
+ */
+export async function getCampaignByIdFromSupabase(
+  notionPageId: string,
+): Promise<Campaign | null> {
+  const { data, error } = await supabase
+    .from("campaigns")
+    .select(SELECT_COLS)
+    .eq("notion_page_id", notionPageId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null;
+    throw new Error(`[supabase/campaigns] getById: ${error.message}`);
+  }
+  return data ? mapRowToCampaign(data as CampaignRow) : null;
 }

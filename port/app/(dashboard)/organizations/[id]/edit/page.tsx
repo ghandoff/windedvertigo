@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getOrganization } from "@/lib/notion/organizations";
+import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
 import { OrgEditForm } from "@/app/components/org-edit-form";
 
 interface Props {
@@ -8,13 +8,7 @@ interface Props {
 
 export default async function OrgEditPage({ params }: Props) {
   const { id } = await params;
-
-  let org;
-  try {
-    org = await getOrganization(id);
-  } catch {
-    notFound();
-  }
-
+  const org = await getOrganizationByIdFromSupabase(id);
+  if (!org) notFound();
   return <OrgEditForm org={org} />;
 }

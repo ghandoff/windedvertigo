@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { queryDeals } from "@/lib/notion/deals";
-import { getOrganization } from "@/lib/notion/organizations";
+import { getDealsFromSupabase } from "@/lib/supabase/deals";
+import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
 import { getRfpOpportunitiesFromSupabase, getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
@@ -17,7 +17,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { KanbanSkeleton, StatsStripSkeleton } from "@/app/components/skeletons";
-import type { DealFilters, RfpOpportunity } from "@/lib/notion/types";
+import type { RfpOpportunity } from "@/lib/notion/types";
 import type { RfpOpportunitySupabaseFilters } from "@/lib/supabase/rfp-opportunities";
 
 export const revalidate = 300;
@@ -59,20 +59,15 @@ interface BoardProps {
 
 async function DealsBoard({ searchParams }: BoardProps) {
   const params = await searchParams;
-  const filters: DealFilters = {};
-  if (params.search) filters.search = params.search;
 
-  const { data: deals } = await queryDeals(
-    Object.keys(filters).length > 0 ? filters : undefined,
-    { pageSize: 200 },
-  );
+  const deals = await getDealsFromSupabase(undefined, undefined, params.search);
 
   const uniqueOrgIds = [...new Set(deals.flatMap((d) => d.organizationIds))].slice(0, 30);
   const orgEntries = await Promise.all(
     uniqueOrgIds.map(async (id) => {
       try {
-        const org = await getOrganization(id);
-        return [id, org.organization] as const;
+        const org = await getOrganizationByIdFromSupabase(id);
+        return [id, org?.organization ?? ""] as const;
       } catch {
         return [id, ""] as const;
       }

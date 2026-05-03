@@ -1,8 +1,10 @@
 /**
  * Supabase read layer for contacts.
  *
- * `id` is set to `notion_page_id`. `org_id` stores the first entry of
- * `organizationIds` (primary org relationship).
+ * Returns the canonical Notion `Contact` type so all existing components
+ * (ContactPipeline, ContactsTable, etc.) work without modification.
+ *
+ * `id` is set to `notion_page_id`. `org_id` stores the primary org relation.
  *
  * Filter parity with lib/notion/contacts.ts queryContacts():
  * - contactType, contactWarmth, responsiveness, relationshipStage → direct column
@@ -11,6 +13,7 @@
  */
 
 import { supabase } from "./client";
+import type { Contact } from "@/lib/notion/types";
 
 // ── types ────────────────────────────────────────────────────────
 
@@ -25,19 +28,6 @@ interface ContactRow {
   contact_warmth: string | null;
   responsiveness: string | null;
   referral_potential: boolean | null;
-}
-
-export interface ContactFromSupabase {
-  id: string;
-  name: string;
-  email: string | null;
-  role: string | null;
-  orgId: string | null;
-  contactType: string | null;
-  relationshipStage: string | null;
-  contactWarmth: string | null;
-  responsiveness: string | null;
-  referralPotential: boolean | null;
 }
 
 export interface ContactSupabaseFilters {
@@ -57,18 +47,26 @@ export interface ContactSupabasePagination {
 
 // ── helpers ──────────────────────────────────────────────────────
 
-function mapRowToContact(row: ContactRow): ContactFromSupabase {
+function mapRowToContact(row: ContactRow): Contact {
   return {
     id: row.notion_page_id,
     name: row.name,
-    email: row.email,
-    role: row.role,
-    orgId: row.org_id,
-    contactType: row.contact_type,
-    relationshipStage: row.relationship_stage,
-    contactWarmth: row.contact_warmth,
-    responsiveness: row.responsiveness,
-    referralPotential: row.referral_potential,
+    email: row.email ?? "",
+    role: row.role ?? "",
+    contactType: (row.contact_type as Contact["contactType"]) ?? "collaborator",
+    contactWarmth: (row.contact_warmth as Contact["contactWarmth"]) ?? "cold",
+    responsiveness: (row.responsiveness as Contact["responsiveness"]) ?? "unknown",
+    referralPotential: row.referral_potential ?? false,
+    linkedin: "",
+    phoneNumber: "",
+    profilePhotoUrl: "",       // UI falls back to name initials
+    relationshipStage: (row.relationship_stage as Contact["relationshipStage"]) ?? "stranger",
+    lastContacted: null,
+    nextAction: "",
+    organizationIds: row.org_id ? [row.org_id] : [],
+    nodeUserIds: [],
+    createdTime: "",
+    lastEditedTime: "",
   };
 }
 
@@ -81,7 +79,7 @@ const SELECT_COLS =
 export async function getContactsFromSupabase(
   filters: ContactSupabaseFilters = {},
   pagination: ContactSupabasePagination = {},
-): Promise<{ data: ContactFromSupabase[]; total: number }> {
+): Promise<{ data: Contact[]; total: number }> {
   const page = Math.max(1, pagination.page ?? 1);
   const pageSize = Math.min(500, Math.max(1, pagination.pageSize ?? 100));
   const from = (page - 1) * pageSize;
@@ -93,10 +91,10 @@ export async function getContactsFromSupabase(
     .order("name", { ascending: true })
     .range(from, to);
 
-  if (filters.orgId)            query = query.eq("org_id", filters.orgId);
-  if (filters.contactType)      query = query.eq("contact_type", filters.contactType);
-  if (filters.contactWarmth)    query = query.eq("contact_warmth", filters.contactWarmth);
-  if (filters.responsiveness)   query = query.eq("responsiveness", filters.responsiveness);
+  if (filters.orgId)             query = query.eq("org_id", filters.orgId);
+  if (filters.contactType)       query = query.eq("contact_type", filters.contactType);
+  if (filters.contactWarmth)     query = query.eq("contact_warmth", filters.contactWarmth);
+  if (filters.responsiveness)    query = query.eq("responsiveness", filters.responsiveness);
   if (filters.relationshipStage) query = query.eq("relationship_stage", filters.relationshipStage);
   if (filters.referralPotential !== undefined) {
     query = query.eq("referral_potential", filters.referralPotential);
@@ -118,7 +116,7 @@ export async function getContactsFromSupabase(
  */
 export async function getContactByIdFromSupabase(
   notionPageId: string,
-): Promise<ContactFromSupabase | null> {
+): Promise<Contact | null> {
   const { data, error } = await supabase
     .from("contacts")
     .select(SELECT_COLS)

@@ -48,8 +48,9 @@ const SELECT_COLS =
 export async function getDealsFromSupabase(
   stage?: DealStage,
   orgId?: string,
+  search?: string,
 ): Promise<Deal[]> {
-  let query = supabase.from("deals").select(SELECT_COLS);
+  let query = supabase.from("deals").select(SELECT_COLS).order("deal", { ascending: true });
 
   if (stage) {
     query = query.eq("stage", stage);
@@ -57,9 +58,31 @@ export async function getDealsFromSupabase(
   if (orgId) {
     query = query.contains("org_ids", [orgId]);
   }
+  if (search) {
+    query = query.ilike("deal", `%${search}%`);
+  }
 
   const { data, error } = await query;
 
   if (error) throw new Error(`[supabase/deals] getDeals: ${error.message}`);
   return (data as DealRow[]).map(mapRowToDeal);
+}
+
+/**
+ * Fetch a single deal by its Notion page id.
+ */
+export async function getDealByIdFromSupabase(
+  notionPageId: string,
+): Promise<Deal | null> {
+  const { data, error } = await supabase
+    .from("deals")
+    .select(SELECT_COLS)
+    .eq("notion_page_id", notionPageId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null;
+    throw new Error(`[supabase/deals] getById: ${error.message}`);
+  }
+  return data ? mapRowToDeal(data as DealRow) : null;
 }

@@ -41,11 +41,14 @@ function mapRowToActivity(row: ActivityRow): Activity {
 const SELECT_COLS =
   "notion_page_id, activity, type, date, outcome, notes, logged_by, organization_ids, contact_ids";
 
-export async function getActivitiesFromSupabase(orgId?: string): Promise<Activity[]> {
+export async function getActivitiesFromSupabase(orgId?: string, contactId?: string): Promise<Activity[]> {
   let query = supabase.from("activities").select(SELECT_COLS).order("date", { ascending: false });
 
   if (orgId) {
     query = query.contains("organization_ids", [orgId]);
+  }
+  if (contactId) {
+    query = query.contains("contact_ids", [contactId]);
   }
 
   const { data, error } = await query;

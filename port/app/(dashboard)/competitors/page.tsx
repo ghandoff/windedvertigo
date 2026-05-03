@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { queryCompetitors } from "@/lib/notion/competitive";
+import { getCompetitorsFromSupabase } from "@/lib/supabase/competitors";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
@@ -97,10 +97,7 @@ async function CompetitorsList({ searchParams }: Props) {
   if (params.type) filters.type = params.type;
   if (params.search) filters.search = params.search;
 
-  const { data: competitors } = await queryCompetitors(
-    Object.keys(filters).length > 0 ? filters as Parameters<typeof queryCompetitors>[0] : undefined,
-    { pageSize: 100 },
-  );
+  const { data: competitors } = await getCompetitorsFromSupabase(filters, { pageSize: 500 });
 
   if (competitors.length === 0) {
     return (

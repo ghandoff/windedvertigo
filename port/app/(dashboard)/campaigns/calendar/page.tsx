@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { queryCampaigns } from "@/lib/notion/campaigns";
-import { queryEvents } from "@/lib/notion/events";
+import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
+import { getEventsFromSupabase } from "@/lib/supabase/events";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,10 +59,11 @@ export default async function CampaignCalendarPage() {
   const days = getMonthDays(year, month);
   const monthName = now.toLocaleDateString("en-US", { month: "long", year: "numeric" }).toLowerCase();
 
-  const { data: campaigns } = await queryCampaigns(undefined, { pageSize: 50 });
+  const [campaigns, { data: events }] = await Promise.all([
+    getCampaignsFromSupabase(undefined, undefined, undefined),
+    getEventsFromSupabase({ upcoming: true }, { pageSize: 20 }),
+  ]);
   const activeCampaigns = campaigns.filter((c) => c.status === "active" || c.status === "draft");
-
-  const { data: events } = await queryEvents({ upcoming: true }, { pageSize: 20 });
 
   const weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 

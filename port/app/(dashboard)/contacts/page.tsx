@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { queryContacts } from "@/lib/notion/contacts";
+import { getContactsFromSupabase, type ContactSupabaseFilters } from "@/lib/supabase/contacts";
 import { ClickableRow } from "@/app/components/clickable-row";
 import { NewContactDialog } from "@/app/components/new-contact-dialog";
 import { PageHeader } from "@/app/components/page-header";
@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import type { ContactFilters } from "@/lib/notion/types";
 import { KanbanSkeleton, TableSkeleton } from "@/app/components/skeletons";
 import { EmptyState } from "@/app/components/empty-state";
 import { Users } from "lucide-react";
@@ -43,26 +42,13 @@ interface Props {
 
 async function ContactsTable({ searchParams }: Props) {
   const params = await searchParams;
-  const filters: ContactFilters = {};
-  if (params.contactType) filters.contactType = params.contactType as ContactFilters["contactType"];
-  if (params.contactWarmth) filters.contactWarmth = params.contactWarmth as ContactFilters["contactWarmth"];
-  if (params.relationshipStage) filters.relationshipStage = params.relationshipStage as ContactFilters["relationshipStage"];
-  if (params.search) filters.search = params.search;
+  const filters: ContactSupabaseFilters = {};
+  if (params.contactType)       filters.contactType = params.contactType;
+  if (params.contactWarmth)     filters.contactWarmth = params.contactWarmth;
+  if (params.relationshipStage) filters.relationshipStage = params.relationshipStage;
+  if (params.search)            filters.search = params.search;
 
-  // Paginate through ALL records — Notion caps at 100 per call.
-  const activeFilters = Object.keys(filters).length > 0 ? filters : undefined;
-  const contacts: Awaited<ReturnType<typeof queryContacts>>["data"] = [];
-  let cursor: string | undefined;
-  do {
-    const page = await queryContacts(
-      activeFilters,
-      { pageSize: 100, cursor },
-      { property: "first & last name", direction: "ascending" },
-    );
-    contacts.push(...page.data);
-    cursor = page.nextCursor ?? undefined;
-    if (!page.hasMore) break;
-  } while (cursor);
+  const { data: contacts } = await getContactsFromSupabase(filters, { pageSize: 500 });
 
   if (contacts.length === 0) {
     return (
@@ -146,19 +132,7 @@ async function ContactsTable({ searchParams }: Props) {
 }
 
 async function PipelineView() {
-  // Same full-pagination strategy for the kanban view.
-  const contacts: Awaited<ReturnType<typeof queryContacts>>["data"] = [];
-  let cursor: string | undefined;
-  do {
-    const page = await queryContacts(
-      undefined,
-      { pageSize: 100, cursor },
-      { property: "first & last name", direction: "ascending" },
-    );
-    contacts.push(...page.data);
-    cursor = page.nextCursor ?? undefined;
-    if (!page.hasMore) break;
-  } while (cursor);
+  const { data: contacts } = await getContactsFromSupabase({}, { pageSize: 500 });
   return <ContactPipeline contacts={contacts} />;
 }
 

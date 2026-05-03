@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, ExternalLink } from "lucide-react";
-import { getContact } from "@/lib/notion/contacts";
-import { getActivitiesForContact } from "@/lib/notion/activities";
+import { getContactByIdFromSupabase } from "@/lib/supabase/contacts";
+import { getActivitiesFromSupabase } from "@/lib/supabase/activities";
 import { PageHeader } from "@/app/components/page-header";
 import { ActivityTimeline } from "@/app/components/activity-timeline";
 import { LogActivityDialog } from "@/app/components/log-activity-dialog";
@@ -47,19 +47,14 @@ interface Props {
 export default async function ContactDetailPage({ params }: Props) {
   const { id } = await params;
 
-  let contact;
-  try {
-    contact = await getContact(id);
-  } catch {
-    notFound();
-  }
+  const contact = await getContactByIdFromSupabase(id);
+  if (!contact) notFound();
 
-  let activities: Awaited<ReturnType<typeof getActivitiesForContact>>["data"] = [];
+  let activities: import("@/lib/notion/types").Activity[] = [];
   try {
-    const result = await getActivitiesForContact(id);
-    activities = result.data;
+    activities = await getActivitiesFromSupabase(undefined, id);
   } catch {
-    // Activities DB may not be shared with integration yet
+    // Activities may not yet be synced for this contact
   }
 
   return (

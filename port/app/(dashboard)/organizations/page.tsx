@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { queryOrganizations } from "@/lib/notion/organizations";
-import { queryContacts } from "@/lib/notion/contacts";
+import { getOrganizationsFromSupabase, type OrganizationSupabaseFilters } from "@/lib/supabase/organizations";
+import { getContactsFromSupabase } from "@/lib/supabase/contacts";
 import { ClickableRow } from "@/app/components/clickable-row";
 import { PageHeader } from "@/app/components/page-header";
 import { FitBadge } from "@/app/components/priority-badge";
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { OrgLogoSmall } from "@/app/components/org-logo";
 import { NewOrgDialog } from "@/app/components/new-org-dialog";
-import type { Organization, OrganizationFilters } from "@/lib/notion/types";
+import type { Organization } from "@/lib/notion/types";
 import { TableSkeleton } from "@/app/components/skeletons";
 
 // ── Gap indicators ────────────────────────────────────────
@@ -110,50 +110,18 @@ interface Props {
 
 async function OrganizationsTable({ searchParams }: Props) {
   const params = await searchParams;
-  const filters: OrganizationFilters = {};
-  if (params.fitRating) filters.fitRating = params.fitRating as OrganizationFilters["fitRating"];
-  if (params.relationship) filters.relationship = params.relationship as OrganizationFilters["relationship"];
-  if (params.source) filters.source = params.source as OrganizationFilters["source"];
-  if (params.marketSegment) filters.marketSegment = params.marketSegment;
-  if (params.search) filters.search = params.search;
+  const filters: OrganizationSupabaseFilters = {};
+  if (params.fitRating)      filters.fitRating = params.fitRating;
+  if (params.relationship)   filters.relationship = params.relationship;
+  if (params.source)         filters.source = params.source;
+  if (params.marketSegment)  filters.marketSegment = params.marketSegment;
+  if (params.search)         filters.search = params.search;
 
-  const activeFilters = Object.keys(filters).length > 0 ? filters : undefined;
-
-  // Fetch orgs (all pages) and the first page of contacts in parallel, then
-  // paginate contacts to completion. Contacts are used to build a warm-org set.
-  const organizations: Awaited<ReturnType<typeof queryOrganizations>>["data"] = [];
-  const allContacts: Awaited<ReturnType<typeof queryContacts>>["data"] = [];
-
-  let orgCursor: string | undefined;
-  let contactCursor: string | undefined;
-
-  // Kick off first page of both in parallel
-  const [firstOrgs, firstContacts] = await Promise.all([
-    queryOrganizations(activeFilters, { pageSize: 100 }, { property: "organization", direction: "ascending" }),
-    queryContacts(undefined, { pageSize: 100 }),
+  // Fetch orgs and contacts in parallel — both via Supabase single calls.
+  const [{ data: organizations }, { data: allContacts }] = await Promise.all([
+    getOrganizationsFromSupabase(filters, { pageSize: 500 }),
+    getContactsFromSupabase({}, { pageSize: 500 }),
   ]);
-  organizations.push(...firstOrgs.data);
-  orgCursor = firstOrgs.hasMore ? (firstOrgs.nextCursor ?? undefined) : undefined;
-  allContacts.push(...firstContacts.data);
-  contactCursor = firstContacts.hasMore ? (firstContacts.nextCursor ?? undefined) : undefined;
-
-  // Continue paginating both independently until exhausted
-  while (orgCursor || contactCursor) {
-    const tasks: Promise<unknown>[] = [];
-    if (orgCursor) {
-      tasks.push(
-        queryOrganizations(activeFilters, { pageSize: 100, cursor: orgCursor }, { property: "organization", direction: "ascending" })
-          .then((p) => { organizations.push(...p.data); orgCursor = p.hasMore ? (p.nextCursor ?? undefined) : undefined; }),
-      );
-    }
-    if (contactCursor) {
-      tasks.push(
-        queryContacts(undefined, { pageSize: 100, cursor: contactCursor })
-          .then((p) => { allContacts.push(...p.data); contactCursor = p.hasMore ? (p.nextCursor ?? undefined) : undefined; }),
-      );
-    }
-    await Promise.all(tasks);
-  }
 
   // Build inverted index: org IDs that have at least one non-stranger contact
   const warmOrgIds = new Set<string>();

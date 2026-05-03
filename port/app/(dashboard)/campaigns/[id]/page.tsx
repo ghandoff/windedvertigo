@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Users } from "lucide-react";
-import { getCampaign } from "@/lib/notion/campaigns";
-import { getStepsForCampaign } from "@/lib/notion/campaign-steps";
+import { getCampaignByIdFromSupabase } from "@/lib/supabase/campaigns";
+import { getCampaignStepsFromSupabase } from "@/lib/supabase/campaign-steps";
 import { resolveAudience } from "@/lib/notion/audience";
-import { getContact } from "@/lib/notion/contacts";
+import { getContactByIdFromSupabase } from "@/lib/supabase/contacts";
 import type { Contact } from "@/lib/notion/types";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -37,16 +37,11 @@ interface Props {
 export default async function CampaignDetailPage({ params }: Props) {
   const { id } = await params;
 
-  let campaign;
-  let steps;
-  try {
-    [campaign, steps] = await Promise.all([
-      getCampaign(id),
-      getStepsForCampaign(id),
-    ]);
-  } catch {
-    notFound();
-  }
+  const [campaign, steps] = await Promise.all([
+    getCampaignByIdFromSupabase(id),
+    getCampaignStepsFromSupabase(id),
+  ]);
+  if (!campaign) notFound();
   const hasFilters = campaign.audienceFilters && Object.keys(campaign.audienceFilters).length > 0;
   const allRecipients = hasFilters ? await resolveAudience(campaign.audienceFilters) : [];
 
@@ -56,7 +51,7 @@ export default async function CampaignDetailPage({ params }: Props) {
   const orgsWithContactIds = allRecipients.filter((o) => o.contactIds?.length > 0);
   if (orgsWithContactIds.length > 0) {
     const uniqueIds = [...new Set(orgsWithContactIds.flatMap((o) => o.contactIds))];
-    const fetched = await Promise.all(uniqueIds.map((cid) => getContact(cid).catch(() => null)));
+    const fetched = await Promise.all(uniqueIds.map((cid) => getContactByIdFromSupabase(cid).catch(() => null)));
     const contactLookup = new Map<string, Contact>();
     fetched.forEach((c) => c && contactLookup.set(c.id, c));
     for (const org of orgsWithContactIds) {
@@ -69,7 +64,7 @@ export default async function CampaignDetailPage({ params }: Props) {
   const { addedContactIds = [] } = campaign.audienceFilters ?? {};
   let addedContacts: Contact[] = [];
   if (addedContactIds.length > 0) {
-    const fetched = await Promise.all(addedContactIds.map((cid: string) => getContact(cid).catch(() => null)));
+    const fetched = await Promise.all(addedContactIds.map((cid: string) => getContactByIdFromSupabase(cid).catch(() => null)));
     addedContacts = fetched.filter(Boolean) as Contact[];
   }
 

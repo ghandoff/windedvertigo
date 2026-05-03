@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Eye, EyeOff, MousePointerClick, Bot, Mail, AlertTriangle } from "lucide-react";
-import { getCampaign } from "@/lib/notion/campaigns";
+import { getCampaignByIdFromSupabase } from "@/lib/supabase/campaigns";
 import { queryEmailDraftsByCampaign } from "@/lib/notion/email-drafts";
-import { getOrganization } from "@/lib/notion/organizations";
-import { getContact } from "@/lib/notion/contacts";
+import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
+import { getContactByIdFromSupabase } from "@/lib/supabase/contacts";
 import { resolveAudience } from "@/lib/notion/audience";
 import { PageHeader } from "@/app/components/page-header";
 import { UpcomingRecipients } from "@/app/components/upcoming-recipients";
@@ -60,12 +60,8 @@ interface RecipientRow {
 export default async function CampaignRecipientsPage({ params }: Props) {
   const { id } = await params;
 
-  let campaign;
-  try {
-    campaign = await getCampaign(id);
-  } catch {
-    notFound();
-  }
+  const campaign = await getCampaignByIdFromSupabase(id);
+  if (!campaign) notFound();
 
   const drafts = await queryEmailDraftsByCampaign(id);
 
@@ -78,7 +74,8 @@ export default async function CampaignRecipientsPage({ params }: Props) {
     const results = await Promise.all(
       batch.map(async (orgId) => {
         try {
-          const org = await getOrganization(orgId);
+          const org = await getOrganizationByIdFromSupabase(orgId);
+          if (!org) throw new Error("not found");
           return { id: orgId, name: org.organization, relationship: org.relationship, fitRating: org.fitRating, email: org.email };
         } catch {
           return { id: orgId, name: "[unknown]", relationship: "", fitRating: "", email: "" };
@@ -98,7 +95,8 @@ export default async function CampaignRecipientsPage({ params }: Props) {
     const results = await Promise.all(
       batch.map(async (cid) => {
         try {
-          const c = await getContact(cid);
+          const c = await getContactByIdFromSupabase(cid);
+          if (!c) throw new Error("not found");
           return { id: cid, name: c.name };
         } catch {
           return { id: cid, name: null };
