@@ -598,21 +598,33 @@ export const PROPS = {
     latestVersionOf:   'Latest Version Of', // relation (rollup-friendly)
   },
   aicsClaims: {
-    claimText:         'Claim',             // title
-    claimNo:           'Claim No',
-    claimStatus:       'Claim status',      // 'Authorized' / 'Pending' / 'Rejected'
-    benefitCategory:   'Benefit category',  // select — cv_benefit_categories.code
-    claimPrefix:       'Claim prefix',      // select — free-text per AICS-0004
+    // Property names match the AICS Claims Notion DB created 2026-05-03
+    // (id 2571a98a-2d2c-4b05-b518-56857b57c85f). Schema mirrors
+    // db/migrations/003_aics_entity_ddl.sql aics_claims with Lauren-vocab dropdowns.
+    claimText:         'Claim ID',          // title (per-claim identifier; the actual claim text lives in 'Claim Text')
+    claimCore:         'Claim Text',        // rich_text — the substantive claim language
+    claimNo:           'Claim Number',      // number
+    claimStatus:       'Claim Status',      // 'Authorized' / 'Pending' / 'Rejected' / 'Withdrawn'
+    benefitCategory:   'Benefit Category',  // select — 17 Lauren-vocab options
+    claimPrefix:       'Claim Prefix',      // rich_text
     aicsDocument:      'AICS Document',     // relation
     aicsVersion:       'AICS Version',      // relation
-    ageGroup:          'Age group',         // select — cv_demographics_age.code
-    sex:               'Biological sex',    // select — cv_demographics_sex.code
-    minDose:           'Min dose',          // number
-    minDoseUnit:       'Min dose unit',     // select — 'mcg' / 'mg' / 'IU' / '% DV'
-    minDoseSecondary:      'Min dose secondary',
-    minDoseSecondaryUnit:  'Min dose secondary unit',
-    grade:             'Grade',             // select — cv_claim_grades.code (A/B/C)
-    fdaDsheaDisclaimerRequired: 'FDA DSHEA disclaimer required',
+    ageGroup:          'Age Group',         // select — 6 Lauren-vocab options
+    sex:               'Sex',               // select — Males / Females / Males and Females
+    lifeStage:         'Life Stage',        // multi_select
+    lifestyleTags:     'Lifestyle Tags',    // multi_select
+    minDose:           'Min Dose',
+    minDoseUnit:       'Min Dose Unit',     // select — mcg/mg/IU/g/% DV
+    minDoseSecondary:      'Min Dose Secondary',
+    minDoseSecondaryUnit:  'Min Dose Secondary Unit',
+    grade:             'Grade',             // select — A/B/C
+    fdaDsheaDisclaimerRequired: 'FDA/DSHEA Disclaimer Required',
+    // Bundle 3.5 P2 — added 2026-05-03. Per-claim regulatory metadata.
+    substantiatingRefs:    'Substantiating Refs',
+    regulatoryMonographs:  'Regulatory Monographs',
+    safetyLimit:           'Safety Limit',
+    safetyLimitUnit:       'Safety Limit Unit',
+    safetyNotes:           'Safety Notes',
   },
 };
 

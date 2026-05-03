@@ -174,7 +174,7 @@ export default function AicsDetailPage() {
         {activeTab === 'cover' ? <CoverTab doc={doc} /> : null}
         {activeTab === 'raw-materials' ? <RawMaterialsTab doc={doc} /> : null}
         {activeTab === 'claims' ? <ClaimsTab claims={claims} /> : null}
-        {activeTab === 'regulatory' ? <RegulatoryTab doc={doc} claims={claims} /> : null}
+        {activeTab === 'regulatory' ? <RegulatoryTab doc={doc} claims={claims} setClaims={setClaims} canEdit={can(user, 'aics.claims:edit')} /> : null}
       </div>
 
       {!canEdit ? (
@@ -328,12 +328,12 @@ function ClaimsTab({ claims }) {
   );
 }
 
-function RegulatoryTab({ doc, claims }) {
+function RegulatoryTab({ doc, claims, setClaims, canEdit = false }) {
   const cls = Array.isArray(claims) ? claims : [];
   const disclaimerCount = cls.filter((c) => c.fdaDsheaDisclaimerRequired).length;
   const grades = cls.reduce((acc, c) => { acc[c.grade || '—'] = (acc[c.grade || '—'] || 0) + 1; return acc; }, {});
   const cClaims = cls.filter((c) => (c.grade || '').toUpperCase() === 'C' || !c.grade);
-  const hasAnyMetadata = cls.some((c) => c.substantiatingRefs || c.regulatoryMonographs || c.safetyLimit != null);
+  const [editingId, setEditingId] = useState(null);
 
   return (
     <div className="space-y-5">
@@ -369,18 +369,12 @@ function RegulatoryTab({ doc, claims }) {
 
       {/* Per-claim substantiation table */}
       <div>
-        <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Per-Claim Substantiation</h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Per-Claim Substantiation</h3>
+          {canEdit ? <span className="text-[10px] text-gray-500">Click <span className="font-mono bg-gray-100 px-1 rounded">Edit</span> on a row to add refs / monographs / safety limit</span> : null}
+        </div>
         {cls.length === 0 ? (
           <p className="text-sm text-gray-400 italic">No claims on this AICS yet.</p>
-        ) : !hasAnyMetadata ? (
-          <div className="rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
-            <p className="font-medium text-gray-700 mb-1">Substantiation metadata not captured yet.</p>
-            <p className="text-xs">
-              Claims show grade ({Object.keys(grades).filter((g) => g !== '—').join('/') || '—'}) but no substantiating refs or monograph URLs.
-              Add &quot;Substantiating Refs&quot; / &quot;Regulatory Monographs&quot; / &quot;Safety Limit&quot; properties on the AICS Claims Notion DB
-              and they&apos;ll surface here automatically. Inline editor lands in Phase 3.5 P2.
-            </p>
-          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -391,35 +385,25 @@ function RegulatoryTab({ doc, claims }) {
                   <th className="text-left py-2 pr-4">Substantiating refs</th>
                   <th className="text-left py-2 pr-4">Monographs</th>
                   <th className="text-left py-2 pr-4">Safety limit</th>
+                  {canEdit ? <th className="text-right py-2 pr-2 w-16"></th> : null}
                 </tr>
               </thead>
               <tbody>
                 {cls.map((c) => (
-                  <tr key={c.id} className="border-b border-gray-100 align-top">
-                    <td className="py-2 pr-4 max-w-xs">
-                      <div className="text-xs text-gray-500">{c.benefitCategory || '—'}</div>
-                      <div className="text-sm text-gray-800 line-clamp-2">{c.claimText}</div>
-                    </td>
-                    <td className="py-2 pr-4">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
-                        c.grade === 'A' ? 'bg-green-100 text-green-800'
-                          : c.grade === 'B' ? 'bg-blue-100 text-blue-800'
-                          : c.grade === 'C' ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}>{c.grade || '—'}</span>
-                    </td>
-                    <td className="py-2 pr-4 text-xs text-gray-700 max-w-sm">
-                      {c.substantiatingRefs ? <span className="whitespace-pre-wrap">{c.substantiatingRefs}</span> : <span className="text-gray-400 italic">—</span>}
-                    </td>
-                    <td className="py-2 pr-4 text-xs text-gray-700 max-w-sm">
-                      {c.regulatoryMonographs ? <span className="whitespace-pre-wrap">{c.regulatoryMonographs}</span> : <span className="text-gray-400 italic">—</span>}
-                    </td>
-                    <td className="py-2 pr-4 text-xs text-gray-700">
-                      {c.safetyLimit != null ? (
-                        <span className="font-mono">{c.safetyLimit}{c.safetyLimitUnit ? ` ${c.safetyLimitUnit}` : ''}</span>
-                      ) : <span className="text-gray-400 italic">—</span>}
-                    </td>
-                  </tr>
+                  <RegulatoryRow
+                    key={c.id}
+                    claim={c}
+                    canEdit={canEdit}
+                    isEditing={editingId === c.id}
+                    onEditOpen={() => setEditingId(c.id)}
+                    onEditClose={() => setEditingId(null)}
+                    onSaved={(updated) => {
+                      if (typeof setClaims === 'function') {
+                        setClaims((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
+                      }
+                      setEditingId(null);
+                    }}
+                  />
                 ))}
               </tbody>
             </table>
@@ -438,5 +422,170 @@ function RegulatoryTab({ doc, claims }) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function RegulatoryRow({ claim: c, canEdit, isEditing, onEditOpen, onEditClose, onSaved }) {
+  const [draft, setDraft] = useState({
+    substantiatingRefs: c.substantiatingRefs || '',
+    regulatoryMonographs: c.regulatoryMonographs || '',
+    safetyLimit: c.safetyLimit ?? '',
+    safetyLimitUnit: c.safetyLimitUnit || '',
+    safetyNotes: c.safetyNotes || '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    try {
+      const r = await fetch(`/api/pcs/aics/claims/${c.id}/regulatory`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      });
+      const body = await r.json();
+      if (!r.ok) throw new Error(body?.error || `HTTP ${r.status}`);
+      onSaved(body);
+    } catch (err) {
+      setError(`Save failed: ${err?.message || 'unknown'}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!isEditing) {
+    return (
+      <tr className="border-b border-gray-100 align-top">
+        <td className="py-2 pr-4 max-w-xs">
+          <div className="text-xs text-gray-500">{c.benefitCategory || '—'}</div>
+          <div className="text-sm text-gray-800 line-clamp-2">{c.claimText}</div>
+        </td>
+        <td className="py-2 pr-4">
+          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
+            c.grade === 'A' ? 'bg-green-100 text-green-800'
+              : c.grade === 'B' ? 'bg-blue-100 text-blue-800'
+              : c.grade === 'C' ? 'bg-yellow-100 text-yellow-800'
+              : 'bg-gray-100 text-gray-600'
+          }`}>{c.grade || '—'}</span>
+        </td>
+        <td className="py-2 pr-4 text-xs text-gray-700 max-w-sm">
+          {c.substantiatingRefs ? <span className="whitespace-pre-wrap">{c.substantiatingRefs}</span> : <span className="text-gray-400 italic">—</span>}
+        </td>
+        <td className="py-2 pr-4 text-xs text-gray-700 max-w-sm">
+          {c.regulatoryMonographs ? <span className="whitespace-pre-wrap">{c.regulatoryMonographs}</span> : <span className="text-gray-400 italic">—</span>}
+        </td>
+        <td className="py-2 pr-4 text-xs text-gray-700">
+          {c.safetyLimit != null ? (
+            <span className="font-mono">{c.safetyLimit}{c.safetyLimitUnit ? ` ${c.safetyLimitUnit}` : ''}</span>
+          ) : <span className="text-gray-400 italic">—</span>}
+        </td>
+        {canEdit ? (
+          <td className="py-2 pr-2 text-right">
+            <button
+              type="button"
+              onClick={onEditOpen}
+              className="text-xs text-pacific-600 hover:text-pacific-700 hover:underline"
+            >
+              Edit
+            </button>
+          </td>
+        ) : null}
+      </tr>
+    );
+  }
+
+  // Edit mode — full-width row.
+  return (
+    <tr className="border-b border-gray-100 bg-pacific-50/50 align-top">
+      <td colSpan={canEdit ? 6 : 5} className="py-3 px-3">
+        <div className="space-y-3">
+          <div className="text-xs text-gray-600">
+            <span className="font-semibold">Editing:</span> {c.benefitCategory ? `${c.benefitCategory} — ` : ''}{c.claimText}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Substantiating refs</span>
+              <textarea
+                value={draft.substantiatingRefs}
+                onChange={(e) => setDraft((d) => ({ ...d, substantiatingRefs: e.target.value }))}
+                rows={3}
+                placeholder="[7] RCT in girls (avg age 11.4)... ; [8] Health Canada Multi-Vit/Mineral Monograph"
+                className="mt-1 w-full px-2 py-1 text-sm border border-gray-300 rounded-md font-mono"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Regulatory monographs</span>
+              <textarea
+                value={draft.regulatoryMonographs}
+                onChange={(e) => setDraft((d) => ({ ...d, regulatoryMonographs: e.target.value }))}
+                rows={3}
+                placeholder="https://ods.od.nih.gov/factsheets/VitaminD-HealthProfessional/ — NIH ODS Vit D Fact Sheet"
+                className="mt-1 w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+              />
+            </label>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label className="block">
+              <span className="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Safety limit</span>
+              <input
+                type="number"
+                value={draft.safetyLimit}
+                onChange={(e) => setDraft((d) => ({ ...d, safetyLimit: e.target.value }))}
+                placeholder="e.g. 4000"
+                className="mt-1 w-full px-2 py-1 text-sm border border-gray-300 rounded-md font-mono"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Unit</span>
+              <select
+                value={draft.safetyLimitUnit}
+                onChange={(e) => setDraft((d) => ({ ...d, safetyLimitUnit: e.target.value }))}
+                className="mt-1 w-full px-2 py-1 text-sm border border-gray-300 rounded-md bg-white"
+              >
+                <option value="">—</option>
+                <option value="mcg">mcg</option>
+                <option value="mg">mg</option>
+                <option value="IU">IU</option>
+                <option value="g">g</option>
+                <option value="% DV">% DV</option>
+              </select>
+            </label>
+            <label className="block md:col-span-1">
+              <span className="text-[11px] font-medium text-gray-600 uppercase tracking-wider">Safety notes</span>
+              <input
+                type="text"
+                value={draft.safetyNotes}
+                onChange={(e) => setDraft((d) => ({ ...d, safetyNotes: e.target.value }))}
+                placeholder="e.g. Watch interactions with Ca/P"
+                className="mt-1 w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+              />
+            </label>
+          </div>
+          {error ? (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700">{error}</div>
+          ) : null}
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onEditClose}
+              disabled={saving}
+              className="text-xs px-3 py-1 rounded-md border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="text-xs px-3 py-1 rounded-md bg-pacific-600 text-white hover:bg-pacific-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
   );
 }

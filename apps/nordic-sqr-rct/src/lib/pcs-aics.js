@@ -195,24 +195,62 @@ function parseAicsClaimPage(page) {
   const p = page.properties;
   return {
     id: page.id,
-    claimText: p[PC.claimText]?.title?.[0]?.plain_text || '',
+    // The Notion title is the Claim ID — the claim's narrative text lives
+    // in PC.claimCore (rich_text). Render `claimText` for backward compat
+    // by falling through to the rich_text field if the title is empty.
+    claimId: p[PC.claimText]?.title?.[0]?.plain_text || '',
+    claimText: (p[PC.claimCore]?.rich_text || []).map((t) => t.plain_text).join('') || p[PC.claimText]?.title?.[0]?.plain_text || '',
     claimNo: p[PC.claimNo]?.number ?? null,
     claimStatus: p[PC.claimStatus]?.select?.name || null,
     benefitCategory: p[PC.benefitCategory]?.select?.name || null,
-    claimPrefix: p[PC.claimPrefix]?.select?.name || null,
+    claimPrefix: (p[PC.claimPrefix]?.rich_text || []).map((t) => t.plain_text).join('') || null,
     aicsDocumentId: (p[PC.aicsDocument]?.relation || [])[0]?.id || null,
     aicsVersionId: (p[PC.aicsVersion]?.relation || [])[0]?.id || null,
     ageGroup: p[PC.ageGroup]?.select?.name || null,
     sex: p[PC.sex]?.select?.name || null,
+    lifeStage: (p[PC.lifeStage]?.multi_select || []).map((s) => s.name),
+    lifestyleTags: (p[PC.lifestyleTags]?.multi_select || []).map((s) => s.name),
     minDose: p[PC.minDose]?.number ?? null,
     minDoseUnit: p[PC.minDoseUnit]?.select?.name || null,
     minDoseSecondary: p[PC.minDoseSecondary]?.number ?? null,
     minDoseSecondaryUnit: p[PC.minDoseSecondaryUnit]?.select?.name || null,
     grade: p[PC.grade]?.select?.name || null,
     fdaDsheaDisclaimerRequired: p[PC.fdaDsheaDisclaimerRequired]?.checkbox || false,
+    // Bundle 3.5 P2 — regulatory metadata.
+    substantiatingRefs: (p[PC.substantiatingRefs]?.rich_text || []).map((t) => t.plain_text).join(''),
+    regulatoryMonographs: (p[PC.regulatoryMonographs]?.rich_text || []).map((t) => t.plain_text).join(''),
+    safetyLimit: p[PC.safetyLimit]?.number ?? null,
+    safetyLimitUnit: p[PC.safetyLimitUnit]?.select?.name || null,
+    safetyNotes: (p[PC.safetyNotes]?.rich_text || []).map((t) => t.plain_text).join(''),
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };
+}
+
+/**
+ * Bundle 3.5 P2 — update an AICS Claim's regulatory metadata in place.
+ * Allowlists exactly the regulatory fields; everything else stays untouched.
+ */
+export async function updateAicsClaimRegulatory(claimId, fields) {
+  if (!claimId) throw new Error('updateAicsClaimRegulatory: claimId is required.');
+  const properties = {};
+  if (fields.substantiatingRefs !== undefined) {
+    properties[PC.substantiatingRefs] = { rich_text: [{ text: { content: String(fields.substantiatingRefs || '').slice(0, 1900) } }] };
+  }
+  if (fields.regulatoryMonographs !== undefined) {
+    properties[PC.regulatoryMonographs] = { rich_text: [{ text: { content: String(fields.regulatoryMonographs || '').slice(0, 1900) } }] };
+  }
+  if (fields.safetyLimit !== undefined) {
+    properties[PC.safetyLimit] = fields.safetyLimit == null || fields.safetyLimit === '' ? { number: null } : { number: Number(fields.safetyLimit) };
+  }
+  if (fields.safetyLimitUnit !== undefined) {
+    properties[PC.safetyLimitUnit] = fields.safetyLimitUnit ? { select: { name: fields.safetyLimitUnit } } : { select: null };
+  }
+  if (fields.safetyNotes !== undefined) {
+    properties[PC.safetyNotes] = { rich_text: [{ text: { content: String(fields.safetyNotes || '').slice(0, 1900) } }] };
+  }
+  const page = await notion.pages.update({ page_id: claimId, properties });
+  return parseAicsClaimPage(page);
 }
 
 /**
