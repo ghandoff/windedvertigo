@@ -137,7 +137,7 @@ function RfpCard({
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-medium leading-tight">{rfp.opportunityName}</p>
           <div className="flex items-center gap-1 shrink-0">
-            {rfp.url && (
+            {rfp.url?.startsWith("http") && (
               <a href={rfp.url} target="_blank" rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}>
                 <ExternalLink className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />

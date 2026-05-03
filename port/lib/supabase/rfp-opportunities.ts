@@ -358,6 +358,8 @@ export async function upsertRfpOpportunityToSupabase(
         rfp_document_url: opp.rfpDocumentUrl ?? null,
         proposal_draft_url: opp.proposalDraftUrl ?? null,
         deadline_timezone: deadlineTimezone,
+        created_time: opp.createdTime || null,
+        last_edited_time: opp.lastEditedTime || null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "notion_page_id" },

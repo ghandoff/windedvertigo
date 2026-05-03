@@ -30,7 +30,7 @@ import { generateProposal, TEAM_BIOS } from "@/lib/ai/proposal-generator";
 import { matchCitations } from "@/lib/ai/citation-matcher";
 import { postToSlack } from "@/lib/slack";
 import { notion } from "@/lib/notion/client";
-import { setProposalStep, resetProposalToFailed } from "@/lib/supabase/rfp-opportunities";
+import { setProposalStep, setProposalStatus, resetProposalToFailed } from "@/lib/supabase/rfp-opportunities";
 
 const CRM_BASE_URL = "https://port.windedvertigo.com";
 
@@ -238,6 +238,7 @@ export const generateProposalFunction = inngest.createFunction(
 
     if (missingRequired.length > 0) {
       updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
+      setProposalStatus(rfpId, "failed").catch(() => {}); // keep Supabase in sync — tracker polls Supabase
       await postToSlack(
         `⚠️ *${rfpName}* moved to pursuing but is missing info needed for proposal generation.\n\nPlease add the following to the Notion record:\n${missingRequired.map((f) => `• ${f}`).join("\n")}\n\nGeneration will not proceed until these are added.`,
       );
@@ -353,6 +354,7 @@ export const generateProposalFunction = inngest.createFunction(
     } catch (err) {
       console.error("[generate-proposal] Claude generation failed:", err);
       updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
+      setProposalStatus(rfpId, "failed").catch(() => {}); // keep Supabase in sync — tracker polls Supabase
       await postToSlack(`⚠️ Proposal draft generation failed for *${rfpName}*. The AI call encountered an error. Please try again or draft manually.`);
       return { ok: false, reason: "generation_failed" };
     }
@@ -379,6 +381,7 @@ export const generateProposalFunction = inngest.createFunction(
     } catch (err) {
       console.error("[generate-proposal] failed to create Deal:", err);
       updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
+      setProposalStatus(rfpId, "failed").catch(() => {}); // keep Supabase in sync — tracker polls Supabase
       await postToSlack(`⚠️ Proposal draft was generated for *${rfpName}* but could not create a Deal record in Notion. Check logs.`);
       return { ok: false, reason: "deal_creation_failed" };
     }
@@ -557,6 +560,9 @@ export const generateProposalFunction = inngest.createFunction(
     }
 
     updateRfpOpportunity(rfpId, rfpUpdates).catch(() => {});
+    // Mirror terminal status + clear step in Supabase — the progress tracker polls
+    // Supabase every 4s, so without this it stays "generating" until the 15-min sync cron.
+    setProposalStatus(rfpId, "ready-for-review").catch(() => {});
     setProposalStep(rfpId, null).catch(() => {});
 
     // ── Step 7: Slack summary ─────────────────────────────

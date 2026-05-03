@@ -413,22 +413,26 @@ export default async function RfpDetailPage({ params }: Props) {
                   <p className="font-medium">{rfp.relatedProjectIds.length} linked</p>
                 </div>
               )}
-              <div>
-                <p className="text-muted-foreground text-xs mb-0.5">created</p>
-                <p className="font-medium">
-                  {new Date(rfp.createdTime).toLocaleDateString("en-US", {
-                    month: "short", day: "numeric", year: "numeric",
-                  })}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs mb-0.5">last updated</p>
-                <p className="font-medium">
-                  {new Date(rfp.lastEditedTime).toLocaleDateString("en-US", {
-                    month: "short", day: "numeric", year: "numeric",
-                  })}
-                </p>
-              </div>
+              {rfp.createdTime && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-0.5">created</p>
+                  <p className="font-medium">
+                    {new Date(rfp.createdTime).toLocaleDateString("en-US", {
+                      month: "short", day: "numeric", year: "numeric",
+                    })}
+                  </p>
+                </div>
+              )}
+              {rfp.lastEditedTime && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-0.5">last updated</p>
+                  <p className="font-medium">
+                    {new Date(rfp.lastEditedTime).toLocaleDateString("en-US", {
+                      month: "short", day: "numeric", year: "numeric",
+                    })}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
