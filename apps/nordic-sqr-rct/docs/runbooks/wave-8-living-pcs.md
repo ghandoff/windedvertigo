@@ -1,8 +1,8 @@
 # Wave 8 — Living PCS · Operator Runbook
 
 > **Audience:** Garrett (DPO), Nordic Research (Gina + team), Nordic RA.
-> **Status:** Phases A, B, C1–C4, D, A.7, A.8, and 8.1 all live in production.
-> **Last updated:** 2026-04-22
+> **Status:** Phases A, B, C1–C4, D, A.7, A.8, 8.1, audit-trail CSV export, and Premium teaser sidebar all live in production. Phase B work shipped 2026-05-03 (commits b65534d, 472f000).
+> **Last updated:** 2026-05-03
 
 ---
 
@@ -164,6 +164,58 @@ PCS_WRITES_FROZEN=true
 ```
 
 *(Not yet wired — this is a planned Wave 8.3 kill switch. Today, revoke the `pcs.*:edit` capabilities from all roles in `capabilities.js` and redeploy. Takes ~3 minutes.)*
+
+---
+
+## Audit-trail CSV export
+
+Shipped 2026-05-03 (commits b65534d, 472f000). Lets the team self-serve compliance pulls without asking Garrett to run a script.
+
+**Where:**
+- `/admin/audit-trail` — the existing audit page now has an "Export CSV" button that respects the page's current filter set.
+- `/pcs/documents/[id]` — the revisions side-panel has its own "Export CSV" button scoped to that document's revision history.
+
+**API:** `GET /api/pcs/audit-trail/export` — guarded by capability `audit:read` (researcher / ra / admin / super-user). Reviewers are excluded.
+
+**Filters (querystring):**
+- `from` / `to` — ISO date range
+- `entityType` — one of the values in `REVISION_ENTITY_TYPES`
+- `actor` — reviewer email substring match
+
+**CSV columns:**
+
+| Column | Notes |
+|---|---|
+| `timestamp` | ISO 8601 UTC |
+| `actor_email` | The user who performed the action |
+| `role` | Resolved role at the time of the action |
+| `entity_type` | e.g. `pcs_document`, `claim`, `evidence_packet`, `canonical_claim` |
+| `entity_id` | Notion page id |
+| `action` | `edit`, `revert`, `create` |
+| `before_snapshot` | JSON stringified, truncated to 4 KB per row |
+| `after_snapshot` | JSON stringified, truncated to 4 KB per row |
+
+**Self-audit:** every export request itself logs an audit row of action `export` with the requesting actor and the active filter set. So if the legal team asks who pulled what data when, the answer is in the same trail.
+
+---
+
+## Premium (Advanced) sidebar section
+
+Shipped 2026-05-03. A teaser block inside the role-aware PCS sidebar (see `role-aware-sidebar.md`) showing the four premium capabilities Nordic can opt into via the Priority retainer tier.
+
+**Visibility:** all PCS users (researcher / ra / admin / super-user) see the section. The four cards are LOCKED for non-super-users — clicking them does nothing beyond surfacing a tooltip:
+
+> "Available in Priority retainer tier; contact garrett@windedvertigo.com to enable for your tier."
+
+**Cards:**
+1. **LLM Cost Optimizer** — automatic prompt-cache routing + model-tier downshift on classifier-confident requests.
+2. **Notion → Supabase Backfill** — replaces Notion as the system of record for PCS entities; Notion becomes a read-only mirror.
+3. **Real-time Multi-User Editing** — CRDT-backed collaborative editing on `/pcs/documents/[id]` (the answer to the FAQ question above).
+4. **HIPAA + SOC 2 Compliance Pack** — audit log retention SLA, encrypted backups, BAA-eligible vendor swap, third-party SOC 2 attestation.
+
+**Super-user behavior:** Garrett's account sees the cards UNLOCKED; clicking each one opens `/admin/premium-preview/[slug]` placeholder pages (one per card) where the eventual product surface will live.
+
+**Why this exists:** keeps the upgrade path one click away for any Nordic team member without nagging them with a sales banner. The same Premium section will eventually become the unlock surface itself once a tier upgrade is purchased.
 
 ---
 
