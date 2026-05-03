@@ -130,8 +130,38 @@ export async function updateDocument(id, fields) {
   if (fields.templateSignals !== undefined) {
     properties[P.templateSignals] = { rich_text: [{ text: { content: fields.templateSignals || '' } }] };
   }
+  // Bundle 3.4 P2 — Linked AICS relation (full-replace semantics).
+  if (fields.linkedAicsIds !== undefined) {
+    properties[P.linkedAics] = { relation: (fields.linkedAicsIds || []).map((rid) => ({ id: rid })) };
+  }
   const page = await notion.pages.update({ page_id: id, properties });
   return parsePage(page);
+}
+
+/**
+ * Bundle 3.4 P2 — append a single AICS doc to this PCS doc's `Linked AICS`
+ * relation. No-op (idempotent) if already linked. Returns the parsed PCS doc.
+ */
+export async function linkAicsToDocument(documentId, aicsDocumentId) {
+  if (!documentId) throw new Error('linkAicsToDocument: documentId is required.');
+  if (!aicsDocumentId) throw new Error('linkAicsToDocument: aicsDocumentId is required.');
+  const current = await getDocument(documentId);
+  const existing = current.linkedAicsIds || [];
+  if (existing.includes(aicsDocumentId)) return current; // idempotent
+  return updateDocument(documentId, { linkedAicsIds: [...existing, aicsDocumentId] });
+}
+
+/**
+ * Bundle 3.4 P2 — remove a single AICS doc from this PCS doc's `Linked AICS`
+ * relation. No-op if not present. Returns the parsed PCS doc.
+ */
+export async function unlinkAicsFromDocument(documentId, aicsDocumentId) {
+  if (!documentId) throw new Error('unlinkAicsFromDocument: documentId is required.');
+  if (!aicsDocumentId) throw new Error('unlinkAicsFromDocument: aicsDocumentId is required.');
+  const current = await getDocument(documentId);
+  const existing = current.linkedAicsIds || [];
+  if (!existing.includes(aicsDocumentId)) return current; // idempotent
+  return updateDocument(documentId, { linkedAicsIds: existing.filter((rid) => rid !== aicsDocumentId) });
 }
 
 /**
