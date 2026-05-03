@@ -210,7 +210,7 @@ interface Props {
 
 export default async function OpportunitiesPage(props: Props) {
   const params = await props.searchParams;
-  const activeTab = TABS.some((t) => t.key === params.tab) ? params.tab! : "deals";
+  const activeTab = TABS.some((t) => t.key === params.tab) ? params.tab! : "rfps";
 
   return (
     <>

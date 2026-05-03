@@ -9,7 +9,8 @@
  * Notion. Also clears the proposal_started_at / proposal_completed_at timing
  * columns so the next generation gets a clean slate.
  *
- * Notion is also updated (non-atomic mirror) for UI display.
+ * Notion is also updated (awaited) so the detail page (which reads
+ * proposalStatus from Notion) sees the cleared status on router.refresh().
  *
  * Auth required. Returns 200 on success.
  */
@@ -43,10 +44,15 @@ export async function POST(
     return NextResponse.json({ error: "failed to reset status", detail: msg }, { status: 500 });
   }
 
-  // Mirror to Notion for UI display (non-critical, fire-and-forget)
-  updateRfpOpportunity(id, { proposalStatus: null }).catch((err) => {
-    console.warn("[reset-proposal-status] notion mirror failed (non-fatal):", err);
-  });
+  // Mirror to Notion — awaited so the detail page (which reads proposalStatus
+  // from Notion) sees the cleared status immediately after router.refresh().
+  // If this throws, we log it but still return ok:true since Supabase is the
+  // source of truth and the sweep cron will catch any lingering Notion state.
+  try {
+    await updateRfpOpportunity(id, { proposalStatus: null });
+  } catch (err) {
+    console.warn("[reset-proposal-status] notion mirror failed (status cleared in Supabase):", err);
+  }
 
   console.log(`[reset-proposal-status] ok rfpId=${id}`);
   return NextResponse.json({ ok: true, resetTo: null });

@@ -15,10 +15,19 @@
  * Why 10 minutes? The proposal pipeline normally takes 3–4 minutes. Setting
  * the threshold to 10 minutes gives 2.5× headroom before declaring a job
  * stuck, avoiding false positives from slow Claude calls or cold-start delays.
+ *
+ * Bug fix 2026-05-03: two previous issues corrected:
+ * 1. `.lt("proposal_started_at", cutoff)` silently skips rows where
+ *    proposal_started_at IS NULL (SQL NULL < timestamp = NULL, not true).
+ *    Fixed with `.or("proposal_started_at.is.null,proposal_started_at.lt.${cutoff}")`.
+ * 2. Supabase update never mirrored back to Notion, so the detail page
+ *    (which reads proposalStatus from Notion) kept showing "generating".
+ *    Fixed by fire-and-forget Notion mirror after each reset.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
+import { updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 
 export const maxDuration = 30;
 
@@ -37,6 +46,13 @@ export async function GET(req: NextRequest) {
 
   const cutoff = new Date(Date.now() - STUCK_THRESHOLD_MIN * 60 * 1000).toISOString();
 
+  // Match records where:
+  //   proposal_status = 'generating'
+  //   AND (proposal_started_at IS NULL OR proposal_started_at < cutoff)
+  //
+  // The IS NULL branch catches records that got stuck before proposal_started_at
+  // was introduced (old Inngest flow) or where the claim wrote the status but
+  // the timestamp column was never populated.
   const { data, error } = await supabase
     .from("rfp_opportunities")
     .update({
@@ -45,7 +61,7 @@ export async function GET(req: NextRequest) {
       proposal_completed_at: null,
     })
     .eq("proposal_status", "generating")
-    .lt("proposal_started_at", cutoff)
+    .or(`proposal_started_at.is.null,proposal_started_at.lt.${cutoff}`)
     .select("notion_page_id, proposal_started_at");
 
   if (error) {
@@ -60,6 +76,20 @@ export async function GET(req: NextRequest) {
       `[sweep-stuck-proposals] Reset ${reset.length} stuck proposal(s):`,
       reset.map((r) => r.notion_page_id),
     );
+
+    // Mirror 'failed' status back to Notion so the detail page (which reads
+    // proposalStatus from Notion) reflects the reset. Fire-and-forget per
+    // record — a Notion update failure is non-fatal for the sweep itself.
+    reset.forEach(({ notion_page_id }) => {
+      updateRfpOpportunity(notion_page_id, { proposalStatus: "failed" }).catch(
+        (err: unknown) => {
+          console.warn(
+            `[sweep-stuck-proposals] Notion mirror failed for ${notion_page_id}:`,
+            err,
+          );
+        },
+      );
+    });
   }
 
   return NextResponse.json({
