@@ -75,43 +75,75 @@ function LandingContent() {
 
           {/* Content */}
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-14 pb-12">
-            <div className="text-center mb-12">
+            <div className="text-center mb-10">
               <h2 className="text-3xl sm:text-5xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg">
-                Study Quality Rubric<br className="hidden sm:block" /> for RCTs
+                Substantiation. Review.<br className="hidden sm:block" /> Audit-Ready Science.
               </h2>
-              <p className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
-                Join our community of academics and industry experts evaluating randomized controlled trials in the nutraceutical and pharmaceutical domain.
+              <p className="text-lg text-white/85 max-w-3xl mx-auto leading-relaxed">
+                The Nordic Research Platform: where Nordic&apos;s internal team substantiates product claims, and external reviewers grade the science behind them.
               </p>
             </div>
 
-            <div className="flex flex-col lg:flex-row lg:justify-between items-start gap-8">
-              {/* Value props — left column */}
-              <div className="w-full lg:w-[38%] space-y-4">
-                {[
-                  { title: 'Review Studies', desc: 'Provide expert secondary reviews for published RCT studies using a validated, research-backed rubric.', borderClass: 'border-l-nordic-500', bgClass: 'bg-nordic-50', textClass: 'text-nordic-600', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-                  { title: 'Expert Network', desc: 'Connect with leading researchers and professionals in nutraceutical and pharmaceutical science.', borderClass: 'border-l-gold-500', bgClass: 'bg-gold-50', textClass: 'text-gold-600', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
-                  { title: 'Build Credibility', desc: 'Earn badges, build your review portfolio, and generate evidence for promotion and tenure.', borderClass: 'border-l-green-500', bgClass: 'bg-green-50', textClass: 'text-green-600', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z' },
-                ].map((item) => (
-                  <div key={item.title} className={`card p-6 border-l-4 ${item.borderClass} backdrop-blur-sm bg-white/95`}>
-                    <div className="flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-lg ${item.bgClass} flex items-center justify-center shrink-0`}>
-                        <svg className={`w-5 h-5 ${item.textClass}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d={item.icon} /></svg>
+            {/* Two-lane audience pathway — Nordic Team (left), External Reviewers (right) */}
+            <div className="flex flex-col lg:flex-row gap-6 mb-10">
+              {/* Nordic Team lane (LEFT) */}
+              <div className="flex-1">
+                <div className="card backdrop-blur-sm bg-white/95 p-6 h-full border-l-4 border-pacific-500">
+                  <h3 className="text-lg font-bold text-pacific mb-1">For the Nordic Team</h3>
+                  <p className="text-sm text-gray-600 mb-4">PCS substantiation, AICS active-ingredient research, label intake, and claim review — built for Research, RA, and Operations.</p>
+                  <div className="space-y-4">
+                    {[
+                      { title: 'Document the Science', desc: 'Structured PCS templates with controlled vocabulary for active ingredients, doses, and demographics.', borderClass: 'border-l-pacific-500', bgClass: 'bg-pacific-50', textClass: 'text-pacific-600', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+                      { title: 'Review and Approve Claims', desc: 'Living PCS versioning, audit-trail revert, and dedupe flow keep claim language consistent across the portfolio.', borderClass: 'border-l-nordic-500', bgClass: 'bg-nordic-50', textClass: 'text-nordic-600', icon: 'M5 13l4 4L19 7' },
+                      { title: 'Audit Trail for Compliance', desc: 'Every mutation logged. CSV export for FDA/Health Canada/regulatory inquiries, available to RA and admin.', borderClass: 'border-l-gold-500', bgClass: 'bg-gold-50', textClass: 'text-gold-600', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
+                    ].map((item) => (
+                      <div key={item.title} className={`pl-3 border-l-2 ${item.borderClass} flex items-start gap-3`}>
+                        <div className={`w-8 h-8 rounded-md ${item.bgClass} flex items-center justify-center shrink-0`}>
+                          <svg className={`w-4 h-4 ${item.textClass}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d={item.icon} /></svg>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-pacific">{item.title}</h4>
+                          <p className="text-xs text-gray-600 mt-0.5">{item.desc}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-pacific">{item.title}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{item.desc}</p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
 
-              {/* Login card — right column */}
-              <div className="w-full lg:w-[38%]">
+              {/* External Reviewer lane (RIGHT) */}
+              <div className="flex-1">
+                <div className="card backdrop-blur-sm bg-white/95 p-6 h-full border-l-4 border-gold-500">
+                  <h3 className="text-lg font-bold text-pacific mb-1">For External Reviewers</h3>
+                  <p className="text-sm text-gray-600 mb-4">Independent secondary reviews of randomized controlled trials in nutraceutical and pharmaceutical research. Earn credibility, build your portfolio.</p>
+                  <div className="space-y-4">
+                    {[
+                      { title: 'Review Studies', desc: 'Provide expert secondary reviews for published RCT studies using a validated, research-backed rubric.', borderClass: 'border-l-nordic-500', bgClass: 'bg-nordic-50', textClass: 'text-nordic-600', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+                      { title: 'Expert Network', desc: 'Connect with leading researchers and professionals in nutraceutical and pharmaceutical science.', borderClass: 'border-l-gold-500', bgClass: 'bg-gold-50', textClass: 'text-gold-600', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+                      { title: 'Build Credibility', desc: 'Earn badges, build your review portfolio, and generate evidence for promotion and tenure.', borderClass: 'border-l-green-500', bgClass: 'bg-green-50', textClass: 'text-green-600', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z' },
+                    ].map((item) => (
+                      <div key={item.title} className={`pl-3 border-l-2 ${item.borderClass} flex items-start gap-3`}>
+                        <div className={`w-8 h-8 rounded-md ${item.bgClass} flex items-center justify-center shrink-0`}>
+                          <svg className={`w-4 h-4 ${item.textClass}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d={item.icon} /></svg>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-pacific">{item.title}</h4>
+                          <p className="text-xs text-gray-600 mt-0.5">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Login card — centered below the audience lanes */}
+            <div className="flex justify-center">
+              <div className="w-full max-w-md">
                 <div className="card shadow-xl backdrop-blur-sm bg-white/95">
                   <div className="p-8">
                     <h3 className="text-xl font-bold text-pacific mb-1">Sign in</h3>
-                    <p className="text-sm text-gray-500 mb-6">Nordic research team or external reviewer</p>
+                    <p className="text-sm text-gray-500 mb-6">Nordic team or external reviewer</p>
                     <form onSubmit={handleLogin} className="space-y-4">
                       <div>
                         <label className="form-label" htmlFor="alias">Username</label>
@@ -125,8 +157,13 @@ function LandingContent() {
                       <button type="submit" disabled={submitting} className="btn-primary w-full">{submitting ? 'Signing in...' : 'Sign in'}</button>
                     </form>
                   </div>
-                  <div className="border-t border-gray-100 p-6 bg-gray-50/90 rounded-b-xl">
-                    <p className="text-sm text-gray-600 mb-3"><span className="font-semibold">New Reviewer?</span> Register to get your alias and begin reviewing studies.</p>
+                  <div className="border-t border-gray-100 p-6 bg-gray-50/90 rounded-b-xl space-y-3">
+                    <p className="text-sm text-gray-600">
+                      <span className="font-semibold">Nordic team?</span> Request access from your manager — accounts are provisioned by the platform admin.
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-semibold">External reviewer?</span> Register to get your alias and start reviewing studies.
+                    </p>
                     <Link href="/register" className="btn-secondary w-full text-center">Register as Reviewer</Link>
                   </div>
                 </div>
