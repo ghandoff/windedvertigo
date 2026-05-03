@@ -219,3 +219,72 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
 export function getLayoutForRole(role) {
   return SIDEBAR_LAYOUTS[role] || SIDEBAR_LAYOUTS['reviewer'];
 }
+
+/**
+ * Wave 8 Phase B (Budget B teaser) — "Advanced (Premium)" section.
+ *
+ * Shown to every role that sees a sidebar. For non-`super-user` viewers each
+ * item renders as a locked card with a "Premium retainer tier" badge and an
+ * explanatory tooltip. Super-users see the same items unlocked, each linking
+ * to a placeholder preview route under /admin/premium-preview/[slug].
+ *
+ * The four cards are aligned with the Winded Vertigo R&D retainer roadmap
+ * (Budget B in the contract reset). Order matters — show the highest-FOMO
+ * item (LLM cost) first.
+ */
+export const PREMIUM_GROUP = Object.freeze({
+  key: 'advanced-premium',
+  label: 'Advanced (Premium)',
+  defaultOpen: true,
+  items: Object.freeze([
+    {
+      key: 'llm-cost-optimizer',
+      label: 'LLM Cost Optimizer',
+      href: '/admin/premium-preview/llm-cost-optimizer',
+      premium: true,
+      description:
+        'Replace Claude calls with deterministic parsers + OSS models. Ships ~80% LLM cost reduction.',
+    },
+    {
+      key: 'notion-supabase-backfill',
+      label: 'Notion → Supabase Backfill',
+      href: '/admin/premium-preview/notion-supabase-backfill',
+      premium: true,
+      description:
+        'Migrate the PCS corpus to Postgres for 5× faster reads + RLS.',
+    },
+    {
+      key: 'realtime-multi-user-editing',
+      label: 'Real-time Multi-User Editing',
+      href: '/admin/premium-preview/realtime-multi-user-editing',
+      premium: true,
+      description:
+        'Sharon and Lauren editing the same PCS simultaneously, conflict-free.',
+    },
+    {
+      key: 'compliance-pack',
+      label: 'HIPAA / SOC 2 Compliance Pack',
+      href: '/admin/premium-preview/compliance-pack',
+      premium: true,
+      description:
+        'Audit-ready posture for regulated-data partners.',
+    },
+  ]),
+});
+
+/**
+ * True when the role should see the Advanced (Premium) section in their
+ * sidebar. Reviewer is excluded (their flat layout is intentionally
+ * minimal); everyone else sees it.
+ */
+export function shouldShowPremiumGroup(role) {
+  return role !== 'reviewer';
+}
+
+/**
+ * True when the role unlocks Premium items (renders them as live links
+ * rather than locked cards). Super-user only.
+ */
+export function isPremiumUnlocked(role) {
+  return role === 'super-user';
+}

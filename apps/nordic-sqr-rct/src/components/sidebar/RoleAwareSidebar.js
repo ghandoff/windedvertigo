@@ -29,7 +29,14 @@ import Link from 'next/link';
 import SidebarGroup from './SidebarGroup';
 import SidebarItem from './SidebarItem';
 import RoleSwitcher from './role-switcher';
-import { getLayoutForRole, ROLE_LABEL } from './sidebar-items';
+import PremiumCard from './PremiumCard';
+import {
+  getLayoutForRole,
+  ROLE_LABEL,
+  PREMIUM_GROUP,
+  shouldShowPremiumGroup,
+  isPremiumUnlocked,
+} from './sidebar-items';
 import useSidebarCounts from './useSidebarCounts';
 
 export default function RoleAwareSidebar({
@@ -89,6 +96,24 @@ export default function RoleAwareSidebar({
               />
             ))
           : null}
+
+        {/* Wave 8 Phase B — Advanced (Premium) section */}
+        {shouldShowPremiumGroup(role) ? (
+          <div className="mt-3 border-t border-gray-100 pt-3">
+            <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gold-700">
+              {PREMIUM_GROUP.label}
+            </div>
+            <div className="space-y-1.5 px-1">
+              {PREMIUM_GROUP.items.map((item) => (
+                <PremiumCard
+                  key={item.key}
+                  item={item}
+                  locked={!isPremiumUnlocked(role)}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
       </nav>
 
       {/* Footer */}
