@@ -143,6 +143,40 @@ test('reviewer cannot pcs.applicability:edit', () => {
 test('admin inherits pcs.applicability:edit via researcher composition', () => {
   assertTrue(can({ roles: ['admin'] }, 'pcs.applicability:edit'));
 });
+// Wave 8 Phase B — audit-trail CSV export capability
+test('CAPABILITIES has audit:read', () => {
+  assertTrue(CAPABILITIES['audit:read'] === 'audit:read');
+});
+test('researcher can audit:read', () => {
+  assertTrue(can({ roles: ['researcher'] }, 'audit:read'));
+});
+test('ra can audit:read', () => {
+  assertTrue(can({ roles: ['ra'] }, 'audit:read'));
+});
+test('admin can audit:read (via researcher composition)', () => {
+  assertTrue(can({ roles: ['admin'] }, 'audit:read'));
+});
+test('super-user can audit:read', () => {
+  assertTrue(can({ roles: ['super-user'] }, 'audit:read'));
+});
+test('reviewer cannot audit:read', () => {
+  assertFalse(can({ roles: ['reviewer'] }, 'audit:read'));
+});
+test('unauthenticated cannot audit:read', () => {
+  assertFalse(can(null, 'audit:read'));
+});
+// Audit-trail export route gating: the GET handler in
+// src/app/api/pcs/audit-trail/export/route.js calls
+// requireCapability(req, 'audit:read'). Since requireCapability returns
+// 401/403 NextResponses, we exercise the underlying `can()` predicate
+// here as a tight, hermetic stand-in for the per-route 200/403 contract.
+// (`reviewer` → 403 path; `researcher` → 200 path.)
+test('audit-trail export gate: reviewer is denied (→ 403)', () => {
+  assertFalse(can({ roles: ['reviewer'] }, 'audit:read'));
+});
+test('audit-trail export gate: researcher is allowed (→ 200)', () => {
+  assertTrue(can({ roles: ['researcher'] }, 'audit:read'));
+});
 test('can() honors legacy isAdmin fallback → admin caps', () => {
   assertTrue(can({ isAdmin: true }, 'users:edit-role'));
 });

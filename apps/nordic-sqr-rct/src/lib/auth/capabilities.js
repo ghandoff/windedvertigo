@@ -96,6 +96,7 @@ export const CAPABILITIES = Object.freeze({
   'users:assume-role': 'users:assume-role',
 
   // Audit & compliance / system
+  'audit:read': 'audit:read',
   'audit:read-logs': 'audit:read-logs',
   'audit:read-logs-all': 'audit:read-logs-all',
   'data:export-personal': 'data:export-personal',
@@ -157,6 +158,8 @@ const RESEARCHER_CAPS = [
   'pcs.export:docx',
   // Wave 8 Phase A — researchers can see the edit history of anything they touch
   'pcs.revisions:read',
+  // Wave 8 Phase B — operator-facing audit-trail CSV export
+  'audit:read',
   // Wave 8 Phase C1 — researchers own the canonical-claim vocabulary
   'pcs.canonical:edit',
   // Wave 7.5 prereq — applicability rule curation (Track A of the parallel-stack plan)
@@ -190,6 +193,8 @@ const RA_CAPS = [
   'pcs.export:csv',
   // Wave 8 Phase A — RA can see the edit history of anything they touch
   'pcs.revisions:read',
+  // Wave 8 Phase B — operator-facing audit-trail CSV export
+  'audit:read',
   // Wave 8 Phase C1 — RA can also curate canonical claim metadata
   'pcs.canonical:edit',
   // Wave 7.5 prereq — applicability rule curation (Track A of the parallel-stack plan)
