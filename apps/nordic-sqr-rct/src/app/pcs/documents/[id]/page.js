@@ -394,7 +394,14 @@ export default function PcsDocumentDetail() {
             </Link>
             {canWrite && (
               <button
-                onClick={() => setEditing(true)}
+                onClick={() => {
+                  // 2026-05-04 — Word view is read-only by design (it
+                  // mirrors the printed .docx). When the user clicks
+                  // Edit while in Word mode, snap them to Compact view
+                  // so the inline + form-driven edit fields surface.
+                  if (viewMode === 'word') setViewMode('compact');
+                  setEditing(true);
+                }}
                 className="px-4 py-2 text-sm font-medium text-pacific-600 border border-pacific-600 rounded-md hover:bg-pacific-50 transition-colors"
               >
                 Edit
@@ -426,17 +433,36 @@ export default function PcsDocumentDetail() {
         <>
           {/* 2026-05-04 — Word view is intentionally read-only (it mirrors
               the printed .docx for transition continuity). When canWrite,
-              point the user at the Compact view for inline edits. */}
-          {canWrite && !editing ? (
-            <div className="mb-4 rounded-lg border border-pacific-200 bg-pacific-50/60 px-4 py-2.5 text-sm flex items-center justify-between gap-3">
-              <div className="text-gray-800">
-                <span className="font-semibold">Word view is read-only.</span>{' '}
-                Switch to <em>Compact</em> above to inline-edit fields, or click <em>Edit</em> for the form-driven editor.
+              direct the user at the Compact view for inline edits. The
+              Edit button at the top-right also auto-snaps to Compact when
+              clicked from Word mode. */}
+          {canWrite ? (
+            <div className={[
+              'mb-4 rounded-lg border px-4 py-2.5 text-sm flex items-center justify-between gap-3',
+              editing
+                ? 'border-amber-300 bg-amber-50 text-amber-900'
+                : 'border-pacific-200 bg-pacific-50/60 text-gray-800',
+            ].join(' ')}>
+              <div>
+                {editing ? (
+                  <>
+                    <span className="font-semibold">You&apos;re in edit mode but Word view is read-only.</span>{' '}
+                    Switch to <em>Compact</em> to make changes.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold">Word view is read-only.</span>{' '}
+                    Switch to <em>Compact</em> above to inline-edit fields, or click <em>Edit</em> for the form-driven editor.
+                  </>
+                )}
               </div>
               <button
                 type="button"
                 onClick={() => setViewMode('compact')}
-                className="whitespace-nowrap rounded-md bg-pacific-600 px-3 py-1 text-xs font-medium text-white hover:bg-pacific-700"
+                className={[
+                  'whitespace-nowrap rounded-md px-3 py-1 text-xs font-medium text-white',
+                  editing ? 'bg-amber-600 hover:bg-amber-700' : 'bg-pacific-600 hover:bg-pacific-700',
+                ].join(' ')}
               >
                 Switch to Compact
               </button>
