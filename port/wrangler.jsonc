@@ -46,14 +46,15 @@
   },
 
   // ── Routes ───────────────────────────────────────────────────────────────
-  // Production route is COMMENTED OUT during G.2.4 parity canary.
-  // Uncomment at G.2.5 DNS cutover once 7-day canary passes.
-  // "routes": [
-  //   {
-  //     "pattern": "port.windedvertigo.com/*",
-  //     "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
-  //   }
-  // ],
+  // DNS cutover active (G.2.5 — 2026-05-03). CF edge routes port.windedvertigo.com
+  // to wv-port Worker before forwarding to Vercel origin. Keep Vercel wv-crm
+  // running as rollback for 2 weeks (retire ~2026-05-17).
+  "routes": [
+    {
+      "pattern": "port.windedvertigo.com/*",
+      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee"
+    }
+  ],
 
   // ── Secrets (set via `wrangler secret put`) ───────────────────────────────
   // Required secrets (same as Vercel env vars for this app):
