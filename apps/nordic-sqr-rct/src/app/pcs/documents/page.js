@@ -47,8 +47,11 @@ function PcsDocuments() {
       key: 'pcsId',
       label: 'PCS ID',
       render: (val, row) => (
-        <Link href={`/pcs/documents/${row.id}`} className="text-pacific-600 hover:underline font-medium">
-          {val}
+        <Link href={`/pcs/documents/${row.id}`} className="font-mono text-pacific-600 hover:underline font-medium">
+          {/* 2026-05-04 — strip the literal "PCS-" prefix on display.
+              The column header "PCS ID" already establishes the namespace
+              so the bare 4-digit number reads cleaner in the row. */}
+          {typeof val === 'string' && val.startsWith('PCS-') ? val.slice(4) : val}
         </Link>
       ),
     },

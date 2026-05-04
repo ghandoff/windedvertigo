@@ -137,6 +137,24 @@ function PcsClaims() {
           </Link>
         )}
       </div>
+
+      {/* 2026-05-04 — direct shortcut into the Phase 4.6 review queue.
+          Anyone scanning the claims list who spots a redundant or
+          mis-mapped row can jump straight into editing it via the
+          backfill review surface. */}
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-pacific-200 bg-pacific-50/60 px-4 py-2.5 text-sm">
+        <div className="text-gray-800">
+          <span className="font-semibold">Spot a redundancy or mis-mapped claim?</span>{' '}
+          Open the <em>Claim Mapping Review</em> queue to edit canonical / prefix / variants.
+        </div>
+        <Link
+          href="/pcs/canonical-claims/backfill-review"
+          className="whitespace-nowrap rounded-md bg-pacific-600 px-3 py-1 text-xs font-medium text-white hover:bg-pacific-700"
+        >
+          Review queue →
+        </Link>
+      </div>
+
       <PcsTable columns={columns} data={claims} onUpdate={handleUpdate} tableKey="claims" userId={user?.reviewerId} />
     </div>
   );

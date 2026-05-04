@@ -91,9 +91,12 @@ export default function ExportPanel() {
         <h2 className="text-lg font-semibold text-gray-900">Word Reports</h2>
         <p className="text-sm text-gray-500">Branded, formatted reports ready to share with stakeholders. Opens in Microsoft Word or Google Docs.</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* 2026-05-04 — tile is a flex column so the description grows
+              and the download button stays glued to the bottom regardless
+              of copy length. All 3 buttons line up on the same baseline. */}
           {DOCX_REPORTS.map(report => (
-            <div key={report.type} className="border border-gray-200 rounded-lg p-5 space-y-3 bg-white hover:border-gray-300 transition-colors">
-              <div className="flex items-start gap-3">
+            <div key={report.type} className="flex flex-col border border-gray-200 rounded-lg p-5 bg-white hover:border-gray-300 transition-colors">
+              <div className="flex items-start gap-3 flex-1">
                 <div className="shrink-0 mt-0.5">{report.icon}</div>
                 <div>
                   <h3 className="font-medium text-gray-900">{report.label}</h3>
@@ -103,7 +106,7 @@ export default function ExportPanel() {
               <button
                 onClick={() => handleDocxDownload(report.type)}
                 disabled={generating !== null}
-                className="w-full px-4 py-2.5 bg-pacific-600 text-white rounded-md text-sm font-medium hover:bg-pacific-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+                className="mt-4 w-full px-4 py-2.5 bg-pacific-600 text-white rounded-md text-sm font-medium hover:bg-pacific-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
               >
                 {generating === report.type ? (
                   <>

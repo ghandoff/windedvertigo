@@ -32,20 +32,9 @@ export default function ResearchQualityPage() {
         </p>
       </header>
 
-      {/* §1 — The ask */}
+      {/* §1 — Platform's posture */}
       <section className="card p-6">
-        <h2 className="text-lg font-semibold text-gray-900">1. The ask</h2>
-        <p className="mt-2 text-sm text-gray-700 leading-relaxed">
-          Sharon Matheny (Research VP) requested that every study used as evidentiary support for a
-          claim must first pass <strong>Cochrane RoB 2</strong> with a <em>No</em> or <em>Low</em> risk
-          rating before moving on to SQR-RCT scoring (Slack, 2026-04-17, conveyed by Gina Jaeger).
-          High-risk RoB 2 outcomes would disqualify a study from inclusion.
-        </p>
-      </section>
-
-      {/* §2 — Platform's posture */}
-      <section className="card p-6">
-        <h2 className="text-lg font-semibold text-gray-900">2. The platform&apos;s posture</h2>
+        <h2 className="text-lg font-semibold text-gray-900">1. The platform&apos;s posture</h2>
         <p className="mt-2 text-sm text-gray-700 leading-relaxed">
           Cochrane RoB 2 is <strong>available</strong> on every SQR-scored study via a deterministic
           translation layer (<code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs">src/lib/rob2-mapping.js</code>) that projects the
@@ -55,13 +44,13 @@ export default function ResearchQualityPage() {
         </p>
         <p className="mt-3 text-sm text-gray-700 leading-relaxed">
           What the platform does <em>not</em> do is treat Cochrane RoB 2 as the sole gatekeeper before
-          SQR-RCT scoring. The reason is in §3.
+          SQR-RCT scoring. The reason is in §2.
         </p>
       </section>
 
-      {/* §3 — Evidence */}
+      {/* §2 — Evidence */}
       <section className="card p-6" id="evidence">
-        <h2 className="text-lg font-semibold text-gray-900">3. Evidence — why the SQR-RCT rubric outperforms RoB 2</h2>
+        <h2 className="text-lg font-semibold text-gray-900">2. Evidence — why the SQR-RCT rubric outperforms RoB 2</h2>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4">
@@ -103,9 +92,9 @@ export default function ResearchQualityPage() {
         </p>
       </section>
 
-      {/* §4 — The layered approach */}
+      {/* §3 — The layered approach */}
       <section className="card p-6">
-        <h2 className="text-lg font-semibold text-gray-900">4. The layered approach</h2>
+        <h2 className="text-lg font-semibold text-gray-900">3. The layered approach</h2>
         <p className="mt-2 text-sm text-gray-700">
           Each layer adds a distinct quality signal. None is sufficient alone; together they form a
           defensible bias-and-applicability posture.
@@ -149,9 +138,9 @@ export default function ResearchQualityPage() {
         </ol>
       </section>
 
-      {/* §5 — What Sharon sees on a study page */}
+      {/* §4 — What Sharon sees on a study page */}
       <section className="card p-6">
-        <h2 className="text-lg font-semibold text-gray-900">5. What Sharon sees on a study page</h2>
+        <h2 className="text-lg font-semibold text-gray-900">4. What Sharon sees on a study page</h2>
         <p className="mt-2 text-sm text-gray-700 leading-relaxed">
           Every SQR-scored study page exposes both views. The rubric scores are primary; the Cochrane
           RoB 2 mapping renders as a derived chip group with the rationale strings that
@@ -165,15 +154,23 @@ export default function ResearchQualityPage() {
         </p>
       </section>
 
-      {/* §6 — Companion docs */}
+      {/* §5 — Companion docs */}
       <section className="card p-6">
-        <h2 className="text-lg font-semibold text-gray-900">6. Companion documents</h2>
+        <h2 className="text-lg font-semibold text-gray-900">5. Companion documents</h2>
         <ul className="mt-3 space-y-2 text-sm text-gray-700">
           <li>
-            <strong>Gap Analysis Report (Notion):</strong> §7.1.3 — full literature review of RoB 2,
-            PEDro, Downs &amp; Black, NUQUEST, NutriGrade, Jadad, CASP, SIGN 50, Newcastle-Ottawa,
-            JBI, ROBINS-I, CONSORT, AMSTAR 2, QUADAS-2 with published inter-rater reliability values
-            and primary citations.
+            <strong>Gap Analysis Report:</strong>{' '}
+            <a
+              href="https://www.notion.so/345e4ee74ba4819c8bbbc616067723c2"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-pacific-600 hover:underline font-medium"
+            >
+              Open in Notion ↗
+            </a>{' '}
+            — §7.1.3 has the full literature review of RoB 2, PEDro, Downs &amp; Black, NUQUEST,
+            NutriGrade, Jadad, CASP, SIGN 50, Newcastle-Ottawa, JBI, ROBINS-I, CONSORT, AMSTAR 2,
+            QUADAS-2 with published inter-rater reliability values and primary citations.
           </li>
           <li>
             <strong>Source code:</strong> <code className="rounded bg-gray-100 px-1 py-0.5 text-xs">src/lib/rob2-mapping.js</code> (361 lines, verified by <code className="rounded bg-gray-100 px-1 py-0.5 text-xs">npm run verify:rob2</code>).

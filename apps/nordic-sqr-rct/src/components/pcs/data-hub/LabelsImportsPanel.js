@@ -92,9 +92,9 @@ function LabelImportsDashboard({ user }) {
             Drop product label files below. The extractor runs on the next cron tick (≤ 5 min)
             and reads SKU, claims, and ingredient doses off the image. Rows that pass
             confidence gates <em>and</em> already have a PCS ID land in
-            <span className="mx-1 inline-block rounded bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">Committed</span>
+            <span className="mx-1 inline-block whitespace-nowrap rounded bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">Committed</span>
             automatically; everything else waits at
-            <span className="ml-1 inline-block rounded bg-orange-100 px-1.5 py-0.5 text-xs font-medium text-orange-800">Needs Validation</span>
+            <span className="ml-1 inline-block whitespace-nowrap rounded bg-orange-100 px-1.5 py-0.5 text-xs font-medium text-orange-800">Needs Validation</span>
             for your review.
           </p>
         </div>
@@ -303,7 +303,7 @@ function LabelRow({ row, onChanged }) {
           </select>
         </td>
         <td className="px-3 py-2">
-          <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[row.status] || 'bg-gray-100 text-gray-700'}`}>
+          <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[row.status] || 'bg-gray-100 text-gray-700'}`}>
             {row.status || 'Pending'}
           </span>
         </td>
@@ -313,7 +313,7 @@ function LabelRow({ row, onChanged }) {
               type="button"
               onClick={commit}
               disabled={!canCommit || busy}
-              className="rounded bg-pacific-600 px-2 py-1 text-xs font-medium text-white hover:bg-pacific-700 disabled:opacity-40"
+              className="whitespace-nowrap rounded bg-pacific-600 px-2 py-1 text-xs font-medium text-white hover:bg-pacific-700 disabled:opacity-40"
               title={row.status === 'Needs Validation' && !pcsId.trim() ? 'Add PCS ID before re-queueing to move off Needs Validation' : ''}
             >
               {row.status === 'Pending' && !row.confidenceOverall ? 'Queue' : 'Re-queue'}

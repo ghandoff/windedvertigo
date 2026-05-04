@@ -826,9 +826,14 @@ function JobRow({ job, expanded, detail, selected, onSelect, currentPromptVersio
           />
         </td>
         <td className="px-3 py-2 font-mono text-xs">{job.jobId}</td>
-        <td className="px-3 py-2">{job.pcsId || <span className="text-gray-400">—</span>}</td>
+        <td className="px-3 py-2 font-mono">{
+          /* 2026-05-04 — drop "PCS-" prefix, header already says "PCS ID" */
+          job.pcsId
+            ? (typeof job.pcsId === 'string' && job.pcsId.startsWith('PCS-') ? job.pcsId.slice(4) : job.pcsId)
+            : <span className="text-gray-400">—</span>
+        }</td>
         <td className="px-3 py-2">
-          <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[job.status] || 'bg-gray-100 text-gray-700'}`}>
+          <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[job.status] || 'bg-gray-100 text-gray-700'}`}>
             {job.status || 'unknown'}
           </span>
         </td>
