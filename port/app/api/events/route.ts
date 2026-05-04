@@ -1,18 +1,18 @@
 /**
  * GET /api/events — list + filter events & conferences
- * POST /api/events — create a new event (writes still go to Notion)
+ * POST /api/events — create a new event
  *
- * Phase G.1.3: GET reads from Supabase (faster, no rate limits).
- * POST still writes to Notion — source of truth; sync cron mirrors within 15 min.
+ * Phase G.1.3: GET reads from Supabase.
+ * Phase A3: POST writes to Supabase directly (Notion write retired).
  */
 
 import { NextRequest } from "next/server";
 import {
   getEventsFromSupabase,
+  upsertEventToSupabase,
   type EventSupabaseFilters,
 } from "@/lib/supabase/events";
-import { createEvent } from "@/lib/notion/events";
-import { json, error, param, withNotionError } from "@/lib/api-helpers";
+import { json, error, param } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -49,9 +49,46 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.event) return error("event (name) is required");
 
-  // Creates still go to Notion — source of truth.
-  return withNotionError(async () => {
-    const evt = await createEvent(body);
-    return json(evt, 201);
-  });
+  try {
+    const id = crypto.randomUUID();
+    await upsertEventToSupabase(id, {
+      event: body.event,
+      type: body.type ?? null,
+      event_start: body.eventDates?.start ?? null,
+      event_end: body.eventDates?.end ?? null,
+      proposal_deadline: body.proposalDeadline?.start ?? null,
+      frequency: body.frequency ?? null,
+      location: body.location ?? null,
+      est_attendance: body.estAttendance ?? null,
+      registration_cost: body.registrationCost ?? null,
+      quadrant_relevance: body.quadrantRelevance ?? [],
+      bd_segments: body.bdSegments ?? null,
+      who_should_attend: body.whoShouldAttend ?? [],
+      why_it_matters: body.whyItMatters ?? null,
+      notes: body.notes ?? null,
+      url: body.url ?? null,
+    });
+
+    return json({
+      id,
+      event: body.event,
+      type: body.type ?? "Conference",
+      eventDates: body.eventDates ?? null,
+      proposalDeadline: body.proposalDeadline ?? null,
+      frequency: body.frequency ?? null,
+      location: body.location ?? "",
+      estAttendance: body.estAttendance ?? "",
+      registrationCost: body.registrationCost ?? "",
+      quadrantRelevance: body.quadrantRelevance ?? [],
+      bdSegments: body.bdSegments ?? "",
+      whoShouldAttend: body.whoShouldAttend ?? [],
+      whyItMatters: body.whyItMatters ?? "",
+      notes: body.notes ?? "",
+      url: body.url ?? "",
+      lastEditedTime: new Date().toISOString(),
+    }, 201);
+  } catch (err) {
+    console.error("[api/events] POST failed:", err);
+    return error("failed to create event", 500);
+  }
 }

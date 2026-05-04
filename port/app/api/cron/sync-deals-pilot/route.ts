@@ -1,4 +1,6 @@
 /**
+ * @deprecated Phase A3 — Supabase is now the write-primary source of truth.
+ * This Notion→Supabase sync cron is RETIRED. Remove in Phase A4 cleanup.
  * GET /api/cron/sync-deals-pilot
  *
  * One-way mirror: Notion deals DB → Supabase `deals` table.

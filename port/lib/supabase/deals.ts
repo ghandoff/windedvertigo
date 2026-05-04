@@ -86,3 +86,29 @@ export async function getDealByIdFromSupabase(
   }
   return data ? mapRowToDeal(data as DealRow) : null;
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a deal. Uses notion_page_id as the conflict target.
+ */
+export async function upsertDealToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<DealRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("deals")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/deals] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a deal row.
+ */
+export async function deleteDealFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("deals")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/deals] delete: ${error.message}`);
+}

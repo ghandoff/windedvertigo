@@ -1,18 +1,14 @@
 /**
- * GET /api/milestones — list + filter milestones/phases
- * POST /api/milestones — create a new milestone (writes still go to Notion)
- *
- * Phase G.1.3: GET reads from Supabase (faster, no rate limits).
- * POST still writes to Notion — source of truth; sync cron mirrors within 15 min.
+ * Phase A3: GET reads Supabase, POST writes to Supabase directly.
  */
 
 import { NextRequest } from "next/server";
 import {
   getMilestonesFromSupabase,
+  upsertMilestoneToSupabase,
   type MilestoneSupabaseFilters,
 } from "@/lib/supabase/milestones";
-import { createMilestone } from "@/lib/notion/milestones";
-import { json, error, param, boolParam, withNotionError } from "@/lib/api-helpers";
+import { json, error, param, boolParam } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -51,9 +47,44 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.milestone) return error("milestone (name) is required");
 
-  // Creates still go to Notion — source of truth.
-  return withNotionError(async () => {
-    const ms = await createMilestone(body);
-    return json(ms, 201);
-  });
+  try {
+    const id = crypto.randomUUID();
+    await upsertMilestoneToSupabase(id, {
+      milestone: body.milestone,
+      kind: body.kind ?? "milestone",
+      milestone_status: body.milestoneStatus ?? "not started",
+      project_ids: body.projectIds ?? [],
+      task_ids: body.taskIds ?? [],
+      owner_ids: body.ownerIds ?? [],
+      start_date: body.startDate ?? null,
+      end_date: body.endDate ?? null,
+      client_visible: body.clientVisible ?? false,
+      description: body.description ?? null,
+      brief: body.brief ?? null,
+      billing_total: body.billingTotal ?? null,
+      archive: false,
+    });
+
+    return json({
+      id,
+      milestone: body.milestone,
+      kind: body.kind ?? "milestone",
+      milestoneStatus: body.milestoneStatus ?? "not started",
+      projectIds: body.projectIds ?? [],
+      taskIds: body.taskIds ?? [],
+      ownerIds: body.ownerIds ?? [],
+      startDate: body.startDate ?? null,
+      endDate: body.endDate ?? null,
+      clientVisible: body.clientVisible ?? false,
+      description: body.description ?? "",
+      brief: body.brief ?? "",
+      billingTotal: body.billingTotal ?? null,
+      archive: false,
+      createdTime: new Date().toISOString(),
+      lastEditedTime: new Date().toISOString(),
+    }, 201);
+  } catch (err) {
+    console.error("[api/milestones] POST failed:", err);
+    return error("failed to create milestone", 500);
+  }
 }

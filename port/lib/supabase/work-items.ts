@@ -77,3 +77,45 @@ export async function getWorkItemsFromSupabase(
     throw new Error(`[supabase/work-items] getWorkItemsFromSupabase: ${error.message}`);
   return (data as WorkItemRow[]).map(mapRowToWorkItem);
 }
+
+export async function getWorkItemByIdFromSupabase(
+  notionPageId: string,
+): Promise<WorkItem | null> {
+  const { data, error } = await supabase
+    .from("work_items")
+    .select(SELECT_COLS)
+    .eq("notion_page_id", notionPageId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null;
+    throw new Error(`[supabase/work-items] getById: ${error.message}`);
+  }
+  return data ? mapRowToWorkItem(data as WorkItemRow) : null;
+}
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a work item. Uses notion_page_id as the conflict target.
+ */
+export async function upsertWorkItemToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<WorkItemRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("work_items")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/work-items] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a work item row.
+ */
+export async function deleteWorkItemFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("work_items")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/work-items] delete: ${error.message}`);
+}

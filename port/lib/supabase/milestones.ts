@@ -125,3 +125,29 @@ export async function getMilestoneByIdFromSupabase(
   }
   return data ? mapRowToMilestone(data as unknown as MilestoneRow) : null;
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a milestone. Uses notion_page_id as the conflict target.
+ */
+export async function upsertMilestoneToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<MilestoneRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("milestones")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/milestones] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a milestone row.
+ */
+export async function deleteMilestoneFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("milestones")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/milestones] delete: ${error.message}`);
+}

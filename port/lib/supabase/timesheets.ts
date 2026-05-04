@@ -71,3 +71,45 @@ export async function getTimesheetsFromSupabase(
     throw new Error(`[supabase/timesheets] getTimesheetsFromSupabase: ${error.message}`);
   return (data as TimesheetRow[]).map(mapRowToTimesheet);
 }
+
+export async function getTimesheetByIdFromSupabase(
+  notionPageId: string,
+): Promise<Timesheet | null> {
+  const { data, error } = await supabase
+    .from("timesheets")
+    .select(SELECT_COLS)
+    .eq("notion_page_id", notionPageId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null;
+    throw new Error(`[supabase/timesheets] getById: ${error.message}`);
+  }
+  return data ? mapRowToTimesheet(data as TimesheetRow) : null;
+}
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a timesheet entry. Uses notion_page_id as the conflict target.
+ */
+export async function upsertTimesheetToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<TimesheetRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("timesheets")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/timesheets] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a timesheet row.
+ */
+export async function deleteTimesheetFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("timesheets")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/timesheets] delete: ${error.message}`);
+}

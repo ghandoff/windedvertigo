@@ -332,3 +332,30 @@ export async function getOrganizationByIdFromSupabase(
   }
   return data ? mapRowToOrganization(data as unknown as OrganizationRow) : null;
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert an organization. Uses notion_page_id as the conflict target.
+ * Handles both create (new row) and update (existing row) in one operation.
+ */
+export async function upsertOrganizationToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<OrganizationRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("organizations")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/organizations] upsert: ${error.message}`);
+}
+
+/**
+ * Delete (archive) an organization row. Called when a record is archived in Notion.
+ */
+export async function deleteOrganizationFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("organizations")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/organizations] delete: ${error.message}`);
+}

@@ -1,29 +1,56 @@
+/**
+ * Phase A3: GET reads Supabase, POST writes to Supabase directly.
+ */
 import { NextRequest } from "next/server";
-import { querySocialDrafts, createSocialDraft } from "@/lib/notion/social";
-import { json, error, parsePagination, parseSort, param, withNotionError } from "@/lib/api-helpers";
+import {
+  getSocialDraftsFromSupabase,
+  upsertSocialDraftToSupabase,
+} from "@/lib/supabase/social";
+import { json, error, param } from "@/lib/api-helpers";
+import type { SocialDraftStatus, SocialPlatform } from "@/lib/notion/types";
 
 export async function GET(req: NextRequest) {
-  const filters: { platform?: string; status?: string; search?: string } = {};
+  const status = param(req, "status") as SocialDraftStatus | undefined ?? undefined;
+  const platform = param(req, "platform") as SocialPlatform | undefined ?? undefined;
 
-  if (param(req, "platform")) filters.platform = param(req, "platform");
-  if (param(req, "status")) filters.status = param(req, "status");
-  if (param(req, "search")) filters.search = param(req, "search");
-
-  return withNotionError(() =>
-    querySocialDrafts(
-      filters as Parameters<typeof querySocialDrafts>[0],
-      parsePagination(req),
-      parseSort(req),
-    ),
-  );
+  try {
+    const data = await getSocialDraftsFromSupabase(status, platform);
+    return json({ data, nextCursor: null, hasMore: false });
+  } catch (err) {
+    console.error("[api/social/drafts] Supabase query failed:", err);
+    return error("failed to load social drafts", 500);
+  }
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.content) return error("content is required");
 
-  return withNotionError(async () => {
-    const draft = await createSocialDraft(body);
-    return json(draft, 201);
-  });
+  try {
+    const id = crypto.randomUUID();
+    await upsertSocialDraftToSupabase(id, {
+      content: body.content,
+      platform: body.platform ?? "linkedin",
+      status: body.status ?? "draft",
+      org_id: body.organizationId ?? null,
+      scheduled_for: body.scheduledFor?.start ?? null,
+      published_url: null,
+    });
+
+    return json({
+      id,
+      content: body.content,
+      platform: body.platform ?? "linkedin",
+      status: body.status ?? "draft",
+      mediaUrls: "",
+      scheduledFor: body.scheduledFor ?? null,
+      organizationId: body.organizationId ?? "",
+      notes: "",
+      createdTime: new Date().toISOString(),
+      lastEditedTime: new Date().toISOString(),
+    }, 201);
+  } catch (err) {
+    console.error("[api/social/drafts] POST failed:", err);
+    return error("failed to create social draft", 500);
+  }
 }

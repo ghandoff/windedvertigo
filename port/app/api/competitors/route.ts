@@ -1,15 +1,14 @@
 /**
- * GET /api/competitors — list + filter competitors
- * POST /api/competitors — create a new competitor (writes still go to Notion)
- *
- * Phase G.1.3: GET reads from Supabase (faster, no rate limits).
- * POST still writes to Notion — source of truth; sync cron mirrors within 6h.
+ * Phase A3: GET reads Supabase, POST writes to Supabase directly.
  */
 
 import { NextRequest } from "next/server";
-import { getCompetitorsFromSupabase, type CompetitorSupabaseFilters } from "@/lib/supabase/competitors";
-import { createCompetitor } from "@/lib/notion/competitive";
-import { json, error, param, withNotionError } from "@/lib/api-helpers";
+import {
+  getCompetitorsFromSupabase,
+  upsertCompetitorToSupabase,
+  type CompetitorSupabaseFilters,
+} from "@/lib/supabase/competitors";
+import { json, error, param } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -47,8 +46,40 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.organisation) return error("organisation (name) is required");
 
-  return withNotionError(async () => {
-    const comp = await createCompetitor(body);
-    return json(comp, 201);
-  });
+  try {
+    const id = crypto.randomUUID();
+    await upsertCompetitorToSupabase(id, {
+      organisation: body.organisation,
+      type: body.type ?? null,
+      threat_level: body.threatLevel ?? null,
+      quadrant_overlap: body.quadrantOverlap ?? [],
+      geography: body.geography ?? [],
+      what_they_offer: body.whatTheyOffer ?? null,
+      where_wv_wins: body.whereWvWins ?? null,
+      relevance_to_wv: body.relevanceToWv ?? null,
+      notes: body.notes ?? null,
+      url: body.url ?? null,
+      organization_ids: body.organizationIds ?? [],
+      updated_at: new Date().toISOString(),
+    });
+
+    return json({
+      id,
+      organisation: body.organisation,
+      type: body.type ?? "",
+      threatLevel: body.threatLevel ?? "",
+      quadrantOverlap: body.quadrantOverlap ?? [],
+      geography: body.geography ?? [],
+      whatTheyOffer: body.whatTheyOffer ?? "",
+      whereWvWins: body.whereWvWins ?? "",
+      relevanceToWv: body.relevanceToWv ?? "",
+      notes: body.notes ?? "",
+      url: body.url ?? "",
+      organizationIds: body.organizationIds ?? [],
+      lastEditedTime: new Date().toISOString(),
+    }, 201);
+  } catch (err) {
+    console.error("[api/competitors] POST failed:", err);
+    return error("failed to create competitor", 500);
+  }
 }

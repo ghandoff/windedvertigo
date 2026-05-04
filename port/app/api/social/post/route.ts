@@ -14,7 +14,7 @@ import { createLinkedInPost, LINKEDIN_CHAR_LIMIT } from "@/lib/social/linkedin";
 import { createFacebookPost, FACEBOOK_CHAR_LIMIT } from "@/lib/social/meta";
 import { createInstagramPost, INSTAGRAM_CHAR_LIMIT } from "@/lib/social/meta";
 import { createSubstackDraft } from "@/lib/social/substack";
-import { updateSocialDraft } from "@/lib/notion/social";
+import { upsertSocialDraftToSupabase } from "@/lib/supabase/social";
 
 type Platform = "bluesky" | "linkedin" | "instagram" | "facebook" | "substack" | "twitter";
 
@@ -91,10 +91,10 @@ export async function POST(req: NextRequest) {
         return error(`unsupported platform: ${platform}`);
     }
 
-    // Update social draft status if draftId provided
+    // Update social draft status if draftId provided (Phase A3: Supabase direct)
     if (draftId) {
       try {
-        await updateSocialDraft(draftId, { status: "posted" });
+        await upsertSocialDraftToSupabase(draftId, { status: "posted" });
       } catch {
         // Non-critical — post was published, draft status update is best-effort
       }

@@ -128,3 +128,29 @@ export async function getProjectByIdFromSupabase(
   }
   return data ? mapRowToProject(data as unknown as ProjectRow) : null;
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a project. Uses notion_page_id as the conflict target.
+ */
+export async function upsertProjectToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<ProjectRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("projects")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/projects] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a project row.
+ */
+export async function deleteProjectFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("projects")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/projects] delete: ${error.message}`);
+}

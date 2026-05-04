@@ -1,15 +1,14 @@
 /**
- * GET /api/cycles — list + filter sprint cycles
- * POST /api/cycles — create a new cycle (writes still go to Notion)
- *
- * Phase G.1.3: GET reads from Supabase (faster, no rate limits).
- * POST still writes to Notion — source of truth; sync cron mirrors within 2h.
+ * Phase A3: GET reads Supabase, POST writes to Supabase directly.
  */
 
 import { NextRequest } from "next/server";
-import { getCyclesFromSupabase, type CycleSupabaseFilters } from "@/lib/supabase/cycles";
-import { createCycle } from "@/lib/notion/cycles";
-import { json, error, param, withNotionError } from "@/lib/api-helpers";
+import {
+  getCyclesFromSupabase,
+  upsertCycleToSupabase,
+  type CycleSupabaseFilters,
+} from "@/lib/supabase/cycles";
+import { json, error, param } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -45,8 +44,32 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.cycle) return error("cycle (name) is required");
 
-  return withNotionError(async () => {
-    const c = await createCycle(body);
-    return json(c, 201);
-  });
+  try {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+    await upsertCycleToSupabase(id, {
+      cycle: body.cycle,
+      start_date: body.startDate?.start ?? null,
+      end_date: body.endDate?.start ?? null,
+      project_ids: body.projectIds ?? [],
+      status: body.status ?? null,
+      goal: body.goal ?? null,
+      updated_at: now,
+    });
+
+    return json({
+      id,
+      cycle: body.cycle,
+      startDate: body.startDate ?? null,
+      endDate: body.endDate ?? null,
+      projectIds: body.projectIds ?? [],
+      status: body.status ?? null,
+      goal: body.goal ?? "",
+      createdTime: now,
+      lastEditedTime: now,
+    }, 201);
+  } catch (err) {
+    console.error("[api/cycles] POST failed:", err);
+    return error("failed to create cycle", 500);
+  }
 }

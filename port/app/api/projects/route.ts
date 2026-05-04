@@ -1,18 +1,14 @@
 /**
- * GET /api/projects — list + filter projects
- * POST /api/projects — create a new project (writes still go to Notion)
- *
- * Phase G.1.3: GET reads from Supabase (faster, no rate limits).
- * POST still writes to Notion — source of truth; sync cron mirrors within 15 min.
+ * Phase A3: GET reads Supabase, POST writes to Supabase directly.
  */
 
 import { NextRequest } from "next/server";
 import {
   getProjectsFromSupabase,
+  upsertProjectToSupabase,
   type ProjectSupabaseFilters,
 } from "@/lib/supabase/projects";
-import { createProject } from "@/lib/notion/projects";
-import { json, error, param, boolParam, withNotionError } from "@/lib/api-helpers";
+import { json, error, param, boolParam } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -50,9 +46,46 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.project) return error("project (name) is required");
 
-  // Creates still go to Notion — source of truth.
-  return withNotionError(async () => {
-    const proj = await createProject(body);
-    return json(proj, 201);
-  });
+  try {
+    const id = crypto.randomUUID();
+    await upsertProjectToSupabase(id, {
+      project: body.project,
+      status: body.status ?? "planning",
+      priority: body.priority ?? "medium",
+      type: body.type ?? null,
+      budget_hours: body.budgetHours ?? null,
+      event_type: body.eventType ?? null,
+      timeline_start: body.timeline?.start ?? null,
+      timeline_end: body.timeline?.end ?? null,
+      project_lead_ids: body.projectLeadIds ?? [],
+      organization_ids: body.organizationIds ?? [],
+      milestone_ids: body.milestoneIds ?? [],
+      task_ids: body.taskIds ?? [],
+      cycle_ids: body.cycleIds ?? [],
+      archive: false,
+    });
+
+    return json({
+      id,
+      project: body.project,
+      status: body.status ?? "planning",
+      priority: body.priority ?? "medium",
+      type: body.type ?? null,
+      budgetHours: body.budgetHours ?? null,
+      eventType: body.eventType ?? "",
+      timeline: body.timeline ?? null,
+      dateAndTime: null,
+      projectLeadIds: body.projectLeadIds ?? [],
+      organizationIds: body.organizationIds ?? [],
+      milestoneIds: body.milestoneIds ?? [],
+      taskIds: body.taskIds ?? [],
+      cycleIds: body.cycleIds ?? [],
+      archive: false,
+      createdTime: new Date().toISOString(),
+      lastEditedTime: new Date().toISOString(),
+    }, 201);
+  } catch (err) {
+    console.error("[api/projects] POST failed:", err);
+    return error("failed to create project", 500);
+  }
 }

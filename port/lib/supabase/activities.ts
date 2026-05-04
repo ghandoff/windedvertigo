@@ -41,6 +41,16 @@ function mapRowToActivity(row: ActivityRow): Activity {
 const SELECT_COLS =
   "notion_page_id, activity, type, date, outcome, notes, logged_by, organization_ids, contact_ids";
 
+export async function getActivityByIdFromSupabase(notionPageId: string): Promise<Activity | null> {
+  const { data, error } = await supabase
+    .from("activities")
+    .select(SELECT_COLS)
+    .eq("notion_page_id", notionPageId)
+    .maybeSingle();
+  if (error) throw new Error(`[supabase/activities] getById: ${error.message}`);
+  return data ? mapRowToActivity(data as ActivityRow) : null;
+}
+
 export async function getActivitiesFromSupabase(orgId?: string, contactId?: string): Promise<Activity[]> {
   let query = supabase.from("activities").select(SELECT_COLS).order("date", { ascending: false });
 
@@ -55,4 +65,30 @@ export async function getActivitiesFromSupabase(orgId?: string, contactId?: stri
 
   if (error) throw new Error(`[supabase/activities] getActivities: ${error.message}`);
   return (data as ActivityRow[]).map(mapRowToActivity);
+}
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert an activity. Uses notion_page_id as the conflict target.
+ */
+export async function upsertActivityToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<ActivityRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("activities")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/activities] upsert: ${error.message}`);
+}
+
+/**
+ * Delete an activity row.
+ */
+export async function deleteActivityFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("activities")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/activities] delete: ${error.message}`);
 }

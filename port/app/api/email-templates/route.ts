@@ -1,18 +1,14 @@
 /**
- * GET /api/email-templates — list + filter email templates
- * POST /api/email-templates — create a new email template (writes still go to Notion)
- *
- * Phase G.1.3: GET reads from Supabase (faster, no rate limits).
- * POST still writes to Notion — source of truth; sync cron mirrors within 15 min.
+ * Phase A3: GET reads Supabase, POST writes to Supabase directly.
  */
 
 import { NextRequest } from "next/server";
 import {
   getEmailTemplatesFromSupabase,
+  upsertEmailTemplateToSupabase,
   type EmailTemplateSupabaseFilters,
 } from "@/lib/supabase/email-templates";
-import { createEmailTemplate } from "@/lib/notion/email-templates";
-import { json, error, param, withNotionError } from "@/lib/api-helpers";
+import { json, error, param } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -48,9 +44,32 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.name) return error("name is required");
 
-  // Creates still go to Notion — source of truth.
-  return withNotionError(async () => {
-    const template = await createEmailTemplate(body);
-    return json(template, 201);
-  });
+  try {
+    const id = crypto.randomUUID();
+    await upsertEmailTemplateToSupabase(id, {
+      name: body.name,
+      subject: body.subject ?? null,
+      body: body.body ?? null,
+      category: body.category ?? null,
+      channel: body.channel ?? null,
+      notes: body.notes ?? null,
+      times_used: 0,
+    });
+
+    return json({
+      id,
+      name: body.name,
+      subject: body.subject ?? "",
+      body: body.body ?? "",
+      category: body.category ?? "other",
+      channel: body.channel ?? "email",
+      notes: body.notes ?? "",
+      timesUsed: 0,
+      createdTime: new Date().toISOString(),
+      lastEditedTime: new Date().toISOString(),
+    }, 201);
+  } catch (err) {
+    console.error("[api/email-templates] POST failed:", err);
+    return error("failed to create email template", 500);
+  }
 }

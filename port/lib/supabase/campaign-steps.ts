@@ -66,3 +66,45 @@ export async function getCampaignStepsFromSupabase(
   if (error) throw new Error(`[supabase/campaign-steps] getCampaignSteps: ${error.message}`);
   return (data as CampaignStepRow[]).map(mapRowToStep);
 }
+
+export async function getCampaignStepByIdFromSupabase(
+  notionPageId: string,
+): Promise<CampaignStep | null> {
+  const { data, error } = await supabase
+    .from("campaign_steps")
+    .select(SELECT_COLS)
+    .eq("notion_page_id", notionPageId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null;
+    throw new Error(`[supabase/campaign-steps] getById: ${error.message}`);
+  }
+  return data ? mapRowToStep(data as CampaignStepRow) : null;
+}
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a campaign step. Uses notion_page_id as the conflict target.
+ */
+export async function upsertCampaignStepToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<CampaignStepRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("campaign_steps")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/campaign-steps] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a campaign step row.
+ */
+export async function deleteCampaignStepFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("campaign_steps")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/campaign-steps] delete: ${error.message}`);
+}

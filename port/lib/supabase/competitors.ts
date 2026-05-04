@@ -93,3 +93,29 @@ export async function getCompetitorByIdFromSupabase(notionPageId: string): Promi
   if (!data) return null;
   return rowToCompetitor(data as unknown as CompetitorRow);
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a competitor. Uses notion_page_id as the conflict target.
+ */
+export async function upsertCompetitorToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<CompetitorRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("competitors")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/competitors] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a competitor row.
+ */
+export async function deleteCompetitorFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("competitors")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/competitors] delete: ${error.message}`);
+}

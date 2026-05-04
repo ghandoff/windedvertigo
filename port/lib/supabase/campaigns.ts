@@ -78,3 +78,29 @@ export async function getCampaignByIdFromSupabase(
   }
   return data ? mapRowToCampaign(data as CampaignRow) : null;
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a campaign. Uses notion_page_id as the conflict target.
+ */
+export async function upsertCampaignToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<CampaignRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("campaigns")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/campaigns] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a campaign row.
+ */
+export async function deleteCampaignFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("campaigns")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/campaigns] delete: ${error.message}`);
+}

@@ -104,3 +104,51 @@ export async function getEmailTemplateByIdFromSupabase(
   }
   return data ? mapRowToEmailTemplate(data as unknown as EmailTemplateRow) : null;
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert an email template. Uses notion_page_id as the conflict target.
+ */
+export async function upsertEmailTemplateToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<EmailTemplateRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("email_templates")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/email-templates] upsert: ${error.message}`);
+}
+
+/**
+ * Increment the times_used counter for a template.
+ */
+export async function incrementEmailTemplateTimesUsedInSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase.rpc("increment_template_times_used", { p_notion_page_id: notionPageId });
+  if (error) {
+    // Fallback: fetch + update if RPC not available
+    const { data: row, error: fetchErr } = await supabase
+      .from("email_templates")
+      .select("times_used")
+      .eq("notion_page_id", notionPageId)
+      .single();
+    if (fetchErr) throw new Error(`[supabase/email-templates] incrementTimesUsed fetch: ${fetchErr.message}`);
+    const current = (row as { times_used: number } | null)?.times_used ?? 0;
+    const { error: updateErr } = await supabase
+      .from("email_templates")
+      .update({ times_used: current + 1 })
+      .eq("notion_page_id", notionPageId);
+    if (updateErr) throw new Error(`[supabase/email-templates] incrementTimesUsed update: ${updateErr.message}`);
+  }
+}
+
+/**
+ * Delete an email template row.
+ */
+export async function deleteEmailTemplateFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("email_templates")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/email-templates] delete: ${error.message}`);
+}

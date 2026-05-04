@@ -129,3 +129,29 @@ export async function getContactByIdFromSupabase(
   }
   return data ? mapRowToContact(data as unknown as ContactRow) : null;
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a contact. Uses notion_page_id as the conflict target.
+ */
+export async function upsertContactToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<ContactRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("contacts")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/contacts] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a contact row.
+ */
+export async function deleteContactFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("contacts")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/contacts] delete: ${error.message}`);
+}

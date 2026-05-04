@@ -5,19 +5,16 @@
  * "in queue" → "in progress". Called from the milestone detail modal's
  * "I'll take this" button.
  *
- * Safety:
- *   - Auth required (session)
- *   - Resolves the signed-in user's Notion member ID via email match
- *     against the members DB
- *   - No-op if the task already has an owner (returns current state)
- *   - Only moves status forward (in queue → in progress); leaves other
- *     statuses untouched
+ * Phase A3: reads/writes use Supabase directly.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getWorkItem, updateWorkItem } from "@/lib/notion/work-items";
-import { getActiveMembers } from "@/lib/notion/members";
+import {
+  getWorkItemByIdFromSupabase,
+  upsertWorkItemToSupabase,
+} from "@/lib/supabase/work-items";
+import { getActiveMembersFromSupabase } from "@/lib/supabase/members";
 
 export async function PATCH(
   _req: NextRequest,
@@ -35,7 +32,7 @@ export async function PATCH(
   }
 
   try {
-    const members = await getActiveMembers();
+    const members = await getActiveMembersFromSupabase();
     const me = members.find((m) => m.email.toLowerCase() === email.toLowerCase());
     if (!me) {
       return NextResponse.json(
@@ -44,7 +41,11 @@ export async function PATCH(
       );
     }
 
-    const task = await getWorkItem(id);
+    const task = await getWorkItemByIdFromSupabase(id);
+    if (!task) {
+      return NextResponse.json({ error: "work item not found" }, { status: 404 });
+    }
+
     if (task.ownerIds.length > 0 && !task.ownerIds.includes(me.id)) {
       return NextResponse.json(
         {
@@ -60,17 +61,17 @@ export async function PATCH(
         ? "in progress"
         : task.status;
 
-    const updated = await updateWorkItem(id, {
-      ownerIds: [me.id],
-      personIds: Array.from(new Set([...task.personIds, me.id])),
+    await upsertWorkItemToSupabase(id, {
+      owner_ids: [me.id],
+      person_ids: Array.from(new Set([...task.personIds, me.id])),
       status: nextStatus,
     });
 
     return NextResponse.json({
-      id: updated.id,
-      task: updated.task,
-      status: updated.status,
-      ownerIds: updated.ownerIds,
+      id,
+      task: task.task,
+      status: nextStatus,
+      ownerIds: [me.id],
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";

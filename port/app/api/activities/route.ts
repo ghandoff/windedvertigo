@@ -1,44 +1,59 @@
+/**
+ * Phase A3: GET reads Supabase, POST writes to Supabase directly.
+ */
 import { NextRequest } from "next/server";
-import { queryActivities, createActivity } from "@/lib/notion/activities";
-import { updateContact } from "@/lib/notion/contacts";
-import { json, error, parsePagination, parseSort, param, withNotionError } from "@/lib/api-helpers";
-import type { ActivityFilters } from "@/lib/notion/types";
+import {
+  getActivitiesFromSupabase,
+  upsertActivityToSupabase,
+} from "@/lib/supabase/activities";
+import { json, error, param } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
-  const filters: ActivityFilters = {};
+  const contactId = param(req, "contactId") ?? undefined;
+  const orgId = param(req, "orgId") ?? undefined;
 
-  if (param(req, "type")) filters.type = param(req, "type") as ActivityFilters["type"];
-  if (param(req, "outcome")) filters.outcome = param(req, "outcome") as ActivityFilters["outcome"];
-  if (param(req, "contactId")) filters.contactId = param(req, "contactId");
-  if (param(req, "orgId")) filters.orgId = param(req, "orgId");
-  if (param(req, "eventId")) filters.eventId = param(req, "eventId");
-  if (param(req, "search")) filters.search = param(req, "search");
-
-  return withNotionError(() =>
-    queryActivities(filters, parsePagination(req), parseSort(req)),
-  );
+  try {
+    const data = await getActivitiesFromSupabase(orgId, contactId);
+    return json({ data, nextCursor: null, hasMore: false });
+  } catch (err) {
+    console.error("[api/activities] Supabase query failed:", err);
+    return error("failed to load activities", 500);
+  }
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.activity) return error("activity (description) is required");
 
-  return withNotionError(async () => {
-    const activity = await createActivity(body);
+  try {
+    const id = crypto.randomUUID();
+    await upsertActivityToSupabase(id, {
+      activity: body.activity,
+      type: body.type ?? null,
+      date: body.date?.start ?? null,
+      outcome: body.outcome ?? null,
+      notes: body.notes ?? null,
+      logged_by: body.loggedBy ?? null,
+      organization_ids: body.organizationIds ?? [],
+      contact_ids: body.contactIds ?? [],
+    });
 
-    // Update last contacted date on linked contact(s)
-    if (body.contactIds?.length && body.date?.start) {
-      for (const contactId of body.contactIds) {
-        try {
-          await updateContact(contactId, {
-            lastContacted: { start: body.date.start, end: null },
-          });
-        } catch {
-          // non-critical — don't fail the activity creation
-        }
-      }
-    }
-
-    return json(activity, 201);
-  });
+    return json({
+      id,
+      activity: body.activity,
+      type: body.type ?? "other",
+      contactIds: body.contactIds ?? [],
+      organizationIds: body.organizationIds ?? [],
+      eventIds: [],
+      date: body.date ?? null,
+      outcome: body.outcome ?? "neutral",
+      notes: body.notes ?? "",
+      loggedBy: body.loggedBy ?? "",
+      createdTime: new Date().toISOString(),
+      lastEditedTime: new Date().toISOString(),
+    }, 201);
+  } catch (err) {
+    console.error("[api/activities] POST failed:", err);
+    return error("failed to create activity", 500);
+  }
 }

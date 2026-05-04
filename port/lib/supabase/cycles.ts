@@ -80,3 +80,29 @@ export async function getCycleByIdFromSupabase(notionPageId: string): Promise<Cy
   if (!data) return null;
   return rowToCycle(data as unknown as CycleRow);
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a cycle. Uses notion_page_id as the conflict target.
+ */
+export async function upsertCycleToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<CycleRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("cycles")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/cycles] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a cycle row.
+ */
+export async function deleteCycleFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("cycles")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/cycles] delete: ${error.message}`);
+}

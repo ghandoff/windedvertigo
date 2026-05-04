@@ -128,3 +128,29 @@ export async function getEventByIdFromSupabase(
   }
   return data ? mapRowToEvent(data as unknown as EventRow) : null;
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert an event. Uses notion_page_id as the conflict target.
+ */
+export async function upsertEventToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<EventRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("crm_events")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/crm_events] upsert: ${error.message}`);
+}
+
+/**
+ * Delete an event row.
+ */
+export async function deleteEventFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("crm_events")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/crm_events] delete: ${error.message}`);
+}

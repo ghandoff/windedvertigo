@@ -2,11 +2,11 @@
  * POST /api/email-templates/[id]/use
  *
  * Increment the times-used counter on a template.
- * Called when a template is loaded into a campaign step or email compose.
+ * Phase A3: writes to Supabase directly.
  */
 
 import { NextRequest } from "next/server";
-import { incrementTimesUsed } from "@/lib/notion/email-templates";
+import { incrementEmailTemplateTimesUsedInSupabase } from "@/lib/supabase/email-templates";
 import { json, error } from "@/lib/api-helpers";
 
 export async function POST(
@@ -17,7 +17,7 @@ export async function POST(
   if (!id) return error("template id required");
 
   try {
-    await incrementTimesUsed(id);
+    await incrementEmailTemplateTimesUsedInSupabase(id);
     return json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "failed to increment";

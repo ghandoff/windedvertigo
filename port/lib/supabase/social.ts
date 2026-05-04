@@ -58,3 +58,45 @@ export async function getSocialDraftsFromSupabase(
   if (error) throw new Error(`[supabase/social] getSocialDrafts: ${error.message}`);
   return (data as SocialRow[]).map(mapRowToSocial);
 }
+
+export async function getSocialDraftByIdFromSupabase(
+  notionPageId: string,
+): Promise<SocialDraft | null> {
+  const { data, error } = await supabase
+    .from("social_drafts")
+    .select(SELECT_COLS)
+    .eq("notion_page_id", notionPageId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null;
+    throw new Error(`[supabase/social] getById: ${error.message}`);
+  }
+  return data ? mapRowToSocial(data as SocialRow) : null;
+}
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a social draft. Uses notion_page_id as the conflict target.
+ */
+export async function upsertSocialDraftToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<SocialRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("social_drafts")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/social] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a social draft row.
+ */
+export async function deleteSocialDraftFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("social_drafts")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/social] delete: ${error.message}`);
+}

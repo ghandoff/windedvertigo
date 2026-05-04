@@ -1,30 +1,78 @@
+/**
+ * Phase A3: GET reads Supabase, POST writes to Supabase directly.
+ */
 import { NextRequest } from "next/server";
-import { queryWorkItems, createWorkItem } from "@/lib/notion/work-items";
-import { json, error, parsePagination, parseSort, param, boolParam, withNotionError } from "@/lib/api-helpers";
-import type { WorkItemFilters } from "@/lib/notion/types";
+import {
+  getWorkItemsFromSupabase,
+  upsertWorkItemToSupabase,
+} from "@/lib/supabase/work-items";
+import { json, error, param, boolParam } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
-  const filters: WorkItemFilters = {};
+  const status = param(req, "status") ?? undefined;
+  const ownerId = param(req, "ownerId") ?? undefined;
+  const projectId = param(req, "projectId") ?? undefined;
+  const archive = boolParam(req, "archive") ?? undefined;
 
-  if (param(req, "status")) filters.status = param(req, "status") as WorkItemFilters["status"];
-  if (param(req, "taskType")) filters.taskType = param(req, "taskType") as WorkItemFilters["taskType"];
-  if (param(req, "priority")) filters.priority = param(req, "priority") as WorkItemFilters["priority"];
-  if (param(req, "projectId")) filters.projectId = param(req, "projectId");
-  if (param(req, "milestoneId")) filters.milestoneId = param(req, "milestoneId");
-  if (boolParam(req, "archive") !== undefined) filters.archive = boolParam(req, "archive");
-  if (param(req, "search")) filters.search = param(req, "search");
-
-  return withNotionError(() =>
-    queryWorkItems(filters, parsePagination(req), parseSort(req)),
-  );
+  try {
+    const data = await getWorkItemsFromSupabase(status, ownerId, projectId, archive);
+    return json({ data, nextCursor: null, hasMore: false });
+  } catch (err) {
+    console.error("[api/work-items] Supabase query failed:", err);
+    return error("failed to load work items", 500);
+  }
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.task) return error("task (name) is required");
 
-  return withNotionError(async () => {
-    const item = await createWorkItem(body);
-    return json(item, 201);
-  });
+  try {
+    const id = crypto.randomUUID();
+    await upsertWorkItemToSupabase(id, {
+      task: body.task,
+      status: body.status ?? "in queue",
+      task_type: body.taskType ?? null,
+      priority: body.priority ?? null,
+      owner_ids: body.ownerIds ?? [],
+      person_ids: body.personIds ?? [],
+      project_ids: body.projectIds ?? [],
+      milestone_ids: body.milestoneIds ?? [],
+      parent_task_ids: body.parentTaskIds ?? [],
+      sub_task_ids: body.subTaskIds ?? [],
+      blocking_ids: body.blockingIds ?? [],
+      blocked_by_ids: body.blockedByIds ?? [],
+      timesheet_ids: [],
+      meeting_ids: [],
+      due_date: body.dueDate?.start ?? null,
+      estimate_hours: body.estimateHours ?? null,
+      archive: false,
+    });
+
+    return json({
+      id,
+      task: body.task,
+      status: body.status ?? "in queue",
+      taskType: body.taskType ?? null,
+      priority: body.priority ?? null,
+      ownerIds: body.ownerIds ?? [],
+      personIds: body.personIds ?? [],
+      projectIds: body.projectIds ?? [],
+      milestoneIds: body.milestoneIds ?? [],
+      parentTaskIds: body.parentTaskIds ?? [],
+      subTaskIds: body.subTaskIds ?? [],
+      blockingIds: body.blockingIds ?? [],
+      blockedByIds: body.blockedByIds ?? [],
+      timesheetIds: [],
+      meetingIds: [],
+      dueDate: body.dueDate ?? null,
+      estimateHours: body.estimateHours ?? null,
+      archive: false,
+      createdTime: new Date().toISOString(),
+      lastEditedTime: new Date().toISOString(),
+    }, 201);
+  } catch (err) {
+    console.error("[api/work-items] POST failed:", err);
+    return error("failed to create work item", 500);
+  }
 }

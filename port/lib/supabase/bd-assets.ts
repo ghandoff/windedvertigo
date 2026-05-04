@@ -122,3 +122,29 @@ export async function getBdAssetByIdFromSupabase(
   }
   return data ? mapRowToBdAsset(data as unknown as BdAssetRow) : null;
 }
+
+// ── write functions ───────────────────────────────────────────────
+
+/**
+ * Upsert a BD asset. Uses notion_page_id as the conflict target.
+ */
+export async function upsertBdAssetToSupabase(
+  notionPageId: string,
+  data: Partial<Omit<BdAssetRow, "notion_page_id">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("bd_assets")
+    .upsert({ notion_page_id: notionPageId, ...data }, { onConflict: "notion_page_id" });
+  if (error) throw new Error(`[supabase/bd-assets] upsert: ${error.message}`);
+}
+
+/**
+ * Delete a BD asset row.
+ */
+export async function deleteBdAssetFromSupabase(notionPageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("bd_assets")
+    .delete()
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/bd-assets] delete: ${error.message}`);
+}

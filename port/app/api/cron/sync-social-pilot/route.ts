@@ -1,4 +1,6 @@
 /**
+ * @deprecated Phase A3 — Supabase is now the write-primary source of truth.
+ * This Notion→Supabase sync cron is RETIRED. Remove in Phase A4 cleanup.
  * GET /api/cron/sync-social-pilot
  *
  * One-way mirror: Notion social queue DB → Supabase `social_drafts` table.
