@@ -446,6 +446,9 @@ export default function PcsCommandCenter() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // 2026-05-03 — fetch KPI data only (~3s p95). The CoverageHeatmap
+  // component (defined above for future use) lives at /api/pcs/dashboard/coverage
+  // when its visualization is wired into the JSX render.
   useEffect(() => {
     fetch('/api/pcs/dashboard')
       .then(res => {

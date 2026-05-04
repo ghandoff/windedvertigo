@@ -4,12 +4,13 @@ import { getAllDocuments } from '@/lib/pcs-documents';
 import { getAllClaims, getClaimsWithoutEvidence } from '@/lib/pcs-claims';
 import { getOpenRequests } from '@/lib/pcs-requests';
 import { getAllEvidence } from '@/lib/pcs-evidence';
-import { getAllEvidencePackets } from '@/lib/pcs-evidence-packets';
 
-// 2026-05-03 perf fix — in-memory cache. The dashboard fetches 6 Notion DBs
-// (~2500 records, slowest is the 1783-row evidence packets at ~11s). Without
-// caching, every /pcs nav blocks for 11s+. With 60s cache, one user per
-// minute pays that cost; everyone else is instant. Cache resets on cold-start.
+// 2026-05-03 perf fixes:
+//   1. In-memory cache (60s TTL) — survives across warm invocations.
+//   2. Heatmap split — the 1783-row evidence_packets fetch (~11s) moved
+//      to /api/pcs/dashboard/coverage so the KPI payload returns in
+//      ~3s on first hit. The /pcs page lazy-fetches coverage after KPIs
+//      paint.
 let _cache = null;
 let _cacheBuiltAt = 0;
 const CACHE_TTL_MS = 60 * 1000;
@@ -22,13 +23,14 @@ export async function GET(request) {
     return NextResponse.json(_cache);
   }
 
-  const [documents, claims, claimsNoEvidence, openRequests, evidence, packets] = await Promise.all([
+  // Heatmap is fetched lazily by /api/pcs/dashboard/coverage; this route
+  // only fetches what KPI cards + simple charts need (5 DBs, ~3s p95).
+  const [documents, claims, claimsNoEvidence, openRequests, evidence] = await Promise.all([
     getAllDocuments(),
     getAllClaims(),
     getClaimsWithoutEvidence(),
     getOpenRequests(),
     getAllEvidence(),
-    getAllEvidencePackets(),
   ]);
 
   const underRevision = documents.filter(d => d.fileStatus === 'Under revision').length;
@@ -99,53 +101,8 @@ export async function GET(request) {
     }));
   }
 
-  // Coverage heatmap: ingredient × bucket
-  // Build claim→bucket lookup, then packet→ingredient via evidence
-  const claimBucketMap = {};
-  for (const c of claims) {
-    claimBucketMap[c.id] = c.claimBucket || 'Unknown';
-  }
-  const evidenceIngredientMap = {};
-  for (const e of evidence) {
-    evidenceIngredientMap[e.id] = e.ingredient?.length ? e.ingredient : [];
-  }
-
-  const coverageCount = {}; // { ingredient: { bucket: count } }
-  const coverageSqr = {};   // { ingredient: { bucket: [scores] } }
-  const evidenceById = new Map(evidence.map(e => [e.id, e]));
-  for (const p of packets) {
-    const bucket = claimBucketMap[p.pcsClaimId] || 'Unknown';
-    const ingredients = evidenceIngredientMap[p.evidenceItemId] || [];
-    const item = evidenceById.get(p.evidenceItemId);
-    for (const ing of ingredients) {
-      if (!coverageCount[ing]) coverageCount[ing] = {};
-      coverageCount[ing][bucket] = (coverageCount[ing][bucket] || 0) + 1;
-      if (item?.sqrScore != null && item.sqrScore >= 0 && item.sqrScore <= 22) {
-        if (!coverageSqr[ing]) coverageSqr[ing] = {};
-        if (!coverageSqr[ing][bucket]) coverageSqr[ing][bucket] = [];
-        coverageSqr[ing][bucket].push(item.sqrScore);
-      }
-    }
-  }
-
-  // Flatten heatmap for client
-  const heatmapData = [];
-  const allIngredients = [...new Set([
-    ...Object.keys(coverageCount),
-    ...evidence.flatMap(e => e.ingredient || []),
-  ])].sort();
-  const allBuckets = ['3A', '3B', '3C'];
-  for (const ing of allIngredients) {
-    const row = { ingredient: ing };
-    for (const bucket of allBuckets) {
-      row[`${bucket}_count`] = coverageCount[ing]?.[bucket] || 0;
-      const scores = coverageSqr[ing]?.[bucket] || [];
-      row[`${bucket}_avgSqr`] = scores.length > 0
-        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 10) / 10
-        : null;
-    }
-    heatmapData.push(row);
-  }
+  // Heatmap (coverageCount / coverageSqr / heatmapData) moved to
+  // /api/pcs/dashboard/coverage — see file header.
 
   // Overdue requests
   const now = new Date();
@@ -183,7 +140,7 @@ export async function GET(request) {
     evidenceByReviewStatus,
     sqrDistribution,
     sqrDistributionByType,
-    heatmapData,
+    // heatmapData lazy-loaded via /api/pcs/dashboard/coverage
   };
 
   _cache = payload;
