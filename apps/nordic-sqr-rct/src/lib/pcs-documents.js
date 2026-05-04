@@ -37,6 +37,9 @@ function parsePage(page) {
     // Notion page id in the AICS Documents data source. RA may link AICS
     // docs directly in Notion; the picker UI is Phase 3.4 P2.
     linkedAicsIds: (p[P.linkedAics]?.relation || []).map(r => r.id),
+    // 2026-05-04 — soft-merge dedup target. Non-null on duplicate rows;
+    // points at the canonical row this duplicate folds into.
+    canonicalDocumentId: (p[P.canonicalDocument]?.relation || [])[0]?.id || null,
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };
@@ -129,6 +132,13 @@ export async function updateDocument(id, fields) {
   }
   if (fields.templateSignals !== undefined) {
     properties[P.templateSignals] = { rich_text: [{ text: { content: fields.templateSignals || '' } }] };
+  }
+  // 2026-05-04 — soft-merge dedup. Set this to the canonical row's page id
+  // to mark this row as a duplicate. Pass null/empty to clear.
+  if (fields.canonicalDocumentId !== undefined) {
+    properties[P.canonicalDocument] = fields.canonicalDocumentId
+      ? { relation: [{ id: fields.canonicalDocumentId }] }
+      : { relation: [] };
   }
   // Bundle 3.4 P2 — Linked AICS relation (full-replace semantics).
   if (fields.linkedAicsIds !== undefined) {

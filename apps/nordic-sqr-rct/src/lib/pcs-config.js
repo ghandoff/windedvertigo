@@ -168,6 +168,12 @@ export const PROPS = {
     // substantiation by Notion DUAL relation; reverse "Linked PCS" lives on
     // AICS Documents. Empty until RA links AICS docs in Notion or via picker UI.
     linkedAics: 'Linked AICS',
+    // 2026-05-04 — soft-merge dedup target. When a PCS Document is a
+    // duplicate upload of another, this relation points at the canonical
+    // row (kept). The Active list filters rows with this populated. The
+    // duplicate's `Archived` is also set so it disappears from existing
+    // archived-filter surfaces.
+    canonicalDocument: 'Canonical document',
   },
   versions: {
     version: 'Version',
