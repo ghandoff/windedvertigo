@@ -73,7 +73,9 @@ export default function PcsNav() {
           <div className="flex items-center gap-3">
             <Link href="/pcs" className="flex items-center gap-2">
               <img src="/nordic-logo.png" alt="Nordic Naturals" className="h-8 w-auto" />
-              <span className="text-sm font-bold text-pacific hidden sm:block">PCS</span>
+              {/* 2026-05-04 — removed "PCS" platform label next to logo;
+                  the segmented PlatformToggle on the right side of the
+                  header now communicates which platform the user is on. */}
             </Link>
 
             {/* Hamburger — mobile */}

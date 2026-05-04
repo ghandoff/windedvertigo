@@ -56,7 +56,9 @@ export default function Navbar() {
           {/* Left: Logo + platform name */}
           <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2">
             <img src="/nordic-logo.png" alt="Nordic Naturals" className="h-8 w-auto" />
-            <span className="text-sm font-bold text-pacific hidden sm:block">SQR-RCT</span>
+            {/* 2026-05-04 — removed "SQR-RCT" platform label next to logo;
+                the segmented PlatformToggle on the right side of the
+                header now communicates which platform the user is on. */}
           </Link>
 
           {/* Center: Nav links — desktop */}
