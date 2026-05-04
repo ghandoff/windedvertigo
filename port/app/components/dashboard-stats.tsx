@@ -6,9 +6,9 @@
  */
 
 import Link from "next/link";
-import { queryDeals } from "@/lib/notion/deals";
+import { getDealsFromSupabase } from "@/lib/supabase/deals";
 import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
-import { queryWorkItems } from "@/lib/notion/work-items";
+import { getWorkItemsFromSupabase } from "@/lib/supabase/work-items";
 
 // ── helpers ──────────────────────────────────────────────────
 
@@ -44,15 +44,13 @@ function StatCardView({ stat }: { stat: StatCard }) {
 
 export async function DashboardStats() {
   // Fire all three queries in parallel — no waterfall
-  const [dealsResult, rfpResult, workResult] = await Promise.all([
-    queryDeals(),
+  const [deals, rfpResult, workItems] = await Promise.all([
+    getDealsFromSupabase(),
     getRfpOpportunitiesFromSupabase({}, { pageSize: 200 }),
-    queryWorkItems(),
+    getWorkItemsFromSupabase(),
   ]);
 
-  const deals = dealsResult.data;
   const rfps = rfpResult.data;
-  const workItems = workResult.data;
 
   // ── active opportunities (deals not won/lost) ──────────────
   const activeDeals = deals.filter(
