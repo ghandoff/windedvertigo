@@ -99,32 +99,29 @@ export default function RoleAwareSidebar({
             ))
           : null}
 
-        {/* Wave 8 Phase B — Advanced (Premium) section */}
-        {shouldShowPremiumGroup(role) ? (
-          <div className="mt-3 border-t border-gray-100 pt-3">
-            <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gold-700">
-              {PREMIUM_GROUP.label}
-            </div>
-            <div className="space-y-1.5 px-1">
-              {PREMIUM_GROUP.items.map((item) => (
-                <PremiumCard
-                  key={item.key}
-                  item={item}
-                  locked={!isPremiumUnlocked(role)}
-                />
-              ))}
-            </div>
-          </div>
-        ) : null}
+        {/* 2026-05-03 — the Premium tile cards moved out of the sidebar
+            (UX feedback: claustrophobic when collapsed inline). The Premium
+            previews still live at /admin/premium-preview/[slug]; super-users
+            and admins land there via the footer link below. */}
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-gray-100 px-4 py-3 space-y-2">
-        {/* Role-switcher (super-user only) */}
+      <div className="border-t border-gray-100 px-3 py-3 space-y-2">
+        {/* Role-switcher (super-user / admin — preview other roles in place) */}
         {layout.showRoleSwitcher && onRoleChange ? (
           <div className="rounded-md bg-gold-50 border border-gold-200 p-2">
-            <RoleSwitcher value={role} onChange={onRoleChange} label="Currently viewing" />
+            <RoleSwitcher value={role} onChange={onRoleChange} label="Viewing as" />
           </div>
+        ) : null}
+
+        {/* Premium preview link (super-user / admin only) */}
+        {shouldShowPremiumGroup(role) && PREMIUM_GROUP.items[0] ? (
+          <Link
+            href={PREMIUM_GROUP.items[0].href || '/admin/premium-preview/llm-cost-optimizer'}
+            className="block rounded-md px-2 py-1.5 text-xs font-medium text-gold-800 hover:bg-gold-50"
+          >
+            ✨ Advanced features →
+          </Link>
         ) : null}
 
         {/* Profile */}

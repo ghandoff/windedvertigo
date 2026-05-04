@@ -57,10 +57,13 @@ export default function SidebarItem({ item, exact = false, counts = null, counts
     <Link
       href={item.href}
       className={[
-        'group flex items-center justify-between rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+        // 2026-05-03 UX pass — items render as lighter-weight, smaller
+        // text than the group header above. Active state still uses the
+        // pacific accent + becomes semibold so the current page is unmissable.
+        'group flex items-center justify-between rounded-md px-2.5 py-1 text-[13px] transition-colors',
         isActive
-          ? 'bg-pacific-50 text-pacific-700'
-          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+          ? 'bg-pacific-50 text-pacific-700 font-semibold'
+          : 'font-normal text-gray-600 hover:bg-gray-50 hover:text-gray-900',
       ].join(' ')}
     >
       <span className="truncate">{item.label}</span>

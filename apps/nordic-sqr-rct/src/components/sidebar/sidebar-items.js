@@ -143,6 +143,9 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
   // §4.4 — Admin: Researcher + full Operations (Imports, Label Imports, Export).
   'admin': {
     pinnedTop: { key: 'command-center', label: 'Command Center', href: '/pcs' },
+    // 2026-05-03 UX pass — admin now also gets the role-switcher so they can
+    // preview each Nordic-team role's view without leaving the workspace.
+    showRoleSwitcher: true,
     groups: [
       {
         key: 'authoring',

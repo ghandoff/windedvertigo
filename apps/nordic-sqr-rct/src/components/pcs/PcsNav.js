@@ -13,7 +13,10 @@ import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
 // entry itself is always visible — pcs-readonly users will see the
 // Export tab active and the other two tabs rendering a disabled
 // placeholder instead of having the entry disappear entirely.
-const navItems = [
+// 2026-05-03 UX pass — desktop center nav links removed (redundant with the
+// per-role sidebar at Wave 7.4 live). Mobile dropdown still surfaces these
+// as a fallback for narrow viewports where the sidebar may be collapsed.
+const mobileNavItems = [
   { href: '/pcs', label: 'Command Center', exact: true },
   { href: '/pcs/claims', label: 'Claims' },
   { href: '/pcs/evidence', label: 'Evidence' },
@@ -34,11 +37,8 @@ export default function PcsNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
 
-  // Wave 6.0 — writeOnly is no longer used on top-level items (Data is
-  // universally visible; the tabs inside /pcs/data handle their own
-  // gating). Filter preserved defensively in case an item reintroduces
-  // the flag later.
-  const filteredNavItems = navItems.filter(item => !item.writeOnly || hasPcsWriteAccess(user));
+  // 2026-05-03 — center nav removed; mobile fallback uses the same gating shape.
+  const filteredMobileNavItems = mobileNavItems.filter(item => !item.writeOnly || hasPcsWriteAccess(user));
 
   useEffect(() => {
     if (!user) return;
@@ -94,28 +94,8 @@ export default function PcsNav() {
             </button>
           </div>
 
-          {/* Center: Nav links — desktop */}
-          <nav className="hidden md:flex items-center gap-0.5">
-            {filteredNavItems.map(item => {
-              const isActive = item.exact
-                ? pathname === item.href
-                : pathname?.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-pacific-50 text-pacific-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Center: intentionally empty on desktop — sidebar handles wayfinding. */}
+          <div className="hidden md:block flex-1" aria-hidden="true" />
 
           {/* Right: Cross-links + user + logout */}
           <div className="flex items-center gap-2">
@@ -154,7 +134,7 @@ export default function PcsNav() {
       {/* Mobile dropdown */}
       {menuOpen && (
         <nav className="md:hidden border-t border-gray-100 bg-white px-4 pb-3 pt-2 space-y-1">
-          {filteredNavItems.map(item => {
+          {filteredMobileNavItems.map(item => {
             const isActive = item.exact
               ? pathname === item.href
               : pathname?.startsWith(item.href);

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import { ToastProvider } from '@/components/Toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -8,29 +9,59 @@ import PcsNav from '@/components/pcs/PcsNav';
 import Footer from '@/components/Footer';
 import FeedbackButton from '@/components/FeedbackButton';
 import RoleAwareSidebar from '@/components/sidebar/RoleAwareSidebar';
-import { deriveSidebarRole } from '@/components/sidebar/sidebar-items';
+import { deriveSidebarRole, getLayoutForRole } from '@/components/sidebar/sidebar-items';
+
+const ROLE_OVERRIDE_STORAGE_KEY = 'sidebarRoleOverride';
 
 /**
  * Inner shell that consumes `useAuth()` to derive the sidebar role at runtime.
+ *
  * Wave 7.4 live adoption (2026-05-03): the role-aware sidebar graduates from
  * the `/admin/sidebar-preview` preview into the actual PCS workspace layout.
  *
- * The Wave 7.x chained track (7.2.0 WorkspaceShell + 7.2.1 route relocation)
- * is intentionally NOT a prerequisite for this — the user's stated goal was
- * "make the per-profile preview live", not the upstream architectural cleanup.
- * When 7.2.0 lands, this shell collapses into the global `WorkspaceShell`
- * without changing any sidebar behavior.
+ * 2026-05-03 UX pass: super-user / admin can switch the rendered sidebar role
+ * in place via the role-switcher in the sidebar footer. The choice persists
+ * to localStorage (`sidebarRoleOverride`) so the same view sticks across
+ * navigations and reloads. Defense-in-depth: this is a *view* picker only —
+ * middleware + capability gates stay authoritative for permissions.
  */
 function PcsWorkspaceShell({ children }) {
   const { user } = useAuth();
-  const sidebarRole = deriveSidebarRole(user);
+  const baseRole = deriveSidebarRole(user);
+  const baseLayout = baseRole ? getLayoutForRole(baseRole) : null;
+  const canOverride = !!baseLayout?.showRoleSwitcher;
+
+  const [overrideRole, setOverrideRole] = useState(null);
+
+  // Hydrate the persisted override after mount.
+  useEffect(() => {
+    if (!canOverride) return;
+    try {
+      const stored = window.localStorage.getItem(ROLE_OVERRIDE_STORAGE_KEY);
+      if (stored && stored !== baseRole) setOverrideRole(stored);
+    } catch {
+      /* localStorage may throw in private mode */
+    }
+  }, [canOverride, baseRole]);
+
+  const onRoleChange = canOverride
+    ? (next) => {
+        setOverrideRole(next === baseRole ? null : next);
+        try {
+          if (next === baseRole) window.localStorage.removeItem(ROLE_OVERRIDE_STORAGE_KEY);
+          else window.localStorage.setItem(ROLE_OVERRIDE_STORAGE_KEY, next);
+        } catch { /* ignore */ }
+      }
+    : null;
+
+  const sidebarRole = canOverride && overrideRole ? overrideRole : baseRole;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <PcsNav />
       <div className="flex-1 flex">
         {sidebarRole ? (
-          <RoleAwareSidebar role={sidebarRole} user={user} />
+          <RoleAwareSidebar role={sidebarRole} user={user} onRoleChange={onRoleChange} />
         ) : null}
         <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6">
           <div className="max-w-7xl mx-auto w-full">
@@ -39,8 +70,7 @@ function PcsWorkspaceShell({ children }) {
         </main>
       </div>
       <Footer />
-      {/* Wave 6.1 — floating feedback button, persists across route changes.
-          Renders only when authenticated (FeedbackButton guards internally). */}
+      {/* Wave 6.1 — floating feedback button, persists across route changes. */}
       <FeedbackButton />
     </div>
   );

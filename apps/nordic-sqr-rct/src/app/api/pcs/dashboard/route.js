@@ -6,9 +6,21 @@ import { getOpenRequests } from '@/lib/pcs-requests';
 import { getAllEvidence } from '@/lib/pcs-evidence';
 import { getAllEvidencePackets } from '@/lib/pcs-evidence-packets';
 
+// 2026-05-03 perf fix — in-memory cache. The dashboard fetches 6 Notion DBs
+// (~2500 records, slowest is the 1783-row evidence packets at ~11s). Without
+// caching, every /pcs nav blocks for 11s+. With 60s cache, one user per
+// minute pays that cost; everyone else is instant. Cache resets on cold-start.
+let _cache = null;
+let _cacheBuiltAt = 0;
+const CACHE_TTL_MS = 60 * 1000;
+
 export async function GET(request) {
   const auth = await requireCapability(request, 'pcs.claims:read', { route: '/api/pcs/dashboard' });
   if (auth.error) return auth.error;
+
+  if (_cache && Date.now() - _cacheBuiltAt < CACHE_TTL_MS) {
+    return NextResponse.json(_cache);
+  }
 
   const [documents, claims, claimsNoEvidence, openRequests, evidence, packets] = await Promise.all([
     getAllDocuments(),
@@ -147,7 +159,7 @@ export async function GET(request) {
     ? Math.round(scored.reduce((s, e) => s + e.sqrScore, 0) / scored.length * 10) / 10
     : null;
 
-  return NextResponse.json({
+  const payload = {
     // KPIs
     totalDocuments: documents.length,
     underRevision,
@@ -172,5 +184,9 @@ export async function GET(request) {
     sqrDistribution,
     sqrDistributionByType,
     heatmapData,
-  });
+  };
+
+  _cache = payload;
+  _cacheBuiltAt = Date.now();
+  return NextResponse.json(payload);
 }

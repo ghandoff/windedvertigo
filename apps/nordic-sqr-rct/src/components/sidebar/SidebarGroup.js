@@ -45,11 +45,18 @@ export default function SidebarGroup({ group, counts = null, countsLoading = fal
   };
 
   return (
-    <div className="py-1">
+    <div className="py-1.5">
+      {/* 2026-05-03 UX pass — group header gets stronger contrast (bold,
+          dark text when open) so the parent/child hierarchy reads at a
+          glance. Items below are indented + sit under a subtle left border
+          to make the tree branch obvious. */}
       <button
         type="button"
         onClick={toggle}
-        className="flex w-full items-center gap-1.5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 transition-colors"
+        className={[
+          'flex w-full items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-[0.08em] transition-colors',
+          open ? 'text-gray-900' : 'text-gray-500 hover:text-gray-800',
+        ].join(' ')}
         aria-expanded={open}
       >
         <svg
@@ -75,7 +82,7 @@ export default function SidebarGroup({ group, counts = null, countsLoading = fal
           open ? styles.groupBodyOpen : styles.groupBodyClosed,
         ].join(' ')}
       >
-        <div className="mt-0.5 space-y-0.5">
+        <div className="ml-3 mt-1 border-l border-gray-100 pl-1.5 space-y-0.5">
           {group.items.map((item) => (
             <SidebarItem
               key={item.key}
