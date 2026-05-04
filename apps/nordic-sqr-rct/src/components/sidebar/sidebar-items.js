@@ -86,8 +86,9 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests',        label: 'Requests',             href: '/pcs/requests', badgeKey: 'requests.withResearch' },
-          { key: 'backfill-review', label: 'Claim Mapping Review', href: '/pcs/canonical-claims/backfill-review' },
+          { key: 'requests',         label: 'Requests',                  href: '/pcs/requests', badgeKey: 'requests.withResearch' },
+          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/pcs/canonical-claims/backfill-review' },
+          { key: 'research-quality', label: 'Research Quality',          href: '/pcs/research-quality' },
         ],
       },
     ],
@@ -102,9 +103,10 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests',        label: 'Requests',             href: '/pcs/requests', badgeKey: 'requests.withRA' },
-          { key: 'drift',           label: 'Drift',                href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
-          { key: 'backfill-review', label: 'Claim Mapping Review', href: '/pcs/canonical-claims/backfill-review' },
+          { key: 'requests',         label: 'Requests',                  href: '/pcs/requests', badgeKey: 'requests.withRA' },
+          { key: 'drift',            label: 'Drift',                     href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
+          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/pcs/canonical-claims/backfill-review' },
+          { key: 'research-quality', label: 'Research Quality',          href: '/pcs/research-quality' },
         ],
       },
       {
@@ -163,9 +165,10 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests',        label: 'Requests',             href: '/pcs/requests', badgeKey: 'requests.total' },
-          { key: 'drift',           label: 'Drift',                href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
-          { key: 'backfill-review', label: 'Claim Mapping Review', href: '/pcs/canonical-claims/backfill-review' },
+          { key: 'requests',         label: 'Requests',                  href: '/pcs/requests', badgeKey: 'requests.total' },
+          { key: 'drift',            label: 'Drift',                     href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
+          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/pcs/canonical-claims/backfill-review' },
+          { key: 'research-quality', label: 'Research Quality',          href: '/pcs/research-quality' },
         ],
       },
       // Bundle 3 Phase 3.2 — AICS Library (RA + admin + super-user)
@@ -305,6 +308,42 @@ export const PREMIUM_GROUP = Object.freeze({
       premium: true,
       description:
         'Audit-ready posture for regulated-data partners.',
+    },
+    // 2026-05-03 — Phase 4.6 follow-on previews. Bundle C ships into the
+    // retainer once Lauren accumulates ~50 mapping-review approvals; D.2
+    // and D.3 are 2027-SOW. Cochrane RoB Layered is *not* a teaser — its
+    // card redirects to the real /pcs/research-quality info page.
+    {
+      key: 'llm-claim-classifier',
+      label: 'LLM-Assisted Claim Classifier',
+      href: '/admin/premium-preview/llm-claim-classifier',
+      premium: true,
+      description:
+        'Auto-classify the 252 unmatchable PCS Claims into canonical / prefix / variants using few-shot learning seeded by Lauren\'s human approvals. Bundle C — gated on the review queue accumulating ~50 approvals.',
+    },
+    {
+      key: 'auto-aics-generator',
+      label: 'Auto-AICS .docx Generator',
+      href: '/admin/premium-preview/auto-aics-generator',
+      premium: true,
+      description:
+        'Pick an active ingredient (e.g. Magnesium); the platform composes a Lauren-template AICS .docx by pulling claims, evidence, regulatory monographs, and safety limits from the existing tables. Bundle D.2 — 2027 SOW.',
+    },
+    {
+      key: 'formula-to-pcs-draft',
+      label: 'Formula → PCS Draft',
+      href: '/admin/premium-preview/formula-to-pcs-draft',
+      premium: true,
+      description:
+        'PD enters a formula (multiple AIs at doses); the platform auto-drafts a complete PCS .docx by composing dose-tier claims from Bundle D.1\'s catalog and files PCS Requests for any claim gaps. Bundle D.3 — 2027 SOW.',
+    },
+    {
+      key: 'cochrane-rob-layered',
+      label: 'Cochrane RoB 2 — Layered Approach',
+      href: '/pcs/research-quality',
+      premium: false, // intentional — Sharon needs to read the live page, not a teaser
+      description:
+        'Sharon\'s requested Cochrane RoB 2 gatekeeper, layered onto the in-house 11-item rubric (which is psychometrically stronger). Live, not a teaser — this card opens the real Research Quality page.',
     },
   ]),
 });

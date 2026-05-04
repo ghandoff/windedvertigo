@@ -1317,6 +1317,21 @@ function AnalyticsContent() {
           </div>
         )}
 
+        {/* 2026-05-03 — banner linking to /pcs/research-quality so Sharon
+            can see why Cochrane RoB 2 is layered, not used as a sole
+            gatekeeper. The RoB 2 Mapping tab below shows per-study output;
+            this banner explains the why behind the layering. */}
+        <div className="mb-6 rounded-lg border border-pacific-200 bg-pacific-50/60 px-4 py-3 flex items-start gap-3">
+          <svg className="w-4 h-4 mt-0.5 text-pacific-700 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div className="text-sm text-gray-800">
+            <span className="font-semibold">How does this compare to Cochrane RoB 2?</span>{' '}
+            The 11-item rubric&apos;s ICC ≥ 0.75 outperforms RoB 2&apos;s κ = 0.16 (Minozzi 2020).{' '}
+            <Link href="/pcs/research-quality" className="text-pacific-700 hover:underline font-medium">See the layered approach →</Link>
+          </div>
+        </div>
+
         <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-bold text-pacific">Analytics Dashboard</h1>
