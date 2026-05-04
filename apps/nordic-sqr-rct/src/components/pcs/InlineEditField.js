@@ -238,13 +238,21 @@ export default function InlineEditField({
     <Can capability={capability} fallback={readOnlyView}>
       <span className="inline-flex items-start gap-2">
         {!editing ? (
+          // 2026-05-04 — persistent pencil indicator added so the field reads
+          // as editable without hover discovery. The hover-yellow tint is
+          // preserved as additional confirmation.
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="text-left px-1 -mx-1 rounded hover:bg-yellow-50 border border-transparent hover:border-yellow-200 transition-colors cursor-text"
+            className="group inline-flex items-center gap-1 text-left px-1 -mx-1 rounded hover:bg-yellow-50 border border-transparent hover:border-yellow-200 transition-colors cursor-text"
             title="Click to edit"
           >
-            {display}
+            <span>{display}</span>
+            <span className="shrink-0 text-pacific-400 group-hover:text-pacific-700" aria-hidden="true">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+              </svg>
+            </span>
           </button>
         ) : (
           <span className="inline-flex flex-col gap-1">

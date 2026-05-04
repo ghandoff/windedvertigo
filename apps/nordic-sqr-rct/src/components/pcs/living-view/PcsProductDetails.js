@@ -204,23 +204,30 @@ function EditableKV({ label, value, canWrite, onCommit }) {
   if (!canWrite) return <KV label={label} value={value} />;
 
   if (!editing) {
+    // 2026-05-04 — make the whole row a clickable button. Pencil icon ALWAYS
+    // visible (low-opacity pacific-400, intensifies on hover) so the
+    // affordance is discoverable without hover. Empty fields show
+    // "+ Click to add" instead of a bare em-dash to invite first entry.
+    const isEmpty = !value;
     return (
       <div>
         <p className="text-xs text-gray-500 uppercase">{label}</p>
-        <div className="flex items-center gap-1 group">
-          <p className="text-sm font-medium text-gray-900">
-            {value || <span className="text-gray-400">—</span>}
-          </p>
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-xs text-pacific-600 hover:text-pacific-700"
-            title={`Edit ${label}`}
-            aria-label={`Edit ${label}`}
-          >
-            ✎
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          aria-label={`Edit ${label}`}
+          title={`Click to edit ${label}`}
+          className="group flex w-full items-center gap-1.5 rounded -mx-1 px-1 py-0.5 text-left hover:bg-pacific-50/60 focus:bg-pacific-50 focus:outline-none focus:ring-1 focus:ring-pacific-300 cursor-text"
+        >
+          <span className={isEmpty ? 'text-sm italic text-pacific-600' : 'text-sm font-medium text-gray-900'}>
+            {isEmpty ? '+ Click to add' : value}
+          </span>
+          <span className="ml-auto shrink-0 text-pacific-400 group-hover:text-pacific-700" aria-hidden="true">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+            </svg>
+          </span>
+        </button>
       </div>
     );
   }
