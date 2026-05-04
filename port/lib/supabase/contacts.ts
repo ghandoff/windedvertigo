@@ -28,6 +28,8 @@ interface ContactRow {
   contact_warmth: string | null;
   responsiveness: string | null;
   referral_potential: boolean | null;
+  profile_photo_url: string | null;
+  linkedin_url: string | null;
 }
 
 export interface ContactSupabaseFilters {
@@ -57,9 +59,9 @@ function mapRowToContact(row: ContactRow): Contact {
     contactWarmth: (row.contact_warmth as Contact["contactWarmth"]) ?? "cold",
     responsiveness: (row.responsiveness as Contact["responsiveness"]) ?? "unknown",
     referralPotential: row.referral_potential ?? false,
-    linkedin: "",
+    linkedin: row.linkedin_url ?? "",
     phoneNumber: "",
-    profilePhotoUrl: "",       // UI falls back to name initials
+    profilePhotoUrl: row.profile_photo_url ?? "",
     relationshipStage: (row.relationship_stage as Contact["relationshipStage"]) ?? "stranger",
     lastContacted: null,
     nextAction: "",
@@ -72,7 +74,7 @@ function mapRowToContact(row: ContactRow): Contact {
 
 const SELECT_COLS =
   "notion_page_id, name, email, role, org_id, contact_type, relationship_stage, " +
-  "contact_warmth, responsiveness, referral_potential";
+  "contact_warmth, responsiveness, referral_potential, profile_photo_url, linkedin_url";
 
 // ── query function ────────────────────────────────────────────────
 

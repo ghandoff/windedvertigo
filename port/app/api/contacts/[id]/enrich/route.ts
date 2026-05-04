@@ -11,8 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getContact, updateContact } from "@/lib/notion/contacts";
-import { getOrganization } from "@/lib/notion/organizations";
+import { getContactByIdFromSupabase, upsertContactToSupabase } from "@/lib/supabase/contacts";
+import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
 import { enrichContact } from "@/lib/enrichment/contact-enrichment";
 
 export const maxDuration = 25;
@@ -25,10 +25,8 @@ export async function POST(
   const body = await req.json().catch(() => ({}));
   const forceEmail = Boolean(body?.forceEmail);
 
-  let contact;
-  try {
-    contact = await getContact(id);
-  } catch {
+  const contact = await getContactByIdFromSupabase(id);
+  if (!contact) {
     return NextResponse.json({ error: "Contact not found" }, { status: 404 });
   }
 
@@ -42,10 +40,8 @@ export async function POST(
   // Fetch linked org website for Hunter.io domain lookup
   let orgWebsite: string | undefined;
   if (contact.organizationIds[0]) {
-    try {
-      const org = await getOrganization(contact.organizationIds[0]);
-      orgWebsite = org.website || undefined;
-    } catch { /* org fetch optional */ }
+    const org = await getOrganizationByIdFromSupabase(contact.organizationIds[0]);
+    orgWebsite = org?.website || undefined;
   }
 
   const enriched = await enrichContact({
@@ -55,20 +51,20 @@ export async function POST(
     orgWebsite,
   });
 
-  // Build Notion update — only write what changed
-  const updates: Parameters<typeof updateContact>[1] = {};
+  // Build Supabase update — only write what changed
+  const supabaseUpdates: Record<string, unknown> = {};
 
   if (enriched.photoUrl) {
-    updates.profilePhotoUrl = enriched.photoUrl;
+    supabaseUpdates.profile_photo_url = enriched.photoUrl;
   }
 
   // Only update email if it was blank, or caller explicitly requested an override
   if (enriched.email && (!contact.email || forceEmail)) {
-    updates.email = enriched.email;
+    supabaseUpdates.email = enriched.email;
   }
 
-  if (Object.keys(updates).length > 0) {
-    await updateContact(id, updates);
+  if (Object.keys(supabaseUpdates).length > 0) {
+    await upsertContactToSupabase(id, supabaseUpdates as Parameters<typeof upsertContactToSupabase>[1]);
   }
 
   return NextResponse.json({
@@ -78,7 +74,7 @@ export async function POST(
     email: enriched.email,
     emailSource: enriched.emailSource,
     emailConfidence: enriched.emailConfidence,
-    emailUpdated: !!updates.email,
+    emailUpdated: !!supabaseUpdates.email,
     // Surface what tools are available so the client can show a useful message
     hasProxycurl: !!process.env.PROXYCURL_API_KEY,
     hasHunter: !!process.env.HUNTER_API_KEY,

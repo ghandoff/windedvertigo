@@ -52,6 +52,11 @@ interface OrganizationRow {
   source: string | null;
   regions: string | null;
   quadrant: string | null;
+  logo: string | null;
+  description: string | null;
+  linkedin_url: string | null;
+  bespoke_email_copy: string | null;
+  enriched_at: string | null;
 }
 
 export interface OrganizationSupabaseFilters {
@@ -128,7 +133,6 @@ function mapRowToOrganization(row: OrganizationRow): Organization {
     buyingTrigger: "",
     buyerRole: "",
     subject: "",
-    bespokeEmailCopy: "",
     outreachSuggestion: "",
     outreachStatus,
     relationship,
@@ -138,10 +142,11 @@ function mapRowToOrganization(row: OrganizationRow): Organization {
     projectIds: [],
     bdAssetIds: [],
     competitorIds: [],
-    logo: undefined,
-    description: undefined,
-    linkedinUrl: undefined,
-    enrichedAt: undefined,
+    logo: row.logo ?? undefined,
+    description: row.description ?? undefined,
+    linkedinUrl: row.linkedin_url ?? undefined,
+    bespokeEmailCopy: row.bespoke_email_copy ?? "",
+    enrichedAt: row.enriched_at ?? undefined,
     outreachReady: undefined,
     createdTime: "",
     lastEditedTime: "",
@@ -163,7 +168,7 @@ function toArray(v: string | string[]): string[] {
 const SELECT_COLS =
   "notion_page_id, name, type, category, market_segment, website, email, " +
   "connection, outreach_status, friendship, fit_rating, notes, derived_priority, " +
-  "source, regions, quadrant";
+  "source, regions, quadrant, logo, description, linkedin_url, bespoke_email_copy, enriched_at";
 
 // ── query function ────────────────────────────────────────────────
 

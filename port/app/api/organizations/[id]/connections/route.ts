@@ -10,8 +10,8 @@
  */
 
 import { NextRequest } from "next/server";
-import { getOrganization } from "@/lib/notion/organizations";
-import { getContact } from "@/lib/notion/contacts";
+import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
+import { getContactsFromSupabase } from "@/lib/supabase/contacts";
 import { json, error } from "@/lib/api-helpers";
 
 export async function GET(
@@ -20,27 +20,21 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  let org;
-  try {
-    org = await getOrganization(id);
-  } catch {
-    return error("Organization not found", 404);
-  }
+  const org = await getOrganizationByIdFromSupabase(id);
+  if (!org) return error("Organization not found", 404);
 
-  if (!org.contactIds?.length) {
+  // Query contacts linked to this org directly — avoids the N+1 that the
+  // Notion version had (iterate contactIds → fetch each contact one by one).
+  const { data: contacts } = await getContactsFromSupabase(
+    { orgId: id },
+    { pageSize: 20 },
+  );
+
+  if (!contacts.length) {
     return json({ orgId: id, orgName: org.organization, directContacts: [], paths: [] });
   }
 
-  // Fetch all contacts linked to this org
-  const contactResults = await Promise.allSettled(
-    org.contactIds.slice(0, 20).map((cId) => getContact(cId)),
-  );
-
-  const contacts = contactResults
-    .filter((r) => r.status === "fulfilled")
-    .map((r) => (r as PromiseFulfilledResult<Awaited<ReturnType<typeof getContact>>>).value);
-
-  // For each contact, get their warmth + relationship stage as the "path strength"
+  // For each contact, surface warmth + relationship stage as the "path strength"
   const directContacts = contacts.map((c) => ({
     id: c.id,
     name: c.name,
@@ -64,6 +58,6 @@ export async function GET(
     orgId: id,
     orgName: org.organization,
     directContacts,
-    totalContacts: org.contactIds.length,
+    totalContacts: contacts.length,
   });
 }

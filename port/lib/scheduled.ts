@@ -52,73 +52,47 @@ interface CronEntry {
   dayOfMonth?: number;
 }
 
+// Phase A4 (2026-05-03): All 21 Notion→Supabase mirror crons retired.
+// Supabase is now the write-primary source of truth (Phase A3 complete) so
+// these one-way mirrors are redundant. Route files kept for reference but
+// no longer scheduled. Kept crons:
+//   sync-allowances    — business logic (creates reimbursement entries), not a mirror
+//   sync-calendar-time — GCal → timesheets sync (orthogonal to Notion migration)
+//   sync-replies       — sends email replies (not a data mirror)
+
 const CRON_TABLE: CronEntry[] = [
   // ── Daily at fixed times ────────────────────────────────────────────────────
-  // All fire at :00 of the designated hour (original minutes preserved as docs)
-  { path: "/api/cron/rfp-gmail-scanner",    hours: [8] },
-  { path: "/api/rfp-radar/poll-rss",        hours: [8],  originalMinute: 15 },
-  { path: "/api/rfp-radar/poll-feedly",     hours: [8],  originalMinute: 30 },
-  { path: "/api/cron/sync-replies",         hours: [8],  originalMinute: 55 },
-  { path: "/api/cron/campaigns",            hours: [9],  originalMinute: 7 },
-  { path: "/api/cron/sync-rfp-feeds-pilot", hours: [9] },
-  { path: "/api/cron/relationship-alerts",  hours: [13] },
-  { path: "/api/cron/deadline-reminders",   hours: [12] },
+  { path: "/api/cron/rfp-gmail-scanner",   hours: [8] },
+  { path: "/api/rfp-radar/poll-rss",       hours: [8], originalMinute: 15 },
+  { path: "/api/rfp-radar/poll-feedly",    hours: [8], originalMinute: 30 },
+  { path: "/api/cron/sync-replies",        hours: [8], originalMinute: 55 },
+  { path: "/api/cron/campaigns",           hours: [9], originalMinute: 7 },
+  { path: "/api/cron/relationship-alerts", hours: [13] },
+  { path: "/api/cron/deadline-reminders",  hours: [12] },
 
   // ── Inngest cron migrations ─────────────────────────────────────────────────
-  // TODO G.2.3: create app/api/cron/submission-followup/route.ts +
-  //             app/api/cron/bd-asset-health/route.ts from inngest function bodies
-  { path: "/api/cron/submission-followup",  hours: [8] },
-  { path: "/api/cron/bd-asset-health",      hours: [9],  weekdays: [1] },
+  { path: "/api/cron/submission-followup", hours: [8] },
+  { path: "/api/cron/bd-asset-health",     hours: [9], weekdays: [1] },
 
   // ── Weekday-only ────────────────────────────────────────────────────────────
-  { path: "/api/cron/meeting-briefings",    hours: [11], originalMinute: 30, weekdays: [1,2,3,4,5] },
-  { path: "/api/cron/morning-digest",       hours: [9],  weekdays: [1,2,3,4,5] },
-  { path: "/api/cron/sync-calendar-time",   hours: [14], weekdays: [1,2,3,4,5] },
-  { path: "/api/cron/deadline-risk",        hours: [13], originalMinute: 30, weekdays: [1,2,3,4,5] },
+  { path: "/api/cron/meeting-briefings",   hours: [11], originalMinute: 30, weekdays: [1,2,3,4,5] },
+  { path: "/api/cron/morning-digest",      hours: [9],  weekdays: [1,2,3,4,5] },
+  { path: "/api/cron/sync-calendar-time",  hours: [14], weekdays: [1,2,3,4,5] },
+  { path: "/api/cron/deadline-risk",       hours: [13], originalMinute: 30, weekdays: [1,2,3,4,5] },
 
   // ── Monday-only ─────────────────────────────────────────────────────────────
-  { path: "/api/cron/weekly-digest",  hours: [14], weekdays: [1] },
-  { path: "/api/gusto/sync",             hours: [13], weekdays: [1] },
+  { path: "/api/cron/weekly-digest",    hours: [14], weekdays: [1] },
+  { path: "/api/gusto/sync",            hours: [13], weekdays: [1] },
   { path: "/api/cron/generate-pdfs",    hours: [6],  weekdays: [1] },
   { path: "/api/cron/payroll-reminder", hours: [9],  dayOfMonth: 26 },
 
   // ── Monthly (specific day) ──────────────────────────────────────────────────
-  { path: "/api/cron/refresh-linkedin",      hours: [9], dayOfMonth: 1 },
-  { path: "/api/cron/linkedin-monitor",      hours: [9], dayOfMonth: 5 },
-  { path: "/api/cron/sync-allowances",       hours: [9], dayOfMonth: 28 },
-  { path: "/api/cron/sync-allowances-pilot", hours: [9], dayOfMonth: 28 },
-
-  // ── Every 2 hours ───────────────────────────────────────────────────────────
-  { path: "/api/cron/sync-deals-pilot",         hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
-  { path: "/api/cron/sync-contacts-pilot",      hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
-  { path: "/api/cron/sync-organizations-pilot", hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
-  { path: "/api/cron/sync-work-items",          hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
-  { path: "/api/cron/sync-milestones-pilot",    hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
-  { path: "/api/cron/sync-projects-pilot",      hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
-  { path: "/api/cron/sync-cycles-pilot",        hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
+  { path: "/api/cron/refresh-linkedin",  hours: [9], dayOfMonth: 1 },
+  { path: "/api/cron/linkedin-monitor",  hours: [9], dayOfMonth: 5 },
+  { path: "/api/cron/sync-allowances",   hours: [9], dayOfMonth: 28 },
 
   // ── Every 4 hours ───────────────────────────────────────────────────────────
-  { path: "/api/cron/ingest-meeting-notes",   hours: [0,4,8,12,16,20] },
-  { path: "/api/cron/sync-activities-pilot",  hours: [0,4,8,12,16,20] },
-  { path: "/api/cron/sync-social-pilot",      hours: [0,4,8,12,16,20] },
-  { path: "/api/cron/sync-timesheets",        hours: [0,4,8,12,16,20] },
-
-  // ── Every 6 hours ───────────────────────────────────────────────────────────
-  { path: "/api/cron/sync-competitors-pilot", hours: [0,6,12,18] },
-
-  // ── Fixed nightly (3am/4am/5am) ──────────────────────────────────────────────
-  { path: "/api/cron/sync-events-pilot",     hours: [3] },
-  { path: "/api/cron/sync-bd-assets-pilot",  hours: [4] },
-  { path: "/api/cron/sync-blueprints-pilot", hours: [5] },
-
-  // ── 2am daily seed ──────────────────────────────────────────────────────────
-  { path: "/api/cron/sync-members-pilot",          hours: [2] },
-  { path: "/api/cron/sync-email-templates-pilot",  hours: [2] },
-
-  // ── Hourly ──────────────────────────────────────────────────────────────────
-  { path: "/api/cron/sync-campaigns-pilot" },
-  { path: "/api/cron/sync-campaign-steps-pilot" },
-  { path: "/api/cron/sync-rfp-pilot" },
+  { path: "/api/cron/ingest-meeting-notes", hours: [0,4,8,12,16,20] },
 ];
 
 // sweep-stuck-proposals runs every 5 minutes — handled by the */5 trigger,

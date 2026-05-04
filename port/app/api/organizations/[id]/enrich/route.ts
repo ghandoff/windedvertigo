@@ -1,11 +1,10 @@
 import { NextRequest } from "next/server";
-import { getOrganization, updateOrganization } from "@/lib/notion/organizations";
+import { getOrganizationByIdFromSupabase, upsertOrganizationToSupabase } from "@/lib/supabase/organizations";
 import { enrichOrganization } from "@/lib/enrichment/org-enrichment";
 import { callClaude } from "@/lib/ai/client";
 import { getBudgetStatus } from "@/lib/ai/usage-store";
 import { json, error } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
-import type { Organization } from "@/lib/notion/types";
 
 export const maxDuration = 30;
 
@@ -23,12 +22,8 @@ export async function POST(
     return error("Monthly AI budget exceeded. Adjust in AI Hub settings.", 429);
   }
 
-  let org: Organization;
-  try {
-    org = await getOrganization(id);
-  } catch {
-    return error("Organization not found", 404);
-  }
+  const org = await getOrganizationByIdFromSupabase(id);
+  if (!org) return error("Organization not found", 404);
 
   // ── 1. Structural enrichment: logo, description, linkedinUrl ──
   // Pass existing LinkedIn URL so enrichment can fetch from it even if the
@@ -41,14 +36,14 @@ export async function POST(
     org.linkedinUrl ?? undefined,
   );
 
-  const updates: Partial<Organization> = {
-    enrichedAt: new Date().toISOString(),
+  const supabaseUpdates: Record<string, unknown> = {
+    enriched_at: new Date().toISOString(),
   };
 
   // Always update from enrichment results (re-enriching should refresh data)
-  if (enrichResult.logo) updates.logo = enrichResult.logo;
-  if (enrichResult.extracted.description) updates.description = enrichResult.extracted.description;
-  if (enrichResult.extracted.linkedinUrl) updates.linkedinUrl = enrichResult.extracted.linkedinUrl;
+  if (enrichResult.logo) supabaseUpdates.logo = enrichResult.logo;
+  if (enrichResult.extracted.description) supabaseUpdates.description = enrichResult.extracted.description;
+  if (enrichResult.extracted.linkedinUrl) supabaseUpdates.linkedin_url = enrichResult.extracted.linkedinUrl;
 
   // ── 2. Bespoke email copy via Claude ─────────────────────────
   // Generate if missing OR if the stored copy looks like a full cold email
@@ -85,18 +80,18 @@ Return ONLY the 2–4 sentence synchronicity copy. Nothing else.`,
     });
 
     if (copyResult.text.trim()) {
-      updates.bespokeEmailCopy = copyResult.text.trim();
+      supabaseUpdates.bespoke_email_copy = copyResult.text.trim();
       bespokeGenerated = true;
     }
   }
 
-  // ── 3. Persist to Notion ──────────────────────────────────────
-  await updateOrganization(id, updates);
+  // ── 3. Persist to Supabase (write-primary) ────────────────────
+  await upsertOrganizationToSupabase(id, supabaseUpdates as Parameters<typeof upsertOrganizationToSupabase>[1]);
 
   return json({
-    logo: !!updates.logo,
-    description: !!updates.description,
-    linkedinUrl: !!updates.linkedinUrl,
+    logo: !!supabaseUpdates.logo,
+    description: !!supabaseUpdates.description,
+    linkedinUrl: !!supabaseUpdates.linkedin_url,
     bespokeEmailCopy: bespokeGenerated,
   });
 }
