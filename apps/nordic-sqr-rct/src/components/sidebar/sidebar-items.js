@@ -78,7 +78,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'documents',   label: 'Documents',   href: '/pcs/documents' },
           { key: 'claims',      label: 'Claims',      href: '/pcs/claims' },
           { key: 'evidence',    label: 'Evidence',    href: '/pcs/evidence' },
-          { key: 'ingredients', label: 'Ingredients', href: '/pcs/data/ingredients' },
+          { key: 'ingredients', label: 'Ingredients', href: '/pcs/ingredients' },
         ],
       },
       {
@@ -157,7 +157,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'documents',   label: 'Documents',   href: '/pcs/documents' },
           { key: 'claims',      label: 'Claims',      href: '/pcs/claims' },
           { key: 'evidence',    label: 'Evidence',    href: '/pcs/evidence' },
-          { key: 'ingredients', label: 'Ingredients', href: '/pcs/data/ingredients' },
+          { key: 'ingredients', label: 'Ingredients', href: '/pcs/ingredients' },
         ],
       },
       {
@@ -186,8 +186,8 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Operations',
         defaultOpen: true,
         items: [
-          { key: 'imports',       label: 'Imports',       href: '/pcs/imports', badgeKey: 'imports.active' },
-          { key: 'label-imports', label: 'Label Imports', href: '/pcs/labels/imports', badgeKey: 'labelImports.active' },
+          { key: 'imports',       label: 'Imports',       href: '/pcs/admin/imports', badgeKey: 'imports.active' },
+          { key: 'label-imports', label: 'Label Imports', href: '/pcs/admin/labels/imports', badgeKey: 'labelImports.active' },
           { key: 'export',        label: 'Export',        href: '/pcs/export' },
         ],
       },
@@ -208,7 +208,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'documents',   label: 'Documents',   href: '/pcs/documents' },
           { key: 'claims',      label: 'Claims',      href: '/pcs/claims' },
           { key: 'evidence',    label: 'Evidence',    href: '/pcs/evidence' },
-          { key: 'ingredients', label: 'Ingredients', href: '/pcs/data/ingredients' },
+          { key: 'ingredients', label: 'Ingredients', href: '/pcs/ingredients' },
         ],
       },
       {
@@ -236,8 +236,8 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Operations',
         defaultOpen: true,
         items: [
-          { key: 'imports',       label: 'Imports',       href: '/pcs/imports', badgeKey: 'imports.active' },
-          { key: 'label-imports', label: 'Label Imports', href: '/pcs/labels/imports', badgeKey: 'labelImports.active' },
+          { key: 'imports',       label: 'Imports',       href: '/pcs/admin/imports', badgeKey: 'imports.active' },
+          { key: 'label-imports', label: 'Label Imports', href: '/pcs/admin/labels/imports', badgeKey: 'labelImports.active' },
           { key: 'export',        label: 'Export',        href: '/pcs/export' },
         ],
       },

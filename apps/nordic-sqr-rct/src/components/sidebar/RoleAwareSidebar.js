@@ -107,8 +107,17 @@ export default function RoleAwareSidebar({
 
       {/* Footer */}
       <div className="border-t border-gray-100 px-3 py-3 space-y-2">
-        {/* Role-switcher (super-user / admin — preview other roles in place) */}
-        {layout.showRoleSwitcher && onRoleChange ? (
+        {/* Role-switcher (super-user / admin — preview other roles in place).
+            2026-05-04 fix: presence of `onRoleChange` is the authoritative
+            signal for "this user can switch views" — it's set in pcs/layout.js
+            based on the user's BASE role (super-user / admin), not the
+            currently-rendered role. Earlier we also gated on
+            `layout.showRoleSwitcher`, but `layout` is for the rendered role
+            (e.g., researcher when super-user is viewing as researcher) and
+            that flag is only set on the super-user layout — so the dropdown
+            would disappear after the first switch and the user couldn't
+            switch back. Trusting `onRoleChange` alone fixes that. */}
+        {onRoleChange ? (
           <div className="rounded-md bg-gold-50 border border-gold-200 p-2">
             <RoleSwitcher value={role} onChange={onRoleChange} label="Viewing as" />
           </div>

@@ -52,7 +52,10 @@ function AicsLibrary() {
         }
         return res.json();
       })
-      .then(setDocuments)
+      // 2026-05-04 — API returns { items, nextCursor } (pagination shape).
+      // Earlier code assumed an array and crashed PcsTable when fed an
+      // object. Unwrap to the items array; pagination wiring TBD.
+      .then((data) => setDocuments(Array.isArray(data) ? data : (data?.items || [])))
       .catch((err) => {
         const msg = err?.message || '';
         if (msg.includes('NOTION_AICS_DOCUMENTS_DB') || msg.includes('database_id') || msg.includes('AICS')) {
