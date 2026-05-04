@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
+import PlatformToggle from '@/components/PlatformToggle';
 
 // Wave 7.0.2 — centralized role check. Client check is UX hint; server
 // is the source of truth for PCS routes (authenticatePcsRead/Write).
@@ -82,16 +83,9 @@ export default function Navbar() {
             </div>
           )}
 
-          {/* Right: Cross-link + profile + logout */}
+          {/* Right: Platform toggle (replaces the PCS cross-link button) + profile + logout */}
           <div className="flex items-center gap-2">
-            {user && hasPcsAccess(user) && (
-              <Link
-                href="/pcs"
-                className="text-xs font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-md hover:bg-green-100 transition-colors hidden sm:inline-flex"
-              >
-                PCS
-              </Link>
-            )}
+            <PlatformToggle currentPlatform="sqr-rct" />
 
             {user?.isAdmin && (
               <Link

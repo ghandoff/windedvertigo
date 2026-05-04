@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
+import PlatformToggle from '@/components/PlatformToggle';
 
 // Wave 6.0 — Option D Data Hub collapse.
 // The former trio (Export, Import, Label Import) is now a single "Data"
@@ -97,16 +98,9 @@ export default function PcsNav() {
           {/* Center: intentionally empty on desktop — sidebar handles wayfinding. */}
           <div className="hidden md:block flex-1" aria-hidden="true" />
 
-          {/* Right: Cross-links + user + logout */}
+          {/* Right: Platform toggle (replaces the SQR-RCT cross-link button) + user + logout */}
           <div className="flex items-center gap-2">
-            {hasSqrAccess(user) && (
-              <Link
-                href="/dashboard"
-                className="text-xs font-medium text-pacific-700 bg-pacific-50 px-2.5 py-1 rounded-md hover:bg-pacific-100 transition-colors hidden sm:inline-flex"
-              >
-                SQR-RCT
-              </Link>
-            )}
+            <PlatformToggle currentPlatform="pcs" />
             {user?.isAdmin && (
               <Link
                 href="/admin"
