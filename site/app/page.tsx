@@ -3,8 +3,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { fetchSiteContent } from "@/lib/notion";
 
-/** ISR: revalidate every hour. */
-export const revalidate = 3600;
+/** SSR: render at request time so CF Worker NOTION_TOKEN secret is available. */
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const sections = await fetchSiteContent("home");

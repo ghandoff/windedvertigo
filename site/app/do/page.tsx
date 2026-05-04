@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { fetchPortfolioAssets, fetchSiteContent } from "@/lib/notion";
 import { PortfolioGallery } from "@/components/portfolio-gallery";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "do. – winded.vertigo",

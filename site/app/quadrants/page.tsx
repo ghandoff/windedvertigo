@@ -8,7 +8,7 @@ import {
 import { PackageBuilderWizard } from "@/components/package-builder-wizard";
 import { QuizErrorBoundary } from "@/components/quiz-error-boundary";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "quadrants. – winded.vertigo",

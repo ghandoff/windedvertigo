@@ -25,6 +25,9 @@ const notion = new Client({ auth: process.env.NOTION_TOKEN });
 // once per process via databases.retrieve and cache the mapping.
 const dataSourceCache = new Map<string, string>();
 
+// Sentinel value: databases without data_sources use databases.query() directly.
+const NO_DATA_SOURCE = "__databases_query__";
+
 async function getDataSourceId(databaseId: string): Promise<string> {
   const cached = dataSourceCache.get(databaseId);
   if (cached) return cached;
@@ -32,8 +35,11 @@ async function getDataSourceId(databaseId: string): Promise<string> {
     () => notion.databases.retrieve({ database_id: databaseId }),
     `getDataSourceId:${databaseId}`,
   );
-  if (!("data_sources" in db) || db.data_sources.length === 0) {
-    throw new Error(`no data sources found for database ${databaseId}`);
+  // Notion API v5: some databases don't expose data_sources (e.g. siteContent CMS).
+  // Fall back to databases.query() for those — same data, older API path.
+  if (!("data_sources" in db) || !db.data_sources || db.data_sources.length === 0) {
+    dataSourceCache.set(databaseId, NO_DATA_SOURCE);
+    return NO_DATA_SOURCE;
   }
   const id = db.data_sources[0].id;
   dataSourceCache.set(databaseId, id);
@@ -42,12 +48,24 @@ async function getDataSourceId(databaseId: string): Promise<string> {
 
 /** Query a data source by the legacy database ID. Resolves and caches
  *  the data_source_id transparently so call sites read like the old
- *  notion.databases.query(...) shape. */
+ *  notion.databases.query(...) shape. Falls back to databases.query()
+ *  when the DB has no data_sources field. */
 async function queryDataSource(
   databaseId: string,
   params: Omit<QueryDataSourceParameters, "data_source_id">,
 ): Promise<QueryDataSourceResponse> {
   const data_source_id = await getDataSourceId(databaseId);
+  if (data_source_id === NO_DATA_SOURCE) {
+    // databases.query() was removed from @notionhq/client v5 types but the
+    // REST endpoint still works. Use notion.request() to call it directly.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return notion.request<QueryDataSourceResponse>({
+      path: `databases/${databaseId}/query`,
+      method: "post",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      body: params as any,
+    });
+  }
   return notion.dataSources.query({ data_source_id, ...params });
 }
 
