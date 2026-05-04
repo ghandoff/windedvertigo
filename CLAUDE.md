@@ -3,7 +3,7 @@
 > Deep memory, tasks, and operational files live in `.brain/`
 > Tasks: `.brain/TASKS.md` | Memory: `.brain/memory/` | Archive: `.brain/archive/`
 
-> **What's new (2026-04-25):** CF zone consolidation complete (zone now at garrett account `097c92553b268f8360b74f625f6d980a`). Site, harbour, and depth-chart migrated to Cloudflare Workers via OpenNext. Port agent (`wv-claw`) live in Slack DM. Migration record: `~/.claude/plans/partitioned-painting-pascal.md`.
+> **What's new (2026-05-03):** Port (CRM) migrated to Cloudflare Workers (`wv-port`). All pages read from Supabase (Phase A2 complete); all write paths Supabase-first (Phase A3 complete). DNS cutover via CF route — Vercel `wv-crm` kept as rollback until 2026-05-17. Previous: CF zone consolidation complete 2026-04-25; site, harbour, depth-chart on CF Workers; Port agent (`wv-claw`) live in Slack DM.
 
 ## Me
 Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in San Francisco, CA (Pacific time). Email: garrett@windedvertigo.com
@@ -118,7 +118,7 @@ The second brain operates across two Claude environments with a shared memory la
 - Monorepo code changes: `harbour/`, `crm/`, `ops/`, `packages/`
 - Build fixes, dependency management, config files
 - Git operations (commit, push, branch, PR)
-- Deployment via Vercel CLI (port/CRM, ops, creaseworks, vault, nordic) and Wrangler/OpenNext (site, harbour, depth-chart on CF Workers)
+- Deployment via Vercel CLI (ops, creaseworks, vault, nordic) and Wrangler/OpenNext (site, harbour, depth-chart, **port** on CF Workers)
 - New features for ops dashboard, CRM, website
 - Infrastructure (Cloudflare workers, D1, KV if needed)
 - Debugging build/runtime errors
@@ -151,7 +151,7 @@ windedvertigo/
 | Harbour | (apps under windedvertigo.com) | CF Workers (OpenNext) | `wv-harbour-harbour` (R2 binding for tile images, Auth.js host in Pool A SSO) | Live — magic-link signin live; security headers via @windedvertigo/security wrapper |
 | Depth-chart | windedvertigo.com/harbour/depth-chart/* | CF Workers (OpenNext) | `wv-harbour-depth-chart` (own CF routes, bypasses site router) | Live — Pool A SSO; security headers via wrapper |
 | wv-launch-smoke | wv-launch-smoke.windedvertigo.workers.dev | CF Workers | `wv-launch-smoke` (cron `*/30 * * * *`, KV `SMOKE_LATEST`) | Live — 40-target probe, posts to wv-claw on red |
-| Port (CRM) | port.windedvertigo.com | Vercel | `wv-crm` | Live |
+| Port (CRM) | port.windedvertigo.com | CF Workers (OpenNext) | `wv-port` (R3 bindings: PROPOSAL_QUEUE, TIMESHEET_QUEUE, RFP_DOCUMENT_QUEUE; R2 `port-assets`; AUTH_TRUST_HOST=true) | Live — migrated 2026-05-03; Vercel `wv-crm` kept as rollback until 2026-05-17 |
 | Port agent | Slack DM @wv-claw | Vercel (worker `wv-claw`) | App `A0AUA3VQHFH` / bot `U0AUPLEA8RL` / audit DB `f2f48a9998d84cd69598efdc79a44f1e` | Live end-to-end |
 | Nordic (Vercel) | nordic.windedvertigo.com | Vercel | `nordic-sqr-rct` (rootDir: `apps/nordic-sqr-rct`, monorepo-linked 2026-05-02) | Live — production (cutover pending Phase F.5 ~May 5-7) |
 | Nordic (CF canary) | wv-nordic.windedvertigo.workers.dev | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs` binding, `workflow` SDK removed, Supabase saga for ingredient-safety) | Canary live — Phase F.4 (started 2026-05-02, cutover after 3-day clean) |
