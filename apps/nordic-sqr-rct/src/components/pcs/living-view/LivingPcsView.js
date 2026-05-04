@@ -225,7 +225,32 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
         </div>
       </header>
 
-      <LegacyBanner doc={doc} />
+      {/* 2026-05-04 — Word-template chrome. Mirrors the printed PCS .docx
+          layout so the Nordic team has visual continuity:
+            • White paper background with serif body text
+            • Red bold "INTERNAL USE ONLY at Nordic Naturals®" in top-right
+            • Page meta line on the left ("PCS-#### v#.#  Product Claims Substantiation (PCS)")
+          The platform header above (sticky) keeps sans-serif chrome so the
+          edit/version/export controls don't get confused with the document
+          body. */}
+      <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden font-serif">
+        {/* Document-paper banner (red INTERNAL USE ONLY block, top of every Word page) */}
+        <div className="border-b-2 border-red-700 bg-white px-6 py-3 sm:px-8 flex items-start justify-between gap-4">
+          <div className="text-[13px] leading-tight">
+            <div className="font-medium text-gray-900">{doc.pcsId}{version?.version ? ` v${version.version}` : 'v0.1'}</div>
+            <div className="italic text-gray-700">Product Claims Substantiation (PCS)</div>
+          </div>
+          <div className="text-right text-red-700 font-bold text-[13px] leading-tight">
+            <div>INTERNAL USE ONLY</div>
+            <div>at Nordic Naturals<sup>®</sup></div>
+          </div>
+        </div>
+
+        {/* Page body — sections render their banded headers + content here.
+            The serif font is set on the wrapper so all child sections inherit
+            it; tables get alternating row colors via the .pcs-paper class. */}
+        <div className="px-6 py-6 sm:px-8 sm:py-8 space-y-8 pcs-paper">
+          <LegacyBanner doc={doc} />
 
       <SectionAnchor id="cover" eyebrow="Section" title="Cover">
         <PcsCoverSection doc={doc} version={version} />
@@ -343,6 +368,15 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
       >
         <PcsReferences references={references} />
       </SectionAnchor>
+        </div>
+        {/* Footer page-meta line — mirrors the bottom-right page number in
+            the Word template. We can't compute true page numbers in a
+            web view, so we surface the last edit + version instead. */}
+        <div className="border-t border-gray-200 bg-gray-50 px-6 py-2 sm:px-8 text-[11px] text-gray-500 italic flex items-center justify-between">
+          <span>{doc.pcsId}{version?.version ? ` · v${version.version}` : ''}</span>
+          <span>{doc.templateVersion ? `Template: ${doc.templateVersion}` : 'Template version not set'}</span>
+        </div>
+      </div>
 
       <BackfillSideSheet
         open={Boolean(sheetDraft)}

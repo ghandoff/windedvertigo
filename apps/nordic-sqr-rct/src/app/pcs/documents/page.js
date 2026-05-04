@@ -156,6 +156,29 @@ function PcsDocuments() {
         );
       },
     },
+    // 2026-05-04 column audit:
+    //   removed: View (redundant — PCS ID is already a link)
+    //   removed: Classification (19/38 empty, mixed semantics A/APPROVED/INTERNAL USE; not actionable in list view)
+    //   removed: Approved date (0/38 populated)
+    //   removed: File status (33/38 empty; better edited on the detail page)
+    //   added:   Finished Good Name (33/38 populated — the actual product)
+    //   added:   Format (33/38 populated — Capsule/Softgel/Gummy/etc.)
+    {
+      key: 'finishedGoodName',
+      label: 'Product',
+      render: (val) =>
+        val ? <span className="text-sm text-gray-900">{val}</span>
+            : <span className="text-xs text-gray-400">— unnamed —</span>,
+    },
+    {
+      key: 'format',
+      label: 'Format',
+      render: (val) => val ? (
+        <span className="inline-block whitespace-nowrap rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+          {val}
+        </span>
+      ) : <span className="text-gray-400 text-xs">—</span>,
+    },
     {
       key: 'templateVersion',
       label: 'Template',
@@ -174,37 +197,23 @@ function PcsDocuments() {
         );
       },
     },
-    { key: 'classification', label: 'Class' },
     {
-      key: 'fileStatus',
-      label: 'File status',
-      editable: true,
-      type: 'select',
-      options: ['Static', 'Under revision', 'Unknown'],
+      key: 'productStatus',
+      label: 'Status',
       render: (val) => {
+        if (!val) return <span className="text-gray-400 text-xs">—</span>;
         const colors = {
-          Static: 'bg-green-100 text-green-700',
-          'Under revision': 'bg-yellow-100 text-yellow-700',
-          Unknown: 'bg-gray-100 text-gray-600',
+          'On-market': 'bg-green-100 text-green-700',
+          'In development': 'bg-blue-100 text-blue-700',
+          Retired: 'bg-gray-100 text-gray-600',
+          Unknown: 'bg-gray-100 text-gray-500',
         };
-        return val ? (
-          <span className={`inline-block whitespace-nowrap px-2 py-0.5 rounded-full text-xs font-medium ${colors[val] || colors.Unknown}`}>
+        return (
+          <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${colors[val] || colors.Unknown}`}>
             {val}
           </span>
-        ) : '—';
+        );
       },
-    },
-    { key: 'productStatus', label: 'Product status' },
-    { key: 'approvedDate', label: 'Approved' },
-    {
-      key: 'id',
-      label: 'View',
-      sortable: false,
-      render: (_val, row) => (
-        <Link href={`/pcs/documents/${row.id}/view`} className="text-pacific-600 hover:underline text-xs">
-          Open
-        </Link>
-      ),
     },
     // Inline replacement-request action — only renders meaningfully on the
     // Needs Replacement view (the button shows everywhere but is gated to

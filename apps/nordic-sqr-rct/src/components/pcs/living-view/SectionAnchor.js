@@ -3,32 +3,33 @@
 /**
  * SectionAnchor — reusable section wrapper for the Living PCS View.
  *
- * Provides an anchor id, a section heading, an optional badge slot (used by
- * BackfillBadge in later phases), and an optional right-side action slot.
+ * 2026-05-04 restyled to match the printed Word template:
+ *   - Blue-banded section header (~#D6E5F4 background, dark navy text)
+ *   - "Eyebrow" (e.g., "Table A.") rendered inline before the title, matching
+ *     "Table A. Document Revision History" pattern from the .docx
+ *   - Body text inherits serif from the .pcs-paper wrapper in LivingPcsView
+ *
+ * Backfill badge + action slots preserved on the right.
  */
 export default function SectionAnchor({ id, title, eyebrow, badge, action, children }) {
   return (
-    <section id={id} className="scroll-mt-24 space-y-3">
-      <div className="flex items-start justify-between gap-3">
+    <section id={id} className="scroll-mt-24">
+      {/* Word-template style banded section header */}
+      <div className="flex items-center justify-between gap-3 border-l-4 border-pacific-700 bg-pacific-100/70 px-3 py-2 mb-3">
         <div className="flex-1 min-w-0">
-          {eyebrow && (
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{eyebrow}</p>
-          )}
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-lg font-semibold text-gray-900">
-              <a
-                href={`#${id}`}
-                className="hover:text-pacific-600 transition-colors"
-              >
-                {title}
-              </a>
-            </h2>
-            {badge}
-          </div>
+          <h2 className="font-semibold text-pacific-900 text-base leading-tight">
+            <a href={`#${id}`} className="hover:underline">
+              {eyebrow ? <span>{eyebrow}. </span> : null}
+              {title}
+            </a>
+          </h2>
         </div>
-        {action && <div className="shrink-0">{action}</div>}
+        <div className="shrink-0 flex items-center gap-2">
+          {badge}
+          {action}
+        </div>
       </div>
-      <div>{children}</div>
+      <div className="pcs-section-body">{children}</div>
     </section>
   );
 }

@@ -88,8 +88,21 @@ function InlineField({
 
   if (!canEdit || !editing) {
     const isEmpty = value == null || value === '' || (Array.isArray(value) && value.length === 0);
+    // 2026-05-04 — make the entire field clickable when canEdit, with a
+    // pencil icon ALWAYS visible. The previous opacity-0 group-hover pattern
+    // hid edit-ability behind a hover discovery step, so users couldn't see
+    // the field was editable at all.
+    const Wrapper = canEdit ? 'button' : 'div';
     return (
-      <div className="group flex items-start gap-2">
+      <Wrapper
+        type={canEdit ? 'button' : undefined}
+        onClick={canEdit ? () => setEditing(true) : undefined}
+        aria-label={canEdit ? `Edit ${fieldPath}` : undefined}
+        className={[
+          'group flex items-start gap-2 w-full text-left',
+          canEdit ? 'rounded -mx-1 px-1 py-0.5 hover:bg-pacific-50/60 focus:bg-pacific-50 focus:outline-none focus:ring-1 focus:ring-pacific-300 cursor-text' : '',
+        ].join(' ')}
+      >
         <div className="flex-1 min-w-0">
           {variant === 'tags' && Array.isArray(value) && value.length > 0 ? (
             <div className="flex flex-wrap gap-1 mt-0.5">
@@ -100,22 +113,19 @@ function InlineField({
               ))}
             </div>
           ) : (
-            <p className={isEmpty ? 'text-sm text-gray-400' : displayClassName}>
-              {isEmpty ? '—' : String(value)}
+            <p className={isEmpty ? 'text-sm text-pacific-600 italic' : displayClassName}>
+              {isEmpty ? (canEdit ? '+ Click to add' : '—') : String(value)}
             </p>
           )}
         </div>
-        {canEdit && (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="opacity-0 group-hover:opacity-100 focus:opacity-100 text-xs text-pacific-600 hover:underline shrink-0"
-            aria-label={`Edit ${fieldPath}`}
-          >
-            Edit
-          </button>
-        )}
-      </div>
+        {canEdit ? (
+          <span className="shrink-0 mt-0.5 text-pacific-400 group-hover:text-pacific-700" aria-hidden="true">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+            </svg>
+          </span>
+        ) : null}
+      </Wrapper>
     );
   }
 

@@ -153,3 +153,65 @@ html { scroll-behavior: smooth; }
 .animate-progress {
   animation: progress-indeterminate 2s ease-in-out infinite;
 }
+
+/* ────────────────────────────────────────────────────────────────────────
+   Living PCS View — Word-template paper styling (added 2026-05-04).
+
+   Applied via the `.pcs-paper` wrapper in LivingPcsView. The goal is visual
+   continuity with the printed PCS .docx so the Nordic team has familiar
+   chrome during the transition from Word to the database-driven UI. */
+
+.pcs-paper {
+  /* Body text: serif (Cambria-style), black, comfortable line height */
+  color: #1f2937;
+  font-family: 'Cambria', 'Hoefler Text', 'Liberation Serif', Georgia, serif;
+}
+
+/* Tables inside the paper get the Nordic blue header band + alternating
+   row backgrounds + thin gray borders to match the .docx tables.
+
+   We scope to `.pcs-section-body table` (and not `.pcs-paper table`)
+   so the platform's own UI tables (e.g., revision-table side panels)
+   don't get accidentally restyled if they live elsewhere. */
+.pcs-section-body table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.pcs-section-body thead tr,
+.pcs-section-body tr.pcs-table-band-header {
+  background-color: var(--color-pacific-100);
+}
+.pcs-section-body thead th,
+.pcs-section-body tr.pcs-table-band-header th,
+.pcs-section-body tr.pcs-table-band-header td {
+  font-weight: 600;
+  color: var(--color-pacific-900);
+  text-align: left;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid #d1d5db;
+}
+.pcs-section-body tbody td {
+  padding: 0.5rem 0.625rem;
+  border: 1px solid #e5e7eb;
+}
+.pcs-section-body tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+.pcs-section-body tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+/* Page-title divider for major Word-template sections (e.g., COVER PAGE,
+   REGULATORY REVIEW, REFERENCES). Use as `<div class="pcs-page-title">…`. */
+.pcs-page-title {
+  text-align: center;
+  font-family: 'Cambria', 'Hoefler Text', 'Liberation Serif', Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--color-pacific-900);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
