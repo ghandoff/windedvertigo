@@ -66,11 +66,14 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [checkAuth]);
 
-  const login = async (alias, password) => {
+  // 2026-05-03 — `identifier` accepts either an email (canonical, going-forward)
+  // or a legacy alias. Field name kept as `alias` in callers for now to avoid
+  // a wide rename; server normalizes via `body.identifier || body.email || body.alias`.
+  const login = async (identifier, password) => {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ alias, password }),
+      body: JSON.stringify({ identifier, password }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);

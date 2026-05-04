@@ -170,12 +170,24 @@ function LandingContent() {
                     <p className="text-sm text-gray-500 mb-6">
                       {audience === 'reviewer'
                         ? 'Use the credentials sent to you when you joined the reviewer network.'
-                        : 'Use your Nordic Research Platform credentials.'}
+                        : 'Sign in with your Nordic Naturals work email and the password sent to you. First-time sign-ins will be prompted to set a new password.'}
                     </p>
                     <form onSubmit={handleLogin} className="space-y-4">
                       <div>
-                        <label className="form-label" htmlFor="alias">Username</label>
-                        <input id="alias" type="text" className="input-field" placeholder="Your username" value={alias} onChange={(e) => setAlias(e.target.value)} required autoComplete="username" />
+                        <label className="form-label" htmlFor="alias">
+                          {audience === 'nordic' ? 'Email' : 'Email or username'}
+                        </label>
+                        <input
+                          id="alias"
+                          type="text"
+                          className="input-field"
+                          placeholder={audience === 'nordic' ? 'you@nordicnaturals.com' : 'Email or legacy username'}
+                          value={alias}
+                          onChange={(e) => setAlias(e.target.value)}
+                          required
+                          autoComplete="username"
+                          inputMode={audience === 'nordic' ? 'email' : 'text'}
+                        />
                       </div>
                       <div>
                         <label className="form-label" htmlFor="password">Password</label>

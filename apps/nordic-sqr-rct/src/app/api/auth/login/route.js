@@ -3,6 +3,7 @@ import { timingSafeEqual } from 'crypto';
 import bcrypt from 'bcryptjs';
 import {
   getReviewerByAlias,
+  getReviewerByEmail,
   updateReviewerPassword,
   setReviewerPasswordResetRequired,
 } from '@/lib/notion';
@@ -36,13 +37,33 @@ export async function POST(request) {
       );
     }
 
-    const { alias, password } = await request.json();
-    if (!alias || !password) {
-      return NextResponse.json({ error: 'Alias and password are required' }, { status: 400 });
+    // 2026-05-03 — accept either an email or a legacy alias as the identifier.
+    // The form field is now "Email or username" so existing alias-based logins
+    // keep working while Nordic users move to canonical-email login. Body
+    // schema is backward-compatible: clients can send `{ alias }` (legacy),
+    // `{ email }`, or `{ identifier }` (recommended for new clients).
+    const body = await request.json();
+    const identifier = body?.identifier || body?.email || body?.alias;
+    const password = body?.password;
+    if (!identifier || !password) {
+      return NextResponse.json(
+        { error: 'Email (or username) and password are required' },
+        { status: 400 },
+      );
     }
-    const reviewer = await getReviewerByAlias(alias);
+
+    // Email matching is preferred when the identifier looks like an email.
+    // Fall back to alias for legacy clients and any non-email username string.
+    const looksLikeEmail = typeof identifier === 'string' && identifier.includes('@');
+    let reviewer = null;
+    if (looksLikeEmail) {
+      reviewer = await getReviewerByEmail(identifier.trim().toLowerCase());
+    }
     if (!reviewer) {
-      return NextResponse.json({ error: 'Invalid alias or password' }, { status: 401 });
+      reviewer = await getReviewerByAlias(identifier);
+    }
+    if (!reviewer) {
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
     const storedPassword = reviewer.properties?.['Password']?.rich_text?.[0]?.plain_text || '';
 
