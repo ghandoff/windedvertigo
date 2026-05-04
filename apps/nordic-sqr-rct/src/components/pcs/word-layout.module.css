@@ -6,46 +6,95 @@
    ============================================================ */
 
 .document {
-  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-family: 'Cambria', Georgia, 'Times New Roman', Times, serif;
   font-size: 11pt;
   line-height: 1.5;
-  color: #111;
-  background: #fff;
+  /* Force light styling regardless of OS dark mode. Lauren's printed PCS
+     template is white-paper / black-text / red-banner only. */
+  color: #1f2937;
+  background: #ffffff;
   max-width: 9in;
   margin: 0 auto;
-  padding: 1in;
+  padding: 0.5in 0.75in 0.75in 0.75in;
+  box-shadow: 0 0 0 1px #e5e7eb, 0 6px 18px rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
 }
 
-/* ---- Section headers ---- */
-.sectionHeader {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 14pt;
+/* ---- Word-template page banner (red INTERNAL USE ONLY block) ---- */
+.pageBanner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 2px solid #b91c1c;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
+  font-size: 10pt;
+}
+.pageBannerLeft {
+  color: #1f2937;
+}
+.pageBannerLeft strong {
   font-weight: 700;
+}
+.pageBannerLeft em {
+  font-style: italic;
+  color: #4b5563;
+}
+.pageBannerRight {
+  text-align: right;
+  color: #b91c1c;
+  font-weight: 700;
+  font-family: 'Cambria', Georgia, serif;
+  line-height: 1.25;
+}
+
+/* ---- Centered page-divider title (e.g., COVER PAGE) ---- */
+.pageDivider {
+  text-align: center;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 13pt;
+  letter-spacing: 0.08em;
+  color: #024a87;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #111;
-  border-bottom: 2px solid #333;
-  padding-bottom: 0.25rem;
-  margin-top: 2rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+/* ---- Section headers (Table A. Document Revision History style) ---- */
+.sectionHeader {
+  font-family: 'Cambria', Georgia, serif;
+  font-size: 11pt;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #024a87;
+  background: #dfecf8;
+  border-left: 4px solid #024a87;
+  padding: 0.4rem 0.6rem;
+  margin-top: 1.5rem;
   margin-bottom: 0.75rem;
+  border-bottom: none;
 }
 
 /* ---- Document header block ---- */
 .headerBlock {
-  border: 1px solid #333;
+  border: 1px solid #b8d7f0;
   padding: 1rem;
   margin-bottom: 1.5rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem 1.5rem;
+  background: #f8fbfe;
 }
 
 .headerBlock h1 {
   grid-column: 1 / -1;
-  font-size: 18pt;
+  font-size: 16pt;
   font-weight: bold;
   margin: 0 0 0.75rem 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Cambria', Georgia, serif;
+  color: #024a87;
 }
 
 .headerField {
@@ -78,24 +127,30 @@
 
 .table th,
 .table td {
-  border: 1px solid #333;
+  border: 1px solid #d1d5db;
   padding: 0.4rem 0.5rem;
   text-align: left;
   vertical-align: top;
+  color: #1f2937;
 }
 
 .table thead th {
-  background: #f0f0f0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 9pt;
+  /* Match Word template — light blue band with dark navy text */
+  background: #dfecf8;
+  font-family: 'Cambria', Georgia, serif;
+  font-size: 10pt;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #333;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #024a87;
+  border-color: #b8d7f0;
 }
 
 .table tbody tr:nth-child(even) {
-  background: #fafafa;
+  background: #f9fafb;
+}
+.table tbody tr:nth-child(odd) {
+  background: #ffffff;
 }
 
 /* ---- No-data placeholder ---- */
@@ -182,19 +237,11 @@
   .revisionSection { page-break-before: always; }
 }
 
-/* ---- Dark mode ---- */
-@media (prefers-color-scheme: dark) {
-  .document { background: #1a1a1a; color: #e8e8e8; }
-  .headerBlock { border-color: #555; background: #222; }
-  .headerLabel { color: #aaa; }
-  .headerValue { color: #e8e8e8; }
-  .sectionHeader { color: #e8e8e8; border-bottom-color: #555; }
-  .table th,
-  .table td { border-color: #555; color: #e8e8e8; }
-  .table thead th { background: #2a2a2a; color: #ccc; }
-  .table tbody tr:nth-child(even) { background: #222; }
-  .evidenceCard { border-color: #555; background: #222; }
-  .benefitHeading { color: #84bce5; border-bottom-color: #2a3a50; }
-  .evidenceTakeaway { border-top-color: #444; }
-  .noData { border-color: #444; color: #777; }
-}
+/* ---- Dark mode override REMOVED 2026-05-04 ----
+   Lauren's printed PCS .docx is white-paper / black-text / red-banner
+   regardless of what OS theme the reader is on. The previous
+   `prefers-color-scheme: dark` block flipped the entire document to
+   high-contrast dark when the operator's Mac was in dark mode, which
+   defeated the "match the printed template" goal. Light styling only
+   from here on. A per-page user toggle would be the right way to add
+   a dark-reading variant later, not an OS-wide media query. */

@@ -48,6 +48,22 @@ export default function WordLayoutView({ doc, viewPayload }) {
 
   return (
     <div className={styles.document}>
+      {/* 2026-05-04 — Word-template page banner: PCS-####v#.# on the left,
+          red INTERNAL USE ONLY at Nordic Naturals® on the right. Mirrors
+          the page header in Lauren's printed .docx. */}
+      <div className={styles.pageBanner}>
+        <div className={styles.pageBannerLeft}>
+          <strong>{pcsId}{currentVersion && currentVersion !== '—' ? `v${currentVersion}` : 'v0.1'}</strong>
+          <br />
+          <em>Product Claims Substantiation (PCS)</em>
+        </div>
+        <div className={styles.pageBannerRight}>
+          INTERNAL USE ONLY
+          <br />
+          at Nordic Naturals<sup>®</sup>
+        </div>
+      </div>
+
       <HeaderBlock
         documentName={documentName}
         pcsId={pcsId}

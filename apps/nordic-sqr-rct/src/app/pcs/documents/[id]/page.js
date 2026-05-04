@@ -423,7 +423,27 @@ export default function PcsDocumentDetail() {
 
       {/* Wave 8 Phase B — Word layout replaces compact body when toggled */}
       {viewMode === 'word' ? (
-        <WordLayoutView doc={doc} viewPayload={wordPayloadLoading ? null : wordPayload} />
+        <>
+          {/* 2026-05-04 — Word view is intentionally read-only (it mirrors
+              the printed .docx for transition continuity). When canWrite,
+              point the user at the Compact view for inline edits. */}
+          {canWrite && !editing ? (
+            <div className="mb-4 rounded-lg border border-pacific-200 bg-pacific-50/60 px-4 py-2.5 text-sm flex items-center justify-between gap-3">
+              <div className="text-gray-800">
+                <span className="font-semibold">Word view is read-only.</span>{' '}
+                Switch to <em>Compact</em> above to inline-edit fields, or click <em>Edit</em> for the form-driven editor.
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewMode('compact')}
+                className="whitespace-nowrap rounded-md bg-pacific-600 px-3 py-1 text-xs font-medium text-white hover:bg-pacific-700"
+              >
+                Switch to Compact
+              </button>
+            </div>
+          ) : null}
+          <WordLayoutView doc={doc} viewPayload={wordPayloadLoading ? null : wordPayload} />
+        </>
       ) : (
       <>
       {/* Document metadata */}
