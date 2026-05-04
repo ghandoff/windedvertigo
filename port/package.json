@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev --port 3005",
     "build": "next build",
+    "build:cf": "opennextjs-cloudflare build",
+    "deploy:cf": "opennextjs-cloudflare build && wrangler deploy",
     "start": "next start",
     "lint": "eslint"
   },
