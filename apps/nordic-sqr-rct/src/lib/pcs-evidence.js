@@ -190,14 +190,53 @@ export async function findEvidenceByIdentifier({ doi, pmid }) {
 }
 
 export async function createEvidence(fields) {
-  // Wave 7.0.5 T8 — advisory uniqueness check. Logs a warning but never
-  // blocks; operators may have legitimate reasons (retraction, corrigendum).
-  // Once merge-execution (T8.1) ships, tighten this to a hard constraint.
-  if (fields.doi || fields.pmid) {
+  // Wave 7.0.5 T8.1 — hard-merge dedup (2026-05-05).
+  //
+  // When an existing row matches by exact DOI or PMID, return THAT row
+  // instead of creating a duplicate. Optionally enrich the existing
+  // row with non-empty fields the existing row was missing — never
+  // overwrite operator-curated data. This replaces the previous T8
+  // advisory check, which logged a warning but still created the dup.
+  //
+  // The returned object includes a `_wasMerged: true` flag plus
+  // `_enrichedFields: string[]` listing which gaps got filled, so
+  // callers (save-from-search, EndNote import, etc.) can show
+  // appropriate UI. Callers that don't read the flag still get the
+  // existing row's id and parsed shape, which is the safe default.
+  //
+  // Edge case — retraction / corrigendum / superseded paper: passing
+  // `forceCreate: true` opts out and creates a new row regardless.
+  // Reserved for explicit operator action; not exposed in standard
+  // create paths today.
+  if ((fields.doi || fields.pmid) && !fields.forceCreate) {
     const existing = await findEvidenceByIdentifier({ doi: fields.doi, pmid: fields.pmid });
     if (existing) {
       const ident = fields.doi ? `DOI ${fields.doi}` : `PMID ${fields.pmid}`;
-      console.warn(`[evidence] duplicate detected: ${ident} already exists on page ${existing.id} ("${existing.name}") — consider re-using instead of creating a new row.`);
+
+      // Compute gap-fills: only set fields the existing row is missing.
+      // String fields use truthiness; numbers/booleans use null/undefined
+      // checks so we don't clobber an existing 0 / false.
+      const enrichments = {};
+      if (!existing.pdf && fields.pdf) enrichments.pdf = fields.pdf;
+      if (!existing.canonicalSummary && fields.canonicalSummary) enrichments.canonicalSummary = fields.canonicalSummary;
+      if (existing.publicationYear == null && fields.publicationYear != null) enrichments.publicationYear = fields.publicationYear;
+      if (!existing.url && fields.url) enrichments.url = fields.url;
+      if (!existing.evidenceType && fields.evidenceType) enrichments.evidenceType = fields.evidenceType;
+      if (!existing.citation && fields.citation) enrichments.citation = fields.citation;
+      if (!existing.pmid && fields.pmid) enrichments.pmid = fields.pmid;
+      if (!existing.doi && fields.doi) enrichments.doi = fields.doi;
+      if ((!existing.ingredient || existing.ingredient.length === 0) && fields.ingredient?.length > 0) {
+        enrichments.ingredient = fields.ingredient;
+      }
+
+      const enrichedFields = Object.keys(enrichments);
+      if (enrichedFields.length > 0) {
+        const enriched = await updateEvidence(existing.id, enrichments);
+        console.log(`[evidence] hard-merge: ${ident} merged into ${existing.id} (enriched: ${enrichedFields.join(', ')})`);
+        return { ...enriched, _wasMerged: true, _enrichedFields: enrichedFields };
+      }
+      console.log(`[evidence] hard-merge: ${ident} matches ${existing.id} — returning existing as-is`);
+      return { ...existing, _wasMerged: true, _enrichedFields: [] };
     }
   }
 

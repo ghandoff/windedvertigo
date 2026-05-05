@@ -88,6 +88,12 @@ export async function POST(request) {
     pdf: pdfUrl || undefined,
     canonicalSummary: hit.abstract ? hit.abstract.slice(0, 1900) : undefined,
   });
+  // 2026-05-05 — Wave 7.0.5 T8.1 hard-merge surfaces a `_wasMerged`
+  // flag on the returned entry when an existing row was returned
+  // instead of creating a new one. Pass that to the client so the
+  // UI can show "Merged into existing row" rather than "Created new".
+  const merged = entry._wasMerged === true;
+  const enrichedFields = entry._enrichedFields || [];
   revalidatePath('/api/pcs/evidence');
 
   // Fire-and-forget SQR-RCT intake routing — same pattern as the
@@ -106,8 +112,13 @@ export async function POST(request) {
       pdfUrl,
       waterfallAttempts,
       entry,
+      merged,
+      enrichedFields,
     },
-    { status: 201 },
+    // 200 when we merged into an existing row, 201 when we created
+    // a new one — matches REST semantics and lets clients distinguish
+    // the cases without parsing the body.
+    { status: merged ? 200 : 201 },
   );
 }
 

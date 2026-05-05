@@ -130,14 +130,28 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
           id: body.evidenceId,
           pdfSource: body.pdfSource,
           pdfUrl: body.pdfUrl,
+          merged: body.merged === true,
+          enrichedFields: body.enrichedFields || [],
         },
       }));
       const sourceLabel = body.pdfSource ? PDF_SOURCE_LABEL[body.pdfSource] || body.pdfSource : null;
-      toast?.success?.(
-        sourceLabel
-          ? `Saved "${hit.title.slice(0, 50)}…" — PDF via ${sourceLabel}`
-          : `Saved "${hit.title.slice(0, 50)}…" — no OA PDF found`,
-      );
+      // 2026-05-05 — Wave 7.0.5 T8.1: when the server hard-merged
+      // into an existing row instead of creating a new one, say so
+      // explicitly. Otherwise the operator would think they created
+      // a duplicate.
+      const titleClip = hit.title.slice(0, 50);
+      let toastMsg;
+      if (body.merged) {
+        const enriched = body.enrichedFields?.length > 0
+          ? ` (filled: ${body.enrichedFields.join(', ')})`
+          : '';
+        toastMsg = `Already in library — merged${enriched}`;
+      } else if (sourceLabel) {
+        toastMsg = `Saved "${titleClip}…" — PDF via ${sourceLabel}`;
+      } else {
+        toastMsg = `Saved "${titleClip}…" — no OA PDF found`;
+      }
+      toast?.success?.(toastMsg);
       if (onAttached) onAttached(body.entry || body);
     } catch (err) {
       setAttached((s) => ({ ...s, [hit.id]: { ok: false, message: err.message } }));
