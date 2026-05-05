@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
 import {
   getAllClaims, getClaimsForVersion, getClaimsByBucket,
   getClaimsWithoutEvidence, createClaim,
 } from '@/lib/pcs-claims';
+
+export const revalidate = 60;
 
 export async function GET(request) {
   const auth = await requireCapability(request, 'pcs.claims:read', { route: '/api/pcs/claims' });
@@ -24,7 +27,9 @@ export async function GET(request) {
   } else {
     claims = await getAllClaims();
   }
-  return NextResponse.json(claims);
+  return NextResponse.json(claims, {
+    headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' },
+  });
 }
 
 export async function POST(request) {
@@ -36,5 +41,6 @@ export async function POST(request) {
     return NextResponse.json({ error: 'claim text is required' }, { status: 400 });
   }
   const claim = await createClaim(fields);
+  revalidatePath('/api/pcs/claims');
   return NextResponse.json(claim, { status: 201 });
 }

@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
 import {
   getAllEvidence, getEvidenceByIngredient, getEvidenceByType,
   getSqrReviewedEvidence, getUnreviewedEvidence, createEvidence,
 } from '@/lib/pcs-evidence';
 import { isAutoFeedEnabled, feedToIntake } from '@/lib/pcs-intake-feed';
+
+export const revalidate = 60;
 
 export async function GET(request) {
   const auth = await requireCapability(request, 'pcs.evidence:read', { route: '/api/pcs/evidence' });
@@ -27,7 +30,9 @@ export async function GET(request) {
   } else {
     evidence = await getAllEvidence();
   }
-  return NextResponse.json(evidence);
+  return NextResponse.json(evidence, {
+    headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' },
+  });
 }
 
 export async function POST(request) {
@@ -39,6 +44,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'name is required' }, { status: 400 });
   }
   const entry = await createEvidence(fields);
+  revalidatePath('/api/pcs/evidence');
 
   // Fire-and-forget: auto-feed to SQR-RCT intake queue if enabled
   if (isAutoFeedEnabled()) {

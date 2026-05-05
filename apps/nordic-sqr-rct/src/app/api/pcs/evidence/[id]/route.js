@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getEvidence, updateEvidence } from '@/lib/pcs-evidence';
 import { EVIDENCE_TYPES, SQR_RISK_OF_BIAS } from '@/lib/pcs-config';
@@ -39,6 +40,7 @@ export async function PATCH(request, { params }) {
   try {
     const { id } = await params;
     const entry = await updateEvidence(id, fields);
+    revalidatePath('/api/pcs/evidence');
     return NextResponse.json(entry);
   } catch (err) {
     console.error('Evidence PATCH error:', err);

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
 import {
   getIngredient,
@@ -30,6 +31,7 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: `Invalid fdaRdiUnit: ${fields.fdaRdiUnit}` }, { status: 400 });
   }
   const row = await updateIngredient(id, fields);
+  revalidatePath('/api/pcs/ingredients');
   return NextResponse.json(row);
 }
 
@@ -38,5 +40,6 @@ export async function DELETE(request, { params }) {
   if (auth.error) return auth.error;
   const { id } = await params;
   await deleteIngredient(id);
+  revalidatePath('/api/pcs/ingredients');
   return NextResponse.json({ ok: true });
 }

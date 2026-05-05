@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getClaim, updateClaim } from '@/lib/pcs-claims';
 import {
@@ -69,6 +70,7 @@ export async function PATCH(request, { params }) {
 
   try {
     const claim = await updateClaim(id, fields);
+    revalidatePath('/api/pcs/claims');
     return NextResponse.json(claim);
   } catch (err) {
     console.error('Claim PATCH error:', err);

@@ -32,6 +32,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { createEvidence } from '@/lib/pcs-evidence';
 import { findAndFetchPdf } from '@/lib/pmc';
@@ -87,6 +88,7 @@ export async function POST(request) {
     pdf: pdfUrl || undefined,
     canonicalSummary: hit.abstract ? hit.abstract.slice(0, 1900) : undefined,
   });
+  revalidatePath('/api/pcs/evidence');
 
   // Fire-and-forget SQR-RCT intake routing — same pattern as the
   // generic POST /api/pcs/evidence handler so the new entry point

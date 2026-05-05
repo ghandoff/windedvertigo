@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getDocument, updateDocument } from '@/lib/pcs-documents';
 
@@ -27,6 +28,7 @@ export async function PATCH(request, { params }) {
   try {
     const fields = await request.json();
     const doc = await updateDocument(id, fields);
+    revalidatePath('/api/pcs/documents');
     return NextResponse.json(doc);
   } catch (err) {
     if (err?.code === 'object_not_found') {

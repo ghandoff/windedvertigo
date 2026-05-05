@@ -1,13 +1,18 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getAllIngredients, createIngredient } from '@/lib/pcs-ingredients';
 import { AI_CATEGORIES, AI_UNITS } from '@/lib/pcs-config';
+
+export const revalidate = 300;
 
 export async function GET(request) {
   const auth = await requireCapability(request, 'pcs.taxonomy:read', { route: '/api/pcs/ingredients' });
   if (auth.error) return auth.error;
   const rows = await getAllIngredients();
-  return NextResponse.json(rows);
+  return NextResponse.json(rows, {
+    headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=1800' },
+  });
 }
 
 export async function POST(request) {
@@ -28,5 +33,6 @@ export async function POST(request) {
     return NextResponse.json({ error: 'canonicalName is required' }, { status: 400 });
   }
   const row = await createIngredient(fields);
+  revalidatePath('/api/pcs/ingredients');
   return NextResponse.json(row, { status: 201 });
 }
