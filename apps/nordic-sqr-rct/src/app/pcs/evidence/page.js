@@ -112,6 +112,32 @@ function PcsEvidence() {
       .then((data) => setEvidence(Array.isArray(data) ? data : (data?.items || [])));
   }, [ingredient, type, sqrReviewed]);
 
+  // 2026-05-05 — Two-phase update so the operator sees their newly-saved
+  // article in the table immediately:
+  //   1. Optimistic prepend — the save-from-search response includes the
+  //      created `entry`; splice it onto the front of state right away
+  //      so the row is visible before Notion finishes propagating.
+  //   2. Authoritative re-fetch after 4s — Notion's Database query API
+  //      can take 2–5s to surface a freshly-created page, so a single
+  //      synchronous refresh often misses it. Schedule a follow-up.
+  const handleAttached = useCallback(
+    (entry) => {
+      if (entry?.id) {
+        setEvidence((prev) => {
+          // Avoid duplicates on the optimistic insert if the row somehow
+          // already came back from a concurrent fetch.
+          const exists = prev.some((e) => e.id === entry.id);
+          if (exists) return prev;
+          return [entry, ...prev];
+        });
+      }
+      // Belt-and-suspenders authoritative refresh after Notion settles.
+      const t = setTimeout(refresh, 4000);
+      return () => clearTimeout(t);
+    },
+    [refresh],
+  );
+
   const canAttach = hasAnyRole(user, ROLE_SETS.PCS_WRITERS);
 
   if (loading) {
@@ -150,7 +176,7 @@ function PcsEvidence() {
 
       {/* Article search — Tier 1 PubMed + Semantic Scholar live;
           CORE / OSF / Google Scholar / ResearchGate roadmapped. */}
-      <ArticleSearchPanel canAttach={canAttach} onAttached={refresh} />
+      <ArticleSearchPanel canAttach={canAttach} onAttached={handleAttached} />
 
       <PcsTable columns={columns} data={evidence} tableKey="evidence" userId={user?.reviewerId} />
     </div>

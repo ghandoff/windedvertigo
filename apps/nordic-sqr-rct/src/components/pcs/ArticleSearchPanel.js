@@ -28,7 +28,8 @@
  * createEvidence (pcs-evidence.js) re-uses the existing row.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useToast } from '@/components/Toast';
 
 const PROVIDER_LABELS = {
@@ -64,6 +65,27 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
   const [searched, setSearched] = useState(false);
   const [attaching, setAttaching] = useState({});
   const [attached, setAttached] = useState({});
+
+  // 2026-05-05 — When the sidebar Evidence button is clicked while we're
+  // already on /pcs/evidence, Next.js Link is a no-op (same path). The
+  // SidebarItem dispatches `nordic:nav-reset` so the panel can clear its
+  // local state and let the operator return to the un-searched library
+  // view without leaving the page first.
+  useEffect(() => {
+    function handler(e) {
+      if (e?.detail?.href === '/pcs/evidence') {
+        setQuery('');
+        setHits([]);
+        setProviders([]);
+        setError(null);
+        setSearched(false);
+        setAttached({});
+        setAttaching({});
+      }
+    }
+    window.addEventListener('nordic:nav-reset', handler);
+    return () => window.removeEventListener('nordic:nav-reset', handler);
+  }, []);
 
   async function onSearch(e) {
     e?.preventDefault?.();
@@ -254,7 +276,17 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
                   ) : null}
                 </div>
                 <div className="shrink-0 self-center flex flex-col items-end gap-1">
-                  {a?.ok ? (
+                  {h.existingEvidenceId && !a?.ok ? (
+                    <>
+                      <span className="text-xs text-emerald-700 font-medium">✓ In library</span>
+                      <Link
+                        href={`/pcs/evidence/${h.existingEvidenceId}`}
+                        className="text-[11px] text-pacific-600 hover:underline"
+                      >
+                        Open existing row →
+                      </Link>
+                    </>
+                  ) : a?.ok ? (
                     <>
                       <span className="text-xs text-green-700 font-medium">✓ Saved</span>
                       {a.pdfSource ? (

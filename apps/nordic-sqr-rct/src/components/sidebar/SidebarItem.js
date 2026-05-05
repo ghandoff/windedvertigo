@@ -53,9 +53,25 @@ export default function SidebarItem({ item, exact = false, counts = null, counts
   const showBadge = showLoading || (typeof badgeValue === 'number' && badgeValue > 0);
   const badgeText = showLoading ? '…' : String(badgeValue);
 
+  // 2026-05-05 — When the user clicks a sidebar Link to the page they
+  // are already on, Next.js no-ops (correctly — there's nothing to
+  // navigate to). But pages with significant client-side state (search
+  // panels, filters, etc.) can leave the user "stuck" — they want a
+  // way to return to the page's default state without leaving and
+  // coming back. We dispatch a window-level event that interested
+  // pages listen for and use to reset their local state.
+  function handleSamePathReset(e) {
+    if (!isActive || typeof window === 'undefined') return;
+    window.dispatchEvent(
+      new CustomEvent('nordic:nav-reset', { detail: { href: item.href } }),
+    );
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   return (
     <Link
       href={item.href}
+      onClick={handleSamePathReset}
       className={[
         // 2026-05-03 UX pass — items render as lighter-weight, smaller
         // text than the group header above. Active state still uses the
