@@ -52,13 +52,22 @@ export default function PcsTable({
   const [editValue, setEditValue] = useState('');
   const escapedRef = useRef(false);
 
-  // Hydrate saved sort on mount (avoids SSR mismatch)
+  // Hydrate saved sort on mount (avoids SSR mismatch). The defaults
+  // are applied via useState above; this effect only overrides when
+  // the operator has a saved preference. The setState-in-effect rule
+  // is intentionally suppressed: localStorage isn't accessible during
+  // SSR, so a lazy useState initializer would mismatch hydration. The
+  // canonical React pattern for this case is exactly what's below.
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     const saved = loadSavedSort();
-    setSortKey(saved.key);
-    setSortDir(saved.dir || 'asc');
+    if (saved.key) {
+      setSortKey(saved.key);
+      setSortDir(saved.dir || 'asc');
+    }
     setSortLoaded(true);
   }, [storageKey]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   // Persist sort preference when it changes
   useEffect(() => {
