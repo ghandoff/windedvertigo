@@ -1,0 +1,613 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'></head><body><h1 id="ongoing-services-retainer-buyout-proposal">Ongoing Services Retainer + Buyout Proposal</h1>
+<p><strong>Author:</strong> Garrett Jaeger (Winded Vertigo)
+<strong>For:</strong> Nordic Naturals — SQR-RCT + PCS Platform
+<strong>Date:</strong> 2026-04-22
+<strong>Status:</strong> Draft for internal review before contract negotiation</p>
+<hr />
+<h2 id="1-the-shape-of-this-contract">1. The shape of this contract</h2>
+<p>The work to date has delivered a production platform with live integrations into
+Nordic's research operations (PCS documents, canonical claims, label import,
+SQR-RCT scoring, weekly digests, nightly re-pings, ingredient-safety
+escalations, in-app feedback, feedback Slack fan-out, bcrypt-authenticated
+multi-role auth with 1h access tokens and live role re-verification, audit
+trail for mutations). That platform does not stand still. Three categories of
+ongoing work are unavoidable and warrant a recurring commercial relationship
+rather than a one-time build fee:</p>
+<ol>
+<li><strong>Security maintenance</strong> — password policy, token rotation, dependency
+   patches, vendor-breach response, regulatory updates (FDA DSHEA, FTC Green
+   Guides, GDPR, CCPA), penetration-test findings, audit-log reviews.</li>
+<li><strong>LLM ecosystem churn</strong> — Claude, OpenAI, and every downstream LLM
+   provider ship breaking changes on ~quarterly cadence (pricing, rate limits,
+   retention defaults, API shape, model deprecations). Every one of these is
+   a live risk to the platform's extraction pipelines and auto-scoring.</li>
+<li><strong>Nordic-side data hygiene and evolution</strong> — new products, new claim
+   templates, label format revisions, Lauren's template updates, canonical
+   claim deduplication, formula line backfills, study intake changes.</li>
+</ol>
+<p>A one-time build fee does not cover any of these. A project-based engagement
+creates a feast/famine dynamic where Nordic only pays when something is already
+broken. A <strong>retainer</strong> aligns incentives: I have a predictable revenue base
+that funds proactive maintenance and rapid incident response, and Nordic has
+a committed owner for the platform without having to renegotiate every quarter.</p>
+<hr />
+<h2 id="2-what-the-retainer-covers-and-doesnt">2. What the retainer covers (and doesn't)</h2>
+<h3 id="included-in-the-monthly-retainer">Included in the monthly retainer</h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Security patching</strong></td>
+<td>Dependency updates, CVE response within agreed SLA, token and credential rotation, Notion / Vercel / Anthropic vendor-breach assessment and mitigation.</td>
+</tr>
+<tr>
+<td><strong>LLM vendor management</strong></td>
+<td>Monitor Claude/OpenAI API changelogs, model deprecations, pricing shifts. Adjust prompts and pipelines to stay within budget and compliance. Negotiate addenda (ZDR, BAA) on Nordic's behalf.</td>
+</tr>
+<tr>
+<td><strong>Data hygiene assistance</strong></td>
+<td>Operate the existing backfill scripts, duplicate audits, and canonical-claim merges. Triage intake-queue anomalies.</td>
+</tr>
+<tr>
+<td><strong>Minor feature work</strong></td>
+<td>Small additive features (≤ ~4 hours each), UI polish, copy changes, role adjustments, new Slack channel wiring, label template tweaks. Cap: 8 hours / month, carryover 1 month max.</td>
+</tr>
+<tr>
+<td><strong>Incident response</strong></td>
+<td>Triage production issues within defined response-time SLA (see §6). Revert via Wave 8 Phase A audit trail when appropriate. After-action writeup.</td>
+</tr>
+<tr>
+<td><strong>Quarterly security review</strong></td>
+<td>Review of audit logs, access patterns, capability assignments, Notion workspace membership, Vercel env var hygiene. Written report to Nordic leadership.</td>
+</tr>
+<tr>
+<td><strong>Light advisory time</strong></td>
+<td>Up to 2 hours / month of strategy conversations, vendor selection advice, architectural recommendations on Nordic-initiated questions.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="not-included-scoped-separately-as-project-work">NOT included (scoped separately as project work)</h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Major feature builds</strong></td>
+<td>New waves (e.g. Wave 8 C-D inline editing, Wave 9 real-time collaboration, Wave 10 Supabase migration, future analytics, new workflows). Each scoped as its own SOW with fixed fee or T&amp;M.</td>
+</tr>
+<tr>
+<td><strong>LLM platform migration</strong></td>
+<td>See §5 — specific open-source migration project.</td>
+</tr>
+<tr>
+<td><strong>Nordic-driven data migrations</strong></td>
+<td>Large imports (hundreds of PCS docs), one-time integrations with other Nordic systems (SAP, ERP), large-scale taxonomy reworks.</td>
+</tr>
+<tr>
+<td><strong>Training + documentation deliverables</strong></td>
+<td>Written runbooks beyond what's already in <code>docs/runbooks/</code>, video walkthroughs, onboarding sessions for new Nordic hires. Hourly.</td>
+</tr>
+<tr>
+<td><strong>Custom integrations</strong></td>
+<td>Bespoke connectors to Nordic's warehouse, accounting, LIMS, etc. Each is a project.</td>
+</tr>
+<tr>
+<td><strong>Legal or compliance attestations</strong></td>
+<td>SOC 2 preparation, HIPAA BAA preparation, FDA regulatory documentation. Nordic engages legal + compliance specialists; I collaborate as consultant at hourly rate.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-proposed-retainer-structure">3. Proposed retainer structure</h2>
+<p>Dollar figures are anchor estimates for conversation; Garrett's attorney and
+Nordic's procurement will adjust.</p>
+<h3 id="baseline-monthly-retainer">Baseline monthly retainer</h3>
+<p><strong>Range: $4,000 – $7,000 / month</strong> depending on SLA tier (§6) and monthly
+feature-work allowance. Invoiced monthly, net 15.</p>
+<p>Rationale anchor: at 10–20% of estimated first-year build value, a retainer
+of ~$60k – $85k / year is standard for a production platform of this scope
+with regulated-data characteristics.</p>
+<h3 id="tiered-sla-options">Tiered SLA options</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Response time (P1 incident)</th>
+<th>Response time (P2)</th>
+<th>Monthly hours</th>
+<th>Approx fee</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Standard</strong></td>
+<td>24 business hours</td>
+<td>3 business days</td>
+<td>8 h included</td>
+<td>$4,000 / mo</td>
+</tr>
+<tr>
+<td><strong>Priority</strong></td>
+<td>4 business hours</td>
+<td>1 business day</td>
+<td>16 h included</td>
+<td>$6,000 / mo</td>
+</tr>
+<tr>
+<td><strong>Dedicated</strong></td>
+<td>1 business hour</td>
+<td>4 business hours</td>
+<td>24 h included</td>
+<td>$9,000 / mo</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Named backup contractor — included at every tier.</strong> All three tiers include a named backup (currently August [LAST NAME]) who provides secondary on-call coverage during Garrett's vacation, illness, or travel. Coverage shape, access provisioning, billing, and successor handling are detailed in §3a below. (Previously named-backup was a Dedicated-tier-only differentiator; promoting it to all tiers closes Nordic's bus-factor risk regardless of tier choice.)</p>
+<p>Over-limit hours billed at $200 / hr (standard) or $175 / hr (priority+).</p>
+<h3 id="3a-named-backup-contractor">3a. Named backup contractor</h3>
+<p>Every tier of this retainer includes a named backup contractor — currently <strong>August [LAST NAME]</strong> — who provides secondary on-call coverage during Garrett's planned absences (vacation &gt; 3 days), unplanned absences (illness, emergency), or sustained unreachability (international travel without reliable connectivity).</p>
+<p><strong>Coverage scope.</strong> August acknowledges and triages P1/P2 incidents within the tier's stated SLA when Garrett is unreachable. Resolution may extend beyond Garrett's normal SLA window when work-product depth (deep platform changes, security forensics, novel LLM debugging) genuinely requires Garrett's return. August's role is to keep Nordic informed, contain damage, and execute well-documented runbook procedures — not to substitute for Garrett's full skill surface.</p>
+<p><strong>Access provisioning.</strong> August maintains a named contractor account with read-write access to the Nordic technology stack: Vercel, Cloudflare, Supabase, Notion (workspace member), and Anthropic (org member). All access is provisioned under a contractor-of-Winded-Vertigo agreement, not a direct Nordic-issued account. Audit logs distinguish Garrett's actions from August's.</p>
+<p><strong>Billing.</strong> August's hours bill against the retainer's monthly hour pool at the same effective rate. There is no separate Nordic-facing invoice line for August. Garrett pays August directly out of retainer revenue and represents to Nordic that this arrangement does not increase Nordic's effective cost per hour of coverage.</p>
+<p><strong>Vacation notification.</strong> Garrett gives Nordic ≥ 2 weeks' notice for absences &gt; 3 days, identifies August (or named successor — see below) as the on-call contact for the absence window, and communicates the contact channel (Slack handle, email, phone for P1).</p>
+<p><strong>Successor clause.</strong> If August becomes unavailable (declines coverage, ends contractor relationship with Winded Vertigo, or suffers his own absence), Garrett identifies a replacement named-backup with <strong>30 calendar days' notice</strong> to Nordic. Nordic acknowledges in writing (email is sufficient). The replacement provisions equivalent vendor access before the new arrangement takes effect.</p>
+<p><strong>Mutual non-solicitation.</strong> Nordic agrees not to engage August directly outside the Winded Vertigo retainer for the term of the contract + 12 months post-termination. August is bound to the same generic non-reverse-engineering norms as Garrett (§4) for any code, prompt, or schema he touches under the retainer.</p>
+<h3 id="term">Term</h3>
+<ul>
+<li><strong>12-month initial term</strong>, auto-renewing in 12-month increments.</li>
+<li><strong>60-day mutual notice</strong> for non-renewal or tier change.</li>
+<li><strong>Price adjustment clause:</strong> CPI-linked annual review (capped at 5%/yr).</li>
+</ul>
+<hr />
+<h2 id="4-buyout-termination-transition">4. Buyout / termination / transition</h2>
+<p>This is the most important section for Garrett's risk posture: what happens
+if Nordic decides to stop paying?</p>
+<h3 id="two-paths-wind-down-vs-buyout">Two paths: wind-down vs. buyout</h3>
+<p><strong>Path A — Wind-down (simpler, cheaper for Nordic):</strong></p>
+<p>If Nordic gives notice, a 90-day wind-down begins. During wind-down:</p>
+<ul>
+<li>Retainer continues at current rate.</li>
+<li>I deliver a <strong>transition package</strong>:</li>
+<li>Complete handoff runbook (<code>docs/handoff/*</code> written during wind-down)</li>
+<li>Credentials transfer to Nordic-named successor (Notion, Vercel, Anthropic,
+    Slack webhooks, GitHub repo admin)</li>
+<li>Live walkthrough sessions (up to 8 hours) with Nordic's designated team</li>
+<li>Dependency / vendor map + cost attribution</li>
+<li>30-day post-termination email/Slack availability for critical questions
+    (no billable hours, short answers only)</li>
+<li><strong>Open-source migration NOT included</strong> in wind-down. If the platform's
+  LLM features matter to Nordic after I leave, they either (a) keep the
+  Anthropic contract themselves, or (b) commission the migration project
+  separately (§5) BEFORE terminating.</li>
+</ul>
+<p><strong>Path B — Buyout / accelerated exit:</strong></p>
+<p>If Nordic wants to end the relationship immediately (no 90-day wind-down),
+a buyout fee applies:</p>
+<ul>
+<li><strong>Exit fee = 6 × current monthly retainer</strong>, paid on termination.</li>
+<li>Includes everything in Path A compressed into 30 days.</li>
+<li>Protects Garrett's revenue runway while transitioning to next engagement.</li>
+</ul>
+<h3 id="termination-for-cause">Termination for cause</h3>
+<p>If termination is for documented cause (Garrett breach of contract, gross
+negligence, confirmed willful misconduct), neither path's fees apply; contract
+ends per the cause clauses. Ordinary performance disagreements do NOT
+constitute cause.</p>
+<h3 id="non-reverse-engineering-clause">Non-reverse-engineering clause</h3>
+<p>I retain the right to re-use generic patterns, libraries, and non-Nordic-
+specific code in future client engagements, consistent with standard
+contractor-IP norms. Nordic retains full ownership of Nordic-specific code,
+data, schemas, and branding.</p>
+<h3 id="non-solicitation-optional-but-recommended">Non-solicitation (optional but recommended)</h3>
+<p>If Nordic signs the retainer, I agree not to accept commercial engagements
+from direct Nordic Naturals competitors (US supplement category, top 20 by
+revenue) for the term of the contract + 12 months post-termination. This
+addresses Nordic's IP-leak concern directly and gives them comfort on
+exclusivity without requiring exclusivity everywhere.</p>
+<hr />
+<h2 id="5-the-llm-dependency-problem-and-how-to-neutralize-it">5. The LLM dependency problem — and how to neutralize it</h2>
+<h3 id="the-risk-frank-assessment">The risk (frank assessment)</h3>
+<p>The platform's most valuable capabilities — PCS document extraction,
+ingredient extraction from label images, auto-scoring in SQR-RCT, claim
+drafting, reformulation suggestions — all depend on Anthropic's Claude API.
+If that dependency breaks (pricing shock, account suspension, Anthropic goes
+bust, regulatory ban, model deprecation without an equivalent replacement,
+or Nordic decides to stop paying for it), the affected features fail within
+hours. This is <em>vendor concentration risk</em> in its clearest form.</p>
+<p>It's also the single biggest reason Nordic should keep me on retainer rather
+than build-and-abandon: most of the hard work of the platform is not in the
+React code or the Notion schema — it is in the prompt engineering,
+confidence-gate logic, extraction-validation pipelines, and the accumulated
+corpus of "what Claude gets wrong on Nordic's specific template." That
+institutional knowledge is not recoverable from a code read-through.</p>
+<h3 id="mitigation-strategy-phased-not-all-or-nothing">Mitigation strategy — phased, not all-or-nothing</h3>
+<p>I will propose a dedicated <strong>Wave 10 — Evergreen Extraction</strong> project
+(scoped separately, see §7) that reduces LLM dependency with this sequence:</p>
+<ol>
+<li><strong>Deterministic parsers first.</strong> Replace LLM calls for well-structured
+   fields with rule-based extraction. Today the platform uses <code>mammoth</code> for
+   .docx → Markdown and Claude for the rest; we can bring more fields under
+   deterministic parsers (SKU codes, FMT codes, PCS IDs, SAP material numbers,
+   dose amounts with unit regex, formula-line structure when tables are
+   present). Deterministic parsers are free, fast, version-stable, and never
+   hallucinate.</li>
+<li><strong>Open-source LLMs via managed hosts.</strong> For remaining LLM calls, add
+   Llama 3 / Mistral / DeepSeek via Groq, Together.ai, or Replicate as a
+   second provider. Adapter pattern — the rest of the codebase doesn't know
+   which model ran. Costs drop ~80–95% vs. Claude, and the models are
+   fungible (swap one OSS model for another without code changes).</li>
+<li><strong>Self-hosted OSS fallback.</strong> For the most sensitive content where even
+   managed OSS has egress risk, a self-hosted Llama variant on Vercel Fluid
+   Compute or a cheap EC2 GPU. Only warranted if Nordic's DPO posture
+   requires zero third-party inference.</li>
+<li><strong>Vision holdout.</strong> Claude vision is currently the best open model for
+   structured label extraction. Until OSS vision models catch up (watch
+   Qwen-VL, InternVL, Pixtral), keep Claude for label OCR specifically and
+   move everything else to OSS. Clear line of audit: "Nordic label images
+   visit Anthropic; nothing else does."</li>
+<li><strong>Aggressive caching.</strong> Every extraction result persists with a content
+   hash. Re-uploading the same PDF doesn't re-hit any API. This is mostly
+   already in place; Wave 10 formalizes and extends it.</li>
+</ol>
+<h3 id="why-this-is-a-separate-deliverable-not-folded-into-retainer">Why this is a separate deliverable, not folded into retainer</h3>
+<p>The migration is ~40–80 hours of implementation + evaluation + comparison
+testing + prompt rewriting. That's a project, not maintenance. It also
+delivers measurable value (LLM spend drop, vendor-risk reduction, compliance
+posture improvement) that justifies its own fee.</p>
+<p><strong>Estimated Wave 10 budget: $20,000–$35,000</strong>, one-time, delivered over 6–10
+weeks. Retainer continues throughout — the migration is the retainer's
+purpose, not its replacement.</p>
+<h3 id="what-happens-if-nordic-terminates-before-wave-10-ships">What happens if Nordic terminates BEFORE Wave 10 ships</h3>
+<p>This is the scenario the retainer is specifically designed to protect Garrett
+from: "build the hard thing, then get kicked off before the evergreen version
+lands."</p>
+<p>Three protections:</p>
+<ol>
+<li><strong>The retainer itself.</strong> If Nordic wants the LLM-dependent features to
+   keep working, they need ongoing maintenance. Terminating without
+   replacement means those features degrade (prompt drift, model
+   deprecation, pricing changes unmanaged). Nordic's own interest aligns
+   with retaining me through the transition.</li>
+<li><strong>Buyout fee (§4).</strong> 6× monthly retainer on accelerated exit recoups some
+   of the investment Garrett has made in platform-specific IP.</li>
+<li><strong>Wave 10 pre-commitment.</strong> Strong recommendation: Wave 10 scoping
+   conversation happens in the first 90 days of the retainer. If Nordic
+   commits to Wave 10 funding up front, both parties have aligned incentive
+   to see it through.</li>
+</ol>
+<hr />
+<h2 id="6-sla-specifics">6. SLA specifics</h2>
+<h3 id="incident-severity">Incident severity</h3>
+<ul>
+<li><strong>P1 — Production down or data loss in progress.</strong> Platform unreachable, auth
+  broken for all users, data being corrupted, breach in progress.</li>
+<li><strong>P2 — Significant feature broken, workaround exists.</strong> e.g. PCS imports
+  failing, scoring workflow stuck, one role's access broken.</li>
+<li><strong>P3 — Minor bug, cosmetic issue, non-blocking degradation.</strong></li>
+<li><strong>P4 — Enhancement request, question, non-urgent feature.</strong></li>
+</ul>
+<h3 id="response-targets-per-tier">Response targets per tier</h3>
+<p>Defined in §3's table. Response = acknowledgement + investigation starts;
+resolution follows reasonable effort.</p>
+<h3 id="communication">Communication</h3>
+<ul>
+<li>Primary: Slack (once Nordic workspace onboarding completes; currently
+  external DM)</li>
+<li>Secondary: email to garrett@windedvertigo.com</li>
+<li>Severity-1 only: SMS / phone fallback to agreed-upon number</li>
+</ul>
+<h3 id="availability-windows">Availability windows</h3>
+<ul>
+<li>Business hours: US Eastern, Monday-Friday, 9 AM – 6 PM ET</li>
+<li>After-hours P1: best-effort within 2 hours; guaranteed next-morning response</li>
+<li>Vacation coverage: Garrett provides ≥ 2 weeks' notice for absences &gt; 3 days.
+  Coverage is provided by August [LAST NAME], the named backup contractor (see
+  §3a). Reduced-SLA hold applies <em>only</em> when both Garrett and the named backup
+  are simultaneously unavailable, in which case Nordic receives advance written
+  notice and a return-to-SLA date estimate.</li>
+</ul>
+<hr />
+<h2 id="7-roadmap-of-separately-scoped-projects">7. Roadmap of separately-scoped projects</h2>
+<p>These are project-level engagements Nordic can commission after (or
+alongside) the retainer kicks in. Each is its own SOW.</p>
+<table>
+<thead>
+<tr>
+<th>Wave</th>
+<th>Title</th>
+<th>Est. hours</th>
+<th>Est. fee</th>
+<th>Dependencies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Wave 8 remainder</strong></td>
+<td>Living PCS (versioning, inline edit, revisions panel)</td>
+<td>20–24 h</td>
+<td>$8,000–$12,000</td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>Wave 9</strong></td>
+<td>Real-time collaborative editing (CRDT-style multi-user)</td>
+<td>60–100 h</td>
+<td>$25,000–$45,000</td>
+<td>Wave 8 done</td>
+</tr>
+<tr>
+<td><strong>Wave 10</strong></td>
+<td>Evergreen Extraction — OSS LLM migration</td>
+<td>40–80 h</td>
+<td>$20,000–$35,000</td>
+<td>None, but prefer post Wave 8</td>
+</tr>
+<tr>
+<td><strong>Wave 11</strong></td>
+<td>Supabase migration (Notion → Postgres + RLS)</td>
+<td>80–160 h</td>
+<td>$35,000–$70,000</td>
+<td>Wave 10 recommended first</td>
+</tr>
+<tr>
+<td><strong>Wave 12</strong></td>
+<td>HIPAA BAA prep + SOC 2 Type 1 preparation</td>
+<td>60–120 h + legal</td>
+<td>$30,000–$60,000 (tech) + legal</td>
+<td>Wave 11</td>
+</tr>
+</tbody>
+</table>
+<p>All estimates are anchors. Scope reviews happen before each wave starts.</p>
+<hr />
+<h2 id="8-why-nordic-should-sign-this">8. Why Nordic should sign this</h2>
+<p>From Nordic's perspective:</p>
+<ol>
+<li><strong>Predictable monthly cost</strong> vs. panic-fee emergencies when something breaks.</li>
+<li><strong>Named technical owner</strong> — Nordic's research team knows who to call and
+   knows their response-time commitment.</li>
+<li><strong>Security maturity baseline</strong> — quarterly review reports + ongoing patching
+   is the kind of thing auditors want to see.</li>
+<li><strong>Vendor-risk management</strong> — Nordic doesn't have to become an expert in
+   Anthropic's API changelogs or Notion's Enterprise upgrade paths.</li>
+<li><strong>Optionality on LLM migration</strong> — Wave 10 is available when they want it,
+   at a known price, with known outcomes.</li>
+<li><strong>Protection against institutional-knowledge loss</strong> — this platform carries
+   tacit knowledge that a read-through won't recover. Keeping me on retainer
+   keeps that knowledge available.</li>
+</ol>
+<p>From Garrett's perspective (Nordic doesn't need to see this framing):</p>
+<ol>
+<li><strong>Predictable income</strong> funds sustainable ongoing work.</li>
+<li><strong>Buyout fee protects</strong> against build-and-abandon scenarios.</li>
+<li><strong>Wave 10 pre-commitment</strong> derisks the LLM migration investment.</li>
+<li><strong>Non-solicitation clause</strong> protects against competitive poaching.</li>
+<li><strong>Liability cap (per breach analysis)</strong> + insurance requirements keep
+   exposure bounded.</li>
+<li><strong>Institutional IP retention</strong> — generic patterns, non-Nordic-specific
+   libraries reusable in future engagements.</li>
+</ol>
+<hr />
+<h2 id="9-next-steps">9. Next steps</h2>
+<ol>
+<li><strong>Garrett:</strong> Retain tech-contracts attorney. Walk them through this doc +
+   the data-breach-liability analysis (see Wave 8 plan Appendix A). Get
+   clause-by-clause legal review.</li>
+<li><strong>Garrett:</strong> Purchase Tech E&amp;O + Cyber Liability policy (§2 of that
+   liability analysis — $1M-$2M per occurrence, $2M-$5M aggregate, 5-year
+   tail).</li>
+<li><strong>Nordic:</strong> Review this proposal at leadership level. Flag any scope gaps
+   or sticker-shock issues before negotiation.</li>
+<li><strong>Both:</strong> Target a signature date. 6-week runway from today is realistic
+   (this draft → legal review → Nordic review → negotiation → sign).</li>
+<li><strong>Once signed:</strong> Wave 8 Phase A / C / D land within retainer. Wave 10
+   scoping conversation in first 90 days.</li>
+</ol>
+<hr />
+<h2 id="10-two-budget-structure-platform-build-retainer-rd">10. Two-budget structure — Platform build + Retainer R&amp;D</h2>
+<blockquote>
+<p><strong>Added 2026-04-30.</strong> Reconciles Nordic's verbal $50,000 platform-build budget
+with the $73.5K of work that has actually shipped through this date. See
+companion worksheet <code>scope-reconciliation-2026-04-30.md</code> for the wave-by-wave
+classification and <code>~/.claude/plans/ethereal-crunching-marshmallow.md</code> for the
+full rationale.</p>
+</blockquote>
+<h3 id="101-why-two-budgets">10.1 Why two budgets</h3>
+<p>Nordic verbally committed a $50,000 platform-build budget for the rest of the
+year. There is no signed SOW and no written budget cap. What's actually shipped
+to production exceeds that anchor. The contract reset converts the overrun into
+a clean two-budget structure rather than a billing dispute:</p>
+<ul>
+<li><strong>Budget A — Platform build.</strong> Operator-facing work that delivers Nordic's
+  daily research workflow (PCS lifecycle, security baseline, role enforcement,
+  Living PCS, AI assists). Fixed-fee, capped, milestone-billed.</li>
+<li><strong>Budget B — Retainer R&amp;D.</strong> Architectural research, migration optionality,
+  vendor-risk reduction, ongoing maintenance, and incident response.
+  Recurring monthly.</li>
+</ul>
+<p>Both run in parallel for the year-one term. Budget A finishes on completion
+of remaining build deliverables (Wave 7.x chained track, Wave 8 polish,
+operator runbook). Budget B continues indefinitely under the renewal terms
+of §3.</p>
+<h3 id="102-budget-a-platform-build-50000-cap">10.2 Budget A — Platform build ($50,000 cap)</h3>
+<p><strong>Fixed fee:</strong> $50,000. Milestone-billed monthly. No change-orders without a
+written addendum.</p>
+<p><strong>Covers (already shipped, included in scope):</strong>
+- Wave 4.x — initial PCS pipeline + SQR-RCT scoring
+- Wave 5.5 — AI claim copy drafter
+- Wave 5.6 — AI reformulation suggester
+- Wave 7.0.5 — multi-profile + canonical-claim merge
+- Wave 7.0.7 — security hardening (bcrypt, split tokens, live role re-verify)
+- Wave 7.1 — roles + capabilities scaffold
+- Wave 7.3.0 — email-as-key migration (Phase A audit + Phase B banner)
+- Wave 7.4 — role-aware sidebar preview
+- Wave 7.5 — capability migration (3 batches, ~110 routes)
+- Wave 8 — Living PCS (versioning + inline edit + revert + dedupe UI)</p>
+<p><strong>Covers (remaining build deliverables):</strong>
+- Wave 7.x chained track: 7.2.0 WorkspaceShell → 7.2.1 route relocation →
+  7.3.1 <code>/login</code> extraction → 7.3.2 <code>/welcome</code> + sticky-role → 7.4 full
+  sidebar adoption (gated on Phase B email burn-in ≥ 1 week)
+- Wave 8 final polish (revisions panel UX cleanup, audit-trail export)
+- Operator runbook completion (<code>docs/runbooks/</code>)</p>
+<p><strong>Acceptance criteria:</strong> production stable, role-based access enforced, audit
+trail covers mutations, PCS lifecycle (intake → version → claim → evidence →
+packet) is operator-driven without engineer intervention.</p>
+<h3 id="103-budget-b-retainer-rd-6000mo-priority-tier">10.3 Budget B — Retainer R&amp;D ($6,000/mo, Priority tier)</h3>
+<p><strong>Recurring fee:</strong> per §3 tier election. Anchor: Priority tier ($6,000/mo,
+16h included, 4-business-hour P1 SLA, named backup per §3a).</p>
+<p><strong>Covers (already shipped, retroactively folded in):</strong>
+- Wave 10.1 — LLM adapter Phase 1A scaffold (harness only; Phases 1B–1D
+  covered going forward)
+- Phase N1 / N1.5 — Supabase schema groundwork (DDL-only, no application
+  code yet)
+- Cloudflare Workers parity canary infrastructure (monorepo restructure,
+  OpenNext bridge, CF Queues scaffolding — Nordic's share)</p>
+<p><strong>Covers (ongoing maintenance):</strong>
+- Security patching, dependency updates, vendor-breach response
+- LLM ecosystem churn (Claude/OpenAI changelogs, model deprecations,
+  prompt drift)
+- Data hygiene assistance (canonical-claim merges, intake anomalies,
+  label drift sweeps)
+- Quarterly written security review to Nordic leadership
+- Up to 8h/month minor feature work (16h at Priority); 2h/month advisory</p>
+<p><strong>Covers (forward migration phases):</strong>
+- <strong>Phase N2</strong> — Notion → Supabase backfill
+- <strong>Phase N3</strong> — dual-write hooks in API write paths
+- <strong>Phase N4</strong> — RLS enablement; <strong>N5</strong> — cutover + drop legacy TEXT columns
+- DNS cutover from Vercel to CF Workers when canary parity verifies
+- Wave 10.1 Phases 1B–1D — deterministic parsers, TF-IDF claim similarity,
+  content-hash caching</p>
+<p><strong>Buyout protection:</strong> 6× monthly retainer = $36,000 on accelerated exit
+(Priority tier). Per §4.</p>
+<h3 id="104-year-one-cash-to-nordic-priority-tier-anchor">10.4 Year-one cash to Nordic (Priority tier anchor)</h3>
+<table>
+<thead>
+<tr>
+<th>Line item</th>
+<th style="text-align: right;">Amount</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Platform build (Budget A, fixed-fee, milestone-billed)</td>
+<td style="text-align: right;">$50,000</td>
+<td>Caps remaining 2026 build work</td>
+</tr>
+<tr>
+<td>Retainer (Budget B, $6,000/mo × 12 mo)</td>
+<td style="text-align: right;">$72,000</td>
+<td>Priority tier, August on call</td>
+</tr>
+<tr>
+<td><strong>Year-one total</strong></td>
+<td style="text-align: right;"><strong>$122,000</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>If Nordic balks at $122K, the negotiable lever is the retainer tier
+(Standard $4,000/mo = $48K/yr → $98K total). The $50K platform cap stays
+fixed.</p>
+<p>If Nordic terminates inside year one without cause: $36K accelerated-exit
+fee per §4.</p>
+<h3 id="105-what-budget-a-explicitly-does-not-cover">10.5 What Budget A explicitly does NOT cover</h3>
+<ul>
+<li><strong>Wave 9</strong> — real-time collaborative editing. Future SOW (~$25–45K).</li>
+<li><strong>Wave 12</strong> — HIPAA/SOC 2 prep. Future SOW (~$30–60K + legal).</li>
+<li><strong>Phase N2 backfill data-quality audit</strong> at the Notion source. Surfaces
+  during retainer execution; if the corpus is dirtier than expected, Nordic
+  receives a written advisory and can either commission a separate
+  data-cleanup SOW or accept reduced backfill confidence.</li>
+<li>Cross-app monorepo work for non-Nordic apps (port, ops, harbour, etc.).
+  Billed separately to those engagements.</li>
+</ul>
+<hr />
+<h2 id="appendix-a-pricing-worksheet-for-garretts-internal-use">Appendix A — Pricing worksheet (for Garrett's internal use)</h2>
+<blockquote>
+<p><strong>Updated 2026-04-30</strong> to reflect the two-budget structure (§10).</p>
+</blockquote>
+<p><strong>Hourly rate anchor:</strong> $350/hr.</p>
+<h3 id="two-budget-year-one-structure">Two-budget year-one structure</h3>
+<p><strong>Budget A — Platform build (fixed-fee).</strong>
+- Cap: $50,000
+- Shipped through 2026-04-30 (Budget A subset): ~$60,200 at rate-card
+- Remaining deliverables (Wave 7.x track + Wave 8 polish + runbook): ~$11,200 at rate-card
+- Total Budget A delivery: ~$71,400 at rate-card → <strong>$50,000 fixed-fee</strong>
+- Effective rate on Budget A: ~$245/hr</p>
+<p><strong>Budget B — Retainer (recurring).</strong>
+- Priority tier: $6,000 / mo = $72,000 / yr
+- Includes 16h/month → 192h/year covered
+- Effective in-pool rate at Priority: $375/hr (covers tier-overhead, on-call
+  premium, named-backup cost)</p>
+<p><strong>Blended year-one rate</strong> across Budgets A + B:
+- ~210h shipped Budget A subset (already done) + ~32h remaining Budget A +
+  ~192h retainer pool = ~434h
+- $122,000 / 434h ≈ <strong>$281/hr blended</strong>
+- At market for a solo consultant on a regulated-data platform with
+  documented SLA + named backup.</p>
+<h3 id="buyout-exit-fee-math-per-tier">Buyout / exit-fee math (per tier)</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th style="text-align: right;">Monthly</th>
+<th style="text-align: right;">Buyout (6×)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Standard</td>
+<td style="text-align: right;">$4,000</td>
+<td style="text-align: right;">$24,000</td>
+</tr>
+<tr>
+<td><strong>Priority (anchor)</strong></td>
+<td style="text-align: right;"><strong>$6,000</strong></td>
+<td style="text-align: right;"><strong>$36,000</strong></td>
+</tr>
+<tr>
+<td>Dedicated</td>
+<td style="text-align: right;">$9,000</td>
+<td style="text-align: right;">$54,000</td>
+</tr>
+</tbody>
+</table>
+<h3 id="forward-wave-anchor-estimates-separate-sows">Forward-wave anchor estimates (separate SOWs)</h3>
+<p><strong>Wave 10 deeper migration target budget:</strong> 60 hours × $350/hr = <strong>$21,000</strong>
+(low end of $20–35k range). At $400/hr effective rate: $24,000. <em>Note: Wave
+10.1 Phase 1A scaffold has shipped already and folds into Budget B (§10.3);
+this Wave 10 estimate refers to Phases 1B–1D + further OSS-LLM work.</em></p>
+<p><strong>Wave 11 — Supabase migration cutover (Phase N2 → N5):</strong> 80–160 hours.
+At Priority retainer this consumes 5–10 months of pool hours (16h/mo × 12 mo
+= 192h available). If Nordic wants compressed delivery (&lt; 3 months), commission
+as separate SOW at ~$28–56K.</p>
+<h3 id="insurance-net">Insurance + net</h3>
+<p><strong>Insurance cost (Garrett pays):</strong> ~$2,000 / year. Reimbursable by Nordic
+if contract includes that clause (see §2 of liability analysis).</p>
+<p><strong>Net to Garrett year-one:</strong> ~$120,000 after insurance.</p>
+<p>Sanity check: $120k for a solo consultant running a regulated-data platform
+with documented SLA + named backup is market-consistent for 2026 in the US.</p>
+<h3 id="open-questions-before-sending-to-attorney">Open questions before sending to attorney</h3>
+<ol>
+<li><strong>August's full legal name + business entity + vendor access matrix.</strong>
+   Stub clauses everywhere reading "August [LAST NAME]" must be filled in.</li>
+<li><strong>$50K timing</strong> — is the cap "rest of 2026" (8 months remaining = ~$6.25K/mo
+   run-rate) or "12 months from start"? Affects how aggressively retainer
+   Budget B starts billing.</li>
+<li><strong>Procurement signature path at Nordic</strong> — Sharon? Lauren? Nordic legal /
+   finance? The whirlpool meeting cadence (Mon/Wed 9–10:30am PT) is the
+   natural place to surface the proposal, but signature authority is unknown.</li>
+<li><strong>Hourly rate validation</strong> — confirm Nordic's expectation matches the
+   $350/hr anchor; if they're expecting $200–250/hr, the shipped-work overrun
+   calculation still holds but the dollar gap shrinks.</li>
+</ol></body></html>

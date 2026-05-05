@@ -1,0 +1,87 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'></head><body><h1 id="named-backup-contractor-clause-draft">Named Backup Contractor Clause — Draft</h1>
+<p><strong>Status:</strong> DRAFT. Awaiting user-supplied details (full name, business entity, vendor access matrix). Once those land, this upgrades from draft to ready-for-attorney.
+<strong>Intended location:</strong> Inserted into <code>retainer-and-buyout-proposal.md</code> as new subsection under §3 (Proposed retainer structure), and referenced from §6 (SLA specifics → Availability windows).
+<strong>Author:</strong> Garrett Jaeger (Winded Vertigo)
+<strong>Date:</strong> 2026-04-30</p>
+<hr />
+<h2 id="drafting-goal">Drafting goal</h2>
+<p>The current retainer proposal limits "named-backup" coverage to the Dedicated tier ($9,000/mo) only. Nordic's biggest single-vendor risk in this engagement is <strong>Garrett's bus factor</strong> (sole consultant, regulated-data platform, institutional knowledge concentrated in one head). Promoting named-backup to <em>all tiers</em> closes that risk for a fraction of Dedicated-tier cost and gives Nordic real on-call continuity.</p>
+<p>The named backup is <strong>August</strong> [LAST NAME PENDING], a contractor August already retains for vacation, illness, and travel coverage on Winded Vertigo client work.</p>
+<hr />
+<h2 id="proposed-clause-text-insert-into-3">Proposed clause text (insert into §3)</h2>
+<blockquote>
+<h3 id="named-backup-contractor">Named backup contractor</h3>
+<p>Every tier of this retainer (Standard, Priority, Dedicated) includes a named backup contractor — currently <strong>August [LAST NAME]</strong> — who provides secondary on-call coverage during Garrett's planned absences (vacation &gt; 3 days), unplanned absences (illness, emergency), or sustained unreachability (international travel without reliable connectivity).</p>
+<p><strong>Coverage scope.</strong> August acknowledges and triages P1/P2 incidents within the tier's stated SLA when Garrett is unreachable. Resolution may extend beyond Garrett's normal SLA window when work-product depth (deep platform changes, security forensics, novel LLM debugging) genuinely requires Garrett's return. August's role is to keep Nordic informed, contain damage, and execute well-documented runbook procedures — not to substitute for Garrett's full skill surface.</p>
+<p><strong>Access provisioning.</strong> August maintains a named contractor account with read-write access to the Nordic technology stack: Vercel, Cloudflare, Supabase, Notion (workspace member), and Anthropic (org member). All access is provisioned under a contractor-of-Winded-Vertigo agreement, not a direct Nordic-issued account. Audit logs distinguish Garrett's actions from August's.</p>
+<p><strong>Billing.</strong> August's hours bill against the retainer's monthly hour pool at the same effective rate. There is no separate Nordic-facing invoice line for August. Garrett pays August directly out of retainer revenue and represents to Nordic that this arrangement does not increase Nordic's effective cost per hour of coverage.</p>
+<p><strong>Vacation notification.</strong> Garrett gives Nordic ≥ 2 weeks' notice for absences &gt; 3 days, identifies August (or named successor — see below) as the on-call contact for the absence window, and communicates the contact channel (Slack handle, email, phone for P1).</p>
+<p><strong>Successor clause.</strong> If August becomes unavailable (declines coverage, ends contractor relationship with Winded Vertigo, or suffers his own absence), Garrett identifies a replacement named-backup with <strong>30 calendar days' notice</strong> to Nordic. Nordic acknowledges in writing (email is sufficient). The replacement provisions equivalent vendor access before the new arrangement takes effect.</p>
+<p><strong>Mutual non-solicitation.</strong> Nordic agrees not to engage August directly outside the Winded Vertigo retainer for the term of the contract + 12 months post-termination. August is bound to the same generic non-reverse-engineering norms as Garrett (§4) for any code, prompt, or schema he touches under the retainer.</p>
+</blockquote>
+<hr />
+<h2 id="proposed-addition-to-6-availability-windows">Proposed addition to §6 (Availability windows)</h2>
+<p>Replace this line in §6:</p>
+<blockquote>
+<p>Vacation coverage: Garrett provides 2 weeks' notice for absences &gt; 3 days, designates backup contact (or reduced-SLA hold) during those windows</p>
+</blockquote>
+<p>With:</p>
+<blockquote>
+<p>Vacation coverage: Garrett provides ≥ 2 weeks' notice for absences &gt; 3 days. Coverage is provided by August [LAST NAME], the named backup contractor (see §3 → Named backup contractor). Reduced-SLA hold applies <em>only</em> when both Garrett and the named backup are simultaneously unavailable, in which case Nordic receives advance written notice and a return-to-SLA date estimate.</p>
+</blockquote>
+<hr />
+<h2 id="proposed-addition-to-3-tiered-sla-options-table">Proposed addition to §3 → Tiered SLA options table</h2>
+<p>Update the rightmost column for all three tiers:</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Monthly hours</th>
+<th>Approx fee</th>
+<th>Backup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Standard</td>
+<td>8 h included</td>
+<td>$4,000 / mo</td>
+<td>Named backup (§3 → Named backup contractor)</td>
+</tr>
+<tr>
+<td>Priority</td>
+<td>16 h included</td>
+<td>$6,000 / mo</td>
+<td>Named backup</td>
+</tr>
+<tr>
+<td>Dedicated</td>
+<td>24 h included</td>
+<td>$9,000 / mo</td>
+<td>Named backup + 1-hr P1 SLA</td>
+</tr>
+</tbody>
+</table>
+<p>(Previously: Dedicated tier carried "named-backup" as a distinguishing feature. With this clause, all three tiers include a named backup; Dedicated still differs by hour count and SLA aggressiveness.)</p>
+<hr />
+<h2 id="todo-before-this-draft-becomes-attorney-ready">TODO before this draft becomes attorney-ready</h2>
+<ol>
+<li><strong>August's full legal name.</strong> [PENDING — Garrett to supply.]</li>
+<li><strong>August's business entity.</strong> Sole proprietor? LLC? S-Corp? Affects how the contractor-of-Winded-Vertigo agreement is structured. [PENDING.]</li>
+<li><strong>Vendor access status today.</strong> Which of the 5 vendor surfaces (Vercel / Cloudflare / Supabase / Notion / Anthropic) does August already have provisioned for Winded Vertigo's other client work? Provisioning new accounts for Nordic-only access takes calendar time; we should know the current baseline. [PENDING.]</li>
+<li><strong>Existing contractor agreement between Winded Vertigo and August.</strong> Does it already cover Nordic-bound work, or does it need an amendment? [PENDING.]</li>
+<li><strong>August's awareness and consent.</strong> Has August been told about Nordic specifically, the regulated-data nature of the platform, and the on-call expectations? [PENDING — Garrett to confirm.]</li>
+<li><strong>Insurance.</strong> Is August covered by his own E&amp;O / Cyber Liability policy, or does he need to be added as an additional insured on Winded Vertigo's policy? Affects §2 of the breach-liability analysis. [PENDING — review with attorney.]</li>
+</ol>
+<hr />
+<h2 id="rollback-what-if-august-declines-or-is-unsuitable">Rollback / "what if August declines or is unsuitable"</h2>
+<p>The clause is structured so that <strong>the named backup is identified by role, not by name</strong>:</p>
+<blockquote>
+<p>Named backup contractor — currently <strong>August [LAST NAME]</strong> — ...</p>
+</blockquote>
+<p>If August declines the role at signature time, replace "August [LAST NAME]" with "[REPLACEMENT NAME]" everywhere in the proposal and re-circulate. The §3 "Successor clause" handles mid-contract substitution.</p>
+<p>If no named backup is identifiable at all, the fallback is:
+- Drop the clause entirely.
+- Restore §6's original "designates backup contact (or reduced-SLA hold)" language.
+- Standard and Priority tiers lose the differentiator; Dedicated tier still has named-backup as advertised.</p>
+<p>This degrades Nordic's confidence but does not break the proposal.</p></body></html>

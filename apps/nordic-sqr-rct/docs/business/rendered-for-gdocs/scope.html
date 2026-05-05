@@ -1,0 +1,244 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'></head><body><h1 id="scope-reconciliation-nordic-naturals-sqr-rct-pcs-platform">Scope Reconciliation — Nordic Naturals SQR-RCT + PCS Platform</h1>
+<p><strong>Author:</strong> Garrett Jaeger (Winded Vertigo)
+<strong>Date:</strong> 2026-04-30
+<strong>Purpose:</strong> Reconcile shipped work against Nordic's verbal $50,000 platform-build budget. Classify each shipped wave as Budget A (platform build, fixed-fee) or Budget B (retainer R&amp;D / maintenance) so the contract reset has an auditable foundation.
+<strong>Status:</strong> Internal worksheet for Garrett's tech-contracts attorney. NOT a Nordic-facing document.</p>
+<hr />
+<h2 id="1-anchor-assumptions">1. Anchor assumptions</h2>
+<ul>
+<li><strong>Hourly rate:</strong> $350/hr per <code>retainer-and-buyout-proposal.md</code> Appendix A.</li>
+<li><strong>Verbal budget cap:</strong> $50,000 platform build "for the rest of the year" (Nordic, conversational, no signed SOW).</li>
+<li><strong>Reconciliation date:</strong> 2026-04-30 (last Nordic-repo commit <code>b8799ce</code>; codebase frozen for this snapshot).</li>
+<li><strong>Hour estimates:</strong> rough — derived from wave plan docs in <code>docs/plans/</code> and commit-density review. Within ±20% on any single line.</li>
+</ul>
+<hr />
+<h2 id="2-shipped-work-classified">2. Shipped work — classified</h2>
+<table>
+<thead>
+<tr>
+<th>Wave / phase</th>
+<th style="text-align: right;">Hours</th>
+<th style="text-align: right;">$ @ $350</th>
+<th style="text-align: center;">Budget</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wave 4.x — initial PCS pipeline + SQR-RCT scoring</td>
+<td style="text-align: right;">~40</td>
+<td style="text-align: right;">$14,000</td>
+<td style="text-align: center;">A</td>
+<td>Core operator workflow. Pre-dates current budget conversation but remains in platform-build scope.</td>
+</tr>
+<tr>
+<td>Wave 5.5 — AI claim copy drafter</td>
+<td style="text-align: right;">~10</td>
+<td style="text-align: right;">$3,500</td>
+<td style="text-align: center;">A</td>
+<td>Operator-facing feature (<code>/api/pcs/labels/[id]/draft-copy</code>). Already cost-gated; daily operator value.</td>
+</tr>
+<tr>
+<td>Wave 5.6 — AI reformulation suggester</td>
+<td style="text-align: right;">~8</td>
+<td style="text-align: right;">$2,800</td>
+<td style="text-align: center;">A</td>
+<td>Operator-facing (<code>/api/pcs/labels/[id]/suggest-reformulation</code>). Same pattern as 5.5.</td>
+</tr>
+<tr>
+<td>Wave 7.0.5 — multi-profile + T2.5 merge script</td>
+<td style="text-align: right;">~12</td>
+<td style="text-align: right;">$4,200</td>
+<td style="text-align: center;">A</td>
+<td>Auth + canonical-claim hygiene. Operator-touching.</td>
+</tr>
+<tr>
+<td>Wave 7.0.7 — security hardening</td>
+<td style="text-align: right;">~20</td>
+<td style="text-align: right;">$7,000</td>
+<td style="text-align: center;">A</td>
+<td>bcrypt backfill, split access/refresh tokens, live role re-verify. Required for production posture.</td>
+</tr>
+<tr>
+<td>Wave 7.1 — roles + capabilities scaffold</td>
+<td style="text-align: right;">~10</td>
+<td style="text-align: right;">$3,500</td>
+<td style="text-align: center;">A</td>
+<td>Foundation for Wave 7.5 migration.</td>
+</tr>
+<tr>
+<td>Wave 7.3.0 — email-as-key migration (Phase A audit + Phase B banner)</td>
+<td style="text-align: right;">~16</td>
+<td style="text-align: right;">$5,600</td>
+<td style="text-align: center;">A</td>
+<td>Operator data model fix.</td>
+</tr>
+<tr>
+<td>Wave 7.4 — role-aware sidebar preview</td>
+<td style="text-align: right;">~8</td>
+<td style="text-align: right;">$2,800</td>
+<td style="text-align: center;">A</td>
+<td>Operator UX, feature-flagged at <code>/admin/sidebar-preview</code>.</td>
+</tr>
+<tr>
+<td>Wave 7.5 — capability migration (3 batches, ~110 routes)</td>
+<td style="text-align: right;">~24</td>
+<td style="text-align: right;">$8,400</td>
+<td style="text-align: center;">A</td>
+<td>Auth-gate consolidation; closes a duplicate code path.</td>
+</tr>
+<tr>
+<td>Wave 8 — Living PCS (versioning + inline edit + revert + dedupe UI)</td>
+<td style="text-align: right;">~24</td>
+<td style="text-align: right;">$8,400</td>
+<td style="text-align: center;">A</td>
+<td>Headline operator feature. Highest-value Wave 8 deliverables.</td>
+</tr>
+<tr>
+<td><strong>Budget A subtotal</strong></td>
+<td style="text-align: right;"><strong>~172h</strong></td>
+<td style="text-align: right;"><strong>~$60,200</strong></td>
+<td style="text-align: center;"></td>
+<td><strong>Already $10K over the $50K cap.</strong></td>
+</tr>
+<tr>
+<td>Wave 10.1 — LLM adapter Phase 1A scaffold</td>
+<td style="text-align: right;">~6</td>
+<td style="text-align: right;">$2,100</td>
+<td style="text-align: center;">B</td>
+<td>Harness only. No call sites migrated. Architectural R&amp;D.</td>
+</tr>
+<tr>
+<td>Phase N1 — Supabase initial schema (<code>001_initial_schema.sql</code>)</td>
+<td style="text-align: right;">~12</td>
+<td style="text-align: right;">$4,200</td>
+<td style="text-align: center;">B</td>
+<td>DDL only; application code does not read it yet. Migration optionality.</td>
+</tr>
+<tr>
+<td>Phase N1.5 — DDL-only slice (<code>002_normalize_relations_ddl.sql</code>)</td>
+<td style="text-align: right;">~4</td>
+<td style="text-align: right;">$1,400</td>
+<td style="text-align: center;">B</td>
+<td>Empty join tables + nullable FK columns + <code>current_user_id()</code>. Forward-progress-only.</td>
+</tr>
+<tr>
+<td>Monorepo merge + CF Workers parity canary (Phase C + F.1–F.3, Nordic share)</td>
+<td style="text-align: right;">~16</td>
+<td style="text-align: right;">$5,600</td>
+<td style="text-align: center;">B</td>
+<td>Cross-app infrastructure restructure. Nordic benefits but doesn't drive.</td>
+</tr>
+<tr>
+<td><strong>Budget B subtotal</strong></td>
+<td style="text-align: right;"><strong>~38h</strong></td>
+<td style="text-align: right;"><strong>~$13,300</strong></td>
+<td style="text-align: center;"></td>
+<td>Folds into retainer R&amp;D.</td>
+</tr>
+<tr>
+<td><strong>Total shipped</strong></td>
+<td style="text-align: right;"><strong>~210h</strong></td>
+<td style="text-align: right;"><strong>~$73,500</strong></td>
+<td style="text-align: center;"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-headroom-against-50k-cap">3. Headroom against $50K cap</h2>
+<p>Budget A subtotal: <strong>$60,200</strong> at $350/hr.</p>
+<p>Two ways to reconcile:</p>
+<p><strong>Option 1 — Honor the verbal cap as fixed-fee.</strong>
+- Nordic owes $50,000 on signature for everything classified Budget A above (already shipped + remaining build deliverables).
+- Garrett absorbs the ~$10K overrun as cost-of-discovery for the verbal-only budget arrangement.
+- Remaining build deliverables (Wave 7.x chained track, Wave 8 polish, runbook completion) ship inside the $50K with <strong>negative headroom of ~$10K</strong> — i.e. Garrett finishes them on goodwill / inside the fixed fee.
+- <strong>Recommendation:</strong> this is the cleanest framing for a Nordic-facing proposal. The overrun is invisible to Nordic; the contract cap protects them.</p>
+<p><strong>Option 2 — Re-anchor to actual hours.</strong>
+- Disclose the ~$60K Budget A subtotal to Nordic; argue the $50K verbal cap was set before scope was understood.
+- Ask for a $10K addendum or fold the overrun into Q1-2027 retainer hour pool.
+- <strong>Recommendation:</strong> only if Nordic demonstrates appetite for transparent rate-card billing. Higher friction.</p>
+<hr />
+<h2 id="4-remaining-build-work-budget-a-only">4. Remaining build work (Budget A only)</h2>
+<p>These remain in the $50K cap regardless of which option above is chosen:</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th style="text-align: right;">Est. hours</th>
+<th style="text-align: right;">$ @ $350</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wave 7.2.0 — WorkspaceShell refactor</td>
+<td style="text-align: right;">~6</td>
+<td style="text-align: right;">$2,100</td>
+<td>Gated on Phase B email burn-in (≥1 wk)</td>
+</tr>
+<tr>
+<td>Wave 7.2.1 — route relocation</td>
+<td style="text-align: right;">~4</td>
+<td style="text-align: right;">$1,400</td>
+<td>Sequential after 7.2.0</td>
+</tr>
+<tr>
+<td>Wave 7.3.1 — <code>/login</code> extraction</td>
+<td style="text-align: right;">~4</td>
+<td style="text-align: right;">$1,400</td>
+<td>Sequential after 7.2.1</td>
+</tr>
+<tr>
+<td>Wave 7.3.2 — <code>/welcome</code> + sticky-role</td>
+<td style="text-align: right;">~4</td>
+<td style="text-align: right;">$1,400</td>
+<td>Sequential after 7.3.1</td>
+</tr>
+<tr>
+<td>Wave 7.4 — full sidebar adoption</td>
+<td style="text-align: right;">~4</td>
+<td style="text-align: right;">$1,400</td>
+<td>Removes feature flag</td>
+</tr>
+<tr>
+<td>Wave 8 final polish + audit-trail export</td>
+<td style="text-align: right;">~6</td>
+<td style="text-align: right;">$2,100</td>
+<td>UX cleanup</td>
+</tr>
+<tr>
+<td>Operator runbook completion</td>
+<td style="text-align: right;">~4</td>
+<td style="text-align: right;">$1,400</td>
+<td><code>docs/runbooks/</code></td>
+</tr>
+<tr>
+<td><strong>Remaining Budget A</strong></td>
+<td style="text-align: right;"><strong>~32h</strong></td>
+<td style="text-align: right;"><strong>~$11,200</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Combined with the $60.2K already shipped, total Budget A delivery is <strong>~$71.4K</strong> of work for <strong>$50K</strong> fixed fee. Garrett's effective rate on the platform build alone is <strong>~$245/hr</strong>.</p>
+<p>This is acceptable <em>only</em> because Budget B (retainer) brings the blended year-one rate back to market level (see year-one cash table in <code>~/.claude/plans/ethereal-crunching-marshmallow.md</code>).</p>
+<hr />
+<h2 id="5-open-questions">5. Open questions</h2>
+<p>Mirrors the open questions in the plan file. The four answers convert this worksheet into a final exhibit for the contract:</p>
+<ol>
+<li>August's full name + contractor status + vendor access matrix.</li>
+<li>$50K timing — "rest of 2026" vs. "12 months from start."</li>
+<li>Nordic procurement signature path.</li>
+<li>Hourly rate validation — confirm Nordic's expectation matches the $350/hr anchor.</li>
+</ol>
+<hr />
+<h2 id="6-audit-trail">6. Audit trail</h2>
+<p>This document is regenerated whenever:
+- A new Nordic-touching wave ships (update Section 2).
+- The hourly rate anchor changes (re-cost everything).
+- Nordic challenges the classification (Budget A vs. B per row).</p>
+<p>Source-of-truth files for hour estimates:
+- <code>docs/plans/wave-*.md</code> — official hour anchors per wave.
+- <code>docs/runbooks/wave-*.md</code> — completion markers.
+- <code>git log --since="2026-01-01" --oneline apps/nordic-sqr-rct/</code> (in monorepo) — commit volume cross-check.</p></body></html>
