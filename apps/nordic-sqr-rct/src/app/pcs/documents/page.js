@@ -306,8 +306,26 @@ function PcsDocuments() {
       ) : null}
 
       {filtered.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white px-5 py-10 text-center text-gray-500">
-          No documents in this view.
+        <div className="rounded-lg border border-gray-200 bg-white px-5 py-10 text-center">
+          <p className="text-gray-500">No documents in this view.</p>
+          <div className="mt-3">
+            {view !== 'active' ? (
+              <button
+                type="button"
+                onClick={() => setView('active')}
+                className="inline-flex items-center px-4 py-2 bg-pacific-600 text-white text-sm font-medium rounded-md hover:bg-pacific-700 transition-colors"
+              >
+                ← Back to Active
+              </button>
+            ) : (
+              <Link
+                href="/pcs/admin/imports"
+                className="inline-flex items-center px-4 py-2 bg-pacific-600 text-white text-sm font-medium rounded-md hover:bg-pacific-700 transition-colors"
+              >
+                + Import documents
+              </Link>
+            )}
+          </div>
         </div>
       ) : (
         <PcsTable
@@ -326,13 +344,20 @@ function PcsDocuments() {
 
 function Stat({ label, value, className = '', active = false, onClick = null }) {
   const Cmp = onClick ? 'button' : 'div';
+  // Stronger active visual so it reads as active without color alone:
+  // pacific-600 border + pacific-50 fill in addition to the ring. Pair
+  // with aria-pressed when this is a button so screen readers expose
+  // the toggled state.
   return (
     <Cmp
       onClick={onClick || undefined}
       type={onClick ? 'button' : undefined}
+      aria-pressed={onClick ? active : undefined}
       className={[
-        'rounded-lg border bg-white p-2.5 text-left transition-colors',
-        active ? 'border-pacific-400 ring-1 ring-pacific-200' : 'border-gray-200 hover:border-gray-300',
+        'rounded-lg border p-2.5 text-left transition-colors',
+        active
+          ? 'border-pacific-600 bg-pacific-50 ring-1 ring-pacific-200'
+          : 'border-gray-200 bg-white hover:border-gray-300',
       ].join(' ')}
     >
       <div className="text-[10px] uppercase tracking-wide text-gray-500">{label}</div>

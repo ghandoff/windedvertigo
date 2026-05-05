@@ -24,6 +24,11 @@ export default function PcsTable({
   // surface at the top instead of being buried alphabetically.
   defaultSortKey = null,
   defaultSortDir = 'asc',
+  // 2026-05-05 — When the parent page renders its own filter input
+  // (e.g. ingredients page-level search across name + synonyms),
+  // pass `hideFilter` to suppress this built-in filter so the operator
+  // doesn't see two stacked filter boxes against the same table.
+  hideFilter = false,
 }) {
   // Load saved sort preference from localStorage (per user + table).
   // 2026-05-05 — Bumped key version from `pcs-sort-` to `pcs-sort-v2-`
@@ -129,13 +134,22 @@ export default function PcsTable({
 
   return (
     <div className="space-y-3">
-      <input
-        type="text"
-        placeholder="Filter..."
-        value={filter}
-        onChange={e => setFilter(e.target.value)}
-        className="w-full max-w-sm px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-pacific-500 focus:border-pacific-500"
-      />
+      {!hideFilter && (
+        <div>
+          <label htmlFor={`pcs-table-filter-${tableKey || 'default'}`} className="sr-only">
+            Filter rows
+          </label>
+          <input
+            id={`pcs-table-filter-${tableKey || 'default'}`}
+            type="text"
+            placeholder="Filter..."
+            aria-label="Filter rows"
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+            className="w-full max-w-sm px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-pacific-500 focus:border-pacific-500"
+          />
+        </div>
+      )}
       <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

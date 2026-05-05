@@ -79,13 +79,30 @@ function Field({ label, value, editing, onEdit, type = 'text', options }) {
     );
   }
 
+  // 2026-05-05 — For select fields in non-edit mode, surface a stale-data
+  // signal when the stored value drifts off the canonical option list
+  // (e.g. EVIDENCE_TYPES). Without this, the operator just sees a raw
+  // string with no hint that it's no longer valid.
+  const isUnknownSelect =
+    type === 'select' &&
+    value != null &&
+    value !== '' &&
+    Array.isArray(options) &&
+    options.length > 0 &&
+    !options.includes(value);
+
   return (
     <div>
       <p className="text-xs text-gray-500 uppercase">{label}</p>
       {type === 'url' && value ? (
         <a href={value} target="_blank" rel="noopener noreferrer" className="text-sm text-pacific-600 hover:underline break-all">{value}</a>
       ) : (
-        <p className="text-sm font-medium text-gray-900">{value || '—'}</p>
+        <p className="text-sm font-medium text-gray-900">
+          {value || '—'}
+          {isUnknownSelect && (
+            <span className="ml-1 text-xs text-amber-600" title="Value not in current option list">(unknown)</span>
+          )}
+        </p>
       )}
     </div>
   );

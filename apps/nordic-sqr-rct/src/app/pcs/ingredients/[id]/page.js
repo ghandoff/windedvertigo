@@ -52,7 +52,10 @@ export default function IngredientDetailPage({ params }) {
     }
   }, [id]);
 
+  // Fetch-on-mount: refresh() ends in setState for ingredient/forms/catalog.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { refresh(); }, [refresh]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (loading) {
     return (
@@ -161,13 +164,15 @@ export default function IngredientDetailPage({ params }) {
 
       {/* Forms table */}
       <div className="card overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-900">Forms</h2>
-            <p className="text-xs text-gray-500">
-              Chemical or strain-level expressions of this AI ({forms.length} total)
-            </p>
-          </div>
+        {/* 2026-05-05 — header was `flex items-center justify-between` with
+             an empty right slot, suggesting an "+ Add form" affordance that
+             never landed. No /pcs/ingredients/[id]/forms/new route exists
+             today, so drop justify-between to avoid misleading whitespace. */}
+        <div className="px-4 py-3 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-900">Forms</h2>
+          <p className="text-xs text-gray-500">
+            Chemical or strain-level expressions of this AI ({forms.length} total)
+          </p>
         </div>
         {forms.length === 0 ? (
           <div className="p-8 text-center text-sm text-gray-500">

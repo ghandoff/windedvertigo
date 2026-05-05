@@ -23,6 +23,11 @@ export default function IngredientsPage() {
   const [category, setCategory] = useState('');
   const [search, setSearch] = useState('');
 
+  // Fetch-on-mount: async data load that ends in setState for ingredients
+  // + forms. Same canonical async-effect pattern as elsewhere in PCS;
+  // the new lint rule prefers external-store subscription, but here
+  // we're loading initial data over fetch.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -39,6 +44,7 @@ export default function IngredientsPage() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Forms count per ingredient (computed client-side from the forms list).
   const formCountByIngredient = useMemo(() => {
@@ -162,6 +168,7 @@ export default function IngredientsPage() {
         emptyMessage="No ingredients match the current filter."
         defaultSortKey="lastEditedTime"
         defaultSortDir="desc"
+        hideFilter
       />
     </div>
   );

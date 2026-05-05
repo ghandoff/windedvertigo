@@ -28,7 +28,15 @@ function InlineEditField({ claimId, fieldPath, label, value, type = 'text', opti
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
+  // Sync the external `value` prop into the local draft when the parent
+  // refetches and replaces the claim object. Same shape as the PcsTable
+  // hydration pattern: this is a deliberate prop->state mirror, not a
+  // derivable render value, because the user may be mid-edit when the
+  // parent re-renders and we don't want to clobber their typing —
+  // setDraft only fires when `value` itself changes.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { setDraft(value ?? ''); }, [value]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function save() {
     setSaving(true);
@@ -69,7 +77,7 @@ function InlineEditField({ claimId, fieldPath, label, value, type = 'text', opti
         {!editing && !disabled && (
           <button
             onClick={() => { setDraft(value ?? ''); setEditing(true); }}
-            className="text-xs text-pacific-600 hover:text-pacific-800"
+            className="text-xs text-pacific-600 px-1.5 py-0.5 rounded hover:bg-pacific-50 hover:text-pacific-800"
           >
             Edit
           </button>
@@ -300,9 +308,15 @@ function EvidencePacketRow({ packet, canEdit, onUpdated }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
+  // Reset the editing draft when the parent passes a new packet object,
+  // unless the user is currently editing (in which case their in-progress
+  // changes win). This is the same prop->state mirror as InlineEditField
+  // above and the PcsTable hydration pattern.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!editing) setDraft(packet);
   }, [packet, editing]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function patchField(fieldPath, value) {
     const res = await fetch(`/api/admin/pcs/evidence/${packet.id}`, {
@@ -508,7 +522,7 @@ function EvidencePacketRow({ packet, canEdit, onUpdated }) {
           {canEdit && (
             <button
               onClick={() => setEditing(true)}
-              className="text-xs text-pacific-600 hover:text-pacific-800"
+              className="text-xs text-pacific-600 px-1.5 py-0.5 rounded hover:bg-pacific-50 hover:text-pacific-800"
             >
               Edit
             </button>
@@ -556,11 +570,12 @@ export default function ClaimDetail({ params }) {
     } catch { /* silent */ }
   }, [id]);
 
-  useEffect(() => {
-    fetchClaim();
-  }, [id]);
-
-  async function fetchClaim() {
+  // 2026-05-05 — Hoisted from a `function` declaration to a useCallback
+  // defined ABOVE the consuming useEffect. The hoisting worked at runtime
+  // (function decls are hoisted) but the new lint rule
+  // `no-use-before-define` flags it. useCallback also gives us a stable
+  // dep for the effect.
+  const fetchClaim = useCallback(async () => {
     try {
       const res = await fetch(`/api/pcs/claims/${id}`);
       if (res.ok) {
@@ -588,7 +603,17 @@ export default function ClaimDetail({ params }) {
       }
     } catch { /* silent */ }
     finally { setLoading(false); }
-  }
+  }, [id]);
+
+  // Fetch-on-mount pattern: fetchClaim is async and ends in setState
+  // (setClaim / setLoading / etc). The lint rule wants the React 19
+  // pattern of subscribing to an external store, but here we're loading
+  // initial data over fetch — the canonical async-effect pattern.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    fetchClaim();
+  }, [fetchClaim]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function updateField(field, value) {
     if (savingRef.current) return;
@@ -785,7 +810,7 @@ export default function ClaimDetail({ params }) {
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-semibold text-gray-700">Notes</h2>
               {canWrite && !editingNotes && (
-                <button onClick={() => setEditingNotes(true)} className="text-xs text-pacific-600 hover:text-pacific-800">
+                <button onClick={() => setEditingNotes(true)} className="text-xs text-pacific-600 px-1.5 py-0.5 rounded hover:bg-pacific-50 hover:text-pacific-800">
                   Edit
                 </button>
               )}
