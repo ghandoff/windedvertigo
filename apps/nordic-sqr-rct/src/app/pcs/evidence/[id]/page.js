@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
 import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
 import { EVIDENCE_TYPES, SQR_RISK_OF_BIAS } from '@/lib/pcs-config';
+import { useToast } from '@/components/Toast';
+import Can from '@/components/auth/Can';
 
 function Field({ label, value, editing, onEdit, type = 'text', options }) {
   if (editing) {
@@ -100,6 +102,9 @@ export default function PcsEvidenceDetail() {
   const [reviewFeedback, setReviewFeedback] = useState(null);
   const [enriching, setEnriching] = useState(false);
   const [enrichFeedback, setEnrichFeedback] = useState(null);
+  const [uploadingPdf, setUploadingPdf] = useState(null); // { sizeMb } while in flight
+  const pdfInputRef = useRef(null);
+  const toast = useToast();
 
   // Client check is UX hint; server is the source of truth (authenticatePcsWrite).
   const canWrite = hasAnyRole(user, ROLE_SETS.PCS_WRITERS);
@@ -203,6 +208,37 @@ export default function PcsEvidenceDetail() {
       setEnrichFeedback({ type: 'error', message: err.message });
     } finally {
       setEnriching(false);
+    }
+  }
+
+  async function handlePdfFileChosen(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      toast?.error?.('Please choose a PDF file');
+      return;
+    }
+    const sizeMb = (file.size / 1024 / 1024).toFixed(1);
+    setUploadingPdf({ sizeMb });
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`/api/pcs/evidence/${id}/pdf-upload`, {
+        method: 'POST',
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      // Refresh row state so the new PDF URL renders.
+      const refreshed = await fetch(`/api/pcs/evidence/${id}`).then(r => r.json());
+      setEvidence(refreshed);
+      setDraft(refreshed);
+      toast?.success?.('PDF uploaded');
+    } catch (err) {
+      toast?.error?.(err.message);
+    } finally {
+      setUploadingPdf(null);
     }
   }
 
@@ -321,11 +357,31 @@ export default function PcsEvidenceDetail() {
           {evidence.pdf ? (
             <a href={evidence.pdf} target="_blank" rel="noopener noreferrer" className="text-sm text-pacific-600 hover:underline inline-flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              Download PDF
+              Open PDF
             </a>
           ) : (
-            <p className="text-sm text-gray-400">No PDF available</p>
+            <p className="text-sm text-gray-400">No PDF attached</p>
           )}
+          <Can capability="pcs.evidence:attach">
+            <input
+              ref={pdfInputRef}
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={handlePdfFileChosen}
+            />
+            {uploadingPdf ? (
+              <p className="mt-1 text-xs text-gray-500">Uploading… {uploadingPdf.sizeMb} MB</p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => pdfInputRef.current?.click()}
+                className="mt-1 text-xs text-pacific-600 hover:underline"
+              >
+                {evidence.pdf ? 'Replace PDF' : 'Upload PDF'}
+              </button>
+            )}
+          </Can>
         </div>
         <div>
           <p className="text-xs text-gray-500 uppercase">Ingredients</p>
