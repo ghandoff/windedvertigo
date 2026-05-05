@@ -15,9 +15,17 @@ import {
 } from './canonical-claim-key.js';
 import { getPrefixDoseSensitivity } from './pcs-prefixes.js';
 import { mutate } from './pcs-mutate.js';
+import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 
 
 const P = PROPS.canonicalClaims;
+const CANONICAL_CLAIMS_CACHE_KEY = 'canonical-claims:all';
+const CANONICAL_CLAIMS_CACHE_TTL_MS = 300_000; // 5 min — changes weekly
+
+/** Drop the cached canonical-claim list. Call after any canonical-claim write. */
+export function invalidateCanonicalClaimsCache() {
+  invalidateCache(CANONICAL_CLAIMS_CACHE_KEY);
+}
 
 function parsePage(page) {
   const p = page.properties;
@@ -45,7 +53,16 @@ function parsePage(page) {
   };
 }
 
-export async function getAllCanonicalClaims() {
+export async function getAllCanonicalClaims(opts = {}) {
+  return memoize(
+    CANONICAL_CLAIMS_CACHE_KEY,
+    CANONICAL_CLAIMS_CACHE_TTL_MS,
+    _fetchAllCanonicalClaims,
+    opts,
+  );
+}
+
+async function _fetchAllCanonicalClaims() {
   let all = [];
   let cursor = undefined;
   do {
@@ -132,6 +149,7 @@ export async function updateCanonicalClaim(id, fields) {
       : { select: null };
   }
   const page = await notion.pages.update({ page_id: id, properties });
+  invalidateCanonicalClaimsCache();
   return parsePage(page);
 }
 

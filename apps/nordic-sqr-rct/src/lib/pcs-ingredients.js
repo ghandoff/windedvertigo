@@ -15,9 +15,17 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
+import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 
 
 const P = PROPS.ingredients;
+const INGREDIENTS_CACHE_KEY = 'ingredients:all';
+const INGREDIENTS_CACHE_TTL_MS = 60_000; // 60s — ingredients change daily
+
+/** Drop the cached ingredients list. Call after any ingredient write. */
+export function invalidateIngredientsCache() {
+  invalidateCache(INGREDIENTS_CACHE_KEY);
+}
 
 function parsePage(page) {
   const p = page.properties;
@@ -75,7 +83,19 @@ function buildProps(fields) {
   return properties;
 }
 
-export async function getAllIngredients(maxPages = 50) {
+export async function getAllIngredients(maxPages = 50, opts = {}) {
+  // Memoize the default-args call (the hot-path dropdown lookup).
+  // Custom maxPages or skipCache callers bypass the cache so non-default
+  // pagination/refresh callers always see fresh data.
+  if (maxPages === 50 && !opts.skipCache) {
+    return memoize(INGREDIENTS_CACHE_KEY, INGREDIENTS_CACHE_TTL_MS, () =>
+      _fetchAllIngredients(maxPages),
+    );
+  }
+  return _fetchAllIngredients(maxPages);
+}
+
+async function _fetchAllIngredients(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -104,6 +124,7 @@ export async function createIngredient(fields) {
     parent: { database_id: PCS_DB.ingredients },
     properties,
   });
+  invalidateIngredientsCache();
   return parsePage(page);
 }
 
@@ -139,11 +160,13 @@ export async function updateIngredientField({ id, fieldPath, value, actor, reaso
 export async function updateIngredient(id, fields) {
   const properties = buildProps(fields);
   const page = await notion.pages.update({ page_id: id, properties });
+  invalidateIngredientsCache();
   return parsePage(page);
 }
 
 export async function deleteIngredient(id) {
   await notion.pages.update({ page_id: id, archived: true });
+  invalidateIngredientsCache();
 }
 
 /**

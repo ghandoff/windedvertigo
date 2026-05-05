@@ -11,9 +11,17 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 
 
 const P = PROPS.coreBenefits;
+const CORE_BENEFITS_CACHE_KEY = 'core-benefits:all';
+const CORE_BENEFITS_CACHE_TTL_MS = 300_000; // 5 min — changes weekly
+
+/** Drop the cached core-benefit list. Call after any core-benefit write. */
+export function invalidateCoreBenefitsCache() {
+  invalidateCache(CORE_BENEFITS_CACHE_KEY);
+}
 
 function parsePage(page) {
   const p = page.properties;
@@ -28,7 +36,16 @@ function parsePage(page) {
   };
 }
 
-export async function getAllCoreBenefits() {
+export async function getAllCoreBenefits(opts = {}) {
+  return memoize(
+    CORE_BENEFITS_CACHE_KEY,
+    CORE_BENEFITS_CACHE_TTL_MS,
+    _fetchAllCoreBenefits,
+    opts,
+  );
+}
+
+async function _fetchAllCoreBenefits() {
   let all = [];
   let cursor = undefined;
   do {
@@ -63,6 +80,7 @@ export async function createCoreBenefit(fields) {
     parent: { database_id: PCS_DB.coreBenefits },
     properties,
   });
+  invalidateCoreBenefitsCache();
   return parsePage(page);
 }
 
@@ -80,11 +98,13 @@ export async function updateCoreBenefit(id, fields) {
     properties[P.notes] = { rich_text: [{ text: { content: fields.notes || '' } }] };
   }
   const page = await notion.pages.update({ page_id: id, properties });
+  invalidateCoreBenefitsCache();
   return parsePage(page);
 }
 
 export async function deleteCoreBenefit(id) {
   await notion.pages.update({ page_id: id, archived: true });
+  invalidateCoreBenefitsCache();
 }
 
 /**
