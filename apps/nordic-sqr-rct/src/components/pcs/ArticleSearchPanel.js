@@ -68,7 +68,11 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
         pmid: hit.pmid || undefined,
         url: hit.url || undefined,
         publicationYear: hit.year || undefined,
-        evidenceType: 'RCT', // operator can refine later in the row's detail page
+        // 2026-05-05 — Auto-classify from PubMed MeSH publication types
+        // (see pubmed provider's classifyEvidenceType). Falls back to RCT
+        // only when no provider classified it; the operator can still
+        // refine on the row's detail page.
+        evidenceType: hit.evidenceType || 'RCT',
         pdf: hit.openAccessPdf || undefined,
         canonicalSummary: hit.abstract ? hit.abstract.slice(0, 1900) : undefined,
       };
@@ -162,6 +166,14 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
                     {h.journal ? ` · ${h.journal}` : ''}
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                    {h.evidenceType ? (
+                      <span
+                        className="inline-flex items-center rounded-full bg-indigo-100 px-1.5 py-0.5 font-medium text-indigo-800"
+                        title="Auto-classified from PubMed MeSH publication types. You can refine this on the evidence row's detail page."
+                      >
+                        {h.evidenceType}
+                      </span>
+                    ) : null}
                     {h.sources.map((s) => {
                       const meta = PROVIDER_LABELS[s] || { label: s, color: 'bg-gray-100 text-gray-700' };
                       return (

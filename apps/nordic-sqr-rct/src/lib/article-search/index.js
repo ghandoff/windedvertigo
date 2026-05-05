@@ -87,6 +87,10 @@ function dedupeHits(hits) {
       if (!existing.pmid && h.pmid) existing.pmid = h.pmid;
       if (!existing.year && h.year) existing.year = h.year;
       if (!existing.journal && h.journal) existing.journal = h.journal;
+      // PubMed wins evidenceType — it's MeSH-classified. Semantic Scholar
+      // doesn't return publication types so this only fires when PubMed
+      // is the second-arrival on a Semantic-Scholar-first hit.
+      if (!existing.evidenceType && h.evidenceType) existing.evidenceType = h.evidenceType;
     } else {
       byKey.set(key, { ...h, sources: [h.source] });
     }

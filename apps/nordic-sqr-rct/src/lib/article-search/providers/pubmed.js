@@ -78,6 +78,12 @@ function parseSummary(s, pmid) {
   const url = `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`;
   // Year — pubdate is "YYYY MMM DD" or "YYYY MMM" or "YYYY"
   const year = (s.pubdate || '').match(/\d{4}/)?.[0] || null;
+  // 2026-05-05 — PubMed publication-type classifications. NCBI tags every
+  // record with one or more MeSH publication types ("Randomized Controlled
+  // Trial", "Meta-Analysis", "Systematic Review", "Review", etc.). We
+  // surface them so downstream code can pre-tag the EVIDENCE_TYPES taxonomy
+  // (pcs-config.js) instead of defaulting every import to 'RCT'.
+  const pubTypes = Array.isArray(s.pubtype) ? s.pubtype : [];
   return {
     id: `pubmed:${pmid}`,
     source: 'pubmed',
@@ -90,6 +96,33 @@ function parseSummary(s, pmid) {
     abstract: null, // not in esummary; fetched on demand for detail view
     openAccessPdf,
     url,
-    raw: { pmid, doi, pmcid },
+    pubTypes,
+    evidenceType: classifyEvidenceType(pubTypes),
+    raw: { pmid, doi, pmcid, pubtype: pubTypes },
   };
+}
+
+/**
+ * Map PubMed MeSH publication-types onto the platform's EVIDENCE_TYPES
+ * vocabulary (see pcs-config.js).
+ *
+ * Order matters — a paper tagged BOTH "Meta-Analysis" and "Review" is
+ * a meta-analysis; a paper tagged "Randomized Controlled Trial" AND
+ * "Journal Article" is an RCT. We probe most-specific first.
+ *
+ * Anything we can't classify falls through to null (caller can default
+ * or prompt the operator).
+ */
+function classifyEvidenceType(pubTypes) {
+  if (!pubTypes?.length) return null;
+  const set = new Set(pubTypes.map((t) => t.toLowerCase()));
+  if (set.has('meta-analysis')) return 'Meta-analysis';
+  if (set.has('systematic review')) return 'Systematic review';
+  if (set.has('randomized controlled trial') || set.has('controlled clinical trial')) return 'RCT';
+  if (set.has('observational study') || set.has('cohort studies') || set.has('case-control studies')) return 'Observational';
+  if (set.has('review')) return 'Review';
+  // "Clinical Trial" without "Randomized" → Observational tier (could be
+  // open-label / non-randomized; safer than calling it an RCT).
+  if (set.has('clinical trial')) return 'Observational';
+  return null;
 }
