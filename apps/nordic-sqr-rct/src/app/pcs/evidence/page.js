@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
 import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
 import PcsTable from '@/components/pcs/PcsTable';
+import ArticleSearchPanel from '@/components/pcs/ArticleSearchPanel';
 
 export default function PcsEvidencePage() {
   return (
@@ -33,7 +34,10 @@ function PcsEvidence() {
 
     fetch(`/api/pcs/evidence${qs ? `?${qs}` : ''}`)
       .then(res => res.json())
-      .then(setEvidence)
+      // 2026-05-05 — defensively unwrap. If the API errors (returns
+      // {error: '…'}) or starts paginating ({items, nextCursor}) the
+      // PcsTable below would crash on data.filter. Always coerce to array.
+      .then((data) => setEvidence(Array.isArray(data) ? data : (data?.items || [])))
       .finally(() => setLoading(false));
   }, [ingredient, type, sqrReviewed]);
 
@@ -106,8 +110,23 @@ function PcsEvidence() {
     );
   }
 
+  const canAttach = hasAnyRole(user, ROLE_SETS.PCS_WRITERS);
+
+  // 2026-05-05 — refresh the table after a successful "Add to Evidence"
+  // from the article-search panel so the new row appears immediately.
+  const refresh = useCallback(() => {
+    const params = new URLSearchParams();
+    if (ingredient) params.set('ingredient', ingredient);
+    if (type) params.set('type', type);
+    if (sqrReviewed !== null) params.set('sqrReviewed', sqrReviewed);
+    const qs = params.toString();
+    fetch(`/api/pcs/evidence${qs ? `?${qs}` : ''}`)
+      .then((res) => res.json())
+      .then((data) => setEvidence(Array.isArray(data) ? data : (data?.items || [])));
+  }, [ingredient, type, sqrReviewed]);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
         <div className="flex items-center gap-3">
@@ -116,8 +135,7 @@ function PcsEvidence() {
               Show all
             </Link>
           )}
-          {/* Client check is UX hint; server is the source of truth. */}
-          {hasAnyRole(user, ROLE_SETS.PCS_WRITERS) && (
+          {canAttach && (
             <Link
               href="/pcs/admin/imports"
               className="px-3 py-1.5 bg-pacific-600 text-white rounded-md text-sm font-medium hover:bg-pacific-700 transition-colors"
@@ -127,6 +145,11 @@ function PcsEvidence() {
           )}
         </div>
       </div>
+
+      {/* Article search — Tier 1 PubMed + Semantic Scholar live;
+          CORE / OSF / Google Scholar / ResearchGate roadmapped. */}
+      <ArticleSearchPanel canAttach={canAttach} onAttached={refresh} />
+
       <PcsTable columns={columns} data={evidence} tableKey="evidence" userId={user?.reviewerId} />
     </div>
   );
