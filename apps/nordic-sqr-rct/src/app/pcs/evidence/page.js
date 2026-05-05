@@ -97,6 +97,23 @@ function PcsEvidence() {
     ? 'Evidence — Unreviewed'
     : 'Evidence Library';
 
+  // 2026-05-05 — refresh the table after a successful "Add to Evidence"
+  // from the article-search panel so the new row appears immediately.
+  // Declared BEFORE any early return so the hook order stays stable
+  // across `loading=true → false` transitions.
+  const refresh = useCallback(() => {
+    const params = new URLSearchParams();
+    if (ingredient) params.set('ingredient', ingredient);
+    if (type) params.set('type', type);
+    if (sqrReviewed !== null) params.set('sqrReviewed', sqrReviewed);
+    const qs = params.toString();
+    fetch(`/api/pcs/evidence${qs ? `?${qs}` : ''}`)
+      .then((res) => res.json())
+      .then((data) => setEvidence(Array.isArray(data) ? data : (data?.items || [])));
+  }, [ingredient, type, sqrReviewed]);
+
+  const canAttach = hasAnyRole(user, ROLE_SETS.PCS_WRITERS);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -109,21 +126,6 @@ function PcsEvidence() {
       </div>
     );
   }
-
-  const canAttach = hasAnyRole(user, ROLE_SETS.PCS_WRITERS);
-
-  // 2026-05-05 — refresh the table after a successful "Add to Evidence"
-  // from the article-search panel so the new row appears immediately.
-  const refresh = useCallback(() => {
-    const params = new URLSearchParams();
-    if (ingredient) params.set('ingredient', ingredient);
-    if (type) params.set('type', type);
-    if (sqrReviewed !== null) params.set('sqrReviewed', sqrReviewed);
-    const qs = params.toString();
-    fetch(`/api/pcs/evidence${qs ? `?${qs}` : ''}`)
-      .then((res) => res.json())
-      .then((data) => setEvidence(Array.isArray(data) ? data : (data?.items || [])));
-  }, [ingredient, type, sqrReviewed]);
 
   return (
     <div className="space-y-6">
