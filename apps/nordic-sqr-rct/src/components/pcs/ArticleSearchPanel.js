@@ -1,20 +1,31 @@
 'use client';
 
 /**
- * 2026-05-05 — Article search panel on /pcs/evidence.
+ * 2026-05-05 — Research-team article tool on /pcs/evidence.
  *
- * Operator pastes a title or DOI; the platform queries Tier-1 article
- * repositories in parallel (PubMed + Semantic Scholar today; CORE / OSF /
- * Google Scholar / ResearchGate roadmapped). Results show de-duplicated
- * hits with a `sources` chip-list (a paper found by both PubMed and
- * Semantic Scholar is more trustworthy than one found by only one).
+ * Two tiers chained:
  *
- * Each result has a one-click "Add to Evidence" button that POSTs the
- * metadata to /api/pcs/evidence — same endpoint the EndNote import uses,
- * so the resulting Notion row plays nice with downstream PCS / SQR-RCT
- * surfaces. PDF auto-fetch (download to Vercel Blob, attach to Notion)
- * is roadmapped — for now the row gets the openAccessPdf URL when the
- * provider returns one.
+ *   1. DISCOVERY — operator pastes a title, DOI, PMID, or citation
+ *      fragment. The platform queries article repositories in parallel
+ *      (PubMed + Semantic Scholar today; CORE / OSF / Google Scholar /
+ *      ResearchGate roadmapped) via /api/pcs/evidence/search and shows
+ *      de-duplicated hits with a `sources` chip-list (a paper found by
+ *      both providers is more trustworthy than one found by only one).
+ *
+ *   2. RETRIEVAL + SAVE — clicking "+ Add to Evidence" hits
+ *      /api/pcs/evidence/save-from-search, which runs the SAME 7-tier
+ *      PDF retrieval waterfall used by PCS imports (Unpaywall →
+ *      Semantic Scholar → CORE → OpenAlex → Europe PMC → bioRxiv →
+ *      PMC; see src/lib/pmc.js findAndFetchPdf), uploads the discovered
+ *      PDF to Vercel Blob, and creates an Evidence Library row. The
+ *      row is created orphan — not yet attached to any PCS document.
+ *
+ * Why this exists: researchers shouldn't have to wait until they're
+ * writing a PCS document to start banking the evidence they've already
+ * vetted. Populating the Evidence Library opportunistically eliminates
+ * duplicated retrieval effort across the team — when a later PCS doc
+ * cites an already-saved DOI/PMID, the import-time advisory dedup in
+ * createEvidence (pcs-evidence.js) re-uses the existing row.
  */
 
 import { useState } from 'react';
@@ -25,6 +36,22 @@ const PROVIDER_LABELS = {
   'semantic-scholar': { label: 'Semantic Scholar', color: 'bg-purple-100 text-purple-800' },
   core: { label: 'CORE', color: 'bg-amber-100 text-amber-800' },
   osf: { label: 'OSF', color: 'bg-green-100 text-green-800' },
+};
+
+// 2026-05-05 — Human-readable labels for the retrieval-tier source
+// names returned by src/lib/pmc.js findPdfUrl. Order here mirrors the
+// waterfall order so the chip color hints at how "deep" the search had
+// to go: green tiers are fast/highest-coverage, amber are mid, gray
+// are last-resort fallbacks.
+const PDF_SOURCE_LABEL = {
+  unpaywall: 'Unpaywall',
+  semantic_scholar: 'Semantic Scholar',
+  core: 'CORE',
+  openalex: 'OpenAlex',
+  europe_pmc: 'Europe PMC',
+  biorxiv_medrxiv: 'bioRxiv / medRxiv',
+  pmc: 'PubMed Central',
+  discovery: 'discovery search',
 };
 
 export default function ArticleSearchPanel({ canAttach, onAttached }) {
@@ -62,30 +89,34 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
   async function onAttach(hit) {
     setAttaching((s) => ({ ...s, [hit.id]: true }));
     try {
-      const payload = {
-        name: hit.title,
-        doi: hit.doi || undefined,
-        pmid: hit.pmid || undefined,
-        url: hit.url || undefined,
-        publicationYear: hit.year || undefined,
-        // 2026-05-05 — Auto-classify from PubMed MeSH publication types
-        // (see pubmed provider's classifyEvidenceType). Falls back to RCT
-        // only when no provider classified it; the operator can still
-        // refine on the row's detail page.
-        evidenceType: hit.evidenceType || 'RCT',
-        pdf: hit.openAccessPdf || undefined,
-        canonicalSummary: hit.abstract ? hit.abstract.slice(0, 1900) : undefined,
-      };
-      const res = await fetch('/api/pcs/evidence', {
+      // 2026-05-05 — Single server-side call that chains discovery →
+      // 7-tier PDF retrieval waterfall (pmc.js) → Evidence row create.
+      // See src/app/api/pcs/evidence/save-from-search/route.js. The
+      // waterfall can take 2–15s when early tiers miss; the button
+      // shows "Searching tiers…" during the call.
+      const res = await fetch('/api/pcs/evidence/save-from-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(hit),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
-      setAttached((s) => ({ ...s, [hit.id]: { ok: true, id: body.id } }));
-      toast?.success?.(`Added "${hit.title.slice(0, 60)}…" to Evidence Library`);
-      if (onAttached) onAttached(body);
+      setAttached((s) => ({
+        ...s,
+        [hit.id]: {
+          ok: true,
+          id: body.evidenceId,
+          pdfSource: body.pdfSource,
+          pdfUrl: body.pdfUrl,
+        },
+      }));
+      const sourceLabel = body.pdfSource ? PDF_SOURCE_LABEL[body.pdfSource] || body.pdfSource : null;
+      toast?.success?.(
+        sourceLabel
+          ? `Saved "${hit.title.slice(0, 50)}…" — PDF via ${sourceLabel}`
+          : `Saved "${hit.title.slice(0, 50)}…" — no OA PDF found`,
+      );
+      if (onAttached) onAttached(body.entry || body);
     } catch (err) {
       setAttached((s) => ({ ...s, [hit.id]: { ok: false, message: err.message } }));
       toast?.error?.(`Failed to add: ${err.message}`);
@@ -222,18 +253,39 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
                     </details>
                   ) : null}
                 </div>
-                <div className="shrink-0 self-center">
+                <div className="shrink-0 self-center flex flex-col items-end gap-1">
                   {a?.ok ? (
-                    <span className="text-xs text-green-700 font-medium">✓ Added</span>
+                    <>
+                      <span className="text-xs text-green-700 font-medium">✓ Saved</span>
+                      {a.pdfSource ? (
+                        <span
+                          className="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800"
+                          title={`Full-text PDF retrieved via the platform's tiered waterfall: ${PDF_SOURCE_LABEL[a.pdfSource] || a.pdfSource}`}
+                        >
+                          PDF · {PDF_SOURCE_LABEL[a.pdfSource] || a.pdfSource}
+                        </span>
+                      ) : (
+                        <span
+                          className="inline-flex items-center rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600"
+                          title="No open-access PDF found across the 7-tier waterfall (Unpaywall → Semantic Scholar → CORE → OpenAlex → Europe PMC → bioRxiv → PMC). Row was created with metadata only."
+                        >
+                          no OA PDF
+                        </span>
+                      )}
+                    </>
                   ) : (
                     <button
                       type="button"
                       disabled={!canAttach || !!attaching[h.id]}
                       onClick={() => onAttach(h)}
                       className="whitespace-nowrap rounded-md border border-pacific-600 bg-white px-3 py-1.5 text-xs font-medium text-pacific-700 hover:bg-pacific-50 disabled:opacity-40"
-                      title={!canAttach ? 'Requires pcs.evidence:attach capability' : 'Create a Notion Evidence row from this hit'}
+                      title={
+                        !canAttach
+                          ? 'Requires pcs.evidence:attach capability'
+                          : 'Save to the Evidence Library and run the 7-tier PDF retrieval waterfall (Unpaywall → Semantic Scholar → CORE → OpenAlex → Europe PMC → bioRxiv → PMC)'
+                      }
                     >
-                      {attaching[h.id] ? 'Adding…' : '+ Add to Evidence'}
+                      {attaching[h.id] ? 'Searching tiers…' : '+ Add to Evidence'}
                     </button>
                   )}
                 </div>
