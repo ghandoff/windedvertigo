@@ -178,7 +178,14 @@ function PcsEvidence() {
           CORE / OSF / Google Scholar / ResearchGate roadmapped. */}
       <ArticleSearchPanel canAttach={canAttach} onAttached={handleAttached} />
 
-      <PcsTable columns={columns} data={evidence} tableKey="evidence" userId={user?.reviewerId} />
+      <PcsTable
+        columns={columns}
+        data={evidence}
+        tableKey="evidence"
+        userId={user?.reviewerId}
+        defaultSortKey="lastEditedTime"
+        defaultSortDir="desc"
+      />
     </div>
   );
 }

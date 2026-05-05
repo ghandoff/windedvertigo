@@ -288,7 +288,17 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
                     </>
                   ) : a?.ok ? (
                     <>
-                      <span className="text-xs text-green-700 font-medium">✓ Saved</span>
+                      {a.id ? (
+                        <Link
+                          href={`/pcs/evidence/${a.id}`}
+                          className="text-xs text-green-700 font-medium hover:underline"
+                          title="Open the new Evidence Library row"
+                        >
+                          ✓ Saved · Open row →
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-green-700 font-medium">✓ Saved</span>
+                      )}
                       {a.pdfSource ? (
                         <span
                           className="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800"

@@ -11,21 +11,41 @@ import { useState, useEffect, useMemo, useRef } from 'react';
  * tableKey: string — unique key for this table (e.g. 'claims', 'evidence')
  * userId: string — current user's ID for per-account sort persistence
  */
-export default function PcsTable({ columns, data, onUpdate, emptyMessage = 'No data found', tableKey, userId }) {
-  // Load saved sort preference from localStorage (per user + table)
-  const storageKey = tableKey && userId ? `pcs-sort-${userId}-${tableKey}` : null;
+export default function PcsTable({
+  columns,
+  data,
+  onUpdate,
+  emptyMessage = 'No data found',
+  tableKey,
+  userId,
+  // 2026-05-05 — Default sort applied when neither the user nor a parent
+  // page has chosen a sort. Pass `defaultSortKey="lastEditedTime"` +
+  // `defaultSortDir="desc"` for evidence/documents so newly-added rows
+  // surface at the top instead of being buried alphabetically.
+  defaultSortKey = null,
+  defaultSortDir = 'asc',
+}) {
+  // Load saved sort preference from localStorage (per user + table).
+  // 2026-05-05 — Bumped key version from `pcs-sort-` to `pcs-sort-v2-`
+  // when defaultSortKey was introduced. Older saved prefs become stale
+  // and the default applies on first visit; subsequent column-header
+  // clicks save under the new key. Migration is one-time and lossless
+  // (users just re-click the column they want, if different from the
+  // new default of "most recently edited").
+  const storageKey = tableKey && userId ? `pcs-sort-v2-${userId}-${tableKey}` : null;
 
   function loadSavedSort() {
-    if (!storageKey) return { key: null, dir: 'asc' };
+    const fallback = { key: defaultSortKey, dir: defaultSortDir };
+    if (!storageKey) return fallback;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
     } catch { /* ignore */ }
-    return { key: null, dir: 'asc' };
+    return fallback;
   }
 
-  const [sortKey, setSortKey] = useState(null);
-  const [sortDir, setSortDir] = useState('asc');
+  const [sortKey, setSortKey] = useState(defaultSortKey);
+  const [sortDir, setSortDir] = useState(defaultSortDir);
   const [sortLoaded, setSortLoaded] = useState(false);
   const [filter, setFilter] = useState('');
   const [editingCell, setEditingCell] = useState(null); // { rowId, key }
@@ -35,10 +55,8 @@ export default function PcsTable({ columns, data, onUpdate, emptyMessage = 'No d
   // Hydrate saved sort on mount (avoids SSR mismatch)
   useEffect(() => {
     const saved = loadSavedSort();
-    if (saved.key) {
-      setSortKey(saved.key);
-      setSortDir(saved.dir || 'asc');
-    }
+    setSortKey(saved.key);
+    setSortDir(saved.dir || 'asc');
     setSortLoaded(true);
   }, [storageKey]);
 
