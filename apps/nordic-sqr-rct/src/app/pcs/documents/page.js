@@ -310,7 +310,15 @@ function PcsDocuments() {
           No documents in this view.
         </div>
       ) : (
-        <PcsTable columns={columns} data={filtered} onUpdate={handleUpdate} tableKey="documents" userId={user?.reviewerId} />
+        <PcsTable
+          columns={columns}
+          data={filtered}
+          onUpdate={handleUpdate}
+          tableKey="documents"
+          userId={user?.reviewerId}
+          defaultSortKey="lastEditedTime"
+          defaultSortDir="desc"
+        />
       )}
     </div>
   );

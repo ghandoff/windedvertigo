@@ -160,6 +160,8 @@ export default function IngredientsPage() {
         tableKey="ingredients"
         userId={user?.reviewerId}
         emptyMessage="No ingredients match the current filter."
+        defaultSortKey="lastEditedTime"
+        defaultSortDir="desc"
       />
     </div>
   );

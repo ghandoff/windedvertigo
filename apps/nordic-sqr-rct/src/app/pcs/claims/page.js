@@ -32,7 +32,10 @@ function PcsClaims() {
 
     fetch(`/api/pcs/claims${qs ? `?${qs}` : ''}`)
       .then(res => res.json())
-      .then(setClaims)
+      // 2026-05-05 — Defensively unwrap. If the API errors (returns
+      // {error: '…'}) or paginates ({items, nextCursor}) the PcsTable
+      // below would crash on data.filter. Always coerce to array.
+      .then((data) => setClaims(Array.isArray(data) ? data : (data?.items || [])))
       .finally(() => setLoading(false));
   }, [bucket, noEvidence, versionId]);
 
@@ -155,7 +158,15 @@ function PcsClaims() {
         </Link>
       </div>
 
-      <PcsTable columns={columns} data={claims} onUpdate={handleUpdate} tableKey="claims" userId={user?.reviewerId} />
+      <PcsTable
+        columns={columns}
+        data={claims}
+        onUpdate={handleUpdate}
+        tableKey="claims"
+        userId={user?.reviewerId}
+        defaultSortKey="lastEditedTime"
+        defaultSortDir="desc"
+      />
     </div>
   );
 }

@@ -1,5 +1,101 @@
 # Tasks
 
+## Completed 2026-05-05 — Nordic Research Platform: PCS evidence Wave 7.0.5
+
+Full debrief in `.brain/handoff.md`. App: `apps/nordic-sqr-rct`. Branch: `ghandoff/windedvertigo`. Deploys to `nordic.windedvertigo.com` (Vercel).
+
+- [x] **Research-team article search tool at `/pcs/evidence`** (`ff7f591`) — DOI / PMID / title → PubMed + Semantic Scholar hits → 7-tier PDF retrieval waterfall (`src/lib/pmc.js`) → Vercel Blob `evidence-pdfs/`. Endpoint: `POST /api/pcs/evidence/save-from-search`.
+- [x] **PubMed MeSH auto-classify into EVIDENCE_TYPES** (`eb7ebf5`) — RCT / Meta-analysis / Systematic review / Observational / Review. No more "everything is RCT" defaulting.
+- [x] **In-library detection** (`3a8ace2`) — search hits cross-check existing rows by DOI/PMID; saved rows show "✓ In library / Open existing row →"; saved chip is clickable Link to detail page.
+- [x] **Manual PDF upload for paywalled / EndNote-only rows** (`c548317`) — `POST /api/pcs/evidence/[id]/pdf-upload` multipart route + UI button + drag-and-drop on evidence detail page.
+- [x] **Hard-merge dedup** (Wave 7.0.5 T8.1, in flight at handoff write) — `createEvidence` returns existing rows on DOI/PMID match instead of duplicating; surfaces `merged` flag.
+- [x] **Phase 1 perf** (`e7bf068`) — `revalidate` + `s-maxage` cache headers on five `/api/pcs/*` GET routes; `revalidatePath()` on POST/PATCH; `loading.js` skeletons for four pages. Edge-cache HIT serves `/api/pcs/evidence` in 33ms (was 500–1500ms cold).
+- [x] **Default-sort improvements** (`594f8b1`) — `PcsTable` accepts `defaultSortKey` + `defaultSortDir`; evidence page sorts `lastEditedTime DESC`; newly-added rows default to top + jump-to-row from save. localStorage key bumped to `pcs-sort-v2-`.
+- [x] **One-shot test-pollution dedup** (`bb0e8c5`) — archived 3 rows. Script: `apps/nordic-sqr-rct/scripts/archive-test-evidence-rows.mjs`.
+- [x] **Salvage from archived working tree** (`1854467`) — 4 unique docs migrated from standalone `~/Projects/nordic-sqr-rct/` to monorepo. Standalone renamed to `~/Projects/nordic-sqr-rct.archived-2026-05-05/`.
+
+### Pending — Nordic platform follow-ups
+
+- [ ] **Set `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` on Vercel prod env** — without them the article-search waterfall returns 429 on those two tiers (effective coverage 5/7). Highest-leverage env-var task on the platform right now.
+- [ ] **Verify T8.1 hard-merge after it lands** — confirm `merged: true` returns when DOI/PMID matches an existing row, and that the existing-row return path still runs the EVIDENCE_TYPES classifier (regression risk).
+- [ ] **UX sweep follow-ups** — placeholder until `apps/nordic-sqr-rct/.brain/ux-sweep-2026-05-05.md` lands from the parallel agent. After it lands: read top items, surface here, prioritise.
+- [ ] **Phase 2 perf** — parallelize sequential Notion queries inside `/api/pcs/*` routes; add in-memory cache per Fluid Compute instance. Defer until the team uses Phase 1 for a workday so we have real hit-rate data to optimize against.
+- [ ] **Phase 3 perf (multi-day, deferred)** — Notion → Supabase mirror for `/pcs/*` read paths. Same pattern as Port's Phase A2. Don't start until Phase 2 is exhausted.
+- [ ] **`pcs.evidence:attach` audit** — capability scope now gates three write paths (`POST /api/pcs/evidence`, `save-from-search`, `pdf-upload`). One sweep to confirm no path is accidentally open.
+
+## Completed 2026-05-04 (afternoon PT) — RFP Pipeline v2 Phase 1
+
+Architectural upgrade based on the plan + industry research at `~/.claude/plans/generic-popping-bubble.md` (research separately at `~/.claude/plans/generic-popping-bubble-agent-a2328100cdbfe445b.md`). Full debrief in `.brain/memory/engineering/rfp-pipeline-v2.md`.
+
+- [x] **Schema migration** `20260508_rfp_pipeline_v2.sql` — 4 new tables (`rfp_requirements`, `rfp_milestones`, `rfp_assignments`, `collective_cv`) + `rfp_coverage` view + 9 new columns on `rfp_opportunities` (TOR verify, bid decision, EOI/financial URLs)
+- [x] **CV seed** from `TEAM_BIOS` (Garrett, Lamis, James/Jamie, Maria, Payton)
+- [x] **Pass-2 requirement extractor** (`lib/ai/rfp-requirements-extractor.ts`) — Claude pulls structured deliverables / eligibility / evaluation criteria / admin / submission rows with provenance (extracted_by, confidence, source_quote)
+- [x] **rfpDocumentConsumer extended** to write `rfp_requirements` rows after question-bank parse
+- [x] **proposal-generator RFP-aware** — accepts `requirements` in context, system prompt emits `deliverables` array driven by approved rows, backward-compat backfill from legacy boolean+string fields
+- [x] **proposalConsumer refactored** — single loop over `draft.deliverables` for sub-page creation (variable count), per-contributor `fanOutContributorAssignments()` after generation
+- [x] **Verification gate UI** on `/rfp-radar/[id]` — TOR confirm + per-row approve/edit/remove + readiness banner
+- [x] **API routes**: `verify-tor`, `requirements`, `requirements/[reqId]`, `bid-decision`, `cv/verify-mine`
+- [x] **Bid/No-Bid scorecard** modal in kanban (5 weighted yes/no questions, fires on `reviewing → pursuing` drag)
+- [x] **Milestone reminder cron** `/api/cron/milestone-reminders` registered (9/12/15/18 UTC)
+- [x] **Per-contributor Slack DMs** in proposalConsumer (sendDmByEmail bot path) with section + CV-verify deep links
+- [x] **Both workers deployed** — `wv-port` + `wv-port-jobs`
+
+### Phase 2 (deferred)
+- [ ] Answer library + confidence-scored auto-fill (Loopio "Loop Library" pattern)
+- [ ] Slack Block Kit interactive buttons (replace deep-link CV verify with native button)
+- [ ] Calendar events per milestone (extend existing GCal deadline-event integration)
+- [ ] Pre-submission gate UI: block "mark submitted" until coverage view all-green
+- [ ] Phase 3: submission tracking + win/loss retrospectives feeding back into prompt library
+
+## Completed 2026-05-04 (morning) — 4-doc RFP generator + 2nd RFP shipped
+
+- [x] **Cost cut: switched proposal-generation from sonnet to haiku-4.5** (~5× cheaper, ~$0.50/proposal vs ~$3). `lib/ai/types.ts` FEATURE_MODELS map.
+- [x] **4-document generator deployed** (port-jobs version `686bfbbd`) — `proposal-generator.ts` ProposalDraft now includes `requiresExpressionOfInterest`/`expressionOfInterest` + `requiresFinancialProposal`/`financialProposal`. `port-jobs/src/index.ts` creates 📝 EOI sub-page + 💰 Financial Proposal sub-page when AI flags them. Slack summary surfaces all 5 URLs.
+- [x] **Changemakers in Family Planning RFP shipped** (May 12 deadline) — 3 docs all live. URLs in handoff.md.
+- [ ] **EOI + Financial Proposal URLs not yet in Supabase** — currently only on Notion + Slack. To track on RFP detail page UI, add `expression_of_interest_url` + `financial_proposal_url` columns to `rfp_opportunities` and extend `setProposalUrls`. Not blocking for the user.
+- [ ] **UNICEF Global LTAS** — failed twice (May 8 deadline still 4 days out). Next attempt in flight at 12:48 PT. If fails again: switch UNICEF specifically to sonnet, OR trim its question bank size.
+
+## Completed 2026-05-04 (overnight) — Oxfam Denmark RFP shipped + off Vercel AI Gateway
+
+- [x] **Oxfam Denmark RFP proposal drafted** (8am deadline) — full proposal, cover letter, and team CVs generated to Notion. Links in `.brain/memory/handoff.md`.
+- [x] **Vercel AI Gateway dependency killed** — `port/lib/ai/client.ts` now calls `api.anthropic.com` directly with a `sk-ant-api03-*` key (created `wv-port-jobs-cf` via Anthropic Console). No more Vercel AI gateway routing or charges.
+- [x] **`port/lib/ai/client.ts` lazy-init Proxy** — same pattern as Notion + Supabase clients. Anthropic key rotations propagate without redeploy.
+- [x] **`AI_GATEWAY_API_KEY` and `ANTHROPIC_BASE_URL` (gateway URL) deleted from wv-port-jobs.** Old `ANTHROPIC_API_KEY` (60-char gateway key) still in env but unused — safe to revoke at vercel.com when convenient.
+
+### Pending in morning
+- [ ] **Regenerate 3 remaining RFPs** (UNICEF May 8, Changemakers May 12, Evaluation May 25). They DLQ'd during the architecture flip. See playbook in `.brain/memory/handoff.md`. Note the `regenerate-pursuing` admin route also claims `ready-for-review` rows — needs a one-line filter fix OR temporarily flip Oxfam's `status` field before triggering.
+- [ ] **Revoke Vercel AI Gateway key + cancel gateway product** at vercel.com if not already used by other apps. Check creaseworks/vault first — they may have their own AI calls routed through it.
+- [ ] **Audit findings from `.brain/memory/engineering/2026-05-04-supabase-mirror-audit.md`** — 6 drift sites need cleanup (campaigns cron, rfpDocumentConsumer, etc.)
+
+## Completed 2026-05-04 — RFP generation root-cause fix (CRITICAL)
+
+- [x] **RFP proposal generation root cause identified + fixed** — Two compounding bugs in `port-jobs/src/index.ts` were silently breaking proposal generation:
+  1. The CF Workers migration from Inngest **dropped every `setProposalStep()` and `setProposalStatus()` call** to Supabase. The consumer only wrote status to Notion; the polling UI reads from Supabase. Result: even successful generations stayed at `proposal_status='generating'` in Supabase indefinitely (until the 15-min cron sync), and failed generations stayed there forever (the DLQ also only reset Notion).
+  2. `seedProcessEnv()` set `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` but the supabase client reads `NEXT_PUBLIC_SUPABASE_URL`/`SUPABASE_SECRET_KEY`. Even if the consumer had tried to write, it would have thrown.
+  Fix: imported `setProposalStep` / `setProposalStatus` / `setProposalUrls` / `resetProposalToFailed`; added `advance(step)` and `failWith(reason)` helpers wrapping every checkpoint; fixed env-var seeding; added 6-min `Promise.race` timeout around the Claude `generateProposal` call. DLQ now also resets Supabase. Worker `wv-port-jobs` redeployed: version `92ac362e-b35d-4e3a-b735-8e20824637e4`.
+- [x] **Reset 4 stuck RFP statuses** — Oxfam Denmark, UNICEF Global LTAS, Changemakers in Family Planning, Evaluation Consultant — all 4 had `proposal_status='generating'` for 4-5 hours. Reset to `failed` with `proposal_step='reset_by_admin'` so user can retry.
+- [x] **Live progress UI on RFP detail page** — `port/app/components/proposal-progress.tsx` extended: `useElapsed` returns `{label, ms}`; red banner triggers when elapsed >10min while still generating; amber banner surfaces `proposal_step` values starting with `failed_at_` (race-window state where Supabase has the failure detail before status flips). Polls every 3s. Step taxonomy: `fetching_rfp` → `gathering_context` → `reading_document` → `matching_citations` → `writing_draft` → `building_documents` → `cover_letter` (optional) → `team_cvs` (optional) → cleared on success; on failure `failed_at_<lastStep>: <error>`.
+- [x] **Strategy "create with claude" button** — `app/(dashboard)/strategy/create-with-claude-button.tsx` + `/api/strategy/create-campaign` route. On strategy cards with "no crm match" badge, clicking opens a Claude Sonnet draft → creates a CRM campaign with name, type, audience filter, draft email subject, draft email body, internal notes. Payton reviews + refines.
+- [x] **Sync now button + social-stats backfill** — `app/(dashboard)/strategy/sync-now-button.tsx`; pulls broadened to last 90 days (was last 10 posts); added `port` block to `SocialStatsSnapshot` from `email_drafts` table (`getPortCampaignStats()` in `lib/marketing/port-campaign-stats.ts`); strategy sidebar relabeled "media mentions" → "campaign reach". Worker `wv-port` deployed: version `d98056fb-24c4-4613-8c5b-0ee7a4612823`.
+
+### Pending after this session
+- [ ] **Set 7 missing social env vars on `wv-port`** to populate non-Bluesky platforms (LinkedIn, Substack, Meta/FB+IG). Bluesky already live (3 followers, 6 engagements). See list in `.brain/memory/handoff.md`.
+- [ ] **Investigate empty `email_drafts` table** — 0 rows, 0 sent. Either campaigns haven't actually been sent through the port pipeline, or sends went through a different path (Resend webhook? Notion-driven?). Until this is resolved, "campaign reach" stat stays at 0 even after social env vars are set.
+
+## Completed 2026-05-04 — port marketing + strategy session
+
+- [x] **Email drafts → Supabase migration** — `email_drafts` table with 5 indexes; `lib/supabase/email-drafts.ts` module; `app/api/cron/sync-email-drafts-pilot/route.ts` (every 6h: 1/7/13/19); 6 caller files swapped (campaign-stats-strip, campaign-weekly-summary, analytics, recipients, organizations/[id], view/[id]). Closes the last graceful-degradation gap on the port.
+- [x] **Marketing strategy page (`/strategy`)** — server-component dashboard at `port/app/(dashboard)/strategy/page.tsx`. Two-column layout: revenue pipeline table + 90-day timeline + 6 campaign cards + budget on left; q2-q3 targets, team accountability, weekly cadence on right. "strategy" nav added to outreach section in `nav-config.ts`.
+- [x] **Strategy data corrections (2026-05-04)** — removed LEGO/Superskills (years-old proposal, not active) and UNICEF (no acceptance received) from pipeline; PRME 2026 contract bumped from $48,285 (first invoice) to $145,000 (full signed contract); contracts-signed sidebar now shows layered bar (received/booked/gap) at 29% of $500k target.
+- [x] **Campaign architecture clickable** — each strategic campaign card on `/strategy` now fuzzy-matches against existing CRM campaigns (`getCampaignsFromSupabase` + keyword match). Click opens the matching CRM campaign or a search filter; badge shows `N crm · M active` or `no crm match`.
+- [x] **Stretch: content → campaign quick-draft** — `port/app/api/content/[id]/draft-to-campaign/route.ts` POST endpoint creates a campaign from an approved/scheduled content item (campaign type `recurring cadence`, since `social` isn't in the type union). UI button `draft-to-campaign-button.tsx` rendered on each draftable content item.
+- [x] **Social-stats sync infrastructure** — `getStats()` added to all 4 social clients (linkedin, substack, meta, bluesky); new `sync-social-stats` cron at hours [3,9,15,21]; `/api/marketing/social-stats` GET route; snapshot stored in Supabase `marketing_state` table (key `social-stats`, conceptual KV mapping `marketing:social-stats`). Strategy page sidebar reads with graceful fallback. Migration `20260507_marketing_state.sql` applied.
+- [x] **Memory cleanup** — LEGO/Superskills! and UNICEF removed from `CLAUDE.md`, `.brain/memory/operational.md`, `.brain/memory/financial.md`, `.brain/memory/marketing/strategy-2026-q2q3.md`, `.brain/memory/marketing/weekly-cmo-log.md`. PRME contract value updated to $145k throughout.
+
+### Pending (post-this-session)
+- [ ] **Set social env vars on `wv-port`** to populate real engagement data: `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_PERSON_URN`, `SUBSTACK_PUBLICATION` (+optional `SUBSTACK_COOKIE`), `META_PAGE_ACCESS_TOKEN`, `META_PAGE_ID`, `META_IG_USER_ID`, `BLUESKY_HANDLE`. Until set, social-stats snapshot returns nulls and progress bars show "awaiting first sync".
+- [ ] **Trigger first social-stats sync** — `curl -H "Authorization: Bearer $CRON_SECRET" https://port.windedvertigo.com/api/cron/sync-social-stats` (or wait until next 03/09/15/21 UTC fire).
+
 ## Completed 2026-04-26 — harbour launch-readiness session
 
 - [x] **Phase 0 wrap-up complete** — image-failure counter on harbour cron, sweep guard + restored 5 seeded SKUs (migration 053), doc drift closed.

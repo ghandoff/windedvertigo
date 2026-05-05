@@ -651,9 +651,11 @@ export default function ClaimDetail({ params }) {
         />
       )}
 
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
+      {/* Header — same min-w-0 + break-words pattern Evidence detail uses
+           so long claim text doesn't collide with the right-hand action
+           cluster on viewports under ~900px. */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3 mb-2">
             <Link href="/pcs/claims" className="text-sm text-gray-500 hover:text-gray-700">
               Claims
@@ -661,9 +663,9 @@ export default function ClaimDetail({ params }) {
             <span className="text-gray-300">/</span>
             <span className="text-sm text-gray-700">#{claim.claimNo || '—'}</span>
           </div>
-          <h1 className="text-xl font-bold text-gray-900 leading-snug">{claim.claim}</h1>
+          <h1 className="text-xl font-bold text-gray-900 leading-snug break-words">{claim.claim}</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={() => setHistoryOpen(true)}

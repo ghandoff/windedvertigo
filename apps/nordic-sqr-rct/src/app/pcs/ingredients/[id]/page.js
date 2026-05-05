@@ -82,6 +82,16 @@ export default function IngredientDetailPage({ params }) {
         <span className="text-gray-700 font-medium">{ingredient.canonicalName || 'Untitled'}</span>
       </div>
 
+      {/* 2026-05-05 — Read-only notice. Inline-edit affordances are
+           planned (see useAuth import above) but not yet wired. Surface
+           the limitation so writers don't hunt for a missing pencil.
+           Once inline edits ship, swap this banner for the actual
+           Edit affordance. */}
+      <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        This page is read-only for now. To edit ingredient metadata,
+        use the import flow at <a href="/pcs/admin/imports" className="font-medium underline hover:text-amber-900">/pcs/admin/imports</a>.
+      </div>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{ingredient.canonicalName || 'Untitled'}</h1>
