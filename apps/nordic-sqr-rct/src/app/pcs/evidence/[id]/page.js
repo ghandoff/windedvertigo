@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
 import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
+import { can } from '@/lib/auth/capabilities';
 import { EVIDENCE_TYPES, SQR_RISK_OF_BIAS } from '@/lib/pcs-config';
 import { useToast } from '@/components/Toast';
 import Can from '@/components/auth/Can';
@@ -103,11 +104,14 @@ export default function PcsEvidenceDetail() {
   const [enriching, setEnriching] = useState(false);
   const [enrichFeedback, setEnrichFeedback] = useState(null);
   const [uploadingPdf, setUploadingPdf] = useState(null); // { sizeMb } while in flight
+  const [isDragOver, setIsDragOver] = useState(false);
+  const dragDepthRef = useRef(0);
   const pdfInputRef = useRef(null);
   const toast = useToast();
 
   // Client check is UX hint; server is the source of truth (authenticatePcsWrite).
   const canWrite = hasAnyRole(user, ROLE_SETS.PCS_WRITERS);
+  const canAttachPdf = can(user, 'pcs.evidence:attach');
 
   useEffect(() => {
     fetch(`/api/pcs/evidence/${id}`)
@@ -211,12 +215,15 @@ export default function PcsEvidenceDetail() {
     }
   }
 
-  async function handlePdfFileChosen(e) {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // allow re-selecting the same file later
+  async function uploadPdfFile(file) {
     if (!file) return;
     if (file.type !== 'application/pdf') {
       toast?.error?.('Please choose a PDF file');
+      return;
+    }
+    // Match server cap (50 MB).
+    if (file.size > 50 * 1024 * 1024) {
+      toast?.error?.('PDF exceeds 50 MB limit');
       return;
     }
     const sizeMb = (file.size / 1024 / 1024).toFixed(1);
@@ -242,6 +249,45 @@ export default function PcsEvidenceDetail() {
     }
   }
 
+  async function handlePdfFileChosen(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (!file) return;
+    await uploadPdfFile(file);
+  }
+
+  function handleDragEnter(e) {
+    if (!canAttachPdf || uploadingPdf) return;
+    if (!Array.from(e.dataTransfer?.types || []).includes('Files')) return;
+    e.preventDefault();
+    dragDepthRef.current += 1;
+    setIsDragOver(true);
+  }
+
+  function handleDragOver(e) {
+    if (!canAttachPdf || uploadingPdf) return;
+    if (!Array.from(e.dataTransfer?.types || []).includes('Files')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  }
+
+  function handleDragLeave(e) {
+    if (!canAttachPdf) return;
+    e.preventDefault();
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+    if (dragDepthRef.current === 0) setIsDragOver(false);
+  }
+
+  async function handleDrop(e) {
+    if (!canAttachPdf || uploadingPdf) return;
+    e.preventDefault();
+    dragDepthRef.current = 0;
+    setIsDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (!file) return;
+    await uploadPdfFile(file);
+  }
+
   if (loading) {
     return (
       <div className="animate-pulse space-y-4">
@@ -261,13 +307,28 @@ export default function PcsEvidenceDetail() {
     : 'text-gray-400';
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+    <div
+      className={`space-y-6 relative rounded-lg transition-colors ${
+        isDragOver ? 'ring-2 ring-dashed ring-pacific-400 bg-pacific-50/40' : ''
+      }`}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isDragOver && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg">
+          <div className="rounded-md bg-white/90 px-4 py-2 text-sm font-medium text-pacific-700 shadow-sm border border-pacific-200">
+            Drop PDF to {evidence.pdf ? 'replace' : 'upload'}
+          </div>
+        </div>
+      )}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
           <Link href="/pcs/evidence" className="text-sm text-pacific-600 hover:underline">
             ← Evidence Library
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2">
+          <h1 className="text-2xl font-bold text-gray-900 mt-2 break-words">
             {editing ? (
               <input
                 type="text"
@@ -281,35 +342,35 @@ export default function PcsEvidenceDetail() {
           </h1>
         </div>
         {canWrite && !editing && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             {evidence.pdf && (
               <a
                 href={evidence.pdf}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5"
+                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 View PDF
               </a>
             )}
             <button
               onClick={handleEnrich}
               disabled={enriching}
-              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors whitespace-nowrap"
             >
               {enriching ? 'Enriching...' : 'Enrich from PubMed'}
             </button>
             <button
               onClick={() => setEditing(true)}
-              className="px-4 py-2 text-sm font-medium text-pacific-600 border border-pacific-600 rounded-md hover:bg-pacific-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-pacific-600 border border-pacific-600 rounded-md hover:bg-pacific-50 transition-colors whitespace-nowrap"
             >
               Edit
             </button>
           </div>
         )}
         {editing && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <button
               onClick={handleCancel}
               className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
@@ -355,7 +416,7 @@ export default function PcsEvidenceDetail() {
         <div>
           <p className="text-xs text-gray-500 uppercase">PDF</p>
           {evidence.pdf ? (
-            <a href={evidence.pdf} target="_blank" rel="noopener noreferrer" className="text-sm text-pacific-600 hover:underline inline-flex items-center gap-1">
+            <a href={evidence.pdf} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-pacific-600 hover:underline inline-flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               Open PDF
             </a>
@@ -376,9 +437,9 @@ export default function PcsEvidenceDetail() {
               <button
                 type="button"
                 onClick={() => pdfInputRef.current?.click()}
-                className="mt-1 text-xs text-pacific-600 hover:underline"
+                className="mt-1 block text-xs text-gray-500 hover:text-pacific-600 hover:underline"
               >
-                {evidence.pdf ? 'Replace PDF' : 'Upload PDF'}
+                {evidence.pdf ? 'Replace · or drop a PDF on this page' : 'Upload PDF · or drop one on this page'}
               </button>
             )}
           </Can>
