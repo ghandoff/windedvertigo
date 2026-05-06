@@ -8,6 +8,7 @@
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
+import { getPcsSupabase, shouldReadFromPostgres } from './supabase-pcs.js';
 
 
 const P = PROPS.evidence;
@@ -35,6 +36,59 @@ function extractFileUrl(prop) {
   const file = prop?.files?.[0];
   if (!file) return null;
   return file.external?.url || file.file?.url || null;
+}
+
+/**
+ * 2026-05-06 — Path-2 read-path swap. Convert a Postgres pcs_evidence
+ * row into the SAME shape parsePage(notionPage) returns. Downstream
+ * callers (route handlers, PcsTable, ArticleSearchPanel) must not be
+ * able to tell whether the data came from Notion or Postgres.
+ *
+ * Mapping notes:
+ *   - id: returns notion_page_id (NOT the Postgres uuid). Notion-id
+ *     is what the rest of the app uses for routing (/pcs/evidence/[id]),
+ *     for relations (used_in_packet_ids, etc.), and for Notion round-trips.
+ *   - createdTime / lastEditedTime: come from notion_created_at /
+ *     notion_last_edited_at (the mirrored Notion timestamps), NOT from
+ *     created_at / updated_at (which are Postgres-side write times).
+ *   - Empty strings vs null: matches Notion shape exactly. Notion's
+ *     parsePage returns '' for unset rich_text fields and null for
+ *     unset numbers/dates/selects. We mirror that: postgres TEXT
+ *     defaults '' come through as '', NUMERIC nulls come through as null.
+ *   - pdf: stored as `pdf_url` in Postgres (column name) but exposed
+ *     as `pdf` here (matches the Notion property semantic).
+ */
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    name: row.name || '',
+    citation: row.citation || '',
+    doi: row.doi || '',
+    pmid: row.pmid || '',
+    url: row.url || null,
+    evidenceType: row.evidence_type || null,
+    ingredient: row.ingredient || [],
+    publicationYear: row.publication_year ?? null,
+    canonicalSummary: row.canonical_summary || '',
+    endnoteGroup: row.endnote_group || '',
+    endnoteRecordId: row.endnote_record_id || '',
+    sqrScore: row.sqr_score ?? null,
+    sqrRiskOfBias: row.sqr_risk_of_bias || null,
+    sqrReviewed: row.sqr_reviewed || false,
+    sqrReviewDate: row.sqr_review_date || null,
+    sqrReviewUrl: row.sqr_review_url || null,
+    pdf: row.pdf_url || null,
+    usedInPacketIds: row.used_in_packet_ids || [],
+    pcsReferenceIds: row.pcs_reference_ids || [],
+    activeIngredientCanonicalIds: row.active_ingredient_canonical_ids || [],
+    safetySignal: row.safety_signal || false,
+    safetyIngredientIds: row.safety_ingredient_ids || [],
+    safetyDoseThreshold: row.safety_dose_threshold ?? null,
+    safetyDoseUnit: row.safety_dose_unit || '',
+    safetyDemographicFilterRaw: row.safety_demographic_filter_raw || '',
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
 }
 
 function parsePage(page) {
@@ -89,6 +143,23 @@ export async function getAllEvidence(maxPages = 50, opts = {}) {
 }
 
 async function _fetchAllEvidence(maxPages) {
+  // 2026-05-06 — Path-2 read-path swap. Try Postgres first when the
+  // PCS_READ_FROM_POSTGRES flag is on AND the Supabase client is
+  // configured. Falls back to the Notion implementation on any error
+  // so a Supabase outage degrades to "slow but working" rather than
+  // "broken." Same fallback strategy as Phase 3's edge-cache: failure
+  // mode is the previous-known-good behavior.
+  if (shouldReadFromPostgres()) {
+    try {
+      return await _fetchAllEvidenceFromPostgres();
+    } catch (err) {
+      console.warn(`[pcs-evidence] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  return _fetchAllEvidenceFromNotion(maxPages);
+}
+
+async function _fetchAllEvidenceFromNotion(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -105,7 +176,40 @@ async function _fetchAllEvidence(maxPages) {
   return all.map(parsePage);
 }
 
+async function _fetchAllEvidenceFromPostgres() {
+  // Single round-trip — no pagination needed; Supabase returns up to
+  // 1000 rows by default which comfortably fits 87-row evidence table
+  // (and the schema allows the table to grow well beyond that without
+  // hitting limits — increase `range` if it ever becomes relevant).
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
+}
+
 export async function getEvidence(id) {
+  // 2026-05-06 — Path-2 read-path swap for single-row fetch. Same
+  // fallback pattern as the list path.
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_evidence')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+      // Row missing in Postgres — could be a row created in Notion
+      // since the last sync. Fall through to Notion to fetch fresh.
+    } catch (err) {
+      console.warn(`[pcs-evidence] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
