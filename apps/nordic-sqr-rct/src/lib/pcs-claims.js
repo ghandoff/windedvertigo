@@ -13,6 +13,7 @@ import {
 } from './pcs-canonical-claims.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
+import { getPcsSupabase, shouldReadFromPostgres } from './supabase-pcs.js';
 
 
 const P = PROPS.claims;
@@ -26,6 +27,47 @@ const CLAIMS_CACHE_TTL_MS = 60_000;
 
 export function invalidateClaimsCache() {
   invalidateCache(CLAIMS_CACHE_KEY);
+}
+
+/**
+ * 2026-05-06 — Path-2 read-path swap. Same pattern as pcs-evidence.js
+ * parsePostgresRow — convert a pcs_claims row into the byte-identical
+ * shape parsePage(notionPage) returns.
+ *
+ * Single-relation columns (pcs_version_id, canonical_claim_id, etc.)
+ * are stored as TEXT (the related row's notion_page_id) per the
+ * Phase N1 schema convention. Returned as-is to match Notion.
+ */
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    claim: row.claim || '',
+    claimNo: row.claim_no || '',
+    claimBucket: row.claim_bucket || null,
+    claimStatus: row.claim_status || null,
+    claimNotes: row.claim_notes || '',
+    disclaimerRequired: row.disclaimer_required || false,
+    minDoseMg: row.min_dose_mg ?? null,
+    maxDoseMg: row.max_dose_mg ?? null,
+    doseGuidanceNote: row.dose_guidance_note || '',
+    pcsVersionId: row.pcs_version_id || null,
+    canonicalClaimId: row.canonical_claim_id || null,
+    claimPrefixId: row.claim_prefix_id || null,
+    coreBenefitId: row.core_benefit_id || null,
+    evidencePacketIds: row.evidence_packet_ids || [],
+    wordingVariantIds: row.wording_variant_ids || [],
+    heterogeneity: row.heterogeneity || null,
+    publicationBias: row.publication_bias || null,
+    fundingBias: row.funding_bias || null,
+    precision: row.precision || null,
+    effectSizeCategory: row.effect_size_category || null,
+    doseResponseGradient: row.dose_response_gradient || null,
+    certaintyScore: row.certainty_score ?? null,
+    certaintyRating: row.certainty_rating || null,
+    confidence: row.confidence ?? null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
 }
 
 function parsePage(page) {
@@ -83,6 +125,19 @@ export async function getAllClaims(maxPages = 50, opts = {}) {
 }
 
 async function _fetchAllClaims(maxPages) {
+  // 2026-05-06 — Path-2 read-path swap. Postgres-first when flag is on,
+  // Notion fallback on any error. Same pattern as pcs-evidence.js.
+  if (shouldReadFromPostgres()) {
+    try {
+      return await _fetchAllClaimsFromPostgres();
+    } catch (err) {
+      console.warn(`[pcs-claims] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  return _fetchAllClaimsFromNotion(maxPages);
+}
+
+async function _fetchAllClaimsFromNotion(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -99,7 +154,34 @@ async function _fetchAllClaims(maxPages) {
   return all.map(parsePage);
 }
 
+async function _fetchAllClaimsFromPostgres() {
+  // 469 rows today; allow headroom to 5000 (claims grow with each PCS
+  // version). If we ever exceed that, switch to range-paginated fetch.
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_claims')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
+}
+
 export async function getClaim(id) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_claims')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+    } catch (err) {
+      console.warn(`[pcs-claims] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }

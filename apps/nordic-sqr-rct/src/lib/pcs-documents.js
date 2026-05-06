@@ -8,6 +8,7 @@ import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
+import { getPcsSupabase, shouldReadFromPostgres } from './supabase-pcs.js';
 
 // 2026-05-05 — Phase 3 Bundle 1. Documents list paginates Notion;
 // /pcs/documents and /api/pcs/dashboard both call getAllDocuments.
@@ -22,6 +23,36 @@ export function invalidateDocumentsCache() {
 
 
 const P = PROPS.documents;
+
+/**
+ * 2026-05-06 — Path-2 read-path swap. Convert a pcs_documents row
+ * into the same JS shape parsePage(notionPage) returns.
+ */
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    pcsId: row.pcs_id || '',
+    classification: row.classification || null,
+    fileStatus: row.file_status || null,
+    productStatus: row.product_status || null,
+    transferStatus: row.transfer_status || null,
+    documentNotes: row.document_notes || '',
+    approvedDate: row.approved_date || null,
+    latestVersionId: row.latest_version_id || null,
+    allVersionIds: row.all_version_ids || [],
+    finishedGoodName: row.finished_good_name || '',
+    format: row.format || null,
+    sapMaterialNo: row.sap_material_no || '',
+    skus: row.skus || [],
+    archived: row.archived || false,
+    templateVersion: row.template_version || null,
+    templateSignals: row.template_signals || '',
+    linkedAicsIds: row.linked_aics_ids || [],
+    canonicalDocumentId: row.canonical_document_id || null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
 
 function parsePage(page) {
   const p = page.properties;
@@ -67,6 +98,19 @@ export async function getAllDocuments(maxPages = 50, opts = {}) {
 }
 
 async function _fetchAllDocuments(maxPages) {
+  // 2026-05-06 — Path-2 read-path swap. Postgres-first when the flag
+  // is on, Notion fallback on any error. Same pattern as evidence + claims.
+  if (shouldReadFromPostgres()) {
+    try {
+      return await _fetchAllDocumentsFromPostgres();
+    } catch (err) {
+      console.warn(`[pcs-documents] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  return _fetchAllDocumentsFromNotion(maxPages);
+}
+
+async function _fetchAllDocumentsFromNotion(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -84,7 +128,35 @@ async function _fetchAllDocuments(maxPages) {
   return all.map(parsePage);
 }
 
+async function _fetchAllDocumentsFromPostgres() {
+  // 38 rows today, sorted by pcs_id ascending to match Notion behavior.
+  // (Notion's getAllDocuments uses pcsId-ascending; we preserve that
+  //  here even though the page-level default sort is now lastEditedTime.)
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_documents')
+    .select('*')
+    .order('pcs_id', { ascending: true })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
+}
+
 export async function getDocument(id) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_documents')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+    } catch (err) {
+      console.warn(`[pcs-documents] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
