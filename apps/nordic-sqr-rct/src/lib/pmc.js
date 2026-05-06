@@ -1,5 +1,5 @@
 /**
- * Multi-source PDF finder — 7 open-access sources in waterfall priority.
+ * Multi-source PDF finder — 6 open-access sources in waterfall priority.
  *
  * Tries multiple open-access sources in sequence to find freely available
  * PDFs for research articles. Downloaded PDFs are uploaded to Vercel Blob
@@ -8,11 +8,18 @@
  * Source priority (highest yield first):
  *   1. Unpaywall — indexes 30M+ OA articles (publisher, repos, preprints)
  *   2. Semantic Scholar — independent PDF discovery, good preprint coverage
- *   3. CORE — institutional repositories, author accepted manuscripts
- *   4. OpenAlex — aggregated OA locations across publishers + repos
- *   5. Europe PMC — broader than NCBI PMC, includes preprints + EU repos
- *   6. bioRxiv / medRxiv — preprint servers for biology + medicine
- *   7. NCBI PMC — NIH-funded open-access articles
+ *   3. OpenAlex — aggregated OA locations across publishers + repos
+ *   4. Europe PMC — broader than NCBI PMC, includes preprints + EU repos
+ *   5. bioRxiv / medRxiv — preprint servers for biology + medicine
+ *   6. NCBI PMC — NIH-funded open-access articles
+ *
+ * CORE (institutional repositories) was removed from the waterfall on
+ * 2026-05-05 — its API license requires payment for commercial use, and
+ * the unique-coverage it adds (institutional AAMs) is largely overlapping
+ * with what Unpaywall + OpenAlex already surface. The checkCore() helper
+ * remains below as a single-line restore if a paid plan is added later.
+ * The remaining ~5-15% gap is filled by the manual PDF upload path
+ * (POST /api/pcs/evidence/[id]/pdf-upload).
  */
 
 import { put } from '@vercel/blob';
@@ -433,13 +440,24 @@ export async function findPdfUrl({ doi, pmid }) {
     await new Promise(r => setTimeout(r, 200)); // rate limit buffer
   }
 
-  // 3. CORE (institutional repositories — author accepted manuscripts)
-  if (doi) {
-    const core = await checkCore(doi);
-    attempts.push({ source: 'core', ...core });
-    if (core.available) return { ...core, attempts };
-    await new Promise(r => setTimeout(r, 200));
-  }
+  // 3. CORE — REMOVED 2026-05-05.
+  //
+  // CORE's API license is structured around free-for-academic vs
+  // paid-for-commercial use. This platform is internal tooling for
+  // a for-profit client (Nordic Naturals) substantiating product
+  // claims, which falls under CORE's "commercial / restricted
+  // beneficiaries" definition. Without a paid license we'd just be
+  // hitting their endpoint and getting throttled.
+  //
+  // The unique-coverage CORE adds is institutional-repository AAMs,
+  // most of which Unpaywall (tier 1) and OpenAlex (tier 4) already
+  // surface. The remaining ~5-15% gap is filled by the manual PDF
+  // upload path (POST /api/pcs/evidence/[id]/pdf-upload) — operators
+  // can drop in a PDF acquired via institutional access whenever the
+  // waterfall misses.
+  //
+  // checkCore() helper is preserved below in case we later sign up
+  // for a paid plan; reactivation is a one-line restore here.
 
   // 4. OpenAlex (aggregated OA locations)
   if (doi) {

@@ -7,16 +7,16 @@
  *
  *   1. DISCOVERY — operator pastes a title, DOI, PMID, or citation
  *      fragment. The platform queries article repositories in parallel
- *      (PubMed + Semantic Scholar today; CORE / OSF / Google Scholar /
+ *      (PubMed + Semantic Scholar today; OSF / Google Scholar /
  *      ResearchGate roadmapped) via /api/pcs/evidence/search and shows
  *      de-duplicated hits with a `sources` chip-list (a paper found by
  *      both providers is more trustworthy than one found by only one).
  *
  *   2. RETRIEVAL + SAVE — clicking "+ Add to Evidence" hits
- *      /api/pcs/evidence/save-from-search, which runs the SAME 7-tier
+ *      /api/pcs/evidence/save-from-search, which runs the SAME 6-tier
  *      PDF retrieval waterfall used by PCS imports (Unpaywall →
- *      Semantic Scholar → CORE → OpenAlex → Europe PMC → bioRxiv →
- *      PMC; see src/lib/pmc.js findAndFetchPdf), uploads the discovered
+ *      Semantic Scholar → OpenAlex → Europe PMC → bioRxiv → PMC;
+ *      see src/lib/pmc.js findAndFetchPdf), uploads the discovered
  *      PDF to Vercel Blob, and creates an Evidence Library row. The
  *      row is created orphan — not yet attached to any PCS document.
  *
@@ -35,7 +35,6 @@ import { useToast } from '@/components/Toast';
 const PROVIDER_LABELS = {
   pubmed: { label: 'PubMed', color: 'bg-pacific-100 text-pacific-800' },
   'semantic-scholar': { label: 'Semantic Scholar', color: 'bg-purple-100 text-purple-800' },
-  core: { label: 'CORE', color: 'bg-amber-100 text-amber-800' },
   osf: { label: 'OSF', color: 'bg-green-100 text-green-800' },
 };
 
@@ -47,7 +46,6 @@ const PROVIDER_LABELS = {
 const PDF_SOURCE_LABEL = {
   unpaywall: 'Unpaywall',
   semantic_scholar: 'Semantic Scholar',
-  core: 'CORE',
   openalex: 'OpenAlex',
   europe_pmc: 'Europe PMC',
   biorxiv_medrxiv: 'bioRxiv / medRxiv',
@@ -112,7 +110,7 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
     setAttaching((s) => ({ ...s, [hit.id]: true }));
     try {
       // 2026-05-05 — Single server-side call that chains discovery →
-      // 7-tier PDF retrieval waterfall (pmc.js) → Evidence row create.
+      // 6-tier PDF retrieval waterfall (pmc.js) → Evidence row create.
       // See src/app/api/pcs/evidence/save-from-search/route.js. The
       // waterfall can take 2–15s when early tiers miss; the button
       // shows "Searching tiers…" during the call.
@@ -169,7 +167,7 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
           <p className="text-xs text-gray-500 mt-0.5 max-w-2xl">
             Paste a title, DOI, or PMID. We&apos;ll query PubMed and Semantic Scholar in parallel,
             de-duplicate the hits, and show which sources confirmed each result.{' '}
-            <span className="text-gray-400 italic">CORE, OSF / pre-registration, Google Scholar, and ResearchGate are on the roadmap.</span>
+            <span className="text-gray-400 italic">OSF / pre-registration, Google Scholar, and ResearchGate are on the roadmap.</span>
           </p>
         </div>
       </div>
@@ -323,7 +321,7 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
                       ) : (
                         <span
                           className="inline-flex items-center rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600"
-                          title="No open-access PDF found across the 7-tier waterfall (Unpaywall → Semantic Scholar → CORE → OpenAlex → Europe PMC → bioRxiv → PMC). Row was created with metadata only."
+                          title="No open-access PDF found across the 6-tier waterfall (Unpaywall → Semantic Scholar → OpenAlex → Europe PMC → bioRxiv → PMC). Row was created with metadata only."
                         >
                           no OA PDF
                         </span>

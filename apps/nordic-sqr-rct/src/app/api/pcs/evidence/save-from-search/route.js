@@ -3,9 +3,11 @@
  *
  * Research-team article tool — chains:
  *   1. Discovery hit (already retrieved by /api/pcs/evidence/search)
- *   2. The same 7-tier PDF-retrieval waterfall used by PCS imports
- *      (Unpaywall → Semantic Scholar → CORE → OpenAlex → Europe PMC →
- *      bioRxiv/medRxiv → NCBI PMC) — see src/lib/pmc.js findAndFetchPdf
+ *   2. The same 6-tier PDF-retrieval waterfall used by PCS imports
+ *      (Unpaywall → Semantic Scholar → OpenAlex → Europe PMC →
+ *      bioRxiv/medRxiv → NCBI PMC) — see src/lib/pmc.js findAndFetchPdf.
+ *      CORE was removed 2026-05-05; their commercial-use license is
+ *      paid and the marginal coverage gain didn't justify the cost.
  *   3. Evidence-row creation (orphan; not yet tied to any PCS document)
  *
  * Goal: eliminate duplicated effort across the research team. As
