@@ -27,7 +27,25 @@ import { getAllLabels } from '@/lib/pcs-labels';
 import { getAllJobs } from '@/lib/pcs-import-jobs';
 import { getAllIntakeRows } from '@/lib/label-intake-queue';
 
-const CACHE_TTL_MS = 30_000;
+// 2026-05-05 — Phase 3 Bundle 2 perf. Sidebar badge counts are
+// fetched on every page navigation; this is the single most-hit
+// authenticated endpoint in the app. Two layers of cache:
+//
+//   1. Vercel edge cache via Cache-Control + revalidate (30s) — most
+//      navigations within a 30s window hit edge, not the function.
+//   2. Per-instance in-process Map (60s) — when the edge cache misses,
+//      the function reuses its own previous result if recent.
+//
+// The previous TTL was 30s in-process / no edge cache. Bumping
+// in-process to 60s (longer than edge revalidate window) means the
+// function never pays the full 600ms cold-cache pagination cost more
+// than once per minute per warm Fluid Compute instance.
+//
+// The payload is org-wide ("open work counts"), not per-user, so
+// caching across users via edge is safe — same answer for everyone.
+export const revalidate = 30;
+
+const CACHE_TTL_MS = 60_000;
 const cache = new Map(); // key: reviewerId, value: { ts, payload }
 
 // PCS import-jobs use lowercase status names; "active" = not in a terminal
@@ -114,7 +132,10 @@ export async function GET(request) {
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
     return NextResponse.json(cached.payload, {
-      headers: { 'X-Sidebar-Counts-Cache': 'HIT' },
+      headers: {
+        'X-Sidebar-Counts-Cache': 'HIT',
+        'Cache-Control': 's-maxage=30, stale-while-revalidate=120',
+      },
     });
   }
 
@@ -130,6 +151,9 @@ export async function GET(request) {
   cache.set(cacheKey, { ts: Date.now(), payload });
 
   return NextResponse.json(payload, {
-    headers: { 'X-Sidebar-Counts-Cache': 'MISS' },
+    headers: {
+      'X-Sidebar-Counts-Cache': 'MISS',
+      'Cache-Control': 's-maxage=30, stale-while-revalidate=120',
+    },
   });
 }

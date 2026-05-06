@@ -7,9 +7,28 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 
 
 const P = PROPS.evidence;
+
+// 2026-05-05 — Phase 3 Bundle 1. The Evidence Library backs the busiest
+// /pcs/evidence index page; its `getAllEvidence` paginates Notion (100
+// rows/query, up to 50 pages = 1.5–7s cold-cache cost on tables with
+// ~200+ rows). Memoize the default-args call so the second hit within
+// `EVIDENCE_CACHE_TTL_MS` lands in process memory (5–20ms) instead.
+// Vercel Fluid Compute reuses instances across concurrent requests so
+// after the first user paid the pagination cost, the team gets sub-50ms.
+//
+// Writes (createEvidence / updateEvidence) call `invalidateEvidenceCache`
+// so the next read picks up the change. Same pattern Phase 2 used in
+// pcs-ingredients.js / pcs-canonical-claims.js / pcs-core-benefits.js.
+const EVIDENCE_CACHE_KEY = 'evidence:all:50';
+const EVIDENCE_CACHE_TTL_MS = 60_000; // 60s — evidence list is read-mostly; writes invalidate immediately
+
+export function invalidateEvidenceCache() {
+  invalidateCache(EVIDENCE_CACHE_KEY);
+}
 
 /** Extract the first file URL from a Notion file property. */
 function extractFileUrl(prop) {
@@ -57,7 +76,19 @@ function parsePage(page) {
   };
 }
 
-export async function getAllEvidence(maxPages = 50) {
+export async function getAllEvidence(maxPages = 50, opts = {}) {
+  // Hot-path cache: only the default-args call is memoized. Custom
+  // maxPages or skipCache callers always see fresh data. Mirrors
+  // getAllIngredients (Phase 2 pattern).
+  if (maxPages === 50 && !opts.skipCache) {
+    return memoize(EVIDENCE_CACHE_KEY, EVIDENCE_CACHE_TTL_MS, () =>
+      _fetchAllEvidence(maxPages),
+    );
+  }
+  return _fetchAllEvidence(maxPages);
+}
+
+async function _fetchAllEvidence(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -261,6 +292,7 @@ export async function createEvidence(fields) {
     parent: { database_id: PCS_DB.evidenceLibrary },
     properties,
   });
+  invalidateEvidenceCache();
   return parsePage(page);
 }
 
@@ -321,5 +353,6 @@ export async function updateEvidence(id, fields) {
     };
   }
   const page = await notion.pages.update({ page_id: id, properties });
+  invalidateEvidenceCache();
   return parsePage(page);
 }

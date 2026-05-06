@@ -12,9 +12,21 @@ import {
   findCanonicalClaimByKey,
 } from './pcs-canonical-claims.js';
 import { mutate } from './pcs-mutate.js';
+import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 
 
 const P = PROPS.claims;
+
+// 2026-05-05 — Phase 3 Bundle 1. Same memoize pattern as pcs-evidence.js
+// + the Phase 2 dropdown helpers — getAllClaims paginates Notion (up to
+// 50 sequential queries), so cold-cache cost is the dominant tax on
+// /pcs/claims and /api/pcs/dashboard. 60s TTL; invalidated on writes.
+const CLAIMS_CACHE_KEY = 'claims:all:50';
+const CLAIMS_CACHE_TTL_MS = 60_000;
+
+export function invalidateClaimsCache() {
+  invalidateCache(CLAIMS_CACHE_KEY);
+}
 
 function parsePage(page) {
   const p = page.properties;
@@ -61,7 +73,16 @@ export async function getClaimsForVersion(versionId) {
   return res.results.map(parsePage);
 }
 
-export async function getAllClaims(maxPages = 50) {
+export async function getAllClaims(maxPages = 50, opts = {}) {
+  if (maxPages === 50 && !opts.skipCache) {
+    return memoize(CLAIMS_CACHE_KEY, CLAIMS_CACHE_TTL_MS, () =>
+      _fetchAllClaims(maxPages),
+    );
+  }
+  return _fetchAllClaims(maxPages);
+}
+
+async function _fetchAllClaims(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -171,6 +192,7 @@ export async function updateClaim(id, fields) {
     properties[P.confidence] = { number: fields.confidence };
   }
   const page = await notion.pages.update({ page_id: id, properties });
+  invalidateClaimsCache();
   return parsePage(page);
 }
 
@@ -204,7 +226,6 @@ export async function createClaim(fields) {
       const existing = await findCanonicalClaimByKey(key);
       if (existing) canonicalClaimId = existing.id;
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[pcs-claims] canonical-key resolve failed:', err?.message || err);
     }
   }
@@ -223,6 +244,7 @@ export async function createClaim(fields) {
     parent: { database_id: PCS_DB.claims },
     properties,
   });
+  invalidateClaimsCache();
   return parsePage(page);
 }
 

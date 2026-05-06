@@ -7,6 +7,18 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
+import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
+
+// 2026-05-05 — Phase 3 Bundle 1. Documents list paginates Notion;
+// /pcs/documents and /api/pcs/dashboard both call getAllDocuments.
+// 60s in-memory cache + invalidation on writes. Same pattern as
+// pcs-evidence.js / pcs-claims.js / Phase 2's pcs-ingredients.js.
+const DOCUMENTS_CACHE_KEY = 'documents:all:50';
+const DOCUMENTS_CACHE_TTL_MS = 60_000;
+
+export function invalidateDocumentsCache() {
+  invalidateCache(DOCUMENTS_CACHE_KEY);
+}
 
 
 const P = PROPS.documents;
@@ -45,7 +57,16 @@ function parsePage(page) {
   };
 }
 
-export async function getAllDocuments(maxPages = 50) {
+export async function getAllDocuments(maxPages = 50, opts = {}) {
+  if (maxPages === 50 && !opts.skipCache) {
+    return memoize(DOCUMENTS_CACHE_KEY, DOCUMENTS_CACHE_TTL_MS, () =>
+      _fetchAllDocuments(maxPages),
+    );
+  }
+  return _fetchAllDocuments(maxPages);
+}
+
+async function _fetchAllDocuments(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -145,6 +166,7 @@ export async function updateDocument(id, fields) {
     properties[P.linkedAics] = { relation: (fields.linkedAicsIds || []).map((rid) => ({ id: rid })) };
   }
   const page = await notion.pages.update({ page_id: id, properties });
+  invalidateDocumentsCache();
   return parsePage(page);
 }
 
@@ -230,6 +252,7 @@ export async function setLatestVersion(documentId, versionId) {
     [P.latestVersion]: versionId ? { relation: [{ id: versionId }] } : { relation: [] },
   };
   const page = await notion.pages.update({ page_id: documentId, properties });
+  invalidateDocumentsCache();
   return parsePage(page);
 }
 
@@ -256,5 +279,6 @@ export async function createDocument(fields) {
     parent: { database_id: PCS_DB.documents },
     properties,
   });
+  invalidateDocumentsCache();
   return parsePage(page);
 }
