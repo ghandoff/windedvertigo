@@ -6,6 +6,12 @@ import { syncRecentEvidencePacketsToPostgres } from '@/lib/pcs-evidence-packets'
 import { syncRecentCanonicalClaimsToPostgres } from '@/lib/pcs-canonical-claims';
 import { syncRecentIngredientsToPostgres } from '@/lib/pcs-ingredients';
 import { syncRecentCoreBenefitsToPostgres } from '@/lib/pcs-core-benefits';
+import { syncRecentVersionsToPostgres } from '@/lib/pcs-versions';
+import { syncRecentRevisionEventsToPostgres } from '@/lib/pcs-revision-events';
+import { syncRecentRequestsToPostgres } from '@/lib/pcs-requests';
+import { syncRecentReferencesToPostgres } from '@/lib/pcs-references';
+import { syncRecentWordingVariantsToPostgres } from '@/lib/pcs-wording-variants';
+import { syncRecentFormulaLinesToPostgres } from '@/lib/pcs-formula-lines';
 import { getPcsSupabase } from '@/lib/supabase-pcs';
 
 export const runtime = 'nodejs';
@@ -55,6 +61,12 @@ export async function GET(request) {
     { name: 'pcs_canonical_claims', sync: syncRecentCanonicalClaimsToPostgres },
     { name: 'pcs_ingredients', sync: syncRecentIngredientsToPostgres },
     { name: 'pcs_core_benefits', sync: syncRecentCoreBenefitsToPostgres },
+    { name: 'pcs_versions', sync: syncRecentVersionsToPostgres },
+    { name: 'pcs_revision_events', sync: syncRecentRevisionEventsToPostgres },
+    { name: 'pcs_requests', sync: syncRecentRequestsToPostgres },
+    { name: 'pcs_references', sync: syncRecentReferencesToPostgres },
+    { name: 'pcs_wording_variants', sync: syncRecentWordingVariantsToPostgres },
+    { name: 'pcs_formula_lines', sync: syncRecentFormulaLinesToPostgres },
   ];
 
   // 5-minute overlap window so we don't miss edits that landed during

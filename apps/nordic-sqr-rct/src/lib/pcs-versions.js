@@ -7,9 +7,58 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
 
+// 2026-05-06 — Path-2 Day 2.7 column-name overrides for versions.
+// Notion shape uses uppercase abbreviations (EPA, DHA) that the default
+// camelCase → snake_case regex would otherwise mangle (totalEPA →
+// total_e_p_a). Map these to the actual Postgres column names.
+const VERSIONS_PG_COLUMN_MAP = {
+  totalEPA: 'total_epa',
+  totalDHA: 'total_dha',
+  totalEPAandDHA: 'total_epa_and_dha',
+};
 
 const P = PROPS.versions;
+
+/**
+ * 2026-05-06 — Path-2 Day 2.7. Convert a Postgres pcs_versions row
+ * into the same shape parsePage() returns. See pcs-evidence.js for
+ * the full pattern rationale.
+ */
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    version: row.version || '',
+    pcsDocumentId: row.pcs_document_id || null,
+    effectiveDate: row.effective_date || null,
+    isLatest: row.is_latest || false,
+    versionNotes: row.version_notes || '',
+    supersedesId: row.supersedes_id || null,
+    claimIds: row.claim_ids || [],
+    formulaLineIds: row.formula_line_ids || [],
+    referenceIds: row.reference_ids || [],
+    revisionEventIds: row.revision_event_ids || [],
+    requestIds: row.request_ids || [],
+    latestVersionOfId: row.latest_version_of_id || null,
+    productName: row.product_name || '',
+    formatOverride: row.format_override || '',
+    demographic: row.demographic || [],
+    biologicalSex: row.biological_sex || [],
+    ageGroup: row.age_group || [],
+    lifeStage: row.life_stage || [],
+    lifestyle: row.lifestyle || [],
+    demographicBackfillReview: row.demographic_backfill_review || '',
+    dailyServingSize: row.daily_serving_size || '',
+    totalEPA: row.total_epa ?? null,
+    totalDHA: row.total_dha ?? null,
+    totalEPAandDHA: row.total_epa_and_dha ?? null,
+    totalOmega6: row.total_omega6 ?? null,
+    totalOmega9: row.total_omega9 ?? null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
 
 function parsePage(page) {
   const p = page.properties;
@@ -93,6 +142,21 @@ function laurenTemplateProps(fields) {
 }
 
 export async function getVersionsForDocument(documentId) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_versions')
+        .select('*')
+        .eq('pcs_document_id', documentId)
+        .order('effective_date', { ascending: false, nullsFirst: false })
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-versions] Postgres forDocument failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.versions,
     filter: { property: P.pcsDocument, relation: { contains: documentId } },
@@ -102,11 +166,36 @@ export async function getVersionsForDocument(documentId) {
 }
 
 export async function getVersion(id) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_versions')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+    } catch (err) {
+      console.warn(`[pcs-versions] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
 
 export async function getAllVersions() {
+  if (shouldReadFromPostgres()) {
+    try {
+      return await _fetchAllVersionsFromPostgres();
+    } catch (err) {
+      console.warn(`[pcs-versions] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  return _fetchAllVersionsFromNotion();
+}
+
+async function _fetchAllVersionsFromNotion() {
   let all = [];
   let cursor = undefined;
   do {
@@ -119,6 +208,39 @@ export async function getAllVersions() {
     cursor = res.has_more ? res.next_cursor : undefined;
   } while (cursor);
   return all.map(parsePage);
+}
+
+async function _fetchAllVersionsFromPostgres() {
+  // 38 rows today; default Supabase limit covers it with headroom.
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_versions')
+    .select('*')
+    .order('effective_date', { ascending: false, nullsFirst: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
+}
+
+/**
+ * 2026-05-06 — Path-2 Day 2.7 drift catcher. See pcs-evidence.js
+ * syncRecentEvidenceToPostgres for the full pattern.
+ */
+export async function syncRecentVersionsToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.versions,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP);
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
 }
 
 export async function createVersion(fields) {
@@ -160,6 +282,8 @@ export async function createVersion(fields) {
     }
   }
 
+  // 2026-05-06 — Path-2 Day 2.7 write-mirror. Best-effort; failure is logged.
+  await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP);
   return parsed;
 }
 
@@ -181,5 +305,7 @@ export async function updateVersion(id, fields) {
   }
   Object.assign(properties, laurenTemplateProps(fields));
   const page = await notion.pages.update({ page_id: id, properties });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP);
+  return parsed;
 }

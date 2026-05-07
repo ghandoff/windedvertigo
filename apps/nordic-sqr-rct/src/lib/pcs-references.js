@@ -7,9 +7,30 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
 
+// 2026-05-06 — Path-2 Day 2.7 column-name overrides for pcs_references.
+// All camelCase keys map mechanically.
+const REFERENCES_PG_COLUMN_MAP = {};
 
 const P = PROPS.references;
+
+/**
+ * 2026-05-06 — Path-2 Day 2.7. See pcs-evidence.js for pattern.
+ */
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    name: row.name || '',
+    pcsReferenceLabel: row.pcs_reference_label || '',
+    referenceTextAsWritten: row.reference_text_as_written || '',
+    referenceNotes: row.reference_notes || '',
+    pcsVersionId: row.pcs_version_id || null,
+    evidenceItemId: row.evidence_item_id || null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
 
 function parsePage(page) {
   const p = page.properties;
@@ -27,6 +48,20 @@ function parsePage(page) {
 }
 
 export async function getReferencesForVersion(versionId) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_references')
+        .select('*')
+        .eq('pcs_version_id', versionId)
+        .limit(5000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-references] Postgres forVersion failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.references,
     filter: { property: P.pcsVersion, relation: { contains: versionId } },
@@ -35,6 +70,17 @@ export async function getReferencesForVersion(versionId) {
 }
 
 export async function getAllReferences() {
+  if (shouldReadFromPostgres()) {
+    try {
+      return await _fetchAllReferencesFromPostgres();
+    } catch (err) {
+      console.warn(`[pcs-references] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  return _fetchAllReferencesFromNotion();
+}
+
+async function _fetchAllReferencesFromNotion() {
   let all = [];
   let cursor = undefined;
   do {
@@ -48,17 +94,78 @@ export async function getAllReferences() {
   return all.map(parsePage);
 }
 
+async function _fetchAllReferencesFromPostgres() {
+  // 1,531 rows today — biggest of the batch. Single query at limit 5000.
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_references')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
+}
+
 export async function getReference(id) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_references')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+    } catch (err) {
+      console.warn(`[pcs-references] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
 
 export async function getUnlinkedReferences() {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_references')
+        .select('*')
+        .is('evidence_item_id', null)
+        .limit(5000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-references] Postgres unlinked failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.references,
     filter: { property: P.evidenceItem, relation: { is_empty: true } },
   });
   return res.results.map(parsePage);
+}
+
+/**
+ * 2026-05-06 — Path-2 Day 2.7 drift catcher. See pcs-evidence.js
+ * syncRecentEvidenceToPostgres for the full pattern.
+ */
+export async function syncRecentReferencesToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.references,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_references', parsed, REFERENCES_PG_COLUMN_MAP);
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
 }
 
 export async function createReference(fields) {
@@ -84,7 +191,9 @@ export async function createReference(fields) {
     parent: { database_id: PCS_DB.references },
     properties,
   });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_references', parsed, REFERENCES_PG_COLUMN_MAP);
+  return parsed;
 }
 
 export async function updateReference(id, fields) {
@@ -107,5 +216,7 @@ export async function updateReference(id, fields) {
       : { relation: [] };
   }
   const page = await notion.pages.update({ page_id: id, properties });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_references', parsed, REFERENCES_PG_COLUMN_MAP);
+  return parsed;
 }

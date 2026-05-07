@@ -7,7 +7,29 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
 
+// 2026-05-06 — Path-2 Day 2.7 column-name overrides for pcs_requests.
+// All other camelCase keys map mechanically. The `assignees` field is
+// the nested {id,name,email} array Notion returns — it has no flat
+// Postgres column (intentional; see 005 migration notes — a join table
+// is planned for Phase N1.5). Mirror writes strip it via
+// stripUnmirroredFields() below.
+const REQUESTS_PG_COLUMN_MAP = {};
+
+// Fields parsePage() returns that don't have a Postgres column (yet).
+// These are stripped from the row before mirroring so the upsert
+// doesn't fail on an unknown column.
+const REQUESTS_UNMIRRORED_FIELDS = new Set(['assignees']);
+
+function stripUnmirroredRequest(parsed) {
+  const out = {};
+  for (const [k, v] of Object.entries(parsed || {})) {
+    if (REQUESTS_UNMIRRORED_FIELDS.has(k)) continue;
+    out[k] = v;
+  }
+  return out;
+}
 
 const P = PROPS.requests;
 
@@ -18,6 +40,50 @@ function computeAgeDays(openedDate, createdTime) {
   const now = Date.now();
   if (!Number.isFinite(then)) return null;
   return Math.max(0, Math.floor((now - then) / 86400000));
+}
+
+/**
+ * 2026-05-06 — Path-2 Day 2.7. Convert a Postgres pcs_requests row
+ * to parsePage shape. Note: 005 added the rich set of columns this
+ * app uses (request, request_type, ra_due, etc.) on top of the 001
+ * sparse skeleton (title/status/etc. — kept for backcompat). We
+ * read from the 005 columns.
+ *
+ * `assignees` (nested {id,name,email}[]) cannot be reconstructed from
+ * the flat assignee_ids TEXT[] column — return `[]` and the consumer
+ * UI will render plain ids until the join table ships.
+ */
+function parsePostgresRow(row) {
+  const openedDate = row.opened_date || null;
+  const assigneeIds = row.assignee_ids || [];
+  return {
+    id: row.notion_page_id,
+    request: row.request || '',
+    status: row.status || null,
+    requestedBy: row.requested_by || '',
+    requestNotes: row.request_notes || '',
+    pcsVersionId: row.pcs_version_id || null,
+    relatedClaimIds: row.related_claim_ids || [],
+    raDue: row.ra_due || null,
+    raCompleted: row.ra_completed || null,
+    resDue: row.res_due || null,
+    resCompleted: row.res_completed || null,
+    relatedPcsId: row.related_pcs_id || null,
+    requestType: row.request_type || null,
+    specificField: row.specific_field || '',
+    assignedRole: row.assigned_role || null,
+    // No nested object data in Postgres yet — flat ids only.
+    assignees: assigneeIds.map(id => ({ id, name: null, email: null })),
+    assigneeIds,
+    priority: row.priority || null,
+    openedDate,
+    lastPingedDate: row.last_pinged_date || null,
+    resolutionNote: row.resolution_note || '',
+    source: row.source || null,
+    ageDays: row.age_days ?? computeAgeDays(openedDate, row.notion_created_at),
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
 }
 
 function parsePage(page) {
@@ -62,6 +128,17 @@ function parsePage(page) {
 }
 
 export async function getAllRequests(maxPages = 50) {
+  if (shouldReadFromPostgres()) {
+    try {
+      return await _fetchAllRequestsFromPostgres();
+    } catch (err) {
+      console.warn(`[pcs-requests] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  return _fetchAllRequestsFromNotion(maxPages);
+}
+
+async function _fetchAllRequestsFromNotion(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -78,12 +155,52 @@ export async function getAllRequests(maxPages = 50) {
   return all.map(parsePage);
 }
 
+async function _fetchAllRequestsFromPostgres() {
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_requests')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
+}
+
 export async function getRequest(id) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_requests')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+    } catch (err) {
+      console.warn(`[pcs-requests] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
 
 export async function getRequestsByStatus(status) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_requests')
+        .select('*')
+        .eq('status', status)
+        .order('ra_due', { ascending: true, nullsFirst: false })
+        .limit(5000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-requests] Postgres byStatus failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.requests,
     filter: { property: P.status, status: { equals: status } },
@@ -93,6 +210,21 @@ export async function getRequestsByStatus(status) {
 }
 
 export async function getRequestsForVersion(versionId) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_requests')
+        .select('*')
+        .eq('pcs_version_id', versionId)
+        .order('ra_due', { ascending: true, nullsFirst: false })
+        .limit(5000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-requests] Postgres forVersion failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.requests,
     filter: { property: P.pcsVersion, relation: { contains: versionId } },
@@ -102,6 +234,21 @@ export async function getRequestsForVersion(versionId) {
 }
 
 export async function getOpenRequests() {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_requests')
+        .select('*')
+        .neq('status', 'Done')
+        .order('ra_due', { ascending: true, nullsFirst: false })
+        .limit(5000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-requests] Postgres open failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.requests,
     filter: {
@@ -111,6 +258,31 @@ export async function getOpenRequests() {
     sorts: [{ property: P.raDue, direction: 'ascending' }],
   });
   return res.results.map(parsePage);
+}
+
+/**
+ * 2026-05-06 — Path-2 Day 2.7 drift catcher. See pcs-evidence.js
+ * syncRecentEvidenceToPostgres for the full pattern.
+ */
+export async function syncRecentRequestsToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.requests,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres(
+      'pcs_requests',
+      stripUnmirroredRequest(parsed),
+      REQUESTS_PG_COLUMN_MAP,
+    );
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
 }
 
 /**
@@ -266,7 +438,9 @@ export async function updateRequest(id, fields) {
     }
   }
   const page = await notion.pages.update({ page_id: id, properties });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 /**
@@ -281,7 +455,9 @@ export async function updateRequestLastPinged(id, isoDate) {
       [P.lastPingedDate]: { date: { start: isoDate } },
     },
   });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 export async function createRequest(fields) {
@@ -310,5 +486,7 @@ export async function createRequest(fields) {
     parent: { database_id: PCS_DB.requests },
     properties,
   });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP);
+  return parsed;
 }
