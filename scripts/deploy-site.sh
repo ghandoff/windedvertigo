@@ -21,6 +21,37 @@ if [[ "${1:-}" == "--preview" ]]; then
   PREVIEW=true
 fi
 
+# ─── pre-flight: abort if next.config.ts isn't sound ──────────────────
+# Twice in May 2026 the read-the-room rewrite vanished from next.config.ts
+# right before a deploy fired, silently shipping a config that 404'd a
+# live URL we were actively using. These checks turn that silent
+# regression into a loud failure. To deploy past them, fix the working
+# tree first or pass --skip-config-check (only if you know you removed
+# the rewrite on purpose).
+SKIP_CONFIG_CHECK=false
+for arg in "$@"; do
+  [[ "$arg" == "--skip-config-check" ]] && SKIP_CONFIG_CHECK=true
+done
+
+if ! $SKIP_CONFIG_CHECK; then
+  CFG="$REPO_ROOT/site/next.config.ts"
+  if ! grep -q "wv-harbour-read-the-room" "$CFG"; then
+    echo "✗ ABORT: $CFG is missing the read-the-room rewrite."
+    echo "  This config would deploy a live worker that 404s on /harbour/read-the-room."
+    echo "  Fix the working tree (likely 'git checkout main -- site/next.config.ts')"
+    echo "  or pass --skip-config-check if you genuinely intend to ship without it."
+    exit 1
+  fi
+  if ! git -C "$REPO_ROOT" diff --quiet -- "$CFG"; then
+    echo "✗ ABORT: $CFG has uncommitted changes."
+    echo "  Deploying a dirty config is what got the URL 404'd in the first place."
+    echo "  Commit your changes (or 'git checkout -- site/next.config.ts')"
+    echo "  or pass --skip-config-check if you genuinely intend to ship the diff."
+    exit 1
+  fi
+fi
+# ──────────────────────────────────────────────────────────────────────
+
 echo "→ Building site with OpenNext for Cloudflare Workers"
 cd "$SITE_DIR"
 
