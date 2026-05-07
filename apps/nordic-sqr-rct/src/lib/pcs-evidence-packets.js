@@ -8,9 +8,51 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
 
 
 const P = PROPS.evidencePackets;
+
+// 2026-05-06 — column-name overrides for evidence-packets' Notion → Postgres
+// mirror. All columns follow camelCase → snake_case cleanly, so no
+// overrides are needed today. Kept as an empty map for parity with
+// pcs-evidence.js / pcs-claims.js / pcs-documents.js so future field
+// additions have an obvious place to land.
+const EVIDENCE_PACKETS_PG_COLUMN_MAP = {};
+
+/**
+ * 2026-05-06 — Path-2 read-path swap. Convert a Postgres
+ * pcs_evidence_packets row into the SAME shape parsePage(notionPage)
+ * returns. Field-by-field; defaults match parsePage exactly so callers
+ * cannot tell the data came from Postgres.
+ */
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    name: row.name || '',
+    pcsClaimId: row.pcs_claim_id || null,
+    evidenceItemId: row.evidence_item_id || null,
+    evidenceRole: row.evidence_role || null,
+    meetsSqrThreshold: row.meets_sqr_threshold || false,
+    relevanceNote: row.relevance_note || '',
+    sortOrder: row.sort_order ?? null,
+    substantiationTier: row.substantiation_tier || null,
+    studyDoseAI: row.study_dose_ai || '',
+    studyDoseAmount: row.study_dose_amount ?? null,
+    studyDoseUnit: row.study_dose_unit || null,
+    nullResultRationale: row.null_result_rationale || '',
+    keyTakeaway: row.key_takeaway || '',
+    studyDesignSummary: row.study_design_summary || '',
+    sampleSize: row.sample_size ?? null,
+    positiveResults: row.positive_results || '',
+    neutralResults: row.neutral_results || '',
+    negativeResults: row.negative_results || '',
+    potentialBiases: row.potential_biases || '',
+    confidence: row.confidence ?? null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
 
 function parsePage(page) {
   const p = page.properties;
@@ -97,6 +139,24 @@ function laurenTemplateProps(fields) {
 }
 
 export async function getPacketsForClaim(claimId) {
+  // 2026-05-06 — Path-2 read-path swap. pcs_claim_id is a TEXT column
+  // holding the related claim's notion_page_id. Postgres returns rows
+  // unsorted; we sort in-memory to match Notion's ascending-by-sortOrder
+  // ordering (nulls last to match Notion's behavior).
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_evidence_packets')
+        .select('*')
+        .eq('pcs_claim_id', claimId)
+        .order('sort_order', { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-evidence-packets] Postgres getPacketsForClaim failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.evidencePackets,
     filter: { property: P.pcsClaim, relation: { contains: claimId } },
@@ -106,6 +166,19 @@ export async function getPacketsForClaim(claimId) {
 }
 
 export async function getPacketsForEvidenceItem(evidenceItemId) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_evidence_packets')
+        .select('*')
+        .eq('evidence_item_id', evidenceItemId);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-evidence-packets] Postgres getPacketsForEvidenceItem failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.evidencePackets,
     filter: { property: P.evidenceItem, relation: { contains: evidenceItemId } },
@@ -114,6 +187,26 @@ export async function getPacketsForEvidenceItem(evidenceItemId) {
 }
 
 export async function getAllEvidencePackets(maxPages = 50) {
+  return _fetchAllEvidencePackets(maxPages);
+}
+
+async function _fetchAllEvidencePackets(maxPages) {
+  // 2026-05-06 — Path-2 read-path swap. Biggest impact swap: Notion
+  // pagination across ~1,783 rows requires 18 batches of 100 (17–25s
+  // cold). Postgres returns the lot in a single ~50ms SELECT.
+  // Fall back to Notion on any error so a Supabase outage degrades
+  // gracefully.
+  if (shouldReadFromPostgres()) {
+    try {
+      return await _fetchAllEvidencePacketsFromPostgres();
+    } catch (err) {
+      console.warn(`[pcs-evidence-packets] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  return _fetchAllEvidencePacketsFromNotion(maxPages);
+}
+
+async function _fetchAllEvidencePacketsFromNotion(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -130,7 +223,38 @@ export async function getAllEvidencePackets(maxPages = 50) {
   return all.map(parsePage);
 }
 
+async function _fetchAllEvidencePacketsFromPostgres() {
+  // Single round-trip. Default Supabase row limit is 1000, so we set
+  // an explicit limit well above the current row count (1,783) — bump
+  // when the table grows past ~4,500. No sort applied: matches Notion's
+  // default (unsorted) ordering for the same call.
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence_packets')
+    .select('*')
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
+}
+
 export async function getEvidencePacket(id) {
+  // 2026-05-06 — Path-2 read-path swap for single-row fetch.
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_evidence_packets')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+      // Row missing in Postgres — fresh Notion-side write not yet
+      // mirrored. Fall through to Notion.
+    } catch (err) {
+      console.warn(`[pcs-evidence-packets] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
@@ -159,7 +283,11 @@ export async function createEvidencePacket(fields) {
     parent: { database_id: PCS_DB.evidencePackets },
     properties,
   });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  // 2026-05-06 — Path-2 Phase A write-mirror. Notion is canonical;
+  // best-effort mirror to Postgres for read-path freshness.
+  await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 export async function deleteEvidencePacket(id) {
@@ -293,5 +421,29 @@ export async function updateEvidencePacket(id, fields) {
   }
   Object.assign(properties, laurenTemplateProps(fields));
   const page = await notion.pages.update({ page_id: id, properties });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP);
+  return parsed;
+}
+
+/**
+ * 2026-05-06 — Path-2 drift catcher. Pulls any rows in Notion edited
+ * since `sinceIso` and mirrors them to Postgres. Called from
+ * /api/cron/drift-sync. Idempotent.
+ */
+export async function syncRecentEvidencePacketsToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.evidencePackets,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP);
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
 }

@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-nordic-pcs",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-06",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // ── Routes ───────────────────────────────────────────────────────
+  // Routes intentionally commented out — Phase C just deploys to the
+  // workers.dev subdomain. Phase D will add a custom route once we
+  // cut DNS over from Vercel.
+  //
+  // "routes": [
+  //   { "pattern": "nordic-pcs.windedvertigo.com/*", "custom_domain": true }
+  // ],
+
+  // ── Plain-text vars (non-secret) ─────────────────────────────────
+  // Public, non-secret. Secret keys via `wrangler secret put`.
+  "vars": {
+    "ENVIRONMENT": "production"
+  },
+
+  // ── Secrets (set via `wrangler secret put`) ──────────────────────
+  // Required secrets (NOT set by wrangler.jsonc; user runs manually):
+  //   SUPABASE_NORDIC_URL          — wv-nordic project URL
+  //   SUPABASE_NORDIC_SECRET_KEY   — sb_secret_* key (read-only PoC)
+
+  "observability": { "enabled": true },
+  "placement": { "mode": "smart" }
+}

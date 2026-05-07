@@ -187,6 +187,23 @@ export async function getDocument(id) {
 }
 
 export async function getDocumentByPcsId(pcsId) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      // pcs_documents.pcs_id is indexed (pcs_documents_pcs_id_idx).
+      const { data, error } = await sb
+        .from('pcs_documents')
+        .select('*')
+        .eq('pcs_id', pcsId)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+      // Not found in Postgres — could be a brand-new document. Fall
+      // through to Notion to confirm it really doesn't exist.
+    } catch (err) {
+      console.warn(`[pcs-documents] Postgres byPcsId failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.documents,
     filter: { property: P.pcsId, title: { equals: pcsId } },
@@ -196,6 +213,22 @@ export async function getDocumentByPcsId(pcsId) {
 }
 
 export async function getDocumentsByStatus(fileStatus) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      // pcs_documents.file_status is indexed (pcs_documents_file_status_idx).
+      const { data, error } = await sb
+        .from('pcs_documents')
+        .select('*')
+        .eq('file_status', fileStatus)
+        .order('pcs_id', { ascending: true })
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-documents] Postgres byStatus failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.documents,
     filter: { property: P.fileStatus, select: { equals: fileStatus } },

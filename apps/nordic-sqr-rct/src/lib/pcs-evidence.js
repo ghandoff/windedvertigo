@@ -255,7 +255,27 @@ export async function getEvidence(id) {
   return parsePage(page);
 }
 
+// 2026-05-06 — Path-2 swap on by-filter helpers. Postgres has GIN
+// index on `ingredient` (text[]) so `.contains()` is fast; the rest
+// use B-tree on the relevant column. Each helper falls back to Notion
+// on any error.
+
 export async function getEvidenceByIngredient(ingredient) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_evidence')
+        .select('*')
+        .contains('ingredient', [ingredient])
+        .order('name', { ascending: true })
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-evidence] Postgres byIngredient failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.evidenceLibrary,
     filter: { property: P.ingredient, multi_select: { contains: ingredient } },
@@ -265,6 +285,21 @@ export async function getEvidenceByIngredient(ingredient) {
 }
 
 export async function getEvidenceByType(evidenceType) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_evidence')
+        .select('*')
+        .eq('evidence_type', evidenceType)
+        .order('name', { ascending: true })
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-evidence] Postgres byType failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.evidenceLibrary,
     filter: { property: P.evidenceType, select: { equals: evidenceType } },
@@ -274,6 +309,21 @@ export async function getEvidenceByType(evidenceType) {
 }
 
 export async function getSqrReviewedEvidence() {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_evidence')
+        .select('*')
+        .eq('sqr_reviewed', true)
+        .order('sqr_score', { ascending: false, nullsFirst: false })
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-evidence] Postgres sqrReviewed failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.evidenceLibrary,
     filter: { property: P.sqrReviewed, checkbox: { equals: true } },
@@ -283,6 +333,21 @@ export async function getSqrReviewedEvidence() {
 }
 
 export async function getUntaggedEvidence() {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      // PostgREST: filter where ingredient array length is 0
+      const { data, error } = await sb
+        .from('pcs_evidence')
+        .select('*')
+        .eq('ingredient', '{}')
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-evidence] Postgres untagged failed, falling back to Notion: ${err.message}`);
+    }
+  }
   let all = [];
   let cursor = undefined;
   do {
@@ -298,6 +363,20 @@ export async function getUntaggedEvidence() {
 }
 
 export async function getUnreviewedEvidence() {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_evidence')
+        .select('*')
+        .eq('sqr_reviewed', false)
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-evidence] Postgres unreviewed failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.evidenceLibrary,
     filter: { property: P.sqrReviewed, checkbox: { equals: false } },
@@ -341,6 +420,40 @@ export async function findEvidenceByIdentifier({ doi, pmid }) {
   const normDoi = _normalizeDoi(doi);
   const normPmid = _normalizePmid(pmid);
   if (!normDoi && !normPmid) return null;
+
+  // 2026-05-06 — Path-2 swap. Postgres has indexes on doi + pmid
+  // (CREATE INDEX pcs_evidence_doi_idx + pcs_evidence_pmid_idx in 001),
+  // so this query is sub-10ms vs Notion's 200-500ms `contains` filter.
+  // High-impact swap: this runs INSIDE every createEvidence call as
+  // the dedup gate, so it's on the hot path for save-from-search and
+  // every EndNote import.
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      // Use ilike for case-insensitive match; the indexes still apply.
+      // Build OR filter via PostgREST `.or()` syntax.
+      const orParts = [];
+      if (normDoi) orParts.push(`doi.ilike.${normDoi}`);
+      if (normPmid) orParts.push(`pmid.eq.${normPmid}`);
+      const { data, error } = await sb
+        .from('pcs_evidence')
+        .select('*')
+        .or(orParts.join(','))
+        .limit(5);
+      if (error) throw error;
+      // Re-confirm the normalized match (PostgREST `ilike` is case-
+      // insensitive but doesn't normalize doi.org prefix, etc.).
+      for (const row of data || []) {
+        const parsed = parsePostgresRow(row);
+        if (normDoi && _normalizeDoi(parsed.doi) === normDoi) return parsed;
+        if (normPmid && _normalizePmid(parsed.pmid) === normPmid) return parsed;
+      }
+      return null;
+    } catch (err) {
+      console.warn(`[pcs-evidence] Postgres findByIdentifier failed, falling back to Notion: ${err.message}`);
+    }
+  }
+
   const orFilters = [];
   if (normDoi) orFilters.push({ property: P.doi, rich_text: { contains: normDoi } });
   if (normPmid) orFilters.push({ property: P.pmid, rich_text: { contains: normPmid } });

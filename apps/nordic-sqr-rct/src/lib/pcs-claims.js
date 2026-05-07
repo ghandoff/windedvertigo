@@ -111,6 +111,24 @@ function parsePage(page) {
 }
 
 export async function getClaimsForVersion(versionId) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      // pcs_claims.pcs_version_id is TEXT (the related row's
+      // notion_page_id) per the Phase N1 schema convention. Indexed
+      // (pcs_claims_pcs_version_id_idx).
+      const { data, error } = await sb
+        .from('pcs_claims')
+        .select('*')
+        .eq('pcs_version_id', versionId)
+        .order('claim_no', { ascending: true })
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-claims] Postgres byVersion failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.claims,
     filter: { property: P.pcsVersion, relation: { contains: versionId } },
@@ -212,6 +230,20 @@ export async function getClaim(id) {
 }
 
 export async function getClaimsByBucket(bucket) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_claims')
+        .select('*')
+        .eq('claim_bucket', bucket)
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-claims] Postgres byBucket failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.claims,
     filter: { property: P.claimBucket, select: { equals: bucket } },
@@ -220,6 +252,21 @@ export async function getClaimsByBucket(bucket) {
 }
 
 export async function getClaimsWithoutEvidence() {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      // PostgREST: empty array filter
+      const { data, error } = await sb
+        .from('pcs_claims')
+        .select('*')
+        .eq('evidence_packet_ids', '{}')
+        .limit(2000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-claims] Postgres withoutEvidence failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.claims,
     filter: { property: P.evidencePacketLinks, relation: { is_empty: true } },
