@@ -197,6 +197,21 @@ export async function syncRecentClaimsToPostgres(sinceIso) {
   return { count: mirrored, maxSeen, fetched: res.results.length };
 }
 
+/**
+ * Sync a single Notion page into Postgres by page ID.
+ * Used by the general page-updated webhook to mirror a specific
+ * edited row immediately rather than waiting for the drift-sync cron.
+ *
+ * @param {string} pageId — Notion page ID
+ */
+export async function syncSingleClaimPageToPostgres(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  const parsed = parsePage(page);
+  return mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+}
+
 async function _fetchAllClaimsFromPostgres() {
   // 469 rows today; allow headroom to 5000 (claims grow with each PCS
   // version). If we ever exceed that, switch to range-paginated fetch.

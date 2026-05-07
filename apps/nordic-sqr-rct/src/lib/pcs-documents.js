@@ -153,6 +153,21 @@ export async function syncRecentDocumentsToPostgres(sinceIso) {
   return { count: mirrored, maxSeen, fetched: res.results.length };
 }
 
+/**
+ * Sync a single Notion page into Postgres by page ID.
+ * Used by the general page-updated webhook to mirror a specific
+ * edited row immediately rather than waiting for the drift-sync cron.
+ *
+ * @param {string} pageId — Notion page ID
+ */
+export async function syncSingleDocumentPageToPostgres(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  const parsed = parsePage(page);
+  return mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+}
+
 async function _fetchAllDocumentsFromPostgres() {
   // 38 rows today, sorted by pcs_id ascending to match Notion behavior.
   // (Notion's getAllDocuments uses pcsId-ascending; we preserve that

@@ -140,6 +140,21 @@ export async function syncRecentWordingVariantsToPostgres(sinceIso) {
   return { count: mirrored, maxSeen, fetched: res.results.length };
 }
 
+/**
+ * Sync a single Notion page into Postgres by page ID.
+ * Used by the general page-updated webhook to mirror a specific
+ * edited row immediately rather than waiting for the drift-sync cron.
+ *
+ * @param {string} pageId — Notion page ID
+ */
+export async function syncSingleWordingVariantPageToPostgres(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  const parsed = parsePage(page);
+  return mirrorToPostgres('pcs_wording_variants', parsed, WORDING_VARIANTS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+}
+
 export async function createWordingVariant(fields) {
   const properties = {
     [P.wording]: { title: [{ text: { content: fields.wording } }] },
