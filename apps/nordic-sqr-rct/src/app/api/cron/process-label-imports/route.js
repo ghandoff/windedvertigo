@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { runLabelBatch } from '@/lib/label-import-runner';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 export const maxDuration = 800;
 export const dynamic = 'force-dynamic';
 

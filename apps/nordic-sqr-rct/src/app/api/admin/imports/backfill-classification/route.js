@@ -6,7 +6,7 @@ import { getClaimsForVersion } from '@/lib/pcs-claims';
 import { getFormulaLinesForVersion } from '@/lib/pcs-formula-lines';
 import { classifyTemplate } from '@/lib/pcs-template-classifier';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 

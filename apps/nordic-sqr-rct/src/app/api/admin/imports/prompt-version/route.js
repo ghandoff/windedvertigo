@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { PROMPT_VERSION } from '@/lib/pcs-pdf-import';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 export const dynamic = 'force-dynamic';
 
 /**

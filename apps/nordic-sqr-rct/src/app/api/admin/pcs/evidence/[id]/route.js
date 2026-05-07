@@ -6,7 +6,7 @@ import {
 } from '@/lib/pcs-evidence-packets';
 import { EVIDENCE_ROLES, SUBSTANTIATION_TIERS } from '@/lib/pcs-config';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
 

@@ -6,7 +6,7 @@ import {
   updateReviewerEmail,
 } from '@/lib/notion';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
