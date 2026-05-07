@@ -205,6 +205,119 @@ export function shouldUseStrongConsistency() {
 }
 
 /**
+ * 2026-05-06 — Path-2 Phase B canonical write.
+ *
+ * Write a row to Postgres FIRST (source of truth), then fire-and-forget
+ * an async Notion mirror. Used in Phase B where Postgres is canonical and
+ * Notion is the async mirror.
+ *
+ * Design guarantees:
+ *   - The Postgres upsert is the durable write. It must succeed or we throw
+ *     so the caller's HTTP handler can return a 5xx rather than a false 200.
+ *   - The Notion write is non-blocking. We `.then()` / `.catch()` after
+ *     returning so the API response is as fast as a Postgres round-trip
+ *     (~10–40ms) rather than a Notion round-trip (~300–800ms).
+ *   - On Notion success we back-patch `notion_page_id` onto the Postgres
+ *     row (replacing the pre-assigned UUID placeholder).
+ *   - On Notion failure we log and enqueue a pcs_pending_writes row for
+ *     the retry cron (drift-sync) to pick up. Drift-sync uses
+ *     `notion_page_id IS NULL` as the Phase B pending-mirror sentinel.
+ *   - A `PCS_WRITE_TO_POSTGRES=1` feature flag gates the Phase B path.
+ *     When the flag is off (default today) callers must stay on Phase A.
+ *
+ * @param {string}   table        — Postgres table name (e.g. 'pcs_evidence')
+ * @param {object}   row          — Notion-shape JS object (same as mirrorToPostgres);
+ *                                   MUST contain `id` — the pre-assigned UUID
+ *                                   this row will use as its Postgres PK until
+ *                                   Notion replies with a real page id.
+ * @param {object}   columnMap    — *_PG_COLUMN_MAP from the calling lib
+ * @param {Function} notionWriteFn — async () => notionPage (the existing Notion create/update)
+ * @returns {Promise<{ ok: boolean, id: string, notionQueued: boolean }>}
+ */
+export async function writePostgresFirst(table, row, columnMap, notionWriteFn) {
+  // 1. Canonical Postgres write. enqueueOnFailure=true here because we
+  //    cannot fall back to Notion-first in Phase B — the Postgres write
+  //    IS the source of truth. If it fails after retries the caller sees
+  //    the thrown error and the operation is surfaced as a hard failure.
+  const result = await mirrorToPostgres(table, row, columnMap, { enqueueOnFailure: true });
+  if (!result.mirrored) {
+    throw new Error(`[writePostgresFirst] Postgres write failed for ${table}/${row?.id}: ${result.reason}`);
+  }
+
+  // 2. Fire-and-forget Notion mirror. We intentionally do NOT await this
+  //    so the API handler can return before Notion responds. Notion is
+  //    treated as an eventually-consistent replica in Phase B.
+  let notionQueued = false;
+  try {
+    notionWriteFn()
+      .then(async (notionPage) => {
+        // Back-patch: replace the pre-assigned UUID placeholder with the
+        // real Notion page id so Notion-ID-keyed lookups (relation IDs,
+        // /pcs/evidence/[id] routes) keep working. We match on the
+        // placeholder id in `notion_page_id` — before this point the
+        // Postgres row has `notion_page_id = row.id` (our UUID). After
+        // this update it has `notion_page_id = notionPage.id` (the real
+        // Notion-format UUID like "abc123de-f012-...").
+        if (notionPage?.id && notionPage.id !== row.id) {
+          const sb = getPcsSupabase();
+          if (sb) {
+            const { error: patchErr } = await sb
+              .from(table)
+              .update({ notion_page_id: notionPage.id })
+              .eq('notion_page_id', row.id);
+            if (patchErr) {
+              console.warn(
+                `[writePostgresFirst] notion_page_id back-patch failed for ${table}/${row.id} → ${notionPage.id}: ${patchErr.message}`,
+              );
+            }
+          }
+        }
+      })
+      .catch(async (err) => {
+        console.error(
+          `[writePostgresFirst] Notion mirror failed for ${table}/${row?.id}: ${err?.message}`,
+        );
+        // Enqueue for retry by the drift-sync cron. The pending-write
+        // payload carries the full row so the retry worker can re-run
+        // notionWriteFn semantics. In Phase B the cron uses
+        // `notion_page_id IS NULL` OR `pcs_pending_writes` to find
+        // rows that still need a Notion sync.
+        await enqueuePendingWrite({
+          table,
+          parsedNotionRow: row,
+          columnMap,
+          error: err?.message,
+        }).catch((qErr) => {
+          console.warn(
+            `[writePostgresFirst] enqueuePendingWrite also failed for ${table}/${row?.id}: ${qErr?.message}`,
+          );
+        });
+      });
+    notionQueued = true;
+  } catch (err) {
+    // This branch only fires if notionWriteFn() itself throws synchronously
+    // (extremely unlikely for an async fn, but be defensive).
+    console.warn(`[writePostgresFirst] Notion enqueue failed synchronously:`, err?.message);
+  }
+
+  return { ok: true, id: row.id, notionQueued };
+}
+
+/**
+ * True only when the write-to-Postgres-first feature flag is on AND the
+ * Postgres client is configured. Phase B callers gate on this before
+ * switching to writePostgresFirst(). When false they stay on Phase A
+ * (Notion-first + mirrorToPostgres).
+ *
+ * Flip via `PCS_WRITE_TO_POSTGRES=1` in Vercel env — no deploy needed.
+ */
+export function shouldWriteToPostgresFirst() {
+  const flag = process.env.PCS_WRITE_TO_POSTGRES;
+  if (flag !== '1' && flag !== 'true') return false;
+  return getPcsSupabase() !== null;
+}
+
+/**
  * Inverse of the parsePostgresRow functions: take a Notion-shape JS
  * object and convert to Postgres row shape.
  *
