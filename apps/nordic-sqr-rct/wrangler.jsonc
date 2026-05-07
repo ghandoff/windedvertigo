@@ -36,7 +36,7 @@
   // away from Vercel — Vercel will immediately stop serving requests.
   //
   "routes": [
-    { "pattern": "nordic.windedvertigo.com", "custom_domain": true, "override_existing_dns_record": true }
+    { "pattern": "nordic.windedvertigo.com", "custom_domain": true }
   ],
 
   // ── Secrets (set via `wrangler secret put --name wv-nordic`) ─────
