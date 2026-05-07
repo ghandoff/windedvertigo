@@ -194,13 +194,230 @@ app.get('/api/pcs/claims', async (c) => {
   return c.json({ ok: true, count: data?.length ?? 0, claims: (data || []).map(parseClaimRow) });
 });
 
+/**
+ * Convert a pcs_documents Postgres row into the same shape parsePage returns.
+ * COPIED INLINE from apps/nordic-sqr-rct/src/lib/pcs-documents.js (parsePostgresRow).
+ */
+function parseDocumentRow(row: Record<string, any>) {
+  return {
+    id: row.notion_page_id,
+    pcsId: row.pcs_id || '',
+    classification: row.classification || null,
+    fileStatus: row.file_status || null,
+    productStatus: row.product_status || null,
+    transferStatus: row.transfer_status || null,
+    documentNotes: row.document_notes || '',
+    approvedDate: row.approved_date || null,
+    latestVersionId: row.latest_version_id || null,
+    allVersionIds: row.all_version_ids || [],
+    finishedGoodName: row.finished_good_name || '',
+    format: row.format || null,
+    sapMaterialNo: row.sap_material_no || '',
+    skus: row.skus || [],
+    archived: row.archived || false,
+    templateVersion: row.template_version || null,
+    templateSignals: row.template_signals || '',
+    linkedAicsIds: row.linked_aics_ids || [],
+    canonicalDocumentId: row.canonical_document_id || null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
+
+/**
+ * Convert a pcs_ingredients Postgres row into the same shape parsePage returns.
+ * COPIED INLINE from apps/nordic-sqr-rct/src/lib/pcs-ingredients.js (parsePostgresRow).
+ */
+function parseIngredientRow(row: Record<string, any>) {
+  return {
+    id: row.notion_page_id,
+    canonicalName: row.canonical_name || '',
+    synonyms: row.synonyms || '',
+    category: row.category || null,
+    standardUnit: row.standard_unit || null,
+    fdaRdi: row.fda_rdi ?? null,
+    fdaRdiUnit: row.fda_rdi_unit || null,
+    regulatoryCeiling: row.regulatory_ceiling ?? null,
+    bioavailabilityNotes: row.bioavailability_notes || '',
+    interactionCautions: row.interaction_cautions || '',
+    notes: row.notes || '',
+    formIds: row.form_ids || [],
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
+
+/**
+ * Convert a pcs_canonical_claims Postgres row into the same shape parsePage returns.
+ * COPIED INLINE from apps/nordic-sqr-rct/src/lib/pcs-canonical-claims.js (parsePostgresRow).
+ */
+function parseCanonicalClaimRow(row: Record<string, any>) {
+  return {
+    id: row.notion_page_id,
+    canonicalClaim: row.canonical_claim || '',
+    claimFamily: row.claim_family || null,
+    evidenceTierRequired: row.evidence_tier_required || null,
+    minimumEvidenceItems: row.minimum_evidence_items ?? null,
+    notesGuardrails: row.notes_guardrails || '',
+    pcsClaimInstanceIds: row.pcs_claim_instance_ids || [],
+    claimPrefixId: row.claim_prefix_id || null,
+    coreBenefitId: row.core_benefit_id || null,
+    activeIngredientId: row.active_ingredient_id || null,
+    benefitCategoryId: row.benefit_category_id || null,
+    sourceCaipbRowId: row.source_caipb_row_id ?? null,
+    canonicalKey: row.canonical_key || null,
+    doseSensitivityApplied: row.dose_sensitivity_applied || null,
+    dedupeDecision: row.dedupe_decision || null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
+
+/**
+ * Convert a pcs_core_benefits Postgres row into the same shape parsePage returns.
+ * COPIED INLINE from apps/nordic-sqr-rct/src/lib/pcs-core-benefits.js (parsePostgresRow).
+ */
+function parseCoreBenefitRow(row: Record<string, any>) {
+  return {
+    id: row.notion_page_id,
+    coreBenefit: row.core_benefit || '',
+    benefitCategoryId: row.benefit_category_id || null,
+    notes: row.notes || '',
+    pcsClaimInstanceIds: row.pcs_claim_instance_ids || [],
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
+
+/**
+ * Convert a pcs_evidence_packets Postgres row into the same shape parsePage returns.
+ * COPIED INLINE from apps/nordic-sqr-rct/src/lib/pcs-evidence-packets.js (parsePostgresRow).
+ */
+function parseEvidencePacketRow(row: Record<string, any>) {
+  return {
+    id: row.notion_page_id,
+    name: row.name || '',
+    pcsClaimId: row.pcs_claim_id || null,
+    evidenceItemId: row.evidence_item_id || null,
+    evidenceRole: row.evidence_role || null,
+    meetsSqrThreshold: row.meets_sqr_threshold || false,
+    relevanceNote: row.relevance_note || '',
+    sortOrder: row.sort_order ?? null,
+    substantiationTier: row.substantiation_tier || null,
+    studyDoseAI: row.study_dose_ai || '',
+    studyDoseAmount: row.study_dose_amount ?? null,
+    studyDoseUnit: row.study_dose_unit || null,
+    nullResultRationale: row.null_result_rationale || '',
+    keyTakeaway: row.key_takeaway || '',
+    studyDesignSummary: row.study_design_summary || '',
+    sampleSize: row.sample_size ?? null,
+    positiveResults: row.positive_results || '',
+    neutralResults: row.neutral_results || '',
+    negativeResults: row.negative_results || '',
+    potentialBiases: row.potential_biases || '',
+    confidence: row.confidence ?? null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
+
+// ── /api/pcs/documents ───────────────────────────────────────────────
+// Read-only mirror of the pcs_documents table.
+app.get('/api/pcs/documents', async (c) => {
+  const sb = getSupabase(c.env);
+  if (!sb) {
+    return c.json({ ok: false, error: 'supabase-not-configured' }, 503);
+  }
+  const { data, error } = await sb
+    .from('pcs_documents')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(2000);
+  if (error) {
+    return c.json({ ok: false, error: error.message }, 502);
+  }
+  return c.json({ ok: true, count: data?.length ?? 0, documents: (data || []).map(parseDocumentRow) });
+});
+
+// ── /api/pcs/ingredients ─────────────────────────────────────────────
+// Read-only mirror of the pcs_ingredients table.
+app.get('/api/pcs/ingredients', async (c) => {
+  const sb = getSupabase(c.env);
+  if (!sb) {
+    return c.json({ ok: false, error: 'supabase-not-configured' }, 503);
+  }
+  const { data, error } = await sb
+    .from('pcs_ingredients')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(2000);
+  if (error) {
+    return c.json({ ok: false, error: error.message }, 502);
+  }
+  return c.json({ ok: true, count: data?.length ?? 0, ingredients: (data || []).map(parseIngredientRow) });
+});
+
+// ── /api/pcs/canonical-claims ────────────────────────────────────────
+// Read-only mirror of the pcs_canonical_claims table.
+app.get('/api/pcs/canonical-claims', async (c) => {
+  const sb = getSupabase(c.env);
+  if (!sb) {
+    return c.json({ ok: false, error: 'supabase-not-configured' }, 503);
+  }
+  const { data, error } = await sb
+    .from('pcs_canonical_claims')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(2000);
+  if (error) {
+    return c.json({ ok: false, error: error.message }, 502);
+  }
+  return c.json({ ok: true, count: data?.length ?? 0, canonicalClaims: (data || []).map(parseCanonicalClaimRow) });
+});
+
+// ── /api/pcs/core-benefits ───────────────────────────────────────────
+// Read-only mirror of the pcs_core_benefits table.
+app.get('/api/pcs/core-benefits', async (c) => {
+  const sb = getSupabase(c.env);
+  if (!sb) {
+    return c.json({ ok: false, error: 'supabase-not-configured' }, 503);
+  }
+  const { data, error } = await sb
+    .from('pcs_core_benefits')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(2000);
+  if (error) {
+    return c.json({ ok: false, error: error.message }, 502);
+  }
+  return c.json({ ok: true, count: data?.length ?? 0, coreBenefits: (data || []).map(parseCoreBenefitRow) });
+});
+
+// ── /api/pcs/evidence-packets ────────────────────────────────────────
+// Read-only mirror of the pcs_evidence_packets table.
+app.get('/api/pcs/evidence-packets', async (c) => {
+  const sb = getSupabase(c.env);
+  if (!sb) {
+    return c.json({ ok: false, error: 'supabase-not-configured' }, 503);
+  }
+  const { data, error } = await sb
+    .from('pcs_evidence_packets')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(2000);
+  if (error) {
+    return c.json({ ok: false, error: error.message }, 502);
+  }
+  return c.json({ ok: true, count: data?.length ?? 0, evidencePackets: (data || []).map(parseEvidencePacketRow) });
+});
+
 // ── 404 fallback ────────────────────────────────────────────────────
 app.notFound((c) =>
   c.json(
     {
       ok: false,
       error: 'not-found',
-      hint: 'try /health, /health/db, /api/pcs/evidence, or /api/pcs/claims',
+      hint: 'try /health, /health/db, /api/pcs/evidence, /api/pcs/claims, /api/pcs/documents, /api/pcs/ingredients, /api/pcs/canonical-claims, /api/pcs/core-benefits, or /api/pcs/evidence-packets',
     },
     404,
   ),

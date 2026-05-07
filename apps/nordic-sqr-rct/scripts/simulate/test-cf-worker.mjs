@@ -115,4 +115,61 @@ test('CF and Vercel both see the same claims count', async () => {
   console.log(`      both see ${cf.count} rows ✓`);
 });
 
+suite('CF Worker — expanded routes');
+
+test('GET /api/pcs/documents returns ok=true, count, array', async () => {
+  const { result: r } = await timed(() => fetch(`${CF_BASE}/api/pcs/documents`));
+  assert(r.status === 200, `expected 200, got ${r.status}`);
+  const body = await r.json();
+  assert(body.ok === true, `expected ok=true`);
+  assert(typeof body.count === 'number', `expected numeric count`);
+  assert(Array.isArray(body.documents), `expected documents array`);
+  assert(body.count === body.documents.length, `count should match array length`);
+  console.log(`      ${body.count} rows`);
+});
+
+test('GET /api/pcs/ingredients returns ok=true, count, array', async () => {
+  const { result: r } = await timed(() => fetch(`${CF_BASE}/api/pcs/ingredients`));
+  assert(r.status === 200, `expected 200, got ${r.status}`);
+  const body = await r.json();
+  assert(body.ok === true, `expected ok=true`);
+  assert(typeof body.count === 'number', `expected numeric count`);
+  assert(Array.isArray(body.ingredients), `expected ingredients array`);
+  assert(body.count === body.ingredients.length, `count should match array length`);
+  console.log(`      ${body.count} rows`);
+});
+
+test('GET /api/pcs/canonical-claims returns ok=true, count, array', async () => {
+  const { result: r } = await timed(() => fetch(`${CF_BASE}/api/pcs/canonical-claims`));
+  assert(r.status === 200, `expected 200, got ${r.status}`);
+  const body = await r.json();
+  assert(body.ok === true, `expected ok=true`);
+  assert(typeof body.count === 'number', `expected numeric count`);
+  assert(Array.isArray(body.canonicalClaims), `expected canonicalClaims array`);
+  assert(body.count === body.canonicalClaims.length, `count should match array length`);
+  console.log(`      ${body.count} rows`);
+});
+
+test('GET /api/pcs/core-benefits returns ok=true, count, array', async () => {
+  const { result: r } = await timed(() => fetch(`${CF_BASE}/api/pcs/core-benefits`));
+  assert(r.status === 200, `expected 200, got ${r.status}`);
+  const body = await r.json();
+  assert(body.ok === true, `expected ok=true`);
+  assert(typeof body.count === 'number', `expected numeric count`);
+  assert(Array.isArray(body.coreBenefits), `expected coreBenefits array`);
+  assert(body.count === body.coreBenefits.length, `count should match array length`);
+  console.log(`      ${body.count} rows`);
+});
+
+test('GET /api/pcs/evidence-packets returns ok=true, count, array', async () => {
+  const { result: r } = await timed(() => fetch(`${CF_BASE}/api/pcs/evidence-packets`));
+  assert(r.status === 200, `expected 200, got ${r.status}`);
+  const body = await r.json();
+  assert(body.ok === true, `expected ok=true`);
+  assert(typeof body.count === 'number', `expected numeric count`);
+  assert(Array.isArray(body.evidencePackets), `expected evidencePackets array`);
+  assert(body.count === body.evidencePackets.length, `count should match array length`);
+  console.log(`      ${body.count} rows`);
+});
+
 await run();

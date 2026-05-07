@@ -25,12 +25,49 @@
   "vars": {
     "NORDIC_URL": "https://nordic.windedvertigo.com",
     "CF_WORKERS_ENV": "1"
-  }
-  // Secrets (set via `wrangler secret put --name wv-nordic`):
-  // JWT_SECRET, NOTION_TOKEN, NOTION_WEBHOOK_TOKEN, CRON_SECRET,
-  // SLACK_BOT_TOKEN, SLACK_WEBHOOK_URL, NOTION_SLACK_USER_MAP, NOTION_TEAM_LEADS,
-  // BLOB_READ_WRITE_TOKEN (for canary period — remove after R2 migration),
-  // SUPABASE_NORDIC_URL, SUPABASE_NORDIC_ANON_KEY,
-  // LLM_API_KEY, OPENAI_API_KEY,
-  // Plus all NOTION_PCS_* database IDs
+  },
+
+  // ── Custom domain (Phase D DNS cutover) ──────────────────────────
+  // Uncomment + `wrangler deploy` to register the custom domain with
+  // Cloudflare. windedvertigo.com must be in the CF zone. After deploy,
+  // the DNS CNAME nordic.windedvertigo.com → wv-nordic.windedvertigo.workers.dev
+  // will be created automatically. Only do this when ready to cut traffic
+  // away from Vercel — Vercel will immediately stop serving requests.
+  //
+  // "routes": [
+  //   { "pattern": "nordic.windedvertigo.com/*", "custom_domain": true }
+  // ],
+
+  // ── Secrets (set via `wrangler secret put --name wv-nordic`) ─────
+  // Core auth + integrations:
+  //   JWT_SECRET               — session signing
+  //   NOTION_TOKEN             — Notion API (all reads/writes)
+  //   NOTION_WEBHOOK_TOKEN     — inbound Notion webhook auth
+  //   CRON_SECRET              — self-request auth for scheduled crons
+  //   BLOB_READ_WRITE_TOKEN    — Vercel Blob (canary period; remove after R2 migration)
+  //
+  // LLM:
+  //   LLM_API_KEY, LLM_MODEL, LLM_PROVIDER
+  //
+  // Supabase (Path-2 Postgres mirror):
+  //   SUPABASE_NORDIC_URL, SUPABASE_NORDIC_SECRET_KEY, SUPABASE_NORDIC_ANON_KEY
+  //
+  // Slack (optional — degrades gracefully if absent):
+  //   SLACK_WEBHOOK_URL        — drift-sync alerts + workflow notifications
+  //   SLACK_BOT_TOKEN          — Mode B DMs in nightly-reping / weekly-digest
+  //   NOTION_SLACK_USER_MAP    — JSON map Notion user ID → Slack user ID
+  //   NOTION_TEAM_LEADS        — JSON array of team lead Notion user IDs
+  //   SLACK_REQUESTS_CHANNEL   — #requests Slack channel ID
+  //   SLACK_SAFETY_CHANNEL     — #safety Slack channel ID
+  //
+  // Feature flags (set as secrets, not vars, so Vercel env export carried them):
+  //   PCS_READ_FROM_POSTGRES   — "1" = read from Postgres (Phase A)
+  //   PCS_STRONG_CONSISTENCY   — "1" = enable retry queue (Phase B; not yet set)
+  //
+  // URL vars (required post-cutover — already set):
+  //   NEXT_PUBLIC_SITE_URL     — "https://nordic.windedvertigo.com"
+  //   NEXT_PUBLIC_APP_URL      — "https://nordic.windedvertigo.com"
+  //
+  // All NOTION_PCS_* database IDs (see src/lib/pcs-config.js for full list)
+  // All NOTION_AICS_* database IDs (not yet populated — AICS features inactive)
 }
