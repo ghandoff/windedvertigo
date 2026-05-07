@@ -12,6 +12,12 @@
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+
+// 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
+// pcs_core_benefits; all fields follow the camelCase → snake_case
+// convention.
+const CORE_BENEFITS_PG_COLUMN_MAP = {};
 
 
 const P = PROPS.coreBenefits;
@@ -21,6 +27,23 @@ const CORE_BENEFITS_CACHE_TTL_MS = 300_000; // 5 min — changes weekly
 /** Drop the cached core-benefit list. Call after any core-benefit write. */
 export function invalidateCoreBenefitsCache() {
   invalidateCache(CORE_BENEFITS_CACHE_KEY);
+}
+
+/**
+ * 2026-05-06 — Path-2 Day 2.6 read-path swap. Convert a Postgres
+ * pcs_core_benefits row into the SAME shape parsePage(notionPage)
+ * returns.
+ */
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    coreBenefit: row.core_benefit || '',
+    benefitCategoryId: row.benefit_category_id || null,
+    notes: row.notes || '',
+    pcsClaimInstanceIds: row.pcs_claim_instance_ids || [],
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
 }
 
 function parsePage(page) {
@@ -46,6 +69,19 @@ export async function getAllCoreBenefits(opts = {}) {
 }
 
 async function _fetchAllCoreBenefits() {
+  // 2026-05-06 — Path-2 Day 2.6 read-path swap. Postgres-first when
+  // PCS_READ_FROM_POSTGRES is on; Notion fallback on any error.
+  if (shouldReadFromPostgres()) {
+    try {
+      return await _fetchAllCoreBenefitsFromPostgres();
+    } catch (err) {
+      console.warn(`[pcs-core-benefits] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  return _fetchAllCoreBenefitsFromNotion();
+}
+
+async function _fetchAllCoreBenefitsFromNotion() {
   let all = [];
   let cursor = undefined;
   do {
@@ -61,7 +97,53 @@ async function _fetchAllCoreBenefits() {
   return all.map(parsePage);
 }
 
+async function _fetchAllCoreBenefitsFromPostgres() {
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_core_benefits')
+    .select('*')
+    .order('core_benefit', { ascending: true })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
+}
+
+/**
+ * 2026-05-06 — Path-2 drift catcher. See pcs-evidence.js
+ * syncRecentEvidenceToPostgres for the full pattern.
+ */
+export async function syncRecentCoreBenefitsToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.coreBenefits,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP);
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
+}
+
 export async function getCoreBenefit(id) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_core_benefits')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+    } catch (err) {
+      console.warn(`[pcs-core-benefits] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
@@ -81,7 +163,10 @@ export async function createCoreBenefit(fields) {
     properties,
   });
   invalidateCoreBenefitsCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  // 2026-05-06 — Path-2 Day 2.6 write-mirror.
+  await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 export async function updateCoreBenefit(id, fields) {
@@ -99,12 +184,27 @@ export async function updateCoreBenefit(id, fields) {
   }
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateCoreBenefitsCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  // 2026-05-06 — Path-2 Day 2.6 write-mirror.
+  await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 export async function deleteCoreBenefit(id) {
   await notion.pages.update({ page_id: id, archived: true });
   invalidateCoreBenefitsCache();
+  // 2026-05-06 — Path-2 Day 2.6 delete-mirror. Notion archives the page;
+  // we delete the Postgres row to keep the mirror in sync. Best-effort —
+  // failure logs but doesn't bubble to the caller.
+  try {
+    const sb = getPcsSupabase();
+    if (sb) {
+      const { error } = await sb.from('pcs_core_benefits').delete().eq('notion_page_id', id);
+      if (error) throw error;
+    }
+  } catch (err) {
+    console.warn(`[pcs-core-benefits] Postgres delete-mirror failed for ${id}: ${err.message}`);
+  }
 }
 
 /**

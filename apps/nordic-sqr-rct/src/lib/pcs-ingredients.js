@@ -16,6 +16,11 @@ import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+
+// 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
+// pcs_ingredients; all fields follow the camelCase → snake_case convention.
+const INGREDIENTS_PG_COLUMN_MAP = {};
 
 
 const P = PROPS.ingredients;
@@ -25,6 +30,29 @@ const INGREDIENTS_CACHE_TTL_MS = 60_000; // 60s — ingredients change daily
 /** Drop the cached ingredients list. Call after any ingredient write. */
 export function invalidateIngredientsCache() {
   invalidateCache(INGREDIENTS_CACHE_KEY);
+}
+
+/**
+ * 2026-05-06 — Path-2 Day 2.6 read-path swap. Convert a Postgres
+ * pcs_ingredients row into the SAME shape parsePage(notionPage) returns.
+ */
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    canonicalName: row.canonical_name || '',
+    synonyms: row.synonyms || '',
+    category: row.category || null,
+    standardUnit: row.standard_unit || null,
+    fdaRdi: row.fda_rdi ?? null,
+    fdaRdiUnit: row.fda_rdi_unit || null,
+    regulatoryCeiling: row.regulatory_ceiling ?? null,
+    bioavailabilityNotes: row.bioavailability_notes || '',
+    interactionCautions: row.interaction_cautions || '',
+    notes: row.notes || '',
+    formIds: row.form_ids || [],
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
 }
 
 function parsePage(page) {
@@ -96,6 +124,19 @@ export async function getAllIngredients(maxPages = 50, opts = {}) {
 }
 
 async function _fetchAllIngredients(maxPages) {
+  // 2026-05-06 — Path-2 Day 2.6 read-path swap. Postgres-first when
+  // PCS_READ_FROM_POSTGRES is on; Notion fallback on any error.
+  if (shouldReadFromPostgres()) {
+    try {
+      return await _fetchAllIngredientsFromPostgres();
+    } catch (err) {
+      console.warn(`[pcs-ingredients] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  return _fetchAllIngredientsFromNotion(maxPages);
+}
+
+async function _fetchAllIngredientsFromNotion(maxPages) {
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -112,7 +153,53 @@ async function _fetchAllIngredients(maxPages) {
   return all.map(parsePage);
 }
 
+async function _fetchAllIngredientsFromPostgres() {
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_ingredients')
+    .select('*')
+    .order('canonical_name', { ascending: true })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
+}
+
+/**
+ * 2026-05-06 — Path-2 drift catcher. See pcs-evidence.js
+ * syncRecentEvidenceToPostgres for the full pattern.
+ */
+export async function syncRecentIngredientsToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.ingredients,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP);
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
+}
+
 export async function getIngredient(id) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_ingredients')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+    } catch (err) {
+      console.warn(`[pcs-ingredients] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
@@ -125,7 +212,10 @@ export async function createIngredient(fields) {
     properties,
   });
   invalidateIngredientsCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  // 2026-05-06 — Path-2 Day 2.6 write-mirror.
+  await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 /** Wave 8.2 — fields revertable by the revisions panel. */
@@ -161,12 +251,27 @@ export async function updateIngredient(id, fields) {
   const properties = buildProps(fields);
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateIngredientsCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  // 2026-05-06 — Path-2 Day 2.6 write-mirror.
+  await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 export async function deleteIngredient(id) {
   await notion.pages.update({ page_id: id, archived: true });
   invalidateIngredientsCache();
+  // 2026-05-06 — Path-2 Day 2.6 delete-mirror. Notion archives the page;
+  // we delete the Postgres row to keep the mirror in sync. Best-effort —
+  // failure logs but doesn't bubble to the caller.
+  try {
+    const sb = getPcsSupabase();
+    if (sb) {
+      const { error } = await sb.from('pcs_ingredients').delete().eq('notion_page_id', id);
+      if (error) throw error;
+    }
+  } catch (err) {
+    console.warn(`[pcs-ingredients] Postgres delete-mirror failed for ${id}: ${err.message}`);
+  }
 }
 
 /**
@@ -181,6 +286,10 @@ export async function deleteIngredient(id) {
  * Returns the first matching ingredient or null. Pass a pre-fetched
  * `ingredients` array to avoid a Notion call on every lookup (useful
  * for batch migrations).
+ *
+ * 2026-05-06 — Path-2 Day 2.6: when no `ingredients` array is passed,
+ * `getAllIngredients()` already routes through Postgres-first via the
+ * read-path swap above. No special handling needed here.
  */
 export async function resolveIngredient(text, ingredients = null) {
   if (!text || typeof text !== 'string') return null;
