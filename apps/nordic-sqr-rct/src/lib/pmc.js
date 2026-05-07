@@ -24,7 +24,8 @@
  * (POST /api/pcs/evidence/[id]/pdf-upload).
  */
 
-import { put } from '@vercel/blob'; // retained for local dev fallback
+// @vercel/blob imported dynamically in the local dev fallback (downloadAndUploadPdf)
+// so it is never evaluated on CF Workers (where the module throws on init).
 
 const NCBI_BASE = 'https://www.ncbi.nlm.nih.gov';
 const PMC_OA_BASE = `${NCBI_BASE}/pmc/utils/oa/oa.fcgi`;
@@ -579,6 +580,7 @@ export async function downloadAndUploadPdf(pdfUrl, filename, { r2 } = {}) {
 
   // Fallback: Vercel Blob — used in local dev when no wrangler binding is available.
   console.warn('[pmc] NORDIC_ASSETS R2 binding not provided — falling back to Vercel Blob');
+  const { put } = await import('@vercel/blob');
   const blob = await put(key, buffer, {
     access: 'public',
     contentType: 'application/pdf',

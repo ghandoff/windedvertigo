@@ -21,7 +21,8 @@
 
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { put } from '@vercel/blob'; // retained for local dev fallback
+// @vercel/blob imported dynamically in the local dev fallback below so it
+// is never evaluated on CF Workers (where the module throws on init).
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getEvidence, updateEvidence } from '@/lib/pcs-evidence';
@@ -85,6 +86,7 @@ export async function POST(request, { params }) {
     } else {
       // Local dev fallback: Vercel Blob
       console.warn('[pdf-upload] NORDIC_ASSETS not available — falling back to Vercel Blob');
+      const { put } = await import('@vercel/blob');
       const blob = await put(key, file, {
         access: 'public',
         contentType: 'application/pdf',
