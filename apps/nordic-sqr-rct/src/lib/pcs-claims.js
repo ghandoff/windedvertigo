@@ -13,7 +13,10 @@ import {
 } from './pcs-canonical-claims.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import {
+  getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres,
+  shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst,
+} from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Phase A. No special column-name overrides for
 // pcs_claims; all fields follow the camelCase → snake_case convention.
@@ -360,10 +363,23 @@ export async function updateClaim(id, fields) {
   if (fields.confidence !== undefined) {
     properties[P.confidence] = { number: fields.confidence };
   }
+  // 2026-05-07 — Phase B: stub row carries only the fields being updated;
+  // notionShapeToPgRow strips undefined so the upsert only touches changed columns.
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst(
+      'pcs_claims',
+      stubRow,
+      CLAIMS_PG_COLUMN_MAP,
+      () => notion.pages.update({ page_id: id, properties }),
+    );
+    invalidateClaimsCache();
+    return stubRow; // optimistic; drift-sync back-fills Notion-only fields
+  }
+  // Phase A fallback: Notion-first + best-effort mirror.
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateClaimsCache();
   const parsed = parsePage(page);
-  // 2026-05-06 — Path-2 Phase A write-mirror.
   await mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
@@ -412,6 +428,37 @@ export async function createClaim(fields) {
     properties[P.confidence] = { number: fields.confidence };
   }
 
+  // 2026-05-07 — Phase B: pre-assign Postgres PK, fire Notion async.
+  // Note: canonicalClaimId was resolved above (may differ from fields.canonicalClaimId).
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      claim: fields.claim || '',
+      claimNo: fields.claimNo || '',
+      claimBucket: fields.claimBucket || null,
+      claimStatus: fields.claimStatus || null,
+      claimNotes: fields.claimNotes || '',
+      disclaimerRequired: fields.disclaimerRequired || false,
+      minDoseMg: fields.minDoseMg ?? null,
+      maxDoseMg: fields.maxDoseMg ?? null,
+      doseGuidanceNote: fields.doseGuidanceNote || '',
+      pcsVersionId: fields.pcsVersionId || null,
+      canonicalClaimId: canonicalClaimId, // resolved above (may be from auto-lookup)
+      claimPrefixId: fields.claimPrefixId || null,
+      coreBenefitId: fields.coreBenefitId || null,
+      confidence: fields.confidence ?? null,
+    };
+    await writePostgresFirst(
+      'pcs_claims',
+      stubRow,
+      CLAIMS_PG_COLUMN_MAP,
+      () => notion.pages.create({ parent: { database_id: PCS_DB.claims }, properties }),
+    );
+    invalidateClaimsCache();
+    return stubRow;
+  }
+  // Phase A fallback: Notion-first + best-effort mirror.
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.claims },
     properties,

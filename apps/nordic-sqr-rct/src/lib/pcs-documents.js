@@ -8,7 +8,10 @@ import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import {
+  getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres,
+  shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst,
+} from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Phase A. No special column-name overrides for
 // pcs_documents; all fields follow the camelCase → snake_case convention.
@@ -310,10 +313,24 @@ export async function updateDocument(id, fields) {
   if (fields.linkedAicsIds !== undefined) {
     properties[P.linkedAics] = { relation: (fields.linkedAicsIds || []).map((rid) => ({ id: rid })) };
   }
+  // 2026-05-07 — Path-2 Phase B: write Postgres first, Notion async.
+  // Stub row contains only the fields being updated — notionShapeToPgRow
+  // strips undefined values so the upsert only touches changed columns.
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst(
+      'pcs_documents',
+      stubRow,
+      DOCUMENTS_PG_COLUMN_MAP,
+      () => notion.pages.update({ page_id: id, properties }),
+    );
+    invalidateDocumentsCache();
+    return stubRow; // optimistic — drift-sync back-fills Notion-only fields
+  }
+  // Phase A fallback: Notion-first + best-effort mirror.
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateDocumentsCache();
   const parsed = parsePage(page);
-  // 2026-05-06 — Path-2 Phase A write-mirror.
   await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
@@ -399,10 +416,22 @@ export async function setLatestVersion(documentId, versionId) {
   const properties = {
     [P.latestVersion]: versionId ? { relation: [{ id: versionId }] } : { relation: [] },
   };
+  // 2026-05-07 — Phase B: stub contains only the relation field being changed.
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id: documentId, latestVersionId: versionId || null };
+    await writePostgresFirst(
+      'pcs_documents',
+      stubRow,
+      DOCUMENTS_PG_COLUMN_MAP,
+      () => notion.pages.update({ page_id: documentId, properties }),
+    );
+    invalidateDocumentsCache();
+    return stubRow;
+  }
+  // Phase A fallback.
   const page = await notion.pages.update({ page_id: documentId, properties });
   invalidateDocumentsCache();
   const parsed = parsePage(page);
-  // 2026-05-06 — Path-2 Phase A write-mirror.
   await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
@@ -426,6 +455,40 @@ export async function createDocument(fields) {
   if (fields.templateVersion) properties[P.templateVersion] = { select: { name: fields.templateVersion } };
   if (fields.templateSignals) properties[P.templateSignals] = { rich_text: [{ text: { content: fields.templateSignals } }] };
 
+  // 2026-05-07 — Phase B: write stub to Postgres immediately, fire Notion async.
+  // crypto.randomUUID() assigns the PK placeholder; writePostgresFirst back-patches
+  // notion_page_id once Notion responds (~300–800ms later).
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      pcsId: fields.pcsId || '',
+      classification: fields.classification || null,
+      fileStatus: fields.fileStatus || null,
+      productStatus: fields.productStatus || null,
+      transferStatus: fields.transferStatus || null,
+      documentNotes: fields.documentNotes || '',
+      approvedDate: fields.approvedDate || null,
+      finishedGoodName: fields.finishedGoodName || '',
+      format: fields.format || null,
+      sapMaterialNo: fields.sapMaterialNo || '',
+      skus: fields.skus || [],
+      archived: fields.archived || false,
+      templateVersion: fields.templateVersion || null,
+      templateSignals: fields.templateSignals || '',
+      linkedAicsIds: fields.linkedAicsIds || [],
+      canonicalDocumentId: fields.canonicalDocumentId || null,
+    };
+    await writePostgresFirst(
+      'pcs_documents',
+      stubRow,
+      DOCUMENTS_PG_COLUMN_MAP,
+      () => notion.pages.create({ parent: { database_id: PCS_DB.documents }, properties }),
+    );
+    invalidateDocumentsCache();
+    return stubRow;
+  }
+  // Phase A fallback: Notion-first + best-effort mirror.
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.documents },
     properties,

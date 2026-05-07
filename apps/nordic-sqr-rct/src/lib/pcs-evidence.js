@@ -8,7 +8,10 @@
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import {
+  getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres,
+  shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst,
+} from './supabase-pcs.js';
 
 // 2026-05-06 — column-name overrides for evidence's Notion → Postgres
 // mirror. Most fields follow camelCase → snake_case; these don't.
@@ -561,15 +564,44 @@ export async function createEvidence(fields) {
   if (fields.endnoteRecordId) properties[P.endnoteRecordId] = { rich_text: [{ text: { content: fields.endnoteRecordId } }] };
   if (fields.pdf) properties[P.pdf] = { files: [{ name: 'PDF', type: 'external', external: { url: fields.pdf } }] };
 
+  // 2026-05-07 — Phase B: write Postgres first, Notion async.
+  // Evidence is Tier 3 (highest-relation table); this only activates when
+  // PCS_WRITE_TO_POSTGRES=1. The hard-merge path above stays on Phase A
+  // semantics even when Phase B is on (updateEvidence already handles its
+  // own flag, so _wasMerged propagates correctly).
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      name: fields.name || '',
+      citation: fields.citation || '',
+      doi: fields.doi || '',
+      pmid: fields.pmid || '',
+      url: fields.url || null,
+      evidenceType: fields.evidenceType || null,
+      ingredient: fields.ingredient || [],
+      publicationYear: fields.publicationYear ?? null,
+      canonicalSummary: fields.canonicalSummary || '',
+      endnoteGroup: fields.endnoteGroup || '',
+      endnoteRecordId: fields.endnoteRecordId || '',
+      pdf: fields.pdf || null, // notionShapeToPgRow maps 'pdf' → 'pdf_url' via EVIDENCE_PG_COLUMN_MAP
+    };
+    await writePostgresFirst(
+      'pcs_evidence',
+      stubRow,
+      EVIDENCE_PG_COLUMN_MAP,
+      () => notion.pages.create({ parent: { database_id: PCS_DB.evidenceLibrary }, properties }),
+    );
+    invalidateEvidenceCache();
+    return stubRow;
+  }
+  // Phase A fallback: Notion-first + best-effort mirror.
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.evidenceLibrary },
     properties,
   });
   invalidateEvidenceCache();
   const parsed = parsePage(page);
-  // 2026-05-06 — Path-2 Phase A write-mirror. Notion is canonical;
-  // we mirror to Postgres for read-path freshness. Best-effort —
-  // failure logs but doesn't bubble to the user.
   await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
@@ -630,6 +662,19 @@ export async function updateEvidence(id, fields) {
       relation: (fields.activeIngredientCanonicalIds || []).map(rid => ({ id: rid })),
     };
   }
+  // 2026-05-07 — Phase B: stub carries only the fields being updated.
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst(
+      'pcs_evidence',
+      stubRow,
+      EVIDENCE_PG_COLUMN_MAP,
+      () => notion.pages.update({ page_id: id, properties }),
+    );
+    invalidateEvidenceCache();
+    return stubRow; // optimistic; _wasMerged propagates from createEvidence caller if needed
+  }
+  // Phase A fallback: Notion-first + best-effort mirror.
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateEvidenceCache();
   const parsed = parsePage(page);

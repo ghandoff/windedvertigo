@@ -35,9 +35,9 @@
   // will be created automatically. Only do this when ready to cut traffic
   // away from Vercel — Vercel will immediately stop serving requests.
   //
-  // "routes": [
-  //   { "pattern": "nordic.windedvertigo.com/*", "custom_domain": true }
-  // ],
+  "routes": [
+    { "pattern": "nordic.windedvertigo.com", "custom_domain": true, "override_existing_dns_record": true }
+  ],
 
   // ── Secrets (set via `wrangler secret put --name wv-nordic`) ─────
   // Core auth + integrations:
