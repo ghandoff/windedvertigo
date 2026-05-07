@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getAllEvidence, updateEvidence } from '@/lib/pcs-evidence';
 import { getAllStudies, updateStudyPdf } from '@/lib/notion';
@@ -12,7 +13,8 @@ export const maxDuration = 300;
  *
  * Scans PCS Evidence Library and SQR-RCT Intake DB for entries missing PDFs.
  * Searches multiple open-access sources: Unpaywall, Semantic Scholar,
- * Europe PMC, and NCBI PMC. Downloads and uploads found PDFs to Blob storage.
+ * Europe PMC, and NCBI PMC. Downloads and uploads found PDFs to R2 storage
+ * (falls back to Vercel Blob in local dev without a wrangler binding).
  *
  * Query params:
  *   dry_run=true  — preview only, no downloads or writes
@@ -23,10 +25,17 @@ export async function POST(request) {
   const gate = await requireCapability(request, 'pcs.documents:edit', { route: '/api/admin/backfill/pdfs' });
   if (gate.error) return gate.error;
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json({
-      error: 'BLOB_READ_WRITE_TOKEN is not configured — cannot upload PDFs',
-    }, { status: 503 });
+  // Resolve the R2 bucket binding; gracefully falls back to Vercel Blob in
+  // pmc.js when the binding is unavailable (local dev without wrangler).
+  let r2;
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+    r2 = env.NORDIC_ASSETS ?? undefined;
+    if (!r2) {
+      console.warn('[backfill/pdfs] NORDIC_ASSETS not available — will fall back to Vercel Blob');
+    }
+  } catch {
+    console.warn('[backfill/pdfs] getCloudflareContext failed — will fall back to Vercel Blob');
   }
 
   const { searchParams } = new URL(request.url);
@@ -87,7 +96,7 @@ export async function POST(request) {
               ? `${doi.replace(/\//g, '_')}.pdf`
               : `pmid-${pmid}.pdf`;
 
-            const result = await findAndFetchPdf({ pmid, doi, filename });
+            const result = await findAndFetchPdf({ pmid, doi, filename, r2 });
 
             if (result.fetched) {
               await updateEvidence(entry.id, { pdf: result.url });
@@ -167,7 +176,7 @@ export async function POST(request) {
             }
           } else {
             const filename = `${doi.replace(/\//g, '_')}.pdf`;
-            const result = await findAndFetchPdf({ doi, filename });
+            const result = await findAndFetchPdf({ doi, filename, r2 });
 
             if (result.fetched) {
               await updateStudyPdf(study.id, result.url);

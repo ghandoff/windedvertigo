@@ -528,20 +528,9 @@ function StageCard({ onStaged }) {
       const key = `${file.name}:${file.size}:${idx}`;
       try {
         setUploadStatus(s => ({ ...s, [key]: 'uploading' }));
-        const pathname = `label-imports/${file.name}`;
-        const tokenResp = await fetch('/api/admin/labels/imports/upload-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pathname }),
-        });
-        if (!tokenResp.ok) {
-          const errBody = await tokenResp.json().catch(() => ({}));
-          throw new Error(errBody?.error || `Token request failed: HTTP ${tokenResp.status}`);
-        }
-        const { token } = await tokenResp.json();
 
         const [blob, contentHash] = await Promise.all([
-          uploadViaXhr(pathname, file, token, (pct) => {
+          uploadViaXhr(file, (pct) => {
             setProgress(p => ({ ...p, [key]: pct }));
           }),
           sha256Hex(file),
@@ -596,7 +585,7 @@ function StageCard({ onStaged }) {
     <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
       <h2 className="text-lg font-medium text-gray-900">Stage label files</h2>
       <p className="mt-1 text-xs text-gray-500">
-        PNG / JPG / WEBP / PDF · up to 20 MB each · uploads direct to Vercel Blob.
+        PNG / JPG / WEBP / PDF · up to 20 MB each · uploads direct to R2.
       </p>
 
       <div className="mt-4 space-y-4">
@@ -784,13 +773,18 @@ async function sha256Hex(file) {
     .map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function uploadViaXhr(pathname, file, token, onProgress) {
+/**
+ * Upload a label file to R2 via multipart POST to
+ * /api/admin/labels/imports/upload.
+ * Returns { url, pathname } on success.
+ */
+function uploadViaXhr(file, onProgress) {
   return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    fd.append('file', file);
+
     const xhr = new XMLHttpRequest();
-    xhr.open('PUT', `https://blob.vercel-storage.com/${encodeURI(pathname)}`);
-    xhr.setRequestHeader('authorization', `Bearer ${token}`);
-    xhr.setRequestHeader('x-content-type', file.type || 'application/octet-stream');
-    xhr.setRequestHeader('x-api-version', '7');
+    xhr.open('POST', '/api/admin/labels/imports/upload');
     xhr.upload.addEventListener('progress', (e) => {
       if (e.lengthComputable && onProgress) {
         onProgress(Math.round((e.loaded / e.total) * 100));
@@ -800,22 +794,22 @@ function uploadViaXhr(pathname, file, token, onProgress) {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const body = JSON.parse(xhr.responseText || '{}');
-          resolve({
-            url: body.url,
-            pathname: body.pathname || pathname,
-            contentType: body.contentType || file.type || 'application/octet-stream',
-            contentDisposition: body.contentDisposition || '',
-          });
+          resolve({ url: body.url, pathname: body.pathname });
         } catch {
-          reject(new Error(`Blob PUT succeeded but response body was not JSON: ${xhr.responseText?.slice(0, 200)}`));
+          reject(new Error(`Upload succeeded but response was not JSON: ${xhr.responseText?.slice(0, 200)}`));
         }
       } else {
-        reject(new Error(`Blob PUT failed: HTTP ${xhr.status} — ${xhr.responseText?.slice(0, 200)}`));
+        try {
+          const errBody = JSON.parse(xhr.responseText || '{}');
+          reject(new Error(errBody?.error || `Upload failed: HTTP ${xhr.status}`));
+        } catch {
+          reject(new Error(`Upload failed: HTTP ${xhr.status}`));
+        }
       }
     });
-    xhr.addEventListener('error', () => reject(new Error('Network error during Blob PUT')));
-    xhr.addEventListener('abort', () => reject(new Error('Blob PUT aborted')));
-    xhr.send(file);
+    xhr.addEventListener('error', () => reject(new Error('Network error during upload')));
+    xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+    xhr.send(fd);
   });
 }
 

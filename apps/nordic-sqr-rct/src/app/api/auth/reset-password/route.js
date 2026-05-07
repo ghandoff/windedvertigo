@@ -4,7 +4,7 @@ import { verifyToken } from '@/lib/auth';
 import { updateReviewerPasswordAndClearResetFlag, getReviewerById } from '@/lib/notion';
 import { createRateLimiter } from '@/lib/rate-limit';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 
 const SALT_ROUNDS = 12;
 const MIN_PASSWORD_LENGTH = 12;

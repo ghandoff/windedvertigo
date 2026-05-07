@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { weeklyDigestWorkflow } from '@/workflows/weekly-digest';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 

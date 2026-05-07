@@ -4,7 +4,7 @@ import { getPcsSupabase } from '@/lib/supabase-pcs';
 import { notion } from '@/lib/notion';
 import { PCS_DB } from '@/lib/pcs-config';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 

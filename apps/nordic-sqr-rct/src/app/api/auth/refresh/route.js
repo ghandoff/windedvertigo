@@ -11,7 +11,7 @@ import {
 } from '@/lib/auth';
 import { createRateLimiter } from '@/lib/rate-limit';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 
 // Refresh is called frequently (once per access-token expiry per client) so
 // the limit is looser than login, but still bounded to thwart a stolen-refresh

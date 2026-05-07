@@ -48,11 +48,15 @@ export async function PATCH(request) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
-    // Validate profileImageUrl is a Vercel Blob URL if provided
+    // Validate profileImageUrl is from a trusted storage host if provided.
+    // Accepts both the new R2 proxy path and legacy Vercel Blob URLs
+    // (existing profiles keep working until the Vercel project is decommissioned).
     if (updates.profileImageUrl) {
       try {
         const u = new URL(updates.profileImageUrl);
-        if (!u.hostname.endsWith('.public.blob.vercel-storage.com')) {
+        const isR2Path = u.pathname.startsWith('/api/r2/profiles/');
+        const isVercelBlob = u.hostname.endsWith('.public.blob.vercel-storage.com');
+        if (!isR2Path && !isVercelBlob) {
           return NextResponse.json({ error: 'Invalid image URL — must be uploaded via the profile form' }, { status: 400 });
         }
       } catch {

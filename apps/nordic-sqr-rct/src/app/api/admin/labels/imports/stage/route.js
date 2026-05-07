@@ -5,7 +5,7 @@ import {
   getIntakeRowByContentHash,
 } from '@/lib/label-intake-queue';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 

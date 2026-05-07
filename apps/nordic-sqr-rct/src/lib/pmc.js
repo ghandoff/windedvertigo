@@ -2,8 +2,10 @@
  * Multi-source PDF finder — 6 open-access sources in waterfall priority.
  *
  * Tries multiple open-access sources in sequence to find freely available
- * PDFs for research articles. Downloaded PDFs are uploaded to Vercel Blob
- * for permanent storage as Notion file references.
+ * PDFs for research articles. Downloaded PDFs are uploaded to R2
+ * (NORDIC_ASSETS binding) for permanent storage as Notion file references.
+ * Falls back to Vercel Blob when the R2 binding is unavailable (local dev
+ * without wrangler).
  *
  * Source priority (highest yield first):
  *   1. Unpaywall — indexes 30M+ OA articles (publisher, repos, preprints)
@@ -22,7 +24,7 @@
  * (POST /api/pcs/evidence/[id]/pdf-upload).
  */
 
-import { put } from '@vercel/blob';
+import { put } from '@vercel/blob'; // retained for local dev fallback
 
 const NCBI_BASE = 'https://www.ncbi.nlm.nih.gov';
 const PMC_OA_BASE = `${NCBI_BASE}/pmc/utils/oa/oa.fcgi`;
@@ -487,10 +489,12 @@ export async function findPdfUrl({ doi, pmid }) {
 }
 
 /**
- * End-to-end: search all sources, download PDF, upload to Blob.
+ * End-to-end: search all sources, download PDF, upload to R2 or Blob.
  * Returns { fetched, url, size, source, ... } or { fetched: false, reason, attempts }.
+ *
+ * @param {{ pmid?: string, doi?: string, filename?: string, r2?: R2Bucket }} opts
  */
-export async function findAndFetchPdf({ pmid, doi, filename }) {
+export async function findAndFetchPdf({ pmid, doi, filename, r2 }) {
   const result = await findPdfUrl({ doi, pmid });
 
   if (!result.available) {
@@ -504,7 +508,7 @@ export async function findAndFetchPdf({ pmid, doi, filename }) {
   const safeName = filename || `${doi || pmid || 'unknown'}.pdf`;
 
   try {
-    const upload = await downloadAndUploadPdf(result.pdfUrl, safeName);
+    const upload = await downloadAndUploadPdf(result.pdfUrl, safeName, { r2 });
     return {
       fetched: true,
       url: upload.url,
@@ -527,17 +531,20 @@ export async function findAndFetchPdf({ pmid, doi, filename }) {
   }
 }
 
-// ─── Download + Upload to Blob ──────────────────────────────────────
+// ─── Download + Upload to R2 (or Blob fallback) ─────────────────────
+
+const NORDIC_URL = 'https://nordic.windedvertigo.com';
 
 /**
- * Download a PDF from a URL and upload it to Vercel Blob.
- * Returns the public Blob URL for use in Notion file properties.
+ * Download a PDF from a URL and upload it to R2 (preferred) or Vercel
+ * Blob (fallback for local dev without a wrangler binding).
  *
  * @param {string} pdfUrl — source URL (PMC, publisher, etc.)
  * @param {string} filename — e.g. "10.1016_j.foo.2024.pdf"
+ * @param {{ r2?: R2Bucket }} [opts] — pass env.NORDIC_ASSETS from a route handler
  * @returns {{ url: string, size: number }}
  */
-export async function downloadAndUploadPdf(pdfUrl, filename) {
+export async function downloadAndUploadPdf(pdfUrl, filename, { r2 } = {}) {
   const res = await fetch(pdfUrl, {
     headers: { 'User-Agent': 'nordic-sqr-rct/1.0 (PDF backfill)' },
     redirect: 'follow',
@@ -561,7 +568,18 @@ export async function downloadAndUploadPdf(pdfUrl, filename) {
   }
 
   const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const blob = await put(`evidence-pdfs/${safeName}`, buffer, {
+  const key = `evidence-pdfs/${safeName}`;
+
+  if (r2) {
+    await r2.put(key, buffer, {
+      httpMetadata: { contentType: 'application/pdf' },
+    });
+    return { url: `${NORDIC_URL}/api/r2/${key}`, size: buffer.length };
+  }
+
+  // Fallback: Vercel Blob — used in local dev when no wrangler binding is available.
+  console.warn('[pmc] NORDIC_ASSETS R2 binding not provided — falling back to Vercel Blob');
+  const blob = await put(key, buffer, {
     access: 'public',
     contentType: 'application/pdf',
     addRandomSuffix: true,
@@ -571,17 +589,19 @@ export async function downloadAndUploadPdf(pdfUrl, filename) {
 }
 
 /**
- * End-to-end: check PMC availability, download PDF, upload to Blob.
+ * End-to-end: check PMC availability, download PDF, upload to R2 or Blob.
  * Returns { fetched, url, size, pmcid, license } or { fetched: false, reason }.
+ *
+ * @param {{ pmid?: string, doi?: string, filename?: string, r2?: R2Bucket }} opts
  */
-export async function fetchAndUploadFromPmc({ pmid, doi, filename }) {
+export async function fetchAndUploadFromPmc({ pmid, doi, filename, r2 }) {
   const check = await checkPdfAvailability({ pmid, doi });
   if (!check.available) {
     return { fetched: false, reason: check.reason, pmcid: check.pmcid || null };
   }
 
   const safeName = filename || `${doi || pmid || 'unknown'}.pdf`;
-  const upload = await downloadAndUploadPdf(check.pdfUrl, safeName);
+  const upload = await downloadAndUploadPdf(check.pdfUrl, safeName, { r2 });
 
   return {
     fetched: true,

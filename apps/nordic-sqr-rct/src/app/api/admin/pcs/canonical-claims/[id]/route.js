@@ -7,7 +7,7 @@ import {
   CANONICAL_CLAIM_EDITABLE_FIELDS,
 } from '@/lib/pcs-canonical-claims';
 
-export const runtime = 'nodejs';
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 export const maxDuration = 15;
 export const dynamic = 'force-dynamic';
 
