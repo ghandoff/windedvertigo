@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { syncRecentEvidenceToPostgres } from '@/lib/pcs-evidence';
 import { syncRecentClaimsToPostgres } from '@/lib/pcs-claims';
 import { syncRecentDocumentsToPostgres } from '@/lib/pcs-documents';
+import { syncRecentEvidencePacketsToPostgres } from '@/lib/pcs-evidence-packets';
 import { getPcsSupabase } from '@/lib/supabase-pcs';
 
 export const runtime = 'nodejs';
@@ -47,6 +48,7 @@ export async function GET(request) {
     { name: 'pcs_evidence', sync: syncRecentEvidenceToPostgres },
     { name: 'pcs_claims', sync: syncRecentClaimsToPostgres },
     { name: 'pcs_documents', sync: syncRecentDocumentsToPostgres },
+    { name: 'pcs_evidence_packets', sync: syncRecentEvidencePacketsToPostgres },
   ];
 
   // 5-minute overlap window so we don't miss edits that landed during
