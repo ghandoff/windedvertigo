@@ -121,6 +121,8 @@ export default function PostgresMirrorPage() {
         </div>
       </div>
 
+      {data.queue && <QueueCard queue={data.queue} strongConsistencyOn={data.strongConsistencyOn} />}
+
       <SummaryStrip summary={data.summary} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -128,6 +130,54 @@ export default function PostgresMirrorPage() {
           <TableCard key={r.table} row={r} />
         ))}
       </div>
+    </div>
+  );
+}
+
+function QueueCard({ queue, strongConsistencyOn }) {
+  // Phase B Bundle 1 retry-queue card. Tone:
+  //   green  — 0 unresolved, 0 permanent-failed
+  //   amber  — 1-5 unresolved, OR any permanent-failed
+  //   red    — > 5 unresolved (queue is backing up)
+  const u = queue.unresolved;
+  const pf = queue.permanently_failed;
+  let tone = 'emerald';
+  let label = 'Healthy';
+  if (queue.error || u === null) {
+    tone = 'gray';
+    label = 'Queue table missing';
+  } else if (u > 5) {
+    tone = 'red';
+    label = 'Backing up';
+  } else if (u > 0 || pf > 0) {
+    tone = 'amber';
+    label = 'Some retries pending';
+  }
+  // 2026-05-06 — server emits `oldest_unresolved_seconds_ago` so we
+  // don't have to call Date.now() in render (React 19 strict-purity).
+  const oldestSecs = queue.oldest_unresolved_seconds_ago ?? null;
+  return (
+    <div className={`rounded-lg border p-3 ${TONE[tone === 'emerald' ? 'ok' : tone === 'amber' ? 'stale' : tone === 'red' ? 'drifted' : 'no_pg'].border} ${TONE[tone === 'emerald' ? 'ok' : tone === 'amber' ? 'stale' : tone === 'red' ? 'drifted' : 'no_pg'].bg}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="text-sm font-semibold text-gray-900">Strong-consistency retry queue</div>
+          <div className="text-[11px] text-gray-600 mt-0.5">
+            Flag:{' '}
+            <span className={strongConsistencyOn ? 'font-semibold text-emerald-700' : 'text-gray-700'}>
+              {strongConsistencyOn ? 'PCS_STRONG_CONSISTENCY ON' : 'OFF (Phase A best-effort)'}
+            </span>
+          </div>
+        </div>
+        <span className={`text-[10px] uppercase tracking-wide font-semibold ${TONE[tone === 'emerald' ? 'ok' : tone === 'amber' ? 'stale' : tone === 'red' ? 'drifted' : 'no_pg'].label}`}>
+          {label}
+        </span>
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+        <Stat label="Unresolved" value={u == null ? '—' : u.toLocaleString()} valueClass={u > 5 ? 'text-red-700 font-semibold' : u > 0 ? 'text-amber-700 font-semibold' : 'text-gray-700'} />
+        <Stat label="Permanently failed" value={pf == null ? '—' : pf.toLocaleString()} valueClass={pf > 0 ? 'text-red-700 font-semibold' : 'text-gray-700'} />
+        <Stat label="Oldest" value={oldestSecs == null ? '—' : `${fmtAgo(oldestSecs)} ago`} />
+      </div>
+      {queue.error && <p className="mt-2 text-[11px] text-red-700">{queue.error}</p>}
     </div>
   );
 }

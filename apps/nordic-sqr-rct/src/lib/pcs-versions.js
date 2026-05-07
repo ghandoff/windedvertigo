@@ -7,7 +7,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for versions.
 // Notion shape uses uppercase abbreviations (EPA, DHA) that the default
@@ -236,7 +236,7 @@ export async function syncRecentVersionsToPostgres(sinceIso) {
   let mirrored = 0;
   for (const page of res.results) {
     const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP);
+    const result = await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
     if (result.mirrored) mirrored++;
     if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
   }
@@ -283,7 +283,7 @@ export async function createVersion(fields) {
   }
 
   // 2026-05-06 — Path-2 Day 2.7 write-mirror. Best-effort; failure is logged.
-  await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -306,6 +306,6 @@ export async function updateVersion(id, fields) {
   Object.assign(properties, laurenTemplateProps(fields));
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }

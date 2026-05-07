@@ -8,7 +8,7 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
 
 
 const P = PROPS.evidencePackets;
@@ -286,7 +286,7 @@ export async function createEvidencePacket(fields) {
   const parsed = parsePage(page);
   // 2026-05-06 — Path-2 Phase A write-mirror. Notion is canonical;
   // best-effort mirror to Postgres for read-path freshness.
-  await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -422,7 +422,7 @@ export async function updateEvidencePacket(id, fields) {
   Object.assign(properties, laurenTemplateProps(fields));
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -441,7 +441,7 @@ export async function syncRecentEvidencePacketsToPostgres(sinceIso) {
   let mirrored = 0;
   for (const page of res.results) {
     const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP);
+    const result = await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
     if (result.mirrored) mirrored++;
     if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
   }

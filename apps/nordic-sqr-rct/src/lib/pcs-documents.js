@@ -8,7 +8,7 @@ import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Phase A. No special column-name overrides for
 // pcs_documents; all fields follow the camelCase → snake_case convention.
@@ -146,7 +146,7 @@ export async function syncRecentDocumentsToPostgres(sinceIso) {
   let mirrored = 0;
   for (const page of res.results) {
     const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP);
+    const result = await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
     if (result.mirrored) mirrored++;
     if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
   }
@@ -299,7 +299,7 @@ export async function updateDocument(id, fields) {
   invalidateDocumentsCache();
   const parsed = parsePage(page);
   // 2026-05-06 — Path-2 Phase A write-mirror.
-  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -388,7 +388,7 @@ export async function setLatestVersion(documentId, versionId) {
   invalidateDocumentsCache();
   const parsed = parsePage(page);
   // 2026-05-06 — Path-2 Phase A write-mirror.
-  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -417,6 +417,6 @@ export async function createDocument(fields) {
   });
   invalidateDocumentsCache();
   const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }

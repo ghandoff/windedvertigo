@@ -7,7 +7,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for pcs_references.
 // All camelCase keys map mechanically.
@@ -161,7 +161,7 @@ export async function syncRecentReferencesToPostgres(sinceIso) {
   let mirrored = 0;
   for (const page of res.results) {
     const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_references', parsed, REFERENCES_PG_COLUMN_MAP);
+    const result = await mirrorToPostgres('pcs_references', parsed, REFERENCES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
     if (result.mirrored) mirrored++;
     if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
   }
@@ -192,7 +192,7 @@ export async function createReference(fields) {
     properties,
   });
   const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_references', parsed, REFERENCES_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_references', parsed, REFERENCES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -217,6 +217,6 @@ export async function updateReference(id, fields) {
   }
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_references', parsed, REFERENCES_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_references', parsed, REFERENCES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }

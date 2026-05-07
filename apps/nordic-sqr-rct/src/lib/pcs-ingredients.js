@@ -16,7 +16,7 @@ import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_ingredients; all fields follow the camelCase → snake_case convention.
@@ -178,7 +178,7 @@ export async function syncRecentIngredientsToPostgres(sinceIso) {
   let mirrored = 0;
   for (const page of res.results) {
     const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP);
+    const result = await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
     if (result.mirrored) mirrored++;
     if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
   }
@@ -214,7 +214,7 @@ export async function createIngredient(fields) {
   invalidateIngredientsCache();
   const parsed = parsePage(page);
   // 2026-05-06 — Path-2 Day 2.6 write-mirror.
-  await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -253,7 +253,7 @@ export async function updateIngredient(id, fields) {
   invalidateIngredientsCache();
   const parsed = parsePage(page);
   // 2026-05-06 — Path-2 Day 2.6 write-mirror.
-  await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 

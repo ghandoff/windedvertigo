@@ -7,7 +7,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for pcs_requests.
 // All other camelCase keys map mechanically. The `assignees` field is
@@ -439,7 +439,7 @@ export async function updateRequest(id, fields) {
   }
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -456,7 +456,7 @@ export async function updateRequestLastPinged(id, isoDate) {
     },
   });
   const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -487,6 +487,6 @@ export async function createRequest(fields) {
     properties,
   });
   const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }

@@ -12,7 +12,7 @@
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_core_benefits; all fields follow the camelCase → snake_case
@@ -122,7 +122,7 @@ export async function syncRecentCoreBenefitsToPostgres(sinceIso) {
   let mirrored = 0;
   for (const page of res.results) {
     const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP);
+    const result = await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
     if (result.mirrored) mirrored++;
     if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
   }
@@ -165,7 +165,7 @@ export async function createCoreBenefit(fields) {
   invalidateCoreBenefitsCache();
   const parsed = parsePage(page);
   // 2026-05-06 — Path-2 Day 2.6 write-mirror.
-  await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -186,7 +186,7 @@ export async function updateCoreBenefit(id, fields) {
   invalidateCoreBenefitsCache();
   const parsed = parsePage(page);
   // 2026-05-06 — Path-2 Day 2.6 write-mirror.
-  await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 

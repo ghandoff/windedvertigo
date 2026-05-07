@@ -175,11 +175,54 @@ export async function GET(request) {
     no_pg: results.filter((r) => r.status === 'no_pg').length,
   };
 
+  // Phase B Bundle 1: surface the strong-consistency retry queue depth.
+  // Three numbers: still-retrying, hit the permanent-fail threshold,
+  // and the oldest unresolved enqueued_at (for "how stuck are we?").
+  let queue = null;
+  try {
+    const [unresolved, permFailed, oldest] = await Promise.all([
+      sb
+        .from('pcs_pending_writes')
+        .select('*', { count: 'exact', head: true })
+        .is('succeeded_at', null)
+        .lt('attempts', 10),
+      sb
+        .from('pcs_pending_writes')
+        .select('*', { count: 'exact', head: true })
+        .is('succeeded_at', null)
+        .gte('attempts', 10),
+      sb
+        .from('pcs_pending_writes')
+        .select('enqueued_at')
+        .is('succeeded_at', null)
+        .order('enqueued_at', { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+    const oldestAt = oldest.data?.enqueued_at || null;
+    queue = {
+      unresolved: unresolved.count ?? 0,
+      permanently_failed: permFailed.count ?? 0,
+      oldest_unresolved_at: oldestAt,
+      oldest_unresolved_seconds_ago: oldestAt
+        ? Math.floor((Date.now() - new Date(oldestAt).getTime()) / 1000)
+        : null,
+    };
+  } catch (err) {
+    // Table may not exist yet (migration 007 not applied); surface
+    // gracefully rather than 500ing the whole dashboard.
+    console.warn(`[mirror-status] queue check failed: ${err.message}`);
+    queue = { unresolved: null, permanently_failed: null, oldest_unresolved_at: null, error: err.message };
+  }
+
   return NextResponse.json({
     ok: true,
     durationMs: Date.now() - start,
     summary,
     results,
+    queue,
     flagOn: process.env.PCS_READ_FROM_POSTGRES === '1' || process.env.PCS_READ_FROM_POSTGRES === 'true',
+    strongConsistencyOn:
+      process.env.PCS_STRONG_CONSISTENCY === '1' || process.env.PCS_STRONG_CONSISTENCY === 'true',
   });
 }

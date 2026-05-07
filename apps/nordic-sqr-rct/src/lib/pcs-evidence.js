@@ -8,7 +8,7 @@
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
 
 // 2026-05-06 — column-name overrides for evidence's Notion → Postgres
 // mirror. Most fields follow camelCase → snake_case; these don't.
@@ -210,7 +210,7 @@ export async function syncRecentEvidenceToPostgres(sinceIso) {
   let mirrored = 0;
   for (const page of res.results) {
     const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP);
+    const result = await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
     if (result.mirrored) mirrored++;
     if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
   }
@@ -555,7 +555,7 @@ export async function createEvidence(fields) {
   // 2026-05-06 — Path-2 Phase A write-mirror. Notion is canonical;
   // we mirror to Postgres for read-path freshness. Best-effort —
   // failure logs but doesn't bubble to the user.
-  await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
 
@@ -618,6 +618,6 @@ export async function updateEvidence(id, fields) {
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateEvidenceCache();
   const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP);
+  await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }
