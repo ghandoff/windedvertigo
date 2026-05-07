@@ -1,19 +1,25 @@
+/**
+ * POST /api/upload
+ *
+ * Profile photo upload. Accepts a multipart/form-data body with a `file`
+ * field (JPEG/PNG/WebP, max 500 KB) and an optional `oldUrl` field.
+ *
+ * Storage: R2 bucket NORDIC_ASSETS (binding from wrangler.jsonc), served
+ * via GET /api/r2/profiles/... which is publicly accessible.
+ * Falls back to Vercel Blob in local dev without a wrangler binding.
+ *
+ * Returns: { url: string, success: true }
+ */
+
 import { NextResponse } from 'next/server';
-import { put, del } from '@vercel/blob';
+import { put, del } from '@vercel/blob'; // retained for local dev fallback
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { authenticateRequest } from '@/lib/auth';
+
+const NORDIC_URL = 'https://nordic.windedvertigo.com';
 
 export async function POST(request) {
   try {
-    // Vercel Blob requires BLOB_READ_WRITE_TOKEN
-    // On Vercel: auto-injected via Settings → Storage → Connect Blob Store
-    // Locally: add to .env.local (generate at vercel.com/dashboard/stores)
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      console.error('Upload failed: BLOB_READ_WRITE_TOKEN is not set');
-      return NextResponse.json({
-        error: 'Image storage is not configured. The BLOB_READ_WRITE_TOKEN environment variable is missing.',
-      }, { status: 503 });
-    }
-
     const user = await authenticateRequest(request);
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
@@ -37,32 +43,55 @@ export async function POST(request) {
       return NextResponse.json({ error: 'File too large (max 500 KB)' }, { status: 400 });
     }
 
-    // Optionally delete old blob if a previous URL is provided
-    const oldUrl = formData.get('oldUrl');
-    if (oldUrl && oldUrl.includes('.vercel-storage.com')) {
-      try {
-        await del(oldUrl);
-      } catch {
-        // Old blob may not exist or may have already been deleted — ignore
+    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+    // Include a random suffix to bust caches on re-upload
+    const randomSuffix = crypto.randomUUID().replace(/-/g, '').slice(0, 8);
+    const filename = `profiles/${user.alias.replace(/[^a-zA-Z0-9_-]/g, '_')}-${randomSuffix}.${ext}`;
+
+    let url;
+    try {
+      const { env } = await getCloudflareContext({ async: true });
+      const bucket = env.NORDIC_ASSETS;
+
+      if (bucket) {
+        // Delete old R2 object if the previous URL pointed to R2.
+        const oldUrl = formData.get('oldUrl');
+        if (oldUrl && typeof oldUrl === 'string' && oldUrl.includes('/api/r2/profiles/')) {
+          try {
+            const key = oldUrl.replace(/^.*\/api\/r2\//, '');
+            await bucket.delete(key);
+          } catch {
+            // Old object may not exist — ignore
+          }
+        }
+
+        await bucket.put(filename, file, {
+          httpMetadata: { contentType: file.type },
+        });
+        url = `${NORDIC_URL}/api/r2/${filename}`;
+      } else {
+        // Local dev fallback: Vercel Blob
+        console.warn('[upload] NORDIC_ASSETS not available — falling back to Vercel Blob');
+
+        const oldUrl = formData.get('oldUrl');
+        if (oldUrl && typeof oldUrl === 'string' && oldUrl.includes('.vercel-storage.com')) {
+          try { await del(oldUrl); } catch { /* ignore */ }
+        }
+
+        const blob = await put(filename, file, {
+          access: 'public',
+          addRandomSuffix: false, // already added above
+        });
+        url = blob.url;
       }
+    } catch (err) {
+      console.error('[upload] storage write failed:', err);
+      return NextResponse.json({ error: 'Upload failed' }, { status: 502 });
     }
 
-    // Upload to Vercel Blob
-    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
-    const filename = `profiles/${user.alias.replace(/[^a-zA-Z0-9_-]/g, '_')}.${ext}`;
-
-    const blob = await put(filename, file, {
-      access: 'public',
-      addRandomSuffix: true, // Prevent cache issues on re-upload
-    });
-
-    return NextResponse.json({ url: blob.url, success: true });
+    return NextResponse.json({ url, success: true });
   } catch (error) {
     console.error('Upload error:', error);
-    // Surface specific Vercel Blob errors
-    const message = error?.message?.includes('BlobAccessError')
-      ? 'Image storage authentication failed. Check BLOB_READ_WRITE_TOKEN.'
-      : 'Upload failed';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }
