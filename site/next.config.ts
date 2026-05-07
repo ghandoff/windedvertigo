@@ -440,18 +440,25 @@ const nextConfig: NextConfig = {
         destination: "https://cuts-catalogue.vercel.app/:path*",
       },
 
-      // feel cards
+      // read the room — formerly "feel cards"; renamed 2026-05-06.
+      // wv-harbour-read-the-room serves the static HTML and /api/room/* WS
+      // for shared-room sync via the Room Durable Object. CSP already
+      // allows wss://*.windedvertigo.workers.dev. Legacy /harbour/feel-cards
+      // 308-redirects to here via redirects() below.
       {
-        source: "/harbour/feel-cards",
-        destination: "https://feel-cards.vercel.app/",
+        source: "/harbour/read-the-room",
+        destination:
+          "https://wv-harbour-read-the-room.windedvertigo.workers.dev/harbour/read-the-room",
       },
       {
-        source: "/harbour/feel-cards/",
-        destination: "https://feel-cards.vercel.app/",
+        source: "/harbour/read-the-room/",
+        destination:
+          "https://wv-harbour-read-the-room.windedvertigo.workers.dev/harbour/read-the-room",
       },
       {
-        source: "/harbour/feel-cards/:path*",
-        destination: "https://feel-cards.vercel.app/:path*",
+        source: "/harbour/read-the-room/:path*",
+        destination:
+          "https://wv-harbour-read-the-room.windedvertigo.workers.dev/harbour/read-the-room/:path*",
       },
 
       // three-intelligence-workbook — static HTML tool
@@ -499,6 +506,18 @@ const nextConfig: NextConfig = {
       {
         source: "/vertigo-vault",
         destination: "/harbour/vertigo-vault",
+        permanent: true,
+      },
+
+      // read the room — slug rename from feel-cards (2026-05-06).
+      {
+        source: "/harbour/feel-cards",
+        destination: "/harbour/read-the-room",
+        permanent: true,
+      },
+      {
+        source: "/harbour/feel-cards/:path*",
+        destination: "/harbour/read-the-room/:path*",
         permanent: true,
       },
 

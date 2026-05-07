@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-harbour-read-the-room",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Static index.html served from this directory. The Worker falls through to
+  // ASSETS for everything that isn't /api/*. No build step — the HTML is the
+  // shipped artefact.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+
+  // Room holds per-trio state: positions, current scenario, card picks,
+  // reveal flag, written solutions. Storage uses SQLite-backed DO. Code is
+  // generated server-side; clients address rooms by code via idFromName(code).
+  "durable_objects": {
+    "bindings": [
+      { "name": "ROOM", "class_name": "Room" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["Room"] }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}
