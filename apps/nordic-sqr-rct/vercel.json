@@ -4,6 +4,7 @@
     { "path": "/api/cron/process-imports", "schedule": "*/2 * * * *" },
     { "path": "/api/cron/process-label-imports", "schedule": "*/5 * * * *" },
     { "path": "/api/cron/sweep-label-drift", "schedule": "0 8 * * *" },
+    { "path": "/api/cron/drift-sync", "schedule": "*/2 * * * *" },
     { "path": "/api/workflows/weekly-digest", "schedule": "0 16 * * 1" },
     { "path": "/api/workflows/nightly-reping", "schedule": "0 7 * * *" }
   ],

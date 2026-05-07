@@ -132,6 +132,27 @@ async function _fetchAllDocumentsFromNotion(maxPages) {
   return all.map(parsePage);
 }
 
+/**
+ * 2026-05-06 — Path-2 drift catcher. See pcs-evidence.js
+ * syncRecentEvidenceToPostgres for the full pattern.
+ */
+export async function syncRecentDocumentsToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.documents,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP);
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
+}
+
 async function _fetchAllDocumentsFromPostgres() {
   // 38 rows today, sorted by pcs_id ascending to match Notion behavior.
   // (Notion's getAllDocuments uses pcsId-ascending; we preserve that

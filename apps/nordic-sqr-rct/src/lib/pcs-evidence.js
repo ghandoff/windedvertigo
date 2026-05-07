@@ -184,6 +184,39 @@ async function _fetchAllEvidenceFromNotion(maxPages) {
   return all.map(parsePage);
 }
 
+/**
+ * 2026-05-06 — Path-2 drift catcher. Called every few minutes by
+ * /api/cron/drift-sync to pull any direct-Notion edits into Postgres
+ * (i.e. Sharon edits a row in Notion's web UI, bypassing our platform).
+ *
+ * Filters Notion for rows where last_edited_time >= sinceIso, then
+ * mirrors each to Postgres. Idempotent: re-running with the same
+ * sinceIso just re-mirrors the same rows. Returns { count, maxSeen }.
+ *
+ * The cron uses the previous run's maxSeen as the next run's sinceIso
+ * (with a small overlap window to avoid clock-skew gaps).
+ */
+export async function syncRecentEvidenceToPostgres(sinceIso) {
+  const filter = {
+    timestamp: 'last_edited_time',
+    last_edited_time: { on_or_after: sinceIso },
+  };
+  const res = await notion.databases.query({
+    database_id: PCS_DB.evidenceLibrary,
+    filter,
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP);
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
+}
+
 async function _fetchAllEvidenceFromPostgres() {
   // Single round-trip — no pagination needed; Supabase returns up to
   // 1000 rows by default which comfortably fits 87-row evidence table

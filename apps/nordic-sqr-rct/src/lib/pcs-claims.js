@@ -158,6 +158,27 @@ async function _fetchAllClaimsFromNotion(maxPages) {
   return all.map(parsePage);
 }
 
+/**
+ * 2026-05-06 — Path-2 drift catcher. See pcs-evidence.js
+ * syncRecentEvidenceToPostgres for the full pattern.
+ */
+export async function syncRecentClaimsToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.claims,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP);
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
+}
+
 async function _fetchAllClaimsFromPostgres() {
   // 469 rows today; allow headroom to 5000 (claims grow with each PCS
   // version). If we ever exceed that, switch to range-paginated fetch.
