@@ -31,10 +31,10 @@ export function CollaboratorStrip({ compact = false }: { compact?: boolean }) {
   return (
     <section
       className={`collab-strip${compact ? " collab-strip--compact" : ""}`}
-      aria-label="organisations we work with"
+      aria-label="organisations we play with"
     >
       <p className="collab-strip-label">
-        {compact ? "collaborators" : "organisations we work with"}
+        {compact ? "collaborators" : "organisations we play with"}
       </p>
 
       {!compact && (

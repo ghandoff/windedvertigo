@@ -77,7 +77,7 @@ export function SiteFooter({ sections }: { sections?: SiteSection[] }) {
             rel="noopener noreferrer"
             className="wv-footer-subscribe"
           >
-            subscribe to our newsletter
+            newsletter
           </a>
           <nav className="wv-footer-social" aria-label="social links">
             {social.map((s) => (
