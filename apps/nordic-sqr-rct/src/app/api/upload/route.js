@@ -12,7 +12,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { put, del } from '@vercel/blob'; // retained for local dev fallback
+// @vercel/blob imported dynamically in the local dev fallback below so it
+// is never evaluated on CF Workers (where the module throws on init).
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { authenticateRequest } from '@/lib/auth';
 
@@ -75,9 +76,13 @@ export async function POST(request) {
 
         const oldUrl = formData.get('oldUrl');
         if (oldUrl && typeof oldUrl === 'string' && oldUrl.includes('.vercel-storage.com')) {
-          try { await del(oldUrl); } catch { /* ignore */ }
+          try {
+            const { del } = await import('@vercel/blob');
+            await del(oldUrl);
+          } catch { /* ignore */ }
         }
 
+        const { put } = await import('@vercel/blob');
         const blob = await put(filename, file, {
           access: 'public',
           addRandomSuffix: false, // already added above
