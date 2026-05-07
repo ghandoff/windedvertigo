@@ -8,7 +8,11 @@ import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+
+// 2026-05-06 — Path-2 Phase A. No special column-name overrides for
+// pcs_documents; all fields follow the camelCase → snake_case convention.
+const DOCUMENTS_PG_COLUMN_MAP = {};
 
 // 2026-05-05 — Phase 3 Bundle 1. Documents list paginates Notion;
 // /pcs/documents and /api/pcs/dashboard both call getAllDocuments.
@@ -239,7 +243,10 @@ export async function updateDocument(id, fields) {
   }
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateDocumentsCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  // 2026-05-06 — Path-2 Phase A write-mirror.
+  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 /**
@@ -325,7 +332,10 @@ export async function setLatestVersion(documentId, versionId) {
   };
   const page = await notion.pages.update({ page_id: documentId, properties });
   invalidateDocumentsCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  // 2026-05-06 — Path-2 Phase A write-mirror.
+  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 export async function createDocument(fields) {
@@ -352,5 +362,7 @@ export async function createDocument(fields) {
     properties,
   });
   invalidateDocumentsCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP);
+  return parsed;
 }

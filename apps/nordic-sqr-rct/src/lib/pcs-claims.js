@@ -13,7 +13,11 @@ import {
 } from './pcs-canonical-claims.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+
+// 2026-05-06 — Path-2 Phase A. No special column-name overrides for
+// pcs_claims; all fields follow the camelCase → snake_case convention.
+const CLAIMS_PG_COLUMN_MAP = {};
 
 
 const P = PROPS.claims;
@@ -275,7 +279,10 @@ export async function updateClaim(id, fields) {
   }
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateClaimsCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  // 2026-05-06 — Path-2 Phase A write-mirror.
+  await mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 export async function createClaim(fields) {
@@ -327,7 +334,9 @@ export async function createClaim(fields) {
     properties,
   });
   invalidateClaimsCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP);
+  return parsed;
 }
 
 /**

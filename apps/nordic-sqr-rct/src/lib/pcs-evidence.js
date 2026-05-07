@@ -8,7 +8,15 @@
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres } from './supabase-pcs.js';
+
+// 2026-05-06 — column-name overrides for evidence's Notion → Postgres
+// mirror. Most fields follow camelCase → snake_case; these don't.
+const EVIDENCE_PG_COLUMN_MAP = {
+  pdf: 'pdf_url',
+  // Postgres uses `precision` directly so claims maps cleanly elsewhere;
+  // evidence has no exception beyond `pdf`.
+};
 
 
 const P = PROPS.evidence;
@@ -397,7 +405,12 @@ export async function createEvidence(fields) {
     properties,
   });
   invalidateEvidenceCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  // 2026-05-06 — Path-2 Phase A write-mirror. Notion is canonical;
+  // we mirror to Postgres for read-path freshness. Best-effort —
+  // failure logs but doesn't bubble to the user.
+  await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP);
+  return parsed;
 }
 
 export async function updateEvidence(id, fields) {
@@ -458,5 +471,7 @@ export async function updateEvidence(id, fields) {
   }
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateEvidenceCache();
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP);
+  return parsed;
 }
