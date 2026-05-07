@@ -10,6 +10,7 @@
     "packages/*",
     "apps/harbour/packages/security",
     "apps/harbour/values-auction",
+    "apps/harbour/read-the-room",
     "apps/nordic-sqr-rct"
   ],
   "scripts": {
@@ -17,6 +18,8 @@
     "dev:values-auction": "npm run dev -w apps/harbour/values-auction",
     "build:values-auction": "npm run build -w apps/harbour/values-auction",
     "deploy:values-auction": "npm run deploy:spa -w apps/harbour/values-auction",
+    "dev:read-the-room": "npm run dev -w @windedvertigo/read-the-room",
+    "deploy:read-the-room": "bash scripts/deploy-read-the-room.sh",
     "dev:harbour": "npm run dev -w harbour",
     "build:harbour": "npm run build -w harbour",
     "dev:port": "npm run dev -w port",

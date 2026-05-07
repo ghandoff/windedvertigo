@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#273248" />
+  <title>read the room: a quiet game of interpretation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      /* brand */
+      --cadet:     #273248;   /* page bg + dark text on light surfaces */
+      --redwood:   #b15043;
+      --sienna:    #cb7858;
+      --champagne: #ffebd2;   /* font colour on dark only — never bg */
+      --paper:     #ffffff;   /* card/tile backgrounds on dark */
+      --paper-soft:#fff5e6;   /* subtle off-white for nested surfaces */
+      /* derived */
+      --ink:       #273248;   /* dark text used on paper/tile surfaces */
+      --ink-soft:  #4e5a72;
+      --light:     #ffebd2;   /* default body text on cadet */
+      --light-soft: rgba(255,235,210,0.62);
+      --line:      rgba(255,235,210,0.18);
+      /* legacy aliases — kept so the deck SVG palettes still resolve */
+      --cream: #ffebd2;
+      --sand: #fff5e6;
+      --rose: #cb7858;
+      --sage: #cb7858;
+      --teal: #273248;
+      --terracotta: #b15043;
+      --twilight: #273248;
+      --gold: #b15043;
+      --plum: #273248;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--cadet);
+      color: var(--light);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    body {
+      /* solid cadet — the warm radial fades were removed 2026-05-07
+         per Garrett's note. Buttons + tiles still carry warm accents. */
+      background: var(--cadet);
+    }
+    .serif { font-family: 'Inter', -apple-system, system-ui, sans-serif; font-weight: 300; }
+    .screen {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: 28px 22px calc(28px + env(safe-area-inset-bottom));
+      max-width: 640px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    button {
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      padding: 14px 26px;
+      border-radius: 999px;
+      transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--redwood);
+      color: var(--champagne);
+      box-shadow: 0 2px 14px rgba(0,0,0,0.28);
+    }
+    .btn-primary:hover { background: #c0584a; }
+    .btn-primary:disabled {
+      background: rgba(255,235,210,0.10);
+      color: rgba(255,235,210,0.45);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--light-soft);
+      padding: 10px 18px;
+      font-size: 14px;
+    }
+    .btn-ghost:hover { color: var(--champagne); }
+    h1, h2, h3 { font-family: 'Inter', -apple-system, system-ui, sans-serif; font-weight: 300; margin: 0; color: var(--champagne); }
+    h1 { font-size: 40px; letter-spacing: -0.02em; line-height: 1.05; }
+    h2 { font-size: 28px; letter-spacing: -0.015em; line-height: 1.15; }
+    h3 { font-size: 20px; }
+    .muted { color: var(--light-soft); }
+    .tiny { font-size: 12px; letter-spacing: 0.08em; color: var(--light-soft); }
+    .prompt {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 26px;
+      line-height: 1.25;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .card {
+      aspect-ratio: 2/3;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 3px 14px rgba(38,36,40,0.08), 0 1px 3px rgba(38,36,40,0.04);
+      transition: transform 220ms cubic-bezier(.2,.8,.3,1), box-shadow 220ms ease, outline-offset 150ms ease;
+      cursor: pointer;
+      position: relative;
+      outline: 3px solid transparent;
+      outline-offset: 0;
+      -webkit-tap-highlight-color: transparent;
+      background: var(--line);
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(38,36,40,0.14), 0 2px 6px rgba(38,36,40,0.06);
+    }
+    .card.selected {
+      outline-color: var(--ink);
+      outline-offset: 4px;
+      transform: translateY(-3px);
+    }
+    .card-art {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .card-art svg { width: 100%; height: 100%; display: block; }
+    .card-label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 18px 10px 10px;
+      text-align: center;
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 12px;
+      font-style: italic;
+      color: var(--ink);
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+      background: linear-gradient(to top, rgba(255,235,210,0.96) 0%, rgba(255,235,210,0.88) 55%, rgba(255,235,210,0) 100%);
+      pointer-events: none;
+    }
+    .card-xl {
+      max-width: 320px;
+      width: 100%;
+      margin: 0 auto;
+      aspect-ratio: 2/3;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 16px 48px rgba(38,36,40,0.18), 0 3px 10px rgba(38,36,40,0.08);
+      background: var(--line);
+      position: relative;
+    }
+    .card-xl .card-art svg { width: 100%; height: 100%; display: block; }
+    .card-xl .card-label {
+      padding: 40px 18px 22px;
+      font-size: 20px;
+      background: linear-gradient(to top, rgba(255,235,210,0.98) 10%, rgba(255,235,210,0.9) 60%, rgba(255,235,210,0) 100%);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(38,36,40,0.06);
+      color: var(--ink-soft);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 20px 0;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInSlow {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.94); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .fade-in { animation: fadeIn 420ms ease both; }
+    .fade-in-slow { animation: fadeInSlow 900ms ease both; }
+    .scale-in { animation: scaleIn 500ms cubic-bezier(.2,.8,.3,1) both; }
+    .stagger > * { opacity: 0; animation: fadeIn 500ms ease forwards; }
+    .stagger > *:nth-child(1) { animation-delay: 40ms; }
+    .stagger > *:nth-child(2) { animation-delay: 110ms; }
+    .stagger > *:nth-child(3) { animation-delay: 180ms; }
+    .stagger > *:nth-child(4) { animation-delay: 250ms; }
+    .position-picker {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .position-btn {
+      aspect-ratio: 1;
+      border-radius: 16px;
+      border: 2px solid transparent;
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      cursor: pointer;
+      transition: all 200ms ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 4px;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    .position-btn .pos-num {
+      font-size: 44px;
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .position-btn .pos-tag {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: lowercase;
+      opacity: 0.72;
+      line-height: 1;
+    }
+    /* three distinct tile colours, each WCAG-AA-safe with its text colour */
+    .position-btn.seat-1 { background: var(--redwood); color: var(--champagne); }   /* 5.5:1 */
+    .position-btn.seat-2 { background: var(--sienna);  color: var(--cadet); }       /* 4.6:1 */
+    .position-btn.seat-3 { background: var(--paper);   color: var(--cadet); }       /* 14:1  */
+    .position-btn:hover:not(:disabled):not(.active) { transform: translateY(-1px); }
+    .position-btn.active {
+      border-color: var(--champagne);
+      box-shadow: 0 0 0 2px rgba(255,235,210,0.25), 0 6px 18px rgba(0,0,0,0.32);
+      transform: scale(1.02);
+    }
+    .position-btn:disabled,
+    .position-btn.taken {
+      cursor: not-allowed;
+      opacity: 0.42;
+      filter: saturate(0.4);
+    }
+    @media (max-width: 360px) {
+      .position-btn .pos-num { font-size: 36px; }
+      .position-btn .pos-tag { font-size: 9px; }
+    }
+    .difficulty-picker {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 22px;
+    }
+    .difficulty-btn {
+      width: 100%;
+      text-align: left;
+      background: var(--paper);
+      border: 2px solid transparent;
+      border-radius: 18px;
+      padding: 20px 22px;
+      cursor: pointer;
+      transition: all 220ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .difficulty-btn:hover { transform: translateY(-1px); }
+    .difficulty-btn .d-label {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 24px;
+      line-height: 1.1;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .difficulty-btn .d-blurb {
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--ink-soft);
+      margin-top: 4px;
+      font-family: 'Inter', sans-serif;
+    }
+    .difficulty-btn.active {
+      background: var(--redwood);
+      border-color: var(--champagne);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+    }
+    .difficulty-btn.active .d-label,
+    .difficulty-btn.active .d-blurb {
+      color: var(--champagne);
+    }
+    .role-banner {
+      padding: 18px 20px;
+      border-radius: 18px;
+      margin: 16px 0 24px;
+      text-align: center;
+    }
+    .role-banner.holder {
+      background: linear-gradient(135deg, var(--redwood) 0%, var(--sienna) 100%);
+    }
+    .role-banner.interpreter {
+      background: linear-gradient(135deg, var(--sienna) 0%, var(--paper) 100%);
+    }
+    .role-banner.holder .tiny,
+    .role-banner.holder h2,
+    .role-banner.holder p { color: var(--champagne) !important; }
+    .role-banner.interpreter .tiny { color: rgba(38,36,40,0.6) !important; }
+    .role-banner.interpreter h2,
+    .role-banner.interpreter p { color: var(--ink) !important; }
+    .role-banner h2 { margin-top: 6px; }
+    .progress-dots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,235,210,0.20);
+      transition: background 300ms ease, transform 300ms ease;
+    }
+    .dot.done { background: var(--sienna); }
+    .dot.active { background: var(--champagne); transform: scale(1.3); }
+    .countdown {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 120px;
+      line-height: 1;
+      color: var(--champagne);
+      font-weight: 300;
+    }
+    .spacer { flex: 1; }
+    .reveal-hint {
+      text-align: center;
+      padding: 14px 20px;
+      margin-top: 20px;
+      border-radius: 16px;
+      background: rgba(255,235,210,0.08);
+      color: var(--light-soft);
+      font-size: 14px;
+    }
+    .echo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .echo-q {
+      padding: 16px 20px;
+      border-radius: 14px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.4;
+    }
+    .solution-input {
+      width: 100%;
+      margin-top: 22px;
+      padding: 16px 18px;
+      border: 1.5px solid rgba(255,235,210,0.18);
+      border-radius: 16px;
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.45;
+      color: var(--ink);
+      background: var(--paper);
+      resize: none;
+      -webkit-appearance: none;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+      box-sizing: border-box;
+    }
+    .solution-input:focus {
+      outline: none;
+      border-color: var(--champagne);
+      box-shadow: 0 0 0 3px rgba(255,235,210,0.25);
+    }
+    .solution-input::placeholder { color: var(--ink-soft); font-style: italic; }
+    .reflection-card {
+      margin-top: 30px;
+      padding: 26px 22px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--redwood) 0%, var(--sienna) 100%);
+    }
+    .reflection-card .tiny { color: rgba(255,235,210,0.72) !important; }
+    .reflection-card .prompt {
+      font-size: 22px;
+      line-height: 1.3;
+      margin-top: 10px;
+      color: var(--champagne);
+    }
+    .solutions-recap {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 22px;
+    }
+    .solution-card {
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--paper);
+      border-left: 3px solid var(--redwood);
+    }
+    .solution-card .tiny { color: var(--ink-soft) !important; }
+    .solution-card .scenario {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 13px;
+      font-style: italic;
+      color: var(--ink-soft);
+      line-height: 1.35;
+      margin-top: 4px;
+    }
+    .solution-card .move {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+      color: var(--ink);
+      margin-top: 10px;
+    }
+    .solution-card .move.empty {
+      color: var(--ink-soft);
+      font-style: italic;
+    }
+    .footer-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .wv-wordmark {
+      color: var(--ink);
+      font-style: italic;
+      letter-spacing: -0.01em;
+      font-weight: 400;
+    }
+    /* Persistent exit affordance — sits in the top-right corner whenever
+       you're in a room, so no screen ever feels like a dead end. The room
+       code is right on the chip so you know what you're leaving (and can
+       paste it back in if you tapped by accident). */
+    .exit-corner {
+      position: fixed;
+      top: calc(12px + env(safe-area-inset-top));
+      right: calc(12px + env(safe-area-inset-right));
+      z-index: 20;
+      display: none;
+    }
+    .exit-corner.visible { display: block; }
+    .exit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,235,210,0.10);
+      color: var(--champagne);
+      border: 1px solid rgba(255,235,210,0.18);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      transition: background 180ms ease, transform 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .exit-btn:hover { background: rgba(255,235,210,0.18); }
+    .exit-btn:active { transform: scale(0.96); }
+    .exit-btn .exit-code {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.14em;
+      opacity: 0.78;
+    }
+    .exit-btn .exit-x {
+      font-size: 16px;
+      line-height: 1;
+      opacity: 0.85;
+    }
+    @media (min-width: 500px) {
+      .card-grid { grid-template-columns: repeat(4, 1fr); }
+      h1 { font-size: 52px; }
+      .prompt { font-size: 32px; }
+    }
+    @media (max-width: 340px) {
+      .prompt { font-size: 22px; }
+      h1 { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="exit-corner" class="exit-corner" aria-hidden="true"></div>
+  <div id="app"></div>
+
+  <script>
+    // ============================================================
+    // READ THE ROOM — a quiet game of interpretation
+    // (formerly "feel cards"; renamed 2026-05-06)
+    // Built for winded.vertigo
+    // ============================================================
+
+    // ---------- CARD DECK ----------
+    // 12 composition archetypes × 3 palette variants = 36 cards
+    // Palettes (background, primary, accent, shadow)
+    const PAL = {
+      deep:      { bg: '#273248', p: '#ffebd2', a: '#cb7858', s: '#b15043' },
+      warmth:    { bg: '#ffebd2', p: '#273248', a: '#b15043', s: '#cb7858' },
+      ember:     { bg: '#b15043', p: '#ffebd2', a: '#cb7858', s: '#273248' },
+      sienna:    { bg: '#cb7858', p: '#273248', a: '#ffebd2', s: '#b15043' },
+      duskblue:  { bg: '#2f3a54', p: '#cb7858', a: '#ffebd2', s: '#b15043' },
+      softcream: { bg: '#fff5e6', p: '#273248', a: '#cb7858', s: '#b15043' },
+    };
+
+    // Composition renderers — each returns an inner SVG string
+    // Canvas: 200x300 viewBox
+    const COMP = {
+      horizon: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <rect y="190" width="200" height="110" fill="${p.s}" opacity="0.18"/>
+        <circle cx="100" cy="155" r="42" fill="${p.a}"/>
+        <line x1="0" y1="190" x2="200" y2="190" stroke="${p.p}" stroke-width="1.5" opacity="0.5"/>`,
+      wave: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M-10 180 Q 50 120, 100 180 T 210 180 L 210 310 L -10 310 Z" fill="${p.p}" opacity="0.85"/>
+        <path d="M-10 220 Q 60 160, 110 220 T 220 220 L 220 310 L -10 310 Z" fill="${p.s}" opacity="0.55"/>
+        <circle cx="160" cy="80" r="20" fill="${p.a}" opacity="0.9"/>`,
+      doorway: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M60 260 L60 140 Q60 70, 100 70 Q140 70, 140 140 L140 260 Z" fill="${p.p}"/>
+        <path d="M76 260 L76 145 Q76 88, 100 88 Q124 88, 124 145 L124 260 Z" fill="${p.a}" opacity="0.95"/>
+        <circle cx="100" cy="155" r="6" fill="${p.bg}"/>`,
+      mountain: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M0 260 L60 140 L100 190 L155 110 L200 170 L200 300 L0 300 Z" fill="${p.p}"/>
+        <path d="M0 260 L40 200 L80 240 L130 180 L200 240 L200 300 L0 300 Z" fill="${p.s}" opacity="0.55"/>
+        <circle cx="50" cy="70" r="14" fill="${p.a}" opacity="0.85"/>`,
+      spiral: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <g transform="translate(100 150)">
+          <path d="M0 0 Q 30 -30, 60 0 T 90 50 Q 60 100, 10 80 Q -50 50, -30 -10 Q 0 -60, 40 -40" fill="none" stroke="${p.p}" stroke-width="6" stroke-linecap="round"/>
+          <path d="M0 0 Q 15 -15, 30 0 T 40 20" fill="none" stroke="${p.a}" stroke-width="4" stroke-linecap="round"/>
+          <circle r="5" fill="${p.s}"/>
+        </g>`,
+      broken_circle: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M100 60 A 80 80 0 1 1 40 200" fill="none" stroke="${p.p}" stroke-width="14" stroke-linecap="round"/>
+        <circle cx="150" cy="220" r="10" fill="${p.a}"/>
+        <circle cx="60" cy="100" r="6" fill="${p.s}" opacity="0.6"/>`,
+      threads: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <line x1="20" y1="30" x2="60" y2="270" stroke="${p.p}" stroke-width="3" stroke-linecap="round"/>
+        <line x1="80" y1="40" x2="140" y2="260" stroke="${p.s}" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+        <line x1="160" y1="35" x2="180" y2="265" stroke="${p.a}" stroke-width="3" stroke-linecap="round"/>
+        <line x1="50" y1="80" x2="170" y2="220" stroke="${p.p}" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <line x1="30" y1="220" x2="160" y2="90" stroke="${p.s}" stroke-width="2" stroke-linecap="round" opacity="0.5"/>`,
+      pool: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <ellipse cx="100" cy="170" rx="78" ry="68" fill="${p.p}"/>
+        <ellipse cx="100" cy="170" rx="52" ry="44" fill="${p.s}" opacity="0.55"/>
+        <ellipse cx="100" cy="170" rx="24" ry="20" fill="${p.a}"/>
+        <circle cx="130" cy="60" r="5" fill="${p.p}" opacity="0.6"/>
+        <circle cx="70" cy="80" r="3" fill="${p.p}" opacity="0.4"/>`,
+      fracture: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <rect x="30" y="50" width="140" height="200" fill="${p.p}" opacity="0.85"/>
+        <path d="M100 50 L 85 130 L 110 160 L 95 250" fill="none" stroke="${p.bg}" stroke-width="5" stroke-linejoin="miter"/>
+        <path d="M100 50 L 115 110 L 95 145 L 120 250" fill="none" stroke="${p.a}" stroke-width="3" opacity="0.8"/>`,
+      column: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <rect x="80" y="40" width="40" height="220" fill="${p.p}"/>
+        <rect x="70" y="40" width="60" height="14" fill="${p.s}"/>
+        <rect x="70" y="246" width="60" height="14" fill="${p.s}"/>
+        <circle cx="100" cy="150" r="8" fill="${p.a}"/>`,
+      branching: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <path d="M100 270 L100 170" stroke="${p.p}" stroke-width="5" stroke-linecap="round"/>
+        <path d="M100 170 L 60 110" stroke="${p.p}" stroke-width="4" stroke-linecap="round"/>
+        <path d="M100 170 L 140 110" stroke="${p.p}" stroke-width="4" stroke-linecap="round"/>
+        <path d="M100 170 L 100 90" stroke="${p.p}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M60 110 L 40 70" stroke="${p.s}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M140 110 L 160 70" stroke="${p.s}" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="40" cy="70" r="5" fill="${p.a}"/>
+        <circle cx="160" cy="70" r="5" fill="${p.a}"/>
+        <circle cx="100" cy="90" r="5" fill="${p.a}"/>`,
+      echo: (p) => `
+        <rect width="200" height="300" fill="${p.bg}"/>
+        <circle cx="100" cy="150" r="22" fill="${p.p}"/>
+        <circle cx="100" cy="150" r="44" fill="none" stroke="${p.p}" stroke-width="2.5" opacity="0.75"/>
+        <circle cx="100" cy="150" r="68" fill="none" stroke="${p.p}" stroke-width="2" opacity="0.5"/>
+        <circle cx="100" cy="150" r="92" fill="none" stroke="${p.p}" stroke-width="1.5" opacity="0.3"/>
+        <circle cx="100" cy="150" r="10" fill="${p.a}"/>`,
+    };
+
+    // Build a 36-card deck: each composition × 3 distinct palettes
+    const PALETTE_ORDER = [
+      ['dawn','sea','fog'],
+      ['rose','sea','meadow'],
+      ['dusk','sand','ember'],
+      ['fog','night','dawn'],
+      ['ember','meadow','rose'],
+      ['sea','rose','sand'],
+      ['night','dawn','fog'],
+      ['meadow','dusk','ember'],
+      ['sand','night','rose'],
+      ['rose','meadow','sea'],
+      ['dusk','fog','ember'],
+      ['night','ember','meadow'],
+    ];
+    const PALETTE_MAP = {
+      dawn:   PAL.warmth,
+      dusk:   PAL.duskblue,
+      fog:    PAL.softcream,
+      rose:   PAL.ember,
+      sea:    PAL.deep,
+      meadow: PAL.sienna,
+      ember:  PAL.ember,
+      night:  PAL.deep,
+      sand:   PAL.warmth,
+    };
+
+    // Feeling + observable workplace action — one per card, ordered to match PALETTE_ORDER.
+    // Every label pairs an internal state with a behavior you could literally watch
+    // a person do in an office: writing a note, stepping out for water, DMing someone,
+    // keeping their face neutral, closing the camera, etc. Universal across all 10 scenarios.
+    const LABELS = {
+      horizon:       ["i'm zoomed out, i name what actually matters here", "i feel settled, i offer a reframe",                    "i'm steady, i make space for someone else to speak"],
+      wave:          ["i'm flooded, i pause before responding",             "i'm swept up, i write it down first",                  "something moves me, i say so out loud"],
+      doorway:       ["i'm uncertain, i step in anyway",                    "i feel curious, i ask what we haven't tried yet",      "i'm hesitant, i name what's holding me back"],
+      mountain:      ["i feel the weight, i name it in the room",           "i'm tired, i ask what we can let go of",               "i feel solid, i hold the group's direction"],
+      spiral:        ["i keep returning to it, i try one more angle",       "i'm spinning, i ask someone what they see",            "something's unresolved, i name it before we move on"],
+      broken_circle: ["something broke, i name it before we continue",      "i feel the gap, i propose how we close it",            "we lost something, i make space to acknowledge it"],
+      threads:       ["i feel the tension, i hold both sides",              "i'm tracking something, i bring it into the open",     "i feel connected, i build on what they said"],
+      pool:          ["i need to sit with it, i say not yet",               "i'm listening, i reflect back what i heard",           "i feel clear, i offer what i'm actually thinking"],
+      fracture:      ["i'm hurt, i stay with it instead of moving past it", "something cracked, i say what i noticed",              "i feel sharp, i redirect toward the problem"],
+      column:        ["i feel grounded, i give my honest assessment",       "i'm centered, i invite the disagreement in",           "i feel strong, i let someone else take the lead"],
+      branching:     ["i feel open, i generate three options before choosing", "i'm energised, i reframe the whole problem",        "i feel creative, i invite the group to build on my thinking"],
+      echo:          ["i recognize this, i name the pattern",               "it ripples, i ask what we learned",                   "i feel resolved, i note what worked"],
+    };
+
+    function buildDeck() {
+      const compNames = Object.keys(COMP);
+      const deck = [];
+      let id = 0;
+      compNames.forEach((name, i) => {
+        const palettes = PALETTE_ORDER[i] || ['dawn','fog','sea'];
+        const labels = LABELS[name] || ['', '', ''];
+        palettes.forEach((palName, j) => {
+          const p = PALETTE_MAP[palName];
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice">${COMP[name](p)}</svg>`;
+          deck.push({ id: id++, name: `${name}-${palName}`, label: labels[j] || '', svg });
+        });
+      });
+      return deck;
+    }
+
+    const DECK = buildDeck();
+
+    // ---------- SCENARIOS ----------
+    // 50 concrete workplace scenarios with emotional + cross-cultural charge.
+    // Second person; specific enough to ground discussion, open enough to
+    // produce divergent readings of how one might feel or respond.
+    // Span: meetings, feedback, remote/cross-border, identity, hierarchy,
+    // money/power, small daily moments. Mix of cross-cultural and purely
+    // emotional registers.
+    const PROMPTS = [
+      // creative intelligence · 1-15
+      "your team has been developing a market entry strategy for a client. the B2B channel framing you started with isn't holding up under the numbers. you've been reworking it for two hours and the deadline is in one more.",
+      "in a planning session, a colleague suggests running a regional pilot before scaling. it's an option you'd already considered and quietly set aside three weeks ago. you can't recall exactly why you ruled it out.",
+      "you've been developing a curriculum for a corporate client. two weeks in, they shift the target audience from senior managers to front-line teams. what you've built is solid. it answers a different need than the one you're now being asked to meet.",
+      "you finish a strategy memo you've been working on for three days and send it to your manager. it meets the brief. sitting with it afterward, you know the recommendation could have been sharper. you just can't locate what's missing.",
+      "you're asked to lead the financial modelling section of a team project. you've never done it before. when you ask what the output should look like, the answer is vague. the others seem to assume you'll figure it out.",
+      "your team has been stuck on how to structure the recommendations section of a consulting report for three days. a colleague who just joined the project looks at the brief for twenty minutes and proposes a framework that works. it's a good one.",
+      "you're halfway through designing a leadership development programme for a mid-size company. something a stakeholder says in a check-in call makes you pause. the more you sit with it, the more you suspect the whole framing you started with might be wrong. you're not certain.",
+      "you've been trying to solve the same research question five different ways over two weeks. none of them produce usable results. you're starting to wonder whether you're missing something methodologically or whether the research question itself was wrong from the start.",
+      "you present a proposed go-to-market strategy to the group. a colleague pushes back directly, in front of everyone. as they make their case, you realize most of what they're saying is accurate. you haven't responded yet.",
+      "your team has been iterating on the same workshop design for four weeks, adjusting activities, tweaking timing and rewriting facilitation notes. in every review, you find yourself thinking the whole design should probably be scrapped and rebuilt from a different premise. you haven't said it out loud yet.",
+      "you've been preparing to present your thesis research to an external review panel for a week. five minutes before it starts, you still don't feel ready. the work is done. you're just not sure the argument holds. you're up next.",
+      "you've been advocating for a cohort-based learning model instead of the self-paced format your team keeps defaulting to. every time you bring it forward, it hits the same wall: budget, logistics, stakeholder resistance. you've raised it three times now.",
+      "you hand in a new service concept you spent two weeks developing for an existing client. the feedback comes back: well-executed, but addressing a problem the client has already moved past. the work itself isn't the issue.",
+      "midway through a consulting engagement, it becomes clear the operational inefficiency your team has been diagnosing isn't what's actually driving the client's results problem. you were the one who framed the diagnostic at the start. the team trusted your framing.",
+      "three months ago, you proposed that your organisation pivot its flagship programme from in-person to hybrid delivery. the team aligned around it. the rollout is underway. engagement is poor, facilitators are struggling and the data has been clear for a while. the team knows it too.",
+
+      // emotional intelligence · 16-33
+      "you're halfway through facilitating a strategy workshop with a client team. the energy in the room visibly drops after a breakout activity. people are still engaged, technically, but something has shifted. you're not sure if it's the activity, the pace or something you said in the debrief.",
+      "a direct report is walking you through a problem they've been stuck on for a week, clearly needing you to follow the logic. you realize you've been only half-present. you caught yourself thinking about a deadline you have later today. you're not sure how much you missed.",
+      "you walk out of a project check-in that went fine by all appearances: on track, no conflict, decisions made. something feels off, a residue you can't quite locate. nothing obvious happened. you're still carrying it an hour later.",
+      "you have a routine check-in with your supervisor scheduled for tomorrow. there's nothing difficult on the agenda. you've been turning it over for two days. the level of anxiety doesn't match the situation and you know it.",
+      "a colleague you trust stops you in the corridor and asks how you're doing, genuinely. the honest answer involves a project you're behind on, a decision you're second-guessing and a conversation you've been avoiding. they're still looking at you.",
+      "your manager gives you feedback on a client presentation you led last week. it's specific and harder to hear than you expected. it's about your command of the room. the conversation is still going and you need to respond in the next thirty seconds.",
+      "you're leading a team review of someone's draft report. mid-review, you realize your comments have been sharper than they need to be, more critical than the work warrants. the person across from you has noticed. the review is still happening.",
+      "you're in a 1:1 with a team member, reviewing a project that's been under pressure. partway through, they start to cry. it catches you off guard. the room has gone quiet.",
+      "your organisation has decided to discontinue a programme you've been leading for two years. you had the chance to make your case at an earlier stage and held back. the decision is now final.",
+      "a colleague you work alongside daily tells you, quietly, that they're planning to leave the organisation and that they've been unhappy for months. they're not asking for advice. you didn't know. the silence after they finish is getting longer.",
+      "you're presenting an early-stage research proposal to a faculty committee. you believe in the direction but the methodology isn't fully resolved yet. the committee is listening carefully. you can feel their uncertainty matching yours.",
+      "a colleague who's normally one of the most engaged people on your team has been visibly quieter for three weeks: shorter emails, less present in meetings, quieter in conversations. nothing has been said. you're not sure if asking would help or feel like overstepping.",
+      "a difficult conversation with a collaborator ended three days ago, on good terms and with an agreement reached. it keeps surfacing in your thoughts. something about how it closed doesn't sit right.",
+      "a colleague asks for your honest feedback on a proposal they've been developing for a month. the real issue is the core assumption the whole proposal rests on. that's harder to say. they're waiting.",
+      "you were leading a fast-moving team discussion yesterday and cut off a quieter team member mid-sentence to move things along. looking back at it today, you realize it was harder than the situation warranted. it was more than was called for.",
+      "you're in a high-stakes negotiation with a partner organisation. the conversation is at a delicate point. you can feel yourself starting to get defensive in a way that will close things down. you haven't reacted yet but you're close.",
+      "in a team meeting, your director publicly thanks you for pulling together a client report that held up under scrutiny. the acknowledgment is warm. the person who did most of the analytical work was a junior colleague who isn't in the meeting. you smile and say thank you.",
+      "a colleague you collaborate with daily told you last week that a family member is seriously ill. you're now three days into a normal sprint, working alongside them through deliverables, check-ins and deadlines. you're not sure how to hold what you know alongside the work.",
+
+      // collaborative intelligence · 34-50
+      "your project team has been trying for an hour to decide which of three strategic directions to pursue for a client. the discussion has been substantive. you haven't moved toward a decision and you have thirty minutes left in the room. no one has named the stalemate yet.",
+      "you're in a team debrief after a workshop. one person, new to the team and with the most direct facilitation experience in the room, has leaned forward to speak at least three times. each time, someone else jumps in first. no one else seems to have noticed.",
+      "you're co-authoring a research report with a colleague. your instinct is to build the argument from the data up. theirs is to lead with the framework. it's been workable so far but in the last few days the difference has started to slow things down.",
+      "a new member joins your project team three weeks into a six-week sprint. within a few days, something in the group dynamic has shifted. conversations are slightly different, alliances have quietly rearranged. it's noticeable and no one is talking about it.",
+      "your curriculum committee agrees in under ten minutes to discontinue an elective that's been running for five years. there's no real pushback. something about how easily everyone moved on leaves you with a doubt you can't quite name.",
+      "two members of your project team are in an ongoing disagreement about the scope of the client deliverable. one wants depth in one area, the other wants broader coverage. the more you follow both arguments, the clearer it is that each of them is right about a different thing. they've started going around each other. no one has asked you to step in yet.",
+      "you're running a strategy session with three junior colleagues. the quietest person in the room suggests a reframing of the whole problem that's clearly better than the direction you've been heading. you know it. you haven't said so yet.",
+      "your team has spent two days trying to agree on which methodology to use for a client diagnostic. there are two real options, each with genuine trade-offs and each with a legitimate advocate. the conversation keeps circling. the client is expecting your proposal tomorrow morning.",
+      "over the last four team meetings, a senior colleague has consistently steered conversations toward a vendor solution their previous team used. it's through framing, through which questions get asked. you've noticed the pattern. others may not have yet.",
+      "a junior member of your team has been producing the clearest, most careful synthesis work on the project: tracking decisions, flagging risks and keeping the group aligned. it hasn't come up in any team conversation or client-facing context. you're not sure they know you've noticed.",
+      "you and a co-facilitator have been running a workshop series together. your instinct is to give participants more unstructured time. theirs is to keep things tightly scaffolded. the difference has been manageable so far. this week, participants started naming the inconsistency.",
+      "you're out sick for a day. while you're out, the team meets and decides to cut a section of the programme you've been responsible for developing, on the grounds that it overlaps with another module. you would have pushed back hard. the decision is already communicated to stakeholders.",
+      "your team has spent four months building a new onboarding process for the organisation. at the company all-hands, a department head presents the initiative as their own, with no mention of the team that designed and tested it. your team is watching the presentation.",
+      "your team is converging on a project timeline that, in your reading, doesn't account for a key dependency in the final phase. you've been looking for the right moment to raise it. the decision is about to be locked. you're not certain enough to stop it but you're not comfortable either.",
+      "for the past month, you've been the one coordinating across three workstreams, following up on what others dropped and making sure the client never sees the internal friction. the project is on track. in this week's team retrospective, no one mentions it.",
+      "you and a long-term collaborator are two months into a joint project. over the last few weeks, they've started cc'ing your shared manager on emails they used to send directly to you, double-checking decisions you'd normally make together and going quiet where they'd usually push back. nothing has been said. you might be reading it wrong but you don't think you are.",
+      "your team submits the final deliverable on a six-month consulting engagement. it required late nights, difficult client conversations and several near-misses. the submission goes in. the client acknowledges receipt. by monday, everyone is on new projects. no one marks the moment.",
+    ];
+
+    // ---------- DIFFICULTY ----------
+    // Per-scenario difficulty tag (parallel to PROMPTS — index matches).
+    // light  — everyday friction, quiet moments, not too emotionally loaded
+    // real   — the fuller texture of work, emotionally charged but manageable
+    // tender — identity, power, and the hardest ground (microaggressions,
+    //          exclusion, wounds that carry weight)
+    const PROMPT_DIFFICULTY = [
+      // 0-14 · creative intelligence
+      'light','light','light','light','light',
+      'real','real','real','real','real','real','real',
+      'tender','tender','tender',
+      // 15-32 · emotional intelligence
+      'light','light','light','light','light',
+      'real','real','real','real','real','real','real','real','real',
+      'tender','tender','tender','tender',
+      // 33-49 · collaborative intelligence
+      'light','light','light','light','light',
+      'real','real','real','real','real','real','real','real','real',
+      'tender','tender','tender',
+    ];
+
+    const DIFFICULTY_META = {
+      light:  { label: 'light',  blurb: 'everyday friction and quiet moments' },
+      real:   { label: 'real',   blurb: 'the fuller texture of work, charged but everyday' },
+      tender: { label: 'tender', blurb: 'identity, power, the hardest ground' },
+    };
+
+    // ---------- REFLECTION QUESTIONS ----------
+    // Post-reveal, per round. Arc: self (emotional) → context (cross-cultural) → collective (integrative).
+    const REFLECTIONS = [
+      "look at what you picked. does it match what you'd actually do, or the version you'd perform at work?",
+      "where did your response come from? who in your life taught you to meet moments like this: a mentor, family, culture?",
+      "your trio chose three different moves. what would a team need to make room for all three?",
+    ];
+
+    // ---------- SOLVE PROMPTS ----------
+    // Per-round creative tasks. Escalating: name a move → honor difference → design a practice.
+    const SOLVE_PROMPTS = [
+      "together, write one concrete move your trio would make. who does what? what gets said?",
+      "together, write a move that draws on each of your three different strengths. what would each of you contribute?",
+      "together, design a small practice your team could try: something that holds what you learned across all three rounds.",
+    ];
+
+    // ---------- STATE ----------
+    // Local mirror of the server's RoomState. The screen field and solutions
+    // array are client-only: solutions stay on this device per the game's
+    // "this stays with you" promise; screen is derived from server.phase
+    // plus a few client-only screens (enter, joining).
+    const state = {
+      screen: 'enter',
+      // server-mirrored
+      code: null,
+      positions: { 1: null, 2: null, 3: null },
+      difficulty: null,
+      round: 0,
+      currentPromptIdx: null,
+      usedPrompts: [],
+      hands: { 1: [], 2: [], 3: [] },
+      cardPicks: { 1: null, 2: null, 3: null },
+      revealed: false,
+      phase: 'lobby',
+      // client-only
+      clientId: null,
+      position: null,        // 1, 2, or 3 once claimed
+      solutions: ['', '', ''],
+      joinError: null,
+      lastError: null,
+    };
+
+    // ---------- SYNC ----------
+    // WebSocket layer. One connection per page. Reattaches via localStorage on
+    // refresh. The Worker exposes /api/room (POST) for code creation and
+    // /api/room/:code/ws for the WebSocket; in dev these go to localhost:8787,
+    // in prod they share an origin with the page (proxied via the site Worker).
+    const STORAGE_KEY = 'read-the-room/v1';
+    const RECENT_PHASES_PROMPT = new Set(['prompt','wait','reveal','reflect','solve']);
+
+    function loadStored() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    }
+    function saveStored(patch) {
+      try {
+        const cur = loadStored() || {};
+        // Stamp the current epoch so a future client knows this blob matches
+        // its expected shape. Without this, an epoch bump would clear writes
+        // made by the same client right after the bump.
+        const next = { ...cur, ...patch, epoch: CLIENT_EPOCH };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+    }
+    function clearStored() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    }
+
+    // API origin. Static HTML is served either directly from the Worker
+    // (workers.dev / local wrangler dev) or via the site proxy at
+    // www.windedvertigo.com/harbour/read-the-room. WebSockets through a
+    // Next.js rewrite are unreliable, so the API + WS always go to the
+    // Worker origin directly. CSP on the site allows
+    // wss://*.windedvertigo.workers.dev.
+    const WORKER_ORIGIN = 'https://wv-harbour-read-the-room.windedvertigo.workers.dev';
+    function apiBase() {
+      const host = window.location.host;
+      const onWorker = host.endsWith('.workers.dev');
+      const onLocal = host.startsWith('localhost') || host.startsWith('127.0.0.1') || host.startsWith('0.0.0.0');
+      if (onWorker || onLocal) {
+        return {
+          http: window.location.origin,
+          ws: (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + host,
+        };
+      }
+      return {
+        http: WORKER_ORIGIN,
+        ws: 'wss://wv-harbour-read-the-room.windedvertigo.workers.dev',
+      };
+    }
+
+    let ws = null;
+    let wsReconnectAt = 0;
+    // Per-session counter of consecutive WS opens that closed before any
+    // message landed. Resets the moment we've held an open socket long enough
+    // to receive a message (the server sends 'you'+'state' immediately on
+    // accept). After 3 such failures we bail to the enter screen instead of
+    // looping forever — covers stale localStorage codes, malformed routes,
+    // network filters that drop wss://, and rooms evicted between exists+ws.
+    let wsConsecutiveFailures = 0;
+    let wsHasReceivedMsg = false;
+    // Codes are exactly 6 uppercase consonants — same alphabet the server
+    // generates from. Anything else is rejected client-side without a
+    // network round trip.
+    const CODE_PATTERN = /^[BCDFGHJKLMNPQRSTVWXYZ]{6}$/;
+
+    function send(msg) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(msg));
+      }
+    }
+
+    function bailToEnter(message) {
+      try { ws && ws.close(1000, 'bail'); } catch {}
+      ws = null;
+      clearStored();
+      state.code = null;
+      state.position = null;
+      state.clientId = null;
+      state.joinError = message;
+      state.screen = 'enter';
+      render();
+    }
+
+    function connect(code) {
+      if (ws) { try { ws.close(); } catch {} }
+      // Defence in depth: don't open a socket for codes that can't possibly
+      // route on the server (saves an upgrade attempt + a reconnect loop).
+      if (!CODE_PATTERN.test(code)) {
+        bailToEnter('that room code looks malformed.');
+        return;
+      }
+      const stored = loadStored() || {};
+      const clientId = stored.clientId || crypto.randomUUID();
+      const savedPos = stored.code === code ? stored.position : null;
+      saveStored({ clientId, code });
+      state.code = code;
+      state.clientId = clientId;
+      wsHasReceivedMsg = false;
+
+      const { ws: wsBase } = apiBase();
+      const params = new URLSearchParams();
+      params.set('clientId', clientId);
+      if (savedPos) params.set('position', String(savedPos));
+      const url = `${wsBase}/api/room/${code}/ws?${params.toString()}`;
+
+      const socket = new WebSocket(url);
+      ws = socket;
+
+      socket.addEventListener('open', () => {
+        wsReconnectAt = 0;
+        // The DO sends initial { t:'you' } and { t:'state' } unprompted.
+      });
+      socket.addEventListener('message', evt => {
+        wsHasReceivedMsg = true;
+        wsConsecutiveFailures = 0;
+        let m; try { m = JSON.parse(evt.data); } catch { return; }
+        handleMsg(m);
+      });
+      socket.addEventListener('close', evt => {
+        if (evt.code === 4404) {
+          bailToEnter('that room has expired or never existed.');
+          return;
+        }
+        // If the socket closed before any message arrived, treat it as a
+        // failed connect (route 404, network filter, server eviction race).
+        if (!wsHasReceivedMsg) {
+          wsConsecutiveFailures += 1;
+          if (wsConsecutiveFailures >= 3) {
+            bailToEnter('could not reach that room. check the code and try again.');
+            return;
+          }
+        }
+        // Otherwise this is a mid-session blip — reconnect with backoff.
+        const delay = Math.min(8000, 500 + (Date.now() - wsReconnectAt));
+        wsReconnectAt = Date.now();
+        setTimeout(() => {
+          if (state.code) connect(state.code);
+        }, delay);
+      });
+      socket.addEventListener('error', () => {
+        // Close handler will run next; counting + bail logic lives there.
+      });
+    }
+
+    function handleMsg(m) {
+      if (m.t === 'you') {
+        state.position = m.position || null;
+        if (state.position) saveStored({ position: state.position });
+      } else if (m.t === 'state') {
+        const s = m.state;
+        state.positions = s.positions;
+        state.difficulty = s.difficulty;
+        state.round = s.round;
+        state.currentPromptIdx = s.currentPromptIdx;
+        state.usedPrompts = s.usedPrompts;
+        state.hands = s.hands;
+        state.cardPicks = s.cardPicks;
+        state.revealed = s.revealed;
+        state.phase = s.phase;
+        // Map server phase → client screen.
+        if (state.screen === 'enter' || state.screen === 'joining') {
+          state.screen = 'roomLobby';
+        }
+        if (s.phase === 'lobby') state.screen = 'roomLobby';
+        else if (s.phase === 'difficulty') state.screen = 'difficulty';
+        else if (s.phase === 'roundIntro') state.screen = 'roundIntro';
+        else if (s.phase === 'prompt') state.screen = 'prompt';
+        else if (s.phase === 'wait') state.screen = 'wait';
+        else if (s.phase === 'reveal') state.screen = 'reveal';
+        else if (s.phase === 'reflect') state.screen = 'reflect';
+        else if (s.phase === 'solve') state.screen = 'solve';
+        else if (s.phase === 'roundDone') state.screen = 'echo';
+        else if (s.phase === 'close') state.screen = 'close';
+        // If holder draws prompt while we sit on roundIntro screen but
+        // server has already moved to 'prompt' — handled above.
+        render();
+      } else if (m.t === 'error') {
+        state.lastError = m.code === 'seat_taken' ? `seat ${m.position} is taken — try another.` : 'something went wrong.';
+        render();
+      }
+    }
+
+    async function createRoom() {
+      const { http } = apiBase();
+      const res = await fetch(`${http}/api/room`, { method: 'POST' });
+      if (!res.ok) throw new Error('could not create room');
+      const { code } = await res.json();
+      return code;
+    }
+
+    async function joinRoomByCode(code) {
+      const clean = (code || '').trim().toUpperCase().replace(/[^A-Z]/g, '');
+      if (clean.length !== 6) {
+        state.joinError = 'codes are six letters.';
+        render();
+        return;
+      }
+      if (!CODE_PATTERN.test(clean)) {
+        // Vowels were stripped at generate-time. Help the user catch a typo
+        // before pinging the server.
+        state.joinError = "no vowels in our codes — they're consonants only.";
+        render();
+        return;
+      }
+      try {
+        const { http } = apiBase();
+        const res = await fetch(`${http}/api/room/${clean}/exists`);
+        if (!res.ok) { state.joinError = 'could not reach the server.'; render(); return; }
+        const { exists } = await res.json();
+        if (!exists) { state.joinError = 'no room with that code.'; render(); return; }
+      } catch {
+        state.joinError = 'could not reach the server.';
+        render();
+        return;
+      }
+      state.joinError = null;
+      state.screen = 'joining';
+      render();
+      connect(clean);
+    }
+
+    // ---------- UTILS ----------
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // ---------- SCENARIO-SPECIFIC LABELS ----------
+    // For each scenario (0-indexed), exactly 6 response options: 2 CI + 2 EI + 2 Collab.
+    // Key = archetype name (must match a key in COMP). Value = scenario-specific label.
+    // Players are dealt 4 from the pool of 6 each round.
+    const SCENARIO_LABELS = {
+      0: { // b2b framing not holding, deadline in one hour
+        branching:     "i sketch two alternative framings quickly, pick the stronger one and rebuild in the time i have",
+        spiral:        "i keep reworking the same section, convinced the right version is close, just not there yet",
+        wave:          "i'm flooded by the deadline and decide to send what i have with a clear note on what's unresolved",
+        pool:          "i step away from the model for ten minutes and come back with different eyes",
+        column:        "i finish the current version, flag the weak point explicitly and deliver on time",
+        mountain:      "i accept this version, document my assumptions clearly and hand it over",
+      },
+      1: { // colleague suggests pilot you'd already ruled out
+        horizon:       "i step back and ask what i was actually protecting when i dismissed it the first time",
+        doorway:       "i ask them to make the full case. i want to hear it fresh before i mention my earlier reasoning",
+        echo:          "i notice a mild defensiveness in myself and hold it long enough to use it as information",
+        pool:          "i listen to their entire argument before i say anything about having looked at this before",
+        threads:       "i watch who in the room responds to the idea and what that tells me about the group's appetite for risk",
+        column:        "i name what i remember as the sticking point, share my earlier reasoning and invite the group to push back",
+      },
+      2: { // client shifts target audience two weeks in
+        branching:     "i map the overlap between what i built and what's needed now and redesign from there",
+        doorway:       "i treat the pivot as a cleaner brief and start fresh without holding onto what i made",
+        wave:          "i let the feeling of lost effort sit for a moment before i respond to the client",
+        fracture:      "i hold the frustration, redirect it and focus on what the new brief actually needs",
+        broken_circle: "i name the scope change formally with the client and ask what the timeline implications are",
+        column:        "i show what we have, explain what changes and what stays and get explicit sign-off before reworking",
+      },
+      3: { // strategy memo sent, know it could be sharper
+        spiral:        "i keep returning to it after sending, sketching what a sharper version would have said",
+        branching:     "i draft a one-paragraph follow-up with the sharper angle and decide whether to send it",
+        echo:          "i recognize this feeling. i often know something was off only after it's gone",
+        pool:          "i sit with the discomfort and try to name what feels incomplete before i do anything",
+        column:        "i note the gap for next time and move on. this version was what the time allowed",
+        mountain:      "i accept that done-and-sent is done and redirect my attention to the next thing",
+      },
+      4: { // asked to lead financial modelling, never done it, vague brief
+        doorway:       "i say yes, find two strong examples of models that worked and use them as my guide",
+        branching:     "i design the simplest possible version that answers the core question and build outward from there",
+        wave:          "i feel out of my depth and give the worry room for thirty minutes before i find a foothold",
+        pool:          "i sit with what i don't know before i act: what do i actually understand about what's needed here?",
+        column:        "i go back and ask one specific question: what decision does this model need to support?",
+        threads:       "i pay close attention to how the others talk about the model and pick up what they're actually expecting",
+      },
+      5: { // new colleague solves in 20 minutes what took you three days
+        branching:     "i build on their framework immediately. the point is a good outcome, not who got there",
+        horizon:       "i affirm the framework, ask one refining question and move into execution",
+        wave:          "i feel the mix of relief and something harder to name and let myself notice both",
+        echo:          "i recognize the feeling and what i usually do with it, which isn't always useful",
+        broken_circle: "i name out loud that the stuck problem got solved and that fresh eyes made the difference",
+        threads:       "i notice how the team responds to the idea and whether credit lands in the right place",
+      },
+      6: { // suspect whole framing might be wrong midway through
+        horizon:       "i ask what the programme is actually trying to change and whether the design does that",
+        branching:     "i sketch an alternative framing to see if it feels stronger before i say anything",
+        pool:          "i sit with the doubt. i want to understand it properly before i surface it to anyone",
+        spiral:        "i keep turning it over for two days, trying to be certain, before i say anything",
+        broken_circle: "i name it in the next team check-in: i think we may have framed this wrong",
+        column:        "i write my concern clearly, share it with one trusted colleague first and then bring it to the group",
+      },
+      7: { // five approaches over two weeks, none work
+        branching:     "i rewrite the research question three different ways and see which one is actually answerable",
+        doorway:       "i share the problem with someone completely outside the project and ask what they'd try",
+        pool:          "i stop working on it for a full day and come back with different eyes",
+        echo:          "i recognize this pattern in my own work and i know what i usually need at this point",
+        broken_circle: "i write out what all five approaches had in common and name that as the actual problem",
+        mountain:      "i document what i've tried, acknowledge the wall and bring it to the team before trying again",
+      },
+      8: { // colleague pushes back publicly and they're right
+        branching:     "i take their critique and immediately start building on it. here's what that changes",
+        horizon:       "i step back and reframe the whole proposal around their strongest point",
+        wave:          "i feel the floor drop but keep listening. i need a moment before i respond",
+        pool:          "i reflect back their main point before i say anything else",
+        column:        "i say they've raised something i need to take seriously and engage with the core point directly",
+        broken_circle: "i name it: you're right, the framing has a problem, here's what i think we do instead",
+      },
+      9: { // team iterating same design for four weeks, you think it needs scrapping
+        horizon:       "i ask what the workshop is supposed to produce and then say whether i think the design gets there",
+        branching:     "i draft what a rebuilt version would look like so i have something concrete to show before i speak",
+        spiral:        "i watch session after session, each time on the verge of saying it. still not saying it",
+        fracture:      "i feel the frustration of watching something that isn't working and hold it until the right moment",
+        broken_circle: "i say it in the next review: i think we've been refining the wrong thing",
+        threads:       "i watch who else in the group seems to be reaching the same conclusion and find an ally first",
+      },
+      10: { // thesis presentation in five minutes, argument feels shaky
+        spiral:        "i'm still second-guessing the methodology in the thirty seconds before my name is called",
+        branching:     "i quickly reorganize my opening around the part of the argument i'm most confident in",
+        wave:          "i feel the panic arrive and breathe through it. this is the feeling, not the reality",
+        pool:          "i take one slow breath, name the feeling to myself and let it pass before i begin",
+        column:        "i remind myself what i know and focus on the first two minutes. the rest will follow",
+        mountain:      "i walk in carrying the doubt and present anyway. the work is what it is",
+      },
+      11: { // cohort model advocacy hits the same wall for the third time
+        branching:     "i reframe the proposal entirely: a hybrid model that addresses each objection directly",
+        doorway:       "i go directly to the stakeholder with the most resistance and ask for a real conversation",
+        spiral:        "i draft a fourth version anyway, built entirely around the objections i keep hitting",
+        echo:          "i recognize i'm hitting an institutional wall and ask myself honestly whether this energy is still worth it",
+        broken_circle: "i name the pattern: i've raised this three times, here's what i think is actually blocking it",
+        mountain:      "i keep working within the existing model and accept that this isn't the right moment",
+      },
+      12: { // service concept handed in feedback: wrong problem, work is fine
+        horizon:       "i step back and ask what problem the client is actually trying to solve right now",
+        branching:     "i ask one question about their current need and try to pivot the concept toward it",
+        wave:          "i let the disappointment sit heavy for a day before i can look at it productively",
+        echo:          "i recognize this pattern and i know exactly where the breakdown was",
+        broken_circle: "i name the gap: we missed a scoping conversation that should have happened earlier",
+        column:        "i acknowledge the miss, ask one clarifying question and redirect",
+      },
+      13: { // you framed the diagnostic wrong, team trusted you
+        horizon:       "i ask what the right diagnostic looks like from where we are now and propose a path forward",
+        branching:     "i draft the reframed diagnostic before i say anything so i have a concrete alternative ready",
+        fracture:      "i feel the weight of it, hold it privately for a day and then bring it forward",
+        echo:          "i recognize this. i've made this kind of framing error before and i know what it requires",
+        broken_circle: "i name it in the next team session: i think my framing was wrong and here's what i'm seeing",
+        mountain:      "i own the outcome, lead the reframe and carry the process of fixing it",
+      },
+      14: { // hybrid pivot was your idea, rollout failing, team knows
+        horizon:       "i ask what would actually make this work now, separate from defending the original call",
+        branching:     "i bring three concrete options for course-correction and lead the group through them",
+        fracture:      "i hold the accountability without deflecting and focus immediately on what we do next",
+        echo:          "i recognize i saw some of this coming and didn't say so and i name that too",
+        broken_circle: "i call a session and say directly: this isn't working and i'm the one who proposed it",
+        column:        "i set up a structured review, lead it without defensiveness and make the recommendation clearly",
+      },
+      15: { // workshop energy drops after the breakout, not sure if it's you
+        horizon:       "i ask what the session still needs to produce and whether this energy can get it there",
+        branching:     "i drop the next planned activity and offer the group two options for the final hour",
+        wave:          "i feel the drop land on me and use it as information. something real has shifted",
+        pool:          "i slow down, acknowledge the shift openly and ask the group what they need right now",
+        threads:       "i track who's pulled back and whether it's the whole room or a few specific people",
+        broken_circle: "i name what i'm noticing: i can feel something shifted and i want to check in before we continue",
+      },
+      16: { // half-present while a direct report explains their problem
+        horizon:       "i ask them to summarize the core of what they need from me so we use the remaining time well",
+        branching:     "i ask two targeted questions to reconstruct what i missed and find a way to be useful",
+        fracture:      "i name it: i wasn't fully with you just now, can you take me back to where it got complicated?",
+        pool:          "i let go of the other thought, come back fully and listen to what they say next with full attention",
+        broken_circle: "i acknowledge the gap directly and ask them to walk me through it again from the start",
+        column:        "i ask a question that signals i've been following and quietly fill in what i missed",
+      },
+      17: { // walked out of a check-in that went fine, something feels off
+        horizon:       "i ask whether the feeling is connected to something that needs action or whether i can let it pass",
+        branching:     "i write down three possible explanations and see which one has the most pull",
+        spiral:        "i keep replaying the meeting, looking for the moment something changed",
+        pool:          "i write down what i'm noticing without trying to explain it. feeling first, reason later",
+        echo:          "i recognize this feeling. it usually means something true wasn't said in the room",
+        threads:       "i think about who was in the meeting and whether the feeling is connected to one of them",
+      },
+      18: { // routine check-in tomorrow, anxiety doesn't match the stakes
+        horizon:       "i ask what i'm actually preparing for and whether my preparation matches the real stakes",
+        branching:     "i write out the three scenarios i'm imagining and ask myself which one is actually likely",
+        spiral:        "i keep running through what i'll say, preparing for a conversation that probably won't go that way",
+        pool:          "i write out what i'm really anxious about underneath the check-in and sit with what comes up",
+        column:        "i go in as prepared as i would normally and trust that the anxiety is pre-event noise",
+        mountain:      "i carry the anxiety to the meeting, do it anyway and it's usually fine",
+      },
+      19: { // colleague asks how you're doing and the honest answer is complicated
+        horizon:       "i decide quickly what's actually true and worth saying and name just that",
+        branching:     "i think of a few honest-but-brief answers and pick the one that feels right for right now",
+        wave:          "i feel the weight of everything accumulating and it almost comes out. i pull it back",
+        pool:          "i take a breath and give a real answer. not all of it, but something true",
+        column:        "i say honestly it's been a lot, name one thing and leave it there",
+        broken_circle: "i name the part that's been hardest, the thing i've been avoiding and say it out loud",
+      },
+      20: { // manager feedback stings, need to respond in thirty seconds
+        horizon:       "i step back in the moment and ask what this feedback is really pointing to",
+        branching:     "i quickly think about what i'd actually change and lead with that",
+        wave:          "i feel it land hard and concentrate on not letting my face close off before i respond",
+        pool:          "i reflect back what i heard before i say anything else",
+        column:        "i say thank you, ask one clarifying question and take the feedback without defending",
+        mountain:      "i receive it, sit with the weight and respond as steadily as i can",
+      },
+      21: { // mid-review, realize your comments have been sharper than the work warrants
+        horizon:       "i ask what feedback this work actually needs and recalibrate from there",
+        branching:     "i redirect the review toward what's working and build the critique from a different starting point",
+        fracture:      "i name it in the moment: i've been harsher than this deserves and i want to recalibrate",
+        wave:          "i feel the sharpness as i'm doing it and can't pull back fast enough, but i try",
+        broken_circle: "i pause the review, acknowledge the tone and restart from a different place",
+        column:        "i shift my approach visibly for the next comment and hold the new register through the rest",
+      },
+      22: { // team member starts crying in the 1:1
+        horizon:       "i ask myself what this person needs most right now and let that guide what i say",
+        branching:     "i think of two or three ways i could respond and choose the one that gives them the most space",
+        pool:          "i stop the review, sit with the quiet and let them take their time",
+        wave:          "i feel the shift in the room and let it land. this is no longer a project review",
+        doorway:       "i say it's okay and ask what's been going on and mean it",
+        mountain:      "i hold the space without rushing to fix it or move past it",
+      },
+      23: { // programme discontinued, held back earlier, decision now final
+        horizon:       "i ask what i can actually influence now and redirect my energy there",
+        branching:     "i think about what the next step looks like and focus on that instead of the decision",
+        fracture:      "i hold the loss without making it smaller and then turn toward what comes next",
+        echo:          "i recognize this pattern. i've done this before and i know what it costs me",
+        broken_circle: "i name, at least to myself, what i gave up by not speaking when i had the chance",
+        mountain:      "i carry the grief and keep doing my job through the transition",
+      },
+      24: { // colleague says they're leaving and have been unhappy for months
+        horizon:       "i ask what they actually need from me right now and let that shape what i say",
+        branching:     "i think about what would be most useful to offer and start from there",
+        wave:          "i feel the surprise and the loss at the same time and let both show a little",
+        pool:          "i say i'm glad they told me and ask if there's anything they need from me right now",
+        broken_circle: "i name what i'm sitting with: i didn't know you were struggling and i wish i had",
+        threads:       "i notice how much they must have been carrying while we worked together every day",
+      },
+      25: { // presenting early-stage proposal, methodology isn't fully resolved
+        horizon:       "i name what's resolved and what isn't: the direction with confidence, the gaps with honesty",
+        branching:     "i lean into the open questions: here's what i'm still working through and why i think they're solvable",
+        wave:          "i feel their uncertainty amplifying mine and focus on the part of this i know to be true",
+        pool:          "i read the room carefully before each new section and adjust to what their attention is telling me",
+        column:        "i carry the uncertainty through the presentation without letting it destabilize the core argument",
+        mountain:      "i present what i have and stay steady. the gaps are real and i name them as part of the work",
+      },
+      26: { // engaged colleague visibly quieter for three weeks
+        horizon:       "i ask myself what they actually need from me right now and let that guide how i show up",
+        branching:     "i think of a few different ways to open the door and pick the one with the least pressure",
+        pool:          "i create an opening: a coffee, a quiet moment, without asking a direct question they have to answer",
+        echo:          "i recognize this feeling. i've seen someone go quiet this way before and i know what it usually means",
+        doorway:       "i find a natural moment and ask directly: i've noticed you seem quieter lately and wanted to check in",
+        threads:       "i keep watching for signals about whether the distance is about work or something else entirely",
+      },
+      27: { // difficult conversation ended fine three days ago, keeps resurfacing
+        horizon:       "i ask whether there's something that actually needs to be said or whether i can let it go",
+        branching:     "i write out the three possible things that might be unresolved and see which has the most pull",
+        spiral:        "i keep returning to the moment it ended, trying to locate what feels unfinished",
+        pool:          "i write out what the conversation was actually about underneath the surface issue",
+        echo:          "i recognize this: when something keeps resurfacing, something true usually wasn't said",
+        broken_circle: "i reach back out and say there was something i didn't quite say and i'd like to",
+      },
+      28: { // asked for honest feedback, real issue is the core assumption
+        horizon:       "i identify exactly what the core assumption is before i say anything",
+        branching:     "i think of two ways to frame the feedback and pick the one more likely to land",
+        fracture:      "i feel the difficulty of the moment and say it anyway",
+        wave:          "i feel the weight of what i need to say and take a breath before i say it",
+        column:        "i name the real issue: the assumption underneath this needs to be examined, and stay in the conversation",
+        doorway:       "i go to the hardest thing directly and trust that they asked because they wanted the truth",
+      },
+      29: { // cut off a quieter team member yesterday, more than was called for
+        horizon:       "i ask what that person needed from the conversation and whether there's a way to give it to them now",
+        branching:     "i think about the right way to address it, now or in the next session, and decide",
+        fracture:      "i go back and name it: i cut you off and that was more than the situation called for, i'm sorry",
+        echo:          "i recognize this pattern in how i lead. i do this when i'm in a hurry and it costs something",
+        broken_circle: "i acknowledge the cut and make space for what they didn't get to say",
+        pool:          "i sit with the discomfort of having seen myself clearly and let it change how i facilitate next time",
+      },
+      30: { // high-stakes negotiation, feeling defensive, haven't reacted yet
+        horizon:       "i step back in the moment and ask what i'm actually protecting",
+        branching:     "i name what's making me defensive as a question rather than a position and redirect",
+        wave:          "i notice the defensiveness as a signal: something they said hit something real, and i use that",
+        pool:          "i slow down my speech, reflect back their last point and use the pause to settle",
+        column:        "i hold the defensiveness, breathe through it and buy myself ten seconds before responding",
+        mountain:      "i feel the tension building and focus on holding my position without closing off",
+      },
+      31: { // director thanks you publicly for work a junior colleague did
+        horizon:       "i ask myself what the right thing to do is and how much time i have to do it",
+        branching:     "i decide between two responses: redirect credit now or follow up with the department head directly after",
+        fracture:      "i receive the thanks, feel the wrongness of it and decide in the next ten seconds what i do",
+        wave:          "i feel the warmth and the discomfort simultaneously and respond before i've fully resolved which one wins",
+        broken_circle: "i name the junior colleague in my response: this was their analysis and i want that on record",
+        threads:       "i note what just happened, credit moving upward, and decide whether this is the time to interrupt it",
+      },
+      32: { // colleague's family member seriously ill, working through normal sprint alongside them
+        horizon:       "i ask myself what they need most from me right now and let that shape how i show up",
+        branching:     "i think of a few ways to hold space without making it visible and pick the one most likely to work",
+        pool:          "i make space for the non-work every time we meet, without forcing it: a look, a pause, a check-in",
+        wave:          "i feel the weight of knowing and it changes the quality of my attention toward them",
+        threads:       "i hold both realities at once, the work and the person, and watch for what they need",
+        mountain:      "i make the work as easy as possible for them without making the accommodation visible",
+      },
+      33: { // stalemate on three directions, thirty minutes left, no one has named it
+        horizon:       "i name the stalemate: we've been in this for an hour and we need to change our approach",
+        branching:     "i offer a fourth option no one has named yet that might unlock the conversation",
+        wave:          "i feel the tension in the room and let it sharpen my attention to what's actually at stake",
+        pool:          "i slow the conversation down and ask each person to say in one sentence what matters most to them here",
+        column:        "i propose a decision structure: here's how we reach a call in the next thirty minutes",
+        broken_circle: "i call it: we're stuck and saying so is the first move we need to make",
+      },
+      34: { // new team member with most facilitation experience keeps getting cut off
+        horizon:       "i step back and ask whether the debrief is capturing the most useful reflection in the room",
+        branching:     "i restructure the debrief to give everyone a dedicated window before open discussion",
+        echo:          "i recognize this pattern: the newest people often have the sharpest read and rarely get the floor",
+        fracture:      "i feel something about what's happening and let that feeling motivate me to act",
+        threads:       "i notice the pattern and name it: i want to make sure we hear from everyone, especially them",
+        broken_circle: "i stop the conversation and explicitly open the floor: i've noticed you've been about to say something",
+      },
+      35: { // co-authoring a report, data-up vs framework-first slowing things down
+        horizon:       "i step back and ask what the report needs to do for its reader and work from there",
+        branching:     "i propose a structure that does both: framework first, with data as the engine beneath",
+        pool:          "i ask them to walk me through their logic and listen fully before i respond",
+        wave:          "i feel the friction of the difference and let it signal that we need to name this before it gets worse",
+        threads:       "i name the underlying difference before it becomes a conflict about the document",
+        broken_circle: "i name what the last few days have cost us and propose we spend an hour on the underlying disagreement",
+      },
+      36: { // new member joins mid-sprint, dynamic shifts, alliances quietly rearrange
+        horizon:       "i ask whether the shift is a problem for the work or just uncomfortable",
+        branching:     "i think about what kind of intervention would help and decide if one is actually needed",
+        echo:          "i recognize this pattern: a new person always changes the chemistry, the question is how",
+        pool:          "i hold the observation and wait. some shifts need time, not intervention",
+        threads:       "i track what's shifted, who's repositioned and whether the change is helping or hurting the work",
+        doorway:       "i find a moment with the new person to understand what they're experiencing of the group",
+      },
+      37: { // committee agrees too quickly to discontinue a five-year elective
+        horizon:       "i ask what we might be losing that we haven't named: what was this elective actually doing?",
+        branching:     "i propose five more minutes to name one possible unintended consequence before we close",
+        echo:          "i name the doubt: something about how quickly that happened doesn't feel right to me",
+        pool:          "i sit with the doubt and ask myself what it's actually connected to before i say anything",
+        threads:       "i track who didn't speak and ask whether the quick consensus was genuine or something else",
+        column:        "i raise it directly: i agreed in the room but i'm not sure i should have and i want to revisit it",
+      },
+      38: { // two team members in conflict, both right about different things
+        horizon:       "i name what each of them is actually right about and propose a scope that holds both",
+        branching:     "i offer a third option that doesn't require either of them to concede their core point",
+        pool:          "i listen to each of them separately before i say anything to the group",
+        threads:       "i hold both arguments as genuinely valid and stay with where the real tension lives",
+        broken_circle: "i call a conversation and name the pattern: you're answering different questions and neither of you knows it yet",
+        column:        "i step in without being asked and name clearly what each of them is right about and how we resolve it",
+      },
+      39: { // most senior in the room, best idea so far isn't yours
+        horizon:       "i orient the group around the new frame: let me show you how this changes what we're working on",
+        branching:     "i build on the reframe immediately and show the group what it opens up",
+        echo:          "i recognize what just happened and decide not to let the moment pass without naming it",
+        fracture:      "i feel something, pride or relief or a small resistance, and redirect it immediately toward the idea",
+        broken_circle: "i say it out loud right away: that's a better framing than what we've been working with",
+        column:        "i affirm it directly and credit it explicitly: this is their reframe and i think it's the right one",
+      },
+      40: { // can't align on methodology, client expects proposal tomorrow morning
+        horizon:       "i name what we're actually deciding: this isn't just methodology, it's what kind of insight we're promising",
+        branching:     "i propose a hybrid that takes the strongest element from each position",
+        wave:          "i feel the pressure of the deadline and let it cut through the circling",
+        pool:          "i slow the conversation down and ask each advocate to name the one thing they're not willing to give up",
+        column:        "i make the call: given the deadline and context, we go with this one, here's why",
+        mountain:      "i accept there's no perfect answer, pick the one i can best defend and move us forward",
+      },
+      41: { // senior colleague steering toward preferred vendor through framing, pattern not named
+        horizon:       "i ask whether the options are being evaluated on the same basis and name it as a question to the group",
+        branching:     "i introduce an evaluation criterion that hasn't been used yet and see where that takes the conversation",
+        echo:          "i recognize this dynamic: someone anchoring to what they know, and ask whether it's actually a problem",
+        pool:          "i keep watching for another session before i decide whether to name what i'm seeing",
+        threads:       "i name the pattern in a 1:1 with the colleague: i've been noticing something i want to understand",
+        broken_circle: "i raise it in the group: i want to make sure we're evaluating all options on the same basis",
+      },
+      42: { // junior team member doing excellent work no one is seeing
+        horizon:       "i ask myself where and when naming this will have the most impact",
+        branching:     "i think about how to make the contribution visible in a way that sticks beyond one mention",
+        fracture:      "i feel something about how invisible this has been and let that feeling move me to act",
+        echo:          "i recognize how often this kind of work goes unseen and decide i'm not going to let that happen here",
+        broken_circle: "i name it in the next team meeting or directly to them: what you've been doing has been holding this together",
+        threads:       "i make sure the people who benefited most from their work are in the room when i name it",
+      },
+      43: { // co-facilitator different vision, gap now visible to participants
+        horizon:       "i ask what the series is actually trying to produce and which approach serves that",
+        branching:     "i propose a design that turns the inconsistency into a deliberate feature, scaffolded moving to open",
+        pool:          "i listen to what participants are actually saying: not the complaint but the need underneath it",
+        wave:          "i feel the exposure of the inconsistency and use it to finally have the conversation i've been avoiding",
+        threads:       "i track what participants are responding to and use that as evidence in the conversation with my co-facilitator",
+        broken_circle: "i propose a conversation before the next session: we need to decide what we actually believe",
+      },
+      44: { // team cuts your section while you're out sick, decision already communicated
+        horizon:       "i separate the content decision from the process failure and decide which one matters more right now",
+        branching:     "i think about what i can rebuild or redirect within the remaining scope",
+        wave:          "i feel the anger of it fully and give myself a day before i respond to anyone",
+        fracture:      "i hold the frustration, don't act on it immediately and decide which battle is worth having",
+        broken_circle: "i name what happened: a significant decision was made without me and we need to talk about that",
+        column:        "i address the process failure directly with my manager, separate from any conversation about the content",
+      },
+      45: { // department head presents your team's work as their own at all-hands
+        horizon:       "i ask what outcome i actually want from this and choose my response accordingly",
+        branching:     "i decide between two moves: correct it publicly now or address it directly with them afterward",
+        fracture:      "i feel the injustice clearly and stay in my seat. then i decide what to do when the room clears",
+        wave:          "i feel it on behalf of the whole team and that feeling becomes the reason i act",
+        broken_circle: "i find a way to name the team's contribution publicly in the Q&A, in a follow-up, in a direct conversation",
+        mountain:      "i hold the team's frustration, acknowledge it clearly and lead the conversation about what we do",
+      },
+      46: { // team converging on timeline with a key dependency gap you can't fully confirm
+        horizon:       "i step back and ask what we're actually committing to the client and whether this timeline is honest",
+        branching:     "i think through the dependency quickly and decide whether i have enough certainty to act",
+        wave:          "i feel the discomfort of the uncertainty and use it. this specific feeling is usually telling me something",
+        spiral:        "i almost say it, hold back, almost say it again. the decision gets locked while i'm still deciding",
+        column:        "i raise it now, even without certainty. i want to flag this before we lock",
+        doorway:       "i ask the question: have we mapped the final phase dependencies, and let the answer tell me if i'm right",
+      },
+      47: { // coordinating across workstreams for a month, no acknowledgment in retrospective
+        horizon:       "i ask what the coordination actually enabled and whether that's something worth naming for the team",
+        branching:     "i think about how to raise this constructively and pick the framing least likely to read as complaint",
+        fracture:      "i feel the invisibility of it and let that feeling surface rather than smooth it",
+        echo:          "i recognize this: i often end up in this role and it often goes unseen, and i ask whether the pattern serves me",
+        broken_circle: "i name it in the retrospective: not for credit, but because the team needs to see what held this together",
+        column:        "i raise it cleanly and without resentment: here's what coordination looked like this sprint",
+      },
+      48: { // long-term collaborator has stopped trusting your judgment, nothing named
+        horizon:       "i step back and ask whether i'm reading this accurately before i decide how to respond",
+        branching:     "i think about how to open the conversation in a way that gives them room to tell me i'm wrong",
+        spiral:        "i keep going back to specific emails and interactions, trying to locate when it started",
+        pool:          "i sit with the possibility that i'm reading it wrong before i act on what i think i'm seeing",
+        broken_circle: "i name what i'm noticing without accusation: something feels different and i'd rather talk about it",
+        doorway:       "i ask directly: something has shifted between us and i want to understand what",
+      },
+      49: { // major deliverable submitted, moment passes unmarked
+        horizon:       "i ask what this engagement was actually about and find one thing worth holding onto",
+        branching:     "i think of a small way to mark the moment, even just for myself, and do it",
+        fracture:      "i feel the strangeness of the non-ending and don't pretend it's fine",
+        pool:          "i take a day before starting the next thing. not for anyone else, just for me",
+        broken_circle: "i name it: we should mark this, even briefly. this was a significant thing to do together",
+        mountain:      "i reach out to each person individually and say something specific about what they contributed",
+      },
+    };
+
+    function dealHandForPrompt(idx, size = 4) {
+      // Pick `size` cards from the 6-archetype pool defined for this scenario,
+      // each with a random palette variant. Different shuffles per call → each
+      // player gets a different hand.
+      if (idx !== null && SCENARIO_LABELS[idx]) {
+        const archetypes = Object.keys(SCENARIO_LABELS[idx]);
+        const scenarioPool = archetypes.map(arch => {
+          const variants = DECK.filter(c => c.name.startsWith(arch + '-'));
+          const picked = variants[Math.floor(Math.random() * variants.length)];
+          return { ...picked, label: SCENARIO_LABELS[idx][arch] };
+        });
+        return shuffle(scenarioPool).slice(0, size);
+      }
+      return shuffle(DECK).slice(0, size);
+    }
+
+    function pickPromptIdx() {
+      // Filter by difficulty, then exclude prompts already used this room.
+      const allowed = state.difficulty
+        ? PROMPTS.map((_, i) => i).filter(i => PROMPT_DIFFICULTY[i] === state.difficulty)
+        : PROMPTS.map((_, i) => i);
+      const unused = allowed.filter(i => !state.usedPrompts.includes(i));
+      const pool = unused.length ? unused : allowed;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function drawAndShipPrompt() {
+      // Called by any client when transitioning out of roundIntro. The DO
+      // accepts the first draw_prompt per round and ignores subsequent ones,
+      // so a race between two clicking clients is safe.
+      const idx = pickPromptIdx();
+      const hands = {
+        1: dealHandForPrompt(idx, 4),
+        2: dealHandForPrompt(idx, 4),
+        3: dealHandForPrompt(idx, 4),
+      };
+      send({ t: 'draw_prompt', promptIdx: idx, hands });
+    }
+
+    function holderForRound(round) {
+      // round 0 → pos 1 holds, round 1 → pos 2 holds, round 2 → pos 3 holds
+      return round + 1;
+    }
+
+    function isHolder() {
+      return state.position === holderForRound(state.round);
+    }
+
+    function myHand() {
+      return state.position && state.hands[state.position] ? state.hands[state.position] : [];
+    }
+    function mySelectedCardId() {
+      return state.position ? state.cardPicks[state.position] : null;
+    }
+    function claimedCount() {
+      return [1,2,3].filter(p => state.positions[p] !== null).length;
+    }
+    function pickedCount() {
+      return [1,2,3].filter(p => state.cardPicks[p] !== null).length;
+    }
+
+    // ---------- RENDER ----------
+    function render() {
+      const app = document.getElementById('app');
+      app.innerHTML = screens[state.screen]();
+      renderExitCorner();
+      wireEvents();
+    }
+
+    // Persistent corner exit. Visible whenever you're in a room except the
+    // 'enter' and 'joining' screens (the former has nowhere to go, the latter
+    // already has its own cancel button). Tapping the chip leaves the room
+    // immediately if you're still in the lobby; mid-round it asks first.
+    // Built with textContent / createElement rather than innerHTML so the
+    // room code (always [A-Z]{6} server-side, but treated as untrusted by
+    // habit) cannot inject markup.
+    function renderExitCorner() {
+      const corner = document.getElementById('exit-corner');
+      if (!corner) return;
+      const inRoom = !!state.code && state.screen !== 'enter' && state.screen !== 'joining';
+      while (corner.firstChild) corner.removeChild(corner.firstChild);
+      if (!inRoom) {
+        corner.classList.remove('visible');
+        corner.setAttribute('aria-hidden', 'true');
+        return;
+      }
+      corner.classList.add('visible');
+      corner.setAttribute('aria-hidden', 'false');
+      const btn = document.createElement('button');
+      btn.className = 'exit-btn';
+      btn.setAttribute('data-action', 'exit-corner');
+      btn.setAttribute('aria-label', `leave room ${state.code}`);
+      const x = document.createElement('span');
+      x.className = 'exit-x';
+      x.setAttribute('aria-hidden', 'true');
+      x.textContent = '×';
+      const label = document.createElement('span');
+      label.textContent = 'exit';
+      const codeEl = document.createElement('span');
+      codeEl.className = 'exit-code';
+      codeEl.textContent = state.code;
+      btn.appendChild(x);
+      btn.appendChild(label);
+      btn.appendChild(codeEl);
+      corner.appendChild(btn);
+    }
+
+    function go(screenName) {
+      state.screen = screenName;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      render();
+    }
+
+    // ---------- SCREENS ----------
+    function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+
+    const screens = {
+      enter: () => {
+        const err = state.joinError ? `<div class="muted tiny" style="margin-top: 8px; color: #ffb09a;">${state.joinError}</div>` : '';
+        return `
+        <div class="screen fade-in">
+          <div style="padding-top: 40px;">
+            <div class="tiny"><span class="wv-wordmark">winded.vertigo</span></div>
+            <h1 class="serif" style="margin-top: 14px;">read the<br/>room</h1>
+            <p class="muted" style="margin-top: 22px; font-size: 17px; max-width: 420px;">
+              three people. one scenario. three different readings of what it asks. you'll each choose a card that meets the moment, then everyone shows their card at the same time.
+            </p>
+          </div>
+          <div class="spacer"></div>
+          <div style="margin-top: 40px;">
+            <button class="btn-primary" data-action="create" style="width: 100%;">start a new room</button>
+            <div style="display: flex; align-items: center; gap: 12px; margin: 22px 0 14px;">
+              <div style="flex: 1; height: 1px; background: var(--line);"></div>
+              <div class="muted tiny">or join one</div>
+              <div style="flex: 1; height: 1px; background: var(--line);"></div>
+            </div>
+            <form id="join-form" autocomplete="off">
+              <input id="join-input" type="text" inputmode="latin" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="6-letter code" maxlength="6" style="width: 100%; padding: 14px 18px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 18px; letter-spacing: 0.18em; text-transform: uppercase; text-align: center; background: white; color: var(--ink);" />
+              <button class="btn-primary" type="submit" style="width: 100%; margin-top: 12px;">join with code</button>
+              ${err}
+            </form>
+            <div class="muted tiny" style="text-align: center; margin-top: 18px;">~12 minutes · three rounds · no wrong answers</div>
+          </div>
+        </div>`;
+      },
+
+      joining: () => `
+        <div class="screen fade-in">
+          <div class="spacer"></div>
+          <div style="text-align: center;">
+            <div class="serif" style="font-size: 32px; font-weight: 300;">joining…</div>
+            <p class="muted tiny" style="margin-top: 14px;">${state.code ? `room ${state.code}` : ''}</p>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn-ghost" data-action="leave-room" style="width: 100%;">cancel and pick a different code</button>
+        </div>`,
+
+      roomLobby: () => {
+        const seats = [1,2,3].map(p => {
+          const taken = state.positions[p] !== null;
+          const mine = state.positions[p] === state.clientId;
+          const classes = ['position-btn', `seat-${p}`];
+          if (mine) classes.push('active');
+          else if (taken) classes.push('taken');
+          const tag = mine ? 'you' : (taken ? 'taken' : 'open');
+          const disabled = taken && !mine ? 'disabled' : '';
+          return `<button class="${classes.join(' ')}" data-pos="${p}" ${disabled} aria-label="seat ${p}, ${tag}">
+            <span class="pos-num">${p}</span>
+            <span class="pos-tag">${tag}</span>
+          </button>`;
+        }).join('');
+        const allClaimed = claimedCount() === 3;
+        const err = state.lastError ? `<div class="tiny" style="margin-top: 8px; color: #ffb09a;">${state.lastError}</div>` : '';
+        return `
+        <div class="screen fade-in">
+          <div class="tiny">your room</div>
+          <h2 class="serif" style="margin-top: 10px;">share this code.</h2>
+          <div style="margin-top: 14px; padding: 18px; background: var(--paper); color: var(--ink); border-radius: 14px; text-align: center;">
+            <div class="serif" style="font-size: 34px; letter-spacing: 0.22em; font-weight: 400; color: var(--ink);">${state.code || '······'}</div>
+            <button class="btn-ghost" data-action="copy-code" style="margin-top: 2px; color: var(--ink-soft);">copy code</button>
+          </div>
+          <p class="muted" style="margin-top: 16px;">three people, three devices. each picks their number below.</p>
+          <div class="position-picker">${seats}</div>
+          <div class="muted tiny" style="margin-top: 12px;">${claimedCount()} / 3 claimed · each round, a different number holds</div>
+          ${err}
+          <div class="spacer"></div>
+          <button class="btn-primary" data-action="advance:difficulty" ${allClaimed ? '' : 'disabled'} style="width: 100%;">${allClaimed ? 'set the pace →' : 'waiting for your trio'}</button>
+          <button class="btn-ghost" data-action="leave-room" style="width: 100%; margin-top: 6px;">leave this room</button>
+        </div>`;
+      },
+
+      difficulty: () => `
+        <div class="screen fade-in">
+          <div class="tiny">set your pace</div>
+          <h2 class="serif" style="margin-top: 10px;">where is your trio today?</h2>
+          <p class="muted" style="margin-top: 14px; font-size: 15px;">
+            pick together. the three of you should land on the same pace: it shapes which scenarios come up.
+          </p>
+          <div class="difficulty-picker">
+            ${['light','real','tender'].map(d => `
+              <button class="difficulty-btn ${state.difficulty === d ? 'active' : ''}" data-diff="${d}">
+                <div class="d-label">${DIFFICULTY_META[d].label}</div>
+                <div class="d-blurb">${DIFFICULTY_META[d].blurb}</div>
+              </button>
+            `).join('')}
+          </div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-action="advance:roundIntro" ${state.difficulty ? '' : 'disabled'} style="width: 100%;">begin the first round</button>
+        </div>`,
+
+      roundIntro: () => {
+        const holder = holderForRound(state.round);
+        const iAmHolder = isHolder();
+        return `
+        <div class="screen fade-in">
+          <div class="progress-dots">
+            ${[0,1,2].map(i => `<div class="dot ${i < state.round ? 'done' : ''} ${i === state.round ? 'active' : ''}"></div>`).join('')}
+          </div>
+          <div class="tiny" style="text-align: center; margin-top: 22px;">round ${state.round + 1} of 3</div>
+          <div class="role-banner ${iAmHolder ? 'holder' : 'interpreter'} scale-in" style="margin-top: 30px;">
+            <div class="tiny">this round</div>
+            <h2 class="serif">${iAmHolder ? 'you are the holder.' : `number ${holder} is the holder.`}</h2>
+            <p class="muted" style="margin-top: 10px; font-size: 15px; padding: 0 10px;">
+              ${iAmHolder
+                ? 'pick the card that best captures how the scenario lands for you, personally.'
+                : 'pick the card you think your holder would resonate with. trust your reading of them.'}
+            </p>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-action="draw-prompt" style="width: 100%;">read the scenario</button>
+        </div>`;
+      },
+
+      prompt: () => {
+        const hand = myHand();
+        const sel = mySelectedCardId();
+        const remaining = 3 - pickedCount();
+        const hint = sel === null
+          ? (isHolder() ? 'let the scenario settle. choose the card that meets it for you.'
+                        : 'let it settle. choose the card you think your holder would meet it with.')
+          : (remaining > 0 ? `your card is in. waiting for ${remaining} other${remaining === 1 ? '' : 's'}.`
+                           : 'everyone is in.');
+        const promptText = state.currentPromptIdx !== null ? PROMPTS[state.currentPromptIdx] : '…';
+        return `
+          <div class="screen fade-in">
+            <div class="tiny">scenario · round ${state.round + 1}</div>
+            <div style="margin-top: 24px; padding: 26px 22px; background: var(--paper); border-radius: 18px;">
+              <div class="prompt serif">${promptText}</div>
+            </div>
+            <p class="muted" style="margin-top: 20px; font-size: 14px;">${hint}</p>
+            <div class="card-grid stagger">
+              ${hand.map(card => `
+                <div class="card ${sel === card.id ? 'selected' : ''}" data-pick="${card.id}">
+                  <div class="card-art">${card.svg}</div>
+                  <div class="card-label">${card.label}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="spacer"></div>
+            <div class="muted tiny" style="text-align: center; margin-top: 14px;">
+              ${pickedCount()} / 3 chosen
+            </div>
+          </div>`;
+      },
+
+      wait: () => `
+        <div class="screen fade-in">
+          <div class="tiny">waiting</div>
+          <div class="spacer"></div>
+          <div style="text-align: center;">
+            <div class="serif" style="font-size: 54px; line-height: 1.1; font-weight: 300; color: var(--ink);">everyone<br/>is in.</div>
+            <p class="muted" style="margin-top: 24px; font-size: 16px; max-width: 340px; margin-left: auto; margin-right: auto;">
+              when you're ready, anyone can press reveal — the cards turn for all three of you at once.
+            </p>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-action="reveal" style="width: 100%;">reveal on the count</button>
+          <button class="btn-ghost" data-action="change-card" style="width: 100%; margin-top: 6px;">change my card</button>
+        </div>`,
+
+      reveal: () => {
+        // Show all three picks side by side. Each player sees the cards from
+        // each player's own hand.
+        const cards = [1,2,3].map(p => {
+          const cardId = state.cardPicks[p];
+          const hand = state.hands[p] || [];
+          const card = hand.find(c => c.id === cardId);
+          return { p, card };
+        });
+        return `
+          <div class="screen fade-in-slow">
+            <div class="tiny">round ${state.round + 1} · reveal</div>
+            <p class="muted serif" style="font-size: 16px; margin-top: 14px; font-style: italic;">"${state.currentPromptIdx !== null ? PROMPTS[state.currentPromptIdx] : ''}"</p>
+            <div class="card-grid stagger" style="margin-top: 22px;">
+              ${cards.map(({p, card}) => `
+                <div class="card scale-in" style="opacity: ${card ? 1 : 0.3};">
+                  <div class="card-art">${card ? card.svg : ''}</div>
+                  <div class="card-label">${card ? card.label : '(no pick)'}</div>
+                  <div class="tiny" style="text-align: center; padding: 0 10px 8px; color: var(--ink-soft);">${p === holderForRound(state.round) ? `${p} · holder` : `${p}`}${p === state.position ? ' · you' : ''}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="reveal-hint fade-in-slow">
+              take a moment to notice how the three cards sit together.
+            </div>
+            <div class="spacer"></div>
+            <button class="btn-primary" data-action="advance:reflect" style="width: 100%;">open reflection →</button>
+          </div>`;
+      },
+
+      reflect: () => `
+        <div class="screen fade-in">
+          <div class="progress-dots">
+            ${[0,1,2].map(i => `<div class="dot ${i < state.round ? 'done' : ''} ${i === state.round ? 'active' : ''}"></div>`).join('')}
+          </div>
+          <div class="tiny" style="text-align: center; margin-top: 20px;">round ${state.round + 1} · reflection</div>
+          <div class="reflection-card scale-in">
+            <div class="tiny">for your trio</div>
+            <div class="prompt serif">${REFLECTIONS[state.round]}</div>
+          </div>
+          <p class="muted" style="margin-top: 22px; font-size: 14px;">
+            take a minute each to answer. read the question aloud if it helps.
+          </p>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-action="advance:solve" style="width: 100%;">we've shared → write our move</button>
+        </div>`,
+
+      solve: () => {
+        const existing = state.solutions[state.round] || '';
+        const ready = existing.trim().length >= 3;
+        const lastRound = state.round >= 2;
+        const action = lastRound ? 'next-round' : 'next-round';
+        const label = ready ? (lastRound ? 'log it → close the circle' : 'log it → next round') : 'write to continue';
+        return `
+          <div class="screen fade-in">
+            <div class="tiny">round ${state.round + 1} · your trio's move</div>
+            <h2 class="serif" style="margin-top: 12px;">write it together.</h2>
+            <div style="margin-top: 16px; padding: 18px 20px; background: var(--paper); border-radius: 14px;">
+              <div class="prompt serif" style="font-size: 18px; line-height: 1.35;">${SOLVE_PROMPTS[state.round]}</div>
+            </div>
+            <textarea id="solution-input" class="solution-input" placeholder="one or two concrete sentences…" rows="5">${existing}</textarea>
+            <p class="muted tiny" style="margin-top: 10px;">everyone writes their own version on their own device. this stays with you.</p>
+            <div class="spacer"></div>
+            <button class="btn-primary" data-action="${action}" ${ready ? '' : 'disabled'} id="solve-continue" style="width: 100%;">${label}</button>
+          </div>`;
+      },
+
+      echo: () => `
+        <div class="screen fade-in">
+          <div class="tiny">echo · your trio's three moves</div>
+          <h2 class="serif" style="margin-top: 10px;">what you made together.</h2>
+          <p class="muted" style="margin-top: 14px; font-size: 15px;">
+            three scenarios, three moves your trio built. screenshot this if you want to carry it with you.
+          </p>
+          <div class="solutions-recap">
+            ${state.solutions.map((s, i) => {
+              const scenarioIdx = state.usedPrompts[i];
+              const scenario = scenarioIdx !== undefined ? PROMPTS[scenarioIdx] : '(scenario not recorded)';
+              const short = scenario.length > 95 ? scenario.slice(0, 95) + '…' : scenario;
+              const move = (s || '').trim();
+              return `
+                <div class="solution-card">
+                  <div class="tiny">round ${i + 1}</div>
+                  <div class="scenario">"${short}"</div>
+                  <div class="move ${move ? '' : 'empty'}">${move || 'not logged'}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <div class="echo-list" style="margin-top: 24px;">
+            <div class="echo-q">looking at all three: which move is your trio most likely to actually try?</div>
+            <div class="echo-q">which of your own responses surprised you?</div>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn-primary" data-action="advance:close" style="width: 100%;">i'm ready to close</button>
+        </div>`,
+
+      close: () => `
+        <div class="screen fade-in">
+          <div class="spacer"></div>
+          <div style="text-align: center;">
+            <div class="serif" style="font-size: 44px; line-height: 1.1; font-weight: 300;">thank you<br/>for reading<br/>with us.</div>
+            <p class="muted" style="margin-top: 28px; font-size: 15px; max-width: 320px; margin-left: auto; margin-right: auto;">
+              three readings are not three answers. they are three ways a room can hold the same moment.
+            </p>
+          </div>
+          <div class="spacer"></div>
+          <div class="footer-actions">
+            <div class="muted tiny"><span class="wv-wordmark">winded.vertigo</span> · read the room</div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-ghost" data-action="play-again">play again</button>
+              <button class="btn-ghost" data-action="leave-room">leave room</button>
+            </div>
+          </div>
+        </div>`,
+    };
+
+    // ---------- EVENT WIRING ----------
+    function wireEvents() {
+      // Action buttons — translate clicks to server messages.
+      document.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', async e => {
+          if (btn.hasAttribute('disabled')) return;
+          const action = btn.getAttribute('data-action');
+          if (action === 'create') {
+            try {
+              state.screen = 'joining';
+              render();
+              const code = await createRoom();
+              connect(code);
+            } catch {
+              state.joinError = 'could not create a room. try again.';
+              state.screen = 'enter';
+              render();
+            }
+          } else if (action === 'copy-code') {
+            if (state.code && navigator.clipboard) {
+              navigator.clipboard.writeText(state.code).catch(() => {});
+            }
+          } else if (action === 'leave-room' || action === 'exit-corner') {
+            // Mid-round exits get a confirm so a stray tap doesn't drop a
+            // player out of an active session. Lobby + close screens leave
+            // immediately — there's nothing in flight.
+            const midRound = !['lobby','close','roundDone'].includes(state.phase);
+            if (action === 'exit-corner' && midRound) {
+              const ok = confirm(`leave room ${state.code}? everyone else stays.`);
+              if (!ok) return;
+            }
+            try { ws && ws.close(1000, 'left'); } catch {}
+            ws = null;
+            clearStored();
+            state.code = null;
+            state.position = null;
+            state.clientId = null;
+            state.solutions = ['', '', ''];
+            state.joinError = null;
+            state.screen = 'enter';
+            render();
+          } else if (action === 'play-again') {
+            send({ t: 'play_again' });
+          } else if (action === 'draw-prompt') {
+            // Idempotent on the server — only the first draw_prompt per round
+            // takes effect. Either client may click; the trio likely waits
+            // for the holder.
+            drawAndShipPrompt();
+          } else if (action === 'reveal') {
+            send({ t: 'reveal' });
+          } else if (action === 'change-card') {
+            send({ t: 'change_card' });
+          } else if (action === 'next-round') {
+            send({ t: 'next_round' });
+          } else if (action.startsWith('advance:')) {
+            const to = action.slice('advance:'.length);
+            send({ t: 'advance', to });
+          }
+        });
+      });
+
+      // Position picker — claim a seat in the room.
+      document.querySelectorAll('[data-pos]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.hasAttribute('disabled')) return;
+          state.lastError = null;
+          const p = parseInt(btn.getAttribute('data-pos'), 10);
+          send({ t: 'claim_position', position: p });
+        });
+      });
+
+      // Difficulty picker — broadcast to room.
+      document.querySelectorAll('[data-diff]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          send({ t: 'set_difficulty', difficulty: btn.getAttribute('data-diff') });
+        });
+      });
+
+      // Card picker — broadcast pick. Tapping again on the same card no-ops
+      // visually (server stays consistent). Tapping a different card replaces.
+      document.querySelectorAll('[data-pick]').forEach(card => {
+        card.addEventListener('click', () => {
+          const id = parseInt(card.getAttribute('data-pick'), 10);
+          send({ t: 'pick_card', cardId: id });
+        });
+      });
+
+      // Solution textarea — local-only persistence (per the game's "this stays
+      // with you" promise). Save to localStorage on input.
+      const ta = document.getElementById('solution-input');
+      if (ta) {
+        ta.addEventListener('input', () => {
+          state.solutions[state.round] = ta.value;
+          saveStored({ solutions: state.solutions });
+          const btn = document.getElementById('solve-continue');
+          if (btn) {
+            const ready = ta.value.trim().length >= 3;
+            const lastRound = state.round >= 2;
+            if (ready) {
+              btn.removeAttribute('disabled');
+              btn.textContent = lastRound ? 'log it → close the circle' : 'log it → next round';
+            } else {
+              btn.setAttribute('disabled', '');
+              btn.textContent = 'write to continue';
+            }
+          }
+        });
+      }
+
+      // Join form — only on the enter screen.
+      const form = document.getElementById('join-form');
+      if (form) {
+        const input = document.getElementById('join-input');
+        if (input && !input.value) {
+          const stored = loadStored();
+          if (stored && stored.code && state.joinError === null) input.value = stored.code;
+        }
+        form.addEventListener('submit', e => {
+          e.preventDefault();
+          joinRoomByCode(input.value);
+        });
+      }
+    }
+
+    // ---------- INIT ----------
+    // Bumped whenever the client-side state shape changes in a breaking
+    // way. On load, any stored value with a missing or older epoch gets
+    // wiped — that way users running a stale cached HTML build don't get
+    // wedged in a localStorage state the new code can't recover from.
+    const CLIENT_EPOCH = 2;
+
+    // Three escape hatches, in order:
+    //  1. URL contains ?reset=1 — clear everything, return to enter screen.
+    //     Bookmarkable / shareable: send this URL to anyone stuck.
+    //  2. Stored CLIENT_EPOCH is missing or older — auto-clear.
+    //  3. Stored code malformed — auto-clear (already handled below).
+    function consumeResetParam() {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('reset') === '1') {
+          clearStored();
+          url.searchParams.delete('reset');
+          // Replace the URL so a follow-up reload doesn't keep wiping.
+          window.history.replaceState({}, '', url.toString());
+          return true;
+        }
+      } catch {}
+      return false;
+    }
+
+    (function bootstrap() {
+      const wasReset = consumeResetParam();
+      const stored = wasReset ? null : loadStored();
+
+      // Stale-client guard: stored data from a different epoch is unsafe to
+      // trust, but we only need to drop the bits that depend on shape (code,
+      // position). Solutions are plain strings — they survive epoch bumps.
+      if (stored && stored.epoch !== CLIENT_EPOCH) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ epoch: CLIENT_EPOCH, solutions: Array.isArray(stored.solutions) ? stored.solutions : ['', '', ''] })); } catch {}
+        // Reload the just-pruned state.
+        const pruned = loadStored();
+        if (pruned && Array.isArray(pruned.solutions) && pruned.solutions.length === 3) state.solutions = pruned.solutions;
+        render();
+        return;
+      }
+
+      if (stored && Array.isArray(stored.solutions) && stored.solutions.length === 3) {
+        state.solutions = stored.solutions;
+      }
+      // Auto-rejoin only if the stored code is well-formed. A malformed
+      // stored value (older client version, manual tampering, partial write)
+      // would otherwise hang on 'joining' indefinitely while WS upgrades 404.
+      if (stored && stored.code && CODE_PATTERN.test(stored.code)) {
+        state.screen = 'joining';
+        state.code = stored.code;
+        render();
+        connect(stored.code);
+      } else {
+        if (stored && stored.code) clearStored();
+        render();
+      }
+    })();
+  </script>
+</body>
+</html>
