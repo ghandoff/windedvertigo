@@ -33,6 +33,13 @@
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 
+// 2026-05-06 — chicken-and-egg guard. Path-2 lib helpers read from
+// Postgres when PCS_READ_FROM_POSTGRES=1, but THIS script's job is to
+// populate Postgres FROM Notion. If the flag is on, the helpers would
+// read from empty Postgres tables and return 0 rows, so the backfill
+// would no-op. Force Notion reads regardless of operator env:
+process.env.PCS_READ_FROM_POSTGRES = '';
+
 import { getAllDocuments }        from '../src/lib/pcs-documents.js';
 import { getAllVersions }         from '../src/lib/pcs-versions.js';
 import { getAllClaims }           from '../src/lib/pcs-claims.js';
@@ -44,6 +51,8 @@ import { getAllReferences }       from '../src/lib/pcs-references.js';
 import { getAllWordingVariants }  from '../src/lib/pcs-wording-variants.js';
 import { getAllRevisionEvents }   from '../src/lib/pcs-revision-events.js';
 import { getAllRequests }         from '../src/lib/pcs-requests.js';
+import { getAllIngredients }      from '../src/lib/pcs-ingredients.js';
+import { getAllCoreBenefits }     from '../src/lib/pcs-core-benefits.js';
 
 // ─── CLI parsing ────────────────────────────────────────────────────
 const args = process.argv.slice(2);
@@ -285,6 +294,38 @@ function mapEvidencePacket(r) {
   };
 }
 
+// 2026-05-06 — added with migration 006 (Path-2 Day 2.6).
+function mapIngredient(r) {
+  return {
+    notion_page_id:           r.id,
+    canonical_name:           r.canonicalName || '',
+    synonyms:                 r.synonyms || '',
+    category:                 emptyToNull(r.category),
+    standard_unit:            emptyToNull(r.standardUnit),
+    fda_rdi:                  num(r.fdaRdi),
+    fda_rdi_unit:             emptyToNull(r.fdaRdiUnit),
+    regulatory_ceiling:       num(r.regulatoryCeiling),
+    bioavailability_notes:    r.bioavailabilityNotes || '',
+    interaction_cautions:     r.interactionCautions || '',
+    notes:                    r.notes || '',
+    form_ids:                 arr(r.formIds),
+    notion_created_at:        ts(r.createdTime),
+    notion_last_edited_at:    ts(r.lastEditedTime),
+  };
+}
+
+function mapCoreBenefit(r) {
+  return {
+    notion_page_id:           r.id,
+    core_benefit:             r.coreBenefit || '',
+    benefit_category_id:      emptyToNull(r.benefitCategoryId),
+    notes:                    r.notes || '',
+    pcs_claim_instance_ids:   arr(r.pcsClaimInstanceIds),
+    notion_created_at:        ts(r.createdTime),
+    notion_last_edited_at:    ts(r.lastEditedTime),
+  };
+}
+
 function mapCanonicalClaim(r) {
   return {
     notion_page_id:               r.id,
@@ -423,6 +464,9 @@ const TABLES = [
   { phase: 1, table: 'pcs_wording_variants', fetcher: () => getAllWordingVariants(),                    mapper: mapWordingVariant  },
   { phase: 1, table: 'pcs_references',       fetcher: () => getAllReferences(),                          mapper: mapReference       },
   { phase: 1, table: 'pcs_formula_lines',    fetcher: () => getAllFormulaLines(),                        mapper: mapFormulaLine     },
+  // 2026-05-06 — added with migration 006 (Path-2 Day 2.6 dropdown helpers)
+  { phase: 1, table: 'pcs_ingredients',      fetcher: () => getAllIngredients(50, { skipCache: true }), mapper: mapIngredient      },
+  { phase: 1, table: 'pcs_core_benefits',    fetcher: () => getAllCoreBenefits({ skipCache: true }),    mapper: mapCoreBenefit     },
 
   // ── Phase 2 — parent entities
   { phase: 2, table: 'pcs_documents', fetcher: () => getAllDocuments(50, { skipCache: true }), mapper: mapDocument },
