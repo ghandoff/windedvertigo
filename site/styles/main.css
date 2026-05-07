@@ -119,12 +119,12 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 .team-member { display: grid; grid-template-columns: 300px 1fr; gap: var(--space-lg); }
 .team-member h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: var(--space-xs); text-transform: lowercase; color: var(--text-primary); }
 .team-member .role { font-size: 20px; color: var(--wv-champagne); text-transform: lowercase; margin-bottom: var(--space-lg); font-weight: 400; font-style: italic; }
-.team-member .bio { margin-bottom: var(--space-lg); position: relative; }
+.team-member .bio { margin-bottom: 4px; position: relative; }
 .team-member .bio.truncated { overflow: hidden; transition: max-height 0.3s ease; }
 .team-member .bio.expanded { max-height: none !important; overflow: visible; }
 .team-member .bio p { line-height: 1.7; color: var(--text-primary); max-width: var(--max-line-length); }
 .team-member .bio p:last-child { margin-bottom: 0; }
-.see-more-btn { background: none; border: none; color: var(--wv-white); font-size: 0.9rem; font-weight: 400; cursor: pointer; padding: 0; margin-top: 4px; margin-bottom: var(--space-sm); text-transform: lowercase; transition: color 0.2s ease; }
+.see-more-btn { background: none; border: none; color: var(--wv-white); font-size: 0.9rem; font-weight: 400; cursor: pointer; padding: 0; margin-top: 2px; margin-bottom: var(--space-lg); text-transform: lowercase; transition: color 0.2s ease; }
 .see-more-btn:hover { color: var(--text-primary); }
 .play-memory { margin: var(--space-md) 0; padding: var(--space-md) var(--space-lg); border-left: 3px solid var(--wv-sienna); background: rgba(203, 120, 88, 0.08); font-style: italic; font-size: 0.9rem; line-height: 1.7; color: var(--wv-champagne); }
 .play-memory-label { display: block; font-style: normal; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; color: var(--wv-sienna); text-transform: lowercase; margin-bottom: var(--space-xs); }
@@ -538,6 +538,21 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   .what-process-heading { font-size: 1.1rem; }
   .what-process-body { font-size: 0.75rem; }
 }
+
+/* ── collaborator strip ───────────────────────────────────────── */
+.collab-strip { padding: var(--space-2xl) 0; overflow: hidden; }
+.collab-strip--compact { padding: var(--space-xl) 0; }
+.collab-strip-label { text-align: center; font-size: 0.72rem; letter-spacing: 0.07em; text-transform: lowercase; color: rgba(255, 235, 210, 0.30); margin-bottom: var(--space-md); }
+.collab-marquee-track { display: flex; --gap: 4rem; mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent); }
+.collab-marquee-list { display: flex; align-items: center; gap: var(--gap); list-style: none; padding: 0; margin: 0; flex-shrink: 0; animation: collab-scroll 40s linear infinite; }
+@keyframes collab-scroll { from { transform: translateX(0); } to { transform: translateX(calc(-100% - var(--gap))); } }
+.collab-compact-list { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--space-lg) var(--space-2xl); list-style: none; padding: 0; margin: 0; }
+.collab-item { opacity: 0.28; transition: opacity 0.2s; }
+.collab-item--current { opacity: 0.55; }
+.collab-item:hover { opacity: 0.7; }
+.collab-name { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: lowercase; color: var(--wv-champagne); white-space: nowrap; font-weight: 500; }
+.collab-logo { height: 26px; width: auto; display: block; filter: brightness(0) invert(1); }
+@media (prefers-reduced-motion: reduce) { .collab-marquee-list { animation-play-state: paused; } .collab-marquee-list[aria-hidden="true"] { display: none; } .collab-marquee-list:first-child { flex-wrap: wrap; justify-content: center; } }
 
 /* ── accessibility ────────────────────────────────────────────── */
 .skip-link { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; z-index: 1000; background: var(--text-primary); color: var(--bg-primary); padding: var(--space-xs) var(--space-sm); text-decoration: none; font-weight: 600; }

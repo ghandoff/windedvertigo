@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { CollaboratorStrip } from "@/components/collaborator-strip";
 import { fetchPortfolioAssets, fetchSiteContent } from "@/lib/notion";
 import { PortfolioGallery } from "@/components/portfolio-gallery";
 
@@ -70,6 +71,8 @@ export default async function PortfolioPage() {
           <PortfolioGallery assets={portfolioAssets} />
         </div>
       </main>
+
+      <CollaboratorStrip compact />
 
       <SiteFooter sections={homeSections} />
     </>

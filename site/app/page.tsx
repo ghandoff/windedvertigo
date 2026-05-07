@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { CollaboratorStrip } from "@/components/collaborator-strip";
 import { fetchSiteContent } from "@/lib/notion";
 
 /** SSR: render at request time so CF Worker NOTION_TOKEN secret is available. */
@@ -39,6 +40,8 @@ export default async function HomePage() {
           </section>
         </div>
       </main>
+
+      <CollaboratorStrip />
 
       <SiteFooter sections={sections} />
     </>
