@@ -42,8 +42,8 @@ import { syncSingleRevisionEventPageToPostgres } from '@/lib/pcs-revision-events
 import { syncSingleVersionPageToPostgres } from '@/lib/pcs-versions';
 import { syncSingleWordingVariantPageToPostgres } from '@/lib/pcs-wording-variants';
 
-export const runtime = 'nodejs';
-export const maxDuration = 30;
+// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
+// @notionhq/client uses fetch internally and works on the CF V8 edge runtime.
 export const dynamic = 'force-dynamic';
 
 function verifyAuth(request) {
