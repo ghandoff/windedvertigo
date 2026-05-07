@@ -543,7 +543,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 .collab-strip { padding: var(--space-2xl) 0; overflow: hidden; }
 .collab-strip--compact { padding: var(--space-xl) 0; }
 .collab-strip-label { text-align: center; font-size: 0.72rem; letter-spacing: 0.07em; text-transform: lowercase; color: var(--wv-white); margin-bottom: var(--space-md); }
-.collab-marquee-track { display: flex; --gap: 4rem; mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent); }
+.collab-marquee-track { display: flex; gap: var(--gap); --gap: 4rem; mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent); }
 .collab-marquee-list { display: flex; align-items: center; gap: var(--gap); list-style: none; padding: 0; margin: 0; flex-shrink: 0; animation: collab-scroll 40s linear infinite; }
 @keyframes collab-scroll { from { transform: translateX(0); } to { transform: translateX(calc(-100% - var(--gap))); } }
 .collab-compact-list { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--space-lg) var(--space-2xl); list-style: none; padding: 0; margin: 0; }
