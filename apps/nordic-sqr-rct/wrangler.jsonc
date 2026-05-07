@@ -15,8 +15,9 @@
   ],
   "triggers": {
     "crons": [
-      "*/2 * * * *",
-      "*/5 * * * *",
+      "*/2 * * * *",   // process-imports + drift-sync (both; see src/lib/scheduled.js)
+      "*/3 * * * *",   // retry-pending-writes (Phase B strong-consistency queue)
+      "*/5 * * * *",   // process-label-imports
       "0 8 * * *",     // sweep-label-drift
       "0 7 * * *",     // nightly-reping
       "0 16 * * 1"     // weekly-digest (Mondays)
