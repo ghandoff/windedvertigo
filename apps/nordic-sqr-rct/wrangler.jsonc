@@ -14,7 +14,7 @@
     "binding": "ASSETS"
   },
   "r2_buckets": [
-    // Post-DNS-cutover: swap @vercel/blob → R2 reads/writes once nordic-pcs is confirmed healthy.
+    // R2 migration complete 2026-05-07: all Vercel Blob writes replaced by R2.
     { "binding": "NORDIC_ASSETS", "bucket_name": "nordic-pcs" }
   ],
   "triggers": {
@@ -32,13 +32,10 @@
     "CF_WORKERS_ENV": "1"
   },
 
-  // ── Custom domain (Phase D DNS cutover) ──────────────────────────
-  // Uncomment + `wrangler deploy` to register the custom domain with
-  // Cloudflare. windedvertigo.com must be in the CF zone. After deploy,
-  // the DNS CNAME nordic.windedvertigo.com → wv-nordic.windedvertigo.workers.dev
-  // will be created automatically. Only do this when ready to cut traffic
-  // away from Vercel — Vercel will immediately stop serving requests.
-  //
+  // ── Custom domain (DNS cutover complete 2026-05-07) ─────────────
+  // nordic.windedvertigo.com is live on CF Workers. Vercel project is
+  // still running in parallel during the 48h monitoring window but no
+  // longer receives the custom domain traffic.
   "routes": [
     { "pattern": "nordic.windedvertigo.com", "custom_domain": true }
   ],
@@ -49,7 +46,7 @@
   //   NOTION_TOKEN             — Notion API (all reads/writes)
   //   NOTION_WEBHOOK_TOKEN     — inbound Notion webhook auth
   //   CRON_SECRET              — self-request auth for scheduled crons
-  //   BLOB_READ_WRITE_TOKEN    — Vercel Blob (canary period; remove after R2 migration)
+  //   (BLOB_READ_WRITE_TOKEN removed 2026-05-07 — R2 migration complete, no longer needed)
   //
   // LLM:
   //   LLM_API_KEY, LLM_MODEL, LLM_PROVIDER
@@ -66,8 +63,9 @@
   //   SLACK_SAFETY_CHANNEL     — #safety Slack channel ID
   //
   // Feature flags (set as secrets, not vars, so Vercel env export carried them):
-  //   PCS_READ_FROM_POSTGRES   — "1" = read from Postgres (Phase A)
-  //   PCS_STRONG_CONSISTENCY   — "1" = enable retry queue (Phase B; not yet set)
+  //   PCS_READ_FROM_POSTGRES   — "1" = read from Postgres (Phase A, active)
+  //   PCS_WRITE_TO_POSTGRES    — "1" = dual-write to Postgres (Phase B, active)
+  //   PCS_STRONG_CONSISTENCY   — "1" = enable retry queue (Phase B, active)
   //
   // URL vars (required post-cutover — already set):
   //   NEXT_PUBLIC_SITE_URL     — "https://nordic.windedvertigo.com"
