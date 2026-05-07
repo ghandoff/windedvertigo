@@ -95,7 +95,9 @@ export async function POST(request) {
   if (body?.type === 'url_verification' && body?.challenge) {
     return NextResponse.json({ challenge: body.challenge });
   }
-  if (body?.verification_token && !body?.type) {
+  if (body?.verification_token) {
+    // Notion sends verification_token during initial webhook setup (may or may
+    // not include a type field). Echo it back so Notion confirms reachability.
     return NextResponse.json({ ok: true, verification_token: body.verification_token });
   }
 
