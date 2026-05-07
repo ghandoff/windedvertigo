@@ -5,6 +5,10 @@
   "main": "worker-with-scheduled.js",
   "compatibility_date": "2025-03-01",
   "compatibility_flags": ["nodejs_compat"],
+  // Keep workers_dev enabled even after custom_domain routes are added.
+  // Without this explicit flag, Wrangler infers workers_dev=false whenever a
+  // routes/custom_domain block is present, which breaks the *.workers.dev URL.
+  "workers_dev": true,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
