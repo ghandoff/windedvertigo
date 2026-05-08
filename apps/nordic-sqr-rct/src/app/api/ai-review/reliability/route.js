@@ -12,7 +12,6 @@ import {
 import { recordReliabilityRun } from '@/lib/reliability-store';
 
 // Vercel function timeout headroom — clamp to 50s for safety on a default plan.
-export const maxDuration = 60;
 
 const APPROX_COST_PER_CALL = 0.01;
 

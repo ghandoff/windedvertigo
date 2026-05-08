@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { runClaimPrefixBackfill } from '@/lib/claim-backfill';
 
-export const maxDuration = 120;
 
 /**
  * POST /api/admin/backfill/claim-prefixes

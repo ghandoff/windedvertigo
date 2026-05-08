@@ -3,7 +3,6 @@ import { requireCapability } from '@/lib/auth/require-capability';
 import { getIntakeRow } from '@/lib/label-intake-queue';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
 
 /**

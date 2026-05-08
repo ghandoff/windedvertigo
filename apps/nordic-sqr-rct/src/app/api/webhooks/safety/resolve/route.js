@@ -20,7 +20,6 @@ import { NextResponse } from 'next/server';
 import { getSafetySupabase } from '@/lib/supabase-safety';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
 
 async function notifyComplete(runId, ingredientId, totalRequests) {

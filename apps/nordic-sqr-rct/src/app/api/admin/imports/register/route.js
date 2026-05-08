@@ -12,7 +12,6 @@ import { getDocumentByPcsId } from '@/lib/pcs-documents';
 import { notifyBatchComplete } from '@/lib/slack-notifier';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 // Keep in sync with stage/route.js — same Claude Sonnet 4.5 model (2026-04-19).

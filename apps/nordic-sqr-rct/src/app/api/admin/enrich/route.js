@@ -5,7 +5,6 @@ import { enrichArticle } from '@/lib/pcs-enrichment';
 import { normalizeDoi } from '@/lib/doi';
 import { updateEvidence } from '@/lib/pcs-evidence';
 
-export const maxDuration = 300;
 
 /**
  * POST /api/admin/enrich

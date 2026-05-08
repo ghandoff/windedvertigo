@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getPcsSupabase, mirrorToPostgres } from '@/lib/supabase-pcs';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 /**

@@ -6,7 +6,6 @@ import { getDocumentByPcsId } from '@/lib/pcs-documents';
 // Commit does 30+ serial Notion writes per PCS document. Default 300s
 // is tight for Lauren-template PDFs with 15+ evidence packets.
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 600;
 export const dynamic = 'force-dynamic';
 
 /**

@@ -11,7 +11,6 @@ import {
 } from '@/lib/pcs';
 import { createEvidence } from '@/lib/pcs-evidence';
 
-export const maxDuration = 120;
 
 const QUESTION_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10', 'q11'];
 

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { detectDriftForAllActiveLabels } from '@/lib/label-drift';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 800;
 export const dynamic = 'force-dynamic';
 
 /**

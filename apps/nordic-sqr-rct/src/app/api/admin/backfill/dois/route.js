@@ -6,8 +6,6 @@ import { normalizeDoi } from '@/lib/doi';
 import { Client } from '@notionhq/client';
 import { withRetry } from '@/lib/notion';
 
-export const maxDuration = 300; // 5 minutes — could be many lookups
-
 const PUBMED_ESUMMARY = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi';
 const PUBMED_ESEARCH = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi';
 

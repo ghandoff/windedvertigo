@@ -31,7 +31,6 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { requireCapability } from '@/lib/auth/require-capability';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
 
 const ALLOWED_CONTENT_TYPES = [
   'application/pdf',

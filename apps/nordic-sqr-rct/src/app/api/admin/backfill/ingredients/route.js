@@ -3,7 +3,6 @@ import { requireCapability } from '@/lib/auth/require-capability';
 import { getUntaggedEvidence, updateEvidence } from '@/lib/pcs-evidence';
 import { detectIngredients } from '@/lib/ingredients';
 
-export const maxDuration = 120;
 
 /**
  * POST /api/admin/backfill/ingredients

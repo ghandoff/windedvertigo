@@ -31,7 +31,6 @@ import { ingredientSafetySweep } from '@/workflows/ingredient-safety';
 import { getEvidence } from '@/lib/pcs-evidence';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
 
 function parseDemographicFilter(raw) {
