@@ -1223,6 +1223,23 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   background: transparent;
 }
 
+/* ── Full-mockup divider ─────────────────────────────────── */
+.lab-mockup-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem var(--edge-padding);
+  border-top: 1px solid rgba(255,255,255,0.10);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.025);
+}
+.lab-mockup-divider span {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: rgba(255,255,255,0.25);
+}
+
 /* ── accessibility ────────────────────────────────────────────── */
 .skip-link { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; z-index: 1000; background: var(--text-primary); color: var(--bg-primary); padding: var(--space-xs) var(--space-sm); text-decoration: none; font-weight: 600; }
 .skip-link:focus { position: fixed; top: 10px; left: 10px; width: auto; height: auto; overflow: visible; }
