@@ -101,6 +101,11 @@ const CRON_TABLE: CronEntry[] = [
   //    exclusively from the port UI for ≥4 weeks.
   { path: "/api/cron/sync-events-pilot", hours: [7] },
 
+  // ── Daily safety-net mirror Notion → Supabase for competitors.
+  //    Restored 2026-05-08 after Phase A4 retirement zeroed the table.
+  //    UPSERT-only on notion_page_id — safe to run alongside port edits.
+  { path: "/api/cron/sync-competitors-pilot", hours: [7] },
+
   // ── Conference intelligence pipeline (2026-05-08) ───────────────────────────
   // Three discovery sources feeding the events tab as `status='candidate'`.
   // Phases 4, 5, 9 of the conference intelligence plan; see lib/ai/conference-triage.ts
