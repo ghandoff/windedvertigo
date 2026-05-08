@@ -179,14 +179,18 @@ export function CollabGravity() {
           p.vy -= ny * 0.4;
         }
 
-        // Inter-particle repulsion
+        // Inter-particle repulsion — distance threshold is text-width aware
+        // so long names like "education for sharing" repel at a larger radius
         for (let j = i + 1; j < particles.length; j++) {
           const q    = particles[j];
           const rdx  = p.x - q.x;
           const rdy  = p.y - q.y;
           const rd   = Math.sqrt(rdx * rdx + rdy * rdy) || 1;
-          if (rd < REPULSE_DIST) {
-            const f = (REPULSE_DIST - rd) / REPULSE_DIST * REPULSE_K;
+          // Minimum clear gap = half each text width + 14px breathing room
+          const minClear = (p.textWidth + q.textWidth) / 2 + 14;
+          const repDist  = Math.max(REPULSE_DIST, minClear);
+          if (rd < repDist) {
+            const f = (repDist - rd) / repDist * REPULSE_K;
             const fx = (rdx / rd) * f;
             const fy = (rdy / rd) * f;
             p.vx += fx; p.vy += fy;
