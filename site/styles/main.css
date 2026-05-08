@@ -1142,8 +1142,8 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 
 /* Synchronized pulse — wide opacity swing makes it clearly visible */
 @keyframes breath-pulse {
-  0%,100% { opacity: 0.35; }
-  50%      { opacity: 0.88; }
+  0%,100% { opacity: 0.50; }
+  50%      { opacity: 0.92; }
 }
 
 /* Reduced-motion: no animation */

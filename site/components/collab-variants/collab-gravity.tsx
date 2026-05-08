@@ -20,15 +20,19 @@ import { COLLABORATORS } from "@/lib/collaborators";
  * - Logos drawn as white silhouettes via canvas filter (consistent with tide)
  */
 
-const ICON_R    = 20;    // logo circle radius (40px diameter)
-const DAMPING   = 0.976;
-const GRAVITY_K = 0.0016;
-const SEP_MIN   = 56;    // min center-to-center gap before repulsion
-const SEP_K     = 0.26;
-const WANDER    = 0.016;
-const SPEED_MAX = 1.4;
-const MOUSE_R   = 140;
-const MOUSE_K   = 0.14;
+const ICON_R      = 20;    // logo circle radius (40px diameter)
+const DAMPING     = 0.978;
+// Soft orbit zone: logos are repelled from center if too close, attracted if too far.
+// This prevents collapse — logos swarm within a visible toroidal band.
+const ORBIT_MIN   = 70;   // px from center: inside this → push outward
+const ORBIT_MAX_F = 0.42; // fraction of canvas half-width: outside this → pull inward
+const ORBIT_K     = 0.006;
+const SEP_MIN     = 58;   // min center-to-center gap before repulsion
+const SEP_K       = 0.30;
+const WANDER      = 0.018;
+const SPEED_MAX   = 1.6;
+const MOUSE_R     = 150;
+const MOUSE_K     = 0.16;
 
 interface Particle {
   x: number; y: number;
@@ -86,18 +90,24 @@ export function CollabGravity() {
     const rng = seededRandom(42);
     const cx = size.w / 2;
     const cy = size.h / 2;
-    const spread = Math.min(size.w, size.h) * 0.32;
+    // Distribute logos evenly around a ring at ~55% canvas half-width so they
+    // start spread out. Small jitter prevents perfect symmetry.
+    const baseR  = Math.min(cx, cy) * 0.55;
+    const total  = COLLABORATORS.length;
 
-    pRef.current = COLLABORATORS.map((c) => {
-      const angle = rng() * Math.PI * 2;
-      const r = rng() * spread * 0.55 + spread * 0.1;
-      const img = new Image();
+    pRef.current = COLLABORATORS.map((c, i) => {
+      const angle = (i / total) * Math.PI * 2 + (rng() - 0.5) * 0.4;
+      const r     = baseR + (rng() - 0.5) * baseR * 0.35;
+      const img   = new Image();
       if (c.logoPath) img.src = c.logoPath;
+      // Give each logo a slight tangential kick so the swarm starts moving
+      const tx = -Math.sin(angle) * (0.4 + rng() * 0.5);
+      const ty =  Math.cos(angle) * (0.4 + rng() * 0.5);
       return {
         x: cx + Math.cos(angle) * r,
         y: cy + Math.sin(angle) * r,
-        vx: (rng() - 0.5) * 0.7,
-        vy: (rng() - 0.5) * 0.7,
+        vx: tx,
+        vy: ty,
         current: c.current,
         img,
         name: c.name,
@@ -133,14 +143,23 @@ export function CollabGravity() {
         const p = ps[i];
 
         if (!isPausedRef.current) {
-          // Central gravity well
+          // Soft orbit zone: repel if too close to center, attract if too far.
+          // Zero net force inside the comfortable band — prevents collapse.
           const dx = cx - p.x;
           const dy = cy - p.y;
           const dc = Math.sqrt(dx * dx + dy * dy) || 1;
-          // Stronger pull when far out, gentler near center (avoids collapse)
-          const pull = GRAVITY_K * Math.min(dc, 220);
-          p.vx += (dx / dc) * pull;
-          p.vy += (dy / dc) * pull;
+          const nx = dx / dc;
+          const ny = dy / dc;
+          const orbitMax = Math.min(cx, cy) * ORBIT_MAX_F;
+          if (dc < ORBIT_MIN) {
+            // Inside minimum radius → push outward
+            p.vx -= nx * ORBIT_K * (ORBIT_MIN - dc);
+            p.vy -= ny * ORBIT_K * (ORBIT_MIN - dc);
+          } else if (dc > orbitMax) {
+            // Outside maximum radius → pull inward
+            p.vx += nx * ORBIT_K * (dc - orbitMax);
+            p.vy += ny * ORBIT_K * (dc - orbitMax);
+          }
 
           // Mouse/touch repulsion — scatter on hover
           const m = mouseRef.current;
