@@ -194,9 +194,12 @@ export async function GET(request) {
   // seconds, and our clock and theirs aren't perfectly aligned).
   const OVERLAP_MS = 5 * 60 * 1000;
   const start = Date.now();
-  const results = [];
 
-  for (const { name, sync } of tables) {
+  /**
+   * Process a single table: watermark fetch → sync → drift count.
+   * Fully independent — safe to run all 13 in parallel.
+   */
+  async function processTable({ name, sync }) {
     const tableStart = Date.now();
     try {
       // Get current max watermark from Postgres
@@ -217,10 +220,7 @@ export async function GET(request) {
 
       const r = await sync(sinceIso);
 
-      // Drift detection: compare counts between Postgres and Notion.
-      // Surfaces rows that exist in only one side (e.g. a Notion-only
-      // create that the cron's last_edited_at watermark missed, or a
-      // Postgres-only row from a failed reverse-mirror).
+      // Drift detection: compare row counts between Postgres and Notion.
       let pgCount = null;
       let notionCount = null;
       let drifted = false;
@@ -244,7 +244,7 @@ export async function GET(request) {
         driftError = driftErr.message;
       }
 
-      results.push({
+      return {
         table: name,
         sinceIso,
         fetched: r.fetched,
@@ -256,16 +256,24 @@ export async function GET(request) {
         drifted,
         driftError,
         durationMs: Date.now() - tableStart,
-      });
+      };
     } catch (err) {
       console.error(`[cron:drift-sync] ${name} failed:`, err.message);
-      results.push({
+      return {
         table: name,
         error: err.message,
         durationMs: Date.now() - tableStart,
-      });
+      };
     }
   }
+
+  // Fan out all 13 tables in parallel — cuts wall-clock from ~50s to the
+  // time of the single slowest table (~3-5s). Promise.allSettled ensures
+  // every table runs to completion even if one throws.
+  const settled = await Promise.allSettled(tables.map(processTable));
+  const results = settled.map(s =>
+    s.status === 'fulfilled' ? s.value : { table: '?', error: s.reason?.message || String(s.reason) }
+  );
 
   // Rate-limited Slack alert: fire when any table is drifted OR errored,
   // but only after the boot grace period and once per cooldown window.
