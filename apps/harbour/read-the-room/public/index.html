@@ -259,6 +259,10 @@
     .size-btn {
       width: 44px;
       height: 44px;
+      padding: 0;           /* override global button padding so circle stays circular */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 50%;
       font-size: 15px;
       font-weight: 500;
@@ -1613,7 +1617,7 @@
             <div class="tiny"><span class="wv-wordmark">winded.vertigo</span></div>
             <h1 class="serif" style="margin-top: 14px;">read the<br/>room</h1>
             <p class="muted" style="margin-top: 22px; font-size: 17px; max-width: 420px;">
-              one scenario. ${state.pendingSize} different readings of what it asks. you'll each choose a card that meets the moment, then everyone shows at once.
+              one scenario. ${state.pendingSize} ${state.pendingSize === 1 ? 'person' : 'people'}, each choosing a card that meets the moment. everyone shows at once.
             </p>
           </div>
           <div class="spacer"></div>
