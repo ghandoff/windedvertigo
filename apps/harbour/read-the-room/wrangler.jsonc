@@ -26,6 +26,22 @@
     { "tag": "v1", "new_sqlite_classes": ["Room"] }
   ],
 
+  // Direct CF edge routes — bypass the wv-site Worker entirely. The site's
+  // rewrite under /harbour/read-the-room still exists as a fallback in case
+  // these routes are ever removed, but in steady state CF routes traffic
+  // straight to this Worker. This is what makes the URL durable: no
+  // dependency on site/next.config.ts being correct, no risk of a parallel
+  // wv-site rebuild orphaning the URL. Same pattern as wv-harbour-depth-chart.
+  "routes": [
+    { "pattern": "windedvertigo.com/harbour/read-the-room",        "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee" },
+    { "pattern": "windedvertigo.com/harbour/read-the-room/*",      "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee" },
+    { "pattern": "www.windedvertigo.com/harbour/read-the-room",    "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee" },
+    { "pattern": "www.windedvertigo.com/harbour/read-the-room/*",  "zone_id": "3b70c2ddcf9976faccb01d37ccf2e1ee" }
+  ],
+  // Keep workers.dev URL alive — the wipe helper and smoke tests hit it,
+  // and it's a useful direct-access path independent of DNS.
+  "workers_dev": true,
+
   "observability": {
     "enabled": true
   }

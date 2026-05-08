@@ -161,9 +161,33 @@ export default {
     const assetRes = await env.ASSETS.fetch(assetReq);
 
     const headers = new Headers(assetRes.headers);
+    // The Worker now answers windedvertigo.com traffic directly via CF edge
+    // routes (see wrangler.jsonc), so we can no longer rely on wv-site's
+    // response headers. Replicate the relevant ones here. CSP is scoped
+    // tightly to what this app actually needs: inline <script>/<style>,
+    // Google Fonts, and HTTPS/WSS to its own workers.dev origin.
     headers.set("X-Frame-Options", "DENY");
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    headers.set(
+      "Content-Security-Policy",
+      [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline'",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com",
+        "img-src 'self' data:",
+        "connect-src 'self' https://wv-harbour-read-the-room.windedvertigo.workers.dev wss://wv-harbour-read-the-room.windedvertigo.workers.dev",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ].join("; "),
+    );
+    // A small sentinel so deploy-time smoke checks can prove they hit the
+    // Worker directly (via CF route) and not a fallback.
+    headers.set("X-Served-By", "wv-harbour-read-the-room");
     return new Response(assetRes.body, {
       status: assetRes.status,
       statusText: assetRes.statusText,

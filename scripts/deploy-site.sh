@@ -70,3 +70,22 @@ else
 fi
 
 echo "✓ wv-site deployed — windedvertigo.com is live"
+
+# ─── post-deploy live smoke ───────────────────────────────────────────
+# Catch the failure mode that bit us before: a deploy succeeds at
+# wrangler level but the live URL stops responding correctly. Skip on
+# preview deploys (different host).
+if ! $PREVIEW; then
+  echo "→ Smoke: read-the-room reachable through windedvertigo.com"
+  for path in "/harbour/read-the-room" "/harbour/feel-cards"; do
+    code=$(curl -sS -o /dev/null -L -w "%{http_code}" "https://www.windedvertigo.com${path}?_=smoke$(date +%s)")
+    if [[ "$path" == "/harbour/feel-cards" ]]; then
+      # Legacy URL should redirect (308) and the followed final URL should 200.
+      [[ "$code" == "200" ]] && echo "  ✓ ${path} → followed → 200" \
+        || { echo "  ✗ ${path} followed → $code"; exit 1; }
+    else
+      [[ "$code" == "200" ]] && echo "  ✓ ${path} → 200" \
+        || { echo "  ✗ ${path} → $code"; exit 1; }
+    fi
+  done
+fi
