@@ -4,9 +4,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { CollabTypewriter } from "@/components/collab-variants/collab-typewriter";
 import { CollabGravity } from "@/components/collab-variants/collab-gravity";
 import { CollabTide } from "@/components/collab-variants/collab-tide";
-import { CollabMuseum } from "@/components/collab-variants/collab-museum";
 import { CollabHeatmap } from "@/components/collab-variants/collab-heatmap";
-import { CollabTornPaper } from "@/components/collab-variants/collab-torn-paper";
+import { CollabPhosphor } from "@/components/collab-variants/collab-phosphor";
+import { CollabBreath } from "@/components/collab-variants/collab-breath";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +16,12 @@ export const metadata: Metadata = {
 };
 
 const VARIANTS = [
-  { id: "typewriter",  label: "#2 — typewriter roll",    Component: CollabTypewriter },
-  { id: "gravity",     label: "#11 — gravitational orbit", Component: CollabGravity },
-  { id: "tide",        label: "#13 — slow tide",          Component: CollabTide },
-  { id: "museum",      label: "#16 — museum label",       Component: CollabMuseum },
-  { id: "heatmap",     label: "#18 — heat map",           Component: CollabHeatmap },
-  { id: "torn",        label: "#19 — torn paper",         Component: CollabTornPaper },
+  { id: "typewriter",  label: "#2 — typewriter roll",       Component: CollabTypewriter },
+  { id: "gravity",     label: "#11 — gravitational orbit",  Component: CollabGravity },
+  { id: "tide",        label: "#13 — slow tide",            Component: CollabTide },
+  { id: "heatmap",     label: "#18 — heat map",             Component: CollabHeatmap },
+  { id: "phosphor",    label: "#26 — phosphorescent bloom", Component: CollabPhosphor },
+  { id: "breath",      label: "#28 — breath",               Component: CollabBreath },
 ];
 
 export default function LabPage() {
@@ -37,6 +37,7 @@ export default function LabPage() {
           <p className="lab-description">
             six mobile-first approaches to "organisations we play with" — each
             shown in full homepage context. scroll to compare. no marquee.
+            includes phosphorescent bloom (#26) and breath (#28).
           </p>
           <nav className="lab-nav" aria-label="jump to variant">
             {VARIANTS.map((v) => (
