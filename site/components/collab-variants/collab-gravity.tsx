@@ -24,11 +24,11 @@ const ICON_R      = 20;    // logo circle radius (40px diameter)
 const DAMPING     = 0.978;
 // Soft orbit zone: logos are repelled from center if too close, attracted if too far.
 // This prevents collapse — logos swarm within a visible toroidal band.
-const ORBIT_MIN   = 70;   // px from center: inside this → push outward
-const ORBIT_MAX_F = 0.42; // fraction of canvas half-width: outside this → pull inward
-const ORBIT_K     = 0.006;
-const SEP_MIN     = 58;   // min center-to-center gap before repulsion
-const SEP_K       = 0.30;
+const ORBIT_MIN   = 80;   // px from center: inside this → push outward
+const ORBIT_MAX_F = 0.70; // fraction of canvas half-width: outside this → pull inward
+const ORBIT_K     = 0.007;
+const SEP_MIN     = 62;   // min center-to-center gap before repulsion
+const SEP_K       = 0.40;
 const WANDER      = 0.018;
 const SPEED_MAX   = 1.6;
 const MOUSE_R     = 150;
@@ -92,7 +92,7 @@ export function CollabGravity() {
     const cy = size.h / 2;
     // Distribute logos evenly around a ring at ~55% canvas half-width so they
     // start spread out. Small jitter prevents perfect symmetry.
-    const baseR  = Math.min(cx, cy) * 0.55;
+    const baseR  = Math.min(cx, cy) * 0.62;
     const total  = COLLABORATORS.length;
 
     pRef.current = COLLABORATORS.map((c, i) => {
