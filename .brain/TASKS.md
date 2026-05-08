@@ -1,5 +1,19 @@
 # Tasks
 
+## Whirlpool actions — 2026-05-06
+
+From the may 6 whirlpool meeting recording ([notion AI meeting](https://www.notion.so/358e4ee74ba480d7a270f44aa2dad4bd) · [agenda](https://www.notion.so/356e4ee74ba481f6bfa6e5487e1721d4)).
+
+- [ ] **Jamie** — finalize "Learning to Fly" Substack piece by Friday (preferred) or Monday at latest, hand off to Payton
+- [ ] **Team** — review Learning to Fly draft using track changes and provide feedback
+- [ ] **Payton** — post Learning to Fly Substack on Wednesday (May 13)
+- [ ] **garrett** — create Harbour tool review forms for priority apps by Monday
+- [ ] **Jamie** — outline 6 follow-up Substack posts and share in Studio Comms channel
+- [ ] **Team** — focus Harbour launch (May 28) on Prime Plus / adult / higher-ed audience
+- [ ] **Team** — prepare kids/family Harbour apps for end-of-June launch (school holidays + Prime Global conference timing)
+- [ ] **garrett** — create crease animation showing iterative writing process (track-changes/draft evolution + song)
+- [ ] **Jamie** — share accessibility guide in Studio Comms for Claude training
+
 ## Completed 2026-05-05 — Nordic Research Platform: PCS evidence Wave 7.0.5
 
 Full debrief in `.brain/handoff.md`. App: `apps/nordic-sqr-rct`. Branch: `ghandoff/windedvertigo`. Deploys to `nordic.windedvertigo.com` (Vercel).

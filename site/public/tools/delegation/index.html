@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>the delegation matrix — whirlpool sprint, may 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy: #273248;
+      --redwood: #b15043;
+      --sienna: #cb7858;
+      --champagne: #ffebd2;
+      --teal: #43b187;
+      --mint: #58cbb2;
+      --periwinkle: #5872cb;
+      --lavender: #d5d2ff;
+      --cyan: #d2fdff;
+
+      /* team member colors */
+      --garrett: #5872cb;
+      --maria: #e07a5f;
+      --lamis: #43b187;
+      --payton: #f2cc8f;
+      --jamie: #81b29a;
+      --marietta: #d5d2ff;
+      --aaron: #f4a261;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #fafaf8;
+      color: var(--navy);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    /* header */
+    header {
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: #666;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+
+    /* status summary */
+    .status-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .status-card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      border-left: 4px solid var(--periwinkle);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .status-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .status-card.in-progress { border-left-color: var(--teal); }
+    .status-card.not-started { border-left-color: var(--periwinkle); }
+    .status-card.blocked { border-left-color: var(--redwood); }
+    .status-card.done { border-left-color: var(--mint); }
+
+    .status-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--navy);
+    }
+
+    .status-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #999;
+      margin-top: 0.5rem;
+    }
+
+    /* filters */
+    .filters {
+      margin-bottom: 2.5rem;
+    }
+
+    .filter-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #999;
+      display: block;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .filter-btn {
+      padding: 0.6rem 1rem;
+      border: 1px solid #e0dcd8;
+      border-radius: 20px;
+      background: white;
+      color: var(--navy);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--periwinkle);
+      box-shadow: 0 2px 6px rgba(88, 114, 203, 0.15);
+    }
+
+    .filter-btn.active {
+      background: var(--periwinkle);
+      color: white;
+      border-color: var(--periwinkle);
+    }
+
+    .color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* accountability pulse */
+    .accountability {
+      background: linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+      border: 1px solid #e0dcd8;
+    }
+
+    .accountability-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #999;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .accountability-content {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+
+    .days-counter {
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--redwood);
+    }
+
+    .accountability-text {
+      font-size: 0.9rem;
+      color: #666;
+      flex: 1;
+    }
+
+    .reset-button {
+      padding: 0.5rem 1rem;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .reset-button:hover {
+      background: #1a2236;
+    }
+
+    /* projects grid */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .project-card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      border-top: 3px solid var(--periwinkle);
+      opacity: 1;
+    }
+
+    .project-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .project-card.hidden {
+      display: none;
+    }
+
+    .project-card.status-done {
+      border-top-color: var(--mint);
+      opacity: 0.8;
+    }
+
+    .project-card.status-in-progress {
+      border-top-color: var(--teal);
+    }
+
+    .project-card.status-not-started {
+      border-top-color: var(--periwinkle);
+    }
+
+    .project-card.status-blocked {
+      border-top-color: var(--redwood);
+    }
+
+    .project-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--navy);
+      line-height: 1.4;
+    }
+
+    .ownership {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .owner-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .owner-name {
+      font-weight: 600;
+      color: var(--navy);
+    }
+
+    .support-people {
+      font-size: 0.8rem;
+      color: #999;
+      margin-bottom: 1rem;
+    }
+
+    .support-label {
+      font-weight: 600;
+      color: #666;
+    }
+
+    .support-names {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.25rem;
+    }
+
+    .support-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #f5f3f0;
+      padding: 0.3rem 0.6rem;
+      border-radius: 3px;
+      font-size: 0.75rem;
+    }
+
+    .next-action {
+      background: #fafaf8;
+      border-left: 2px solid var(--periwinkle);
+      padding: 0.75rem;
+      border-radius: 3px;
+      margin-bottom: 1rem;
+      flex-grow: 1;
+    }
+
+    .next-action-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #999;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .next-action-text {
+      font-size: 0.85rem;
+      color: var(--navy);
+      line-height: 1.5;
+    }
+
+    .deadline {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 0.75rem;
+    }
+
+    .deadline-date {
+      font-weight: 600;
+      color: var(--navy);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+      width: fit-content;
+    }
+
+    .status-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-badge.done {
+      background: #d4f4e0;
+      color: var(--teal);
+    }
+
+    .status-badge.done::before {
+      background: var(--teal);
+    }
+
+    .status-badge.in-progress {
+      background: #d2fdff;
+      color: var(--teal);
+    }
+
+    .status-badge.in-progress::before {
+      background: var(--teal);
+    }
+
+    .status-badge.not-started {
+      background: #e8e6ff;
+      color: var(--periwinkle);
+    }
+
+    .status-badge.not-started::before {
+      background: var(--periwinkle);
+    }
+
+    .status-badge.blocked {
+      background: #fde5e0;
+      color: var(--redwood);
+    }
+
+    .status-badge.blocked::before {
+      background: var(--redwood);
+    }
+
+    .port-link {
+      display: inline-block;
+      color: var(--periwinkle);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .port-link:hover {
+      color: var(--redwood);
+      border-bottom-color: var(--redwood);
+    }
+
+    .note {
+      font-size: 0.75rem;
+      color: #999;
+      margin-top: 0.75rem;
+      font-style: italic;
+      padding-top: 0.75rem;
+      border-top: 1px solid #e0dcd8;
+    }
+
+    /* footer */
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      border-top: 1px solid #e0dcd8;
+      color: #999;
+      font-size: 0.8rem;
+      margin-top: 3rem;
+    }
+
+    footer a {
+      color: var(--periwinkle);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem 1rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .status-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-buttons {
+        gap: 0.5rem;
+      }
+
+      .accountability-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>the delegation matrix</h1>
+      <p class="subtitle">whirlpool sprint, may 2026 — who owns what. no more 'team' as assignee.</p>
+    </header>
+
+    <!-- status summary -->
+    <div class="status-summary">
+      <div class="status-card">
+        <div class="status-number" id="total-count">12</div>
+        <div class="status-label">projects total</div>
+      </div>
+      <div class="status-card in-progress">
+        <div class="status-number" id="in-progress-count">0</div>
+        <div class="status-label">in progress</div>
+      </div>
+      <div class="status-card not-started">
+        <div class="status-number" id="not-started-count">0</div>
+        <div class="status-label">not started</div>
+      </div>
+      <div class="status-card blocked">
+        <div class="status-number" id="blocked-count">0</div>
+        <div class="status-label">blocked</div>
+      </div>
+      <div class="status-card done">
+        <div class="status-number" id="done-count">0</div>
+        <div class="status-label">done</div>
+      </div>
+    </div>
+
+    <!-- accountability pulse -->
+    <div class="accountability">
+      <div class="accountability-label">accountability pulse</div>
+      <div class="accountability-content">
+        <div class="days-counter" id="days-counter">0</div>
+        <div class="accountability-text">
+          days since last check-in. open this every morning. no credit for good intentions.
+        </div>
+        <button class="reset-button" onclick="resetDaysCounter()">reset</button>
+      </div>
+    </div>
+
+    <!-- filters -->
+    <div class="filters">
+      <label class="filter-label">filter by owner</label>
+      <div class="filter-buttons" id="filter-buttons">
+        <button class="filter-btn active" data-filter="all" onclick="filterProjects('all')">
+          all projects
+        </button>
+        <button class="filter-btn" data-filter="garrett" onclick="filterProjects('garrett')">
+          <span class="color-dot" style="background: var(--garrett);"></span> garrett
+        </button>
+        <button class="filter-btn" data-filter="maria" onclick="filterProjects('maria')">
+          <span class="color-dot" style="background: var(--maria);"></span> maria
+        </button>
+        <button class="filter-btn" data-filter="lamis" onclick="filterProjects('lamis')">
+          <span class="color-dot" style="background: var(--lamis);"></span> lamis
+        </button>
+        <button class="filter-btn" data-filter="payton" onclick="filterProjects('payton')">
+          <span class="color-dot" style="background: var(--payton);"></span> payton
+        </button>
+        <button class="filter-btn" data-filter="jamie" onclick="filterProjects('jamie')">
+          <span class="color-dot" style="background: var(--jamie);"></span> jamie
+        </button>
+        <button class="filter-btn" data-filter="marietta" onclick="filterProjects('marietta')">
+          <span class="color-dot" style="background: var(--marietta);"></span> marietta
+        </button>
+        <button class="filter-btn" data-filter="aaron" onclick="filterProjects('aaron')">
+          <span class="color-dot" style="background: var(--aaron);"></span> aaron
+        </button>
+      </div>
+    </div>
+
+    <!-- projects grid -->
+    <div class="projects-grid" id="projects-grid"></div>
+
+    <!-- footer -->
+    <footer>
+      built by the second brain. last synced: <span id="sync-date"></span>. accountability lives here — not in notion, not in slack, here.
+    </footer>
+  </div>
+
+  <script>
+    const projects = [
+      {
+        id: 1,
+        name: 'harbour marketing campaign',
+        owner: 'payton',
+        support: ['lamis'],
+        nextAction: '3 social teasers (IG + LinkedIn) this week',
+        deadline: 'fri 9 may',
+        status: 'not started',
+        note: 'harbour launch moved to 28 may — aligned with final PPCS session'
+      },
+      {
+        id: 2,
+        name: 'substack pipeline',
+        owner: 'jamie',
+        support: ['payton'],
+        nextAction: 'deliver 5 "unfolding" posts (overdue since 21 apr)',
+        deadline: 'wed 7 may draft',
+        status: 'blocked',
+        note: 'split into two series: transformative theory of change + fold/unfold'
+      },
+      {
+        id: 3,
+        name: 'conference refresh / press play',
+        owner: 'payton',
+        support: ['garrett', 'casper'],
+        nextAction: 'draft campaign + co-branded landing page',
+        deadline: '11 may (next w.v x press play)',
+        status: 'not started',
+        note: ''
+      },
+      {
+        id: 4,
+        name: 'cold outreach follow-ups',
+        owner: 'payton',
+        support: ['garrett'],
+        nextAction: 'audit port CRM for non-replies, send follow-up batch',
+        deadline: 'this week',
+        status: 'not started',
+        note: ''
+      },
+      {
+        id: 5,
+        name: 'warm network emails',
+        owner: 'garrett',
+        support: [],
+        nextAction: '10 personal emails to friends + collaborators about harbour + site',
+        deadline: 'wed 7 may',
+        status: 'not started',
+        note: ''
+      },
+      {
+        id: 6,
+        name: 'harbour app QA + feedback',
+        owner: 'aaron',
+        support: ['marietta', 'jamie'],
+        nextAction: 'test remaining apps on mobile + accessibility',
+        deadline: 'ongoing',
+        status: 'in progress',
+        note: ''
+      },
+      {
+        id: 7,
+        name: 'PPCS facilitation',
+        owner: 'maria',
+        support: ['garrett'],
+        nextAction: 'run session cohorts, prep session 2 materials',
+        deadline: 'ongoing (sessions through 28 may)',
+        status: 'in progress',
+        note: ''
+      },
+      {
+        id: 8,
+        name: 'claude onboarding',
+        owner: 'garrett',
+        support: [],
+        nextAction: 'schedule 60-min training for collective',
+        deadline: 'by 15 may',
+        status: 'not started',
+        note: ''
+      },
+      {
+        id: 9,
+        name: 'august\'s role definition',
+        owner: 'garrett',
+        support: ['aaron'],
+        nextAction: 'define scope + onboarding plan at FruitStand',
+        deadline: 'wed 7 may',
+        status: 'not started',
+        note: ''
+      },
+      {
+        id: 10,
+        name: '$500k pipeline',
+        owner: 'lamis',
+        support: ['garrett', 'maria'],
+        nextAction: 'map pipeline in port CRM, identify next 5 orgs',
+        deadline: 'strategy playdate tue 6 may',
+        status: 'not started',
+        note: ''
+      },
+      {
+        id: 11,
+        name: 'mexico city retreat',
+        owner: 'maria',
+        support: ['lamis'],
+        nextAction: 'contingent on pipeline — start scoping if $200k signed by july',
+        deadline: 'hold',
+        status: 'not started',
+        note: ''
+      },
+      {
+        id: 12,
+        name: 'IDB salvador',
+        owner: 'maria',
+        support: ['garrett'],
+        nextAction: 'evaluation confirmed apr 24 — hold and monitor',
+        deadline: 'waiting',
+        status: 'in progress',
+        note: ''
+      }
+    ];
+
+    const teamColors = {
+      garrett: 'var(--garrett)',
+      maria: 'var(--maria)',
+      lamis: 'var(--lamis)',
+      payton: 'var(--payton)',
+      jamie: 'var(--jamie)',
+      marietta: 'var(--marietta)',
+      aaron: 'var(--aaron)'
+    };
+
+    let currentFilter = 'all';
+
+    // render projects
+    function renderProjects() {
+      const grid = document.getElementById('projects-grid');
+      grid.innerHTML = '';
+
+      projects.forEach(project => {
+        const card = document.createElement('div');
+        card.className = `project-card status-${project.status}`;
+        card.dataset.owner = project.owner;
+
+        const supportHTML = project.support.length > 0
+          ? `<div class="support-people">
+              <span class="support-label">support:</span>
+              <div class="support-names">
+                ${project.support.map(name => `
+                  <span class="support-name">
+                    <span class="color-dot" style="background: ${getTeamColor(name)}; width: 8px; height: 8px;"></span>
+                    ${name}
+                  </span>
+                `).join('')}
+              </div>
+            </div>`
+          : '';
+
+        const noteHTML = project.note ? `<div class="note">${project.note}</div>` : '';
+
+        card.innerHTML = `
+          <div class="project-name">${project.name}</div>
+          <div class="ownership">
+            <span class="owner-dot" style="background: ${getTeamColor(project.owner)};"></span>
+            <span class="owner-name">${project.owner}</span>
+          </div>
+          ${supportHTML}
+          <div class="status-badge ${project.status}">${project.status}</div>
+          <div class="next-action">
+            <div class="next-action-label">next action</div>
+            <div class="next-action-text">${project.nextAction}</div>
+          </div>
+          <div class="deadline">deadline: <span class="deadline-date">${project.deadline}</span></div>
+          <a href="https://port.windedvertigo.com" class="port-link" target="_blank">→ view in port</a>
+          ${noteHTML}
+        `;
+
+        grid.appendChild(card);
+      });
+
+      updateStatusCounts();
+    }
+
+    function getTeamColor(name) {
+      return teamColors[name] || 'var(--periwinkle)';
+    }
+
+    function filterProjects(owner) {
+      currentFilter = owner;
+      const cards = document.querySelectorAll('.project-card');
+
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[data-filter="${owner}"]`).classList.add('active');
+
+      cards.forEach(card => {
+        if (owner === 'all' || card.dataset.owner === owner) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      updateStatusCounts();
+    }
+
+    function updateStatusCounts() {
+      const visibleCards = Array.from(document.querySelectorAll('.project-card:not(.hidden)'));
+
+      document.getElementById('total-count').textContent = visibleCards.length;
+      document.getElementById('in-progress-count').textContent = visibleCards.filter(c => c.classList.contains('status-in-progress')).length;
+      document.getElementById('not-started-count').textContent = visibleCards.filter(c => c.classList.contains('status-not-started')).length;
+      document.getElementById('blocked-count').textContent = visibleCards.filter(c => c.classList.contains('status-blocked')).length;
+      document.getElementById('done-count').textContent = visibleCards.filter(c => c.classList.contains('status-done')).length;
+    }
+
+    // accountability pulse
+    function initDaysCounter() {
+      const lastVisit = localStorage.getItem('delegation-matrix-last-visit');
+      const today = new Date().toDateString();
+
+      if (lastVisit !== today) {
+        let days = parseInt(localStorage.getItem('delegation-matrix-days-counter') || '0');
+        days++;
+        localStorage.setItem('delegation-matrix-days-counter', days);
+        localStorage.setItem('delegation-matrix-last-visit', today);
+      }
+
+      const counter = parseInt(localStorage.getItem('delegation-matrix-days-counter') || '0');
+      document.getElementById('days-counter').textContent = counter;
+    }
+
+    function resetDaysCounter() {
+      localStorage.setItem('delegation-matrix-days-counter', '0');
+      localStorage.removeItem('delegation-matrix-last-visit');
+      document.getElementById('days-counter').textContent = '0';
+    }
+
+    // set sync date
+    function setSyncDate() {
+      const today = new Date();
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      const formatted = today.toLocaleDateString('en-US', options);
+      document.getElementById('sync-date').textContent = formatted;
+    }
+
+    // init
+    document.addEventListener('DOMContentLoaded', () => {
+      renderProjects();
+      initDaysCounter();
+      setSyncDate();
+    });
+  </script>
+</body>
+</html>

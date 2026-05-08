@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>strategy command centre — winded.vertigo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #273248;
+    --redwood: #b15043;
+    --sienna: #cb7858;
+    --champagne: #ffebd2;
+    --teal: #43b187;
+    --periwinkle: #5872cb;
+    --lavender: #d5d2ff;
+    --mint: #58cbb2;
+    --dark: #1a1a2e;
+    --darker: #12121f;
+    --surface: #1e1e32;
+    --surface-alt: #242440;
+    --surface-hover: #2a2a44;
+    --border: rgba(88, 114, 203, 0.15);
+    --border-active: rgba(88, 114, 203, 0.4);
+    --text: #e8e6f0;
+    --text-dim: #9994b8;
+    --text-muted: #6b6589;
+    --glow-teal: rgba(67, 177, 135, 0.12);
+    --glow-periwinkle: rgba(88, 114, 203, 0.12);
+    --glow-redwood: rgba(177, 80, 67, 0.12);
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--darker);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  .ambient {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 15%, var(--glow-periwinkle), transparent),
+      radial-gradient(ellipse 40% 50% at 85% 75%, var(--glow-teal), transparent),
+      radial-gradient(ellipse 30% 30% at 50% 50%, var(--glow-redwood), transparent);
+    animation: ambientShift 30s ease-in-out infinite alternate;
+  }
+  @keyframes ambientShift { 0% { opacity: 0.5; } 100% { opacity: 0.9; } }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ─── NAV ─── */
+  .nav-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    color: var(--text-dim);
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover { background: var(--surface-hover); color: var(--text); }
+  .nav-btn.active {
+    background: var(--periwinkle);
+    border-color: var(--periwinkle);
+    color: white;
+  }
+
+  /* ─── SECTIONS ─── */
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ─── HEADER ─── */
+  .hero {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2.5rem 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--periwinkle), var(--teal), var(--sienna));
+  }
+  .hero .label {
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--mint);
+    margin-bottom: 0.75rem;
+  }
+  .hero h1 {
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 2.2rem;
+    font-weight: 300;
+    color: var(--lavender);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 strong { font-weight: 700; color: var(--text); }
+  .hero .subtitle {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* ─── REVENUE CARD ─── */
+  .revenue-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+  }
+  .metric-card .value {
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .metric-card .value.teal { color: var(--teal); }
+  .metric-card .value.redwood { color: var(--redwood); }
+  .metric-card .value.periwinkle { color: var(--periwinkle); }
+  .metric-card .value.sienna { color: var(--sienna); }
+  .metric-card .label {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+  }
+
+  /* ─── TIMELINE / ROADMAP ─── */
+  .roadmap {
+    position: relative;
+    padding: 1rem 0;
+  }
+  .roadmap-months {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.75rem;
+  }
+  .roadmap-month {
+    text-align: center;
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .roadmap-month.current { color: var(--teal); font-weight: 600; }
+
+  .campaign-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.6rem 0;
+  }
+  .campaign-label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .campaign-label .owner {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+  .campaign-bar-track {
+    position: relative;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .campaign-bar {
+    position: absolute;
+    top: 3px; bottom: 3px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: 0.03em;
+    transition: opacity 0.3s;
+  }
+  .campaign-bar:hover { opacity: 0.85; }
+
+  .milestone-dot {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--champagne);
+    border: 2px solid var(--sienna);
+    z-index: 2;
+  }
+
+  /* today marker */
+  .today-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--redwood);
+    opacity: 0.6;
+    z-index: 3;
+  }
+  .today-label {
+    position: absolute;
+    top: -18px;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    color: var(--redwood);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ─── WORKFLOW DIAGRAM ─── */
+  .workflow-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  .workflow-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    position: relative;
+  }
+  .workflow-step::after {
+    content: '\2193';
+    position: absolute;
+    bottom: -1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--periwinkle);
+    font-size: 1.2rem;
+    opacity: 0.6;
+  }
+  .workflow-step:last-child::after { display: none; }
+  .workflow-step .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--periwinkle);
+    color: white;
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-right: 0.75rem;
+  }
+  .workflow-step h3 {
+    display: inline;
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .workflow-step p {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    padding-left: 2.5rem;
+  }
+  .workflow-step .tools {
+    margin-top: 0.5rem;
+    padding-left: 2.5rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .tool-badge {
+    background: rgba(88, 114, 203, 0.12);
+    border: 1px solid rgba(88, 114, 203, 0.2);
+    border-radius: 12px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.68rem;
+    color: var(--lavender);
+  }
+
+  /* ─── TEAM CARDS ─── */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin: 2rem 0;
+  }
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .team-card:hover { border-color: var(--border-active); }
+  .team-card .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-right: 0.75rem;
+    vertical-align: middle;
+  }
+  .team-card .name {
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .team-card .role {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .team-card .campaigns-list {
+    list-style: none;
+    padding: 0;
+  }
+  .team-card .campaigns-list li {
+    font-size: 0.8rem;
+    color: var(--text);
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .team-card .campaigns-list li:last-child { border: none; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ─── PIPELINE FUNNEL ─── */
+  .funnel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 2rem auto;
+    max-width: 600px;
+  }
+  .funnel-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    transition: transform 0.2s;
+    position: relative;
+  }
+  .funnel-stage:hover { transform: scale(1.02); }
+  .funnel-stage .stage-name {
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+  }
+  .funnel-stage .stage-metric {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.75);
+    margin-top: 0.15rem;
+  }
+  .funnel-arrow {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+  }
+
+  /* ─── SECTION TITLES ─── */
+  .section-title {
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--periwinkle);
+    margin-bottom: 1.25rem;
+  }
+  .section-heading {
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--lavender);
+    margin-bottom: 0.5rem;
+  }
+  .section-heading strong { font-weight: 700; color: var(--text); }
+  .section-desc {
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+    max-width: 700px;
+  }
+
+  /* ─── KPI TARGETS ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+  }
+  .kpi-card .kpi-value {
+    font-family: 'Space Grotesk', system-ui;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--teal);
+  }
+  .kpi-card .kpi-label {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+    letter-spacing: 0.05em;
+  }
+  .kpi-card .kpi-context {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    font-style: italic;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 1.6rem; }
+    .revenue-strip { grid-template-columns: repeat(2, 1fr); }
+    .campaign-row { grid-template-columns: 1fr; gap: 0.25rem; }
+    .campaign-bar-track { height: 24px; }
+    .roadmap-months { grid-template-columns: repeat(5, 1fr); font-size: 0.6rem; }
+    .team-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    text-align: center;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .footer a { color: var(--periwinkle); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="label">winded.vertigo — Q2–Q3 2026</div>
+    <h1>strategy <strong>command centre</strong></h1>
+    <div class="subtitle">the marketing strategy, campaign roadmap, and team operations for reaching $500k by september. built by the CMO. owned by all of us.</div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav-bar">
+    <button class="nav-btn active" onclick="showSection('overview')">overview</button>
+    <button class="nav-btn" onclick="showSection('roadmap')">campaign roadmap</button>
+    <button class="nav-btn" onclick="showSection('team')">team + roles</button>
+    <button class="nav-btn" onclick="showSection('pipeline')">pipeline math</button>
+    <button class="nav-btn" onclick="showSection('workflow')">how the CMO works</button>
+    <button class="nav-btn" onclick="showSection('kpis')">weekly KPIs</button>
+  </div>
+
+  <!-- ═══ OVERVIEW ═══ -->
+  <div class="section active" id="sec-overview">
+    <div class="revenue-strip">
+      <div class="metric-card">
+        <div class="value redwood">$500k</div>
+        <div class="label">revenue target</div>
+      </div>
+      <div class="metric-card">
+        <div class="value teal">10</div>
+        <div class="label">contracts needed</div>
+      </div>
+      <div class="metric-card">
+        <div class="value periwinkle">2/mo</div>
+        <div class="label">signing cadence</div>
+      </div>
+      <div class="metric-card">
+        <div class="value sienna">~$34k</div>
+        <div class="label">current cash</div>
+      </div>
+    </div>
+
+    <div class="section-heading">three <strong>strategy layers</strong></div>
+    <div class="section-desc">may through september, escalating from activation to scale.</div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+      <div class="metric-card" style="text-align: left; border-left: 3px solid var(--teal);">
+        <div style="font-family: 'Space Grotesk'; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 0.5rem;">may — immediate activation</div>
+        <div style="font-size: 0.85rem; color: var(--text);">harbour launch prep, PPCS→funnel, warm outreach blitz, content engine start. get the machine running.</div>
+      </div>
+      <div class="metric-card" style="text-align: left; border-left: 3px solid var(--periwinkle);">
+        <div style="font-family: 'Space Grotesk'; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--periwinkle); margin-bottom: 0.5rem;">june–july — amplification</div>
+        <div style="font-size: 0.85rem; color: var(--text);">harbour live + growing, ISTE conference push, content cadence at full rhythm, pipeline filling. volume up.</div>
+      </div>
+      <div class="metric-card" style="text-align: left; border-left: 3px solid var(--sienna);">
+        <div style="font-family: 'Space Grotesk'; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sienna); margin-bottom: 0.5rem;">aug–sept — scaling</div>
+        <div style="font-size: 0.85rem; color: var(--text);">referral engine active, case studies from harbour cohort, proposals closing, target in sight. convert everything.</div>
+      </div>
+    </div>
+
+    <div class="section-heading">the <strong>six campaigns</strong></div>
+    <div class="section-desc">each campaign is a distinct engine with its own owner, timeline, and KPIs. together they create the pipeline that reaches $500k.</div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+      <div class="metric-card" style="text-align: left;">
+        <div style="font-family: 'Space Grotesk'; font-weight: 600; color: var(--teal); margin-bottom: 0.3rem;">1. PPCS → harbour funnel</div>
+        <div style="font-size: 0.8rem; color: var(--text-dim);">250 PPCS participants → harbour signups → consultation CTAs → proposals. the warmest pipeline we have.</div>
+      </div>
+      <div class="metric-card" style="text-align: left;">
+        <div style="font-family: 'Space Grotesk'; font-weight: 600; color: var(--periwinkle); margin-bottom: 0.3rem;">2. harbour launch</div>
+        <div style="font-size: 0.8rem; color: var(--text-dim);">may 28 launch at PPCS finale. parallel campaign to parents + educators. 500 signups by august 1.</div>
+      </div>
+      <div class="metric-card" style="text-align: left;">
+        <div style="font-family: 'Space Grotesk'; font-weight: 600; color: var(--sienna); margin-bottom: 0.3rem;">3. conference injection</div>
+        <div style="font-size: 0.8rem; color: var(--text-dim);">ISTE+ASCD (june 28–july 1, orlando). harbour is 1 month old — bring case studies + live demos. 10 warm leads minimum.</div>
+      </div>
+      <div class="metric-card" style="text-align: left;">
+        <div style="font-family: 'Space Grotesk'; font-weight: 600; color: var(--mint); margin-bottom: 0.3rem;">4. warm network activation</div>
+        <div style="font-size: 0.8rem; color: var(--text-dim);">garrett's existing relationships: sesame, PRME contacts, meredith network, press play community. 15 warm touches/week.</div>
+      </div>
+      <div class="metric-card" style="text-align: left;">
+        <div style="font-family: 'Space Grotesk'; font-weight: 600; color: var(--lavender); margin-bottom: 0.3rem;">5. content engine</div>
+        <div style="font-size: 0.8rem; color: var(--text-dim);">weekly substack, 3x social, whirlpool→content pipeline. builds awareness at scale. payton + jamie own execution.</div>
+      </div>
+      <div class="metric-card" style="text-align: left;">
+        <div style="font-family: 'Space Grotesk'; font-weight: 600; color: var(--redwood); margin-bottom: 0.3rem;">6. cold outreach refresh</div>
+        <div style="font-size: 0.8rem; color: var(--text-dim);">targeted cold emails to institutional buyers, learning designers, higher ed decision-makers. 15 cold touches/week. 5-15% reply rate target.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ROADMAP ═══ -->
+  <div class="section" id="sec-roadmap">
+    <div class="section-heading">90-day <strong>campaign roadmap</strong></div>
+    <div class="section-desc">may through september. each bar shows when a campaign is active. milestones marked with dots.</div>
+
+    <div class="roadmap">
+      <!-- month headers -->
+      <div class="roadmap-months">
+        <div class="roadmap-month current">may</div>
+        <div class="roadmap-month">june</div>
+        <div class="roadmap-month">july</div>
+        <div class="roadmap-month">august</div>
+        <div class="roadmap-month">september</div>
+      </div>
+
+      <!-- today line -->
+      <div style="position: relative;">
+        <div class="today-line" style="left: 3%;"><div class="today-label">today</div></div>
+
+        <!-- campaigns -->
+        <div class="campaign-row">
+          <div class="campaign-label">PPCS → harbour<br><span class="owner">garrett + maria</span></div>
+          <div class="campaign-bar-track">
+            <div class="campaign-bar" style="left: 0%; width: 55%; background: linear-gradient(90deg, var(--teal), #2d8f6b);">ppcs → harbour funnel</div>
+            <div class="milestone-dot" style="left: 18%;" title="may 28: harbour launch"></div>
+            <div class="milestone-dot" style="left: 40%;" title="june 28: ISTE conference"></div>
+          </div>
+        </div>
+
+        <div class="campaign-row">
+          <div class="campaign-label">harbour launch<br><span class="owner">payton + garrett</span></div>
+          <div class="campaign-bar-track">
+            <div class="campaign-bar" style="left: 5%; width: 75%; background: linear-gradient(90deg, var(--periwinkle), #4560a8);">harbour platform marketing</div>
+            <div class="milestone-dot" style="left: 18%;" title="may 28: launch day"></div>
+            <div class="milestone-dot" style="left: 60%;" title="aug 1: 500 signups target"></div>
+          </div>
+        </div>
+
+        <div class="campaign-row">
+          <div class="campaign-label">conference injection<br><span class="owner">garrett + team</span></div>
+          <div class="campaign-bar-track">
+            <div class="campaign-bar" style="left: 25%; width: 30%; background: linear-gradient(90deg, var(--sienna), #a85f3d);">ISTE + ASCD</div>
+            <div class="milestone-dot" style="left: 40%;" title="june 28: ISTE orlando"></div>
+          </div>
+        </div>
+
+        <div class="campaign-row">
+          <div class="campaign-label">warm network<br><span class="owner">garrett</span></div>
+          <div class="campaign-bar-track">
+            <div class="campaign-bar" style="left: 0%; width: 100%; background: linear-gradient(90deg, var(--mint), #3ba88a);">ongoing warm outreach</div>
+          </div>
+        </div>
+
+        <div class="campaign-row">
+          <div class="campaign-label">content engine<br><span class="owner">payton + jamie</span></div>
+          <div class="campaign-bar-track">
+            <div class="campaign-bar" style="left: 0%; width: 100%; background: linear-gradient(90deg, var(--lavender), #a8a4d4);">substack + social + email</div>
+          </div>
+        </div>
+
+        <div class="campaign-row">
+          <div class="campaign-label">cold outreach<br><span class="owner">payton + garrett</span></div>
+          <div class="campaign-bar-track">
+            <div class="campaign-bar" style="left: 0%; width: 100%; background: linear-gradient(90deg, var(--redwood), #8f3d33);">targeted cold emails</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem; padding: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+      <div class="section-title">key milestones</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.82rem;">
+        <div><span style="color: var(--sienna); font-weight: 600;">may 28</span> <span style="color: var(--text-dim);">— harbour launch at PPCS finale</span></div>
+        <div><span style="color: var(--sienna); font-weight: 600;">june 28</span> <span style="color: var(--text-dim);">— ISTE+ASCD orlando</span></div>
+        <div><span style="color: var(--sienna); font-weight: 600;">aug 1</span> <span style="color: var(--text-dim);">— 500 harbour signups target</span></div>
+        <div><span style="color: var(--sienna); font-weight: 600;">sept 30</span> <span style="color: var(--text-dim);">— $500k revenue deadline</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TEAM ═══ -->
+  <div class="section" id="sec-team">
+    <div class="section-heading">who does <strong>what</strong></div>
+    <div class="section-desc">every campaign has one owner. every task has one name. "the team" is nobody — someone specific is accountable.</div>
+
+    <div class="team-grid">
+      <div class="team-card">
+        <div><span class="avatar" style="background: var(--periwinkle);">G</span><span class="name">garrett</span></div>
+        <div class="role">relationships + strategy + proposals</div>
+        <ul class="campaigns-list">
+          <li><span class="dot" style="background: var(--teal);"></span>PPCS → harbour funnel (lead)</li>
+          <li><span class="dot" style="background: var(--mint);"></span>warm network activation (owner)</li>
+          <li><span class="dot" style="background: var(--sienna);"></span>conference injection (lead)</li>
+          <li><span class="dot" style="background: var(--redwood);"></span>cold outreach (strategy + drafts)</li>
+          <li><span class="dot" style="background: var(--lavender);"></span>proposal generation + discovery calls</li>
+        </ul>
+      </div>
+
+      <div class="team-card">
+        <div><span class="avatar" style="background: var(--sienna);">P</span><span class="name">payton</span></div>
+        <div class="role">execution + social + outreach operations</div>
+        <ul class="campaigns-list">
+          <li><span class="dot" style="background: var(--periwinkle);"></span>harbour launch marketing (co-lead)</li>
+          <li><span class="dot" style="background: var(--lavender);"></span>content engine — social + scheduling (owner)</li>
+          <li><span class="dot" style="background: var(--redwood);"></span>cold outreach — execution (owner)</li>
+          <li><span class="dot" style="background: var(--mint);"></span>email sequences + nurture flows</li>
+          <li><span class="dot" style="background: var(--teal);"></span>canva brand kit + design last-mile</li>
+        </ul>
+      </div>
+
+      <div class="team-card">
+        <div><span class="avatar" style="background: var(--teal);">M</span><span class="name">maria</span></div>
+        <div class="role">PPCS delivery + conference + institutional</div>
+        <ul class="campaigns-list">
+          <li><span class="dot" style="background: var(--teal);"></span>PPCS → harbour funnel (co-lead)</li>
+          <li><span class="dot" style="background: var(--sienna);"></span>conference injection — ISTE prep</li>
+          <li><span class="dot" style="background: var(--periwinkle);"></span>IDB salvador follow-up</li>
+          <li><span class="dot" style="background: var(--mint);"></span>case studies + reference clients</li>
+        </ul>
+      </div>
+
+      <div class="team-card">
+        <div><span class="avatar" style="background: var(--lavender); color: var(--navy);">L</span><span class="name">lamis</span></div>
+        <div class="role">content support + whirlpool coordination</div>
+        <ul class="campaigns-list">
+          <li><span class="dot" style="background: var(--lavender);"></span>content engine — whirlpool→content extraction</li>
+          <li><span class="dot" style="background: var(--mint);"></span>substack editorial support</li>
+          <li><span class="dot" style="background: var(--periwinkle);"></span>strategy playdate coordination</li>
+        </ul>
+      </div>
+
+      <div class="team-card">
+        <div><span class="avatar" style="background: var(--mint);">J</span><span class="name">jamie</span></div>
+        <div class="role">research + writing + substack</div>
+        <ul class="campaigns-list">
+          <li><span class="dot" style="background: var(--lavender);"></span>content engine — substack writing (lead)</li>
+          <li><span class="dot" style="background: var(--teal);"></span>research + thought leadership pieces</li>
+          <li><span class="dot" style="background: var(--periwinkle);"></span>project documentation for proposals</li>
+        </ul>
+      </div>
+
+      <div class="team-card" style="border-color: rgba(67, 177, 135, 0.3); background: rgba(67, 177, 135, 0.04);">
+        <div><span class="avatar" style="background: var(--teal);">AI</span><span class="name">CMO (claude)</span></div>
+        <div class="role">strategy + analysis + coordination + content drafts</div>
+        <ul class="campaigns-list">
+          <li><span class="dot" style="background: var(--teal);"></span>weekly strategy review (every wednesday)</li>
+          <li><span class="dot" style="background: var(--periwinkle);"></span>campaign briefs + content drafts</li>
+          <li><span class="dot" style="background: var(--lavender);"></span>brand voice enforcement</li>
+          <li><span class="dot" style="background: var(--sienna);"></span>pipeline tracking + KPI analysis</li>
+          <li><span class="dot" style="background: var(--mint);"></span>team notifications + digests</li>
+          <li><span class="dot" style="background: var(--redwood);"></span>design asset generation (claude design)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PIPELINE ═══ -->
+  <div class="section" id="sec-pipeline">
+    <div class="section-heading">pipeline <strong>math</strong></div>
+    <div class="section-desc">working backwards from $500k. every number connects to a weekly action someone on this team takes.</div>
+
+    <div class="funnel">
+      <div class="funnel-stage" style="width: 100%; background: linear-gradient(135deg, var(--periwinkle), #4560a8);">
+        <div>
+          <div class="stage-name">awareness</div>
+          <div class="stage-metric">content + social + harbour free access + conferences</div>
+        </div>
+      </div>
+      <div class="funnel-arrow">↓</div>
+      <div class="funnel-stage" style="width: 85%; background: linear-gradient(135deg, var(--teal), #2d8f6b);">
+        <div>
+          <div class="stage-name">engagement</div>
+          <div class="stage-metric">harbour signups, substack subscribers, webinar attendees</div>
+        </div>
+      </div>
+      <div class="funnel-arrow">↓</div>
+      <div class="funnel-stage" style="width: 70%; background: linear-gradient(135deg, var(--sienna), #a85f3d);">
+        <div>
+          <div class="stage-name">conversation</div>
+          <div class="stage-metric">~8 meaningful conversations / month</div>
+        </div>
+      </div>
+      <div class="funnel-arrow">↓</div>
+      <div class="funnel-stage" style="width: 55%; background: linear-gradient(135deg, var(--redwood), #8f3d33);">
+        <div>
+          <div class="stage-name">proposal</div>
+          <div class="stage-metric">5 proposals / month (at 60% conversation→proposal)</div>
+        </div>
+      </div>
+      <div class="funnel-arrow">↓</div>
+      <div class="funnel-stage" style="width: 40%; background: linear-gradient(135deg, var(--navy), #1a2438);">
+        <div>
+          <div class="stage-name">contract</div>
+          <div class="stage-metric">2 signed / month × $50k avg = $500k by sept</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 2.5rem;">
+      <div class="section-title">the weekly math</div>
+      <div class="revenue-strip">
+        <div class="metric-card">
+          <div class="value teal">30</div>
+          <div class="label">outreach touches / week</div>
+        </div>
+        <div class="metric-card">
+          <div class="value periwinkle">4–6</div>
+          <div class="label">replies / week</div>
+        </div>
+        <div class="metric-card">
+          <div class="value sienna">5</div>
+          <div class="label">proposals / month</div>
+        </div>
+        <div class="metric-card">
+          <div class="value redwood">40%</div>
+          <div class="label">target win rate</div>
+        </div>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-dim); text-align: center; margin-top: 1rem;">
+        15 warm (garrett) + 15 cold (payton) = 30 touches/week.<br>
+        at blended 20% reply rate = 6 conversations/week = 24/month.<br>
+        at 60% conversation→proposal = 5 proposals/month.<br>
+        at 40% win rate = 2 contracts/month. that's the target.
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══ WORKFLOW ═══ -->
+  <div class="section" id="sec-workflow">
+    <div class="section-heading">how we work with <strong>the CMO</strong></div>
+    <div class="section-desc">the AI CMO is not a document generator. it's an active participant in the marketing loop — it strategises, reviews, drafts, and learns from what we do.</div>
+
+    <div class="workflow-grid">
+      <div class="workflow-step">
+        <span class="step-num">1</span>
+        <h3>strategy lives in port</h3>
+        <p>the CMO maintains the marketing strategy at port.windedvertigo.com/strategy. this is the single source of truth — campaigns, KPIs, timelines, delegation. always current.</p>
+        <div class="tools">
+          <span class="tool-badge">port CRM</span>
+          <span class="tool-badge">strategy page</span>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <span class="step-num">2</span>
+        <h3>you ask, it answers</h3>
+        <p>open cowork (claude desktop app) and ask: "what should I focus on this week?" or "draft me a linkedin post about harbour." the CMO knows your role, your campaigns, and the current strategy. it answers in context.</p>
+        <div class="tools">
+          <span class="tool-badge">cowork</span>
+          <span class="tool-badge">claude code</span>
+          <span class="tool-badge">slack (@wv-claw)</span>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <span class="step-num">3</span>
+        <h3>execute + report back</h3>
+        <p>you do the work — send outreach, publish content, run the whirlpool. mark progress in port (campaign status, outreach sent, proposals in flight). this feeds the system.</p>
+        <div class="tools">
+          <span class="tool-badge">port campaigns</span>
+          <span class="tool-badge">resend (email)</span>
+          <span class="tool-badge">canva</span>
+          <span class="tool-badge">linkedin</span>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <span class="step-num">4</span>
+        <h3>wednesday CMO review</h3>
+        <p>every wednesday at 9am, the CMO automatically reviews: outreach touches, reply rates, pipeline value, content published, KPI progress. produces a digest → slack + strategy page update.</p>
+        <div class="tools">
+          <span class="tool-badge">automated</span>
+          <span class="tool-badge">slack digest</span>
+          <span class="tool-badge">port update</span>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <span class="step-num">5</span>
+        <h3>strategy adapts</h3>
+        <p>based on what's working (and what's not), the CMO adjusts: new campaign briefs, shifted priorities, updated outreach messaging, design assets via claude design. the strategy page reflects reality, not wishes.</p>
+        <div class="tools">
+          <span class="tool-badge">claude design</span>
+          <span class="tool-badge">adobe MCP</span>
+          <span class="tool-badge">strategy page</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(67, 177, 135, 0.06); border: 1px solid rgba(67, 177, 135, 0.2); border-radius: 14px;">
+      <div style="font-family: 'Space Grotesk'; font-size: 0.85rem; font-weight: 600; color: var(--teal); margin-bottom: 0.5rem;">what makes this different from notion + AI</div>
+      <div style="font-size: 0.85rem; color: var(--text-dim);">
+        the CMO has memory. it knows our strategy, our audience, our brand voice, our pipeline, our team roles, and our history. when you ask it a question, it doesn't start from zero — it answers from the full context of winded.vertigo. and it acts: generating content, reviewing campaigns, updating the strategy, alerting you when something needs attention. it's a colleague, not a tool.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ KPIs ═══ -->
+  <div class="section" id="sec-kpis">
+    <div class="section-heading">weekly <strong>KPI targets</strong></div>
+    <div class="section-desc">these are the numbers the CMO reviews every wednesday. if we hit these consistently, we hit $500k.</div>
+
+    <div class="section-title" style="margin-top: 2rem;">leading indicators (marketing)</div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value">+50/mo</div>
+        <div class="kpi-label">substack subscribers</div>
+        <div class="kpi-context">email list = future pipeline</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">+20/mo</div>
+        <div class="kpi-label">linkedin connections</div>
+        <div class="kpi-context">decision-makers only</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">+100/mo</div>
+        <div class="kpi-label">harbour signups</div>
+        <div class="kpi-context">post-launch (after may 28)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">3–5/mo</div>
+        <div class="kpi-label">inbound enquiries</div>
+        <div class="kpi-context">conversion-ready leads</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">30/wk</div>
+        <div class="kpi-label">outreach sent</div>
+        <div class="kpi-context">15 warm + 15 cold</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">>15%</div>
+        <div class="kpi-label">cold reply rate</div>
+        <div class="kpi-context">message quality signal</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">4/mo</div>
+        <div class="kpi-label">content pieces</div>
+        <div class="kpi-context">1 substack + 3 social</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top: 2.5rem;">lagging indicators (revenue)</div>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="border-color: rgba(177, 80, 67, 0.3);">
+        <div class="kpi-value" style="color: var(--redwood);">5/mo</div>
+        <div class="kpi-label">proposals sent</div>
+        <div class="kpi-context">pipeline velocity</div>
+      </div>
+      <div class="kpi-card" style="border-color: rgba(177, 80, 67, 0.3);">
+        <div class="kpi-value" style="color: var(--redwood);">40%</div>
+        <div class="kpi-label">proposal win rate</div>
+        <div class="kpi-context">pricing + fit quality</div>
+      </div>
+      <div class="kpi-card" style="border-color: rgba(177, 80, 67, 0.3);">
+        <div class="kpi-value" style="color: var(--redwood);">2/mo</div>
+        <div class="kpi-label">contracts signed</div>
+        <div class="kpi-context">the number that matters</div>
+      </div>
+      <div class="kpi-card" style="border-color: rgba(177, 80, 67, 0.3);">
+        <div class="kpi-value" style="color: var(--redwood);">$300k+</div>
+        <div class="kpi-label">pipeline value</div>
+        <div class="kpi-context">runway confidence</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    strategy command centre — winded.vertigo Q2–Q3 2026<br>
+    built by the <a href="https://port.windedvertigo.com/strategy">AI CMO</a> · maintained in <a href="https://port.windedvertigo.com">port</a> · last updated may 4, 2026
+  </div>
+
+</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: 200, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
