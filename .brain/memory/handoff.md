@@ -107,6 +107,27 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 
 ---
 
+## 2026-05-08 — ported "holistic skills: a primer" to /portfolio/holistic-skills-a-primer/ (Claude Code)
+
+**what happened:**
+- ported the PRME PPCS holistic-skills primer (3,100 words, 5 skillsets, 21 individual skills, references) from the public Notion site (`superb-shrimp-129.notion.site/holistic-skills-a-primer-2c3e4ee74ba480598691f6d1e6c572fc`) into a native TSX page on `windedvertigo.com`.
+- **canonical URL:** `https://windedvertigo.com/portfolio/holistic-skills-a-primer/`
+- **files added:** `site/app/portfolio/holistic-skills-a-primer/{page.tsx,primer.tsx,primer.module.css}` + 2 images at `site/public/portfolio/holistic-skills-a-primer/img/{framework-map.png,divider.png}` (re-hosted from Notion's signed S3 URLs which expire).
+- **content is static / inlined** — chosen over live Notion ISR fetch because the primer is evergreen reference content. future edits = edit `primer.tsx`, not Notion.
+- **portfolio gallery card surfaced** by adding row to BD assets DB (`5e27b792adbb4a958779900fb59dd631` / data source `collection://6e8dbbd9-0a14-4342-9154-88fa379b0533`). Notion page: https://www.notion.so/35ae4ee74ba48157bf8cf037050ddeb5. set Show in Portfolio = YES, Quadrant = people × research. Card appears on `/do/` after 5-min ISR (or immediately via `/api/warm-cache`).
+- **build verified** — `npm run build` green; the route is in the static prerender table at 5m revalidate.
+
+**property compromises (worth flagging):**
+- `Website Asset Type` set to `"blog"` because the schema has no `primer` / `guide` / `report` option — closest available. Card label on `/do/` will read "blog". Could add a "primer" option to the select if that wording matters.
+- `Show in Package Builder` set to `__NO__` — the primer is reference content, not a package example. Easy to flip if you want it surfaced under a quadrant package.
+
+**out of scope, flagged for follow-up:**
+- the 13 "Codebook: …" links inside the primer still point to public Notion pages on `superb-shrimp-129.notion.site`. If those Notion pages move/unpublish, the links rot. A future task could port each codebook into `/portfolio/holistic-skills-a-primer/codebooks/<slug>/`.
+- `site/portfolio/GUIDE.md` is stale — describes a `/portfolio/index.html` landing page that doesn't exist. The actual portfolio gallery lives on `/do/`. Should be rewritten or deleted.
+- 18 decorative per-skill icons in the Notion page were `attachment://` block refs (not publicly fetchable) and were skipped — clean typography is sufficient.
+
+---
+
 ## 2026-04-27 (night) — context-sync: PPCS week in motion, anthropic tier 4 landed, dev-collaboration handbook shipped (Cowork)
 
 **what happened:**
