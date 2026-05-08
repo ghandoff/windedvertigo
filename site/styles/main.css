@@ -554,6 +554,376 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 .collab-logo { height: 39px; width: auto; display: block; filter: brightness(0) invert(1); }
 @media (prefers-reduced-motion: reduce) { .collab-marquee-list { animation-play-state: paused; } .collab-marquee-list[aria-hidden="true"] { display: none; } .collab-marquee-list:first-child { flex-wrap: wrap; justify-content: center; } }
 
+/* ══════════════════════════════════════════════════════════════════
+   COLLAB VARIANT STYLES — lab mockup page (collab-mockups branch)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── shared base for all variants ─────────────────────────────── */
+.collab-variant {
+  padding: var(--space-2xl) 0;
+}
+.collab-variant-label {
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: lowercase;
+  color: var(--wv-white);
+  margin-bottom: var(--space-md);
+}
+
+/* helper shared by gravity + torn */
+.tw-current { color: var(--wv-champagne); }
+.tw-past    { color: rgba(255,255,255,0.45); }
+
+/* ── #2 Typewriter Roll ────────────────────────────────────────── */
+.collab-typewriter-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  min-height: 2.5rem;
+  padding: 0 var(--edge-padding);
+}
+.collab-typewriter-text {
+  font-size: clamp(1.1rem, 4vw, 1.6rem);
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  font-weight: 400;
+  text-align: center;
+}
+.collab-typewriter-cursor {
+  font-size: clamp(1.1rem, 4vw, 1.6rem);
+  color: var(--wv-champagne);
+  animation: tw-blink 0.9s step-end infinite;
+  margin-left: 2px;
+}
+@keyframes tw-blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* Static fallback (reduced-motion) */
+.collab-typewriter--static .collab-typewriter-static-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.2rem;
+  list-style: none;
+  padding: 0 var(--edge-padding);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+}
+
+/* ── #11 Gravitational Orbit ───────────────────────────────────── */
+.collab-gravity {
+  padding: var(--space-xl) 0;
+}
+.collab-gravity-field {
+  width: 100%;
+  position: relative;
+  cursor: pointer;
+}
+.collab-gravity-field canvas {
+  display: block;
+  width: 100%;
+}
+/* Static fallback */
+.collab-gravity--static .collab-gravity-static-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.4rem;
+  list-style: none;
+  padding: 0 var(--edge-padding);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+}
+
+/* ── #13 Slow Tide ─────────────────────────────────────────────── */
+.collab-tide-sea {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-lg) var(--space-xl);
+  padding: 0 var(--edge-padding);
+}
+.collab-tide-item {
+  opacity: 0.32;
+  animation: tide-bob var(--tide-duration, 4s) ease-in-out infinite;
+  animation-delay: var(--tide-delay, 0s);
+}
+.collab-tide-item.tide-current { opacity: 0.7; }
+.collab-tide-item:hover { opacity: 1; }
+
+@keyframes tide-bob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(calc(var(--tide-amplitude, 8px) * -1)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .collab-tide-item { animation: none; }
+}
+
+/* Logo box: fixed square, logo fits inside — kills size disparity */
+.tide-logo-box {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tide-logo {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+  filter: brightness(0) invert(1);
+}
+.tide-name {
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  text-transform: lowercase;
+  color: var(--wv-champagne);
+  white-space: nowrap;
+}
+
+/* ── #16 Museum Label ──────────────────────────────────────────── */
+.museum-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+  padding: 0 var(--edge-padding);
+  max-width: 680px;
+  margin: 0 auto;
+}
+@media (min-width: 520px) {
+  .museum-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 800px) {
+  .museum-grid { grid-template-columns: 1fr 1fr 1fr; }
+}
+.museum-card {
+  border-left: 1px solid rgba(255,255,255,0.12);
+  padding: var(--space-sm) var(--space-md);
+  opacity: 0.42;
+  transition: opacity 0.2s;
+}
+.museum-card:hover,
+.museum-card:focus-within { opacity: 0.85; }
+.museum-card--active { opacity: 0.75; border-left-color: rgba(255,235,210,0.35); }
+.museum-card-name {
+  font-size: 0.78rem;
+  letter-spacing: 0.09em;
+  text-transform: lowercase;
+  font-weight: 600;
+  color: var(--wv-champagne);
+  margin-bottom: 0.2rem;
+}
+.museum-card-status {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 0.15rem;
+}
+.museum-card-descriptor {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.3);
+  text-transform: lowercase;
+}
+
+/* ── #18 Heat Map ──────────────────────────────────────────────── */
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  padding: 0 var(--edge-padding);
+  max-width: 420px;
+  margin: 0 auto var(--space-md);
+}
+@media (min-width: 480px) {
+  .heatmap-grid { grid-template-columns: repeat(9, 1fr); max-width: 560px; }
+}
+.heatmap-cell {
+  aspect-ratio: 1;
+  cursor: pointer;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.heatmap-cell-inner {
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.18);
+  border-radius: 3px;
+  animation: hm-pulse var(--hm-duration, 3s) ease-in-out infinite;
+  animation-delay: var(--hm-delay, 0s);
+  transition: background 0.2s;
+}
+.heatmap-cell--current .heatmap-cell-inner {
+  background: rgba(255,235,210,0.28);
+  animation-name: hm-pulse-warm;
+}
+.heatmap-cell:hover .heatmap-cell-inner,
+.heatmap-cell:focus .heatmap-cell-inner {
+  background: var(--wv-champagne) !important;
+  animation: none;
+}
+@keyframes hm-pulse {
+  0%,100% { opacity: 0.35; } 50% { opacity: 1; }
+}
+@keyframes hm-pulse-warm {
+  0%,100% { opacity: 0.45; } 50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heatmap-cell-inner { animation: none; opacity: 0.45; }
+  .heatmap-cell--current .heatmap-cell-inner { opacity: 0.65; }
+}
+.heatmap-reveal {
+  text-align: center;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+.heatmap-reveal-name {
+  font-size: 0.82rem;
+  letter-spacing: 0.07em;
+  text-transform: lowercase;
+  color: var(--wv-champagne);
+}
+.heatmap-reveal-status {
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.35);
+  text-transform: lowercase;
+}
+.heatmap-reveal-hint {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.2);
+  text-transform: lowercase;
+}
+
+/* ── #19 Torn Paper ────────────────────────────────────────────── */
+.collab-torn {
+  padding: var(--space-xl) 0;
+}
+.torn-field {
+  position: relative;
+  /* Height must accommodate all rows — 6 rows × ~28% each + some padding */
+  height: 620px;
+  margin: 0 var(--edge-padding);
+  overflow: hidden;
+}
+@media (min-width: 480px) {
+  .torn-field { height: 500px; }
+}
+@media (min-width: 700px) {
+  .torn-field { height: 420px; }
+}
+.torn-scrap {
+  position: absolute;
+  background: rgba(255,255,255,0.06);
+  border-radius: 1px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.2s, opacity 0.2s;
+  opacity: 0.55;
+  /* Width sized to content; clip-path handles irregular edge */
+  white-space: nowrap;
+}
+.torn-scrap:hover { background: rgba(255,255,255,0.12); opacity: 0.9; }
+.torn-scrap--current {
+  background: rgba(255,235,210,0.08);
+  opacity: 0.8;
+}
+.torn-scrap--current:hover { background: rgba(255,235,210,0.15); }
+.torn-scrap-name {
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: lowercase;
+  color: var(--wv-white);
+}
+.torn-scrap--current .torn-scrap-name { color: var(--wv-champagne); }
+.torn-scrap-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--wv-champagne);
+  flex-shrink: 0;
+}
+
+/* ── Lab page chrome ───────────────────────────────────────────── */
+.lab-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: var(--space-xs);
+}
+.lab-description {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.5);
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-xl);
+  max-width: 460px;
+  line-height: 1.6;
+}
+.lab-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin-bottom: var(--space-2xl);
+}
+.lab-nav-link {
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: lowercase;
+  color: var(--wv-champagne);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+  padding-bottom: 1px;
+}
+.lab-nav-link:hover { border-bottom-color: var(--wv-champagne); }
+
+.lab-variant-block {
+  position: relative;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.lab-variant-tag {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(39,50,72,0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  color: rgba(255,255,255,0.35);
+  padding: 6px var(--edge-padding);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.lab-page-spacer {
+  padding: var(--space-2xl) 0 var(--space-xl);
+  text-align: center;
+}
+.lab-spacer-text {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.12);
+  text-transform: lowercase;
+}
+.lab-divider {
+  height: 4rem;
+  background: transparent;
+}
+
 /* ── accessibility ────────────────────────────────────────────── */
 .skip-link { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; z-index: 1000; background: var(--text-primary); color: var(--bg-primary); padding: var(--space-xs) var(--space-sm); text-decoration: none; font-weight: 600; }
 .skip-link:focus { position: fixed; top: 10px; left: 10px; width: auto; height: auto; overflow: visible; }
