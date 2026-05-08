@@ -93,33 +93,50 @@ export function CollabGravity() {
     document.fonts.ready.then(() => {
       ctx.font = `${fs}px "DM Mono", ui-monospace, monospace`;
 
-      const rnd = seededRandom(13);
+      // ── Arc-length-aware placement ───────────────────────────────
+      // Measure all text widths first, then place items on each ring
+      // so their angular spacing matches their actual text width.
+      // This prevents initial overlaps that settling alone can't fix.
 
-      pRef.current = COLLABORATORS.map((c, i) => {
-        // Assign to one of three rings by position in list (even thirds)
+      const items = COLLABORATORS.map((c, i) => {
         const ringIdx = Math.floor((i / total) * 3);
-        const tR = minHalf * RING_FRACTIONS[ringIdx];
-
-        // Evenly space within ring + small jitter
-        const countOnRing = Math.round(total / 3);
-        const posInRing   = i % countOnRing;
-        const baseAngle   = (posInRing / countOnRing) * Math.PI * 2;
-        const jitter      = (rnd() - 0.5) * 0.4;
-        const angle       = baseAngle + jitter + (ringIdx * 0.6); // phase-shift rings
-        const r           = tR + (rnd() - 0.5) * minHalf * 0.06;
-
-        const tw = ctx.measureText(c.name).width;
-        return {
-          x: cx + Math.cos(angle) * r,
-          y: cy + Math.sin(angle) * r,
-          vx: 0, vy: 0,
-          name: c.name,
-          current: c.current,
-          targetR: tR,
-          textWidth: tw,
-          fontSize: fs,
-        };
+        const tR      = minHalf * RING_FRACTIONS[ringIdx];
+        const tw      = ctx.measureText(c.name).width;
+        return { c, i, ringIdx, tR, tw };
       });
+
+      const RING_PHASE = [0, 1.1, 2.3]; // start angle offset per ring (radians)
+      const GAP = 18; // px between items on same ring
+
+      pRef.current = (() => {
+        const result: Particle[] = new Array(items.length);
+        for (let r = 0; r < 3; r++) {
+          const ring = items.filter(it => it.ringIdx === r);
+          const tR   = minHalf * RING_FRACTIONS[r];
+          // Total arc needed
+          const totalArc = ring.reduce((s, it) => s + it.tw + GAP, 0);
+          // If items are too wide for this ring, they'll push outward during settle
+          let angle = RING_PHASE[r];
+          for (const it of ring) {
+            // Advance by half this item's arc before placing centre
+            angle += (it.tw / 2) / tR;
+            result[it.i] = {
+              x: cx + Math.cos(angle) * tR,
+              y: cy + Math.sin(angle) * tR,
+              vx: 0, vy: 0,
+              name: it.c.name,
+              current: it.c.current,
+              targetR: tR,
+              textWidth: it.tw,
+              fontSize: fs,
+            };
+            // Advance remaining arc + gap
+            angle += (it.tw / 2 + GAP) / tR;
+          }
+          void totalArc; // suppress unused warning
+        }
+        return result;
+      })();
 
       // ── Pre-settle: run N invisible iterations so particles reach a
       //    stable layout before the first visible frame is rendered.
