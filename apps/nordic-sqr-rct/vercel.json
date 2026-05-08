@@ -1,14 +1,5 @@
 {
   "ignoreCommand": "npx turbo-ignore nordic-sqr-rct",
-  "crons": [
-    { "path": "/api/cron/process-imports", "schedule": "*/2 * * * *" },
-    { "path": "/api/cron/process-label-imports", "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/sweep-label-drift", "schedule": "0 8 * * *" },
-    { "path": "/api/cron/drift-sync", "schedule": "*/2 * * * *" },
-    { "path": "/api/cron/retry-pending-writes", "schedule": "*/3 * * * *" },
-    { "path": "/api/workflows/weekly-digest", "schedule": "0 16 * * 1" },
-    { "path": "/api/workflows/nightly-reping", "schedule": "0 7 * * *" }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -35,7 +26,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://vitals.vercel-insights.com https://*.public.blob.vercel-storage.com https://blob.vercel-storage.com; frame-src 'self' https://*.public.blob.vercel-storage.com; worker-src 'self'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://vitals.vercel-insights.com; worker-src 'self'; base-uri 'self'; form-action 'self'"
         }
       ]
     }
