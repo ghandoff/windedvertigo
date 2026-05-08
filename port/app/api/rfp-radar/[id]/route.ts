@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateRfpOpportunity, archiveRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { setRfpInfluencedByEventIds } from "@/lib/supabase/rfp-opportunities";
 import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { json, withNotionError } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
@@ -33,6 +34,13 @@ export async function PATCH(
   const body = await req.json();
 
   return withNotionError(async () => {
+    // Phase 8 (conference intelligence): influencedByEventIds is a Supabase-
+    // only column — Notion has no equivalent property — so write it directly
+    // before the Notion update. Idempotent; pass an empty array to clear.
+    if (Array.isArray(body.influencedByEventIds)) {
+      await setRfpInfluencedByEventIds(id, body.influencedByEventIds);
+    }
+
     const updated = await updateRfpOpportunity(id, body);
 
     // Trigger proposal generation when an RFP moves to "pursuing" —

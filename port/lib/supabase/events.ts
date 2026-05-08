@@ -12,7 +12,14 @@
  */
 
 import { supabase } from "./client";
-import type { CrmEvent } from "@/lib/notion/types";
+import type {
+  CrmEvent,
+  ConferenceStatus,
+  ConferenceLifecycle,
+  ConferenceDiscoverySource,
+  ConferenceDeadline,
+  WvFitScore,
+} from "@/lib/notion/types";
 
 // ── types ────────────────────────────────────────────────────────
 
@@ -33,6 +40,27 @@ interface EventRow {
   why_it_matters: string | null;
   notes: string | null;
   url: string | null;
+  // ── Phase 1 triage + lifecycle ─────────────────────────────
+  status: string | null;
+  lifecycle_state: string | null;
+  fit_score: string | null;
+  triage_notes: string | null;
+  triaged_at: string | null;
+  triaged_by: string | null;
+  owner_user_id: string | null;
+  discovered_via: string | null;
+  discovered_at: string | null;
+  external_id: string | null;
+  raw_payload_json: unknown | null;
+  affiliated_org_id: string | null;
+  deadlines: ConferenceDeadline[] | null;
+  est_travel_cost: number | null;
+  sponsorship_fee: number | null;
+  actual_cost_total: number | null;
+  currency: string | null;
+  outcome_notes: string | null;
+  contacts_met_count: number | null;
+  followup_due_by: string | null;
 }
 
 export interface EventSupabaseFilters {
@@ -40,6 +68,14 @@ export interface EventSupabaseFilters {
   whoShouldAttend?: string;
   upcoming?: boolean;
   search?: string;
+  // ── Phase 1 ────────────────────────────────────────────────
+  status?: ConferenceStatus;
+  lifecycleState?: ConferenceLifecycle;
+  discoveredVia?: ConferenceDiscoverySource;
+  ownerUserId?: string;
+  affiliatedOrgId?: string;
+  /** when true, also include rows with status='not_relevant' (default: hide them) */
+  includeNotRelevant?: boolean;
 }
 
 export interface EventSupabasePagination {
@@ -72,13 +108,40 @@ function mapRowToEvent(row: EventRow): CrmEvent {
     notes: row.notes ?? "",
     url: row.url ?? "",
     lastEditedTime: "",
+
+    // ── Phase 1 ─────────────────────────────────────────────
+    status: (row.status as ConferenceStatus) ?? "watch",
+    lifecycleState: (row.lifecycle_state as ConferenceLifecycle) ?? "upcoming",
+    fitScore: (row.fit_score as WvFitScore) ?? null,
+    triageNotes: row.triage_notes ?? "",
+    triagedBy: row.triaged_by,
+    triagedAt: row.triaged_at,
+    ownerUserId: row.owner_user_id,
+    discoveredVia: (row.discovered_via as ConferenceDiscoverySource) ?? "manual",
+    discoveredAt: row.discovered_at ?? "",
+    externalId: row.external_id,
+    rawPayloadJson: row.raw_payload_json,
+    affiliatedOrgId: row.affiliated_org_id,
+    deadlines: row.deadlines ?? [],
+    estTravelCost: row.est_travel_cost,
+    sponsorshipFee: row.sponsorship_fee,
+    actualCostTotal: row.actual_cost_total,
+    currency: row.currency ?? "USD",
+    outcomeNotes: row.outcome_notes ?? "",
+    contactsMetCount: row.contacts_met_count,
+    followupDueBy: row.followup_due_by,
   };
 }
 
 const SELECT_COLS =
   "notion_page_id, event, type, event_start, event_end, proposal_deadline, frequency, " +
   "location, est_attendance, registration_cost, quadrant_relevance, bd_segments, " +
-  "who_should_attend, why_it_matters, notes, url";
+  "who_should_attend, why_it_matters, notes, url, " +
+  // Phase 1 triage + lifecycle + provenance + costs + retro
+  "status, lifecycle_state, fit_score, triage_notes, triaged_at, triaged_by, " +
+  "owner_user_id, discovered_via, discovered_at, external_id, raw_payload_json, " +
+  "affiliated_org_id, deadlines, est_travel_cost, sponsorship_fee, " +
+  "actual_cost_total, currency, outcome_notes, contacts_met_count, followup_due_by";
 
 // ── query functions ───────────────────────────────────────────────
 
@@ -97,10 +160,21 @@ export async function getEventsFromSupabase(
     .order("event", { ascending: true })
     .range(from, to);
 
-  if (filters.type)           query = query.eq("type", filters.type);
-  if (filters.whoShouldAttend) query = query.contains("who_should_attend", [filters.whoShouldAttend]);
-  if (filters.upcoming)       query = query.gte("event_start", new Date().toISOString().slice(0, 10));
-  if (filters.search)         query = query.ilike("event", `%${filters.search}%`);
+  if (filters.type)            query = query.eq("type", filters.type);
+  if (filters.whoShouldAttend)  query = query.contains("who_should_attend", [filters.whoShouldAttend]);
+  if (filters.upcoming)        query = query.gte("event_start", new Date().toISOString().slice(0, 10));
+  if (filters.search)          query = query.ilike("event", `%${filters.search}%`);
+  // Phase 1 triage filters.
+  if (filters.status)          query = query.eq("status", filters.status);
+  if (filters.lifecycleState)  query = query.eq("lifecycle_state", filters.lifecycleState);
+  if (filters.discoveredVia)   query = query.eq("discovered_via", filters.discoveredVia);
+  if (filters.ownerUserId)     query = query.eq("owner_user_id", filters.ownerUserId);
+  if (filters.affiliatedOrgId) query = query.eq("affiliated_org_id", filters.affiliatedOrgId);
+  // Default view hides 'not_relevant' rows; reveal explicitly via includeNotRelevant
+  // OR by passing status='not_relevant' as the explicit filter.
+  if (!filters.includeNotRelevant && filters.status !== "not_relevant") {
+    query = query.neq("status", "not_relevant");
+  }
 
   const { data, error, count } = await query;
   if (error) throw new Error(`[supabase/crm_events] query: ${error.message}`);
@@ -153,4 +227,41 @@ export async function deleteEventFromSupabase(notionPageId: string): Promise<voi
     .delete()
     .eq("notion_page_id", notionPageId);
   if (error) throw new Error(`[supabase/crm_events] delete: ${error.message}`);
+}
+
+// ── triage writers (Phase 1) ──────────────────────────────────────
+
+export interface TriageUpdate {
+  status?: ConferenceStatus;
+  lifecycleState?: ConferenceLifecycle;
+  fitScore?: WvFitScore | null;
+  triageNotes?: string;
+  ownerUserId?: string | null;
+  triagedBy: string;            // required — who clicked the button
+}
+
+/**
+ * Apply a triage decision to an event row. Always stamps `triaged_at` to now()
+ * and `triaged_by` to the caller. Partial — only the keys you pass are written.
+ */
+export async function setEventTriageStatus(
+  notionPageId: string,
+  update: TriageUpdate,
+): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const patch: Record<string, any> = {
+    triaged_at: new Date().toISOString(),
+    triaged_by: update.triagedBy,
+  };
+  if (update.status !== undefined)         patch.status = update.status;
+  if (update.lifecycleState !== undefined) patch.lifecycle_state = update.lifecycleState;
+  if (update.fitScore !== undefined)       patch.fit_score = update.fitScore;
+  if (update.triageNotes !== undefined)    patch.triage_notes = update.triageNotes;
+  if (update.ownerUserId !== undefined)    patch.owner_user_id = update.ownerUserId;
+
+  const { error } = await supabase
+    .from("crm_events")
+    .update(patch)
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/crm_events] triage: ${error.message}`);
 }

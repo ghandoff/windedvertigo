@@ -93,6 +93,34 @@ const CRON_TABLE: CronEntry[] = [
 
   // ── Every 4 hours ───────────────────────────────────────────────────────────
   { path: "/api/cron/ingest-meeting-notes", hours: [0,4,8,12,16,20] },
+
+  // ── Daily safety-net mirror Notion → Supabase for crm_events.
+  //    Restored 2026-05-08 after Phase A4 retirement left the events tab
+  //    blank (0 rows in Supabase). UPSERT-only, so port-UI edits aren't
+  //    clobbered. Retire once discovery feeds are live + the team works
+  //    exclusively from the port UI for ≥4 weeks.
+  { path: "/api/cron/sync-events-pilot", hours: [7] },
+
+  // ── Conference intelligence pipeline (2026-05-08) ───────────────────────────
+  // Three discovery sources feeding the events tab as `status='candidate'`.
+  // Phases 4, 5, 9 of the conference intelligence plan; see lib/ai/conference-triage.ts
+  // and lib/conferences/dedup.ts for the shared ingest pipeline.
+
+  // Daily 06:30 UTC — scan curated newsletter senders in each team mailbox.
+  // Highest-signal feeder. STRICT allowlist — privacy guardrail enforced
+  // inside the route. originalMinute documents the original Vercel cadence
+  // even though the hourly router fires at :00.
+  { path: "/api/cron/scan-conference-newsletters", hours: [6], originalMinute: 30 },
+
+  // Weekly Mondays 14:00 UTC — for each org in `organizations`, ask AI what
+  // conferences that org hosts/sponsors/attends. Rate-limited to 10 orgs per
+  // run, rotating through least-recently-scouted orgs across weeks.
+  { path: "/api/cron/scout-org-conferences", hours: [14], weekdays: [1] },
+
+  // Monthly 1st-of-month 14:30 UTC — broad WV_PROFILE topic scout for
+  // green-field conferences the org-affiliated and newsletter scans don't
+  // cover. Capped at 10 candidates/run, lower confidence by design.
+  { path: "/api/cron/scout-broad-conferences", hours: [14], originalMinute: 30, dayOfMonth: 1 },
 ];
 
 // sweep-stuck-proposals runs every 5 minutes — handled by the */5 trigger,

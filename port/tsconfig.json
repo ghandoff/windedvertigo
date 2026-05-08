@@ -37,8 +37,12 @@
   ],
   "exclude": [
     "node_modules",
-    // CF Workers files — consumed by @opennextjs/cloudflare build, not Next.js tsc
+    // CF Workers files — consumed by @opennextjs/cloudflare build, not Next.js tsc.
+    // worker.entry.ts is the CF Workers wrapper that imports scheduled.ts;
+    // excluding only scheduled.ts isn't enough because worker.entry.ts pulls
+    // it in transitively when next build's type checker walks the import graph.
     "open-next.config.ts",
+    "worker.entry.ts",
     "lib/scheduled.ts"
   ]
 }

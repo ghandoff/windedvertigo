@@ -80,6 +80,10 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     // deadlineTimezone lives in Supabase only (not a Notion property).
     // Callers that need it should augment from a Supabase lookup.
     deadlineTimezone: null,
+    // Notion has no equivalent property for influencedByEventIds — that
+    // field lives Supabase-only (Phase 8). Default to [] so consumers reading
+    // an RfpOpportunity built from Notion don't see undefined.
+    influencedByEventIds: [],
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };

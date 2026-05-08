@@ -116,3 +116,25 @@ export async function createSubstackDraft(
     status: "draft",
   };
 }
+
+// ── stats stub ─────────────────────────────────────────────
+// The original getSubstackStats() implementation was lost between sessions.
+// This stub keeps imports compilable; sync-social-stats is unscheduled in
+// lib/scheduled.ts so the route never fires. Restore in a separate task.
+// Field names mirror what lib/marketing/social-stats.ts expects.
+export interface SubstackStats {
+  totalSubscribers: number | null;
+  freeSubscribers: number | null;
+  paidSubscribers: number | null;
+  recentPostViews: number | null;
+  fetchedAt: string;
+}
+export async function getSubstackStats(): Promise<SubstackStats> {
+  return {
+    totalSubscribers: null,
+    freeSubscribers: null,
+    paidSubscribers: null,
+    recentPostViews: null,
+    fetchedAt: new Date().toISOString(),
+  };
+}

@@ -214,3 +214,14 @@ export async function createBlueskyPost(
     url,
   };
 }
+
+// ── stats stub ─────────────────────────────────────────────
+// See note in lib/social/substack.ts. Stub to keep imports compilable.
+export interface BlueskyStats {
+  followerCount: number | null;
+  recentPostEngagement: number;
+  fetchedAt: string;
+}
+export async function getBlueskyStats(): Promise<BlueskyStats> {
+  return { followerCount: null, recentPostEngagement: 0, fetchedAt: new Date().toISOString() };
+}

@@ -56,6 +56,7 @@ interface RfpOpportunityRow {
   client_feedback: string | null;
   lessons_for_next_time: string | null;
   proposal_notes: string | null;
+  influenced_by_event_ids: string[] | null;
   created_time: string | null;
   last_edited_time: string | null;
 }
@@ -94,6 +95,7 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     lessonsForNextTime: row.lessons_for_next_time ?? "",
     proposalNotes: row.proposal_notes ?? "",
     deadlineTimezone: row.deadline_timezone ?? null,
+    influencedByEventIds: row.influenced_by_event_ids ?? [],
     createdTime: row.created_time ?? "",
     lastEditedTime: row.last_edited_time ?? "",
   };
@@ -153,7 +155,8 @@ const SELECT_COLS =
   "proposal_status, requirements_snapshot, decision_notes, deadline_timezone, " +
   "url, rfp_document_url, proposal_draft_url, question_bank_url, question_count, " +
   "cover_letter_url, team_cvs_url, what_worked, what_fell_flat, client_feedback, " +
-  "lessons_for_next_time, proposal_notes, created_time, last_edited_time";
+  "lessons_for_next_time, proposal_notes, influenced_by_event_ids, " +
+  "created_time, last_edited_time";
 
 /**
  * Query rfp_opportunities from Supabase with filter/pagination parity
@@ -495,4 +498,29 @@ export async function resetStuckProposals(
     );
   }
   return (data ?? []).map((r) => r.notion_page_id as string);
+}
+
+// ─── Phase 8: ROI attribution from conferences ─────────────────────────────
+
+/**
+ * Set the conference event ids that influenced this opportunity. Stored
+ * as Supabase-only data (no Notion property) because the column was added
+ * by the conference-intelligence migration on 2026-05-08.
+ *
+ * Idempotent: pass the full list of event_ids; existing values are
+ * replaced. Empty array clears the link.
+ */
+export async function setRfpInfluencedByEventIds(
+  rfpId: string,
+  eventIds: string[],
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({ influenced_by_event_ids: eventIds })
+    .eq("notion_page_id", rfpId);
+  if (error) {
+    throw new Error(
+      `[supabase/rfp-opportunities] setRfpInfluencedByEventIds: ${error.message}`,
+    );
+  }
 }

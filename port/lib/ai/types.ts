@@ -39,6 +39,9 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   "meeting-actions": "claude-haiku-4-5-20251001",
   // Haiku: weekly summary of project status — low-cost, high-volume text
   "weekly-digest": "claude-haiku-4-5-20251001",
+  // Haiku: per-conference fit-scoring + structured extraction. Discovery
+  // pipeline runs many of these per cron, so cost-sensitive choice.
+  "conference-triage": "claude-haiku-4-5-20251001",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -56,7 +59,8 @@ export type AiFeature =
   | "citation-matching"
   | "task-generation"
   | "meeting-actions"
-  | "weekly-digest";
+  | "weekly-digest"
+  | "conference-triage";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -72,6 +76,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "task-generation": "Task Generation",
   "meeting-actions": "Meeting Action Items",
   "weekly-digest": "Weekly Status Digest",
+  "conference-triage": "Conference Triage",
 };
 
 // ── token usage tracking ─────────────────────────────────

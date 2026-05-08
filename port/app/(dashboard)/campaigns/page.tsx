@@ -12,6 +12,14 @@ import { CampaignWeeklySummary, CampaignWeeklySummarySkeleton } from "@/app/comp
 import { EmailComposer } from "@/app/components/email-composer";
 import { SocialDraftForm } from "@/app/components/social-draft-form";
 import { SocialDraftCard } from "@/app/components/social-draft-card";
+import { EventTriageBar } from "./components/event-triage-bar";
+import {
+  EventStatusBadge,
+  EventLifecycleBanner,
+  EventProvenance,
+} from "./components/event-status-badge";
+import { EventContactsPanel } from "@/app/components/event-contacts-panel";
+import type { ConferenceStatus } from "@/lib/notion/types";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { KanbanSkeleton, CardGridSkeleton } from "@/app/components/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,6 +45,8 @@ const EVENT_TYPE_OPTIONS = [
 ] as const;
 
 const TEAM_OPTIONS = ["Garrett", "María", "Jamie", "Lamis", "Yigal"] as const;
+
+const EVENT_STATUS_OPTIONS = ["candidate", "watch", "attend", "pursue", "not_relevant"] as const;
 
 const PLATFORM_OPTIONS = [
   "linkedin", "twitter", "bluesky", "instagram", "facebook", "substack",
@@ -83,12 +93,17 @@ async function CampaignBoard({ searchParams }: BoardProps) {
 
 async function EventCards({ searchParams }: BoardProps) {
   const params = await searchParams;
+  // When the user picks a specific status (including not_relevant), respect
+  // it. Otherwise the default view excludes not_relevant rows automatically
+  // via getEventsFromSupabase's includeNotRelevant=false default.
+  const explicitStatus = params.status as ConferenceStatus | undefined;
   const { data: events } = await getEventsFromSupabase(
     {
       upcoming: true,
       ...(params.eventType && { type: params.eventType }),
       ...(params.whoShouldAttend && { whoShouldAttend: params.whoShouldAttend }),
       ...(params.search && { search: params.search }),
+      ...(explicitStatus && { status: explicitStatus }),
     },
     { pageSize: 50 },
   );
@@ -96,23 +111,44 @@ async function EventCards({ searchParams }: BoardProps) {
   if (events.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        no upcoming events found.
+        no events match these filters.
       </div>
     );
   }
+
+  // Format costs as a compact line: "$250 est · $180 actual" — only shown
+  // when at least one cost field is populated to avoid dead pixels.
+  const formatCost = (n: number | null) =>
+    n === null ? null : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {events.map((evt) => {
         const deadlineDays = daysUntil(evt.proposalDeadline?.start);
         const deadlineUrgent = deadlineDays !== null && deadlineDays >= 0 && deadlineDays <= 14;
+        const estCost = evt.estTravelCost ?? 0;
+        const sponsCost = evt.sponsorshipFee ?? 0;
+        const totalEst = estCost + sponsCost;
+        const actCost = evt.actualCostTotal;
+        const showCostLine = totalEst > 0 || actCost !== null;
 
         return (
           <Card key={evt.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
+              {/* Lifecycle banner — only renders for cancelled/postponed.
+                  Sits *above* the title so it's visually impossible to miss. */}
+              <EventLifecycleBanner lifecycle={evt.lifecycleState} />
               <div className="flex items-start justify-between gap-2">
-                <CardTitle className="text-base leading-tight">{evt.event}</CardTitle>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="space-y-1 min-w-0">
+                  <CardTitle className="text-base leading-tight">{evt.event}</CardTitle>
+                  <EventProvenance
+                    discoveredVia={evt.discoveredVia}
+                    triagedBy={evt.triagedBy}
+                    triagedAt={evt.triagedAt}
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                  <EventStatusBadge status={evt.status} />
                   {evt.type && (
                     <Badge variant="outline" className="text-xs">{evt.type}</Badge>
                   )}
@@ -177,24 +213,41 @@ async function EventCards({ searchParams }: BoardProps) {
                   {evt.whyItMatters}
                 </p>
               )}
-              <div className="flex items-center gap-3 pt-1 border-t">
-                <Link
-                  href={`/campaigns/new?event=${evt.id}`}
-                  className="text-xs text-accent hover:underline"
+              {showCostLine && (
+                <p className="text-[10px] text-muted-foreground">
+                  {totalEst > 0 && <span>{formatCost(totalEst)} est</span>}
+                  {totalEst > 0 && actCost !== null && <span> · </span>}
+                  {actCost !== null && <span>{formatCost(actCost)} actual</span>}
+                </p>
+              )}
+              {evt.url && (
+                <a
+                  href={evt.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground hover:text-accent hover:underline inline-block"
                 >
-                  start campaign
-                </Link>
-                {evt.url && (
-                  <a
-                    href={evt.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:text-accent hover:underline"
-                  >
-                    event website
-                  </a>
-                )}
-              </div>
+                  event website ↗
+                </a>
+              )}
+              {/* Contacts panel (Phase 7) — collapsed by default; expands to
+                  show target/met/followed-up tracking with a contact picker.
+                  Lazy-fetches on first expand to avoid hammering /api on
+                  every tile. */}
+              <EventContactsPanel
+                eventId={evt.id}
+                eventName={evt.event}
+                eventEndDate={evt.eventDates?.end ?? evt.eventDates?.start ?? null}
+              />
+
+              {/* 4-button triage row: watch / attend / pursue / not relevant.
+                  Pursue → opens the EventSubmissionsModal (Phase 6). Replaces
+                  the previous single "start campaign" link. */}
+              <EventTriageBar
+                eventId={evt.id}
+                eventName={evt.event}
+                currentStatus={evt.status}
+              />
             </CardContent>
           </Card>
         );
@@ -344,6 +397,7 @@ export default async function CampaignsPage(props: Props) {
               <SearchInput placeholder="search events..." />
               <FilterSelect paramKey="eventType" placeholder="type" options={EVENT_TYPE_OPTIONS} />
               <FilterSelect paramKey="whoShouldAttend" placeholder="attendee" options={TEAM_OPTIONS} />
+              <FilterSelect paramKey="status" placeholder="status" options={EVENT_STATUS_OPTIONS} />
             </Suspense>
           </div>
           <Suspense fallback={<CardGridSkeleton />}>

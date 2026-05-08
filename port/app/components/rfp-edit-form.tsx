@@ -114,6 +114,8 @@ export function RfpEditForm({ rfpId, rfp }: Props) {
   const [url, setUrl] = useState(rfp.url ?? "");
   const [requirementsSnapshot, setRequirementsSnapshot] = useState(rfp.requirementsSnapshot ?? "");
   const [decisionNotes, setDecisionNotes] = useState(rfp.decisionNotes ?? "");
+  // Phase 8 — conference attribution: which conferences influenced this opp.
+  const [influencedByEventIds, setInfluencedByEventIds] = useState<string[]>(rfp.influencedByEventIds ?? []);
   // debrief fields (shown when status is won/lost/no-go)
   const [whatWorked, setWhatWorked] = useState(rfp.whatWorked ?? "");
   const [whatFellFlat, setWhatFellFlat] = useState(rfp.whatFellFlat ?? "");
@@ -168,6 +170,7 @@ export function RfpEditForm({ rfpId, rfp }: Props) {
           url: url || undefined,
           requirementsSnapshot: requirementsSnapshot || undefined,
           decisionNotes: decisionNotes || undefined,
+          influencedByEventIds,
           whatWorked: whatWorked || undefined,
           whatFellFlat: whatFellFlat || undefined,
           clientFeedback: clientFeedback || undefined,
@@ -401,6 +404,18 @@ export function RfpEditForm({ rfpId, rfp }: Props) {
               rows={4}
             />
           </div>
+
+          {/* Phase 8 — conference attribution. Links one or more events
+              from /campaigns?tab=events whose attendance or pursuit
+              contributed to this opportunity. Surfaces in the event-ROI
+              report on /strategy?tab=pipeline. Free-text tag input for
+              now (paste event ids); a typeahead picker is a follow-up. */}
+          <TagInput
+            label="influenced by conferences"
+            values={influencedByEventIds}
+            onChange={setInfluencedByEventIds}
+            placeholder="paste event id and press Enter (find ids on /campaigns?tab=events)"
+          />
 
           {/* Paste-TOR-as-file: for cases where the TOR lives in an email
               body or page copy rather than a downloadable PDF. Saves to R2

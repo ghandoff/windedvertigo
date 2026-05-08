@@ -178,3 +178,14 @@ export async function createLinkedInPost(
   };
 }
 
+
+// ── stats stub ─────────────────────────────────────────────
+// See note in lib/social/substack.ts. Stub to keep imports compilable.
+export interface LinkedInStats {
+  followerCount: number | null;
+  recentPostEngagement: number;
+  fetchedAt: string;
+}
+export async function getLinkedInStats(): Promise<LinkedInStats> {
+  return { followerCount: null, recentPostEngagement: 0, fetchedAt: new Date().toISOString() };
+}
