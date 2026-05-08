@@ -89,7 +89,7 @@ type TypeMeta = Record<
 >;
 
 const TYPE_ORDER: SkillType[] = ["cognitive", "social", "behavioral"];
-type ViewMode = "list" | "graph";
+type ViewMode = "list" | "graph" | "radial";
 
 // ── main page component ────────────────────────────────────
 
@@ -386,6 +386,15 @@ export function FrameworkPage({
             >
               graph view
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={view === "radial"}
+              className={`${styles.viewTab} ${view === "radial" ? styles.viewTabActive : ""}`}
+              onClick={() => setView("radial")}
+            >
+              radial view
+            </button>
           </div>
 
           <button
@@ -408,7 +417,7 @@ export function FrameworkPage({
         </div>
 
         {/* main view */}
-        {view === "list" ? (
+        {view === "list" && (
           <ListView
             skills={skills}
             skillSets={skillSets}
@@ -421,8 +430,22 @@ export function FrameworkPage({
             onClickSet={onClickSet}
             onClickSkill={onClickSkill}
           />
-        ) : (
+        )}
+        {view === "graph" && (
           <GraphView
+            skills={skills}
+            skillSets={skillSets}
+            typeMeta={typeMeta}
+            selection={selection}
+            highlightedSkillIds={highlightedSkillIds}
+            highlightedSetIds={highlightedSetIds}
+            isComparing={isComparing}
+            onClickSet={onClickSet}
+            onClickSkill={onClickSkill}
+          />
+        )}
+        {view === "radial" && (
+          <RadialView
             skills={skills}
             skillSets={skillSets}
             typeMeta={typeMeta}
@@ -829,6 +852,262 @@ function GraphView({
       </div>
       <p className={styles.compareHint} style={{ marginTop: "1rem" }}>
         each curve is one connection · {isComparing ? "highlighted curves are skills shared across the selected sets" : "click any node to highlight what it touches"}
+      </p>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+//  radial view
+// ═══════════════════════════════════════════════════════════
+
+const RADIAL = {
+  // viewBox is 0..100 in both dims; center at (50,50)
+  innerR: 26, // skill set ring
+  outerR: 42, // skill ring
+  // each type occupies a 100° arc with 20° gaps between
+  // angles in SVG convention: 0°=right, 90°=down, 270°=top
+  arcs: {
+    cognitive:  { start: 220, end: 320 }, // top arc, centered at 270 (top)
+    social:     { start: 340, end: 80  }, // right arc, centered at 30  (lower-right)
+    behavioral: { start: 100, end: 200 }, // left arc,  centered at 150 (lower-left)
+  } as Record<SkillType, { start: number; end: number }>,
+  arcLabelR: 49,
+};
+
+function polar(angleDeg: number, r: number, cx = 50, cy = 50) {
+  const rad = (angleDeg * Math.PI) / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function computeRadialLayout(skillSets: SkillSet[], skills: Skill[]) {
+  // skill sets evenly spaced on inner ring, starting at top
+  const setPos = new Map<string, { x: number; y: number; angle: number }>();
+  const n = skillSets.length;
+  skillSets.forEach((s, i) => {
+    // start at -90° (top), distribute clockwise
+    const angle = -90 + (i * 360) / Math.max(n, 1);
+    const { x, y } = polar(angle, RADIAL.innerR);
+    setPos.set(s.id, { x, y, angle });
+  });
+
+  // skills grouped by type, distributed across each type's arc
+  const skillPos = new Map<string, { x: number; y: number; angle: number }>();
+  TYPE_ORDER.forEach((t) => {
+    const arc = RADIAL.arcs[t];
+    const groupSkills = skills.filter((sk) => sk.type === t);
+    const m = groupSkills.length;
+    if (m === 0) return;
+    let start = arc.start;
+    let end = arc.end;
+    if (end < start) end += 360;
+    const span = end - start;
+    groupSkills.forEach((sk, i) => {
+      const angle = m === 1 ? start + span / 2 : start + (i * span) / (m - 1);
+      const { x, y } = polar(angle, RADIAL.outerR);
+      skillPos.set(sk.id, { x, y, angle: angle % 360 });
+    });
+  });
+
+  return { setPos, skillPos };
+}
+
+function RadialView({
+  skills,
+  skillSets,
+  typeMeta,
+  selection,
+  highlightedSkillIds,
+  highlightedSetIds,
+  isComparing,
+  onClickSet,
+  onClickSkill,
+}: {
+  skills: Skill[];
+  skillSets: SkillSet[];
+  typeMeta: TypeMeta;
+  selection: SelectionState;
+  highlightedSkillIds: Set<string> | null;
+  highlightedSetIds: Set<string> | null;
+  isComparing: boolean;
+  onClickSet: (id: string, multi: boolean) => void;
+  onClickSkill: (id: string) => void;
+}) {
+  const layout = useMemo(
+    () => computeRadialLayout(skillSets, skills),
+    [skillSets, skills],
+  );
+
+  const hasSelection = selection.kind !== "none";
+
+  // edges: every (skill, setId) pair
+  const edges = useMemo(() => {
+    const list: { skillId: string; setId: string; type: SkillType }[] = [];
+    skills.forEach((sk) => {
+      sk.skillSetIds.forEach((sid) => {
+        list.push({ skillId: sk.id, setId: sid, type: sk.type });
+      });
+    });
+    return list;
+  }, [skills]);
+
+  function edgeIsHighlighted(skillId: string, setId: string): boolean {
+    if (!hasSelection) return false;
+    if (selection.kind === "skill") return selection.id === skillId;
+    if (selection.kind === "sets") {
+      const setSelected = selection.ids.includes(setId);
+      const skillHighlighted = highlightedSkillIds?.has(skillId) ?? false;
+      return setSelected && skillHighlighted;
+    }
+    return false;
+  }
+
+  return (
+    <div className={styles.radialOuter}>
+      <div className={styles.radialContainer}>
+        <svg
+          className={styles.radialSvg}
+          viewBox="0 0 100 100"
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden="true"
+        >
+          {/* faint guide ring at outer radius */}
+          <circle
+            cx={50}
+            cy={50}
+            r={RADIAL.outerR}
+            fill="none"
+            stroke="rgba(39, 50, 72, 0.06)"
+            strokeWidth={0.3}
+          />
+          <circle
+            cx={50}
+            cy={50}
+            r={RADIAL.innerR}
+            fill="none"
+            stroke="rgba(39, 50, 72, 0.06)"
+            strokeWidth={0.3}
+          />
+
+          {/* connection curves — bezier with control points pulled toward center */}
+          {edges.map((e) => {
+            const sp = layout.setPos.get(e.setId);
+            const skp = layout.skillPos.get(e.skillId);
+            if (!sp || !skp) return null;
+            const cp1x = skp.x + (50 - skp.x) * 0.55;
+            const cp1y = skp.y + (50 - skp.y) * 0.55;
+            const cp2x = sp.x + (50 - sp.x) * 0.55;
+            const cp2y = sp.y + (50 - sp.y) * 0.55;
+            const d = `M ${skp.x} ${skp.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${sp.x} ${sp.y}`;
+            const highlighted = edgeIsHighlighted(e.skillId, e.setId);
+            const dimmed = hasSelection && !highlighted;
+            const stroke =
+              e.type === "cognitive"
+                ? "var(--wv-cadet)"
+                : e.type === "social"
+                  ? "var(--wv-redwood)"
+                  : "#8a3b30";
+            return (
+              <path
+                key={`${e.skillId}-${e.setId}`}
+                d={d}
+                stroke={stroke}
+                strokeWidth={highlighted ? 0.7 : 0.35}
+                fill="none"
+                opacity={dimmed ? 0.06 : highlighted ? 0.85 : 0.32}
+                style={{ transition: "opacity 0.18s ease, stroke-width 0.18s ease" }}
+              />
+            );
+          })}
+        </svg>
+
+        {/* type-arc labels positioned outside outer ring */}
+        {TYPE_ORDER.map((t) => {
+          const arc = RADIAL.arcs[t];
+          let start = arc.start;
+          let end = arc.end;
+          if (end < start) end += 360;
+          const mid = (start + end) / 2;
+          const pos = polar(mid, RADIAL.arcLabelR);
+          return (
+            <div
+              key={`arc-label-${t}`}
+              className={styles.radialArcLabel}
+              style={{
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+                color: typeMeta[t].bg,
+              }}
+            >
+              {typeMeta[t].label}
+            </div>
+          );
+        })}
+
+        {/* skill set tiles (inner ring) */}
+        {skillSets.map((s) => {
+          const pos = layout.setPos.get(s.id);
+          if (!pos) return null;
+          const isSelectedSetMember =
+            selection.kind === "sets" && selection.ids.includes(s.id);
+          const isHighlighted = highlightedSetIds?.has(s.id) ?? false;
+          const dim = hasSelection && !isHighlighted;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={(e) => onClickSet(s.id, e.metaKey || e.ctrlKey || e.shiftKey)}
+              aria-pressed={isSelectedSetMember}
+              aria-label={`skill set: ${s.label}`}
+              className={`${styles.radialSetNode} ${
+                isSelectedSetMember ? styles.radialSetNodeSelected : ""
+              } ${
+                isHighlighted && !isSelectedSetMember ? styles.radialSetNodeHighlighted : ""
+              } ${dim ? styles.dim : ""}`}
+              style={{
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+              }}
+            >
+              {s.label}
+            </button>
+          );
+        })}
+
+        {/* skill chips (outer ring) */}
+        {skills.map((sk) => {
+          const pos = layout.skillPos.get(sk.id);
+          if (!pos) return null;
+          const isSelected =
+            selection.kind === "skill" && selection.id === sk.id;
+          const isHighlighted = highlightedSkillIds?.has(sk.id) ?? false;
+          const dim = hasSelection && !isHighlighted && !isSelected;
+          const m = typeMeta[sk.type];
+          return (
+            <button
+              key={sk.id}
+              type="button"
+              onClick={() => onClickSkill(sk.id)}
+              aria-pressed={isSelected}
+              aria-label={`${sk.label} — ${sk.type} skill`}
+              className={`${styles.radialSkillNode} ${
+                isSelected ? styles.radialSkillNodeSelected : ""
+              } ${dim ? styles.dim : ""}`}
+              style={{
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+                backgroundColor: m.bg,
+                color: m.text,
+              }}
+            >
+              {sk.label}
+            </button>
+          );
+        })}
+      </div>
+      <p className={styles.compareHint} style={{ marginTop: "0.75rem" }}>
+        skill sets in the center · skills around the perimeter, grouped by type ·{" "}
+        {isComparing ? "highlighted curves are skills shared across the selected sets" : "tap any node to trace its connections"}
       </p>
     </div>
   );
