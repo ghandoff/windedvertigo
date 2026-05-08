@@ -98,11 +98,25 @@ export function CollabGravity() {
       // so their angular spacing matches their actual text width.
       // This prevents initial overlaps that settling alone can't fix.
 
+      // Max text width: cap at ~40% of canvas so ultra-long names don't
+      // dominate. If a name would exceed that at the base font size, measure
+      // it at a slightly reduced size (min 9px).
+      const MAX_TW = size.w * 0.40;
+
       const items = COLLABORATORS.map((c, i) => {
         const ringIdx = Math.floor((i / total) * 3);
         const tR      = minHalf * RING_FRACTIONS[ringIdx];
-        const tw      = ctx.measureText(c.name).width;
-        return { c, i, ringIdx, tR, tw };
+        let itemFs = fs;
+        ctx.font = `${itemFs}px "DM Mono", ui-monospace, monospace`;
+        let tw = ctx.measureText(c.name).width;
+        // Scale down font for names that exceed MAX_TW
+        if (tw > MAX_TW && itemFs > 9) {
+          itemFs = Math.max(9, Math.floor(itemFs * (MAX_TW / tw)));
+          ctx.font = `${itemFs}px "DM Mono", ui-monospace, monospace`;
+          tw = ctx.measureText(c.name).width;
+        }
+        ctx.font = `${fs}px "DM Mono", ui-monospace, monospace`; // restore
+        return { c, i, ringIdx, tR, tw, itemFs };
       });
 
       const RING_PHASE = [0, 1.1, 2.3]; // start angle offset per ring (radians)
@@ -128,7 +142,7 @@ export function CollabGravity() {
               current: it.c.current,
               targetR: tR,
               textWidth: it.tw,
-              fontSize: fs,
+              fontSize: it.itemFs,
             };
             // Advance remaining arc + gap
             angle += (it.tw / 2 + GAP) / tR;
@@ -173,7 +187,7 @@ export function CollabGravity() {
           }
 
           // Boundary
-          const hw = p.textWidth / 2 + 4, hh = fs / 2 + 4;
+          const hw = p.textWidth / 2 + 4, hh = p.fontSize / 2 + 4;
           if (p.x - hw < 0)          p.vx += 0.6;
           if (p.x + hw > size.w)     p.vx -= 0.6;
           if (p.y - hh < 4)          p.vy += 0.6;
@@ -212,8 +226,7 @@ export function CollabGravity() {
       const particles = pRef.current;
       if (particles.length === 0) { rafRef.current = requestAnimationFrame(frame); return; }
 
-      const fs = particles[0].fontSize;
-      ctx.font = `${fs}px "DM Mono", ui-monospace, monospace`;
+      // Font is set per-particle below since sizes may differ
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
@@ -265,7 +278,7 @@ export function CollabGravity() {
 
         // Boundary: account for text width so names never clip at edges
         const hw = p.textWidth / 2 + 4;
-        const hh = fs / 2 + 4;
+        const hh = p.fontSize / 2 + 4;
         if (p.x - hw < 0)           p.vx += 0.5;
         if (p.x + hw > size.w)      p.vx -= 0.5;
         if (p.y - hh < 4)           p.vy += 0.5;
@@ -276,7 +289,8 @@ export function CollabGravity() {
         p.x  += p.vx;
         p.y  += p.vy;
 
-        // Draw
+        // Draw — use per-particle font size
+        ctx.font         = `${p.fontSize}px "DM Mono", ui-monospace, monospace`;
         ctx.textAlign    = "center";
         ctx.textBaseline = "middle";
         ctx.globalAlpha  = p.current ? 0.92 : 0.65;
