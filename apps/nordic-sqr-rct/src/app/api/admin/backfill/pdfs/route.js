@@ -6,7 +6,6 @@ import { getAllStudies, updateStudyPdf } from '@/lib/notion';
 import { findAndFetchPdf, findPdfUrl } from '@/lib/pmc';
 import { normalizeDoi } from '@/lib/doi';
 
-export const maxDuration = 300;
 
 /**
  * POST /api/admin/backfill/pdfs

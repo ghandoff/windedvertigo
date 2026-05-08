@@ -3,7 +3,6 @@ import { requireCapability } from '@/lib/auth/require-capability';
 import { createEvidence } from '@/lib/pcs-evidence';
 import { EVIDENCE_TYPES } from '@/lib/pcs-config';
 
-export const maxDuration = 300;
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 

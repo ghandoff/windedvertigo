@@ -7,7 +7,6 @@ import {
   detectIngredientsWithContext,
 } from '@/lib/pcs-enrichment';
 
-export const maxDuration = 300;
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 

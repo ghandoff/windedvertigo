@@ -6,7 +6,6 @@ import {
 } from '@/lib/label-intake-queue';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 /**

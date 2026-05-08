@@ -3,7 +3,6 @@ import { requireCapability } from '@/lib/auth/require-capability';
 import { updateClaimField } from '@/lib/pcs-claims';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
 
 /**

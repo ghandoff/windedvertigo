@@ -8,7 +8,6 @@ import {
 } from '@/lib/pcs-canonical-claims';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-export const maxDuration = 15;
 export const dynamic = 'force-dynamic';
 
 /**

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { runIngredientRelationsBackfill } from '@/lib/ingredient-backfill';
 
-export const maxDuration = 120;
 
 const TABLE_ALIASES = {
   formula: 'formula',
