@@ -1,37 +1,41 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { COLLABORATORS } from "@/lib/collaborators";
 
 /**
- * #11 — Gravitational Orbit (v3)
+ * #11 — Gravitational Swarm (v4)
  *
- * Three concentric rings distribute 18 names evenly so no ring is
- * overcrowded. Ring assignment is by index thirds — pure visual
- * balance, not status. Current/past is shown only by colour
- * (champagne vs dim-white).
+ * Logos drift in a loose swarm pulled gently toward the canvas center
+ * (gravity well). On hover/touch, the cursor acts as a repulsive mass —
+ * logos scatter outward then slowly drift back. Each logo also has a tiny
+ * random walk so the swarm is never static.
  *
- * Each particle orbits at its ring radius with slow anti-clockwise
- * tangential drift and light inter-particle repulsion. Boundary
- * padding accounts for actual text width so names never clip.
+ * No rigid rings. The motion should feel biological — like a murmuration
+ * that has one loose attractor.
  *
- * Touch/hover strengthens the radial spring, tightening orbits.
- *
- * UDL: prefers-reduced-motion → static pill list.
+ * WCAG:
+ * - 2.2.2: visible pause button (auto-playing loop)
+ * - prefers-reduced-motion: static logo grid
+ * - sr-only list for screen readers
+ * - Logos drawn as white silhouettes via canvas filter (consistent with tide)
  */
 
-const CHAMPAGNE = "#ffebd2";
-const DIM_WHITE  = "rgba(255,255,255,0.72)";
-
-const RING_FRACTIONS = [0.30, 0.56, 0.82]; // of minHalf
+const ICON_R    = 20;    // logo circle radius (40px diameter)
+const DAMPING   = 0.976;
+const GRAVITY_K = 0.0016;
+const SEP_MIN   = 56;    // min center-to-center gap before repulsion
+const SEP_K     = 0.26;
+const WANDER    = 0.016;
+const SPEED_MAX = 1.4;
+const MOUSE_R   = 140;
+const MOUSE_K   = 0.14;
 
 interface Particle {
   x: number; y: number;
   vx: number; vy: number;
-  name: string;
   current: boolean;
-  targetR: number;
-  textWidth: number;
-  fontSize: number;
+  img: HTMLImageElement;
+  name: string;
 }
 
 function seededRandom(seed: number) {
@@ -40,14 +44,21 @@ function seededRandom(seed: number) {
 }
 
 export function CollabGravity() {
-  const canvasRef  = useRef<HTMLCanvasElement>(null);
-  const pRef       = useRef<Particle[]>([]);
-  const hoveredRef = useRef(false);
-  const rafRef     = useRef<number>(0);
+  const canvasRef    = useRef<HTMLCanvasElement>(null);
+  const pRef         = useRef<Particle[]>([]);
+  const rafRef       = useRef<number>(0);
+  const mouseRef     = useRef({ x: 0, y: 0, active: false });
+  const isPausedRef  = useRef(false);
+  const wanderRng    = useRef(seededRandom(77));
+  const [paused, setPaused]             = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [size, setSize]                 = useState({ w: 0, h: 0 });
 
-  /* ── reduced-motion ────────────────────────────────────────────── */
+  const togglePause = useCallback(() => {
+    setPaused(p => { isPausedRef.current = !p; return !p; });
+  }, []);
+
+  /* ── reduced-motion ──────────────────────────────────────────── */
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
@@ -56,21 +67,46 @@ export function CollabGravity() {
     return () => mq.removeEventListener("change", h);
   }, []);
 
-  /* ── container measurement ─────────────────────────────────────── */
+  /* ── container measurement ───────────────────────────────────── */
   useEffect(() => {
     const wrap = canvasRef.current?.parentElement;
     if (!wrap) return;
     const obs = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      // Taller canvas on narrow viewports so rings have breathing room
-      const h = Math.max(340, Math.min(480, w * 0.9));
+      const h = Math.max(440, Math.min(580, w * 1.05));
       setSize({ w, h });
     });
     obs.observe(wrap);
     return () => obs.disconnect();
   }, []);
 
-  /* ── particle init ─────────────────────────────────────────────── */
+  /* ── particle init ───────────────────────────────────────────── */
+  useEffect(() => {
+    if (reducedMotion || size.w === 0) return;
+    const rng = seededRandom(42);
+    const cx = size.w / 2;
+    const cy = size.h / 2;
+    const spread = Math.min(size.w, size.h) * 0.32;
+
+    pRef.current = COLLABORATORS.map((c) => {
+      const angle = rng() * Math.PI * 2;
+      const r = rng() * spread * 0.55 + spread * 0.1;
+      const img = new Image();
+      if (c.logoPath) img.src = c.logoPath;
+      return {
+        x: cx + Math.cos(angle) * r,
+        y: cy + Math.sin(angle) * r,
+        vx: (rng() - 0.5) * 0.7,
+        vy: (rng() - 0.5) * 0.7,
+        current: c.current,
+        img,
+        name: c.name,
+      };
+    });
+    wanderRng.current = seededRandom(77);
+  }, [size, reducedMotion]);
+
+  /* ── animation loop ──────────────────────────────────────────── */
   useEffect(() => {
     if (reducedMotion || size.w === 0) return;
     const canvas = canvasRef.current;
@@ -84,218 +120,94 @@ export function CollabGravity() {
     const ctx = canvas.getContext("2d")!;
     ctx.scale(dpr, dpr);
 
-    const cx = size.w / 2;
-    const cy = size.h / 2;
-    const minHalf = Math.min(cx, cy);
-    const total   = COLLABORATORS.length;
-    const fs = Math.max(11, Math.min(14, size.w / 28));
+    const cx  = size.w / 2;
+    const cy  = size.h / 2;
+    const rng = wanderRng.current;
 
-    document.fonts.ready.then(() => {
-      ctx.font = `${fs}px "DM Mono", ui-monospace, monospace`;
+    const frame = () => {
+      ctx.clearRect(0, 0, size.w, size.h);
+      const ps = pRef.current;
+      if (!ps.length) { rafRef.current = requestAnimationFrame(frame); return; }
 
-      // ── Arc-length-aware placement ───────────────────────────────
-      // Measure all text widths first, then place items on each ring
-      // so their angular spacing matches their actual text width.
-      // This prevents initial overlaps that settling alone can't fix.
+      for (let i = 0; i < ps.length; i++) {
+        const p = ps[i];
 
-      // Max text width: cap at ~40% of canvas so ultra-long names don't
-      // dominate. If a name would exceed that at the base font size, measure
-      // it at a slightly reduced size (min 9px).
-      const MAX_TW = size.w * 0.40;
+        if (!isPausedRef.current) {
+          // Central gravity well
+          const dx = cx - p.x;
+          const dy = cy - p.y;
+          const dc = Math.sqrt(dx * dx + dy * dy) || 1;
+          // Stronger pull when far out, gentler near center (avoids collapse)
+          const pull = GRAVITY_K * Math.min(dc, 220);
+          p.vx += (dx / dc) * pull;
+          p.vy += (dy / dc) * pull;
 
-      const items = COLLABORATORS.map((c, i) => {
-        const ringIdx = Math.floor((i / total) * 3);
-        const tR      = minHalf * RING_FRACTIONS[ringIdx];
-        let itemFs = fs;
-        ctx.font = `${itemFs}px "DM Mono", ui-monospace, monospace`;
-        let tw = ctx.measureText(c.name).width;
-        // Scale down font for names that exceed MAX_TW
-        if (tw > MAX_TW && itemFs > 9) {
-          itemFs = Math.max(9, Math.floor(itemFs * (MAX_TW / tw)));
-          ctx.font = `${itemFs}px "DM Mono", ui-monospace, monospace`;
-          tw = ctx.measureText(c.name).width;
-        }
-        ctx.font = `${fs}px "DM Mono", ui-monospace, monospace`; // restore
-        return { c, i, ringIdx, tR, tw, itemFs };
-      });
-
-      const RING_PHASE = [0, 1.1, 2.3]; // start angle offset per ring (radians)
-      const GAP = 18; // px between items on same ring
-
-      pRef.current = (() => {
-        const result: Particle[] = new Array(items.length);
-        for (let r = 0; r < 3; r++) {
-          const ring = items.filter(it => it.ringIdx === r);
-          const tR   = minHalf * RING_FRACTIONS[r];
-          // Total arc needed
-          const totalArc = ring.reduce((s, it) => s + it.tw + GAP, 0);
-          // If items are too wide for this ring, they'll push outward during settle
-          let angle = RING_PHASE[r];
-          for (const it of ring) {
-            // Advance by half this item's arc before placing centre
-            angle += (it.tw / 2) / tR;
-            result[it.i] = {
-              x: cx + Math.cos(angle) * tR,
-              y: cy + Math.sin(angle) * tR,
-              vx: 0, vy: 0,
-              name: it.c.name,
-              current: it.c.current,
-              targetR: tR,
-              textWidth: it.tw,
-              fontSize: it.itemFs,
-            };
-            // Advance remaining arc + gap
-            angle += (it.tw / 2 + GAP) / tR;
+          // Mouse/touch repulsion — scatter on hover
+          const m = mouseRef.current;
+          if (m.active) {
+            const mdx = p.x - m.x;
+            const mdy = p.y - m.y;
+            const md = Math.sqrt(mdx * mdx + mdy * mdy) || 1;
+            if (md < MOUSE_R) {
+              const f = ((MOUSE_R - md) / MOUSE_R) ** 2 * MOUSE_K;
+              p.vx += (mdx / md) * f;
+              p.vy += (mdy / md) * f;
+            }
           }
-          void totalArc; // suppress unused warning
-        }
-        return result;
-      })();
 
-      // ── Pre-settle: run N invisible iterations so particles reach a
-      //    stable layout before the first visible frame is rendered.
-      //    This prevents the initial overlap seen when long names share a ring.
-      const SETTLE_STEPS = 120;
-      const S_DAMPING    = 0.85;  // heavier damping during settle = faster convergence
-      const S_RADIAL_K   = 0.006;
-      const S_REPULSE_K  = 0.45;
-
-      for (let step = 0; step < SETTLE_STEPS; step++) {
-        const ps = pRef.current;
-        for (let i = 0; i < ps.length; i++) {
-          const p  = ps[i];
-          const dx = p.x - cx, dy = p.y - cy;
-          const d  = Math.sqrt(dx * dx + dy * dy) || 1;
-          const nx = dx / d, ny = dy / d;
-
-          // Radial spring
-          p.vx -= nx * (d - p.targetR) * S_RADIAL_K;
-          p.vy -= ny * (d - p.targetR) * S_RADIAL_K;
-
-          // Text-width-aware repulsion
+          // Inter-logo separation
           for (let j = i + 1; j < ps.length; j++) {
             const q   = ps[j];
-            const rdx = p.x - q.x, rdy = p.y - q.y;
+            const rdx = p.x - q.x;
+            const rdy = p.y - q.y;
             const rd  = Math.sqrt(rdx * rdx + rdy * rdy) || 1;
-            const minD = (p.textWidth + q.textWidth) / 2 + 16;
-            if (rd < minD) {
-              const f  = (minD - rd) / minD * S_REPULSE_K;
-              const fx = (rdx / rd) * f, fy = (rdy / rd) * f;
+            if (rd < SEP_MIN) {
+              const f  = (SEP_MIN - rd) / SEP_MIN * SEP_K;
+              const fx = (rdx / rd) * f;
+              const fy = (rdy / rd) * f;
               p.vx += fx; p.vy += fy;
               q.vx -= fx; q.vy -= fy;
             }
           }
 
-          // Boundary
-          const hw = p.textWidth / 2 + 4, hh = p.fontSize / 2 + 4;
-          if (p.x - hw < 0)          p.vx += 0.6;
-          if (p.x + hw > size.w)     p.vx -= 0.6;
-          if (p.y - hh < 4)          p.vy += 0.6;
-          if (p.y + hh > size.h - 4) p.vy -= 0.6;
+          // Random wander
+          p.vx += (rng() - 0.5) * WANDER;
+          p.vy += (rng() - 0.5) * WANDER;
 
-          p.vx *= S_DAMPING; p.vy *= S_DAMPING;
-          p.x  += p.vx;      p.y  += p.vy;
-        }
-      }
-      // Zero out velocities so animation starts fresh from stable positions
-      pRef.current.forEach(p => { p.vx = 0; p.vy = 0; });
-    });
-  }, [size, reducedMotion]);
+          // Speed cap
+          const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          if (spd > SPEED_MAX) { p.vx = p.vx / spd * SPEED_MAX; p.vy = p.vy / spd * SPEED_MAX; }
 
-  /* ── animation loop ────────────────────────────────────────────── */
-  useEffect(() => {
-    if (reducedMotion || size.w === 0) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    const dpr = window.devicePixelRatio || 1;
-    const cx = size.w / 2;
-    const cy = size.h / 2;
-    const minHalf = Math.min(cx, cy);
+          // Damping + soft boundary bounce
+          p.vx *= DAMPING; p.vy *= DAMPING;
+          const pad = ICON_R + 8;
+          if (p.x < pad)           p.vx += 0.5;
+          if (p.x > size.w - pad)  p.vx -= 0.5;
+          if (p.y < pad)           p.vy += 0.5;
+          if (p.y > size.h - pad)  p.vy -= 0.5;
 
-    const DAMPING       = 0.965;
-    const RADIAL_K      = 0.004;
-    const TANGENT       = 0.0014;
-    const REPULSE_DIST  = 80;
-    const REPULSE_K     = 0.20;
-    const HOVER_K       = 0.008;
-
-    const frame = () => {
-      ctx.clearRect(0, 0, size.w * dpr, size.h * dpr);
-
-      const particles = pRef.current;
-      if (particles.length === 0) { rafRef.current = requestAnimationFrame(frame); return; }
-
-      // Font is set per-particle below since sizes may differ
-
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        const dx   = p.x - cx;
-        const dy   = p.y - cy;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const nx   = dx / dist;
-        const ny   = dy / dist;
-
-        // Radial spring toward target ring
-        const err = dist - p.targetR;
-        p.vx -= nx * err * RADIAL_K;
-        p.vy -= ny * err * RADIAL_K;
-
-        // Slow tangential drift (anti-clockwise)
-        p.vx += -ny * TANGENT * p.targetR * 0.015;
-        p.vy +=  nx * TANGENT * p.targetR * 0.015;
-
-        // Hover: compress all rings toward centre
-        if (hoveredRef.current) {
-          p.vx -= nx * HOVER_K * dist * 0.05;
-          p.vy -= ny * HOVER_K * dist * 0.05;
+          p.x += p.vx;
+          p.y += p.vy;
         }
 
-        // Push away from exact centre (singularity guard)
-        if (dist < minHalf * 0.08) {
-          p.vx -= nx * 0.4;
-          p.vy -= ny * 0.4;
+        // Draw logo as white silhouette circle
+        ctx.save();
+        ctx.globalAlpha = p.current ? 0.80 : 0.46;
+        if (p.img.complete && p.img.naturalWidth > 0) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, ICON_R, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.filter = "brightness(0) invert(1)";
+          ctx.drawImage(p.img, p.x - ICON_R, p.y - ICON_R, ICON_R * 2, ICON_R * 2);
+          ctx.filter = "none";
+        } else {
+          // Placeholder dot while image loads
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, ICON_R * 0.4, 0, Math.PI * 2);
+          ctx.fillStyle = p.current ? "rgba(255,235,210,0.5)" : "rgba(255,255,255,0.3)";
+          ctx.fill();
         }
-
-        // Inter-particle repulsion — distance threshold is text-width aware
-        // so long names like "education for sharing" repel at a larger radius
-        for (let j = i + 1; j < particles.length; j++) {
-          const q    = particles[j];
-          const rdx  = p.x - q.x;
-          const rdy  = p.y - q.y;
-          const rd   = Math.sqrt(rdx * rdx + rdy * rdy) || 1;
-          // Minimum clear gap = half each text width + 14px breathing room
-          const minClear = (p.textWidth + q.textWidth) / 2 + 14;
-          const repDist  = Math.max(REPULSE_DIST, minClear);
-          if (rd < repDist) {
-            const f = (repDist - rd) / repDist * REPULSE_K;
-            const fx = (rdx / rd) * f;
-            const fy = (rdy / rd) * f;
-            p.vx += fx; p.vy += fy;
-            q.vx -= fx; q.vy -= fy;
-          }
-        }
-
-        // Boundary: account for text width so names never clip at edges
-        const hw = p.textWidth / 2 + 4;
-        const hh = p.fontSize / 2 + 4;
-        if (p.x - hw < 0)           p.vx += 0.5;
-        if (p.x + hw > size.w)      p.vx -= 0.5;
-        if (p.y - hh < 4)           p.vy += 0.5;
-        if (p.y + hh > size.h - 4)  p.vy -= 0.5;
-
-        p.vx *= DAMPING;
-        p.vy *= DAMPING;
-        p.x  += p.vx;
-        p.y  += p.vy;
-
-        // Draw — use per-particle font size
-        ctx.font         = `${p.fontSize}px "DM Mono", ui-monospace, monospace`;
-        ctx.textAlign    = "center";
-        ctx.textBaseline = "middle";
-        ctx.globalAlpha  = p.current ? 0.92 : 0.65;
-        ctx.fillStyle    = p.current ? CHAMPAGNE : DIM_WHITE;
-        ctx.fillText(p.name, p.x, p.y);
+        ctx.restore();
       }
 
       rafRef.current = requestAnimationFrame(frame);
@@ -305,14 +217,18 @@ export function CollabGravity() {
     return () => cancelAnimationFrame(rafRef.current);
   }, [size, reducedMotion]);
 
-  /* ── static fallback ───────────────────────────────────────────── */
+  /* ── static fallback ─────────────────────────────────────────── */
   if (reducedMotion) {
     return (
       <section className="collab-variant collab-gravity--static" aria-label="organisations we play with">
         <p className="collab-variant-label">organisations we play with</p>
         <ul className="collab-gravity-static-list">
           {COLLABORATORS.map((c) => (
-            <li key={c.name} className={c.current ? "tw-current" : "tw-past"}>{c.name}</li>
+            <li key={c.name} className={c.current ? "tw-current" : "tw-past"}>
+              {c.logoPath
+                ? <img src={c.logoPath} alt={c.name} className="gravity-static-logo" />
+                : c.name}
+            </li>
           ))}
         </ul>
       </section>
@@ -323,17 +239,34 @@ export function CollabGravity() {
     <section
       className="collab-variant collab-gravity"
       aria-label="organisations we play with"
-      onMouseEnter={() => { hoveredRef.current = true;  }}
-      onMouseLeave={() => { hoveredRef.current = false; }}
-      onTouchStart={() => { hoveredRef.current = true;  }}
-      onTouchEnd={()   => { hoveredRef.current = false; }}
+      onMouseMove={e => {
+        const r = e.currentTarget.getBoundingClientRect();
+        mouseRef.current = { x: e.clientX - r.left, y: e.clientY - r.top, active: true };
+      }}
+      onMouseLeave={() => { mouseRef.current.active = false; }}
+      onTouchMove={e => {
+        e.preventDefault();
+        const r = e.currentTarget.getBoundingClientRect();
+        mouseRef.current = { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top, active: true };
+      }}
+      onTouchEnd={() => { mouseRef.current.active = false; }}
     >
       <p className="collab-variant-label">organisations we play with</p>
-      <div className="collab-gravity-field" style={{ height: size.h || 380 }}>
+      <div className="collab-gravity-field" style={{ height: size.h || 480 }}>
         <canvas ref={canvasRef} aria-hidden="true" />
       </div>
+      <div className="gravity-controls">
+        <button
+          className={`gravity-pause-btn${paused ? " gravity-pause-btn--paused" : ""}`}
+          onClick={togglePause}
+          aria-label={paused ? "resume animation" : "pause animation"}
+          aria-pressed={paused}
+        >
+          {paused ? "▶ resume" : "⏸ pause"}
+        </button>
+      </div>
       <ul className="visually-hidden">
-        {COLLABORATORS.map((c) => <li key={c.name}>{c.name}</li>)}
+        {COLLABORATORS.map(c => <li key={c.name}>{c.name}</li>)}
       </ul>
     </section>
   );

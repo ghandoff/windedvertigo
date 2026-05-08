@@ -19,12 +19,24 @@ import { COLLABORATORS } from "@/lib/collaborators";
 
 export function CollabHeatmap() {
   const [active, setActive] = useState<string | null>(null);
+  const [paused, setPaused] = useState(false);
 
   return (
     <section className="collab-variant collab-heatmap" aria-label="organisations we play with">
       <p className="collab-variant-label">organisations we play with</p>
 
-      <div className="heatmap-grid" role="list">
+      <div className="heatmap-controls">
+        <button
+          className={`heatmap-pause-btn${paused ? " heatmap-pause-btn--paused" : ""}`}
+          onClick={() => setPaused(p => !p)}
+          aria-label={paused ? "resume animation" : "pause animation"}
+          aria-pressed={paused}
+        >
+          {paused ? "▶ resume" : "⏸ pause"}
+        </button>
+      </div>
+
+      <div className={`heatmap-grid${paused ? " heatmap-grid--paused" : ""}`} role="list">
         {COLLABORATORS.map((c, i) => {
           const duration = 2.5 + (i % 6) * 0.7;
           const delay    = -(i * 0.43);

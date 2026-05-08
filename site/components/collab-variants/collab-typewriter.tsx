@@ -24,6 +24,7 @@ export function CollabTypewriter() {
   const [displayed, setDisplayed] = useState("");
   const [phase, setPhase] = useState<Phase>("typing");
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [paused, setPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export function CollabTypewriter() {
   }, []);
 
   useEffect(() => {
-    if (reducedMotion) return;
+    if (reducedMotion || paused) return;
 
     const target = NAMES[nameIdx].name;
 
@@ -63,7 +64,7 @@ export function CollabTypewriter() {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [displayed, phase, nameIdx, reducedMotion]);
+  }, [displayed, phase, nameIdx, reducedMotion, paused]);
 
   const isCurrent = NAMES[nameIdx].current;
 
@@ -85,6 +86,16 @@ export function CollabTypewriter() {
   return (
     <section className="collab-variant collab-typewriter" aria-label="organisations we play with" aria-live="polite" aria-atomic="true">
       <p className="collab-variant-label">organisations we play with</p>
+      <div className="tw-controls">
+        <button
+          className={`tw-pause-btn${paused ? " tw-pause-btn--paused" : ""}`}
+          onClick={() => setPaused(p => !p)}
+          aria-label={paused ? "resume animation" : "pause animation"}
+          aria-pressed={paused}
+        >
+          {paused ? "▶ resume" : "⏸ pause"}
+        </button>
+      </div>
       <div className="collab-typewriter-stage">
         <span
           className={`collab-typewriter-text ${isCurrent ? "tw-current" : "tw-past"}`}

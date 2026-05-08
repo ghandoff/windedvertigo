@@ -118,7 +118,7 @@ export function CollabPhosphor() {
         className={`phosphor-hint${hinted ? " phosphor-hint--hidden" : ""}`}
         aria-hidden="true"
       >
-        tap anywhere to reveal
+        tap to illuminate
       </p>
 
       {/* Scatter field */}

@@ -576,6 +576,29 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 .tw-past    { color: rgba(255,255,255,0.45); }
 
 /* ── #2 Typewriter Roll ────────────────────────────────────────── */
+.tw-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+}
+.tw-pause-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 2rem;
+  color: rgba(255,255,255,0.38);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.tw-pause-btn:hover,
+.tw-pause-btn:focus-visible { border-color: rgba(255,235,210,0.4); color: var(--wv-champagne); outline: none; }
+.tw-pause-btn--paused { border-color: rgba(255,235,210,0.35); color: rgba(255,235,210,0.55); }
+@media (prefers-reduced-motion: reduce) {
+  .tw-controls { display: none; }
+}
 .collab-typewriter-stage {
   display: flex;
   justify-content: center;
@@ -612,33 +635,78 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   text-transform: lowercase;
 }
 
-/* ── #11 Gravitational Orbit ───────────────────────────────────── */
+/* ── #11 Gravitational Swarm ───────────────────────────────────── */
 .collab-gravity {
   padding: var(--space-xl) 0;
 }
 .collab-gravity-field {
   width: 100%;
   position: relative;
-  cursor: pointer;
+  cursor: crosshair;
 }
 .collab-gravity-field canvas {
   display: block;
   width: 100%;
 }
+.gravity-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-sm);
+}
+.gravity-pause-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 2rem;
+  color: rgba(255,255,255,0.38);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.gravity-pause-btn:hover,
+.gravity-pause-btn:focus-visible { border-color: rgba(255,235,210,0.4); color: var(--wv-champagne); outline: none; }
+.gravity-pause-btn--paused { border-color: rgba(255,235,210,0.35); color: rgba(255,235,210,0.55); }
 /* Static fallback */
 .collab-gravity--static .collab-gravity-static-list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.4rem 1.4rem;
+  gap: 1rem 1.6rem;
   list-style: none;
   padding: 0 var(--edge-padding);
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
+  align-items: center;
+}
+.gravity-static-logo {
+  height: 28px;
+  width: auto;
+  display: block;
+  filter: brightness(0) invert(1);
+  opacity: 0.55;
 }
 
 /* ── #13 Slow Tide ─────────────────────────────────────────────── */
+.tide-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+}
+.tide-pause-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 2rem;
+  color: rgba(255,255,255,0.38);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.tide-pause-btn:hover,
+.tide-pause-btn:focus-visible { border-color: rgba(255,235,210,0.4); color: var(--wv-champagne); outline: none; }
+.tide-pause-btn--paused { border-color: rgba(255,235,210,0.35); color: rgba(255,235,210,0.55); }
 .collab-tide-sea {
   display: flex;
   flex-wrap: wrap;
@@ -654,6 +722,8 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 }
 .collab-tide-item.tide-current { opacity: 0.7; }
 .collab-tide-item:hover { opacity: 1; }
+/* Pause state */
+.collab-tide-sea--paused .collab-tide-item { animation-play-state: paused !important; }
 
 @keyframes tide-bob {
   0%, 100% { transform: translateY(0); }
@@ -661,6 +731,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 }
 @media (prefers-reduced-motion: reduce) {
   .collab-tide-item { animation: none; }
+  .tide-pause-btn { display: none; }
 }
 
 /* Logo box: fixed square, logo fits inside — kills size disparity */
@@ -734,6 +805,28 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 }
 
 /* ── #18 Heat Map ──────────────────────────────────────────────── */
+.heatmap-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+}
+.heatmap-pause-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 2rem;
+  color: rgba(255,255,255,0.38);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.heatmap-pause-btn:hover,
+.heatmap-pause-btn:focus-visible { border-color: rgba(255,235,210,0.4); color: var(--wv-champagne); outline: none; }
+.heatmap-pause-btn--paused { border-color: rgba(255,235,210,0.35); color: rgba(255,235,210,0.55); }
+/* Pause state */
+.heatmap-grid--paused .heatmap-cell-inner { animation-play-state: paused !important; }
 .heatmap-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -903,7 +996,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   opacity: 1;
 }
 
-/* "tap anywhere to reveal" hint */
+/* "tap to illuminate" hint — pulses to beckon, fades after first tap */
 .phosphor-hint {
   text-align: center;
   font-size: 0.68rem;
@@ -912,10 +1005,21 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   color: rgba(255,255,255,0.22);
   margin-bottom: var(--space-sm);
   transition: opacity 0.6s ease-out;
+  /* Gentle beckoning pulse — draws the eye without demanding attention */
+  animation: hint-beckon 2.6s ease-in-out infinite;
+}
+@keyframes hint-beckon {
+  0%,100% { opacity: 0.18; }
+  50%      { opacity: 0.48; }
 }
 .phosphor-hint--hidden {
+  animation: none;
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.4s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .phosphor-hint { animation: none; opacity: 0.35; }
 }
 
 /* Expanding bloom ring — radial pulse on click/tap */
@@ -971,66 +1075,85 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   color: rgba(255,235,210,0.60);
 }
 
-/* Names in a breathing cluster */
-.breath-names {
+/* Logos in a breathing cluster */
+.breath-logos {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 0.8rem 1.8rem;
+  gap: 1.2rem 1.8rem;
   list-style: none;
   padding: 0 var(--edge-padding);
 }
-.breath-names--paused .breath-name {
+.breath-logos--paused .breath-icon {
   animation-play-state: paused !important;
 }
 
-/* Individual name */
-.breath-name {
+/* Individual logo button */
+.breath-icon {
   background: transparent;
   border: none;
-  padding: 0;
+  padding: 4px;
   cursor: pointer;
-  font-family: var(--font-primary);
-  font-size: 0.82rem;
-  letter-spacing: 0.07em;
-  text-transform: lowercase;
-  animation: breath-pulse 8s ease-in-out infinite;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  /* All logos breathe on the same wave — 3.5s is clearly perceptible */
+  animation: breath-pulse 3.5s ease-in-out infinite;
+  transition: box-shadow 0.2s;
 }
-.breath-name--current {
-  color: var(--wv-champagne);
-}
-.breath-name--past {
-  color: rgba(255,255,255,0.72);
-}
-.breath-name:hover,
-.breath-name:focus-visible {
-  opacity: 1 !important;
+.breath-icon--current { /* slightly stronger presence at peak */ }
+.breath-icon--past    { /* baseline dim */ }
+.breath-icon:hover,
+.breath-icon:focus-visible {
   animation-play-state: paused;
+  opacity: 1 !important;
+  box-shadow: 0 0 0 1px rgba(255,235,210,0.25);
   outline: none;
 }
-.breath-name--held {
+.breath-icon--held {
   opacity: 1 !important;
   animation-play-state: paused !important;
-}
-.breath-name--held.breath-name--current {
-  text-shadow: 0 0 12px rgba(255,235,210,0.35);
+  box-shadow: 0 0 8px rgba(255,235,210,0.20);
 }
 
-/* Synchronized pulse — all names on the same wave */
+/* Logo image — white silhouette to match tide variant */
+.breath-logo-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  display: block;
+  filter: brightness(0) invert(1);
+}
+.breath-icon--past .breath-logo-img   { opacity: 0.75; }
+.breath-icon--current .breath-logo-img { opacity: 1;    }
+
+/* Text fallback for logos without images */
+.breath-logo-text {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--wv-champagne);
+  white-space: nowrap;
+}
+
+/* Synchronized pulse — wide opacity swing makes it clearly visible */
 @keyframes breath-pulse {
-  0%,100% { opacity: 0.60; }
-  50%      { opacity: 0.90; }
+  0%,100% { opacity: 0.35; }
+  50%      { opacity: 0.88; }
 }
 
-/* Reduced-motion: no animation, static at comfortable opacity */
+/* Reduced-motion: no animation */
 @media (prefers-reduced-motion: reduce) {
-  .breath-name {
+  .breath-icon {
     animation: none !important;
-    opacity: 0.72 !important;
+    opacity: 0.70 !important;
   }
-  .breath-name--held { opacity: 1 !important; }
-  .breath-pause-btn { display: none; } /* no animation = no need for pause */
+  .breath-icon--held { opacity: 1 !important; }
+  .breath-pause-btn  { display: none; }
 }
 
 /* ── Lab page chrome ───────────────────────────────────────────── */

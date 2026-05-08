@@ -3,28 +3,26 @@ import { useState, useCallback } from "react";
 import { COLLABORATORS } from "@/lib/collaborators";
 
 /**
- * #28 — Breath
+ * #28 — Breath (v2)
  *
- * All names breathe together — a single synchronized opacity pulse
- * (0.60 → 0.90 → 0.60, 8s) that mimics slow collective breathing.
- * Names are in a centered flex-wrap. Current partners render in
- * champagne; past partners in dim white.
+ * All logos breathe together — a single synchronized opacity pulse
+ * (0.35 → 0.88 → 0.35, 3.5s) that's clearly visible without being distracting.
+ * Logos shown as white silhouettes via CSS filter to match tide variant.
+ * Current partners glow brighter at full breath; past partners dimmer.
  *
  * Interaction:
- * - Tap/click any name to "hold" it at full opacity — it glows while
- *   the rest of the group continues breathing.
+ * - Tap/click any logo to hold it at full opacity while others breathe.
  * - A visible pause/play button stops the animation entirely.
  *
- * WCAG notes:
- * - Auto-playing loop → pause button is REQUIRED (2.2.2)
- * - Pause button is always visible, not just on hover
- * - prefers-reduced-motion: animation off, names static at 0.72 opacity
- * - Held names: aria-pressed on each button-like name
- * - Screen reader: section aria-label + live region for held name
+ * WCAG:
+ * - 2.2.2: always-visible pause button (required for auto-playing loop)
+ * - prefers-reduced-motion: animation off, logos static at 0.70 opacity,
+ *   pause button hidden (nothing to pause)
+ * - sr-only list for screen readers (logo alt text also provided)
  */
 
 export function CollabBreath() {
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused]   = useState(false);
   const [heldSet, setHeldSet] = useState<Set<number>>(new Set());
 
   const toggleHold = useCallback((i: number) => {
@@ -57,9 +55,9 @@ export function CollabBreath() {
         </button>
       </div>
 
-      {/* Names — breathing together */}
+      {/* Logos — breathing together */}
       <ul
-        className={`breath-names${paused ? " breath-names--paused" : ""}`}
+        className={`breath-logos${paused ? " breath-logos--paused" : ""}`}
         aria-label="collaborating organisations"
       >
         {COLLABORATORS.map((c, i) => {
@@ -68,25 +66,28 @@ export function CollabBreath() {
             <li key={c.name}>
               <button
                 className={[
-                  "breath-name",
-                  c.current ? "breath-name--current" : "breath-name--past",
-                  held ? "breath-name--held" : "",
+                  "breath-icon",
+                  c.current ? "breath-icon--current" : "breath-icon--past",
+                  held ? "breath-icon--held" : "",
                 ].filter(Boolean).join(" ")}
                 onClick={() => toggleHold(i)}
                 aria-pressed={held}
                 aria-label={`${c.name}${c.current ? " — active collaborator" : ""}`}
               >
-                {c.name}
+                {c.logoPath ? (
+                  <img
+                    src={c.logoPath}
+                    alt={c.name}
+                    className="breath-logo-img"
+                  />
+                ) : (
+                  <span className="breath-logo-text">{c.name}</span>
+                )}
               </button>
             </li>
           );
         })}
       </ul>
-
-      {/* Screen-reader accessible summary */}
-      <p className="visually-hidden">
-        {Array.from(heldSet).map(i => COLLABORATORS[i].name).join(", ") || "tap a name to hold it at full visibility"}
-      </p>
     </section>
   );
 }
