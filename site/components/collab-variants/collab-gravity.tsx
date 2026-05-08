@@ -120,6 +120,54 @@ export function CollabGravity() {
           fontSize: fs,
         };
       });
+
+      // ── Pre-settle: run N invisible iterations so particles reach a
+      //    stable layout before the first visible frame is rendered.
+      //    This prevents the initial overlap seen when long names share a ring.
+      const SETTLE_STEPS = 120;
+      const S_DAMPING    = 0.85;  // heavier damping during settle = faster convergence
+      const S_RADIAL_K   = 0.006;
+      const S_REPULSE_K  = 0.45;
+
+      for (let step = 0; step < SETTLE_STEPS; step++) {
+        const ps = pRef.current;
+        for (let i = 0; i < ps.length; i++) {
+          const p  = ps[i];
+          const dx = p.x - cx, dy = p.y - cy;
+          const d  = Math.sqrt(dx * dx + dy * dy) || 1;
+          const nx = dx / d, ny = dy / d;
+
+          // Radial spring
+          p.vx -= nx * (d - p.targetR) * S_RADIAL_K;
+          p.vy -= ny * (d - p.targetR) * S_RADIAL_K;
+
+          // Text-width-aware repulsion
+          for (let j = i + 1; j < ps.length; j++) {
+            const q   = ps[j];
+            const rdx = p.x - q.x, rdy = p.y - q.y;
+            const rd  = Math.sqrt(rdx * rdx + rdy * rdy) || 1;
+            const minD = (p.textWidth + q.textWidth) / 2 + 16;
+            if (rd < minD) {
+              const f  = (minD - rd) / minD * S_REPULSE_K;
+              const fx = (rdx / rd) * f, fy = (rdy / rd) * f;
+              p.vx += fx; p.vy += fy;
+              q.vx -= fx; q.vy -= fy;
+            }
+          }
+
+          // Boundary
+          const hw = p.textWidth / 2 + 4, hh = fs / 2 + 4;
+          if (p.x - hw < 0)          p.vx += 0.6;
+          if (p.x + hw > size.w)     p.vx -= 0.6;
+          if (p.y - hh < 4)          p.vy += 0.6;
+          if (p.y + hh > size.h - 4) p.vy -= 0.6;
+
+          p.vx *= S_DAMPING; p.vy *= S_DAMPING;
+          p.x  += p.vx;      p.y  += p.vy;
+        }
+      }
+      // Zero out velocities so animation starts fresh from stable positions
+      pRef.current.forEach(p => { p.vx = 0; p.vy = 0; });
     });
   }, [size, reducedMotion]);
 
