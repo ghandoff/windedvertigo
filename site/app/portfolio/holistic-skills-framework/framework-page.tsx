@@ -863,8 +863,8 @@ function GraphView({
 
 const RADIAL = {
   // viewBox is 0..100 in both dims; center at (50,50)
-  innerR: 26, // skill set ring
-  outerR: 42, // skill ring
+  innerR: 22, // skill set ring (slightly tighter than before)
+  outerR: 38, // skill anchor dot ring — labels extend horizontally outward
   // each type occupies a 100° arc with 20° gaps between
   // angles in SVG convention: 0°=right, 90°=down, 270°=top
   arcs: {
@@ -872,7 +872,7 @@ const RADIAL = {
     social:     { start: 340, end: 80  }, // right arc, centered at 30  (lower-right)
     behavioral: { start: 100, end: 200 }, // left arc,  centered at 150 (lower-left)
   } as Record<SkillType, { start: number; end: number }>,
-  arcLabelR: 49,
+  arcLabelR: 47,
 };
 
 function polar(angleDeg: number, r: number, cx = 50, cy = 50) {
@@ -1074,7 +1074,7 @@ function RadialView({
           );
         })}
 
-        {/* skill chips (outer ring) */}
+        {/* skill labels (anchored dot + horizontal text + type tick) */}
         {skills.map((sk) => {
           const pos = layout.skillPos.get(sk.id);
           if (!pos) return null;
@@ -1083,6 +1083,9 @@ function RadialView({
           const isHighlighted = highlightedSkillIds?.has(sk.id) ?? false;
           const dim = hasSelection && !isHighlighted && !isSelected;
           const m = typeMeta[sk.type];
+          // labels on the right half extend right from the dot,
+          // labels on the left half extend left (flex-direction reversed)
+          const isRightSide = pos.x >= 50;
           return (
             <button
               key={sk.id}
@@ -1090,17 +1093,34 @@ function RadialView({
               onClick={() => onClickSkill(sk.id)}
               aria-pressed={isSelected}
               aria-label={`${sk.label} — ${sk.type} skill`}
-              className={`${styles.radialSkillNode} ${
-                isSelected ? styles.radialSkillNodeSelected : ""
-              } ${dim ? styles.dim : ""}`}
+              className={`${styles.radialLabel} ${
+                isRightSide ? styles.radialLabelRight : styles.radialLabelLeft
+              } ${isSelected ? styles.radialLabelSelected : ""} ${
+                dim ? styles.dim : ""
+              }`}
               style={{
                 left: `${pos.x}%`,
                 top: `${pos.y}%`,
-                backgroundColor: m.bg,
-                color: m.text,
               }}
             >
-              {sk.label}
+              <span
+                className={styles.radialDot}
+                style={{ backgroundColor: m.bg }}
+                aria-hidden="true"
+              />
+              <span className={styles.radialLabelStack}>
+                <span
+                  className={styles.radialLabelText}
+                  style={isSelected ? { color: m.bg } : undefined}
+                >
+                  {sk.label}
+                </span>
+                <span
+                  className={styles.radialLabelTick}
+                  style={{ backgroundColor: m.bg }}
+                  aria-hidden="true"
+                />
+              </span>
             </button>
           );
         })}

@@ -893,78 +893,151 @@
   }
 }
 
-.radialSkillNode {
+/* skill labels — anchored dot + horizontal text + type tick.
+   button is positioned so the DOT sits at the polar coordinate,
+   text extends outward from there. variable-length labels just flow. */
+.radialLabel {
   position: absolute;
-  transform: translate(-50%, -50%);
   z-index: 3;
-  border: 1.5px solid transparent;
-  border-radius: 999px;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 500;
-  text-transform: lowercase;
-  text-align: center;
-  line-height: 1.15;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0.35rem 0.6rem;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0.3rem 0.25rem;
+  /* touch-target floor — invisible 44px hit area even when text is small */
   min-width: 44px;
   min-height: 44px;
-  max-width: 30vw;
-  font-size: 0.62rem;
+  transition: opacity 0.18s ease, transform 0.12s ease;
+  /* avoid the wrapping container clipping the labels at the edges */
+  white-space: nowrap;
+}
+
+.radialLabelRight {
+  /* button anchored at its left edge; dot is first, text follows right */
+  transform: translate(0, -50%);
+}
+
+.radialLabelLeft {
+  /* button anchored at its right edge; dot visually on the right via row-reverse */
+  flex-direction: row-reverse;
+  transform: translate(-100%, -50%);
+}
+
+.radialDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: width 0.15s ease, height 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* nudge dot so its CENTER (not its edge) sits at the polar anchor */
+.radialLabelRight .radialDot { margin-left: -4px; }
+.radialLabelLeft  .radialDot { margin-right: -4px; }
+
+.radialLabelStack {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+
+.radialLabelLeft .radialLabelStack {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.radialLabelText {
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-transform: lowercase;
+  line-height: 1.18;
+  color: var(--wv-cadet);
   white-space: normal;
-  word-break: break-word;
-  hyphens: auto;
-  transition: transform 0.12s ease, opacity 0.2s ease, box-shadow 0.15s ease,
-    outline-offset 0.15s ease;
+  max-width: 88px;
+  transition: color 0.15s ease, font-weight 0.15s ease;
 }
 
-.radialSkillNode:hover {
-  transform: translate(-50%, -50%) scale(1.05);
-  box-shadow: 0 4px 12px -4px rgba(39, 50, 72, 0.3);
-  z-index: 5;
+.radialLabelTick {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 0.85;
+  transition: width 0.15s ease, opacity 0.15s ease;
 }
 
-.radialSkillNodeSelected {
-  outline: 2px solid var(--wv-cadet);
-  outline-offset: 3px;
-  box-shadow: 0 6px 18px -8px rgba(39, 50, 72, 0.5);
-  z-index: 6;
+.radialLabel:hover .radialLabelText,
+.radialLabel:focus-visible .radialLabelText { font-weight: 600; }
+
+.radialLabel:hover .radialDot,
+.radialLabel:focus-visible .radialDot {
+  box-shadow: 0 0 0 4px rgba(39, 50, 72, 0.08);
+}
+
+.radialLabelSelected { z-index: 6; }
+
+.radialLabelSelected .radialDot {
+  width: 12px;
+  height: 12px;
+  box-shadow: 0 0 0 6px rgba(39, 50, 72, 0.1);
+}
+
+.radialLabelRight.radialLabelSelected .radialDot { margin-left: -6px; }
+.radialLabelLeft.radialLabelSelected  .radialDot { margin-right: -6px; }
+
+.radialLabelSelected .radialLabelText {
+  font-weight: 700;
+  /* color is set inline (the type bg color) on selection */
+}
+
+.radialLabelSelected .radialLabelTick {
+  width: 28px;
+  opacity: 1;
 }
 
 @media (min-width: 480px) {
-  .radialSkillNode {
-    font-size: 0.72rem;
-    padding: 0.4rem 0.75rem;
-    max-width: 22vw;
-  }
+  .radialLabelText { font-size: 0.78rem; max-width: 110px; }
+  .radialLabelTick { width: 22px; }
+  .radialLabelSelected .radialLabelTick { width: 34px; }
 }
 
 @media (min-width: 768px) {
-  .radialSkillNode {
-    font-size: 0.82rem;
-    padding: 0.45rem 0.85rem;
-    max-width: 140px;
-    white-space: nowrap;
-  }
+  .radialLabelText { font-size: 0.85rem; max-width: 130px; }
+  .radialLabelTick { width: 26px; }
+  .radialLabelSelected .radialLabelTick { width: 40px; }
+  .radialDot { width: 9px; height: 9px; }
+  .radialLabelRight .radialDot { margin-left: -4.5px; }
+  .radialLabelLeft  .radialDot { margin-right: -4.5px; }
+  .radialLabelSelected .radialDot { width: 14px; height: 14px; }
+  .radialLabelRight.radialLabelSelected .radialDot { margin-left: -7px; }
+  .radialLabelLeft.radialLabelSelected  .radialDot { margin-right: -7px; }
 }
 
 @media (min-width: 1024px) {
-  .radialSkillNode {
-    font-size: 0.88rem;
-    max-width: 160px;
-  }
+  .radialLabelText { font-size: 0.92rem; max-width: 150px; }
 }
 
 /* preserve the click target outline in forced-colors */
 @media (forced-colors: active) {
   .radialSetNodeSelected,
-  .radialSkillNodeSelected {
+  .radialLabelSelected .radialLabelText {
     outline: 2px solid Highlight;
     outline-offset: 2px;
   }
+  .radialDot,
+  .radialLabelTick {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+  }
 }
+
+/* dim non-highlighted labels — overrides .dim which only affects opacity */
+.radialLabel.dim { opacity: 0.32; }
+.radialLabel.dim:hover { opacity: 0.7; }
 
 /* ── detail drawer ─────────────────────────────────────────────── */
 
