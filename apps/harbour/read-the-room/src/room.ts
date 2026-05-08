@@ -9,7 +9,7 @@ export interface Env {
   ROOM: DurableObjectNamespace;
 }
 
-type Position = 1 | 2 | 3;
+type Position = number; // 1..6
 type Phase =
   | "lobby"
   | "difficulty"
@@ -32,14 +32,15 @@ interface Card {
 
 interface RoomState {
   code: string;
+  size: number;             // 2..6; fixed at room creation
   createdAt: number;
-  positions: Record<Position, string | null>;
+  positions: Record<number, string | null>;
   difficulty: Difficulty | null;
   round: 0 | 1 | 2;
   currentPromptIdx: number | null;
   usedPrompts: number[];
-  hands: Record<Position, Card[]>;
-  cardPicks: Record<Position, number | null>;
+  hands: Record<number, Card[]>;
+  cardPicks: Record<number, number | null>;
   revealed: boolean;
   phase: Phase;
 }
@@ -50,7 +51,7 @@ type ClientMsg =
   | { t: "release_position" }
   | { t: "set_difficulty"; difficulty: Difficulty }
   | { t: "advance"; to: Phase }
-  | { t: "draw_prompt"; hands: Record<Position, Card[]>; promptIdx: number }
+  | { t: "draw_prompt"; hands: Record<number, Card[]>; promptIdx: number }
   | { t: "pick_card"; cardId: number }
   | { t: "change_card" }
   | { t: "reveal" }
@@ -64,24 +65,41 @@ interface Attachment {
 
 const IDLE_MS = 60 * 60 * 1000; // 60 min — alarm fires this far after last activity
 
-function emptyState(code: string): RoomState {
+/** Returns [1, 2, …, size]. */
+function posRange(size: number): number[] {
+  return Array.from({ length: size }, (_, i) => i + 1);
+}
+
+function emptyState(code: string, size = 3): RoomState {
+  const positions: Record<number, string | null> = {};
+  const hands: Record<number, Card[]> = {};
+  const cardPicks: Record<number, number | null> = {};
+  for (const p of posRange(size)) {
+    positions[p] = null;
+    hands[p] = [];
+    cardPicks[p] = null;
+  }
   return {
     code,
+    size,
     createdAt: Date.now(),
-    positions: { 1: null, 2: null, 3: null },
+    positions,
     difficulty: null,
     round: 0,
     currentPromptIdx: null,
     usedPrompts: [],
-    hands: { 1: [], 2: [], 3: [] },
-    cardPicks: { 1: null, 2: null, 3: null },
+    hands,
+    cardPicks,
     revealed: false,
     phase: "lobby",
   };
 }
 
+/** All claimed positions must have picked a card. */
 function allPicked(state: RoomState): boolean {
-  return state.cardPicks[1] !== null && state.cardPicks[2] !== null && state.cardPicks[3] !== null;
+  const claimed = posRange(state.size).filter(p => state.positions[p] !== null);
+  if (claimed.length === 0) return false;
+  return claimed.every(p => state.cardPicks[p] !== null);
 }
 
 export class Room extends DurableObject<Env> {
@@ -95,9 +113,11 @@ export class Room extends DurableObject<Env> {
 
     if (url.pathname.endsWith("/init")) {
       const code = url.searchParams.get("code") ?? "";
+      const sizeParam = parseInt(url.searchParams.get("size") ?? "3", 10);
+      const size = Math.max(2, Math.min(6, Number.isNaN(sizeParam) ? 3 : sizeParam));
       const existing = await this.getState();
       if (!existing) {
-        await this.ctx.storage.put<RoomState>("state", emptyState(code));
+        await this.ctx.storage.put<RoomState>("state", emptyState(code, size));
       }
       await this.bumpAlarm();
       return Response.json({ ok: true });
@@ -122,9 +142,10 @@ export class Room extends DurableObject<Env> {
 
     const clientId = url.searchParams.get("clientId") ?? crypto.randomUUID();
     const savedPosRaw = url.searchParams.get("position");
+    const savedPosNum = savedPosRaw ? parseInt(savedPosRaw, 10) : NaN;
     const savedPos =
-      savedPosRaw === "1" || savedPosRaw === "2" || savedPosRaw === "3"
-        ? (Number(savedPosRaw) as Position)
+      !Number.isNaN(savedPosNum) && savedPosNum >= 1 && savedPosNum <= 6
+        ? savedPosNum
         : null;
 
     const pair = new WebSocketPair();
@@ -142,10 +163,10 @@ export class Room extends DurableObject<Env> {
     }
 
     // Reattach to a saved seat if it's still ours / still vacant.
-    if (savedPos && state.positions[savedPos] === clientId) {
+    if (savedPos && savedPos <= state.size && state.positions[savedPos] === clientId) {
       attachment.position = savedPos;
       server.serializeAttachment(attachment);
-    } else if (savedPos && state.positions[savedPos] === null) {
+    } else if (savedPos && savedPos <= state.size && state.positions[savedPos] === null) {
       state.positions[savedPos] = clientId;
       attachment.position = savedPos;
       server.serializeAttachment(attachment);
@@ -173,6 +194,8 @@ export class Room extends DurableObject<Env> {
     const state = await this.getState();
     if (!state) return;
 
+    const positions = posRange(state.size);
+
     switch (msg.t) {
       case "hello":
         // Re-hello after socket open — already handled at connect, no-op.
@@ -180,12 +203,17 @@ export class Room extends DurableObject<Env> {
 
       case "claim_position": {
         const p = msg.position;
+        // Reject out-of-range seats.
+        if (p < 1 || p > state.size) {
+          ws.send(JSON.stringify({ t: "error", code: "seat_taken", position: p }));
+          return;
+        }
         if (state.positions[p] && state.positions[p] !== att.clientId) {
           ws.send(JSON.stringify({ t: "error", code: "seat_taken", position: p }));
           return;
         }
         // Vacate any previous seat for this client.
-        for (const pos of [1, 2, 3] as Position[]) {
+        for (const pos of positions) {
           if (state.positions[pos] === att.clientId) state.positions[pos] = null;
         }
         state.positions[p] = att.clientId;
@@ -196,7 +224,7 @@ export class Room extends DurableObject<Env> {
       }
 
       case "release_position": {
-        for (const pos of [1, 2, 3] as Position[]) {
+        for (const pos of positions) {
           if (state.positions[pos] === att.clientId) state.positions[pos] = null;
         }
         att.position = null;
@@ -223,7 +251,10 @@ export class Room extends DurableObject<Env> {
             ? state.usedPrompts
             : [...state.usedPrompts, msg.promptIdx];
           state.hands = msg.hands;
-          state.cardPicks = { 1: null, 2: null, 3: null };
+          // Reset cardPicks for all positions in this room.
+          const freshPicks: Record<number, number | null> = {};
+          for (const p of positions) freshPicks[p] = null;
+          state.cardPicks = freshPicks;
           state.revealed = false;
           state.phase = "prompt";
         }
@@ -254,8 +285,11 @@ export class Room extends DurableObject<Env> {
         if (state.round < 2) {
           state.round = (state.round + 1) as 0 | 1 | 2;
           state.currentPromptIdx = null;
-          state.hands = { 1: [], 2: [], 3: [] };
-          state.cardPicks = { 1: null, 2: null, 3: null };
+          const emptyHands: Record<number, Card[]> = {};
+          const emptyCp: Record<number, number | null> = {};
+          for (const p of positions) { emptyHands[p] = []; emptyCp[p] = null; }
+          state.hands = emptyHands;
+          state.cardPicks = emptyCp;
           state.revealed = false;
           state.phase = "roundIntro";
         } else {
@@ -265,8 +299,8 @@ export class Room extends DurableObject<Env> {
         break;
 
       case "play_again": {
-        // Same room, fresh game — keep code + positions, drop everything else.
-        const fresh = emptyState(state.code);
+        // Same room, fresh game — keep code + size + positions, drop everything else.
+        const fresh = emptyState(state.code, state.size);
         fresh.createdAt = state.createdAt;
         fresh.positions = state.positions;
         Object.assign(state, fresh);
@@ -300,7 +334,7 @@ export class Room extends DurableObject<Env> {
   }
 
   async webSocketError(_ws: WebSocket, error: unknown): Promise<void> {
-    console.error("[feel-room] ws error", error);
+    console.error("[room] ws error", error);
   }
 
   async alarm(): Promise<void> {

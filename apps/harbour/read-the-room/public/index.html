@@ -248,10 +248,39 @@
       opacity: 0.72;
       line-height: 1;
     }
-    /* three distinct tile colours, each WCAG-AA-safe with its text colour */
+    /* six distinct tile colours, each WCAG-AA-safe with its text colour */
     .position-btn.seat-1 { background: var(--redwood); color: var(--champagne); }   /* 5.5:1 */
     .position-btn.seat-2 { background: var(--sienna);  color: var(--cadet); }       /* 4.6:1 */
     .position-btn.seat-3 { background: var(--paper);   color: var(--cadet); }       /* 14:1  */
+    .position-btn.seat-4 { background: #3d6b8a;        color: var(--champagne); }   /* ~4.9:1 */
+    .position-btn.seat-5 { background: #4d5e3a;        color: var(--champagne); }   /* ~6.0:1 */
+    .position-btn.seat-6 { background: #7a3b5e;        color: var(--champagne); }   /* ~7.0:1 */
+    /* size picker on enter screen */
+    .size-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid rgba(255,235,210,0.18);
+      transition: all 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .size-btn.active {
+      background: var(--redwood);
+      color: var(--champagne);
+      border-color: transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+    }
+    .size-btn:not(.active) {
+      background: transparent;
+      color: var(--light-soft);
+    }
+    .size-btn:not(.active):hover {
+      background: rgba(255,235,210,0.08);
+      color: var(--champagne);
+    }
     .position-btn:hover:not(:disabled):not(.active) { transform: translateY(-1px); }
     .position-btn.active {
       border-color: var(--champagne);
@@ -792,6 +821,7 @@
       screen: 'enter',
       // server-mirrored
       code: null,
+      size: 3,               // number of players; synced from server on first state msg
       positions: { 1: null, 2: null, 3: null },
       difficulty: null,
       round: 0,
@@ -803,10 +833,11 @@
       phase: 'lobby',
       // client-only
       clientId: null,
-      position: null,        // 1, 2, or 3 once claimed
+      position: null,        // 1..size once claimed
       solutions: ['', '', ''],
       joinError: null,
       lastError: null,
+      pendingSize: 3,        // player count chosen on enter screen before room creation
     };
 
     // ---------- SYNC ----------
@@ -960,6 +991,7 @@
         if (state.position) saveStored({ position: state.position });
       } else if (m.t === 'state') {
         const s = m.state;
+        state.size = s.size || 3;
         state.positions = s.positions;
         state.difficulty = s.difficulty;
         state.round = s.round;
@@ -994,7 +1026,11 @@
 
     async function createRoom() {
       const { http } = apiBase();
-      const res = await fetch(`${http}/api/room`, { method: 'POST' });
+      const res = await fetch(`${http}/api/room`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ size: state.pendingSize || 3 }),
+      });
       if (!res.ok) throw new Error('could not create room');
       const { code } = await res.json();
       return code;
@@ -1479,17 +1515,14 @@
       // accepts the first draw_prompt per round and ignores subsequent ones,
       // so a race between two clicking clients is safe.
       const idx = pickPromptIdx();
-      const hands = {
-        1: dealHandForPrompt(idx, 4),
-        2: dealHandForPrompt(idx, 4),
-        3: dealHandForPrompt(idx, 4),
-      };
+      const hands = {};
+      for (let p = 1; p <= (state.size || 3); p++) hands[p] = dealHandForPrompt(idx, 4);
       send({ t: 'draw_prompt', promptIdx: idx, hands });
     }
 
     function holderForRound(round) {
-      // round 0 → pos 1 holds, round 1 → pos 2 holds, round 2 → pos 3 holds
-      return round + 1;
+      // Wraps so a 2-person group still has a valid holder every round.
+      return (round % (state.size || 3)) + 1;
     }
 
     function isHolder() {
@@ -1503,10 +1536,14 @@
       return state.position ? state.cardPicks[state.position] : null;
     }
     function claimedCount() {
-      return [1,2,3].filter(p => state.positions[p] !== null).length;
+      let n = 0;
+      for (let p = 1; p <= (state.size || 3); p++) if (state.positions[p] !== null) n++;
+      return n;
     }
     function pickedCount() {
-      return [1,2,3].filter(p => state.cardPicks[p] !== null).length;
+      let n = 0;
+      for (let p = 1; p <= (state.size || 3); p++) if (state.cardPicks[p] !== null) n++;
+      return n;
     }
 
     // ---------- RENDER ----------
@@ -1567,17 +1604,22 @@
     const screens = {
       enter: () => {
         const err = state.joinError ? `<div class="muted tiny" style="margin-top: 8px; color: #ffb09a;">${state.joinError}</div>` : '';
+        const sizeBtns = [2,3,4,5,6].map(n =>
+          `<button class="size-btn ${n === state.pendingSize ? 'active' : ''}" data-size="${n}" aria-label="${n} people">${n}</button>`
+        ).join('');
         return `
         <div class="screen fade-in">
           <div style="padding-top: 40px;">
             <div class="tiny"><span class="wv-wordmark">winded.vertigo</span></div>
             <h1 class="serif" style="margin-top: 14px;">read the<br/>room</h1>
             <p class="muted" style="margin-top: 22px; font-size: 17px; max-width: 420px;">
-              three people. one scenario. three different readings of what it asks. you'll each choose a card that meets the moment, then everyone shows their card at the same time.
+              one scenario. ${state.pendingSize} different readings of what it asks. you'll each choose a card that meets the moment, then everyone shows at once.
             </p>
           </div>
           <div class="spacer"></div>
           <div style="margin-top: 40px;">
+            <div class="muted tiny" style="margin-bottom: 10px; text-align: center;">how many people?</div>
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 16px;">${sizeBtns}</div>
             <button class="btn-primary" data-action="create" style="width: 100%;">start a new room</button>
             <div style="display: flex; align-items: center; gap: 12px; margin: 22px 0 14px;">
               <div style="flex: 1; height: 1px; background: var(--line);"></div>
@@ -1606,7 +1648,9 @@
         </div>`,
 
       roomLobby: () => {
-        const seats = [1,2,3].map(p => {
+        const sz = state.size || 3;
+        const seats = [];
+        for (let p = 1; p <= sz; p++) {
           const taken = state.positions[p] !== null;
           const mine = state.positions[p] === state.clientId;
           const classes = ['position-btn', `seat-${p}`];
@@ -1614,12 +1658,13 @@
           else if (taken) classes.push('taken');
           const tag = mine ? 'you' : (taken ? 'taken' : 'open');
           const disabled = taken && !mine ? 'disabled' : '';
-          return `<button class="${classes.join(' ')}" data-pos="${p}" ${disabled} aria-label="seat ${p}, ${tag}">
+          seats.push(`<button class="${classes.join(' ')}" data-pos="${p}" ${disabled} aria-label="seat ${p}, ${tag}">
             <span class="pos-num">${p}</span>
             <span class="pos-tag">${tag}</span>
-          </button>`;
-        }).join('');
-        const allClaimed = claimedCount() === 3;
+          </button>`);
+        }
+        const cols = Math.min(3, sz);
+        const allClaimed = claimedCount() === sz;
         const err = state.lastError ? `<div class="tiny" style="margin-top: 8px; color: #ffb09a;">${state.lastError}</div>` : '';
         return `
         <div class="screen fade-in">
@@ -1629,12 +1674,12 @@
             <div class="serif" style="font-size: 34px; letter-spacing: 0.22em; font-weight: 400; color: var(--ink);">${state.code || '······'}</div>
             <button class="btn-ghost" data-action="copy-code" style="margin-top: 2px; color: var(--ink-soft);">copy code</button>
           </div>
-          <p class="muted" style="margin-top: 16px;">three people, three devices. each picks their number below.</p>
-          <div class="position-picker">${seats}</div>
-          <div class="muted tiny" style="margin-top: 12px;">${claimedCount()} / 3 claimed · each round, a different number holds</div>
+          <p class="muted" style="margin-top: 16px;">${sz} people, ${sz} devices. each picks their number below.</p>
+          <div class="position-picker" style="grid-template-columns: repeat(${cols}, 1fr);">${seats.join('')}</div>
+          <div class="muted tiny" style="margin-top: 12px;">${claimedCount()} / ${sz} claimed · each round, a different number holds</div>
           ${err}
           <div class="spacer"></div>
-          <button class="btn-primary" data-action="advance:difficulty" ${allClaimed ? '' : 'disabled'} style="width: 100%;">${allClaimed ? 'set the pace →' : 'waiting for your trio'}</button>
+          <button class="btn-primary" data-action="advance:difficulty" ${allClaimed ? '' : 'disabled'} style="width: 100%;">${allClaimed ? 'set the pace →' : 'waiting for everyone'}</button>
           <button class="btn-ghost" data-action="leave-room" style="width: 100%; margin-top: 6px;">leave this room</button>
         </div>`;
       },
@@ -1656,6 +1701,7 @@
           </div>
           <div class="spacer"></div>
           <button class="btn-primary" data-action="advance:roundIntro" ${state.difficulty ? '' : 'disabled'} style="width: 100%;">begin the first round</button>
+          <button class="btn-ghost" data-action="advance:lobby" style="width: 100%; margin-top: 6px;">← back to lobby</button>
         </div>`,
 
       roundIntro: () => {
@@ -1678,13 +1724,14 @@
           </div>
           <div class="spacer"></div>
           <button class="btn-primary" data-action="draw-prompt" style="width: 100%;">read the scenario</button>
+          <button class="btn-ghost" data-action="advance:difficulty" style="width: 100%; margin-top: 6px;">← back to pace</button>
         </div>`;
       },
 
       prompt: () => {
         const hand = myHand();
         const sel = mySelectedCardId();
-        const remaining = 3 - pickedCount();
+        const remaining = (state.size || 3) - pickedCount();
         const hint = sel === null
           ? (isHolder() ? 'let the scenario settle. choose the card that meets it for you.'
                         : 'let it settle. choose the card you think your holder would meet it with.')
@@ -1708,7 +1755,7 @@
             </div>
             <div class="spacer"></div>
             <div class="muted tiny" style="text-align: center; margin-top: 14px;">
-              ${pickedCount()} / 3 chosen
+              ${pickedCount()} / ${state.size || 3} chosen
             </div>
           </div>`;
       },
@@ -1720,7 +1767,7 @@
           <div style="text-align: center;">
             <div class="serif" style="font-size: 54px; line-height: 1.1; font-weight: 300; color: var(--ink);">everyone<br/>is in.</div>
             <p class="muted" style="margin-top: 24px; font-size: 16px; max-width: 340px; margin-left: auto; margin-right: auto;">
-              when you're ready, anyone can press reveal — the cards turn for all three of you at once.
+              when you're ready, anyone can press reveal — the cards turn for all ${state.size || 3} of you at once.
             </p>
           </div>
           <div class="spacer"></div>
@@ -1729,14 +1776,15 @@
         </div>`,
 
       reveal: () => {
-        // Show all three picks side by side. Each player sees the cards from
-        // each player's own hand.
-        const cards = [1,2,3].map(p => {
+        // Show all picks side by side. Each player sees cards from every hand.
+        const sz = state.size || 3;
+        const cards = [];
+        for (let p = 1; p <= sz; p++) {
           const cardId = state.cardPicks[p];
           const hand = state.hands[p] || [];
           const card = hand.find(c => c.id === cardId);
-          return { p, card };
-        });
+          cards.push({ p, card });
+        }
         return `
           <div class="screen fade-in-slow">
             <div class="tiny">round ${state.round + 1} · reveal</div>
@@ -1751,7 +1799,7 @@
               `).join('')}
             </div>
             <div class="reveal-hint fade-in-slow">
-              take a moment to notice how the three cards sit together.
+              take a moment to notice how the ${sz} cards sit together.
             </div>
             <div class="spacer"></div>
             <button class="btn-primary" data-action="advance:reflect" style="width: 100%;">open reflection →</button>
@@ -1773,34 +1821,59 @@
           </p>
           <div class="spacer"></div>
           <button class="btn-primary" data-action="advance:solve" style="width: 100%;">we've shared → write our move</button>
+          <button class="btn-ghost" data-action="advance:reveal" style="width: 100%; margin-top: 6px;">← back to cards</button>
         </div>`,
 
       solve: () => {
         const existing = state.solutions[state.round] || '';
         const ready = existing.trim().length >= 3;
         const lastRound = state.round >= 2;
-        const action = lastRound ? 'next-round' : 'next-round';
         const label = ready ? (lastRound ? 'log it → close the circle' : 'log it → next round') : 'write to continue';
+        // Compact card thumbnails showing what everyone chose — lets players
+        // compare interpretations while drafting their compromise move.
+        const sz = state.size || 3;
+        const thumbs = [];
+        for (let p = 1; p <= sz; p++) {
+          const cardId = state.cardPicks[p];
+          const hand = state.hands[p] || [];
+          const card = hand.find(c => c.id === cardId);
+          const isHolderP = p === holderForRound(state.round);
+          const isMeP = p === state.position;
+          const sublabel = `${p}${isHolderP ? ' · holder' : ''}${isMeP ? ' · you' : ''}`;
+          thumbs.push(`
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:0 0 auto;">
+              <div style="width:60px;height:90px;border-radius:9px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.18);position:relative;opacity:${card ? 1 : 0.28};">
+                ${card ? card.svg : '<div style="width:100%;height:100%;background:var(--line);"></div>'}
+                ${card ? `<div style="position:absolute;bottom:0;left:0;right:0;padding:10px 3px 3px;font-size:8px;font-style:italic;color:var(--ink);background:linear-gradient(to top,rgba(255,235,210,0.97) 0%,transparent 100%);text-align:center;line-height:1.2;">${card.label}</div>` : ''}
+              </div>
+              <div style="font-size:10px;letter-spacing:0.04em;text-align:center;color:var(--light-soft);">${sublabel}</div>
+            </div>`);
+        }
         return `
           <div class="screen fade-in">
-            <div class="tiny">round ${state.round + 1} · your trio's move</div>
+            <div class="tiny">round ${state.round + 1} · your group's move</div>
             <h2 class="serif" style="margin-top: 12px;">write it together.</h2>
             <div style="margin-top: 16px; padding: 18px 20px; background: var(--paper); border-radius: 14px;">
               <div class="prompt serif" style="font-size: 18px; line-height: 1.35;">${SOLVE_PROMPTS[state.round]}</div>
             </div>
-            <textarea id="solution-input" class="solution-input" placeholder="one or two concrete sentences…" rows="5">${existing}</textarea>
+            <div style="margin-top: 18px;">
+              <div class="tiny" style="margin-bottom: 10px; opacity: 0.7;">what everyone chose</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">${thumbs.join('')}</div>
+            </div>
+            <textarea id="solution-input" class="solution-input" placeholder="one or two concrete sentences…" rows="4">${existing}</textarea>
             <p class="muted tiny" style="margin-top: 10px;">everyone writes their own version on their own device. this stays with you.</p>
             <div class="spacer"></div>
-            <button class="btn-primary" data-action="${action}" ${ready ? '' : 'disabled'} id="solve-continue" style="width: 100%;">${label}</button>
+            <button class="btn-primary" data-action="next-round" ${ready ? '' : 'disabled'} id="solve-continue" style="width: 100%;">${label}</button>
+            <button class="btn-ghost" data-action="advance:reflect" style="width: 100%; margin-top: 6px;">← back to reflection</button>
           </div>`;
       },
 
       echo: () => `
         <div class="screen fade-in">
-          <div class="tiny">echo · your trio's three moves</div>
+          <div class="tiny">echo · your group's three moves</div>
           <h2 class="serif" style="margin-top: 10px;">what you made together.</h2>
           <p class="muted" style="margin-top: 14px; font-size: 15px;">
-            three scenarios, three moves your trio built. screenshot this if you want to carry it with you.
+            three scenarios, three moves your group built. screenshot this if you want to carry it with you.
           </p>
           <div class="solutions-recap">
             ${state.solutions.map((s, i) => {
@@ -1913,6 +1986,14 @@
           state.lastError = null;
           const p = parseInt(btn.getAttribute('data-pos'), 10);
           send({ t: 'claim_position', position: p });
+        });
+      });
+
+      // Size picker on enter screen — updates pendingSize before room creation.
+      document.querySelectorAll('[data-size]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.pendingSize = parseInt(btn.getAttribute('data-size'), 10);
+          render();
         });
       });
 
