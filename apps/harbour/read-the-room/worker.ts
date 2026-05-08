@@ -69,14 +69,14 @@ async function roomExists(env: Env, code: string): Promise<boolean> {
   return body.exists;
 }
 
-async function createRoom(env: Env): Promise<string> {
+async function createRoom(env: Env, size = 3): Promise<string> {
   // Up to 5 attempts to find an unused code. With 21^6 ≈ 85M codes and ~120
   // concurrent rooms the first attempt almost always wins.
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = generateCode();
     if (!(await roomExists(env, code))) {
       const stub = env.ROOM.get(env.ROOM.idFromName(code));
-      await stub.fetch(`https://room/init?code=${code}`);
+      await stub.fetch(`https://room/init?code=${code}&size=${size}`);
       return code;
     }
   }
@@ -94,7 +94,14 @@ export default {
 
     // ---------- API ----------
     if (url.pathname === "/api/room" && request.method === "POST") {
-      const code = await createRoom(env);
+      let size = 3;
+      try {
+        const body = (await request.json()) as { size?: number };
+        if (body?.size && typeof body.size === "number") {
+          size = Math.max(2, Math.min(6, Math.round(body.size)));
+        }
+      } catch { /* body absent or non-JSON — default to 3 */ }
+      const code = await createRoom(env, size);
       return Response.json({ code }, { headers: corsHeaders(origin) });
     }
 
