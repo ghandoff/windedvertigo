@@ -572,7 +572,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 }
 
 /* helper shared by gravity + torn */
-.tw-current { color: var(--wv-champagne); }
+.tw-current { color: var(--wv-white); }
 .tw-past    { color: rgba(255,255,255,0.45); }
 
 /* ── #2 Typewriter Roll ────────────────────────────────────────── */
@@ -594,8 +594,8 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   transition: border-color 0.2s, color 0.2s;
 }
 .tw-pause-btn:hover,
-.tw-pause-btn:focus-visible { border-color: rgba(255,235,210,0.4); color: var(--wv-champagne); outline: none; }
-.tw-pause-btn--paused { border-color: rgba(255,235,210,0.35); color: rgba(255,235,210,0.55); }
+.tw-pause-btn:focus-visible { border-color: rgba(255,255,255,0.4); color: var(--wv-white); outline: none; }
+.tw-pause-btn--paused { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.55); }
 @media (prefers-reduced-motion: reduce) {
   .tw-controls { display: none; }
 }
@@ -616,7 +616,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 }
 .collab-typewriter-cursor {
   font-size: clamp(1.1rem, 4vw, 1.6rem);
-  color: var(--wv-champagne);
+  color: var(--wv-white);
   animation: tw-blink 0.9s step-end infinite;
   margin-left: 2px;
 }

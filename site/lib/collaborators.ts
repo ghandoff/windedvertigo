@@ -90,7 +90,7 @@ export const COLLABORATORS: Collaborator[] = [
     current: false,
   },
   {
-    name: "culture, creativity and education",
+    name: "creativity, culture and education",
     logoPath: "/collaborators/cce_logo.png",
     current: false,
   },
