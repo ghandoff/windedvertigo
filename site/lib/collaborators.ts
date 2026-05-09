@@ -58,7 +58,7 @@ export const COLLABORATORS: Collaborator[] = [
     current: true,
   },
   {
-    name: "the lego foundation",
+    name: "LEGO foundation",
     logoPath: "/collaborators/LEGO-Fonden.png",
     current: true,
   },
@@ -102,6 +102,16 @@ export const COLLABORATORS: Collaborator[] = [
   {
     name: "rigamajig",
     logoPath: "/collaborators/Rigamajig-logo-web.png",
+    current: false,
+  },
+  {
+    name: "scratch",
+    logoPath: "/collaborators/Scratch-Emblem.png",
+    current: false,
+  },
+  {
+    name: "epfl",
+    logoPath: "/collaborators/EPFL.png",
     current: false,
   },
 ];
