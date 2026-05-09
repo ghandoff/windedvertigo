@@ -7,26 +7,23 @@ export type Collaborator = {
    */
   logoPath?: string;
   /**
-   * true  = active ongoing project → opacity 0.55
-   * false = past collaborator      → opacity 0.28
+   * true  = active ongoing project → higher opacity in animations
+   * false = past collaborator      → lower opacity
    */
   current: boolean;
 };
 
 /**
- * Master collaborator list — order here is marquee order.
+ * Master collaborator list — order here is display order.
  * Mix current + past for visual rhythm.
  *
- * current=true  → PRME 2026, Sesame Workshop, Press Play (active projects/partners)
- * current=false → past collaborations / career history
- *
- * To add a logo: drop file into site/public/collaborators/, add logoPath here,
- * set opaque:true for JPEGs or non-transparent images.
+ * To add a logo: drop file into site/public/collaborators/,
+ * add logoPath here (URL-encode spaces as %20).
  */
 export const COLLABORATORS: Collaborator[] = [
   // ── active ──────────────────────────────────────────────────────
   {
-    name: "prme",
+    name: "UN global compact",
     logoPath: "/collaborators/prme_logo_short_white.png",
     current: true,
   },
@@ -36,7 +33,7 @@ export const COLLABORATORS: Collaborator[] = [
     current: true,
   },
   {
-    name: "history colab",
+    name: "history.co:lab",
     logoPath: "/collaborators/history%20colab.webp",
     current: true,
   },
@@ -55,15 +52,20 @@ export const COLLABORATORS: Collaborator[] = [
     logoPath: "/collaborators/nordic_naturals.png",
     current: true,
   },
-
-  // ── past ────────────────────────────────────────────────────────
   {
     name: "sesame workshop",
     logoPath: "/collaborators/Sesame-Workshop-logo.png",
-    current: false,
+    current: true,
   },
   {
-    name: "lego playful learning museum network",
+    name: "the lego foundation",
+    logoPath: "/collaborators/LEGO-Fonden.png",
+    current: true,
+  },
+
+  // ── past ────────────────────────────────────────────────────────
+  {
+    name: "lego playful learning museums network",
     logoPath: "/collaborators/LEGO%20PLayful%20Learning%20Museum%20Network.png",
     current: false,
   },
@@ -73,18 +75,8 @@ export const COLLABORATORS: Collaborator[] = [
     current: false,
   },
   {
-    name: "scratch",
-    logoPath: "/collaborators/Scratch-Emblem.png",
-    current: false,
-  },
-  {
     name: "aarhus university",
     logoPath: "/collaborators/aarhus%20universitet.png",
-    current: false,
-  },
-  {
-    name: "epfl",
-    logoPath: "/collaborators/EPFL.png",
     current: false,
   },
   {
@@ -98,19 +90,14 @@ export const COLLABORATORS: Collaborator[] = [
     current: false,
   },
   {
-    name: "cce",
+    name: "culture, creativity and education",
     logoPath: "/collaborators/cce_logo.png",
     current: false,
   },
   {
-    name: "badm",
+    name: "bay area discovery museum",
     logoPath: "/collaborators/BADM%20logo.png",
     current: false,
-  },
-  {
-    name: "lego foundation",
-    logoPath: "/collaborators/LEGO-Fonden.png",
-    current: true,
   },
   {
     name: "rigamajig",
