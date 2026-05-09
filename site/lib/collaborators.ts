@@ -65,7 +65,7 @@ export const COLLABORATORS: Collaborator[] = [
 
   // ── past ────────────────────────────────────────────────────────
   {
-    name: "lego playful learning museums network",
+    name: "LEGO playful learning museums network",
     logoPath: "/collaborators/LEGO%20PLayful%20Learning%20Museum%20Network.png",
     current: false,
   },
