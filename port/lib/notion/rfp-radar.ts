@@ -72,6 +72,10 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     questionCount: getNumber(props[P.questionCount]),
     coverLetterUrl: getUrl(props[P.coverLetterUrl]) ?? null,
     teamCvsUrl: getUrl(props[P.teamCvsUrl]) ?? null,
+    // EOI + financial proposal URLs live in Supabase only (generator writes them there).
+    // Notion mapper defaults to null; Supabase read path populates them.
+    expressionOfInterestUrl: null,
+    financialProposalUrl: null,
     whatWorked: getText(props[P.whatWorked]),
     whatFellFlat: getText(props[P.whatFellFlat]),
     clientFeedback: getText(props[P.clientFeedback]),

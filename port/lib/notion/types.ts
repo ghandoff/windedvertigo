@@ -588,6 +588,8 @@ export interface RfpOpportunity {
   questionCount: number | null;
   coverLetterUrl: string | null;
   teamCvsUrl: string | null;
+  expressionOfInterestUrl: string | null;
+  financialProposalUrl: string | null;
   // debrief — populated after won/lost/no-go
   whatWorked: string;
   whatFellFlat: string;

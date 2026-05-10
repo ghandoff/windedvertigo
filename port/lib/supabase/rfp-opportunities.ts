@@ -51,6 +51,8 @@ interface RfpOpportunityRow {
   question_count: number | null;
   cover_letter_url: string | null;
   team_cvs_url: string | null;
+  expression_of_interest_url: string | null;
+  financial_proposal_url: string | null;
   what_worked: string | null;
   what_fell_flat: string | null;
   client_feedback: string | null;
@@ -89,6 +91,8 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     questionCount: row.question_count ?? null,
     coverLetterUrl: row.cover_letter_url ?? null,
     teamCvsUrl: row.team_cvs_url ?? null,
+    expressionOfInterestUrl: row.expression_of_interest_url ?? null,
+    financialProposalUrl: row.financial_proposal_url ?? null,
     whatWorked: row.what_worked ?? "",
     whatFellFlat: row.what_fell_flat ?? "",
     clientFeedback: row.client_feedback ?? "",
@@ -154,7 +158,8 @@ const SELECT_COLS =
   "estimated_value, due_date, wv_fit_score, service_match, category, geography, source, " +
   "proposal_status, requirements_snapshot, decision_notes, deadline_timezone, " +
   "url, rfp_document_url, proposal_draft_url, question_bank_url, question_count, " +
-  "cover_letter_url, team_cvs_url, what_worked, what_fell_flat, client_feedback, " +
+  "cover_letter_url, team_cvs_url, expression_of_interest_url, financial_proposal_url, " +
+  "what_worked, what_fell_flat, client_feedback, " +
   "lessons_for_next_time, proposal_notes, influenced_by_event_ids, " +
   "created_time, last_edited_time";
 
@@ -318,12 +323,16 @@ export async function setProposalUrls(
     proposalDraftUrl?: string | null;
     coverLetterUrl?: string | null;
     teamCvsUrl?: string | null;
+    expressionOfInterestUrl?: string | null;
+    financialProposalUrl?: string | null;
   },
 ): Promise<void> {
   const updates: Record<string, unknown> = {};
   if (urls.proposalDraftUrl !== undefined) updates.proposal_draft_url = urls.proposalDraftUrl;
   if (urls.coverLetterUrl !== undefined) updates.cover_letter_url = urls.coverLetterUrl;
   if (urls.teamCvsUrl !== undefined) updates.team_cvs_url = urls.teamCvsUrl;
+  if (urls.expressionOfInterestUrl !== undefined) updates.expression_of_interest_url = urls.expressionOfInterestUrl;
+  if (urls.financialProposalUrl !== undefined) updates.financial_proposal_url = urls.financialProposalUrl;
 
   if (Object.keys(updates).length === 0) return;
 

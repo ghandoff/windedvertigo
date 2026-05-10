@@ -90,7 +90,7 @@ export default async function RfpDetailPage({ params }: Props) {
   const overdue = deadlineDays !== null && deadlineDays < 0;
   const winProbability = computeWinProbability(rfp);
 
-  const hasProposalOutput = rfp.proposalDraftUrl || rfp.coverLetterUrl || rfp.teamCvsUrl;
+  const hasProposalOutput = rfp.proposalDraftUrl || rfp.coverLetterUrl || rfp.teamCvsUrl || rfp.expressionOfInterestUrl || rfp.financialProposalUrl;
 
   return (
     <>
@@ -370,6 +370,29 @@ export default async function RfpDetailPage({ params }: Props) {
                 >
                   <ListChecks className="h-4 w-4 text-purple-600 shrink-0" />
                   <span className="group-hover:underline">{rfp.questionCount} questions parsed →</span>
+                </a>
+              )}
+
+              {rfp.expressionOfInterestUrl && (
+                <a
+                  href={rfp.expressionOfInterestUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm hover:text-primary transition-colors group"
+                >
+                  <FileText className="h-4 w-4 text-amber-600 shrink-0" />
+                  <span className="group-hover:underline">expression of interest →</span>
+                </a>
+              )}
+              {rfp.financialProposalUrl && (
+                <a
+                  href={rfp.financialProposalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm hover:text-primary transition-colors group"
+                >
+                  <FileText className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span className="group-hover:underline">financial proposal →</span>
                 </a>
               )}
 
