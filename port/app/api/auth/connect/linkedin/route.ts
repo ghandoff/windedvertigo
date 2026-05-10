@@ -19,10 +19,9 @@ import { auth } from "@/lib/auth";
 const REDIRECT_URI = "https://port.windedvertigo.com/api/auth/callback/linkedin";
 const SCOPES = [
   "openid", "profile", "email",
-  "w_member_social",      // post on user's behalf
-  "r_liteprofile",        // read basic profile
-  "r_organization_social",// org follower stats (requires LinkedIn Marketing API approval)
-  "offline_access",       // issues refresh_token (365-day)
+  "w_member_social",       // post on user's behalf (Share on LinkedIn product)
+  // "r_organization_social" — org follower stats; needs Community Management API approval
+  // "offline_access"        — refresh tokens; not available without OIDC partner approval
 ];
 
 export async function GET(_req: NextRequest) {
