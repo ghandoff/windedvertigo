@@ -28,6 +28,14 @@ declare global {
     PORT_ASSETS: {
       put(key: string, body: unknown, options?: unknown): Promise<void>;
     };
+    /**
+     * CF Browser Rendering binding.
+     * Present only when the Browser Rendering add-on is enabled.
+     * cover-image.ts checks for its presence before calling puppeteer.launch().
+     */
+    BROWSER?: {
+      fetch(request: Request): Promise<Response>;
+    };
     PORT_URL: string;
     CRON_SECRET: string;
   }

@@ -27,7 +27,7 @@
  *   SLACK_WEBHOOK_URL      — optional, for the run summary post
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { callClaude, parseJsonResponse } from "@/lib/ai/client";
 import { triageConference } from "@/lib/ai/conference-triage";
 import { WV_PROFILE } from "@/lib/ai/wv-profile";
@@ -232,6 +232,21 @@ async function ingestScoutedConference(
     deadlines: triage.deadlines ?? [],
   });
 
+  // Phase 16: kick off cover image generation in background (non-blocking).
+  // Uses after() so the cron response isn't delayed by the fetch+R2 upload.
+  const coverUrl = `${process.env.PORT_URL ?? "https://port.windedvertigo.com"}/api/events/${newId}/cover`;
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    after(
+      fetch(coverUrl, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${cronSecret}` },
+      }).catch((err) =>
+        console.warn("[scout-org-conferences] cover image kick-off failed:", err),
+      ),
+    );
+  }
+
   return { added: true };
 }
 
@@ -292,7 +307,7 @@ export async function GET(req: NextRequest) {
 
   // Optional Slack summary — only when something actually landed.
   if (candidatesAdded > 0) {
-    const url = "https://port.windedvertigo.com/campaigns?tab=events&status=candidate";
+    const url = "https://port.windedvertigo.com/events?status=candidate";
     await postToSlack(
       `scout linked ${candidatesAdded} new conferences to existing orgs — review at ${url}`,
     );

@@ -32,6 +32,13 @@
     "crons": ["0 * * * *", "*/5 * * * *"]
   },
 
+  // ── Browser Rendering binding ────────────────────────────────────────────
+  // Used by POST /api/events/{id}/cover as a fallback when og:image is absent.
+  // Requires the Browser Rendering add-on in the CF dashboard.
+  // The cover-image.ts cascade gracefully skips the screenshot step when
+  // the binding is absent (local dev / plans without the add-on).
+  "browser": { "binding": "BROWSER" },
+
   // ── R2 binding ───────────────────────────────────────────────────────────
   // PORT_ASSETS: uploaded RFP documents, parsed question JSON
   "r2_buckets": [

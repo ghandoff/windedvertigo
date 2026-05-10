@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -36,7 +35,6 @@ export default function RootLayout({
       <body>
         <ServiceWorkerRegister />
         {children}
-        <Analytics />
       </body>
     </html>
   );

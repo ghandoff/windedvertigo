@@ -236,7 +236,7 @@ export async function GET(req: NextRequest) {
   // 4. Slack ping when there's something to look at.
   if (summary.candidatesAdded > 0) {
     await postToSlack(
-      `broad scout proposed ${summary.candidatesAdded} unaffiliated conferences worth a skeptical look — review at https://port.windedvertigo.com/campaigns?tab=events&status=candidate&discoveredVia=broad-scout`,
+      `broad scout proposed ${summary.candidatesAdded} unaffiliated conferences worth a skeptical look — review at https://port.windedvertigo.com/events?status=candidate&discoveredVia=broad-scout`,
     );
   }
 

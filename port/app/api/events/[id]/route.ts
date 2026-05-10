@@ -102,6 +102,8 @@ export async function PATCH(
     if (body.contactsMetCount !== undefined) patch.contacts_met_count = body.contactsMetCount;
     if (body.followupDueBy !== undefined)   patch.followup_due_by = body.followupDueBy;
     if (body.affiliatedOrgId !== undefined) patch.affiliated_org_id = body.affiliatedOrgId;
+    // Phase 16 cover image
+    if (body.coverImageUrl !== undefined)   patch.cover_image_url = body.coverImageUrl;
 
     if (Object.keys(patch).length > 0) {
       await upsertEventToSupabase(id, patch);

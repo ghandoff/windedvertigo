@@ -20,7 +20,7 @@
  * Cost-controlled: Haiku, 3000-char body cap inside conference-triage.
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { triageConference } from "@/lib/ai/conference-triage";
 import { findDuplicateConference } from "@/lib/conferences/dedup";
 import { upsertEventToSupabase } from "@/lib/supabase/events";
@@ -169,6 +169,20 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: `upsert failed: ${msg}` }, { status: 500 });
+  }
+
+  // Phase 16: kick off cover image generation in background (non-blocking).
+  const coverUrl = `${process.env.PORT_URL ?? "https://port.windedvertigo.com"}/api/events/${newId}/cover`;
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    after(
+      fetch(coverUrl, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${cronSecret}` },
+      }).catch((err) =>
+        console.warn("[conferences/ingest] cover image kick-off failed:", err),
+      ),
+    );
   }
 
   return NextResponse.json({

@@ -409,11 +409,12 @@ export type ConferenceLifecycle =
   | "postponed";
 
 export type ConferenceDiscoverySource =
-  | "manual"          // entered via the port UI new/edit form
-  | "org-affiliated"  // weekly scout reads `organizations` and asks AI
-  | "newsletter"      // daily inbox scan, curated sender allowlist
-  | "slack-paste"     // wv-claw bot: "add conference <url>"
-  | "broad-scout";    // monthly fallback for green-field domains
+  | "manual"             // entered via the port UI new/edit form
+  | "org-affiliated"     // weekly scout reads `organizations` and asks AI
+  | "newsletter"         // daily inbox scan, curated sender allowlist
+  | "slack-paste"        // wv-claw bot: "add conference <url>"
+  | "broad-scout"        // monthly fallback for green-field domains
+  | "annual-recurrence"; // weekly re-scout of past Annual/Biannual conferences
 
 export type ConferenceDeadlineKind =
   | "cfp_close"
@@ -469,6 +470,8 @@ export interface CrmEvent {
   outcomeNotes: string;
   contactsMetCount: number | null;
   followupDueBy: string | null; // YYYY-MM-DD
+  // ── Phase 16 cover image ─────────────────────────────────────────
+  coverImageUrl: string | null;
 }
 
 // ── email & social drafts ─────────────────────────────────

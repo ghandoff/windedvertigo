@@ -53,12 +53,6 @@ const STATUS_CHIP_CLASS: Record<ContactAttendanceStatus, string> = {
 };
 
 export function EventContactsPanel({ eventId, eventName, eventEndDate }: Props) {
-  // eventEndDate / eventName aren't used yet (auto-task creation is deferred)
-  // — keep them on the API so the parent agent can wire the consolidation
-  // pass without re-touching this file.
-  void eventName;
-  void eventEndDate;
-
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -71,6 +65,8 @@ export function EventContactsPanel({ eventId, eventName, eventEndDate }: Props) 
   });
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+  // Phase 14 — brief notice shown after auto-task is created on "met"
+  const [taskNotice, setTaskNotice] = useState<string | null>(null);
 
   const recomputeCounts = useCallback((rows: EventContactWithDetails[]) => {
     const c = { target: 0, met: 0, followedUp: 0, dropped: 0 };
@@ -112,6 +108,7 @@ export function EventContactsPanel({ eventId, eventName, eventEndDate }: Props) 
   async function handleStatusChange(
     id: string,
     status: ContactAttendanceStatus,
+    contactName?: string,
   ) {
     try {
       const res = await fetch(`/api/event-contacts/${id}`, {
@@ -121,6 +118,32 @@ export function EventContactsPanel({ eventId, eventName, eventEndDate }: Props) 
       });
       if (!res.ok) throw new Error(`status ${res.status}`);
       await refetch();
+
+      // Phase 14 — auto-create a follow-up work item when a contact is marked "met"
+      if (status === "met") {
+        const name = contactName ?? "contact";
+        // Due date: event end + 7 days if available, else today + 14 days
+        const baseDate = eventEndDate ? new Date(eventEndDate) : new Date();
+        const dueDate = new Date(baseDate);
+        dueDate.setDate(dueDate.getDate() + (eventEndDate ? 7 : 14));
+        const dueDateStr = dueDate.toISOString().slice(0, 10);
+
+        try {
+          await fetch("/api/work-items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              task: `Follow up with ${name} after ${eventName}`,
+              status: "in queue",
+              dueDate: { start: dueDateStr },
+            }),
+          });
+          setTaskNotice(`follow-up task created — due ${dueDateStr}`);
+          setTimeout(() => setTaskNotice(null), 5000);
+        } catch (taskErr) {
+          console.error("[event-contacts] failed to create follow-up task:", taskErr);
+        }
+      }
     } catch (err) {
       console.error("[event-contacts] status change failed:", err);
     }
@@ -204,11 +227,18 @@ export function EventContactsPanel({ eventId, eventName, eventEndDate }: Props) 
                 <ContactRow
                   key={c.id}
                   row={c}
-                  onChange={(s) => handleStatusChange(c.id, s)}
+                  onChange={(s) => handleStatusChange(c.id, s, c.contactName)}
                   onRemove={() => handleRemove(c.id)}
                 />
               ))}
             </ul>
+          )}
+
+          {/* Phase 14 — auto-task notice */}
+          {taskNotice && (
+            <p className="text-[10px] text-teal-700 dark:text-teal-400 px-1">
+              ✓ {taskNotice}
+            </p>
           )}
 
           {/* add target picker */}

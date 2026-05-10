@@ -90,6 +90,9 @@ const CRON_TABLE: CronEntry[] = [
   { path: "/api/cron/refresh-linkedin",  hours: [9], dayOfMonth: 1 },
   { path: "/api/cron/linkedin-monitor",  hours: [9], dayOfMonth: 5 },
   { path: "/api/cron/sync-allowances",   hours: [9], dayOfMonth: 28 },
+  // Mirror for the allowances table (Notion→Supabase); the above creates
+  // reimbursement entries (business logic). Both run on the 28th.
+  { path: "/api/cron/sync-allowances-pilot", hours: [9], dayOfMonth: 28 },
 
   // ── Every 4 hours ───────────────────────────────────────────────────────────
   { path: "/api/cron/ingest-meeting-notes", hours: [0,4,8,12,16,20] },
@@ -105,6 +108,26 @@ const CRON_TABLE: CronEntry[] = [
   //    Restored 2026-05-08 after Phase A4 retirement zeroed the table.
   //    UPSERT-only on notion_page_id — safe to run alongside port edits.
   { path: "/api/cron/sync-competitors-pilot", hours: [7] },
+
+  // ── Notion dual-write pilots (still active; added to CRON_TABLE 2026-05-09) ──
+  // These six Notion→Supabase syncs were accidentally dropped from CRON_TABLE
+  // during Phase A4. They were still running on Vercel (vercel.json schedules).
+  // Re-added here so they continue after wv-crm is deprovisioned (post-2026-05-17).
+
+  // Campaigns + steps + RFP: hourly (Vercel was `0 * * * *`) — keep Supabase
+  // tables fresh for port reads while Payton's team still edits in Notion.
+  { path: "/api/cron/sync-campaigns-pilot" },
+  { path: "/api/cron/sync-campaign-steps-pilot" },
+  { path: "/api/cron/sync-rfp-pilot" },
+
+  // RFP feeds: daily 09:00 UTC
+  { path: "/api/cron/sync-rfp-feeds-pilot", hours: [9] },
+
+  // Members: daily 02:00 UTC (low-traffic hour; nightly refresh sufficient)
+  { path: "/api/cron/sync-members-pilot", hours: [2] },
+
+  // Blueprints: daily 05:00 UTC
+  { path: "/api/cron/sync-blueprints-pilot", hours: [5] },
 
   // ── Conference intelligence pipeline (2026-05-08) ───────────────────────────
   // Three discovery sources feeding the events tab as `status='candidate'`.
@@ -126,6 +149,16 @@ const CRON_TABLE: CronEntry[] = [
   // green-field conferences the org-affiliated and newsletter scans don't
   // cover. Capped at 10 candidates/run, lower confidence by design.
   { path: "/api/cron/scout-broad-conferences", hours: [14], originalMinute: 30, dayOfMonth: 1 },
+
+  // Weekly Saturdays 09:00 UTC — re-scout Annual/Biannual conferences once
+  // their last known edition has passed. Tries URL year-bump first (free),
+  // falls back to Claude knowledge lookup. Inserts next editions as candidates.
+  { path: "/api/cron/refresh-annual-conferences", hours: [9], weekdays: [6] },
+
+  // Daily 04:00 UTC — refresh social stats snapshot (Substack, LinkedIn,
+  // Bluesky). Restored in Phase 17 after the three null stubs were wired up
+  // with real API calls. Meta stays stub (pending PAGE_ACCESS_TOKEN approval).
+  { path: "/api/cron/sync-social-stats", hours: [4] },
 ];
 
 // sweep-stuck-proposals runs every 5 minutes — handled by the */5 trigger,

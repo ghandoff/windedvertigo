@@ -13,9 +13,15 @@ export const STEPS: Step[] = [
       body: [
         {
           kind: 'paragraph',
-          text: "claude code is your harbour pilot — a local expert who boards a foreign ship and guides it safely through tricky waters. that's exactly what it does when you arrive at a new repo. this docent walks you through getting a new winded.vertigo project running on your laptop. because your pilot is already aboard, you'll never have to type a raw terminal command yourself — you'll just copy a prompt, paste it into Claude Code, press return, and let the pilot steer.",
+          text: "claude code is your harbour pilot — a local expert who boards a foreign ship and guides it safely through tricky waters. that's exactly what it does when you arrive at a new repo. this docent walks you through getting connected to winded.vertigo's tools.",
         },
-        { kind: 'heading', text: 'the pattern' },
+        { kind: 'heading', text: 'two paths through the harbour' },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "**cloud-first (most team members):** you don't need to clone a repo or install anything. claude desktop or claude.ai + a github MCP gets you reading and contributing to any project from your browser or the claude app — on any device, including mobile. this is the right path for payton, lamis, maria, and anyone who isn't writing and deploying code. **engineer path (garrett + future engineers):** full local setup — cli tools, cloned repos, wrangler for cloudflare deployments. follow all steps.",
+        },
+        { kind: 'heading', text: 'the pattern (engineer path)' },
         {
           kind: 'paragraph',
           text: "each step below has one big prompt. click copy → switch to your Claude Code window → paste → press return. Claude narrates what it's doing and will ask you before doing anything risky.",
@@ -48,11 +54,11 @@ export const STEPS: Step[] = [
         {
           kind: 'callout',
           tone: 'info',
-          text: "1) `CLAUDE.md` at the repo root = how Claude should work in THIS project (evolves with the repo). 2) `.claude/evergreen.md` = team-wide facts that never drift (brand voice, IP, accessibility). 3) your personal `~/.claude/CLAUDE.md` = your own preferences, private to your laptop.",
+          text: "1) `CLAUDE.md` at the repo root = how Claude should work in THIS project (evolves with the repo). 2) `.claude/evergreen.md` = team-wide facts that never drift (brand voice, IP, accessibility). 3) your personal `~/.claude/CLAUDE.md` = your own preferences, private to your machine.",
         },
         {
           kind: 'paragraph',
-          text: "you don't need to do anything with these now. just know that when you clone a repo, you inherit its memory for free.",
+          text: "you don't need to do anything with these now. if you're on the cloud-first path, Claude picks them up automatically via the github MCP when you point it at the repo.",
         },
       ],
       helpPrompt: "i'm on the welcome step of the docent — no help needed yet.",
@@ -64,10 +70,10 @@ export const STEPS: Step[] = [
   {
     id: 'accounts',
     title: 'file your papers with each part of the harbour.',
-    subtitle: 'five sign-ups. the only part of the voyage your pilot can\'t handle for you.',
+    subtitle: 'a few sign-ups. the only part of the voyage your pilot can\'t handle for you.',
     shared: {
       intro:
-        "think of each as a different window at the harbour office. most are free tiers. anthropic is the only one that involves billing, and your Claude Code is already paid for — this is a separate api-key account for the MCP integration later.",
+        "think of each as a different window at the harbour office. the cloud-first path only needs github, notion, and anthropic console. the engineer path adds cloudflare and optionally vercel.",
       body: [
         {
           kind: 'paragraph',
@@ -79,57 +85,67 @@ export const STEPS: Step[] = [
             {
               label: 'github',
               href: 'https://github.com/signup',
-              instruction: "the **shipyard** — keeps every version of every vessel on record, forever. **in practice:** github stores your code and tracks every change you make, so nothing's ever lost and we can work in parallel without stepping on each other. **when you'll feel it:** every \"commit and push\" you run. **next:** sign up, then ask garrett to invite you to the `ghandoff` organisation.",
-              requiresInvite: true,
-            },
-            {
-              label: 'vercel',
-              href: 'https://vercel.com/signup',
-              instruction: "the **dock** — where a finished ship welcomes visitors aboard. **in practice:** when you push code to github, vercel reads it, builds a live website, and gives it a shareable URL. **when you'll feel it:** every change gets its own preview link before going fully live. **next:** sign up with your github account; ask garrett to invite you to the `ghandoffs-projects` team.",
-              requiresInvite: true,
-            },
-            {
-              label: 'cloudflare',
-              href: 'https://dash.cloudflare.com/sign-up',
-              instruction: "the **lighthouse + warehouse** — guides visitors to the right dock, and stores heavy cargo. **in practice:** lighthouse (dns) translates `windedvertigo.com` into the actual server that answers; warehouse (r2) holds big files (images, pdfs, exports) cheaply. **when you'll feel it:** rarely — only when DNS needs changing or an app reads/writes a large file. **next:** sign up, then ask garrett to invite you to the gearbox account (dns) and the garrett@ account (r2 storage).",
+              instruction: "the **shipyard** — keeps every version of every vessel on record, forever. **in practice:** github stores all our code and tracks every change. even without cloning anything, the github MCP lets claude read, comment, and open pull requests on your behalf directly from the claude app. **when you'll feel it:** every PR, every code review, every \"what changed in the last week\" question you ask claude. **next:** sign up, then ask garrett to invite you to the `ghandoff` organisation.",
               requiresInvite: true,
             },
             {
               label: 'notion',
               href: 'https://www.notion.so',
-              instruction: "the **harbourmaster's logbook** — where humans write bulletins for ships to consult. **in practice:** notion is where we write content (bios, page copy, project cards) that our public websites then READ automatically — update notion, the site updates within minutes. **when you'll feel it:** editing a team bio and watching `windedvertigo.com/we` update without touching code. **next:** you're probably already a workspace member. confirm you see \"wv // system stewardship\" in your sidebar.",
+              instruction: "the **harbourmaster's logbook** — where humans write bulletins and knowledge that all systems share. **in practice:** project cards, team bios, campaign content, and strategic notes live here. supabase (our database) is now the source of truth for most operational data, but notion remains our long-form knowledge base and editorial layer. **when you'll feel it:** editing a team bio, writing a proposal, reviewing project status. **next:** you're probably already a workspace member. confirm you see \"wv // system stewardship\" in your sidebar.",
+            },
+            {
+              label: 'cloudflare',
+              href: 'https://dash.cloudflare.com/sign-up',
+              instruction: "the **lighthouse, dock, and warehouse** — cloudflare now runs the port (crm), the main website, harbour apps, and all our background cron jobs via cf workers. it also handles dns (routing windedvertigo.com) and r2 storage (images, pdfs, exports). **when you'll feel it:** every time the port loads, every time a cron job runs, every r2 file read. **next (engineers):** sign up, then ask garrett to invite you to the gearbox account (dns + workers). **next (cloud-first):** skip this — you won't need a cloudflare account.",
+              requiresInvite: true,
+            },
+            {
+              label: 'vercel',
+              href: 'https://vercel.com/signup',
+              instruction: "still hosts a few non-port apps: creaseworks, vault, ops dashboard, and wv-claw (our slack bot). **in practice:** these are self-contained apps that haven't migrated to cloudflare yet. **when you'll feel it:** rarely — mostly when working on creaseworks or the ops dashboard. **next (engineers working on these apps):** sign up with your github account; ask garrett to invite you to the `ghandoffs-projects` team. **cloud-first path:** can skip vercel for now.",
+              requiresInvite: true,
             },
             {
               label: 'anthropic console',
               href: 'https://console.anthropic.com',
-              instruction: "the **pilot's guild** — trains and credentials the pilots. **in practice:** anthropic is the company behind claude. they run the API your personal claude code talks to. you pay per conversation (pennies per minute). **when you'll feel it:** you'll generate an api key here and keep it sealed — claude uses it on your behalf for every request. **next:** sign up. this is a separate account from your Claude Code subscription — it's for API access. add $5-10 to start; you'll burn through it slowly.",
+              instruction: "the **pilot's guild** — trains and credentials the pilots. **in practice:** anthropic is the company behind claude. if you want to use the claude api directly (to write scripts or integrations), you need an account here. your claude code or claude desktop subscription is separate — this is api access. **when you'll feel it:** generating api keys for local tooling or integrations. **next:** sign up. add $5-10 to start; usage is pennies per minute at our scale.",
             },
           ],
         },
         {
           kind: 'callout',
           tone: 'warn',
-          text: "the anthropic api key (you'll generate it in a moment) starts with `sk-ant-`. treat it like your toothbrush. never paste it into a chat, slack, email. never commit it to github. if it ever leaks, rotate it from the console.",
+          text: "any anthropic api key (starts with `sk-ant-`) is a secret. treat it like a password. never paste it into a chat, slack, email, or commit it to github. if it ever leaks, rotate it from the console immediately.",
         },
       ],
       doneLooksLike:
-        "you've signed up for all five, messaged garrett about the three \"needs invite\" ones, and generated (but not pasted anywhere yet) an anthropic api key.",
+        "you've signed up for the services on your path, messaged garrett about the ones marked 'needs invite', and have your accounts confirmed.",
       helpPrompt:
         "i'm on the accounts step. i signed up for [service name] but [describe what happened — didn't get an invite, can't find settings, sign-up failed]. what should i do?",
     },
   },
   // ────────────────────────────────────────────────────────────────
-  // 3. open Claude Code
+  // 3. open your claude interface
   // ────────────────────────────────────────────────────────────────
   {
     id: 'open-claude',
     title: 'your pilot comes aboard.',
-    subtitle: 'start claude code. from now on, the pilot steers — you just describe where you want to go.',
+    subtitle: 'open claude. from now on, the pilot steers — you just describe where you want to go.',
     shared: {
       intro:
-        "Claude Code is already installed on your laptop — you can verify by running the command below in the terminal app (your helm). everything after this step happens inside Claude Code.",
+        "cloud-first team members: open claude desktop (download at claude.ai/download) or claude.ai in your browser — any device works, including mobile. engineers: use claude code in your terminal. both approaches work the same way once mcps are connected.",
       body: [
-        { kind: 'heading', text: 'start Claude Code' },
+        { kind: 'heading', text: 'cloud-first: claude desktop or claude.ai' },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "claude desktop (mac/windows app) gives you full mcp support including github and notion integrations. claude.ai in a browser works for most things. the mobile app (iOS/Android) is great for reading, reviewing, and quick asks — mcp support is limited on mobile but grows with each update.",
+        },
+        {
+          kind: 'paragraph',
+          text: "open claude desktop or claude.ai and start a new conversation. you're ready for the next step.",
+        },
+        { kind: 'heading', text: 'engineer path: claude code in terminal' },
         {
           kind: 'paragraph',
           text: 'open your terminal app (Terminal on mac, Windows Terminal on windows) and run:',
@@ -144,16 +160,7 @@ export const STEPS: Step[] = [
           kind: 'paragraph',
           text: "you'll see a welcome banner and a prompt — Claude is now listening for natural-language instructions. keep this window open; you'll paste into it for every remaining step.",
         },
-        {
-          kind: 'callout',
-          tone: 'tip',
-          text: "prefer a visual interface? Claude Code also runs inside VS Code, Cursor, and the Claude Desktop app. if you already use one of those with Claude Code, just open the chat there instead — the prompts work identically.",
-        },
-        { kind: 'heading', text: "quick sanity check" },
-        {
-          kind: 'paragraph',
-          text: "paste this into Claude to confirm it's working and has access to your filesystem:",
-        },
+        { kind: 'heading', text: "quick sanity check (engineer path)" },
         {
           kind: 'claudePrompt',
           prompt: 'say hi and tell me what folder i\'m currently in (use pwd or Get-Location).',
@@ -164,27 +171,27 @@ export const STEPS: Step[] = [
         },
       ],
       doneLooksLike:
-        "Claude Code is open, it greeted you, and it told you your current folder.",
+        "cloud-first: claude desktop or claude.ai is open and ready. engineer path: claude code is open, it greeted you, and showed your current folder.",
       helpPrompt:
-        "i tried to start Claude Code with the `claude` command and [describe what happened — got an error, nothing happened, wrong thing opened]. what should i do?",
+        "i tried to start claude [desktop / code / on claude.ai] and [describe what happened — got an error, nothing happened, wrong thing opened]. what should i do?",
     },
   },
   // ────────────────────────────────────────────────────────────────
-  // 4. install CLIs
+  // 4. install CLIs (engineer path only)
   // ────────────────────────────────────────────────────────────────
   {
     id: 'install-clis',
     title: 'hand the pilot their instruments.',
-    subtitle: "three tools the pilot uses to steer through specific parts of the harbour.",
+    subtitle: "three tools the pilot uses to steer through specific parts of the harbour. engineers only.",
     shared: {
       intro:
-        "the pilot's instruments — tools that work specific parts of the harbour. **pnpm** installs the code a project depends on (the cargo a ship carries). **vercel cli** talks to the dock — telling vercel what to build, which project to link. **wrangler** talks to the lighthouse and warehouse — configuring cloudflare dns and r2. **in practice:** you install them once; claude uses them forever on your behalf. **when you'll feel it:** rarely directly — claude runs them in the background while narrating what's happening.",
+        "**cloud-first path: skip this step entirely.** you don't need cli tools to read, review, and contribute via github mcp. engineers only: pnpm installs project dependencies, wrangler talks to cloudflare workers (our primary host), vercel cli is still needed for the few apps that haven't migrated yet.",
       body: [
         {
           kind: 'claudePrompt',
           label: 'paste into Claude Code, press return',
           prompt:
-            "please install three global npm packages for me: pnpm, vercel, and wrangler. after each install completes, run its version command (pnpm -v, vercel -v, wrangler -v) to confirm it works. if any fails with a permissions or execution-policy error, tell me exactly what to do next for my operating system. narrate what you're doing as you go.",
+            "please install three global npm packages for me: pnpm, wrangler, and vercel. after each install completes, run its version command (pnpm -v, wrangler -v, vercel -v) to confirm it works. if any fails with a permissions or execution-policy error, tell me exactly what to do next for my operating system. narrate what you're doing as you go.",
         },
         { kind: 'heading', text: "what you'll see" },
         {
@@ -194,7 +201,7 @@ export const STEPS: Step[] = [
         {
           kind: 'callout',
           tone: 'success',
-          text: "success: Claude reports three version numbers printed (e.g., `pnpm 9.15.2`, `vercel 38.2.0`, `wrangler 3.80.0`).",
+          text: "success: Claude reports three version numbers (e.g., `pnpm 9.15.2`, `wrangler 4.5.0`, `vercel 38.2.0`).",
         },
         {
           kind: 'callout',
@@ -203,13 +210,13 @@ export const STEPS: Step[] = [
         },
       ],
       doneLooksLike:
-        "Claude confirms all three tools installed and printed version numbers.",
+        "Claude confirms all three tools installed and printed version numbers. cloud-first: done (skipped).",
       helpPrompt:
         "i ran the install prompt in Claude Code. Claude reported [paste Claude's response, especially anything red or anything about a failure]. what do i do next?",
     },
   },
   // ────────────────────────────────────────────────────────────────
-  // 5. sign in to CLIs
+  // 5. sign in to CLIs (engineer path only)
   // ────────────────────────────────────────────────────────────────
   {
     id: 'signin',
@@ -217,13 +224,13 @@ export const STEPS: Step[] = [
     subtitle: 'the pilot\'s credentials get checked once per service, then carried forward.',
     shared: {
       intro:
-        "Claude will run the sign-in commands for you. each opens your default browser for an OAuth sign-in — the port authority checking papers. sign in with the matching account when each tab opens.",
+        "**cloud-first path: skip this step.** engineers: Claude will run the sign-in commands for you. each opens your default browser for an OAuth sign-in. sign in with the matching account when each tab opens.",
       body: [
         {
           kind: 'claudePrompt',
           label: 'paste into Claude Code, press return',
           prompt:
-            "please sign me in to vercel and cloudflare. run `vercel login` first (i'll sign in with my github account when the browser opens), then `wrangler login` (i'll sign in with my cloudflare account). wait for each to confirm success before moving to the next. tell me when both are done.",
+            "please sign me in to cloudflare and vercel. run `wrangler login` first (i'll sign in with my cloudflare account when the browser opens), then `vercel login` (i'll sign in with my github account). wait for each to confirm success before moving to the next. tell me when both are done.",
         },
         { kind: 'heading', text: 'what happens in your browser' },
         {
@@ -233,95 +240,114 @@ export const STEPS: Step[] = [
         {
           kind: 'callout',
           tone: 'tip',
-          text: "if you sign in with the wrong account by accident, just tell Claude: \"i signed in to the wrong vercel account — log me out and let me try again.\" Claude will run `vercel logout` and re-trigger login.",
+          text: "if you sign in with the wrong account by accident, just tell Claude: \"i signed in to the wrong cloudflare account — log me out and let me try again.\" Claude will run `wrangler logout` and re-trigger login.",
         },
       ],
-      doneLooksLike: 'Claude reports both `vercel login` and `wrangler login` completed with success messages.',
+      doneLooksLike: 'Claude reports `wrangler login` and `vercel login` both completed with success messages. cloud-first: done (skipped).',
       helpPrompt:
-        "i'm on the sign-in step. Claude ran `vercel login` / `wrangler login` and [describe what happened — browser didn't open, wrong account, error]. how do i fix it?",
+        "i'm on the sign-in step. Claude ran wrangler login / vercel login and [describe what happened — browser didn't open, wrong account, error]. how do i fix it?",
     },
   },
   // ────────────────────────────────────────────────────────────────
-  // 6. clone + link a project
+  // 6. connect MCPs
+  // ────────────────────────────────────────────────────────────────
+  {
+    id: 'mcp',
+    title: 'issue the pilot\'s access passes.',
+    subtitle: "MCP plugins let claude read and act in github, notion, slack — no local clone needed.",
+    shared: {
+      intro:
+        "this step is for everyone — cloud-first and engineer alike. mcps (model context protocol) let claude do real work inside services instead of just describing commands. the github mcp alone means you can ask claude to read any file in any repo, review a pr, or check what changed last week — without cloning anything locally. anthropic maintains an official plugin marketplace with most of what we use.",
+      body: [
+        { kind: 'heading', text: 'cloud-first: install mcps in claude desktop' },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "in claude desktop: go to **Settings → Integrations** (or paste the prompt below into a conversation). the github mcp is the most important one — it replaces the need to clone repos for most reading and reviewing tasks.",
+        },
+        {
+          kind: 'claudePrompt',
+          label: 'paste into Claude Desktop or Claude Code',
+          prompt:
+            "please set up my MCP servers. run these plugin installs:\n\n- `claude plugin install github@claude-plugins-official`\n- `claude plugin install slack@claude-plugins-official`\n\nfor notion (not in the official marketplace yet), run:\n- `claude mcp add --transport http notion https://mcp.notion.com/mcp`\n\nafter all three, run `claude mcp list` so i can see the result. tell me which ones show \"needs authentication\" — those are normal; the browser OAuth triggers on first actual use, not now.",
+        },
+        { kind: 'heading', text: 'engineers: add vercel and cloudflare too' },
+        {
+          kind: 'claudePrompt',
+          label: 'engineers only — paste into Claude Code',
+          prompt:
+            "please also install these additional MCP servers for the engineer toolchain:\n\n- `claude plugin install vercel@claude-plugins-official`\n- `claude plugin install cloudflare@claude-plugins-official` (if available)\n\nafter, run `claude mcp list` and confirm all servers are registered.",
+        },
+        { kind: 'heading', text: "what happens" },
+        {
+          kind: 'paragraph',
+          text: "Claude runs the commands. each plugin install takes a few seconds. the final `mcp list` shows all servers — most will show \"needs authentication\" until first use. that's correct.",
+        },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "first-use OAuth: the first time you ask claude to do something real in github (like \"show me the last 5 commits on the port repo\"), your browser pops open for sign-in. happens once per service, then the token is remembered.",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "cloud-first power move: once github mcp is connected, you can ask claude things like \"what changed in the port codebase this week\" or \"summarise the open PRs\" without having any code on your machine. github.com is always there too for direct browsing.",
+        },
+      ],
+      doneLooksLike:
+        "`claude mcp list` shows github, slack, and notion registered (probably \"needs authentication\" — that's fine). engineers also see vercel.",
+      helpPrompt:
+        "i ran the MCP setup prompt. Claude reported [paste `claude mcp list` output]. one or more servers is missing or failing — how do i fix it?",
+    },
+  },
+  // ────────────────────────────────────────────────────────────────
+  // 7. clone + link a project (engineer path only)
   // ────────────────────────────────────────────────────────────────
   {
     id: 'clone-link',
-    title: 'your first voyage.',
-    subtitle: "tow a vessel from the shipyard, tie it to its dock, open the sealed orders.",
+    title: 'tow a vessel from the shipyard.',
+    subtitle: "engineers: clone a repo locally. cloud-first: read the note and skip ahead.",
     shared: {
       intro:
-        "three things happen in one prompt: (1) tow from the shipyard — fetch the code from github, (2) tie to the dock — tell vercel this folder is this app's home berth, (3) open sealed orders — download the secret .env.local file with passwords and api keys. we'll set up `harbour-apps/apps/creaseworks` as your starter project.",
+        "**cloud-first path: skip this step.** the github mcp from the previous step already gives you access to all our repos without cloning. you can read any file, review prs, and contribute from anywhere. engineers who need to run code locally, deploy via wrangler, or do heavy builds: follow the prompt below.",
       body: [
         {
+          kind: 'callout',
+          tone: 'tip',
+          text: "not sure if you need to clone? try working via github mcp first. if you find yourself needing to run `npm run dev` or `wrangler deploy`, come back and do this step.",
+        },
+        {
           kind: 'claudePrompt',
-          label: 'paste into Claude Code, press return',
+          label: 'engineers: paste into Claude Code, press return',
           prompt:
-            "please set up the creaseworks project on my laptop. here's what i want:\n\n1. make a `Projects` folder in my home directory if one doesn't exist\n2. clone `git@github.com:ghandoff/harbour-apps.git` into that Projects folder\n3. cd into `harbour-apps/apps/creaseworks`\n4. run `pnpm install` to install all dependencies\n5. run `vercel link` — when it asks, pick the `ghandoffs-projects` scope and the existing `creaseworks` project\n6. run `vercel env pull .env.local` to download the secrets\n\nnarrate each step. if the clone fails with a publickey error, walk me through setting up an SSH key for github (generate key → copy public key to clipboard → paste into github.com/settings/keys → retry the clone). at the end, confirm the final folder contents so i know it worked.",
+            "please set up the port (crm) project on my laptop. here's what i want:\n\n1. make a `Projects` folder in my home directory if one doesn't exist\n2. clone `git@github.com:ghandoff/windedvertigo.git` into that Projects folder\n3. cd into `windedvertigo/port`\n4. run `npm install` to install all dependencies\n5. run `wrangler whoami` to confirm cloudflare auth is working\n6. run `vercel link` if this project has a vercel fallback — when it asks, pick the `ghandoffs-projects` scope and the `wv-crm` project\n7. run `vercel env pull .env.local` to download the secrets\n\nnarrate each step. if the clone fails with a publickey error, walk me through setting up an SSH key for github (generate key → copy public key to clipboard → paste into github.com/settings/keys → retry the clone). at the end, confirm the final folder contents so i know it worked.",
         },
         { kind: 'heading', text: "what you'll see" },
         {
           kind: 'paragraph',
-          text: "Claude will talk you through each step. pnpm install may take 2-3 minutes. vercel link prompts for the team and project — Claude will tell you which to pick. env pull creates a `.env.local` file that git is configured to ignore.",
+          text: "Claude will talk you through each step. npm install may take 2-3 minutes. wrangler whoami confirms you're logged into the right cloudflare account. env pull creates a `.env.local` file that git is configured to ignore.",
         },
         {
           kind: 'callout',
           tone: 'success',
-          text: "success: Claude reports a `.env.local` file exists in the creaseworks folder and that everything completed without errors.",
-        },
-        {
-          kind: 'callout',
-          tone: 'warn',
-          text: "if the clone fails and Claude walks you through setting up an SSH key, you'll go through a brief browser detour to paste your public key into github.com/settings/keys — Claude will give you exact wording. after pasting, Claude retries the clone automatically.",
+          text: "success: Claude reports a `.env.local` file exists in the port folder and that wrangler whoami shows the correct cloudflare account.",
         },
         {
           kind: 'callout',
           tone: 'warn',
           text: "never commit `.env.local`. git ignores it already. if you ever see it in `git status`, stop and tell garrett.",
         },
-      ],
-      doneLooksLike:
-        "Claude confirms the creaseworks folder exists, has dependencies installed, is linked to vercel, and contains a `.env.local` file.",
-      helpPrompt:
-        "i ran the clone + link prompt. Claude got as far as [describe where it stopped] and reported [paste Claude's message]. what should i do next?",
-    },
-  },
-  // ────────────────────────────────────────────────────────────────
-  // 7. connect MCPs
-  // ────────────────────────────────────────────────────────────────
-  {
-    id: 'mcp',
-    title: 'issue the pilot\'s access passes.',
-    subtitle: "MCP plugins let your pilot enter the shipyard, dock, lighthouse, and harbourmaster's office.",
-    shared: {
-      intro:
-        "you already registered with each part of the harbour (step 2). now you issue your pilot the passes that let them actually walk into those buildings and do work. MCP (Model Context Protocol) lets Claude DO things in services instead of just telling you commands. anthropic maintains an official plugin marketplace with most of what we use.",
-      body: [
-        {
-          kind: 'claudePrompt',
-          label: 'paste into Claude Code, press return',
-          prompt:
-            "please set up my MCP servers. run these plugin installs:\n\n- `claude plugin install vercel@claude-plugins-official`\n- `claude plugin install github@claude-plugins-official`\n- `claude plugin install slack@claude-plugins-official`\n\nfor notion (not in the official marketplace yet), run:\n- `claude mcp add --transport http notion https://mcp.notion.com/mcp`\n\nafter all four, run `claude mcp list` so i can see the result. tell me which ones show \"needs authentication\" — those are normal; the browser OAuth triggers on first actual use, not now.",
-        },
-        { kind: 'heading', text: "what happens" },
-        {
-          kind: 'paragraph',
-          text: "Claude runs four commands. each plugin install takes a few seconds. the final `mcp list` shows all four servers in their \"needs authentication\" state — that's correct.",
-        },
+        { kind: 'heading', text: 'stack orientation' },
         {
           kind: 'callout',
           tone: 'info',
-          text: "first-use OAuth: the first time you ask Claude to do something real with vercel (like \"list my deployments\"), your browser pops open for sign-in. happens once per service. don't be surprised.",
-        },
-        {
-          kind: 'callout',
-          tone: 'tip',
-          text: "skip slack if you don't need it yet. you can always add it later with the same plugin install command.",
+          text: "our hosting stack as of 2026: the port (crm), windedvertigo.com, harbour apps, and background cron jobs all run on **cloudflare workers** (deployed with `wrangler deploy`). vercel still hosts creaseworks, vault, and the ops dashboard. the primary database is **supabase** (postgres). notion is our editorial / knowledge layer, not the data source for most operational queries.",
         },
       ],
       doneLooksLike:
-        "`claude mcp list` shows vercel, github, slack, and notion all registered (probably as \"needs authentication\" — that's fine).",
+        "Claude confirms the port folder exists, dependencies are installed, wrangler is connected, and a `.env.local` file is present. cloud-first: done (skipped).",
       helpPrompt:
-        "i ran the MCP setup prompt. Claude reported [paste `claude mcp list` output]. one or more servers is missing or failing — how do i fix it?",
+        "i ran the clone prompt. Claude got as far as [describe where it stopped] and reported [paste Claude's message]. what should i do next?",
     },
   },
   // ────────────────────────────────────────────────────────────────
@@ -333,29 +359,37 @@ export const STEPS: Step[] = [
     subtitle: 'your pilot visits each building. if they can reach them, every pass works.',
     shared: {
       intro:
-        "three quick checks. if your pilot can (a) see recent work at the dock, (b) read the sealed orders on your ship, and (c) fetch a page from the harbourmaster's logbook — all the passes are working. still in the same Claude Code session (inside the creaseworks folder). paste the prompt below.",
+        "three quick checks. if claude can see your github repos, read the harbourmaster's logbook (notion), and confirm our live deployment — all the passes are working.",
       body: [
+        { kind: 'heading', text: 'cloud-first verification' },
         {
           kind: 'claudePrompt',
-          label: 'paste into Claude Code, press return',
+          label: 'paste into Claude Desktop or Claude.ai',
           prompt:
-            "please do three things to verify my setup:\n\n1. list my 3 most recent vercel deployments for this project (creaseworks) with their dates and URLs\n2. show me the NAMES of environment variables in `.env.local` (names only — never show values)\n3. fetch the most recent page titled \"welcome\" or similar from my notion workspace\n\nif any of these triggers a browser OAuth sign-in, tell me to check my browser. once all three are done, summarise what you can and can't see so i know the setup works.",
+            "please do three things to verify my setup:\n\n1. using the github mcp, show me the 5 most recent commits on the `main` branch of the `windedvertigo` repo (just commit messages and dates — no code)\n2. fetch the most recent page titled \"welcome\" or similar from my notion workspace\n3. check the live port (crm) at https://port.windedvertigo.com and tell me the HTTP status code\n\nif any of these trigger a browser OAuth sign-in, tell me to check my browser. once all three are done, summarise what you can and can't see.",
+        },
+        { kind: 'heading', text: 'engineer verification' },
+        {
+          kind: 'claudePrompt',
+          label: 'engineers: paste into Claude Code',
+          prompt:
+            "please do three things to verify my setup:\n\n1. run `wrangler deployments list --name wv-port` and show me the 3 most recent deployments with their dates and version IDs\n2. show me the NAMES of environment variables in `.env.local` (names only — never show values)\n3. fetch the most recent page titled \"welcome\" or similar from my notion workspace\n\nif any triggers a browser OAuth sign-in, tell me to check my browser. once all three are done, summarise what you can and can't see.",
         },
         { kind: 'heading', text: "what success looks like" },
         {
           kind: 'paragraph',
-          text: "Claude will probably trigger OAuth for vercel and notion the first time — approve each in your browser when tabs open. after that, Claude lists 3 deployment URLs, a list of env var names (things like `DATABASE_URL`, `NEXT_PUBLIC_API_BASE`), and one Notion page title.",
+          text: "claude may trigger oauth for github or notion on first use — approve each in your browser when tabs open. after that, you should see real data from each service. no \"unauthenticated\" or \"not found\" errors.",
         },
         {
           kind: 'callout',
           tone: 'success',
-          text: "if Claude answers all three with real data (no \"unauthenticated\" or \"not found\" errors) — you're fully set up. 🎉",
+          text: "if claude answers all checks with real data — you're fully set up. 🎉",
         },
       ],
       doneLooksLike:
-        "Claude successfully listed deployments, env var names, and a Notion page — no auth errors.",
+        "claude successfully responded to all three checks with real data — no auth errors.",
       helpPrompt:
-        "i ran the verify prompt. Claude responded with [paste response]. one or more of the three checks failed — how do i fix it?",
+        "i ran the verify prompt. claude responded with [paste response]. one or more of the three checks failed — how do i fix it?",
     },
   },
   // ────────────────────────────────────────────────────────────────
@@ -370,29 +404,41 @@ export const STEPS: Step[] = [
       body: [
         {
           kind: 'paragraph',
-          text: "everything is wired: accounts exist, tools installed, project cloned and linked, MCP connected. from now on, you can ask Claude to clone any repo we invite you to, pull its secrets, and help you ship.",
+          text: "everything is wired: accounts exist, mcps connected, github and notion reachable. from now on, you can ask claude to look into any repo we invite you to, review work, catch up on what changed, or (if you're on the engineer path) clone and deploy.",
         },
         { kind: 'heading', text: 'good next prompts to try' },
         {
           kind: 'claudePrompt',
-          label: 'when you\'re ready for a real task',
+          label: 'cloud-first: a real task without cloning anything',
           prompt:
-            "make me a tiny practice change in creaseworks: create a new git branch called `practice/my-first-change`, add a harmless comment to the top of the README explaining you (by name) were here, commit it, push it, and tell me the URL of the preview deployment that vercel creates.",
+            "using the github mcp, show me the last 10 commits to the port repo and summarise what the team has been working on this week. then check if there are any open pull requests and describe what they're doing.",
+        },
+        {
+          kind: 'claudePrompt',
+          label: 'engineer: a full loop practice',
+          prompt:
+            "make me a tiny practice change in the port repo: create a new git branch called `practice/my-first-change`, add a harmless comment to the top of the README explaining you (by name) were here, commit it, push it, and tell me the github URL of the new branch. don't deploy — just the push.",
         },
         {
           kind: 'paragraph',
-          text: "this gives you the whole loop — branch, edit, commit, push, preview. message garrett when you're done and we'll merge it together as a practice run.",
+          text: "message garrett when you're done with your test and we'll do a quick review together.",
+        },
+        { kind: 'heading', text: 'working on the go' },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "the claude mobile app (iOS / Android) is a great companion for async reviews. you can ask it to summarise a PR, draft a response to a notion comment, or check project status — anywhere, any time. the github and notion mcps work on mobile too once connected.",
         },
         { kind: 'heading', text: 'if something breaks later' },
         {
           kind: 'callout',
           tone: 'info',
-          text: "Claude Code is your first line of defence. paste your error, describe what you were trying to do, and it will almost always diagnose. if Claude and garrett are both stumped, we pair up. the only bad way to be stuck is in silence.",
+          text: "claude is your first line of defence. paste your error, describe what you were trying to do, and it will almost always diagnose. if claude and garrett are both stumped, we pair up. the only bad way to be stuck is in silence.",
         },
         { kind: 'heading', text: 'bookmark this page' },
         {
           kind: 'paragraph',
-          text: "if you ever get a new laptop, or if someone new joins the team, this docent is still here. reset progress (top-right) to run through it fresh.",
+          text: "if you ever get a new device, or if someone new joins the team, this docent is still here. reset progress (top-right) to run through it fresh.",
         },
       ],
       helpPrompt: "i'm all set up. no help needed!",

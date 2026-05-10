@@ -61,6 +61,8 @@ interface EventRow {
   outcome_notes: string | null;
   contacts_met_count: number | null;
   followup_due_by: string | null;
+  // ── Phase 16 cover image ────────────────────────────────────────
+  cover_image_url: string | null;
 }
 
 export interface EventSupabaseFilters {
@@ -76,11 +78,17 @@ export interface EventSupabaseFilters {
   affiliatedOrgId?: string;
   /** when true, also include rows with status='not_relevant' (default: hide them) */
   includeNotRelevant?: boolean;
+  /** when true, only return rows where proposal_deadline IS NOT NULL */
+  hasDeadline?: boolean;
 }
 
 export interface EventSupabasePagination {
   page?: number;
   pageSize?: number;
+  /** column to sort by (default: "event") */
+  sortBy?: string;
+  /** sort direction (default: "asc") */
+  sortDir?: "asc" | "desc";
 }
 
 // ── helpers ──────────────────────────────────────────────────────
@@ -130,6 +138,8 @@ function mapRowToEvent(row: EventRow): CrmEvent {
     outcomeNotes: row.outcome_notes ?? "",
     contactsMetCount: row.contacts_met_count,
     followupDueBy: row.followup_due_by,
+    // Phase 16
+    coverImageUrl: row.cover_image_url ?? null,
   };
 }
 
@@ -141,7 +151,9 @@ const SELECT_COLS =
   "status, lifecycle_state, fit_score, triage_notes, triaged_at, triaged_by, " +
   "owner_user_id, discovered_via, discovered_at, external_id, raw_payload_json, " +
   "affiliated_org_id, deadlines, est_travel_cost, sponsorship_fee, " +
-  "actual_cost_total, currency, outcome_notes, contacts_met_count, followup_due_by";
+  "actual_cost_total, currency, outcome_notes, contacts_met_count, followup_due_by, " +
+  // Phase 16 cover image
+  "cover_image_url";
 
 // ── query functions ───────────────────────────────────────────────
 
@@ -154,10 +166,13 @@ export async function getEventsFromSupabase(
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  const sortCol = pagination.sortBy ?? "event";
+  const sortAsc = (pagination.sortDir ?? "asc") === "asc";
+
   let query = supabase
     .from("crm_events")
     .select(SELECT_COLS, { count: "exact" })
-    .order("event", { ascending: true })
+    .order(sortCol, { ascending: sortAsc })
     .range(from, to);
 
   if (filters.type)            query = query.eq("type", filters.type);
@@ -175,6 +190,7 @@ export async function getEventsFromSupabase(
   if (!filters.includeNotRelevant && filters.status !== "not_relevant") {
     query = query.neq("status", "not_relevant");
   }
+  if (filters.hasDeadline) query = query.not("proposal_deadline", "is", null);
 
   const { data, error, count } = await query;
   if (error) throw new Error(`[supabase/crm_events] query: ${error.message}`);

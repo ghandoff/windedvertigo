@@ -12,7 +12,8 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://wv-port.vercel.app");
+  process.env.PORT_URL ??
+  "https://port.windedvertigo.com";
 
 function getSecret(): string {
   // AUTH_SECRET is the Auth.js v5 name; NEXTAUTH_SECRET was the v4 name.

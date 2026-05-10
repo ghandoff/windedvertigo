@@ -215,13 +215,47 @@ export async function createBlueskyPost(
   };
 }
 
-// ── stats stub ─────────────────────────────────────────────
-// See note in lib/social/substack.ts. Stub to keep imports compilable.
+// ── stats ──────────────────────────────────────────────────
+
 export interface BlueskyStats {
   followerCount: number | null;
+  /** postsCount from the profile — used as a proxy for "recent activity" */
   recentPostEngagement: number;
   fetchedAt: string;
 }
+
+/**
+ * Fetch public Bluesky profile stats for the configured handle.
+ * Uses the public AppView API — no auth required.
+ */
 export async function getBlueskyStats(): Promise<BlueskyStats> {
-  return { followerCount: null, recentPostEngagement: 0, fetchedAt: new Date().toISOString() };
+  const handle = process.env.BLUESKY_HANDLE;
+  const fetchedAt = new Date().toISOString();
+
+  if (!handle) {
+    console.warn("[social/bluesky] BLUESKY_HANDLE not set — stats unavailable");
+    return { followerCount: null, recentPostEngagement: 0, fetchedAt };
+  }
+
+  try {
+    const res = await fetch(
+      `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(handle)}`,
+      { headers: { "User-Agent": "wv-port/1.0 (+port.windedvertigo.com)" } },
+    );
+
+    if (!res.ok) {
+      console.warn(`[social/bluesky] getProfile failed: ${res.status}`);
+      return { followerCount: null, recentPostEngagement: 0, fetchedAt };
+    }
+
+    const data = await res.json();
+    return {
+      followerCount: typeof data.followersCount === "number" ? data.followersCount : null,
+      recentPostEngagement: typeof data.postsCount === "number" ? data.postsCount : 0,
+      fetchedAt,
+    };
+  } catch (err) {
+    console.warn("[social/bluesky] getStats exception:", err);
+    return { followerCount: null, recentPostEngagement: 0, fetchedAt };
+  }
 }

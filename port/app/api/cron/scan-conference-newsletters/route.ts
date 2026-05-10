@@ -31,7 +31,7 @@
  *                                (or gmail.modify, which is a superset).
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createSign } from "crypto";
 import {
   NEWSLETTER_SENDERS,
@@ -353,6 +353,20 @@ async function scanMailbox(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
+      // Phase 16: kick off cover image generation in background (non-blocking).
+      const coverUrl = `${process.env.PORT_URL ?? "https://port.windedvertigo.com"}/api/events/${newId}/cover`;
+      const cronSecret = process.env.CRON_SECRET;
+      if (cronSecret) {
+        after(
+          fetch(coverUrl, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${cronSecret}` },
+          }).catch((err) =>
+            console.warn("[scan-conference-newsletters] cover image kick-off failed:", err),
+          ),
+        );
+      }
+
       result.candidatesAdded++;
       addedCandidates.push({ name: triage.conferenceName, senderDomain: sender.domain });
       bucket.conferences++;
@@ -426,7 +440,7 @@ export async function GET(req: NextRequest) {
   if (candidatesAdded > 0) {
     const domains = Array.from(new Set(allAdded.map((a) => a.senderDomain))).join(", ");
     await postToSlack(
-      `newsletter scan found ${candidatesAdded} conference${candidatesAdded === 1 ? "" : "s"} from ${domains} — review at https://port.windedvertigo.com/campaigns?tab=events&status=candidate`,
+      `newsletter scan found ${candidatesAdded} conference${candidatesAdded === 1 ? "" : "s"} from ${domains} — review at https://port.windedvertigo.com/events?status=candidate`,
     );
   }
 

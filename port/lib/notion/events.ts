@@ -76,6 +76,7 @@ function mapPageToEvent(page: PageObjectResponse): CrmEvent {
     outcomeNotes: "",
     contactsMetCount: null,
     followupDueBy: null,
+    coverImageUrl: null,
   };
 }
 
