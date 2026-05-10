@@ -1,0 +1,1212 @@
+/* ═══════════════════════════════════════════════════════════════════
+   holistic skills framework — mobile-first stylesheet.
+
+   default styles target the smallest screens. breakpoints (640px / 960px
+   / 1200px) progressively expand the layout for tablet and desktop.
+
+   accessibility commitments:
+   - 44×44 minimum touch targets on mobile (WCAG 2.5.5)
+   - all text/bg pairs ≥ 4.5:1 contrast (WCAG 1.4.3)
+   - keyboard reachable, focus visible, drawer focus-trapped
+   - prefers-reduced-motion kills all non-essential animation
+   - forced-colors mode preserves selected-state outlines
+   - tile/legend descriptions hidden on mobile to reduce cognitive load;
+     surfaced on selection/highlight, always shown on desktop
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── screen-reader-only utility ────────────────────────────────── */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── page wrapper ──────────────────────────────────────────────── */
+
+.pageWrapper {
+  background: var(--wv-champagne);
+  color: var(--wv-cadet);
+  min-height: 60vh;
+  padding-bottom: 4rem;
+}
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+  .pageWrapper {
+    padding-bottom: 5rem;
+  }
+}
+
+@media (min-width: 960px) {
+  .container {
+    padding: 0 2rem;
+  }
+  .pageWrapper {
+    padding-bottom: 6rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1200px;
+  }
+}
+
+/* ── intro ─────────────────────────────────────────────────────── */
+
+.intro {
+  padding-top: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(39, 50, 72, 0.12);
+  margin-bottom: 1.5rem;
+}
+
+.contextLabel {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wv-redwood);
+  margin-bottom: 0.6rem;
+}
+
+.pageTitle {
+  font-size: clamp(2rem, 8vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--wv-cadet);
+  text-transform: lowercase;
+  margin: 0 0 0.85rem;
+}
+
+.introText {
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--wv-cadet);
+  max-width: 62ch;
+  margin: 0;
+  opacity: 0.88;
+}
+
+.introText strong {
+  font-weight: 600;
+  opacity: 1;
+  color: var(--wv-redwood);
+}
+
+@media (min-width: 640px) {
+  .intro { padding-top: 2.5rem; padding-bottom: 1.75rem; margin-bottom: 1.75rem; }
+  .pageTitle { font-size: clamp(2.5rem, 6vw, 4rem); }
+  .introText { font-size: 1.05rem; line-height: 1.7; }
+}
+
+@media (min-width: 960px) {
+  .intro { padding-top: 3.5rem; padding-bottom: 2rem; margin-bottom: 2rem; }
+  .pageTitle { font-size: clamp(3rem, 5vw, 5rem); }
+}
+
+/* ── legend ────────────────────────────────────────────────────── */
+
+.legend {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.legendItem {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.legendLabel {
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: lowercase;
+}
+
+.legendDesc {
+  /* hidden on mobile to reduce cognitive load — visible at tablet+ */
+  display: none;
+  font-size: 0.85rem;
+  font-weight: 300;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+
+@media (min-width: 640px) {
+  .legend {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .legendItem { padding: 1rem 1.25rem; gap: 0.25rem; }
+  .legendDesc { display: block; }
+}
+
+/* ── stats ─────────────────────────────────────────────────────── */
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+  font-size: 0.82rem;
+  color: var(--wv-cadet);
+  opacity: 0.7;
+  margin-bottom: 1.25rem;
+  line-height: 1.4;
+}
+
+.stats strong { font-weight: 600; opacity: 1; }
+.statsDot { opacity: 0.4; }
+
+@media (min-width: 640px) {
+  .stats { font-size: 0.85rem; margin-bottom: 1.5rem; }
+}
+
+/* ── selection bar ────────────────────────────────────────────── */
+
+.selectionBar {
+  background: var(--wv-white);
+  border: 1px solid rgba(39, 50, 72, 0.08);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.1rem;
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.selectionBarActive {
+  border-color: rgba(39, 50, 72, 0.25);
+  box-shadow: 0 4px 18px -8px rgba(39, 50, 72, 0.25);
+  align-items: stretch;
+}
+
+.selectionHint {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--wv-cadet);
+  opacity: 0.65;
+  line-height: 1.5;
+}
+
+.summary {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.summaryHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem 0.75rem;
+  flex-wrap: wrap;
+}
+
+.summaryKind {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(39, 50, 72, 0.08);
+  color: var(--wv-cadet);
+}
+
+.summaryTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--wv-cadet);
+  text-transform: lowercase;
+  flex: 1;
+  min-width: 100%;
+  line-height: 1.3;
+}
+
+@media (min-width: 640px) {
+  .summaryTitle { font-size: 1.4rem; min-width: 200px; }
+  .selectionBar { padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+}
+
+.detailBtn,
+.clearBtn {
+  background: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  text-transform: lowercase;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.detailBtn {
+  border: 1.5px solid var(--wv-redwood);
+  color: var(--wv-redwood);
+}
+
+.detailBtn:hover,
+.detailBtn:focus-visible {
+  background: var(--wv-redwood);
+  color: var(--wv-white);
+}
+
+.clearBtn {
+  border: 1.5px solid rgba(39, 50, 72, 0.2);
+  color: var(--wv-cadet);
+}
+
+.clearBtn:hover,
+.clearBtn:focus-visible {
+  background: rgba(39, 50, 72, 0.06);
+  border-color: var(--wv-cadet);
+}
+
+.summaryDesc {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--wv-cadet);
+  opacity: 0.85;
+}
+
+.summaryListLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--wv-cadet);
+  opacity: 0.65;
+  margin-top: 0.25rem;
+}
+
+.summaryChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.summaryChip {
+  border: none;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  text-transform: lowercase;
+  font-family: inherit;
+  line-height: 1.2;
+  min-height: 36px;
+}
+
+.summaryChip:hover { transform: translateY(-1px); }
+
+.summaryChipNeutral {
+  background: rgba(39, 50, 72, 0.08);
+  color: var(--wv-cadet);
+  border: 1px solid rgba(39, 50, 72, 0.18);
+}
+
+/* ── controls row (view tabs + compare toggle) ────────────────── */
+
+.controlsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-start;
+}
+
+@media (min-width: 640px) {
+  .controlsRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+}
+
+.viewTabs {
+  display: inline-flex;
+  background: rgba(39, 50, 72, 0.06);
+  padding: 0.25rem;
+  border-radius: 999px;
+}
+
+.viewTab {
+  background: none;
+  border: none;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--wv-cadet);
+  cursor: pointer;
+  text-transform: lowercase;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  opacity: 0.7;
+  min-height: 44px;
+}
+
+.viewTab:hover { opacity: 1; }
+
+.viewTabActive {
+  background: var(--wv-cadet);
+  color: var(--wv-champagne);
+  opacity: 1;
+}
+
+.viewTabActive:hover { background: var(--wv-cadet); }
+
+@media (min-width: 640px) {
+  .viewTab { min-height: auto; padding: 0.5rem 1.25rem; }
+}
+
+/* ── compare-mode toggle ───────────────────────────────────────── */
+
+.compareToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: none;
+  border: 1.5px solid rgba(39, 50, 72, 0.18);
+  padding: 0.55rem 1rem 0.55rem 0.7rem;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--wv-cadet);
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  min-height: 44px;
+}
+
+.compareToggle:hover,
+.compareToggle:focus-visible {
+  border-color: var(--wv-cadet);
+}
+
+.compareToggleActive {
+  background: var(--wv-cadet);
+  color: var(--wv-champagne);
+  border-color: var(--wv-cadet);
+}
+
+.compareToggleTrack {
+  display: inline-block;
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(39, 50, 72, 0.2);
+  transition: background 0.18s ease;
+  flex-shrink: 0;
+}
+
+.compareToggleActive .compareToggleTrack {
+  background: var(--wv-redwood);
+}
+
+.compareToggleThumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--wv-white);
+  border-radius: 999px;
+  transition: transform 0.18s ease;
+}
+
+.compareToggleActive .compareToggleThumb { transform: translateX(14px); }
+
+.compareToggleSubLabel {
+  font-weight: 400;
+  opacity: 0.85;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 480px) {
+  /* on very narrow screens, the sublabel wraps awkwardly — visually hide it
+     but keep available to assistive tech */
+  .compareToggleSubLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* ── two-column grid (sets / skills) ───────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 820px) {
+  .grid {
+    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.6fr);
+    gap: 2rem;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.columnTitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wv-redwood);
+  margin: 0 0 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.compareBadge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--wv-redwood);
+  color: var(--wv-white);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+
+/* ── skill-set tiles ───────────────────────────────────────────── */
+
+.setsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.setTile {
+  width: 100%;
+  text-align: left;
+  background: var(--wv-white);
+  border: 1.5px solid rgba(39, 50, 72, 0.1);
+  border-radius: 14px;
+  padding: 0.95rem 1.1rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 60px;
+  transition: transform 0.12s ease, border-color 0.15s ease, opacity 0.2s ease,
+    box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.setTile:hover { border-color: rgba(39, 50, 72, 0.3); }
+
+.setTileSelected {
+  border-color: var(--wv-cadet);
+  box-shadow: 0 6px 22px -10px rgba(39, 50, 72, 0.45);
+  background: var(--wv-cadet);
+  color: var(--wv-champagne);
+}
+
+.setTileSelected:hover { border-color: var(--wv-cadet); }
+
+.setTileHighlighted {
+  border-color: var(--wv-redwood);
+  box-shadow: 0 4px 14px -8px rgba(177, 80, 67, 0.4);
+}
+
+.setTileLabel {
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-transform: lowercase;
+  line-height: 1.25;
+}
+
+.setTileCount {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.setTileSelected .setTileCount { opacity: 0.85; }
+
+.setTileDesc {
+  /* hidden on mobile by default; shown when selected/highlighted (cognitive
+     load reduction) and always at desktop */
+  display: none;
+  font-size: 0.85rem;
+  font-weight: 300;
+  line-height: 1.55;
+  opacity: 0.78;
+  margin-top: 0.15rem;
+}
+
+.setTileSelected .setTileDesc,
+.setTileHighlighted .setTileDesc { display: block; }
+
+.setTileSelected .setTileDesc { opacity: 0.92; }
+
+@media (min-width: 960px) {
+  .setTile { padding: 1.1rem 1.25rem; gap: 0.4rem; }
+  .setTileLabel { font-size: 1.15rem; }
+  .setTileDesc { display: block; }
+}
+
+/* ── skills column ─────────────────────────────────────────────── */
+
+.typeGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.typeGroupHeader {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.chipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  border: 1.5px solid transparent;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.2s ease, box-shadow 0.15s ease;
+  text-transform: lowercase;
+  font-family: inherit;
+  line-height: 1.2;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(39, 50, 72, 0.3);
+}
+
+.chipSelected {
+  outline: 2px solid var(--wv-cadet);
+  outline-offset: 3px;
+  box-shadow: 0 6px 18px -8px rgba(39, 50, 72, 0.5);
+}
+
+@media (min-width: 640px) {
+  .chip { padding: 0.5rem 0.95rem; min-height: 36px; font-size: 0.9rem; }
+}
+
+/* ── dimming on non-highlighted items ──────────────────────────── */
+
+.dim { opacity: 0.28; }
+.dim:hover { opacity: 0.6; }
+
+/* ── graph view ────────────────────────────────────────────────── */
+
+.graphScroll {
+  overflow-x: auto;
+  margin: 0 -1rem;
+  padding: 0 1rem 1rem;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: none;
+}
+
+@media (min-width: 640px) {
+  .graphScroll { margin: 0 -1.5rem; padding: 0 1.5rem 1rem; }
+}
+
+@media (min-width: 960px) {
+  .graphScroll { margin: 0 -2rem; padding: 0 2rem 1rem; }
+}
+
+.graphContainer {
+  position: relative;
+  margin: 0 auto;
+  background: var(--wv-white);
+  border-radius: 16px;
+  border: 1px solid rgba(39, 50, 72, 0.08);
+  padding: 0;
+}
+
+.graphSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.graphTypeHeader {
+  z-index: 2;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: left;
+  padding-left: 0.25rem;
+}
+
+.graphSetNode {
+  z-index: 3;
+  background: var(--wv-white);
+  border: 1.5px solid rgba(39, 50, 72, 0.18);
+  border-radius: 12px;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--wv-cadet);
+  text-transform: lowercase;
+  transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease,
+    box-shadow 0.15s ease, opacity 0.2s ease;
+}
+
+.graphSetNode:hover {
+  border-color: rgba(39, 50, 72, 0.4);
+  transform: translateX(-1px);
+}
+
+.graphSetNodeSelected {
+  background: var(--wv-cadet);
+  color: var(--wv-champagne);
+  border-color: var(--wv-cadet);
+  box-shadow: 0 4px 14px -6px rgba(39, 50, 72, 0.45);
+}
+
+.graphSetNodeHighlighted { border-color: var(--wv-redwood); }
+
+.graphSetLabel { font-size: 0.95rem; }
+
+.graphSkillNode {
+  z-index: 3;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  padding: 0 1rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-transform: lowercase;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  transition: transform 0.12s ease, opacity 0.2s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.graphSkillNode:hover {
+  transform: translateX(2px);
+  box-shadow: 0 4px 12px -4px rgba(39, 50, 72, 0.3);
+}
+
+.graphSkillNodeSelected {
+  outline: 2px solid var(--wv-cadet);
+  outline-offset: 3px;
+  box-shadow: 0 6px 18px -8px rgba(39, 50, 72, 0.5);
+}
+
+.compareHint {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--wv-cadet);
+  opacity: 0.55;
+  margin: 0.5rem 0 0;
+  line-height: 1.5;
+}
+
+/* ── radial view ───────────────────────────────────────────────── */
+
+.radialOuter {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.radialContainer {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  background: var(--wv-white);
+  border-radius: 50%;
+  border: 1px solid rgba(39, 50, 72, 0.08);
+  overflow: visible;
+}
+
+.radialSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.radialArcLabel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  z-index: 2;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 0 4px var(--wv-champagne), 0 0 4px var(--wv-champagne);
+}
+
+@media (min-width: 640px) {
+  .radialArcLabel { font-size: 0.72rem; }
+}
+
+.radialSetNode {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  background: var(--wv-white);
+  border: 2px solid rgba(39, 50, 72, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--wv-cadet);
+  text-transform: lowercase;
+  text-align: center;
+  line-height: 1.05;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  /* sizing — circular tile */
+  width: 18%;
+  height: 18%;
+  min-width: 64px;
+  min-height: 64px;
+  font-size: 0.62rem;
+  transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease,
+    box-shadow 0.15s ease, opacity 0.2s ease;
+}
+
+.radialSetNode:hover,
+.radialSetNode:focus-visible {
+  border-color: rgba(39, 50, 72, 0.5);
+  z-index: 5;
+}
+
+.radialSetNodeSelected {
+  background: var(--wv-cadet);
+  color: var(--wv-champagne);
+  border-color: var(--wv-cadet);
+  box-shadow: 0 4px 14px -4px rgba(39, 50, 72, 0.5);
+  z-index: 6;
+}
+
+.radialSetNodeHighlighted {
+  border-color: var(--wv-redwood);
+  box-shadow: 0 3px 10px -4px rgba(177, 80, 67, 0.45);
+  z-index: 5;
+}
+
+@media (min-width: 480px) {
+  .radialSetNode {
+    font-size: 0.72rem;
+    width: 17%;
+    height: 17%;
+    min-width: 78px;
+    min-height: 78px;
+  }
+}
+
+@media (min-width: 768px) {
+  .radialSetNode {
+    font-size: 0.85rem;
+    width: 16%;
+    height: 16%;
+    min-width: 96px;
+    min-height: 96px;
+    padding: 0.6rem;
+  }
+}
+
+/* skill labels — anchored dot + horizontal text + type tick.
+   button is positioned so the DOT sits at the polar coordinate,
+   text extends outward from there. variable-length labels just flow. */
+.radialLabel {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0.3rem 0.25rem;
+  /* touch-target floor — invisible 44px hit area even when text is small */
+  min-width: 44px;
+  min-height: 44px;
+  transition: opacity 0.18s ease, transform 0.12s ease;
+  /* avoid the wrapping container clipping the labels at the edges */
+  white-space: nowrap;
+}
+
+.radialLabelRight {
+  /* button anchored at its left edge; dot is first, text follows right */
+  transform: translate(0, -50%);
+}
+
+.radialLabelLeft {
+  /* button anchored at its right edge; dot visually on the right via row-reverse */
+  flex-direction: row-reverse;
+  transform: translate(-100%, -50%);
+}
+
+.radialDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: width 0.15s ease, height 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* nudge dot so its CENTER (not its edge) sits at the polar anchor */
+.radialLabelRight .radialDot { margin-left: -4px; }
+.radialLabelLeft  .radialDot { margin-right: -4px; }
+
+.radialLabelStack {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+
+.radialLabelLeft .radialLabelStack {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.radialLabelText {
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-transform: lowercase;
+  line-height: 1.18;
+  color: var(--wv-cadet);
+  white-space: normal;
+  max-width: 88px;
+  transition: color 0.15s ease, font-weight 0.15s ease;
+}
+
+.radialLabelTick {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 0.85;
+  transition: width 0.15s ease, opacity 0.15s ease;
+}
+
+.radialLabel:hover .radialLabelText,
+.radialLabel:focus-visible .radialLabelText { font-weight: 600; }
+
+.radialLabel:hover .radialDot,
+.radialLabel:focus-visible .radialDot {
+  box-shadow: 0 0 0 4px rgba(39, 50, 72, 0.08);
+}
+
+.radialLabelSelected { z-index: 6; }
+
+.radialLabelSelected .radialDot {
+  width: 12px;
+  height: 12px;
+  box-shadow: 0 0 0 6px rgba(39, 50, 72, 0.1);
+}
+
+.radialLabelRight.radialLabelSelected .radialDot { margin-left: -6px; }
+.radialLabelLeft.radialLabelSelected  .radialDot { margin-right: -6px; }
+
+.radialLabelSelected .radialLabelText {
+  font-weight: 700;
+  /* color is set inline (the type bg color) on selection */
+}
+
+.radialLabelSelected .radialLabelTick {
+  width: 28px;
+  opacity: 1;
+}
+
+@media (min-width: 480px) {
+  .radialLabelText { font-size: 0.78rem; max-width: 110px; }
+  .radialLabelTick { width: 22px; }
+  .radialLabelSelected .radialLabelTick { width: 34px; }
+}
+
+@media (min-width: 768px) {
+  .radialLabelText { font-size: 0.85rem; max-width: 130px; }
+  .radialLabelTick { width: 26px; }
+  .radialLabelSelected .radialLabelTick { width: 40px; }
+  .radialDot { width: 9px; height: 9px; }
+  .radialLabelRight .radialDot { margin-left: -4.5px; }
+  .radialLabelLeft  .radialDot { margin-right: -4.5px; }
+  .radialLabelSelected .radialDot { width: 14px; height: 14px; }
+  .radialLabelRight.radialLabelSelected .radialDot { margin-left: -7px; }
+  .radialLabelLeft.radialLabelSelected  .radialDot { margin-right: -7px; }
+}
+
+@media (min-width: 1024px) {
+  .radialLabelText { font-size: 0.92rem; max-width: 150px; }
+}
+
+/* preserve the click target outline in forced-colors */
+@media (forced-colors: active) {
+  .radialSetNodeSelected,
+  .radialLabelSelected .radialLabelText {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+  .radialDot,
+  .radialLabelTick {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+  }
+}
+
+/* dim non-highlighted labels — overrides .dim which only affects opacity */
+.radialLabel.dim { opacity: 0.32; }
+.radialLabel.dim:hover { opacity: 0.7; }
+
+/* ── detail drawer ─────────────────────────────────────────────── */
+
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(39, 50, 72, 0.45);
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+  animation: drawerFadeIn 0.18s ease;
+}
+
+@keyframes drawerFadeIn {
+  from { background: rgba(39, 50, 72, 0); }
+  to   { background: rgba(39, 50, 72, 0.45); }
+}
+
+.drawer {
+  width: min(480px, 100%);
+  height: 100%;
+  background: var(--wv-white);
+  overflow-y: auto;
+  position: relative;
+  animation: drawerSlideIn 0.22s ease;
+  box-shadow: -8px 0 28px -12px rgba(39, 50, 72, 0.4);
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes drawerSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.drawerClose {
+  position: sticky;
+  top: 1rem;
+  margin-left: auto;
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--wv-white);
+  border: 1px solid rgba(39, 50, 72, 0.15);
+  border-radius: 999px;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 1.05rem;
+  color: var(--wv-cadet);
+  font-family: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  z-index: 2;
+  float: right;
+}
+
+.drawerClose:hover,
+.drawerClose:focus-visible {
+  background: rgba(39, 50, 72, 0.06);
+  border-color: var(--wv-cadet);
+}
+
+.drawerBody {
+  padding: 4rem 1.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  clear: both;
+}
+
+@media (min-width: 640px) {
+  .drawerBody { padding: 4rem 2rem 3rem; gap: 1.25rem; }
+}
+
+.drawerKind {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(39, 50, 72, 0.08);
+  color: var(--wv-cadet);
+}
+
+.drawerTitle {
+  font-size: 1.55rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--wv-cadet);
+  text-transform: lowercase;
+  line-height: 1.15;
+}
+
+@media (min-width: 640px) { .drawerTitle { font-size: 2rem; } }
+
+.drawerDef {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--wv-cadet);
+  margin: 0;
+  opacity: 0.88;
+}
+
+.drawerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(39, 50, 72, 0.08);
+}
+
+.drawerSectionTitle {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wv-redwood);
+}
+
+.drawerList {
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--wv-cadet);
+  opacity: 0.88;
+}
+
+.drawerList li { margin-bottom: 0.35rem; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   accessibility-mode overrides
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* prefers-reduced-motion — kill drawer animations + non-essential transitions.
+   the global tokens.css already handles transitions; this catches the custom
+   keyframes which it can't reach. */
+@media (prefers-reduced-motion: reduce) {
+  .drawerOverlay { animation: none; background: rgba(39, 50, 72, 0.45); }
+  .drawer { animation: none; }
+  .compareToggleThumb,
+  .compareToggleTrack { transition: none; }
+  .setTile,
+  .chip,
+  .summaryChip,
+  .graphSkillNode,
+  .graphSetNode,
+  .detailBtn,
+  .clearBtn { transition: none; }
+}
+
+/* forced-colors mode (Windows high-contrast, etc.) — preserve key state
+   distinctions when the system overrides our brand colors. */
+@media (forced-colors: active) {
+  .setTileSelected,
+  .chipSelected,
+  .graphSetNodeSelected,
+  .graphSkillNodeSelected,
+  .compareToggleActive,
+  .viewTabActive {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+  .compareToggleTrack { border: 1px solid CanvasText; }
+  .compareToggleActive .compareToggleTrack { background: Highlight; }
+  .compareToggleThumb { background: Canvas; border: 1px solid CanvasText; }
+  .selectionBarActive { border: 2px solid CanvasText; }
+}

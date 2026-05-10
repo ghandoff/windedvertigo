@@ -1,116 +1,83 @@
 /**
- * Token usage store — tracks AI costs.
+ * Token usage store — tracks AI costs in Supabase.
  *
- * Uses /tmp on Vercel (writable ephemeral storage) for the usage log,
- * with graceful fallback to in-memory when filesystem is unavailable.
- * Data resets on cold starts — for persistent tracking, wire up a
- * Notion database or Vercel KV in the future.
+ * Previous implementation used /tmp (Vercel filesystem) which does not exist
+ * on Cloudflare Workers. All writes silently failed and in-memory state
+ * evaporated on every request, causing permanent zeros in the AI Hub.
+ *
+ * This version writes directly to `ai_usage_logs` and `ai_budget_config`
+ * in Supabase, giving durable cross-request persistence on CF Workers.
  */
 
+import { supabase } from "@/lib/supabase/client";
 import type { AiFeature, TokenUsageEntry, UsageSummary, Budget, CostBreakdown } from "./types";
-
-// ── in-memory fallback store ─────────────────────────────
-// Persists across warm invocations on the same serverless instance.
-
-const memoryLog: TokenUsageEntry[] = [];
-let memoryBudget: BudgetConfig | null = null;
-
-// ── filesystem helpers (use /tmp on Vercel) ──────────────
-
-const DATA_DIR = "/tmp/ai-usage";
-const LOG_FILE = `${DATA_DIR}/usage.jsonl`;
-const BUDGET_FILE = `${DATA_DIR}/budget.json`;
-
-async function fsWrite(path: string, data: string): Promise<boolean> {
-  try {
-    const { mkdir, writeFile } = await import("fs/promises");
-    await mkdir(DATA_DIR, { recursive: true });
-    await writeFile(path, data);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function fsAppend(path: string, data: string): Promise<boolean> {
-  try {
-    const { mkdir, appendFile } = await import("fs/promises");
-    await mkdir(DATA_DIR, { recursive: true });
-    await appendFile(path, data);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function fsRead(path: string): Promise<string | null> {
-  try {
-    const { readFile } = await import("fs/promises");
-    return await readFile(path, "utf-8");
-  } catch {
-    return null;
-  }
-}
 
 // ── record usage ─────────────────────────────────────────
 
-/** Append a usage entry to the log. */
+/** Insert a usage entry. Fire-and-forget safe (caller wraps in .catch). */
 export async function recordUsage(entry: TokenUsageEntry): Promise<void> {
-  memoryLog.push(entry);
-  await fsAppend(LOG_FILE, JSON.stringify(entry) + "\n");
+  await supabase.from("ai_usage_logs").insert({
+    id:            entry.id,
+    timestamp:     entry.timestamp,
+    feature:       entry.feature,
+    model:         entry.model,
+    input_tokens:  entry.inputTokens,
+    output_tokens: entry.outputTokens,
+    cost_usd:      entry.costUsd,
+    user_id:       entry.userId,
+    duration_ms:   entry.durationMs,
+    metadata:      entry.metadata ?? null,
+  });
+  // Supabase client swallows errors into `.error` field — nothing throws.
 }
 
 // ── read usage ───────────────────────────────────────────
 
-/** Read all usage entries, optionally filtered by date range. */
 export async function getUsageEntries(
   from?: string,
   to?: string,
 ): Promise<TokenUsageEntry[]> {
-  // Try filesystem first, fall back to memory
-  let entries: TokenUsageEntry[] = [];
+  let query = supabase
+    .from("ai_usage_logs")
+    .select("*")
+    .order("timestamp", { ascending: false })
+    .limit(5000);
 
-  const raw = await fsRead(LOG_FILE);
-  if (raw) {
-    entries = raw
-      .split("\n")
-      .filter(Boolean)
-      .map((line) => {
-        try { return JSON.parse(line); } catch { return null; }
-      })
-      .filter(Boolean);
-  } else {
-    entries = [...memoryLog];
-  }
+  if (from) query = query.gte("timestamp", from);
+  if (to)   query = query.lte("timestamp", to);
 
-  if (from || to) {
-    return entries.filter((e) => {
-      if (from && e.timestamp < from) return false;
-      if (to && e.timestamp > to) return false;
-      return true;
-    });
-  }
+  const { data, error } = await query;
+  if (error || !data) return [];
 
-  return entries;
+  return data.map((row) => ({
+    id:           row.id,
+    timestamp:    row.timestamp,
+    feature:      row.feature as AiFeature,
+    model:        row.model,
+    inputTokens:  row.input_tokens,
+    outputTokens: row.output_tokens,
+    costUsd:      Number(row.cost_usd),
+    userId:       row.user_id ?? "unknown",
+    durationMs:   row.duration_ms ?? 0,
+    metadata:     row.metadata ?? undefined,
+  }));
 }
 
-/** Summarize usage for a period. */
 export async function getUsageSummary(
   from: string,
   to: string,
 ): Promise<UsageSummary> {
   const entries = await getUsageEntries(from, to);
 
-  const features: AiFeature[] = [
-    "email-draft",
-    "nl-search",
-    "relationship-score",
-    "next-best-action",
-    "org-enrichment",
+  const ALL_FEATURES: AiFeature[] = [
+    "email-draft", "nl-search", "relationship-score", "next-best-action",
+    "org-enrichment", "rfp-triage", "proposal-generation",
+    "rfp-document-extraction", "rfp-question-parse", "citation-matching",
+    "task-generation", "meeting-actions", "weekly-digest", "conference-triage",
   ];
 
   const byFeature = {} as UsageSummary["byFeature"];
-  for (const f of features) {
+  for (const f of ALL_FEATURES) {
     byFeature[f] = { requests: 0, inputTokens: 0, outputTokens: 0, costUsd: 0 };
   }
 
@@ -121,28 +88,20 @@ export async function getUsageSummary(
 
   for (const e of entries) {
     totalRequests++;
-    totalInputTokens += e.inputTokens;
+    totalInputTokens  += e.inputTokens;
     totalOutputTokens += e.outputTokens;
-    totalCostUsd += e.costUsd;
+    totalCostUsd      += e.costUsd;
 
     const bucket = byFeature[e.feature];
     if (bucket) {
       bucket.requests++;
-      bucket.inputTokens += e.inputTokens;
+      bucket.inputTokens  += e.inputTokens;
       bucket.outputTokens += e.outputTokens;
-      bucket.costUsd += e.costUsd;
+      bucket.costUsd      += e.costUsd;
     }
   }
 
-  return {
-    totalRequests,
-    totalInputTokens,
-    totalOutputTokens,
-    totalCostUsd,
-    byFeature,
-    periodStart: from,
-    periodEnd: to,
-  };
+  return { totalRequests, totalInputTokens, totalOutputTokens, totalCostUsd, byFeature, periodStart: from, periodEnd: to };
 }
 
 // ── budget management ────────────────────────────────────
@@ -152,26 +111,33 @@ interface BudgetConfig {
   warningThresholdPct: number;
 }
 
-const DEFAULT_BUDGET: BudgetConfig = {
-  monthlyLimitUsd: 50,
-  warningThresholdPct: 80,
-};
+const DEFAULT_BUDGET: BudgetConfig = { monthlyLimitUsd: 50, warningThresholdPct: 80 };
 
 export async function getBudgetConfig(): Promise<BudgetConfig> {
-  // Try filesystem, then memory, then defaults
-  const raw = await fsRead(BUDGET_FILE);
-  if (raw) {
-    try { return { ...DEFAULT_BUDGET, ...JSON.parse(raw) }; } catch {}
-  }
-  if (memoryBudget) return memoryBudget;
-  return DEFAULT_BUDGET;
+  const { data } = await supabase
+    .from("ai_budget_config")
+    .select("monthly_limit_usd, warning_threshold_pct")
+    .eq("id", 1)
+    .maybeSingle();
+
+  if (!data) return DEFAULT_BUDGET;
+  return {
+    monthlyLimitUsd:      Number(data.monthly_limit_usd),
+    warningThresholdPct:  data.warning_threshold_pct,
+  };
 }
 
 export async function setBudgetConfig(config: Partial<BudgetConfig>): Promise<BudgetConfig> {
   const current = await getBudgetConfig();
   const updated = { ...current, ...config };
-  memoryBudget = updated;
-  await fsWrite(BUDGET_FILE, JSON.stringify(updated, null, 2));
+
+  await supabase.from("ai_budget_config").upsert({
+    id:                    1,
+    monthly_limit_usd:     updated.monthlyLimitUsd,
+    warning_threshold_pct: updated.warningThresholdPct,
+    updated_at:            new Date().toISOString(),
+  });
+
   return updated;
 }
 
@@ -180,20 +146,22 @@ export async function getBudgetStatus(): Promise<Budget> {
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+  const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-  const summary = await getUsageSummary(monthStart, monthEnd);
+  const summary         = await getUsageSummary(monthStart, monthEnd);
   const currentSpendUsd = summary.totalCostUsd;
-  const remainingUsd = Math.max(0, config.monthlyLimitUsd - currentSpendUsd);
-  const spendPct = config.monthlyLimitUsd > 0 ? (currentSpendUsd / config.monthlyLimitUsd) * 100 : 0;
+  const remainingUsd    = Math.max(0, config.monthlyLimitUsd - currentSpendUsd);
+  const spendPct        = config.monthlyLimitUsd > 0
+    ? (currentSpendUsd / config.monthlyLimitUsd) * 100
+    : 0;
 
   return {
-    monthlyLimitUsd: config.monthlyLimitUsd,
-    warningThresholdPct: config.warningThresholdPct,
+    monthlyLimitUsd:      config.monthlyLimitUsd,
+    warningThresholdPct:  config.warningThresholdPct,
     currentSpendUsd,
     remainingUsd,
     isOverBudget: currentSpendUsd >= config.monthlyLimitUsd,
-    isNearLimit: spendPct >= config.warningThresholdPct,
+    isNearLimit:  spendPct >= config.warningThresholdPct,
   };
 }
 
@@ -202,65 +170,59 @@ export async function getBudgetStatus(): Promise<Budget> {
 export async function getCostBreakdown(): Promise<CostBreakdown> {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+  const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
   const summary = await getUsageSummary(monthStart, monthEnd);
 
-  // Days elapsed this month
-  const dayOfMonth = now.getDate();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const dayOfMonth          = now.getDate();
+  const daysInMonth         = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const projectionMultiplier = dayOfMonth > 0 ? daysInMonth / dayOfMonth : 1;
 
   const byFeatureCost: Record<AiFeature, number> = {
-    "email-draft": summary.byFeature["email-draft"]?.costUsd ?? 0,
-    "nl-search": summary.byFeature["nl-search"]?.costUsd ?? 0,
-    "relationship-score": summary.byFeature["relationship-score"]?.costUsd ?? 0,
-    "next-best-action": summary.byFeature["next-best-action"]?.costUsd ?? 0,
-    "org-enrichment": summary.byFeature["org-enrichment"]?.costUsd ?? 0,
-    "rfp-triage": summary.byFeature["rfp-triage"]?.costUsd ?? 0,
-    "proposal-generation": summary.byFeature["proposal-generation"]?.costUsd ?? 0,
-    "rfp-document-extraction": summary.byFeature["rfp-document-extraction"]?.costUsd ?? 0,
-    "rfp-question-parse": summary.byFeature["rfp-question-parse"]?.costUsd ?? 0,
-    "citation-matching": summary.byFeature["citation-matching"]?.costUsd ?? 0,
-    "task-generation": summary.byFeature["task-generation"]?.costUsd ?? 0,
-    "meeting-actions": summary.byFeature["meeting-actions"]?.costUsd ?? 0,
-    "weekly-digest": summary.byFeature["weekly-digest"]?.costUsd ?? 0,
+    "email-draft":            summary.byFeature["email-draft"]?.costUsd            ?? 0,
+    "nl-search":              summary.byFeature["nl-search"]?.costUsd              ?? 0,
+    "relationship-score":     summary.byFeature["relationship-score"]?.costUsd     ?? 0,
+    "next-best-action":       summary.byFeature["next-best-action"]?.costUsd       ?? 0,
+    "org-enrichment":         summary.byFeature["org-enrichment"]?.costUsd         ?? 0,
+    "rfp-triage":             summary.byFeature["rfp-triage"]?.costUsd             ?? 0,
+    "proposal-generation":    summary.byFeature["proposal-generation"]?.costUsd    ?? 0,
+    "rfp-document-extraction":summary.byFeature["rfp-document-extraction"]?.costUsd ?? 0,
+    "rfp-question-parse":     summary.byFeature["rfp-question-parse"]?.costUsd     ?? 0,
+    "citation-matching":      summary.byFeature["citation-matching"]?.costUsd      ?? 0,
+    "task-generation":        summary.byFeature["task-generation"]?.costUsd        ?? 0,
+    "meeting-actions":        summary.byFeature["meeting-actions"]?.costUsd        ?? 0,
+    "weekly-digest":          summary.byFeature["weekly-digest"]?.costUsd          ?? 0,
+    "conference-triage":      summary.byFeature["conference-triage"]?.costUsd      ?? 0,
   };
 
   // Estimate Notion API calls: ~3 per AI request (fetch context)
   const estimatedNotionCalls = summary.totalRequests * 3;
 
-  // Estimate compute: ~2 seconds avg per AI call at 256MB
-  const avgFnDurationS = 2;
-  const memoryGb = 0.25;
-  const estimatedGbSeconds = summary.totalRequests * avgFnDurationS * memoryGb;
-  const vercelComputeRate = 0.00005; // $/GB-s on Pro plan
-
-  // Bandwidth: ~2KB per request + response avg
+  // CF Workers compute: ~2s avg per AI call; billing is CPU time not wall time.
+  // CF Workers free = 10ms CPU/req; paid = $0.30/million CPU-ms above 30B.
+  // For our scale, we're comfortably within included limits — show $0.
+  const cfComputeMonthly = 0;
   const estimatedBandwidthGb = (summary.totalRequests * 2) / (1024 * 1024);
-
-  const computeMonthly = estimatedGbSeconds * vercelComputeRate * projectionMultiplier;
-  const infraMonthly = 0; // R2 + bandwidth within free tier for this scale
 
   return {
     apiCosts: {
-      monthly: summary.totalCostUsd,
+      monthly:   summary.totalCostUsd,
       projected: summary.totalCostUsd * projectionMultiplier,
       byFeature: byFeatureCost,
     },
     notionApiCosts: {
       estimatedCallsPerMonth: Math.round(estimatedNotionCalls * projectionMultiplier),
-      withinFreeTier: estimatedNotionCalls * projectionMultiplier < 500_000,
+      withinFreeTier: (estimatedNotionCalls * projectionMultiplier) < 500_000,
     },
     computeCosts: {
-      estimatedFunctionMs: summary.totalRequests * avgFnDurationS * 1000,
-      estimatedGbSeconds,
-      monthlyEstimate: computeMonthly,
+      estimatedFunctionMs: summary.totalRequests * 2_000,
+      estimatedGbSeconds:  0, // not applicable on CF Workers (CPU-time billing)
+      monthlyEstimate:     cfComputeMonthly,
     },
     infrastructureCosts: {
       vercelBandwidthGb: estimatedBandwidthGb * projectionMultiplier,
-      r2StorageGb: 0,
-      monthlyEstimate: infraMonthly,
+      r2StorageGb:       0,
+      monthlyEstimate:   0, // within CF free tier at this scale
     },
     operationalCosts: {
       estimatedDevHoursPerMonth: 4,
@@ -272,8 +234,6 @@ export async function getCostBreakdown(): Promise<CostBreakdown> {
       ],
     },
     totalMonthlyEstimate:
-      summary.totalCostUsd * projectionMultiplier +
-      computeMonthly +
-      infraMonthly,
+      summary.totalCostUsd * projectionMultiplier + cfComputeMonthly,
   };
 }

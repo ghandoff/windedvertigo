@@ -12,7 +12,8 @@ const nextConfig: NextConfig = {
       { source: "/work/contracts", destination: "/projects?type=contracts", permanent: true },
       { source: "/work/studios", destination: "/projects?type=studios", permanent: true },
       { source: "/email", destination: "/campaigns?tab=email", permanent: true },
-      { source: "/events", destination: "/campaigns?tab=events", permanent: true },
+      // Phase 10: /events is now a standalone page — old redirect removed.
+      // /campaigns?tab=events is handled by a server-side redirect inside campaigns/page.tsx.
       { source: "/social", destination: "/campaigns?tab=social", permanent: true },
       { source: "/settings/analytics", destination: "/analytics", permanent: true },
       // Phase 11 settings refactor — analytics/ai-hub/competitors promoted to top-level

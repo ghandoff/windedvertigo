@@ -18,6 +18,8 @@ import {
   TrendingUp,
   Sparkles,
   PenLine,
+  CalendarDays,
+  LineChart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -59,13 +61,16 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "outreach",
     items: [
       { label: "campaigns", href: "/campaigns", icon: Megaphone },
+      { label: "events", href: "/events", icon: CalendarDays },
       { label: "content", href: "/content", icon: PenLine },
       { label: "assets", href: "/assets", icon: FolderOpen },
     ],
   },
   {
     title: "insights",
+    defaultOpen: true,
     items: [
+      { label: "strategy", href: "/strategy", icon: LineChart },
       { label: "analytics", href: "/analytics", icon: TrendingUp },
       { label: "ai hub", href: "/ai-hub", icon: Sparkles },
     ],

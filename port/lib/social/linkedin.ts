@@ -178,3 +178,101 @@ export async function createLinkedInPost(
   };
 }
 
+
+// ── stats ──────────────────────────────────────────────────
+
+export interface LinkedInStats {
+  followerCount: number | null;
+  /** Total reactions + comments on posts in the current window. */
+  recentPostEngagement: number;
+  fetchedAt: string;
+}
+
+/**
+ * Fetch LinkedIn org page stats.
+ *
+ * Endpoint: GET /v2/organizationPageStatistics?q=organization&organization={ORG_URN}
+ * Requires: LINKEDIN_ACCESS_TOKEN + LINKEDIN_ORG_ID env vars.
+ *           Token needs `r_organization_admin` or `r_organization_social` scope.
+ *
+ * On 401: attempts one token refresh via refreshLinkedInToken() and retries.
+ * On any other error or missing env var: returns null followerCount.
+ */
+export async function getLinkedInStats(): Promise<LinkedInStats> {
+  const fetchedAt = new Date().toISOString();
+  const orgId = process.env.LINKEDIN_ORG_ID;
+
+  if (!orgId) {
+    console.warn("[social/linkedin] LINKEDIN_ORG_ID not set — follower stats unavailable");
+    return { followerCount: null, recentPostEngagement: 0, fetchedAt };
+  }
+
+  const orgUrn = `urn:li:organization:${orgId}`;
+
+  async function fetchStats(token: string): Promise<Response> {
+    return fetch(
+      `https://api.linkedin.com/v2/organizationPageStatistics?q=organization&organization=${encodeURIComponent(orgUrn)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "LinkedIn-Version": "202401",
+          "X-Restli-Protocol-Version": "2.0.0",
+          "User-Agent": "wv-port/1.0 (+port.windedvertigo.com)",
+        },
+      },
+    );
+  }
+
+  let token = process.env.LINKEDIN_ACCESS_TOKEN;
+  if (!token) {
+    console.warn("[social/linkedin] LINKEDIN_ACCESS_TOKEN not set — stats unavailable");
+    return { followerCount: null, recentPostEngagement: 0, fetchedAt };
+  }
+
+  try {
+    let res = await fetchStats(token);
+
+    // On 401, try refreshing the token once.
+    if (res.status === 401) {
+      console.warn("[social/linkedin] token expired — attempting refresh");
+      try {
+        const { refreshLinkedInToken } = await import("./linkedin-token");
+        const refreshed = await refreshLinkedInToken();
+        token = refreshed.accessToken;
+        res = await fetchStats(token);
+      } catch (refreshErr) {
+        console.warn("[social/linkedin] token refresh failed:", refreshErr);
+        return { followerCount: null, recentPostEngagement: 0, fetchedAt };
+      }
+    }
+
+    if (!res.ok) {
+      console.warn(`[social/linkedin] org stats returned ${res.status}`);
+      return { followerCount: null, recentPostEngagement: 0, fetchedAt };
+    }
+
+    const data = await res.json();
+
+    // Response shape: { elements: [{ totalPageStatistics: { followers: { totalFollowerCount } } }] }
+    const element = Array.isArray(data.elements) ? data.elements[0] : null;
+    const totalFollowerCount =
+      element?.totalPageStatistics?.followers?.totalFollowerCount ?? null;
+
+    // Pull engagement from the most recent monthly bucket if present.
+    const monthly: Array<{ totalPageStatistics?: { views?: { allPageViews?: { pageViews?: number } } } }>
+      = element?.timeRange ? [] : (data.elements ?? []).slice(1);
+    const recentEngagement = monthly.reduce(
+      (sum: number, m) => sum + (m?.totalPageStatistics?.views?.allPageViews?.pageViews ?? 0),
+      0,
+    );
+
+    return {
+      followerCount: typeof totalFollowerCount === "number" ? totalFollowerCount : null,
+      recentPostEngagement: recentEngagement,
+      fetchedAt,
+    };
+  } catch (err) {
+    console.warn("[social/linkedin] getStats exception:", err);
+    return { followerCount: null, recentPostEngagement: 0, fetchedAt };
+  }
+}

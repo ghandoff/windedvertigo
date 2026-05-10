@@ -365,13 +365,13 @@ function EconomicsTab() {
 
                 <div className="flex items-center justify-between py-2 border-b">
                   <div>
-                    <p className="font-medium">Vercel compute</p>
+                    <p className="font-medium">CF Workers compute</p>
                     <p className="text-sm text-muted-foreground">
-                      serverless function execution ({costs.computeCosts.estimatedGbSeconds.toFixed(1)} GB-s)
+                      CPU-time billing — within included limits at this scale
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${costs.computeCosts.monthlyEstimate.toFixed(4)}</p>
+                    <Badge variant="secondary">included</Badge>
                   </div>
                 </div>
 
@@ -379,11 +379,11 @@ function EconomicsTab() {
                   <div>
                     <p className="font-medium">infrastructure</p>
                     <p className="text-sm text-muted-foreground">
-                      bandwidth ({costs.infrastructureCosts.vercelBandwidthGb.toFixed(3)} GB) + R2 storage
+                      CF Workers egress + R2 storage — within free tier
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${costs.infrastructureCosts.monthlyEstimate.toFixed(2)}</p>
+                    <Badge variant="secondary">free tier</Badge>
                   </div>
                 </div>
 

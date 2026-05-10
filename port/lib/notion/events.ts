@@ -50,6 +50,33 @@ function mapPageToEvent(page: PageObjectResponse): CrmEvent {
     notes: getText(props[P.notes]),
     url: getUrl(props[P.url]),
     lastEditedTime: page.last_edited_time,
+
+    // Phase 1 triage fields don't exist in Notion — defaulted here so the
+    // backstop sync (Notion → Supabase upsert) never sends NULLs that would
+    // overwrite triage state Supabase already holds. The upsert helper only
+    // writes columns it's given; consumers calling this from non-sync paths
+    // (e.g. UI pre-fetches) get sensible defaults rather than `undefined`.
+    status: "watch",
+    lifecycleState: "upcoming",
+    fitScore: null,
+    triageNotes: "",
+    triagedBy: null,
+    triagedAt: null,
+    ownerUserId: null,
+    discoveredVia: "manual",
+    discoveredAt: page.last_edited_time,
+    externalId: null,
+    rawPayloadJson: null,
+    affiliatedOrgId: null,
+    deadlines: [],
+    estTravelCost: null,
+    sponsorshipFee: null,
+    actualCostTotal: null,
+    currency: "USD",
+    outcomeNotes: "",
+    contactsMetCount: null,
+    followupDueBy: null,
+    coverImageUrl: null,
   };
 }
 

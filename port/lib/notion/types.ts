@@ -388,6 +388,49 @@ export type EventFrequency = "Annual" | "Biannual" | "Quarterly" | "One-off";
 
 export type TeamMember = "Garrett" | "María" | "Jamie" | "Lamis" | "Yigal";
 
+// ── conference intelligence pipeline (Phase 1) ────────────────────────────
+// Triage and lifecycle are *orthogonal*: status captures user intent,
+// lifecycleState captures event reality. A row can be status='attend' AND
+// lifecycleState='cancelled' — preserves intent history while flagging the
+// event is dead.
+
+export type ConferenceStatus =
+  | "candidate"     // newly discovered, awaiting human triage
+  | "watch"         // possibly relevant, decide closer to deadline
+  | "attend"        // someone from w.v will attend (networking)
+  | "pursue"        // want to submit a contribution / sponsor / speak
+  | "not_relevant"; // rejected; kept for dedup but hidden from default view
+
+export type ConferenceLifecycle =
+  | "upcoming"
+  | "live"
+  | "past"
+  | "cancelled"
+  | "postponed";
+
+export type ConferenceDiscoverySource =
+  | "manual"             // entered via the port UI new/edit form
+  | "org-affiliated"     // weekly scout reads `organizations` and asks AI
+  | "newsletter"         // daily inbox scan, curated sender allowlist
+  | "slack-paste"        // wv-claw bot: "add conference <url>"
+  | "broad-scout"        // monthly fallback for green-field domains
+  | "annual-recurrence"; // weekly re-scout of past Annual/Biannual conferences
+
+export type ConferenceDeadlineKind =
+  | "cfp_close"
+  | "abstract_revision"
+  | "early_bird"
+  | "hotel_block"
+  | "sponsorship_commitment"
+  | "registration"
+  | "other";
+
+export interface ConferenceDeadline {
+  kind: ConferenceDeadlineKind;
+  date: string; // YYYY-MM-DD
+  label: string;
+}
+
 export interface CrmEvent {
   id: string;
   event: string;
@@ -405,6 +448,30 @@ export interface CrmEvent {
   notes: string;
   url: string;
   lastEditedTime: string;
+
+  // ── triage + lifecycle (Phase 1) ────────────────────────────────────
+  status: ConferenceStatus;
+  lifecycleState: ConferenceLifecycle;
+  fitScore: WvFitScore | null;
+  triageNotes: string;
+  triagedBy: string | null;
+  triagedAt: string | null;
+  ownerUserId: string | null;
+  discoveredVia: ConferenceDiscoverySource;
+  discoveredAt: string;
+  externalId: string | null;
+  rawPayloadJson: unknown | null;
+  affiliatedOrgId: string | null;
+  deadlines: ConferenceDeadline[];
+  estTravelCost: number | null;
+  sponsorshipFee: number | null;
+  actualCostTotal: number | null;
+  currency: string;
+  outcomeNotes: string;
+  contactsMetCount: number | null;
+  followupDueBy: string | null; // YYYY-MM-DD
+  // ── Phase 16 cover image ─────────────────────────────────────────
+  coverImageUrl: string | null;
 }
 
 // ── email & social drafts ─────────────────────────────────
@@ -521,6 +588,8 @@ export interface RfpOpportunity {
   questionCount: number | null;
   coverLetterUrl: string | null;
   teamCvsUrl: string | null;
+  expressionOfInterestUrl: string | null;
+  financialProposalUrl: string | null;
   // debrief — populated after won/lost/no-go
   whatWorked: string;
   whatFellFlat: string;
@@ -534,6 +603,13 @@ export interface RfpOpportunity {
    * Stored in Supabase only (not a Notion property).
    */
   deadlineTimezone: string | null;
+  /**
+   * Conference event IDs (`crm_events.notion_page_id`) whose attendance or
+   * pursuit influenced this opportunity. Populated by humans on the edit
+   * form; surfaced in the event-ROI report on /strategy?tab=pipeline.
+   * Phase 8 of the conference intelligence pipeline.
+   */
+  influencedByEventIds: string[];
   createdTime: string;
   lastEditedTime: string;
 }

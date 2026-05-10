@@ -72,6 +72,10 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     questionCount: getNumber(props[P.questionCount]),
     coverLetterUrl: getUrl(props[P.coverLetterUrl]) ?? null,
     teamCvsUrl: getUrl(props[P.teamCvsUrl]) ?? null,
+    // EOI + financial proposal URLs live in Supabase only (generator writes them there).
+    // Notion mapper defaults to null; Supabase read path populates them.
+    expressionOfInterestUrl: null,
+    financialProposalUrl: null,
     whatWorked: getText(props[P.whatWorked]),
     whatFellFlat: getText(props[P.whatFellFlat]),
     clientFeedback: getText(props[P.clientFeedback]),
@@ -80,6 +84,10 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     // deadlineTimezone lives in Supabase only (not a Notion property).
     // Callers that need it should augment from a Supabase lookup.
     deadlineTimezone: null,
+    // Notion has no equivalent property for influencedByEventIds — that
+    // field lives Supabase-only (Phase 8). Default to [] so consumers reading
+    // an RfpOpportunity built from Notion don't see undefined.
+    influencedByEventIds: [],
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };

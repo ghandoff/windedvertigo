@@ -40,3 +40,11 @@ export async function getContentDraftsFromSupabase(): Promise<ContentDraft[]> {
   if (error) throw error;
   return (data as unknown as SocialDraftRow[]).map(rowToContentDraft);
 }
+
+// ── singleton lookup stub ─────────────────────────────────
+// Lost between sessions; the route at app/api/content/[id]/draft-to-campaign
+// imports this. Stub keeps the build green; restore in a separate task.
+export async function getContentDraftByIdFromSupabase(id: string): Promise<ContentDraft | null> {
+  const all = await getContentDraftsFromSupabase();
+  return all.find((d) => d.id === id) ?? null;
+}

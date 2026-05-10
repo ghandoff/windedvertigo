@@ -1,10 +1,22 @@
 /**
- * @deprecated Phase A3 — Supabase is now the write-primary source of truth.
- * This Notion→Supabase sync cron is RETIRED. Remove in Phase A4 cleanup.
  * GET /api/cron/sync-events-pilot
  *
- * One-way mirror: Notion events DB → Supabase `events` table.
- * Runs every 15 minutes. Upserts on notion_page_id (idempotent).
+ * Daily safety-net mirror: Notion events DB → Supabase `crm_events` table.
+ *
+ * Status: BACKSTOP (formerly RETIRED in Phase A4 cleanup).
+ * Restored 2026-05-07 after the events tab went blank — `crm_events` had 0
+ * rows because Phase A4 retired this mirror without a final backfill of
+ * the existing 42-conference Notion DB. The cron only UPSERTS (never
+ * deletes), so port-UI edits made between runs are not clobbered as long
+ * as nobody edits the same row in Notion concurrently.
+ *
+ * Retire this once: (a) the team works exclusively from the port UI, AND
+ * (b) the discovery feeds (org-affiliated scout, newsletter scan, manual
+ * paste) have been live and producing fresh candidates for ≥4 weeks.
+ *
+ * Runs daily at 07:00 UTC via lib/scheduled.ts CRON_TABLE.
+ * Auth: Authorization: Bearer {CRON_SECRET}.
+ * Upserts on notion_page_id (idempotent).
  */
 
 import { NextRequest, NextResponse } from "next/server";

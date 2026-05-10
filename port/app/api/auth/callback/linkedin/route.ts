@@ -47,18 +47,34 @@ export async function GET(req: NextRequest) {
 
   const profile = profileRes.ok ? await profileRes.json() : null;
 
-  return NextResponse.json({
-    message: "linkedin OAuth successful — add these to vercel env vars.",
-    access_token: tokenData.access_token,
-    refresh_token: tokenData.refresh_token || "not returned (re-authorize with offline_access scope)",
-    expires_in_seconds: tokenData.expires_in,
-    expires_in_days: Math.round(tokenData.expires_in / 86400),
-    refresh_token_expires_in_days: tokenData.refresh_token_expires_in
-      ? Math.round(tokenData.refresh_token_expires_in / 86400)
+  const personUrn = profile?.sub ? `urn:li:person:${profile.sub}` : null;
+
+  // Build wrangler secret put commands for easy copy-paste
+  const commands = [
+    `echo "${tokenData.access_token}" | npx wrangler secret put LINKEDIN_ACCESS_TOKEN --name wv-port`,
+    tokenData.refresh_token
+      ? `echo "${tokenData.refresh_token}" | npx wrangler secret put LINKEDIN_REFRESH_TOKEN --name wv-port`
       : null,
-    person_sub: profile?.sub,
-    person_urn: profile?.sub ? `urn:li:person:${profile.sub}` : "unknown",
-    name: profile?.name,
-    email: profile?.email,
+    personUrn
+      ? `echo "${personUrn}" | npx wrangler secret put LINKEDIN_PERSON_URN --name wv-port`
+      : null,
+  ].filter(Boolean);
+
+  return NextResponse.json({
+    message: "linkedin OAuth successful — run these wrangler commands to persist the secrets:",
+    wrangler_commands: commands,
+    tokens: {
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token || null,
+      expires_in_days: Math.round(tokenData.expires_in / 86400),
+      refresh_token_expires_in_days: tokenData.refresh_token_expires_in
+        ? Math.round(tokenData.refresh_token_expires_in / 86400)
+        : null,
+    },
+    profile: {
+      person_urn: personUrn,
+      name: profile?.name,
+      email: profile?.email,
+    },
   });
 }

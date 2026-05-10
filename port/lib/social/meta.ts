@@ -198,3 +198,22 @@ export async function createInstagramPost(
     url: `https://www.instagram.com/p/${publishData.id}/`,
   };
 }
+
+// ── stats stub ─────────────────────────────────────────────
+// See note in lib/social/substack.ts. Stub to keep imports compilable.
+export interface MetaStats {
+  facebookPageFollowers: number | null;
+  instagramFollowers: number | null;
+  facebookRecentEngagement: number;
+  instagramRecentEngagement: number;
+  fetchedAt: string;
+}
+export async function getMetaStats(): Promise<MetaStats> {
+  return {
+    facebookPageFollowers: null,
+    instagramFollowers: null,
+    facebookRecentEngagement: 0,
+    instagramRecentEngagement: 0,
+    fetchedAt: new Date().toISOString(),
+  };
+}

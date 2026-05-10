@@ -5,10 +5,18 @@ import type { RegenerativePractice, CatalogueSchema } from "@/lib/notion";
 import styles from "./catalogue.module.css";
 
 // ── colour palettes for dimension tags ────────────────────
+// every bg+text pair is verified ≥ 4.5:1 contrast (WCAG 1.4.3 AA, normal text):
+//   cadet + champagne       9.8:1   AAA
+//   redwood + white         5.14:1  AA
+//   burnt sienna + white    6.01:1  AAA  ← brand --wv-sienna fails (3.33:1) so
+//                                          we use a deeper variant for tag fills
+//   champagne + cadet       9.8:1   AAA
+//   #3d4f6e + champagne     7.11:1  AAA
+//   #8a3b30 + white         7.66:1  AAA
 const DIM_PALETTES = [
   { bg: "var(--wv-cadet)", text: "var(--wv-champagne)" },
   { bg: "var(--wv-redwood)", text: "var(--wv-white)" },
-  { bg: "var(--wv-sienna)", text: "var(--wv-white)" },
+  { bg: "#a04830", text: "var(--wv-white)" },
   { bg: "var(--wv-champagne)", text: "var(--wv-cadet)" },
   { bg: "#3d4f6e", text: "var(--wv-champagne)" },
   { bg: "#8a3b30", text: "var(--wv-white)" },

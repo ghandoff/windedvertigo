@@ -110,6 +110,29 @@ export async function upsertWorkItemToSupabase(
 }
 
 /**
+ * Create a new port-native work item with a synthetic `wv-ect-{uuid}` PK.
+ * Returns the generated notion_page_id so callers can reference it.
+ *
+ * Phase 14 — used by EventContactsPanel to auto-create follow-up tasks
+ * whenever a contact is marked as "met" at an event.
+ */
+export async function createWorkItem(input: {
+  task: string;
+  status?: WorkItemRow["status"];
+  dueDate?: string; // YYYY-MM-DD
+}): Promise<string> {
+  const notionPageId = `wv-ect-${crypto.randomUUID()}`;
+  const { error } = await supabase.from("work_items").insert({
+    notion_page_id: notionPageId,
+    task: input.task,
+    status: input.status ?? "in queue",
+    due_date: input.dueDate ?? null,
+  });
+  if (error) throw new Error(`[supabase/work-items] createWorkItem: ${error.message}`);
+  return notionPageId;
+}
+
+/**
  * Delete a work item row.
  */
 export async function deleteWorkItemFromSupabase(notionPageId: string): Promise<void> {
