@@ -288,6 +288,11 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 
 ## Engineering (Claude Code)
 
+### Portfolio asset pages — design audit (flagged 2026-05-10)
+
+- [ ] Decide whether portfolio asset pages (e.g. `/portfolio/holistic-skills-a-primer/`, `/portfolio/regenerative-practices-catalogue/`) should switch from the current champagne background to cadet-blue. If yes: full text/link/callout repaint to maintain WCAG AAA contrast — current body link colour `#1e40af` and `--wv-redwood` callouts would clash on cadet.
+- [ ] Header alignment on `/portfolio/holistic-skills-a-primer/` feels off vs other pages — wordmark + `--space-lg` padding on `.header` may need to shrink. Possibly a "compact header" variant for inner asset pages.
+
 ### PRs pending Garrett merge (2026-05-01 — plan reconfigured)
 
 > Full reconfigured plan: `~/.claude/plans/graceful-popping-willow.md`
