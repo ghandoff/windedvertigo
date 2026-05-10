@@ -1,14 +1,20 @@
 /**
- * LinkedIn token management — auto-refresh via Vercel API.
+ * LinkedIn token management — auto-refresh via Cloudflare Workers API.
  *
  * LinkedIn access tokens expire in 60 days. Refresh tokens last 365 days.
- * This module handles token refresh and updates the Vercel env var automatically.
+ * This module handles token refresh and updates wrangler secrets automatically.
  *
  * Flow:
  * 1. Cron job calls refreshLinkedInToken() monthly
  * 2. Uses LINKEDIN_REFRESH_TOKEN to get a new access token from LinkedIn
- * 3. Updates LINKEDIN_ACCESS_TOKEN on Vercel via their API
+ * 3. Updates LINKEDIN_ACCESS_TOKEN via CF Workers API (replaces old Vercel path)
  * 4. If refresh token is also rotated, updates LINKEDIN_REFRESH_TOKEN too
+ *
+ * Required env vars for the auto-update:
+ *   CF_ACCOUNT_ID       — Cloudflare account ID
+ *   CF_API_TOKEN        — Cloudflare API token with Workers:Edit permission
+ *   LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET — from LinkedIn app
+ *   LINKEDIN_REFRESH_TOKEN — set after initial OAuth flow
  */
 
 const LI_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken";
@@ -52,17 +58,19 @@ export async function refreshLinkedInToken(): Promise<{
 
   const data: TokenResponse = await res.json();
 
-  // Update env vars on Vercel
-  const vercelToken = process.env.VERCEL_TOKEN;
-  const projectId = process.env.VERCEL_PROJECT_ID || "prj_rlsjo62EFnVofPUyjt0eYgzcrjmC";
-  const teamId = process.env.VERCEL_TEAM_ID || "team_wrpRda7ZzXdu7nKcEVVXY3th";
+  // Update secrets on CF Workers via Cloudflare API
+  const cfAccountId = process.env.CF_ACCOUNT_ID;
+  const cfApiToken = process.env.CF_API_TOKEN;
+  const workerName = "wv-port";
 
-  if (vercelToken) {
-    await updateVercelEnv(vercelToken, projectId, teamId, "LINKEDIN_ACCESS_TOKEN", data.access_token);
+  if (cfAccountId && cfApiToken) {
+    await updateCfWorkerSecret(cfAccountId, cfApiToken, workerName, "LINKEDIN_ACCESS_TOKEN", data.access_token);
 
     if (data.refresh_token) {
-      await updateVercelEnv(vercelToken, projectId, teamId, "LINKEDIN_REFRESH_TOKEN", data.refresh_token);
+      await updateCfWorkerSecret(cfAccountId, cfApiToken, workerName, "LINKEDIN_REFRESH_TOKEN", data.refresh_token);
     }
+  } else {
+    console.warn("[linkedin-token] CF_ACCOUNT_ID or CF_API_TOKEN not set — secrets not auto-updated. Set them manually.");
   }
 
   return {
@@ -72,44 +80,26 @@ export async function refreshLinkedInToken(): Promise<{
   };
 }
 
-/** Update a Vercel env var by removing the old one and creating a new one. */
-async function updateVercelEnv(
-  token: string,
-  projectId: string,
-  teamId: string,
+/** Update a CF Workers secret via Cloudflare API. */
+async function updateCfWorkerSecret(
+  accountId: string,
+  apiToken: string,
+  workerName: string,
   key: string,
   value: string,
 ): Promise<void> {
-  const baseUrl = `https://api.vercel.com/v10/projects/${projectId}/env`;
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-
-  // Find existing env var ID
-  const listRes = await fetch(`${baseUrl}?teamId=${teamId}`, { headers });
-  if (!listRes.ok) return;
-
-  const listData = await listRes.json();
-  const existing = listData.envs?.find((e: { key: string }) => e.key === key);
-
-  // Delete existing
-  if (existing?.id) {
-    await fetch(`${baseUrl}/${existing.id}?teamId=${teamId}`, {
-      method: "DELETE",
-      headers,
-    });
-  }
-
-  // Create new
-  await fetch(`${baseUrl}?teamId=${teamId}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      key,
-      value,
-      type: "encrypted",
-      target: ["production", "preview", "development"],
-    }),
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/scripts/${workerName}/secrets`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name: key, text: value, type: "secret_text" }),
   });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.warn(`[linkedin-token] failed to update CF secret ${key}: ${err.slice(0, 200)}`);
+  }
 }

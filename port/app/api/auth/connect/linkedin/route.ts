@@ -17,7 +17,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
 const REDIRECT_URI = "https://port.windedvertigo.com/api/auth/callback/linkedin";
-const SCOPES = ["openid", "profile", "email", "w_member_social", "r_liteprofile", "offline_access"];
+const SCOPES = [
+  "openid", "profile", "email",
+  "w_member_social",      // post on user's behalf
+  "r_liteprofile",        // read basic profile
+  "r_organization_social",// org follower stats (requires LinkedIn Marketing API approval)
+  "offline_access",       // issues refresh_token (365-day)
+];
 
 export async function GET(_req: NextRequest) {
   const session = await auth();
