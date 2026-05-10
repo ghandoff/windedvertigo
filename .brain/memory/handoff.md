@@ -9,101 +9,104 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** fri 2 may 2026, ~11:30 PT (claude code, notion content calendar DB + wv-crm redeploy)
+**last synced:** sat 9 may 2026, ~21:15 PT (cowork, context-sync)
 
 **where we are right now:**
-**G.2.4 canary running.** `wv-port-jobs` CF Queue consumer live with all 7 secrets. Canary window: 2026-05-01 → ~2026-05-08. G.2.5 DNS cutover follows if clean.
-
-**All launch-readiness items closed.** Phase B done, all PRs merged, site redeployed, 16 harbour CF Workers wrapped, smoke alert → #garrett-code-tasks, Resend webhook live, wv-crm redeployed, ops auth redirect verified (→ /login ✅), port agent write tools verified (createCampaign staged+cancelled smoke test ✅).
-
-**Neon decommission scheduled** for 2026-05-04 09:17 PT via persistent scheduled task (will prompt Garrett to confirm before deleting).
+saturday landed lighter than friday but not idle — homepage typewriter collaborators feature shipped in five rapid morning commits (`23cb152`, `6078911`, `a74bd9f`, `fb632fc`, `d81015e`), interleaving active and past collaborators with full-name cleanup and adding scratch, EPFL, LEGO foundation, and lightbulb learning lab. port moved its phase 1-8 conference intelligence pipeline onto CF Workers (`c88ade6`, includes AI hub fix) and migrated linkedin oauth + token refresh from vercel to CF Workers (`728ad6d`) — continuity infra work, no user-facing change. nordic canary still steady. **amna at 10 reply to jonelle remains the most urgent owed external comm** — now ~50h since her 7 may invite. **harbour review forms deadline mon 11 may (2 days).** PRME capstone keith decision still owed before tue 12 may PRME hold. fresh inbound signal: jennifer rose at manchester sent unsolicited praise for PRME session 2 recording — warm reply + lead flag worth queueing.
 
 ### open threads
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| harbour oauth gate | ✅ DONE — redirect URI already in client (confirmed 2026-05-01) | — | — |
-| booking system | admin connect UI live + 5 hosts + 8 event types seeded | **Garrett + hosts**: connect Google Calendars at `/admin/booking/connect` (OAuth per host — genuinely requires each person) | port.windedvertigo.com/admin/booking/connect |
-| smoke alert webhook | ✅ DONE 2026-05-01 — webhook to #garrett-code-tasks created, `WV_CLAW_WEBHOOK` secret uploaded to wv-launch-smoke | monitoring | — |
-| 16-app CF wrapper rollout | ✅ DONE 2026-05-02 — all 16 deployed with 6 security headers verified | — | — |
-| Resend webhook | ✅ DONE 2026-05-01 — registered `https://port.windedvertigo.com/api/email/webhooks/resend` (6 events), `RESEND_WEBHOOK_SECRET` updated in Vercel, wv-crm redeployed | — | — |
-| Notion content calendar DB | ✅ DONE 2026-05-02 — DB `125fdb1bd3a047679d0f9a94cb38d313` created, `NOTION_CONTENT_CALENDAR_DB_ID` patched in wv-crm, redeployed (`dpl_Da6rUo9CmkZ4By5h1rJ3UgYD4BBa` READY). `/api/content` returns 401 (auth-gated = configured) | — | notion.so/125fdb1bd3a047679d0f9a94cb38d313 |
-| port agent write tools | ✅ DONE 2026-05-01 — createCampaign smoke test passed (staged → cancelled); all write tools confirmed live | — | — |
-| Neon decommission | ancestry migrated to Supabase 2026-04-27 | ⏳ delete Neon project autonomously after 2026-05-04 (7-day window) | neon.tech |
-| PRME 2026 | contract active, PO approved, first invoice submitted | sync with meredith on facilitation guide timeline | gmail |
-| IDB Salvador | documentation submitted apr 10, receipt confirmed apr 24 | passive monitor — evaluation in progress | — |
-| G.2.4 → G.2.5 | canary started 2026-05-01 | DNS cutover after ~2026-05-08 if no anomalies | — |
-
-### environment handoffs
-
-**Cowork → Claude Code:**
-- creaseworks content + refactor — notion covers for playdates/packs/collections
-- CF cleanup — revoke temp CF API token, close anotheroption CF account (consolidation complete as of apr 24)
-- resend webhook — register URL + `RESEND_WEBHOOK_SECRET` in resend dashboard
-
-**Claude Code → Cowork:**
-- **Notion content calendar DB** — create it so CRM `/content` route has a real data source; set env var
-- PRME comms — any pending meredith/metz threads
-- ADP + QuickBooks — routine log-and-pay
-- booking → Google Calendar OAuth — walk Garrett through connecting all 5 hosts
-
-### open threads
-
-| project | last action | next action | link |
-|---------|-------------|-------------|------|
-| PPCS session 1 launch | countdown tool shipped (`350c772`); site fix `30b5dfc` (static-assets cache, drop R2 binding) deployed today; anchor-leg prep done with maria | verify `windedvertigo.com/tools/ppcs-launch/` resolves on prod (smoke probe blocked by allowlist); run wed 1pm dry run with maria | gcal |
-| harbour 3B oauth gate | code + secrets deployed; google OAuth client gate pending | **30-sec user action**: add redirect URI to client `160968051904-…`: `https://www.windedvertigo.com/harbour/api/auth/callback/google` | gcp console |
-| 16-app CF wrapper rollout | prep committed `042392e`; deploy script ready | run `cd harbour-apps && ./scripts/deploy-cf-wrappers.sh --include-depth-chart` | terminal |
-| smoke alert webhook | `wv-launch-smoke` worker live, cron */30, 40/40 green; reads `WV_CLAW_WEBHOOK` if set | create incoming webhook on wv-claw slack app, run `wrangler secret put WV_CLAW_WEBHOOK --name wv-launch-smoke` | slack |
-| PRME 2026 — programme start | metz qualtrics thread still unanswered; PRME hold meeting tomorrow 12pm PT with meredith + sam | use tue 12pm PRME hold to lock survey platform + facilitation guide cadence; sync maria pre-call at 11am | gcal |
-| dev-collaboration handbook | section 8 (IP & promotion when building for prme) shipped today (`b7c1108`); rendered to `/handbook/dev-collaboration` (`ec45c7a`) | circulate to maria + payton; reference from PRME comms re: discussion-post formatting | site |
-| vercel harbour-apps preview | preview deployment failures continued today (2x at 16:04 UTC) post-CF migration | claude code: investigate build logs, decide whether to delete vercel project or fix env-var drift | vercel |
-| health insurance | gusto june 1 coverage deadline is **thu apr 30**; mike bryant resent reminder today | confirm benefits selection in gusto — **3 days left** | gusto |
-| amna at 10 | proposal sent mar 26 to jonelle + walaa | **32 days overdue** — email follow-up | gmail |
+| amna at 10 | jonelle replied 7 may inviting wv to a call (cc hejer + walaa); now ~50h owed | reply this weekend to confirm a slot; loop in maria + lamis | gmail thread `19e032bfd528e29a` |
+| harbour review forms | whirlpool 5/6 action on garrett; **deadline mon 11 may** (2 days) | design the priority-app review forms for harbour 5/28 launch | TASKS.md |
+| PRME capstone (keith) | meredith's note 6 may — wants keith engaged "to the maximum" despite teaching scope | wv team decision on tier of engagement; reply by tue 12 may PRME hold | gmail thread `19dfd64eb573e79b` |
+| homepage typewriter collaborators | shipped today across 5 commits (`23cb152` → `d81015e`); active + past collaborators now interleaved with full-name cleanup | watch for monday whirlpool feedback; consider as a harbour 5/28 launch surface | windedvertigo.com |
+| port conference intelligence pipeline | migrated to CF Workers + AI hub fix shipped today (`c88ade6`); linkedin oauth + token refresh moved off vercel (`728ad6d`) | smoke the daily schedule + verify linkedin token refresh fires next cycle | port |
+| jennifer rose / manchester (PRME) | unsolicited praise for session 2 recording landed today (gmail `19e0cf4e22c12937`) | warm reply + flag as potential ppcs lead; loop maria | gmail |
+| jamie's "learning to fly" substack | payton spending fri reading + reaching out to jamie; no fresh signal in today's commits | confirm jamie hand-off status (was due fri/mon); payton still posts wed 13 may | studio comms |
+| holistic skills framework | shipped + reviewed by maria fri; circulation pending | circulate to wider collective; consider as harbour launch tile candidate | windedvertigo.com/portfolio/holistic-skills-framework |
+| nordic CF Workers cutover | canary holding steady through the weekend | plan Vercel→CF DNS cutover (Phase F.5) early next week | github |
 
 ### waiting on external
 
-- **metz @ UN global compact** — qualtrics survey approach for PRME 2026 — since 24 apr (4 days; tomorrow's PRME hold is the escalation moment)
-- **meredith (PRME)** — facilitation guide timeline — since 21 apr (6 days)
-- **IDB Salvador** — evaluation committee reviewing apr 10 documentation; nadia.nochez confirmed receipt 24 apr — passive monitor
-- **amna at 10** — jonelle + walaa, proposal sent 26 mar (32 days, overdue for follow-up)
-- **KiwiCo international partnerships** — inquiry forwarded 17 apr — passive
-- **paul ramchandani (pedal conference)** — proposal sent over the holiday — no response
-- **CPA (aakib qureshi)** — new taxdome message landed today; reply pending
+- **jonelle (amna at 10)** — wv owes a reply with a call slot; ~50h elapsed since her 7 may invite
+- **PRME capstone (keith)** — meredith's 6 may decision request; wv team owes a tier recommendation
+- **paul ramchandani (pedal conference)** — proposal still unanswered since the holiday; passive
+- **KiwiCo international partnerships** — forwarded inquiry, no response since 17 apr; passive
+- **IDB Salvador** — evaluation committee reviewing apr 10 documentation; receipt confirmed 24 apr; passive monitor
+- **CPA (aakib qureshi)** — taxdome thread still pending response (carried from 27 apr; _status to verify_ next sweep)
 
 ### environment handoffs
 
 **Cowork → Claude Code:**
-- **vercel harbour-apps preview failures** — repeated since apr 24, two more today; investigate or retire the vercel project now that traffic is on CF workers.
-- **PPCS launch tool prod verification** — automated smoke probe to `windedvertigo.com/tools/ppcs-launch/` returns 403 (allowlist), so a manual verify or smoke-allowlist whitelist is needed before thursday.
-- **CF KV daily put limit** — context-sync / dispatch writes likely tripping the free tier; upgrade or throttle.
-- **creaseworks content + refactor** — add notion covers for playdates/packs/collections; apply phase 1 read-time `cover_url` refactor (mirror vault); build body-content inline image sync.
-- **CF cleanup** — revoke temp CF API token, delete DNS-only token, close anotheroption CF account.
-- **CRM campaign 404** (POST /api/campaigns) — still unresolved since 17 apr; blocking email sends.
-- **CMO marketing module** in ops dashboard — spec at `.brain/memory/marketing/claude-code-prompt.md`.
-- **resend webhook** — register URL + set `RESEND_WEBHOOK_SECRET` in resend dashboard.
+- **vercel `windedvertigo` failed-deploy alarm** — flagged in last sync (8 failures across may 7-8 night); _status to verify_ — pull latest build log next sweep before escalating further
+- **Neon decommission** — clean window ended 2026-05-04; delete the project and update TASKS.md
+- **Vercel project cleanup** — ~22 dormant projects await Garrett's confirmation (per `~/.claude/plans/graceful-popping-willow.md`)
+- **CF cleanup** — revoke temp CF API token, delete DNS-only token, close anotheroption CF account (post-consolidation)
+- **creaseworks content + refactor** — notion covers for playdates/packs/collections; phase 1 read-time `cover_url` refactor; body-content inline image sync
+- **post-launch sweep candidate** — read-the-room WCAG fixes, holistic skills framework page, and homepage typewriter collaborators all now live; verify all three render cleanly on harbour and the marketing site
 
 **Claude Code → Cowork:**
-- **tue 12pm PRME hold** — escalation moment for survey platform + facilitation guide cadence; need to come in with a recommendation, not a question.
-- **health insurance** — confirm benefits in gusto before thu apr 30 (3 days).
-- **CPA** — reply to aakib's new taxdome message (today); finish personal extension organizer step 2/4 in taxdome.
-- **gusto** — review 1 employee expense (due mon may 4).
-- **ADP invoice 719518339** — week ending apr 25; log to notion + pay.
-- **QuickBooks** — record PRME $48,285 income + contractor payments (maria $18,330, lamis $1,005) from 20 apr.
-- **attio CRM trial** — keep or cancel decision.
-- **`wv-invoice-logged` gmail label** — 3 messages still unlabeled.
-- **wed celebration prep** — write paragraph on how maria's work has personally inspired you (whirlpool action item).
+- **amna call** — reply to jonelle today/tomorrow; coordinate with maria + lamis on a slot (most urgent comm owed; now ~50h)
+- **harbour review forms** — design the priority-app review forms (garrett's whirlpool action — **mon 11 may deadline; 2 days**)
+- **PRME capstone keith decision** — frame the engagement-tier recommendation before tue 12 may PRME hold
+- **jennifer rose reply** — warm response to her PRME session 2 praise; flag as potential ppcs lead
+- **circulate holistic skills framework** — share with collective + consider tile candidate for 5/28 launch
+- **maria's inspiration paragraph + wed celebration prep** — _status to verify_ (carried from earlier whirlpool action; not surfaced in today's threads)
+- **routine admin** — ADP, QuickBooks, gusto expense reviews (verify against current state next sweep)
 
 ### mobile bookmarks
 
 - _no new self-DMs in last 24h_ — slack search returned empty.
-- whirlpool agenda + recording for today's session: notion.so/34fe4ee74ba48019a809c50a4eba95ee — action items already logged in TASKS.md.
-- gina has declined the wed apr 29 UC-riverside PD panel invite (the cross-calendar joint event); the panel itself still stands at 9am-12pm PT for garrett.
-- maria added a **"dry run PPCS 1a"** event for wed apr 29 13:00-14:00 PT — sandwich it between the UC-riverside panel and post-panel decompression.
 
 ---
 
 ## history (most recent first)
+
+---
+
+## 2026-05-09 (night) — context-sync: homepage typewriter collaborators live, port conference intelligence on CF Workers, linkedin oauth migrated (Cowork)
+
+**what happened:**
+- **homepage typewriter collaborators feature shipped** in five rapid morning commits (`23cb152` typewriter + full-name cleanup, `6078911` scratch/EPFL/LEGO foundation back, `a74bd9f` white text + CCE name correction, `fb632fc` LEGO always caps, `d81015e` interleave current/past + lightbulb learning lab). active + past collaborators now rotate on the homepage with consistent full-name treatment.
+- **port: phase 1-8 conference intelligence pipeline migrated to CF Workers** (`c88ade6`, includes AI hub fix). **linkedin oauth + token refresh migrated from vercel to CF Workers** (`728ad6d`) — continuity infra work, no user-facing change.
+- **inbound positive signal:** jennifer rose (university of manchester) emailed unsolicited praise after listening to the recording of PRME pedagogy session 2 (gmail thread `19e0cf4e22c12937`); warm reply + flag as potential ppcs lead.
+- **calendar:** sat 9 may was clear (no scheduled meetings). **tomorrow (sun 10 may):** clear — recovery day. **monday (11 may):** wv site check 7am PT, whirlpool x press play 9-10:30am PT (with casper, jan), weekly = payton x garrett 11am PT.
+- **vercel `windedvertigo` failed-deploy alarm:** no new escalation in this sweep; _status to verify_ next sweep before claude-code action.
+- **slack search:** no self-DMs in last 24h.
+- **slack DM sent to garrett (U06Q4UN4PKR).**
+
+---
+
+## 2026-05-08 (night) — context-sync: holistic skills framework page shipped, port conference intelligence pipeline lands, 10k pageviews milestone (Cowork)
+
+**what happened:**
+- **holistic skills framework page shipped on portfolio** — `26df4b7` initial page + WCAG fixes; `5950d25` radial view added; `2f49024` anchored typographic labels in OECD compass pattern. garrett shared the URL with maria at 12:27 PT; she returned PPCS 1b/2a/2b as ready over the afternoon.
+- **port: Phase 1-8 conference intelligence pipeline shipped** (`8804154`) — substantial new feature; competitors sync backstop + daily-schedule fix landed alongside (`28dfb71`).
+- **lab playground refactored** down to two full-page mockups (typewriter + slow tide, `4a05f5e`); WCAG pause buttons added across all 5 auto-playing variants (`8c3016e`); museum + torn paper swapped for phosphor + breath (`60fe62e`).
+- **read-the-room WCAG AA pass complete** (`a68f147`) — pos-tag contrast, taken-tile legibility, card-label gradient. plus back buttons + 2-6 player count + size-picker copy clarification.
+- **today's calendar:** Sarah/Lightbulb 9-10am PT (connecting catch-up); R&D w/ gina 11-11:30am PT (recurring); PPCS biblio + post w/ maria 11am-1pm PT (gemini auto-notes filed at 13:08 PT). the friday calendar conflict flagged in last night's sync resolved naturally — both attended.
+- **cloudflare 10,000 pageviews milestone** on windedvertigo.com (forwarded by maria 11:11 PT); positive launch-readiness signal.
+- **payton claude-bot status 11:30 PT:** spending today on _learning to fly_ + jamie outreach + press play prep + miro; PPCS post if time permits.
+- **whirlpool agenda for mon 11 may** already drafted in notion (`35ae4ee74ba481569d46d8cc6b68f601`).
+- **vercel `windedvertigo` failed-deploy alarm:** no new escalation in this sweep; _status to verify_ next sweep before claude-code action.
+- slack search: no self-DMs in last 24h.
+- slack DM sent to garrett (U06Q4UN4PKR).
+
+---
+
+## 2026-05-07 (night) — context-sync: amna unblocked after 42 days, nordic phase B write-path flip lands, vercel windedvertigo deploys failing (Cowork)
+
+**what happened:**
+- **amna at 10 unblocked** — jonelle replied today (may 7, 16:01 UTC) after a 42-day silence with a revised timeline and an invite to a call. status flips from "32 days overdue → silent" to "active, schedule it." promotes to top-priority next-action.
+- **nordic CF Workers canary heavy commit day** — phase B write-path primitives + flip (`78003b5`, `aa5bc8e`), drift-sync parallelised across 13 tables (`e39f35f`), `maxDuration` Vercel-specific dead code removed (`9020e3e`), Path 2 architecture doc landed (#41), Notion webhooks runbook + wrangler post-migration cleanup (#38). Phase F.5 cutover is the next gate.
+- **read-the-room rename shipped** — feel-cards renamed across harbour with admin wipe + escape hatches (`1b43c61`); deploy-site guard added (`bb3d457`); durable URL config (`1edc294`).
+- **Vercel `windedvertigo` failed prod deploys** — 3 failures 21:24-21:27 UTC on team `ghandoffs-projects`; likely related to today's Vercel Blob → CF R2 storage migration (`cf2c4f5`). flagged for claude code investigation.
+- **PRME thread still warm** — meredith's 6 may "PRME capstone project" note proposes keith engages "to the maximum" despite teaching scope; wv team owes a reply with a tier decision.
+- **PRME pedagogy AM session ran this week** — costa manolchev replied 7 may with positive feedback ("such a great first session"); ekaterina ivanova reacted. signal that delivery is landing.
+- tomorrow (fri may 8): R&D meeting 11am, sarah/lightbulblearninglab call 9-10am PT, PPCS biblio + post w/ maria 11am-12pm.
+- slack DM sent to garrett (U06Q4UN4PKR).
 
 ---
 
@@ -117,14 +120,10 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 - **portfolio gallery card surfaced** by adding row to BD assets DB (`5e27b792adbb4a958779900fb59dd631` / data source `collection://6e8dbbd9-0a14-4342-9154-88fa379b0533`). Notion page: https://www.notion.so/35ae4ee74ba48157bf8cf037050ddeb5. set Show in Portfolio = YES, Quadrant = people × research. Card appears on `/do/` after 5-min ISR (or immediately via `/api/warm-cache`).
 - **build verified** — `npm run build` green; the route is in the static prerender table at 5m revalidate.
 
-**property compromises (worth flagging):**
-- `Website Asset Type` set to `"blog"` because the schema has no `primer` / `guide` / `report` option — closest available. Card label on `/do/` will read "blog". Could add a "primer" option to the select if that wording matters.
-- `Show in Package Builder` set to `__NO__` — the primer is reference content, not a package example. Easy to flip if you want it surfaced under a quadrant package.
-
 **out of scope, flagged for follow-up:**
-- the 13 "Codebook: …" links inside the primer still point to public Notion pages on `superb-shrimp-129.notion.site`. If those Notion pages move/unpublish, the links rot. A future task could port each codebook into `/portfolio/holistic-skills-a-primer/codebooks/<slug>/`.
-- `site/portfolio/GUIDE.md` is stale — describes a `/portfolio/index.html` landing page that doesn't exist. The actual portfolio gallery lives on `/do/`. Should be rewritten or deleted.
-- 18 decorative per-skill icons in the Notion page were `attachment://` block refs (not publicly fetchable) and were skipped — clean typography is sufficient.
+- the 13 "Codebook: …" links inside the primer still point to public Notion pages on `superb-shrimp-129.notion.site`. If those Notion pages move/unpublish, the links rot.
+- `site/portfolio/GUIDE.md` is stale — describes a `/portfolio/index.html` landing page that doesn't exist.
+- 18 decorative per-skill icons were `attachment://` block refs and were skipped.
 
 ---
 
