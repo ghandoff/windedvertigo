@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import styles from "./booking.module.css";
-import { SlotPicker, detectVisitorTz, type Slot } from "./SlotPicker";
+import { SlotGrid, detectVisitorTz, type Slot } from "./SlotGrid";
 import { BookingForm, type BookingFormPrefill } from "./BookingForm";
 
 interface BookingFlowProps {
   eventTypeId: string;
   slug: string;
   durationMin: number;
+  durationOptions: number[];
   prefill?: BookingFormPrefill;
   turnstileSiteKey?: string;
 }
@@ -17,6 +18,7 @@ export function BookingFlow({
   eventTypeId,
   slug,
   durationMin,
+  durationOptions,
   prefill,
   turnstileSiteKey,
 }: BookingFlowProps) {
@@ -27,13 +29,21 @@ export function BookingFlow({
     setTz(detectVisitorTz());
   }, []);
 
+  const scrollToPicker = () => {
+    if (typeof window !== "undefined" && window.innerWidth < 760) {
+      const el = document.getElementById("booking-picker-panel");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <div className={styles.grid}>
-      <div className={styles.panel}>
+      <div className={styles.panel} id="booking-picker-panel">
         <h2 className={styles.panelTitle}>pick a time</h2>
-        <SlotPicker
+        <SlotGrid
           eventTypeId={eventTypeId}
           durationMin={durationMin}
+          durationOptions={durationOptions}
           defaultTz={tz}
           selected={selectedSlot}
           onSelect={(s) => {
@@ -44,6 +54,7 @@ export function BookingFlow({
               if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
             }
           }}
+          onClear={() => setSelectedSlot(null)}
         />
       </div>
       <div className={styles.panel} id="booking-form-panel">
@@ -55,6 +66,10 @@ export function BookingFlow({
           visitorTz={tz}
           prefill={prefill}
           turnstileSiteKey={turnstileSiteKey}
+          onChangeTime={() => {
+            setSelectedSlot(null);
+            scrollToPicker();
+          }}
         />
       </div>
     </div>

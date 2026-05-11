@@ -115,7 +115,11 @@ export default async function BookSlugPage({ params, searchParams }: Props) {
           <header className={styles.hero}>
             <h1 className={styles.heroTitle}>{ev.title.toLowerCase()}</h1>
             <div className={styles.heroMeta}>
-              <span>{ev.duration_min} minutes</span>
+              <span>
+                {ev.duration_options && ev.duration_options.length > 0
+                  ? `${[...ev.duration_options].sort((a, b) => a - b).join(" / ")} min`
+                  : `${ev.duration_min} minutes`}
+              </span>
               <span>·</span>
               <span>{modeLabel}</span>
               {hostNames.length > 0 && (
@@ -132,6 +136,7 @@ export default async function BookSlugPage({ params, searchParams }: Props) {
             eventTypeId={ev.id}
             slug={ev.slug}
             durationMin={ev.duration_min}
+            durationOptions={ev.duration_options ?? []}
             prefill={prefill}
             turnstileSiteKey={turnstileSiteKey}
           />

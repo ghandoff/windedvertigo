@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
   const fromStr = url.searchParams.get("from");
   const toStr = url.searchParams.get("to");
   const tz = url.searchParams.get("tz") || "America/Los_Angeles";
+  const durationStr = url.searchParams.get("duration");
 
   if (!eventTypeId || !/^[0-9a-f-]{36}$/i.test(eventTypeId)) {
     return NextResponse.json({ error: "eventTypeId required" }, { status: 400 });
@@ -60,6 +61,27 @@ export async function GET(req: NextRequest) {
     );
     if (!eventType) {
       return NextResponse.json({ error: "event type not found" }, { status: 404 });
+    }
+
+    // Variable-duration support. If the event type has duration_options and
+    // the caller passed ?duration=N, override duration_min for slot generation.
+    let effectiveDurationMin = eventType.duration_min;
+    if (durationStr) {
+      const requested = parseInt(durationStr, 10);
+      if (!Number.isFinite(requested) || requested <= 0) {
+        return NextResponse.json({ error: "invalid duration" }, { status: 400 });
+      }
+      const allowed = eventType.duration_options ?? [];
+      if (allowed.length === 0) {
+        // event type doesn't support variable duration — silently ignore param
+      } else if (!allowed.includes(requested)) {
+        return NextResponse.json(
+          { error: `duration must be one of ${allowed.join(", ")}` },
+          { status: 400 },
+        );
+      } else {
+        effectiveDurationMin = requested;
+      }
     }
 
     const pool = eventType.host_pool ?? [];
@@ -125,7 +147,7 @@ export async function GET(req: NextRequest) {
     }
 
     const slots = generateSlots({
-      eventType,
+      eventType: { ...eventType, duration_min: effectiveDurationMin },
       hosts,
       freeBusy: mergedFreeBusy,
       overrides: { blocks, extras },

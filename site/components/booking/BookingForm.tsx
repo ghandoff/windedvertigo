@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./booking.module.css";
-import type { Slot } from "./SlotPicker";
+import type { Slot } from "./SlotGrid";
 
 export interface BookingFormPrefill {
   name?: string;
@@ -19,6 +19,9 @@ interface BookingFormProps {
   visitorTz: string;
   prefill?: BookingFormPrefill;
   turnstileSiteKey?: string;
+  /** Callback to clear the selection and return the visitor to the picker.
+   *  Shows a "change" link next to the selected-time display when provided. */
+  onChangeTime?: () => void;
 }
 
 interface CreateResponse {
@@ -53,6 +56,7 @@ export function BookingForm({
   visitorTz,
   prefill,
   turnstileSiteKey,
+  onChangeTime,
 }: BookingFormProps) {
   const [name, setName] = useState(prefill?.name ?? "");
   const [email, setEmail] = useState(prefill?.email ?? "");
@@ -114,12 +118,25 @@ export function BookingForm({
     setErrorMsg("");
 
     try {
+      // Derive the chosen duration from the slot end - start. The slot picker
+      // emits a slot whose `end` reflects the visitor-selected duration; the
+      // server validates the value is in event_type.duration_options.
+      const durationMin = Math.max(
+        0,
+        Math.round(
+          (new Date(selectedSlot.end).getTime() -
+            new Date(selectedSlot.start).getTime()) /
+            60_000,
+        ),
+      );
+
       const res = await fetch("/api/booking/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           eventTypeId,
           start: selectedSlot.start,
+          duration: durationMin,
           visitor: {
             name: name.trim(),
             email: email.trim(),
@@ -191,7 +208,18 @@ export function BookingForm({
   return (
     <form onSubmit={handleSubmit}>
       {slotLabel ? (
-        <div className={styles.selectedSlot}>selected: {slotLabel}</div>
+        <div className={styles.selectedSlot}>
+          <span>selected: {slotLabel}</span>
+          {onChangeTime && (
+            <button
+              type="button"
+              className={styles.selectedSlotChange}
+              onClick={onChangeTime}
+            >
+              change
+            </button>
+          )}
+        </div>
       ) : (
         <div className={styles.selectedSlot}>pick a time on the left to continue</div>
       )}

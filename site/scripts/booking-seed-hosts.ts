@@ -44,7 +44,7 @@ const HOSTS = [
   },
   {
     slug: "james",
-    display_name: "james",
+    display_name: "jamie",
     email: "james@windedvertigo.com",
     timezone: "America/Los_Angeles", // confirm
     working_hours: weekdays9to5(),

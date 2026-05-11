@@ -48,6 +48,7 @@ export async function GET(
       title: eventType.title,
       description: eventType.description,
       duration_min: eventType.duration_min,
+      duration_options: eventType.duration_options ?? [],
       mode: eventType.mode,
       hostNames,
       noticeHours: Math.round(eventType.notice_min / 60),

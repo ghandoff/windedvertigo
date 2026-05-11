@@ -9,29 +9,29 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** sat 9 may 2026, ~21:15 PT (cowork, context-sync)
+**last synced:** sun 10 may 2026, ~21:00 PT (cowork, context-sync)
 
 **where we are right now:**
-saturday landed lighter than friday but not idle — homepage typewriter collaborators feature shipped in five rapid morning commits (`23cb152`, `6078911`, `a74bd9f`, `fb632fc`, `d81015e`), interleaving active and past collaborators with full-name cleanup and adding scratch, EPFL, LEGO foundation, and lightbulb learning lab. port moved its phase 1-8 conference intelligence pipeline onto CF Workers (`c88ade6`, includes AI hub fix) and migrated linkedin oauth + token refresh from vercel to CF Workers (`728ad6d`) — continuity infra work, no user-facing change. nordic canary still steady. **amna at 10 reply to jonelle remains the most urgent owed external comm** — now ~50h since her 7 may invite. **harbour review forms deadline mon 11 may (2 days).** PRME capstone keith decision still owed before tue 12 may PRME hold. fresh inbound signal: jennifer rose at manchester sent unsolicited praise for PRME session 2 recording — warm reply + lead flag worth queueing.
+sunday was meant to be a recovery day but shipped two port marketing surfaces — `/analytics` folded into the strategy page's pipeline + campaigns tabs (`d97936e`), and month navigation added to the campaign calendar (`f072f42`). a port deploy this afternoon bumped a session-encryption lib that quietly invalidated existing sessions; garrett sent identical heads-up DMs to maria, lamis, and payton at ~13:45 PT with the signout-then-signin recovery path (lib now pinned). **harbour review forms deadline lands tomorrow (mon 11 may)** — single biggest unfinished commitment of the week. **amna at 10 reply to jonelle is now ~74h overdue** since her 7 may invite. PRME capstone keith decision still owed before tue 12 may PRME hold. jennifer rose at manchester still awaits a warm reply to her unsolicited praise on the PRME session 2 recording. tomorrow stacks tight: 7am site check, 9–10:30am whirlpool x press play (with casper + jan), 11am weekly payton x garrett — natural window to clear harbour review forms before whirlpool and the amna slot reply on the back of payton's sync.
 
 ### open threads
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| amna at 10 | jonelle replied 7 may inviting wv to a call (cc hejer + walaa); now ~50h owed | reply this weekend to confirm a slot; loop in maria + lamis | gmail thread `19e032bfd528e29a` |
-| harbour review forms | whirlpool 5/6 action on garrett; **deadline mon 11 may** (2 days) | design the priority-app review forms for harbour 5/28 launch | TASKS.md |
-| PRME capstone (keith) | meredith's note 6 may — wants keith engaged "to the maximum" despite teaching scope | wv team decision on tier of engagement; reply by tue 12 may PRME hold | gmail thread `19dfd64eb573e79b` |
-| homepage typewriter collaborators | shipped today across 5 commits (`23cb152` → `d81015e`); active + past collaborators now interleaved with full-name cleanup | watch for monday whirlpool feedback; consider as a harbour 5/28 launch surface | windedvertigo.com |
-| port conference intelligence pipeline | migrated to CF Workers + AI hub fix shipped today (`c88ade6`); linkedin oauth + token refresh moved off vercel (`728ad6d`) | smoke the daily schedule + verify linkedin token refresh fires next cycle | port |
-| jennifer rose / manchester (PRME) | unsolicited praise for session 2 recording landed today (gmail `19e0cf4e22c12937`) | warm reply + flag as potential ppcs lead; loop maria | gmail |
-| jamie's "learning to fly" substack | payton spending fri reading + reaching out to jamie; no fresh signal in today's commits | confirm jamie hand-off status (was due fri/mon); payton still posts wed 13 may | studio comms |
-| holistic skills framework | shipped + reviewed by maria fri; circulation pending | circulate to wider collective; consider as harbour launch tile candidate | windedvertigo.com/portfolio/holistic-skills-framework |
-| nordic CF Workers cutover | canary holding steady through the weekend | plan Vercel→CF DNS cutover (Phase F.5) early next week | github |
+| harbour review forms | whirlpool 5/6 action on garrett; **deadline tomorrow (mon 11 may)** | design priority-app review forms before 9am whirlpool x press play | TASKS.md |
+| amna at 10 | jonelle replied 7 may inviting wv to a call (cc hejer + walaa); now ~74h owed | reply tomorrow to confirm a slot; loop in maria + lamis | gmail thread `19e032bfd528e29a` |
+| PRME capstone (keith) | meredith's 6 may note — wants keith engaged "to the maximum" despite teaching scope | wv team decision on tier of engagement; reply by tue 12 may PRME hold | gmail thread `19dfd64eb573e79b` |
+| jennifer rose / manchester (PRME) | unsolicited praise for session 2 recording landed sat 9 may | warm reply + flag as potential ppcs lead; loop maria | gmail `19e0cf4e22c12937` |
+| port strategy + campaigns | shipped sun: `/analytics` folded into strategy tabs (`d97936e`); campaign-calendar month nav (`f072f42`) | watch for payton feedback at mon 11am sync; verify analytics tabs read cleanly | port |
+| port session-encryption lib bump | deployed sun ~13:45 PT; heads-up DMs sent to maria, lamis, payton; lib pinned | passive — only re-engage if a collective member reports the issue isn't resolved by signout-then-signin | slack DMs |
+| jamie's "learning to fly" substack | payton fri carve-out for reading + reaching out to jamie; no fresh signal | confirm jamie hand-off status at mon whirlpool; payton still posts wed 13 may | studio comms |
+| holistic skills framework | shipped + reviewed by maria fri; circulation still pending | circulate to wider collective; consider as harbour launch tile candidate | windedvertigo.com/portfolio/holistic-skills-a-primer |
+| nordic CF Workers cutover | canary still holding steady through the weekend | plan vercel → CF DNS cutover (phase F.5) early this week | github |
 
 ### waiting on external
 
-- **jonelle (amna at 10)** — wv owes a reply with a call slot; ~50h elapsed since her 7 may invite
-- **PRME capstone (keith)** — meredith's 6 may decision request; wv team owes a tier recommendation
+- **jonelle (amna at 10)** — wv owes a reply with a call slot; ~74h elapsed since her 7 may invite
+- **PRME capstone (keith)** — meredith's 6 may decision request; wv team owes a tier recommendation by tue 12 may
 - **paul ramchandani (pedal conference)** — proposal still unanswered since the holiday; passive
 - **KiwiCo international partnerships** — forwarded inquiry, no response since 17 apr; passive
 - **IDB Salvador** — evaluation committee reviewing apr 10 documentation; receipt confirmed 24 apr; passive monitor
@@ -40,29 +40,44 @@ saturday landed lighter than friday but not idle — homepage typewriter collabo
 ### environment handoffs
 
 **Cowork → Claude Code:**
-- **vercel `windedvertigo` failed-deploy alarm** — flagged in last sync (8 failures across may 7-8 night); _status to verify_ — pull latest build log next sweep before escalating further
+- **vercel `windedvertigo` failed-deploy alarm** — flagged 8 may, no fresh sweep yet; _status to verify_ — pull latest build log next sweep before escalating
 - **Neon decommission** — clean window ended 2026-05-04; delete the project and update TASKS.md
-- **Vercel project cleanup** — ~22 dormant projects await Garrett's confirmation (per `~/.claude/plans/graceful-popping-willow.md`)
+- **Vercel project cleanup** — ~22 dormant projects await garrett's confirmation (per `~/.claude/plans/graceful-popping-willow.md`)
 - **CF cleanup** — revoke temp CF API token, delete DNS-only token, close anotheroption CF account (post-consolidation)
 - **creaseworks content + refactor** — notion covers for playdates/packs/collections; phase 1 read-time `cover_url` refactor; body-content inline image sync
-- **post-launch sweep candidate** — read-the-room WCAG fixes, holistic skills framework page, and homepage typewriter collaborators all now live; verify all three render cleanly on harbour and the marketing site
+- **port session-encryption lib pin** — verify the pinning landed cleanly in `package.json` + lockfile so the next deploy can't re-introduce the silent-session-invalidation regression
 
 **Claude Code → Cowork:**
-- **amna call** — reply to jonelle today/tomorrow; coordinate with maria + lamis on a slot (most urgent comm owed; now ~50h)
-- **harbour review forms** — design the priority-app review forms (garrett's whirlpool action — **mon 11 may deadline; 2 days**)
+- **harbour review forms** — design the priority-app review forms (garrett's whirlpool action — **mon 11 may deadline; tomorrow**)
+- **amna call** — reply to jonelle in the morning; coordinate with maria + lamis on a slot (now ~74h owed)
 - **PRME capstone keith decision** — frame the engagement-tier recommendation before tue 12 may PRME hold
 - **jennifer rose reply** — warm response to her PRME session 2 praise; flag as potential ppcs lead
 - **circulate holistic skills framework** — share with collective + consider tile candidate for 5/28 launch
-- **maria's inspiration paragraph + wed celebration prep** — _status to verify_ (carried from earlier whirlpool action; not surfaced in today's threads)
+- **maria's inspiration paragraph + wed celebration prep** — _status to verify_ (carried from earlier whirlpool action; not surfaced in this sweep)
 - **routine admin** — ADP, QuickBooks, gusto expense reviews (verify against current state next sweep)
 
 ### mobile bookmarks
 
-- _no new self-DMs in last 24h_ — slack search returned empty.
+- _no new self-DMs in last 24h_ — slack search returned only outbound heads-ups to maria, lamis, and payton about the port session-encryption lib bump, not bookmarks-to-self.
 
 ---
 
 ## history (most recent first)
+
+---
+
+## 2026-05-10 (night) — context-sync: port strategy/analytics consolidation, session-encryption lib pinned, harbour review forms due tomorrow (Cowork)
+
+**what happened:**
+- **port marketing surfaces (2 commits today):** `d97936e` folded `/analytics` into the strategy page's pipeline + campaigns tabs (single consolidated marketing surface), `f072f42` added month navigation to the campaign calendar. quiet sunday otherwise.
+- **port session-encryption lib bump deployed ~13:45 PT** — quietly invalidated existing sessions; lib now pinned. garrett sent identical heads-up DMs to maria (`D08BBE7KPEU`), lamis (`D08H6CRDG5A`), and payton (`D08BWAFRSS3`) with the signout-then-signin recovery path. no replies yet.
+- **gmail (24h):** only fresh signal is jennifer rose / manchester continuation of the PRME session 2 thread from sat 9 may — already on the open-threads board.
+- **calendar — tomorrow (mon 11 may):** wv site check 7am PT, whirlpool x press play 9–10:30am PT (with casper, jan), weekly = payton x garrett 11am PT. natural window for harbour review forms before whirlpool + amna slot reply after payton sync.
+- **harbour review forms deadline lands tomorrow** — single biggest unfinished commitment of the week; carried 5 days from the 5/6 whirlpool action.
+- **amna at 10 reply now ~74h overdue** (3 days). bumped to second slot on open threads.
+- **vercel `windedvertigo` failed-deploy alarm:** no fresh sweep this run; _status to verify_ next sweep.
+- **slack search:** no genuine self-DMs in last 24h (search returned only outbound heads-ups to collective members).
+- **slack DM sent to garrett (U06Q4UN4PKR).**
 
 ---
 

@@ -18,6 +18,8 @@ interface EventTypeSeed {
   title: string;
   description: string;
   duration_min: number;
+  /** Allowed durations for variable-duration event types. Empty = single. */
+  duration_options?: number[];
   mode: "solo" | "collective" | "round_robin";
   hostSlugs: string[];      // resolved to host_pool uuid[] before insert
   min_required: number;
@@ -29,42 +31,42 @@ const SEEDS: EventTypeSeed[] = [
   {
     slug: "garrett", title: "30 minutes with garrett",
     description: "a focused session with garrett.",
-    duration_min: 30, mode: "solo",
+    duration_min: 30, duration_options: [30, 60], mode: "solo",
     hostSlugs: ["garrett"], min_required: 1,
     primary_host_slug: "garrett", notice_min: 240,
   },
   {
     slug: "payton", title: "30 minutes with payton",
     description: "a focused session with payton.",
-    duration_min: 30, mode: "solo",
+    duration_min: 30, duration_options: [30, 60], mode: "solo",
     hostSlugs: ["payton"], min_required: 1,
     primary_host_slug: "payton", notice_min: 240,
   },
   {
     slug: "lamis", title: "30 minutes with lamis",
     description: "a focused session with lamis.",
-    duration_min: 30, mode: "solo",
+    duration_min: 30, duration_options: [30, 60], mode: "solo",
     hostSlugs: ["lamis"], min_required: 1,
     primary_host_slug: "lamis", notice_min: 240,
   },
   {
     slug: "maria", title: "30 minutes with maria",
     description: "a focused session with maria.",
-    duration_min: 30, mode: "solo",
+    duration_min: 30, duration_options: [30, 60], mode: "solo",
     hostSlugs: ["maria"], min_required: 1,
     primary_host_slug: "maria", notice_min: 240,
   },
   {
-    slug: "james", title: "30 minutes with james",
-    description: "a focused session with james.",
-    duration_min: 30, mode: "solo",
+    slug: "james", title: "30 minutes with jamie",
+    description: "a focused session with jamie.",
+    duration_min: 30, duration_options: [30, 60], mode: "solo",
     hostSlugs: ["james"], min_required: 1,
     primary_host_slug: "james", notice_min: 240,
   },
   {
     slug: "discovery", title: "discovery playdate",
-    description: "30 minutes with whichever of us is most available — let's get acquainted.",
-    duration_min: 30, mode: "round_robin",
+    description: "with whichever of us is most available — let's get acquainted.",
+    duration_min: 30, duration_options: [30, 60, 90], mode: "round_robin",
     hostSlugs: ["garrett", "payton", "lamis", "maria", "james"], min_required: 1,
     notice_min: 240,
   },
@@ -81,6 +83,16 @@ const SEEDS: EventTypeSeed[] = [
     duration_min: 45, mode: "collective",
     hostSlugs: ["garrett", "payton"], min_required: 2,
     primary_host_slug: "garrett", notice_min: 1440,
+  },
+  {
+    // Open playdate: any 2+ of the collective who happen to be free.
+    // Slot picker shows times where >= 2 are free; create-flow filters to
+    // the actual free subset and books all of them (more is merrier).
+    slug: "playdate", title: "open playdate",
+    description: "with whichever 2+ of the collective are free — a casual joint sit-down.",
+    duration_min: 30, duration_options: [30, 60, 90], mode: "collective",
+    hostSlugs: ["garrett", "payton", "lamis", "maria", "james"], min_required: 2,
+    notice_min: 1440,
   },
 ];
 
@@ -118,6 +130,7 @@ async function main() {
       title: s.title,
       description: s.description,
       duration_min: s.duration_min,
+      duration_options: s.duration_options ?? [],
       mode: s.mode,
       host_pool,
       min_required: s.min_required,

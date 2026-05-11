@@ -46,6 +46,8 @@ const TURNSTILE_VERIFY_URL =
 interface CreateBody {
   eventTypeId?: unknown;
   start?: unknown;
+  /** Optional override of duration_min for variable-duration event types. */
+  duration?: unknown;
   visitor?: { name?: unknown; email?: unknown; tz?: unknown } | unknown;
   intake?: { curious?: unknown; valuable?: unknown; quadrant?: unknown } | unknown;
   turnstileToken?: unknown;
@@ -178,7 +180,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const end = new Date(+start + eventType.duration_min * 60_000);
+    // Variable-duration support. If the event type has duration_options and
+    // the body included a `duration`, validate + use it. Otherwise fall back
+    // to event_type.duration_min.
+    let effectiveDurationMin = eventType.duration_min;
+    if (raw.duration !== undefined && raw.duration !== null) {
+      const requested =
+        typeof raw.duration === "number" ? raw.duration : parseInt(String(raw.duration), 10);
+      if (!Number.isFinite(requested) || requested <= 0) {
+        return NextResponse.json({ error: "invalid duration" }, { status: 400 });
+      }
+      const allowed = eventType.duration_options ?? [];
+      if (allowed.length === 0) {
+        // ignore — event type doesn't support variable duration
+      } else if (!allowed.includes(requested)) {
+        return NextResponse.json(
+          { error: `duration must be one of ${allowed.join(", ")}` },
+          { status: 400 },
+        );
+      } else {
+        effectiveDurationMin = requested;
+      }
+    }
+
+    const end = new Date(+start + effectiveDurationMin * 60_000);
     const during = tstzrange(start, end);
 
     const pool = eventType.host_pool ?? [];
@@ -246,11 +271,14 @@ export async function POST(req: NextRequest) {
       assignedHostIds = [primaryHostId];
     } else {
       // collective
-      // Re-check freebusy for everyone in the pool — must all be free.
+      // Re-check freebusy for the pool, filter to who's actually free, and
+      // require at least `min_required`. Mirrors generateSlots() so the create
+      // step accepts every slot the picker offered.
       const freeBusy = await getFreeBusyForHosts(pool, start, end);
       const slot = { start, end };
-      const allFree = freeBusy.every((fb) => {
-        if (fb.error) return false;
+      const freeIds = pool.filter((hostId) => {
+        const fb = freeBusy.find((f) => f.hostId === hostId);
+        if (!fb || fb.error) return false;
         return !fb.busy.some(
           (b) => +b.start < +slot.end && +b.end > +slot.start,
         );
@@ -259,18 +287,24 @@ export async function POST(req: NextRequest) {
       // we leave that to the slot-picking UI; re-validating it here would
       // duplicate generateSlots. The exclusion constraint catches actual
       // double-booking races below.
-      if (!allFree) {
+      if (freeIds.length < eventType.min_required) {
         return NextResponse.json({ error: "slot just taken" }, { status: 409 });
       }
 
-      primaryHostId = eventType.primary_host_id ?? pool[0];
-      assignedHostIds = pool;
+      // Primary: prefer the configured primary if free, else the first free
+      // host in pool order. The primary owns the Google Calendar event;
+      // others are added as attendees.
+      primaryHostId =
+        eventType.primary_host_id && freeIds.includes(eventType.primary_host_id)
+          ? eventType.primary_host_id
+          : freeIds[0];
+      assignedHostIds = freeIds;
 
       try {
         const rows = await insert<Booking>("bookings", {
           event_type_id: eventType.id,
           assigned_host_id: primaryHostId,
-          collective_host_ids: pool,
+          collective_host_ids: freeIds,
           during,
           visitor_name: name,
           visitor_email: email,
@@ -380,7 +414,7 @@ export async function POST(req: NextRequest) {
       eventTitle: eventType.title,
       startAt: start,
       endAt: end,
-      durationMin: eventType.duration_min,
+      durationMin: effectiveDurationMin,
       meetUrl,
       cancelUrl,
       rescheduleUrl,

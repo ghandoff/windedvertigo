@@ -254,6 +254,13 @@ export interface EventType {
   title: string;
   description: string | null;
   duration_min: number;
+  /**
+   * Optional list of allowed durations (minutes) for variable-duration event
+   * types. Empty array = single-duration; visitor sees no toggle and
+   * `duration_min` is used. Non-empty = visitor picks; the chosen value
+   * must be a member of this list (validated server-side).
+   */
+  duration_options: number[];
   mode: EventTypeMode;
   host_pool: string[];
   min_required: number;

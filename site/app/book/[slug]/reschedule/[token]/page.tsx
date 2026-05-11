@@ -11,7 +11,7 @@ import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { SlotPicker, detectVisitorTz, type Slot } from "@/components/booking/SlotPicker";
+import { SlotGrid, detectVisitorTz, type Slot } from "@/components/booking/SlotGrid";
 import styles from "@/components/booking/booking.module.css";
 
 interface VerifyResponse {
@@ -180,9 +180,10 @@ export default function ReschedulePage({ params }: Props) {
                 currently booked for <strong>{currentLabel}</strong>. pick a new time below.
               </p>
               <div className={styles.panel}>
-                <SlotPicker
+                <SlotGrid
                   eventTypeId={state.data.eventTypeId}
                   durationMin={state.data.durationMin}
+                  durationOptions={[]}
                   defaultTz={tz}
                   selected={selectedSlot}
                   onSelect={(s) => setSelectedSlot(s)}

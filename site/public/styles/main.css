@@ -65,7 +65,7 @@ em { font-style: italic; }
 .content-narrow { max-width: var(--container-width); }
 
 /* ── header ───────────────────────────────────────────────────── */
-.header { padding: var(--space-lg) 0; position: absolute; top: 0; left: 0; right: 0; z-index: 100; }
+.header { padding: var(--space-lg) 0; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--wv-cadet); border-bottom: 1px solid rgba(255, 235, 210, 0.08); }
 .header .container { max-width: 100%; padding: 0 var(--edge-padding); }
 .header-inner { display: flex; justify-content: space-between; align-items: flex-start; }
 .logo { display: block; }

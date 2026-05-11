@@ -6,7 +6,14 @@
   background: #273248;
   color: #ffffff;
   font-family: Inter, system-ui, sans-serif;
-  padding: 40px 24px 80px;
+  /* top padding clears the ~106px fixed header (logo + space-lg padding) */
+  padding: 140px 24px 80px;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 110px 16px 60px;
+  }
 }
 
 .shell {
@@ -325,6 +332,28 @@
   font-size: 13px;
   color: var(--wv-champagne, #ffebd2);
   margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.selectedSlotChange {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--wv-sienna, #cb7858);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-transform: lowercase;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.selectedSlotChange:hover,
+.selectedSlotChange:focus-visible {
+  color: var(--wv-champagne, #ffebd2);
 }
 
 /* Confirmation surfaces */
@@ -396,4 +425,253 @@
   margin-top: 14px;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── SlotGrid (week view) ────────────────────────────────────── */
+
+.gridDurationRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 235, 210, 0.18);
+  border-radius: 8px;
+  position: sticky;
+  top: 84px; /* below the fixed site header */
+  z-index: 5;
+}
+
+.gridDurationLabel {
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.gridDurationLabel strong {
+  font-weight: 700;
+  color: var(--wv-champagne, #ffebd2);
+  margin-right: 4px;
+}
+
+.gridDurationDate {
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 4px;
+}
+
+.gridDurationToggle {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.gridDurationOpt {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: lowercase;
+}
+
+.gridDurationOpt:hover {
+  color: #ffffff;
+}
+
+.gridDurationOptActive {
+  background: var(--wv-redwood, #b15043);
+  color: #ffffff;
+}
+
+.gridDurationClear {
+  margin-left: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: rgba(255, 235, 210, 0.7);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  transition: color 0.15s ease;
+}
+
+.gridDurationClear:hover,
+.gridDurationClear:focus-visible {
+  color: var(--wv-sienna, #cb7858);
+}
+
+.gridScroll {
+  overflow-x: auto;
+  max-height: 70vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.weekGrid {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.weekGridTimeHead {
+  width: 56px;
+  background: rgba(39, 50, 72, 0.95);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.weekGridDayHead {
+  background: rgba(39, 50, 72, 0.95);
+  position: sticky;
+  top: 0;
+  padding: 8px 4px;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 235, 210, 0.18);
+  z-index: 2;
+}
+
+.weekGridDow {
+  font-size: 11px;
+  text-transform: lowercase;
+  color: rgba(255, 235, 210, 0.7);
+  font-weight: 500;
+}
+
+.weekGridDay {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.weekGridTimeCell {
+  width: 56px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: right;
+  padding: 0 6px;
+  vertical-align: top;
+  position: relative;
+  top: -8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  text-transform: lowercase;
+}
+
+.weekGridHourBoundary > .weekGridCell {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.weekGridCell {
+  height: 22px;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px dashed rgba(255, 255, 255, 0.04);
+  cursor: default;
+  transition: background 0.1s ease;
+}
+
+.weekGridCellAvailable {
+  background: rgba(206, 235, 255, 0.06);
+  cursor: pointer;
+}
+
+.weekGridCellAvailable:hover {
+  background: rgba(203, 120, 88, 0.22);
+}
+
+.weekGridCellUnavailable {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.weekGridCellSelected {
+  background: var(--wv-redwood, #b15043);
+}
+
+.weekGridCellSelected:hover {
+  background: var(--wv-redwood, #b15043);
+}
+
+/* ── Mobile fallback (<760px) ─────────────────────────────── */
+
+.mobileDays {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mobileDay {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.mobileDayBtn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-transform: lowercase;
+  cursor: pointer;
+}
+
+.mobileDayBtn[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mobileDayCount {
+  font-size: 12px;
+  color: rgba(255, 235, 210, 0.7);
+  text-transform: lowercase;
+}
+
+.mobileSlotList {
+  padding: 6px 12px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mobileSlotBtn {
+  flex: 1 0 calc(50% - 6px);
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-transform: lowercase;
+}
+
+.mobileSlotBtn:hover,
+.mobileSlotBtn:focus-visible {
+  border-color: var(--wv-sienna, #cb7858);
+}
+
+.mobileSlotBtnActive {
+  background: var(--wv-redwood, #b15043);
+  border-color: var(--wv-redwood, #b15043);
 }

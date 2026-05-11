@@ -74,6 +74,11 @@
   //   GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN
   //   FEEDLY_ACCESS_TOKEN, CF_R2_ACCOUNT_ID, CF_R2_ACCESS_KEY_ID
   //   CF_R2_SECRET_ACCESS_KEY, TURNSTILE_SECRET_KEY
+  // Bookings dashboard (reads wv-booking Supabase, calls site cancel API):
+  //   BOOKING_SUPABASE_URL, BOOKING_SUPABASE_SERVICE_ROLE_KEY
+  //   BOOKING_SIGNING_KEY (same value as the site — used to mint cancel tokens)
+  //   BOOKING_ADMIN_TOKEN (same value as the site — needed only for /bookings/connect re-auth links)
+  //   SITE_ORIGIN (optional — defaults to https://windedvertigo.com)
 
   // ── OpenNext config ───────────────────────────────────────────────────────
   // open-next.config.ts must be created at port/open-next.config.ts (G.2.1)
