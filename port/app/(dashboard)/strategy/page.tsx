@@ -19,6 +19,7 @@ import { PageHeader } from "@/app/components/page-header";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { getSocialStatsFromSnapshot } from "@/lib/marketing/social-stats";
 import { getPipelineProgress } from "@/lib/marketing/pipeline-progress";
+import { fetchRfpAnalytics, fetchEmailAnalytics } from "@/lib/marketing/rfp-analytics";
 import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
 import { StrategyHero } from "./components/strategy-hero";
 import { TeamPulseStrip } from "./components/team-pulse-strip";
@@ -53,7 +54,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -62,6 +63,9 @@ export default async function StrategyPage({
     // counts from primary data instead of hardcoding. Failures fall back
     // to the static PIPELINE_PROGRESS values via PipelineFunnel.
     getPipelineProgress().catch(() => undefined),
+    // Live RFP pipeline performance + email metrics (formerly /analytics page).
+    fetchRfpAnalytics().catch(() => null),
+    fetchEmailAnalytics().catch(() => null),
   ]);
   const crmCampaigns = allCampaigns.map((c) => ({
     id: c.id,
@@ -87,12 +91,13 @@ export default async function StrategyPage({
         <CampaignsTab
           crmCampaigns={crmCampaigns}
           memberFilter={memberFilter}
+          emailAnalytics={emailAnalytics}
         />
       )}
       {activeTab === "channels" && <ChannelsTab />}
       {activeTab === "audience" && <AudienceTab />}
       {activeTab === "pipeline" && (
-        <PipelineTab stats={stats} pipelineProgress={pipelineProgress} />
+        <PipelineTab stats={stats} pipelineProgress={pipelineProgress} rfpAnalytics={rfpAnalytics} />
       )}
       {activeTab === "distribution" && (
         <DistributionTab memberFilter={memberFilter} />

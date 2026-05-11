@@ -15,10 +15,10 @@ import {
   Clock,
   Compass,
   Shield,
-  TrendingUp,
   Sparkles,
   PenLine,
   CalendarDays,
+  CalendarClock,
   LineChart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -62,6 +62,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "campaigns", href: "/campaigns", icon: Megaphone },
       { label: "events", href: "/events", icon: CalendarDays },
+      { label: "bookings", href: "/bookings", icon: CalendarClock },
       { label: "content", href: "/content", icon: PenLine },
       { label: "assets", href: "/assets", icon: FolderOpen },
     ],
@@ -71,7 +72,6 @@ export const NAV_SECTIONS: NavSection[] = [
     defaultOpen: true,
     items: [
       { label: "strategy", href: "/strategy", icon: LineChart },
-      { label: "analytics", href: "/analytics", icon: TrendingUp },
       { label: "ai hub", href: "/ai-hub", icon: Sparkles },
     ],
   },

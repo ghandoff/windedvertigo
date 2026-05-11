@@ -8,6 +8,7 @@
  *   4. Concrete pipeline rows (5 RFP/SOW opportunities)
  */
 
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -28,6 +29,7 @@ import {
 import { PipelineFunnel, type PipelineProgressOverrides } from "./pipeline-funnel";
 import { ClickableKpiCard } from "./kpi-source-modal";
 import { SyncNowButton } from "../sync-now-button";
+import { formatUSD, type RfpAnalytics } from "@/lib/marketing/rfp-analytics";
 
 /** Full snapshot shape (matches `SocialStatsSnapshot` from lib/marketing/social-stats.ts).
     Loosely typed here to avoid coupling the tab to the marketing internals. */
@@ -63,9 +65,11 @@ export interface PipelineTabProps {
   } | null;
   /** Tier 1 derived counts (see lib/marketing/pipeline-progress.ts) */
   pipelineProgress?: PipelineProgressOverrides;
+  /** Live RFP performance data (formerly /analytics page). Null if fetch failed. */
+  rfpAnalytics?: RfpAnalytics | null;
 }
 
-export function PipelineTab({ stats, pipelineProgress }: PipelineTabProps) {
+export function PipelineTab({ stats, pipelineProgress, rfpAnalytics }: PipelineTabProps) {
   const subscribersTarget = 2000;
   const followersTarget = 5000;
   const campaignActivityTarget = 100;
@@ -263,6 +267,179 @@ export function PipelineTab({ stats, pipelineProgress }: PipelineTabProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* ── pipeline performance (live from Supabase, formerly /analytics) ── */}
+      {rfpAnalytics && <PipelinePerformance data={rfpAnalytics} />}
+    </div>
+  );
+}
+
+// ── Pipeline Performance section ──────────────────────────────────────
+
+const OUTCOME_COLORS: Record<string, string> = {
+  won:               "bg-green-100 text-green-800",
+  lost:              "bg-red-100 text-red-800",
+  "no-go":           "bg-amber-100 text-amber-800",
+  "missed deadline": "bg-slate-100 text-slate-600",
+};
+
+function PerfStatCard({
+  value,
+  label,
+  colorClass = "text-foreground",
+}: {
+  value: string;
+  label: string;
+  colorClass?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-card px-4 py-3 flex flex-col gap-0.5">
+      <span className={`text-xl font-bold tabular-nums ${colorClass}`}>{value}</span>
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
+function ConversionBar({
+  label,
+  rate,
+  won,
+  total,
+  labelWidth = "120px",
+}: {
+  label: string;
+  rate: number;
+  won: number;
+  total: number;
+  labelWidth?: string;
+}) {
+  return (
+    <div className="grid items-center gap-3" style={{ gridTemplateColumns: `${labelWidth} 1fr auto` }}>
+      <span className="text-[11px] text-muted-foreground text-right truncate shrink-0">{label}</span>
+      <div className="h-3 rounded-sm bg-muted overflow-hidden">
+        <div
+          className="h-full rounded-sm bg-green-500/70 transition-all"
+          style={{ width: `${rate}%` }}
+          title={`${rate}% win rate`}
+        />
+      </div>
+      <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+        {won} won / {total} total
+      </span>
+    </div>
+  );
+}
+
+function PipelinePerformance({ data }: { data: RfpAnalytics }) {
+  const winRateColor =
+    data.winRate >= 50 ? "text-green-600" : data.winRate >= 25 ? "text-amber-600" : "text-muted-foreground";
+
+  return (
+    <div className="space-y-4 pt-2">
+      {/* section heading */}
+      <div className="flex items-center gap-3">
+        <h3 className="text-sm font-semibold text-[#273248]">pipeline performance</h3>
+        <div className="flex-1 h-px bg-border" />
+        <Link
+          href="/opportunities?tab=rfps"
+          className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          view rfp radar →
+        </Link>
+      </div>
+
+      {/* 4-stat strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <PerfStatCard value={data.totalActive.toString()} label="active opportunities" />
+        <PerfStatCard value={formatUSD(data.totalPipelineValue)} label="pipeline value" />
+        <PerfStatCard value={`${data.winRate}%`} label="win rate" colorClass={winRateColor} />
+        <PerfStatCard value={formatUSD(data.wonValue)} label="won value" colorClass="text-green-600" />
+      </div>
+
+      {/* conversion charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="rounded-lg border border-border bg-card px-4 py-4">
+          <h4 className="text-xs font-medium text-muted-foreground mb-4">conversion by source</h4>
+          {data.bySource.filter((s) => s.total >= 2).length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">not enough data yet</p>
+          ) : (
+            <div className="space-y-3">
+              {data.bySource
+                .filter((s) => s.total >= 2)
+                .map((s) => (
+                  <ConversionBar
+                    key={s.source}
+                    label={s.source}
+                    rate={s.rate}
+                    won={s.won}
+                    total={s.total}
+                    labelWidth="120px"
+                  />
+                ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-border bg-card px-4 py-4">
+          <h4 className="text-xs font-medium text-muted-foreground mb-4">conversion by fit score</h4>
+          {data.byFitScore.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">not enough data yet</p>
+          ) : (
+            <div className="space-y-3">
+              {data.byFitScore.map((s) => (
+                <ConversionBar
+                  key={s.score}
+                  label={s.score}
+                  rate={s.rate}
+                  won={s.won}
+                  total={s.total}
+                  labelWidth="90px"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* recent outcomes */}
+      {data.recentOutcomes.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm text-[#273248]">recent outcomes</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {data.recentOutcomes.map((o) => {
+                const badgeClass = OUTCOME_COLORS[o.status] ?? "bg-muted text-muted-foreground";
+                const notionUrl = `https://notion.so/${o.id.replace(/-/g, "")}`;
+                const truncated = o.name.length > 40 ? o.name.slice(0, 40) + "…" : o.name;
+                return (
+                  <div key={o.id} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-4 py-2.5">
+                    <a
+                      href={notionUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm hover:underline truncate"
+                      title={o.name}
+                    >
+                      {truncated}
+                    </a>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${badgeClass}`}>
+                      {o.status}
+                    </span>
+                    <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                      {o.value != null ? formatUSD(o.value) : "—"}
+                    </span>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap hidden sm:block">
+                      {o.source ?? "—"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

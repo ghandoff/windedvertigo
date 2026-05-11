@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { CAMPAIGNS, matchCrmCampaigns } from "@/lib/strategy-data";
 import { CreateWithClaudeButton } from "../create-with-claude-button";
+import type { EmailAnalytics } from "@/lib/marketing/rfp-analytics";
 
 const ICON_MAP = {
   Mail,
@@ -37,14 +38,19 @@ const ICON_MAP = {
 export interface CampaignsTabProps {
   crmCampaigns: { id: string; name: string; status: string }[];
   memberFilter: string | null;
+  emailAnalytics?: EmailAnalytics | null;
 }
 
-export function CampaignsTab({ crmCampaigns, memberFilter }: CampaignsTabProps) {
+export function CampaignsTab({ crmCampaigns, memberFilter, emailAnalytics }: CampaignsTabProps) {
   const visible = memberFilter
     ? CAMPAIGNS.filter((c) => c.ownerNames.includes(memberFilter))
     : CAMPAIGNS;
 
   return (
+    <div className="space-y-4">
+      {/* email performance strip */}
+      {emailAnalytics && <EmailPerformance data={emailAnalytics} />}
+
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base text-[#273248]">
@@ -162,5 +168,85 @@ export function CampaignsTab({ crmCampaigns, memberFilter }: CampaignsTabProps) 
         </p>
       </CardContent>
     </Card>
+    </div>
+  );
+}
+
+// ── Email performance section ─────────────────────────────────────────
+
+function EmailPerformance({ data }: { data: EmailAnalytics }) {
+  const openRateColor =
+    data.openRate >= 30 ? "text-green-600" : data.openRate >= 15 ? "text-amber-600" : "text-muted-foreground";
+  const clickRateColor =
+    data.clickRate >= 5 ? "text-green-600" : data.clickRate >= 2 ? "text-amber-600" : "text-muted-foreground";
+
+  const maxSent = Math.max(...data.monthlyTrend.map((d) => d.sent), 1);
+
+  return (
+    <div className="space-y-4">
+      {/* stat strip */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-lg border border-border bg-card px-4 py-3 flex flex-col gap-0.5">
+          <span className="text-xl font-bold tabular-nums">{data.sent.toLocaleString()}</span>
+          <span className="text-[11px] text-muted-foreground">emails sent</span>
+        </div>
+        <div className="rounded-lg border border-border bg-card px-4 py-3 flex flex-col gap-0.5">
+          <span className={`text-xl font-bold tabular-nums ${openRateColor}`}>{data.openRate}%</span>
+          <span className="text-[11px] text-muted-foreground">avg open rate</span>
+        </div>
+        <div className="rounded-lg border border-border bg-card px-4 py-3 flex flex-col gap-0.5">
+          <span className={`text-xl font-bold tabular-nums ${clickRateColor}`}>{data.clickRate}%</span>
+          <span className="text-[11px] text-muted-foreground">avg click rate</span>
+        </div>
+      </div>
+
+      {/* 6-month trend */}
+      <div className="rounded-lg border border-border bg-card px-4 py-4">
+        <h3 className="text-xs font-medium text-muted-foreground mb-4">email trend — last 6 months</h3>
+
+        {/* legend */}
+        <div className="flex items-center gap-4 text-[11px] text-muted-foreground mb-3">
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-2.5 h-2.5 rounded-sm bg-primary/70" />
+            sent
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500/70" />
+            opens
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-2.5 h-2.5 rounded-sm bg-amber-500/70" />
+            clicks
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          {data.monthlyTrend.map(({ month, sent, opens, clicks }) => {
+            const sentPct   = Math.round((sent   / maxSent) * 100);
+            const opensPct  = sent > 0 ? Math.round((opens  / sent) * 100) : 0;
+            const clicksPct = sent > 0 ? Math.round((clicks / sent) * 100) : 0;
+            return (
+              <div key={month} className="grid grid-cols-[56px_1fr] items-center gap-3">
+                <span className="text-[11px] text-muted-foreground text-right shrink-0">{month}</span>
+                <div className="flex flex-col gap-0.5">
+                  <div className="h-3 rounded-sm bg-muted overflow-hidden">
+                    <div className="h-full rounded-sm bg-primary/70 transition-all" style={{ width: `${sentPct}%` }} title={`${sent} sent`} />
+                  </div>
+                  <div className="h-2 rounded-sm bg-muted overflow-hidden">
+                    <div className="h-full rounded-sm bg-green-500/70 transition-all" style={{ width: `${opensPct}%` }} title={`${opens} opens (${opensPct}%)`} />
+                  </div>
+                  <div className="h-2 rounded-sm bg-muted overflow-hidden">
+                    <div className="h-full rounded-sm bg-amber-500/70 transition-all" style={{ width: `${clicksPct}%` }} title={`${clicks} clicks (${clicksPct}%)`} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {data.monthlyTrend.every((d) => d.sent === 0) && (
+            <p className="text-sm text-muted-foreground text-center py-4">no sent emails in the last 6 months</p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

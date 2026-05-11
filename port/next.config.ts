@@ -15,8 +15,10 @@ const nextConfig: NextConfig = {
       // Phase 10: /events is now a standalone page — old redirect removed.
       // /campaigns?tab=events is handled by a server-side redirect inside campaigns/page.tsx.
       { source: "/social", destination: "/campaigns?tab=social", permanent: true },
-      { source: "/settings/analytics", destination: "/analytics", permanent: true },
-      // Phase 11 settings refactor — analytics/ai-hub/competitors promoted to top-level
+      // /analytics folded into /strategy?tab=pipeline (formerly Phase 11 promotion to top-level)
+      { source: "/analytics",          destination: "/strategy?tab=pipeline", permanent: true },
+      { source: "/settings/analytics", destination: "/strategy?tab=pipeline", permanent: true },
+      // Phase 11 settings refactor — ai-hub/competitors promoted to top-level
       { source: "/settings/ai", destination: "/ai-hub", permanent: true },
       { source: "/settings/competitors", destination: "/competitors", permanent: true },
     ];
