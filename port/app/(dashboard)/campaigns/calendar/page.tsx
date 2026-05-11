@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
 import { getEventsFromSupabase } from "@/lib/supabase/events";
 import { PageHeader } from "@/app/components/page-header";
@@ -19,11 +19,10 @@ function getMonthDays(year: number, month: number): Date[] {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
 
-  // Pad start to Monday
-  const startPad = (firstDay.getDay() + 6) % 7; // Monday = 0
-  for (let i = startPad - 1; i >= 0; i--) {
-    const d = new Date(year, month, -i);
-    days.push(d);
+  // Pad start to Monday (Mon=0 … Sun=6)
+  const startPad = (firstDay.getDay() + 6) % 7;
+  for (let i = startPad; i > 0; i--) {
+    days.push(new Date(year, month, 1 - i));
   }
 
   // Month days
@@ -31,7 +30,7 @@ function getMonthDays(year: number, month: number): Date[] {
     days.push(new Date(year, month, d));
   }
 
-  // Pad end to fill 6 rows
+  // Pad end to fill 6 rows (42 cells)
   while (days.length < 42) {
     days.push(new Date(year, month + 1, days.length - lastDay.getDate() - startPad + 1));
   }
@@ -52,16 +51,50 @@ function isInRange(day: Date, start: string, end?: string | null): boolean {
   return isSameDay(day, new Date(start));
 }
 
-export default async function CampaignCalendarPage() {
+// ── Month href helpers ───────────────────────────────────────────────
+
+function monthHref(year: number, month: number): string {
+  // month is 0-indexed here (JS convention)
+  return `/campaigns/calendar?month=${year}-${String(month + 1).padStart(2, "0")}`;
+}
+
+// ── Props ────────────────────────────────────────────────────────────
+
+interface Props {
+  searchParams: Promise<Record<string, string | undefined>>;
+}
+
+export default async function CampaignCalendarPage({ searchParams }: Props) {
+  const params = await searchParams;
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+
+  // Parse ?month=YYYY-MM (1-indexed), fall back to current month
+  let year = now.getFullYear();
+  let month = now.getMonth(); // 0-indexed
+
+  if (params.month) {
+    const [y, m] = params.month.split("-").map(Number);
+    if (!isNaN(y) && !isNaN(m) && m >= 1 && m <= 12) {
+      year = y;
+      month = m - 1; // convert to 0-indexed
+    }
+  }
+
   const days = getMonthDays(year, month);
-  const monthName = now.toLocaleDateString("en-US", { month: "long", year: "numeric" }).toLowerCase();
+  const monthName = new Date(year, month, 1)
+    .toLocaleDateString("en-US", { month: "long", year: "numeric" })
+    .toLowerCase();
+
+  // Navigation: previous and next month hrefs
+  const prevDate = new Date(year, month - 1, 1);
+  const nextDate = new Date(year, month + 1, 1);
+  const prevHref = monthHref(prevDate.getFullYear(), prevDate.getMonth());
+  const nextHref = monthHref(nextDate.getFullYear(), nextDate.getMonth());
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
 
   const [campaigns, { data: events }] = await Promise.all([
     getCampaignsFromSupabase(undefined, undefined, undefined),
-    getEventsFromSupabase({ upcoming: true }, { pageSize: 20 }),
+    getEventsFromSupabase({ upcoming: false }, { pageSize: 50 }),
   ]);
   const activeCampaigns = campaigns.filter((c) => c.status === "active" || c.status === "draft");
 
@@ -77,7 +110,33 @@ export default async function CampaignCalendarPage() {
         back to campaigns
       </Link>
 
-      <PageHeader title={`campaign calendar — ${monthName}`} />
+      <PageHeader title={`campaign calendar — ${monthName}`}>
+        {/* Month navigation controls */}
+        <div className="flex items-center gap-0.5">
+          <Link
+            href={prevHref}
+            className="inline-flex items-center justify-center rounded-md h-7 w-7 hover:bg-muted transition-colors"
+            aria-label="previous month"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Link>
+          {!isCurrentMonth && (
+            <Link
+              href="/campaigns/calendar"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted"
+            >
+              today
+            </Link>
+          )}
+          <Link
+            href={nextHref}
+            className="inline-flex items-center justify-center rounded-md h-7 w-7 hover:bg-muted transition-colors"
+            aria-label="next month"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </PageHeader>
 
       {/* legend */}
       <div className="flex flex-wrap gap-3 mb-4">
