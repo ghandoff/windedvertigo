@@ -54,21 +54,21 @@ const nextConfig: NextConfig = {
           "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/:path*",
       },
 
-      // vertigo vault
+      // vertigo vault — CF Workers (migrated from Vercel 2026-05-11)
       {
         source: "/harbour/vertigo-vault",
         destination:
-          "https://vertigo-vault-ghandoffs-projects.vercel.app/harbour/vertigo-vault",
+          "https://wv-vault.windedvertigo.workers.dev/harbour/vertigo-vault",
       },
       {
         source: "/harbour/vertigo-vault/",
         destination:
-          "https://vertigo-vault-ghandoffs-projects.vercel.app/harbour/vertigo-vault",
+          "https://wv-vault.windedvertigo.workers.dev/harbour/vertigo-vault",
       },
       {
         source: "/harbour/vertigo-vault/:path*",
         destination:
-          "https://vertigo-vault-ghandoffs-projects.vercel.app/harbour/vertigo-vault/:path*",
+          "https://wv-vault.windedvertigo.workers.dev/harbour/vertigo-vault/:path*",
       },
 
       // deep deck

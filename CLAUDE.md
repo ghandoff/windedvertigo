@@ -3,7 +3,7 @@
 > Deep memory, tasks, and operational files live in `.brain/`
 > Tasks: `.brain/TASKS.md` | Memory: `.brain/memory/` | Archive: `.brain/archive/`
 
-> **What's new (2026-05-11):** Nordic F.5 DNS cutover confirmed complete (etag match: `nordic.windedvertigo.com` ≡ `wv-nordic.windedvertigo.workers.dev`). Ancestry H.4 cutover fixed — Vercel project was returning 404; added CF Workers route `ancestry.windedvertigo.com/*` to wv-ancestry wrangler.jsonc, redeployed — site live on CF Workers. Inngest fully removed from port (1,351 lines, 7 files deleted). `@vercel/analytics` removed from site. VERCEL_URL refs cleaned in nordic + ancestry. Previous (2026-05-03): Port migrated to CF Workers (`wv-port`); Vercel `wv-crm` rollback expires 2026-05-17.
+> **What's new (2026-05-11):** Nordic F.5 DNS cutover confirmed complete (etag match: `nordic.windedvertigo.com` ≡ `wv-nordic.windedvertigo.workers.dev`). Ancestry H.4 cutover fixed — Vercel project was returning 404; added CF Workers route `ancestry.windedvertigo.com/*` to wv-ancestry wrangler.jsonc, redeployed — site live on CF Workers. Ops H.1 cutover complete — CF Workers custom domain attached, Vercel `wv-ops` project deleted. Vault H.3 confirmed — already on CF Workers (`wv-vault`); `vertigo-vault` Vercel project deleted; `site/next.config.ts` rewrites updated from Vercel → workers.dev, wv-site redeployed. Only creaseworks remains on Vercel. Inngest fully removed from port (1,351 lines, 7 files deleted). `@vercel/analytics` removed from site. VERCEL_URL refs cleaned in nordic + ancestry. Previous (2026-05-03): Port migrated to CF Workers (`wv-port`); Vercel `wv-crm` rollback expires 2026-05-17.
 
 ## Me
 Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in San Francisco, CA (Pacific time). Email: garrett@windedvertigo.com
@@ -86,7 +86,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **Google Calendar** | Scheduling, meeting cadence, time blocking |
 | **Google Drive** | Document storage, shared folders, proposals |
 | **Cloudflare** | Primary hosting (Workers via OpenNext: site, harbour, depth-chart), DNS, R2 storage, edge |
-| **Vercel** | Hosting for creaseworks, vault only — everything else on CF Workers |
+| **Vercel** | Hosting for creaseworks only — everything else on CF Workers |
 | **Cowork (Claude)** | CFO/COO operations, memory system, scheduled tasks, file management |
 | **Otter AI** | Meeting transcription (archived in Notion) |
 | **ADP** | 401k plan administration |
@@ -156,7 +156,8 @@ windedvertigo/
 | Nordic | nordic.windedvertigo.com | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs` binding, `workflow` SDK removed, Supabase saga for ingredient-safety) | Live — F.5 cutover confirmed + Vercel project decommissioned 2026-05-11. |
 | Ancestry | ancestry.windedvertigo.com | CF Workers (OpenNext) | `wv-ancestry` (R2 `ancestry-media`, 2 cron triggers, `@neondatabase/serverless`, Google OAuth) | Live — H.4 cutover 2026-05-11. Route `ancestry.windedvertigo.com/*` added to wrangler.jsonc. |
 | Ops | ops.windedvertigo.com | CF Workers (OpenNext) | `wv-ops` (OPS_DATA + SMOKE_LATEST KV bindings, Google OAuth, Supabase, Notion) | Live — H.1 cutover 2026-05-11. Workers custom domain attached. Auth flow needs verification (incognito test). |
-| Creaseworks, Vault | — | Vercel | (kept on Vercel) | Live |
+| Vault | windedvertigo.com/harbour/vertigo-vault/* | CF Workers (OpenNext) | `wv-vault` (Auth.js Pool A SSO, 17 secrets set, R2 `creaseworks-evidence`, Notion) | Live — H.3 confirmed 2026-05-11. Vercel `vertigo-vault` project deleted. `site/next.config.ts` rewrites → workers.dev. |
+| Creaseworks | — | Vercel | `creaseworks` (next migration target H.2) | Live |
 
 **Canonical image bucket:** R2 `creaseworks-evidence` (in garrett CF account `097c92553b268f8360b74f625f6d980a`, migrated 2026-04-25 from anotheroption). Public URL: `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev`. Used by site, harbour, vault, creaseworks.
 
