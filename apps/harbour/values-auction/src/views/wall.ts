@@ -4,7 +4,12 @@ import type { Controller } from '@/state/controller';
 import type { Broadcast, Session } from '@/state/types';
 import { COPY } from '@/content/copy';
 import { getValue } from '@/content/values';
-import { latestBroadcast, totalParticipants } from '@/state/selectors';
+import {
+  brainstormSubmittedCount,
+  latestBroadcast,
+  totalParticipants,
+  visibleBrainstorm,
+} from '@/state/selectors';
 import '@/components/countdown';
 import '@/components/value-card';
 import '@/components/identity-card';
@@ -221,13 +226,50 @@ export class VaWall extends LitElement {
     `;
   }
 
-  private renderAuction() {
+  private renderBrainstorm() {
+    if (!this.session) return html``;
+    const responses = visibleBrainstorm(this.session);
+    const total = totalParticipants(this.session);
+    const responded = brainstormSubmittedCount(this.session);
+    return html`
+      <div style="padding: var(--space-5); max-width: 1600px; margin: 0 auto;">
+        <header style="text-align: center; margin-bottom: var(--space-5);">
+          <h1 style="font: var(--type-display);">${COPY.brainstorm.wallHeading}</h1>
+          <p style="font: var(--type-mono); color: var(--fg-muted); margin-top: var(--space-2);">
+            ${COPY.brainstorm.counter(responded, total)}
+          </p>
+        </header>
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3);"
+        >
+          ${[...responses]
+            .sort((a, b) => b.at - a.at)
+            .map(
+              (r) => html`
+                <div
+                  style="padding: var(--space-3) var(--space-4); background: var(--bg-card); border-left: 4px solid var(--wv-cadet-blue); border-radius: var(--radius-sm); line-height: 1.4; font-size: 18px;"
+                >
+                  ${r.text}
+                </div>
+              `,
+            )}
+        </div>
+      </div>
+    `;
+  }
+
+  private renderAuction(practice = false) {
     const auction = this.session?.currentAuction;
     if (!auction) return this.renderIdle();
-    const v = getValue(auction.valueId);
+    const v = practice
+      ? { id: '__practice__', name: COPY.practice.dummyValueName, description: COPY.practice.dummyValueDescription }
+      : getValue(auction.valueId);
     const highTeam = this.session?.teams.find((t) => t.id === auction.highBid?.teamId);
     return html`
       <div class="auction">
+        ${practice
+          ? html`<div style="font: var(--type-mono); color: var(--wv-burnt-sienna); letter-spacing: 0.2em; text-transform: uppercase;">${COPY.practice.badge}</div>`
+          : ''}
         <div class="big-card">
           <va-value-card .value=${v} zone="must" large></va-value-card>
         </div>
@@ -325,7 +367,9 @@ export class VaWall extends LitElement {
     if (!this.session) return html`<p>loading…</p>`;
     const act = this.session.currentAct;
     let body;
-    if (act === 'auction') body = this.renderAuction();
+    if (act === 'brainstorm') body = this.renderBrainstorm();
+    else if (act === 'practice') body = this.renderAuction(true);
+    else if (act === 'auction') body = this.renderAuction(false);
     else if (act === 'reflection') body = this.renderReflection();
     else if (act === 'regather') body = this.renderRegather();
     else body = this.renderIdle();

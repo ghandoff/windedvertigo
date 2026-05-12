@@ -7,11 +7,26 @@ import './va-button';
 export class VaBidButton extends LitElement {
   @property({ type: Number }) currentHigh = 0;
   @property({ type: Number }) credos = 0;
+  @property({ type: Number }) preFill = 0;
   @property({ type: Boolean }) disabled = false;
 
   @state() private open = false;
   @state() private draft = 0;
   @state() private error = '';
+
+  private lastPreFill = -1;
+
+  updated() {
+    // when the pre-agreed amount changes (new auction round), refresh the draft
+    // so the captain sees their team's number without having to click.
+    if (this.preFill !== this.lastPreFill) {
+      this.lastPreFill = this.preFill;
+      if (this.preFill > 0 && !this.open) {
+        this.draft = this.preFill;
+        this.open = true;
+      }
+    }
+  }
 
   static styles = css`
     :host {
@@ -48,7 +63,7 @@ export class VaBidButton extends LitElement {
 
   private openDraft() {
     this.open = true;
-    this.draft = Math.max(this.currentHigh + 1, 1);
+    this.draft = Math.max(this.preFill, this.currentHigh + 1, 1);
     this.error = '';
     queueMicrotask(() => {
       this.renderRoot.querySelector<HTMLInputElement>('input')?.focus();
