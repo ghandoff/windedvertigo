@@ -114,7 +114,8 @@ export async function syncStudyToPcs(studyId, studyDoi, studyData = null) {
   const reviewDate = latestTimestamp.split('T')[0];
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL
-    ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    ?? process.env.NORDIC_URL
+    ?? 'http://localhost:3000';
   const reviewUrl = `${appUrl}/analytics`;
 
   // Idempotency check
