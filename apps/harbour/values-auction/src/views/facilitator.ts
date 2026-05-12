@@ -5,9 +5,22 @@ import type { Session } from '@/state/types';
 import { COPY } from '@/content/copy';
 import { ACTS } from '@/content/acts';
 import { VALUES } from '@/content/values';
-import { DEFAULT_AUCTION_MS, advanceAct, assignTeams } from '@/state/reducers';
+import {
+  DEFAULT_AUCTION_MS,
+  PRACTICE_AUCTION_MS,
+  advanceAct,
+  assignTeams,
+} from '@/state/reducers';
 import { prevAct } from '@/content/acts';
-import { bidsPerMinute, readyCount, silentTeams } from '@/state/selectors';
+import {
+  bidsPerMinute,
+  brainstormSubmittedCount,
+  decidedCount,
+  readyCount,
+  silentTeams,
+  totalParticipants,
+  visibleBrainstorm,
+} from '@/state/selectors';
 import { startTicker } from '@/utils/timer';
 import '@/components/va-card';
 import '@/components/va-button';
@@ -160,6 +173,39 @@ export class VaFacilitator extends LitElement {
   private endAuction() {
     this.controller?.dispatch({ type: 'AUCTION_END', at: Date.now() });
     this.nextValueId = null;
+  }
+
+  private startPractice() {
+    this.controller?.dispatch({
+      type: 'PRACTICE_START',
+      durationMs: PRACTICE_AUCTION_MS,
+      at: Date.now(),
+    });
+  }
+
+  private endPractice() {
+    this.controller?.dispatch({ type: 'PRACTICE_END', at: Date.now() });
+  }
+
+  private triggerRestrategize() {
+    this.controller?.dispatch({
+      type: 'ACT_ADVANCE',
+      to: 'restrategize',
+      at: Date.now(),
+    });
+  }
+
+  private resumeAuction() {
+    this.controller?.dispatch({
+      type: 'ACT_ADVANCE',
+      to: 'auction',
+      at: Date.now(),
+    });
+  }
+
+  private hideBrainstorm(responseId: string) {
+    if (!confirm(COPY.brainstorm.facilitatorHideConfirm)) return;
+    this.controller?.dispatch({ type: 'BRAINSTORM_HIDE', responseId });
   }
 
   private broadcast() {
@@ -424,6 +470,112 @@ export class VaFacilitator extends LitElement {
     }
   `;
 
+  private renderActSpecificPanel(s: Session) {
+    if (s.currentAct === 'brainstorm') {
+      const responded = brainstormSubmittedCount(s);
+      const total = totalParticipants(s);
+      const responses = visibleBrainstorm(s);
+      return html`
+        <div class="panel" style="margin-top: var(--space-4);">
+          <h2>brainstorm wall</h2>
+          <p style="color: var(--fg-muted); margin-bottom: var(--space-3); font-size: 14px;">
+            ${COPY.brainstorm.counter(responded, total)}
+          </p>
+          <div
+            style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-2);"
+          >
+            ${responses.length === 0
+              ? html`<p style="color: var(--fg-muted)">${COPY.brainstorm.feedEmpty}</p>`
+              : [...responses]
+                  .sort((a, b) => b.at - a.at)
+                  .map(
+                    (r) => html`
+                      <div
+                        style="display: flex; justify-content: space-between; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: var(--bg); border-radius: var(--radius-sm);"
+                      >
+                        <span style="line-height: 1.4; font-size: 14px;">${r.text}</span>
+                        <button
+                          type="button"
+                          style="background: transparent; color: var(--wv-redwood); border: 0; font-size: 12px; cursor: pointer; font-weight: 700;"
+                          @click=${() => this.hideBrainstorm(r.id)}
+                        >
+                          ${COPY.brainstorm.facilitatorHide}
+                        </button>
+                      </div>
+                    `,
+                  )}
+          </div>
+        </div>
+      `;
+    }
+    if (s.currentAct === 'strategy') {
+      return html`
+        <div class="panel" style="margin-top: var(--space-4);">
+          <h2>team consensus</h2>
+          <div class="team-list">
+            ${s.teams.map((t) => {
+              const decided = decidedCount(t, s.valueDeck);
+              const captain = s.participants.find(
+                (p) => p.id === t.captainParticipantId,
+              );
+              return html`
+                <div class="team-row">
+                  <span>
+                    <span
+                      class="colour"
+                      style=${`background: var(--team-${t.colour})`}
+                    ></span>
+                    ${t.name}
+                  </span>
+                  <span style="font-size: 13px; color: var(--fg-muted)">
+                    ${decided}/${s.valueDeck.length} locked
+                    ·
+                    ${captain ? `captain: ${captain.displayName}` : 'no captain'}
+                  </span>
+                </div>
+              `;
+            })}
+          </div>
+        </div>
+      `;
+    }
+    if (s.currentAct === 'restrategize') {
+      return html`
+        <div class="panel" style="margin-top: var(--space-4);">
+          <h2>restrategize progress</h2>
+          <p style="color: var(--fg-muted); font-size: 14px; margin-bottom: var(--space-3);">
+            teams are revising votes with results visible. resume when the room is ready.
+          </p>
+          <div class="team-list">
+            ${s.teams.map((t) => {
+              const decided = decidedCount(t, s.valueDeck);
+              return html`
+                <div class="team-row">
+                  <span>
+                    <span
+                      class="colour"
+                      style=${`background: var(--team-${t.colour})`}
+                    ></span>
+                    ${t.name}
+                  </span>
+                  <span style="font-size: 13px; color: var(--fg-muted)">
+                    ${t.credos} credos left · ${decided}/${s.valueDeck.length} relocked
+                  </span>
+                </div>
+              `;
+            })}
+          </div>
+          <div class="actions">
+            <va-button variant="urgent" @va-click=${() => this.resumeAuction()}>
+              ${COPY.restrategize.resumeCta}
+            </va-button>
+          </div>
+        </div>
+      `;
+    }
+    return html``;
+  }
+
   render() {
     if (!this.session) return html`<p>connecting…</p>`;
     const s = this.session;
@@ -584,6 +736,8 @@ export class VaFacilitator extends LitElement {
             : ''}
         </div>
 
+        ${this.renderActSpecificPanel(s)}
+
         <div class="panel" style="margin-top: var(--space-4);">
           <h2>broadcast</h2>
           <label for="bc-input" class="sr-only">${COPY.facilitator.broadcastLabel}</label>
@@ -617,79 +771,143 @@ export class VaFacilitator extends LitElement {
                 ${COPY.facilitator.downloadAll(s.teams.length)}
               </va-button>
             `
-          : html`
-              <h2>${COPY.facilitator.deckLabel}</h2>
-              ${s.currentAuction
-                ? html`
-                    <div style="display: flex; justify-content: center; margin-bottom: var(--space-4);">
-                      <va-countdown
-                        ring
-                        announceSeconds
-                        .startedAt=${s.currentAuction.startedAt}
-                        .durationMs=${s.currentAuction.durationMs}
-                      ></va-countdown>
-                    </div>
-                  `
-                : ''}
-              <ol class="deck-steps">
-                <li data-done=${this.nextValueId ? true : null}>
-                  ${COPY.facilitator.deckStep1}
-                </li>
-                <li
-                  data-done=${this.nextValueId && s.currentAct === 'auction' ? true : null}
-                >
-                  ${COPY.facilitator.deckStep2}
-                </li>
-                <li data-done=${s.currentAuction ? true : null}>
-                  ${COPY.facilitator.deckStep3}
-                </li>
-              </ol>
-              <div class="deck">
-                ${availableValues.map(
-                  (v) => html`
-                    <button
-                      type="button"
-                      data-selected=${this.nextValueId === v.id}
-                      @click=${() => (this.nextValueId = v.id)}
+          : s.currentAct === 'practice'
+            ? html`
+                <h2>${COPY.practice.label}</h2>
+                <p style="color: var(--fg-muted); line-height: 1.5; margin-bottom: var(--space-3);">
+                  ${COPY.practice.intro}
+                </p>
+                ${s.currentAuction
+                  ? html`
+                      <div style="display: flex; justify-content: center; margin-bottom: var(--space-3);">
+                        <va-countdown
+                          ring
+                          announceSeconds
+                          .startedAt=${s.currentAuction.startedAt}
+                          .durationMs=${s.currentAuction.durationMs}
+                        ></va-countdown>
+                      </div>
+                      <va-button variant="ghost" @va-click=${() => this.endPractice()}>
+                        end practice round
+                      </va-button>
+                    `
+                  : s.practiceCompleted
+                    ? html`
+                        <p style="margin-bottom: var(--space-3); font-weight: 700;">
+                          practice complete. advance to the real auction when ready.
+                        </p>
+                        <va-button variant="urgent" @va-click=${() => this.advance()}>
+                          ${COPY.practice.endCta}
+                        </va-button>
+                      `
+                    : html`<va-button
+                        variant="urgent"
+                        @va-click=${() => this.startPractice()}
+                      >
+                        ${COPY.practice.startCta}
+                      </va-button>`}
+              `
+            : s.currentAct === 'auction'
+              ? html`
+                  <h2>${COPY.facilitator.deckLabel}</h2>
+                  ${s.currentAuction
+                    ? html`
+                        <div style="display: flex; justify-content: center; margin-bottom: var(--space-4);">
+                          <va-countdown
+                            ring
+                            announceSeconds
+                            .startedAt=${s.currentAuction.startedAt}
+                            .durationMs=${s.currentAuction.durationMs}
+                          ></va-countdown>
+                        </div>
+                      `
+                    : ''}
+                  <ol class="deck-steps">
+                    <li data-done=${this.nextValueId ? true : null}>
+                      ${COPY.facilitator.deckStep1}
+                    </li>
+                    <li data-done=${this.nextValueId ? true : null}>
+                      ${COPY.facilitator.deckStep3}
+                    </li>
+                  </ol>
+                  <div class="deck">
+                    ${availableValues.map(
+                      (v) => html`
+                        <button
+                          type="button"
+                          data-selected=${this.nextValueId === v.id}
+                          @click=${() => (this.nextValueId = v.id)}
+                        >
+                          ${v.name}
+                        </button>
+                      `,
+                    )}
+                    ${availableValues.length === 0
+                      ? html`<p style="color: var(--fg-muted)">deck empty.</p>`
+                      : ''}
+                  </div>
+                  <div class="actions">
+                    ${!s.currentAuction
+                      ? html`<va-button
+                          variant="urgent"
+                          ?disabled=${!this.nextValueId}
+                          @va-click=${() => this.startAuction()}
+                        >
+                          ${COPY.facilitator.startAuction}
+                        </va-button>`
+                      : html`<va-button variant="ghost" @va-click=${() => this.endAuction()}
+                          >end auction</va-button
+                        >`}
+                  </div>
+                  <div class="tools">
+                    <h2>${COPY.facilitator.tools}</h2>
+                    <va-button
+                      size="sm"
+                      variant="ghost"
+                      ?disabled=${!s.currentAuction}
+                      @va-click=${() => this.resetBid()}
+                      >${COPY.facilitator.resetBid}</va-button
                     >
-                      ${v.name}
-                    </button>
-                  `,
-                )}
-                ${availableValues.length === 0
-                  ? html`<p style="color: var(--fg-muted)">deck empty.</p>`
-                  : ''}
-              </div>
-              <div class="actions">
-                ${!s.currentAuction
-                  ? html`<va-button
+                    <va-button
+                      size="sm"
                       variant="urgent"
-                      ?disabled=${!this.nextValueId || s.currentAct !== 'auction'}
-                      @va-click=${() => this.startAuction()}
+                      ?disabled=${Boolean(s.currentAuction) || s.completedAuctions.filter((a) => !a.practice).length === 0}
+                      @va-click=${() => this.triggerRestrategize()}
                     >
-                      ${COPY.facilitator.startAuction}
-                    </va-button>`
-                  : html`<va-button variant="ghost" @va-click=${() => this.endAuction()}
-                      >end auction</va-button
-                    >`}
-              </div>
-              ${this.nextValueId && s.currentAct !== 'auction'
-                ? html`<p class="deck-warning" role="status">
-                    ${COPY.facilitator.deckNotInAuction}
-                  </p>`
-                : ''}
-
-              <div class="tools">
-                <h2>${COPY.facilitator.tools}</h2>
-                <va-button
-                  size="sm"
-                  variant="ghost"
-                  ?disabled=${!s.currentAuction}
-                  @va-click=${() => this.resetBid()}
-                  >${COPY.facilitator.resetBid}</va-button
-                >
-              </div>
-            `}
+                      ${COPY.restrategize.facilitatorTriggerCta}
+                    </va-button>
+                  </div>
+                `
+              : html`
+                  <h2>${COPY.facilitator.deckLabel}</h2>
+                  <p
+                    style="color: var(--fg-muted); line-height: 1.5; margin-bottom: var(--space-3); font-size: 14px;"
+                  >
+                    advance to the auction act to start bidding. queue a value here so
+                    you're ready when participants regroup.
+                  </p>
+                  <div class="deck">
+                    ${availableValues.map(
+                      (v) => html`
+                        <button
+                          type="button"
+                          data-selected=${this.nextValueId === v.id}
+                          @click=${() => (this.nextValueId = v.id)}
+                        >
+                          ${v.name}
+                        </button>
+                      `,
+                    )}
+                    ${availableValues.length === 0
+                      ? html`<p style="color: var(--fg-muted)">deck empty.</p>`
+                      : ''}
+                  </div>
+                  ${this.nextValueId
+                    ? html`<p class="deck-warning" role="status">
+                        ${COPY.facilitator.deckNotInAuction}
+                      </p>`
+                    : ''}
+                `}
       </aside>
     `;
   }

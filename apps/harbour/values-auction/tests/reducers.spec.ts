@@ -21,6 +21,8 @@ function seedTeams(session: Session, count = 2): Session {
       softCeilings: {},
       wonValues: [],
       reflectionAnswers: [],
+      polls: {},
+      lockedBids: {},
     });
   }
   return reduce(session, { type: 'TEAMS_FORM', teams, assignments: {} });
@@ -139,5 +141,121 @@ describe('reducers', () => {
     expect(s.broadcasts).toHaveLength(1);
     expect(s.broadcasts[0]!.message).toBe('hello room');
     expect(s.events[s.events.length - 1]?.type).toBe('facilitatorBroadcast');
+  });
+
+  it('brainstorm submission is single-use per participant and capped to 80 chars', () => {
+    let s = initialSession('T', 'fac');
+    s = reduce(s, {
+      type: 'PARTICIPANT_JOIN',
+      participant: {
+        id: 'p_1',
+        displayName: 'a',
+        teamId: null,
+        joinedAt: 0,
+        lastSeenAt: 0,
+        role: 'participant',
+      },
+    });
+    const longText = 'a'.repeat(200);
+    s = reduce(s, {
+      type: 'BRAINSTORM_SUBMIT',
+      participantId: 'p_1',
+      text: longText,
+      at: 1,
+    });
+    expect(s.brainstormResponses).toHaveLength(1);
+    expect(s.brainstormResponses[0]!.text.length).toBeLessThanOrEqual(80);
+    // duplicate submission ignored
+    s = reduce(s, {
+      type: 'BRAINSTORM_SUBMIT',
+      participantId: 'p_1',
+      text: 'second go',
+      at: 2,
+    });
+    expect(s.brainstormResponses).toHaveLength(1);
+  });
+
+  it('captain claim is first-write-wins; subsequent claims are ignored', () => {
+    let s = initialSession('T', 'fac');
+    s = seedTeams(s);
+    s = reduce(s, {
+      type: 'CAPTAIN_CLAIM',
+      teamId: 'team_0',
+      participantId: 'p_first',
+      at: 1,
+    });
+    expect(s.teams[0]!.captainParticipantId).toBe('p_first');
+    s = reduce(s, {
+      type: 'CAPTAIN_CLAIM',
+      teamId: 'team_0',
+      participantId: 'p_second',
+      at: 2,
+    });
+    expect(s.teams[0]!.captainParticipantId).toBe('p_first');
+    // explicit pass works
+    s = reduce(s, {
+      type: 'CAPTAIN_PASS',
+      teamId: 'team_0',
+      toParticipantId: 'p_second',
+      at: 3,
+    });
+    expect(s.teams[0]!.captainParticipantId).toBe('p_second');
+  });
+
+  it('poll vote captures per-participant amount and overwrites on revote', () => {
+    let s = initialSession('T', 'fac');
+    s = seedTeams(s);
+    s = reduce(s, {
+      type: 'POLL_VOTE',
+      teamId: 'team_0',
+      valueId: 'radical-transparency',
+      participantId: 'p_1',
+      amount: 40,
+    });
+    s = reduce(s, {
+      type: 'POLL_VOTE',
+      teamId: 'team_0',
+      valueId: 'radical-transparency',
+      participantId: 'p_1',
+      amount: 60,
+    });
+    expect(s.teams[0]!.polls['radical-transparency']?.p_1).toBe(60);
+  });
+
+  it('bid lock/unlock and AUCTION_END strips locked bid for won value', () => {
+    let s = initialSession('T', 'fac');
+    s = seedTeams(s);
+    s = reduce(s, {
+      type: 'BID_LOCK',
+      teamId: 'team_0',
+      valueId: 'equity-inclusion',
+      amount: 50,
+    });
+    expect(s.teams[0]!.lockedBids['equity-inclusion']).toBe(50);
+    s = reduce(s, {
+      type: 'AUCTION_START',
+      valueId: 'equity-inclusion',
+      durationMs: DEFAULT_AUCTION_MS,
+      at: 0,
+    });
+    s = reduce(s, { type: 'BID_PLACE', teamId: 'team_0', amount: 50, at: 1 });
+    s = reduce(s, { type: 'AUCTION_END', at: 2 });
+    const winner = s.teams.find((t) => t.id === 'team_0')!;
+    expect(winner.wonValues).toContain('equity-inclusion');
+    expect('equity-inclusion' in winner.lockedBids).toBe(false);
+  });
+
+  it('practice round does not deduct real credos or add to wonValues', () => {
+    let s = initialSession('T', 'fac');
+    s = seedTeams(s);
+    s = reduce(s, { type: 'ACT_ADVANCE', to: 'practice', at: 0 });
+    s = reduce(s, { type: 'PRACTICE_START', durationMs: 30_000, at: 0 });
+    s = reduce(s, { type: 'BID_PLACE', teamId: 'team_0', amount: 30, at: 1 });
+    s = reduce(s, { type: 'PRACTICE_END', at: 2 });
+    const team = s.teams.find((t) => t.id === 'team_0')!;
+    expect(team.credos).toBe(STARTING_CREDOS);
+    expect(team.wonValues).toHaveLength(0);
+    expect(s.practiceCompleted).toBe(true);
+    expect(s.practiceCredos.team_0).toBe(50 - 30);
   });
 });

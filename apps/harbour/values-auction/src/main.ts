@@ -97,6 +97,37 @@ setInterval(() => {
   }
 }, 500);
 
+/**
+ * captain disconnect watcher (authoritative only).
+ *
+ * a captain is considered offline if their lastSeenAt is older than the
+ * grace period. when that happens we auto-transfer the role to the next
+ * participant in the team roster (first joined that isn't the captain).
+ */
+const CAPTAIN_GRACE_MS = 60_000;
+setInterval(() => {
+  if (!controller || !controller.isAuthoritative()) return;
+  const s = controller.store.getState();
+  const now = Date.now();
+  for (const team of s.teams) {
+    if (!team.captainParticipantId) continue;
+    const captain = s.participants.find((p) => p.id === team.captainParticipantId);
+    if (!captain) continue;
+    if (now - captain.lastSeenAt < CAPTAIN_GRACE_MS) continue;
+    const replacement = s.participants
+      .filter((p) => p.teamId === team.id && p.id !== captain.id)
+      .sort((a, b) => a.joinedAt - b.joinedAt)[0];
+    if (!replacement) continue;
+    controller.dispatch({
+      type: 'CAPTAIN_AUTO_TRANSFER',
+      teamId: team.id,
+      newCaptainId: replacement.id,
+      reason: 'disconnect',
+      at: now,
+    });
+  }
+}, 5_000);
+
 // eslint-disable-next-line no-console
 console.log('[values-auction] open:');
 // eslint-disable-next-line no-console

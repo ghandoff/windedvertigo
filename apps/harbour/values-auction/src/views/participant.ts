@@ -1,9 +1,18 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { Controller } from '@/state/controller';
-import type { Broadcast, Session, Team } from '@/state/types';
+import type { Broadcast, BrainstormResponse, Session, Team } from '@/state/types';
+import { PRACTICE_CREDOS, PRACTICE_VALUE_ID } from '@/state/types';
 import { COPY } from '@/content/copy';
-import { teamForParticipant } from '@/state/selectors';
+import {
+  brainstormSubmittedCount,
+  isCaptain,
+  preAgreedBid,
+  teamForParticipant,
+  teamMembers,
+  totalParticipants,
+  visibleBrainstorm,
+} from '@/state/selectors';
 import { uid } from '@/utils/id';
 import { announce } from '@/utils/a11y';
 import '@/components/va-card';
@@ -15,7 +24,16 @@ import '@/components/strategy-board';
 import '@/components/value-card';
 import '@/components/bid-button';
 import '@/components/identity-card';
+import '@/components/brainstorm-wall';
+import '@/components/captain-banner';
+import '@/components/results-panel';
 import { VALUES, getValue } from '@/content/values';
+
+const PRACTICE_VALUE = {
+  id: PRACTICE_VALUE_ID,
+  name: COPY.practice.dummyValueName,
+  description: COPY.practice.dummyValueDescription,
+};
 
 @customElement('va-participant')
 export class VaParticipant extends LitElement {
@@ -27,7 +45,6 @@ export class VaParticipant extends LitElement {
   @state() private name = '';
   @state() private joined = false;
   @state() private welcomed = false;
-  @state() private currentPrompt = 0;
   @state() private reflectionDraft: Record<number, string> = {};
   @state() private outbidPulseAt = 0;
   @state() private latestBroadcast?: Broadcast;
@@ -39,6 +56,9 @@ export class VaParticipant extends LitElement {
   private lastBidSeen = 0;
   private lastHighTeamId?: string;
   private broadcastTimer: ReturnType<typeof setTimeout> | null = null;
+  private autoSubmitTimer: ReturnType<typeof setTimeout> | null = null;
+  private autoSubmittedForAuction: string | null = null;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 
   connectedCallback() {
     super.connectedCallback();
@@ -54,12 +74,23 @@ export class VaParticipant extends LitElement {
       this.joined = this.session?.participants.some((p) => p.id === this.participantId) ?? false;
     }
     this.staged = localStorage.getItem(`va:staged:${this.code}`) === '1';
+    // heartbeat so the captain-disconnect watcher can detect dropouts.
+    this.heartbeatTimer = setInterval(() => {
+      if (!this.joined) return;
+      this.controller?.dispatch({
+        type: 'PARTICIPANT_SEEN',
+        participantId: this.participantId,
+        at: Date.now(),
+      });
+    }, 20_000);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this.unsub?.();
     if (this.broadcastTimer) clearTimeout(this.broadcastTimer);
+    if (this.autoSubmitTimer) clearTimeout(this.autoSubmitTimer);
+    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
   }
 
   private restoreOrCreateId(): string {
@@ -80,7 +111,6 @@ export class VaParticipant extends LitElement {
       this.lastHighTeamId = auction.highBid.teamId;
       const team = s.teams.find((t) => t.id === auction.highBid?.teamId);
       if (team) announce(`high bid: ${auction.highBid.amount} credos, ${team.name}.`, 'assertive');
-      // outbid pulse: my team WAS the high bidder, and someone else just bid higher.
       if (
         myTeam &&
         previousHighTeamId === myTeam.id &&
@@ -90,7 +120,6 @@ export class VaParticipant extends LitElement {
         announce(COPY.auction.outbid, 'assertive');
       }
     }
-    // surface most recent broadcast that hasn't been dismissed yet.
     const latest = s.broadcasts[s.broadcasts.length - 1];
     if (latest && latest.id !== this.latestBroadcast?.id && !this.dismissedBroadcastIds.has(latest.id)) {
       this.latestBroadcast = latest;
@@ -102,6 +131,53 @@ export class VaParticipant extends LitElement {
           this.latestBroadcast = undefined;
         }
       }, 12_000);
+    }
+    // captain auto-submit watcher: only the captain's device fires this.
+    this.maybeScheduleAutoSubmit(s);
+  }
+
+  private maybeScheduleAutoSubmit(s: Session) {
+    const auction = s.currentAuction;
+    const team = teamForParticipant(s, this.participantId);
+    if (!team || !auction || auction.lockedIn) {
+      if (this.autoSubmitTimer) {
+        clearTimeout(this.autoSubmitTimer);
+        this.autoSubmitTimer = null;
+      }
+      return;
+    }
+    if (!isCaptain(team, this.participantId)) return;
+    const auctionKey = `${auction.valueId}:${auction.startedAt}`;
+    if (this.autoSubmittedForAuction === auctionKey) return;
+    if (this.autoSubmitTimer) clearTimeout(this.autoSubmitTimer);
+    // fire just before the facilitator's AUCTION_END timer (~500ms loop)
+    const remaining = auction.startedAt + auction.durationMs - Date.now() - 250;
+    const fire = () => {
+      const live = this.controller?.store.getState();
+      const liveAuction = live?.currentAuction;
+      if (!live || !liveAuction || liveAuction.lockedIn) return;
+      if (`${liveAuction.valueId}:${liveAuction.startedAt}` !== auctionKey) return;
+      const liveTeam = teamForParticipant(live, this.participantId);
+      if (!liveTeam) return;
+      if (liveAuction.highBid?.teamId === liveTeam.id) return;
+      const amount = preAgreedBid(liveTeam, liveAuction.valueId);
+      const budget = liveAuction.practice
+        ? (live.practiceCredos[liveTeam.id] ?? PRACTICE_CREDOS)
+        : liveTeam.credos;
+      if (amount <= 0 || amount > budget) return;
+      if (amount <= (liveAuction.highBid?.amount ?? 0)) return;
+      this.controller?.dispatch({
+        type: 'BID_PLACE',
+        teamId: liveTeam.id,
+        amount,
+        at: Date.now(),
+      });
+      this.autoSubmittedForAuction = auctionKey;
+    };
+    if (remaining <= 0) {
+      fire();
+    } else {
+      this.autoSubmitTimer = setTimeout(fire, remaining);
     }
   }
 
@@ -195,9 +271,54 @@ export class VaParticipant extends LitElement {
     this.controller?.dispatch({ type: 'INTENTION_SET', ...detail });
   };
 
-  private onCeiling = (e: CustomEvent) => {
+  private onPollVote = (e: CustomEvent) => {
+    const detail = e.detail as {
+      teamId: string;
+      valueId: string;
+      participantId: string;
+      amount: number;
+    };
+    this.controller?.dispatch({ type: 'POLL_VOTE', ...detail });
+  };
+
+  private onBidLock = (e: CustomEvent) => {
     const detail = e.detail as { teamId: string; valueId: string; amount: number };
-    this.controller?.dispatch({ type: 'CEILING_SET', ...detail });
+    this.controller?.dispatch({ type: 'BID_LOCK', ...detail });
+  };
+
+  private onBidUnlock = (e: CustomEvent) => {
+    const detail = e.detail as { teamId: string; valueId: string };
+    this.controller?.dispatch({ type: 'BID_UNLOCK', ...detail });
+  };
+
+  private onCaptainClaim = (e: CustomEvent) => {
+    const detail = e.detail as { teamId: string; participantId: string };
+    this.controller?.dispatch({
+      type: 'CAPTAIN_CLAIM',
+      teamId: detail.teamId,
+      participantId: detail.participantId,
+      at: Date.now(),
+    });
+  };
+
+  private onCaptainPass = (e: CustomEvent) => {
+    const detail = e.detail as { teamId: string; toParticipantId: string };
+    this.controller?.dispatch({
+      type: 'CAPTAIN_PASS',
+      teamId: detail.teamId,
+      toParticipantId: detail.toParticipantId,
+      at: Date.now(),
+    });
+  };
+
+  private submitBrainstorm = (e: CustomEvent) => {
+    const detail = e.detail as { text: string };
+    this.controller?.dispatch({
+      type: 'BRAINSTORM_SUBMIT',
+      participantId: this.participantId,
+      text: detail.text,
+      at: Date.now(),
+    });
   };
 
   private writePurpose(e: Event) {
@@ -236,7 +357,7 @@ export class VaParticipant extends LitElement {
       color: var(--fg-muted);
     }
     .stage {
-      max-width: 880px;
+      max-width: 1100px;
       margin: 0 auto;
     }
     .arrival {
@@ -400,6 +521,39 @@ export class VaParticipant extends LitElement {
       border-radius: 50%;
       margin-right: var(--space-2);
       vertical-align: middle;
+    }
+    .pre-agreed {
+      margin-top: var(--space-3);
+      font: var(--type-small);
+      color: var(--fg-muted);
+    }
+    .pre-agreed strong {
+      color: var(--wv-redwood);
+      font: var(--type-h2);
+    }
+    .practice-badge {
+      display: inline-block;
+      padding: var(--space-1) var(--space-3);
+      background: var(--wv-burnt-sienna);
+      color: var(--fg-inverse);
+      border-radius: var(--radius-pill);
+      font: var(--type-small);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: var(--space-3);
+    }
+    .non-captain-note {
+      margin-top: var(--space-4);
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-card);
+      border-left: 3px solid var(--wv-cadet-blue);
+      color: var(--fg);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+    }
+    .restrategize {
+      display: grid;
+      gap: var(--space-5);
     }
     .reflection {
       display: flex;
@@ -703,8 +857,6 @@ export class VaParticipant extends LitElement {
 
   private renderLateJoinerFallback() {
     if (!this.session) return html``;
-    // teams already exist but we have no team — auto-assign should have caught this,
-    // but if for some reason it didn't, surface a clear message.
     if (this.session.teams.length > 0) {
       return html`
         <section class="fade-in">
@@ -752,21 +904,72 @@ export class VaParticipant extends LitElement {
     `;
   }
 
-  private renderStrategy() {
-    if (!this.team) return this.renderLateJoinerFallback();
+  private renderBrainstorm() {
+    if (!this.session) return html``;
+    const me = this.session.participants.find((p) => p.id === this.participantId);
     return html`
       <section class="fade-in">
         ${this.renderCountdown()}
+        <va-brainstorm-wall
+          .responses=${visibleBrainstorm(this.session)}
+          .submitted=${Boolean(me?.brainstormSubmitted)}
+          .total=${totalParticipants(this.session)}
+          .responded=${brainstormSubmittedCount(this.session)}
+          @va-brainstorm-submit=${this.submitBrainstorm}
+        ></va-brainstorm-wall>
+      </section>
+    `;
+  }
+
+  private renderStrategy(remainingValueIds: string[] | null = null) {
+    if (!this.team || !this.session) return this.renderLateJoinerFallback();
+    const teammates = teamMembers(this.session, this.team.id);
+    return html`
+      <section class="fade-in">
+        ${this.renderCountdown()}
+        <va-captain-banner
+          .team=${this.team}
+          .teammates=${teammates}
+          .participantId=${this.participantId}
+          @va-captain-claim=${this.onCaptainClaim}
+          @va-captain-pass=${this.onCaptainPass}
+        ></va-captain-banner>
         <va-strategy-board
           .team=${this.team}
+          .participantId=${this.participantId}
+          .remainingValueIds=${remainingValueIds}
           @va-intention=${this.onIntention}
-          @va-ceiling=${this.onCeiling}
+          @va-poll-vote=${this.onPollVote}
+          @va-bid-lock=${this.onBidLock}
+          @va-bid-unlock=${this.onBidUnlock}
         ></va-strategy-board>
       </section>
     `;
   }
 
-  private renderAuction() {
+  private renderRestrategize() {
+    if (!this.session || !this.team) return this.renderLateJoinerFallback();
+    return html`
+      <section class="fade-in restrategize">
+        ${this.renderCountdown()}
+        <header style="text-align: center;">
+          <h1 style="font: var(--type-display); margin-bottom: var(--space-2);">
+            ${COPY.restrategize.heading}
+          </h1>
+          <p style="color: var(--fg-muted); max-width: 60ch; margin: 0 auto;">
+            ${COPY.restrategize.body}
+          </p>
+        </header>
+        <va-results-panel
+          .team=${this.team}
+          .session=${this.session}
+        ></va-results-panel>
+        ${this.renderStrategy(this.session.valueDeck)}
+      </section>
+    `;
+  }
+
+  private renderAuction(practice = false) {
     const auction = this.session?.currentAuction;
     if (!auction) {
       return html`
@@ -777,15 +980,24 @@ export class VaParticipant extends LitElement {
       `;
     }
     if (!this.team) return this.renderLateJoinerFallback();
-    const v = getValue(auction.valueId);
+    const v = practice
+      ? PRACTICE_VALUE
+      : (getValue(auction.valueId) ?? PRACTICE_VALUE);
     const highTeam = this.session?.teams.find((t) => t.id === auction.highBid?.teamId);
     const myTeamHasHigh = highTeam?.id === this.team.id;
-    // pulse if outbid happened in the last ~2 seconds.
     const showOutbidPulse = this.outbidPulseAt > 0 && Date.now() - this.outbidPulseAt < 2000;
-    const outOfCredos = this.team.credos <= 0;
+    const budget = practice
+      ? (this.session?.practiceCredos[this.team.id] ?? PRACTICE_CREDOS)
+      : this.team.credos;
+    const outOfCredos = budget <= 0;
     const stageClass = showOutbidPulse && !myTeamHasHigh ? 'auction-stage outbid-flash' : 'auction-stage';
+    const captain = isCaptain(this.team, this.participantId);
+    const preAgreed = preAgreedBid(this.team, auction.valueId);
     return html`
       <section class=${`${stageClass} fade-in`}>
+        ${practice
+          ? html`<span class="practice-badge">${COPY.practice.badge}</span>`
+          : ''}
         <va-value-card .value=${v} zone="must" large></va-value-card>
         <div style="margin-top: var(--space-4)">
           <va-countdown
@@ -807,14 +1019,30 @@ export class VaParticipant extends LitElement {
         ${showOutbidPulse && !myTeamHasHigh
           ? html`<div class="outbid-tag" role="status">${COPY.auction.outbid}</div>`
           : ''}
-        <div style="margin-top: var(--space-5)">
-          <va-bid-button
-            .currentHigh=${auction.highBid?.amount ?? 0}
-            .credos=${this.team.credos}
-            ?disabled=${outOfCredos}
-            @va-bid=${(e: CustomEvent<{ amount: number }>) => this.onBid(e)}
-          ></va-bid-button>
-        </div>
+        ${preAgreed > 0
+          ? html`<p class="pre-agreed">
+              your team's pre-agreed: <strong>${preAgreed}</strong> credos
+              (${practice ? COPY.practice.creditsLabel : 'budget'}: ${budget})
+            </p>`
+          : ''}
+        ${captain
+          ? html`
+              <div style="margin-top: var(--space-5)">
+                <va-bid-button
+                  .currentHigh=${auction.highBid?.amount ?? 0}
+                  .credos=${budget}
+                  .preFill=${preAgreed}
+                  ?disabled=${outOfCredos}
+                  @va-bid=${(e: CustomEvent<{ amount: number }>) => this.onBid(e)}
+                ></va-bid-button>
+              </div>
+            `
+          : html`
+              <p class="non-captain-note" role="status">
+                only the bid captain can submit. your team's pre-agreed amount will
+                auto-submit at the buzzer.
+              </p>
+            `}
         ${outOfCredos
           ? html`<div class="out-of-credos" role="status">${COPY.auction.outOfCredos}</div>`
           : ''}
@@ -917,7 +1145,9 @@ export class VaParticipant extends LitElement {
 
   private renderCountdown() {
     if (!this.session?.actStartedAt) return html``;
-    const isStrategy = this.session.currentAct === 'strategy';
+    const isStrategy =
+      this.session.currentAct === 'strategy' ||
+      this.session.currentAct === 'restrategize';
     return html`
       <div style="display: flex; justify-content: ${isStrategy ? 'center' : 'flex-end'}; margin-bottom: var(--space-3);">
         <va-countdown
@@ -955,8 +1185,11 @@ export class VaParticipant extends LitElement {
     if (act === 'arrival') body = this.renderArrival();
     else if (act === 'grouping') body = this.renderGrouping();
     else if (act === 'scene') body = this.renderScene();
+    else if (act === 'brainstorm') body = this.renderBrainstorm();
     else if (act === 'strategy') body = this.renderStrategy();
-    else if (act === 'auction') body = this.renderAuction();
+    else if (act === 'practice') body = this.renderAuction(true);
+    else if (act === 'auction') body = this.renderAuction(false);
+    else if (act === 'restrategize') body = this.renderRestrategize();
     else if (act === 'reflection') body = this.renderReflection();
     else body = this.renderRegather();
 
@@ -969,3 +1202,6 @@ export class VaParticipant extends LitElement {
     `;
   }
 }
+
+// avoid unused warning for `BrainstormResponse` import in some builds
+export type _BrainstormResponseRef = BrainstormResponse;
