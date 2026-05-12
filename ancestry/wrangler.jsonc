@@ -7,6 +7,11 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
 
+  // Custom domain route — intercepts ancestry.windedvertigo.com before CF forwards to Vercel
+  "routes": [
+    { "pattern": "ancestry.windedvertigo.com/*", "zone_name": "windedvertigo.com" }
+  ],
+
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
