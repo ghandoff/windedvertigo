@@ -3,7 +3,7 @@
 > Deep memory, tasks, and operational files live in `.brain/`
 > Tasks: `.brain/TASKS.md` | Memory: `.brain/memory/` | Archive: `.brain/archive/`
 
-> **What's new (2026-05-03):** Port (CRM) migrated to Cloudflare Workers (`wv-port`). All pages read from Supabase (Phase A2 complete); all write paths Supabase-first (Phase A3 complete). DNS cutover via CF route — Vercel `wv-crm` kept as rollback until 2026-05-17. Previous: CF zone consolidation complete 2026-04-25; site, harbour, depth-chart on CF Workers; Port agent (`wv-claw`) live in Slack DM.
+> **What's new (2026-05-11):** Nordic F.5 DNS cutover confirmed complete (etag match: `nordic.windedvertigo.com` ≡ `wv-nordic.windedvertigo.workers.dev`). Ancestry H.4 cutover fixed — Vercel project was returning 404; added CF Workers route `ancestry.windedvertigo.com/*` to wv-ancestry wrangler.jsonc, redeployed — site live on CF Workers. Inngest fully removed from port (1,351 lines, 7 files deleted). `@vercel/analytics` removed from site. VERCEL_URL refs cleaned in nordic + ancestry. Previous (2026-05-03): Port migrated to CF Workers (`wv-port`); Vercel `wv-crm` rollback expires 2026-05-17.
 
 ## Me
 Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in San Francisco, CA (Pacific time). Email: garrett@windedvertigo.com
@@ -86,7 +86,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **Google Calendar** | Scheduling, meeting cadence, time blocking |
 | **Google Drive** | Document storage, shared folders, proposals |
 | **Cloudflare** | Primary hosting (Workers via OpenNext: site, harbour, depth-chart), DNS, R2 storage, edge |
-| **Vercel** | Hosting for port (CRM), ops, creaseworks, vault — nordic in CF Workers canary (Phase F.4) |
+| **Vercel** | Hosting for ops, creaseworks, vault — all others on CF Workers |
 | **Cowork (Claude)** | CFO/COO operations, memory system, scheduled tasks, file management |
 | **Otter AI** | Meeting transcription (archived in Notion) |
 | **ADP** | 401k plan administration |
@@ -118,7 +118,7 @@ The second brain operates across two Claude environments with a shared memory la
 - Monorepo code changes: `harbour/`, `crm/`, `ops/`, `packages/`
 - Build fixes, dependency management, config files
 - Git operations (commit, push, branch, PR)
-- Deployment via Vercel CLI (ops, creaseworks, vault, nordic) and Wrangler/OpenNext (site, harbour, depth-chart, **port** on CF Workers)
+- Deployment via Vercel CLI (ops, creaseworks, vault) and Wrangler/OpenNext (site, harbour, depth-chart, port, nordic, ancestry on CF Workers)
 - New features for ops dashboard, CRM, website
 - Infrastructure (Cloudflare workers, D1, KV if needed)
 - Debugging build/runtime errors
@@ -153,8 +153,8 @@ windedvertigo/
 | wv-launch-smoke | wv-launch-smoke.windedvertigo.workers.dev | CF Workers | `wv-launch-smoke` (cron `*/30 * * * *`, KV `SMOKE_LATEST`) | Live — 40-target probe, posts to wv-claw on red |
 | Port (CRM) | port.windedvertigo.com | CF Workers (OpenNext) | `wv-port` (R3 bindings: PROPOSAL_QUEUE, TIMESHEET_QUEUE, RFP_DOCUMENT_QUEUE; R2 `port-assets`; AUTH_TRUST_HOST=true) | Live — migrated 2026-05-03; Vercel `wv-crm` kept as rollback until 2026-05-17 |
 | Port agent | Slack DM @wv-claw | Vercel (worker `wv-claw`) | App `A0AUA3VQHFH` / bot `U0AUPLEA8RL` / audit DB `f2f48a9998d84cd69598efdc79a44f1e` | Live end-to-end |
-| Nordic (Vercel) | nordic.windedvertigo.com | Vercel | `nordic-sqr-rct` (rootDir: `apps/nordic-sqr-rct`, monorepo-linked 2026-05-02) | Live — production (cutover pending Phase F.5 ~May 5-7) |
-| Nordic (CF canary) | wv-nordic.windedvertigo.workers.dev | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs` binding, `workflow` SDK removed, Supabase saga for ingredient-safety) | Canary live — Phase F.4 (started 2026-05-02, cutover after 3-day clean) |
+| Nordic | nordic.windedvertigo.com | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs` binding, `workflow` SDK removed, Supabase saga for ingredient-safety) | Live — F.5 cutover confirmed + Vercel project decommissioned 2026-05-11. |
+| Ancestry | ancestry.windedvertigo.com | CF Workers (OpenNext) | `wv-ancestry` (R2 `ancestry-media`, 2 cron triggers, `@neondatabase/serverless`, Google OAuth) | Live — H.4 cutover 2026-05-11. Route `ancestry.windedvertigo.com/*` added to wrangler.jsonc. |
 | Ops | ops.windedvertigo.com | Vercel | `wv-ops` | Deployed — auth flow needs verification |
 | Creaseworks, Vault | — | Vercel | (kept on Vercel) | Live |
 
