@@ -1,0 +1,76 @@
+name: Deploy
+
+# Manual-trigger only. No auto-deploy on push.
+# Run from GitHub UI:
+#   Actions → Deploy → "Run workflow" → pick target → Run
+# Or from terminal:
+#   gh workflow run deploy.yml -f target=site
+#   gh workflow run deploy.yml -f target=rubric-co-builder
+#   gh workflow run deploy.yml -f target=values-auction-pages
+#   gh workflow run deploy.yml -f target=all
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which app to deploy
+        required: true
+        default: site
+        type: choice
+        options:
+          - site
+          - rubric-co-builder
+          - values-auction-pages
+          - all
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install root deps
+        run: npm ci || npm install
+
+      - name: Deploy wv-site
+        if: inputs.target == 'site' || inputs.target == 'all'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: ./scripts/deploy-site.sh
+
+      - name: Install harbour deps (for rubric)
+        if: inputs.target == 'rubric-co-builder' || inputs.target == 'all'
+        working-directory: apps/harbour
+        run: npm install
+
+      - name: Deploy wv-harbour-rubric-co-builder
+        if: inputs.target == 'rubric-co-builder' || inputs.target == 'all'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: ./scripts/deploy-rubric-co-builder.sh
+
+      - name: Deploy values-auction SPA to CF Pages
+        if: inputs.target == 'values-auction-pages' || inputs.target == 'all'
+        working-directory: apps/harbour/values-auction
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npm install
+          npm run deploy:spa
+
+      - name: Smoke test
+        if: success()
+        run: bash scripts/smoke-test.sh

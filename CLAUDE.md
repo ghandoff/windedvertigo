@@ -131,6 +131,15 @@ Both environments read the same repo, same `CLAUDE.md`, same `.brain/`.
 - When Claude Code finishes building → update `TASKS.md` and note what's deployed
 - Handoff notes go in `.brain/memory/handoff.md` for cross-environment context
 
+## Deploys
+
+All apps deploy via wrangler. Two entry points:
+
+1. **From your laptop**: `bash scripts/ship.sh` (site only), `--rubric` (also rubric worker), `--va-pages` (also values-auction SPA), or `--all`. Auto-stashes WIP, syncs branch, deploys, restores stash. See `scripts/ship.sh --help`.
+2. **From GitHub Actions** (manual trigger): <https://github.com/ghandoff/windedvertigo/actions/workflows/deploy.yml> → Run workflow → pick target. Same scripts under the hood. Needs CF API token + account ID as repo secrets (see `docs/cf-token-setup.md`). Workflow file: `.github/workflows/deploy.yml`. workflow_dispatch only — never auto-deploys on push.
+
+**Smoke audit after any deploy**: `bash scripts/smoke-test.sh` — hits all production harbour-app URLs and reports pass/fail in plain English.
+
 ## Monorepo Structure
 ```
 windedvertigo/

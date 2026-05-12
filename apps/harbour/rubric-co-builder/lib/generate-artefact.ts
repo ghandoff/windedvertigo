@@ -33,23 +33,44 @@ export async function generateArtefact(
   const anthropic = getClient();
   if (!anthropic) return null;
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 600,
-    system: [
+  // Hard timeout so a 429 backoff or stalled connection can't pin the
+  // background after() handler open for minutes during a 300-user session.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
+  let response;
+  try {
+    response = await anthropic.messages.create(
       {
-        type: "text",
-        text: SYSTEM_PROMPT,
-        cache_control: { type: "ephemeral" },
+        model: "claude-sonnet-4-5",
+        max_tokens: 600,
+        system: [
+          {
+            type: "text",
+            text: SYSTEM_PROMPT,
+            cache_control: { type: "ephemeral" },
+          },
+        ],
+        messages: [
+          {
+            role: "user",
+            content: `learning outcome: ${outcome}\n\nproject description: ${project}`,
+          },
+        ],
       },
-    ],
-    messages: [
-      {
-        role: "user",
-        content: `learning outcome: ${outcome}\n\nproject description: ${project}`,
-      },
-    ],
-  });
+      { signal: controller.signal },
+    );
+  } catch (err) {
+    // Most likely: 429 rate-limit, 529 overloaded, or AbortError on 30s timeout.
+    // Caller (app/api/rooms/route.ts after()) catches; this log surfaces the
+    // failure in worker logs so we can see when it happens at scale.
+    const code = (err as { status?: number })?.status ?? "unknown";
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[generate-artefact] anthropic_error status=${code} msg=${msg}`);
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const raw =
     response.content[0].type === "text" ? response.content[0].text.trim() : "";

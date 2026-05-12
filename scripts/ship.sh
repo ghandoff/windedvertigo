@@ -2,8 +2,10 @@
 # scripts/ship.sh — one-shot deploy.
 #
 # Run from anywhere in your windedvertigo clone:
-#     bash scripts/ship.sh             # deploy site only (urgent path)
-#     bash scripts/ship.sh --rubric    # also deploy rubric-co-builder worker
+#     bash scripts/ship.sh                   # deploy site only (urgent path)
+#     bash scripts/ship.sh --rubric          # also deploy rubric-co-builder worker
+#     bash scripts/ship.sh --va-pages        # also rebuild + redeploy values-auction SPA to CF Pages
+#     bash scripts/ship.sh --all             # site + rubric + va-pages
 #
 # This script:
 #   1. Auto-finds the repo root (works from any subdirectory).
@@ -18,11 +20,14 @@
 set -euo pipefail
 
 INCLUDE_RUBRIC=false
+INCLUDE_VA_PAGES=false
 for arg in "$@"; do
   case "$arg" in
-    --rubric|--all) INCLUDE_RUBRIC=true ;;
+    --rubric)   INCLUDE_RUBRIC=true ;;
+    --va-pages) INCLUDE_VA_PAGES=true ;;
+    --all)      INCLUDE_RUBRIC=true; INCLUDE_VA_PAGES=true ;;
     -h|--help)
-      sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
   esac
@@ -94,6 +99,27 @@ EOF
   fi
 fi
 
+# ─── 6b. deploy values-auction Pages SPA (optional) ─────────────────────────
+VA_PAGES_FAILED=false
+if $INCLUDE_VA_PAGES; then
+  echo ""
+  bold "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  bold "  Rebuilding + deploying values-auction SPA to CF Pages"
+  bold "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  VA_DIR="$REPO_ROOT/apps/harbour/values-auction"
+  if [ ! -d "$VA_DIR" ]; then
+    warn "values-auction app dir not found at $VA_DIR — skipping"
+    VA_PAGES_FAILED=true
+  else
+    (cd "$VA_DIR" && npm install && npm run deploy:spa) || VA_PAGES_FAILED=true
+    if $VA_PAGES_FAILED; then
+      warn "values-auction Pages deploy failed. Check wrangler auth + Pages project name."
+    else
+      ok "values-auction SPA deployed to CF Pages."
+    fi
+  fi
+fi
+
 # ─── 7. restore stash ───────────────────────────────────────────────────────
 if [ "$STASHED" = "1" ]; then
   echo ""
@@ -122,8 +148,11 @@ if $INCLUDE_RUBRIC && ! $RUBRIC_FAILED; then
   echo "  curl -sI https://windedvertigo.com/harbour/rubric-co-builder/ | head -3"
 fi
 echo ""
+echo "  Or run the full audit in one go:"
+echo "    bash scripts/smoke-test.sh"
+echo ""
 echo "  Expect: HTTP/2 200, cf-ray present, NO x-vercel-* headers."
 
-if $RUBRIC_FAILED; then
+if $RUBRIC_FAILED || $VA_PAGES_FAILED; then
   exit 1
 fi
