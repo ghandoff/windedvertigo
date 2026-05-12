@@ -58,6 +58,7 @@ export class VaFacilitator extends LitElement {
    * exactly what the breakouts see without opening a second tab.
    */
   @state() private previewOpen = false;
+  @state() private previewSize: 'mobile' | 'tablet' | 'full' = 'mobile';
 
   private unsub?: () => void;
   private ticker: { stop(): void } | null = null;
@@ -555,9 +556,24 @@ export class VaFacilitator extends LitElement {
     .preview-hint {
       color: var(--fg-muted);
       font: var(--type-small);
-      margin: var(--space-2) 0 var(--space-3);
+      margin: 0;
       line-height: 1.4;
+      flex: 1 1 auto;
     }
+    .preview-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: center;
+      margin: var(--space-2) 0 var(--space-3);
+    }
+    /*
+     * the participant preview is mounted inline so it shares the controller
+     * for live state. we put it in a containment context so its internal
+     * media queries respond to the panel width rather than the viewport,
+     * giving an honest mobile-feel preview without resorting to transform-
+     * based scaling (which lies about layout and breaks pointer math).
+     */
     .preview-frame {
       max-height: 640px;
       overflow: auto;
@@ -565,13 +581,43 @@ export class VaFacilitator extends LitElement {
       background: var(--bg);
       border: 1px solid rgba(39, 50, 72, 0.1);
       padding: var(--space-2);
-      /* shrink the embedded view a touch so it still feels like a preview */
-      transform: scale(0.92);
-      transform-origin: top left;
-      width: calc(100% / 0.92);
+      container-type: inline-size;
     }
     .preview-frame va-participant {
       pointer-events: none;
+      display: block;
+      /* clamp the embedded view so participant content doesn't blow up the panel */
+      max-width: 100%;
+      font-size: 14px;
+    }
+    .preview-size-toggle {
+      display: inline-flex;
+      gap: var(--space-2);
+      margin-left: auto;
+      font: var(--type-small);
+    }
+    .preview-size-toggle button {
+      padding: 4px var(--space-2);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(39, 50, 72, 0.2);
+      background: var(--bg);
+      color: var(--fg);
+      cursor: pointer;
+      font: var(--type-small);
+      font-weight: 700;
+    }
+    .preview-size-toggle button[data-active] {
+      background: var(--wv-cadet-blue);
+      color: var(--fg-inverse);
+      border-color: var(--wv-cadet-blue);
+    }
+    .preview-frame[data-size='mobile'] {
+      max-width: 380px;
+      margin: 0 auto;
+    }
+    .preview-frame[data-size='tablet'] {
+      max-width: 720px;
+      margin: 0 auto;
     }
     .captain-alerts {
       position: fixed;
@@ -640,11 +686,27 @@ export class VaFacilitator extends LitElement {
         </div>
         ${this.previewOpen
           ? html`
-              <p class="preview-hint">
-                read-only mirror of what one of your participants sees right now.
-                updates live as you advance acts.
-              </p>
-              <div class="preview-frame">
+              <div class="preview-meta">
+                <p class="preview-hint">
+                  read-only mirror of what one of your participants sees right now.
+                  updates live as you advance acts.
+                </p>
+                <div class="preview-size-toggle" role="group" aria-label="preview width">
+                  ${(['mobile', 'tablet', 'full'] as const).map(
+                    (size) => html`
+                      <button
+                        type="button"
+                        data-active=${this.previewSize === size ? true : null}
+                        aria-pressed=${this.previewSize === size ? 'true' : 'false'}
+                        @click=${() => (this.previewSize = size)}
+                      >
+                        ${size}
+                      </button>
+                    `,
+                  )}
+                </div>
+              </div>
+              <div class="preview-frame" data-size=${this.previewSize}>
                 <va-participant
                   preview
                   .controller=${this.controller}
