@@ -1,12 +1,14 @@
 import type { NextConfig } from "next";
 import path from "path";
 
-// basePath is only applied in production (via NEXT_PUBLIC_BASE_PATH set in
-// wrangler.jsonc vars). local dev serves at `/` so the preview panel just works.
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-
 const config: NextConfig = {
-  basePath,
+  // Hardcoded — basePath is a BUILD-time setting in Next.js. Reading from
+  // process.env at this scope means the value is captured during `next build`,
+  // and NEXT_PUBLIC_BASE_PATH in wrangler.jsonc vars is only available at
+  // RUNTIME — so the build always produced basePath="" and routes 404'd at
+  // /harbour/rubric-co-builder/*. Matches the creaseworks/next.config.ts
+  // hardcode pattern.
+  basePath: "/harbour/rubric-co-builder",
   // Anchor standalone output to apps/harbour/ (the harbour sub-monorepo root)
   // so Next.js sets relativeAppDir:"rubric-co-builder" instead of the longer
   // path from windedvertigo/ root. Without this, OpenNext fails to find
