@@ -38,7 +38,13 @@
   "vars": {
     "CF_WORKERS_ENV": "1",
     "NEXT_PUBLIC_APP_URL": "https://ancestry.windedvertigo.com"
-  }
+  },
+
+  // Custom domain — repo-tracked. Wrangler reconciles against the existing
+  // CF Custom Domain attachment; idempotent, no downtime.
+  "routes": [
+    { "pattern": "ancestry.windedvertigo.com", "custom_domain": true }
+  ]
 
   // Secrets — set via: wrangler secret put <NAME> --name wv-ancestry
   // Required:

@@ -6,9 +6,9 @@
 
 ## what this app is
 
-Nordic Research Platform — Next.js 15 (App Router, JS) frontend to a Notion-backed evidence + claims system used by the Nordic / PRME research team (Sharon, Gina, Adin, Lauren + 2 RA TBD). Lives at `nordic.windedvertigo.com`. **Stays on Vercel** (not CF Workers) for Workflow DevKit + Vercel Blob support.
+Nordic Research Platform — Next.js 15 (App Router, JS) frontend to a Notion-backed evidence + claims system used by the Nordic / PRME research team (Sharon, Gina, Adin, Lauren + 2 RA TBD). Lives at `nordic.windedvertigo.com`, served by the **`wv-nordic` Cloudflare Worker** via OpenNext. DNS cutover from Vercel completed 2026-05-07; Vercel Blob → R2 (`nordic-pcs` bucket) migration completed alongside.
 
-Deploy: `cd apps/nordic-sqr-rct && vercel --prod`. App-level deploy still works because it doesn't import workspace packages.
+Deploy: `./scripts/deploy-nordic.sh` from the monorepo root. Two-step build: workspace `npm run build -w nordic-sqr-rct` → `npx @opennextjs/cloudflare build --skipNextBuild` → `npx wrangler deploy`. The wrangler config is `apps/nordic-sqr-rct/wrangler.jsonc`.
 
 ## directory shape
 
@@ -34,12 +34,12 @@ scripts/                  ← one-shot ops scripts (e.g. archive-test-evidence-r
 Single most important flow on the app. Lives end-to-end now after Wave 7.0.5.
 
 1. **Discovery** — `/pcs/evidence` search panel → `src/lib/article-search/*` queries PubMed + Semantic Scholar, deduplicates, source-tags hits, cross-checks existing rows by exact DOI/PMID. Already-saved rows render "✓ In library / Open existing row →" instead of "+ Add to Evidence".
-2. **Retrieval** — clicking "+ Add to Evidence" calls `POST /api/pcs/evidence/save-from-search`, which runs the 7-tier waterfall in `src/lib/pmc.js`: Unpaywall → Semantic Scholar → CORE → OpenAlex → Europe PMC → bioRxiv/medRxiv → PMC. First successful PDF wins; lands in Vercel Blob `evidence-pdfs/`.
+2. **Retrieval** — clicking "+ Add to Evidence" calls `POST /api/pcs/evidence/save-from-search`, which runs the 7-tier waterfall in `src/lib/pmc.js`: Unpaywall → Semantic Scholar → CORE → OpenAlex → Europe PMC → bioRxiv/medRxiv → PMC. First successful PDF wins; lands in R2 bucket `nordic-pcs` under `evidence-pdfs/` (migrated from Vercel Blob 2026-05-07).
 3. **Classification** — PubMed MeSH publication-types map into `EVIDENCE_TYPES` (RCT / Meta-analysis / Systematic review / Observational / Review). No more default-to-RCT.
 4. **Dedup** — `createEvidence` returns the existing row on DOI/PMID match instead of creating duplicates and surfaces a `merged` flag (Wave 7.0.5 T8.1).
 5. **Manual override** — when the waterfall misses (paywall, EndNote-only, scanned), `POST /api/pcs/evidence/[id]/pdf-upload` accepts multipart form data, uploads to the same Blob path, and updates the row's pdf URL via `updateEvidence`. UI: button + drag-and-drop on the evidence detail page.
 
-**Without `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` set on Vercel prod, those two tiers return 429 and effective coverage is 5/7.** Set them when convenient.
+**Without `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` set as `wv-nordic` worker secrets, those two tiers return 429 and effective coverage is 5/7.** Set via `npx wrangler secret put SEMANTIC_SCHOLAR_API_KEY --name wv-nordic` when convenient.
 
 ## auth — capability scopes
 
@@ -69,6 +69,6 @@ User sort prefs persist in localStorage under the `pcs-sort-v2-<resource>` key. 
 ## things to know before editing
 
 - **Notion is the database.** Every PCS resource is a Notion DB; `src/lib/pcs-*.js` helpers wrap query/CRUD. Don't introduce Supabase or Postgres without an explicit migration plan — that's Phase 3 perf and it's deferred.
-- **PDFs go to Vercel Blob, never to git.** Path convention: `evidence-pdfs/<id>.pdf`. The waterfall and the manual upload route both write here.
+- **PDFs go to R2 bucket `nordic-pcs`, never to git.** Path convention: `evidence-pdfs/<id>.pdf`. The waterfall and the manual upload route both write here. (Pre-2026-05-07 these went to Vercel Blob.)
 - **Research team uses EndNote.** Some rows will never have a public PDF; that's why manual upload exists. Don't gate workflows on PDF presence.
-- **Don't reconnect to Vercel Git auto-deploy.** App is intentionally manual-deploy (see monorepo `apps/harbour/CLAUDE.md` infrastructure rules — same cost-control reasons).
+- **Manual deploy via `./scripts/deploy-nordic.sh`.** Don't wire up auto-deploy from git; deploys are cost-controlled and reviewed by hand.

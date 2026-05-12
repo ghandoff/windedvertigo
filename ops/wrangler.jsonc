@@ -16,7 +16,14 @@
   "vars": {
     "OPS_URL": "https://ops.windedvertigo.com",
     "CF_WORKERS_ENV": "1"
-  }
+  },
+
+  // Custom domain — repo-tracked (was previously dashboard-only).
+  // Wrangler reconciles against the existing CF Custom Domain attachment;
+  // this is idempotent and does not cause downtime.
+  "routes": [
+    { "pattern": "ops.windedvertigo.com", "custom_domain": true }
+  ]
   // Secrets (set via `wrangler secret put --name wv-ops`):
   // AUTH_SECRET, AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET,
   // AUTH_URL (https://ops.windedvertigo.com),

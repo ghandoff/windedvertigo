@@ -3,7 +3,7 @@
 > Deep memory, tasks, and operational files live in `.brain/`
 > Tasks: `.brain/TASKS.md` | Memory: `.brain/memory/` | Archive: `.brain/archive/`
 
-> **What's new (2026-05-03):** Port (CRM) migrated to Cloudflare Workers (`wv-port`). All pages read from Supabase (Phase A2 complete); all write paths Supabase-first (Phase A3 complete). DNS cutover via CF route — Vercel `wv-crm` kept as rollback until 2026-05-17. Previous: CF zone consolidation complete 2026-04-25; site, harbour, depth-chart on CF Workers; Port agent (`wv-claw`) live in Slack DM.
+> **What's new (2026-05-12):** Final Vercel → CF Workers cutover round. `windedvertigo` and `wv-ancestry` Vercel projects deleted earlier today (served by `wv-site` + `wv-ancestry`). `vertigo-vault`, `creaseworks`, `nordic-sqr-rct`, `wv-ops` Vercel projects queued for deletion now that CF Workers (`wv-vault`, `wv-harbour-creaseworks`, `wv-nordic`, `wv-ops`) own all production traffic. `creaseworks.windedvertigo.com` subdomain → 301 redirect to `windedvertigo.com/harbour/creaseworks` (canonical path). `pocket-prompts` Vercel project remains pending decision. Previous (2026-05-03): Port (CRM) migrated to `wv-port`.
 
 ## Me
 Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in San Francisco, CA (Pacific time). Email: garrett@windedvertigo.com
@@ -85,8 +85,8 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **Gmail** | External comms, client correspondence, invoice capture |
 | **Google Calendar** | Scheduling, meeting cadence, time blocking |
 | **Google Drive** | Document storage, shared folders, proposals |
-| **Cloudflare** | Primary hosting (Workers via OpenNext: site, harbour, depth-chart), DNS, R2 storage, edge |
-| **Vercel** | Hosting for port (CRM), ops, creaseworks, vault — nordic in CF Workers canary (Phase F.4) |
+| **Cloudflare** | Primary hosting for ALL production apps (Workers via OpenNext: site, harbour, depth-chart, port, ops, nordic, creaseworks, vault, ancestry), DNS, R2 storage, edge |
+| **Vercel** | Legacy account being wound down (last live project: `pocket-prompts` pending decision; `wv-claw` Slack agent still hosted here) |
 | **Cowork (Claude)** | CFO/COO operations, memory system, scheduled tasks, file management |
 | **Otter AI** | Meeting transcription (archived in Notion) |
 | **ADP** | 401k plan administration |
@@ -118,7 +118,7 @@ The second brain operates across two Claude environments with a shared memory la
 - Monorepo code changes: `harbour/`, `crm/`, `ops/`, `packages/`
 - Build fixes, dependency management, config files
 - Git operations (commit, push, branch, PR)
-- Deployment via Vercel CLI (ops, creaseworks, vault, nordic) and Wrangler/OpenNext (site, harbour, depth-chart, **port** on CF Workers)
+- Deployment via Wrangler/OpenNext for all apps (site, harbour, depth-chart, port, ops, nordic, vault, creaseworks, ancestry on CF Workers)
 - New features for ops dashboard, CRM, website
 - Infrastructure (Cloudflare workers, D1, KV if needed)
 - Debugging build/runtime errors
@@ -142,7 +142,7 @@ windedvertigo/
   .vercel/          — Vercel project config (swapped by deploy scripts)
 ```
 
-**Tech stack:** Next.js 16 + Turbopack, Tailwind v4, Auth.js v5 (Google OAuth), npm workspaces (no turborepo), Vercel hosting, Cloudflare DNS.
+**Tech stack:** Next.js 16 + Turbopack, Tailwind v4, Auth.js v5 (Google OAuth), npm workspaces (no turborepo), Cloudflare Workers (OpenNext) hosting + DNS + R2.
 
 ## Infrastructure State
 | Service | Domain | Host | Project / Worker | Status |
@@ -153,10 +153,11 @@ windedvertigo/
 | wv-launch-smoke | wv-launch-smoke.windedvertigo.workers.dev | CF Workers | `wv-launch-smoke` (cron `*/30 * * * *`, KV `SMOKE_LATEST`) | Live — 40-target probe, posts to wv-claw on red |
 | Port (CRM) | port.windedvertigo.com | CF Workers (OpenNext) | `wv-port` (R3 bindings: PROPOSAL_QUEUE, TIMESHEET_QUEUE, RFP_DOCUMENT_QUEUE; R2 `port-assets`; AUTH_TRUST_HOST=true) | Live — migrated 2026-05-03; Vercel `wv-crm` kept as rollback until 2026-05-17 |
 | Port agent | Slack DM @wv-claw | Vercel (worker `wv-claw`) | App `A0AUA3VQHFH` / bot `U0AUPLEA8RL` / audit DB `f2f48a9998d84cd69598efdc79a44f1e` | Live end-to-end |
-| Nordic (Vercel) | nordic.windedvertigo.com | Vercel | `nordic-sqr-rct` (rootDir: `apps/nordic-sqr-rct`, monorepo-linked 2026-05-02) | Live — production (cutover pending Phase F.5 ~May 5-7) |
-| Nordic (CF canary) | wv-nordic.windedvertigo.workers.dev | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs` binding, `workflow` SDK removed, Supabase saga for ingredient-safety) | Canary live — Phase F.4 (started 2026-05-02, cutover after 3-day clean) |
-| Ops | ops.windedvertigo.com | Vercel | `wv-ops` | Deployed — auth flow needs verification |
-| Creaseworks, Vault | — | Vercel | (kept on Vercel) | Live |
+| Nordic | nordic.windedvertigo.com | CF Workers (OpenNext) | `wv-nordic` (6 cron triggers, R2 `nordic-pcs` binding, route `nordic.windedvertigo.com` custom_domain) | Live — DNS cutover from Vercel completed 2026-05-07; Vercel `nordic-sqr-rct` queued for deletion |
+| Ops | ops.windedvertigo.com | CF Workers (OpenNext) | `wv-ops` (KV `SMOKE_LATEST` binding, route `ops.windedvertigo.com` custom_domain repo-tracked 2026-05-12) | Live — Vercel `wv-ops` queued for deletion |
+| Vault | windedvertigo.com/harbour/vertigo-vault/* | CF Workers (OpenNext) | `wv-vault` (sub-path under harbour proxy, daily 06:00 cron, Pool A SSO) | Live — Vercel `vertigo-vault` (no custom domain) queued for deletion |
+| Creaseworks | windedvertigo.com/harbour/creaseworks/* | CF Workers (OpenNext) | `wv-harbour-creaseworks` (sub-path under harbour proxy, 3 cron triggers, Pool A SSO) | Live — Vercel `creaseworks` (no custom domain) queued for deletion. `creaseworks.windedvertigo.com` → 301 redirect to canonical path |
+| Ancestry | ancestry.windedvertigo.com | CF Workers (OpenNext) | `wv-ancestry` (R2 `ancestry-media`, 2 cron triggers, route `ancestry.windedvertigo.com` custom_domain repo-tracked 2026-05-12) | Live — migrated from Vercel earlier 2026-05-12 |
 
 **Canonical image bucket:** R2 `creaseworks-evidence` (in garrett CF account `097c92553b268f8360b74f625f6d980a`, migrated 2026-04-25 from anotheroption). Public URL: `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev`. Used by site, harbour, vault, creaseworks.
 
