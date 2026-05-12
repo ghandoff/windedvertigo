@@ -1,0 +1,37 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-harbour-rubric-co-builder",
+  "main": "worker.ts",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "wv-harbour-rubric-co-builder"
+    }
+  ],
+
+  "vars": {
+    "CF_WORKERS_ENV": "1",
+    "NEXT_PUBLIC_APP_URL": "https://windedvertigo.com/harbour/rubric-co-builder",
+    "NEXT_PUBLIC_BASE_PATH": "/harbour/rubric-co-builder"
+  }
+
+  // Secrets — set via: wrangler secret put <NAME> --name wv-harbour-rubric-co-builder
+  // Required:
+  //   POSTGRES_URL        (Neon pooled connection string for the rubric DB)
+  //   ANTHROPIC_API_KEY   (for /api/rooms and rubric generation)
+  //
+  // No Auth.js, no crons, no direct routes — proxied through wv-site at
+  // /harbour/rubric-co-builder. If Auth.js gets added later, register
+  // /harbour/rubric-co-builder/api/auth/* as direct CF Routes (see
+  // creaseworks/wrangler.jsonc for the pattern).
+}

@@ -400,10 +400,38 @@ const nextConfig: NextConfig = {
         destination: "https://values-auction-d9m.pages.dev/:path*",
       },
 
-      // rubric-co-builder and cuts-catalogue rewrites removed 2026-05-12 —
-      // their Vercel projects were deleted and no CF replacement exists yet.
-      // /harbour/rubric-co-builder and /harbour/cuts-catalogue now 404 cleanly
-      // instead of proxying to dead origins. Restore here when a CF worker exists.
+      // rubric-co-builder — CF Workers (migrated from Vercel 2026-05-12).
+      // Worker: wv-harbour-rubric-co-builder. Next.js 16 + Anthropic SDK + Neon.
+      // basePath set to /harbour/rubric-co-builder in worker vars; no Auth.js
+      // so no api/auth bypass routes are needed.
+      {
+        source: "/harbour/rubric-co-builder",
+        destination:
+          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder",
+      },
+      {
+        source: "/harbour/rubric-co-builder/",
+        destination:
+          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder",
+      },
+      {
+        source: "/harbour/rubric-co-builder/:path*",
+        destination:
+          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder/:path*",
+      },
+
+      // cuts-catalogue — single static HTML page served from site/public/
+      // (no separate worker needed; identical pattern to three-intelligence-workbook).
+      // Source of truth: apps/harbour/cuts-catalogue/index.html; canonical served
+      // copy lives at site/public/harbour/cuts-catalogue/index.html.
+      {
+        source: "/harbour/cuts-catalogue",
+        destination: "/harbour/cuts-catalogue/index.html",
+      },
+      {
+        source: "/harbour/cuts-catalogue/",
+        destination: "/harbour/cuts-catalogue/index.html",
+      },
 
       // read the room — formerly "feel cards"; renamed 2026-05-06.
       // wv-harbour-read-the-room serves the static HTML and /api/room/* WS
