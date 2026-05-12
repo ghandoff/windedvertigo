@@ -107,7 +107,7 @@ export async function acceptHintAction(formData: FormData) {
     if (hint.source_system === "familysearch") {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ??
-          (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+          process.env.NEXT_PUBLIC_APP_URL ?? "https://ancestry.windedvertigo.com";
 
         const res = await fetch(`${baseUrl}/api/familysearch/import`, {
           method: "POST",
@@ -198,7 +198,7 @@ export async function refreshHintsAction() {
   const { tree } = await getTreeForUser();
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://ancestry.windedvertigo.com";
 
   try {
     await fetch(`${baseUrl}/api/hints/generate`, {
@@ -231,7 +231,7 @@ export async function resetHintsAction() {
 
   // trigger fresh scan
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://ancestry.windedvertigo.com";
 
   try {
     await fetch(`${baseUrl}/api/hints/generate`, {
