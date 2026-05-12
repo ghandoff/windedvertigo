@@ -51,9 +51,15 @@ export class VaStrategyBoard extends LitElement {
     .board {
       display: grid;
       grid-template-columns: 1fr;
-      gap: var(--space-4);
+      gap: var(--space-3);
     }
-    @media (min-width: 900px) {
+    @media (min-width: 640px) {
+      .board {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+      }
+    }
+    @media (min-width: 1024px) {
       .board {
         grid-template-columns: repeat(4, 1fr);
       }
@@ -62,11 +68,33 @@ export class VaStrategyBoard extends LitElement {
       background: rgba(255, 255, 255, 0.55);
       border: 2px dashed rgba(39, 50, 72, 0.25);
       border-radius: var(--radius-md);
-      padding: var(--space-4);
-      min-height: 240px;
+      padding: var(--space-3);
+      min-height: 200px;
       transition:
         border-color var(--dur-base) var(--ease-out-quart),
         background var(--dur-base) var(--ease-out-quart);
+    }
+    @media (min-width: 640px) {
+      .zone {
+        padding: var(--space-4);
+        min-height: 240px;
+      }
+    }
+    /*
+     * narrow viewports: collapse "won't" + "deck" into a single details
+     * disclosure so the must/nice zones stay above the fold. participants
+     * still get the full board on tablet+ devices.
+     */
+    @media (max-width: 639px) {
+      .zone[data-zone='wont'],
+      .zone[data-zone='deck'] {
+        min-height: 0;
+        padding: var(--space-2) var(--space-3);
+      }
+      .zone[data-zone='wont'] ul,
+      .zone[data-zone='deck'] ul {
+        gap: var(--space-2);
+      }
     }
     .zone h3 {
       font: var(--type-h2);

@@ -35,14 +35,20 @@ export class VaPollButtons extends LitElement {
       letter-spacing: 0.08em;
     }
     .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-2);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-1);
+    }
+    @media (min-width: 480px) {
+      .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+      }
     }
     button.choice {
-      min-width: 64px;
       min-height: 44px;
-      padding: var(--space-2) var(--space-3);
+      padding: var(--space-2) 0;
       border-radius: var(--radius-pill);
       border: 2px solid var(--wv-cadet-blue);
       background: var(--bg-card);
@@ -50,10 +56,18 @@ export class VaPollButtons extends LitElement {
       font: var(--type-small);
       font-weight: 700;
       cursor: pointer;
+      line-height: 1.1;
+      text-align: center;
       transition:
         background var(--dur-base) var(--ease-out-quart),
         color var(--dur-base) var(--ease-out-quart),
         transform var(--dur-base) var(--ease-out-quart);
+    }
+    @media (min-width: 480px) {
+      button.choice {
+        min-width: 64px;
+        padding: var(--space-2) var(--space-3);
+      }
     }
     button.choice:hover,
     button.choice:focus-visible {
@@ -67,6 +81,27 @@ export class VaPollButtons extends LitElement {
     button.choice[data-selected] {
       background: var(--wv-cadet-blue);
       color: var(--fg-inverse);
+    }
+    button.choice .label,
+    button.choice .amount {
+      display: block;
+    }
+    button.choice .amount {
+      font: var(--type-mono);
+      font-size: 11px;
+      opacity: 0.8;
+    }
+    @media (min-width: 480px) {
+      button.choice .label,
+      button.choice .amount {
+        display: inline;
+      }
+      button.choice .amount::before {
+        content: ' ';
+      }
+      button.choice .amount {
+        font-size: inherit;
+      }
     }
     .results {
       margin-top: var(--space-2);
@@ -174,11 +209,13 @@ export class VaPollButtons extends LitElement {
               type="button"
               class="choice"
               role="radio"
+              aria-label=${`${labels[amount]}, ${amount} credos`}
               aria-checked=${myVote === amount ? 'true' : 'false'}
               data-selected=${myVote === amount ? true : null}
               @click=${() => this.vote(amount)}
             >
-              ${labels[amount]} (${amount})
+              <span class="label">${labels[amount]}</span>
+              <span class="amount">${amount}</span>
             </button>
           `,
         )}

@@ -27,6 +27,7 @@ import '@/components/identity-card';
 import '@/components/brainstorm-wall';
 import '@/components/captain-banner';
 import '@/components/results-panel';
+import '@/components/team-chip';
 import { VALUES, getValue } from '@/content/values';
 
 const PRACTICE_VALUE = {
@@ -39,6 +40,12 @@ const PRACTICE_VALUE = {
 export class VaParticipant extends LitElement {
   @property({ attribute: false }) controller?: Controller;
   @property({ type: String }) code = 'DEMO';
+  /**
+   * preview mode: render the participant ui the facilitator can watch live,
+   * pinned to a real team if available. dispatches are suppressed so the
+   * preview can't accidentally place bids or claim captain on real teams.
+   */
+  @property({ type: Boolean }) preview = false;
 
   @state() private session?: Session;
   @state() private participantId = '';
@@ -60,6 +67,16 @@ export class VaParticipant extends LitElement {
   private autoSubmittedForAuction: string | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 
+  /**
+   * dispatch passthrough that no-ops when in preview mode. every place
+   * the participant view used to call `this.dispatch(...)`
+   * goes through this so the facilitator preview can never mutate state.
+   */
+  private dispatch(action: Parameters<NonNullable<Controller['dispatch']>>[0]) {
+    if (this.preview) return;
+    this.dispatch(action);
+  }
+
   connectedCallback() {
     super.connectedCallback();
     this.participantId = this.restoreOrCreateId();
@@ -68,6 +85,15 @@ export class VaParticipant extends LitElement {
       this.reactToSession(s);
     });
     this.session = this.controller?.store.getState();
+    if (this.preview) {
+      // facilitator preview: skip the join flow entirely; pin to the first
+      // real participant on the first team so we render their experience.
+      this.welcomed = true;
+      this.staged = true;
+      this.joined = true;
+      this.adoptPreviewIdentity();
+      return;
+    }
     const cachedName = localStorage.getItem(`va:name:${this.code}`);
     if (cachedName) {
       this.name = cachedName;
@@ -77,12 +103,25 @@ export class VaParticipant extends LitElement {
     // heartbeat so the captain-disconnect watcher can detect dropouts.
     this.heartbeatTimer = setInterval(() => {
       if (!this.joined) return;
-      this.controller?.dispatch({
+      this.dispatch({
         type: 'PARTICIPANT_SEEN',
         participantId: this.participantId,
         at: Date.now(),
       });
     }, 20_000);
+  }
+
+  private adoptPreviewIdentity() {
+    if (!this.session) return;
+    const firstTeam = this.session.teams[0];
+    if (!firstTeam) return;
+    const member = this.session.participants.find(
+      (p) => p.teamId === firstTeam.id && p.role === 'participant',
+    );
+    if (member) {
+      this.participantId = member.id;
+      this.name = member.displayName;
+    }
   }
 
   disconnectedCallback() {
@@ -103,6 +142,14 @@ export class VaParticipant extends LitElement {
   }
 
   private reactToSession(s: Session) {
+    if (this.preview) {
+      // keep the preview identity fresh — once a real team forms we adopt one
+      // of its members so the dashboard mirrors a real participant's view.
+      const haveTeam =
+        this.participantId && s.participants.some((p) => p.id === this.participantId);
+      if (!haveTeam) this.adoptPreviewIdentity();
+      return;
+    }
     const auction = s.currentAuction;
     if (auction?.highBid && auction.highBid.at > this.lastBidSeen) {
       const myTeam = teamForParticipant(s, this.participantId);
@@ -166,7 +213,7 @@ export class VaParticipant extends LitElement {
         : liveTeam.credos;
       if (amount <= 0 || amount > budget) return;
       if (amount <= (liveAuction.highBid?.amount ?? 0)) return;
-      this.controller?.dispatch({
+      this.dispatch({
         type: 'BID_PLACE',
         teamId: liveTeam.id,
         amount,
@@ -196,9 +243,10 @@ export class VaParticipant extends LitElement {
 
   private handleJoin(e: Event) {
     e.preventDefault();
+    if (this.preview) return;
     if (!this.name.trim() || !this.controller) return;
     localStorage.setItem(`va:name:${this.code}`, this.name.trim());
-    this.controller.dispatch({
+    this.dispatch({
       type: 'PARTICIPANT_JOIN',
       participant: {
         id: this.participantId,
@@ -226,7 +274,7 @@ export class VaParticipant extends LitElement {
   }
 
   private selectArchetype(archetype: 'builder' | 'diplomat' | 'rebel' | 'steward') {
-    this.controller?.dispatch({
+    this.dispatch({
       type: 'ARCHETYPE_SELECT',
       participantId: this.participantId,
       archetype,
@@ -237,7 +285,7 @@ export class VaParticipant extends LitElement {
     if (!this.controller) return;
     const me = this.session?.participants.find((p) => p.id === this.participantId);
     const next = !(me?.ready ?? false);
-    this.controller.dispatch({
+    this.dispatch({
       type: 'PARTICIPANT_READY',
       participantId: this.participantId,
       ready: next,
@@ -248,7 +296,7 @@ export class VaParticipant extends LitElement {
   private writeReflectionAnswer(index: number, answer: string) {
     this.reflectionDraft = { ...this.reflectionDraft, [index]: answer };
     if (!this.team) return;
-    this.controller?.dispatch({
+    this.dispatch({
       type: 'REFLECTION_ANSWER',
       teamId: this.team.id,
       index,
@@ -258,7 +306,7 @@ export class VaParticipant extends LitElement {
 
   private onBid(e: CustomEvent<{ amount: number }>) {
     if (!this.team) return;
-    this.controller?.dispatch({
+    this.dispatch({
       type: 'BID_PLACE',
       teamId: this.team.id,
       amount: e.detail.amount,
@@ -268,7 +316,7 @@ export class VaParticipant extends LitElement {
 
   private onIntention = (e: CustomEvent) => {
     const detail = e.detail as { teamId: string; valueId: string; zone: any };
-    this.controller?.dispatch({ type: 'INTENTION_SET', ...detail });
+    this.dispatch({ type: 'INTENTION_SET', ...detail });
   };
 
   private onPollVote = (e: CustomEvent) => {
@@ -278,22 +326,22 @@ export class VaParticipant extends LitElement {
       participantId: string;
       amount: number;
     };
-    this.controller?.dispatch({ type: 'POLL_VOTE', ...detail });
+    this.dispatch({ type: 'POLL_VOTE', ...detail });
   };
 
   private onBidLock = (e: CustomEvent) => {
     const detail = e.detail as { teamId: string; valueId: string; amount: number };
-    this.controller?.dispatch({ type: 'BID_LOCK', ...detail });
+    this.dispatch({ type: 'BID_LOCK', ...detail });
   };
 
   private onBidUnlock = (e: CustomEvent) => {
     const detail = e.detail as { teamId: string; valueId: string };
-    this.controller?.dispatch({ type: 'BID_UNLOCK', ...detail });
+    this.dispatch({ type: 'BID_UNLOCK', ...detail });
   };
 
   private onCaptainClaim = (e: CustomEvent) => {
     const detail = e.detail as { teamId: string; participantId: string };
-    this.controller?.dispatch({
+    this.dispatch({
       type: 'CAPTAIN_CLAIM',
       teamId: detail.teamId,
       participantId: detail.participantId,
@@ -303,7 +351,7 @@ export class VaParticipant extends LitElement {
 
   private onCaptainPass = (e: CustomEvent) => {
     const detail = e.detail as { teamId: string; toParticipantId: string };
-    this.controller?.dispatch({
+    this.dispatch({
       type: 'CAPTAIN_PASS',
       teamId: detail.teamId,
       toParticipantId: detail.toParticipantId,
@@ -313,7 +361,7 @@ export class VaParticipant extends LitElement {
 
   private submitBrainstorm = (e: CustomEvent) => {
     const detail = e.detail as { text: string };
-    this.controller?.dispatch({
+    this.dispatch({
       type: 'BRAINSTORM_SUBMIT',
       participantId: this.participantId,
       text: detail.text,
@@ -324,7 +372,7 @@ export class VaParticipant extends LitElement {
   private writePurpose(e: Event) {
     const val = (e.target as HTMLTextAreaElement).value;
     if (!this.team) return;
-    this.controller?.dispatch({
+    this.dispatch({
       type: 'PURPOSE_WRITE',
       teamId: this.team.id,
       statement: val,
@@ -335,8 +383,13 @@ export class VaParticipant extends LitElement {
     :host {
       display: block;
       min-height: 100vh;
-      padding: var(--space-5);
+      padding: var(--space-3);
       box-sizing: border-box;
+    }
+    @media (min-width: 640px) {
+      :host {
+        padding: var(--space-5);
+      }
     }
     *,
     *::before,
@@ -355,6 +408,13 @@ export class VaParticipant extends LitElement {
     .code {
       font: var(--type-mono);
       color: var(--fg-muted);
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
     .stage {
       max-width: 1100px;
@@ -504,6 +564,81 @@ export class VaParticipant extends LitElement {
     .archetype h3 {
       font: var(--type-h2);
       margin-bottom: var(--space-2);
+    }
+    .team-assign {
+      max-width: 640px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+      padding-top: var(--space-6);
+    }
+    .team-assign-card {
+      text-align: center;
+      padding: var(--space-6) var(--space-5);
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+    }
+    .team-assign-card .team-swatch {
+      display: inline-block;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      margin-bottom: var(--space-4);
+    }
+    .team-assign-card .team-label {
+      font: var(--type-mono);
+      color: var(--fg-muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin: 0 0 var(--space-2);
+    }
+    .team-assign-card .team-name {
+      font: var(--type-display);
+      margin: 0 0 var(--space-4);
+    }
+    .team-assign-card .team-holding {
+      color: var(--fg-muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+    .team-roster {
+      background: var(--bg-card);
+      padding: var(--space-4);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+    }
+    .team-roster h2 {
+      font: var(--type-h2);
+      margin: 0 0 var(--space-3);
+    }
+    .team-roster ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 var(--space-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .team-roster li {
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+    }
+    .team-roster li.you {
+      border-left: 3px solid var(--wv-cadet-blue);
+      font-weight: 700;
+    }
+    .team-roster .empty {
+      color: var(--fg-muted);
+      font-style: italic;
+      margin: 0 0 var(--space-2);
+    }
+    .team-roster .hint {
+      color: var(--fg-muted);
+      font: var(--type-small);
+      margin: 0;
     }
     .auction-stage {
       text-align: center;
@@ -814,6 +949,10 @@ export class VaParticipant extends LitElement {
   }
 
   private renderGrouping() {
+    // teams already formed → show the assignment screen instead of the archetype picker
+    if (this.team && this.session) {
+      return this.renderTeamAssignment();
+    }
     const me = this.session?.participants.find((p) => p.id === this.participantId);
     return html`
       <section class="fade-in">
@@ -848,9 +987,42 @@ export class VaParticipant extends LitElement {
             `,
           )}
         </div>
-        ${this.team
-          ? html`<p class="sector">${COPY.grouping.assigned(this.team.colour, 4)}</p>`
-          : ''}
+      </section>
+    `;
+  }
+
+  private renderTeamAssignment() {
+    if (!this.team || !this.session) return html``;
+    const roster = teamMembers(this.session, this.team.id);
+    return html`
+      <section class="fade-in team-assign">
+        <div class="team-assign-card">
+          <span
+            class="team-swatch"
+            style=${`background: var(--team-${this.team.colour})`}
+            aria-hidden="true"
+          ></span>
+          <p class="team-label">you're on</p>
+          <h1 class="team-name">${this.team.name}</h1>
+          <p class="team-holding">${COPY.grouping.teamFormed}</p>
+        </div>
+        <div class="team-roster">
+          <h2>${COPY.grouping.teamRosterHeading}</h2>
+          ${roster.length === 0
+            ? html`<p class="empty">${COPY.grouping.teamRosterEmpty}</p>`
+            : html`
+                <ul>
+                  ${roster.map(
+                    (p) => html`
+                      <li class=${p.id === this.participantId ? 'you' : ''}>
+                        ${p.displayName}${p.id === this.participantId ? ' (you)' : ''}
+                      </li>
+                    `,
+                  )}
+                </ul>
+              `}
+          <p class="hint">${COPY.grouping.teamChipHint}</p>
+        </div>
       </section>
     `;
   }
@@ -975,7 +1147,7 @@ export class VaParticipant extends LitElement {
       return html`
         <section class="auction-stage fade-in">
           <h2>${COPY.auction.restrategise}</h2>
-          <p>${COPY.auction.refundNeverHappens}</p>
+          <p>${COPY.auction.betweenAuctions}</p>
         </section>
       `;
     }
@@ -1193,10 +1365,23 @@ export class VaParticipant extends LitElement {
     else if (act === 'reflection') body = this.renderReflection();
     else body = this.renderRegather();
 
+    const team = this.team;
+    const teammates = team && this.session
+      ? teamMembers(this.session, team.id)
+      : [];
     return html`
       <header>
         <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
-        <span class="code">${COPY.arrival.codeLabel}: ${this.code}</span>
+        <div class="header-right">
+          ${team
+            ? html`<va-team-chip
+                .team=${team}
+                .teammates=${teammates}
+                .participantId=${this.participantId}
+              ></va-team-chip>`
+            : ''}
+          <span class="code">${COPY.arrival.codeLabel}: ${this.code}</span>
+        </div>
       </header>
       <div class="stage">${this.renderBroadcast()}${body}</div>
     `;

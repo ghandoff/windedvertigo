@@ -28,6 +28,7 @@ import '@/components/credos-stack';
 import '@/components/countdown';
 import '@/components/act-timeline';
 import '@/components/value-card';
+import '@/views/participant';
 
 @customElement('va-facilitator')
 export class VaFacilitator extends LitElement {
@@ -40,10 +41,29 @@ export class VaFacilitator extends LitElement {
   @state() private tickNow = Date.now();
   @state() private pendingJump: string | null = null;
   @state() private copied: 'join' | 'wall' | null = null;
+  /**
+   * captain-reassigned toasts. each disconnect-driven transfer surfaces
+   * a transient warning so the facilitator knows a team's submitter
+   * changed mid-session.
+   */
+  @state() private captainAlerts: Array<{
+    id: string;
+    teamId: string;
+    teamName: string;
+    captainName: string;
+    at: number;
+  }> = [];
+  /**
+   * controls the embedded participant-view preview so facilitators can see
+   * exactly what the breakouts see without opening a second tab.
+   */
+  @state() private previewOpen = false;
 
   private unsub?: () => void;
   private ticker: { stop(): void } | null = null;
   private copyResetTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastCaptainEventAt = 0;
+  private captainAlertTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   private joinUrl(): string {
     const { origin, pathname } = window.location;
@@ -84,8 +104,14 @@ export class VaFacilitator extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     if (this.controller) {
-      this.unsub = this.controller.store.subscribe((s) => (this.session = s));
+      this.unsub = this.controller.store.subscribe((s) => {
+        this.session = s;
+        this.watchCaptainEvents(s);
+      });
       this.session = this.controller.store.getState();
+      this.lastCaptainEventAt = this.session.events
+        .filter((e) => e.type === 'captainTransferred')
+        .reduce((m, e) => Math.max(m, e.at), 0);
       // only init when there's truly no session in progress.
       // if a participant already joined, refreshing the facilitator must not wipe them.
       if (
@@ -108,6 +134,57 @@ export class VaFacilitator extends LitElement {
     this.unsub?.();
     this.ticker?.stop();
     if (this.copyResetTimer) clearTimeout(this.copyResetTimer);
+    for (const t of this.captainAlertTimers.values()) clearTimeout(t);
+    this.captainAlertTimers.clear();
+  }
+
+  /**
+   * surface a transient alert when a captain is auto-reassigned mid-session
+   * (disconnect grace period elapsed). manual passes aren't surfaced — those
+   * were intentional. each alert auto-dismisses after 12s.
+   */
+  private watchCaptainEvents(s: Session) {
+    const fresh = s.events.filter(
+      (e) =>
+        e.type === 'captainTransferred' &&
+        e.at > this.lastCaptainEventAt &&
+        (e.payload as { reason?: string }).reason === 'disconnect',
+    );
+    if (fresh.length === 0) return;
+    this.lastCaptainEventAt = fresh.reduce(
+      (m, e) => Math.max(m, e.at),
+      this.lastCaptainEventAt,
+    );
+    const nextAlerts = [...this.captainAlerts];
+    for (const ev of fresh) {
+      const payload = ev.payload as { teamId: string; to: string };
+      const team = s.teams.find((t) => t.id === payload.teamId);
+      const captain = s.participants.find((p) => p.id === payload.to);
+      if (!team || !captain) continue;
+      const alertId = ev.id;
+      nextAlerts.push({
+        id: alertId,
+        teamId: team.id,
+        teamName: team.name,
+        captainName: captain.displayName,
+        at: ev.at,
+      });
+      const timer = setTimeout(() => {
+        this.captainAlerts = this.captainAlerts.filter((a) => a.id !== alertId);
+        this.captainAlertTimers.delete(alertId);
+      }, 12_000);
+      this.captainAlertTimers.set(alertId, timer);
+    }
+    this.captainAlerts = nextAlerts;
+  }
+
+  private dismissCaptainAlert(alertId: string) {
+    this.captainAlerts = this.captainAlerts.filter((a) => a.id !== alertId);
+    const t = this.captainAlertTimers.get(alertId);
+    if (t) {
+      clearTimeout(t);
+      this.captainAlertTimers.delete(alertId);
+    }
   }
 
   private startSession() {
@@ -468,7 +545,142 @@ export class VaFacilitator extends LitElement {
       font-size: 14px;
       line-height: 1.4;
     }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .preview-hint {
+      color: var(--fg-muted);
+      font: var(--type-small);
+      margin: var(--space-2) 0 var(--space-3);
+      line-height: 1.4;
+    }
+    .preview-frame {
+      max-height: 640px;
+      overflow: auto;
+      border-radius: var(--radius-md);
+      background: var(--bg);
+      border: 1px solid rgba(39, 50, 72, 0.1);
+      padding: var(--space-2);
+      /* shrink the embedded view a touch so it still feels like a preview */
+      transform: scale(0.92);
+      transform-origin: top left;
+      width: calc(100% / 0.92);
+    }
+    .preview-frame va-participant {
+      pointer-events: none;
+    }
+    .captain-alerts {
+      position: fixed;
+      right: var(--space-5);
+      bottom: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      z-index: 20;
+      max-width: 360px;
+    }
+    .captain-alert {
+      background: var(--wv-redwood);
+      color: var(--fg-inverse);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      display: flex;
+      gap: var(--space-3);
+      align-items: flex-start;
+      animation: va-spring-pulse var(--dur-base) var(--ease-spring);
+    }
+    .captain-alert .label {
+      font: var(--type-small);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.8;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .captain-alert .body {
+      flex: 1;
+      line-height: 1.4;
+    }
+    .captain-alert button {
+      background: transparent;
+      color: var(--fg-inverse);
+      border: 0;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 0;
+      line-height: 1;
+    }
   `;
+
+  /**
+   * inline participant-view preview. shares the same controller as the
+   * facilitator, so it stays in sync without a second device or tab.
+   * dispatches from the preview are no-ops (see va-participant's `preview`
+   * prop) so the facilitator can't accidentally bid or vote.
+   */
+  private renderParticipantPreview() {
+    return html`
+      <div class="panel" style="margin-top: var(--space-4);">
+        <div class="preview-header">
+          <h2>participant preview</h2>
+          <va-button
+            size="sm"
+            variant="ghost"
+            aria-expanded=${this.previewOpen ? 'true' : 'false'}
+            @va-click=${() => (this.previewOpen = !this.previewOpen)}
+          >
+            ${this.previewOpen ? 'hide' : 'show'} participant view
+          </va-button>
+        </div>
+        ${this.previewOpen
+          ? html`
+              <p class="preview-hint">
+                read-only mirror of what one of your participants sees right now.
+                updates live as you advance acts.
+              </p>
+              <div class="preview-frame">
+                <va-participant
+                  preview
+                  .controller=${this.controller}
+                  .code=${this.code}
+                ></va-participant>
+              </div>
+            `
+          : ''}
+      </div>
+    `;
+  }
+
+  private renderCaptainAlerts() {
+    if (this.captainAlerts.length === 0) return html``;
+    return html`
+      <div class="captain-alerts" role="region" aria-label="captain reassignments">
+        ${this.captainAlerts.map(
+          (a) => html`
+            <div class="captain-alert" role="status">
+              <div class="body">
+                <span class="label">team ${a.teamName} — captain reassigned</span>
+                <span>${a.captainName} took over after the previous captain went silent.</span>
+              </div>
+              <button
+                type="button"
+                aria-label="dismiss"
+                @click=${() => this.dismissCaptainAlert(a.id)}
+              >
+                ✕
+              </button>
+            </div>
+          `,
+        )}
+      </div>
+    `;
+  }
 
   private renderActSpecificPanel(s: Session) {
     if (s.currentAct === 'brainstorm') {
@@ -589,6 +801,7 @@ export class VaFacilitator extends LitElement {
     const availableValues = VALUES.filter((v) => s.valueDeck.includes(v.id));
 
     return html`
+      ${this.renderCaptainAlerts()}
       <header>
         <img class="wordmark" src="/wordmark.svg" alt="winded.vertigo" />
         <div class="session-share" aria-label=${`session code ${this.code}`}>
@@ -753,6 +966,8 @@ export class VaFacilitator extends LitElement {
             ${COPY.facilitator.broadcastSend}
           </va-button>
         </div>
+
+        ${this.renderParticipantPreview()}
       </section>
 
       <!-- right: deck + auction control + tools (or session close on regather) -->

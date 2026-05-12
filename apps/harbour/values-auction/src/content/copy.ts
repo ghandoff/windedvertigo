@@ -17,7 +17,7 @@ export const COPY = {
       {
         step: '02',
         heading: 'you have 150 credos. that’s the whole budget.',
-        body: 'values will come up for auction, one at a time. teams bid in real time. the highest offer wins. losses are final — no second round, no refund.',
+        body: 'values will come up for auction, one at a time. teams bid in real time. the highest offer wins the value. credos only leave your account when you win — losing bids return to your balance.',
       },
       {
         step: '03',
@@ -53,6 +53,10 @@ export const COPY = {
       'the session has already started — you’ve been added to the smallest team to keep things moving.',
     waitingForFacilitator:
       'the session is in progress — ask your facilitator to add you to a team.',
+    teamFormed: 'you’re in. your facilitator will move things along shortly.',
+    teamRosterHeading: 'your team',
+    teamRosterEmpty: 'you’re first in. teammates will show up here as they arrive.',
+    teamChipHint: 'tap your team chip in the header any time to see who’s with you.',
   },
   scene: {
     ready: 'i’ve read it. ready.',
@@ -150,7 +154,9 @@ export const COPY = {
     bidCta: 'bid',
     bidPlaced: 'bid in.',
     won: 'locked in.',
-    refundNeverHappens: 'no refunds. once spent, gone.',
+    creditsHeldHint:
+      'your bid reserves credos for this round. lose, and they return — only winning spends them.',
+    betweenAuctions: 'between auctions. your facilitator will queue the next value.',
     restrategise: 'two minutes. regroup. adjust.',
     nextBidLabel: 'your bid',
     noBidsYet: 'no bids yet. open it up.',
