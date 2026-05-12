@@ -360,21 +360,21 @@ const nextConfig: NextConfig = {
           "https://wv-harbour-emerge-box.windedvertigo.workers.dev/harbour/emerge-box/:path*",
       },
 
-      // admin (via creaseworks)
+      // admin (via creaseworks — CF Workers)
       {
         source: "/harbour/admin/login",
         destination:
-          "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/login?callbackUrl=%2Fadmin",
+          "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/login?callbackUrl=%2Fadmin",
       },
       {
         source: "/harbour/admin",
         destination:
-          "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/admin",
+          "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/admin",
       },
       {
         source: "/harbour/admin/:path*",
         destination:
-          "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/admin/:path*",
+          "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/admin/:path*",
       },
 
       // rubric co-builder

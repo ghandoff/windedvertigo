@@ -66,9 +66,8 @@ export function verifyUnsubscribeToken(token: string): string | null {
 export function buildUnsubscribeUrl(userId: string): string {
   const baseUrl =
     process.env.NEXTAUTH_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000");
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000";
 
   const token = generateUnsubscribeToken(userId);
   return `${baseUrl}/api/notifications/unsubscribe?token=${encodeURIComponent(token)}`;
