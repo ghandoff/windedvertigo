@@ -9,10 +9,19 @@
     "binding": "ASSETS"
   },
   "kv_namespaces": [
-    // Read access to the smoke worker's KV namespace — for the ops dashboard
-    // smoke status display. Post-H.1, switch ops/lib/kv.ts to native binding.
+    // Ops own data store — calendar, tasks, dispatch, finance cache
+    { "binding": "OPS_DATA", "id": "6793fcb92d2d485ba4bbe5c6e74a9d29" },
+    // Read access to the smoke worker's KV namespace — for smoke status display
     { "binding": "SMOKE_LATEST", "id": "b67fcfef7da04135999738370da62c8f" }
   ],
+
+  // Route — will intercept once DNS record for ops.windedvertigo.com is CF-proxied.
+  // To activate: delete the existing CNAME in CF DNS dashboard (or toggle proxy on),
+  // then re-run: curl -X PUT .../workers/domains (see plan for exact command)
+  "routes": [
+    { "pattern": "ops.windedvertigo.com/*", "zone_name": "windedvertigo.com" }
+  ],
+
   "vars": {
     "OPS_URL": "https://ops.windedvertigo.com",
     "CF_WORKERS_ENV": "1"
