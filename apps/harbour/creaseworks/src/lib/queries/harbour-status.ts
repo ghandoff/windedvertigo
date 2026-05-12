@@ -424,54 +424,13 @@ async function queryRevenue(): Promise<RevenueStats> {
 }
 
 /* ------------------------------------------------------------------ */
-/*  deployment queries (Vercel REST API)                               */
+/*  deployment queries                                                 */
 /* ------------------------------------------------------------------ */
 
-const VERCEL_APPS: { name: string; projectId: string }[] = [
-  { name: "site", projectId: "prj_k02f1LutCsQLZEDIyM2xYJ1PGPCx" },
-  { name: "harbour", projectId: "prj_KqjKxyhlGTublMolccOkvLFBZ8Xn" },
-  { name: "creaseworks", projectId: "prj_EoDpRvw1kdAqcGVrcaYclfWFeX7b" },
-  { name: "deep-deck", projectId: "prj_Z2zpJXnsOrVp5hyoJ89ERuQHmOru" },
-  { name: "vertigo-vault", projectId: "prj_KHsZ60sQpj3ipSB5lzy9CGVAUYaW" },
-  { name: "nordic-sqr-rct", projectId: "prj_laAl3qm5w20CrtIjO2klc9dj180z" },
-];
-
-const VERCEL_TEAM_ID = "team_wrpRda7ZzXdu7nKcEVVXY3th";
-
+// All harbour apps deploy via CF Workers (wrangler) as of 2026-05-12.
+// The deployment-status panel previously queried the Vercel REST API; that
+// integration is removed. Re-wire to `mcp__cloudflare__workers_get_worker`
+// (or `wrangler deployments list`) when a CF replacement is wanted.
 async function queryDeployments(): Promise<DeploymentInfo[]> {
-  const token = process.env.VERCEL_ACCESS_TOKEN;
-  if (!token) return [];
-
-  const results: DeploymentInfo[] = [];
-
-  // Fetch latest production deployment for each app in parallel
-  const fetches = VERCEL_APPS.map(async (app) => {
-    try {
-      const url = `https://api.vercel.com/v6/deployments?projectId=${app.projectId}&teamId=${VERCEL_TEAM_ID}&limit=1&target=production`;
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(5000),
-      });
-      if (!res.ok) return null;
-      const data = await res.json();
-      const d = data.deployments?.[0];
-      if (!d) return null;
-      return {
-        app: app.name,
-        state: d.state ?? "UNKNOWN",
-        url: d.url ?? "",
-        createdAt: d.created ?? 0,
-        commitMessage: (d.meta?.githubCommitMessage ?? "").slice(0, 80),
-        commitRef: d.meta?.githubCommitRef ?? "",
-      };
-    } catch {
-      return null;
-    }
-  });
-
-  const settled = await Promise.all(fetches);
-  for (const d of settled) {
-    if (d) results.push(d);
-  }
-  return results;
+  return [];
 }

@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "person not found" }, { status: 404 });
   }
 
-  // upload to R2 (CF Workers) or @vercel/blob (Vercel)
+  // upload to R2
   const key = `ancestry/${tree.id}/${personId}/${Date.now()}-${file.name}`;
   let mediaUrl: string;
   try {

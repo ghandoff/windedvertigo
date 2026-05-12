@@ -54,21 +54,23 @@ const nextConfig: NextConfig = {
           "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/:path*",
       },
 
-      // vertigo vault
+      // vertigo vault — CF Workers (migrated from Vercel 2026-05-12).
+      // Auth routes (api/auth/*) bypass this proxy via direct CF Workers Routes
+      // defined in vertigo-vault/wrangler.jsonc.
       {
         source: "/harbour/vertigo-vault",
         destination:
-          "https://vertigo-vault-ghandoffs-projects.vercel.app/harbour/vertigo-vault",
+          "https://wv-vault.windedvertigo.workers.dev/harbour/vertigo-vault",
       },
       {
         source: "/harbour/vertigo-vault/",
         destination:
-          "https://vertigo-vault-ghandoffs-projects.vercel.app/harbour/vertigo-vault",
+          "https://wv-vault.windedvertigo.workers.dev/harbour/vertigo-vault",
       },
       {
         source: "/harbour/vertigo-vault/:path*",
         destination:
-          "https://vertigo-vault-ghandoffs-projects.vercel.app/harbour/vertigo-vault/:path*",
+          "https://wv-vault.windedvertigo.workers.dev/harbour/vertigo-vault/:path*",
       },
 
       // deep deck
@@ -360,85 +362,48 @@ const nextConfig: NextConfig = {
           "https://wv-harbour-emerge-box.windedvertigo.workers.dev/harbour/emerge-box/:path*",
       },
 
-      // admin (via creaseworks)
+      // admin (via creaseworks) — CF Workers
       {
         source: "/harbour/admin/login",
         destination:
-          "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/login?callbackUrl=%2Fadmin",
+          "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/login?callbackUrl=%2Fadmin",
       },
       {
         source: "/harbour/admin",
         destination:
-          "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/admin",
+          "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/admin",
       },
       {
         source: "/harbour/admin/:path*",
         destination:
-          "https://creaseworks-ghandoffs-projects.vercel.app/harbour/creaseworks/admin/:path*",
+          "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/admin/:path*",
       },
 
-      // rubric co-builder
-      {
-        source: "/harbour/rubric-co-builder",
-        destination:
-          "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder",
-      },
-      {
-        source: "/harbour/rubric-co-builder/",
-        destination:
-          "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder",
-      },
-      {
-        source: "/harbour/rubric-co-builder/:path*",
-        destination:
-          "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder/:path*",
-      },
-
-      // values-auction (Vite app — no basePath, serves from root)
-      // wordmark.svg uses root-relative /wordmark.svg, proxy it to the app origin
+      // values-auction — CF Pages (migrated from Vercel).
+      // Vite app, no basePath, serves from root. The /portfolio/assets/values-auction
+      // rewrites earlier in this file are the canonical entry; these aliases let
+      // legacy /harbour/values-auction and /wordmark.svg root requests still resolve.
       {
         source: "/wordmark.svg",
-        destination: "https://values-auction-pi.vercel.app/wordmark.svg",
+        destination: "https://values-auction-d9m.pages.dev/wordmark.svg",
       },
       {
         source: "/harbour/values-auction",
-        destination: "https://values-auction-pi.vercel.app/",
+        destination: "https://values-auction-d9m.pages.dev/",
       },
       {
         source: "/harbour/values-auction/",
-        destination: "https://values-auction-pi.vercel.app/",
+        destination: "https://values-auction-d9m.pages.dev/",
       },
       {
         source: "/harbour/values-auction/:path*",
-        destination: "https://values-auction-pi.vercel.app/:path*",
-      },
-      // values-auction — portfolio/assets entry point
-      {
-        source: "/portfolio/assets/values-auction",
-        destination: "https://values-auction-pi.vercel.app/",
-      },
-      {
-        source: "/portfolio/assets/values-auction/",
-        destination: "https://values-auction-pi.vercel.app/",
-      },
-      {
-        source: "/portfolio/assets/values-auction/:path*",
-        destination: "https://values-auction-pi.vercel.app/:path*",
+        destination: "https://values-auction-d9m.pages.dev/:path*",
       },
 
-      // cuts catalogue
-      {
-        source: "/harbour/cuts-catalogue",
-        destination: "https://cuts-catalogue.vercel.app/",
-      },
-      {
-        source: "/harbour/cuts-catalogue/",
-        destination: "https://cuts-catalogue.vercel.app/",
-      },
-      {
-        source: "/harbour/cuts-catalogue/:path*",
-        destination: "https://cuts-catalogue.vercel.app/:path*",
-      },
+      // rubric-co-builder and cuts-catalogue rewrites removed 2026-05-12 —
+      // their Vercel projects were deleted and no CF replacement exists yet.
+      // /harbour/rubric-co-builder and /harbour/cuts-catalogue now 404 cleanly
+      // instead of proxying to dead origins. Restore here when a CF worker exists.
 
       // read the room — formerly "feel cards"; renamed 2026-05-06.
       // wv-harbour-read-the-room serves the static HTML and /api/room/* WS

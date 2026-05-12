@@ -70,7 +70,7 @@ export async function POST(request) {
       userAlias: user.alias,
       userName,
       roles: user.roles,
-      commitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
+      commitSha: process.env.CF_PAGES_COMMIT_SHA || process.env.GIT_COMMIT_SHA || null,
       userAgent,
       viewport,
     },

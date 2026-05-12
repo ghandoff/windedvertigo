@@ -1,14 +1,12 @@
 "use client";
 
 /**
- * Harbour sync dashboard — two-card UI for triggering Notion CMS content
- * syncs and force-redeploying Vercel apps.
+ * Harbour sync dashboard — UI for triggering Notion CMS content syncs.
  *
  * Card A: dispatches the GitHub Actions `sync-notion.yml` workflow, which
- * runs `fetch-notion.js`, commits updated JSON, and auto-deploys via Vercel.
- *
- * Card B: force-redeploys selected harbour ecosystem apps without requiring
- * a content change — useful after env var updates or config tweaks.
+ * runs `fetch-notion.js` and commits updated JSON. (Force-redeploy card
+ * removed 2026-05-12 with the Vercel migration — all harbour apps deploy
+ * via wrangler/OpenNext now; trigger a redeploy from your laptop.)
  */
 
 import { useState, useCallback } from "react";
@@ -24,36 +22,12 @@ interface NotionSyncResult {
   runStatus?: string | null;
 }
 
-interface RedeployAppResult {
-  app: string;
-  success: boolean;
-  error?: string;
-  url?: string;
-}
-
-interface RedeployResult {
-  results: RedeployAppResult[];
-  error?: string;
-}
-
-/* ── app list (matches redeploy route) ── */
-
-const ALL_APPS = [
-  "site",
-  "harbour",
-  "creaseworks",
-  "deep-deck",
-  "vertigo-vault",
-  "nordic-sqr-rct",
-] as const;
-
 /* ── main component ── */
 
 export default function HarbourSyncDashboard() {
   return (
     <div className="space-y-6">
       <NotionSyncCard />
-      <RedeployCard />
     </div>
   );
 }
@@ -186,196 +160,6 @@ function NotionSyncCard() {
           <ErrorBox message={result.error || "dispatch failed."} />
           <button
             onClick={triggerSync}
-            className="text-xs font-medium transition-colors"
-            style={{ color: "var(--wv-sienna)" }}
-          >
-            retry ↻
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ── Card B: Force redeploy ── */
-
-function RedeployCard() {
-  const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(ALL_APPS),
-  );
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<RedeployAppResult[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const toggleApp = (app: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(app)) next.delete(app);
-      else next.add(app);
-      return next;
-    });
-  };
-
-  const triggerRedeploy = useCallback(async () => {
-    const apps = Array.from(selected);
-    if (apps.length === 0) return;
-
-    setLoading(true);
-    setResults(null);
-    setError(null);
-
-    try {
-      const res = await fetch(apiUrl("/api/admin/harbour-sync/redeploy"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apps }),
-      });
-      const data: RedeployResult = await res.json();
-
-      if (res.ok) {
-        setResults(data.results);
-      } else {
-        setError(data.error || "redeploy failed.");
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "network error.");
-    } finally {
-      setLoading(false);
-    }
-  }, [selected]);
-
-  return (
-    <div
-      className="rounded-xl border p-5"
-      style={{
-        borderColor: "rgba(39, 50, 72, 0.1)",
-        backgroundColor: "var(--wv-white)",
-      }}
-    >
-      <SectionHeading icon="🚀" title="force redeploy" />
-      <p
-        className="text-xs mb-4"
-        style={{ color: "var(--wv-cadet)", opacity: 0.5 }}
-      >
-        redeploys harbour ecosystem apps without a content change. useful after
-        environment variable updates or config tweaks.
-      </p>
-
-      {/* app checkboxes */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {ALL_APPS.map((app) => (
-          <label
-            key={app}
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs cursor-pointer transition-colors select-none"
-            style={{
-              backgroundColor: selected.has(app)
-                ? "rgba(39, 50, 72, 0.08)"
-                : "rgba(39, 50, 72, 0.03)",
-              color: "var(--wv-cadet)",
-              opacity: selected.has(app) ? 1 : 0.4,
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={selected.has(app)}
-              onChange={() => toggleApp(app)}
-              className="sr-only"
-            />
-            <span
-              className="inline-block h-2 w-2 rounded-full"
-              style={{
-                backgroundColor: selected.has(app)
-                  ? "var(--wv-sienna)"
-                  : "transparent",
-                border: selected.has(app)
-                  ? "none"
-                  : "1px solid rgba(39, 50, 72, 0.2)",
-              }}
-            />
-            {app}
-          </label>
-        ))}
-      </div>
-
-      {/* trigger button */}
-      {!loading && !results && !error && (
-        <button
-          onClick={triggerRedeploy}
-          disabled={selected.size === 0}
-          className="rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-30"
-          style={{
-            backgroundColor: "var(--wv-sienna)",
-            color: "var(--wv-white)",
-          }}
-        >
-          force redeploy {selected.size > 0 ? `(${selected.size})` : ""}
-        </button>
-      )}
-
-      {/* loading */}
-      {loading && (
-        <div className="flex items-center gap-3">
-          <Spinner />
-          <span
-            className="text-sm font-medium"
-            style={{ color: "var(--wv-sienna)" }}
-          >
-            deploying {selected.size} app{selected.size !== 1 ? "s" : ""}…
-          </span>
-        </div>
-      )}
-
-      {/* results */}
-      {results && !loading && (
-        <div>
-          <div className="space-y-2 mb-4">
-            {results.map((r) => (
-              <div key={r.app} className="flex items-center gap-2 text-sm">
-                <span className="text-xs">{r.success ? "✅" : "❌"}</span>
-                <span
-                  className="font-medium"
-                  style={{ color: "var(--wv-cadet)" }}
-                >
-                  {r.app}
-                </span>
-                {r.success && r.url && (
-                  <span className="text-xs" style={{ opacity: 0.4 }}>
-                    → {r.url}
-                  </span>
-                )}
-                {!r.success && r.error && (
-                  <span
-                    className="text-xs"
-                    style={{ color: "var(--wv-redwood)", opacity: 0.7 }}
-                  >
-                    {r.error}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={() => {
-              setResults(null);
-              setError(null);
-            }}
-            className="text-xs font-medium transition-colors"
-            style={{ color: "var(--wv-sienna)", opacity: 0.6 }}
-          >
-            redeploy again ↻
-          </button>
-        </div>
-      )}
-
-      {/* error (top-level) */}
-      {error && !loading && (
-        <div>
-          <ErrorBox message={error} />
-          <button
-            onClick={() => {
-              setResults(null);
-              setError(null);
-            }}
             className="text-xs font-medium transition-colors"
             style={{ color: "var(--wv-sienna)" }}
           >

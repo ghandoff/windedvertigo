@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 import { TrackPageView } from "@/components/track-page-view";
 import { HelloBeacon } from "@/components/hello-beacon";
@@ -92,7 +91,6 @@ export default function RootLayout({
         {children}
         <HelloBeacon />
         <TrackPageView />
-        <Analytics />
       </body>
     </html>
   );

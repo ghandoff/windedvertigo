@@ -30,7 +30,6 @@
     "@opennextjs/cloudflare": "^1.19.5",
     "@supabase/supabase-js": "^2.104.1",
     "@tailwindcss/postcss": "^4.2.1",
-    "@vercel/blob": "^2.3.3",
     "bcryptjs": "^3.0.3",
     "docx": "^9.6.1",
     "jose": "^6.2.2",
