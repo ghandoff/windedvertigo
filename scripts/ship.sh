@@ -87,15 +87,7 @@ if $INCLUDE_RUBRIC; then
     ok "wv-harbour-rubric-co-builder deployed."
   else
     RUBRIC_FAILED=true
-    warn "Rubric deploy failed. Most likely cause: secrets aren't set yet."
-    cat <<EOF
-
-  Set them once with:
-    npx wrangler secret put POSTGRES_URL      --name wv-harbour-rubric-co-builder
-    npx wrangler secret put ANTHROPIC_API_KEY --name wv-harbour-rubric-co-builder
-
-  Then re-run: bash scripts/ship.sh --rubric
-EOF
+    warn "Rubric deploy failed. Scroll up to see the actual error (build, typecheck, secrets, or wrangler auth). Don't trust this generic message — read the error."
   fi
 fi
 
