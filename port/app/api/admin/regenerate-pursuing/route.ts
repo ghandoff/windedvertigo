@@ -17,7 +17,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { claimProposalGeneration } from "@/lib/supabase/rfp-opportunities";
 import { supabase } from "@/lib/supabase/client";
 import { updateRfpOpportunity } from "@/lib/notion/rfp-radar";
-import { inngest } from "@/lib/inngest/client";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { publishJob } from "@windedvertigo/job-queue";
 import type { RfpProposalJob } from "@windedvertigo/job-queue/types";
@@ -88,25 +87,20 @@ export async function POST(req: NextRequest) {
       requestedAt: new Date().toISOString(),
     };
 
-    // Try CF Queue first; fallback to Inngest
+    // Enqueue via CF Queue
     try {
       const { env } = getCloudflareContext();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await publishJob((env as any).PROPOSAL_QUEUE, payload);
       queued.push({ rfpId, name });
-    } catch {
-      try {
-        await inngest.send({ name: "rfp/pursuing.triggered", data: { rfpId, triggeredBy } });
-        queued.push({ rfpId, name });
-      } catch (inngestErr) {
-        const msg = inngestErr instanceof Error ? inngestErr.message : String(inngestErr);
-        // Reset claim so the row doesn't stay stuck in generating
-        await supabase
-          .from("rfp_opportunities")
-          .update({ proposal_status: "failed", proposal_step: "failed_at_dispatch: " + msg })
-          .eq("notion_page_id", rfpId);
-        skipped.push({ rfpId, name, reason: `dispatch failed: ${msg}` });
-      }
+    } catch (dispatchErr) {
+      const msg = dispatchErr instanceof Error ? dispatchErr.message : String(dispatchErr);
+      // Reset claim so the row doesn't stay stuck in generating
+      await supabase
+        .from("rfp_opportunities")
+        .update({ proposal_status: "failed", proposal_step: "failed_at_dispatch: " + msg })
+        .eq("notion_page_id", rfpId);
+      skipped.push({ rfpId, name, reason: `dispatch failed: ${msg}` });
     }
   }
 

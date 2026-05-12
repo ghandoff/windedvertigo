@@ -16,7 +16,7 @@
  *   RETURNING notion_page_id
  *
  * If 0 rows → another caller already holds the lock → 409.
- * If 1 row → this caller won → fire Inngest.
+ * If 1 row → this caller won → enqueue via CF Queue.
  *
  * This eliminates the race condition where two concurrent requests both read
  * proposalStatus != 'generating' from Notion before either has written it back.
@@ -26,7 +26,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { claimProposalGeneration, resetProposalToFailed } from "@/lib/supabase/rfp-opportunities";
-import { inngest } from "@/lib/inngest/client";
 import { auth } from "@/lib/auth";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { publishJob } from "@windedvertigo/job-queue";
@@ -77,32 +76,23 @@ export async function POST(
     requestedAt: new Date().toISOString(),
   };
 
-  // G.2.3: CF Workers → CF Queue; Vercel → Inngest fallback.
-  //
-  // CRITICAL: both dispatch paths must be AWAITED before we return the response.
-  // Vercel serverless functions kill any pending promises the moment the handler
-  // returns — so fire-and-forget dispatch meant the Inngest event was never
-  // delivered even though claimProposalGeneration() already wrote "generating"
-  // to Supabase, leaving the UI stuck at 3% indefinitely.
+  // CRITICAL: dispatch must be AWAITED before we return the response.
+  // CF Workers kills pending promises the moment the handler returns — so
+  // fire-and-forget dispatch would leave the UI stuck at 3% indefinitely.
   try {
     const { env } = getCloudflareContext();
     await publishJob(env.PROPOSAL_QUEUE, proposalPayload);
-  } catch {
-    // Not running on CF Workers — dispatch via Inngest.
-    try {
-      await inngest.send({ name: "rfp/pursuing.triggered", data: { rfpId: id, triggeredBy } });
-    } catch (inngestErr) {
-      console.error("[regenerate-proposal] inngest dispatch failed:", inngestErr);
-      // The claim already locked the status to "generating" in Supabase.
-      // Release the lock so the record doesn't stay stuck.
-      await resetProposalToFailed(id).catch((e) =>
-        console.warn("[regenerate-proposal] could not release proposal lock:", e),
-      );
-      return NextResponse.json(
-        { error: "failed to start proposal generation — dispatch error" },
-        { status: 500 },
-      );
-    }
+  } catch (dispatchErr) {
+    console.error("[regenerate-proposal] CF Queue dispatch failed:", dispatchErr);
+    // The claim already locked the status to "generating" in Supabase.
+    // Release the lock so the record doesn't stay stuck.
+    await resetProposalToFailed(id).catch((e) =>
+      console.warn("[regenerate-proposal] could not release proposal lock:", e),
+    );
+    return NextResponse.json(
+      { error: "failed to start proposal generation — dispatch error" },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ ok: true, triggeredBy });

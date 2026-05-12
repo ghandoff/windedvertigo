@@ -10,7 +10,7 @@
  *   3. Extract structured fields via Claude (fail-open — file still attaches)
  *   4. Update Notion: rfpDocumentUrl (always), requirementsSnapshot (if sparse),
  *      dueDate/estimatedValue (if currently null)
- *   5. Fire inngest `rfp/document.uploaded` event (fire-and-forget)
+ *   5. Enqueue `rfp/document-uploaded` job via CF Queue (fire-and-forget)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -19,7 +19,6 @@ import { uploadAsset } from "@/lib/r2/upload";
 import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { recordUsage } from "@/lib/ai/usage-store";
 import { auth } from "@/lib/auth";
-import { inngest } from "@/lib/inngest/client";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { publishJob } from "@windedvertigo/job-queue";
 import type { RfpDocumentUploadedJob } from "@windedvertigo/job-queue/types";
@@ -212,7 +211,6 @@ export async function POST(
   }
 
   // Fire question parsing job (fire-and-forget — never blocks the response).
-  // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
   const docPayload: RfpDocumentUploadedJob = {
     type: "rfp/document-uploaded",
     rfpId: id,
@@ -220,12 +218,8 @@ export async function POST(
     contentType: "text/plain",
     uploadedAt: new Date().toISOString(),
   };
-  try {
-    const { env } = getCloudflareContext();
-    publishJob(env.RFP_DOCUMENT_QUEUE, docPayload).catch(() => {});
-  } catch {
-    inngest.send({ name: "rfp/document.uploaded", data: { rfpId: id, documentUrl: publicUrl, contentType: "text/plain" } }).catch(() => {});
-  }
+  const { env } = getCloudflareContext();
+  publishJob(env.RFP_DOCUMENT_QUEUE, docPayload).catch(() => {});
 
   return NextResponse.json({ ok: true, url: publicUrl, notionUpdated: true, extraction });
 }

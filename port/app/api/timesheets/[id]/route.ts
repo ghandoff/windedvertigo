@@ -10,7 +10,6 @@ import {
 } from "@/lib/supabase/timesheets";
 import { json, error } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
-import { inngest } from "@/lib/inngest/client";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { publishJob } from "@windedvertigo/job-queue";
 import type { TimesheetStatusJob } from "@windedvertigo/job-queue/types";
@@ -81,19 +80,10 @@ export async function PATCH(
         approverEmail,
         changedAt: new Date().toISOString(),
       };
-      try {
-        const { env } = getCloudflareContext();
-        publishJob(env.TIMESHEET_QUEUE, timesheetPayload).catch((err) => {
-          console.warn("[timesheets] failed to enqueue status job:", err);
-        });
-      } catch {
-        inngest.send({
-          name: "timesheet/status.changed",
-          data: { timesheetId: id, newStatus: body.status, previousStatus, approverEmail },
-        }).catch((err) => {
-          console.warn("[inngest] failed to send timesheet event:", err);
-        });
-      }
+      const { env } = getCloudflareContext();
+      publishJob(env.TIMESHEET_QUEUE, timesheetPayload).catch((err) => {
+        console.warn("[timesheets] failed to enqueue status job:", err);
+      });
     }
 
     const updated = await getTimesheetByIdFromSupabase(id);

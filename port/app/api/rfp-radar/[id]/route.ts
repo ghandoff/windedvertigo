@@ -4,7 +4,6 @@ import { setRfpInfluencedByEventIds } from "@/lib/supabase/rfp-opportunities";
 import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { json, withNotionError } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
-import { inngest } from "@/lib/inngest/client";
 import { createRfpDeadlineEvent } from "@/lib/gcal";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { publishJob } from "@windedvertigo/job-queue";
@@ -65,16 +64,10 @@ export async function PATCH(
         triggeredBy,
         requestedAt: new Date().toISOString(),
       };
-      try {
-        const { env } = getCloudflareContext();
-        publishJob(env.PROPOSAL_QUEUE, proposalPayload).catch((err) => {
-          console.warn("[rfp-radar] failed to enqueue proposal job:", err);
-        });
-      } catch {
-        inngest.send({ name: "rfp/pursuing.triggered", data: { rfpId: id, triggeredBy } }).catch((err) => {
-          console.warn("[rfp-radar] failed to dispatch proposal generation event:", err);
-        });
-      }
+      const { env } = getCloudflareContext();
+      publishJob(env.PROPOSAL_QUEUE, proposalPayload).catch((err) => {
+        console.warn("[rfp-radar] failed to enqueue proposal job:", err);
+      });
 
       // Auto-create a Google Calendar deadline event — fire-and-forget, never blocks
       createRfpDeadlineEvent(updated).catch((err) => {
