@@ -37,7 +37,7 @@
 
 import { queryRequests, updateRequestLastPinged } from '@/lib/pcs-requests';
 
-const DEFAULT_SITE_URL = 'https://nordic-sqr-rct.vercel.app';
+const DEFAULT_SITE_URL = 'https://nordic.windedvertigo.com';
 
 /* -------------------------------------------------------------------------- */
 /* Config helpers                                                             */

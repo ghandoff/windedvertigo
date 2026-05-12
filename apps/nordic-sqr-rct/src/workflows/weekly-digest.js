@@ -31,7 +31,7 @@
 import { queryRequests } from '@/lib/pcs-requests';
 import { computeAllMetrics } from '@/lib/pcs-requests-metrics';
 
-const DEFAULT_SITE_URL = 'https://nordic-sqr-rct.vercel.app';
+const DEFAULT_SITE_URL = 'https://nordic.windedvertigo.com';
 
 /* -------------------------------------------------------------------------- */
 /* Step 1 — fetch open requests grouped by assignee                           */

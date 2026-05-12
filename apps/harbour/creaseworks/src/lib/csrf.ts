@@ -7,16 +7,16 @@ import { NextRequest, NextResponse } from "next/server";
  * (POST, PUT, PATCH, DELETE). By checking that it matches our expected
  * host, we prevent cross-site request forgery even if cookies are sent.
  *
- * Multi-zone note: the app is served behind a Vercel multi-zone rewrite
- * (windedvertigo.com → creaseworks-*.vercel.app). After the rewrite,
- * req.nextUrl.host is the internal deployment host, but the browser sends
- * Origin: https://windedvertigo.com. We use x-forwarded-host to get the
- * original host for the comparison.
+ * Multi-zone note: the app is served behind a Cloudflare Workers proxy
+ * (windedvertigo.com → wv-harbour-creaseworks.windedvertigo.workers.dev).
+ * After the rewrite, req.nextUrl.host is the internal worker host, but
+ * the browser sends Origin: https://windedvertigo.com. We use
+ * x-forwarded-host to get the original host for the comparison.
  *
  * Exempt routes:
  *   - Stripe webhook (/api/stripe/webhook) — verified by signature
  *   - Notion webhook (/api/webhooks/notion) — verified by signature
- *   - Cron sync (/api/cron/sync-notion) — Vercel cron, no cookie
+ *   - Cron sync (/api/cron/sync-notion) — CF Workers scheduled, no cookie
  *   - Matcher (/api/matcher) — public read-only search (POST for body size)
  */
 
@@ -33,10 +33,10 @@ const STATE_CHANGING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 /**
  * Get the effective host for CSRF comparison.
  *
- * In a Vercel multi-zone rewrite, req.nextUrl.host is the internal
- * deployment host (creaseworks-*.vercel.app), but the browser sends
- * Origin against the public host (windedvertigo.com). The
- * x-forwarded-host header preserves the original host.
+ * Behind the CF Workers proxy, req.nextUrl.host is the internal
+ * worker host (*.workers.dev), but the browser sends Origin against
+ * the public host (windedvertigo.com). The x-forwarded-host header
+ * preserves the original host.
  */
 function getEffectiveHost(req: NextRequest): string {
   return req.headers.get("x-forwarded-host") || req.nextUrl.host;

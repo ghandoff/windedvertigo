@@ -105,7 +105,7 @@ async function sendDriftAlert({ ts, drifted, errored }) {
     lines.push(`• \`${e.table}\`: ERROR — ${msg}`);
   }
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://nordic-sqr-rct.vercel.app';
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://nordic.windedvertigo.com';
   const dashLink = `${base}/admin/postgres-mirror`;
   const header = `:warning: Drift detected on Nordic platform (cron run ${ts})`;
   const body = {

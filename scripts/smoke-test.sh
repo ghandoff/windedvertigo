@@ -29,6 +29,16 @@ paths=(
   "/harbour/vertigo-vault/|Vertigo Vault"
   "/harbour/read-the-room/|read-the-room (control — known good)"
   "/harbour/creaseworks/|Creaseworks (control — known good)"
+  "/harbour/rubric-co-builder/new|Rubric Co-Builder (new room)"
+  "/harbour/depth-chart/|Depth Chart"
+  "/harbour/feel-cards/|Feel Cards"
+)
+
+subdomains=(
+  "https://port.windedvertigo.com/|Port (CRM)"
+  "https://ops.windedvertigo.com/|Ops dashboard"
+  "https://nordic.windedvertigo.com/|Nordic SQR-RCT"
+  "https://ancestry.windedvertigo.com/|Ancestry"
 )
 
 # Optional: rubric worker direct (only meaningful once it's deployed)
@@ -80,6 +90,34 @@ case "$rubric_status" in
     printf "%s wv-harbour-rubric-co-builder direct → %s\n" "$(yellow ⚠)" "$rubric_status"
     ;;
 esac
+
+# ─── production subdomains ──────────────────────────────────────────────────
+echo ""
+bold "Production subdomains"
+for entry in "${subdomains[@]}"; do
+  IFS='|' read -r url label <<< "$entry"
+
+  status=$(curl -sS -o /dev/null -w "%{http_code}" -L --max-time 15 "$url" 2>/dev/null || echo "ERR")
+  vercel_hdr=$(curl -sSI --max-time 5 "$url" 2>/dev/null | grep -i "^x-vercel" || true)
+
+  case "$status" in
+    200|301|302|304|307|308|401|403)
+      # 401/403 are acceptable for auth-gated subdomains (port, ops);
+      # we're verifying the worker is reachable, not that we're logged in.
+      if [[ -n "$vercel_hdr" ]]; then
+        printf "%s %-50s → %s %s\n" "$(yellow ⚠)" "$label" "$status" "(but Vercel header present!)"
+        fail=$((fail+1))
+      else
+        printf "%s %-50s → %s\n" "$(green ✓)" "$label" "$status"
+        ok=$((ok+1))
+      fi
+      ;;
+    *)
+      printf "%s %-50s → %s  (%s)\n" "$(red ✗)" "$label" "$status" "$url"
+      fail=$((fail+1))
+      ;;
+  esac
+done
 
 # ─── summary ────────────────────────────────────────────────────────────────
 echo ""

@@ -267,7 +267,7 @@ function DeploymentCards({ deployments }: { deployments: DeploymentInfo[] }) {
   if (deployments.length === 0) {
     return (
       <p className="text-sm opacity-50 italic">
-        no deployment data — set VERCEL_ACCESS_TOKEN to enable
+        no deployment data — wrangler/CF deployments not yet wired into this dashboard
       </p>
     );
   }

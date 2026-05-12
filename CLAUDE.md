@@ -86,7 +86,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **Google Calendar** | Scheduling, meeting cadence, time blocking |
 | **Google Drive** | Document storage, shared folders, proposals |
 | **Cloudflare** | Primary hosting for ALL production apps (Workers via OpenNext: site, harbour, depth-chart, port, ops, nordic, creaseworks, vault, ancestry), DNS, R2 storage, edge |
-| **Vercel** | Decommissioning. Only `pocket-prompts` remains; account to be deleted once that migrates to CF |
+| **Vercel** | Decommissioning. `pocket-prompts` (separate repo) still on Vercel; a `windedvertigo` project re-appeared 2026-05-12 — likely the GitHub→Vercel auto-import; investigate + delete. Then nuke the team. |
 | **Cowork (Claude)** | CFO/COO operations, memory system, scheduled tasks, file management |
 | **Otter AI** | Meeting transcription (archived in Notion) |
 | **ADP** | 401k plan administration |
@@ -166,8 +166,8 @@ windedvertigo/
 | Vault | windedvertigo.com/harbour/vertigo-vault/* | CF Workers (OpenNext) | `wv-vault` (sub-path under harbour proxy, daily 06:00 cron, Pool A SSO) | Live — Vercel project deleted 2026-05-12 |
 | Creaseworks | windedvertigo.com/harbour/creaseworks/* | CF Workers (OpenNext) | `wv-harbour-creaseworks` (sub-path under harbour proxy, 3 cron triggers, Pool A SSO) | Live — Vercel project deleted 2026-05-12. Old `creaseworks.windedvertigo.com` subdomain → 301 redirect to canonical path |
 | Ancestry | ancestry.windedvertigo.com | CF Workers (OpenNext) | `wv-ancestry` (R2 `ancestry-media`, 2 cron triggers, route `ancestry.windedvertigo.com` custom_domain repo-tracked 2026-05-12) | Live — migrated from Vercel earlier 2026-05-12 |
-| Rubric Co-Builder | windedvertigo.com/harbour/rubric-co-builder/* | CF Workers (OpenNext) | `wv-harbour-rubric-co-builder` (sub-path under harbour proxy, Anthropic + Neon; no Auth.js; no crons) | **Staged** 2026-05-12 — config committed, awaiting user deploy via `./scripts/deploy-rubric-co-builder.sh`. Secrets needed: `POSTGRES_URL`, `ANTHROPIC_API_KEY` |
-| CUTS Catalog | windedvertigo.com/harbour/cuts-catalogue | wv-site static asset | Served from `site/public/harbour/cuts-catalogue/index.html` (no separate worker) | Live after next `./scripts/deploy-site.sh` — single static HTML, no build |
+| Rubric Co-Builder | windedvertigo.com/harbour/rubric-co-builder/* | CF Workers (OpenNext) | `wv-harbour-rubric-co-builder` (sub-path under harbour proxy, Anthropic + Neon; no Auth.js; no crons) | Live 2026-05-12 (version `9ed7e03d`). Running in **in-memory demo mode** — POSTGRES_URL not yet set, state wipes on worker restart. Add Neon connection when convenient via `npx wrangler secret put POSTGRES_URL --name wv-harbour-rubric-co-builder` |
+| CUTS Catalog | windedvertigo.com/harbour/cuts-catalogue | wv-site static asset | Served from `site/public/harbour/cuts-catalogue/index.html` (no separate worker) | Live — Thursday demo ready |
 | Values Auction | windedvertigo.com/harbour/values-auction + /portfolio/assets/values-auction | CF Pages + Worker | `values-auction-hub` (Pages SPA) + `wv-values-auction-relay` (Durable Object session sync) | Live — already on CF since 2026-04-27 |
 | pocket-prompts | (pending) | TBD `wv-pocket-prompts` Worker | Separate `ghandoff/pocket-prompts` repo. Migration playbook: `docs/pocket-prompts-cf-migration.md`; turnkey script: `scripts/pocket-prompts-migrate.sh` | Pending — last live Vercel project; user runs script from pocket-prompts repo |
 

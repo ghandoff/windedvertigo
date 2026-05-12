@@ -19,7 +19,7 @@ function PortalScreenshot() {
           <span className="w-2 h-2 rounded-full bg-green-400" />
         </div>
         <div className="flex-1 bg-white rounded text-[9px] text-gray-400 px-2 py-0.5 font-mono truncate">
-          sqr-rct.vercel.app/dashboard
+          nordic.windedvertigo.com/dashboard
         </div>
       </div>
       {/* Navbar mock */}
@@ -143,7 +143,7 @@ function CredibilityContent() {
   // Template text
   const linkedInTemplate = `Proud to serve as an expert reviewer for Nordic Naturals' SQR-RCT Platform — a systematic quality review tool for randomized controlled trials in nutritional science. Contributing to evidence-based research standards in ${discipline}.\n\n#ResearchQuality #EBM #SystematicReview #ClinicalResearch`;
 
-  const blueskyTemplate = `Serving as an expert reviewer on the SQR-RCT Platform by Nordic Naturals. Helping ensure quality standards for randomized controlled trials in nutritional science.\n\nsqr-rct.vercel.app\n\n#ResearchQuality #EBM`;
+  const blueskyTemplate = `Serving as an expert reviewer on the SQR-RCT Platform by Nordic Naturals. Helping ensure quality standards for randomized controlled trials in nutritional science.\n\nnordic.windedvertigo.com\n\n#ResearchQuality #EBM`;
 
   const emailTemplate = `Dear [Dean/Department Chair Name],
 
@@ -349,7 +349,7 @@ ${institution}`;
                 {/* Post text */}
                 <div className="px-4 pb-3">
                   <p className="text-[14px] text-gray-100 leading-relaxed whitespace-pre-line">Serving as an expert reviewer on the SQR-RCT Platform by Nordic Naturals. Helping ensure quality standards for randomized controlled trials in nutritional science.</p>
-                  <p className="text-[14px] text-[#0085FF] mt-2">sqr-rct.vercel.app</p>
+                  <p className="text-[14px] text-[#0085FF] mt-2">nordic.windedvertigo.com</p>
                   <p className="text-[14px] text-[#0085FF] mt-1">#ResearchQuality #EBM</p>
                 </div>
 

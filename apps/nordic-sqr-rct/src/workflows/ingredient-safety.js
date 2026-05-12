@@ -19,7 +19,7 @@ import {
   openSafetyReviewRequest,
 } from '@/lib/label-safety';
 
-const DEFAULT_SITE_URL = 'https://nordic-sqr-rct.vercel.app';
+const DEFAULT_SITE_URL = 'https://nordic.windedvertigo.com';
 
 /* -------------------------------------------------------------------------- */
 /* Step 1 — enumerate matching labels                                         */

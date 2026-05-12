@@ -17,7 +17,7 @@ export async function notifyBatchComplete({ batchId, stats, sanityWarnings = [],
   const webhook = process.env.SLACK_WEBHOOK_URL;
   if (!webhook) return { sent: false, reason: 'SLACK_WEBHOOK_URL not set' };
 
-  const base = dashboardBaseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://nordic-sqr-rct.vercel.app';
+  const base = dashboardBaseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://nordic.windedvertigo.com';
   const dashLink = `${base}/pcs/admin/imports?batchId=${encodeURIComponent(batchId)}`;
 
   const emoji = stats.failed > 0 ? '⚠️' : '✅';
