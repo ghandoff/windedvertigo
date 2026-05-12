@@ -86,7 +86,7 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **Google Calendar** | Scheduling, meeting cadence, time blocking |
 | **Google Drive** | Document storage, shared folders, proposals |
 | **Cloudflare** | Primary hosting (Workers via OpenNext: site, harbour, depth-chart), DNS, R2 storage, edge |
-| **Vercel** | Hosting for ops, creaseworks, vault — all others on CF Workers |
+| **Vercel** | Hosting for creaseworks, vault only — everything else on CF Workers |
 | **Cowork (Claude)** | CFO/COO operations, memory system, scheduled tasks, file management |
 | **Otter AI** | Meeting transcription (archived in Notion) |
 | **ADP** | 401k plan administration |
@@ -155,7 +155,7 @@ windedvertigo/
 | Port agent | Slack DM @wv-claw | Vercel (worker `wv-claw`) | App `A0AUA3VQHFH` / bot `U0AUPLEA8RL` / audit DB `f2f48a9998d84cd69598efdc79a44f1e` | Live end-to-end |
 | Nordic | nordic.windedvertigo.com | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs` binding, `workflow` SDK removed, Supabase saga for ingredient-safety) | Live — F.5 cutover confirmed + Vercel project decommissioned 2026-05-11. |
 | Ancestry | ancestry.windedvertigo.com | CF Workers (OpenNext) | `wv-ancestry` (R2 `ancestry-media`, 2 cron triggers, `@neondatabase/serverless`, Google OAuth) | Live — H.4 cutover 2026-05-11. Route `ancestry.windedvertigo.com/*` added to wrangler.jsonc. |
-| Ops | ops.windedvertigo.com | Vercel | `wv-ops` | Deployed — auth flow needs verification |
+| Ops | ops.windedvertigo.com | CF Workers (OpenNext) | `wv-ops` (OPS_DATA + SMOKE_LATEST KV bindings, Google OAuth, Supabase, Notion) | Live — H.1 cutover 2026-05-11. Workers custom domain attached. Auth flow needs verification (incognito test). |
 | Creaseworks, Vault | — | Vercel | (kept on Vercel) | Live |
 
 **Canonical image bucket:** R2 `creaseworks-evidence` (in garrett CF account `097c92553b268f8360b74f625f6d980a`, migrated 2026-04-25 from anotheroption). Public URL: `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev`. Used by site, harbour, vault, creaseworks.
