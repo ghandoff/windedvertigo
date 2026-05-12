@@ -3,7 +3,7 @@
 > Deep memory, tasks, and operational files live in `.brain/`
 > Tasks: `.brain/TASKS.md` | Memory: `.brain/memory/` | Archive: `.brain/archive/`
 
-> **What's new (2026-05-11):** Creaseworks H.2 complete — migrated to CF Workers (`wv-harbour-creaseworks`), Vercel project deleted. Zero Vercel services remain except `wv-crm` rollback (expires 2026-05-17). R2 secrets migrated from Vercel, admin rewrites updated, VERCEL_URL fallback removed. Ops H.1: Google OAuth redirect URI still needs adding (`https://ops.windedvertigo.com/api/auth/callback/google` in Google Cloud Console OAuth client `red-planet-483121-m9`). Earlier: Nordic F.5, Ancestry H.4, Ops H.1, Vault H.3 cutovers all complete — Vercel projects for all deleted. Previous (2026-05-03): Port migrated to CF Workers (`wv-port`); Vercel `wv-crm` rollback expires 2026-05-17.
+> **What's new (2026-05-12):** Ops auth fixed — `AUTH_URL` secret was set to `wv-ops.windedvertigo.workers.dev` (old canary URL); updated to `https://ops.windedvertigo.com`. OAuth flow now works end-to-end. Earlier (2026-05-11): Creaseworks H.2 complete — migrated to CF Workers (`wv-harbour-creaseworks`), Vercel project deleted. Zero Vercel services remain except `wv-crm` rollback (expires 2026-05-17). R2 secrets migrated from Vercel, admin rewrites updated, VERCEL_URL fallback removed. Nordic F.5, Ancestry H.4, Ops H.1, Vault H.3 cutovers all complete — Vercel projects for all deleted. Previous (2026-05-03): Port migrated to CF Workers (`wv-port`); Vercel `wv-crm` rollback expires 2026-05-17.
 
 ## Me
 Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in San Francisco, CA (Pacific time). Email: garrett@windedvertigo.com
@@ -155,7 +155,7 @@ windedvertigo/
 | Port agent | Slack DM @wv-claw | Vercel (worker `wv-claw`) | App `A0AUA3VQHFH` / bot `U0AUPLEA8RL` / audit DB `f2f48a9998d84cd69598efdc79a44f1e` | Live end-to-end |
 | Nordic | nordic.windedvertigo.com | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs` binding, `workflow` SDK removed, Supabase saga for ingredient-safety) | Live — F.5 cutover confirmed + Vercel project decommissioned 2026-05-11. |
 | Ancestry | ancestry.windedvertigo.com | CF Workers (OpenNext) | `wv-ancestry` (R2 `ancestry-media`, 2 cron triggers, `@neondatabase/serverless`, Google OAuth) | Live — H.4 cutover 2026-05-11. Route `ancestry.windedvertigo.com/*` added to wrangler.jsonc. |
-| Ops | ops.windedvertigo.com | CF Workers (OpenNext) | `wv-ops` (OPS_DATA + SMOKE_LATEST KV bindings, Google OAuth, Supabase, Notion) | Live — H.1 cutover 2026-05-11. Workers custom domain attached. Auth flow needs verification (incognito test). |
+| Ops | ops.windedvertigo.com | CF Workers (OpenNext) | `wv-ops` (OPS_DATA + SMOKE_LATEST KV bindings, Google OAuth, Supabase, Notion) | Live — H.1 cutover 2026-05-11. Auth fixed 2026-05-12: AUTH_URL was pointing to .workers.dev canary URL, updated to ops.windedvertigo.com. |
 | Vault | windedvertigo.com/harbour/vertigo-vault/* | CF Workers (OpenNext) | `wv-vault` (Auth.js Pool A SSO, 17 secrets set, R2 `creaseworks-evidence`, Notion) | Live — H.3 confirmed 2026-05-11. Vercel `vertigo-vault` project deleted. `site/next.config.ts` rewrites → workers.dev. |
 | Creaseworks | windedvertigo.com/harbour/creaseworks/ | CF Workers (OpenNext) | `wv-harbour-creaseworks` (service binding self-ref crons, `@windedvertigo/security` wrapper, R2 `creaseworks-evidence` via S3 API) | Live — H.2 complete 2026-05-11. Vercel `creaseworks` project deleted. |
 
