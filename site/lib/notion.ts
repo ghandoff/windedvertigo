@@ -540,57 +540,82 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
       : undefined;
   } while (startCursor && round < 10);
 
-  const assets: PortfolioAsset[] = [];
-
-  for (const page of allPages) {
+  // ── Filter pages synchronously before any async work ────────────────────
+  const relevantPages = allPages.filter((page) => {
     const props = page.properties;
-    if (!props[p.name] || (props[p.name] as Prop).type !== "title") continue;
-
+    if (!props[p.name] || (props[p.name] as Prop).type !== "title") return false;
     const showInPortfolio = getCheckbox(props[p.showInPortfolio]);
     const showInPB = getCheckbox(props[p.showInPackageBuilder]);
-    if (!showInPortfolio && !showInPB) continue;
+    return showInPortfolio || showInPB;
+  });
 
-    const quadrantRelIds = getRelationIds(props[p.quadrantRel]);
-    const quadrantKeys = await hydrateQuadrantRel(quadrantRelIds);
-    const quadrantKey = quadrantKeys[0] ?? "";
-    const assetName = getTitle(props[p.name]);
-
-    // Thumbnail priority:
-    // 1. External cover URL (permanent, no expiry)
-    // 2. Explicit Thumbnail URL property (self-hosted, stable)
-    // 3. Notion-hosted cover file (expires ~1h, needs R2 sync)
-    // We avoid using Notion file covers directly because if R2 sync fails
-    // the expired S3 URL gets baked into the static page.
-    const externalCoverUrl =
-      page.cover?.type === "external" ? page.cover.external.url : "";
-    const propertyUrl = getUrl(props[p.thumbnailUrl]);
-    const notionFileCoverUrl =
-      page.cover?.type === "file" ? page.cover.file.url : "";
-    const rawThumbnailUrl = externalCoverUrl || propertyUrl || notionFileCoverUrl;
-    let thumbnailUrl = rawThumbnailUrl;
-    if (rawThumbnailUrl) {
-      const r2Key = await syncImageToR2(rawThumbnailUrl, page.id, "thumbnail");
-      thumbnailUrl = imageUrl(r2Key) ?? rawThumbnailUrl;
-    }
-
-    assets.push({
-      id: page.id,
-      name: assetName,
-      slug: getText(props[p.slug]) || toSlug(assetName),
-      assetType: getSelect(props[p.assetType]),
-      quadrants: quadrantKey ? [quadrantKey] : [],
-      quadrantKey,
-      url: getUrl(props[p.url]),
-      thumbnailUrl,
-      description: getText(props[p.description]),
-      tags: getMultiSelect(props[p.tags]),
-      featured: getCheckbox(props[p.featured]),
-      showInPackageBuilder: showInPB,
-      showInPortfolio,
-      icon: getIconValue(props[p.icon]),
-      order: getNumber(props[p.order]),
-    });
+  // ── Pre-warm quadrant cache with all IDs in a single parallel batch ───────
+  // Collecting all unique relation IDs upfront lets hydrateQuadrantRel fire
+  // one Promise.all() across all assets instead of N sequential calls.
+  const allQuadrantIds = [
+    ...new Set(
+      relevantPages.flatMap((page) =>
+        getRelationIds(page.properties[p.quadrantRel]),
+      ),
+    ),
+  ];
+  if (allQuadrantIds.length > 0) {
+    await hydrateQuadrantRel(allQuadrantIds);
   }
+
+  // ── Process all assets in parallel (quadrant cache now warm) ─────────────
+  // syncImageToR2 is the remaining bottleneck — running it concurrently for
+  // all assets collapses N × image_download_time into max(image_download_time).
+  const assetResults = await Promise.all(
+    relevantPages.map(async (page): Promise<PortfolioAsset | null> => {
+      const props = page.properties;
+      const showInPortfolio = getCheckbox(props[p.showInPortfolio]);
+      const showInPB = getCheckbox(props[p.showInPackageBuilder]);
+
+      const quadrantRelIds = getRelationIds(props[p.quadrantRel]);
+      const quadrantKeys = await hydrateQuadrantRel(quadrantRelIds);
+      const quadrantKey = quadrantKeys[0] ?? "";
+      const assetName = getTitle(props[p.name]);
+
+      // Thumbnail priority:
+      // 1. External cover URL (permanent, no expiry)
+      // 2. Explicit Thumbnail URL property (self-hosted, stable)
+      // 3. Notion-hosted cover file (expires ~1h, needs R2 sync)
+      // We avoid using Notion file covers directly because if R2 sync fails
+      // the expired S3 URL gets baked into the static page.
+      const externalCoverUrl =
+        page.cover?.type === "external" ? page.cover.external.url : "";
+      const propertyUrl = getUrl(props[p.thumbnailUrl]);
+      const notionFileCoverUrl =
+        page.cover?.type === "file" ? page.cover.file.url : "";
+      const rawThumbnailUrl = externalCoverUrl || propertyUrl || notionFileCoverUrl;
+      let thumbnailUrl = rawThumbnailUrl;
+      if (rawThumbnailUrl) {
+        const r2Key = await syncImageToR2(rawThumbnailUrl, page.id, "thumbnail");
+        thumbnailUrl = imageUrl(r2Key) ?? rawThumbnailUrl;
+      }
+
+      return {
+        id: page.id,
+        name: assetName,
+        slug: getText(props[p.slug]) || toSlug(assetName),
+        assetType: getSelect(props[p.assetType]),
+        quadrants: quadrantKey ? [quadrantKey] : [],
+        quadrantKey,
+        url: getUrl(props[p.url]),
+        thumbnailUrl,
+        description: getText(props[p.description]),
+        tags: getMultiSelect(props[p.tags]),
+        featured: getCheckbox(props[p.featured]),
+        showInPackageBuilder: showInPB,
+        showInPortfolio,
+        icon: getIconValue(props[p.icon]),
+        order: getNumber(props[p.order]),
+      };
+    }),
+  );
+
+  const assets = assetResults.filter((a): a is PortfolioAsset => a !== null);
 
   assets.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
   return assets;
