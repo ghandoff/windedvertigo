@@ -32,6 +32,14 @@
     "CF_WORKERS_ENV": "1"
   },
 
+  // ── Service bindings ────────────────────────────────────────────
+  // SELF lets the scheduled() handler invoke the worker's own fetch()
+  // without round-tripping through the public custom domain (which CF
+  // 522s on self-loops). All cron triggers route through here.
+  "services": [
+    { "binding": "SELF", "service": "wv-nordic" }
+  ],
+
   // ── Custom domain (DNS cutover complete 2026-05-07) ─────────────
   // nordic.windedvertigo.com is live on CF Workers. Vercel project is
   // still running in parallel during the 48h monitoring window but no
