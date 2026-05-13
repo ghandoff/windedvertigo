@@ -26,7 +26,7 @@
   // Namespace: wv-site-next-cache (created 2026-05-13)
   "kv_namespaces": [
     { "binding": "SESSION_KV", "id": "ff5eb1afe81d481db7353b49c429c5c4" },
-    { "binding": "NEXT_CACHE_WORKERS_KV", "id": "0d2ae2b7b83c4b5997ffc0305e6eda21" }
+    { "binding": "NEXT_INC_CACHE_KV", "id": "0d2ae2b7b83c4b5997ffc0305e6eda21" }
   ],
 
   // SITE_URL — used by /api/book-playdate to build the dynamic

@@ -1,11 +1,13 @@
 // open-next.config.ts — OpenNext for Cloudflare configuration
 // https://opennext.js.org/cloudflare
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
-import staticAssetsIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache";
+import kvIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/kv-incremental-cache";
 
-// Using static-assets cache (no R2 required). ISR pages are served from
-// build-time snapshots. Switch back to r2-incremental-cache once the
-// wv-site-opennext-cache R2 bucket is available in the deploy account.
+// KV-based incremental cache — stores ISR page renders in the KV namespace
+// bound as NEXT_INC_CACHE_KV (wv-site-next-cache, created 2026-05-13).
+// This enables revalidate = N to actually cache rendered pages across requests
+// rather than re-rendering on every request. First request cold (~30s Notion),
+// subsequent requests within revalidate window served from KV (~50ms).
 export default defineCloudflareConfig({
-  incrementalCache: staticAssetsIncrementalCache,
+  incrementalCache: kvIncrementalCache,
 });
