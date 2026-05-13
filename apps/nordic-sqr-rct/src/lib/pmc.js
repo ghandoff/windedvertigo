@@ -571,23 +571,13 @@ export async function downloadAndUploadPdf(pdfUrl, filename, { r2 } = {}) {
   const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
   const key = `evidence-pdfs/${safeName}`;
 
-  if (r2) {
-    await r2.put(key, buffer, {
-      httpMetadata: { contentType: 'application/pdf' },
-    });
-    return { url: `${NORDIC_URL}/api/r2/${key}`, size: buffer.length };
+  if (!r2) {
+    throw new Error('[pmc] NORDIC_ASSETS R2 binding required (Vercel Blob fallback removed post-migration)');
   }
-
-  // Fallback: Vercel Blob — used in local dev when no wrangler binding is available.
-  console.warn('[pmc] NORDIC_ASSETS R2 binding not provided — falling back to Vercel Blob');
-  const { put } = await import('@vercel/blob');
-  const blob = await put(key, buffer, {
-    access: 'public',
-    contentType: 'application/pdf',
-    addRandomSuffix: true,
+  await r2.put(key, buffer, {
+    httpMetadata: { contentType: 'application/pdf' },
   });
-
-  return { url: blob.url, size: buffer.length };
+  return { url: `${NORDIC_URL}/api/r2/${key}`, size: buffer.length };
 }
 
 /**

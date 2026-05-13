@@ -78,22 +78,13 @@ export async function POST(request, { params }) {
     const { env } = await getCloudflareContext({ async: true });
     const bucket = env.NORDIC_ASSETS;
 
-    if (bucket) {
-      await bucket.put(key, file, {
-        httpMetadata: { contentType: 'application/pdf' },
-      });
-      pdfUrl = `${NORDIC_URL}/api/r2/${key}`;
-    } else {
-      // Local dev fallback: Vercel Blob
-      console.warn('[pdf-upload] NORDIC_ASSETS not available — falling back to Vercel Blob');
-      const { put } = await import('@vercel/blob');
-      const blob = await put(key, file, {
-        access: 'public',
-        contentType: 'application/pdf',
-        addRandomSuffix: true,
-      });
-      pdfUrl = blob.url;
+    if (!bucket) {
+      throw new Error('NORDIC_ASSETS R2 binding required (Vercel Blob fallback removed post-migration)');
     }
+    await bucket.put(key, file, {
+      httpMetadata: { contentType: 'application/pdf' },
+    });
+    pdfUrl = `${NORDIC_URL}/api/r2/${key}`;
   } catch (err) {
     console.error('[pdf-upload] upload failed:', err);
     return NextResponse.json({ error: 'Upload failed' }, { status: 502 });
