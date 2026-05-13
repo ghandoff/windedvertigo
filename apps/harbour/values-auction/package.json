@@ -18,7 +18,7 @@
     "deploy:spa": "npm run build && npx wrangler pages deploy dist --project-name values-auction"
   },
   "dependencies": {
-    "@fontsource/inter": "^5.2.8",
+    "@fontsource/atkinson-hyperlegible": "^5.2.8",
     "lit": "^3.2.1",
     "ws": "^8.18.0"
   },

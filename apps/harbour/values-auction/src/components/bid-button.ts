@@ -7,11 +7,26 @@ import './va-button';
 export class VaBidButton extends LitElement {
   @property({ type: Number }) currentHigh = 0;
   @property({ type: Number }) credos = 0;
+  @property({ type: Number }) preFill = 0;
   @property({ type: Boolean }) disabled = false;
 
   @state() private open = false;
   @state() private draft = 0;
   @state() private error = '';
+
+  private lastPreFill = -1;
+
+  updated() {
+    // keep the draft in sync with the team's pre-agreed amount across rounds
+    // so the captain sees the right starting number once they open the input.
+    // we no longer auto-open or take focus — that's a surprising interaction
+    // mid-auction and the team's pre-agreed amount auto-submits at the buzzer
+    // anyway. the captain explicitly clicks "bid" when they want to act.
+    if (this.preFill !== this.lastPreFill) {
+      this.lastPreFill = this.preFill;
+      if (!this.open) this.draft = this.preFill;
+    }
+  }
 
   static styles = css`
     :host {
@@ -28,7 +43,7 @@ export class VaBidButton extends LitElement {
     input {
       padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-pill);
-      border: 2px solid var(--wv-cadet-blue);
+      border: 2px solid var(--wv-seafoam);
       background: var(--bg-card);
       color: var(--fg);
       font: var(--type-body);
@@ -41,14 +56,14 @@ export class VaBidButton extends LitElement {
       outline-offset: var(--focus-ring-offset);
     }
     .error {
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font: var(--type-small);
     }
   `;
 
   private openDraft() {
     this.open = true;
-    this.draft = Math.max(this.currentHigh + 1, 1);
+    this.draft = Math.max(this.preFill, this.currentHigh + 1, 1);
     this.error = '';
     queueMicrotask(() => {
       this.renderRoot.querySelector<HTMLInputElement>('input')?.focus();

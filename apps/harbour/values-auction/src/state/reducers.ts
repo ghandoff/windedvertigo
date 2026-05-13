@@ -4,7 +4,9 @@ import type {
   SessionEvent,
   Team,
   Auction,
+  Participant,
 } from '@/state/types';
+import { PRACTICE_CREDOS, PRACTICE_VALUE_ID } from '@/state/types';
 import { getAct, nextAct } from '@/content/acts';
 import { VALUES } from '@/content/values';
 import { STARTUPS } from '@/content/startups';
@@ -12,7 +14,11 @@ import { TEAM_COLOURS, teamDisplayName, uid } from '@/utils/id';
 
 export const STARTING_CREDOS = 150;
 export const DEFAULT_AUCTION_MS = 60_000;
+export const PRACTICE_AUCTION_MS = 45_000;
 export const BID_INCREMENT = 1;
+export const CAPTAIN_GRACE_MS = 60_000;
+
+export const BRAINSTORM_MAX_LEN = 80;
 
 export function initialSession(sessionId: string, facilitatorId: string): Session {
   const now = Date.now();
@@ -29,6 +35,10 @@ export function initialSession(sessionId: string, facilitatorId: string): Sessio
     events: [],
     broadcasts: [],
     mutedTeamIds: [],
+    brainstormResponses: [],
+    hiddenBrainstormIds: [],
+    practiceCredos: {},
+    practiceCompleted: false,
   };
 }
 
@@ -44,7 +54,39 @@ function pushEvent(session: Session, ev: SessionEvent): Session {
   return { ...session, events: [...session.events, ev] };
 }
 
-export function reduce(session: Session, action: Action): Session {
+/**
+ * the practice round shares its bid mechanic with the real auction, but
+ * the practice value is never in the real deck and never deducts credos.
+ */
+function isPracticeAuction(session: Session): boolean {
+  return Boolean(session.currentAuction?.practice);
+}
+
+/**
+ * defensive: existing cached sessions may pre-date the new team fields.
+ * normalise on load so reducer code never has to optional-chain into them.
+ */
+function normaliseTeam(t: Team): Team {
+  return {
+    ...t,
+    polls: t.polls ?? {},
+    lockedBids: t.lockedBids ?? {},
+  };
+}
+
+function normaliseSession(s: Session): Session {
+  return {
+    ...s,
+    teams: s.teams.map(normaliseTeam),
+    brainstormResponses: s.brainstormResponses ?? [],
+    hiddenBrainstormIds: s.hiddenBrainstormIds ?? [],
+    practiceCredos: s.practiceCredos ?? {},
+    practiceCompleted: s.practiceCompleted ?? false,
+  };
+}
+
+export function reduce(rawSession: Session, action: Action): Session {
+  const session = normaliseSession(rawSession);
   switch (action.type) {
     case 'SESSION_INIT':
       // do not wipe an in-flight session on facilitator reconnect.
@@ -138,28 +180,45 @@ export function reduce(session: Session, action: Action): Session {
       };
 
     case 'TEAMS_FORM': {
+      const teams = action.teams.map(normaliseTeam);
       return pushEvent(
         {
           ...session,
-          teams: action.teams,
+          teams,
           participants: session.participants.map((p) => {
             const teamId = action.assignments[p.id];
             return teamId ? { ...p, teamId } : p;
           }),
         },
-        event('teamJoined', { teams: action.teams.map((t) => t.id) }),
+        event('teamJoined', { teams: teams.map((t) => t.id) }),
       );
     }
 
     case 'ACT_ADVANCE': {
       const act = getAct(action.to);
+      // when entering practice, seed practice credits if not already seeded.
+      const seedPractice =
+        action.to === 'practice' && Object.keys(session.practiceCredos).length === 0;
+      const practiceCredos = seedPractice
+        ? Object.fromEntries(session.teams.map((t) => [t.id, PRACTICE_CREDOS]))
+        : session.practiceCredos;
+      // leaving practice → tear down practice auction state.
+      const practiceAuction =
+        action.to === 'practice' ? session.practiceAuction : undefined;
       return pushEvent(
         {
           ...session,
           currentAct: action.to,
           actStartedAt: action.at,
           actDurationMs: act.durationMs,
-          currentAuction: action.to === 'auction' ? session.currentAuction : undefined,
+          actPausedAt: undefined,
+          // only carry currentAuction into auction-style acts.
+          currentAuction:
+            action.to === 'auction' || action.to === 'practice'
+              ? session.currentAuction
+              : undefined,
+          practiceAuction,
+          practiceCredos,
           // ready is per-act; reset it when the act changes.
           participants: session.participants.map((p) =>
             p.ready ? { ...p, ready: false } : p,
@@ -174,6 +233,31 @@ export function reduce(session: Session, action: Action): Session {
         { ...session, actDurationMs: session.actDurationMs + action.addMs },
         event('facilitatorExtended', { addMs: action.addMs }),
       );
+
+    case 'ACT_PAUSE': {
+      if (session.actPausedAt) return session;
+      return pushEvent(
+        { ...session, actPausedAt: action.at },
+        event('facilitatorPaused', { at: action.at, mode: 'pause' }, action.at),
+      );
+    }
+
+    case 'ACT_RESUME': {
+      if (!session.actPausedAt) return session;
+      const pausedMs = Math.max(0, action.at - session.actPausedAt);
+      return pushEvent(
+        {
+          ...session,
+          actPausedAt: undefined,
+          actDurationMs: session.actDurationMs + pausedMs,
+        },
+        event(
+          'facilitatorPaused',
+          { at: action.at, mode: 'resume', pausedMs },
+          action.at,
+        ),
+      );
+    }
 
     case 'INTENTION_SET': {
       return pushEvent(
@@ -259,7 +343,11 @@ export function reduce(session: Session, action: Action): Session {
           }),
         );
       }
-      if (action.amount > team.credos) {
+      const practice = isPracticeAuction(session);
+      const budget = practice
+        ? (session.practiceCredos[team.id] ?? PRACTICE_CREDOS)
+        : team.credos;
+      if (action.amount > budget) {
         return pushEvent(
           session,
           event('bidRejected', {
@@ -283,6 +371,7 @@ export function reduce(session: Session, action: Action): Session {
             teamId: team.id,
             amount: action.amount,
             valueId: session.currentAuction.valueId,
+            practice,
           },
           action.at,
         ),
@@ -295,11 +384,36 @@ export function reduce(session: Session, action: Action): Session {
       if (auction.lockedIn) return session;
       const winnerId = auction.highBid?.teamId;
       const winAmount = auction.highBid?.amount ?? 0;
+      const practice = Boolean(auction.practice);
       const locked: Auction = {
         ...auction,
         lockedIn: true,
         winnerTeamId: winnerId,
       };
+      if (practice) {
+        // practice winners don't earn the value or spend real credos. we
+        // do deduct from the disposable practice balance so the running
+        // total feels real during the rehearsal.
+        const nextPracticeCredos = { ...session.practiceCredos };
+        if (winnerId) {
+          const before = nextPracticeCredos[winnerId] ?? PRACTICE_CREDOS;
+          nextPracticeCredos[winnerId] = Math.max(0, before - winAmount);
+        }
+        return pushEvent(
+          {
+            ...session,
+            currentAuction: undefined,
+            practiceAuction: locked,
+            practiceCredos: nextPracticeCredos,
+            practiceCompleted: true,
+          },
+          event(
+            'practiceEnded',
+            { winnerTeamId: winnerId, amount: winAmount },
+            action.at,
+          ),
+        );
+      }
       const teams = winnerId
         ? session.teams.map((t) =>
             t.id === winnerId
@@ -307,6 +421,8 @@ export function reduce(session: Session, action: Action): Session {
                   ...t,
                   credos: Math.max(0, t.credos - winAmount),
                   wonValues: [...t.wonValues, auction.valueId],
+                  // a value that's been won is no longer a planning target.
+                  lockedBids: stripKey(t.lockedBids, auction.valueId),
                 }
               : t,
           )
@@ -409,7 +525,206 @@ export function reduce(session: Session, action: Action): Session {
           action.at,
         ),
       );
+
+    case 'BRAINSTORM_SUBMIT': {
+      const text = action.text.trim().slice(0, BRAINSTORM_MAX_LEN);
+      if (!text) return session;
+      const already = session.participants.find(
+        (p) => p.id === action.participantId,
+      )?.brainstormSubmitted;
+      if (already) return session;
+      return pushEvent(
+        {
+          ...session,
+          brainstormResponses: [
+            ...session.brainstormResponses,
+            { id: uid('br'), participantId: action.participantId, at: action.at, text },
+          ],
+          participants: session.participants.map((p) =>
+            p.id === action.participantId ? { ...p, brainstormSubmitted: true } : p,
+          ),
+        },
+        event(
+          'brainstormSubmitted',
+          { participantId: action.participantId, length: text.length },
+          action.at,
+        ),
+      );
+    }
+
+    case 'BRAINSTORM_HIDE':
+      return pushEvent(
+        {
+          ...session,
+          hiddenBrainstormIds: Array.from(
+            new Set([...session.hiddenBrainstormIds, action.responseId]),
+          ),
+        },
+        event('brainstormHidden', { responseId: action.responseId }),
+      );
+
+    case 'POLL_VOTE': {
+      const amount = Math.max(0, Math.round(action.amount));
+      return pushEvent(
+        {
+          ...session,
+          teams: session.teams.map((t) => {
+            if (t.id !== action.teamId) return t;
+            const existing = t.polls[action.valueId] ?? {};
+            return {
+              ...t,
+              polls: {
+                ...t.polls,
+                [action.valueId]: { ...existing, [action.participantId]: amount },
+              },
+            };
+          }),
+        },
+        event('pollVoted', {
+          teamId: action.teamId,
+          valueId: action.valueId,
+          participantId: action.participantId,
+          amount,
+        }),
+      );
+    }
+
+    case 'BID_LOCK': {
+      const amount = Math.max(0, Math.min(STARTING_CREDOS, Math.round(action.amount)));
+      return pushEvent(
+        {
+          ...session,
+          teams: session.teams.map((t) =>
+            t.id === action.teamId
+              ? { ...t, lockedBids: { ...t.lockedBids, [action.valueId]: amount } }
+              : t,
+          ),
+        },
+        event('bidLocked', {
+          teamId: action.teamId,
+          valueId: action.valueId,
+          amount,
+        }),
+      );
+    }
+
+    case 'BID_UNLOCK': {
+      return pushEvent(
+        {
+          ...session,
+          teams: session.teams.map((t) =>
+            t.id === action.teamId
+              ? { ...t, lockedBids: stripKey(t.lockedBids, action.valueId) }
+              : t,
+          ),
+        },
+        event('bidUnlocked', { teamId: action.teamId, valueId: action.valueId }),
+      );
+    }
+
+    case 'CAPTAIN_CLAIM': {
+      const team = session.teams.find((t) => t.id === action.teamId);
+      if (!team) return session;
+      // first-claim-wins: ignore subsequent claims unless there is no captain.
+      if (team.captainParticipantId && team.captainParticipantId !== action.participantId)
+        return session;
+      return pushEvent(
+        {
+          ...session,
+          teams: session.teams.map((t) =>
+            t.id === team.id
+              ? {
+                  ...t,
+                  captainParticipantId: action.participantId,
+                  captainGraceStartedAt: undefined,
+                }
+              : t,
+          ),
+        },
+        event(
+          'captainClaimed',
+          { teamId: team.id, participantId: action.participantId },
+          action.at,
+        ),
+      );
+    }
+
+    case 'CAPTAIN_PASS': {
+      return pushEvent(
+        {
+          ...session,
+          teams: session.teams.map((t) =>
+            t.id === action.teamId
+              ? {
+                  ...t,
+                  captainParticipantId: action.toParticipantId,
+                  captainGraceStartedAt: undefined,
+                }
+              : t,
+          ),
+        },
+        event(
+          'captainTransferred',
+          { teamId: action.teamId, to: action.toParticipantId, reason: 'manual' },
+          action.at,
+        ),
+      );
+    }
+
+    case 'CAPTAIN_AUTO_TRANSFER': {
+      return pushEvent(
+        {
+          ...session,
+          teams: session.teams.map((t) =>
+            t.id === action.teamId
+              ? {
+                  ...t,
+                  captainParticipantId: action.newCaptainId,
+                  captainGraceStartedAt: undefined,
+                }
+              : t,
+          ),
+        },
+        event(
+          'captainTransferred',
+          {
+            teamId: action.teamId,
+            to: action.newCaptainId,
+            reason: action.reason,
+          },
+          action.at,
+        ),
+      );
+    }
+
+    case 'PRACTICE_START': {
+      // the practice value is a synthetic id — never in the real deck.
+      const auction: Auction = {
+        valueId: PRACTICE_VALUE_ID,
+        startedAt: action.at,
+        durationMs: action.durationMs,
+        lockedIn: false,
+        practice: true,
+      };
+      return pushEvent(
+        { ...session, currentAuction: auction },
+        event('practiceStarted', {}, action.at),
+      );
+    }
+
+    case 'PRACTICE_END': {
+      if (!session.currentAuction?.practice) return session;
+      // delegate to AUCTION_END so the bid mechanic is identical.
+      return reduce(session, { type: 'AUCTION_END', at: action.at });
+    }
   }
+}
+
+function stripKey<V>(obj: Record<string, V>, key: string): Record<string, V> {
+  if (!(key in obj)) return obj;
+  const next: Record<string, V> = {};
+  for (const k of Object.keys(obj)) if (k !== key) next[k] = obj[k]!;
+  return next;
 }
 
 export function assignTeams(
@@ -440,6 +755,8 @@ export function assignTeams(
       softCeilings: {},
       wonValues: [],
       reflectionAnswers: [],
+      polls: {},
+      lockedBids: {},
     });
   }
 
@@ -456,3 +773,8 @@ export function advanceAct(session: Session): Action | null {
   if (!next) return null;
   return { type: 'ACT_ADVANCE', to: next, at: Date.now() };
 }
+
+// re-export so views can use these without pulling from types directly
+export { PRACTICE_CREDOS, PRACTICE_VALUE_ID } from '@/state/types';
+// avoid unused-import warning when only Participant type is needed elsewhere
+export type { Participant };

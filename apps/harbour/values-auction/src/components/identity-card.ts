@@ -53,7 +53,7 @@ export class VaIdentityCard extends LitElement {
     }
     .sector {
       font: var(--type-small);
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       color: var(--fg-inverse);
       padding: var(--space-1) var(--space-3);
       border-radius: var(--radius-pill);
@@ -74,10 +74,10 @@ export class VaIdentityCard extends LitElement {
     .values span {
       font: var(--type-small);
       background: var(--wv-champagne);
-      color: var(--wv-cadet-blue);
+      color: var(--wv-seafoam);
       padding: var(--space-1) var(--space-3);
       border-radius: var(--radius-sm);
-      border: 1px solid var(--wv-cadet-blue);
+      border: 1px solid var(--wv-seafoam);
     }
   `;
 

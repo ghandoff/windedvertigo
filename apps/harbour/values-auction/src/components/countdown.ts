@@ -10,6 +10,12 @@ export class VaCountdown extends LitElement {
   @property({ type: Boolean }) ring = false;
   @property({ type: Boolean }) announceSeconds = false;
   @property({ type: Boolean }) large = false;
+  /**
+   * if set, the timer freezes at this moment. used to honour facilitator
+   * pause without losing the player's place. when the timer resumes,
+   * durationMs is extended upstream so visible remaining stays stable.
+   */
+  @property({ type: Number }) pausedAt = 0;
 
   @state() private now = Date.now();
   private tick: TickHandle | null = null;
@@ -66,14 +72,14 @@ export class VaCountdown extends LitElement {
       stroke-linecap: round;
     }
     .ring-track {
-      stroke: rgba(39, 50, 72, 0.12);
+      stroke: var(--track-muted);
     }
     .ring-fill {
-      stroke: var(--wv-cadet-blue);
+      stroke: var(--accent-on-bg);
       transition: stroke var(--dur-base) var(--ease-in-out);
     }
     :host([data-urgent]) .ring-fill {
-      stroke: var(--wv-redwood);
+      stroke: var(--urgent-on-bg);
     }
     .ring-wrap .label {
       position: absolute;
@@ -84,13 +90,14 @@ export class VaCountdown extends LitElement {
       font-size: 36px;
     }
     :host([data-urgent]) {
-      color: var(--wv-redwood);
+      color: var(--urgent-on-bg);
     }
   `;
 
   private remainingMs() {
     if (!this.startedAt) return this.durationMs;
-    return Math.max(0, this.durationMs - (this.now - this.startedAt));
+    const reference = this.pausedAt > 0 ? this.pausedAt : this.now;
+    return Math.max(0, this.durationMs - (reference - this.startedAt));
   }
 
   render() {
@@ -99,8 +106,17 @@ export class VaCountdown extends LitElement {
     if (urgent) this.setAttribute('data-urgent', '');
     else this.removeAttribute('data-urgent');
 
+    const paused = this.pausedAt > 0;
+    const ariaSuffix = paused ? ', paused' : '';
+
     if (!this.ring) {
-      return html`<span class="label" role="timer" aria-live="off">${formatMs(remaining)}</span>`;
+      return html`<span
+        class="label"
+        role="timer"
+        aria-live="off"
+        aria-label=${`${formatMs(remaining)}${ariaSuffix}`}
+        >${formatMs(remaining)}${paused ? ' · paused' : ''}</span
+      >`;
     }
 
     const ratio = this.durationMs > 0 ? remaining / this.durationMs : 0;
@@ -119,7 +135,12 @@ export class VaCountdown extends LitElement {
             stroke-dashoffset=${offset}
           ></circle>
         </svg>
-        <span class="label" role="timer">${formatMs(remaining)}</span>
+        <span
+          class="label"
+          role="timer"
+          aria-label=${`${formatMs(remaining)}${ariaSuffix}`}
+          >${formatMs(remaining)}${paused ? ' · paused' : ''}</span
+        >
       </div>
     `;
   }

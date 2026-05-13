@@ -17,7 +17,7 @@ export const COPY = {
       {
         step: '02',
         heading: 'you have 150 credos. that’s the whole budget.',
-        body: 'values will come up for auction, one at a time. teams bid in real time. the highest offer wins. losses are final — no second round, no refund.',
+        body: 'values will come up for auction, one at a time. teams bid in real time. the highest offer wins the value. credos only leave your account when you win — losing bids return to your balance.',
       },
       {
         step: '03',
@@ -53,6 +53,10 @@ export const COPY = {
       'the session has already started — you’ve been added to the smallest team to keep things moving.',
     waitingForFacilitator:
       'the session is in progress — ask your facilitator to add you to a team.',
+    teamFormed: 'you’re in. your facilitator will move things along shortly.',
+    teamRosterHeading: 'your team',
+    teamRosterEmpty: 'you’re first in. teammates will show up here as they arrive.',
+    teamChipHint: 'tap your team chip in the header any time to see who’s with you.',
   },
   scene: {
     ready: 'i’ve read it. ready.',
@@ -63,7 +67,8 @@ export const COPY = {
       'these are the values that will come up for auction. read them with your team and decide which matter most for your company before bidding starts.',
   },
   strategy: {
-    prompt: 'drag each value into a zone. your team must agree before the auction.',
+    prompt:
+      'sort each value, then vote on how much to bid. your captain locks the final number.',
     zones: {
       must: 'must have',
       nice: 'would be nice',
@@ -77,20 +82,93 @@ export const COPY = {
     ceilingHint: 'your team’s reminder — not enforced. you can still bid past it.',
     keyboardHint:
       'keyboard: focus a card, then press M (must), N (nice), W (won’t), or D (back to deck).',
+    pollPrompt: 'how much should we bid on this?',
+    pollLabels: {
+      0: 'skip',
+      20: 'low',
+      40: 'mid',
+      60: 'high',
+      80: 'all-in',
+    } as Record<number, string>,
+    leaning: (amount: number) => `team leaning: ${amount} credos`,
+    splitTeam: 'team split. talk it out — no consensus yet.',
+    captainCta: 'tap to claim bid captain',
+    captainSelf: 'you are the bid captain.',
+    captainIs: (name: string) => `${name} is your bid captain.`,
+    captainNoneYet: 'your team needs a bid captain — tap to claim the role.',
+    captainPass: 'pass captain role',
+    captainAutoAssigned:
+      'no one claimed it — you’re the bid captain. you can pass the role to a teammate.',
+    captainReassigned: (name: string) => `captain reassigned: ${name} took over.`,
+    captainNextInLine: (current: string) =>
+      `you’re next in line. if ${current} drops, the role will pass to you automatically.`,
+    lockBid: 'lock bid',
+    unlockBid: 'unlock',
+    lockedAt: (amount: number) => `locked at ${amount} credos`,
+    plannedSpend: (planned: number, budget: number) =>
+      `planned spend: ${planned} / ${budget} credos.`,
+    plannedSpendOver: 'adjust before the auction starts.',
+  },
+  brainstorm: {
+    heading: 'before the values are revealed.',
+    prompt: 'what do you think your company should prioritize right now?',
+    placeholder: 'one short answer — under 80 characters.',
+    submit: 'send',
+    submitted: 'in. read what the room is saying.',
+    feedHeading: 'the room, so far',
+    feedEmpty: 'first response coming through any second.',
+    counter: (n: number, total: number) => `${n} / ${total} responded`,
+    facilitatorHide: 'hide',
+    facilitatorHideConfirm: 'hide this response from the wall?',
+    wallHeading: 'what should our companies prioritize?',
+  },
+  practice: {
+    label: 'practice round',
+    badge: 'practice',
+    dummyValueName: 'Free coffee in the office forever',
+    dummyValueDescription:
+      'a stand-in. no real values are spent. learn the bid mechanic before the real thing.',
+    intro:
+      'one round, dummy value, separate practice credits. losing here costs you nothing.',
+    creditsLabel: 'practice credits',
+    afterWin: (team: string, amount: number) =>
+      `${team} won the practice round for ${amount} credits. those credits are gone — that’s how it’ll feel for real next.`,
+    afterNoBid:
+      'no bids came in. when the real auction opens, your team’s pre-agreed amount will auto-submit at the buzzer — so silence still places a bid.',
+    startCta: 'start practice round',
+    endCta: 'end practice and start real auction',
+  },
+  restrategize: {
+    heading: 'half-time. regroup.',
+    body:
+      'you have real numbers now. update your votes, see what your competitors paid, and let your captain re-lock.',
+    remainingCredos: 'remaining credos',
+    wonHeading: 'you won',
+    lostHeading: 'you bid and lost',
+    competitionHeading: 'competition so far',
+    pricePaid: (amount: number) => `${amount} credos`,
+    notYetAuctioned: 'still coming',
+    resumeCta: 'resume auction',
+    facilitatorTriggerCta: 'trigger restrategize break',
   },
   auction: {
     live: 'live now.',
     bidCta: 'bid',
     bidPlaced: 'bid in.',
     won: 'locked in.',
-    refundNeverHappens: 'no refunds. once spent, gone.',
+    creditsHeldHint:
+      'your bid reserves credos for this round. lose, and they return — only winning spends them.',
+    betweenAuctions: 'between auctions. your facilitator will queue the next value.',
     restrategise: 'two minutes. regroup. adjust.',
     nextBidLabel: 'your bid',
     noBidsYet: 'no bids yet. open it up.',
-    insufficientCredos: 'not enough credos for that bid.',
-    mustBeatHigh: 'must beat the current high.',
-    outbid: 'outbid! someone moved past you.',
-    outOfCredos: 'no credos left. you’re out of this auction — watch and learn.',
+    insufficientCredos:
+      'that’s more than your team has in the bank — try a smaller number.',
+    mustBeatHigh: 'your bid needs to top the current high. try a higher number.',
+    outbid:
+      'another team beat your bid. you can bid again if you want to stay in.',
+    outOfCredos:
+      'your credos are spent for this round. you can still watch and brief your team for the next one.',
   },
   reflection: {
     prompts: [
@@ -157,7 +235,8 @@ export const COPY = {
   },
   errors: {
     sessionNotFound: 'session not found. check the code with your facilitator.',
-    bidRejected: 'bid rejected.',
+    bidRejected:
+      'the bid didn’t go through. try again, or adjust the amount if it’s too high.',
   },
   broadcast: {
     label: 'from your facilitator',

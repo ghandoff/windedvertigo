@@ -2,8 +2,11 @@ export type ActId =
   | 'arrival'
   | 'grouping'
   | 'scene'
+  | 'brainstorm'
   | 'strategy'
+  | 'practice'
   | 'auction'
+  | 'restrategize'
   | 'reflection'
   | 'regather';
 
@@ -13,6 +16,16 @@ export type Archetype = 'builder' | 'diplomat' | 'rebel' | 'steward';
 
 export type IntentionZone = 'must' | 'nice' | 'wont' | null;
 
+/**
+ * fixed-step bid amounts for the team consensus poll. mirrors the spec:
+ * skip / low / mid / high / all-in.
+ */
+export const POLL_AMOUNTS = [0, 20, 40, 60, 80] as const;
+export type PollAmount = (typeof POLL_AMOUNTS)[number];
+
+export const PRACTICE_CREDOS = 50;
+export const PRACTICE_VALUE_ID = '__practice__';
+
 export interface Session {
   id: string;
   createdAt: number;
@@ -20,6 +33,12 @@ export interface Session {
   currentAct: ActId;
   actStartedAt?: number;
   actDurationMs: number;
+  /**
+   * if set, the act timer is paused and freezes at this moment. resuming
+   * extends actDurationMs by the time spent paused so the visible remaining
+   * stays the same as it was when paused.
+   */
+  actPausedAt?: number;
   facilitatorId: string;
   teams: Team[];
   participants: Participant[];
@@ -29,6 +48,20 @@ export interface Session {
   events: SessionEvent[];
   broadcasts: Broadcast[];
   mutedTeamIds: string[];
+  /**
+   * brainstorm-wall responses. anonymous from the participant's view —
+   * we keep the participantId server-side for deduping and rate-limiting,
+   * but it is never rendered.
+   */
+  brainstormResponses: BrainstormResponse[];
+  hiddenBrainstormIds: string[];
+  /**
+   * practice round state. lives separately from real currentAuction so the
+   * reducer never confuses practice credits with real credos.
+   */
+  practiceAuction?: Auction;
+  practiceCredos: Record<string, number>;
+  practiceCompleted: boolean;
 }
 
 export interface Team {
@@ -42,6 +75,18 @@ export interface Team {
   wonValues: string[];
   purposeStatement?: string;
   reflectionAnswers: string[];
+  /**
+   * per-value team poll votes — keyed by valueId, then by participantId.
+   * captures the live "should we bid X?" sentiment during team strategy.
+   */
+  polls: Record<string, Record<string, number>>;
+  /**
+   * captain-locked bid amount per value. when a value comes up in the auction,
+   * this is what pre-fills the bid field.
+   */
+  lockedBids: Record<string, number>;
+  captainParticipantId?: string;
+  captainGraceStartedAt?: number;
 }
 
 export interface Participant {
@@ -53,6 +98,11 @@ export interface Participant {
   archetype?: Archetype;
   ready?: boolean;
   role: 'participant' | 'facilitator' | 'wall';
+  /**
+   * marks that the participant has submitted on the brainstorm wall.
+   * one submission per participant.
+   */
+  brainstormSubmitted?: boolean;
 }
 
 export interface Auction {
@@ -62,6 +112,18 @@ export interface Auction {
   highBid?: { teamId: string; amount: number; at: number };
   lockedIn: boolean;
   winnerTeamId?: string;
+  /**
+   * marks a practice-round auction so consumers never confuse it with the
+   * real auction. practice bids never touch real credos or wonValues.
+   */
+  practice?: boolean;
+}
+
+export interface BrainstormResponse {
+  id: string;
+  participantId: string;
+  at: number;
+  text: string;
 }
 
 export interface Broadcast {
@@ -89,7 +151,16 @@ export interface SessionEvent {
     | 'facilitatorPaused'
     | 'facilitatorExtended'
     | 'facilitatorBroadcast'
-    | 'facilitatorOverride';
+    | 'facilitatorOverride'
+    | 'brainstormSubmitted'
+    | 'brainstormHidden'
+    | 'pollVoted'
+    | 'bidLocked'
+    | 'bidUnlocked'
+    | 'captainClaimed'
+    | 'captainTransferred'
+    | 'practiceStarted'
+    | 'practiceEnded';
   payload: Record<string, unknown>;
 }
 
@@ -103,6 +174,8 @@ export type Action =
   | { type: 'TEAMS_FORM'; teams: Team[]; assignments: Record<string, string> }
   | { type: 'ACT_ADVANCE'; to: ActId; at: number }
   | { type: 'ACT_EXTEND'; addMs: number }
+  | { type: 'ACT_PAUSE'; at: number }
+  | { type: 'ACT_RESUME'; at: number }
   | { type: 'INTENTION_SET'; teamId: string; valueId: string; zone: IntentionZone }
   | { type: 'CEILING_SET'; teamId: string; valueId: string; amount: number }
   | { type: 'AUCTION_START'; valueId: string; durationMs: number; at: number }
@@ -113,4 +186,20 @@ export type Action =
   | { type: 'BROADCAST'; message: string; at: number }
   | { type: 'MUTE_TEAM'; teamId: string; muted: boolean }
   | { type: 'RESET_CURRENT_BID'; at: number }
-  | { type: 'REFUND_CREDOS'; teamId: string; amount: number; at: number };
+  | { type: 'REFUND_CREDOS'; teamId: string; amount: number; at: number }
+  | { type: 'BRAINSTORM_SUBMIT'; participantId: string; text: string; at: number }
+  | { type: 'BRAINSTORM_HIDE'; responseId: string }
+  | { type: 'POLL_VOTE'; teamId: string; valueId: string; participantId: string; amount: number }
+  | { type: 'BID_LOCK'; teamId: string; valueId: string; amount: number }
+  | { type: 'BID_UNLOCK'; teamId: string; valueId: string }
+  | { type: 'CAPTAIN_CLAIM'; teamId: string; participantId: string; at: number }
+  | { type: 'CAPTAIN_PASS'; teamId: string; toParticipantId: string; at: number }
+  | {
+      type: 'CAPTAIN_AUTO_TRANSFER';
+      teamId: string;
+      newCaptainId: string;
+      reason: 'disconnect' | 'no-claim';
+      at: number;
+    }
+  | { type: 'PRACTICE_START'; durationMs: number; at: number }
+  | { type: 'PRACTICE_END'; at: number };

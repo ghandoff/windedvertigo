@@ -1,32 +1,44 @@
 :root {
-  --wv-burnt-sienna: #cb7858;
-  --wv-cadet-blue: #5f9ea0;
-  --wv-redwood: #a45a52;
-  --wv-champagne: #f7e7ce;
-  --wv-deep: #1a2438;
+  /* canonical winded.vertigo brand palette — matches packages/tokens/index.css */
+  --wv-cadet: #273248;
+  --wv-redwood: #b15043;
+  --wv-sienna: #cb7858;
+  --wv-champagne: #ffebd2;
   --wv-white: #ffffff;
 
-  --bg: var(--wv-burnt-sienna);
-  --bg-card: var(--wv-champagne);
-  --bg-deep: var(--wv-deep);
-  --fg: var(--wv-deep);
-  --fg-inverse: var(--wv-white);
-  --fg-muted: rgba(26, 36, 56, 0.72);
-  --accent-urgent: var(--wv-redwood);
-  --accent-warm: var(--wv-cadet-blue);
+  /* values-auction-local extensions (not in brand guide) */
+  --wv-seafoam: #5f9ea0;
+  --wv-deep: #1a2438;
+  --wv-sand: #e9d0a8;
 
-  --focus-ring: 3px solid var(--wv-cadet-blue);
+  /* default surface = cadet (overridden by html[data-surface]) */
+  --bg: var(--wv-cadet);
+  --bg-card: #1e2738;
+  --bg-spotlight: var(--wv-champagne);
+  --bg-deep: #0f1726;
+  --fg: var(--wv-champagne);
+  --fg-on-card: var(--wv-champagne);
+  --fg-muted: rgba(255, 235, 210, 0.78);
+  --fg-inverse: var(--wv-cadet);
+  --accent-urgent: var(--wv-redwood);
+  --accent-warm: var(--wv-seafoam);
+  --accent-on-bg: var(--wv-sienna);
+  --urgent-on-bg: var(--wv-sienna);
+  --track-muted: rgba(255, 235, 210, 0.22);
+  --border-soft: rgba(255, 235, 210, 0.18);
+  --accent-emphasis: #e09878;
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.35);
+  --shadow-card-lifted: 0 16px 48px rgba(0, 0, 0, 0.45);
+
+  --focus-ring: 3px solid var(--wv-seafoam);
   --focus-ring-offset: 2px;
 
-  --shadow-card: 0 2px 8px rgba(26, 36, 56, 0.08);
-  --shadow-card-lifted: 0 12px 40px rgba(26, 36, 56, 0.16);
-
-  --type-display: 700 48px/1.05 'Inter', system-ui, sans-serif;
-  --type-h1: 700 32px/1.15 'Inter', system-ui, sans-serif;
-  --type-h2: 700 22px/1.25 'Inter', system-ui, sans-serif;
-  --type-body: 400 16px/1.5 'Inter', system-ui, sans-serif;
-  --type-small: 400 14px/1.45 'Inter', system-ui, sans-serif;
-  --type-mono: 400 14px/1.4 ui-monospace, 'SF Mono', Menlo, monospace;
+  --type-display: 700 48px/1.15 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --type-h1: 700 32px/1.25 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --type-h2: 700 22px/1.3 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --type-body: 400 16px/1.6 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --type-small: 400 14px/1.55 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --type-mono: 400 14px/1.5 ui-monospace, 'SF Mono', Menlo, monospace;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -51,10 +63,63 @@
   --dur-slow: 420ms;
   --dur-act-shift: 600ms;
 
-  --team-cadet: #5f9ea0;
-  --team-redwood: #a45a52;
+  /* team identifier colours — six distinct chips for visual team identity */
+  --team-cadet: var(--wv-seafoam);
+  --team-redwood: var(--wv-redwood);
   --team-sienna: #e97451;
-  --team-champagne: #f7e7ce;
-  --team-deep: #1a2438;
-  --team-sand: #e9d0a8;
+  --team-champagne: var(--wv-champagne);
+  --team-deep: var(--wv-deep);
+  --team-sand: var(--wv-sand);
+}
+
+/* surface system — set html[data-surface] per-act for mood rhythm */
+html[data-surface='cadet'] {
+  --bg: var(--wv-cadet);
+  --bg-card: #1e2738;
+  --bg-spotlight: var(--wv-champagne);
+  --fg: var(--wv-champagne);
+  --fg-on-card: var(--wv-champagne);
+  --fg-muted: rgba(255, 235, 210, 0.78);
+  --fg-inverse: var(--wv-cadet);
+  --accent-on-bg: var(--wv-sienna);
+  --urgent-on-bg: var(--wv-sienna);
+  --track-muted: rgba(255, 235, 210, 0.22);
+  --border-soft: rgba(255, 235, 210, 0.18);
+  --accent-emphasis: #e09878;
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.35);
+  --shadow-card-lifted: 0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+html[data-surface='seafoam'] {
+  --bg: var(--wv-seafoam);
+  --bg-card: var(--wv-champagne);
+  --bg-spotlight: var(--wv-white);
+  --fg: var(--wv-cadet);
+  --fg-on-card: var(--wv-cadet);
+  --fg-muted: rgba(39, 50, 72, 0.75);
+  --fg-inverse: var(--wv-champagne);
+  --accent-on-bg: var(--wv-cadet);
+  --urgent-on-bg: var(--wv-cadet);
+  --track-muted: rgba(39, 50, 72, 0.22);
+  --border-soft: rgba(39, 50, 72, 0.18);
+  --accent-emphasis: var(--wv-redwood);
+  --shadow-card: 0 2px 12px rgba(26, 36, 56, 0.18);
+  --shadow-card-lifted: 0 16px 48px rgba(26, 36, 56, 0.28);
+}
+
+html[data-surface='sienna'] {
+  --bg: var(--wv-sienna);
+  --bg-card: var(--wv-champagne);
+  --bg-spotlight: var(--wv-white);
+  --fg: var(--wv-cadet);
+  --fg-on-card: var(--wv-cadet);
+  --fg-muted: rgba(39, 50, 72, 0.78);
+  --fg-inverse: var(--wv-champagne);
+  --accent-on-bg: var(--wv-cadet);
+  --urgent-on-bg: var(--wv-cadet);
+  --track-muted: rgba(39, 50, 72, 0.25);
+  --border-soft: rgba(39, 50, 72, 0.20);
+  --accent-emphasis: var(--wv-redwood);
+  --shadow-card: 0 2px 12px rgba(26, 36, 56, 0.22);
+  --shadow-card-lifted: 0 16px 48px rgba(26, 36, 56, 0.32);
 }

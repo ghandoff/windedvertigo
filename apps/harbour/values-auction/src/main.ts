@@ -6,14 +6,23 @@ import '@/design/motion.css';
 import { currentRoute, onRouteChange, navigate } from '@/router';
 import { createController, type Controller } from '@/state/controller';
 import { exportIdentityCard } from '@/identity-card/render';
+import { initPrefs } from '@/state/prefs';
 
 import '@/views/participant';
 import '@/views/facilitator';
 import '@/views/wall';
 import '@/views/landing';
+import '@/components/settings-drawer';
+
+initPrefs();
 
 const app = document.getElementById('app');
 if (!app) throw new Error('missing #app mount point');
+
+// always-on accessibility controls, mounted once at the document level
+if (!document.querySelector('va-settings-drawer')) {
+  document.body.appendChild(document.createElement('va-settings-drawer'));
+}
 
 let controller: Controller | null = null;
 
@@ -96,6 +105,37 @@ setInterval(() => {
     controller.dispatch({ type: 'AUCTION_END', at: Date.now() });
   }
 }, 500);
+
+/**
+ * captain disconnect watcher (authoritative only).
+ *
+ * a captain is considered offline if their lastSeenAt is older than the
+ * grace period. when that happens we auto-transfer the role to the next
+ * participant in the team roster (first joined that isn't the captain).
+ */
+const CAPTAIN_GRACE_MS = 60_000;
+setInterval(() => {
+  if (!controller || !controller.isAuthoritative()) return;
+  const s = controller.store.getState();
+  const now = Date.now();
+  for (const team of s.teams) {
+    if (!team.captainParticipantId) continue;
+    const captain = s.participants.find((p) => p.id === team.captainParticipantId);
+    if (!captain) continue;
+    if (now - captain.lastSeenAt < CAPTAIN_GRACE_MS) continue;
+    const replacement = s.participants
+      .filter((p) => p.teamId === team.id && p.id !== captain.id)
+      .sort((a, b) => a.joinedAt - b.joinedAt)[0];
+    if (!replacement) continue;
+    controller.dispatch({
+      type: 'CAPTAIN_AUTO_TRANSFER',
+      teamId: team.id,
+      newCaptainId: replacement.id,
+      reason: 'disconnect',
+      at: now,
+    });
+  }
+}, 5_000);
 
 // eslint-disable-next-line no-console
 console.log('[values-auction] open:');

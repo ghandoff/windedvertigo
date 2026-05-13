@@ -3,13 +3,19 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { VALUES } from '@/content/values';
 import { COPY } from '@/content/copy';
 import type { IntentionZone, Team } from '@/state/types';
+import { plannedSpend } from '@/state/selectors';
+import { STARTING_CREDOS } from '@/state/reducers';
 import './value-card';
+import './poll-buttons';
 
 type Zone = 'deck' | 'must' | 'nice' | 'wont';
 
 @customElement('va-strategy-board')
 export class VaStrategyBoard extends LitElement {
   @property({ type: Object }) team?: Team;
+  @property({ type: String }) participantId = '';
+  /** filter out values that have already been auctioned (for restrategize). */
+  @property({ type: Array }) remainingValueIds: string[] | null = null;
 
   @state() private focusedValueId: string | null = null;
   @state() private dragOverZone: Zone | null = null;
@@ -29,12 +35,31 @@ export class VaStrategyBoard extends LitElement {
       color: var(--fg-muted);
       margin-bottom: var(--space-4);
     }
+    .planned {
+      margin-bottom: var(--space-4);
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      font: var(--type-small);
+      color: var(--fg);
+    }
+    .planned[data-over] {
+      border-left: 3px solid var(--wv-redwood);
+      color: var(--accent-emphasis);
+      font-weight: 700;
+    }
     .board {
       display: grid;
       grid-template-columns: 1fr;
-      gap: var(--space-4);
+      gap: var(--space-3);
     }
-    @media (min-width: 900px) {
+    @media (min-width: 640px) {
+      .board {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+      }
+    }
+    @media (min-width: 1024px) {
       .board {
         grid-template-columns: repeat(4, 1fr);
       }
@@ -43,11 +68,33 @@ export class VaStrategyBoard extends LitElement {
       background: rgba(255, 255, 255, 0.55);
       border: 2px dashed rgba(39, 50, 72, 0.25);
       border-radius: var(--radius-md);
-      padding: var(--space-4);
-      min-height: 240px;
+      padding: var(--space-3);
+      min-height: 200px;
       transition:
         border-color var(--dur-base) var(--ease-out-quart),
         background var(--dur-base) var(--ease-out-quart);
+    }
+    @media (min-width: 640px) {
+      .zone {
+        padding: var(--space-4);
+        min-height: 240px;
+      }
+    }
+    /*
+     * narrow viewports: collapse "won't" + "deck" into a single details
+     * disclosure so the must/nice zones stay above the fold. participants
+     * still get the full board on tablet+ devices.
+     */
+    @media (max-width: 639px) {
+      .zone[data-zone='wont'],
+      .zone[data-zone='deck'] {
+        min-height: 0;
+        padding: var(--space-2) var(--space-3);
+      }
+      .zone[data-zone='wont'] ul,
+      .zone[data-zone='deck'] ul {
+        gap: var(--space-2);
+      }
     }
     .zone h3 {
       font: var(--type-h2);
@@ -55,7 +102,7 @@ export class VaStrategyBoard extends LitElement {
       text-transform: lowercase;
     }
     .zone[data-zone='must'] {
-      border-color: var(--wv-redwood);
+      border-color: var(--accent-emphasis);
     }
     .zone[data-zone='nice'] {
       border-color: var(--wv-burnt-sienna);
@@ -82,25 +129,6 @@ export class VaStrategyBoard extends LitElement {
       outline-offset: var(--focus-ring-offset);
       border-radius: var(--radius-md);
     }
-    .ceiling-input {
-      margin-top: var(--space-2);
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-    }
-    .ceiling-input input {
-      width: 80px;
-      padding: var(--space-1) var(--space-2);
-      border: 1.5px solid var(--wv-cadet-blue);
-      border-radius: var(--radius-sm);
-      font: var(--type-small);
-      font-weight: 700;
-    }
-    .ceiling-hint {
-      color: var(--fg-muted);
-      font: var(--type-small);
-      font-style: italic;
-    }
     .keyboard-hint {
       display: inline-block;
       background: var(--bg-card);
@@ -124,6 +152,19 @@ export class VaStrategyBoard extends LitElement {
     }
   `;
 
+  private isCaptain(): boolean {
+    return Boolean(this.team?.captainParticipantId) &&
+      this.team!.captainParticipantId === this.participantId;
+  }
+
+  private valuesInScope() {
+    if (this.remainingValueIds) {
+      const set = new Set(this.remainingValueIds);
+      return VALUES.filter((v) => set.has(v.id));
+    }
+    return VALUES;
+  }
+
   private zoneForValue(id: string): Zone {
     const z = this.team?.intentions[id];
     if (z === 'must' || z === 'nice' || z === 'wont') return z;
@@ -135,17 +176,6 @@ export class VaStrategyBoard extends LitElement {
     this.dispatchEvent(
       new CustomEvent('va-intention', {
         detail: { teamId: this.team.id, valueId, zone },
-        bubbles: true,
-        composed: true,
-      }),
-    );
-  }
-
-  private setCeiling(valueId: string, amount: number) {
-    if (!this.team) return;
-    this.dispatchEvent(
-      new CustomEvent('va-ceiling', {
-        detail: { teamId: this.team.id, valueId, amount },
         bubbles: true,
         composed: true,
       }),
@@ -205,8 +235,21 @@ export class VaStrategyBoard extends LitElement {
       nice: COPY.strategy.zones.nice,
       wont: COPY.strategy.zones.wont,
     };
+    const inScope = this.valuesInScope();
+    const captain = this.isCaptain();
+    const planned = this.team ? plannedSpend(this.team) : 0;
+    const budget = this.team?.credos ?? STARTING_CREDOS;
+    const over = planned > budget;
     return html`
       <p class="hint">${COPY.strategy.prompt}</p>
+      ${this.team
+        ? html`
+            <div class="planned" data-over=${over ? true : null} aria-live="polite">
+              ${COPY.strategy.plannedSpend(planned, budget)}
+              ${over ? html` <span>${COPY.strategy.plannedSpendOver}</span>` : ''}
+            </div>
+          `
+        : ''}
       <div class="board">
         ${zones.map(
           (zone) => html`
@@ -222,49 +265,37 @@ export class VaStrategyBoard extends LitElement {
             >
               <h3>${labels[zone]}</h3>
               <ul>
-                ${VALUES.filter((v) => this.zoneForValue(v.id) === zone).map(
-                  (v) => html`
-                    <li
-                      tabindex="0"
-                      draggable="true"
-                      data-dragging=${this.draggingValueId === v.id ? true : null}
-                      @dragstart=${(e: DragEvent) => this.onDragStart(e, v.id)}
-                      @dragend=${() => this.onDragEnd()}
-                      @keydown=${(e: KeyboardEvent) => this.onKey(e, v.id)}
-                      @focus=${() => (this.focusedValueId = v.id)}
-                      aria-label=${`${v.name}. in ${labels[zone]}. drag to move, or press M, N, W, or D.`}
-                    >
-                      <va-value-card
-                        .value=${v}
-                        .zone=${zone === 'deck' ? 'deck' : zone}
-                        .ceiling=${this.team?.softCeilings[v.id] ?? 0}
-                      ></va-value-card>
-                      ${zone === 'must' || zone === 'nice'
-                        ? html`
-                            <div class="ceiling-input">
-                              <label for=${`ceiling-${v.id}`}>${COPY.strategy.ceilingLabel}</label>
-                              <input
-                                id=${`ceiling-${v.id}`}
-                                type="number"
-                                min="0"
-                                max=${this.team?.credos ?? 150}
-                                .value=${String(this.team?.softCeilings[v.id] ?? 0)}
-                                aria-describedby=${`ceiling-hint-${v.id}`}
-                                @change=${(e: Event) =>
-                                  this.setCeiling(
-                                    v.id,
-                                    Number((e.target as HTMLInputElement).value),
-                                  )}
-                              />
-                              <span id=${`ceiling-hint-${v.id}`} class="ceiling-hint">
-                                ${COPY.strategy.ceilingHint}
-                              </span>
-                            </div>
-                          `
-                        : ''}
-                    </li>
-                  `,
-                )}
+                ${inScope
+                  .filter((v) => this.zoneForValue(v.id) === zone)
+                  .map(
+                    (v) => html`
+                      <li
+                        tabindex="0"
+                        draggable="true"
+                        data-dragging=${this.draggingValueId === v.id ? true : null}
+                        @dragstart=${(e: DragEvent) => this.onDragStart(e, v.id)}
+                        @dragend=${() => this.onDragEnd()}
+                        @keydown=${(e: KeyboardEvent) => this.onKey(e, v.id)}
+                        @focus=${() => (this.focusedValueId = v.id)}
+                        aria-label=${`${v.name}. in ${labels[zone]}. drag to move, or press M, N, W, or D.`}
+                      >
+                        <va-value-card
+                          .value=${v}
+                          .zone=${zone === 'deck' ? 'deck' : zone}
+                        ></va-value-card>
+                        ${zone === 'must' || zone === 'nice'
+                          ? html`
+                              <va-poll-buttons
+                                .team=${this.team}
+                                .valueId=${v.id}
+                                .participantId=${this.participantId}
+                                ?captain=${captain}
+                              ></va-poll-buttons>
+                            `
+                          : ''}
+                      </li>
+                    `,
+                  )}
               </ul>
             </section>
           `,
