@@ -24,6 +24,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/api/inngest") ||
     pathname === "/api/revalidate" ||
     pathname === "/api/extract-text" ||
+    pathname === "/api/version" ||
     pathname === "/login" ||
     pathname.startsWith("/unsubscribe") ||
     pathname.startsWith("/view") ||
