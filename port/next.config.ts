@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // basePath removed — port is on its own subdomain (port.windedvertigo.com)
   poweredByHeader: false,
+  // Required by OpenNext/CF Workers — produces .next/standalone for bundling.
+  output: "standalone",
+  transpilePackages: ["@windedvertigo/booking", "@windedvertigo/job-queue"],
 
   env: {
     BUILD_SHA:
