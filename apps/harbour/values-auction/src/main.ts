@@ -3,7 +3,7 @@ import '@/design/tokens.css';
 import '@/design/base.css';
 import '@/design/motion.css';
 
-import { currentRoute, onRouteChange, navigate } from '@/router';
+import { currentRoute, onRouteChange } from '@/router';
 import { createController, type Controller } from '@/state/controller';
 import { exportIdentityCard } from '@/identity-card/render';
 import { initPrefs } from '@/state/prefs';
@@ -79,7 +79,6 @@ async function render() {
 }
 
 window.addEventListener('load', () => {
-  if (!window.location.hash) navigate('landing');
   render();
 });
 
