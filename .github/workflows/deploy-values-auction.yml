@@ -37,10 +37,9 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: apps/harbour/values-auction/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: install
-        working-directory: apps/harbour/values-auction
+      - name: install (workspace root)
         run: npm ci --no-audit --no-fund
 
       - name: build
