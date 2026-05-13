@@ -33,6 +33,12 @@ export interface Session {
   currentAct: ActId;
   actStartedAt?: number;
   actDurationMs: number;
+  /**
+   * if set, the act timer is paused and freezes at this moment. resuming
+   * extends actDurationMs by the time spent paused so the visible remaining
+   * stays the same as it was when paused.
+   */
+  actPausedAt?: number;
   facilitatorId: string;
   teams: Team[];
   participants: Participant[];
@@ -168,6 +174,8 @@ export type Action =
   | { type: 'TEAMS_FORM'; teams: Team[]; assignments: Record<string, string> }
   | { type: 'ACT_ADVANCE'; to: ActId; at: number }
   | { type: 'ACT_EXTEND'; addMs: number }
+  | { type: 'ACT_PAUSE'; at: number }
+  | { type: 'ACT_RESUME'; at: number }
   | { type: 'INTENTION_SET'; teamId: string; valueId: string; zone: IntentionZone }
   | { type: 'CEILING_SET'; teamId: string; valueId: string; amount: number }
   | { type: 'AUCTION_START'; valueId: string; durationMs: number; at: number }

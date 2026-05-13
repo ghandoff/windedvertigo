@@ -119,18 +119,18 @@ export class VaWall extends LitElement {
       padding: var(--space-5);
     }
     .regather-header {
-      text-align: center;
       margin-bottom: var(--space-6);
     }
     .regather-header h1 {
       font: var(--type-display);
       margin-bottom: var(--space-2);
+      text-align: center;
     }
     .regather-header p {
       color: var(--fg-muted);
       max-width: 70ch;
       margin: 0 auto;
-      line-height: 1.5;
+      line-height: 1.6;
     }
     .card-grid {
       display: grid;
@@ -148,9 +148,10 @@ export class VaWall extends LitElement {
     }
     .card-cell .purpose {
       color: var(--fg);
-      font-style: italic;
       line-height: 1.5;
       margin: 0;
+      padding-left: var(--space-3);
+      border-left: 3px solid var(--wv-cadet-blue);
     }
     .patterns {
       margin-top: var(--space-6);

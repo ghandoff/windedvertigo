@@ -211,6 +211,16 @@ export class VaFacilitator extends LitElement {
     this.controller?.dispatch({ type: 'ACT_EXTEND', addMs: 30_000 });
   }
 
+  private togglePause() {
+    if (!this.session) return;
+    const at = Date.now();
+    if (this.session.actPausedAt) {
+      this.controller?.dispatch({ type: 'ACT_RESUME', at });
+    } else {
+      this.controller?.dispatch({ type: 'ACT_PAUSE', at });
+    }
+  }
+
   private goBack() {
     if (!this.session) return;
     const prev = prevAct(this.session.currentAct);
@@ -938,6 +948,13 @@ export class VaFacilitator extends LitElement {
                   <va-button variant="ghost" @va-click=${() => this.extend()}
                     >${COPY.facilitator.extend}</va-button
                   >
+                  <va-button
+                    variant="ghost"
+                    aria-pressed=${s.actPausedAt ? 'true' : 'false'}
+                    @va-click=${() => this.togglePause()}
+                  >
+                    ${s.actPausedAt ? 'resume timer' : 'pause timer'}
+                  </va-button>
                   ${s.currentAct === 'scene'
                     ? html`<va-button variant="secondary" @va-click=${() => this.goBack()}
                         >${COPY.facilitator.goBack}</va-button
@@ -950,6 +967,7 @@ export class VaFacilitator extends LitElement {
               <va-countdown
                 .startedAt=${s.actStartedAt}
                 .durationMs=${s.actDurationMs}
+                .pausedAt=${s.actPausedAt ?? 0}
               ></va-countdown>
               <span style="margin-left: var(--space-2); color: var(--fg-muted);"
                 >${currentActDef?.name}</span

@@ -27,7 +27,7 @@ export class VaButton extends LitElement {
         transform var(--dur-fast) var(--ease-spring),
         background var(--dur-base) var(--ease-in-out),
         opacity var(--dur-base) var(--ease-in-out);
-      min-height: 44px;
+      min-height: 48px;
     }
     :host([variant='urgent']) button {
       background: var(--wv-redwood);
@@ -61,7 +61,7 @@ export class VaButton extends LitElement {
     :host([size='sm']) button {
       font-size: 14px;
       padding: var(--space-2) var(--space-4);
-      min-height: 36px;
+      min-height: 40px;
     }
     button:focus-visible {
       outline: var(--focus-ring);

@@ -100,6 +100,8 @@ export const COPY = {
     captainAutoAssigned:
       'no one claimed it — you’re the bid captain. you can pass the role to a teammate.',
     captainReassigned: (name: string) => `captain reassigned: ${name} took over.`,
+    captainNextInLine: (current: string) =>
+      `you’re next in line. if ${current} drops, the role will pass to you automatically.`,
     lockBid: 'lock bid',
     unlockBid: 'unlock',
     lockedAt: (amount: number) => `locked at ${amount} credos`,
@@ -160,10 +162,13 @@ export const COPY = {
     restrategise: 'two minutes. regroup. adjust.',
     nextBidLabel: 'your bid',
     noBidsYet: 'no bids yet. open it up.',
-    insufficientCredos: 'not enough credos for that bid.',
-    mustBeatHigh: 'must beat the current high.',
-    outbid: 'outbid! someone moved past you.',
-    outOfCredos: 'no credos left. you’re out of this auction — watch and learn.',
+    insufficientCredos:
+      'that’s more than your team has in the bank — try a smaller number.',
+    mustBeatHigh: 'your bid needs to top the current high. try a higher number.',
+    outbid:
+      'another team beat your bid. you can bid again if you want to stay in.',
+    outOfCredos:
+      'your credos are spent for this round. you can still watch and brief your team for the next one.',
   },
   reflection: {
     prompts: [
@@ -230,7 +235,8 @@ export const COPY = {
   },
   errors: {
     sessionNotFound: 'session not found. check the code with your facilitator.',
-    bidRejected: 'bid rejected.',
+    bidRejected:
+      'the bid didn’t go through. try again, or adjust the amount if it’s too high.',
   },
   broadcast: {
     label: 'from your facilitator',

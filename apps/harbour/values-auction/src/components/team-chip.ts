@@ -100,7 +100,6 @@ export class VaTeamChip extends LitElement {
     .pop .empty {
       color: var(--fg-muted);
       font: var(--type-small);
-      font-style: italic;
     }
   `;
 

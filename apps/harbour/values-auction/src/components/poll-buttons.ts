@@ -47,7 +47,7 @@ export class VaPollButtons extends LitElement {
       }
     }
     button.choice {
-      min-height: 44px;
+      min-height: 48px;
       padding: var(--space-2) 0;
       border-radius: var(--radius-pill);
       border: 2px solid var(--wv-cadet-blue);
@@ -69,12 +69,11 @@ export class VaPollButtons extends LitElement {
         padding: var(--space-2) var(--space-3);
       }
     }
-    button.choice:hover,
-    button.choice:focus-visible {
+    button.choice:hover {
       transform: translateY(-1px);
-      outline: none;
     }
     button.choice:focus-visible {
+      transform: translateY(-1px);
       outline: var(--focus-ring);
       outline-offset: var(--focus-ring-offset);
     }

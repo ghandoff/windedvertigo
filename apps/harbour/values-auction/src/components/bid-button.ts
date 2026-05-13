@@ -17,14 +17,14 @@ export class VaBidButton extends LitElement {
   private lastPreFill = -1;
 
   updated() {
-    // when the pre-agreed amount changes (new auction round), refresh the draft
-    // so the captain sees their team's number without having to click.
+    // keep the draft in sync with the team's pre-agreed amount across rounds
+    // so the captain sees the right starting number once they open the input.
+    // we no longer auto-open or take focus — that's a surprising interaction
+    // mid-auction and the team's pre-agreed amount auto-submits at the buzzer
+    // anyway. the captain explicitly clicks "bid" when they want to act.
     if (this.preFill !== this.lastPreFill) {
       this.lastPreFill = this.preFill;
-      if (this.preFill > 0 && !this.open) {
-        this.draft = this.preFill;
-        this.open = true;
-      }
+      if (!this.open) this.draft = this.preFill;
     }
   }
 

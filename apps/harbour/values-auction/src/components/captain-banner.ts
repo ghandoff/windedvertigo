@@ -83,6 +83,18 @@ export class VaCaptainBanner extends LitElement {
     .name {
       font-weight: 700;
     }
+    .next-line {
+      margin-top: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg-card);
+      color: var(--fg);
+      border-left: 3px solid var(--wv-redwood);
+      border-radius: var(--radius-sm);
+      font: var(--type-small);
+      line-height: 1.5;
+      width: 100%;
+      box-sizing: border-box;
+    }
   `;
 
   private claim() {
@@ -152,11 +164,21 @@ export class VaCaptainBanner extends LitElement {
     }
     const captain = this.teammates.find((p) => p.id === captainId);
     const name = captain?.displayName ?? 'a teammate';
+    // the next-in-line is the first non-captain teammate by joinedAt — this
+    // mirrors main.ts's auto-transfer logic. surface it so the would-be
+    // replacement knows the role can land on them without warning.
+    const nextInLine = [...this.teammates]
+      .filter((p) => p.id !== captainId)
+      .sort((a, b) => a.joinedAt - b.joinedAt)[0];
+    const meIsNext = nextInLine?.id === this.participantId;
     return html`
       <div class="banner" data-state="other" role="status">
-        <div>
+        <div style="flex: 1; min-width: 0;">
           <span class="label">bid captain</span>
           <span class="name">${COPY.strategy.captainIs(name)}</span>
+          ${meIsNext
+            ? html`<p class="next-line">${COPY.strategy.captainNextInLine(name)}</p>`
+            : ''}
         </div>
       </div>
     `;

@@ -6,14 +6,23 @@ import '@/design/motion.css';
 import { currentRoute, onRouteChange, navigate } from '@/router';
 import { createController, type Controller } from '@/state/controller';
 import { exportIdentityCard } from '@/identity-card/render';
+import { initPrefs } from '@/state/prefs';
 
 import '@/views/participant';
 import '@/views/facilitator';
 import '@/views/wall';
 import '@/views/landing';
+import '@/components/settings-drawer';
+
+initPrefs();
 
 const app = document.getElementById('app');
 if (!app) throw new Error('missing #app mount point');
+
+// always-on accessibility controls, mounted once at the document level
+if (!document.querySelector('va-settings-drawer')) {
+  document.body.appendChild(document.createElement('va-settings-drawer'));
+}
 
 let controller: Controller | null = null;
 

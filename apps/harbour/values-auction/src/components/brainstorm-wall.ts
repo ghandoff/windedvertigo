@@ -88,7 +88,6 @@ export class VaBrainstormWall extends LitElement {
     .pending {
       font: var(--type-small);
       color: var(--fg-muted);
-      font-style: italic;
     }
     .submitted-note {
       padding: var(--space-3) var(--space-4);
@@ -133,7 +132,6 @@ export class VaBrainstormWall extends LitElement {
     }
     .empty {
       color: var(--fg-muted);
-      font-style: italic;
     }
   `;
 

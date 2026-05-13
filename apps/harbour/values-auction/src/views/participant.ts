@@ -74,7 +74,7 @@ export class VaParticipant extends LitElement {
    */
   private dispatch(action: Parameters<NonNullable<Controller['dispatch']>>[0]) {
     if (this.preview) return;
-    this.dispatch(action);
+    this.controller?.dispatch(action);
   }
 
   connectedCallback() {
@@ -485,6 +485,7 @@ export class VaParticipant extends LitElement {
       line-height: 1.6;
       margin: 0 auto var(--space-6);
       max-width: 48ch;
+      text-align: left;
     }
     .staging .progress {
       display: flex;
@@ -632,7 +633,6 @@ export class VaParticipant extends LitElement {
     }
     .team-roster .empty {
       color: var(--fg-muted);
-      font-style: italic;
       margin: 0 0 var(--space-2);
     }
     .team-roster .hint {
@@ -872,14 +872,14 @@ export class VaParticipant extends LitElement {
           <h1>${COPY.arrival.heading}</h1>
           <p>${COPY.arrival.subheading}</p>
           <form class="join" @submit=${(e: Event) => this.handleJoin(e)}>
-            <label for="name" class="sr-only">${COPY.arrival.nameLabel}</label>
+            <label for="name" style="font-weight: 700;">${COPY.arrival.nameLabel}</label>
             <input
               id="name"
               type="text"
               .value=${this.name}
               @input=${(e: Event) =>
                 (this.name = (e.target as HTMLInputElement).value)}
-              placeholder=${COPY.arrival.nameLabel}
+              placeholder="how you'd like to be seen"
               required
               autocomplete="name"
             />
@@ -960,7 +960,7 @@ export class VaParticipant extends LitElement {
         <p style="color: var(--fg-muted); margin-bottom: var(--space-3);">
           ${COPY.grouping.subheading}
         </p>
-        <p style="color: var(--fg-muted); margin-bottom: var(--space-4); font-style: italic;">
+        <p style="color: var(--fg-muted); margin-bottom: var(--space-4); border-left: 3px solid var(--wv-cadet-blue); padding-left: var(--space-3);">
           ${COPY.grouping.why}
         </p>
         <div class="archetypes" role="radiogroup" aria-label="archetype choice">
@@ -1124,8 +1124,8 @@ export class VaParticipant extends LitElement {
     return html`
       <section class="fade-in restrategize">
         ${this.renderCountdown()}
-        <header style="text-align: center;">
-          <h1 style="font: var(--type-display); margin-bottom: var(--space-2);">
+        <header>
+          <h1 style="font: var(--type-display); margin-bottom: var(--space-2); text-align: center;">
             ${COPY.restrategize.heading}
           </h1>
           <p style="color: var(--fg-muted); max-width: 60ch; margin: 0 auto;">
@@ -1326,6 +1326,7 @@ export class VaParticipant extends LitElement {
           ?large=${isStrategy}
           .startedAt=${this.session.actStartedAt}
           .durationMs=${this.session.actDurationMs}
+          .pausedAt=${this.session.actPausedAt ?? 0}
         ></va-countdown>
       </div>
     `;

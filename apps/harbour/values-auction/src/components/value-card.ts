@@ -43,11 +43,15 @@ export class VaValueCard extends LitElement {
       border-left-color: rgba(39, 50, 72, 0.25);
       opacity: 0.6;
     }
-    :host([focusable]) .card:focus-visible,
     :host([focusable]) .card:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-card-lifted);
-      outline: none;
+    }
+    :host([focusable]) .card:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-lifted);
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
     }
     .name {
       font: var(--type-h2);

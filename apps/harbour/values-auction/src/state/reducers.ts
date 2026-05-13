@@ -211,6 +211,7 @@ export function reduce(rawSession: Session, action: Action): Session {
           currentAct: action.to,
           actStartedAt: action.at,
           actDurationMs: act.durationMs,
+          actPausedAt: undefined,
           // only carry currentAuction into auction-style acts.
           currentAuction:
             action.to === 'auction' || action.to === 'practice'
@@ -232,6 +233,31 @@ export function reduce(rawSession: Session, action: Action): Session {
         { ...session, actDurationMs: session.actDurationMs + action.addMs },
         event('facilitatorExtended', { addMs: action.addMs }),
       );
+
+    case 'ACT_PAUSE': {
+      if (session.actPausedAt) return session;
+      return pushEvent(
+        { ...session, actPausedAt: action.at },
+        event('facilitatorPaused', { at: action.at, mode: 'pause' }, action.at),
+      );
+    }
+
+    case 'ACT_RESUME': {
+      if (!session.actPausedAt) return session;
+      const pausedMs = Math.max(0, action.at - session.actPausedAt);
+      return pushEvent(
+        {
+          ...session,
+          actPausedAt: undefined,
+          actDurationMs: session.actDurationMs + pausedMs,
+        },
+        event(
+          'facilitatorPaused',
+          { at: action.at, mode: 'resume', pausedMs },
+          action.at,
+        ),
+      );
+    }
 
     case 'INTENTION_SET': {
       return pushEvent(

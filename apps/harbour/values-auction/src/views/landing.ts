@@ -126,8 +126,6 @@ export class VaLanding extends LitElement {
       border-radius: var(--radius-pill);
       font: var(--type-small);
       font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
     }
     .role-label {
       font: var(--type-mono);
@@ -145,6 +143,11 @@ export class VaLanding extends LitElement {
       flex-direction: column;
       gap: var(--space-3);
     }
+    .code-form label {
+      font: var(--type-small);
+      font-weight: 700;
+      color: var(--fg);
+    }
     .code-form input {
       padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-pill);
@@ -155,6 +158,7 @@ export class VaLanding extends LitElement {
       letter-spacing: 0.05em;
       width: 100%;
       box-sizing: border-box;
+      min-height: 48px;
     }
     .code-form input::placeholder {
       text-transform: none;
@@ -235,11 +239,11 @@ export class VaLanding extends LitElement {
             got a code from your facilitator? enter it here to bid for what your team stands for.
           </p>
           <form class="code-form" @submit=${(e: Event) => this.joinWithCode(e)}>
+            <label for="session-code">session code</label>
             <input
               id="session-code"
               type="text"
-              aria-label="session code"
-              placeholder="session code"
+              placeholder="e.g. APRICOT"
               maxlength="16"
               autocomplete="off"
               spellcheck="false"
@@ -278,11 +282,11 @@ export class VaLanding extends LitElement {
             bids, teams, and closing results.
           </p>
           <form class="code-form" @submit=${(e: Event) => this.openWallWithCode(e)}>
+            <label for="wall-code">session code</label>
             <input
               id="wall-code"
               type="text"
-              aria-label="wall session code"
-              placeholder="session code"
+              placeholder="e.g. APRICOT"
               maxlength="16"
               autocomplete="off"
               spellcheck="false"

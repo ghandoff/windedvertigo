@@ -69,7 +69,6 @@ export class VaResultsPanel extends LitElement {
     }
     li[data-empty] {
       color: var(--fg-muted);
-      font-style: italic;
     }
     .pricetag {
       font: var(--type-mono);
