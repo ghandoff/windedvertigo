@@ -11,6 +11,13 @@ const nextConfig: NextConfig = {
   // AUTH_URL must also be set as a wrangler secret (https://ops.windedvertigo.com).
   env: {
     AUTH_TRUST_HOST: process.env.CF_WORKERS_ENV === "1" ? "true" : (process.env.AUTH_TRUST_HOST ?? ""),
+    BUILD_SHA:
+      process.env.WORKERS_CI_COMMIT_SHA ||
+      process.env.GITHUB_SHA ||
+      process.env.GIT_SHA ||
+      "dev",
+    BUILD_REF: process.env.WORKERS_CI_COMMIT_REF || "unknown",
+    BUILD_TIME: new Date().toISOString(),
   },
 
   async headers() {

@@ -5,6 +5,16 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ["@windedvertigo/tokens", "@windedvertigo/auth", "@windedvertigo/stripe", "@windedvertigo/feedback"],
 
+  env: {
+    BUILD_SHA:
+      process.env.WORKERS_CI_COMMIT_SHA ||
+      process.env.GITHUB_SHA ||
+      process.env.GIT_SHA ||
+      "dev",
+    BUILD_REF: process.env.WORKERS_CI_COMMIT_REF || "unknown",
+    BUILD_TIME: new Date().toISOString(),
+  },
+
   async headers() {
     return [
       {

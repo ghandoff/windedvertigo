@@ -17,6 +17,13 @@ const nextConfig: NextConfig = {
   // that CF's edge sets so that AUTH_URL doesn't need to match exactly.
   env: {
     AUTH_TRUST_HOST: process.env.CF_WORKERS_ENV ? "true" : (process.env.AUTH_TRUST_HOST ?? ""),
+    BUILD_SHA:
+      process.env.WORKERS_CI_COMMIT_SHA ||
+      process.env.GITHUB_SHA ||
+      process.env.GIT_SHA ||
+      "dev",
+    BUILD_REF: process.env.WORKERS_CI_COMMIT_REF || "unknown",
+    BUILD_TIME: new Date().toISOString(),
   },
 
   /**
