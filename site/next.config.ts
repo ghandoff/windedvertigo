@@ -398,32 +398,32 @@ const nextConfig: NextConfig = {
       // wordmark.svg uses root-relative /wordmark.svg, proxy it to the app origin
       {
         source: "/wordmark.svg",
-        destination: "https://values-auction-pi.vercel.app/wordmark.svg",
+        destination: "https://values-auction-d9m.pages.dev/wordmark.svg",
       },
       {
         source: "/harbour/values-auction",
-        destination: "https://values-auction-pi.vercel.app/",
+        destination: "https://values-auction-d9m.pages.dev/",
       },
       {
         source: "/harbour/values-auction/",
-        destination: "https://values-auction-pi.vercel.app/",
+        destination: "https://values-auction-d9m.pages.dev/",
       },
       {
         source: "/harbour/values-auction/:path*",
-        destination: "https://values-auction-pi.vercel.app/:path*",
+        destination: "https://values-auction-d9m.pages.dev/:path*",
       },
       // values-auction — portfolio/assets entry point
       {
         source: "/portfolio/assets/values-auction",
-        destination: "https://values-auction-pi.vercel.app/",
+        destination: "https://values-auction-d9m.pages.dev/",
       },
       {
         source: "/portfolio/assets/values-auction/",
-        destination: "https://values-auction-pi.vercel.app/",
+        destination: "https://values-auction-d9m.pages.dev/",
       },
       {
         source: "/portfolio/assets/values-auction/:path*",
-        destination: "https://values-auction-pi.vercel.app/:path*",
+        destination: "https://values-auction-d9m.pages.dev/:path*",
       },
 
       // cuts catalogue
