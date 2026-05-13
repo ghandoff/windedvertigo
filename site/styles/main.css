@@ -475,6 +475,63 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   .hello-beacon { bottom: 70px; left: var(--space-lg); font-size: 0.85rem; }
 }
 
+/* ── sit-still button (global animation kill switch) ──────────── */
+/* Mirrors hello beacon aesthetic: fixed bottom-right, lowercase,
+   same weight. Beacon is bottom-left; this one bookends it.       */
+.sit-still-btn {
+  position: fixed;
+  bottom: 80px;
+  right: var(--space-xl);
+  z-index: 91;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--wv-champagne);
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  opacity: 0.45;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+.sit-still-btn:hover,
+.sit-still-btn:focus-visible {
+  opacity: 0.85;
+  outline: none;
+}
+.sit-still-btn--active {
+  opacity: 0.6;
+  color: var(--wv-champagne);
+}
+.sit-still-btn--active:hover {
+  opacity: 0.9;
+}
+@media (max-width: 768px) {
+  .sit-still-btn { bottom: 70px; right: var(--space-lg); font-size: 0.72rem; }
+}
+
+/* ── html[data-still] — pause ALL kinetic CSS animations ─────── */
+/* Covers every animated element on the site. Does NOT pause hover
+   transitions (transition property is unaffected by this rule).
+   JS-driven animations (typewriter, gravity canvas) are stopped
+   by components subscribing to useAnimations() context.          */
+html[data-still] .collab-marquee-list,
+html[data-still] .hero-nav > a:first-child,
+html[data-still] .nav > a:first-child,
+html[data-still] .portfolio-dot svg,
+html[data-still] .hello-beacon,
+html[data-still] .collab-typewriter-cursor,
+html[data-still] .collab-tide-item,
+html[data-still] .heatmap-cell-inner,
+html[data-still] .breath-circle,
+html[data-still] .hint-scroll,
+html[data-still] .phosphor-bloom-ring {
+  animation-play-state: paused !important;
+}
+
 /* ── footer ───────────────────────────────────────────────────── */
 /* layout now handled by shared .wv-footer classes in tokens.
    only font-awesome icon rules remain here (site-specific).       */
