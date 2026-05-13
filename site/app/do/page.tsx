@@ -5,7 +5,10 @@ import { CollaboratorStrip } from "@/components/collaborator-strip";
 import { fetchPortfolioAssets, fetchSiteContent } from "@/lib/notion";
 import { PortfolioGallery } from "@/components/portfolio-gallery";
 
-export const dynamic = "force-dynamic";
+// 5-minute ISR: edge cache serves the rendered page; background revalidation
+// keeps content fresh without blocking requests. Notion data changes rarely
+// enough that 300s staleness is acceptable.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "do. – winded.vertigo",

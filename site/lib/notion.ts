@@ -440,14 +440,27 @@ async function _fetchSiteContent(pageKey: string): Promise<SiteSection[]> {
   return sections;
 }
 
+// Module-level portfolio cache — avoids re-fetching Notion on every request
+// within the same CF Workers instance. 5-min TTL matches the ISR revalidate
+// window on /do so they stay in sync.
+let _portfolioCache: { data: PortfolioAsset[]; ts: number } | null = null;
+const PORTFOLIO_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 /**
- * Fetch portfolio assets (from BD multi-database via search).
+ * Fetch portfolio assets (from BD multi-database via direct query, not search).
  */
 export async function fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
+  // Return in-memory cached data if still fresh
+  if (_portfolioCache && Date.now() - _portfolioCache.ts < PORTFOLIO_CACHE_TTL_MS) {
+    return _portfolioCache.data;
+  }
+
   try {
     const live = await _fetchPortfolioAssets();
-    if (live.length > 0) return live;
-    // Notion linked-DB returns 0 results via search — fall through to JSON
+    if (live.length > 0) {
+      _portfolioCache = { data: live, ts: Date.now() };
+      return live;
+    }
     console.warn("[notion] fetchPortfolioAssets: 0 pages from Notion, using JSON fallback");
   } catch (err) {
     console.warn(
@@ -467,40 +480,42 @@ const VALID_QUADRANT_KEYS = [
 ];
 
 async function hydrateQuadrantRel(pageIds: string[]): Promise<string[]> {
-  const results: string[] = [];
-  for (const id of pageIds) {
-    if (quadrantRelCache[id] !== undefined) {
-      if (quadrantRelCache[id]) results.push(quadrantRelCache[id]);
-      continue;
-    }
-    try {
-      const page = await withRetry(
-        () => notion.pages.retrieve({ page_id: id }),
-        `hydrateQuadrant:${id}`,
-      );
-      if (!("properties" in page)) continue;
-      const key = getSelect(page.properties["Quadrant Key"]);
-      if (key && VALID_QUADRANT_KEYS.includes(key)) {
-        quadrantRelCache[id] = key;
-        results.push(key);
-      } else {
+  // Resolve cache misses in parallel instead of sequentially.
+  // Each notion.pages.retrieve() call is independent — Promise.all() cuts
+  // N sequential round-trips down to a single parallel batch.
+  const missingIds = pageIds.filter((id) => quadrantRelCache[id] === undefined);
+
+  await Promise.all(
+    missingIds.map(async (id) => {
+      try {
+        const page = await withRetry(
+          () => notion.pages.retrieve({ page_id: id }),
+          `hydrateQuadrant:${id}`,
+        );
+        if (!("properties" in page)) {
+          quadrantRelCache[id] = "";
+          return;
+        }
+        const key = getSelect(page.properties["Quadrant Key"]);
+        quadrantRelCache[id] =
+          key && VALID_QUADRANT_KEYS.includes(key) ? key : "";
+      } catch {
         quadrantRelCache[id] = "";
       }
-    } catch {
-      quadrantRelCache[id] = "";
-    }
-  }
-  return results;
+    }),
+  );
+
+  return pageIds.flatMap((id) => (quadrantRelCache[id] ? [quadrantRelCache[id]] : []));
 }
 
 async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
   const p = PROPS.portfolioAssets;
-  const parentDbId = DB.portfolioAssets;
-  const parentDashed = parentDbId.replace(
-    /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
-    "$1-$2-$3-$4-$5",
-  );
 
+  // Use queryDataSource() — queries the portfolio DB directly instead of
+  // scanning the entire workspace with notion.search(). This is O(portfolio
+  // items) rather than O(all workspace pages), which was the primary cause of
+  // the ~40s load time on /do. Falls back gracefully to the REST API if the
+  // DB has no data_sources (same pattern as _fetchSiteContent).
   let allPages: PageObjectResponse[] = [];
   let startCursor: string | undefined;
   let round = 0;
@@ -509,29 +524,21 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
     round++;
     const response = await withRetry(
       () =>
-        notion.search({
-          filter: { property: "object", value: "page" },
+        queryDataSource(DB.portfolioAssets, {
           page_size: 100,
           ...(startCursor ? { start_cursor: startCursor } : {}),
         }),
-      `searchBDAssets:round${round}`,
+      `queryPortfolioAssets:round${round}`,
     );
 
     for (const page of response.results) {
-      if (!("properties" in page)) continue;
-      const pid = (page as PageObjectResponse).parent;
-      if (
-        "database_id" in pid &&
-        (pid.database_id === parentDbId || pid.database_id === parentDashed)
-      ) {
-        allPages.push(page as PageObjectResponse);
-      }
+      if ("properties" in page) allPages.push(page as PageObjectResponse);
     }
 
     startCursor = response.has_more
       ? (response.next_cursor ?? undefined)
       : undefined;
-  } while (startCursor && round < 30);
+  } while (startCursor && round < 10);
 
   const assets: PortfolioAsset[] = [];
 
