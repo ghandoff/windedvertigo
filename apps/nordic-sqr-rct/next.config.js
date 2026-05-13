@@ -6,6 +6,15 @@ const nextConfig = {
   poweredByHeader: false,
   // Required by OpenNext/CF Workers — produces .next/standalone for bundling.
   output: 'standalone',
+  env: {
+    BUILD_SHA:
+      process.env.WORKERS_CI_COMMIT_SHA ||
+      process.env.GITHUB_SHA ||
+      process.env.GIT_SHA ||
+      'dev',
+    BUILD_REF: process.env.WORKERS_CI_COMMIT_REF || 'unknown',
+    BUILD_TIME: new Date().toISOString(),
+  },
   // Turbopack root — set to the monorepo root so Turbopack's security sandbox
   // includes the hoisted node_modules at the workspace root, where `next` lives.
   turbopack: {
