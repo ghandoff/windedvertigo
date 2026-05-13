@@ -171,9 +171,10 @@ Durable instruction for every Claude Code remote session, on any device (desktop
 1. Commit pending changes on the current session branch with a clear message
 2. `git push -u origin <branch>` (works without credentials thanks to the proxy)
 3. Open a PR to `main` via `mcp__github__create_pull_request` — short title, 1–3 bullet summary
-4. **Identify the actor** via `mcp__github__get_me`:
-   - If `login` is `ghandoff` (Garrett) → squash-merge immediately via `mcp__github__merge_pull_request`. Standing authorization, no confirmation needed
-   - If `login` is any other collaborator (Maria, Payton, etc.) → **stop here.** Request `ghandoff` as reviewer on the PR, report the PR URL to the user, and tell them Garrett will review and merge. Do not self-merge under any circumstances — Garrett gates production merges for collaborators
+4. **Identify the actor** via `mcp__github__get_me` and route by `login`:
+   - `ghandoff` (Garrett) or `winded-maria` (Maria) → squash-merge immediately via `mcp__github__merge_pull_request`. Standing authorization, no confirmation needed. Maria has the same ship authority as Garrett
+   - `paytonjaeger` (Payton) → **stop here.** Request `ghandoff` as reviewer, report the PR URL, and frame the result as a learning workflow: her branch is built and ready, Garrett will look it over and merge into main. This is intentional — Payton is learning the PR review cadence as part of getting fluent with Claude Code on the cloud. Do not self-merge. She can keep iterating on the same branch and the PR will update automatically
+   - Any other `login` → **stop here.** Request `ghandoff` as reviewer and report the PR URL. Garrett gates production merges for unknown collaborators by default
 5. After merge (when applicable), wait 60–90s, then `curl -sI` (or fetch content from) the affected production URL and report what you saw
 6. If the merge or build fails, stop and explain. Never force-push, never retry-merge blindly, never bypass hooks
 
