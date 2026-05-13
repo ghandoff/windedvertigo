@@ -6,9 +6,9 @@
 
 ## what this app is
 
-Nordic Research Platform — Next.js 15 (App Router, JS) frontend to a Notion-backed evidence + claims system used by the Nordic / PRME research team (Sharon, Gina, Adin, Lauren + 2 RA TBD). Lives at `nordic.windedvertigo.com`. **Stays on Vercel** (not CF Workers) for Workflow DevKit + Vercel Blob support.
+Nordic Research Platform — Next.js 15 (App Router, JS) frontend to a Notion + Supabase Postgres backed evidence + claims system used by the Nordic / PRME research team (Sharon, Gina, Adin, Lauren + 2 RA TBD). Lives at `nordic.windedvertigo.com`. Runs on **Cloudflare Workers via OpenNext** (`wv-nordic` worker) — migrated from Vercel in the F.5 cutover, 2026-05-11.
 
-Deploy: `cd apps/nordic-sqr-rct && vercel --prod`. App-level deploy still works because it doesn't import workspace packages.
+Deploy: merge to `main` and CF Builds auto-deploys. Local build: `cd apps/nordic-sqr-rct && npm run deploy:cf` (runs `opennextjs-cloudflare build` + `wrangler deploy`). Storage: PDFs go to R2 bucket `nordic-pcs`, not Vercel Blob. Crons (6 triggers) and routes are defined in `wrangler.jsonc`.
 
 ## directory shape
 
@@ -34,12 +34,12 @@ scripts/                  ← one-shot ops scripts (e.g. archive-test-evidence-r
 Single most important flow on the app. Lives end-to-end now after Wave 7.0.5.
 
 1. **Discovery** — `/pcs/evidence` search panel → `src/lib/article-search/*` queries PubMed + Semantic Scholar, deduplicates, source-tags hits, cross-checks existing rows by exact DOI/PMID. Already-saved rows render "✓ In library / Open existing row →" instead of "+ Add to Evidence".
-2. **Retrieval** — clicking "+ Add to Evidence" calls `POST /api/pcs/evidence/save-from-search`, which runs the 7-tier waterfall in `src/lib/pmc.js`: Unpaywall → Semantic Scholar → CORE → OpenAlex → Europe PMC → bioRxiv/medRxiv → PMC. First successful PDF wins; lands in Vercel Blob `evidence-pdfs/`.
+2. **Retrieval** — clicking "+ Add to Evidence" calls `POST /api/pcs/evidence/save-from-search`, which runs the 7-tier waterfall in `src/lib/pmc.js`: Unpaywall → Semantic Scholar → CORE → OpenAlex → Europe PMC → bioRxiv/medRxiv → PMC. First successful PDF wins; lands in R2 bucket `nordic-pcs` under `evidence-pdfs/`.
 3. **Classification** — PubMed MeSH publication-types map into `EVIDENCE_TYPES` (RCT / Meta-analysis / Systematic review / Observational / Review). No more default-to-RCT.
 4. **Dedup** — `createEvidence` returns the existing row on DOI/PMID match instead of creating duplicates and surfaces a `merged` flag (Wave 7.0.5 T8.1).
-5. **Manual override** — when the waterfall misses (paywall, EndNote-only, scanned), `POST /api/pcs/evidence/[id]/pdf-upload` accepts multipart form data, uploads to the same Blob path, and updates the row's pdf URL via `updateEvidence`. UI: button + drag-and-drop on the evidence detail page.
+5. **Manual override** — when the waterfall misses (paywall, EndNote-only, scanned), `POST /api/pcs/evidence/[id]/pdf-upload` accepts multipart form data, uploads to the same R2 path, and updates the row's pdf URL via `updateEvidence`. UI: button + drag-and-drop on the evidence detail page.
 
-**Without `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` set on Vercel prod, those two tiers return 429 and effective coverage is 5/7.** Set them when convenient.
+**Without `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` set as `wv-nordic` Worker secrets, those two tiers return 429 and effective coverage is 5/7.** Set them when convenient via `wrangler secret put` or the CF dashboard.
 
 ## auth — capability scopes
 
@@ -68,7 +68,7 @@ User sort prefs persist in localStorage under the `pcs-sort-v2-<resource>` key. 
 
 ## things to know before editing
 
-- **Notion is the database.** Every PCS resource is a Notion DB; `src/lib/pcs-*.js` helpers wrap query/CRUD. Don't introduce Supabase or Postgres without an explicit migration plan — that's Phase 3 perf and it's deferred.
-- **PDFs go to Vercel Blob, never to git.** Path convention: `evidence-pdfs/<id>.pdf`. The waterfall and the manual upload route both write here.
+- **Notion + Supabase Postgres are the database.** Every PCS resource has a Notion DB (canonical for evidence/claims/ingredients UI) and a Postgres mirror (Path 2 strong-consistency dual-write, rolled out in Phase B 2026-05-08). `src/lib/pcs-*.js` helpers wrap Notion query/CRUD; `writePostgresFirst` in `src/lib/pcs-write.js` handles the dual-write. `PCS_READ_FROM_POSTGRES=1` and `PCS_WRITE_TO_POSTGRES=1` are set on `wv-nordic`.
+- **PDFs go to R2, never to git.** Bucket `nordic-pcs`, path convention: `evidence-pdfs/<id>.pdf`. The waterfall and the manual upload route both write here via `src/lib/storage.js` (S3 API).
 - **Research team uses EndNote.** Some rows will never have a public PDF; that's why manual upload exists. Don't gate workflows on PDF presence.
-- **Don't reconnect to Vercel Git auto-deploy.** App is intentionally manual-deploy (see monorepo `apps/harbour/CLAUDE.md` infrastructure rules — same cost-control reasons).
+- **CF Builds auto-deploys on merge to `main`.** No manual deploy step needed. If a deploy needs to be forced, run `npm run deploy:cf` from this directory.
