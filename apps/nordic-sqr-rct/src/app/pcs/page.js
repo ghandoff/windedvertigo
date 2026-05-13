@@ -31,18 +31,6 @@ const STATUS_COLORS = {
   Unknown: COLORS.gray,
 };
 
-const TYPE_COLORS = {
-  RCT: '#2563EB',
-  'Meta-analysis': '#7C3AED',
-  'Systematic review': '#0891B2',
-  Observational: '#CA8A04',
-  'In vitro': '#16A34A',
-  Animal: '#EA580C',
-  Mechanistic: '#6366F1',
-  Review: '#64748B',
-  Other: '#9CA3AF',
-};
-
 const BUCKET_COLORS = { '3A': COLORS.green, '3B': COLORS.yellow, '3C': COLORS.red };
 
 // ─────────────────────────────────────────────
@@ -181,81 +169,6 @@ function ClaimsPipelineChart({ data, claimsByStatus }) {
             </Bar>
           </BarChart>
         )}
-      </ResponsiveContainer>
-    </ChartCard>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Chart: Evidence Composition (Donut)
-// ─────────────────────────────────────────────
-
-function EvidenceDonutChart({ data }) {
-  const [view, setView] = useState('type');
-
-  const chartData = useMemo(() => {
-    const source = view === 'type' ? data.evidenceByType : data.evidenceByReviewStatus;
-    return Object.entries(source || {})
-      .filter(([, v]) => v > 0)
-      .sort(([, a], [, b]) => b - a)
-      .map(([name, value]) => ({ name, value }));
-  }, [data, view]);
-
-  const colorMap = view === 'type' ? TYPE_COLORS : { Reviewed: COLORS.green, Unreviewed: COLORS.lightGray };
-
-  return (
-    <ChartCard
-      title="Evidence Library"
-      toggle={
-        <ViewToggle
-          options={[
-            { label: 'By Type', value: 'type' },
-            { label: 'Review Status', value: 'review' },
-          ]}
-          value={view}
-          onChange={setView}
-        />
-      }
-    >
-      <ResponsiveContainer width="100%" height={240}>
-        <PieChart>
-          <Pie
-            data={chartData}
-            cx="50%"
-            cy="50%"
-            innerRadius={55}
-            outerRadius={85}
-            paddingAngle={2}
-            dataKey="value"
-          >
-            {chartData.map(entry => (
-              <Cell key={entry.name} fill={colorMap[entry.name] || COLORS.gray} />
-            ))}
-          </Pie>
-          <Tooltip
-            content={({ active, payload }) => {
-              if (!active || !payload?.length) return null;
-              const { name, value } = payload[0].payload;
-              const total = chartData.reduce((s, d) => s + d.value, 0);
-              return (
-                <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-xs">
-                  <p className="font-medium">{name}</p>
-                  <p className="text-gray-500">{value} ({Math.round(value / total * 100)}%)</p>
-                </div>
-              );
-            }}
-          />
-          <Legend
-            layout="vertical"
-            align="right"
-            verticalAlign="middle"
-            wrapperStyle={{ fontSize: 11, paddingLeft: 16 }}
-            formatter={(value, entry) => {
-              const item = chartData.find(d => d.name === value);
-              return `${value} (${item?.value || 0})`;
-            }}
-          />
-        </PieChart>
       </ResponsiveContainer>
     </ChartCard>
   );
