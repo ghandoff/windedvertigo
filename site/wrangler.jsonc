@@ -19,8 +19,14 @@
   // SESSION_KV — backs /portfolio/assets/lines-become-loops/api/session/*
   // (facilitator-led classroom session state). Same namespace as
   // harbour-apps/apps/lines-become-loops/wrangler.toml so test data carries.
+  //
+  // NEXT_CACHE_WORKERS_KV — required by OpenNext CF Workers adapter to store
+  // ISR (Incremental Static Regeneration) page renders. Without this binding,
+  // revalidate = N is silently ignored and every request re-renders from scratch.
+  // Namespace: wv-site-next-cache (created 2026-05-13)
   "kv_namespaces": [
-    { "binding": "SESSION_KV", "id": "ff5eb1afe81d481db7353b49c429c5c4" }
+    { "binding": "SESSION_KV", "id": "ff5eb1afe81d481db7353b49c429c5c4" },
+    { "binding": "NEXT_CACHE_WORKERS_KV", "id": "0d2ae2b7b83c4b5997ffc0305e6eda21" }
   ],
 
   // SITE_URL — used by /api/book-playdate to build the dynamic
