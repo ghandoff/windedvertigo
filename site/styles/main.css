@@ -476,12 +476,14 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 }
 
 /* ── sit-still button (global animation kill switch) ──────────── */
-/* Mirrors hello beacon aesthetic: fixed bottom-right, lowercase,
-   same weight. Beacon is bottom-left; this one bookends it.       */
+/* Upper-right of the main canvas, just below the fixed header.
+   main { padding-top: 160px } clears the header — match that
+   offset so the button sits flush with the content start.         */
 .sit-still-btn {
   position: fixed;
-  bottom: 80px;
+  top: 168px;          /* header height ~154px + 14px gap */
   right: var(--space-xl);
+  bottom: auto;
   z-index: 91;
   background: none;
   border: none;
@@ -510,7 +512,8 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
   opacity: 0.9;
 }
 @media (max-width: 768px) {
-  .sit-still-btn { bottom: 70px; right: var(--space-lg); font-size: 0.72rem; }
+  /* Mobile logo is 150px wide → ~80px tall + 24+24px padding = ~128px header */
+  .sit-still-btn { top: 136px; bottom: auto; right: var(--space-lg); font-size: 0.72rem; }
 }
 
 /* ── html[data-still] — pause ALL kinetic CSS animations ─────── */

@@ -511,11 +511,18 @@ async function hydrateQuadrantRel(pageIds: string[]): Promise<string[]> {
 async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
   const p = PROPS.portfolioAssets;
 
-  // Use queryDataSource() — queries the portfolio DB directly instead of
-  // scanning the entire workspace with notion.search(). This is O(portfolio
-  // items) rather than O(all workspace pages), which was the primary cause of
-  // the ~40s load time on /do. Falls back gracefully to the REST API if the
-  // DB has no data_sources (same pattern as _fetchSiteContent).
+  // Use notion.search() to find portfolio pages. The portfolio database is
+  // accessible to the integration via workspace-wide search access, but the
+  // Notion integration has not been explicitly shared with the database, so
+  // notion.databases.retrieve() / queryDataSource() returns 403/404.
+  // Workspace search is reliable; the perf win comes from parallel processing
+  // below (quadrant hydration + image sync), not from switching the query API.
+  const parentDbId = DB.portfolioAssets;
+  const parentDashed = parentDbId.replace(
+    /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
+    "$1-$2-$3-$4-$5",
+  );
+
   let allPages: PageObjectResponse[] = [];
   let startCursor: string | undefined;
   let round = 0;
@@ -524,21 +531,29 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
     round++;
     const response = await withRetry(
       () =>
-        queryDataSource(DB.portfolioAssets, {
+        notion.search({
+          filter: { property: "object", value: "page" },
           page_size: 100,
           ...(startCursor ? { start_cursor: startCursor } : {}),
         }),
-      `queryPortfolioAssets:round${round}`,
+      `searchPortfolioAssets:round${round}`,
     );
 
     for (const page of response.results) {
-      if ("properties" in page) allPages.push(page as PageObjectResponse);
+      if (!("properties" in page)) continue;
+      const pid = (page as PageObjectResponse).parent;
+      if (
+        "database_id" in pid &&
+        (pid.database_id === parentDbId || pid.database_id === parentDashed)
+      ) {
+        allPages.push(page as PageObjectResponse);
+      }
     }
 
     startCursor = response.has_more
       ? (response.next_cursor ?? undefined)
       : undefined;
-  } while (startCursor && round < 10);
+  } while (startCursor && round < 30);
 
   // ── Filter pages synchronously before any async work ────────────────────
   const relevantPages = allPages.filter((page) => {
