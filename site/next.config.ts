@@ -377,22 +377,9 @@ const nextConfig: NextConfig = {
           "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/admin/:path*",
       },
 
-      // rubric co-builder
-      {
-        source: "/harbour/rubric-co-builder",
-        destination:
-          "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder",
-      },
-      {
-        source: "/harbour/rubric-co-builder/",
-        destination:
-          "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder",
-      },
-      {
-        source: "/harbour/rubric-co-builder/:path*",
-        destination:
-          "https://rubric-co-builder.vercel.app/harbour/rubric-co-builder/:path*",
-      },
+      // rubric co-builder — vercel project deleted in migration; rewrite
+      // removed to surface a clean 404 rather than proxy a dead host.
+      // restore when the app is migrated to CF Workers/Pages.
 
       // values-auction (Vite app — no basePath, serves from root)
       // wordmark.svg uses root-relative /wordmark.svg, proxy it to the app origin
@@ -426,19 +413,9 @@ const nextConfig: NextConfig = {
         destination: "https://values-auction-d9m.pages.dev/:path*",
       },
 
-      // cuts catalogue
-      {
-        source: "/harbour/cuts-catalogue",
-        destination: "https://cuts-catalogue.vercel.app/",
-      },
-      {
-        source: "/harbour/cuts-catalogue/",
-        destination: "https://cuts-catalogue.vercel.app/",
-      },
-      {
-        source: "/harbour/cuts-catalogue/:path*",
-        destination: "https://cuts-catalogue.vercel.app/:path*",
-      },
+      // cuts catalogue — vercel project deleted in migration; rewrite
+      // removed to surface a clean 404 rather than proxy a dead host.
+      // restore when the app is migrated to CF Workers/Pages.
 
       // read the room — formerly "feel cards"; renamed 2026-05-06.
       // wv-harbour-read-the-room serves the static HTML and /api/room/* WS
