@@ -19,7 +19,7 @@ export const STEPS: Step[] = [
         {
           kind: 'callout',
           tone: 'info',
-          text: "**cloud-first (most team members):** you don't need to clone a repo or install anything. claude desktop or claude.ai + a github MCP gets you reading and contributing to any project from your browser or the claude app — on any device, including mobile. this is the right path for payton, lamis, maria, and anyone who isn't writing and deploying code. **engineer path (garrett + future engineers):** full local setup — cli tools, cloned repos, wrangler for cloudflare deployments. follow all steps.",
+          text: "**cloud-first (most team members):** you don't need to clone a repo or install anything. **claude code on web** (code.claude.com) pairs with the **github mobile app** to give you the full loop — describe the change in plain language, claude opens a PR, you review on your phone, garrett merges, it's live in ~90 seconds. this is the path payton, lamis, jamie, and maria are on. claude desktop / claude.ai with the github mcp is also great for reading, reviewing, and writing without the PR loop. **engineer path (garrett + maria for IDB work):** full local setup — cli tools, cloned repos, wrangler for cloudflare deployments. follow all steps.",
         },
         { kind: 'heading', text: 'the pattern (engineer path)' },
         {
@@ -393,7 +393,117 @@ export const STEPS: Step[] = [
     },
   },
   // ────────────────────────────────────────────────────────────────
-  // 9. celebration
+  // 9. daily workflow
+  // ────────────────────────────────────────────────────────────────
+  {
+    id: 'daily-workflow',
+    title: 'find your sea legs.',
+    subtitle: "the daily loop, the words that trigger it, and what to do when the PR pings your phone.",
+    shared: {
+      intro:
+        "the papers are filed and your pilot's aboard. now, the rhythm — what every voyage actually looks like from here. this isn't more setup; this is how the team works every day.",
+      body: [
+        { kind: 'heading', text: 'the loop, in five sentences' },
+        {
+          kind: 'paragraph',
+          text: "you describe what you want in plain language. claude works on a branch (its own, never yours). when claude pushes, a pull request opens on github. garrett reviews it on his phone or laptop and squash-merges. about 60–90 seconds later, the change is live at the public url.",
+        },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "the whole loop is designed so you never touch a terminal, never see a merge conflict, and never have to remember a git command. if claude or the harness hits something it can't resolve, it stops and asks — it won't guess and ship something wrong.",
+        },
+        { kind: 'heading', text: 'the trigger words' },
+        {
+          kind: 'paragraph',
+          text: "any of these phrases tell claude to take the work it's been doing and push it toward production. they all mean the same thing — pick whichever feels natural:",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "**\"ship it\"** · **\"push it\"** · **\"deploy\"** · **\"make it live\"** · **\"send it up\"** · **\"open the PR\"**\n\nwhen you say any of these, claude commits the work on its branch, pushes to github, opens a pull request, and reports the PR url back to you. that's the signal that it's out of your hands and into the review queue.",
+        },
+        {
+          kind: 'paragraph',
+          text: "if you want claude to stop short of opening the PR — say \"just commit and push, don't open a PR yet\" or \"stage this but hold off on shipping.\" the language is loose; the harness reads intent.",
+        },
+        { kind: 'heading', text: 'reviewing on the go' },
+        {
+          kind: 'paragraph',
+          text: "github has a free mobile app (iOS and android). install it, sign in once, and you'll get a notification every time a PR is opened or commented on. for most reviews you can read the diff, leave a comment, and approve — all from your phone in two minutes.",
+        },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "**how to read a diff:** green lines were added, red lines were removed. files are listed on the left. tap a line to comment on it. the \"files changed\" tab is where you'll spend 90% of review time; the \"conversation\" tab is for back-and-forth. don't worry about understanding every line — focus on whether the change does what was asked.",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "stuck on a PR? open claude on your phone and paste the PR url. ask \"explain what this PR does in plain language\" or \"is there anything risky in this change?\" — you'll get a summary that's faster than reading the diff yourself.",
+        },
+        { kind: 'heading', text: 'two claudes, two jobs' },
+        {
+          kind: 'paragraph',
+          text: "we use claude in two places, and it helps to know which is which:",
+        },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "**claude cowork** (desktop app, claude.ai) — for running the business. emails, calendar, invoices, notion, slack, proposals, decks. when you want to *think* with claude or move information between tools.\n\n**claude code** (code.claude.com on web, or terminal) — for changing the code. anything that touches a file in the windedvertigo repo, ships a deploy, or opens a PR. when you want to *build* with claude.\n\nrule of thumb: if the answer ends in \"save the file\" or \"deploy this,\" you want claude code. otherwise, cowork.",
+        },
+        { kind: 'heading', text: 'a word for each of you' },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "**maria** — you have the same ship authority as garrett. when you say \"ship it,\" claude pushes the PR and squash-merges immediately, no review gate. you're already on the engineer path for IDB Salvador work; for everything else you can stay cloud-first via code.claude.com and never touch a terminal.",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "**payton** — cloud-first via code.claude.com. when you say \"ship it,\" claude opens a PR and garrett reviews it. you can keep iterating on the same branch — the PR updates automatically with each new push, so don't feel like you have to get it right in one shot. circulation and outreach changes that touch the website go through this loop.",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "**lamis** — same loop as payton. start with something small (a typo fix on the harbour page, a date change on a campaign card) so the cadence feels natural by your second or third ship. the review wait stops feeling like a wait once you've done it a few times — it becomes the moment you switch tasks and let the PR cook.",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "**jamie** — once your github account is set and garrett's added you to the repo, you're on the same cloud-first path as payton and lamis. you've spent more time with claude (cowork + chat) than they had at this point, so the natural-language side will feel like familiar ground. the new piece is reading a PR diff on your phone — github's mobile app makes that surprisingly nice, and the \"explain this PR\" claude trick works as a safety net while you build the muscle.",
+        },
+        { kind: 'heading', text: 'your first real ship' },
+        {
+          kind: 'paragraph',
+          text: "the best way to feel the loop is to do it once. pick a tiny, harmless change — a date you want to update, a typo you noticed, a sentence you'd word differently on the home page. then paste the prompt below into claude code (code.claude.com) and watch it happen:",
+        },
+        {
+          kind: 'claudePrompt',
+          label: 'paste into claude code on web, press return',
+          prompt:
+            "i want to do my first real ship to learn the loop. here's the tiny change i want to make: [describe in one sentence — e.g., \"fix the typo 'recieve' to 'receive' on the harbour about page\" or \"change the year in the footer from 2025 to 2026\"]. please:\n\n1. find the file that needs the change\n2. make the edit\n3. commit it on this session's branch with a short, clear message\n4. push the branch and open a PR titled with what changed\n5. give me the PR url so i can review it on my phone\n\nnarrate as you go so i can follow along. don't squash-merge it yourself — leave that for review.",
+        },
+        {
+          kind: 'callout',
+          tone: 'success',
+          text: "what success feels like: claude reports a PR url within a minute or two. you open it on your phone via the github app, read the diff (one or two lines changed), and either approve or leave a comment. garrett merges. 60–90 seconds later, you reload the page and your change is live. that's the whole job.",
+        },
+        { kind: 'heading', text: 'what to do when something feels off' },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "**claude proposes something risky** — it will stop and ask. say no, or ask it to do the smaller version. **a PR check fails** — paste the failure into claude and say \"this PR check failed; what does it mean and how do we fix it?\" **the live site doesn't show your change after a few minutes** — message garrett. it's almost always a cache or build delay, but worth flagging. **the wrong thing got merged** — message garrett immediately. nothing is unrecoverable; the worst case is reverting one commit, which takes 20 seconds.",
+        },
+      ],
+      doneLooksLike:
+        "you've shipped one tiny change end-to-end: described it to claude code, watched the PR open, reviewed the diff on your phone, and seen the change live at the public url. the loop now has a shape in your head.",
+      helpPrompt:
+        "i tried to ship my first change and [describe what happened — claude got stuck, the PR didn't open, the change didn't go live, the review felt confusing]. walk me through what to do next.",
+    },
+  },
+  // ────────────────────────────────────────────────────────────────
+  // 10. celebration
   // ────────────────────────────────────────────────────────────────
   {
     id: 'done',
