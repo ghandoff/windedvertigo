@@ -66,6 +66,14 @@ export async function getAicsDocument(id) {
  * @param {string} [opts.status]   exact match on raReviewStatus (e.g. 'Pending RA Review')
  */
 export async function listAicsDocuments({ limit = 100, cursor, status } = {}) {
+  // AICS Notion DBs aren't always provisioned — wrangler.jsonc notes the
+  // NOTION_AICS_* env bindings as optional ("not yet populated — AICS features
+  // inactive"). Without a database_id the Notion client throws and the API
+  // route returns 500; the sidebar still surfaces /pcs/aics links so this
+  // path is reachable in normal navigation. Degrade to an empty list instead.
+  if (!PCS_DB.aicsDocuments) {
+    return { items: [], nextCursor: null };
+  }
   const query = {
     database_id: PCS_DB.aicsDocuments,
     page_size: Math.min(limit, 100),
