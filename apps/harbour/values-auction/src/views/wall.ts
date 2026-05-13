@@ -13,6 +13,7 @@ import {
 import '@/components/countdown';
 import '@/components/value-card';
 import '@/components/identity-card';
+import { applyActSurface, clearActSurface } from '@/utils/surface';
 
 @customElement('va-wall')
 export class VaWall extends LitElement {
@@ -26,6 +27,7 @@ export class VaWall extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    applyActSurface('cadet');
     this.unsub = this.controller?.store.subscribe((s) => {
       this.session = s;
       this.maybeUpdateBroadcast(s);
@@ -38,6 +40,7 @@ export class VaWall extends LitElement {
     super.disconnectedCallback();
     this.unsub?.();
     if (this.broadcastTimer) clearTimeout(this.broadcastTimer);
+    clearActSurface();
   }
 
   private maybeUpdateBroadcast(s: Session) {
@@ -72,7 +75,7 @@ export class VaWall extends LitElement {
     .code {
       font: var(--type-mono);
       font-size: 72px;
-      color: var(--wv-cadet-blue);
+      color: var(--wv-seafoam);
       background: var(--bg-card);
       padding: var(--space-4) var(--space-6);
       border-radius: var(--radius-md);
@@ -151,7 +154,7 @@ export class VaWall extends LitElement {
       line-height: 1.5;
       margin: 0;
       padding-left: var(--space-3);
-      border-left: 3px solid var(--wv-cadet-blue);
+      border-left: 3px solid var(--wv-seafoam);
     }
     .patterns {
       margin-top: var(--space-6);
@@ -183,12 +186,12 @@ export class VaWall extends LitElement {
     }
     .patterns .pattern-name {
       font-weight: 700;
-      color: var(--wv-cadet-blue);
+      color: var(--wv-seafoam);
     }
     .patterns .pattern-count {
       font: var(--type-mono);
       font-weight: 700;
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
     }
     .broadcast {
       position: fixed;
@@ -196,7 +199,7 @@ export class VaWall extends LitElement {
       top: var(--space-5);
       transform: translateX(-50%);
       max-width: min(80vw, 960px);
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       color: var(--fg-inverse);
       padding: var(--space-4) var(--space-5);
       border-radius: var(--radius-md);
@@ -248,7 +251,7 @@ export class VaWall extends LitElement {
             .map(
               (r) => html`
                 <div
-                  style="padding: var(--space-3) var(--space-4); background: var(--bg-card); border-left: 4px solid var(--wv-cadet-blue); border-radius: var(--radius-sm); line-height: 1.4; font-size: 18px;"
+                  style="padding: var(--space-3) var(--space-4); background: var(--bg-card); border-left: 4px solid var(--wv-seafoam); border-radius: var(--radius-sm); line-height: 1.4; font-size: 18px;"
                 >
                   ${r.text}
                 </div>

@@ -2,7 +2,7 @@
 @import '@fontsource/atkinson-hyperlegible/700.css';
 
 html {
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 body {
@@ -12,6 +12,7 @@ body {
   letter-spacing: 0.02em;
   word-spacing: 0.05em;
   min-height: 100vh;
+  transition: background var(--dur-act-shift) var(--ease-in-out);
 }
 
 h1 {
@@ -33,15 +34,8 @@ p {
 }
 
 ::selection {
-  background: var(--wv-cadet-blue);
+  background: var(--wv-seafoam);
   color: var(--wv-white);
-}
-
-@media (prefers-contrast: more) {
-  :root {
-    --fg: #000000;
-    --fg-muted: #111111;
-  }
 }
 
 /* user preferences (set on <html> by the settings drawer) */
@@ -51,25 +45,40 @@ html[data-text-size='lg'] {
 html[data-text-size='xl'] {
   font-size: 20px;
 }
-html[data-theme='dark'] {
+
+/* dark theme — collapses all surfaces to a single calm dark for sensory sensitivity */
+html[data-theme='dark'],
+html[data-theme='dark'][data-surface] {
   color-scheme: dark;
   --bg: #0f1726;
   --bg-card: #1f2c44;
+  --bg-spotlight: #1f2c44;
   --bg-deep: #08111f;
-  --fg: #f7e7ce;
+  --fg: var(--wv-champagne);
+  --fg-on-card: var(--wv-champagne);
   --fg-muted: rgba(247, 231, 206, 0.78);
+  --fg-inverse: var(--wv-cadet);
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.45);
   --shadow-card-lifted: 0 12px 40px rgba(0, 0, 0, 0.55);
 }
-html[data-theme='high-contrast'] {
+
+/* high-contrast — all surfaces collapse to white + black, AAA-boosted accents */
+html[data-theme='high-contrast'],
+html[data-theme='high-contrast'][data-surface] {
   --bg: #ffffff;
   --bg-card: #ffffff;
+  --bg-spotlight: #ffffff;
   --bg-deep: #000000;
   --fg: #000000;
+  --fg-on-card: #000000;
   --fg-muted: #1a1a1a;
-  --wv-cadet-blue: #00407a;
+  --fg-inverse: #ffffff;
+  --wv-seafoam: #00407a;
   --wv-redwood: #8a2515;
+  --shadow-card: 0 0 0 2px #000000;
+  --shadow-card-lifted: 0 0 0 3px #000000;
 }
+
 html[data-motion='none'] *,
 html[data-motion='none'] *::before,
 html[data-motion='none'] *::after {
@@ -102,7 +111,7 @@ html[data-motion='subtle'] .spring-pulse {
   z-index: 100;
   padding: var(--space-2) var(--space-4);
   background: var(--bg-deep);
-  color: var(--fg-inverse);
+  color: var(--wv-champagne);
   border-radius: var(--radius-sm);
   font-weight: 700;
   text-decoration: none;

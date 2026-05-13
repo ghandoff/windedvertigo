@@ -48,7 +48,7 @@ export class VaActTimeline extends LitElement {
       outline-offset: var(--focus-ring-offset);
     }
     button:not(:disabled):hover {
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       color: var(--fg-inverse);
     }
   `;

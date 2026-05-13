@@ -50,7 +50,7 @@ export class VaBrainstormWall extends LitElement {
     }
     .composer .prompt {
       font: var(--type-h2);
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       line-height: 1.3;
       margin: 0;
     }
@@ -59,7 +59,7 @@ export class VaBrainstormWall extends LitElement {
       min-height: 90px;
       padding: var(--space-3);
       border-radius: var(--radius-sm);
-      border: 2px solid var(--wv-cadet-blue);
+      border: 2px solid var(--wv-seafoam);
       font: var(--type-body);
       resize: none;
       box-sizing: border-box;
@@ -126,7 +126,7 @@ export class VaBrainstormWall extends LitElement {
       padding: var(--space-2) var(--space-3);
       background: var(--bg);
       border-radius: var(--radius-sm);
-      border-left: 3px solid var(--wv-cadet-blue);
+      border-left: 3px solid var(--wv-seafoam);
       line-height: 1.4;
       animation: va-fade-in var(--dur-base) var(--ease-out-quart);
     }

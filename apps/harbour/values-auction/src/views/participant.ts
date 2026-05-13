@@ -15,6 +15,8 @@ import {
 } from '@/state/selectors';
 import { uid } from '@/utils/id';
 import { announce } from '@/utils/a11y';
+import { getAct } from '@/content/acts';
+import { applyActSurface, clearActSurface } from '@/utils/surface';
 import '@/components/va-card';
 import '@/components/va-button';
 import '@/components/credos-stack';
@@ -85,6 +87,9 @@ export class VaParticipant extends LitElement {
       this.reactToSession(s);
     });
     this.session = this.controller?.store.getState();
+    if (this.session && !this.preview) {
+      applyActSurface(getAct(this.session.currentAct).surface);
+    }
     if (this.preview) {
       // facilitator preview: skip the join flow entirely; pin to the first
       // real participant on the first team so we render their experience.
@@ -130,6 +135,7 @@ export class VaParticipant extends LitElement {
     if (this.broadcastTimer) clearTimeout(this.broadcastTimer);
     if (this.autoSubmitTimer) clearTimeout(this.autoSubmitTimer);
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+    if (!this.preview) clearActSurface();
   }
 
   private restoreOrCreateId(): string {
@@ -142,6 +148,9 @@ export class VaParticipant extends LitElement {
   }
 
   private reactToSession(s: Session) {
+    if (!this.preview) {
+      applyActSurface(getAct(s.currentAct).surface);
+    }
     if (this.preview) {
       // keep the preview identity fresh — once a real team forms we adopt one
       // of its members so the dashboard mirrors a real participant's view.
@@ -497,7 +506,7 @@ export class VaParticipant extends LitElement {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       opacity: 0.25;
       transition: opacity var(--dur-base) var(--ease-out-quart);
     }
@@ -513,7 +522,7 @@ export class VaParticipant extends LitElement {
     form.join input {
       padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-pill);
-      border: 2px solid var(--wv-cadet-blue);
+      border: 2px solid var(--wv-seafoam);
       background: var(--bg-card);
       font: var(--type-body);
       min-width: 280px;
@@ -528,7 +537,7 @@ export class VaParticipant extends LitElement {
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       animation: va-breathe 2s var(--ease-in-out) infinite;
     }
     .waiting .dot:nth-child(2) {
@@ -555,11 +564,11 @@ export class VaParticipant extends LitElement {
     }
     .archetype:focus-visible,
     .archetype:hover {
-      border-color: var(--wv-cadet-blue);
+      border-color: var(--wv-seafoam);
       transform: translateY(-2px);
     }
     .archetype[data-active] {
-      border-color: var(--wv-redwood);
+      border-color: var(--accent-emphasis);
       animation: va-spring-pulse var(--dur-base) var(--ease-spring);
     }
     .archetype h3 {
@@ -628,7 +637,7 @@ export class VaParticipant extends LitElement {
       border-radius: var(--radius-sm);
     }
     .team-roster li.you {
-      border-left: 3px solid var(--wv-cadet-blue);
+      border-left: 3px solid var(--wv-seafoam);
       font-weight: 700;
     }
     .team-roster .empty {
@@ -663,7 +672,7 @@ export class VaParticipant extends LitElement {
       color: var(--fg-muted);
     }
     .pre-agreed strong {
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font: var(--type-h2);
     }
     .practice-badge {
@@ -681,7 +690,7 @@ export class VaParticipant extends LitElement {
       margin-top: var(--space-4);
       padding: var(--space-3) var(--space-4);
       background: var(--bg-card);
-      border-left: 3px solid var(--wv-cadet-blue);
+      border-left: 3px solid var(--wv-seafoam);
       color: var(--fg);
       border-radius: var(--radius-sm);
       font-size: 14px;
@@ -699,7 +708,7 @@ export class VaParticipant extends LitElement {
       width: 100%;
       min-height: 100px;
       border-radius: var(--radius-md);
-      border: 2px solid var(--wv-cadet-blue);
+      border: 2px solid var(--wv-seafoam);
       padding: var(--space-3);
       font: var(--type-body);
       resize: vertical;
@@ -726,7 +735,7 @@ export class VaParticipant extends LitElement {
       display: flex;
       align-items: flex-start;
       gap: var(--space-3);
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       color: var(--fg-inverse);
       padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-md);
@@ -783,7 +792,7 @@ export class VaParticipant extends LitElement {
       padding: var(--space-3) var(--space-4);
       background: var(--bg-card);
       border: 2px dashed var(--wv-redwood);
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       border-radius: var(--radius-md);
       font-weight: 700;
     }
@@ -818,7 +827,7 @@ export class VaParticipant extends LitElement {
       line-height: 1.5;
     }
     .values-list strong {
-      color: var(--wv-cadet-blue);
+      color: var(--wv-seafoam);
     }
     .staging .values-preview {
       max-height: 50vh;
@@ -960,7 +969,7 @@ export class VaParticipant extends LitElement {
         <p style="color: var(--fg-muted); margin-bottom: var(--space-3);">
           ${COPY.grouping.subheading}
         </p>
-        <p style="color: var(--fg-muted); margin-bottom: var(--space-4); border-left: 3px solid var(--wv-cadet-blue); padding-left: var(--space-3);">
+        <p style="color: var(--fg-muted); margin-bottom: var(--space-4); border-left: 3px solid var(--wv-seafoam); padding-left: var(--space-3);">
           ${COPY.grouping.why}
         </p>
         <div class="archetypes" role="radiogroup" aria-label="archetype choice">

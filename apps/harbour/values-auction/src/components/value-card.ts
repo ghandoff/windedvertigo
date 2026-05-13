@@ -19,7 +19,7 @@ export class VaValueCard extends LitElement {
       border-radius: var(--radius-md);
       padding: var(--space-4);
       box-shadow: var(--shadow-card);
-      border-left: 4px solid var(--wv-cadet-blue);
+      border-left: 4px solid var(--wv-seafoam);
       transition:
         transform var(--dur-base) var(--ease-out-quart),
         box-shadow var(--dur-base) var(--ease-out-quart);
@@ -34,7 +34,7 @@ export class VaValueCard extends LitElement {
       font-size: 18px;
     }
     .card[data-zone='must'] {
-      border-left-color: var(--wv-redwood);
+      border-left-color: var(--accent-emphasis);
     }
     .card[data-zone='nice'] {
       border-left-color: var(--wv-burnt-sienna);

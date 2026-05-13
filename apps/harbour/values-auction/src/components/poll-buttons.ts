@@ -50,7 +50,7 @@ export class VaPollButtons extends LitElement {
       min-height: 48px;
       padding: var(--space-2) 0;
       border-radius: var(--radius-pill);
-      border: 2px solid var(--wv-cadet-blue);
+      border: 2px solid var(--wv-seafoam);
       background: var(--bg-card);
       color: var(--fg);
       font: var(--type-small);
@@ -78,7 +78,7 @@ export class VaPollButtons extends LitElement {
       outline-offset: var(--focus-ring-offset);
     }
     button.choice[data-selected] {
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       color: var(--fg-inverse);
     }
     button.choice .label,
@@ -112,7 +112,7 @@ export class VaPollButtons extends LitElement {
       color: var(--fg-muted);
     }
     .results.consensus {
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font-weight: 700;
     }
     .results .tag {
@@ -135,7 +135,7 @@ export class VaPollButtons extends LitElement {
       border-radius: var(--radius-sm);
       border: 1.5px solid var(--wv-redwood);
       background: var(--bg-card);
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font: var(--type-small);
       font-weight: 700;
       cursor: pointer;
@@ -146,7 +146,7 @@ export class VaPollButtons extends LitElement {
     }
     .captain-row .locked-tag {
       font: var(--type-small);
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font-weight: 700;
     }
   `;

@@ -45,7 +45,7 @@ export class VaStrategyBoard extends LitElement {
     }
     .planned[data-over] {
       border-left: 3px solid var(--wv-redwood);
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font-weight: 700;
     }
     .board {
@@ -102,7 +102,7 @@ export class VaStrategyBoard extends LitElement {
       text-transform: lowercase;
     }
     .zone[data-zone='must'] {
-      border-color: var(--wv-redwood);
+      border-color: var(--accent-emphasis);
     }
     .zone[data-zone='nice'] {
       border-color: var(--wv-burnt-sienna);

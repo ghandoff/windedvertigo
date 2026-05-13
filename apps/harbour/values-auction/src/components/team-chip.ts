@@ -27,9 +27,9 @@ export class VaTeamChip extends LitElement {
       gap: var(--space-2);
       padding: 6px var(--space-3);
       border-radius: var(--radius-pill);
-      border: 1.5px solid rgba(39, 50, 72, 0.15);
+      border: 1.5px solid var(--border-soft);
       background: var(--bg-card);
-      color: var(--fg);
+      color: var(--fg-on-card);
       font: var(--type-small);
       font-weight: 700;
       cursor: pointer;
@@ -48,7 +48,7 @@ export class VaTeamChip extends LitElement {
     }
     .captain-mark {
       font: var(--type-mono);
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -87,14 +87,14 @@ export class VaTeamChip extends LitElement {
       color: var(--fg);
     }
     .pop li .role {
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font-weight: 700;
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
     .pop li.you {
-      color: var(--wv-cadet-blue);
+      color: var(--wv-seafoam);
       font-weight: 700;
     }
     .pop .empty {

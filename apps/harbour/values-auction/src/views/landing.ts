@@ -2,6 +2,7 @@ import { LitElement, css, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { navigate } from '@/router';
 import { randomCode } from '@/utils/id';
+import { applyActSurface, clearActSurface } from '@/utils/surface';
 import '@/components/va-button';
 
 @customElement('va-landing')
@@ -10,6 +11,16 @@ export class VaLanding extends LitElement {
   @state() private codeError = false;
   @state() private wallCode = '';
   @state() private wallCodeError = false;
+
+  connectedCallback() {
+    super.connectedCallback();
+    applyActSurface('cadet');
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    clearActSurface();
+  }
 
   private joinWithCode(e: Event) {
     e.preventDefault();
@@ -76,7 +87,7 @@ export class VaLanding extends LitElement {
       color: var(--fg);
     }
     .hero-guide strong {
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
     }
     .roles {
       max-width: 960px;
@@ -151,7 +162,7 @@ export class VaLanding extends LitElement {
     .code-form input {
       padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-pill);
-      border: 2px solid var(--wv-cadet-blue);
+      border: 2px solid var(--wv-seafoam);
       background: var(--bg);
       font: var(--type-body);
       text-transform: uppercase;
@@ -166,7 +177,7 @@ export class VaLanding extends LitElement {
       color: var(--fg-muted);
     }
     .code-form input[aria-invalid='true'] {
-      border-color: var(--wv-redwood);
+      border-color: var(--accent-emphasis);
     }
     .code-form input:focus-visible {
       outline: var(--focus-ring);
@@ -174,7 +185,7 @@ export class VaLanding extends LitElement {
     }
     .field-error {
       font: var(--type-small);
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
     }
     .demo-hint {
       font: var(--type-small);

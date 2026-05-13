@@ -40,7 +40,7 @@ export class VaResultsPanel extends LitElement {
     .remaining {
       font: var(--type-display);
       font-size: 56px;
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       line-height: 1;
     }
     .remaining-label {

@@ -20,8 +20,8 @@ export class VaButton extends LitElement {
       font: var(--type-body);
       font-weight: 700;
       padding: var(--space-3) var(--space-5);
-      background: var(--wv-cadet-blue);
-      color: var(--wv-white);
+      background: var(--wv-redwood);
+      color: var(--wv-champagne);
       border-radius: var(--radius-pill);
       transition:
         transform var(--dur-fast) var(--ease-spring),
@@ -39,8 +39,8 @@ export class VaButton extends LitElement {
     }
     :host([variant='secondary']) button {
       background: var(--bg-card);
-      color: var(--fg);
-      border: 1.5px solid rgba(26, 36, 56, 0.2);
+      color: var(--fg-on-card);
+      border: 1.5px solid var(--border-soft);
     }
     button:hover:not(:disabled) {
       transform: translateY(-1px);

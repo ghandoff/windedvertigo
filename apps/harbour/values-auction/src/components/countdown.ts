@@ -72,14 +72,14 @@ export class VaCountdown extends LitElement {
       stroke-linecap: round;
     }
     .ring-track {
-      stroke: rgba(39, 50, 72, 0.12);
+      stroke: var(--track-muted);
     }
     .ring-fill {
-      stroke: var(--wv-cadet-blue);
+      stroke: var(--accent-on-bg);
       transition: stroke var(--dur-base) var(--ease-in-out);
     }
     :host([data-urgent]) .ring-fill {
-      stroke: var(--wv-redwood);
+      stroke: var(--urgent-on-bg);
     }
     .ring-wrap .label {
       position: absolute;
@@ -90,7 +90,7 @@ export class VaCountdown extends LitElement {
       font-size: 36px;
     }
     :host([data-urgent]) {
-      color: var(--wv-redwood);
+      color: var(--urgent-on-bg);
     }
   `;
 

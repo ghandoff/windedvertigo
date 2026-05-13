@@ -43,7 +43,7 @@ export class VaBidButton extends LitElement {
     input {
       padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-pill);
-      border: 2px solid var(--wv-cadet-blue);
+      border: 2px solid var(--wv-seafoam);
       background: var(--bg-card);
       color: var(--fg);
       font: var(--type-body);
@@ -56,7 +56,7 @@ export class VaBidButton extends LitElement {
       outline-offset: var(--focus-ring-offset);
     }
     .error {
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font: var(--type-small);
     }
   `;

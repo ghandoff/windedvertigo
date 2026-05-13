@@ -3,7 +3,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { Controller } from '@/state/controller';
 import type { Session } from '@/state/types';
 import { COPY } from '@/content/copy';
-import { ACTS } from '@/content/acts';
+import { ACTS, getAct } from '@/content/acts';
+import { applyActSurface, clearActSurface } from '@/utils/surface';
 import { VALUES } from '@/content/values';
 import {
   DEFAULT_AUCTION_MS,
@@ -108,8 +109,10 @@ export class VaFacilitator extends LitElement {
       this.unsub = this.controller.store.subscribe((s) => {
         this.session = s;
         this.watchCaptainEvents(s);
+        applyActSurface(getAct(s.currentAct).surface);
       });
       this.session = this.controller.store.getState();
+      applyActSurface(getAct(this.session.currentAct).surface);
       this.lastCaptainEventAt = this.session.events
         .filter((e) => e.type === 'captainTransferred')
         .reduce((m, e) => Math.max(m, e.at), 0);
@@ -137,6 +140,7 @@ export class VaFacilitator extends LitElement {
     if (this.copyResetTimer) clearTimeout(this.copyResetTimer);
     for (const t of this.captainAlertTimers.values()) clearTimeout(t);
     this.captainAlertTimers.clear();
+    clearActSurface();
   }
 
   /**
@@ -382,7 +386,7 @@ export class VaFacilitator extends LitElement {
       font-size: 20px;
       font-weight: 700;
       letter-spacing: 0.12em;
-      color: var(--wv-cadet-blue);
+      color: var(--wv-seafoam);
     }
     .session-share .share-actions {
       display: flex;
@@ -462,7 +466,7 @@ export class VaFacilitator extends LitElement {
       font-weight: 700;
     }
     .deck button[data-selected='true'] {
-      border-color: var(--wv-redwood);
+      border-color: var(--accent-emphasis);
     }
     .deck button:focus-visible {
       outline: var(--focus-ring);
@@ -471,7 +475,7 @@ export class VaFacilitator extends LitElement {
     input[type='text'] {
       padding: var(--space-2) var(--space-3);
       border-radius: var(--radius-pill);
-      border: 2px solid var(--wv-cadet-blue);
+      border: 2px solid var(--wv-seafoam);
       background: var(--bg-card);
       width: 100%;
       margin-bottom: var(--space-2);
@@ -497,7 +501,7 @@ export class VaFacilitator extends LitElement {
       margin: 0;
       padding: var(--space-3);
       background: var(--bg);
-      border-left: 3px solid var(--wv-cadet-blue);
+      border-left: 3px solid var(--wv-seafoam);
       color: var(--fg);
       font-weight: 700;
       line-height: 1.4;
@@ -531,7 +535,7 @@ export class VaFacilitator extends LitElement {
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       color: var(--fg-inverse);
       font-weight: 700;
       font-size: 12px;
@@ -540,7 +544,7 @@ export class VaFacilitator extends LitElement {
       justify-content: center;
     }
     .deck-steps li[data-done] {
-      border-left-color: var(--wv-redwood);
+      border-left-color: var(--accent-emphasis);
       color: var(--fg-muted);
     }
     .deck-steps li[data-done]::before {
@@ -552,7 +556,7 @@ export class VaFacilitator extends LitElement {
       padding: var(--space-2) var(--space-3);
       background: var(--bg);
       border-left: 3px solid var(--wv-redwood);
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font-size: 14px;
       line-height: 1.4;
     }
@@ -617,9 +621,9 @@ export class VaFacilitator extends LitElement {
       font-weight: 700;
     }
     .preview-size-toggle button[data-active] {
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       color: var(--fg-inverse);
-      border-color: var(--wv-cadet-blue);
+      border-color: var(--wv-seafoam);
     }
     .preview-frame[data-size='mobile'] {
       max-width: 380px;
@@ -780,7 +784,7 @@ export class VaFacilitator extends LitElement {
                         <span style="line-height: 1.4; font-size: 14px;">${r.text}</span>
                         <button
                           type="button"
-                          style="background: transparent; color: var(--wv-redwood); border: 0; font-size: 12px; cursor: pointer; font-weight: 700;"
+                          style="background: transparent; color: var(--accent-emphasis); border: 0; font-size: 12px; cursor: pointer; font-weight: 700;"
                           @click=${() => this.hideBrainstorm(r.id)}
                         >
                           ${COPY.brainstorm.facilitatorHide}
@@ -1023,7 +1027,7 @@ export class VaFacilitator extends LitElement {
             )}
           </div>
           ${silent.length > 0 && s.currentAct === 'auction'
-            ? html`<p style="margin-top: var(--space-3); color: var(--wv-redwood)">
+            ? html`<p style="margin-top: var(--space-3); color: var(--accent-emphasis)">
                 quiet: ${silent.map((t) => t.name).join(', ')}
               </p>`
             : ''}

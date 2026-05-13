@@ -41,7 +41,7 @@ export class VaSettingsDrawer extends LitElement {
       min-height: 48px;
       padding: var(--space-2) var(--space-3);
       border-radius: var(--radius-pill);
-      border: 2px solid var(--wv-cadet-blue);
+      border: 2px solid var(--wv-seafoam);
       background: var(--bg-card);
       color: var(--fg);
       font: var(--type-small);
@@ -56,8 +56,8 @@ export class VaSettingsDrawer extends LitElement {
     .panel {
       margin-top: var(--space-2);
       background: var(--bg-card);
-      color: var(--fg);
-      border: 1px solid rgba(39, 50, 72, 0.15);
+      color: var(--fg-on-card);
+      border: 1px solid var(--border-soft);
       border-radius: var(--radius-md);
       padding: var(--space-4);
       box-shadow: var(--shadow-card-lifted);
@@ -106,9 +106,9 @@ export class VaSettingsDrawer extends LitElement {
       line-height: 1.2;
     }
     .options button[aria-pressed='true'] {
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       color: var(--fg-inverse);
-      border-color: var(--wv-cadet-blue);
+      border-color: var(--wv-seafoam);
     }
     .options button:focus-visible {
       outline: var(--focus-ring);

@@ -1,5 +1,7 @@
 import type { ActId } from '@/state/types';
 
+export type ActSurface = 'cadet' | 'seafoam' | 'sienna';
+
 export interface ActDefinition {
   id: ActId;
   index: number;
@@ -7,6 +9,7 @@ export interface ActDefinition {
   durationMs: number;
   mode: 'plenary' | 'team' | 'plenary-team';
   tempo: 'calm' | 'snappy';
+  surface: ActSurface;
   description: string;
 }
 
@@ -18,6 +21,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 3 * 60_000,
     mode: 'plenary',
     tempo: 'calm',
+    surface: 'cadet',
     description: 'participants join and settle in.',
   },
   {
@@ -27,6 +31,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 3 * 60_000,
     mode: 'plenary-team',
     tempo: 'calm',
+    surface: 'cadet',
     description: 'archetype sort → teams assigned.',
   },
   {
@@ -36,6 +41,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 4 * 60_000,
     mode: 'team',
     tempo: 'calm',
+    surface: 'cadet',
     description: 'each team receives their startup and challenge.',
   },
   {
@@ -45,6 +51,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 4 * 60_000,
     mode: 'plenary',
     tempo: 'calm',
+    surface: 'seafoam',
     description: 'open text wall. one submission per participant, fully anonymous.',
   },
   {
@@ -54,6 +61,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 6 * 60_000,
     mode: 'team',
     tempo: 'calm',
+    surface: 'seafoam',
     description: 'agree on intentions, vote per-value, claim a bid captain.',
   },
   {
@@ -63,6 +71,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 3 * 60_000,
     mode: 'plenary',
     tempo: 'snappy',
+    surface: 'sienna',
     description: 'dummy value, separate practice credits. learn the mechanic.',
   },
   {
@@ -72,6 +81,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 10 * 60_000,
     mode: 'plenary',
     tempo: 'snappy',
+    surface: 'sienna',
     description: 'live bidding. losses are final.',
   },
   {
@@ -81,6 +91,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 4 * 60_000,
     mode: 'team',
     tempo: 'calm',
+    surface: 'seafoam',
     description: 'mid-auction break — revise bids with results and competition visible.',
   },
   {
@@ -90,6 +101,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 5 * 60_000,
     mode: 'team',
     tempo: 'calm',
+    surface: 'cadet',
     description: 'four prompts, one purpose statement.',
   },
   {
@@ -99,6 +111,7 @@ export const ACTS: ActDefinition[] = [
     durationMs: 5 * 60_000,
     mode: 'plenary',
     tempo: 'calm',
+    surface: 'cadet',
     description: 'share identity cards, debrief.',
   },
 ];

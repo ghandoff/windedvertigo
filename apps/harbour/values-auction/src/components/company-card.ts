@@ -35,7 +35,7 @@ export class VaCompanyCard extends LitElement {
     .sector {
       display: inline-block;
       font: var(--type-small);
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
       color: var(--fg-inverse);
       padding: var(--space-1) var(--space-3);
       border-radius: var(--radius-pill);
@@ -50,7 +50,7 @@ export class VaCompanyCard extends LitElement {
       line-height: 1.5;
     }
     .challenge {
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       font-weight: 700;
       font-size: 16px;
       line-height: 1.5;
@@ -71,7 +71,7 @@ export class VaCompanyCard extends LitElement {
     }
     .won li {
       background: var(--wv-champagne);
-      border: 1.5px solid var(--wv-cadet-blue);
+      border: 1.5px solid var(--wv-seafoam);
       padding: var(--space-1) var(--space-3);
       border-radius: var(--radius-sm);
       font-weight: 700;

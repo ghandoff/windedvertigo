@@ -33,7 +33,7 @@ export class VaCaptainBanner extends LitElement {
       box-shadow: var(--shadow-card);
     }
     .banner[data-state='claimed'] {
-      background: var(--wv-cadet-blue);
+      background: var(--wv-seafoam);
     }
     .banner[data-state='other'] {
       background: var(--bg-card);
@@ -45,7 +45,7 @@ export class VaCaptainBanner extends LitElement {
       padding: var(--space-2) var(--space-4);
       border-radius: var(--radius-pill);
       background: var(--fg-inverse);
-      color: var(--wv-redwood);
+      color: var(--accent-emphasis);
       border: 0;
       font-weight: 700;
       cursor: pointer;
