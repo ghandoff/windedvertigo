@@ -413,9 +413,9 @@ const nextConfig: NextConfig = {
         destination: "https://values-auction-d9m.pages.dev/:path*",
       },
 
-      // cuts catalogue — vercel project deleted in migration; rewrite
-      // removed to surface a clean 404 rather than proxy a dead host.
-      // restore when the app is migrated to CF Workers/Pages.
+      // cuts catalogue — served as a static HTML tool from
+      // public/tools/cuts-catalogue/. Mounted via redirects() below
+      // (NOT here) for the same reason as three-intelligence-workbook.
 
       // read the room — formerly "feel cards"; renamed 2026-05-06.
       // wv-harbour-read-the-room serves the static HTML and /api/room/* WS
@@ -544,6 +544,19 @@ const nextConfig: NextConfig = {
       {
         source: "/harbour/three-intelligence-workbook/",
         destination: "/tools/three-intelligence-workbook/index.html",
+        permanent: false,
+      },
+      // cuts catalogue — static HTML tool. Migrated from its own Vercel
+      // project (deleted in the 2026-04/05 cutover) into wv-site's
+      // public/ folder using the same recipe as three-intelligence-workbook.
+      {
+        source: "/harbour/cuts-catalogue",
+        destination: "/tools/cuts-catalogue/index.html",
+        permanent: false,
+      },
+      {
+        source: "/harbour/cuts-catalogue/",
+        destination: "/tools/cuts-catalogue/index.html",
         permanent: false,
       },
       {
