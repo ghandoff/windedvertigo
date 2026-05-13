@@ -12,7 +12,7 @@
  *   R2_PUBLIC_URL        — public bucket URL for reading
  */
 
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 
 const BUCKET = process.env.R2_BUCKET_NAME ?? "creaseworks-evidence";
 
@@ -55,6 +55,20 @@ export async function uploadBuffer(
       ContentType: contentType,
     }),
   );
+}
+
+/**
+ * Check whether an object already exists in R2 without fetching its body.
+ * Uses HeadObjectCommand — fast (metadata only, no download).
+ */
+export async function objectExists(key: string): Promise<boolean> {
+  try {
+    const client = getR2Client();
+    await client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Public read URL for a stored object. */
