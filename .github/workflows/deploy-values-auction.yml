@@ -45,6 +45,10 @@ jobs:
 
       - name: build
         working-directory: apps/harbour/values-auction
+        env:
+          BUILD_SHA: ${{ github.sha }}
+          BUILD_REF: ${{ github.ref_name }}
+          BUILD_TIME: ${{ github.event.head_commit.timestamp }}
         run: npm run build
 
       - name: deploy to cloudflare pages
@@ -52,17 +56,17 @@ jobs:
         run: npx wrangler@latest pages deploy dist --project-name=values-auction --branch=main --commit-dirty=true
 
       - name: smoke check
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
         run: |
           sleep 15
           for i in 1 2 3 4 5; do
-            code=$(curl -sS -o /tmp/body -w "%{http_code}" https://values-auction-d9m.pages.dev/)
-            echo "attempt ${i}: HTTP ${code}"
-            if [ "$code" = "200" ]; then
-              if grep -q "wv-cadet\|--wv-seafoam\|data-surface" /tmp/body 2>/dev/null; then
-                echo "✓ new palette tokens present in served HTML"
-                exit 0
-              fi
+            ver=$(curl -sS https://values-auction-d9m.pages.dev/version.json || true)
+            echo "attempt ${i}: ${ver}"
+            if echo "$ver" | grep -q "\"sha\": *\"${EXPECTED_SHA}\""; then
+              echo "✓ version.json shows expected sha ${EXPECTED_SHA}"
+              exit 0
             fi
             sleep 10
           done
-          echo "::warning::deploy succeeded but smoke didn't confirm new build within 65s — could be CDN propagation"
+          echo "::warning::deploy succeeded but /version.json never reported sha ${EXPECTED_SHA} within 65s — could be CDN propagation"
