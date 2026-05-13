@@ -67,6 +67,15 @@ export class VaButton extends LitElement {
       outline: var(--focus-ring);
       outline-offset: var(--focus-ring-offset);
     }
+    @media (max-width: 639px) {
+      :host {
+        display: block;
+        width: 100%;
+      }
+      button {
+        width: 100%;
+      }
+    }
   `;
 
   render() {
