@@ -4,6 +4,16 @@ const nextConfig: NextConfig = {
   // basePath removed — port is on its own subdomain (port.windedvertigo.com)
   poweredByHeader: false,
 
+  env: {
+    BUILD_SHA:
+      process.env.WORKERS_CI_COMMIT_SHA ||
+      process.env.GITHUB_SHA ||
+      process.env.GIT_SHA ||
+      "dev",
+    BUILD_REF: process.env.WORKERS_CI_COMMIT_REF || "unknown",
+    BUILD_TIME: new Date().toISOString(),
+  },
+
   async redirects() {
     return [
       // Phase 2 restructure — permanent redirects from old routes

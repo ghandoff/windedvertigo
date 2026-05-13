@@ -51,6 +51,15 @@
       "Bash(npm publish*)"
     ]
   },
+  "sandbox": {
+    "network": {
+      "allowedDomains": [
+        "windedvertigo.com",
+        "*.windedvertigo.com",
+        "*.windedvertigo.workers.dev"
+      ]
+    }
+  },
   "hooks": {
     "PermissionRequest": [
       {
