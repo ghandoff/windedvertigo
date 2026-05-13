@@ -161,6 +161,26 @@ windedvertigo/
 
 **Canonical image bucket:** R2 `creaseworks-evidence` (in garrett CF account `097c92553b268f8360b74f625f6d980a`, migrated 2026-04-25 from anotheroption). Public URL: `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev`. Used by site, harbour, vault, creaseworks.
 
+## Deployment Workflow (standing authorization)
+
+Durable instruction for every Claude Code remote session, on any device (desktop app, code.claude.com on iPhone). Follow without re-asking. Garrett may run 5–10 concurrent sessions; each one operates independently under this contract.
+
+**Auth:** the remote session's local git proxy (e.g. `http://local_proxy@127.0.0.1:.../git/...`) authenticates to GitHub via the installed GitHub App. No PAT, no SSH, no `~/.git-credentials`. Do not rewrite `origin` to `https://github.com/...` — that breaks pushes here. The remote URL looking unusual is correct.
+
+**When Garrett says "push," "deploy," "ship," "live," or "make it live":**
+1. Commit pending changes on the current session branch with a clear message
+2. `git push -u origin <branch>` (works without credentials thanks to the proxy)
+3. Open a PR to `main` via `mcp__github__create_pull_request` — short title, 1–3 bullet summary
+4. **Merge the PR immediately** via `mcp__github__merge_pull_request` (squash, default). Standing authorization — do not pause to confirm
+5. Wait 60–90s, then `curl -sI` (or fetch content from) the affected production URL and report what you saw
+6. If the merge or build fails, stop and explain. Never force-push, never retry-merge blindly, never bypass hooks
+
+**Never:** push directly to `main`, force-push, amend pushed commits, open the GitHub web UI (everything goes through `mcp__github__*` tools — that's the whole point of this setup).
+
+**Parallel sessions:** each session has its own harness-assigned branch (e.g. `claude/<slug>-<id>`); they don't share working trees, so collisions are rare. If push is rejected because `main` advanced, rebase the session branch on `origin/main` and re-push — don't merge `main` back into the feature branch.
+
+**Verifying CF deploy:** Cloudflare auto-builds the affected Worker on merge to `main`. The CF MCP exposes Workers/KV/R2/D1 metadata but not OpenNext build status, so verification = `curl` the live URL ~60–90s after merge and confirm new content/headers. If it hasn't picked up after ~3 min, say so — don't keep polling silently.
+
 ## Preferences
 - Continuous copilot mode — don't wait to be asked, surface relevant info proactively
 - All domains integrated: work, personal, creative, health, financial/CPA
