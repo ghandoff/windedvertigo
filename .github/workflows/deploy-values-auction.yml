@@ -1,4 +1,5 @@
 name: deploy values-auction
+# retrigger after CLOUDFLARE_API_TOKEN was set
 
 # triggers:
 #   - any push to main that changes values-auction source OR this workflow itself
