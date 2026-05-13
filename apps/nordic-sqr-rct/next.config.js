@@ -30,11 +30,15 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              // static.cloudflareinsights.com hosts the Web Analytics beacon
+              // CF auto-injects into HTML responses on the wv-nordic worker
+              // since the F.5 cutover. Without this allowance the beacon is
+              // blocked and every page load surfaces a CSP violation.
+              "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https:",
-              "connect-src 'self'",
+              "connect-src 'self' https://cloudflareinsights.com",
               "frame-src 'none'",
               "worker-src 'self'",
               "base-uri 'self'",
