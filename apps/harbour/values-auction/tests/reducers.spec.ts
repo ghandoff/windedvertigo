@@ -160,6 +160,7 @@ describe('reducers', () => {
     s = reduce(s, {
       type: 'BRAINSTORM_SUBMIT',
       participantId: 'p_1',
+      teamId: null,
       text: longText,
       at: 1,
     });
@@ -169,6 +170,7 @@ describe('reducers', () => {
     s = reduce(s, {
       type: 'BRAINSTORM_SUBMIT',
       participantId: 'p_1',
+      teamId: null,
       text: 'second go',
       at: 2,
     });

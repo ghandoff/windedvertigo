@@ -48,9 +48,7 @@ function buildSvg(team: Team): SvgDoc {
   <text x="80" y="200" font-family="Inter, sans-serif" font-size="72" font-weight="700" fill="#273248">${escapeXml(startup.name)}</text>
   <rect x="80" y="232" rx="16" ry="16" width="${startup.sector.length * 12 + 40}" height="32" fill="#273248"/>
   <text x="${100}" y="254" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#ffffff">${escapeXml(startup.sector)}</text>
-  <foreignObject x="80" y="300" width="1040" height="140">
-    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Inter, sans-serif; font-weight: 700; font-size: 28px; color: #273248; line-height: 1.3;">${escapeHtml(truncate(purpose, 240))}</div>
-  </foreignObject>
+  ${svgTextBlock(wrapText(purpose, 52, 5), 80, 332, 28, '700', '#273248')}
   ${chips}
   <text x="80" y="572" font-family="Inter, sans-serif" font-size="14" fill="#273248" opacity="0.6">team ${escapeXml(team.colour)} · ${values.length} values locked in · ${team.credos} credos remaining</text>
 `;
@@ -81,9 +79,7 @@ function buildSvg(team: Team): SvgDoc {
       const answer = answers[i] || '—';
       return `
   <text x="80" y="${y}" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#b15043">${escapeXml(prompt)}</text>
-  <foreignObject x="80" y="${y + 16}" width="1040" height="${blockHeight - 50}">
-    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Inter, sans-serif; font-size: 20px; color: #273248; line-height: 1.45; padding-top: 4px;">${escapeHtml(truncate(answer, 600))}</div>
-  </foreignObject>
+  ${svgTextBlock(wrapText(answer, 62, 4), 80, y + 42, 20, '400', '#273248')}
 `;
     })
     .join('');
@@ -115,12 +111,45 @@ function escapeXml(s: string): string {
     .replace(/'/g, '&apos;');
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
 function truncate(s: string, n: number): string {
   return s.length <= n ? s : s.slice(0, n - 1) + '…';
+}
+
+function wrapText(text: string, maxChars: number, maxLines: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let current = '';
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i]!;
+    const candidate = current ? current + ' ' + word : word;
+    if (candidate.length > maxChars && current) {
+      lines.push(current);
+      if (lines.length === maxLines - 1) {
+        const remaining = words.slice(i).join(' ');
+        lines.push(truncate(remaining, maxChars));
+        return lines;
+      }
+      current = word;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) lines.push(current.trim());
+  return lines.slice(0, maxLines);
+}
+
+function svgTextBlock(
+  lines: string[],
+  x: number,
+  y: number,
+  fontSize: number,
+  fontWeight: string,
+  fill: string,
+): string {
+  const tspans = lines
+    .map((line, i) => `<tspan x="${x}" dy="${i === 0 ? '0' : '1.3em'}">${escapeXml(line)}</tspan>`)
+    .join('');
+  return `<text x="${x}" y="${y}" font-family="Inter, sans-serif" font-size="${fontSize}" font-weight="${fontWeight}" fill="${fill}">${tspans}</text>`;
 }
 
 async function svgToPngBlob(svg: string, width: number, height: number): Promise<Blob> {

@@ -1,8 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="BlueCircuits logo">
-  <rect width="240" height="240" fill="#ffebd2"/>
-  <circle cx="120" cy="112" r="48" fill="none" stroke="#273248" stroke-width="6"/>
-  <circle cx="72" cy="112" r="10" fill="#273248"/>
-  <circle cx="168" cy="112" r="10" fill="#273248"/>
-  <line x1="82" y1="112" x2="158" y2="112" stroke="#273248" stroke-width="4"/>
-  <text x="120" y="212" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="20" letter-spacing="1" fill="#273248">BlueCircuits</text>
+  <rect width="240" height="240" rx="24" fill="#1a2438"/>
+  <!-- modular electronics: hexagonal circuit board motif -->
+  <!-- central hex -->
+  <polygon points="120,68 148,84 148,116 120,132 92,116 92,84" fill="none" stroke="#5f9ea0" stroke-width="5" stroke-linejoin="round"/>
+  <!-- outer connection pads -->
+  <circle cx="120" cy="56" r="8" fill="#5f9ea0"/>
+  <circle cx="162" cy="78" r="8" fill="#5f9ea0"/>
+  <circle cx="162" cy="122" r="8" fill="#5f9ea0"/>
+  <circle cx="120" cy="144" r="8" fill="#5f9ea0"/>
+  <circle cx="78" cy="122" r="8" fill="#5f9ea0"/>
+  <circle cx="78" cy="78" r="8" fill="#5f9ea0"/>
+  <!-- traces from hex corners to pads -->
+  <path d="M120 68 L120 64 M148 84 L158 79 M148 116 L158 121 M120 132 L120 136 M92 116 L82 121 M92 84 L82 79" stroke="#5f9ea0" stroke-width="3" stroke-linecap="round"/>
+  <!-- recycle arrow hint bottom-left — circular economy -->
+  <path d="M68 168 A24 24 0 0 1 116 168" fill="none" stroke="#ffebd2" stroke-width="4" stroke-linecap="round"/>
+  <polygon points="116,160 116,176 128,168" fill="#ffebd2"/>
+  <text x="148" y="174" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="18" letter-spacing="1" fill="#ffebd2">BlueCircuits</text>
 </svg>

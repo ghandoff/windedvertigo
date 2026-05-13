@@ -70,11 +70,14 @@ export function latestBroadcast(session: Session) {
 
 /**
  * brainstorm-wall responses with hidden entries filtered out.
+ * when teamId is provided, only responses from that team are returned.
  * the participantId is intentionally not surfaced — anonymity is part of the contract.
  */
-export function visibleBrainstorm(session: Session) {
+export function visibleBrainstorm(session: Session, teamId?: string | null) {
   const hidden = new Set(session.hiddenBrainstormIds);
-  return session.brainstormResponses.filter((r) => !hidden.has(r.id));
+  return session.brainstormResponses.filter(
+    (r) => !hidden.has(r.id) && (teamId == null || r.teamId === teamId),
+  );
 }
 
 export function brainstormSubmittedCount(session: Session): number {

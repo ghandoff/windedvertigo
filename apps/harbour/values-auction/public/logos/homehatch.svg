@@ -1,6 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="HomeHatch logo">
-  <rect width="240" height="240" fill="#ffebd2"/>
-  <path d="M48 120 L96 76 L144 120 L144 176 L48 176 Z" fill="none" stroke="#b15043" stroke-width="6" stroke-linejoin="round"/>
-  <path d="M132 132 L172 100 L212 132 L212 176 L132 176 Z" fill="none" stroke="#273248" stroke-width="6" stroke-linejoin="round"/>
-  <text x="120" y="212" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="20" letter-spacing="1" fill="#273248">HomeHatch</text>
+  <rect width="240" height="240" rx="24" fill="#cb7858"/>
+  <!-- house outline — sustainable affordable housing -->
+  <path d="M120 52 L188 112 L188 176 L52 176 L52 112 Z" fill="none" stroke="#ffebd2" stroke-width="6" stroke-linejoin="round"/>
+  <!-- roof peak accent -->
+  <path d="M96 112 L120 88 L144 112" fill="none" stroke="#ffebd2" stroke-width="5" stroke-linejoin="round"/>
+  <!-- door -->
+  <rect x="104" y="140" width="32" height="36" rx="4" fill="none" stroke="#ffebd2" stroke-width="4"/>
+  <!-- window left -->
+  <rect x="64" y="124" width="28" height="24" rx="3" fill="none" stroke="#ffebd2" stroke-width="3.5"/>
+  <!-- window right -->
+  <rect x="148" y="124" width="28" height="24" rx="3" fill="none" stroke="#ffebd2" stroke-width="3.5"/>
+  <!-- small sprout at base — sustainable -->
+  <path d="M120 176 L120 190" stroke="#273248" stroke-width="3" stroke-linecap="round"/>
+  <path d="M120 186 C112 180 104 182 102 178 C108 172 118 176 120 180" fill="#273248" opacity="0.6"/>
+  <text x="120" y="218" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="19" letter-spacing="1" fill="#ffebd2">HomeHatch</text>
 </svg>

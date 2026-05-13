@@ -41,7 +41,6 @@ export class VaValueCard extends LitElement {
     }
     .card[data-zone='wont'] {
       border-left-color: rgba(39, 50, 72, 0.25);
-      opacity: 0.6;
     }
     :host([focusable]) .card:hover {
       transform: translateY(-2px);

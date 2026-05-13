@@ -214,7 +214,7 @@ export function reduce(rawSession: Session, action: Action): Session {
           actPausedAt: undefined,
           // only carry currentAuction into auction-style acts.
           currentAuction:
-            action.to === 'auction' || action.to === 'practice'
+            action.to === 'auction' || action.to === 'auction-2' || action.to === 'practice'
               ? session.currentAuction
               : undefined,
           practiceAuction,
@@ -538,7 +538,7 @@ export function reduce(rawSession: Session, action: Action): Session {
           ...session,
           brainstormResponses: [
             ...session.brainstormResponses,
-            { id: uid('br'), participantId: action.participantId, at: action.at, text },
+            { id: uid('br'), participantId: action.participantId, teamId: action.teamId, at: action.at, text },
           ],
           participants: session.participants.map((p) =>
             p.id === action.participantId ? { ...p, brainstormSubmitted: true } : p,

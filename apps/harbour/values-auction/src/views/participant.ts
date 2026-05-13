@@ -373,6 +373,7 @@ export class VaParticipant extends LitElement {
     this.dispatch({
       type: 'BRAINSTORM_SUBMIT',
       participantId: this.participantId,
+      teamId: this.team?.id ?? null,
       text: detail.text,
       at: Date.now(),
     });
@@ -569,7 +570,11 @@ export class VaParticipant extends LitElement {
     }
     .archetype[data-active] {
       border-color: var(--accent-emphasis);
+      background: rgba(224, 152, 120, 0.18);
       animation: va-spring-pulse var(--dur-base) var(--ease-spring);
+    }
+    .archetype[data-active] h3 {
+      color: var(--accent-emphasis);
     }
     .archetype h3 {
       font: var(--type-h2);
@@ -1092,10 +1097,11 @@ export class VaParticipant extends LitElement {
       <section class="fade-in">
         ${this.renderCountdown()}
         <va-brainstorm-wall
-          .responses=${visibleBrainstorm(this.session)}
+          .responses=${visibleBrainstorm(this.session, this.team?.id)}
           .submitted=${Boolean(me?.brainstormSubmitted)}
           .total=${totalParticipants(this.session)}
           .responded=${brainstormSubmittedCount(this.session)}
+          ?teamOnly=${Boolean(this.team?.id)}
           @va-brainstorm-submit=${this.submitBrainstorm}
         ></va-brainstorm-wall>
       </section>
@@ -1370,7 +1376,7 @@ export class VaParticipant extends LitElement {
     else if (act === 'brainstorm') body = this.renderBrainstorm();
     else if (act === 'strategy') body = this.renderStrategy();
     else if (act === 'practice') body = this.renderAuction(true);
-    else if (act === 'auction') body = this.renderAuction(false);
+    else if (act === 'auction' || act === 'auction-2') body = this.renderAuction(false);
     else if (act === 'restrategize') body = this.renderRestrategize();
     else if (act === 'reflection') body = this.renderReflection();
     else body = this.renderRegather();

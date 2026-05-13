@@ -1,15 +1,17 @@
 import { LitElement, css, html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { COPY } from '@/content/copy';
-import { POLL_AMOUNTS } from '@/state/types';
+import { STARTING_CREDOS } from '@/state/reducers';
 import { pollTally } from '@/state/selectors';
 import type { Team } from '@/state/types';
 
 /**
  * embedded team poll for a single value, used during team strategy and
- * restrategize. emits `va-poll-vote` with the selected amount.
+ * restrategize. each participant types a suggested bid amount. the captain
+ * sees all suggestions and locks a final number.
  *
- * also surfaces the captain's lock controls when `captain` is true.
+ * emits `va-poll-vote` with the typed amount and `va-bid-lock` / `va-bid-unlock`
+ * when the captain locks or unlocks the bid.
  */
 @customElement('va-poll-buttons')
 export class VaPollButtons extends LitElement {
@@ -17,6 +19,9 @@ export class VaPollButtons extends LitElement {
   @property({ type: String }) valueId = '';
   @property({ type: String }) participantId = '';
   @property({ type: Boolean }) captain = false;
+
+  @state() private draft = '';
+  @state() private lockDraft = '';
 
   static styles = css`
     :host {
@@ -34,103 +39,75 @@ export class VaPollButtons extends LitElement {
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: var(--space-1);
+    .input-row {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
     }
-    @media (min-width: 480px) {
-      .buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-2);
-      }
-    }
-    button.choice {
-      min-height: 48px;
-      padding: var(--space-2) 0;
-      border-radius: var(--radius-pill);
+    input[type='number'] {
+      width: 96px;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
       border: 2px solid var(--wv-seafoam);
       background: var(--bg-card);
       color: var(--fg);
-      font: var(--type-small);
-      font-weight: 700;
-      cursor: pointer;
-      line-height: 1.1;
-      text-align: center;
-      transition:
-        background var(--dur-base) var(--ease-out-quart),
-        color var(--dur-base) var(--ease-out-quart),
-        transform var(--dur-base) var(--ease-out-quart);
+      font: var(--type-body);
+      font-variant-numeric: tabular-nums;
+      -moz-appearance: textfield;
     }
-    @media (min-width: 480px) {
-      button.choice {
-        min-width: 64px;
-        padding: var(--space-2) var(--space-3);
-      }
+    input[type='number']::-webkit-inner-spin-button,
+    input[type='number']::-webkit-outer-spin-button {
+      -webkit-appearance: none;
     }
-    button.choice:hover {
-      transform: translateY(-1px);
-    }
-    button.choice:focus-visible {
-      transform: translateY(-1px);
+    input[type='number']:focus {
       outline: var(--focus-ring);
       outline-offset: var(--focus-ring-offset);
     }
-    button.choice[data-selected] {
-      background: var(--wv-seafoam);
-      color: var(--fg-inverse);
-    }
-    button.choice .label,
-    button.choice .amount {
-      display: block;
-    }
-    button.choice .amount {
-      font: var(--type-mono);
-      font-size: 11px;
-      opacity: 0.8;
-    }
-    @media (min-width: 480px) {
-      button.choice .label,
-      button.choice .amount {
-        display: inline;
-      }
-      button.choice .amount::before {
-        content: ' ';
-      }
-      button.choice .amount {
-        font-size: inherit;
-      }
-    }
-    .results {
-      margin-top: var(--space-2);
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-2);
-      align-items: center;
+    .unit {
       font: var(--type-small);
       color: var(--fg-muted);
     }
-    .results.consensus {
-      color: var(--accent-emphasis);
-      font-weight: 700;
+    .suggestions {
+      margin-top: var(--space-2);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
     }
-    .results .tag {
+    .suggestions-label {
+      font: var(--type-small);
+      color: var(--fg-muted);
+      width: 100%;
+    }
+    .tag {
       padding: 2px var(--space-2);
       border-radius: var(--radius-pill);
       background: rgba(39, 50, 72, 0.06);
+      font: var(--type-small);
+      color: var(--fg-muted);
     }
-    .results.consensus .tag {
-      background: rgba(177, 80, 67, 0.12);
+    .tag.mine {
+      background: rgba(95, 158, 160, 0.2);
+      color: var(--fg);
+      font-weight: 700;
     }
     .captain-row {
-      margin-top: var(--space-2);
+      margin-top: var(--space-3);
+      padding-top: var(--space-2);
+      border-top: 1px dashed rgba(39, 50, 72, 0.15);
       display: flex;
       gap: var(--space-2);
       align-items: center;
       flex-wrap: wrap;
     }
-    .captain-row button {
+    .captain-label {
+      font: var(--type-small);
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      width: 100%;
+    }
+    button.lock-btn {
       padding: var(--space-1) var(--space-3);
       border-radius: var(--radius-sm);
       border: 1.5px solid var(--wv-redwood);
@@ -139,20 +116,26 @@ export class VaPollButtons extends LitElement {
       font: var(--type-small);
       font-weight: 700;
       cursor: pointer;
+      transition: background var(--dur-base) var(--ease-out-quart);
     }
-    .captain-row button[data-locked] {
+    button.lock-btn[data-locked] {
       background: var(--wv-redwood);
       color: var(--fg-inverse);
     }
-    .captain-row .locked-tag {
+    button.lock-btn:focus-visible {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
+    .locked-tag {
       font: var(--type-small);
       color: var(--accent-emphasis);
       font-weight: 700;
     }
   `;
 
-  private vote(amount: number) {
+  private vote(raw: string) {
     if (!this.team || !this.participantId) return;
+    const amount = Math.max(0, Math.min(STARTING_CREDOS, parseInt(raw, 10) || 0));
     this.dispatchEvent(
       new CustomEvent('va-poll-vote', {
         detail: {
@@ -167,21 +150,9 @@ export class VaPollButtons extends LitElement {
     );
   }
 
-  private lockCurrent() {
+  private lockWithAmount(raw: string) {
     if (!this.team) return;
-    const lockedAt = this.team.lockedBids?.[this.valueId];
-    if (typeof lockedAt === 'number') {
-      this.dispatchEvent(
-        new CustomEvent('va-bid-unlock', {
-          detail: { teamId: this.team.id, valueId: this.valueId },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-      return;
-    }
-    const tally = pollTally(this.team, this.valueId);
-    const amount = tally.leadingAmount ?? 0;
+    const amount = Math.max(0, Math.min(STARTING_CREDOS, parseInt(raw, 10) || 0));
     this.dispatchEvent(
       new CustomEvent('va-bid-lock', {
         detail: { teamId: this.team.id, valueId: this.valueId, amount },
@@ -191,78 +162,124 @@ export class VaPollButtons extends LitElement {
     );
   }
 
+  private unlock() {
+    if (!this.team) return;
+    this.dispatchEvent(
+      new CustomEvent('va-bid-unlock', {
+        detail: { teamId: this.team.id, valueId: this.valueId },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
   render() {
     if (!this.team) return html``;
-    const labels = COPY.strategy.pollLabels;
     const votes = this.team.polls[this.valueId] ?? {};
     const myVote = votes[this.participantId];
-    const tally = pollTally(this.team, this.valueId);
     const lockedAt = this.team.lockedBids?.[this.valueId];
-    const hasConsensus = tally.leadingShare >= 0.6 && tally.total > 0;
+    const isLocked = typeof lockedAt === 'number';
+
+    // collect teammate suggestions (excluding self) for captain view
+    const allVotes = Object.entries(votes).filter(([pid]) => pid !== this.participantId);
+    const tally = pollTally(this.team, this.valueId);
+
     return html`
       <div class="prompt">${COPY.strategy.pollPrompt}</div>
-      <div class="buttons" role="radiogroup" aria-label=${COPY.strategy.pollPrompt}>
-        ${POLL_AMOUNTS.map(
-          (amount) => html`
-            <button
-              type="button"
-              class="choice"
-              role="radio"
-              aria-label=${`${labels[amount]}, ${amount} credos`}
-              aria-checked=${myVote === amount ? 'true' : 'false'}
-              data-selected=${myVote === amount ? true : null}
-              @click=${() => this.vote(amount)}
-            >
-              <span class="label">${labels[amount]}</span>
-              <span class="amount">${amount}</span>
-            </button>
-          `,
-        )}
+
+      <!-- participant input: their suggestion -->
+      <div class="input-row">
+        <input
+          type="number"
+          min="0"
+          max=${STARTING_CREDOS}
+          placeholder="0"
+          .value=${this.draft || (myVote != null ? String(myVote) : '')}
+          ?disabled=${isLocked && !this.captain}
+          aria-label="your bid suggestion in credos"
+          @input=${(e: Event) => {
+            this.draft = (e.target as HTMLInputElement).value;
+          }}
+          @change=${(e: Event) => {
+            const val = (e.target as HTMLInputElement).value;
+            this.draft = val;
+            this.vote(val);
+          }}
+          @blur=${(e: Event) => {
+            const val = (e.target as HTMLInputElement).value;
+            if (val) this.vote(val);
+          }}
+        />
+        <span class="unit">credos</span>
       </div>
-      <div
-        class=${`results${hasConsensus ? ' consensus' : ''}`}
-        aria-live="polite"
-      >
-        ${tally.total === 0
-          ? html`<span>no votes yet.</span>`
-          : Array.from(tally.tally.entries())
-              .sort((a, b) => b[1] - a[1])
-              .map(
-                ([amount, count]) =>
-                  html`<span class="tag">${count} × ${amount}</span>`,
+
+      <!-- show suggestions from other teammates -->
+      ${tally.total > 0
+        ? html`
+            <div class="suggestions">
+              <span class="suggestions-label">team suggestions</span>
+              ${myVote != null
+                ? html`<span class="tag mine">you: ${myVote}</span>`
+                : ''}
+              ${allVotes.map(
+                ([, amount]) => html`<span class="tag">${amount}</span>`,
               )}
-        ${hasConsensus && tally.leadingAmount !== null
-          ? html`<span>· ${COPY.strategy.leaning(tally.leadingAmount)}</span>`
-          : tally.total > 0
-            ? html`<span>· ${COPY.strategy.splitTeam}</span>`
-            : ''}
-      </div>
+            </div>
+          `
+        : ''}
+
+      <!-- captain controls -->
       ${this.captain
         ? html`
             <div class="captain-row">
-              <button
-                type="button"
-                data-locked=${typeof lockedAt === 'number' ? true : null}
-                @click=${() => this.lockCurrent()}
-                aria-label=${typeof lockedAt === 'number'
-                  ? COPY.strategy.unlockBid
-                  : COPY.strategy.lockBid}
-              >
-                ${typeof lockedAt === 'number'
-                  ? COPY.strategy.unlockBid
-                  : COPY.strategy.lockBid}
-              </button>
-              ${typeof lockedAt === 'number'
-                ? html`<span class="locked-tag"
-                    >${COPY.strategy.lockedAt(lockedAt)}</span
-                  >`
-                : ''}
+              <span class="captain-label">captain — lock final bid</span>
+              ${!isLocked
+                ? html`
+                    <input
+                      type="number"
+                      min="0"
+                      max=${STARTING_CREDOS}
+                      placeholder=${tally.leadingAmount != null
+                        ? String(tally.leadingAmount)
+                        : '0'}
+                      .value=${this.lockDraft}
+                      aria-label="final locked bid amount"
+                      @input=${(e: Event) => {
+                        this.lockDraft = (e.target as HTMLInputElement).value;
+                      }}
+                    />
+                    <span class="unit">credos</span>
+                    <button
+                      type="button"
+                      class="lock-btn"
+                      @click=${() => {
+                        const val = this.lockDraft || (tally.leadingAmount != null ? String(tally.leadingAmount) : '0');
+                        this.lockWithAmount(val);
+                        this.lockDraft = '';
+                      }}
+                    >
+                      ${COPY.strategy.lockBid}
+                    </button>
+                  `
+                : html`
+                    <span class="locked-tag">${COPY.strategy.lockedAt(lockedAt)}</span>
+                    <button
+                      type="button"
+                      class="lock-btn"
+                      data-locked
+                      @click=${() => this.unlock()}
+                    >
+                      ${COPY.strategy.unlockBid}
+                    </button>
+                  `}
             </div>
           `
-        : typeof lockedAt === 'number'
-          ? html`<div class="captain-row">
-              <span class="locked-tag">${COPY.strategy.lockedAt(lockedAt)}</span>
-            </div>`
+        : isLocked
+          ? html`
+              <div class="captain-row">
+                <span class="locked-tag">${COPY.strategy.lockedAt(lockedAt)}</span>
+              </div>
+            `
           : ''}
     `;
   }

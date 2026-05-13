@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="Care.ai logo">
-  <rect width="240" height="240" fill="#ffebd2"/>
-  <path d="M120 172 C60 132 60 72 96 72 C108 72 120 84 120 96 C120 84 132 72 144 72 C180 72 180 132 120 172 Z" fill="#b15043"/>
-  <circle cx="84" cy="96" r="6" fill="#273248"/>
-  <circle cx="156" cy="96" r="6" fill="#273248"/>
-  <circle cx="120" cy="128" r="6" fill="#273248"/>
-  <line x1="84" y1="96" x2="156" y2="96" stroke="#273248" stroke-width="2"/>
-  <line x1="84" y1="96" x2="120" y2="128" stroke="#273248" stroke-width="2"/>
-  <line x1="156" y1="96" x2="120" y2="128" stroke="#273248" stroke-width="2"/>
-  <text x="120" y="220" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">Care.ai</text>
+  <rect width="240" height="240" rx="24" fill="#b15043"/>
+  <!-- heart with circuit nodes — health tech + AI -->
+  <path d="M120 168 C60 128 52 72 88 64 C104 60 120 76 120 88 C120 76 136 60 152 64 C188 72 180 128 120 168 Z" fill="#ffebd2"/>
+  <!-- circuit nodes overlaid on heart -->
+  <circle cx="88" cy="100" r="6" fill="#273248"/>
+  <circle cx="120" cy="120" r="6" fill="#273248"/>
+  <circle cx="152" cy="100" r="6" fill="#273248"/>
+  <path d="M88 100 L120 120 L152 100" fill="none" stroke="#273248" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M88 100 L72 92 M152 100 L168 92" stroke="#273248" stroke-width="2" stroke-linecap="round"/>
+  <text x="120" y="210" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#ffebd2">Care.ai</text>
 </svg>
