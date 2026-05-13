@@ -1,13 +1,15 @@
 // open-next.config.ts — OpenNext for Cloudflare configuration
 // https://opennext.js.org/cloudflare
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
-import kvIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/kv-incremental-cache";
+import staticAssetsIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache";
 
-// KV-based incremental cache — stores ISR page renders in the KV namespace
-// bound as NEXT_INC_CACHE_KV (wv-site-next-cache, created 2026-05-13).
-// This enables revalidate = N to actually cache rendered pages across requests
-// rather than re-rendering on every request. First request cold (~30s Notion),
-// subsequent requests within revalidate window served from KV (~50ms).
+// Using static-assets cache for now. kvIncrementalCache requires wrangler to
+// be logged in during the build step (it pre-populates the KV namespace), which
+// is not compatible with the current local deploy workflow.
+//
+// TODO: switch to kvIncrementalCache once `wrangler login` is run locally, or
+// a CLOUDFLARE_API_TOKEN env var is wired into the deploy script.
+// KV namespace already created: wv-site-next-cache (NEXT_INC_CACHE_KV binding).
 export default defineCloudflareConfig({
-  incrementalCache: kvIncrementalCache,
+  incrementalCache: staticAssetsIncrementalCache,
 });
