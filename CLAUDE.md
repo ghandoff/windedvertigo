@@ -167,12 +167,14 @@ Durable instruction for every Claude Code remote session, on any device (desktop
 
 **Auth:** the remote session's local git proxy (e.g. `http://local_proxy@127.0.0.1:.../git/...`) authenticates to GitHub via the installed GitHub App. No PAT, no SSH, no `~/.git-credentials`. Do not rewrite `origin` to `https://github.com/...` — that breaks pushes here. The remote URL looking unusual is correct.
 
-**When Garrett says "push," "deploy," "ship," "live," or "make it live":**
+**When the user says "push," "deploy," "ship," "live," or "make it live":**
 1. Commit pending changes on the current session branch with a clear message
 2. `git push -u origin <branch>` (works without credentials thanks to the proxy)
 3. Open a PR to `main` via `mcp__github__create_pull_request` — short title, 1–3 bullet summary
-4. **Merge the PR immediately** via `mcp__github__merge_pull_request` (squash, default). Standing authorization — do not pause to confirm
-5. Wait 60–90s, then `curl -sI` (or fetch content from) the affected production URL and report what you saw
+4. **Identify the actor** via `mcp__github__get_me`:
+   - If `login` is `ghandoff` (Garrett) → squash-merge immediately via `mcp__github__merge_pull_request`. Standing authorization, no confirmation needed
+   - If `login` is any other collaborator (Maria, Payton, etc.) → **stop here.** Request `ghandoff` as reviewer on the PR, report the PR URL to the user, and tell them Garrett will review and merge. Do not self-merge under any circumstances — Garrett gates production merges for collaborators
+5. After merge (when applicable), wait 60–90s, then `curl -sI` (or fetch content from) the affected production URL and report what you saw
 6. If the merge or build fails, stop and explain. Never force-push, never retry-merge blindly, never bypass hooks
 
 **Never:** push directly to `main`, force-push, amend pushed commits, open the GitHub web UI (everything goes through `mcp__github__*` tools — that's the whole point of this setup).
