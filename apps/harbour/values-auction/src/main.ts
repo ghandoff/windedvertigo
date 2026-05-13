@@ -90,7 +90,13 @@ document.addEventListener('va-download-card', async (e: Event) => {
   if (!controller) return;
   const team = controller.store.getState().teams.find((t) => t.id === detail.teamId);
   if (!team) return;
-  await exportIdentityCard(team);
+  try {
+    await exportIdentityCard(team);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[va-download-card]', err);
+    alert('Download failed — try a different browser or take a screenshot instead.');
+  }
 });
 
 // global handler: auction timeout → end it (authoritative client only)

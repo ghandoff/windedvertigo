@@ -7,6 +7,7 @@ export type ActId =
   | 'practice'
   | 'auction'
   | 'restrategize'
+  | 'auction-2'
   | 'reflection'
   | 'regather';
 
@@ -122,6 +123,7 @@ export interface Auction {
 export interface BrainstormResponse {
   id: string;
   participantId: string;
+  teamId: string | null;
   at: number;
   text: string;
 }
@@ -187,7 +189,7 @@ export type Action =
   | { type: 'MUTE_TEAM'; teamId: string; muted: boolean }
   | { type: 'RESET_CURRENT_BID'; at: number }
   | { type: 'REFUND_CREDOS'; teamId: string; amount: number; at: number }
-  | { type: 'BRAINSTORM_SUBMIT'; participantId: string; text: string; at: number }
+  | { type: 'BRAINSTORM_SUBMIT'; participantId: string; teamId: string | null; text: string; at: number }
   | { type: 'BRAINSTORM_HIDE'; responseId: string }
   | { type: 'POLL_VOTE'; teamId: string; valueId: string; participantId: string; amount: number }
   | { type: 'BID_LOCK'; teamId: string; valueId: string; amount: number }

@@ -70,7 +70,8 @@ export class VaCompanyCard extends LitElement {
       gap: var(--space-2);
     }
     .won li {
-      background: var(--wv-champagne);
+      background: var(--wv-seafoam);
+      color: var(--wv-cadet);
       border: 1.5px solid var(--wv-seafoam);
       padding: var(--space-1) var(--space-3);
       border-radius: var(--radius-sm);

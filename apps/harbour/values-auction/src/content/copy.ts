@@ -27,7 +27,7 @@ export const COPY = {
       {
         step: '04',
         heading: 'these are the twenty values.',
-        body: 'read them now. you won’t see them again until the auction begins.',
+        body: 'read them now.',
         showValues: true,
       },
     ] as const,

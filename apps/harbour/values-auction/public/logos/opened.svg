@@ -1,7 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="OpenEd logo">
-  <rect width="240" height="240" fill="#ffebd2"/>
-  <circle cx="120" cy="72" r="22" fill="#cb7858"/>
-  <path d="M48 156 L120 132 L192 156 L192 188 L120 164 L48 188 Z" fill="none" stroke="#273248" stroke-width="6" stroke-linejoin="round"/>
-  <path d="M120 132 L120 164" stroke="#273248" stroke-width="4"/>
-  <text x="120" y="220" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">OpenEd</text>
+  <rect width="240" height="240" rx="24" fill="#5f9ea0"/>
+  <!-- open book with pages radiating upward — equity in education -->
+  <path d="M52 160 L52 88 L120 68 L188 88 L188 160" fill="none" stroke="#ffebd2" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M120 68 L120 160" stroke="#ffebd2" stroke-width="5" stroke-linecap="round"/>
+  <path d="M52 160 L120 172 L188 160" fill="none" stroke="#ffebd2" stroke-width="5" stroke-linejoin="round"/>
+  <!-- text lines on left page -->
+  <path d="M66 106 L110 98 M66 120 L110 114 M66 134 L110 129" stroke="#273248" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <!-- text lines on right page -->
+  <path d="M130 98 L174 106 M130 114 L174 120 M130 129 L174 134" stroke="#273248" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <!-- small dot / spark above for digital equity -->
+  <circle cx="120" cy="52" r="7" fill="#ffebd2"/>
+  <text x="120" y="210" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="21" letter-spacing="2" fill="#273248">OpenEd</text>
 </svg>

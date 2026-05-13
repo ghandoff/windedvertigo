@@ -17,6 +17,8 @@ export class VaBrainstormWall extends LitElement {
   @property({ type: Boolean }) submitted = false;
   @property({ type: Number }) total = 0;
   @property({ type: Number }) responded = 0;
+  /** when true, the feed only shows same-team responses */
+  @property({ type: Boolean }) teamOnly = false;
 
   @state() private draft = '';
   @state() private pending = false;
@@ -190,7 +192,7 @@ export class VaBrainstormWall extends LitElement {
         </section>
         <section class="feed" aria-live="polite">
           <div class="meta">
-            <h3>${COPY.brainstorm.feedHeading}</h3>
+            <h3>${this.teamOnly ? 'your team, so far' : COPY.brainstorm.feedHeading}</h3>
             <span class="counter"
               >${COPY.brainstorm.counter(this.responded, this.total)}</span
             >

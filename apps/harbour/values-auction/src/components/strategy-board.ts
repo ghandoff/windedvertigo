@@ -48,20 +48,40 @@ export class VaStrategyBoard extends LitElement {
       color: var(--accent-emphasis);
       font-weight: 700;
     }
+    /* mobile-first: priority zones (must/nice) top, secondary (wont/deck) below */
     .board {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .priority-zones {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: var(--space-3);
     }
     @media (min-width: 640px) {
-      .board {
-        grid-template-columns: 1fr 1fr;
+      .priority-zones {
+        gap: var(--space-4);
+      }
+    }
+    .secondary-zones {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+    @media (min-width: 640px) {
+      .secondary-zones {
         gap: var(--space-4);
       }
     }
     @media (min-width: 1024px) {
       .board {
-        grid-template-columns: repeat(4, 1fr);
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .priority-zones,
+      .secondary-zones {
+        grid-template-columns: 1fr 1fr;
       }
     }
     .zone {
@@ -69,7 +89,7 @@ export class VaStrategyBoard extends LitElement {
       border: 2px dashed rgba(39, 50, 72, 0.25);
       border-radius: var(--radius-md);
       padding: var(--space-3);
-      min-height: 200px;
+      min-height: 120px;
       transition:
         border-color var(--dur-base) var(--ease-out-quart),
         background var(--dur-base) var(--ease-out-quart);
@@ -77,29 +97,28 @@ export class VaStrategyBoard extends LitElement {
     @media (min-width: 640px) {
       .zone {
         padding: var(--space-4);
-        min-height: 240px;
+        min-height: 200px;
       }
     }
-    /*
-     * narrow viewports: collapse "won't" + "deck" into a single details
-     * disclosure so the must/nice zones stay above the fold. participants
-     * still get the full board on tablet+ devices.
-     */
-    @media (max-width: 639px) {
-      .zone[data-zone='wont'],
-      .zone[data-zone='deck'] {
-        min-height: 0;
-        padding: var(--space-2) var(--space-3);
-      }
-      .zone[data-zone='wont'] ul,
-      .zone[data-zone='deck'] ul {
-        gap: var(--space-2);
+    /* secondary zones are compact on mobile */
+    .secondary-zones .zone {
+      min-height: 80px;
+    }
+    @media (min-width: 640px) {
+      .secondary-zones .zone {
+        min-height: 140px;
       }
     }
     .zone h3 {
       font: var(--type-h2);
-      margin-bottom: var(--space-3);
+      margin-bottom: var(--space-2);
       text-transform: lowercase;
+    }
+    @media (max-width: 479px) {
+      .zone h3 {
+        font-size: 16px;
+        margin-bottom: var(--space-2);
+      }
     }
     .zone[data-zone='must'] {
       border-color: var(--accent-emphasis);
@@ -114,7 +133,12 @@ export class VaStrategyBoard extends LitElement {
     .zone ul {
       display: flex;
       flex-direction: column;
-      gap: var(--space-3);
+      gap: var(--space-2);
+    }
+    @media (min-width: 640px) {
+      .zone ul {
+        gap: var(--space-3);
+      }
     }
     .zone li {
       cursor: grab;
@@ -227,6 +251,61 @@ export class VaStrategyBoard extends LitElement {
     this.setZone(valueId, zone === 'deck' ? null : zone);
   }
 
+  private renderZone(
+    zone: Zone,
+    inScope: ReturnType<typeof this.valuesInScope>,
+    labels: Record<Zone, string>,
+    captain: boolean,
+  ) {
+    return html`
+      <section
+        class="zone"
+        data-zone=${zone}
+        data-drag-over=${this.dragOverZone === zone ? true : null}
+        aria-label=${labels[zone]}
+        @dragover=${(e: DragEvent) => this.onDragOver(e, zone)}
+        @dragenter=${(e: DragEvent) => this.onDragOver(e, zone)}
+        @dragleave=${(e: DragEvent) => this.onDragLeave(e, zone)}
+        @drop=${(e: DragEvent) => this.onDrop(e, zone)}
+      >
+        <h3>${labels[zone]}</h3>
+        <ul>
+          ${inScope
+            .filter((v) => this.zoneForValue(v.id) === zone)
+            .map(
+              (v) => html`
+                <li
+                  tabindex="0"
+                  draggable="true"
+                  data-dragging=${this.draggingValueId === v.id ? true : null}
+                  @dragstart=${(e: DragEvent) => this.onDragStart(e, v.id)}
+                  @dragend=${() => this.onDragEnd()}
+                  @keydown=${(e: KeyboardEvent) => this.onKey(e, v.id)}
+                  @focus=${() => (this.focusedValueId = v.id)}
+                  aria-label=${`${v.name}. in ${labels[zone]}. drag to move, or press M, N, W, or D.`}
+                >
+                  <va-value-card
+                    .value=${v}
+                    .zone=${zone === 'deck' ? 'deck' : zone}
+                  ></va-value-card>
+                  ${zone === 'must' || zone === 'nice'
+                    ? html`
+                        <va-poll-buttons
+                          .team=${this.team}
+                          .valueId=${v.id}
+                          .participantId=${this.participantId}
+                          ?captain=${captain}
+                        ></va-poll-buttons>
+                      `
+                    : ''}
+                </li>
+              `,
+            )}
+        </ul>
+      </section>
+    `;
+  }
+
   render() {
     const zones: Zone[] = ['deck', 'must', 'nice', 'wont'];
     const labels: Record<Zone, string> = {
@@ -251,55 +330,12 @@ export class VaStrategyBoard extends LitElement {
           `
         : ''}
       <div class="board">
-        ${zones.map(
-          (zone) => html`
-            <section
-              class="zone"
-              data-zone=${zone}
-              data-drag-over=${this.dragOverZone === zone ? true : null}
-              aria-label=${labels[zone]}
-              @dragover=${(e: DragEvent) => this.onDragOver(e, zone)}
-              @dragenter=${(e: DragEvent) => this.onDragOver(e, zone)}
-              @dragleave=${(e: DragEvent) => this.onDragLeave(e, zone)}
-              @drop=${(e: DragEvent) => this.onDrop(e, zone)}
-            >
-              <h3>${labels[zone]}</h3>
-              <ul>
-                ${inScope
-                  .filter((v) => this.zoneForValue(v.id) === zone)
-                  .map(
-                    (v) => html`
-                      <li
-                        tabindex="0"
-                        draggable="true"
-                        data-dragging=${this.draggingValueId === v.id ? true : null}
-                        @dragstart=${(e: DragEvent) => this.onDragStart(e, v.id)}
-                        @dragend=${() => this.onDragEnd()}
-                        @keydown=${(e: KeyboardEvent) => this.onKey(e, v.id)}
-                        @focus=${() => (this.focusedValueId = v.id)}
-                        aria-label=${`${v.name}. in ${labels[zone]}. drag to move, or press M, N, W, or D.`}
-                      >
-                        <va-value-card
-                          .value=${v}
-                          .zone=${zone === 'deck' ? 'deck' : zone}
-                        ></va-value-card>
-                        ${zone === 'must' || zone === 'nice'
-                          ? html`
-                              <va-poll-buttons
-                                .team=${this.team}
-                                .valueId=${v.id}
-                                .participantId=${this.participantId}
-                                ?captain=${captain}
-                              ></va-poll-buttons>
-                            `
-                          : ''}
-                      </li>
-                    `,
-                  )}
-              </ul>
-            </section>
-          `,
-        )}
+        <div class="priority-zones">
+          ${(['must', 'nice'] as Zone[]).map((zone) => this.renderZone(zone, inScope, labels, captain))}
+        </div>
+        <div class="secondary-zones">
+          ${(['deck', 'wont'] as Zone[]).map((zone) => this.renderZone(zone, inScope, labels, captain))}
+        </div>
       </div>
       <p class="keyboard-hint" aria-label=${COPY.strategy.keyboardHint}>
         keyboard:
