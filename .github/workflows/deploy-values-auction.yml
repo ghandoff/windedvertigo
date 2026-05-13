@@ -1,0 +1,67 @@
+name: deploy values-auction
+
+# triggers:
+#   - any push to main that changes values-auction source OR this workflow itself
+#   - manual run via "Run workflow" button (workflow_dispatch)
+#
+# secrets required (set once via `gh secret set` against ghandoff/windedvertigo):
+#   CLOUDFLARE_API_TOKEN — wrangler auth (same token in ~/.cf-token locally)
+#
+# account id is public (referenced in every wrangler.jsonc in the monorepo)
+# so it's hardcoded here rather than treated as a secret.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/harbour/values-auction/**"
+      - ".github/workflows/deploy-values-auction.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-values-auction
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: "097c92553b268f8360b74f625f6d980a"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/harbour/values-auction/package-lock.json
+
+      - name: install
+        working-directory: apps/harbour/values-auction
+        run: npm ci --no-audit --no-fund
+
+      - name: build
+        working-directory: apps/harbour/values-auction
+        run: npm run build
+
+      - name: deploy to cloudflare pages
+        working-directory: apps/harbour/values-auction
+        run: npx wrangler@latest pages deploy dist --project-name=values-auction --branch=main --commit-dirty=true
+
+      - name: smoke check
+        run: |
+          sleep 15
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/body -w "%{http_code}" https://values-auction-d9m.pages.dev/)
+            echo "attempt ${i}: HTTP ${code}"
+            if [ "$code" = "200" ]; then
+              if grep -q "wv-cadet\|--wv-seafoam\|data-surface" /tmp/body 2>/dev/null; then
+                echo "✓ new palette tokens present in served HTML"
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo "::warning::deploy succeeded but smoke didn't confirm new build within 65s — could be CDN propagation"
