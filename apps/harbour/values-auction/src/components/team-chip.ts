@@ -101,15 +101,6 @@ export class VaTeamChip extends LitElement {
       color: var(--fg-muted);
       font: var(--type-small);
     }
-    @media (max-width: 639px) {
-      button.chip {
-        padding: 4px var(--space-2);
-        font-size: 11px;
-      }
-      .captain-mark {
-        display: none;
-      }
-    }
   `;
 
   private toggle() {

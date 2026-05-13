@@ -6,7 +6,6 @@ export const COPY = {
     joinButton: 'join',
     waitingForFacilitator: 'we’re waiting for the facilitator to start. stretch a little.',
     codeLabel: 'session code',
-    hint: 'your name is all you need. the facilitator will kick things off.',
   },
   staging: {
     panels: [
@@ -58,7 +57,6 @@ export const COPY = {
     teamRosterHeading: 'your team',
     teamRosterEmpty: 'you’re first in. teammates will show up here as they arrive.',
     teamChipHint: 'tap your team chip in the header any time to see who’s with you.',
-    hint: 'pick the archetype that feels least like you — that’s how teams form.',
   },
   scene: {
     ready: 'i’ve read it. ready.',
@@ -67,7 +65,6 @@ export const COPY = {
     valuesHeading: 'the twenty values',
     valuesIntro:
       'these are the values that will come up for auction. read them with your team and decide which matter most for your company before bidding starts.',
-    hint: 'read your company profile and the value list. you’ll bid on these shortly.',
   },
   strategy: {
     prompt:
@@ -111,7 +108,6 @@ export const COPY = {
     plannedSpend: (planned: number, budget: number) =>
       `planned spend: ${planned} / ${budget} credos.`,
     plannedSpendOver: 'adjust before the auction starts.',
-    hint: 'sort values, vote on amounts. your captain locks the final bid.',
   },
   brainstorm: {
     heading: 'before the values are revealed.',
@@ -125,7 +121,6 @@ export const COPY = {
     facilitatorHide: 'hide',
     facilitatorHideConfirm: 'hide this response from the wall?',
     wallHeading: 'what should our companies prioritize?',
-    hint: 'one answer, anonymous. read the wall while you wait.',
   },
   practice: {
     label: 'practice round',
@@ -142,7 +137,6 @@ export const COPY = {
       'no bids came in. when the real auction opens, your team’s pre-agreed amount will auto-submit at the buzzer — so silence still places a bid.',
     startCta: 'start practice round',
     endCta: 'end practice and start real auction',
-    hint: 'dry run. same mechanic, no real credits at stake.',
   },
   restrategize: {
     heading: 'half-time. regroup.',
@@ -156,7 +150,6 @@ export const COPY = {
     notYetAuctioned: 'still coming',
     resumeCta: 'resume auction',
     facilitatorTriggerCta: 'trigger restrategize break',
-    hint: 'see what others paid. update your votes before the auction resumes.',
   },
   auction: {
     live: 'live now.',
@@ -176,7 +169,6 @@ export const COPY = {
       'another team beat your bid. you can bid again if you want to stay in.',
     outOfCredos:
       'your credos are spent for this round. you can still watch and brief your team for the next one.',
-    hint: 'watch for your value. your captain bids — be ready to advise.',
   },
   reflection: {
     prompts: [
@@ -195,13 +187,11 @@ export const COPY = {
       'your answers are saved with your identity card. wait for the facilitator to regather the room.',
     editAnswers: 'edit answers',
     ready: 'your identity card is ready. open it, share it, screenshot it.',
-    hint: 'four questions, then one sentence about what your company exists to do.',
   },
   regather: {
     cta: 'share your identity card.',
     qr: 'scan to keep playing — windedvertigo.com/play',
     download: 'download identity card',
-    hint: 'your identity card is the artifact of everything your team chose.',
   },
   facilitator: {
     startSession: 'start session',

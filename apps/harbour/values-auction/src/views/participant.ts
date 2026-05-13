@@ -649,14 +649,6 @@ export class VaParticipant extends LitElement {
       font: var(--type-small);
       margin: 0;
     }
-    .act-hint {
-      font: var(--type-small);
-      color: var(--fg-muted);
-      padding: var(--space-2) var(--space-3);
-      border-left: 3px solid var(--accent-on-bg);
-      margin: 0 0 var(--space-4);
-      line-height: 1.5;
-    }
     .auction-stage {
       text-align: center;
       padding: var(--space-5);
@@ -858,10 +850,6 @@ export class VaParticipant extends LitElement {
     }
   `;
 
-  private renderHint(text: string) {
-    return html`<p class="act-hint">${text}</p>`;
-  }
-
   private renderArrival() {
     if (!this.welcomed && !this.joined) {
       return html`
@@ -876,7 +864,6 @@ export class VaParticipant extends LitElement {
             <li>bid for values in real time</li>
             <li>write your company’s purpose</li>
           </ul>
-          ${this.renderHint(COPY.arrival.hint)}
           <p class="session-tag">session <strong>${this.code}</strong></p>
           <va-button
             variant="primary"
@@ -985,7 +972,6 @@ export class VaParticipant extends LitElement {
         <p style="color: var(--fg-muted); margin-bottom: var(--space-4); border-left: 3px solid var(--wv-seafoam); padding-left: var(--space-3);">
           ${COPY.grouping.why}
         </p>
-        ${this.renderHint(COPY.grouping.hint)}
         <div class="archetypes" role="radiogroup" aria-label="archetype choice">
           ${COPY.grouping.options.map(
             (opt) => html`
@@ -1069,7 +1055,6 @@ export class VaParticipant extends LitElement {
     return html`
       <section class="fade-in">
         ${this.renderCountdown()}
-        ${this.renderHint(COPY.scene.hint)}
         <va-company-card .team=${this.team}></va-company-card>
         <div class="sector">
           <h2>${COPY.scene.valuesHeading}</h2>
@@ -1106,7 +1091,6 @@ export class VaParticipant extends LitElement {
     return html`
       <section class="fade-in">
         ${this.renderCountdown()}
-        ${this.renderHint(COPY.brainstorm.hint)}
         <va-brainstorm-wall
           .responses=${visibleBrainstorm(this.session)}
           .submitted=${Boolean(me?.brainstormSubmitted)}
@@ -1124,7 +1108,6 @@ export class VaParticipant extends LitElement {
     return html`
       <section class="fade-in">
         ${this.renderCountdown()}
-        ${this.renderHint(COPY.strategy.hint)}
         <va-captain-banner
           .team=${this.team}
           .teammates=${teammates}
@@ -1158,7 +1141,6 @@ export class VaParticipant extends LitElement {
             ${COPY.restrategize.body}
           </p>
         </header>
-        ${this.renderHint(COPY.restrategize.hint)}
         <va-results-panel
           .team=${this.team}
           .session=${this.session}
@@ -1197,7 +1179,6 @@ export class VaParticipant extends LitElement {
         ${practice
           ? html`<span class="practice-badge">${COPY.practice.badge}</span>`
           : ''}
-        ${this.renderHint(practice ? COPY.practice.hint : COPY.auction.hint)}
         <va-value-card .value=${v} zone="must" large></va-value-card>
         <div style="margin-top: var(--space-4)">
           <va-countdown
@@ -1271,7 +1252,6 @@ export class VaParticipant extends LitElement {
     }
     return html`
       <section class="reflection fade-in">
-        ${this.renderHint(COPY.reflection.hint)}
         <va-company-card .team=${this.team} showWon></va-company-card>
         ${prompts.map((prompt, idx) => {
           const id = `reflection-${idx}`;
@@ -1322,7 +1302,6 @@ export class VaParticipant extends LitElement {
     if (!this.team) return html``;
     return html`
       <section class="fade-in">
-        ${this.renderHint(COPY.regather.hint)}
         <va-identity-card .team=${this.team}></va-identity-card>
         <div class="sector">
           <va-button
