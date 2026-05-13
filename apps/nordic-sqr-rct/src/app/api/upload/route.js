@@ -54,41 +54,23 @@ export async function POST(request) {
       const { env } = await getCloudflareContext({ async: true });
       const bucket = env.NORDIC_ASSETS;
 
-      if (bucket) {
-        // Delete old R2 object if the previous URL pointed to R2.
-        const oldUrl = formData.get('oldUrl');
-        if (oldUrl && typeof oldUrl === 'string' && oldUrl.includes('/api/r2/profiles/')) {
-          try {
-            const key = oldUrl.replace(/^.*\/api\/r2\//, '');
-            await bucket.delete(key);
-          } catch {
-            // Old object may not exist — ignore
-          }
-        }
-
-        await bucket.put(filename, file, {
-          httpMetadata: { contentType: file.type },
-        });
-        url = `${NORDIC_URL}/api/r2/${filename}`;
-      } else {
-        // Local dev fallback: Vercel Blob
-        console.warn('[upload] NORDIC_ASSETS not available — falling back to Vercel Blob');
-
-        const oldUrl = formData.get('oldUrl');
-        if (oldUrl && typeof oldUrl === 'string' && oldUrl.includes('.vercel-storage.com')) {
-          try {
-            const { del } = await import('@vercel/blob');
-            await del(oldUrl);
-          } catch { /* ignore */ }
-        }
-
-        const { put } = await import('@vercel/blob');
-        const blob = await put(filename, file, {
-          access: 'public',
-          addRandomSuffix: false, // already added above
-        });
-        url = blob.url;
+      if (!bucket) {
+        throw new Error('NORDIC_ASSETS R2 binding required (Vercel Blob fallback removed post-migration)');
       }
+      const oldUrl = formData.get('oldUrl');
+      if (oldUrl && typeof oldUrl === 'string' && oldUrl.includes('/api/r2/profiles/')) {
+        try {
+          const key = oldUrl.replace(/^.*\/api\/r2\//, '');
+          await bucket.delete(key);
+        } catch {
+          // Old object may not exist — ignore
+        }
+      }
+
+      await bucket.put(filename, file, {
+        httpMetadata: { contentType: file.type },
+      });
+      url = `${NORDIC_URL}/api/r2/${filename}`;
     } catch (err) {
       console.error('[upload] storage write failed:', err);
       return NextResponse.json({ error: 'Upload failed' }, { status: 502 });
