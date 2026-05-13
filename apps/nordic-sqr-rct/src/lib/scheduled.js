@@ -1,17 +1,21 @@
 /**
  * CF Workers cron router for nordic-sqr-rct.
  *
- * Mirrors vercel.json's crons array. CF Workers fires scheduled() once per
- * trigger expression, so expressions shared by multiple routes (e.g. the
- * every-2-minute cron shared by process-imports AND drift-sync) are stored
- * as arrays and fanned out in parallel.
+ * Mirrors the original vercel.json crons array. CF Workers fires scheduled()
+ * once per trigger expression, so expressions shared by multiple routes (e.g.
+ * the every-2-minute cron shared by process-imports AND drift-sync) are
+ * stored as arrays and fanned out in parallel.
  *
- * Self-request pattern: each cron tick fires a GET to the existing Next.js
- * route handlers (which stay unchanged). The CRON_SECRET bearer token gates
- * all handlers — same as on Vercel.
+ * Self-request pattern via env.SELF: each cron tick invokes the worker's
+ * own fetch() handler through the SELF service binding (see wrangler.jsonc).
+ * Previously this called fetch('https://nordic.windedvertigo.com/...'), but
+ * CF Workers 522s on custom-domain self-loops — the request gets routed
+ * back through the edge and times out before the worker can respond. The
+ * service binding skips the edge entirely. The CRON_SECRET bearer token
+ * still gates all handlers — same as on Vercel.
  *
- * See: apps/nordic-sqr-rct/wrangler.jsonc (triggers.crons) for the trigger
- * expressions registered with CF. Must stay in sync with this map.
+ * See: apps/nordic-sqr-rct/wrangler.jsonc (triggers.crons + services.SELF)
+ * for the trigger expressions and binding. Must stay in sync with this map.
  */
 
 // Values can be a single path string OR an array of paths for the same schedule.
@@ -25,14 +29,16 @@ const ROUTES = {
 };
 
 /**
- * Fire a single GET to a cron route, authenticated with CRON_SECRET.
- * @param {string} base — base URL (NORDIC_URL env var)
+ * Fire a single GET to a cron route via the SELF service binding,
+ * authenticated with CRON_SECRET. The hostname in the URL is ignored —
+ * env.SELF.fetch routes by path directly into the worker's fetch() handler.
+ * @param {Fetcher} self — env.SELF service binding
  * @param {string} secret — CRON_SECRET value
  * @param {string} path — e.g. '/api/cron/drift-sync'
  */
-async function fireCronRoute(base, secret, path) {
+async function fireCronRoute(self, secret, path) {
   try {
-    const resp = await fetch(`${base}${path}`, {
+    const resp = await self.fetch(`https://internal${path}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${secret}` },
     });
@@ -59,19 +65,21 @@ export async function scheduled(controller, env, ctx) {
     return;
   }
 
-  const base = env.NORDIC_URL || 'https://nordic.windedvertigo.com';
   const secret = env.CRON_SECRET;
-
   if (!secret) {
     console.error('[scheduled] CRON_SECRET not set — aborting', { cron: controller.cron });
+    return;
+  }
+
+  if (!env.SELF) {
+    console.error('[scheduled] SELF service binding missing — aborting', { cron: controller.cron });
     return;
   }
 
   const paths = Array.isArray(entry) ? entry : [entry];
   console.log('[scheduled] firing', { cron: controller.cron, paths });
 
-  // Fan out all paths in parallel; ctx.waitUntil keeps the worker alive until done.
   ctx.waitUntil(
-    Promise.all(paths.map((path) => fireCronRoute(base, secret, path))),
+    Promise.all(paths.map((path) => fireCronRoute(env.SELF, secret, path))),
   );
 }
