@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { COLLABORATORS } from "@/lib/collaborators";
+import { useAnimations } from "@/lib/animation-context";
 
 /**
  * #11 — Gravitational Swarm (v4)
@@ -56,11 +57,18 @@ export function CollabGravity() {
   const wanderRng    = useRef(seededRandom(77));
   const [paused, setPaused]             = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const { paused: globalPaused } = useAnimations();
   const [size, setSize]                 = useState({ w: 0, h: 0 });
 
   const togglePause = useCallback(() => {
-    setPaused(p => { isPausedRef.current = !p; return !p; });
+    setPaused((p) => !p);
   }, []);
+
+  // Sync isPausedRef with either the local button OR the global kill switch.
+  // isPausedRef is read inside the rAF loop without triggering re-renders.
+  useEffect(() => {
+    isPausedRef.current = paused || globalPaused;
+  }, [paused, globalPaused]);
 
   /* ── reduced-motion ──────────────────────────────────────────── */
   useEffect(() => {

@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import { TrackPageView } from "@/components/track-page-view";
 import { HelloBeacon } from "@/components/hello-beacon";
+import { AnimationProvider } from "@/lib/animation-context";
+import { SitStillButton } from "@/components/sit-still-button";
 import "./globals.css";
 
 const inter = Inter({
@@ -85,12 +87,15 @@ export default function RootLayout({
         </Script>
       </head>
       <body>
-        <a href="#main-content" className="skip-link">
-          skip to main content
-        </a>
-        {children}
-        <HelloBeacon />
-        <TrackPageView />
+        <AnimationProvider>
+          <a href="#main-content" className="skip-link">
+            skip to main content
+          </a>
+          {children}
+          <HelloBeacon />
+          <SitStillButton />
+          <TrackPageView />
+        </AnimationProvider>
       </body>
     </html>
   );
