@@ -1,11 +1,17 @@
 name: deploy values-auction
-# retrigger after CLOUDFLARE_API_TOKEN was set
 
 # triggers:
-#   - any push to main that changes values-auction source OR this workflow itself
+#   - push to main that changes values-auction source OR this workflow itself
+#       → runs install + build only (verification, not deploy)
 #   - manual run via "Run workflow" button (workflow_dispatch)
+#       → runs install + build + deploy + smoke check
 #
-# secrets required (set once via `gh secret set` against ghandoff/windedvertigo):
+# why split: the CLOUDFLARE_API_TOKEN secret has been stale since 2026-05.
+# automated deploy on every merge would fail at the auth step and produce
+# misleading red checks. while we keep the token unrotated, deploys happen
+# locally via `npm run deploy:spa` from apps/harbour/values-auction/.
+#
+# secrets needed for workflow_dispatch path:
 #   CLOUDFLARE_API_TOKEN — wrangler auth (same token in ~/.cf-token locally)
 #
 # account id is public (referenced in every wrangler.jsonc in the monorepo)
@@ -47,10 +53,12 @@ jobs:
         run: npm run build
 
       - name: deploy to cloudflare pages
+        if: github.event_name == 'workflow_dispatch'
         working-directory: apps/harbour/values-auction
         run: npx wrangler@latest pages deploy dist --project-name=values-auction --branch=main --commit-dirty=true
 
       - name: smoke check
+        if: github.event_name == 'workflow_dispatch'
         run: |
           sleep 15
           for i in 1 2 3 4 5; do
