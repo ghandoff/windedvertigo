@@ -1106,7 +1106,7 @@ export class VaFacilitator extends LitElement {
                         ${COPY.practice.startCta}
                       </va-button>`}
               `
-            : s.currentAct === 'auction'
+            : s.currentAct === 'auction' || s.currentAct === 'auction-2'
               ? html`
                   <h2>${COPY.facilitator.deckLabel}</h2>
                   ${s.currentAuction

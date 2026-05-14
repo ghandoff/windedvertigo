@@ -85,7 +85,7 @@ export class VaStrategyBoard extends LitElement {
       }
     }
     .zone {
-      background: rgba(255, 255, 255, 0.55);
+      background: var(--bg-card);
       border: 2px dashed rgba(39, 50, 72, 0.25);
       border-radius: var(--radius-md);
       padding: var(--space-3);
@@ -128,7 +128,7 @@ export class VaStrategyBoard extends LitElement {
     }
     .zone[data-drag-over] {
       border-style: solid;
-      background: rgba(255, 235, 210, 0.6);
+      background: var(--bg-spotlight);
     }
     .zone ul {
       display: flex;
