@@ -105,7 +105,13 @@ export class VaParticipant extends LitElement {
       this.joined = this.session?.participants.some((p) => p.id === this.participantId) ?? false;
     }
     this.staged = localStorage.getItem(`va:staged:${this.code}`) === '1';
-    // heartbeat so the captain-disconnect watcher can detect dropouts.
+    // heartbeat so the captain-disconnect watcher (main.ts) can detect
+    // dropouts. interval was 20s — at 250 users that's ~12.5 actions/sec
+    // of base traffic, each fanned out as a full-state broadcast by the
+    // facilitator. raised to 4 minutes; CAPTAIN_GRACE_MS in main.ts is
+    // 6 minutes so a captain has to miss two beats before being auto-
+    // transferred. real disconnect detection moves to Worker-level
+    // WebSocket close events in a later pass.
     this.heartbeatTimer = setInterval(() => {
       if (!this.joined) return;
       this.dispatch({
@@ -113,7 +119,7 @@ export class VaParticipant extends LitElement {
         participantId: this.participantId,
         at: Date.now(),
       });
-    }, 20_000);
+    }, 240_000);
   }
 
   private adoptPreviewIdentity() {
