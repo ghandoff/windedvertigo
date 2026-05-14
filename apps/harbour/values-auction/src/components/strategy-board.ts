@@ -145,7 +145,6 @@ export class VaStrategyBoard extends LitElement {
       list-style: none;
     }
     .zone li[data-dragging] {
-      opacity: 0.4;
       cursor: grabbing;
     }
     .zone li:focus-visible {
