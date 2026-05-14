@@ -564,6 +564,11 @@ const nextConfig: NextConfig = {
         destination: "/tools/writers-room/index.html",
         permanent: false,
       },
+      {
+        source: "/tools/values-companion",
+        destination: "/tools/values-companion/index.html",
+        permanent: false,
+      },
       // conference experience — redirect to static HTML in public/
       {
         source: "/portfolio/assets/pedal-conference-experience",
