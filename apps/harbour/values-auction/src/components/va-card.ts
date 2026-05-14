@@ -4,6 +4,7 @@ import { customElement, property } from 'lit/decorators.js';
 @customElement('va-card')
 export class VaCard extends LitElement {
   @property({ type: Boolean, reflect: true }) interactive = false;
+  @property({ type: Boolean, reflect: true }) active = false;
   @property({ type: String }) tone: 'paper' | 'deep' | 'warm' = 'paper';
 
   static styles = css`
@@ -16,7 +17,8 @@ export class VaCard extends LitElement {
       box-shadow: var(--shadow-card);
       transition:
         transform var(--dur-base) var(--ease-out-quart),
-        box-shadow var(--dur-base) var(--ease-out-quart);
+        box-shadow var(--dur-base) var(--ease-out-quart),
+        background var(--dur-base) var(--ease-out-quart);
     }
     :host([tone='deep']) {
       background: var(--bg-deep);
@@ -26,10 +28,19 @@ export class VaCard extends LitElement {
       background: var(--accent-warm);
       color: var(--fg-inverse);
     }
+    :host([active]) {
+      background: var(--accent-emphasis);
+      color: var(--wv-cadet);
+    }
     :host([interactive]:hover),
     :host([interactive]:focus-within) {
       transform: translateY(-2px);
       box-shadow: var(--shadow-card-lifted);
+    }
+    :host([active][interactive]:hover),
+    :host([active][interactive]:focus-within) {
+      background: var(--accent-emphasis);
+      transform: none;
     }
   `;
 

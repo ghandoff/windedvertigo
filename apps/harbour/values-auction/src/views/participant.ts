@@ -568,21 +568,9 @@ export class VaParticipant extends LitElement {
       border-color: var(--wv-seafoam);
       transform: translateY(-2px);
     }
-    .archetype[data-active] {
+    .archetype[active] {
       border-color: var(--accent-emphasis);
-      background: var(--accent-emphasis);
-      color: var(--wv-cadet);
       animation: va-spring-pulse var(--dur-base) var(--ease-spring);
-    }
-    .archetype[data-active]:hover,
-    .archetype[data-active]:focus-visible {
-      border-color: var(--accent-emphasis);
-      background: var(--accent-emphasis);
-      color: var(--wv-cadet);
-      transform: none;
-    }
-    .archetype[data-active] h3 {
-      color: var(--wv-cadet);
     }
     .archetype h3 {
       font: var(--type-h2);
@@ -994,7 +982,7 @@ export class VaParticipant extends LitElement {
                 role="radio"
                 tabindex="0"
                 aria-checked=${me?.archetype === opt.key}
-                data-active=${me?.archetype === opt.key ? true : null}
+                ?active=${me?.archetype === opt.key}
                 @click=${() => this.selectArchetype(opt.key)}
                 @keydown=${(e: KeyboardEvent) => {
                   if (e.key === 'Enter' || e.key === ' ') {

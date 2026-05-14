@@ -85,7 +85,7 @@ export class VaStrategyBoard extends LitElement {
       }
     }
     .zone {
-      background: var(--bg-card);
+      background: var(--bg-spotlight);
       border: 2px dashed rgba(39, 50, 72, 0.25);
       border-radius: var(--radius-md);
       padding: var(--space-3);

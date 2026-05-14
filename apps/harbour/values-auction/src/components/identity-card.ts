@@ -90,7 +90,7 @@ export class VaIdentityCard extends LitElement {
         <div class="logo-box">
           <img
             class="logo"
-            src=${`/logos/${startup.logoKey}.svg`}
+            src=${`${import.meta.env.BASE_URL}logos/${startup.logoKey}.svg`}
             alt=${`${startup.name} logo`}
           />
         </div>
