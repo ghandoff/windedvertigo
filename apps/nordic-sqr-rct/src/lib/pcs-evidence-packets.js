@@ -14,11 +14,15 @@ import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStro
 const P = PROPS.evidencePackets;
 
 // 2026-05-06 — column-name overrides for evidence-packets' Notion → Postgres
-// mirror. All columns follow camelCase → snake_case cleanly, so no
-// overrides are needed today. Kept as an empty map for parity with
-// pcs-evidence.js / pcs-claims.js / pcs-documents.js so future field
-// additions have an obvious place to land.
-const EVIDENCE_PACKETS_PG_COLUMN_MAP = {};
+// mirror. The camelCase → snake_case regex in notionShapeToPgRow() converts
+// each uppercase letter independently, so `studyDoseAI` → `study_dose_a_i`
+// (both A and I prefixed by _). The schema column is `study_dose_ai` (no
+// underscore before the `i`), so we override it explicitly here.
+// Without this override every upsert that includes a non-empty studyDoseAI
+// value fails with "column study_dose_a_i not found".
+const EVIDENCE_PACKETS_PG_COLUMN_MAP = {
+  studyDoseAI: 'study_dose_ai',
+};
 
 /**
  * 2026-05-06 — Path-2 read-path swap. Convert a Postgres
