@@ -1,0 +1,327 @@
+/**
+ * SQR-RCT Reviewer CRUD — Notion-canonical with Postgres mirror scaffolding.
+ *
+ * Phase 1 of the Postgres migration. All existing functions keep their
+ * Notion-only behavior unchanged. The Postgres methods (parsePostgresReviewerRow,
+ * syncRecentReviewersToPostgres, syncSingleReviewerPageToPostgres) are additive.
+ *
+ * Phase 3 will gate the read/write functions behind shouldReadFromSqrPostgres() /
+ * shouldWriteToSqrPostgresFirst(). Do NOT add those gates here.
+ */
+
+import { notion } from './notion.js';
+import {
+  getPcsSupabase,
+  mirrorToPostgres,
+  writePostgresFirst,
+  shouldUseStrongConsistency,
+} from './supabase-pcs.js';
+import {
+  shouldReadFromSqrPostgres,
+  shouldWriteToSqrPostgresFirst,
+  shouldUseSqrStrongConsistency,
+  SQR_DB,
+} from './sqr-config.js';
+
+// No column-name overrides needed — all camelCase → snake_case mappings are
+// mechanical. The `password_hash` column is populated directly by auth writes
+// (not via notionShapeToPgRow), so it doesn't appear in the shape.
+const REVIEWERS_PG_COLUMN_MAP = {};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Internal helpers (not exported — mirrors pcs-evidence.js pattern)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function extractTitle(prop) {
+  return prop?.title?.[0]?.plain_text || '';
+}
+
+function extractRichText(prop) {
+  return (prop?.rich_text || []).map(t => t.plain_text).join('');
+}
+
+function parseReviewerPage(page) {
+  const p = page.properties;
+  const profileImageUrl = extractRichText(p['Profile Image']) || null;
+  const isAdmin = p['Admin']?.checkbox || false;
+  const explicitRoles = (p['Roles']?.multi_select || []).map(s => s.name);
+  // Backwards-compatible: derive roles from Admin checkbox when Roles is empty
+  const roles = explicitRoles.length > 0
+    ? explicitRoles
+    : isAdmin
+      ? ['sqr-rct', 'pcs', 'admin']
+      : ['sqr-rct'];
+  return {
+    id: page.id,
+    firstName: extractTitle(p['First Name']),
+    lastName: extractRichText(p['Last Name (Surname)']),
+    email: p['Email']?.email || '',
+    affiliation: extractRichText(p['Affiliation']),
+    affiliationType: p['Affiliation Type']?.select?.name || '',
+    alias: extractRichText(p['Alias']),
+    discipline: extractRichText(p['Discipline/Specialty']),
+    domainExpertise: (p['Domain expertise']?.multi_select || []).map(s => s.name),
+    yearsExperience: p['Years of Experience']?.number || null,
+    consent: p['Consent']?.checkbox || false,
+    trainingCompleted: p['Training Completed']?.checkbox || false,
+    isAdmin,
+    roles,
+    onboardingDate: p['Onboarding Date']?.date?.start || null,
+    profileImageUrl,
+    // Wave 7.0.7 — forced-reset flow. Set to true by the bcrypt backfill
+    // script for any row whose password was stored plain-text prior to the
+    // Notion-side-exposure hotfix. Login intercepts this and routes the
+    // reviewer into /reset-password.
+    passwordResetRequired: p['Password reset required']?.checkbox || false,
+    // Wave 7.3.0 Phase B — email confirmation marker. Stamped by
+    // /api/auth/confirm-email when the reviewer accepts/supplies their
+    // email-as-key via the EmailConfirmationBanner.
+    emailConfirmedAt: p['Email confirmed at']?.date?.start || null,
+    createdTime: page.created_time,
+    lastEditedTime: page.last_edited_time,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Postgres inverse mapping
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Convert a Postgres `reviewers` table row back to the parseReviewerPage shape.
+ * All snake_case → camelCase. `notion_page_id` becomes `id` (Notion-id is what
+ * the rest of the app uses for routing and relations).
+ *
+ * Note: `password_hash` is intentionally omitted — it is never returned to
+ * callers via the Notion shape; auth reads it directly from Postgres.
+ */
+export function parsePostgresReviewerRow(row) {
+  return {
+    id: row.notion_page_id,
+    firstName: row.first_name || '',
+    lastName: row.last_name || '',
+    email: row.email || '',
+    affiliation: row.affiliation || '',
+    affiliationType: row.affiliation_type || '',
+    alias: row.alias || '',
+    discipline: row.discipline || '',
+    domainExpertise: row.domain_expertise || [],
+    yearsExperience: row.years_experience ?? null,
+    consent: row.consent || false,
+    trainingCompleted: row.training_completed || false,
+    isAdmin: row.is_admin || false,
+    roles: row.roles || ['sqr-rct'],
+    onboardingDate: row.onboarding_date || null,
+    profileImageUrl: row.profile_image_url || null,
+    passwordResetRequired: row.password_reset_required || false,
+    emailConfirmedAt: row.email_confirmed_at || null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Notion CRUD (Phase 1 — Notion-only, no read/write gating yet)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function getReviewerByAlias(alias) {
+  const res = await notion.databases.query({
+    database_id: SQR_DB.reviewers,
+    filter: { property: 'Alias', rich_text: { equals: alias } },
+  });
+  return res.results[0] || null;
+}
+
+export async function getReviewerById(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  return parseReviewerPage(page);
+}
+
+export async function getAllReviewers() {
+  const res = await notion.databases.query({
+    database_id: SQR_DB.reviewers,
+    filter: { property: 'Consent', checkbox: { equals: true } },
+    sorts: [{ property: 'First Name', direction: 'ascending' }],
+  });
+  return res.results.map(parseReviewerPage);
+}
+
+export async function getAllReviewersAdmin() {
+  const res = await notion.databases.query({
+    database_id: SQR_DB.reviewers,
+    sorts: [{ property: 'First Name', direction: 'ascending' }],
+  });
+  return res.results.map(parseReviewerPage);
+}
+
+export async function createReviewer(data) {
+  return notion.pages.create({
+    parent: { database_id: SQR_DB.reviewers },
+    properties: {
+      'First Name': { title: [{ text: { content: data.firstName } }] },
+      'Last Name (Surname)': { rich_text: [{ text: { content: data.lastName } }] },
+      'Email': { email: data.email },
+      'Affiliation': { rich_text: [{ text: { content: data.affiliation || '' } }] },
+      'Alias': { rich_text: [{ text: { content: data.alias } }] },
+      'Password': { rich_text: [{ text: { content: data.password } }] },
+      'Discipline/Specialty': { rich_text: [{ text: { content: data.discipline || '' } }] },
+      'Consent': { checkbox: data.consent === true },
+      'Onboarding Date': { date: { start: new Date().toISOString().split('T')[0] } },
+    },
+  });
+}
+
+// Phase 5 note: these auth write functions never touch Notion for the hash —
+// passwords aren't stored in Notion. They will get a direct Supabase write
+// added in Phase 5, but for now they are unchanged from notion.js.
+
+export async function updateReviewerPassword(reviewerId, hashedPassword) {
+  return notion.pages.update({
+    page_id: reviewerId,
+    properties: {
+      'Password': { rich_text: [{ text: { content: hashedPassword } }] },
+    },
+  });
+}
+
+export async function updateReviewerPasswordAndClearResetFlag(reviewerId, hashedPassword) {
+  return notion.pages.update({
+    page_id: reviewerId,
+    properties: {
+      'Password': { rich_text: [{ text: { content: hashedPassword } }] },
+      'Password reset required': { checkbox: false },
+    },
+  });
+}
+
+export async function setReviewerPasswordResetRequired(reviewerId, required) {
+  return notion.pages.update({
+    page_id: reviewerId,
+    properties: {
+      'Password reset required': { checkbox: !!required },
+    },
+  });
+}
+
+export async function updateReviewerProperties(reviewerId, updates) {
+  const properties = {};
+  if (updates.isAdmin !== undefined) {
+    properties['Admin'] = { checkbox: updates.isAdmin };
+  }
+  if (updates.status !== undefined) {
+    properties['Status'] = { select: { name: updates.status } };
+  }
+  return notion.pages.update({
+    page_id: reviewerId,
+    properties,
+  });
+}
+
+export async function updateReviewerProfile(reviewerId, updates) {
+  const properties = {};
+  if (updates.firstName !== undefined) {
+    properties['First Name'] = { title: [{ text: { content: updates.firstName } }] };
+  }
+  if (updates.lastName !== undefined) {
+    properties['Last Name (Surname)'] = { rich_text: [{ text: { content: updates.lastName } }] };
+  }
+  if (updates.affiliation !== undefined) {
+    properties['Affiliation'] = { rich_text: [{ text: { content: updates.affiliation } }] };
+  }
+  if (updates.discipline !== undefined) {
+    properties['Discipline/Specialty'] = { rich_text: [{ text: { content: updates.discipline } }] };
+  }
+  if (updates.yearsExperience !== undefined) {
+    properties['Years of Experience'] = { number: updates.yearsExperience ? Number(updates.yearsExperience) : null };
+  }
+  if (updates.profileImageUrl !== undefined) {
+    properties['Profile Image'] = updates.profileImageUrl
+      ? { rich_text: [{ text: { content: updates.profileImageUrl } }] }
+      : { rich_text: [] };
+  }
+  return notion.pages.update({ page_id: reviewerId, properties });
+}
+
+/**
+ * Wave 7.3.0 Phase B — find a reviewer by email (case-insensitive).
+ */
+export async function getReviewerByEmail(email) {
+  if (!email) return null;
+  const normalized = String(email).trim().toLowerCase();
+  if (!normalized) return null;
+  const res = await notion.databases.query({
+    database_id: SQR_DB.reviewers,
+    filter: { property: 'Email', email: { equals: normalized } },
+  });
+  return res.results[0] || null;
+}
+
+/**
+ * Wave 7.3.0 Phase B — write the reviewer's confirmed email and stamp
+ * the Email confirmed at marker. Atomic single-page update.
+ */
+export async function updateReviewerEmail(reviewerId, email) {
+  const normalized = String(email).trim().toLowerCase();
+  return notion.pages.update({
+    page_id: reviewerId,
+    properties: {
+      'Email': { email: normalized },
+      'Email confirmed at': { date: { start: new Date().toISOString() } },
+    },
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Postgres sync helpers (Phase 1 — additive, not called by Notion CRUD yet)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Drift-sync: pull any Notion edits since `sinceIso` into Postgres.
+ * Paginate Notion with a last_edited_time filter, parse each page,
+ * mirror to the `reviewers` table. Idempotent.
+ *
+ * Guards on SQR_DB.reviewers — if the env var is unset, returns immediately.
+ *
+ * @param {string} sinceIso — ISO 8601 timestamp (e.g. '2026-05-14T00:00:00Z')
+ * @returns {{ count: number, fetched: number, maxSeen: string }}
+ */
+export async function syncRecentReviewersToPostgres(sinceIso) {
+  if (!SQR_DB.reviewers) {
+    console.warn('[sqr-reviewers] syncRecentReviewersToPostgres: NOTION_REVIEWER_DB not configured');
+    return { count: 0, fetched: 0, maxSeen: sinceIso };
+  }
+  const filter = {
+    timestamp: 'last_edited_time',
+    last_edited_time: { on_or_after: sinceIso },
+  };
+  const res = await notion.databases.query({
+    database_id: SQR_DB.reviewers,
+    filter,
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parseReviewerPage(page);
+    const result = await mirrorToPostgres('reviewers', parsed, REVIEWERS_PG_COLUMN_MAP, {
+      enqueueOnFailure: shouldUseSqrStrongConsistency(),
+    });
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, fetched: res.results.length, maxSeen };
+}
+
+/**
+ * Sync a single Notion reviewer page into Postgres by page ID.
+ * Used by the page-updated webhook to mirror a specific edited row
+ * immediately rather than waiting for the drift-sync cron.
+ *
+ * @param {string} pageId — Notion page ID
+ */
+export async function syncSingleReviewerPageToPostgres(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  const parsed = parseReviewerPage(page);
+  return mirrorToPostgres('reviewers', parsed, REVIEWERS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseSqrStrongConsistency(),
+  });
+}

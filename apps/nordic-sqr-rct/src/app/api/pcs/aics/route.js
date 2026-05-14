@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { listAicsDocuments, createAicsDocument } from '@/lib/pcs-aics';
+import { listAicsDocuments, createAicsDocument } from '@/lib/aics-documents';
 
 export async function GET(request) {
   const auth = await requireCapability(request, 'aics.documents:read', { route: '/api/pcs/aics' });

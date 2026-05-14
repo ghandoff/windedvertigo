@@ -10,7 +10,7 @@
 
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { updateAicsClaimRegulatory } from '@/lib/pcs-aics';
+import { updateAicsClaimRegulatory } from '@/lib/aics-documents';
 
 const ALLOWED = new Set([
   'substantiatingRefs',

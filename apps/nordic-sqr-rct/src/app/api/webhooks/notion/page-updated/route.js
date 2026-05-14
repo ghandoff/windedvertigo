@@ -41,6 +41,11 @@ import { syncSingleRequestPageToPostgres } from '@/lib/pcs-requests';
 import { syncSingleRevisionEventPageToPostgres } from '@/lib/pcs-revision-events';
 import { syncSingleVersionPageToPostgres } from '@/lib/pcs-versions';
 import { syncSingleWordingVariantPageToPostgres } from '@/lib/pcs-wording-variants';
+import { syncSingleAicsDocumentPageToPostgres, syncSingleAicsVersionPageToPostgres, syncSingleAicsClaimPageToPostgres } from '@/lib/aics-documents';
+import { syncSingleReviewerPageToPostgres } from '@/lib/sqr-reviewers';
+import { syncSingleIntakePageToPostgres }   from '@/lib/sqr-intakes';
+import { syncSingleScorePageToPostgres }    from '@/lib/sqr-scores';
+import { SQR_DB }                           from '@/lib/sqr-config';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 // @notionhq/client uses fetch internally and works on the CF V8 edge runtime.
@@ -62,7 +67,7 @@ function verifyAuth(request) {
  * Called at request time so env vars are resolved correctly.
  */
 function buildDbSyncMap() {
-  return {
+  const raw = {
     [PCS_DB.evidenceLibrary]: syncSingleEvidencePageToPostgres,
     [PCS_DB.claims]:          syncSingleClaimPageToPostgres,
     [PCS_DB.documents]:       syncSingleDocumentPageToPostgres,
@@ -76,7 +81,17 @@ function buildDbSyncMap() {
     [PCS_DB.revisionEvents]:  syncSingleRevisionEventPageToPostgres,
     [PCS_DB.versions]:        syncSingleVersionPageToPostgres,
     [PCS_DB.wordingVariants]: syncSingleWordingVariantPageToPostgres,
+    [PCS_DB.aicsDocuments]:   syncSingleAicsDocumentPageToPostgres,
+    [PCS_DB.aicsVersions]:    syncSingleAicsVersionPageToPostgres,
+    [PCS_DB.aicsClaims]:      syncSingleAicsClaimPageToPostgres,
+    [SQR_DB.reviewers]:       syncSingleReviewerPageToPostgres,
+    [SQR_DB.intakes]:         syncSingleIntakePageToPostgres,
+    [SQR_DB.scores]:          syncSingleScorePageToPostgres,
   };
+  // Filter out undefined/null keys (env vars not set in local dev)
+  return Object.fromEntries(
+    Object.entries(raw).filter(([k]) => k && k !== 'undefined')
+  );
 }
 
 export async function POST(request) {

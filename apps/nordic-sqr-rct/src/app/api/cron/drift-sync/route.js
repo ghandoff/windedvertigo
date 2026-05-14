@@ -12,9 +12,14 @@ import { syncRecentRequestsToPostgres } from '@/lib/pcs-requests';
 import { syncRecentReferencesToPostgres } from '@/lib/pcs-references';
 import { syncRecentWordingVariantsToPostgres } from '@/lib/pcs-wording-variants';
 import { syncRecentFormulaLinesToPostgres } from '@/lib/pcs-formula-lines';
+import { syncRecentAicsDocumentsToPostgres, syncRecentAicsVersionsToPostgres, syncRecentAicsClaimsToPostgres } from '@/lib/aics-documents';
+import { syncRecentReviewersToPostgres } from '@/lib/sqr-reviewers';
+import { syncRecentIntakesToPostgres }   from '@/lib/sqr-intakes';
+import { syncRecentScoresToPostgres }    from '@/lib/sqr-scores';
 import { getPcsSupabase } from '@/lib/supabase-pcs';
 import { notion } from '@/lib/notion';
 import { PCS_DB } from '@/lib/pcs-config';
+import { SQR_DB }  from '@/lib/sqr-config';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 export const dynamic = 'force-dynamic';
@@ -30,21 +35,32 @@ const DRIFT_THRESHOLD = 5;                  // |pg - notion| > 5 → drifted
 const NOTION_PAGE_CAP = 50;                 // max pages to paginate per table
 let lastAlertAt = 0;
 
-// Map drift-sync table names to PCS_DB keys for Notion DB id lookup.
+// Map drift-sync table names to resolver functions that return the Notion DB id.
+// Using resolver functions allows PCS and SQR tables to look up from their
+// respective config objects without conflating them.
 const TABLE_TO_NOTION_DB = {
-  pcs_evidence: 'evidenceLibrary',
-  pcs_claims: 'claims',
-  pcs_documents: 'documents',
-  pcs_evidence_packets: 'evidencePackets',
-  pcs_canonical_claims: 'canonicalClaims',
-  pcs_ingredients: 'ingredients',
-  pcs_core_benefits: 'coreBenefits',
-  pcs_versions: 'versions',
-  pcs_revision_events: 'revisionEvents',
-  pcs_requests: 'requests',
-  pcs_references: 'references',
-  pcs_wording_variants: 'wordingVariants',
-  pcs_formula_lines: 'formulaLines',
+  // PCS tables
+  pcs_evidence:          () => PCS_DB.evidenceLibrary,
+  pcs_claims:            () => PCS_DB.claims,
+  pcs_documents:         () => PCS_DB.documents,
+  pcs_evidence_packets:  () => PCS_DB.evidencePackets,
+  pcs_canonical_claims:  () => PCS_DB.canonicalClaims,
+  pcs_ingredients:       () => PCS_DB.ingredients,
+  pcs_core_benefits:     () => PCS_DB.coreBenefits,
+  pcs_versions:          () => PCS_DB.versions,
+  pcs_revision_events:   () => PCS_DB.revisionEvents,
+  pcs_requests:          () => PCS_DB.requests,
+  pcs_references:        () => PCS_DB.references,
+  pcs_wording_variants:  () => PCS_DB.wordingVariants,
+  pcs_formula_lines:     () => PCS_DB.formulaLines,
+  // AICS tables
+  aics_documents:        () => PCS_DB.aicsDocuments,
+  aics_versions:         () => PCS_DB.aicsVersions,
+  aics_claims:           () => PCS_DB.aicsClaims,
+  // SQR-RCT tables
+  reviewers:             () => SQR_DB.reviewers,
+  intakes:               () => SQR_DB.intakes,
+  scores:                () => SQR_DB.scores,
 };
 
 /**
@@ -186,6 +202,12 @@ export async function GET(request) {
     { name: 'pcs_references', sync: syncRecentReferencesToPostgres },
     { name: 'pcs_wording_variants', sync: syncRecentWordingVariantsToPostgres },
     { name: 'pcs_formula_lines', sync: syncRecentFormulaLinesToPostgres },
+    { name: 'aics_documents', sync: syncRecentAicsDocumentsToPostgres },
+    { name: 'aics_versions',  sync: syncRecentAicsVersionsToPostgres },
+    { name: 'aics_claims',    sync: syncRecentAicsClaimsToPostgres },
+    { name: 'reviewers',      sync: syncRecentReviewersToPostgres },
+    { name: 'intakes',        sync: syncRecentIntakesToPostgres },
+    { name: 'scores',         sync: syncRecentScoresToPostgres },
   ];
 
   // 5-minute overlap window so we don't miss edits that landed during
@@ -231,8 +253,7 @@ export async function GET(request) {
       let notionCountCapped = false;
       try {
         pgCount = await countPostgres(sb, name);
-        const notionDbKey = TABLE_TO_NOTION_DB[name];
-        const notionDbId = notionDbKey ? PCS_DB[notionDbKey] : null;
+        const notionDbId = TABLE_TO_NOTION_DB[name]?.();
         if (notionDbId) {
           const nc = await countNotion(notionDbId);
           notionCount = nc.count;

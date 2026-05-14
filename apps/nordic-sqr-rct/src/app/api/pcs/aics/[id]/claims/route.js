@@ -4,7 +4,7 @@ import {
   getAicsDocument,
   getAicsVersionsForDocument,
   getAicsClaimsForVersion,
-} from '@/lib/pcs-aics';
+} from '@/lib/aics-documents';
 
 /**
  * GET /api/pcs/aics/[id]/claims — claims for the latest version of this

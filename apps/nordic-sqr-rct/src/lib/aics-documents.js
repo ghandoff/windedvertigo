@@ -15,14 +15,63 @@
  * Bundle 3 Phase 3.2 — adds entity helpers + API routes (this file).
  * Bundle 3 Phase 3.3 — UI pages at /pcs/aics (deferred).
  * Bundle 3 Phase 3.4+ — Postgres dual-write once migration applies.
+ *
+ * Phase 1 Postgres migration (2026-05-14):
+ *   - Adds column maps, feature-flag helpers, syncRecent* + syncSingle*
+ *     functions for drift-sync cron + webhook handler.
+ *   - All new Postgres paths are gated behind AICS_READ_FROM_POSTGRES /
+ *     AICS_WRITE_TO_POSTGRES flags (default OFF). No behavior change.
+ *   - Phase 2 will wire shouldReadFromAicsPostgres() into the read paths.
  */
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import {
+  getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency,
+} from './supabase-pcs.js';
 
 const PD = PROPS.aicsDocuments;
 const PV = PROPS.aicsVersions;
 const PC = PROPS.aicsClaims;
+
+// ─── Postgres column-name overrides ──────────────────────────────────────
+//
+// Most camelCase fields follow the mechanical camelCase → snake_case rule
+// applied by notionShapeToPgRow in supabase-pcs.js. List only the fields
+// that deviate from that rule.
+
+const AICS_DOCUMENTS_PG_COLUMN_MAP = {};
+
+const AICS_VERSIONS_PG_COLUMN_MAP = {};
+
+const AICS_CLAIMS_PG_COLUMN_MAP = {
+  // fdaDsheaDisclaimerRequired: regex produces fda_d_s_h_e_a_disclaimer_required, schema wants fda_dshea_disclaimer_required
+  fdaDsheaDisclaimerRequired: 'fda_dshea_disclaimer_required',
+  // claimPrefix text field maps to claim_prefix_text column
+  claimPrefix: 'claim_prefix_text',
+};
+
+// ─── Feature-flag helpers ─────────────────────────────────────────────────
+
+/**
+ * True when the AICS read-from-Postgres flag is on AND the Supabase client is
+ * configured. Set `AICS_READ_FROM_POSTGRES=1` in Vercel to enable.
+ */
+export function shouldReadFromAicsPostgres() {
+  const flag = process.env.AICS_READ_FROM_POSTGRES;
+  if (flag !== '1' && flag !== 'true') return false;
+  return getPcsSupabase() !== null;
+}
+
+/**
+ * True when the AICS write-to-Postgres-first flag is on AND the Supabase
+ * client is configured. Set `AICS_WRITE_TO_POSTGRES=1` in Vercel to enable.
+ */
+export function shouldWriteToAicsPostgresFirst() {
+  const flag = process.env.AICS_WRITE_TO_POSTGRES;
+  if (flag !== '1' && flag !== 'true') return false;
+  return getPcsSupabase() !== null;
+}
 
 // ─── Documents ───────────────────────────────────────────────────────────
 
@@ -272,4 +321,178 @@ export async function getAicsClaimsForVersion(versionId) {
     sorts: [{ property: PC.claimNo, direction: 'ascending' }],
   });
   return res.results.map(parseAicsClaimPage);
+}
+
+// ─── Drift-sync helpers (Phase 1 Postgres migration) ─────────────────────
+//
+// Called by /api/cron/drift-sync to pull Notion edits into Postgres.
+// All three functions follow the syncRecentEvidenceToPostgres pattern
+// from pcs-evidence.js exactly.
+
+/**
+ * Mirror recently-edited AICS Documents into Postgres.
+ * Guards on PCS_DB.aicsDocuments so safe to call even in envs where the
+ * NOTION_AICS_DOCUMENTS_DB variable is not yet set.
+ *
+ * @param {string} sinceIso — ISO 8601 timestamp; pages edited at or after
+ *   this moment are fetched and mirrored.
+ * @returns {{ count: number, fetched: number, maxSeen: string }}
+ */
+export async function syncRecentAicsDocumentsToPostgres(sinceIso) {
+  if (!PCS_DB.aicsDocuments) return { count: 0, fetched: 0, maxSeen: sinceIso };
+
+  const filter = {
+    timestamp: 'last_edited_time',
+    last_edited_time: { on_or_after: sinceIso },
+  };
+
+  let all = [];
+  let cursor;
+  do {
+    const res = await notion.databases.query({
+      database_id: PCS_DB.aicsDocuments,
+      filter,
+      page_size: 100,
+      ...(cursor ? { start_cursor: cursor } : {}),
+    });
+    all = all.concat(res.results);
+    cursor = res.has_more ? res.next_cursor : undefined;
+  } while (cursor);
+
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of all) {
+    const parsed = parseAicsDocumentPage(page);
+    const result = await mirrorToPostgres('aics_documents', parsed, AICS_DOCUMENTS_PG_COLUMN_MAP, {
+      enqueueOnFailure: shouldUseStrongConsistency(),
+    });
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, fetched: all.length, maxSeen };
+}
+
+/**
+ * Mirror recently-edited AICS Versions into Postgres.
+ *
+ * @param {string} sinceIso
+ * @returns {{ count: number, fetched: number, maxSeen: string }}
+ */
+export async function syncRecentAicsVersionsToPostgres(sinceIso) {
+  if (!PCS_DB.aicsVersions) return { count: 0, fetched: 0, maxSeen: sinceIso };
+
+  const filter = {
+    timestamp: 'last_edited_time',
+    last_edited_time: { on_or_after: sinceIso },
+  };
+
+  let all = [];
+  let cursor;
+  do {
+    const res = await notion.databases.query({
+      database_id: PCS_DB.aicsVersions,
+      filter,
+      page_size: 100,
+      ...(cursor ? { start_cursor: cursor } : {}),
+    });
+    all = all.concat(res.results);
+    cursor = res.has_more ? res.next_cursor : undefined;
+  } while (cursor);
+
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of all) {
+    const parsed = parseAicsVersionPage(page);
+    const result = await mirrorToPostgres('aics_versions', parsed, AICS_VERSIONS_PG_COLUMN_MAP, {
+      enqueueOnFailure: shouldUseStrongConsistency(),
+    });
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, fetched: all.length, maxSeen };
+}
+
+/**
+ * Mirror recently-edited AICS Claims into Postgres.
+ *
+ * @param {string} sinceIso
+ * @returns {{ count: number, fetched: number, maxSeen: string }}
+ */
+export async function syncRecentAicsClaimsToPostgres(sinceIso) {
+  if (!PCS_DB.aicsClaims) return { count: 0, fetched: 0, maxSeen: sinceIso };
+
+  const filter = {
+    timestamp: 'last_edited_time',
+    last_edited_time: { on_or_after: sinceIso },
+  };
+
+  let all = [];
+  let cursor;
+  do {
+    const res = await notion.databases.query({
+      database_id: PCS_DB.aicsClaims,
+      filter,
+      page_size: 100,
+      ...(cursor ? { start_cursor: cursor } : {}),
+    });
+    all = all.concat(res.results);
+    cursor = res.has_more ? res.next_cursor : undefined;
+  } while (cursor);
+
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of all) {
+    const parsed = parseAicsClaimPage(page);
+    const result = await mirrorToPostgres('aics_claims', parsed, AICS_CLAIMS_PG_COLUMN_MAP, {
+      enqueueOnFailure: shouldUseStrongConsistency(),
+    });
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, fetched: all.length, maxSeen };
+}
+
+// ─── Webhook single-page sync helpers (Phase 1 Postgres migration) ────────
+//
+// Called by the general page-updated webhook to mirror a specific edited row
+// immediately rather than waiting for the drift-sync cron. Follows the
+// syncSingleEvidencePageToPostgres pattern from pcs-evidence.js.
+
+/**
+ * Fetch a single AICS Document page from Notion and upsert it to Postgres.
+ *
+ * @param {string} pageId — Notion page ID
+ */
+export async function syncSingleAicsDocumentPageToPostgres(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  const parsed = parseAicsDocumentPage(page);
+  return mirrorToPostgres('aics_documents', parsed, AICS_DOCUMENTS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+}
+
+/**
+ * Fetch a single AICS Version page from Notion and upsert it to Postgres.
+ *
+ * @param {string} pageId — Notion page ID
+ */
+export async function syncSingleAicsVersionPageToPostgres(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  const parsed = parseAicsVersionPage(page);
+  return mirrorToPostgres('aics_versions', parsed, AICS_VERSIONS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+}
+
+/**
+ * Fetch a single AICS Claim page from Notion and upsert it to Postgres.
+ *
+ * @param {string} pageId — Notion page ID
+ */
+export async function syncSingleAicsClaimPageToPostgres(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  const parsed = parseAicsClaimPage(page);
+  return mirrorToPostgres('aics_claims', parsed, AICS_CLAIMS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
 }
