@@ -729,9 +729,9 @@ function stripKey<V>(obj: Record<string, V>, key: string): Record<string, V> {
 
 export function assignTeams(
   participants: Array<{ id: string; archetype?: string }>,
-  teamSize = 4,
 ): { teams: Team[]; assignments: Record<string, string> } {
-  const count = Math.max(1, Math.ceil(participants.length / teamSize));
+  // one team per startup — all participants distributed across exactly STARTUPS.length teams
+  const count = Math.max(1, STARTUPS.length);
   const assignments: Record<string, string> = {};
   const teams: Team[] = [];
   const sorted = [...participants].sort((a, b) => {
@@ -743,7 +743,7 @@ export function assignTeams(
 
   for (let i = 0; i < count; i++) {
     const colour = TEAM_COLOURS[i % TEAM_COLOURS.length]!;
-    const startup = STARTUPS[i % STARTUPS.length]!;
+    const startup = STARTUPS[i]!;
     const teamId = uid('team');
     teams.push({
       id: teamId,

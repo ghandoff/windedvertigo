@@ -570,11 +570,19 @@ export class VaParticipant extends LitElement {
     }
     .archetype[data-active] {
       border-color: var(--accent-emphasis);
-      background: rgba(224, 152, 120, 0.18);
+      background: var(--accent-emphasis);
+      color: var(--wv-cadet);
       animation: va-spring-pulse var(--dur-base) var(--ease-spring);
     }
+    .archetype[data-active]:hover,
+    .archetype[data-active]:focus-visible {
+      border-color: var(--accent-emphasis);
+      background: var(--accent-emphasis);
+      color: var(--wv-cadet);
+      transform: none;
+    }
     .archetype[data-active] h3 {
-      color: var(--accent-emphasis);
+      color: var(--wv-cadet);
     }
     .archetype h3 {
       font: var(--type-h2);

@@ -2,8 +2,8 @@
  * 300-user smoke test.
  *
  * Verifies:
- * 1. assignTeams distributes 300 participants evenly across companies.
- * 2. Each team gets a unique startup.
+ * 1. assignTeams creates exactly one team per startup (8 teams for 300 participants).
+ * 2. Each startup gets exactly one team; all 8 companies present.
  * 3. Brainstorm responses are filtered to same-team only (no cross-team leakage).
  * 4. Planned spend updates correctly when captain locks bids.
  */
@@ -56,12 +56,11 @@ function seedSession(participantCount: number): Session {
 // ---------------------------------------------------------------------------
 
 describe('300-user smoke: team distribution', () => {
-  it('distributes 300 participants across teams with max 1-person imbalance', () => {
+  it('creates exactly 8 teams (one per startup) and distributes 300 participants across them', () => {
     const s = seedSession(300);
-    const teamSize = 4;
-    const expectedTeams = Math.ceil(300 / teamSize); // 75 teams
 
-    expect(s.teams).toHaveLength(expectedTeams);
+    // one team per startup
+    expect(s.teams).toHaveLength(8);
 
     const counts = s.teams.map((t) => {
       const members = s.participants.filter((p) => p.teamId === t.id);
@@ -70,12 +69,8 @@ describe('300-user smoke: team distribution', () => {
 
     // report distribution (vitest captures this in --reporter=verbose)
     console.log('\n--- 300-user team distribution ---');
-    const byStartup = new Map<string, number>();
     for (const c of counts) {
-      byStartup.set(c.startup, (byStartup.get(c.startup) ?? 0) + 1);
-    }
-    for (const [startup, teamCount] of byStartup.entries()) {
-      console.log(`  ${startup}: ${teamCount} team(s)`);
+      console.log(`  ${c.startup}: ${c.count} members`);
     }
     console.log(`  total teams: ${counts.length}, total participants: 300`);
     console.log(`  min per team: ${Math.min(...counts.map((c) => c.count))}`);
@@ -85,20 +80,21 @@ describe('300-user smoke: team distribution', () => {
     const min = Math.min(...sizes);
     const max = Math.max(...sizes);
 
-    // each team should have 4 members (300 / 75 = exactly 4)
-    expect(min).toBe(4);
-    expect(max).toBe(4);
+    // 300 / 8 = 37.5 → teams 0-3 get 38, teams 4-7 get 37
+    expect(min).toBe(37);
+    expect(max).toBe(38);
 
     // every participant is assigned
     const assigned = s.participants.filter((p) => p.role === 'participant' && p.teamId !== null);
     expect(assigned).toHaveLength(300);
   });
 
-  it('cycles startups across teams so all 8 companies appear', () => {
+  it('assigns each startup to exactly one team', () => {
     const s = seedSession(300);
-    const startupIds = new Set(s.teams.map((t) => t.startupId));
-    // with 8 startups and 75 teams, all 8 should appear
-    expect(startupIds.size).toBe(8);
+    const startupIds = s.teams.map((t) => t.startupId);
+    // 8 teams, 8 startups — each appears exactly once
+    expect(new Set(startupIds).size).toBe(8);
+    expect(startupIds).toHaveLength(8);
   });
 
   it('assigns at least some team per archetype bucket', () => {
@@ -150,7 +146,7 @@ describe('300-user smoke: brainstorm team isolation', () => {
   });
 
   it('responses from different teams are not cross-visible', () => {
-    let s = seedSession(8); // 2 teams of 4
+    let s = seedSession(8); // 8 teams, 1 participant each
 
     const team1Id = s.teams[0]!.id;
     const team2Id = s.teams[1]!.id;
@@ -191,7 +187,7 @@ describe('300-user smoke: brainstorm team isolation', () => {
 
 describe('planned spend: updates correctly on lock', () => {
   it('reflects locked bids in planned spend', () => {
-    let s = seedSession(4); // 1 team of 4
+    let s = seedSession(4); // 8 teams, first 4 participants distributed across teams 0-3
     const team = s.teams[0]!;
 
     // initial planned spend is 0

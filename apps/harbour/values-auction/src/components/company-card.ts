@@ -88,7 +88,7 @@ export class VaCompanyCard extends LitElement {
       <div class="header">
         <img
           class="logo"
-          src=${`/logos/${startup.logoKey}.svg`}
+          src=${`${import.meta.env.BASE_URL}logos/${startup.logoKey}.svg`}
           alt=${`${startup.name} logo`}
         />
         <div>

@@ -1,16 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="GrowUp logo">
-  <rect width="240" height="240" rx="24" fill="#273248"/>
-  <!-- regenerative farming: plant growing from layered soil -->
-  <!-- soil layers -->
-  <rect x="40" y="152" width="160" height="18" rx="4" fill="#cb7858" opacity="0.6"/>
-  <rect x="40" y="168" width="160" height="16" rx="4" fill="#b15043" opacity="0.7"/>
+  <circle cx="120" cy="120" r="112" fill="#f5ede4"/>
+  <!-- 3-leaf plant icon: center leaf up, two side leaves angled -->
+  <!-- center leaf -->
+  <path d="M120 58 C114 68 110 80 110 92 C110 104 114 112 120 116 C126 112 130 104 130 92 C130 80 126 68 120 58 Z"
+        fill="#2d5c1e"/>
+  <!-- left leaf -->
+  <path d="M120 100 C112 90 96 86 86 78 C84 92 92 106 104 110 C110 112 118 108 120 100 Z"
+        fill="#2d5c1e"/>
+  <!-- right leaf -->
+  <path d="M120 100 C128 90 144 86 154 78 C156 92 148 106 136 110 C130 112 122 108 120 100 Z"
+        fill="#2d5c1e"/>
   <!-- stem -->
-  <path d="M120 152 L120 88" stroke="#5f9ea0" stroke-width="7" stroke-linecap="round"/>
-  <!-- leaves -->
-  <path d="M120 120 C104 108 80 112 72 100 C88 88 112 96 120 108" fill="#5f9ea0" opacity="0.9"/>
-  <path d="M120 104 C136 92 160 96 168 84 C152 72 128 80 120 92" fill="#5f9ea0"/>
-  <!-- seed/sprout top -->
-  <circle cx="120" cy="82" r="10" fill="#ffebd2"/>
-  <path d="M120 72 L120 60" stroke="#ffebd2" stroke-width="4" stroke-linecap="round"/>
-  <text x="120" y="210" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#ffebd2">GrowUp</text>
+  <line x1="120" y1="116" x2="120" y2="148" stroke="#2d5c1e" stroke-width="4" stroke-linecap="round"/>
+  <!-- soil lines -->
+  <line x1="88"  y1="152" x2="152" y2="152" stroke="#2d5c1e" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="94"  y1="160" x2="146" y2="160" stroke="#2d5c1e" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+  <line x1="100" y1="167" x2="140" y2="167" stroke="#2d5c1e" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+  <!-- GrowUp text -->
+  <text x="120" y="192" text-anchor="middle"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="26" fill="#2d4a1a">GrowUp</text>
+  <text x="120" y="208" text-anchor="middle"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="600" font-size="12" letter-spacing="3" fill="#2d4a1a" opacity="0.75">AGRITECH</text>
 </svg>

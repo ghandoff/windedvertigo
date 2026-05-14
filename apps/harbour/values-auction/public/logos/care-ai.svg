@@ -1,12 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="Care.ai logo">
-  <rect width="240" height="240" rx="24" fill="#b15043"/>
-  <!-- heart with circuit nodes — health tech + AI -->
-  <path d="M120 168 C60 128 52 72 88 64 C104 60 120 76 120 88 C120 76 136 60 152 64 C188 72 180 128 120 168 Z" fill="#ffebd2"/>
-  <!-- circuit nodes overlaid on heart -->
-  <circle cx="88" cy="100" r="6" fill="#273248"/>
-  <circle cx="120" cy="120" r="6" fill="#273248"/>
-  <circle cx="152" cy="100" r="6" fill="#273248"/>
-  <path d="M88 100 L120 120 L152 100" fill="none" stroke="#273248" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M88 100 L72 92 M152 100 L168 92" stroke="#273248" stroke-width="2" stroke-linecap="round"/>
-  <text x="120" y="210" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#ffebd2">Care.ai</text>
+  <circle cx="120" cy="120" r="112" fill="#f0f0ee"/>
+  <!-- green heart with circuit branch inside -->
+  <path d="M78 108 C78 90 90 82 100 82 C110 82 118 90 120 98 C122 90 130 82 140 82 C150 82 162 90 162 108 C162 128 140 148 120 164 C100 148 78 128 78 108 Z"
+        fill="#3a8c2a"/>
+  <!-- circuit Y-branch inside heart (cream/white lines + dots) -->
+  <line x1="120" y1="148" x2="120" y2="118" stroke="#f0f0ee" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="120" y1="118" x2="104" y2="104" stroke="#f0f0ee" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="120" y1="118" x2="136" y2="104" stroke="#f0f0ee" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="104" cy="104" r="4" fill="#f0f0ee"/>
+  <circle cx="136" cy="104" r="4" fill="#f0f0ee"/>
+  <circle cx="120" cy="118" r="4" fill="#f0f0ee"/>
+  <!-- "Care.ai" text to the right of heart -->
+  <text x="172" y="114" font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="22" fill="#2d2d3a">Care</text>
+  <text x="172" y="136" font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="22" fill="#3a8c2a">.ai</text>
 </svg>

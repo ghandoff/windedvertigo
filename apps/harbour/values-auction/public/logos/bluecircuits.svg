@@ -1,19 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="BlueCircuits logo">
-  <rect width="240" height="240" rx="24" fill="#1a2438"/>
-  <!-- modular electronics: hexagonal circuit board motif -->
-  <!-- central hex -->
-  <polygon points="120,68 148,84 148,116 120,132 92,116 92,84" fill="none" stroke="#5f9ea0" stroke-width="5" stroke-linejoin="round"/>
-  <!-- outer connection pads -->
-  <circle cx="120" cy="56" r="8" fill="#5f9ea0"/>
-  <circle cx="162" cy="78" r="8" fill="#5f9ea0"/>
-  <circle cx="162" cy="122" r="8" fill="#5f9ea0"/>
-  <circle cx="120" cy="144" r="8" fill="#5f9ea0"/>
-  <circle cx="78" cy="122" r="8" fill="#5f9ea0"/>
-  <circle cx="78" cy="78" r="8" fill="#5f9ea0"/>
-  <!-- traces from hex corners to pads -->
-  <path d="M120 68 L120 64 M148 84 L158 79 M148 116 L158 121 M120 132 L120 136 M92 116 L82 121 M92 84 L82 79" stroke="#5f9ea0" stroke-width="3" stroke-linecap="round"/>
-  <!-- recycle arrow hint bottom-left — circular economy -->
-  <path d="M68 168 A24 24 0 0 1 116 168" fill="none" stroke="#ffebd2" stroke-width="4" stroke-linecap="round"/>
-  <polygon points="116,160 116,176 128,168" fill="#ffebd2"/>
-  <text x="148" y="174" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="18" letter-spacing="1" fill="#ffebd2">BlueCircuits</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="Blue Circuits logo">
+  <circle cx="120" cy="120" r="112" fill="#f0f0ee"/>
+  <!-- circuit dial icon: outer circle + diagonal line + nodes -->
+  <circle cx="78" cy="112" r="34" fill="none" stroke="#1e6fa4" stroke-width="3.5"/>
+  <!-- diagonal line from lower-left to upper-right inside circle -->
+  <line x1="58" y1="130" x2="100" y2="90" stroke="#1e6fa4" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- node at upper-right end -->
+  <circle cx="100" cy="90" r="5.5" fill="#1e6fa4"/>
+  <!-- node at center -->
+  <circle cx="78" cy="112" r="5.5" fill="#1e6fa4"/>
+  <!-- small tick marks on arc (speedometer style) -->
+  <line x1="78" y1="78"  x2="78" y2="85"  stroke="#1e6fa4" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="108" y1="84" x2="104" y2="90" stroke="#1e6fa4" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="112" y1="112" x2="105" y2="112" stroke="#1e6fa4" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- "Blue Circuits" text to the right -->
+  <text x="124" y="106" font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="26" fill="#1d2d44">Blue</text>
+  <text x="124" y="132" font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="26" fill="#1d2d44">Circuits</text>
 </svg>
