@@ -201,11 +201,15 @@ export async function GET(request) {
   async function processTable({ name, sync }) {
     const tableStart = Date.now();
     try {
-      // Get current max watermark from Postgres
+      // Get current max watermark from Postgres.
+      // nullsFirst: false ensures rows with NULL notion_last_edited_at sort
+      // after non-null rows in DESC order (PostgreSQL default is NULLS FIRST
+      // for DESC, which would return NULL and force the 1-hour fallback even
+      // when the table has many rows with valid timestamps).
       const { data: maxRow, error: maxErr } = await sb
         .from(name)
         .select('notion_last_edited_at')
-        .order('notion_last_edited_at', { ascending: false })
+        .order('notion_last_edited_at', { ascending: false, nullsFirst: false })
         .limit(1)
         .maybeSingle();
       if (maxErr) throw maxErr;

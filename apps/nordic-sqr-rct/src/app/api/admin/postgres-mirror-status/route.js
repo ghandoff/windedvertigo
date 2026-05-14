@@ -72,7 +72,7 @@ export async function GET(request) {
             sb
               .from(t.name)
               .select('notion_last_edited_at')
-              .order('notion_last_edited_at', { ascending: false })
+              .order('notion_last_edited_at', { ascending: false, nullsFirst: false })
               .limit(1)
               .maybeSingle(),
           ]);
