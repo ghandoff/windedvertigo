@@ -8,7 +8,15 @@ export type TransportRole = 'facilitator' | 'participant' | 'wall';
 export type ConnectionStatus = 'connected' | 'reconnecting' | 'offline';
 
 export interface TransportMessage {
-  type: 'action' | 'state' | 'hello' | 'request-state';
+  /**
+   * Message type vocabulary spoken by clients + the hub Worker DO:
+   *   - 'action'        client → all peers: a reducer action to be applied locally on each
+   *   - 'state'         hub or facilitator → one peer: a full Session snapshot, applied verbatim
+   *   - 'hello'         reserved for future presence (unused today)
+   *   - 'request-state' client → hub (or peers if hub has no snapshot): "send me current state"
+   *   - 'snapshot'      facilitator → hub ONLY: upload latest Session for storage; never relayed
+   */
+  type: 'action' | 'state' | 'hello' | 'request-state' | 'snapshot';
   payload: unknown;
   at: number;
   sender: string;

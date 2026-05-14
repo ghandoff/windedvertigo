@@ -10,8 +10,13 @@ export function createTransport(clientId = uid('c')): Transport {
   const defaultMode = env.PROD ? 'socket' : 'broadcast';
   const mode = env.VITE_TRANSPORT ?? defaultMode;
   if (mode === 'socket') {
+    // hub is the values-auction-hub Worker (workers/hub/) — it holds the
+    // session DO with snapshot persistence so request-state survives a
+    // facilitator crash. the older wv-values-auction-relay Worker is
+    // retired as of 2026-05-14 (Phase B-min); leave VITE_WS_URL set in
+    // dev/staging to override.
     const url =
-      env.VITE_WS_URL ?? 'wss://wv-values-auction-relay.windedvertigo.workers.dev/ws';
+      env.VITE_WS_URL ?? 'wss://values-auction-hub.windedvertigo.workers.dev/ws';
     return new SocketTransport(clientId, url);
   }
   return new BroadcastTransport(clientId);

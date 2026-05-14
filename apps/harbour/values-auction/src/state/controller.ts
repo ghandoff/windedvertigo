@@ -132,22 +132,55 @@ export async function createController(
     });
   }
 
-  // periodic drift-correction snapshot from the authoritative facilitator.
-  // strictly speaking the action-broadcast model converges without this —
-  // DO ordering guarantees it. but a low-rate full-state sync is cheap
-  // insurance against missed messages (mid-reconnect, browser tab
-  // throttled, etc.) and bounds worst-case staleness to DRIFT_SYNC_MS.
-  const DRIFT_SYNC_MS = 30_000;
-  let driftSyncTimer: ReturnType<typeof setInterval> | null = null;
-  if (authoritative) {
-    driftSyncTimer = setInterval(() => {
+  // Phase B-min: instead of broadcasting a full Session to every peer
+  // every 30s (which at 250 peers × 200KB ≈ 1.7 MB/sec), the facilitator
+  // uploads the snapshot directly to the hub Durable Object. The DO
+  // stores it and answers any subsequent 'request-state' from clients
+  // out of that storage. New joiners and reconnecting clients no longer
+  // depend on the facilitator being alive — the DO can serve state
+  // even if the facilitator browser crashed.
+  //
+  // Strategy:
+  //   - upload on every state change, debounced to ≤1 upload / SNAPSHOT_UPLOAD_MS
+  //   - this keeps the DO's snapshot at most SNAPSHOT_UPLOAD_MS stale
+  //   - bandwidth: ~1 upload × ~200KB / 2s = 100 KB/sec from facilitator
+  //     to one connection (the hub), 250× less than broadcasting to peers
+  const SNAPSHOT_UPLOAD_MS = 2_000;
+  let snapshotPending = false;
+  let snapshotTimer: ReturnType<typeof setTimeout> | null = null;
+  let snapshotUnsub: (() => void) | null = null;
+  function flushSnapshot() {
+    if (snapshotTimer) {
+      clearTimeout(snapshotTimer);
+      snapshotTimer = null;
+    }
+    if (snapshotPending) {
       transport.send({
-        type: 'state',
+        type: 'snapshot',
         payload: store.getState(),
         at: Date.now(),
         sender: clientId,
       });
-    }, DRIFT_SYNC_MS);
+      snapshotPending = false;
+    }
+  }
+  if (authoritative) {
+    snapshotUnsub = store.subscribe(() => {
+      snapshotPending = true;
+      if (snapshotTimer) return;
+      snapshotTimer = setTimeout(() => {
+        snapshotTimer = null;
+        if (snapshotPending) {
+          transport.send({
+            type: 'snapshot',
+            payload: store.getState(),
+            at: Date.now(),
+            sender: clientId,
+          });
+          snapshotPending = false;
+        }
+      }, SNAPSHOT_UPLOAD_MS);
+    });
   }
 
   return {
@@ -158,10 +191,11 @@ export async function createController(
     dispatch,
     isAuthoritative: () => authoritative,
     destroy() {
-      if (driftSyncTimer) {
-        clearInterval(driftSyncTimer);
-        driftSyncTimer = null;
-      }
+      // flush any pending snapshot first so the hub gets the latest state
+      // before this client tears down.
+      flushSnapshot();
+      snapshotUnsub?.();
+      snapshotUnsub = null;
       flushPersist();
       unsub();
       transport.disconnect();
