@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>values auction — reference</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --wv-cadet: #273248;
+      --wv-redwood: #b15043;
+      --wv-sienna: #cb7858;
+      --wv-champagne: #ffebd2;
+      --wv-seafoam: #5f9ea0;
+      --wv-deep: #0f1726;
+      --bg: #273248;
+      --bg-card: #1e2738;
+      --bg-deep: #0f1726;
+      --fg: #ffebd2;
+      --fg-muted: rgba(255,235,210,0.58);
+      --border-soft: rgba(255,235,210,0.11);
+      --accent: #cb7858;
+      --urgent: #b15043;
+    }
+
+    html, body { height: 100dvh; overflow: hidden; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; background: var(--bg-deep); color: var(--fg); display: flex; flex-direction: column; }
+
+    /* ── page tab bar ── */
+    .page-tabs { flex-shrink: 0; display: flex; align-items: center; gap: 3px; padding: 8px 14px; background: var(--bg-deep); border-bottom: 1px solid var(--border-soft); }
+    .page-tab-btn { font-family: inherit; font-size: 13px; font-weight: 700; padding: 7px 18px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--fg-muted); cursor: pointer; transition: background 150ms, color 150ms, border-color 150ms; }
+    .page-tab-btn:hover { color: var(--fg); background: rgba(255,235,210,0.05); }
+    .page-tab-btn.active { background: rgba(203,120,88,0.14); border-color: rgba(203,120,88,0.3); color: var(--fg); }
+
+    /* ── shell ── */
+    .shell { display: grid; grid-template-columns: 380px 1fr; flex: 1; min-height: 0; }
+
+    /* ── browse-mode overrides ── */
+    body[data-mode="browse"] .timer-section { display: none; }
+    body[data-mode="browse"] .credos-widget { display: none; }
+    body[data-mode="browse"] .results-btn { display: none; }
+    body[data-mode="browse"] .tab-credo-pip { display: none; }
+    body[data-mode="browse"] .value-card { cursor: default; pointer-events: none; }
+    body[data-mode="browse"] .right-header .count-badge { margin-left: auto; }
+
+    /* ══ LEFT ══ */
+    .panel-left { background: var(--bg-deep); border-right: 1px solid var(--border-soft); display: flex; flex-direction: column; overflow: hidden; }
+
+    .left-header { padding: 16px 18px 14px; border-bottom: 1px solid var(--border-soft); flex-shrink: 0; display: flex; align-items: center; gap: 14px; }
+
+    .title-block .eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 2px; }
+    .title-block h1 { font-size: 15px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
+    .title-block h1 span { color: var(--accent); }
+
+    /* credos widget */
+    .credos-widget { margin-left: auto; background: rgba(255,235,210,0.05); border: 1px solid var(--border-soft); border-radius: 10px; padding: 8px 12px; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 106px; }
+    .credos-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-muted); }
+    .credos-remaining { font-size: 26px; font-weight: 700; line-height: 1; color: var(--fg); font-variant-numeric: tabular-nums; transition: color 200ms; }
+    .credos-remaining.low { color: var(--urgent); }
+    .credos-sub { font-size: 10px; color: var(--fg-muted); }
+    .credos-buttons { display: flex; gap: 3px; margin-top: 2px; }
+    .credo-btn { font-family: inherit; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; border: 1px solid rgba(255,235,210,0.16); background: transparent; color: var(--fg-muted); cursor: pointer; transition: background 120ms, color 120ms; }
+    .credo-btn:hover { background: rgba(203,120,88,0.2); border-color: rgba(203,120,88,0.4); color: var(--fg); }
+    .credo-btn.reset { border-color: rgba(255,235,210,0.08); color: rgba(255,235,210,0.3); }
+    .credo-btn.reset:hover { background: rgba(255,235,210,0.06); color: var(--fg-muted); }
+    .credos-input-row { display: flex; gap: 3px; margin-top: 2px; align-items: center; }
+    .credo-manual { width: 42px; font-family: inherit; font-size: 11px; font-weight: 700; background: rgba(255,235,210,0.07); border: 1px solid rgba(255,235,210,0.12); border-radius: 4px; color: var(--fg); padding: 3px 5px; text-align: center; -moz-appearance: textfield; }
+    .credo-manual::-webkit-outer-spin-button, .credo-manual::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .credo-manual:focus { outline: none; border-color: var(--accent); }
+    .credo-apply { font-family: inherit; font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 4px; border: 1px solid rgba(203,120,88,0.3); background: rgba(203,120,88,0.12); color: var(--accent); cursor: pointer; transition: background 120ms; }
+    .credo-apply:hover { background: rgba(203,120,88,0.25); }
+
+    /* company tabs */
+    .company-tabs { display: flex; flex-direction: column; gap: 2px; padding: 10px; flex-shrink: 0; border-bottom: 1px solid var(--border-soft); }
+    .company-tab { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; border: none; background: transparent; color: var(--fg-muted); cursor: pointer; text-align: left; transition: background 150ms, color 150ms; font-family: inherit; position: relative; }
+    .company-tab:hover { background: rgba(255,235,210,0.05); color: var(--fg); }
+    .company-tab.active { background: rgba(203,120,88,0.14); color: var(--fg); }
+    .tab-logo { width: 30px; height: 30px; border-radius: 6px; flex-shrink: 0; background: #ffebd2; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .tab-logo svg { width: 30px; height: 30px; }
+    .tab-name { font-size: 13px; font-weight: 700; display: block; }
+    .tab-sector { font-size: 10px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.08em; display: block; }
+    .tab-credo-pip { margin-left: auto; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--fg-muted); white-space: nowrap; }
+    .tab-credo-pip.low { color: var(--urgent); }
+
+    /* company detail */
+    .company-detail { flex: 1; overflow-y: auto; padding: 18px; scrollbar-width: thin; scrollbar-color: rgba(255,235,210,0.1) transparent; }
+    .company-detail::-webkit-scrollbar { width: 3px; }
+    .company-detail::-webkit-scrollbar-thumb { background: rgba(255,235,210,0.12); border-radius: 2px; }
+    .detail-inner { animation: fadeUp 180ms ease both; }
+    .co-logo { width: 68px; height: 68px; border-radius: 12px; overflow: hidden; background: #ffebd2; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; }
+    .co-logo svg { width: 68px; height: 68px; }
+    .co-name { font-size: 22px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.1; margin-bottom: 5px; }
+    .sector-badge { display: inline-flex; align-items: center; padding: 2px 10px; background: rgba(203,120,88,0.15); border: 1px solid rgba(203,120,88,0.28); border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+    .detail-section { margin-bottom: 14px; }
+    .detail-label { font-size: 9px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 5px; }
+    .detail-text { font-size: 13px; line-height: 1.65; }
+    .challenge-box { background: rgba(177,80,67,0.1); border: 1px solid rgba(177,80,67,0.22); border-radius: 10px; padding: 12px 14px; }
+
+    /* ══ RIGHT ══ */
+    .panel-right { background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+
+    .right-header { padding: 14px 20px 12px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .right-header h2 { font-size: 15px; font-weight: 700; white-space: nowrap; }
+    .count-badge { font-size: 10px; color: var(--fg-muted); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; white-space: nowrap; }
+
+    /* ── timer section ── */
+    .timer-section {
+      flex: 0 0 48%;
+      border-bottom: 1px solid var(--border-soft);
+      background: rgba(10,18,32,0.75);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 24px 32px 28px;
+      position: relative;
+    }
+    .ts-info { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .ts-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-muted); }
+    .ts-value-name {
+      font-size: 34px; font-weight: 700; line-height: 1.2;
+      color: var(--fg-muted);
+      text-align: center;
+      transition: color 180ms;
+    }
+    .ts-value-name.selected { color: var(--fg); }
+    .ts-right { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 4px; }
+    .ts-countdown {
+      font-size: 140px; font-weight: 700; line-height: 0.9;
+      font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
+      color: var(--fg-muted);
+      transition: color 200ms;
+    }
+    .ts-countdown.running { color: var(--fg); }
+    .ts-countdown.urgent  { color: var(--urgent); animation: pulse 600ms ease-in-out infinite; }
+    .ts-buttons { display: flex; gap: 12px; }
+    .ts-start {
+      font-family: inherit; font-size: 15px; font-weight: 700;
+      padding: 12px 28px; border-radius: 10px; border: none;
+      background: var(--accent); color: #fff; cursor: pointer;
+      transition: opacity 120ms; white-space: nowrap;
+    }
+    .ts-start:hover:not(:disabled) { opacity: 0.85; }
+    .ts-start:disabled { opacity: 0.28; cursor: default; }
+    .ts-stop {
+      font-family: inherit; font-size: 15px; font-weight: 700;
+      padding: 12px 28px; border-radius: 10px;
+      border: 1px solid rgba(177,80,67,0.35);
+      background: rgba(177,80,67,0.12); color: var(--urgent);
+      cursor: pointer; transition: background 120ms; white-space: nowrap;
+    }
+    .ts-stop:hover:not(:disabled) { background: rgba(177,80,67,0.22); }
+    .ts-stop:disabled { opacity: 0.28; cursor: default; }
+    /* progress bar pinned to bottom edge of section */
+    .ts-progress {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 3px; background: rgba(255,235,210,0.08);
+    }
+    .ts-progress-fill {
+      height: 100%; width: 100%;
+      background: var(--accent);
+      transition: width 200ms linear, background 200ms;
+    }
+    .timer-section.urgent .ts-progress-fill { background: var(--urgent); }
+
+    /* results button */
+    .results-btn { font-family: inherit; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(95,158,160,0.4); background: rgba(95,158,160,0.1); color: var(--wv-seafoam); cursor: pointer; transition: background 120ms; white-space: nowrap; flex-shrink: 0; }
+    .results-btn:hover { background: rgba(95,158,160,0.2); }
+
+    /* values grid */
+    .values-grid { flex: 1; overflow-y: auto; padding: 14px 18px 18px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; align-content: start; scrollbar-width: thin; scrollbar-color: rgba(255,235,210,0.1) transparent; }
+    .values-grid::-webkit-scrollbar { width: 3px; }
+    .values-grid::-webkit-scrollbar-thumb { background: rgba(255,235,210,0.12); border-radius: 2px; }
+
+    /* value card base */
+    .value-card { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 10px; padding: 13px 15px; cursor: pointer; transition: border-color 150ms, background 150ms, box-shadow 150ms; user-select: none; }
+    .value-card:hover { border-color: rgba(203,120,88,0.3); background: #222f45; }
+    .value-card-top { display: flex; align-items: baseline; gap: 7px; margin-bottom: 5px; }
+    .value-num { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent); min-width: 20px; font-variant-numeric: tabular-nums; }
+    .value-name { font-size: 14px; font-weight: 700; letter-spacing: 0.01em; line-height: 1.25; }
+    .value-desc { font-size: 12px; line-height: 1.55; color: var(--fg-muted); padding-left: 27px; }
+
+    /* card states */
+    .value-card.selected { border-color: rgba(203,120,88,0.55); background: rgba(203,120,88,0.07); }
+    .value-card.timing { border-color: var(--accent); background: rgba(203,120,88,0.09); box-shadow: 0 0 0 2px rgba(203,120,88,0.15); }
+    .value-card.timing:hover { background: rgba(203,120,88,0.13); }
+    .value-card.urgent-timing { border-color: var(--urgent); background: rgba(177,80,67,0.1); box-shadow: 0 0 0 2px rgba(177,80,67,0.18); }
+    .value-card.pending { border-color: rgba(95,158,160,0.5); background: rgba(95,158,160,0.07); cursor: pointer; }
+    .value-card.pending:hover { background: rgba(95,158,160,0.12); }
+    .value-card.sold { border-color: rgba(255,235,210,0.22); background: var(--bg-card); cursor: default; }
+    .value-card.sold:hover { border-color: rgba(255,235,210,0.22); background: var(--bg-card); }
+    .value-card.passed { opacity: 0.45; cursor: default; }
+    .value-card.passed:hover { border-color: var(--border-soft); background: var(--bg-card); }
+
+    /* sold info on card */
+    .sold-row { display: flex; align-items: center; gap: 5px; padding-left: 25px; margin-top: 5px; flex-wrap: wrap; }
+    .sold-company { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: rgba(255,235,210,0.1); border: 1px solid rgba(255,235,210,0.2); color: var(--fg); }
+    .sold-price { font-size: 10px; font-weight: 700; color: var(--accent); }
+    .pending-hint { font-size: 10px; color: var(--wv-seafoam); padding-left: 25px; margin-top: 4px; font-weight: 700; letter-spacing: 0.04em; }
+
+    /* ── record modal ── */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 180ms; }
+    .modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .modal { background: #1a2438; border: 1px solid rgba(255,235,210,0.18); border-radius: 16px; padding: 22px 24px; width: 380px; max-width: calc(100vw - 32px); box-shadow: 0 24px 64px rgba(0,0,0,0.6); transform: translateY(8px); transition: transform 180ms; }
+    .modal-backdrop.open .modal { transform: translateY(0); }
+    .modal-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 4px; }
+    .modal-value-name { font-size: 18px; font-weight: 700; margin-bottom: 18px; color: var(--fg); }
+    .modal-section-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 8px; }
+    .company-picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 18px; }
+    .company-pick-btn { font-family: inherit; font-size: 11px; font-weight: 700; padding: 7px 4px; border-radius: 8px; border: 1px solid rgba(255,235,210,0.15); background: rgba(255,235,210,0.04); color: var(--fg-muted); cursor: pointer; text-align: center; transition: background 120ms, border-color 120ms, color 120ms; line-height: 1.2; }
+    .company-pick-btn:hover { background: rgba(203,120,88,0.15); border-color: rgba(203,120,88,0.4); color: var(--fg); }
+    .company-pick-btn.selected { background: rgba(203,120,88,0.22); border-color: var(--accent); color: var(--fg); }
+    .price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .price-label { font-size: 11px; color: var(--fg-muted); white-space: nowrap; }
+    .price-input { flex: 1; font-family: inherit; font-size: 16px; font-weight: 700; background: rgba(255,235,210,0.07); border: 1px solid rgba(255,235,210,0.15); border-radius: 8px; color: var(--fg); padding: 7px 12px; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+    .price-input::-webkit-outer-spin-button, .price-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .price-input:focus { outline: none; border-color: var(--accent); }
+    .price-suffix { font-size: 11px; color: var(--fg-muted); white-space: nowrap; }
+    .modal-actions { display: flex; gap: 8px; }
+    .btn-confirm { flex: 1; font-family: inherit; font-size: 13px; font-weight: 700; padding: 10px; border-radius: 8px; border: none; background: var(--accent); color: #fff; cursor: pointer; transition: opacity 120ms; }
+    .btn-confirm:hover { opacity: 0.88; }
+    .btn-confirm:disabled { opacity: 0.35; cursor: default; }
+    .btn-pass { font-family: inherit; font-size: 12px; font-weight: 700; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,235,210,0.14); background: transparent; color: var(--fg-muted); cursor: pointer; transition: background 120ms; }
+    .btn-pass:hover { background: rgba(255,235,210,0.07); color: var(--fg); }
+    .btn-cancel { font-family: inherit; font-size: 12px; font-weight: 700; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,235,210,0.14); background: transparent; color: var(--fg-muted); cursor: pointer; transition: background 120ms; }
+    .btn-cancel:hover { background: rgba(255,235,210,0.07); color: var(--fg); }
+
+    /* ── summary modal ── */
+    .summary-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 180ms; }
+    .summary-backdrop.open { opacity: 1; pointer-events: all; }
+    .summary-panel { background: #1a2438; border: 1px solid rgba(255,235,210,0.18); border-radius: 16px; width: 560px; max-width: calc(100vw - 32px); max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 24px 64px rgba(0,0,0,0.6); transform: translateY(8px); transition: transform 180ms; }
+    .summary-backdrop.open .summary-panel { transform: translateY(0); }
+    .summary-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .summary-header h3 { font-size: 15px; font-weight: 700; }
+    .summary-close { margin-left: auto; font-family: inherit; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,235,210,0.14); background: transparent; color: var(--fg-muted); cursor: pointer; }
+    .summary-close:hover { background: rgba(255,235,210,0.07); color: var(--fg); }
+    .summary-body { overflow-y: auto; padding: 14px 22px 20px; scrollbar-width: thin; scrollbar-color: rgba(255,235,210,0.1) transparent; }
+    .summary-body::-webkit-scrollbar { width: 3px; }
+    .summary-body::-webkit-scrollbar-thumb { background: rgba(255,235,210,0.12); border-radius: 2px; }
+    .summary-empty { font-size: 13px; color: var(--fg-muted); text-align: center; padding: 32px 0; }
+    .summary-table { width: 100%; border-collapse: collapse; }
+    .summary-table th { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-muted); text-align: left; padding: 0 8px 8px; border-bottom: 1px solid var(--border-soft); }
+    .summary-table th:last-child { text-align: right; }
+    .summary-table td { font-size: 12px; padding: 8px 8px; border-bottom: 1px solid rgba(255,235,210,0.06); vertical-align: middle; }
+    .summary-table td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
+    .summary-table tr:last-child td { border-bottom: none; }
+    .st-num { color: var(--fg-muted); font-size: 10px; }
+    .st-buyer { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 999px; background: rgba(255,235,210,0.08); border: 1px solid rgba(255,235,210,0.15); font-size: 11px; font-weight: 700; }
+    .summary-totals { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
+    .totals-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 10px; }
+    .totals-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .total-chip { display: flex; flex-direction: column; gap: 2px; background: rgba(255,235,210,0.05); border: 1px solid var(--border-soft); border-radius: 8px; padding: 8px 12px; min-width: 90px; }
+    .total-chip-name { font-size: 10px; font-weight: 700; color: var(--fg-muted); }
+    .total-chip-val { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--fg); }
+
+    /* ── center timer overlay ── */
+    .center-timer {
+      position: fixed;
+      /* horizontally centered within the right panel */
+      left: calc(380px + (100vw - 380px) / 2);
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 40;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 300ms;
+    }
+    .center-timer.idle { opacity: 0.18; }
+    .center-timer.running { opacity: 1; }
+    .center-timer.urgent { opacity: 1; }
+
+    .ct-value-num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+    }
+    .ct-value-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--fg);
+      text-align: center;
+      max-width: 260px;
+      line-height: 1.25;
+    }
+    .ct-countdown {
+      font-size: 72px;
+      font-weight: 700;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--fg);
+      transition: color 200ms;
+    }
+    .center-timer.urgent .ct-countdown {
+      color: var(--urgent);
+      animation: pulse 600ms ease-in-out infinite;
+    }
+    .ct-bar-track {
+      width: 200px;
+      height: 3px;
+      background: rgba(255,235,210,0.12);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .ct-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 200ms linear, background 200ms;
+      width: 100%;
+    }
+    .center-timer.urgent .ct-bar-fill { background: var(--urgent); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ── responsive ── */
+    @media (max-width: 959px) {
+      html, body { overflow: auto; height: auto; }
+      .shell { display: flex; flex-direction: column; flex: none; min-height: 0; }
+      .panel-left { border-right: none; border-bottom: 1px solid var(--border-soft); flex-shrink: 0; }
+      .left-header { flex-wrap: wrap; gap: 10px; }
+      .company-tabs { flex-direction: row; overflow-x: auto; padding: 8px 10px; gap: 6px; scrollbar-width: none; }
+      .company-tabs::-webkit-scrollbar { display: none; }
+      .company-tab { flex-direction: column; align-items: center; gap: 4px; padding: 8px 10px; min-width: 64px; flex-shrink: 0; }
+      .tab-credo-pip { font-size: 9px; margin-left: 0; }
+      .tab-sector { display: none; }
+      .company-detail { max-height: 220px; }
+      .panel-right { flex: 1; }
+      .values-grid { grid-template-columns: repeat(2, 1fr); }
+      .center-timer { left: 50%; }
+    }
+
+    @media (max-width: 599px) {
+      .shell { min-height: 100dvh; }
+      .left-header { padding: 12px 14px 10px; }
+      .title-block h1 { font-size: 13px; }
+      .credos-widget { min-width: 90px; padding: 6px 10px; }
+      .credos-remaining { font-size: 22px; }
+      .credos-buttons { display: none; }
+      .credos-input-row { display: none; }
+      .company-tabs { padding: 6px 8px; }
+      .company-tab { min-width: 54px; padding: 6px 8px; }
+      .tab-logo { width: 26px; height: 26px; }
+      .tab-logo svg { width: 26px; height: 26px; }
+      .tab-name { font-size: 11px; }
+      .company-detail { max-height: 180px; padding: 12px; }
+      .co-logo { width: 48px; height: 48px; border-radius: 8px; }
+      .co-logo svg { width: 48px; height: 48px; }
+      .co-name { font-size: 18px; }
+      .detail-text { font-size: 12px; }
+      .timer-section { flex: 0 0 auto; padding: 16px 14px 20px; gap: 8px; }
+      .ts-value-name { font-size: 20px; }
+      .ts-countdown { font-size: 72px; }
+      .ts-start, .ts-stop { font-size: 13px; padding: 10px 16px; }
+      .values-grid { grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px 12px 14px; }
+      .value-card { padding: 10px 11px; }
+      .value-name { font-size: 13px; }
+      .value-desc { font-size: 11px; }
+      .right-header h2 { font-size: 13px; }
+      .center-timer { left: 50%; }
+    }
+  </style>
+</head>
+<body data-mode="browse">
+
+<div class="page-tabs" role="tablist">
+  <button class="page-tab-btn active" data-page="browse" role="tab" aria-selected="true">companies &amp; values</button>
+  <button class="page-tab-btn"        data-page="auction" role="tab" aria-selected="false">auction</button>
+</div>
+
+<div class="shell">
+
+  <!-- ══ LEFT ══ -->
+  <aside class="panel-left">
+    <div class="left-header">
+      <div class="title-block">
+        <p class="eyebrow">winded.vertigo</p>
+        <h1>values <span>auction</span></h1>
+      </div>
+      <div class="credos-widget">
+        <span class="credos-label">credos</span>
+        <span class="credos-remaining" id="credos-display">150</span>
+        <span class="credos-sub">of 150 remaining</span>
+        <div class="credos-buttons">
+          <button class="credo-btn" data-spend="20">−20</button>
+          <button class="credo-btn" data-spend="40">−40</button>
+          <button class="credo-btn" data-spend="60">−60</button>
+          <button class="credo-btn" data-spend="80">−80</button>
+        </div>
+        <div class="credos-input-row">
+          <input class="credo-manual" id="credo-manual" type="number" min="0" max="150" placeholder="?" />
+          <button class="credo-apply" id="credo-apply">−</button>
+          <button class="credo-btn reset" id="credo-reset" title="reset to 150">↺</button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="company-tabs" role="tablist">
+      <button class="company-tab active" role="tab" data-id="ethos" aria-selected="true">
+        <span class="tab-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" fill="#ffebd2"/><path d="M120 56 C80 80 80 140 120 180 C160 140 160 80 120 56 Z" fill="none" stroke="#273248" stroke-width="6" stroke-linejoin="round"/><path d="M120 60 L120 176" stroke="#273248" stroke-width="4" stroke-linecap="round"/><text x="120" y="216" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="700" font-size="24" letter-spacing="6" fill="#273248">ETHOS</text></svg></span>
+        <span><span class="tab-name">ETHOS</span><span class="tab-sector">fashion</span></span>
+        <span class="tab-credo-pip" data-pip="ethos">150</span>
+      </button>
+      <button class="company-tab" role="tab" data-id="opened" aria-selected="false">
+        <span class="tab-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" fill="#ffebd2"/><circle cx="120" cy="72" r="22" fill="#cb7858"/><path d="M48 156 L120 132 L192 156 L192 188 L120 164 L48 188 Z" fill="none" stroke="#273248" stroke-width="6" stroke-linejoin="round"/><path d="M120 132 L120 164" stroke="#273248" stroke-width="4"/><text x="120" y="220" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">OpenEd</text></svg></span>
+        <span><span class="tab-name">OpenEd</span><span class="tab-sector">edtech</span></span>
+        <span class="tab-credo-pip" data-pip="opened">150</span>
+      </button>
+      <button class="company-tab" role="tab" data-id="growup" aria-selected="false">
+        <span class="tab-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" fill="#ffebd2"/><path d="M120 48 C100 72 100 108 120 132 C140 108 140 72 120 48 Z" fill="none" stroke="#273248" stroke-width="6" stroke-linejoin="round"/><path d="M120 132 L120 180" stroke="#273248" stroke-width="6" stroke-linecap="round"/><path d="M120 180 C104 180 88 164 88 160 M120 180 C136 180 152 164 152 160" fill="none" stroke="#273248" stroke-width="4" stroke-linecap="round"/><text x="120" y="220" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">GrowUp</text></svg></span>
+        <span><span class="tab-name">GrowUp</span><span class="tab-sector">agritech</span></span>
+        <span class="tab-credo-pip" data-pip="growup">150</span>
+      </button>
+      <button class="company-tab" role="tab" data-id="care-ai" aria-selected="false">
+        <span class="tab-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" fill="#ffebd2"/><path d="M120 172 C60 132 60 72 96 72 C108 72 120 84 120 96 C120 84 132 72 144 72 C180 72 180 132 120 172 Z" fill="#b15043"/><circle cx="84" cy="96" r="6" fill="#273248"/><circle cx="156" cy="96" r="6" fill="#273248"/><circle cx="120" cy="128" r="6" fill="#273248"/><line x1="84" y1="96" x2="156" y2="96" stroke="#273248" stroke-width="2"/><line x1="84" y1="96" x2="120" y2="128" stroke="#273248" stroke-width="2"/><line x1="156" y1="96" x2="120" y2="128" stroke="#273248" stroke-width="2"/><text x="120" y="220" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">Care.ai</text></svg></span>
+        <span><span class="tab-name">Care.ai</span><span class="tab-sector">health tech</span></span>
+        <span class="tab-credo-pip" data-pip="care-ai">150</span>
+      </button>
+      <button class="company-tab" role="tab" data-id="bluecircuits" aria-selected="false">
+        <span class="tab-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" fill="#ffebd2"/><circle cx="120" cy="112" r="48" fill="none" stroke="#273248" stroke-width="6"/><circle cx="72" cy="112" r="10" fill="#273248"/><circle cx="168" cy="112" r="10" fill="#273248"/><line x1="82" y1="112" x2="158" y2="112" stroke="#273248" stroke-width="4"/><text x="120" y="212" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="700" font-size="20" letter-spacing="1" fill="#273248">BlueCircuits</text></svg></span>
+        <span><span class="tab-name">BlueCircuits</span><span class="tab-sector">hardware</span></span>
+        <span class="tab-credo-pip" data-pip="bluecircuits">150</span>
+      </button>
+      <button class="company-tab" role="tab" data-id="coact" aria-selected="false">
+        <span class="tab-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" fill="#ffebd2"/><path d="M72 112 A48 48 0 0 1 168 112" fill="none" stroke="#273248" stroke-width="6" stroke-linecap="round"/><path d="M168 112 A48 48 0 0 1 72 112" fill="none" stroke="#cb7858" stroke-width="6" stroke-linecap="round"/><path d="M168 104 L168 120 L180 112 Z" fill="#273248"/><path d="M72 120 L72 104 L60 112 Z" fill="#cb7858"/><text x="120" y="212" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">CoAct</text></svg></span>
+        <span><span class="tab-name">CoAct</span><span class="tab-sector">consulting</span></span>
+        <span class="tab-credo-pip" data-pip="coact">150</span>
+      </button>
+      <button class="company-tab" role="tab" data-id="homehatch" aria-selected="false">
+        <span class="tab-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" fill="#ffebd2"/><path d="M48 120 L96 76 L144 120 L144 176 L48 176 Z" fill="none" stroke="#b15043" stroke-width="6" stroke-linejoin="round"/><path d="M132 132 L172 100 L212 132 L212 176 L132 176 Z" fill="none" stroke="#273248" stroke-width="6" stroke-linejoin="round"/><text x="120" y="212" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="700" font-size="20" letter-spacing="1" fill="#273248">HomeHatch</text></svg></span>
+        <span><span class="tab-name">HomeHatch</span><span class="tab-sector">real estate</span></span>
+        <span class="tab-credo-pip" data-pip="homehatch">150</span>
+      </button>
+      <button class="company-tab" role="tab" data-id="ripple" aria-selected="false">
+        <span class="tab-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" fill="#ffebd2"/><circle cx="120" cy="112" r="56" fill="none" stroke="#273248" stroke-width="6"/><path d="M78 94 Q96 80 120 94 T162 94" fill="none" stroke="#273248" stroke-width="4" stroke-linecap="round"/><path d="M78 116 Q96 102 120 116 T162 116" fill="none" stroke="#273248" stroke-width="4" stroke-linecap="round"/><path d="M78 138 Q96 124 120 138 T162 138" fill="none" stroke="#273248" stroke-width="4" stroke-linecap="round"/><text x="120" y="212" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#273248">Ripple</text></svg></span>
+        <span><span class="tab-name">Ripple</span><span class="tab-sector">fintech</span></span>
+        <span class="tab-credo-pip" data-pip="ripple">150</span>
+      </button>
+    </nav>
+
+    <div class="company-detail" id="company-detail" role="tabpanel"></div>
+  </aside>
+
+  <!-- ══ RIGHT ══ -->
+  <main class="panel-right">
+    <div class="right-header">
+      <h2>the values</h2>
+      <span class="count-badge">20 cards</span>
+      <button class="results-btn" id="results-btn" style="margin-left:auto">results →</button>
+    </div>
+
+    <!-- timer section -->
+    <div class="timer-section" id="timer-section">
+      <div class="ts-info">
+        <span class="ts-eyebrow" id="ts-eyebrow">select a value</span>
+        <span class="ts-value-name" id="ts-value-name">—</span>
+      </div>
+      <div class="ts-right">
+        <span class="ts-countdown" id="ts-countdown">1:00</span>
+        <div class="ts-buttons">
+          <button class="ts-start" id="ts-start" disabled>▶ start</button>
+          <button class="ts-stop"  id="ts-stop"  disabled>■ stop</button>
+        </div>
+      </div>
+      <div class="ts-progress"><div class="ts-progress-fill" id="ts-progress-fill"></div></div>
+    </div>
+
+    <div class="values-grid" id="values-grid">
+      <div class="value-card" data-idx="0"><div class="value-card-top"><span class="value-num">01</span><span class="value-name">Radical Transparency</span></div><p class="value-desc">your company's operations, data, and decisions are visible, internally and externally. trust is your brand.</p></div>
+      <div class="value-card" data-idx="1"><div class="value-card-top"><span class="value-num">02</span><span class="value-name">Equity &amp; Inclusion</span></div><p class="value-desc">you commit to diverse leadership, fair labour, and access for historically excluded communities.</p></div>
+      <div class="value-card" data-idx="2"><div class="value-card-top"><span class="value-num">03</span><span class="value-name">Climate Action Priority</span></div><p class="value-desc">you lead with bold sustainability goals: zero emissions, regenerative systems, and climate justice in your supply chain.</p></div>
+      <div class="value-card" data-idx="3"><div class="value-card-top"><span class="value-num">04</span><span class="value-name">Accountability</span></div><p class="value-desc">you own your impact — good or bad — and act on it.</p></div>
+      <div class="value-card" data-idx="4"><div class="value-card-top"><span class="value-num">05</span><span class="value-name">Community</span></div><p class="value-desc">your company is shaped by the needs and assets of the communities you serve.</p></div>
+      <div class="value-card" data-idx="5"><div class="value-card-top"><span class="value-num">06</span><span class="value-name">Maximum Profitability</span></div><p class="value-desc">your growth strategy centres on profit. investors love you.</p></div>
+      <div class="value-card" data-idx="6"><div class="value-card-top"><span class="value-num">07</span><span class="value-name">Speed to Market</span></div><p class="value-desc">you outpace the competition with fast launches and iteration. agility is your edge.</p></div>
+      <div class="value-card" data-idx="7"><div class="value-card-top"><span class="value-num">08</span><span class="value-name">Scalable Simplicity</span></div><p class="value-desc">your offering is lean, modular, and easy to replicate. efficiency opens global doors.</p></div>
+      <div class="value-card" data-idx="8"><div class="value-card-top"><span class="value-num">09</span><span class="value-name">Global Brand Recognition</span></div><p class="value-desc">everyone knows your name. you're sexy, social, and spotlighted.</p></div>
+      <div class="value-card" data-idx="9"><div class="value-card-top"><span class="value-num">10</span><span class="value-name">Resilience Culture</span></div><p class="value-desc">you plan for shocks. flexibility and grit guide your team.</p></div>
+      <div class="value-card" data-idx="10"><div class="value-card-top"><span class="value-num">11</span><span class="value-name">Psychological Safety</span></div><p class="value-desc">your team thrives on experimentation, failure, and feedback. people speak up and grow.</p></div>
+      <div class="value-card" data-idx="11"><div class="value-card-top"><span class="value-num">12</span><span class="value-name">Empathic Leadership</span></div><p class="value-desc">you lead with compassion and care. people are more than productivity.</p></div>
+      <div class="value-card" data-idx="12"><div class="value-card-top"><span class="value-num">13</span><span class="value-name">Customer Commitment</span></div><p class="value-desc">you serve with precision. their needs drive every choice.</p></div>
+      <div class="value-card" data-idx="13"><div class="value-card-top"><span class="value-num">14</span><span class="value-name">Responsible AI / Tech Ethics</span></div><p class="value-desc">your tech respects autonomy, avoids bias, and protects data with care.</p></div>
+      <div class="value-card" data-idx="14"><div class="value-card-top"><span class="value-num">15</span><span class="value-name">Futures Thinking</span></div><p class="value-desc">you build not for today, but for the world we're heading toward: flexible, regenerative, humane.</p></div>
+      <div class="value-card" data-idx="15"><div class="value-card-top"><span class="value-num">16</span><span class="value-name">Design for Dignity</span></div><p class="value-desc">beauty, accessibility, and function are embedded in your product for everyone.</p></div>
+      <div class="value-card" data-idx="16"><div class="value-card-top"><span class="value-num">17</span><span class="value-name">Trust as Currency</span></div><p class="value-desc">customers, partners, and employees believe in you. credibility compounds.</p></div>
+      <div class="value-card" data-idx="17"><div class="value-card-top"><span class="value-num">18</span><span class="value-name">Design Excellence</span></div><p class="value-desc">you prize beauty and function equally. good design is good business.</p></div>
+      <div class="value-card" data-idx="18"><div class="value-card-top"><span class="value-num">19</span><span class="value-name">Affordable Access</span></div><p class="value-desc">you never price people out. affordability and impact go hand in hand.</p></div>
+      <div class="value-card" data-idx="19"><div class="value-card-top"><span class="value-num">20</span><span class="value-name">Culture of Reflection</span></div><p class="value-desc">your org makes time to pause, learn, and evolve together.</p></div>
+    </div>
+  </main>
+</div>
+
+<!-- ── record sale modal ── -->
+<div class="modal-backdrop" id="record-backdrop">
+  <div class="modal">
+    <p class="modal-title">who got it?</p>
+    <p class="modal-value-name" id="modal-value-name">—</p>
+    <p class="modal-section-label">company</p>
+    <div class="company-picker" id="company-picker">
+      <button class="company-pick-btn" data-cid="ethos">ETHOS</button>
+      <button class="company-pick-btn" data-cid="opened">OpenEd</button>
+      <button class="company-pick-btn" data-cid="growup">GrowUp</button>
+      <button class="company-pick-btn" data-cid="care-ai">Care.ai</button>
+      <button class="company-pick-btn" data-cid="bluecircuits">BlueCircuits</button>
+      <button class="company-pick-btn" data-cid="coact">CoAct</button>
+      <button class="company-pick-btn" data-cid="homehatch">HomeHatch</button>
+      <button class="company-pick-btn" data-cid="ripple">Ripple</button>
+    </div>
+    <p class="modal-section-label">price</p>
+    <div class="price-row">
+      <input class="price-input" id="price-input" type="number" min="0" max="150" placeholder="0" />
+      <span class="price-suffix">credos</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-confirm" id="btn-confirm" disabled>record sale</button>
+      <button class="btn-pass" id="btn-pass">no sale</button>
+      <button class="btn-cancel" id="btn-cancel">cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── summary modal ── -->
+<div class="summary-backdrop" id="summary-backdrop">
+  <div class="summary-panel">
+    <div class="summary-header">
+      <h3>results so far</h3>
+      <button class="summary-close" id="summary-close">close</button>
+    </div>
+    <div class="summary-body" id="summary-body"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   PAGE TABS
+══════════════════════════════════════════ */
+document.querySelectorAll('.page-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.page-tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    document.body.dataset.mode = btn.dataset.page;
+    // if switching away from auction while timer is running, stop it
+    if (btn.dataset.page === 'browse' && timerInterval) stopTimer(true);
+  });
+});
+
+/* ══════════════════════════════════════════
+   DATA
+══════════════════════════════════════════ */
+const STARTUPS = {
+  ethos:        { name: 'ETHOS',        sector: 'fashion',     profile: 'a fashion startup aiming to scale sustainably but facing intense pressure from fast fashion competitors.', challenge: 'your team must grow quickly to meet demand, but every shortcut you take could compromise your brand’s ethical standards and environmental commitments.' },
+  opened:       { name: 'OpenEd',       sector: 'edtech',      profile: 'a learning platform promising equity in digital education, yet struggling with limited tech access in rural and underserved regions.', challenge: 'investors want rapid user growth, but how do you ensure access and inclusion for the most marginalised students?' },
+  growup:       { name: 'GrowUp',       sector: 'agritech',    profile: 'an agritech company innovating regenerative farming tools while under pressure from stakeholders for quick returns and market dominance.', challenge: 'maintain ecological integrity while scaling rapidly and satisfying impatient investors.' },
+  'care-ai':    { name: 'Care.ai',      sector: 'health tech', profile: 'a health tech platform designed to personalise care using AI, while navigating data privacy, algorithmic bias, and ethical guardrails.', challenge: 'every decision about speed, personalisation, and partnerships has implications for trust, equity, and health outcomes.' },
+  bluecircuits: { name: 'BlueCircuits', sector: 'hardware',    profile: 'a hardware startup building modular electronics to reduce e-waste, while competing with cheaper, disposable products in the market.', challenge: 'you must convince consumers and suppliers that ethical design and circular economy thinking are worth the cost and disruption.' },
+  coact:        { name: 'CoAct',        sector: 'consulting',  profile: 'a collaborative impact consultancy offering climate strategy to corporate clients, while refusing greenwashing and performative CSR.', challenge: 'can you uphold integrity and push for transformation while keeping large clients happy and contracts flowing?' },
+  homehatch:    { name: 'HomeHatch',    sector: 'real estate', profile: 'a real estate tech startup aimed at sustainable, affordable housing access, working within policy and zoning constraints.', challenge: 'you’re caught between innovation, neighbourhood resistance, and rising construction costs. can you stay mission-aligned?' },
+  ripple:       { name: 'Ripple',       sector: 'fintech',     profile: 'a fintech platform promoting financial inclusion for migrant workers, challenged by regulatory constraints and fraud risk.', challenge: 'your business depends on trust and accessibility, but navigating compliance and risk aversion is slowing down your innovation.' },
+};
+
+const VALUES = [
+  'Radical Transparency','Equity & Inclusion','Climate Action Priority','Accountability','Community',
+  'Maximum Profitability','Speed to Market','Scalable Simplicity','Global Brand Recognition','Resilience Culture',
+  'Psychological Safety','Empathic Leadership','Customer Commitment','Responsible AI / Tech Ethics','Futures Thinking',
+  'Design for Dignity','Trust as Currency','Design Excellence','Affordable Access','Culture of Reflection',
+];
+
+const BUDGET  = 150;
+const COMPANY_IDS = Object.keys(STARTUPS);
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+let currentCompany = 'ethos';
+
+// per-company credos spent
+const credosSpent = Object.fromEntries(COMPANY_IDS.map(id => [id, 0]));
+
+// per-value record: null | { company, price } | 'passed'
+const valueRecords = new Array(20).fill(null);
+
+// per-value card state: 'idle' | 'pending' | 'sold' | 'passed'
+const cardStates = new Array(20).fill('idle');
+
+/* ══════════════════════════════════════════
+   COMPANY PANEL
+══════════════════════════════════════════ */
+function getLogoSVG(id) {
+  const el = document.querySelector(`.company-tab[data-id="${id}"] .tab-logo svg`);
+  if (!el) return '';
+  const clone = el.cloneNode(true);
+  clone.setAttribute('width', '68'); clone.setAttribute('height', '68');
+  return clone.outerHTML;
+}
+
+function renderCompany(id) {
+  const s = STARTUPS[id];
+  document.getElementById('company-detail').innerHTML = `
+    <div class="detail-inner">
+      <div class="co-logo">${getLogoSVG(id)}</div>
+      <h2 class="co-name">${s.name}</h2>
+      <span class="sector-badge">${s.sector}</span>
+      <div class="detail-section">
+        <p class="detail-label">who they are</p>
+        <p class="detail-text">${s.profile}</p>
+      </div>
+      <div class="detail-section">
+        <p class="detail-label">the challenge</p>
+        <div class="challenge-box"><p class="detail-text">${s.challenge}</p></div>
+      </div>
+    </div>`;
+  document.getElementById('company-detail').scrollTop = 0;
+}
+
+document.querySelectorAll('.company-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.company-tab').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    currentCompany = btn.dataset.id;
+    renderCompany(currentCompany);
+    updateCredosWidget();
+  });
+});
+
+renderCompany('ethos');
+
+/* ══════════════════════════════════════════
+   CREDOS WIDGET
+══════════════════════════════════════════ */
+function updateCredosWidget() {
+  const spent = credosSpent[currentCompany];
+  const remaining = Math.max(0, BUDGET - spent);
+  const display = document.getElementById('credos-display');
+  display.textContent = remaining;
+  display.classList.toggle('low', remaining <= 40);
+  updateAllPips();
+}
+
+function updateAllPips() {
+  COMPANY_IDS.forEach(id => {
+    const pip = document.querySelector(`.tab-credo-pip[data-pip="${id}"]`);
+    if (!pip) return;
+    const remaining = Math.max(0, BUDGET - credosSpent[id]);
+    pip.textContent = remaining;
+    pip.classList.toggle('low', remaining <= 40);
+  });
+}
+
+function spendCredos(amount) {
+  credosSpent[currentCompany] = Math.min(BUDGET, credosSpent[currentCompany] + amount);
+  updateCredosWidget();
+}
+
+document.querySelectorAll('.credo-btn[data-spend]').forEach(btn => {
+  btn.addEventListener('click', () => spendCredos(parseInt(btn.dataset.spend)));
+});
+
+document.getElementById('credo-apply').addEventListener('click', () => {
+  const val = parseInt(document.getElementById('credo-manual').value) || 0;
+  if (val > 0) { spendCredos(val); document.getElementById('credo-manual').value = ''; }
+});
+
+document.getElementById('credo-manual').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('credo-apply').click();
+});
+
+document.getElementById('credo-reset').addEventListener('click', () => {
+  credosSpent[currentCompany] = 0;
+  document.getElementById('credo-manual').value = '';
+  updateCredosWidget();
+});
+
+/* ══════════════════════════════════════════
+   TIMER
+══════════════════════════════════════════ */
+const DURATION_MS = 60_000;
+const URGENT_MS   = 10_000;
+const TICK_MS     = 200;
+
+let timerInterval = null;
+let timerEnd      = null;
+let timingCardIdx = null;
+let selectedIdx   = null;   // card clicked but not yet started
+
+const tsSection      = document.getElementById('timer-section');
+const tsEyebrow      = document.getElementById('ts-eyebrow');
+const tsValueName    = document.getElementById('ts-value-name');
+const tsCountdown    = document.getElementById('ts-countdown');
+const tsStart        = document.getElementById('ts-start');
+const tsStop         = document.getElementById('ts-stop');
+const tsProgressFill = document.getElementById('ts-progress-fill');
+
+function formatMs(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
+function getCard(idx) { return document.querySelector(`.value-card[data-idx="${idx}"]`); }
+
+function clearTimingCard() {
+  if (timingCardIdx !== null) {
+    const card = getCard(timingCardIdx);
+    if (card) card.classList.remove('timing', 'urgent-timing');
+  }
+  timingCardIdx = null;
+}
+
+/* select a value — shows in timer bar, doesn't start */
+function selectValue(idx) {
+  // deselect previous if idle/selected
+  if (selectedIdx !== null && selectedIdx !== timingCardIdx) {
+    const prev = getCard(selectedIdx);
+    if (prev) prev.classList.remove('selected');
+    if (cardStates[selectedIdx] === 'selected') cardStates[selectedIdx] = 'idle';
+  }
+  selectedIdx = idx;
+  if (cardStates[idx] !== 'timing') {
+    cardStates[idx] = 'selected';
+    const card = getCard(idx);
+    if (card) { card.classList.remove('timing', 'urgent-timing'); card.classList.add('selected'); }
+  }
+  tsEyebrow.textContent = `${String(idx + 1).padStart(2, '0')} · now bidding`;
+  tsValueName.textContent = VALUES[idx];
+  tsValueName.classList.add('selected');
+  // only reset countdown display if timer isn't already running on this card
+  if (timingCardIdx !== idx) {
+    tsCountdown.textContent = '1:00';
+    tsCountdown.className = 'ts-countdown';
+    tsProgressFill.style.width = '100%';
+    tsSection.classList.remove('urgent');
+  }
+  tsStart.disabled = false;
+}
+
+function stopTimer(makePending = false) {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  timerEnd = null;
+  const wasIdx = timingCardIdx;
+  clearTimingCard();
+  tsCountdown.textContent = '1:00';
+  tsCountdown.className = 'ts-countdown';
+  tsProgressFill.style.width = '100%';
+  tsSection.classList.remove('urgent');
+  tsStart.disabled = (selectedIdx === null);
+  tsStop.disabled = true;
+  if (makePending && wasIdx !== null) {
+    setCardState(wasIdx, 'pending');
+    // keep the value name shown but deselect the card highlight
+    if (selectedIdx === wasIdx) {
+      const card = getCard(wasIdx);
+      if (card) card.classList.remove('selected');
+    }
+  }
+}
+
+function tick() {
+  const remaining = timerEnd - Date.now();
+  if (remaining <= 0) {
+    const expiredIdx = timingCardIdx;
+    stopTimer(false);
+    setCardState(expiredIdx, 'pending');
+    tsCountdown.textContent = '0:00';
+    return;
+  }
+  const isUrgent = remaining <= URGENT_MS;
+  const pct = (remaining / DURATION_MS) * 100;
+  tsCountdown.textContent = formatMs(remaining);
+  tsCountdown.className = 'ts-countdown ' + (isUrgent ? 'urgent' : 'running');
+  tsProgressFill.style.width = pct + '%';
+  tsProgressFill.style.background = isUrgent ? 'var(--urgent)' : 'var(--accent)';
+  tsSection.classList.toggle('urgent', isUrgent);
+  const card = getCard(timingCardIdx);
+  if (card) {
+    card.classList.toggle('urgent-timing', isUrgent);
+    card.classList.toggle('timing', !isUrgent);
+  }
+}
+
+function startTimer(idx) {
+  // clear any previous timing card
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; clearTimingCard(); }
+  // remove selected highlight; timing highlight takes over
+  const card = getCard(idx);
+  if (card) { card.classList.remove('selected'); card.classList.add('timing'); }
+  cardStates[idx] = 'timing';
+  timingCardIdx = idx;
+  timerEnd = Date.now() + DURATION_MS;
+  tsStop.disabled = false;
+  tsStart.disabled = true;
+  tick();
+  timerInterval = setInterval(tick, TICK_MS);
+}
+
+tsStart.addEventListener('click', () => {
+  if (selectedIdx !== null && cardStates[selectedIdx] !== 'sold' && cardStates[selectedIdx] !== 'passed') {
+    startTimer(selectedIdx);
+  }
+});
+tsStop.addEventListener('click', () => stopTimer(true));
+
+/* ══════════════════════════════════════════
+   CARD STATE MANAGEMENT
+══════════════════════════════════════════ */
+function setCardState(idx, state, record = null) {
+  cardStates[idx] = state;
+  valueRecords[idx] = record;
+  const card = getCard(idx);
+  if (!card) return;
+  card.classList.remove('timing', 'urgent-timing', 'pending', 'sold', 'passed');
+
+  // remove any extra rows
+  card.querySelectorAll('.sold-row, .pending-hint').forEach(el => el.remove());
+
+  if (state === 'pending') {
+    card.classList.add('pending');
+    const hint = document.createElement('p');
+    hint.className = 'pending-hint';
+    hint.textContent = '→ click to record sale';
+    card.appendChild(hint);
+  } else if (state === 'sold') {
+    card.classList.add('sold');
+    const row = document.createElement('div');
+    row.className = 'sold-row';
+    row.innerHTML = `<span class="sold-company">${STARTUPS[record.company].name}</span><span class="sold-price">${record.price} credos</span>`;
+    card.appendChild(row);
+  } else if (state === 'passed') {
+    card.classList.add('passed');
+  }
+}
+
+/* ══════════════════════════════════════════
+   RECORD MODAL
+══════════════════════════════════════════ */
+let recordingIdx = null;
+
+const recordBackdrop = document.getElementById('record-backdrop');
+const modalValueName = document.getElementById('modal-value-name');
+const priceInput     = document.getElementById('price-input');
+const btnConfirm     = document.getElementById('btn-confirm');
+let   selectedCompany = null;
+
+function openRecordModal(idx) {
+  recordingIdx   = idx;
+  selectedCompany = null;
+  priceInput.value = '';
+  btnConfirm.disabled = true;
+  modalValueName.textContent = `${String(idx + 1).padStart(2, '0')}. ${VALUES[idx]}`;
+  document.querySelectorAll('.company-pick-btn').forEach(b => b.classList.remove('selected'));
+  recordBackdrop.classList.add('open');
+  priceInput.focus();
+}
+
+function closeRecordModal() {
+  recordBackdrop.classList.remove('open');
+  recordingIdx = null;
+  selectedCompany = null;
+}
+
+document.querySelectorAll('.company-pick-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.company-pick-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedCompany = btn.dataset.cid;
+    btnConfirm.disabled = !(selectedCompany && priceInput.value !== '');
+  });
+});
+
+priceInput.addEventListener('input', () => {
+  btnConfirm.disabled = !(selectedCompany && priceInput.value !== '');
+});
+
+btnConfirm.addEventListener('click', () => {
+  if (!selectedCompany || priceInput.value === '' || recordingIdx === null) return;
+  const price = Math.max(0, parseInt(priceInput.value) || 0);
+  setCardState(recordingIdx, 'sold', { company: selectedCompany, price });
+  closeRecordModal();
+});
+
+document.getElementById('btn-pass').addEventListener('click', () => {
+  if (recordingIdx !== null) setCardState(recordingIdx, 'passed');
+  closeRecordModal();
+});
+
+document.getElementById('btn-cancel').addEventListener('click', closeRecordModal);
+recordBackdrop.addEventListener('click', e => { if (e.target === recordBackdrop) closeRecordModal(); });
+
+/* ══════════════════════════════════════════
+   VALUE CARD CLICKS
+══════════════════════════════════════════ */
+document.querySelectorAll('.value-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const idx = parseInt(card.dataset.idx);
+    const state = cardStates[idx];
+
+    if (state === 'sold' || state === 'passed') return;
+    if (state === 'pending') { openRecordModal(idx); return; }
+
+    // idle / selected / timing → select the value (show in timer bar)
+    selectValue(idx);
+  });
+});
+
+/* ══════════════════════════════════════════
+   SUMMARY MODAL
+══════════════════════════════════════════ */
+function renderSummary() {
+  const body = document.getElementById('summary-body');
+  const sold = valueRecords.map((r, i) => ({ idx: i, record: r })).filter(x => x.record && x.record !== 'passed' && x.record.company);
+
+  if (sold.length === 0) {
+    body.innerHTML = '<p class="summary-empty">no sales recorded yet.</p>';
+    return;
+  }
+
+  const totals = Object.fromEntries(COMPANY_IDS.map(id => [id, 0]));
+  sold.forEach(({ record }) => { totals[record.company] += record.price; });
+
+  const rows = sold.map(({ idx, record }) => `
+    <tr>
+      <td class="st-num">${String(idx + 1).padStart(2, '0')}</td>
+      <td>${VALUES[idx]}</td>
+      <td><span class="st-buyer">${STARTUPS[record.company].name}</span></td>
+      <td>${record.price}</td>
+    </tr>`).join('');
+
+  const chips = COMPANY_IDS.filter(id => totals[id] > 0).map(id => `
+    <div class="total-chip">
+      <span class="total-chip-name">${STARTUPS[id].name}</span>
+      <span class="total-chip-val">${totals[id]}</span>
+    </div>`).join('');
+
+  body.innerHTML = `
+    <table class="summary-table">
+      <thead><tr><th>#</th><th>value</th><th>buyer</th><th>credos</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${chips ? `<div class="summary-totals"><p class="totals-label">totals by company</p><div class="totals-grid">${chips}</div></div>` : ''}`;
+}
+
+document.getElementById('results-btn').addEventListener('click', () => {
+  renderSummary();
+  document.getElementById('summary-backdrop').classList.add('open');
+});
+
+document.getElementById('summary-close').addEventListener('click', () => {
+  document.getElementById('summary-backdrop').classList.remove('open');
+});
+
+document.getElementById('summary-backdrop').addEventListener('click', e => {
+  if (e.target === document.getElementById('summary-backdrop'))
+    document.getElementById('summary-backdrop').classList.remove('open');
+});
+</script>
+</body>
+</html>
