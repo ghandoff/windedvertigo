@@ -52,7 +52,34 @@ export async function createController(
 
   const authoritative = role === 'facilitator';
 
-  const unsub = store.subscribe((s) => persist(s));
+  // persist to localStorage is on the hot path — at scale every state
+  // replace was triggering a full JSON.stringify + setItem. debounce so
+  // we write at most once every PERSIST_DEBOUNCE_MS, plus a flush on
+  // destroy so the latest state survives navigation.
+  const PERSIST_DEBOUNCE_MS = 2_000;
+  let pendingSession: Session | null = null;
+  let persistTimer: ReturnType<typeof setTimeout> | null = null;
+  function flushPersist() {
+    if (persistTimer) {
+      clearTimeout(persistTimer);
+      persistTimer = null;
+    }
+    if (pendingSession) {
+      persist(pendingSession);
+      pendingSession = null;
+    }
+  }
+  const unsub = store.subscribe((s) => {
+    pendingSession = s;
+    if (persistTimer) return;
+    persistTimer = setTimeout(() => {
+      persistTimer = null;
+      if (pendingSession) {
+        persist(pendingSession);
+        pendingSession = null;
+      }
+    }, PERSIST_DEBOUNCE_MS);
+  });
 
   transport.subscribe((msg) => {
     if (msg.type === 'state') {
@@ -121,6 +148,7 @@ export async function createController(
     dispatch,
     isAuthoritative: () => authoritative,
     destroy() {
+      flushPersist();
       unsub();
       transport.disconnect();
     },

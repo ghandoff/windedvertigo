@@ -118,7 +118,10 @@ setInterval(() => {
  * grace period. when that happens we auto-transfer the role to the next
  * participant in the team roster (first joined that isn't the captain).
  */
-const CAPTAIN_GRACE_MS = 60_000;
+// must be greater than the participant heartbeat interval (240_000ms in
+// participant.ts) so a captain who's idle but online doesn't get
+// auto-transferred between beats. 6 minutes = up to 2 missed beats.
+const CAPTAIN_GRACE_MS = 360_000;
 setInterval(() => {
   if (!controller || !controller.isAuthoritative()) return;
   const s = controller.store.getState();
