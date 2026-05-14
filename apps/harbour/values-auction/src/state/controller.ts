@@ -83,23 +83,20 @@ export async function createController(
 
   transport.subscribe((msg) => {
     if (msg.type === 'state') {
+      // canonical snapshot from the facilitator: a hard reset of local
+      // state. used on join, reconnect-resync, and periodic drift sync.
       store.replace(msg.payload as Session);
       return;
     }
     if (msg.type === 'action') {
-      if (authoritative) {
-        const next = reduce(store.getState(), msg.payload as Action);
-        store.replace(next);
-        transport.send({
-          type: 'state',
-          payload: next,
-          at: Date.now(),
-          sender: clientId,
-        });
-      } else {
-        const next = reduce(store.getState(), msg.payload as Action);
-        store.replace(next);
-      }
+      // every client (authoritative or not) reduces broadcast actions
+      // locally. the single-DO relay serialises message order so all
+      // peers apply the same sequence and converge deterministically.
+      // before this change, the facilitator re-broadcast the full
+      // ~100-500KB Session JSON on every action; at 250 peers that
+      // payload × fan-out is what collapsed the May 14 session.
+      const next = reduce(store.getState(), msg.payload as Action);
+      store.replace(next);
       return;
     }
     if (msg.type === 'request-state' && authoritative) {
@@ -122,22 +119,35 @@ export async function createController(
   }
 
   function dispatch(action: Action) {
-    if (authoritative) {
-      const next = store.dispatch(action);
+    // optimistic local reduce so the sender's UI responds immediately.
+    // the relay echoes our message back to all other peers; SocketTransport
+    // filters our own clientId, so we don't double-apply. all peers reduce
+    // the same action in the same DO-serialised order → convergent state.
+    store.dispatch(action);
+    transport.send({
+      type: 'action',
+      payload: action,
+      at: Date.now(),
+      sender: clientId,
+    });
+  }
+
+  // periodic drift-correction snapshot from the authoritative facilitator.
+  // strictly speaking the action-broadcast model converges without this —
+  // DO ordering guarantees it. but a low-rate full-state sync is cheap
+  // insurance against missed messages (mid-reconnect, browser tab
+  // throttled, etc.) and bounds worst-case staleness to DRIFT_SYNC_MS.
+  const DRIFT_SYNC_MS = 30_000;
+  let driftSyncTimer: ReturnType<typeof setInterval> | null = null;
+  if (authoritative) {
+    driftSyncTimer = setInterval(() => {
       transport.send({
         type: 'state',
-        payload: next,
+        payload: store.getState(),
         at: Date.now(),
         sender: clientId,
       });
-    } else {
-      transport.send({
-        type: 'action',
-        payload: action,
-        at: Date.now(),
-        sender: clientId,
-      });
-    }
+    }, DRIFT_SYNC_MS);
   }
 
   return {
@@ -148,6 +158,10 @@ export async function createController(
     dispatch,
     isAuthoritative: () => authoritative,
     destroy() {
+      if (driftSyncTimer) {
+        clearInterval(driftSyncTimer);
+        driftSyncTimer = null;
+      }
       flushPersist();
       unsub();
       transport.disconnect();
