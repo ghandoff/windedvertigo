@@ -1,13 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="Ripple logo">
-  <rect width="240" height="240" rx="24" fill="#273248"/>
-  <!-- concentric ripple waves — fintech inclusion -->
-  <circle cx="120" cy="104" r="16" fill="#5f9ea0"/>
-  <circle cx="120" cy="104" r="34" fill="none" stroke="#5f9ea0" stroke-width="5" opacity="0.75"/>
-  <circle cx="120" cy="104" r="54" fill="none" stroke="#5f9ea0" stroke-width="4" opacity="0.5"/>
-  <circle cx="120" cy="104" r="74" fill="none" stroke="#5f9ea0" stroke-width="3" opacity="0.3"/>
-  <!-- coin / currency hint in center -->
-  <text x="120" y="110" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="16" fill="#273248">$</text>
-  <!-- wave cut at bottom suggesting water / migration -->
-  <path d="M40 168 Q65 156 90 168 T140 168 T190 168 T240 168 L240 240 L0 240 Z" fill="#5f9ea0" opacity="0.18"/>
-  <text x="120" y="210" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="3" fill="#ffebd2">Ripple</text>
+  <circle cx="120" cy="120" r="112" fill="#f5ede4"/>
+  <!-- wave-in-circle icon, left side -->
+  <!-- outer circle -->
+  <circle cx="78" cy="118" r="30" fill="none" stroke="#1e6fa4" stroke-width="3.5"/>
+  <!-- 3 wavy horizontal lines inside circle -->
+  <path d="M58 110 Q63 106 68 110 Q73 114 78 110 Q83 106 88 110 Q93 114 98 110"
+        fill="none" stroke="#1e6fa4" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M57 118 Q62 114 67 118 Q72 122 77 118 Q82 114 87 118 Q92 122 97 118"
+        fill="none" stroke="#1e6fa4" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M58 126 Q63 122 68 126 Q73 130 78 126 Q83 122 88 126 Q93 130 98 126"
+        fill="none" stroke="#1e6fa4" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- "ripple" text to the right -->
+  <text x="118" y="126" font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="34" fill="#1e6fa4" letter-spacing="-0.5">ripple</text>
 </svg>

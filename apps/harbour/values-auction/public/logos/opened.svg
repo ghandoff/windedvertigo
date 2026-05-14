@@ -1,14 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="OpenEd logo">
-  <rect width="240" height="240" rx="24" fill="#5f9ea0"/>
-  <!-- open book with pages radiating upward — equity in education -->
-  <path d="M52 160 L52 88 L120 68 L188 88 L188 160" fill="none" stroke="#ffebd2" stroke-width="6" stroke-linejoin="round"/>
-  <path d="M120 68 L120 160" stroke="#ffebd2" stroke-width="5" stroke-linecap="round"/>
-  <path d="M52 160 L120 172 L188 160" fill="none" stroke="#ffebd2" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="120" cy="120" r="112" fill="#f5ede4"/>
+  <!-- yellow person circle above book spine -->
+  <circle cx="120" cy="68" r="12" fill="#f5c430"/>
+  <!-- open book: two pages spread open, spine at center bottom -->
+  <!-- left page -->
+  <path d="M120 92 L62 104 L62 162 L120 154 Z" fill="none" stroke="#1d2d44" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- right page -->
+  <path d="M120 92 L178 104 L178 162 L120 154 Z" fill="none" stroke="#1d2d44" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- spine line -->
+  <line x1="120" y1="92" x2="120" y2="154" stroke="#1d2d44" stroke-width="3.5" stroke-linecap="round"/>
   <!-- text lines on left page -->
-  <path d="M66 106 L110 98 M66 120 L110 114 M66 134 L110 129" stroke="#273248" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <line x1="72"  y1="118" x2="110" y2="114" stroke="#1d2d44" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <line x1="72"  y1="128" x2="110" y2="124" stroke="#1d2d44" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <line x1="72"  y1="138" x2="110" y2="135" stroke="#1d2d44" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
   <!-- text lines on right page -->
-  <path d="M130 98 L174 106 M130 114 L174 120 M130 129 L174 134" stroke="#273248" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
-  <!-- small dot / spark above for digital equity -->
-  <circle cx="120" cy="52" r="7" fill="#ffebd2"/>
-  <text x="120" y="210" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="21" letter-spacing="2" fill="#273248">OpenEd</text>
+  <line x1="130" y1="114" x2="168" y2="118" stroke="#1d2d44" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <line x1="130" y1="124" x2="168" y2="128" stroke="#1d2d44" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <line x1="130" y1="135" x2="168" y2="138" stroke="#1d2d44" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <!-- OpenEd text -->
+  <text x="120" y="185" text-anchor="middle"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="26" fill="#1d2d44">OpenEd</text>
+  <text x="120" y="202" text-anchor="middle"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-size="11" fill="#1d2d44" opacity="0.7">Equity in digital education</text>
 </svg>

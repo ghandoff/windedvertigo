@@ -1,8 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="ETHOS logo">
-  <rect width="240" height="240" rx="24" fill="#273248"/>
-  <!-- thread/needle motif for ethical fashion -->
-  <circle cx="120" cy="92" r="32" fill="none" stroke="#ffebd2" stroke-width="6"/>
-  <path d="M120 60 L120 32 M120 152 L120 172 M152 92 L172 92 M88 92 L68 92" stroke="#ffebd2" stroke-width="4" stroke-linecap="round"/>
-  <path d="M100 72 L140 112 M140 72 L100 112" stroke="#b15043" stroke-width="5" stroke-linecap="round"/>
-  <text x="120" y="210" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="6" fill="#ffebd2">ETHOS</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="Ethos logo">
+  <circle cx="120" cy="120" r="112" fill="#f5ede4"/>
+  <!-- leaf outline: pointed top, widest ~60% down, narrow base -->
+  <path d="M120 48 C105 62 90 82 90 104 C90 130 103 150 120 156 C137 150 150 130 150 104 C150 82 135 62 120 48 Z"
+        fill="none" stroke="#1d2d44" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- midrib -->
+  <line x1="120" y1="58" x2="120" y2="153" stroke="#1d2d44" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- left veins -->
+  <line x1="120" y1="84"  x2="104" y2="95"  stroke="#1d2d44" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="120" y1="102" x2="101" y2="113" stroke="#1d2d44" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="120" y1="120" x2="103" y2="130" stroke="#1d2d44" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- right veins -->
+  <line x1="120" y1="84"  x2="136" y2="95"  stroke="#1d2d44" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="120" y1="102" x2="139" y2="113" stroke="#1d2d44" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="120" y1="120" x2="137" y2="130" stroke="#1d2d44" stroke-width="1.8" stroke-linecap="round"/>
+  <text x="120" y="188" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-weight="700" font-size="25" letter-spacing="7" fill="#1d2d44">ETHOS</text>
 </svg>

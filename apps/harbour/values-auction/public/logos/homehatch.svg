@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" aria-label="HomeHatch logo">
-  <rect width="240" height="240" rx="24" fill="#cb7858"/>
-  <!-- house outline — sustainable affordable housing -->
-  <path d="M120 52 L188 112 L188 176 L52 176 L52 112 Z" fill="none" stroke="#ffebd2" stroke-width="6" stroke-linejoin="round"/>
-  <!-- roof peak accent -->
-  <path d="M96 112 L120 88 L144 112" fill="none" stroke="#ffebd2" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="120" cy="120" r="112" fill="#f2c4a4"/>
+  <!-- house body (coral/orange rectangle) -->
+  <rect x="76" y="118" width="88" height="62" fill="#e05a3a"/>
+  <!-- roof (dark navy triangle) -->
+  <polygon points="64,120 120,62 176,120" fill="#1d2d44"/>
+  <!-- window (darker square on body) -->
+  <rect x="86" y="126" width="26" height="22" rx="2" fill="#c04830"/>
   <!-- door -->
-  <rect x="104" y="140" width="32" height="36" rx="4" fill="none" stroke="#ffebd2" stroke-width="4"/>
-  <!-- window left -->
-  <rect x="64" y="124" width="28" height="24" rx="3" fill="none" stroke="#ffebd2" stroke-width="3.5"/>
-  <!-- window right -->
-  <rect x="148" y="124" width="28" height="24" rx="3" fill="none" stroke="#ffebd2" stroke-width="3.5"/>
-  <!-- small sprout at base — sustainable -->
-  <path d="M120 176 L120 190" stroke="#273248" stroke-width="3" stroke-linecap="round"/>
-  <path d="M120 186 C112 180 104 182 102 178 C108 172 118 176 120 180" fill="#273248" opacity="0.6"/>
-  <text x="120" y="218" text-anchor="middle" font-family="'Atkinson Hyperlegible', Inter, system-ui, sans-serif" font-weight="700" font-size="19" letter-spacing="1" fill="#ffebd2">HomeHatch</text>
+  <rect x="106" y="146" width="22" height="34" rx="2" fill="#1d2d44"/>
+  <!-- chimney -->
+  <rect x="138" y="74" width="14" height="28" fill="#1d2d44"/>
+  <!-- HomeHatch text -->
+  <text x="120" y="202" text-anchor="middle"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="22" fill="#1d2d44">HomeHatch</text>
 </svg>
