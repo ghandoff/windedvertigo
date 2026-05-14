@@ -5,6 +5,48 @@ export interface Env {
   EVENTS_KV: KVNamespace;
 }
 
+// shape of every transport message — kept in sync with src/transport/transport.ts
+// in the SPA. the DO only cares about a few types; everything else is opaque
+// JSON to be relayed verbatim.
+interface TransportMessage {
+  type: 'action' | 'state' | 'hello' | 'request-state' | 'snapshot';
+  payload: unknown;
+  at: number;
+  sender: string;
+}
+
+interface Attachment {
+  sessionId: string;
+  role: string;
+  clientId: string;
+}
+
+// SQLite storage keys — kept narrow + namespaced.
+const STORAGE_SNAPSHOT_KEY = 'snapshot:v1';
+
+/**
+ * Hub for a live values-auction session.
+ *
+ * Architecture (Phase B-min, 2026-05-14):
+ *   - Relay role (legacy): forward action/state/hello messages between peers
+ *     in the same session. Connections use hibernation via acceptWebSocket.
+ *   - Snapshot store (new): the facilitator periodically uploads a full
+ *     Session snapshot via { type: 'snapshot' }. The DO stores it in
+ *     SQLite-backed `state.storage` and DOES NOT relay it. When any peer
+ *     sends { type: 'request-state' }, the DO answers directly from
+ *     storage instead of forwarding to all peers and waiting for the
+ *     facilitator to respond. This removes the facilitator as the single
+ *     point of failure for late-joiner state — even if the facilitator's
+ *     browser closes mid-session, joining clients still receive the last
+ *     known good snapshot.
+ *
+ * Compatibility:
+ *   - Old clients (pre-Phase-B) don't send 'snapshot' messages; the DO
+ *     just won't have one in storage and will fall back to relaying
+ *     'request-state' to peers, matching previous behaviour.
+ *   - Old clients ignore unknown message types (their handler doesn't
+ *     match 'snapshot'), so a mid-deploy mixed fleet is safe.
+ */
 export class HubSession extends DurableObject<Env> {
   async fetch(request: Request): Promise<Response> {
     const upgrade = request.headers.get('Upgrade');
@@ -19,31 +61,80 @@ export class HubSession extends DurableObject<Env> {
 
     const [client, server] = Object.values(new WebSocketPair()) as [WebSocket, WebSocket];
     this.ctx.acceptWebSocket(server, [sessionId]);
-    server.serializeAttachment({ sessionId, role, clientId });
+    server.serializeAttachment({ sessionId, role, clientId } satisfies Attachment);
 
     return new Response(null, { status: 101, webSocket: client });
   }
 
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
     const raw = typeof message === 'string' ? message : new TextDecoder().decode(message);
-    const { sessionId, role, clientId } = ws.deserializeAttachment() as {
-      sessionId: string;
-      role: string;
-      clientId: string;
-    };
+    const { sessionId, role, clientId } = ws.deserializeAttachment() as Attachment;
 
-    // Persist event to KV (best-effort, non-blocking)
+    let parsed: TransportMessage | null = null;
+    try {
+      parsed = JSON.parse(raw) as TransportMessage;
+    } catch {
+      // bad JSON — ignore. don't relay garbage.
+      return;
+    }
+
+    // ── snapshot path: facilitator → DO storage, NOT relayed ──────────────
+    if (parsed.type === 'snapshot') {
+      // defence in depth: only facilitators should be uploading snapshots.
+      // a malicious or buggy participant client would have its writes
+      // silently dropped here. participants still benefit from the stored
+      // snapshot when reconnecting.
+      if (role !== 'facilitator') return;
+      // store as a string blob to avoid SQLite type fragility with deep JSON.
+      // payload is a Session object — opaque to the DO.
+      await this.ctx.storage.put(STORAGE_SNAPSHOT_KEY, raw);
+      return;
+    }
+
+    // ── request-state path: answer from storage when we have one ─────────
+    if (parsed.type === 'request-state') {
+      const stored = await this.ctx.storage.get<string>(STORAGE_SNAPSHOT_KEY);
+      if (stored) {
+        // synthesise a 'state' response sourced from the stored snapshot.
+        // we send only to the requesting socket, not the whole session.
+        try {
+          const payload = JSON.parse(stored) as TransportMessage;
+          const response: TransportMessage = {
+            type: 'state',
+            payload: payload.payload,
+            at: Date.now(),
+            sender: 'hub',
+          };
+          ws.send(JSON.stringify(response));
+        } catch {
+          // stored snapshot is corrupted — drop it and fall through to
+          // relay so the facilitator can re-answer.
+          await this.ctx.storage.delete(STORAGE_SNAPSHOT_KEY);
+          this.relayToOthers(ws, sessionId, raw);
+        }
+        return;
+      }
+      // no snapshot yet: relay the request to peers; facilitator will answer.
+      this.relayToOthers(ws, sessionId, raw);
+      return;
+    }
+
+    // ── default path: log + relay (actions, legacy state broadcasts, hello) ─
+    // best-effort KV log, non-blocking.
     const logKey = `events:${sessionId}:${Date.now()}:${clientId.slice(0, 8)}`;
     this.ctx.waitUntil(
       this.env.EVENTS_KV.put(
         logKey,
-        JSON.stringify({ sessionId, at: Date.now(), from: clientId, role, msg: JSON.parse(raw) }),
+        JSON.stringify({ sessionId, at: Date.now(), from: clientId, role, msg: parsed }),
       ),
     );
 
-    // Broadcast to all other peers in this session
+    this.relayToOthers(ws, sessionId, raw);
+  }
+
+  private relayToOthers(sender: WebSocket, sessionId: string, raw: string): void {
     for (const peer of this.ctx.getWebSockets(sessionId)) {
-      if (peer !== ws) {
+      if (peer !== sender) {
         try {
           peer.send(raw);
         } catch {
@@ -53,7 +144,7 @@ export class HubSession extends DurableObject<Env> {
     }
   }
 
-  async webSocketError(ws: WebSocket, error: unknown): Promise<void> {
+  async webSocketError(_ws: WebSocket, error: unknown): Promise<void> {
     console.error('[hub] WebSocket error:', error);
   }
 
