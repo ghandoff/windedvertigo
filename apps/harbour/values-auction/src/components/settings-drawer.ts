@@ -3,11 +3,15 @@ import { customElement, state } from 'lit/decorators.js';
 import { loadPrefs, savePrefs, subscribePrefs, type Prefs } from '@/state/prefs';
 
 /**
- * floating accessibility controls. one button, top-right of the viewport,
- * that opens a small panel with three controls:
+ * floating accessibility + session controls. one button, top-LEFT of the
+ * viewport (so the top-right session code on the facilitator and participant
+ * views stays visible), that opens a panel with:
  *   - text size: regular / large / x-large
  *   - motion:    full / subtle / none
  *   - theme:     default / dark / high-contrast
+ *   - leave session (only when on a session route) — clears local state and
+ *     returns to landing, for participants who joined the wrong code or got
+ *     stuck waiting on a closed room
  *
  * choices persist in localStorage (`va:prefs`) and apply globally via
  * data-attributes on <html>, read by base.css.
@@ -16,23 +20,33 @@ import { loadPrefs, savePrefs, subscribePrefs, type Prefs } from '@/state/prefs'
 export class VaSettingsDrawer extends LitElement {
   @state() private open = false;
   @state() private prefs: Prefs = loadPrefs();
+  @state() private inSession = false;
   private unsub?: () => void;
 
   connectedCallback() {
     super.connectedCallback();
     this.unsub = subscribePrefs((p) => (this.prefs = p));
+    this.updateSessionState();
+    window.addEventListener('hashchange', this.updateSessionState);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this.unsub?.();
+    window.removeEventListener('hashchange', this.updateSessionState);
   }
+
+  private updateSessionState = () => {
+    const raw = window.location.hash.replace(/^#\/?/, '');
+    const path = raw.split('?')[0];
+    this.inSession = path === 'join' || path === 'facilitate' || path === 'wall';
+  };
 
   static styles = css`
     :host {
       position: fixed;
       top: var(--space-3);
-      right: var(--space-3);
+      left: var(--space-3);
       z-index: 50;
       font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
     }
@@ -120,6 +134,32 @@ export class VaSettingsDrawer extends LitElement {
       margin: 0;
       line-height: 1.5;
     }
+    .reset-section {
+      border-top: 1px solid var(--border-soft);
+      padding-top: var(--space-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    button.reset {
+      min-height: 44px;
+      padding: var(--space-2) var(--space-3);
+      background: transparent;
+      color: var(--wv-redwood);
+      border: 2px solid var(--wv-redwood);
+      border-radius: var(--radius-sm);
+      font: var(--type-small);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.reset:hover {
+      background: var(--wv-redwood);
+      color: var(--fg-inverse);
+    }
+    button.reset:focus-visible {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
     @media (prefers-reduced-motion: no-preference) {
       .panel {
         animation: va-fade-in var(--dur-base) var(--ease-out-quart);
@@ -129,6 +169,26 @@ export class VaSettingsDrawer extends LitElement {
 
   private set<K extends keyof Prefs>(key: K, value: Prefs[K]) {
     this.prefs = savePrefs({ [key]: value } as Partial<Prefs>);
+  }
+
+  private leaveSession() {
+    const ok = window.confirm(
+      'leave this session? your local progress for this session will be cleared so you can join a different one.',
+    );
+    if (!ok) return;
+    // clear per-app local state (participant id, cached name, staged flag,
+    // etc.) but preserve `va:prefs` so display/motion choices survive.
+    for (let i = window.localStorage.length - 1; i >= 0; i--) {
+      const key = window.localStorage.key(i);
+      if (!key) continue;
+      if (key.startsWith('va:') && key !== 'va:prefs') {
+        window.localStorage.removeItem(key);
+      }
+    }
+    // return to landing — main.ts's hashchange handler swaps in <va-landing>.
+    window.location.hash = '';
+    // hard reload so any in-memory controller/transport is fully torn down.
+    window.location.reload();
   }
 
   private optionGroup<T extends string>(
@@ -195,6 +255,23 @@ export class VaSettingsDrawer extends LitElement {
                 changes save to this device and apply right away. open this again any time
                 to adjust.
               </p>
+              ${this.inSession
+                ? html`
+                    <div class="reset-section">
+                      <button
+                        type="button"
+                        class="reset"
+                        @click=${() => this.leaveSession()}
+                      >
+                        leave session
+                      </button>
+                      <p class="hint">
+                        use this if you joined the wrong session, or want to start over
+                        with a new code.
+                      </p>
+                    </div>
+                  `
+                : ''}
             </div>
           `
         : ''}
