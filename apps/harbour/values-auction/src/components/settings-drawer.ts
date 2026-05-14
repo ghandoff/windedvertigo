@@ -3,9 +3,10 @@ import { customElement, state } from 'lit/decorators.js';
 import { loadPrefs, savePrefs, subscribePrefs, type Prefs } from '@/state/prefs';
 
 /**
- * floating accessibility + session controls. one button, top-LEFT of the
- * viewport (so the top-right session code on the facilitator and participant
- * views stays visible), that opens a panel with:
+ * floating accessibility + session controls. one button, BOTTOM-RIGHT of
+ * the viewport (so it doesn't overlap the top-right session code OR the
+ * top-left wordmark on participant/facilitator headers), opening a panel
+ * that anchors above the toggle with:
  *   - text size: regular / large / x-large
  *   - motion:    full / subtle / none
  *   - theme:     default / dark / high-contrast
@@ -15,6 +16,9 @@ import { loadPrefs, savePrefs, subscribePrefs, type Prefs } from '@/state/prefs'
  *
  * choices persist in localStorage (`va:prefs`) and apply globally via
  * data-attributes on <html>, read by base.css.
+ *
+ * positioning respects iOS Safari's safe-area inset so the toggle doesn't
+ * sit under the home-indicator gesture region.
  */
 @customElement('va-settings-drawer')
 export class VaSettingsDrawer extends LitElement {
@@ -45,8 +49,8 @@ export class VaSettingsDrawer extends LitElement {
   static styles = css`
     :host {
       position: fixed;
-      top: var(--space-3);
-      left: var(--space-3);
+      bottom: max(var(--space-3), env(safe-area-inset-bottom));
+      right: max(var(--space-3), env(safe-area-inset-right));
       z-index: 50;
       font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
     }
@@ -68,7 +72,9 @@ export class VaSettingsDrawer extends LitElement {
       outline-offset: var(--focus-ring-offset);
     }
     .panel {
-      margin-top: var(--space-2);
+      position: absolute;
+      bottom: calc(100% + var(--space-2));
+      right: 0;
       background: var(--bg-card);
       color: var(--fg-on-card);
       border: 1px solid var(--border-soft);
