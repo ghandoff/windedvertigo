@@ -1,9 +1,17 @@
-import type { Transport, TransportMessage, TransportRole } from '@/transport/transport';
+import type {
+  ConnectionStatus,
+  Transport,
+  TransportMessage,
+  TransportRole,
+} from '@/transport/transport';
 
 export class BroadcastTransport implements Transport {
   public clientId: string;
   private channel?: BroadcastChannel;
   private handlers = new Set<(m: TransportMessage) => void>();
+  // BroadcastChannel is in-process and never "disconnects" — surface a
+  // stable 'connected' status so consumers don't need to special-case it.
+  private status: ConnectionStatus = 'connected';
 
   constructor(clientId: string) {
     this.clientId = clientId;
@@ -26,6 +34,16 @@ export class BroadcastTransport implements Transport {
   subscribe(handler: (m: TransportMessage) => void): () => void {
     this.handlers.add(handler);
     return () => this.handlers.delete(handler);
+  }
+
+  subscribeStatus(handler: (status: ConnectionStatus) => void): () => void {
+    handler(this.status);
+    // no transitions ever happen for an in-process channel
+    return () => {};
+  }
+
+  getStatus(): ConnectionStatus {
+    return this.status;
   }
 
   disconnect(): void {

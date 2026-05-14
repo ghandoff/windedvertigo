@@ -13,6 +13,8 @@ import '@/views/facilitator';
 import '@/views/wall';
 import '@/views/landing';
 import '@/components/settings-drawer';
+import '@/components/connection-banner';
+import type { VaConnectionBanner } from '@/components/connection-banner';
 
 initPrefs();
 
@@ -24,6 +26,16 @@ if (!document.querySelector('va-settings-drawer')) {
   document.body.appendChild(document.createElement('va-settings-drawer'));
 }
 
+// always-on connection status banner, mounted once at the document level.
+// rebound to the active controller's transport on every route change.
+let connectionBanner: VaConnectionBanner | null = null;
+if (!document.querySelector('va-connection-banner')) {
+  connectionBanner = document.createElement('va-connection-banner') as VaConnectionBanner;
+  document.body.appendChild(connectionBanner);
+} else {
+  connectionBanner = document.querySelector('va-connection-banner') as VaConnectionBanner;
+}
+
 let controller: Controller | null = null;
 
 async function render() {
@@ -32,6 +44,7 @@ async function render() {
   if (route.route === 'landing') {
     controller?.destroy();
     controller = null;
+    connectionBanner?.attach(undefined);
     app!.innerHTML = '';
     app!.appendChild(document.createElement('va-landing'));
     return;
@@ -39,6 +52,7 @@ async function render() {
 
   if (!controller || controller.store.getState().id !== route.code) {
     controller?.destroy();
+    connectionBanner?.attach(undefined);
     const role =
       route.route === 'facilitate'
         ? 'facilitator'
@@ -46,6 +60,7 @@ async function render() {
           ? 'wall'
           : 'participant';
     controller = await createController(route.code, role);
+    connectionBanner?.attach(controller.transport);
   }
 
   app!.innerHTML = '';
