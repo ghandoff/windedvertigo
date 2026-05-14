@@ -747,7 +747,7 @@ export function assignTeams(
     const teamId = uid('team');
     teams.push({
       id: teamId,
-      name: teamDisplayName(colour),
+      name: startup.name,
       colour,
       startupId: startup.id,
       credos: STARTING_CREDOS,
