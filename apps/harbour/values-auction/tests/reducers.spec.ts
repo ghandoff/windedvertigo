@@ -130,8 +130,8 @@ describe('reducers', () => {
       id: `p_${i}`,
       archetype: i % 2 === 0 ? 'builder' : 'rebel',
     }));
-    const { teams, assignments } = assignTeams(participants, 4);
-    expect(teams).toHaveLength(2);
+    const { teams, assignments } = assignTeams(participants);
+    expect(teams).toHaveLength(8);
     expect(Object.keys(assignments)).toHaveLength(8);
   });
 

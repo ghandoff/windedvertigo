@@ -100,7 +100,6 @@ describe('views render smoke', () => {
     // seed a real team + participant so preview has someone to mirror.
     const { teams, assignments } = assignTeams(
       [{ id: 'p_seed', archetype: 'builder' }],
-      4,
     );
     controller.dispatch({
       type: 'PARTICIPANT_JOIN',
