@@ -329,14 +329,14 @@
     @media (max-width: 959px) {
       html, body { overflow: auto; height: auto; }
       .shell { display: flex; flex-direction: column; flex: none; min-height: 0; }
-      .panel-left { border-right: none; border-bottom: 1px solid var(--border-soft); flex-shrink: 0; }
+      .panel-left { border-right: none; border-bottom: 1px solid var(--border-soft); flex-shrink: 0; padding-bottom: 8px; }
       .left-header { flex-wrap: wrap; gap: 10px; }
       .company-tabs { flex-direction: row; overflow-x: auto; padding: 8px 10px; gap: 6px; scrollbar-width: none; }
       .company-tabs::-webkit-scrollbar { display: none; }
       .company-tab { flex-direction: column; align-items: center; gap: 4px; padding: 8px 10px; min-width: 64px; flex-shrink: 0; }
       .tab-credo-pip { font-size: 11px; margin-left: 0; }
       .tab-sector { display: none; }
-      .company-detail { max-height: 220px; }
+      .company-detail { max-height: 280px; }
       .panel-right { flex: 1; }
       .values-grid { grid-template-columns: repeat(2, 1fr); }
       .center-timer { left: 50%; }
@@ -345,31 +345,38 @@
     @media (max-width: 599px) {
       .shell { min-height: 100dvh; }
       .left-header { padding: 12px 14px 10px; }
-      .title-block h1 { font-size: 16px; }
+      .title-block h1 { font-size: 13px; }
       .credos-widget { min-width: 90px; padding: 6px 10px; }
-      .credos-remaining { font-size: 26px; }
+      .credos-remaining { font-size: 22px; }
       .credos-buttons { display: none; }
       .credos-input-row { display: none; }
       .company-tabs { padding: 6px 8px; }
       .company-tab { min-width: 54px; padding: 6px 8px; }
       .tab-logo { width: 26px; height: 26px; }
       .tab-logo svg { width: 26px; height: 26px; }
-      .tab-name { font-size: 13px; }
-      .company-detail { max-height: 180px; padding: 12px; }
+      .tab-name { font-size: 11px; }
+      .company-detail { max-height: 240px; padding: 12px; }
       .co-logo { width: 48px; height: 48px; border-radius: 8px; }
       .co-logo svg { width: 48px; height: 48px; }
-      .co-name { font-size: 22px; }
-      .detail-text { font-size: 14px; }
+      .co-name { font-size: 18px; }
+      .detail-text { font-size: 12px; }
       .timer-section { flex: 0 0 auto; padding: 16px 14px 20px; gap: 8px; }
-      .ts-value-name { font-size: 24px; }
-      .ts-countdown { font-size: 86px; }
-      .ts-start, .ts-stop { font-size: 16px; padding: 10px 16px; }
+      .ts-value-name { font-size: 20px; }
+      .ts-countdown { font-size: 72px; }
+      .ts-start, .ts-stop { font-size: 13px; padding: 10px 16px; }
       .values-grid { grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px 12px 14px; }
       .value-card { padding: 10px 11px; }
-      .value-name { font-size: 16px; }
-      .value-desc { font-size: 13px; }
-      .right-header h2 { font-size: 16px; }
+      .value-name { font-size: 13px; }
+      .value-desc { font-size: 11px; }
+      .right-header h2 { font-size: 13px; }
       .center-timer { left: 50%; }
+    }
+
+    @media (max-width: 419px) {
+      .values-grid { grid-template-columns: 1fr; gap: 5px; }
+      .company-detail { max-height: 220px; }
+      .ts-countdown { font-size: 64px; }
+      .ts-value-name { font-size: 18px; }
     }
   </style>
 </head>
