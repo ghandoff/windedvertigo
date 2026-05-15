@@ -5,8 +5,8 @@
  * Notion-only behavior unchanged. The Postgres methods (parsePostgresScoreRow,
  * syncRecentScoresToPostgres, syncSingleScorePageToPostgres) are additive.
  *
- * Phase 3 will gate the read/write functions behind shouldReadFromSqrPostgres() /
- * shouldWriteToSqrPostgresFirst(). Do NOT add those gates here.
+ * Phase 3 — read functions are gated behind shouldReadFromSqrPostgres().
+ * Write functions (create) are NOT gated — Notion-only for now.
  */
 
 import { notion } from './notion.js';
@@ -171,11 +171,33 @@ export async function createScore(data) {
 }
 
 export async function getScoreById(scoreId) {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb.from('scores').select('*').eq('notion_page_id', scoreId).maybeSingle();
+      if (!error && data) return parsePostgresScoreRow(data);
+    } catch (err) {
+      console.warn('[sqr-scores] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: scoreId });
   return parseScorePage(page);
 }
 
 export async function getScoresByReviewer(reviewerAlias) {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('scores')
+        .select('*')
+        .eq('rater_alias', reviewerAlias)
+        .order('scored_at', { ascending: false });
+      if (!error && data) return data.map(parsePostgresScoreRow);
+    } catch (err) {
+      console.warn('[sqr-scores] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   let allResults = [];
   let cursor = undefined;
   do {
@@ -192,6 +214,18 @@ export async function getScoresByReviewer(reviewerAlias) {
 }
 
 export async function getAllScores() {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('scores')
+        .select('*')
+        .order('scored_at', { ascending: false });
+      if (!error && data) return data.map(parsePostgresScoreRow);
+    } catch (err) {
+      console.warn('[sqr-scores] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   let allResults = [];
   let cursor = undefined;
   do {
@@ -207,6 +241,19 @@ export async function getAllScores() {
 }
 
 export async function getScoresForStudy(studyPageId) {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('scores')
+        .select('*')
+        .contains('study_relation', [studyPageId])
+        .order('scored_at', { ascending: false });
+      if (!error && data) return data.map(parsePostgresScoreRow);
+    } catch (err) {
+      console.warn('[sqr-scores] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   const res = await notion.databases.query({
     database_id: SQR_DB.scores,
     filter: { property: 'Study', relation: { contains: studyPageId } },

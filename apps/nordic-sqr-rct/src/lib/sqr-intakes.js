@@ -5,8 +5,8 @@
  * Notion-only behavior unchanged. The Postgres methods (parsePostgresIntakeRow,
  * syncRecentIntakesToPostgres, syncSingleIntakePageToPostgres) are additive.
  *
- * Phase 3 will gate the read/write functions behind shouldReadFromSqrPostgres() /
- * shouldWriteToSqrPostgresFirst(). Do NOT add those gates here.
+ * Phase 3 — read functions are gated behind shouldReadFromSqrPostgres().
+ * Write functions (create, update) are NOT gated — Notion-only for now.
  */
 
 import { notion } from './notion.js';
@@ -144,6 +144,18 @@ export function parsePostgresIntakeRow(row) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getAllStudies() {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('intakes')
+        .select('*')
+        .order('year', { ascending: false });
+      if (!error && data) return data.map(parsePostgresIntakeRow);
+    } catch (err) {
+      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   let allResults = [];
   let cursor = undefined;
   do {
@@ -159,6 +171,15 @@ export async function getAllStudies() {
 }
 
 export async function getStudyById(pageId) {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb.from('intakes').select('*').eq('notion_page_id', pageId).maybeSingle();
+      if (!error && data) return parsePostgresIntakeRow(data);
+    } catch (err) {
+      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: pageId });
   return parseIntakePage(page);
 }
@@ -207,6 +228,15 @@ export async function createStudy(data) {
 
 export async function getStudyByDoi(doi) {
   if (!doi) return null;
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb.from('intakes').select('*').eq('doi', doi).maybeSingle();
+      if (!error && data) return parsePostgresIntakeRow(data);
+    } catch (err) {
+      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   const res = await notion.databases.query({
     database_id: SQR_DB.intakes,
     filter: { property: 'DOI', url: { equals: doi } },
@@ -216,6 +246,19 @@ export async function getStudyByDoi(doi) {
 }
 
 export async function getIntakesByReviewerAlias(alias) {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('intakes')
+        .select('*')
+        .eq('submitted_by_alias', alias)
+        .order('year', { ascending: false });
+      if (!error && data) return data.map(parsePostgresIntakeRow);
+    } catch (err) {
+      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   const res = await notion.databases.query({
     database_id: SQR_DB.intakes,
     filter: { property: 'Submitted by Alias', rich_text: { equals: alias } },
@@ -225,6 +268,20 @@ export async function getIntakesByReviewerAlias(alias) {
 }
 
 export async function getIntakeByReviewerAndDoi(alias, doi) {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('intakes')
+        .select('*')
+        .eq('submitted_by_alias', alias)
+        .eq('doi', doi)
+        .maybeSingle();
+      if (!error && data) return parsePostgresIntakeRow(data);
+    } catch (err) {
+      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   const res = await notion.databases.query({
     database_id: SQR_DB.intakes,
     filter: {

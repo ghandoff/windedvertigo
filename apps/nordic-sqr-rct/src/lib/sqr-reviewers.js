@@ -5,8 +5,8 @@
  * Notion-only behavior unchanged. The Postgres methods (parsePostgresReviewerRow,
  * syncRecentReviewersToPostgres, syncSingleReviewerPageToPostgres) are additive.
  *
- * Phase 3 will gate the read/write functions behind shouldReadFromSqrPostgres() /
- * shouldWriteToSqrPostgresFirst(). Do NOT add those gates here.
+ * Phase 3 — read functions are gated behind shouldReadFromSqrPostgres().
+ * Write functions (auth, create, update) are NOT gated — Notion-only for now.
  */
 
 import { notion } from './notion.js';
@@ -124,6 +124,11 @@ export function parsePostgresReviewerRow(row) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getReviewerByAlias(alias) {
+  // NOTE: intentionally NOT gated behind shouldReadFromSqrPostgres().
+  // The login route reads reviewer.properties?.['Password'] (raw Notion page structure)
+  // for bcrypt verification. This stays Notion-only until password_hash is populated
+  // in Postgres (via scripts/backfill-bcrypt-passwords.mjs) and the auth route is
+  // migrated to use reviewer.password_hash directly (Phase 5).
   const res = await notion.databases.query({
     database_id: SQR_DB.reviewers,
     filter: { property: 'Alias', rich_text: { equals: alias } },
@@ -132,11 +137,33 @@ export async function getReviewerByAlias(alias) {
 }
 
 export async function getReviewerById(pageId) {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb.from('reviewers').select('*').eq('notion_page_id', pageId).maybeSingle();
+      if (!error && data) return parsePostgresReviewerRow(data);
+    } catch (err) {
+      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: pageId });
   return parseReviewerPage(page);
 }
 
 export async function getAllReviewers() {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('reviewers')
+        .select('*')
+        .eq('consent', true)
+        .order('first_name', { ascending: true });
+      if (!error && data) return data.map(parsePostgresReviewerRow);
+    } catch (err) {
+      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   const res = await notion.databases.query({
     database_id: SQR_DB.reviewers,
     filter: { property: 'Consent', checkbox: { equals: true } },
@@ -146,6 +173,18 @@ export async function getAllReviewers() {
 }
 
 export async function getAllReviewersAdmin() {
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('reviewers')
+        .select('*')
+        .order('first_name', { ascending: true });
+      if (!error && data) return data.map(parsePostgresReviewerRow);
+    } catch (err) {
+      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
   const res = await notion.databases.query({
     database_id: SQR_DB.reviewers,
     sorts: [{ property: 'First Name', direction: 'ascending' }],
@@ -248,6 +287,9 @@ export async function getReviewerByEmail(email) {
   if (!email) return null;
   const normalized = String(email).trim().toLowerCase();
   if (!normalized) return null;
+  // NOTE: intentionally NOT gated behind shouldReadFromSqrPostgres() — same
+  // reason as getReviewerByAlias: login route needs raw Notion page for password
+  // verification until Phase 5 (password_hash backfill + auth route migration).
   const res = await notion.databases.query({
     database_id: SQR_DB.reviewers,
     filter: { property: 'Email', email: { equals: normalized } },
