@@ -26,20 +26,38 @@ import { PCS_DB, PROPS } from '@/lib/pcs-config';
 // In-memory cache of the proposal list. Rebuilt every CACHE_TTL_MS.
 // Live derivation from Notion is ~15-25s for 469 PCS claims; caching makes
 // the review UI snappy without losing freshness.
+//
+// Single-flight pattern: _inflight stores the in-progress Promise so
+// concurrent requests that all arrive during a cold-start rebuild wait on
+// the same fetch rather than each triggering their own full Notion scan.
 let _cache = null;
 let _cacheBuiltAt = 0;
+let _inflight = null;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
 
 async function getProposalsCached() {
   if (_cache && Date.now() - _cacheBuiltAt < CACHE_TTL_MS) return _cache;
-  _cache = await getMatchingProposals();
-  _cacheBuiltAt = Date.now();
-  return _cache;
+  // Return the in-flight Promise if one is already running — all concurrent
+  // callers share the same result without triggering duplicate Notion fetches.
+  if (_inflight) return _inflight;
+  _inflight = getMatchingProposals()
+    .then((proposals) => {
+      _cache = proposals;
+      _cacheBuiltAt = Date.now();
+      _inflight = null;
+      return proposals;
+    })
+    .catch((err) => {
+      _inflight = null;
+      throw err;
+    });
+  return _inflight;
 }
 
 function invalidateCache() {
   _cache = null;
   _cacheBuiltAt = 0;
+  // Do not reset _inflight — an in-progress rebuild should still complete.
 }
 
 export async function GET(request) {

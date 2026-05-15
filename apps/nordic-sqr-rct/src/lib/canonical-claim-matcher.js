@@ -164,37 +164,74 @@ export async function getMatchingProposals() {
   const prefixIndex = prefixes.map((p) => ({ id: p.id, title: titleOf(p, PROPS.prefixes.prefix) }));
   const benefitIndex = benefits.map((p) => ({ id: p.id, title: titleOf(p, PROPS.coreBenefits.coreBenefit) }));
 
+  // Pre-normalize the canonical and benefit titles once — reused across all
+  // claim iterations rather than re-computed inside the inner loops.
+  const canonicalIndexNorm = canonicalIndex.map((c) => ({ ...c, norm: normalize(c.title) }));
+  const benefitIndexNorm = benefitIndex.map((b) => ({ ...b, norm: normalize(b.title) }));
+
   const proposals = [];
   for (const claim of pcsClaims) {
     const title = titleOf(claim, PROPS.claims.claim);
     if (!title) continue;
     const currentCanonicalId = (claim.properties?.[PROPS.claims.canonicalClaim]?.relation || [])[0]?.id || null;
 
+    // ── Fast path: claim is already mapped ──────────────────────────────────
+    // Skip the expensive Levenshtein + benefit loops entirely. The proposal is
+    // recorded for stats/display but no new matching is needed.
+    if (currentCanonicalId) {
+      proposals.push({
+        pcsClaimId: claim.id,
+        pcsClaimTitle: title,
+        currentCanonicalId,
+        proposedCanonical: null,
+        proposedPrefix: null,
+        proposedBenefits: [],
+        variants: splitVariants(title),
+        confidence: 1,
+        classificationMethod: 'already-applied',
+      });
+      continue;
+    }
+
+    // ── Slow path: unmatched claim — run full heuristic ──────────────────────
     const { prefix, remainder } = extractPrefix(title);
     const matchedPrefix = prefix
       ? prefixIndex.find((p) => p.title.toLowerCase() === prefix.toLowerCase())
       : null;
 
+    // Pre-normalize the search target once for this claim.
+    const searchTarget = remainder || title;
+    const searchTargetNorm = normalize(searchTarget);
+
     let bestCanonical = null;
     let bestScore = 0;
-    for (const c of canonicalIndex) {
-      const s = similarity(remainder || title, c.title);
+    for (const c of canonicalIndexNorm) {
+      const s = 1 - levenshtein(searchTargetNorm, c.norm) / Math.max(searchTargetNorm.length, c.norm.length, 1);
       if (s > bestScore) {
         bestScore = s;
         bestCanonical = c;
+        // Short-circuit: near-perfect match — no need to scan the rest.
+        if (bestScore >= 0.95) break;
       }
     }
 
-    const benefitMatches = benefitIndex
+    // Benefit matching: substring check first (O(1) per benefit); only run
+    // Levenshtein on benefits that don't substring-match.
+    const normalizedTitle = normalize(title);
+    const benefitMatches = benefitIndexNorm
       .map((b) => ({
         b,
-        s: normalize(title).includes(normalize(b.title)) ? 0.9 : similarity(title, b.title),
+        s: normalizedTitle.includes(b.norm)
+          ? 0.9
+          : b.norm.length > 3 && normalizedTitle.length > 3
+            ? similarity(normalizedTitle, b.norm)
+            : 0,
       }))
       .filter((x) => x.s > 0.5)
       .sort((a, b) => b.s - a.s)
       .slice(0, 2);
 
-    const variants = splitVariants(remainder || title);
+    const variants = splitVariants(searchTarget);
     const confidence =
       Math.round(
         ((bestScore || 0) * 0.5 + (matchedPrefix ? 0.3 : 0) + (benefitMatches.length ? 0.2 : 0)) * 100,
