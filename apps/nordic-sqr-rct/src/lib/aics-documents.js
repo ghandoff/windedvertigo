@@ -73,6 +73,117 @@ export function shouldWriteToAicsPostgresFirst() {
   return getPcsSupabase() !== null;
 }
 
+// ─── Postgres row parsers (Phase 2 read path) ────────────────────────────
+//
+// Each function converts a raw Supabase row back into the SAME shape the
+// corresponding parse*Page function produces, so callers cannot tell whether
+// data came from Notion or Postgres.
+//
+// Field-mapping conventions (mirror pcs-evidence.js parsePostgresRow):
+//   - notion_page_id        → id          (canonical Notion ID used by callers)
+//   - notion_last_edited_at → lastEditedTime
+//   - notion_created_at     → createdTime
+//   - All other columns:    snake_case → camelCase
+//   - Arrays / booleans / numbers / nulls: passed through as-is.
+//
+// Special cases documented inline.
+
+/**
+ * Convert a raw `aics_documents` Postgres row into the parseAicsDocumentPage shape.
+ */
+function parsePostgresAicsDocumentRow(row) {
+  return {
+    id: row.notion_page_id,
+    aicsId: row.aics_id || '',
+    aiName: row.ai_name_text || '',
+    classification: row.classification || null,
+    fileStatus: row.file_status || null,
+    raReviewStatus: row.ra_review_status || null,
+    documentNotes: row.document_notes || '',
+    approvedDate: row.approved_date || null,
+    latestVersionId: row.latest_version_id || null,
+    allVersionIds: row.all_version_ids || [],
+    archived: row.archived || false,
+    templateVersion: row.template_version || null,
+    templateSignals: row.template_signals || '',
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
+
+/**
+ * Convert a raw `aics_versions` Postgres row into the parseAicsVersionPage shape.
+ *
+ * aicsDocumentId: comes from aics_document_notion_id (TEXT column added in 003
+ * as a parallel to the UUID FK), matching the notion_page_id the Notion path
+ * returns for the relation property.
+ *
+ * latestVersionOfId: stored as latest_version_of_id (TEXT, added in 005).
+ * claimIds: stored as claim_ids (TEXT[], added in 005).
+ */
+function parsePostgresAicsVersionRow(row) {
+  return {
+    id: row.notion_page_id,
+    version: row.version || '',
+    aicsDocumentId: row.aics_document_notion_id || null,
+    isLatest: row.is_latest || false,
+    effectiveDate: row.effective_date || null,
+    changeDescription: row.change_description || '',
+    responsibleDept: row.responsible_dept || null,
+    responsibleIndividual: row.responsible_individual || '',
+    approvedBy: row.approved_by || '',
+    claimIds: row.claim_ids || [],
+    latestVersionOfId: row.latest_version_of_id || null,
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
+
+/**
+ * Convert a raw `aics_claims` Postgres row into the parseAicsClaimPage shape.
+ *
+ * claimPrefix: stored as claim_prefix_text (via AICS_CLAIMS_PG_COLUMN_MAP override).
+ * fdaDsheaDisclaimerRequired: stored as fda_dshea_disclaimer_required.
+ *
+ * aicsDocumentId / aicsVersionId: aics_claims stores UUID FKs, not notion_page_ids,
+ * for these two back-relations. They are returned as-is (UUID strings) which differs
+ * from the Notion path (notion_page_ids). In practice these fields are display-only in
+ * current callers and are not used for further Notion round-trips; the UUID values are
+ * stable identifiers for the same semantic entities. A future backfill migration can add
+ * aics_document_notion_id / aics_version_notion_id text columns to aics_claims if
+ * strict parity becomes necessary.
+ */
+function parsePostgresAicsClaimRow(row) {
+  return {
+    id: row.notion_page_id,
+    claimId: row.claim_id || '',
+    claimText: row.claim_text || '',
+    claimNo: row.claim_no ?? null,
+    claimStatus: row.claim_status || null,
+    benefitCategory: row.benefit_category || null,
+    claimPrefix: row.claim_prefix_text || null,
+    aicsDocumentId: row.aics_document_id || null,
+    aicsVersionId: row.aics_version_id || null,
+    ageGroup: row.age_group_code || null,
+    sex: row.sex_code || null,
+    lifeStage: row.life_stage || [],
+    lifestyleTags: row.lifestyle_tags || [],
+    minDose: row.min_dose ?? null,
+    minDoseUnit: row.min_dose_unit || null,
+    minDoseSecondary: row.min_dose_secondary ?? null,
+    minDoseSecondaryUnit: row.min_dose_secondary_unit || null,
+    grade: row.grade || null,
+    fdaDsheaDisclaimerRequired: row.fda_dshea_disclaimer_required || false,
+    substantiatingRefs: row.substantiating_refs || '',
+    regulatoryMonographs: row.regulatory_monographs || '',
+    safetyLimit: row.safety_limit ?? null,
+    safetyLimitUnit: row.safety_limit_unit || null,
+    safetyNotes: row.safety_notes || '',
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
+
 // ─── Documents ───────────────────────────────────────────────────────────
 
 function parseAicsDocumentPage(page) {
@@ -98,8 +209,26 @@ function parseAicsDocumentPage(page) {
 
 /**
  * Fetch a single AICS document by its Notion page id.
+ * Phase 2: tries Postgres first when shouldReadFromAicsPostgres() is active;
+ * falls back to Notion on any error or missing row.
  */
 export async function getAicsDocument(id) {
+  if (shouldReadFromAicsPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('aics_documents')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresAicsDocumentRow(data);
+      // Row missing in Postgres — could be newly created in Notion since last sync.
+      // Fall through to Notion.
+    } catch (err) {
+      console.warn(`[aics-documents] Postgres getAicsDocument failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parseAicsDocumentPage(page);
 }
@@ -115,6 +244,31 @@ export async function getAicsDocument(id) {
  * @param {string} [opts.status]   exact match on raReviewStatus (e.g. 'Pending RA Review')
  */
 export async function listAicsDocuments({ limit = 100, cursor, status } = {}) {
+  // Phase 2: try Postgres first when the flag is on. Postgres doesn't support
+  // Notion-style cursors; the full result set is returned up to `limit` rows
+  // sorted by aics_id. Falls back to Notion on any error.
+  if (shouldReadFromAicsPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      let q = sb
+        .from('aics_documents')
+        .select('*')
+        .order('aics_id', { ascending: true })
+        .limit(Math.min(limit, 1000));
+      if (status) {
+        q = q.eq('ra_review_status', status);
+      }
+      const { data, error } = await q;
+      if (error) throw error;
+      return {
+        items: (data || []).map(parsePostgresAicsDocumentRow),
+        nextCursor: null, // Postgres path returns all matching rows in one shot
+      };
+    } catch (err) {
+      console.warn(`[aics-documents] Postgres listAicsDocuments failed, falling back to Notion: ${err.message}`);
+    }
+  }
+
   // AICS Notion DBs aren't always provisioned — wrangler.jsonc notes the
   // NOTION_AICS_* env bindings as optional ("not yet populated — AICS features
   // inactive"). Without a database_id the Notion client throws and the API
@@ -235,9 +389,29 @@ function parseAicsVersionPage(page) {
 /**
  * Fetch every version page that points back to a given AICS document, sorted
  * by effective date (newest first).
+ *
+ * Phase 2: tries Postgres first when shouldReadFromAicsPostgres() is active.
+ * aics_versions stores the document's notion_page_id in aics_document_notion_id
+ * (TEXT column, 003 DDL), so we can filter without a join.
  */
 export async function getAicsVersionsForDocument(docId) {
   if (!docId) throw new Error('getAicsVersionsForDocument: docId is required.');
+
+  if (shouldReadFromAicsPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('aics_versions')
+        .select('*')
+        .eq('aics_document_notion_id', docId)
+        .order('effective_date', { ascending: false, nullsFirst: false });
+      if (error) throw error;
+      return (data || []).map(parsePostgresAicsVersionRow);
+    } catch (err) {
+      console.warn(`[aics-documents] Postgres getAicsVersionsForDocument failed, falling back to Notion: ${err.message}`);
+    }
+  }
+
   const res = await notion.databases.query({
     database_id: PCS_DB.aicsVersions,
     filter: { property: PV.aicsDocument, relation: { contains: docId } },
@@ -312,9 +486,41 @@ export async function updateAicsClaimRegulatory(claimId, fields) {
 
 /**
  * Fetch every claim attached to a specific AICS version, sorted by claim_no.
+ *
+ * Phase 2: tries Postgres first when shouldReadFromAicsPostgres() is active.
+ * aics_claims stores aics_version_id as a UUID FK; we first resolve the UUID
+ * by looking up aics_versions by notion_page_id, then filter claims by that UUID.
+ * Both round-trips are against Postgres and are fast indexed lookups.
  */
 export async function getAicsClaimsForVersion(versionId) {
   if (!versionId) throw new Error('getAicsClaimsForVersion: versionId is required.');
+
+  if (shouldReadFromAicsPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      // Step 1: resolve the Postgres UUID for this version's notion_page_id.
+      const { data: versionRow, error: vErr } = await sb
+        .from('aics_versions')
+        .select('id')
+        .eq('notion_page_id', versionId)
+        .maybeSingle();
+      if (vErr) throw vErr;
+      if (versionRow) {
+        // Step 2: fetch claims by the resolved UUID FK.
+        const { data, error } = await sb
+          .from('aics_claims')
+          .select('*')
+          .eq('aics_version_id', versionRow.id)
+          .order('claim_no', { ascending: true, nullsFirst: false });
+        if (error) throw error;
+        return (data || []).map(parsePostgresAicsClaimRow);
+      }
+      // Version row not in Postgres yet — fall through to Notion.
+    } catch (err) {
+      console.warn(`[aics-documents] Postgres getAicsClaimsForVersion failed, falling back to Notion: ${err.message}`);
+    }
+  }
+
   const res = await notion.databases.query({
     database_id: PCS_DB.aicsClaims,
     filter: { property: PC.aicsVersion, relation: { contains: versionId } },
