@@ -54,6 +54,7 @@
   //   NOTION_TOKEN             — Notion API (all reads/writes)
   //   NOTION_WEBHOOK_TOKEN     — inbound Notion webhook auth
   //   CRON_SECRET              — self-request auth for scheduled crons
+  //   RESEND_API_KEY           — Wave 7.3.1 magic links (Resend transactional email)
   //   (BLOB_READ_WRITE_TOKEN removed 2026-05-07 — R2 migration complete, no longer needed)
   //
   // LLM:

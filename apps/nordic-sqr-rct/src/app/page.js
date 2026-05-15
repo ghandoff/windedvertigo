@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/lib/useAuth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -58,10 +58,23 @@ const AUDIENCE_CONTENT = {
 function LandingContent() {
   const { user, login, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Password login state
   const [alias, setAlias] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Magic link state
+  const [magicEmail, setMagicEmail] = useState('');
+  const [magicSent, setMagicSent] = useState(false);
+  const [magicSubmitting, setMagicSubmitting] = useState(false);
+  const [magicError, setMagicError] = useState('');
+
+  // Login mode — reviewer tab defaults to magic link (Wave 7.3.1)
+  // 'magic' | 'password'
+  const [loginMode, setLoginMode] = useState('magic');
 
   // Audience tab — defaults to 'reviewer' since that is the marketing /
   // acquisition surface (Nordic team members typically know the URL and
@@ -69,10 +82,23 @@ function LandingContent() {
   const [audience, setAudience] = useState('reviewer');
   const content = AUDIENCE_CONTENT[audience];
 
+  // Detect ?error=magic-link-invalid from the verify redirect.
+  const magicLinkError = searchParams?.get('error') === 'magic-link-invalid';
+
   // Wave 7.2 Phase 3 — all successful logins route through /welcome, which
   // reads the user's roles and renders a role-aware destination picker.
   // Reviewer-only users are silently deep-linked inside /welcome itself.
   if (!loading && user) { router.push('/welcome'); return null; }
+
+  // Reset mode and state when audience tab changes.
+  const handleAudienceChange = (key) => {
+    setAudience(key);
+    // Nordic team always uses password; reviewer tab defaults to magic link.
+    setLoginMode(key === 'nordic' ? 'password' : 'magic');
+    setError('');
+    setMagicError('');
+    setMagicSent(false);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -88,6 +114,29 @@ function LandingContent() {
     }
     catch (err) { setError(err.message); }
     finally { setSubmitting(false); }
+  };
+
+  const handleMagicLink = async (e) => {
+    e.preventDefault();
+    setMagicError('');
+    setMagicSubmitting(true);
+    try {
+      const res = await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: magicEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMagicError(data?.error || 'Something went wrong. Please try again.');
+        return;
+      }
+      setMagicSent(true);
+    } catch {
+      setMagicError('Network error. Check your connection and try again.');
+    } finally {
+      setMagicSubmitting(false);
+    }
   };
 
   return (
@@ -125,7 +174,7 @@ function LandingContent() {
                     type="button"
                     role="tab"
                     aria-selected={audience === key}
-                    onClick={() => setAudience(key)}
+                    onClick={() => handleAudienceChange(key)}
                     className={`px-5 sm:px-6 py-2 rounded-full text-sm font-semibold transition ${
                       audience === key
                         ? 'bg-white text-pacific shadow'
@@ -148,41 +197,132 @@ function LandingContent() {
               </p>
             </div>
 
-            {/* Sign-in card — single, centered, audience-neutral form */}
+            {/* Sign-in card — single, centered, audience-aware form */}
             <div className="flex justify-center">
               <div className="w-full max-w-md">
                 <div className="card shadow-xl backdrop-blur-sm bg-white/95">
                   <div className="p-8">
                     <h3 className="text-xl font-bold text-pacific mb-1">Sign in</h3>
-                    <p className="text-sm text-gray-500 mb-6">
-                      {audience === 'reviewer'
-                        ? 'Use the credentials sent to you when you joined the reviewer network.'
-                        : 'Sign in with your Nordic Naturals work email and the password sent to you. First-time sign-ins will be prompted to set a new password.'}
-                    </p>
-                    <form onSubmit={handleLogin} className="space-y-4">
-                      <div>
-                        <label className="form-label" htmlFor="alias">
-                          {audience === 'nordic' ? 'Email' : 'Email or username'}
-                        </label>
-                        <input
-                          id="alias"
-                          type="text"
-                          className="input-field"
-                          placeholder={audience === 'nordic' ? 'you@nordicnaturals.com' : 'Email or legacy username'}
-                          value={alias}
-                          onChange={(e) => setAlias(e.target.value)}
-                          required
-                          autoComplete="username"
-                          inputMode={audience === 'nordic' ? 'email' : 'text'}
-                        />
+
+                    {/* Expired / invalid magic link banner */}
+                    {magicLinkError && (
+                      <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                        <p className="text-sm text-amber-800">
+                          That sign-in link has expired or already been used. Request a new one below.
+                        </p>
                       </div>
-                      <div>
-                        <label className="form-label" htmlFor="password">Password</label>
-                        <input id="password" type="password" className="input-field" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
-                      </div>
-                      {error && <div className="p-3 rounded-lg bg-red-50 border border-red-200"><p className="text-sm text-red-700">{error}</p></div>}
-                      <button type="submit" disabled={submitting} className="btn-primary w-full">{submitting ? 'Signing in...' : 'Sign in'}</button>
-                    </form>
+                    )}
+
+                    {/* ── Reviewer tab: magic link primary ── */}
+                    {audience === 'reviewer' && loginMode === 'magic' && (
+                      <>
+                        <p className="text-sm text-gray-500 mb-6">
+                          Enter your email and we&apos;ll send a one-click sign-in link. No password needed.
+                        </p>
+                        {magicSent ? (
+                          <div className="space-y-4">
+                            <div className="p-4 rounded-lg bg-green-50 border border-green-200 text-center">
+                              <svg className="w-8 h-8 text-green-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              <p className="text-sm font-semibold text-green-800">Check your inbox</p>
+                              <p className="text-sm text-green-700 mt-1">
+                                If that address is on file, a sign-in link is on the way. The link expires in 15 minutes.
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => { setMagicSent(false); setMagicEmail(''); }}
+                              className="w-full text-sm text-pacific hover:underline"
+                            >
+                              Use a different email
+                            </button>
+                          </div>
+                        ) : (
+                          <form onSubmit={handleMagicLink} className="space-y-4">
+                            <div>
+                              <label className="form-label" htmlFor="magic-email">Email address</label>
+                              <input
+                                id="magic-email"
+                                type="email"
+                                className="input-field"
+                                placeholder="you@example.com"
+                                value={magicEmail}
+                                onChange={(e) => setMagicEmail(e.target.value)}
+                                required
+                                autoComplete="email"
+                                inputMode="email"
+                              />
+                            </div>
+                            {magicError && (
+                              <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                                <p className="text-sm text-red-700">{magicError}</p>
+                              </div>
+                            )}
+                            <button type="submit" disabled={magicSubmitting} className="btn-primary w-full">
+                              {magicSubmitting ? 'Sending…' : 'Send sign-in link'}
+                            </button>
+                            <p className="text-center text-xs text-gray-400">
+                              or{' '}
+                              <button
+                                type="button"
+                                onClick={() => setLoginMode('password')}
+                                className="text-pacific hover:underline"
+                              >
+                                use a password instead
+                              </button>
+                            </p>
+                          </form>
+                        )}
+                      </>
+                    )}
+
+                    {/* ── Password form (Nordic tab always; reviewer tab if toggled) ── */}
+                    {(audience === 'nordic' || loginMode === 'password') && (
+                      <>
+                        <p className="text-sm text-gray-500 mb-6">
+                          {audience === 'reviewer'
+                            ? 'Enter your email and password.'
+                            : 'Sign in with your Nordic Naturals work email and the password sent to you. First-time sign-ins will be prompted to set a new password.'}
+                        </p>
+                        <form onSubmit={handleLogin} className="space-y-4">
+                          <div>
+                            <label className="form-label" htmlFor="alias">
+                              {audience === 'nordic' ? 'Email' : 'Email or username'}
+                            </label>
+                            <input
+                              id="alias"
+                              type="text"
+                              className="input-field"
+                              placeholder={audience === 'nordic' ? 'you@nordicnaturals.com' : 'Email or legacy username'}
+                              value={alias}
+                              onChange={(e) => setAlias(e.target.value)}
+                              required
+                              autoComplete="username"
+                              inputMode={audience === 'nordic' ? 'email' : 'text'}
+                            />
+                          </div>
+                          <div>
+                            <label className="form-label" htmlFor="password">Password</label>
+                            <input id="password" type="password" className="input-field" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
+                          </div>
+                          {error && <div className="p-3 rounded-lg bg-red-50 border border-red-200"><p className="text-sm text-red-700">{error}</p></div>}
+                          <button type="submit" disabled={submitting} className="btn-primary w-full">{submitting ? 'Signing in…' : 'Sign in'}</button>
+                          {audience === 'reviewer' && (
+                            <p className="text-center text-xs text-gray-400">
+                              or{' '}
+                              <button
+                                type="button"
+                                onClick={() => { setLoginMode('magic'); setError(''); }}
+                                className="text-pacific hover:underline"
+                              >
+                                send a sign-in link instead
+                              </button>
+                            </p>
+                          )}
+                        </form>
+                      </>
+                    )}
                   </div>
                   <div className="border-t border-gray-100 p-6 bg-gray-50/90 rounded-b-xl">
                     {audience === 'reviewer' ? (
