@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/auth';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { can } from '@/lib/auth/capabilities';
-import { createScore, getScoresByReviewer, getAllScores, getScoresForStudy, getStudyById } from '@/lib/notion';
+import { getStudyById } from '@/lib/sqr-intakes';
+import { createScore, getScoresByReviewer, getAllScores, getScoresForStudy } from '@/lib/sqr-scores';
 import { isAutoSyncEnabled, syncStudyToPcs } from '@/lib/sqr-sync';
 import { DEFAULT_RUBRIC_VERSION, RUBRIC_VERSIONS, getRubricByVersion } from '@/lib/rubric';
 

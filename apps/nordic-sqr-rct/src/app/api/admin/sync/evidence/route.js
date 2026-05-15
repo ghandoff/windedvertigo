@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { getAllStudies, getAllScores } from '@/lib/notion';
+import { getAllStudies } from '@/lib/sqr-intakes';
+import { getAllScores } from '@/lib/sqr-scores';
 import { getQualityTier } from '@/lib/rubric';
 import { normalizeDoi } from '@/lib/doi';
 import {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { getStudyById, getScoresForStudy } from '@/lib/notion';
+import { getStudyById } from '@/lib/sqr-intakes';
+import { getScoresForStudy } from '@/lib/sqr-scores';
 import { callLLM } from '@/lib/llm';
 import { buildScoringPrompt, validateLLMScores } from '@/lib/llm-prompt';
 import { getRubricByVersion, DEFAULT_RUBRIC_VERSION } from '@/lib/rubric';

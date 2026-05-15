@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/auth';
-import { getReviewerById, updateReviewerProfile, getScoresByReviewer } from '@/lib/notion';
+import { getReviewerById, updateReviewerProfile } from '@/lib/sqr-reviewers';
+import { getScoresByReviewer } from '@/lib/sqr-scores';
 
 export async function GET(request) {
   try {

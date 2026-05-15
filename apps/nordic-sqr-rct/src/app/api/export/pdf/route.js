@@ -1,5 +1,7 @@
 import { authenticateRequest, verifyAdminFromNotion } from '@/lib/auth';
-import { getAllScores, getAllStudies, getAllReviewers } from '@/lib/notion';
+import { getAllStudies } from '@/lib/sqr-intakes';
+import { getAllReviewers } from '@/lib/sqr-reviewers';
+import { getAllScores } from '@/lib/sqr-scores';
 import {
   calculateFleissKappas,
   buildArticleSummaries,

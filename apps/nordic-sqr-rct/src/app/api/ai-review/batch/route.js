@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { getAllStudies, getAllScores, createScore } from '@/lib/notion';
+import { getAllStudies } from '@/lib/sqr-intakes';
+import { getAllScores, createScore } from '@/lib/sqr-scores';
 import { callLLM } from '@/lib/llm';
 import { buildScoringPrompt, validateLLMScores } from '@/lib/llm-prompt';
 import { ensureAIReviewerExists } from '@/lib/llm-reviewer';

@@ -193,6 +193,40 @@ export async function getAllReviewersAdmin() {
 }
 
 export async function createReviewer(data) {
+  if (shouldWriteToSqrPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      email: data.email || '',
+      affiliation: data.affiliation || '',
+      alias: data.alias || '',
+      discipline: data.discipline || '',
+      consent: data.consent === true,
+      onboardingDate: new Date().toISOString().split('T')[0],
+    };
+    await writePostgresFirst(
+      'reviewers',
+      stubRow,
+      REVIEWERS_PG_COLUMN_MAP,
+      () => notion.pages.create({
+        parent: { database_id: SQR_DB.reviewers },
+        properties: {
+          'First Name': { title: [{ text: { content: data.firstName } }] },
+          'Last Name (Surname)': { rich_text: [{ text: { content: data.lastName } }] },
+          'Email': { email: data.email },
+          'Affiliation': { rich_text: [{ text: { content: data.affiliation || '' } }] },
+          'Alias': { rich_text: [{ text: { content: data.alias } }] },
+          'Password': { rich_text: [{ text: { content: data.password } }] },
+          'Discipline/Specialty': { rich_text: [{ text: { content: data.discipline || '' } }] },
+          'Consent': { checkbox: data.consent === true },
+          'Onboarding Date': { date: { start: new Date().toISOString().split('T')[0] } },
+        },
+      }),
+    );
+    return stubRow;
+  }
   return notion.pages.create({
     parent: { database_id: SQR_DB.reviewers },
     properties: {
@@ -209,11 +243,19 @@ export async function createReviewer(data) {
   });
 }
 
-// Phase 5 note: these auth write functions never touch Notion for the hash —
-// passwords aren't stored in Notion. They will get a direct Supabase write
-// added in Phase 5, but for now they are unchanged from notion.js.
-
 export async function updateReviewerPassword(reviewerId, hashedPassword) {
+  // Write hash directly to Postgres (no Notion mirror — passwords aren't synced to Notion)
+  if (shouldWriteToSqrPostgresFirst()) {
+    try {
+      const sb = getPcsSupabase();
+      if (sb) {
+        await sb.from('reviewers').update({ password_hash: hashedPassword }).eq('notion_page_id', reviewerId);
+      }
+    } catch (err) {
+      console.warn('[sqr-reviewers] Postgres password update failed:', err.message);
+    }
+  }
+  // Always also update Notion (source of truth for password until Phase 5 auth migration)
   return notion.pages.update({
     page_id: reviewerId,
     properties: {
@@ -223,6 +265,20 @@ export async function updateReviewerPassword(reviewerId, hashedPassword) {
 }
 
 export async function updateReviewerPasswordAndClearResetFlag(reviewerId, hashedPassword) {
+  // Write hash and clear reset flag directly to Postgres (no Notion mirror for hash)
+  if (shouldWriteToSqrPostgresFirst()) {
+    try {
+      const sb = getPcsSupabase();
+      if (sb) {
+        await sb.from('reviewers')
+          .update({ password_hash: hashedPassword, password_reset_required: false })
+          .eq('notion_page_id', reviewerId);
+      }
+    } catch (err) {
+      console.warn('[sqr-reviewers] Postgres password+reset-flag update failed:', err.message);
+    }
+  }
+  // Always also update Notion (source of truth until Phase 5 auth migration)
   return notion.pages.update({
     page_id: reviewerId,
     properties: {
@@ -233,6 +289,20 @@ export async function updateReviewerPasswordAndClearResetFlag(reviewerId, hashed
 }
 
 export async function setReviewerPasswordResetRequired(reviewerId, required) {
+  // Write reset flag directly to Postgres
+  if (shouldWriteToSqrPostgresFirst()) {
+    try {
+      const sb = getPcsSupabase();
+      if (sb) {
+        await sb.from('reviewers')
+          .update({ password_reset_required: !!required })
+          .eq('notion_page_id', reviewerId);
+      }
+    } catch (err) {
+      console.warn('[sqr-reviewers] Postgres password_reset_required update failed:', err.message);
+    }
+  }
+  // Always also update Notion
   return notion.pages.update({
     page_id: reviewerId,
     properties: {
@@ -248,6 +318,16 @@ export async function updateReviewerProperties(reviewerId, updates) {
   }
   if (updates.status !== undefined) {
     properties['Status'] = { select: { name: updates.status } };
+  }
+  if (shouldWriteToSqrPostgresFirst()) {
+    const stubRow = { id: reviewerId, ...updates };
+    await writePostgresFirst(
+      'reviewers',
+      stubRow,
+      REVIEWERS_PG_COLUMN_MAP,
+      () => notion.pages.update({ page_id: reviewerId, properties }),
+    );
+    return stubRow;
   }
   return notion.pages.update({
     page_id: reviewerId,
@@ -277,6 +357,16 @@ export async function updateReviewerProfile(reviewerId, updates) {
       ? { rich_text: [{ text: { content: updates.profileImageUrl } }] }
       : { rich_text: [] };
   }
+  if (shouldWriteToSqrPostgresFirst()) {
+    const stubRow = { id: reviewerId, ...updates };
+    await writePostgresFirst(
+      'reviewers',
+      stubRow,
+      REVIEWERS_PG_COLUMN_MAP,
+      () => notion.pages.update({ page_id: reviewerId, properties }),
+    );
+    return stubRow;
+  }
   return notion.pages.update({ page_id: reviewerId, properties });
 }
 
@@ -303,11 +393,28 @@ export async function getReviewerByEmail(email) {
  */
 export async function updateReviewerEmail(reviewerId, email) {
   const normalized = String(email).trim().toLowerCase();
+  const emailConfirmedAt = new Date().toISOString();
+  if (shouldWriteToSqrPostgresFirst()) {
+    const stubRow = { id: reviewerId, email: normalized, emailConfirmedAt };
+    await writePostgresFirst(
+      'reviewers',
+      stubRow,
+      REVIEWERS_PG_COLUMN_MAP,
+      () => notion.pages.update({
+        page_id: reviewerId,
+        properties: {
+          'Email': { email: normalized },
+          'Email confirmed at': { date: { start: emailConfirmedAt } },
+        },
+      }),
+    );
+    return stubRow;
+  }
   return notion.pages.update({
     page_id: reviewerId,
     properties: {
       'Email': { email: normalized },
-      'Email confirmed at': { date: { start: new Date().toISOString() } },
+      'Email confirmed at': { date: { start: emailConfirmedAt } },
     },
   });
 }

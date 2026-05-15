@@ -6,7 +6,7 @@ import {
   getReviewerByEmail,
   updateReviewerPassword,
   setReviewerPasswordResetRequired,
-} from '@/lib/notion';
+} from '@/lib/sqr-reviewers';
 import {
   signToken,
   signAccessToken,

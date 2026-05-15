@@ -4,7 +4,7 @@ import {
   getReviewerByEmail,
   getReviewerById,
   updateReviewerEmail,
-} from '@/lib/notion';
+} from '@/lib/sqr-reviewers';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
 

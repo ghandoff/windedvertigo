@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getAllEvidence } from '@/lib/pcs-evidence';
-import { getAllStudies } from '@/lib/notion';
+import { getAllStudies } from '@/lib/sqr-intakes';
 import { normalizeDoi } from '@/lib/doi';
 import { Client } from '@notionhq/client';
 import { withRetry } from '@/lib/notion';

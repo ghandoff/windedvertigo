@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { verifyToken } from '@/lib/auth';
-import { updateReviewerPasswordAndClearResetFlag, getReviewerById } from '@/lib/notion';
+import { updateReviewerPasswordAndClearResetFlag, getReviewerById } from '@/lib/sqr-reviewers';
 import { createRateLimiter } from '@/lib/rate-limit';
 
 // runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.

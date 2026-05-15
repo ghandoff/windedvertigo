@@ -140,8 +140,10 @@ export function parsePostgresScoreRow(row) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function createScore(data) {
+  const scoreId = data.scoreId || `SCR-${Date.now()}`;
+  const timestamp = new Date().toISOString();
   const properties = {
-    'Score ID': { title: [{ text: { content: data.scoreId || `SCR-${Date.now()}` } }] },
+    'Score ID': { title: [{ text: { content: scoreId } }] },
     'Q1 Research Question': { select: { name: data.q1 } },
     'Q2 Randomization': { select: { name: data.q2 } },
     'Q3 Blinding': { select: { name: data.q3 } },
@@ -156,7 +158,7 @@ export async function createScore(data) {
     'Rater Alias': { select: { name: data.raterAlias } },
     'Notes': { rich_text: [{ text: { content: data.notes || '' } }] },
     'Rubric version': { select: { name: data.rubricVersion || 'V2' } },
-    'Timestamp': { date: { start: new Date().toISOString() } },
+    'Timestamp': { date: { start: timestamp } },
   };
   if (data.studyId) {
     properties['Study'] = { relation: [{ id: data.studyId }] };
@@ -166,6 +168,50 @@ export async function createScore(data) {
   }
   if (data.timeToComplete) {
     properties['Time to Complete (minutes)'] = { number: Number(data.timeToComplete) };
+  }
+  if (shouldWriteToSqrPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      scoreId,
+      studyRelation: data.studyId ? [data.studyId] : [],
+      reviewerRelation: data.reviewerId ? [data.reviewerId] : [],
+      raterAlias: data.raterAlias || '',
+      q1: data.q1 ?? null,
+      q2: data.q2 ?? null,
+      q3: data.q3 ?? null,
+      q4: data.q4 ?? null,
+      q5: data.q5 ?? null,
+      q6: data.q6 ?? null,
+      q7: data.q7 ?? null,
+      q8: data.q8 ?? null,
+      q9: data.q9 ?? null,
+      q10: data.q10 ?? null,
+      q11: data.q11 ?? null,
+      q1Raw: data.q1 ?? '',
+      q2Raw: data.q2 ?? '',
+      q3Raw: data.q3 ?? '',
+      q4Raw: data.q4 ?? '',
+      q5Raw: data.q5 ?? '',
+      q6Raw: data.q6 ?? '',
+      q7Raw: data.q7 ?? '',
+      q8Raw: data.q8 ?? '',
+      q9Raw: data.q9 ?? '',
+      q10Raw: data.q10 ?? '',
+      q11Raw: data.q11 ?? '',
+      rubricVersion: data.rubricVersion || 'V2',
+      notes: data.notes || '',
+      // `timestamp` maps to `scored_at` via SCORES_PG_COLUMN_MAP
+      timestamp,
+      timeToComplete: data.timeToComplete ? Number(data.timeToComplete) : null,
+    };
+    await writePostgresFirst(
+      'scores',
+      stubRow,
+      SCORES_PG_COLUMN_MAP,
+      () => notion.pages.create({ parent: { database_id: SQR_DB.scores }, properties }),
+    );
+    return stubRow;
   }
   return notion.pages.create({ parent: { database_id: SQR_DB.scores }, properties });
 }

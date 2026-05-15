@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getAllEvidence, updateEvidence } from '@/lib/pcs-evidence';
-import { getAllStudies, updateStudyPdf } from '@/lib/notion';
+import { getAllStudies, updateStudyPdf } from '@/lib/sqr-intakes';
 import { findAndFetchPdf, findPdfUrl } from '@/lib/pmc';
 import { normalizeDoi } from '@/lib/doi';
 

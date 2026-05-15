@@ -20,7 +20,7 @@
 
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { getStudyById } from '@/lib/notion';
+import { getStudyById } from '@/lib/sqr-intakes';
 import { getRubricByVersion, DEFAULT_RUBRIC_VERSION } from '@/lib/rubric';
 
 const LLM_PROVIDER = process.env.LLM_PROVIDER || 'anthropic';

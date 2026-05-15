@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authenticateRequest, verifyAdminFromNotion } from '@/lib/auth';
-import { getAllScores, getAllStudies } from '@/lib/notion';
+import { getAllStudies } from '@/lib/sqr-intakes';
+import { getAllScores } from '@/lib/sqr-scores';
 
 const QUESTION_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10', 'q11'];
 

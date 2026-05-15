@@ -13,8 +13,8 @@
 import { getScoresForStudy } from './notion.js';
 import { getQualityTier } from './rubric.js';
 import { normalizeDoi } from './doi.js';
-import { getAllEvidenceEntries, updateEvidenceEntry, getPacketsForEvidence, updatePacketThreshold } from './pcs.js';
-import { createEvidence } from './pcs-evidence.js';
+import { getPacketsForEvidence, updatePacketThreshold } from './pcs.js';
+import { getAllEvidence, createEvidence, updateEvidence } from './pcs-evidence.js';
 
 const QUESTION_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10', 'q11'];
 
@@ -51,7 +51,7 @@ export async function syncStudyToPcs(studyId, studyDoi, studyData = null) {
   }
 
   // Find matching PCS evidence entry
-  const evidenceEntries = await getAllEvidenceEntries();
+  const evidenceEntries = await getAllEvidence();
   let pcsEntry = null;
   for (const entry of evidenceEntries) {
     if (normalizeDoi(entry.doi) === normalizedDoi) {
@@ -128,11 +128,12 @@ export async function syncStudyToPcs(studyId, studyDoi, studyData = null) {
   }
 
   // Write to PCS
-  await updateEvidenceEntry(pcsEntry.id, {
-    score: roundedAvg,
-    riskOfBias,
-    reviewDate,
-    reviewUrl,
+  await updateEvidence(pcsEntry.id, {
+    sqrScore: roundedAvg,
+    sqrRiskOfBias: riskOfBias,
+    sqrReviewed: true,
+    sqrReviewDate: reviewDate,
+    sqrReviewUrl: reviewUrl,
   });
 
   // Update evidence packets threshold

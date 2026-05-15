@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { getAllStudies, getAllScores, createStudy } from '@/lib/notion';
+import { getAllStudies, createStudy } from '@/lib/sqr-intakes';
+import { getAllScores } from '@/lib/sqr-scores';
 
 export async function GET(request) {
   try {

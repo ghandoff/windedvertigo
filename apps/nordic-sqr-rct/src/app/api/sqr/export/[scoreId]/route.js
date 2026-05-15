@@ -16,7 +16,8 @@
 
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { getScoreById, getStudyById } from '@/lib/notion';
+import { getStudyById } from '@/lib/sqr-intakes';
+import { getScoreById } from '@/lib/sqr-scores';
 import { getAllEvidence } from '@/lib/pcs-evidence';
 import { getPacketsForEvidenceItem } from '@/lib/pcs-evidence-packets';
 import { getApplicabilityForClaim } from '@/lib/applicability';

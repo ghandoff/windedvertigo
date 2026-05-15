@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { getReviewerByAlias, createReviewer } from '@/lib/notion';
+import { getReviewerByAlias, createReviewer } from '@/lib/sqr-reviewers';
 import {
   signAccessToken,
   signRefreshToken,

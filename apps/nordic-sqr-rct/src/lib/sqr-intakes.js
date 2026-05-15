@@ -223,6 +223,52 @@ export async function createStudy(data) {
   if (data.aPrioriPower) {
     properties['A Priori Power Estimation'] = { select: { name: data.aPrioriPower } };
   }
+  if (shouldWriteToSqrPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      citation: data.citation || '',
+      doi: data.doi || '',
+      year: data.year ? Number(data.year) : null,
+      journal: data.journal || '',
+      purposeOfResearch: data.purposeOfResearch || '',
+      studyDesign: data.studyDesign || '',
+      fundingSources: data.fundingSources || '',
+      inclusionCriteria: data.inclusionCriteria || '',
+      exclusionCriteria: data.exclusionCriteria || '',
+      recruitment: data.recruitment || '',
+      blinding: data.blinding || '',
+      initialN: data.initialN ? Number(data.initialN) : null,
+      ages: data.ages || '',
+      femaleParticipants: data.femaleParticipants ? Number(data.femaleParticipants) : null,
+      maleParticipants: data.maleParticipants ? Number(data.maleParticipants) : null,
+      finalN: data.finalN ? Number(data.finalN) : null,
+      aPrioriPower: data.aPrioriPower || '',
+      locationCountry: data.locationCountry || '',
+      locationCity: data.locationCity || '',
+      timingOfMeasures: data.timingOfMeasures || '',
+      independentVariables: data.independentVariables || '',
+      dependentVariables: data.dependentVariables || '',
+      controlVariables: data.controlVariables || '',
+      keyResults: data.keyResults || '',
+      otherResults: data.otherResults || '',
+      statisticalMethods: data.statisticalMethods || '',
+      missingDataHandling: data.missingDataHandling || '',
+      authorsConclusion: data.authorsConclusion || '',
+      strengths: data.strengths || '',
+      limitations: data.limitations || '',
+      potentialBiases: data.potentialBiases || '',
+      submittedByAlias: data.submittedByAlias || '',
+      pdf: data.pdf || null,
+    };
+    await writePostgresFirst(
+      'intakes',
+      stubRow,
+      INTAKES_PG_COLUMN_MAP,
+      () => notion.pages.create({ parent: { database_id: SQR_DB.intakes }, properties }),
+    );
+    return stubRow;
+  }
   return notion.pages.create({ parent: { database_id: SQR_DB.intakes }, properties });
 }
 
@@ -295,6 +341,23 @@ export async function getIntakeByReviewerAndDoi(alias, doi) {
 }
 
 export async function updateStudyPdf(studyId, pdfUrl) {
+  if (shouldWriteToSqrPostgresFirst()) {
+    const stubRow = { id: studyId, pdf: pdfUrl || null };
+    await writePostgresFirst(
+      'intakes',
+      stubRow,
+      INTAKES_PG_COLUMN_MAP,
+      () => notion.pages.update({
+        page_id: studyId,
+        properties: {
+          'PDF': pdfUrl
+            ? { files: [{ name: 'PDF', type: 'external', external: { url: pdfUrl } }] }
+            : { files: [] },
+        },
+      }),
+    );
+    return stubRow;
+  }
   return notion.pages.update({
     page_id: studyId,
     properties: {

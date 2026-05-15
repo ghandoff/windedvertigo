@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { getAllScores, getAllStudies, getAllReviewers } from '@/lib/notion';
+import { getAllStudies } from '@/lib/sqr-intakes';
+import { getAllReviewers } from '@/lib/sqr-reviewers';
+import { getAllScores } from '@/lib/sqr-scores';
 import {
   calculateCohensKappaPairs,
   calculateFleissKappas,

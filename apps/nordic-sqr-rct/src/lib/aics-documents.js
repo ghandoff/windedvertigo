@@ -28,6 +28,7 @@ import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
 import {
   getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency,
+  writePostgresFirst,
 } from './supabase-pcs.js';
 
 const PD = PROPS.aicsDocuments;
@@ -347,11 +348,42 @@ function aicsDocumentProps(fields) {
 export async function createAicsDocument(fields) {
   if (!fields?.aicsId) throw new Error('createAicsDocument: aicsId is required.');
   const properties = aicsDocumentProps(fields);
+
+  if (shouldWriteToAicsPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      aicsId: fields.aicsId || '',
+      aiName: fields.aiName || '',
+      classification: fields.classification || null,
+      fileStatus: fields.fileStatus || null,
+      raReviewStatus: fields.raReviewStatus || null,
+      documentNotes: fields.documentNotes || '',
+      approvedDate: fields.approvedDate || null,
+      latestVersionId: fields.latestVersionId || null,
+      allVersionIds: fields.allVersionIds || [],
+      archived: fields.archived || false,
+      templateVersion: fields.templateVersion || null,
+      templateSignals: fields.templateSignals || '',
+    };
+    return writePostgresFirst(
+      'aics_documents',
+      stubRow,
+      AICS_DOCUMENTS_PG_COLUMN_MAP,
+      () => notion.pages.create({ parent: { database_id: PCS_DB.aicsDocuments }, properties }),
+    );
+  }
+
+  // Notion-only path (unchanged)
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.aicsDocuments },
     properties,
   });
-  return parseAicsDocumentPage(page);
+  const parsed = parseAicsDocumentPage(page);
+  await mirrorToPostgres('aics_documents', parsed, AICS_DOCUMENTS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+  return parsed;
 }
 
 /**
@@ -360,8 +392,24 @@ export async function createAicsDocument(fields) {
 export async function updateAicsDocument(id, patch) {
   if (!id) throw new Error('updateAicsDocument: id is required.');
   const properties = aicsDocumentProps(patch || {});
+
+  if (shouldWriteToAicsPostgresFirst()) {
+    const stubRow = { id, ...(patch || {}) };
+    return writePostgresFirst(
+      'aics_documents',
+      stubRow,
+      AICS_DOCUMENTS_PG_COLUMN_MAP,
+      () => notion.pages.update({ page_id: id, properties }),
+    );
+  }
+
+  // Notion-only path (unchanged)
   const page = await notion.pages.update({ page_id: id, properties });
-  return parseAicsDocumentPage(page);
+  const parsed = parseAicsDocumentPage(page);
+  await mirrorToPostgres('aics_documents', parsed, AICS_DOCUMENTS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+  return parsed;
 }
 
 // ─── Versions ────────────────────────────────────────────────────────────
@@ -480,8 +528,24 @@ export async function updateAicsClaimRegulatory(claimId, fields) {
   if (fields.safetyNotes !== undefined) {
     properties[PC.safetyNotes] = { rich_text: [{ text: { content: String(fields.safetyNotes || '').slice(0, 1900) } }] };
   }
+
+  if (shouldWriteToAicsPostgresFirst()) {
+    const stubRow = { id: claimId, ...fields };
+    return writePostgresFirst(
+      'aics_claims',
+      stubRow,
+      AICS_CLAIMS_PG_COLUMN_MAP,
+      () => notion.pages.update({ page_id: claimId, properties }),
+    );
+  }
+
+  // Notion-only path (unchanged)
   const page = await notion.pages.update({ page_id: claimId, properties });
-  return parseAicsClaimPage(page);
+  const parsed = parseAicsClaimPage(page);
+  await mirrorToPostgres('aics_claims', parsed, AICS_CLAIMS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+  return parsed;
 }
 
 /**
