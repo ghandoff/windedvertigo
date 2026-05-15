@@ -203,21 +203,27 @@ function FormulaTable({ formulaLines }) {
 
 function ClaimsSection({ claims }) {
   if (!claims?.length) return <p className={styles.noData}>No claims recorded for this version.</p>;
-  // Group by coreBenefitId (or fall back to claimBucket label).
+  // Group by claimBucket (3A / 3B / 3C). Previously grouped by coreBenefitId
+  // which is a raw Notion UUID — the core benefit name was never fetched, so
+  // the UUID leaked into the section heading as an unreadable label.
+  const BUCKET_ORDER = ['3A', '3B', '3C'];
   const groups = {};
   for (const claim of claims) {
-    const groupKey = claim.coreBenefitId || claim.claimBucket || 'Ungrouped';
+    const groupKey = claim.claimBucket || 'Ungrouped';
     if (!groups[groupKey]) groups[groupKey] = { label: groupKey, claims: [] };
     groups[groupKey].claims.push(claim);
   }
+  // Render in canonical bucket order (3A → 3B → 3C → any stragglers).
+  const orderedGroups = [
+    ...BUCKET_ORDER.filter(k => groups[k]).map(k => groups[k]),
+    ...Object.values(groups).filter(g => !BUCKET_ORDER.includes(g.label)),
+  ];
   return (
     <>
-      {Object.values(groups).map(group => (
+      {orderedGroups.map(group => (
         <div key={group.label} className={styles.benefitGroup}>
           <h3 className={styles.benefitHeading}>
-            {group.label === group.claims[0]?.claimBucket
-              ? `Bucket ${group.label}`
-              : group.label}
+            {group.label === 'Ungrouped' ? 'Ungrouped' : `Bucket ${group.label}`}
           </h3>
           <table className={styles.table}>
             <thead>
