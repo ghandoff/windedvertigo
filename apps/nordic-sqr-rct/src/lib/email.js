@@ -31,7 +31,7 @@ function getResend() {
 // All platform mail comes from this address. Using a subdomain keeps
 // transactional mail separate from Nordic marketing and allows SPF/DKIM
 // to be scoped to the platform domain.
-const FROM_ADDRESS = 'Nordic Research Platform <noreply@nordic.windedvertigo.com>';
+const FROM_ADDRESS = 'Nordic Research Platform <noreply@windedvertigo.com>';
 
 // ── Magic link email ─────────────────────────────────────────────────────────
 
