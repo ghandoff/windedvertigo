@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#273248" />
+<meta name="description" content="winded.vertigo collective collaboration audit — may 2026. Cloud vs local Claude Code, PR workflow, branch hygiene, migration cleanup." />
+<meta name="robots" content="noindex" />
+<title>collaboration audit · may 2026 · winded.vertigo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23273248'/%3E%3Ctext x='50%25' y='55%25' fill='%23ffebd2' font-size='10' font-family='monospace' text-anchor='middle' dominant-baseline='middle'%3Ewv%3C/text%3E%3C/svg%3E" />
+<style>
+  :root {
+    --wv-cadet: #273248;
+    --wv-redwood: #b15043;
+    --wv-sienna: #cb7858;
+    --wv-champagne: #ffebd2;
+    --wv-cadet-soft: #3a4866;
+    --wv-bg: #ffffff;
+    --wv-bg-subtle: #f7f6f2;
+    --wv-border: #e6e2d8;
+    --wv-text: #1f2738;
+    --wv-text-muted: #5a6478;
+    --wv-code-bg: #1e2638;
+    --wv-code-text: #e8e6f0;
+    --wv-focus: #3b82f6;
+    --wv-good: #2f6b3e;
+    --wv-good-bg: #e6f1e8;
+    --wv-warn: #8b5a18;
+    --wv-warn-bg: #fbf1da;
+    --wv-info-bg: #e9eef7;
+    --wv-info: #2f4a78;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+  body {
+    margin: 0;
+    background: var(--wv-bg);
+    color: var(--wv-text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 3px solid var(--wv-focus); outline-offset: 2px; border-radius: 2px; }
+  .skip-link { position: absolute; left: -9999px; top: 0; background: var(--wv-cadet); color: var(--wv-champagne); padding: 0.75rem 1rem; text-decoration: none; z-index: 100; }
+  .skip-link:focus { left: 0; }
+
+  header.site {
+    background: var(--wv-cadet);
+    color: var(--wv-champagne);
+    padding: 1rem 1.5rem;
+    border-bottom: 4px solid var(--wv-sienna);
+  }
+  header.site .wrap { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  header.site .brand { font-weight: 600; letter-spacing: 0.02em; text-decoration: none; color: var(--wv-champagne); }
+  header.site .brand:hover { color: #fff; }
+  header.site .meta { font-size: 0.875rem; color: var(--wv-champagne); opacity: 0.85; }
+  header.site .meta a { color: var(--wv-champagne); text-decoration: underline; text-decoration-color: var(--wv-sienna); text-underline-offset: 3px; }
+
+  .layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+  aside.toc {
+    position: sticky;
+    top: 1rem;
+    border-left: 3px solid var(--wv-sienna);
+    padding: 0.5rem 0 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+  aside.toc h2 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--wv-text-muted); margin: 0 0 0.75rem; }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+  aside.toc ol li { counter-increment: toc; margin: 0.25rem 0; }
+  aside.toc ol li a { color: var(--wv-text-muted); text-decoration: none; display: block; padding: 0.2rem 0; border-radius: 2px; }
+  aside.toc ol li a::before { content: counter(toc) ". "; color: var(--wv-sienna); font-weight: 600; }
+  aside.toc ol li a:hover { color: var(--wv-redwood); }
+  aside.toc ol li a.active { color: var(--wv-redwood); font-weight: 600; }
+
+  main.content { min-width: 0; }
+  main.content h1 {
+    font-size: 2rem;
+    margin: 0 0 0.25rem;
+    color: var(--wv-cadet);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  main.content .subtitle { color: var(--wv-text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
+  main.content h2 {
+    margin-top: 3rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--wv-border);
+    color: var(--wv-cadet);
+    font-size: 1.5rem;
+    font-weight: 600;
+    scroll-margin-top: 1rem;
+  }
+  main.content h3 { margin-top: 2rem; color: var(--wv-cadet-soft); font-size: 1.15rem; }
+  main.content h4 { margin-top: 1.5rem; color: var(--wv-cadet-soft); font-size: 1rem; }
+  main.content p, main.content li { color: var(--wv-text); }
+  main.content a { color: var(--wv-redwood); text-decoration: underline; text-decoration-color: var(--wv-sienna); text-underline-offset: 3px; }
+  main.content a:hover { color: var(--wv-cadet); }
+
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  code { background: var(--wv-bg-subtle); padding: 0.1em 0.4em; border-radius: 3px; font-size: 0.875em; color: var(--wv-redwood); border: 1px solid var(--wv-border); }
+  pre { background: var(--wv-code-bg); color: var(--wv-code-text); padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.55; }
+  pre code { background: transparent; color: inherit; padding: 0; border: 0; font-size: inherit; }
+  pre .comment { color: #7ec47e; }
+  pre .branch { color: #f1c542; }
+  pre .cmd { color: #6fb1e0; font-weight: 600; }
+
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+  th, td { border: 1px solid var(--wv-border); padding: 0.6rem 0.85rem; text-align: left; vertical-align: top; }
+  th { background: var(--wv-bg-subtle); font-weight: 600; color: var(--wv-cadet); }
+  tr:nth-child(even) td { background: rgba(247, 246, 242, 0.5); }
+
+  .callout { padding: 0.85rem 1.1rem; border-left: 4px solid; border-radius: 4px; margin: 1.25rem 0; background: var(--wv-bg-subtle); }
+  .callout > strong:first-child { display: block; margin-bottom: 0.25rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .callout.warn { background: var(--wv-warn-bg); border-color: var(--wv-warn); }
+  .callout.info { background: var(--wv-info-bg); border-color: var(--wv-info); }
+  .callout.good { background: var(--wv-good-bg); border-color: var(--wv-good); }
+  .callout.danger { background: #fae5e2; border-color: var(--wv-redwood); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.85rem; margin: 1rem 0 1.5rem; }
+  .stat { background: var(--wv-bg-subtle); border: 1px solid var(--wv-border); border-radius: 6px; padding: 0.9rem 1rem; }
+  .stat .num { font-size: 1.6rem; font-weight: 700; color: var(--wv-redwood); display: block; line-height: 1.1; }
+  .stat .lbl { font-size: 0.75rem; color: var(--wv-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.15rem; display: block; }
+  .stat .sub { font-size: 0.78rem; color: var(--wv-text-muted); margin-top: 0.35rem; }
+
+  .flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0.5rem; align-items: center; margin: 1.25rem 0; }
+  .flow .step { background: var(--wv-bg-subtle); border: 1px solid var(--wv-border); border-radius: 6px; padding: 0.85rem; text-align: center; font-size: 0.85rem; }
+  .flow .arrow { color: var(--wv-sienna); font-size: 1.4rem; font-weight: 700; text-align: center; }
+
+  .badge { display: inline-block; font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; vertical-align: middle; border: 1px solid; }
+  .badge.do { background: var(--wv-good-bg); color: var(--wv-good); border-color: var(--wv-good); }
+  .badge.dont { background: #fae5e2; color: var(--wv-redwood); border-color: var(--wv-redwood); }
+  .badge.note { background: var(--wv-info-bg); color: var(--wv-info); border-color: var(--wv-info); }
+
+  details { background: var(--wv-bg-subtle); border-radius: 6px; padding: 0.75rem 1rem; margin: 0.75rem 0; border: 1px solid var(--wv-border); }
+  details summary { cursor: pointer; font-weight: 600; color: var(--wv-cadet); }
+  details[open] summary { margin-bottom: 0.6rem; }
+
+  .summary-card { background: var(--wv-bg-subtle); border-left: 4px solid var(--wv-redwood); padding: 0.85rem 1.1rem; margin: 0.75rem 0; border-radius: 0 4px 4px 0; }
+  .summary-card .hdr { font-weight: 600; color: var(--wv-cadet); margin-bottom: 0.25rem; }
+
+  hr { border: 0; border-top: 1px dashed var(--wv-border); margin: 2.5rem 0; }
+
+  footer.site { background: var(--wv-cadet); color: var(--wv-champagne); padding: 1.25rem 1.5rem; text-align: center; font-size: 0.85rem; border-top: 4px solid var(--wv-sienna); }
+  footer.site a { color: var(--wv-champagne); text-decoration: underline; text-decoration-color: var(--wv-sienna); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; gap: 1.5rem; }
+    aside.toc { position: static; }
+    .flow { grid-template-columns: 1fr; }
+    .flow .arrow { transform: rotate(90deg); padding: 0.2rem 0; }
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">skip to main content</a>
+
+<header class="site">
+  <div class="wrap">
+    <a href="/" class="brand">winded.vertigo</a>
+    <span class="meta">handbook · <a href="/handbook/dev-collaboration/">dev collaboration</a> · <strong>collaboration audit · may 2026</strong></span>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="toc" aria-label="table of contents">
+    <h2>contents</h2>
+    <ol>
+      <li><a href="#summary">executive summary</a></li>
+      <li><a href="#state">current repo state</a></li>
+      <li><a href="#cloud-vs-local">cloud vs local claude code</a></li>
+      <li><a href="#git-mental-model">prs, branches, merging, pushing</a></li>
+      <li><a href="#three-person-flow">your three-person workflow</a></li>
+      <li><a href="#scenarios">worked scenarios</a></li>
+      <li><a href="#plans">max 20x vs 5x</a></li>
+      <li><a href="#cross-device">cross-device sync (desktop ↔ laptop ↔ phone)</a></li>
+      <li><a href="#skills">skills you can invoke</a></li>
+      <li><a href="#migration">migration cleanup</a></li>
+      <li><a href="#cleanup">branch &amp; worktree cleanup</a></li>
+      <li><a href="#next-steps">recommended next steps</a></li>
+      <li><a href="#cheatsheet">cheat-sheet</a></li>
+    </ol>
+  </aside>
+
+  <main id="main" class="content">
+    <h1>collaboration &amp; claude code audit</h1>
+    <p class="subtitle">for garrett, maria, payton — 14 may 2026. repos audited: <code>harbour-apps</code>, <code>windedvertigo</code>, <code>pocket-prompts</code>, <code>wv-proposals</code>.</p>
+
+    <section id="summary">
+      <h2>1. executive summary</h2>
+      <p>your team isn't broken — your branches are. three people, two computers, one web client, and a major migration in flight have produced a real mess in github, but the mess is mechanical, not strategic. here's what's going on and what to do about it.</p>
+
+      <div class="stats">
+        <div class="stat"><span class="num">63</span><span class="lbl">remote branches</span><div class="sub">harbour-apps · 40 are <code>claude/*</code></div></div>
+        <div class="stat"><span class="num">57</span><span class="lbl">remote branches</span><div class="sub">windedvertigo · 25 are <code>claude/*</code></div></div>
+        <div class="stat"><span class="num">34</span><span class="lbl">local branches</span><div class="sub">windedvertigo on garrett's mac</div></div>
+        <div class="stat"><span class="num">5</span><span class="lbl">prunable worktrees</span><div class="sub">orphaned in <code>/tmp</code></div></div>
+        <div class="stat"><span class="num">~4/60</span><span class="lbl">recent commits by maria</span><div class="sub">vs ~55 by garrett</div></div>
+      </div>
+
+      <div class="summary-card"><div class="hdr">finding 1 — branch sprawl from claude code on the web</div>
+      every time garrett starts a task at <code>claude.ai/code</code>, anthropic spins up a cloud vm, clones the repo, and creates a branch named <code>claude/&lt;adjective-name&gt;-&lt;hash&gt;</code>. in two repos there are <strong>65 of these branches</strong>. many were experiments that were never merged. they're now permanent noise unless someone deletes them.</div>
+
+      <div class="summary-card"><div class="hdr">finding 2 — maria probably isn't pushing as much as she's working</div>
+      maria authored ~4 of the last 60 commits across both repos. either she's not getting work in front of garrett, or she's working but he's not seeing her PRs. the most common cause when one person works locally and another works in the cloud: <strong>her local branch and the cloud's view of the repo drift apart</strong>. section 5 fixes this.</div>
+
+      <div class="summary-card"><div class="hdr">finding 3 — the cloud doesn't see local work</div>
+      this is <em>the</em> thing that's tripping the team up. claude code on the web clones from github, <strong>not from anyone's mac</strong>. if garrett commits locally and doesn't <code>git push</code>, the cloud session starts from a stale snapshot. same in reverse for maria. the rule: <strong>push before you delegate</strong>.</div>
+
+      <div class="summary-card"><div class="hdr">finding 4 — the migration is 90% done in code, 50% done in artifacts</div>
+      the cf workers cutovers are real and documented in CLAUDE.md ("zero vercel services remain except wv-crm rollback expires 2026-05-17"). but every app still has a <code>vercel.json</code>, a <code>.vercel/</code> directory, and stale <code>.env</code> files. none of these hurt deployment, but they make claude make wrong assumptions when it reads the codebase.</div>
+
+      <div class="summary-card"><div class="hdr">finding 5 — ci/cd is opt-in by necessity</div>
+      the <code>deploy-values-auction.yml</code> workflow notes "CLOUDFLARE_API_TOKEN secret has been stale since 2026-05. automated deploy on every merge would fail." real cause, sensible workaround — but a token rotation is the proper fix, not a permanent <code>workflow_dispatch</code>-only deploy.</div>
+
+      <div class="summary-card"><div class="hdr">finding 6 — plan tiers should drive task division</div>
+      garrett is on max 20x (~900 messages per 5-hour window). maria and payton are on max 5x (~225). roughly a 4× delta. give the large, exploratory, multi-tool work to garrett's seat; give them well-scoped, one-thing-at-a-time tasks. section 7 lays out concrete divisions.</div>
+
+      <h3>the five things to do this week</h3>
+      <table>
+      <thead><tr><th style="width:40px">#</th><th>action</th><th style="width:120px">owner</th><th style="width:80px">est.</th></tr></thead>
+      <tbody>
+      <tr><td>1</td><td>run the branch-cleanup script in section 11 against both repos. delete the merged <code>claude/*</code> branches and orphaned worktrees.</td><td>garrett</td><td>20 min</td></tr>
+      <tr><td>2</td><td>adopt the "push before you delegate" rule (section 3) and write it at the top of both CLAUDE.md files.</td><td>garrett</td><td>10 min</td></tr>
+      <tr><td>3</td><td>walk maria through the workflow diagram in section 5 on her next tuesday 6pm UTC sync. have her do one real PR end-to-end on screen-share.</td><td>garrett + maria</td><td>30 min</td></tr>
+      <tr><td>4</td><td>rotate the <code>CLOUDFLARE_API_TOKEN</code> secret and flip the values-auction workflow back to deploy-on-merge.</td><td>garrett</td><td>15 min</td></tr>
+      <tr><td>5</td><td>delete the <code>vercel.json</code> files for every app that's now on cloudflare (section 10 has the list).</td><td>cloud claude task</td><td>delegate</td></tr>
+      </tbody>
+      </table>
+    </section>
+
+    <section id="state">
+      <h2>2. current repo state</h2>
+      <p>walked every repo in <code>~/Projects</code> and pulled real numbers. these are the facts as of 14 may 2026.</p>
+
+      <table>
+      <thead><tr><th>repo</th><th>current branch</th><th>local / remote branches</th><th>working tree</th></tr></thead>
+      <tbody>
+      <tr><td><strong>harbour-apps</strong><br><span style="color:var(--wv-text-muted);font-size:0.8rem">monorepo: creaseworks, harbour, depth-chart, vault, deep-deck…</span></td><td><code>fix/wordmark-header-bar</code></td><td>10 local / 63 remote<br>40 <code>claude/*</code></td><td><span class="badge dont">dirty</span> <code>package-lock.json</code> uncommitted</td></tr>
+      <tr><td><strong>windedvertigo</strong></td><td><code>main</code> (clean)</td><td>34 local / 57 remote<br>25 <code>claude/*</code></td><td><span class="badge do">clean</span></td></tr>
+      <tr><td><strong>pocket-prompts</strong><br><span style="color:var(--wv-text-muted);font-size:0.8rem">just extracted from monorepo</span></td><td><code>main</code></td><td>1 local / 2 remote</td><td><span class="badge dont">dirty</span> 4 package-locks + 1 package.json</td></tr>
+      <tr><td><strong>wv-proposals</strong></td><td><code>main</code></td><td>1 local / 1 remote</td><td><span class="badge do">clean</span> scaffolding only</td></tr>
+      </tbody>
+      </table>
+
+      <div class="callout warn"><strong>inconsistency</strong> three repos use HTTPS, one uses SSH. pick one. SSH is faster (no token prompts) but HTTPS works better if switching machines. garrett's and maria's macs should both be set up the same way so commands you share with her actually work.</div>
+
+      <h3>orphaned worktrees</h3>
+      <p>harbour-apps has five worktrees outside the repo, all marked "prunable" by git. they live in <code>/private/tmp</code>:</p>
+<pre><code>/private/tmp/ha-creaseworks-scaffold      [chore/creaseworks-cf-scaffold]      prunable
+/private/tmp/ha-fix-force                 [chore/security-fix-force-2026-04-27] prunable
+/private/tmp/harbour-cleanup-merge        [chore/migration-prep-cleanups]      prunable
+/private/tmp/harbour-cw-idempotency       [chore/creaseworks-webhook-idempotency] prunable
+/private/tmp/harbour-vault-cf-prep        [chore/vault-cf-scaffold]            prunable</code></pre>
+      <p>windedvertigo has two worktrees under <code>.claude/worktrees/</code> (also prunable). these are scratch directories that claude code created and never cleaned up. harmless, but they hold branch references that confuse cleanup scripts. section 11 has the one-liner.</p>
+    </section>
+
+    <section id="cloud-vs-local">
+      <h2>3. cloud claude code vs local claude code</h2>
+      <p>this is the single biggest source of confusion for the team, and it's also one of the most fixable.</p>
+
+      <h3>what "cloud" claude code is</h3>
+      <p>garrett opens <a href="https://claude.ai/code">claude.ai/code</a>, types a task, and anthropic spins up a <strong>fresh virtual machine</strong> in their cloud. that VM:</p>
+      <ol>
+        <li>authenticates as garrett against github (via the claude github app he connected)</li>
+        <li>clones the repository <strong>from github</strong> — not from his mac</li>
+        <li>creates a new branch named <code>claude/&lt;adjective-name&gt;-&lt;hash&gt;</code></li>
+        <li>runs claude code in that VM. claude reads files, edits them, commits, and pushes the new branch to github</li>
+        <li>opens a PR (or leaves a button to open one)</li>
+        <li>the VM keeps running until the task is done or garrett closes it. monitorable from the claude mobile app</li>
+      </ol>
+
+      <div class="callout warn"><strong>critical implication</strong> the cloud VM only sees what's on github. if garrett has local commits that haven't been pushed, <strong>the cloud session doesn't know they exist</strong>. it will start from whatever was on the github branch when the session began.</div>
+
+      <h3>what "local" claude code is</h3>
+      <p>garrett (or maria) runs <code>claude</code> in a terminal inside the repo on their mac. claude code:</p>
+      <ol>
+        <li>reads actual on-disk files, including uncommitted changes</li>
+        <li>runs commands directly on the mac</li>
+        <li>creates branches, commits, and pushes — but only when told to or approved</li>
+        <li>can use git worktrees for parallel sessions</li>
+      </ol>
+
+      <h3>side-by-side</h3>
+      <table>
+      <thead><tr><th>aspect</th><th>cloud (claude.ai/code)</th><th>local (claude CLI on mac)</th></tr></thead>
+      <tbody>
+      <tr><td>sees uncommitted local changes</td><td><span class="badge dont">no</span> only what's on github</td><td><span class="badge do">yes</span></td></tr>
+      <tr><td>where compute happens</td><td>anthropic VM</td><td>your mac</td></tr>
+      <tr><td>branch naming</td><td>auto: <code>claude/&lt;name&gt;-&lt;hash&gt;</code></td><td>you name it</td></tr>
+      <tr><td>survives closing browser/laptop</td><td><span class="badge do">yes</span></td><td><span class="badge dont">no</span></td></tr>
+      <tr><td>can run for hours unattended</td><td><span class="badge do">yes</span></td><td>only while mac is awake</td></tr>
+      <tr><td>pushes branches automatically</td><td>yes</td><td>only when asked</td></tr>
+      <tr><td>mobile monitoring</td><td><span class="badge do">yes</span></td><td>only via remote control (section 8)</td></tr>
+      <tr><td>access to local <code>.env.local</code></td><td><span class="badge dont">no</span></td><td><span class="badge do">yes</span></td></tr>
+      </tbody>
+      </table>
+
+      <h3>the "push before you delegate" rule</h3>
+      <div class="callout danger"><strong>the one rule that fixes 70% of the confusion</strong>
+before starting a task in the cloud, or before maria starts a task on her mac:
+<pre style="margin-top:0.5rem"><span class="cmd">git status</span>      <span class="comment"># are there uncommitted changes?</span>
+<span class="cmd">git pull --rebase origin main</span>   <span class="comment"># take other people's changes first</span>
+<span class="cmd">git push</span>        <span class="comment"># publish your local work to github</span></pre>
+without it: cloud claude works on stale code, work gets silently overwritten, maria pulls a confusing mix.</div>
+    </section>
+
+    <section id="git-mental-model">
+      <h2>4. prs, branches, merging, pushing — the mental model</h2>
+
+      <h3>the three places code lives</h3>
+      <div class="flow">
+        <div class="step"><strong>working tree</strong><br><span style="color:var(--wv-text-muted);font-size:0.78rem">files on disk in your editor</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><strong>local repo</strong><br><span style="color:var(--wv-text-muted);font-size:0.78rem">your <code>.git</code> folder</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><strong>github (remote)</strong><br><span style="color:var(--wv-text-muted);font-size:0.78rem">github.com/ghandoff/&lt;repo&gt;</span></div>
+      </div>
+      <ul>
+        <li><strong>working tree → local repo:</strong> <code>git add</code> then <code>git commit</code></li>
+        <li><strong>local repo → github:</strong> <code>git push</code></li>
+        <li><strong>github → local repo:</strong> <code>git fetch</code> (info only) or <code>git pull</code> (info + merge)</li>
+      </ul>
+      <div class="callout warn"><strong>the thing people miss</strong> a commit on your mac is <em>not</em> on github until you push. maria can't see it. the cloud can't see it. <strong>pushing is publishing.</strong></div>
+
+      <h3>what a branch actually is</h3>
+      <p>a branch is a <strong>pointer to a commit</strong>. nothing more. the word "branch" suggests a sprawling tree, but really it's a sticky note that says "this commit is the latest version of this work." your <code>main</code> branch is just another sticky note — the one that says "this is what we ship."</p>
+
+      <h3>what a pr actually is</h3>
+      <p>a PR is <strong>a conversation on github.com about merging one branch into another</strong>. it's not part of git — it's a github feature layered on top. it shows the diff, comments, CI checks, and a merge button. the lifecycle:</p>
+      <div class="flow">
+        <div class="step"><strong>1. branch</strong></div>
+        <div class="arrow">→</div>
+        <div class="step"><strong>2. push</strong></div>
+        <div class="arrow">→</div>
+        <div class="step"><strong>3. open PR</strong></div>
+      </div>
+      <div class="flow">
+        <div class="step"><strong>4. review</strong></div>
+        <div class="arrow">→</div>
+        <div class="step"><strong>5. merge</strong></div>
+        <div class="arrow">→</div>
+        <div class="step"><strong>6. delete branch</strong></div>
+      </div>
+
+      <h3>the four merge styles</h3>
+      <table>
+      <thead><tr><th>style</th><th>what it does</th><th>when to use</th></tr></thead>
+      <tbody>
+      <tr><td><strong>squash &amp; merge</strong></td><td>combines all commits in the PR into one commit on main</td><td><span class="badge do">default for the team.</span> one PR = one commit on main. matches your recent merges (<code>aabee6c feat(values-auction): Phase B-min (#83)</code>).</td></tr>
+      <tr><td><strong>merge commit</strong></td><td>preserves every commit + adds a "merge" commit</td><td>when the intermediate history matters (long-lived feature branch).</td></tr>
+      <tr><td><strong>rebase &amp; merge</strong></td><td>replays branch commits onto main, no merge commit</td><td>linear history but with individual commits preserved. most teams don't bother.</td></tr>
+      <tr><td><strong>fast-forward</strong></td><td>just moves main's pointer (only if main hasn't moved)</td><td>almost never on a PR.</td></tr>
+      </tbody>
+      </table>
+    </section>
+
+    <section id="three-person-flow">
+      <h2>5. your three-person workflow</h2>
+
+      <h3>who does what</h3>
+      <table>
+      <thead><tr><th>person</th><th>plan</th><th>working context</th></tr></thead>
+      <tbody>
+      <tr><td><strong>garrett</strong></td><td>max 20x</td><td>cloud + mac mini + macbook pro. drives most engineering, runs multiple cloud sessions in parallel, holds the merge button.</td></tr>
+      <tr><td><strong>maria</strong></td><td>max 5x</td><td>mac (local). ops + IDB salvador lead. weekly sync tuesdays 6pm UTC. ~4 of last 60 commits.</td></tr>
+      <tr><td><strong>payton</strong></td><td>max 5x</td><td>likely web. comms, circulation, outreach. touches the codebase rarely; mostly content.</td></tr>
+      </tbody>
+      </table>
+
+      <h3>the standard PR flow</h3>
+<pre><span class="comment"># 1. start clean</span>
+<span class="cmd">git checkout main</span>
+<span class="cmd">git pull --rebase origin main</span>
+
+<span class="comment"># 2. create your branch (one branch per logical change)</span>
+<span class="cmd">git checkout -b feat/short-descriptive-name</span>
+
+<span class="comment"># 3. work. commit often, with clear messages.</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "feat(scope): what you did"</span>
+
+<span class="comment"># 4. push to github (the first time, set upstream)</span>
+<span class="cmd">git push -u origin feat/short-descriptive-name</span>
+
+<span class="comment"># 5. open a PR. easiest way:</span>
+<span class="cmd">gh pr create --fill --base main</span>
+
+<span class="comment"># 6. address review. push more commits — the PR updates.</span>
+<span class="cmd">git push</span>
+
+<span class="comment"># 7. after merge, clean up.</span>
+<span class="cmd">git checkout main && git pull --rebase</span>
+<span class="cmd">git branch -d feat/short-descriptive-name</span>
+<span class="cmd">git push origin --delete feat/short-descriptive-name</span></pre>
+
+      <h3>how maria should work (local-mac flow)</h3>
+<pre><span class="comment"># once a day, before starting anything:</span>
+<span class="cmd">cd ~/Projects/windedvertigo</span>
+<span class="cmd">git checkout main</span>
+<span class="cmd">git pull --rebase</span>
+
+<span class="comment"># start a task:</span>
+<span class="cmd">git checkout -b fix/idb-form-validation</span>
+<span class="cmd">claude</span>                                <span class="comment"># or open the claude desktop app here</span>
+
+<span class="comment"># when happy:</span>
+<span class="cmd">git push -u origin fix/idb-form-validation</span>
+<span class="cmd">gh pr create --fill --base main</span>
+
+<span class="comment"># tag garrett in the PR. don't self-merge unless agreed it's small + safe.</span></pre>
+
+      <div class="callout good"><strong>why this works for maria specifically</strong> she's on max 5x — fewer messages per 5-hour window. long parallel sessions waste her quota. short, focused branches that turn into PRs same-day fit the plan.</div>
+    </section>
+
+    <section id="scenarios">
+      <h2>6. worked scenarios</h2>
+
+      <h3>scenario a — maria edits a file, garrett edits it in cloud claude, both PRs open</h3>
+      <p><strong>setup.</strong> maria opens <code>fix/harbour-tile-copy</code>, changes <code>apps/harbour/src/data/tiles.ts</code>, pushes, opens a PR. garrett doesn't notice. he starts a cloud claude session "polish the harbour tile copy" — it branches from main (which doesn't yet contain maria's PR), edits the same file, opens its own PR.</p>
+      <p><strong>result.</strong> two PRs touching the same file. whichever merges first wins; the second will conflict.</p>
+      <p><strong>fix (process):</strong></p>
+      <ol>
+        <li>check open PRs before starting a new task: <code>gh pr list --state open</code>.</li>
+        <li>if you find maria's, review and merge first, or scope your cloud task differently.</li>
+        <li>if both PRs exist: merge the smaller one first. on the other, <code>git pull --rebase origin main</code>, fix conflicts, push <code>--force-with-lease</code>.</li>
+      </ol>
+      <p><strong>fix (tooling):</strong> enable github's "require branches to be up to date before merging" branch protection on <code>main</code>.</p>
+
+      <h3>scenario b — cloud claude PR looks weird</h3>
+      <p><strong>setup.</strong> garrett asked cloud claude to refactor <code>apps/harbour/values-auction/src/state.ts</code>. he had local changes to that file that weren't pushed. the cloud session worked on the old version.</p>
+      <p><strong>fix.</strong></p>
+      <ol>
+        <li>don't merge yet.</li>
+        <li>push your local work to a different branch: <code>git checkout -b fix/state-from-laptop && git push -u origin fix/state-from-laptop</code>.</li>
+        <li>on the cloud branch: <code>git fetch && git checkout claude/&lt;name&gt; && git merge fix/state-from-laptop</code>. resolve conflicts. push.</li>
+        <li>now the PR includes both sets of changes. review and merge.</li>
+      </ol>
+
+      <h3>scenario c — too many <code>claude/*</code> branches, don't know what's safe to delete</h3>
+      <table>
+      <thead><tr><th>state</th><th>how to detect</th><th>what to do</th></tr></thead>
+      <tbody>
+      <tr><td>already merged into main</td><td><code>gh pr list --state merged --head &lt;branch&gt;</code> returns a PR</td><td><span class="badge do">safe to delete</span></td></tr>
+      <tr><td>has open PR</td><td><code>gh pr list --state open --head &lt;branch&gt;</code> returns a PR</td><td><span class="badge note">keep</span></td></tr>
+      <tr><td>orphaned (no PR or closed without merge)</td><td>neither command returns anything</td><td>inspect: <code>git log main..&lt;branch&gt;</code>. valuable? open PR. not? <span class="badge dont">delete</span></td></tr>
+      </tbody>
+      </table>
+    </section>
+
+    <section id="plans">
+      <h2>7. max 20x vs 5x — how to divide work</h2>
+      <table>
+      <thead><tr><th></th><th>max 5x ($100/mo)</th><th>max 20x ($200/mo)</th></tr></thead>
+      <tbody>
+      <tr><td>approx messages per 5-hour window</td><td>~225</td><td>~900</td></tr>
+      <tr><td>cost per message</td><td>same as pro</td><td>~½ of pro</td></tr>
+      <tr><td>feature set</td><td>identical to 20x</td><td>identical to 5x</td></tr>
+      <tr><td>parallel cloud sessions in practice</td><td>1–2 before throttling</td><td>4–6+</td></tr>
+      </tbody>
+      </table>
+
+      <table>
+      <thead><tr><th>task type</th><th>assign to</th><th>why</th></tr></thead>
+      <tbody>
+      <tr><td>multi-file refactors, migrations, big features</td><td><strong>garrett (20x)</strong></td><td>burns messages fast</td></tr>
+      <tr><td>4+ parallel cloud sessions</td><td><strong>garrett (20x)</strong></td><td>maria's 5x will throttle</td></tr>
+      <tr><td>one-off bug fixes with clear scope</td><td><strong>maria (5x)</strong></td><td>bounded, fits her plan</td></tr>
+      <tr><td>content edits, copy changes, docs</td><td><strong>maria or payton (5x)</strong></td><td>cheap, no huge context</td></tr>
+      <tr><td>ops work (IDB docs, RFPs) using claude.ai chat</td><td>maria, payton</td><td>doesn't touch codebase</td></tr>
+      <tr><td>whirlpool agenda, weekly CMO/CFO review</td><td><strong>garrett (20x)</strong></td><td>already wired to his seat</td></tr>
+      </tbody>
+      </table>
+    </section>
+
+    <section id="cross-device">
+      <h2>8. cross-device sync — desktop ↔ laptop ↔ phone</h2>
+      <p>this section addresses garrett's specific question: "how do i sync my macbook pro to everything i've been working on at my mac mini, such that conversations persist across devices or i can reference them on my laptop?"</p>
+
+      <h3>two separate things that get conflated</h3>
+      <table>
+      <thead><tr><th></th><th>code &amp; files</th><th>claude conversations</th></tr></thead>
+      <tbody>
+      <tr><td>where it lives</td><td>git repos in <code>~/Projects/</code></td><td><code>~/.claude/</code> on each mac</td></tr>
+      <tr><td>how it syncs</td><td>via github (push / pull)</td><td>doesn't, by default</td></tr>
+      <tr><td>visibility on phone</td><td>github mobile app</td><td>only cloud sessions show in claude mobile app</td></tr>
+      </tbody>
+      </table>
+
+      <h3>the three sync strategies (use all three)</h3>
+
+      <h4>strategy 1 — git is the source of truth for code</h4>
+      <p>before leaving the desk, push everything. on the laptop: <code>git pull --rebase</code> per repo. this is what the <code>pre-mobile-handoff</code> skill (section 9) automates.</p>
+<pre><span class="comment"># on the mac mini, before travel</span>
+<span class="cmd">cd ~/Projects/windedvertigo && git status && git push</span>
+<span class="cmd">cd ~/Projects/harbour-apps && git status && git push</span>
+
+<span class="comment"># on the macbook pro at the destination</span>
+<span class="cmd">cd ~/Projects/windedvertigo && git fetch --all && git checkout &lt;your-branch&gt; && git pull --rebase</span></pre>
+
+      <h4>strategy 2 — <code>.brain/handoff.md</code> + <code>.brain/TASKS.md</code> are the source of truth for context</h4>
+      <p>garrett already maintains <code>.brain/TASKS.md</code> and <code>.brain/handoff.md</code> in <code>windedvertigo</code>. these are git-tracked, so they sync via push/pull. <strong>that's where "what was i working on" lives, not in claude's chat history.</strong></p>
+      <p>before travel, append a handoff note. on the laptop, the first thing claude reads is <code>CLAUDE.md</code> → which links to <code>.brain/handoff.md</code> → which tells claude what state to pick up in.</p>
+
+      <h4>strategy 3 — cloud claude code sessions persist on anthropic's servers</h4>
+      <p>sessions started at <a href="https://claude.ai/code">claude.ai/code</a> keep running on anthropic's infrastructure even when garrett's machines are off. they're visible from:</p>
+      <ul>
+        <li>any browser at claude.ai/code (logged in as garrett)</li>
+        <li>the claude mobile app (iOS / android)</li>
+        <li>the macbook pro at the destination</li>
+      </ul>
+      <p>so for tasks garrett wants to "keep going while traveling", the right move is: kick them off as <strong>cloud</strong> sessions before leaving, not local sessions. then resume them from the phone in the airport, the laptop on the plane, or the destination browser.</p>
+
+      <h4>strategy 4 (newer) — claude code remote control</h4>
+      <p>as of february 2026, anthropic shipped <a href="https://code.claude.com/docs/en/remote-control">remote control</a>, a research-preview feature that bridges a local claude code terminal session with claude.ai/code, the iOS app, and the android app. the session keeps running on garrett's mac mini; the web/mobile UI is just a window into it. that means his CLAUDE.md, custom skills, file access, and MCP integrations all stay available — but he can interact with the same conversation from any device.</p>
+      <p>this is the closest thing to true "same conversation everywhere" today. enable it from the local <code>claude</code> CLI; it produces a QR code to connect a phone/browser.</p>
+
+      <h3>recommended setup for garrett's two-mac + phone life</h3>
+      <ol>
+        <li><strong>before any travel:</strong> invoke the <code>pre-mobile-handoff</code> skill (section 9). it pushes everything and writes <code>.brain/handoff.md</code>.</li>
+        <li><strong>tasks you want to keep going:</strong> kick them off as cloud claude sessions at claude.ai/code (not local). monitor from the phone.</li>
+        <li><strong>on the macbook pro at the destination:</strong>
+          <ul>
+            <li><code>git fetch --all && git pull --rebase</code> in each repo</li>
+            <li>let claude read CLAUDE.md + <code>.brain/handoff.md</code> for context</li>
+            <li>start a local <code>claude</code> session — it now has the same context as the desk</li>
+          </ul>
+        </li>
+        <li><strong>if you want literal same-conversation continuity:</strong> use remote control on the mac mini so the laptop/phone are windows into the same session.</li>
+      </ol>
+
+      <div class="callout info"><strong>about chat history specifically</strong> the local <code>~/.claude/</code> conversation history is per-machine and does not sync by default. third-party tools (claude-sync, claude-session-sync via iCloud Drive) exist, but they're community-built and not officially supported. for now, treat conversation history as ephemeral and your <code>.brain/</code> markdown files as the durable record.</div>
+    </section>
+
+    <section id="skills">
+      <h2>9. skills you can invoke</h2>
+      <p>four custom claude code skills are now in <code>docs/skills/</code> in this repo. copy them into <code>~/.claude/skills/</code> to make them globally available across every project:</p>
+<pre><span class="cmd">mkdir -p ~/.claude/skills</span>
+<span class="cmd">cp -r ~/Projects/windedvertigo/docs/skills/* ~/.claude/skills/</span></pre>
+      <p>or commit them to the repo's <code>.claude/skills/</code> so maria and payton get them too:</p>
+<pre><span class="cmd">mkdir -p ~/Projects/windedvertigo/.claude/skills</span>
+<span class="cmd">cp -r ~/Projects/windedvertigo/docs/skills/* ~/Projects/windedvertigo/.claude/skills/</span>
+<span class="cmd">cd ~/Projects/windedvertigo</span>
+<span class="cmd">git add .claude/skills && git commit -m "feat(skills): add 4 starter team skills" && git push</span></pre>
+
+      <p>once installed, claude will invoke them automatically when garrett (or maria, or payton) types one of the trigger phrases. claude code watches the skills directory live — no restart needed.</p>
+
+      <table>
+      <thead><tr><th>skill</th><th>trigger phrases (claude detects these)</th><th>what it does</th></tr></thead>
+      <tbody>
+      <tr><td><code>pre-mobile-handoff</code></td><td>"going mobile", "leaving the desk", "travelling", "headed out", "switching to laptop"</td><td>pushes everything, writes <code>.brain/handoff.md</code>, reports open cloud sessions, gives the resume command for the destination device</td></tr>
+      <tr><td><code>pre-cloud-delegation</code></td><td>"about to start a cloud session", "delegate this to claude.ai/code", "send this to cloud claude"</td><td>confirms working tree is clean, main is current, surfaces conflicting open PRs, outputs ready signal</td></tr>
+      <tr><td><code>branch-cleanup</code></td><td>"clean up branches", "branch hygiene", "too many branches", "clean up claude/ branches"</td><td>audits, categorizes (merged/open-pr/orphan), proposes a deletion plan, executes after confirmation</td></tr>
+      <tr><td><code>end-of-day-sync</code></td><td>"end of day", "wrapping up", "logging off", "shutting down for the night"</td><td>pushes everything, updates TASKS.md with done + in-flight + queued-for-tomorrow, optionally drafts a slack summary</td></tr>
+      </tbody>
+      </table>
+
+      <h3>does CLAUDE.md do the same thing?</h3>
+      <p>no — they complement each other:</p>
+      <ul>
+        <li><strong>CLAUDE.md</strong> is <em>always-on context</em>. claude reads it at the start of every session. good for "here's what this repo is, here's our voice, here's our infra."</li>
+        <li><strong>skills</strong> are <em>invokable workflows</em>. they only run when the user (or claude itself) decides the moment matches. good for "when X happens, do Y, Z, then W."</li>
+      </ul>
+      <p>think of CLAUDE.md as the orientation packet, and skills as the recipes. you want both.</p>
+
+      <h3>how to invoke a skill</h3>
+      <p>you don't have to. just say the natural-language thing — claude reads the description and decides. for example:</p>
+<pre><span class="comment"># any of these will trigger pre-mobile-handoff:</span>
+"i'm about to head out — make sure everything is pushed"
+"going mobile, can you sync?"
+"i'm switching to my laptop, make sure maria's on the latest"
+
+<span class="comment"># if you want to be explicit:</span>
+"run the pre-mobile-handoff skill"</pre>
+    </section>
+
+    <section id="migration">
+      <h2>10. migration cleanup punch list</h2>
+      <p>the migration has shipped. production state is on cloudflare. but the codebase still carries dead vercel artifacts. none of these will break anything — they confuse claude when it reads the repo and waste review cycles.</p>
+
+      <details><summary><strong>windedvertigo — vercel artifacts safe to delete</strong></summary>
+      <ul>
+        <li><code>.vercel/</code> directory at repo root</li>
+        <li><code>.vercelignore</code> at repo root</li>
+        <li><code>vercel.json</code> in <code>site/</code>, <code>ops/</code>, <code>port/</code>, <code>ancestry/</code> (all migrated per CLAUDE.md)</li>
+        <li><code>apps/harbour/feel-cards/vercel.json</code></li>
+        <li><code>apps/harbour/paper-trail/vercel.json</code></li>
+        <li><code>apps/harbour/values-auction/vercel.json</code></li>
+        <li><code>.env.vercel</code> files in <code>site/</code>, <code>ops/</code> (rename to <code>.env.example</code> if useful)</li>
+      </ul>
+      <p><strong>keep until 2026-05-17:</strong> anything related to <code>wv-crm</code> (rollback expires that date).</p>
+      </details>
+
+      <details><summary><strong>harbour-apps — vercel artifacts safe to delete</strong></summary>
+      <ul>
+        <li><code>apps/harbour/.vercel/</code> (harbour migrated 2026-04-25)</li>
+        <li><code>apps/creaseworks/vercel.json</code> (creaseworks H.2 migrated)</li>
+        <li><code>apps/vertigo-vault/vercel.json</code> (vault H.3 complete)</li>
+        <li><code>apps/lines-become-loops/vercel.json</code> (has <code>wrangler.toml</code>, on CF)</li>
+      </ul>
+      <p><strong>keep:</strong> <code>apps/deep-deck</code> vercel files (still uses <code>vercel --prod</code> CLI per CLAUDE.md). <code>apps/conference-experience</code> if still on vercel.</p>
+      </details>
+
+      <details><summary><strong>notion artifacts — mostly KEEP</strong></summary>
+      <p>notion is still in use. CLAUDE.md (harbour-apps) lists <code>apps/harbour/</code> and <code>apps/vertigo-vault/</code> as using the notion API. the "migration" was vercel → cloudflare, not notion → supabase wholesale. nordic's evidence store moved (TASKS.md "phase 3 perf (multi-day, deferred) — notion → supabase mirror for /pcs/*"), but that's deferred. don't delete notion code there.</p>
+      </details>
+
+      <div class="callout warn"><strong>the CI/CD loose end</strong> <code>deploy-values-auction.yml</code> says "CLOUDFLARE_API_TOKEN secret has been stale since 2026-05." rotate the token in cloudflare, update the github secret, re-enable the push trigger.</div>
+    </section>
+
+    <section id="cleanup">
+      <h2>11. branch &amp; worktree cleanup playbook</h2>
+      <p>copy-paste these. read first.</p>
+
+      <h3>step 1 — audit (read-only)</h3>
+<pre><span class="cmd">cd ~/Projects/harbour-apps</span>
+<span class="cmd">git fetch --prune</span>
+<span class="cmd">git branch -vv</span>           <span class="comment"># local branches, ': gone' = upstream deleted</span>
+<span class="cmd">git branch -r --merged origin/main</span>  <span class="comment"># remote branches already merged</span>
+<span class="cmd">gh pr list --state open --json headRefName,number,title --limit 100</span></pre>
+
+      <h3>step 2 — delete merged claude/* branches (remote)</h3>
+<pre><span class="comment"># dry-run first:</span>
+<span class="cmd">git branch -r --merged origin/main | grep "origin/claude/" | sed 's|origin/||'</span>
+
+<span class="comment"># then delete:</span>
+<span class="cmd">git branch -r --merged origin/main | grep "origin/claude/" | sed 's|origin/||' | \
+  xargs -n1 -I{} git push origin --delete {}</span></pre>
+
+      <h3>step 3 — delete merged local branches</h3>
+<pre><span class="cmd">git checkout main && git pull --rebase</span>
+<span class="cmd">git branch --merged main | grep -v "^\* " | grep -v "^  main$" | xargs -n1 git branch -d</span>
+<span class="cmd">git branch -vv | awk '/: gone]/{print $1}' | xargs -r git branch -D</span></pre>
+
+      <h3>step 4 — prune orphaned worktrees</h3>
+<pre><span class="cmd">git worktree list</span>
+<span class="cmd">git worktree prune --dry-run -v</span>
+<span class="cmd">git worktree prune</span></pre>
+
+      <h3>one-command alias (zsh / bash)</h3>
+<pre>git-cleanup() {
+  git fetch --prune
+  git checkout main && git pull --rebase
+  echo "== local merged =="; git branch --merged main | grep -v "^\*\|^  main$"
+  echo "== local 'gone' =="; git branch -vv | awk '/: gone]/{print $1}'
+  echo "== prunable worktrees =="; git worktree list | grep prunable
+  read -p "proceed? (y/N) " yn
+  if [[ "$yn" == "y" ]]; then
+    git branch --merged main | grep -v "^\* \|^  main$" | xargs -r git branch -d
+    git branch -vv | awk '/: gone]/{print $1}' | xargs -r git branch -D
+    git worktree prune
+  fi
+}</pre>
+
+      <p>or just say <em>"clean up branches"</em> and let the <code>branch-cleanup</code> skill (section 9) handle it.</p>
+    </section>
+
+    <section id="next-steps">
+      <h2>12. recommended next steps</h2>
+
+      <h3>this week (≤2 hours)</h3>
+      <ol>
+        <li>add the "push before you delegate" rule to both CLAUDE.md files</li>
+        <li>install the 4 skills (section 9)</li>
+        <li>run the cleanup playbook on harbour-apps and windedvertigo — target under 20 remote branches</li>
+        <li>commit or discard the dirty lockfiles in harbour-apps and pocket-prompts</li>
+        <li>rotate the cloudflare api token + re-enable auto-deploy on values-auction</li>
+      </ol>
+
+      <h3>next two weeks (≤4 hours)</h3>
+      <ol start="6">
+        <li>30-min screen-share with maria walking the workflow in section 5 — have her do one PR end-to-end. tuesday 6pm UTC is perfect.</li>
+        <li>enable branch protection on <code>main</code> for both repos (require PR, require up-to-date, require conversation resolution)</li>
+        <li>delete migrated <code>vercel.json</code> files (section 10) in one cleanup PR per repo</li>
+        <li>install the <a href="https://github.com/anthropics/claude-code-action">claude pr-review action</a> so every PR gets an automated review</li>
+      </ol>
+
+      <h3>this month (≤8 hours)</h3>
+      <ol start="10">
+        <li>document scheduled tasks (weekly-cfo-review, invoice-processor, weekly-cmo-review, whirlpool-agenda-generator) in one place so maria knows what's automated</li>
+        <li>set up CODEOWNERS on both repos</li>
+        <li>stand up CI per repo (lint + test on every PR)</li>
+        <li>pick squash as the only merge method in github settings (disable the others on main)</li>
+      </ol>
+    </section>
+
+    <section id="cheatsheet">
+      <h2>13. cheat-sheet</h2>
+      <h3>the five rules</h3>
+      <ol>
+        <li><strong>push before you delegate.</strong> cloud claude sees github, not your mac.</li>
+        <li><strong>one branch per PR per intent.</strong> don't pile fixes onto a feature branch.</li>
+        <li><strong>pull main daily.</strong></li>
+        <li><strong>merge fast or delete fast.</strong> branches older than a week are decisions or noise.</li>
+        <li><strong>migrations are serialized.</strong> only one schema change in flight at a time.</li>
+      </ol>
+
+      <h3>daily commands</h3>
+<pre><span class="cmd">git status</span>                      <span class="comment"># where am i?</span>
+<span class="cmd">git fetch --prune</span>               <span class="comment"># refresh remote info</span>
+<span class="cmd">git pull --rebase</span>               <span class="comment"># take main's changes</span>
+<span class="cmd">git checkout -b feat/foo</span>        <span class="comment"># start work</span>
+<span class="cmd">git push -u origin feat/foo</span>     <span class="comment"># publish</span>
+<span class="cmd">gh pr create --fill</span>             <span class="comment"># open PR</span>
+<span class="cmd">gh pr status</span>                    <span class="comment"># your open PRs</span></pre>
+
+      <h3>when something's wrong</h3>
+<pre><span class="cmd">git log origin/main..HEAD</span>             <span class="comment"># committed but not pushed</span>
+<span class="cmd">git log HEAD..origin/main</span>             <span class="comment"># on remote but not local</span>
+<span class="cmd">git stash</span>                             <span class="comment"># put aside uncommitted work</span>
+<span class="cmd">git stash pop</span>                         <span class="comment"># bring it back</span>
+<span class="cmd">git reflog</span>                            <span class="comment"># time machine — find lost work</span></pre>
+
+      <h3>where each claude lives</h3>
+      <table>
+      <thead><tr><th>task</th><th>where</th></tr></thead>
+      <tbody>
+      <tr><td>quick edit, file open in your editor</td><td>claude desktop app (local)</td></tr>
+      <tr><td>big refactor, walk-away task</td><td>claude.ai/code (cloud)</td></tr>
+      <tr><td>multi-repo coordination</td><td>claude desktop app (cowork)</td></tr>
+      <tr><td>doc, proposal, strategy</td><td>claude.ai chat</td></tr>
+      <tr><td>"review this PR"</td><td>github action or claude.ai/code</td></tr>
+      <tr><td>same conversation across devices</td><td>cloud session + remote control</td></tr>
+      </tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site">
+  a winded.vertigo collective working document · for internal collaboration ·
+  audit date 14 may 2026 ·
+  see also <a href="/handbook/dev-collaboration/">dev collaboration handbook</a>
+</footer>
+
+<script>
+  const links = document.querySelectorAll('aside.toc a');
+  const sections = document.querySelectorAll('main.content section');
+  function updateActive() {
+    let current = '';
+    const offset = 80;
+    sections.forEach(sec => { const top = sec.getBoundingClientRect().top; if (top - offset <= 0) current = sec.id; });
+    links.forEach(l => { l.classList.toggle('active', l.getAttribute('href') === '#' + current); });
+  }
+  window.addEventListener('scroll', updateActive, { passive: true });
+  updateActive();
+</script>
+</body>
+</html>
