@@ -11,6 +11,29 @@ const nextConfig = {
   turbopack: {
     root: path.resolve(__dirname, '../..'),
   },
+  // Wave 7.2 Phase 2 — URL reorganization redirect shims.
+  // SQR-RCT reviewer routes moved under /reviews/*.
+  // PCS research routes will move under /research/pcs/* in Phase 2b.
+  // All legacy paths 301-redirect to their new canonical homes. These
+  // redirects run before middleware, so external bookmarks and old hrefs
+  // keep working regardless of whether internal refs have been updated.
+  async redirects() {
+    return [
+      // SQR-RCT surface — reviewer routes
+      { source: '/dashboard', destination: '/reviews/dashboard', permanent: true },
+      { source: '/dashboard/:path*', destination: '/reviews/dashboard/:path*', permanent: true },
+      { source: '/intake', destination: '/reviews/intake', permanent: true },
+      { source: '/intake/:path*', destination: '/reviews/intake/:path*', permanent: true },
+      { source: '/score', destination: '/reviews/score', permanent: true },
+      { source: '/score/:path*', destination: '/reviews/score/:path*', permanent: true },
+      { source: '/credibility', destination: '/reviews/credibility', permanent: true },
+      { source: '/credibility/:path*', destination: '/reviews/credibility/:path*', permanent: true },
+      { source: '/network', destination: '/reviews/network', permanent: true },
+      { source: '/network/:path*', destination: '/reviews/network/:path*', permanent: true },
+      { source: '/profile', destination: '/reviews/profile', permanent: true },
+      { source: '/profile/:path*', destination: '/reviews/profile/:path*', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

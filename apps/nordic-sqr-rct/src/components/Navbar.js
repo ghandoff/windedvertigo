@@ -100,7 +100,7 @@ export default function Navbar() {
 
             {user ? (
               <>
-                <Link href="/profile" className="hidden sm:flex items-center gap-2 ml-1 hover:opacity-80 transition">
+                <Link href="/reviews/profile" className="hidden sm:flex items-center gap-2 ml-1 hover:opacity-80 transition">
                   {profileImage ? (
                     <img src={profileImage} alt="" className="w-7 h-7 rounded-full object-cover border border-gray-200" />
                   ) : (
@@ -171,7 +171,7 @@ export default function Navbar() {
             );
           })}
 
-          <Link href="/profile" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">
+          <Link href="/reviews/profile" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">
             Profile
           </Link>
 

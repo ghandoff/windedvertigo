@@ -23,7 +23,7 @@ function RegisterContent() {
 
   // Redirect to dashboard if already logged in
   if (user) {
-    router.push('/dashboard');
+    router.push('/reviews/dashboard');
     return null;
   }
 
@@ -59,7 +59,7 @@ function RegisterContent() {
 
     try {
       await register(formData);
-      router.push('/dashboard');
+      router.push('/reviews/dashboard');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     }

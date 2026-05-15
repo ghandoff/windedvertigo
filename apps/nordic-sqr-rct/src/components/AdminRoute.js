@@ -51,7 +51,7 @@ export default function AdminRoute({ children }) {
           <p className="text-gray-600 mb-6">
             You do not have permission to access the admin panel. If you believe this is an error, please contact the system administrator.
           </p>
-          <Link href="/dashboard" className="btn-primary inline-block">
+          <Link href="/reviews/dashboard" className="btn-primary inline-block">
             Return to Dashboard
           </Link>
         </div>

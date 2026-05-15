@@ -79,10 +79,13 @@ function LandingContent() {
     const hasAnyEffectiveRole = Array.isArray(u?.roles) && u.roles.length > 0;
     const hasPcs = hasAnyRole(u, ROLE_SETS.PCS_ANY);
     const hasSqr = hasAnyRole(u, ROLE_SETS.SQR_REVIEWERS);
+    // Wave 7.2 Phase 2 — canonical post-login homes after URL reorganization.
+    // PCS users → /pcs (will become /research/pcs in Phase 2b).
+    // SQR reviewers → /reviews/dashboard (moved from /dashboard).
     if (hasPcs) return '/pcs';
-    if (hasSqr) return '/dashboard';
-    if (!hasAnyEffectiveRole) return '/dashboard'; // safety: no-role users land on SQR's neutral home
-    return '/dashboard';
+    if (hasSqr) return '/reviews/dashboard';
+    if (!hasAnyEffectiveRole) return '/reviews/dashboard'; // safety: no-role users land on SQR's neutral home
+    return '/reviews/dashboard';
   }
 
   if (!loading && user) { router.push(getRedirectPath(user)); return null; }

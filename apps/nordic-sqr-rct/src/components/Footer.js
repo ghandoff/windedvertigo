@@ -34,7 +34,7 @@ export default function Footer() {
                 </>
               ) : (
                 <>
-                  <Link href="/dashboard" className="hover:text-gray-600 transition">Dashboard</Link>
+                  <Link href="/reviews/dashboard" className="hover:text-gray-600 transition">Dashboard</Link>
                   <span className="text-gray-200">|</span>
                   <Link href="/reviews" className="hover:text-gray-600 transition">Reviews</Link>
                   {user.isAdmin && (

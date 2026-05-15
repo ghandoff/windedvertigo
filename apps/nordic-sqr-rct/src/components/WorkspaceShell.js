@@ -173,7 +173,7 @@ export default function WorkspaceShell({ variant = 'reviewer' }) {
             {user ? (
               <>
                 <Link
-                  href="/profile"
+                  href="/reviews/profile"
                   className={`${isReviewer ? 'hidden sm:flex' : 'flex'} items-center gap-2 ml-1 hover:opacity-80 transition`}
                 >
                   {profileImage ? (
@@ -256,7 +256,7 @@ export default function WorkspaceShell({ variant = 'reviewer' }) {
               );
             })}
 
-            <Link href="/profile" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">
+            <Link href="/reviews/profile" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">
               Profile
             </Link>
 
@@ -298,7 +298,7 @@ export default function WorkspaceShell({ variant = 'reviewer' }) {
             })}
 
             {hasSqrAccess(user) && (
-              <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-pacific-600 hover:bg-pacific-50">
+              <Link href="/reviews/dashboard" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-pacific-600 hover:bg-pacific-50">
                 SQR-RCT Reviews
               </Link>
             )}

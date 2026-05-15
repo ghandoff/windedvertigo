@@ -176,7 +176,7 @@ function ReviewsContent() {
             </svg>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No reviews yet</h2>
             <p className="text-gray-600 mb-6">Get started by selecting an article to review on your dashboard.</p>
-            <Link href="/dashboard" className="btn-primary inline-block">
+            <Link href="/reviews/dashboard" className="btn-primary inline-block">
               Go to Dashboard
             </Link>
           </div>

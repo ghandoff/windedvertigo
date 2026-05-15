@@ -135,7 +135,7 @@ export default function RoleAwareSidebar({
 
         {/* Profile */}
         <Link
-          href="/profile"
+          href="/reviews/profile"
           className="block rounded-md px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
         >
           {user?.alias || user?.firstName

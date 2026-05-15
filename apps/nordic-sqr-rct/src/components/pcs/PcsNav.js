@@ -111,7 +111,7 @@ export default function PcsNav() {
                 Admin
               </Link>
             )}
-            <Link href="/profile" className="flex items-center hover:opacity-80 transition ml-1">
+            <Link href="/reviews/profile" className="flex items-center hover:opacity-80 transition ml-1">
               {profileImage ? (
                 <img src={profileImage} alt="" className="w-7 h-7 rounded-full object-cover border border-gray-200" />
               ) : (
@@ -152,7 +152,7 @@ export default function PcsNav() {
           })}
 
           {hasSqrAccess(user) && (
-            <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-pacific-600 hover:bg-pacific-50">
+            <Link href="/reviews/dashboard" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-pacific-600 hover:bg-pacific-50">
               SQR-RCT Reviews
             </Link>
           )}
