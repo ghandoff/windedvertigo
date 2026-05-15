@@ -98,13 +98,18 @@ These 6 databases **must be added to the existing webhook** (edit → add databa
 
 ### Adding the 6 new AICS + SQR-RCT databases (Path 3 — 2026-05-14)
 
-1. Go to [https://www.notion.com/my-integrations](https://www.notion.com/my-integrations)
-2. Open the **WV Nordic** integration → **Webhooks** tab
-3. Find the existing webhook for `nordic.windedvertigo.com/api/webhooks/notion/page-updated`
-4. Click **Edit**
-5. Under **Databases**, add the 6 new databases from the AICS + SQR-RCT table above
-6. Click **Save**
-7. The handler already maps all 19 DB IDs — no code change needed
+**No action needed.** The Notion v5 API webhook (API version `2026-03-11`) fires for
+_all_ resources the integration can access — there is no per-database filter in the
+subscription UI. Since the `nordic sqr` integration already has workspace-level
+content access (confirmed on the Content access tab), it will automatically receive
+`page.updated` / `page.created` events for the 6 new AICS and SQR-RCT databases.
+
+The webhook handler's `buildDbSyncMap()` already maps all 19 DB IDs to the correct
+sync functions. No UI or code changes are required.
+
+> Note: The pre-v5 runbook described a "Databases" picker in the webhook UI — that
+> feature was removed in the v5 API. Ignore any instructions to "add databases" to
+> the webhook; the subscription is workspace-wide.
 
 ---
 
