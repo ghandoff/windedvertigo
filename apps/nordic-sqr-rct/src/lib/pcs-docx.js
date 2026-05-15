@@ -887,16 +887,35 @@ export function generateLaurenTemplateDocx(
   } else {
     sections.push(
       autoTable(
-        ['Evidence', 'Role', 'SQR', 'Key Takeaway'],
-        supportive.map(ep => ({
-          texts: [
-            ep.name || '—',
-            ep.evidenceRole || '—',
-            ep.meetsSqrThreshold ? 'Pass' : 'Fail',
-            ep.keyTakeaway || ep.relevanceNote || '—',
-          ],
-          opts: [null, null, { color: ep.meetsSqrThreshold ? BRAND.green : BRAND.red, alignment: AlignmentType.CENTER }, null],
-        })),
+        ['Evidence', 'Design', 'N', 'Dose', 'Role', 'SQR', 'Key Takeaway'],
+        supportive.map(ep => {
+          const dose =
+            ep.studyDoseAmount != null && ep.studyDoseUnit
+              ? `${ep.studyDoseAmount} ${ep.studyDoseUnit}`
+              : ep.studyDoseAmount != null
+                ? String(ep.studyDoseAmount)
+                : ep.studyDoseUnit || '—';
+          return {
+            texts: [
+              ep.name || '—',
+              ep.studyDesignSummary || '—',
+              ep.sampleSize != null ? String(ep.sampleSize) : '—',
+              dose,
+              ep.evidenceRole || '—',
+              ep.meetsSqrThreshold ? 'Pass' : 'Fail',
+              ep.keyTakeaway || ep.relevanceNote || '—',
+            ],
+            opts: [
+              null,
+              null,
+              { alignment: AlignmentType.CENTER },
+              { alignment: AlignmentType.CENTER },
+              null,
+              { color: ep.meetsSqrThreshold ? BRAND.green : BRAND.red, alignment: AlignmentType.CENTER },
+              null,
+            ],
+          };
+        }),
       ),
     );
   }
@@ -931,10 +950,11 @@ export function generateLaurenTemplateDocx(
   } else {
     sections.push(
       autoTable(
-        ['Evidence', 'Neutral', 'Negative', 'Potential Biases'],
+        ['Evidence', 'Null Result Rationale', 'Neutral', 'Negative', 'Potential Biases'],
         nullish.map(ep => ({
           texts: [
             ep.name || '—',
+            ep.nullResultRationale || '—',
             ep.neutralResults || '—',
             ep.negativeResults || '—',
             ep.potentialBiases || '—',
