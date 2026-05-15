@@ -13,7 +13,13 @@
  *
  * Capability: pcs.canonical:edit (researcher / RA / admin / super-user).
  *
- * Notion-primary throughout. No Supabase coupling for runtime.
+ * Cache strategy (two layers):
+ *   1. In-memory: zero-latency within the same serverless instance lifetime.
+ *   2. Supabase (pcs_backfill_proposals_cache, singleton row): survives cold
+ *      starts.  A new instance checks Supabase first; if the row is < 5 min
+ *      old it returns immediately and avoids ~15-25s of Notion scanning.
+ *      Falls back to a full Notion rebuild when Supabase is unavailable or
+ *      the row is stale.
  */
 
 import { NextResponse } from 'next/server';
@@ -22,29 +28,87 @@ import { getMatchingProposals, filterProposals } from '@/lib/canonical-claim-mat
 import { updateClaim } from '@/lib/pcs-claims';
 import { notion } from '@/lib/notion';
 import { PCS_DB, PROPS } from '@/lib/pcs-config';
+import { getPcsSupabase } from '@/lib/supabase-pcs';
 
-// In-memory cache of the proposal list. Rebuilt every CACHE_TTL_MS.
-// Live derivation from Notion is ~15-25s for 469 PCS claims; caching makes
-// the review UI snappy without losing freshness.
-//
-// Single-flight pattern: _inflight stores the in-progress Promise so
-// concurrent requests that all arrive during a cold-start rebuild wait on
-// the same fetch rather than each triggering their own full Notion scan.
+// ── Layer 1: in-memory cache ────────────────────────────────────────────────
+// Rebuilt every CACHE_TTL_MS.  Single-flight pattern prevents duplicate Notion
+// scans when concurrent requests arrive during a cold-start rebuild.
 let _cache = null;
 let _cacheBuiltAt = 0;
 let _inflight = null;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
+const SB_TABLE = 'pcs_backfill_proposals_cache';
+const SB_ROW_ID = 'singleton';
+
+// ── Layer 2: Supabase helpers ───────────────────────────────────────────────
+
+/** Read from Supabase. Returns { proposals, builtAt } or null. */
+async function readSbCache() {
+  const sb = getPcsSupabase();
+  if (!sb) return null;
+  try {
+    const { data, error } = await sb
+      .from(SB_TABLE)
+      .select('proposals, built_at')
+      .eq('id', SB_ROW_ID)
+      .maybeSingle();
+    if (error || !data) return null;
+    return { proposals: data.proposals, builtAt: new Date(data.built_at).getTime() };
+  } catch {
+    return null;
+  }
+}
+
+/** Write proposals to Supabase (fire-and-forget; failures are soft). */
+async function writeSbCache(proposals) {
+  const sb = getPcsSupabase();
+  if (!sb) return;
+  try {
+    await sb.from(SB_TABLE).upsert(
+      { id: SB_ROW_ID, proposals, built_at: new Date().toISOString(), notion_count: proposals.length },
+      { onConflict: 'id' },
+    );
+  } catch (err) {
+    console.warn('[backfill-review] Supabase cache write failed (non-fatal):', err?.message);
+  }
+}
+
+/** Delete the Supabase singleton row (called on manual cache invalidation). */
+async function deleteSbCache() {
+  const sb = getPcsSupabase();
+  if (!sb) return;
+  try {
+    await sb.from(SB_TABLE).delete().eq('id', SB_ROW_ID);
+  } catch (err) {
+    console.warn('[backfill-review] Supabase cache delete failed (non-fatal):', err?.message);
+  }
+}
+
+// ── getProposalsCached ──────────────────────────────────────────────────────
 
 async function getProposalsCached() {
+  // Fast path: in-memory hit (same instance, within TTL)
   if (_cache && Date.now() - _cacheBuiltAt < CACHE_TTL_MS) return _cache;
-  // Return the in-flight Promise if one is already running — all concurrent
-  // callers share the same result without triggering duplicate Notion fetches.
+
+  // Single-flight: concurrent requests share one in-progress Promise
   if (_inflight) return _inflight;
+
+  // Cold-start: check Supabase before triggering full Notion rebuild
+  const sbRow = await readSbCache();
+  if (sbRow && Date.now() - sbRow.builtAt < CACHE_TTL_MS) {
+    _cache = sbRow.proposals;
+    _cacheBuiltAt = sbRow.builtAt;
+    return _cache;
+  }
+
+  // Full rebuild from Notion — write result to both layers when done
   _inflight = getMatchingProposals()
     .then((proposals) => {
       _cache = proposals;
       _cacheBuiltAt = Date.now();
       _inflight = null;
+      // Persist to Supabase asynchronously — don't block the response
+      writeSbCache(proposals);
       return proposals;
     })
     .catch((err) => {
@@ -58,6 +122,8 @@ function invalidateCache() {
   _cache = null;
   _cacheBuiltAt = 0;
   // Do not reset _inflight — an in-progress rebuild should still complete.
+  // Also clear the Supabase row so the next cold-start triggers a fresh build.
+  deleteSbCache();
 }
 
 export async function GET(request) {
