@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { AuthProvider, useAuth } from '@/lib/useAuth';
-import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -70,25 +69,10 @@ function LandingContent() {
   const [audience, setAudience] = useState('reviewer');
   const content = AUDIENCE_CONTENT[audience];
 
-  // Redirect based on roles. Wave 7.0.2 — uses shared hasAnyRole helper.
-  // 2026-05-03: Nordic Team Members land on /pcs (their primary workspace).
-  // External SQR-only reviewers land on /dashboard. If a user has BOTH a PCS
-  // role and an SQR role (e.g. a Nordic researcher who also reviews studies),
-  // PCS wins because that is their day-to-day surface.
-  function getRedirectPath(u) {
-    const hasAnyEffectiveRole = Array.isArray(u?.roles) && u.roles.length > 0;
-    const hasPcs = hasAnyRole(u, ROLE_SETS.PCS_ANY);
-    const hasSqr = hasAnyRole(u, ROLE_SETS.SQR_REVIEWERS);
-    // Wave 7.2 Phase 2 — canonical post-login homes after URL reorganization.
-    // PCS users → /research/pcs (moved from /pcs in Phase 2b).
-    // SQR reviewers → /reviews/dashboard (moved from /dashboard in Phase 2a).
-    if (hasPcs) return '/research/pcs';
-    if (hasSqr) return '/reviews/dashboard';
-    if (!hasAnyEffectiveRole) return '/reviews/dashboard'; // safety: no-role users land on SQR's neutral home
-    return '/reviews/dashboard';
-  }
-
-  if (!loading && user) { router.push(getRedirectPath(user)); return null; }
+  // Wave 7.2 Phase 3 — all successful logins route through /welcome, which
+  // reads the user's roles and renders a role-aware destination picker.
+  // Reviewer-only users are silently deep-linked inside /welcome itself.
+  if (!loading && user) { router.push('/welcome'); return null; }
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -100,7 +84,7 @@ function LandingContent() {
         router.push('/reset-password');
         return;
       }
-      router.push(getRedirectPath(data.user));
+      router.push('/welcome');
     }
     catch (err) { setError(err.message); }
     finally { setSubmitting(false); }

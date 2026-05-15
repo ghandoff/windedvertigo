@@ -15,7 +15,8 @@ const PROTECTED_PREFIXES = [
   '/credibility',
   '/pcs',
   '/research', // Wave 7.2 Phase 2b — /research/pcs/* canonical PCS routes
-  '/studies', // /studies/[id]/assisted-review — added Phase 3
+  '/welcome',  // Wave 7.2 Phase 3 — unified post-login welcome
+  '/studies',  // /studies/[id]/assisted-review — added Phase 3
 ];
 
 export async function middleware(request) {
@@ -55,6 +56,7 @@ export const config = {
     '/credibility/:path*',
     '/pcs/:path*',
     '/research/:path*', // Wave 7.2 Phase 2b — /research/pcs/* canonical PCS routes
+    '/welcome',         // Wave 7.2 Phase 3 — unified post-login welcome
     '/studies/:path*',
   ],
 };
