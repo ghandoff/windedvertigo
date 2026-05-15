@@ -65,10 +65,12 @@ export async function POST(request) {
     if (!reviewer) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
-    const storedPassword = reviewer.properties?.['Password']?.rich_text?.[0]?.plain_text || '';
+    // Both Postgres and Notion-fallback paths now return a parsed shape with
+    // reviewer.passwordHash. The Notion fallback attaches it from the raw page.
+    const storedPassword = reviewer.passwordHash || '';
 
-    // Check if stored password is a bcrypt hash (starts with $2a$ or $2b$)
-    const isHashed = storedPassword.startsWith('$2a$') || storedPassword.startsWith('$2b$');
+    // Check if stored password is a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+    const isHashed = storedPassword.startsWith('$2a$') || storedPassword.startsWith('$2b$') || storedPassword.startsWith('$2y$');
 
     let passwordValid = false;
     if (isHashed) {
@@ -98,8 +100,7 @@ export async function POST(request) {
     // or by the plain-text migration above), do NOT issue a full session
     // token. Instead return a short-lived reset grant that the
     // /api/auth/reset-password endpoint will validate.
-    const resetRequired =
-      reviewer.properties?.['Password reset required']?.checkbox === true;
+    const resetRequired = reviewer.passwordResetRequired === true;
     if (resetRequired) {
       const resetToken = await signToken(
         { reviewerId: reviewer.id, purpose: 'password-reset' },
@@ -120,20 +121,19 @@ export async function POST(request) {
       return resp;
     }
 
-    const firstName = reviewer.properties?.['First Name']?.title?.[0]?.plain_text || '';
-    const lastName = reviewer.properties?.['Last Name (Surname)']?.rich_text?.[0]?.plain_text || '';
-    const reviewerAlias = reviewer.properties?.['Alias']?.rich_text?.[0]?.plain_text || alias;
-    const isAdmin = reviewer.properties?.['Admin']?.checkbox || false;
-    const explicitRoles = (reviewer.properties?.['Roles']?.multi_select || []).map(s => s.name);
-    const roles = explicitRoles.length > 0
-      ? explicitRoles
-      : isAdmin ? ['sqr-rct', 'pcs', 'admin'] : ['sqr-rct'];
+    // Both Postgres and Notion-fallback paths return a normalized shape from
+    // parseReviewerPage / parsePostgresReviewerRow — no .properties access needed.
+    const firstName = reviewer.firstName || '';
+    const lastName = reviewer.lastName || '';
+    const reviewerAlias = reviewer.alias || identifier;
+    const isAdmin = reviewer.isAdmin || false;
+    // roles is already normalized by parseReviewerPage/parsePostgresReviewerRow
+    const roles = reviewer.roles || (isAdmin ? ['sqr-rct', 'pcs', 'admin'] : ['sqr-rct']);
     // Wave 7.3.0 Phase B — seed email + emailConfirmedAt into the JWT so
     // the Email Confirmation Banner can decide whether to render without
-    // an extra Notion round-trip.
-    const reviewerEmail = reviewer.properties?.['Email']?.email || '';
-    const emailConfirmedAt =
-      reviewer.properties?.['Email confirmed at']?.date?.start || null;
+    // an extra round-trip.
+    const reviewerEmail = reviewer.email || '';
+    const emailConfirmedAt = reviewer.emailConfirmedAt || null;
     // Wave 7.0.7 — split access (1h) + refresh (7d) tokens. Access carries
     // the full session claim set; refresh is minimal (reviewerId + purpose)
     // and only usable at /api/auth/refresh, which re-reads roles from Notion.

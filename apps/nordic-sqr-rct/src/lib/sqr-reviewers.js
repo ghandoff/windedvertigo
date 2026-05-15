@@ -114,6 +114,9 @@ export function parsePostgresReviewerRow(row) {
     profileImageUrl: row.profile_image_url || null,
     passwordResetRequired: row.password_reset_required || false,
     emailConfirmedAt: row.email_confirmed_at || null,
+    // Included for auth — login route reads reviewer.passwordHash directly.
+    // Never exposed in API responses; only consumed within the login handler.
+    passwordHash: row.password_hash || null,
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
   };
@@ -124,16 +127,30 @@ export function parsePostgresReviewerRow(row) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getReviewerByAlias(alias) {
-  // NOTE: intentionally NOT gated behind shouldReadFromSqrPostgres().
-  // The login route reads reviewer.properties?.['Password'] (raw Notion page structure)
-  // for bcrypt verification. This stays Notion-only until password_hash is populated
-  // in Postgres (via scripts/backfill-bcrypt-passwords.mjs) and the auth route is
-  // migrated to use reviewer.password_hash directly (Phase 5).
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('reviewers')
+        .select('*')
+        .eq('alias', alias)
+        .maybeSingle();
+      if (!error && data) return parsePostgresReviewerRow(data);
+    } catch (err) {
+      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
+  // Notion fallback — parse into the same normalized shape so callers
+  // don't need to handle two different structures.
   const res = await notion.databases.query({
     database_id: SQR_DB.reviewers,
     filter: { property: 'Alias', rich_text: { equals: alias } },
   });
-  return res.results[0] || null;
+  if (!res.results[0]) return null;
+  const parsed = parseReviewerPage(res.results[0]);
+  // Attach the password hash from the raw page for auth (Notion-fallback path only).
+  parsed.passwordHash = res.results[0].properties?.['Password']?.rich_text?.[0]?.plain_text || null;
+  return parsed;
 }
 
 export async function getReviewerById(pageId) {
@@ -377,14 +394,28 @@ export async function getReviewerByEmail(email) {
   if (!email) return null;
   const normalized = String(email).trim().toLowerCase();
   if (!normalized) return null;
-  // NOTE: intentionally NOT gated behind shouldReadFromSqrPostgres() — same
-  // reason as getReviewerByAlias: login route needs raw Notion page for password
-  // verification until Phase 5 (password_hash backfill + auth route migration).
+  if (shouldReadFromSqrPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('reviewers')
+        .select('*')
+        .eq('email', normalized)
+        .maybeSingle();
+      if (!error && data) return parsePostgresReviewerRow(data);
+    } catch (err) {
+      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
+    }
+  }
+  // Notion fallback — parse into normalized shape and attach password hash.
   const res = await notion.databases.query({
     database_id: SQR_DB.reviewers,
     filter: { property: 'Email', email: { equals: normalized } },
   });
-  return res.results[0] || null;
+  if (!res.results[0]) return null;
+  const parsed = parseReviewerPage(res.results[0]);
+  parsed.passwordHash = res.results[0].properties?.['Password']?.rich_text?.[0]?.plain_text || null;
+  return parsed;
 }
 
 /**
