@@ -26,11 +26,11 @@ export default function Footer() {
             <div className="flex items-center gap-3 text-xs text-gray-400">
               {isPcs ? (
                 <>
-                  <Link href="/pcs" className="hover:text-gray-600 transition">Command Center</Link>
+                  <Link href="/research/pcs" className="hover:text-gray-600 transition">Command Center</Link>
                   <span className="text-gray-200">|</span>
-                  <Link href="/pcs/evidence" className="hover:text-gray-600 transition">Evidence</Link>
+                  <Link href="/research/pcs/evidence" className="hover:text-gray-600 transition">Evidence</Link>
                   <span className="text-gray-200">|</span>
-                  <Link href="/pcs/claims" className="hover:text-gray-600 transition">Claims</Link>
+                  <Link href="/research/pcs/claims" className="hover:text-gray-600 transition">Claims</Link>
                 </>
               ) : (
                 <>

@@ -176,7 +176,7 @@ export default function Navbar() {
           </Link>
 
           {hasPcsAccess(user) && (
-            <Link href="/pcs" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-green-700 hover:bg-green-50">
+            <Link href="/research/pcs" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-green-700 hover:bg-green-50">
               PCS Portal
             </Link>
           )}

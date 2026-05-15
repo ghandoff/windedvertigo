@@ -80,9 +80,9 @@ function LandingContent() {
     const hasPcs = hasAnyRole(u, ROLE_SETS.PCS_ANY);
     const hasSqr = hasAnyRole(u, ROLE_SETS.SQR_REVIEWERS);
     // Wave 7.2 Phase 2 — canonical post-login homes after URL reorganization.
-    // PCS users → /pcs (will become /research/pcs in Phase 2b).
-    // SQR reviewers → /reviews/dashboard (moved from /dashboard).
-    if (hasPcs) return '/pcs';
+    // PCS users → /research/pcs (moved from /pcs in Phase 2b).
+    // SQR reviewers → /reviews/dashboard (moved from /dashboard in Phase 2a).
+    if (hasPcs) return '/research/pcs';
     if (hasSqr) return '/reviews/dashboard';
     if (!hasAnyEffectiveRole) return '/reviews/dashboard'; // safety: no-role users land on SQR's neutral home
     return '/reviews/dashboard';

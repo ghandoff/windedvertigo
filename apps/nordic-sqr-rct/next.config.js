@@ -19,6 +19,9 @@ const nextConfig = {
   // keep working regardless of whether internal refs have been updated.
   async redirects() {
     return [
+      // PCS research surface (Phase 2b)
+      { source: '/pcs', destination: '/research/pcs', permanent: true },
+      { source: '/pcs/:path*', destination: '/research/pcs/:path*', permanent: true },
       // SQR-RCT surface — reviewer routes
       { source: '/dashboard', destination: '/reviews/dashboard', permanent: true },
       { source: '/dashboard/:path*', destination: '/reviews/dashboard/:path*', permanent: true },

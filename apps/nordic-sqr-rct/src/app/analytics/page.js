@@ -1328,7 +1328,7 @@ function AnalyticsContent() {
           <div className="text-sm text-gray-800">
             <span className="font-semibold">How does this compare to Cochrane RoB 2?</span>{' '}
             The 11-item rubric&apos;s ICC ≥ 0.75 outperforms RoB 2&apos;s κ = 0.16 (Minozzi 2020).{' '}
-            <Link href="/pcs/research-quality" className="text-pacific-700 hover:underline font-medium">See the layered approach →</Link>
+            <Link href="/research/pcs/research-quality" className="text-pacific-700 hover:underline font-medium">See the layered approach →</Link>
           </div>
         </div>
 

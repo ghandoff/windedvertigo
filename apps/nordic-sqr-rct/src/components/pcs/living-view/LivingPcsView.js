@@ -179,7 +179,7 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <Link
-              href="/pcs/documents"
+              href="/research/pcs/documents"
               className="text-xs text-pacific-600 hover:underline"
             >
               ← All documents

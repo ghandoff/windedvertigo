@@ -14,6 +14,7 @@ const PROTECTED_PREFIXES = [
   '/score',
   '/credibility',
   '/pcs',
+  '/research', // Wave 7.2 Phase 2b — /research/pcs/* canonical PCS routes
   '/studies', // /studies/[id]/assisted-review — added Phase 3
 ];
 
@@ -53,6 +54,7 @@ export const config = {
     '/score/:path*',
     '/credibility/:path*',
     '/pcs/:path*',
+    '/research/:path*', // Wave 7.2 Phase 2b — /research/pcs/* canonical PCS routes
     '/studies/:path*',
   ],
 };

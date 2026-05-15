@@ -68,17 +68,17 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
 
   // §4.2 — Researcher: Command Center + Authoring + Review. No Operations.
   'researcher': {
-    pinnedTop: { key: 'command-center', label: 'Command Center', href: '/pcs' },
+    pinnedTop: { key: 'command-center', label: 'Command Center', href: '/research/pcs' },
     groups: [
       {
         key: 'authoring',
         label: 'Authoring',
         defaultOpen: true,
         items: [
-          { key: 'documents',   label: 'Documents',   href: '/pcs/documents' },
-          { key: 'claims',      label: 'Claims',      href: '/pcs/claims' },
-          { key: 'evidence',    label: 'Evidence',    href: '/pcs/evidence' },
-          { key: 'ingredients', label: 'Ingredients', href: '/pcs/ingredients' },
+          { key: 'documents',   label: 'Documents',   href: '/research/pcs/documents' },
+          { key: 'claims',      label: 'Claims',      href: '/research/pcs/claims' },
+          { key: 'evidence',    label: 'Evidence',    href: '/research/pcs/evidence' },
+          { key: 'ingredients', label: 'Ingredients', href: '/research/pcs/ingredients' },
         ],
       },
       {
@@ -86,9 +86,9 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests',         label: 'Requests',                  href: '/pcs/requests', badgeKey: 'requests.withResearch' },
-          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/pcs/canonical-claims/backfill-review' },
-          { key: 'research-quality', label: 'Research Quality',          href: '/pcs/research-quality' },
+          { key: 'requests',         label: 'Requests',                  href: '/research/pcs/requests', badgeKey: 'requests.withResearch' },
+          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/research/pcs/canonical-claims/backfill-review' },
+          { key: 'research-quality', label: 'Research Quality',          href: '/research/pcs/research-quality' },
         ],
       },
     ],
@@ -96,17 +96,17 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
 
   // §4.3 — RA: Review-heavy, Authoring read-only, Operations.Export only.
   'ra': {
-    pinnedTop: { key: 'command-center', label: 'Command Center', href: '/pcs' },
+    pinnedTop: { key: 'command-center', label: 'Command Center', href: '/research/pcs' },
     groups: [
       {
         key: 'review',
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests',         label: 'Requests',                  href: '/pcs/requests', badgeKey: 'requests.withRA' },
-          { key: 'drift',            label: 'Drift',                     href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
-          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/pcs/canonical-claims/backfill-review' },
-          { key: 'research-quality', label: 'Research Quality',          href: '/pcs/research-quality' },
+          { key: 'requests',         label: 'Requests',                  href: '/research/pcs/requests', badgeKey: 'requests.withRA' },
+          { key: 'drift',            label: 'Drift',                     href: '/research/pcs/labels/drift', badgeKey: 'drift.openCount' },
+          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/research/pcs/canonical-claims/backfill-review' },
+          { key: 'research-quality', label: 'Research Quality',          href: '/research/pcs/research-quality' },
         ],
       },
       {
@@ -115,9 +115,9 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         defaultOpen: false,
         readOnlyHint: true,
         items: [
-          { key: 'documents', label: 'Documents', href: '/pcs/documents' },
-          { key: 'claims',    label: 'Claims',    href: '/pcs/claims' },
-          { key: 'evidence',  label: 'Evidence',  href: '/pcs/evidence' },
+          { key: 'documents', label: 'Documents', href: '/research/pcs/documents' },
+          { key: 'claims',    label: 'Claims',    href: '/research/pcs/claims' },
+          { key: 'evidence',  label: 'Evidence',  href: '/research/pcs/evidence' },
         ],
       },
       // Bundle 3 Phase 3.2 — AICS Library. RA owns AICS reviews; this group
@@ -127,8 +127,8 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'AICS Library',
         defaultOpen: false,
         items: [
-          { key: 'aics-list',    label: 'All AICS Docs',     href: '/pcs/aics' },
-          { key: 'aics-pending', label: 'Pending RA Review', href: '/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-list',    label: 'All AICS Docs',     href: '/research/pcs/aics' },
+          { key: 'aics-pending', label: 'Pending RA Review', href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
         ],
       },
       {
@@ -136,7 +136,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Operations',
         defaultOpen: true,
         items: [
-          { key: 'export', label: 'Export', href: '/pcs/export' },
+          { key: 'export', label: 'Export', href: '/research/pcs/export' },
         ],
       },
     ],
@@ -144,7 +144,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
 
   // §4.4 — Admin: Researcher + full Operations (Imports, Label Imports, Export).
   'admin': {
-    pinnedTop: { key: 'command-center', label: 'Command Center', href: '/pcs' },
+    pinnedTop: { key: 'command-center', label: 'Command Center', href: '/research/pcs' },
     // 2026-05-03 UX pass — admin now also gets the role-switcher so they can
     // preview each Nordic-team role's view without leaving the workspace.
     showRoleSwitcher: true,
@@ -154,10 +154,10 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Authoring',
         defaultOpen: true,
         items: [
-          { key: 'documents',   label: 'Documents',   href: '/pcs/documents' },
-          { key: 'claims',      label: 'Claims',      href: '/pcs/claims' },
-          { key: 'evidence',    label: 'Evidence',    href: '/pcs/evidence' },
-          { key: 'ingredients', label: 'Ingredients', href: '/pcs/ingredients' },
+          { key: 'documents',   label: 'Documents',   href: '/research/pcs/documents' },
+          { key: 'claims',      label: 'Claims',      href: '/research/pcs/claims' },
+          { key: 'evidence',    label: 'Evidence',    href: '/research/pcs/evidence' },
+          { key: 'ingredients', label: 'Ingredients', href: '/research/pcs/ingredients' },
         ],
       },
       {
@@ -165,10 +165,10 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests',         label: 'Requests',                  href: '/pcs/requests', badgeKey: 'requests.total' },
-          { key: 'drift',            label: 'Drift',                     href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
-          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/pcs/canonical-claims/backfill-review' },
-          { key: 'research-quality', label: 'Research Quality',          href: '/pcs/research-quality' },
+          { key: 'requests',         label: 'Requests',                  href: '/research/pcs/requests', badgeKey: 'requests.total' },
+          { key: 'drift',            label: 'Drift',                     href: '/research/pcs/labels/drift', badgeKey: 'drift.openCount' },
+          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/research/pcs/canonical-claims/backfill-review' },
+          { key: 'research-quality', label: 'Research Quality',          href: '/research/pcs/research-quality' },
         ],
       },
       // Bundle 3 Phase 3.2 — AICS Library (RA + admin + super-user)
@@ -177,8 +177,8 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'AICS Library',
         defaultOpen: false,
         items: [
-          { key: 'aics-list',    label: 'All AICS Docs',     href: '/pcs/aics' },
-          { key: 'aics-pending', label: 'Pending RA Review', href: '/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-list',    label: 'All AICS Docs',     href: '/research/pcs/aics' },
+          { key: 'aics-pending', label: 'Pending RA Review', href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
         ],
       },
       {
@@ -186,9 +186,9 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Operations',
         defaultOpen: true,
         items: [
-          { key: 'imports',       label: 'Imports',       href: '/pcs/admin/imports', badgeKey: 'imports.active' },
-          { key: 'label-imports', label: 'Label Imports', href: '/pcs/admin/labels/imports', badgeKey: 'labelImports.active' },
-          { key: 'export',        label: 'Export',        href: '/pcs/export' },
+          { key: 'imports',       label: 'Imports',       href: '/research/pcs/admin/imports', badgeKey: 'imports.active' },
+          { key: 'label-imports', label: 'Label Imports', href: '/research/pcs/admin/labels/imports', badgeKey: 'labelImports.active' },
+          { key: 'export',        label: 'Export',        href: '/research/pcs/export' },
         ],
       },
     ],
@@ -205,10 +205,10 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Authoring',
         defaultOpen: false,
         items: [
-          { key: 'documents',   label: 'Documents',   href: '/pcs/documents' },
-          { key: 'claims',      label: 'Claims',      href: '/pcs/claims' },
-          { key: 'evidence',    label: 'Evidence',    href: '/pcs/evidence' },
-          { key: 'ingredients', label: 'Ingredients', href: '/pcs/ingredients' },
+          { key: 'documents',   label: 'Documents',   href: '/research/pcs/documents' },
+          { key: 'claims',      label: 'Claims',      href: '/research/pcs/claims' },
+          { key: 'evidence',    label: 'Evidence',    href: '/research/pcs/evidence' },
+          { key: 'ingredients', label: 'Ingredients', href: '/research/pcs/ingredients' },
         ],
       },
       {
@@ -216,8 +216,8 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Review',
         defaultOpen: true,
         items: [
-          { key: 'requests',       label: 'Requests',          href: '/pcs/requests', badgeKey: 'requests.total' },
-          { key: 'drift',          label: 'Drift',             href: '/pcs/labels/drift', badgeKey: 'drift.openCount' },
+          { key: 'requests',       label: 'Requests',          href: '/research/pcs/requests', badgeKey: 'requests.total' },
+          { key: 'drift',          label: 'Drift',             href: '/research/pcs/labels/drift', badgeKey: 'drift.openCount' },
           { key: 'reviewer-activity', label: 'Reviewer Activity', href: '/admin/reviewers' },
         ],
       },
@@ -227,8 +227,8 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'AICS Library',
         defaultOpen: false,
         items: [
-          { key: 'aics-list',    label: 'All AICS Docs',     href: '/pcs/aics' },
-          { key: 'aics-pending', label: 'Pending RA Review', href: '/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-list',    label: 'All AICS Docs',     href: '/research/pcs/aics' },
+          { key: 'aics-pending', label: 'Pending RA Review', href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
         ],
       },
       {
@@ -236,9 +236,9 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         label: 'Operations',
         defaultOpen: true,
         items: [
-          { key: 'imports',       label: 'Imports',       href: '/pcs/admin/imports', badgeKey: 'imports.active' },
-          { key: 'label-imports', label: 'Label Imports', href: '/pcs/admin/labels/imports', badgeKey: 'labelImports.active' },
-          { key: 'export',        label: 'Export',        href: '/pcs/export' },
+          { key: 'imports',       label: 'Imports',       href: '/research/pcs/admin/imports', badgeKey: 'imports.active' },
+          { key: 'label-imports', label: 'Label Imports', href: '/research/pcs/admin/labels/imports', badgeKey: 'labelImports.active' },
+          { key: 'export',        label: 'Export',        href: '/research/pcs/export' },
         ],
       },
       {
@@ -340,7 +340,7 @@ export const PREMIUM_GROUP = Object.freeze({
     {
       key: 'cochrane-rob-layered',
       label: 'Cochrane RoB 2 — Layered Approach',
-      href: '/pcs/research-quality',
+      href: '/research/pcs/research-quality',
       premium: false, // intentional — Sharon needs to read the live page, not a teaser
       description:
         'Sharon\'s requested Cochrane RoB 2 gatekeeper, layered onto the in-house 11-item rubric (which is psychometrically stronger). Live, not a teaser — this card opens the real Research Quality page.',

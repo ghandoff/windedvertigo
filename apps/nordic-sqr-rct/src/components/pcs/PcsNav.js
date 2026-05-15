@@ -71,7 +71,7 @@ export default function PcsNav() {
         <div className="flex items-center justify-between h-14">
           {/* Left: Logo + platform name */}
           <div className="flex items-center gap-3">
-            <Link href="/pcs" className="flex items-center gap-2">
+            <Link href="/research/pcs" className="flex items-center gap-2">
               <img src="/nordic-logo.png" alt="Nordic Naturals" className="h-8 w-auto" />
               {/* 2026-05-04 — removed "PCS" platform label next to logo;
                   the segmented PlatformToggle on the right side of the
