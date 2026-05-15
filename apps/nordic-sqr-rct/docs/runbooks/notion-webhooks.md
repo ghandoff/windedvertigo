@@ -41,10 +41,12 @@ needed for the challenge step.
 
 ---
 
-## Databases to register (all 13 mirrored tables)
+## Databases to register (all 19 mirrored tables)
 
 Register **one webhook** covering all the databases listed below. Notion's UI lets
 you select multiple databases per webhook.
+
+### PCS (13 tables — registered 2026-05-07)
 
 | Notion DB name | env var | DB ID |
 |---|---|---|
@@ -62,12 +64,27 @@ you select multiple databases per webhook.
 | Versions | `NOTION_PCS_VERSIONS_DB` | `e334741f-fe58-44da-b300-2ec12fa21c05` |
 | Wording Variants | `NOTION_PCS_WORDING_VARIANTS_DB` | `986d92b3-90c5-45d9-b662-ecf67ac71374` |
 
+### AICS + SQR-RCT (6 tables — added 2026-05-14, Path 3)
+
+These 6 databases **must be added to the existing webhook** (edit → add databases). The webhook handler already maps all 19 DB IDs.
+
+| Notion DB name | env var | DB ID |
+|---|---|---|
+| AICS Documents | `NOTION_AICS_DOCUMENTS_DB` | `7d743889-e549-432b-a2fc-a58491015f6b` |
+| AICS Claims | `NOTION_AICS_CLAIMS_DB` | `2571a98a-2d2c-4b05-b518-56857b57c85f` |
+| AICS Versions | `NOTION_AICS_VERSIONS_DB` | `cd39cd9b-f92e-4a08-a60d-048fb6a063ba` |
+| SQR Scores | `NOTION_SCORES_DB` | `9dc69b99-d6dc-427d-b9c5-8b0446e215d2` |
+| SQR Intakes | `NOTION_INTAKE_DB` | `82294738-37b2-4978-9a11-63d109b617ef` |
+| SQR Reviewers | `NOTION_REVIEWER_DB` | `b74c6186-d782-4499-85ac-3dee528a1977` |
+
 ---
 
 ## Step-by-step registration (Notion UI)
 
+### First-time setup (original 13 PCS tables — already done 2026-05-07)
+
 1. Go to [https://www.notion.com/my-integrations](https://www.notion.com/my-integrations)
-2. Open the **WV Nordic** integration (or whichever integration has access to the PCS workspace)
+2. Open the **WV Nordic** integration
 3. Navigate to **Capabilities → Webhooks** (or the **Webhooks** tab)
 4. Click **+ Add webhook**
 5. Set **Webhook URL** to:
@@ -75,10 +92,19 @@ you select multiple databases per webhook.
    https://nordic.windedvertigo.com/api/webhooks/notion/page-updated
    ```
 6. Set **Events** to: `page.updated`, `page.created`
-7. Under **Databases**, select all 13 databases listed in the table above
-   (you can search by DB ID or name)
+7. Under **Databases**, select all 13 PCS databases listed above
 8. Click **Save** — Notion will send a verification challenge; the route handles it automatically
 9. Confirm Notion shows the webhook status as **Active**
+
+### Adding the 6 new AICS + SQR-RCT databases (Path 3 — 2026-05-14)
+
+1. Go to [https://www.notion.com/my-integrations](https://www.notion.com/my-integrations)
+2. Open the **WV Nordic** integration → **Webhooks** tab
+3. Find the existing webhook for `nordic.windedvertigo.com/api/webhooks/notion/page-updated`
+4. Click **Edit**
+5. Under **Databases**, add the 6 new databases from the AICS + SQR-RCT table above
+6. Click **Save**
+7. The handler already maps all 19 DB IDs — no code change needed
 
 ---
 
