@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from '@/lib/useAuth';
 import { ToastProvider } from '@/components/Toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import RoleRoute from '@/components/RoleRoute';
-import PcsNav from '@/components/pcs/PcsNav';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import FeedbackButton from '@/components/FeedbackButton';
 import RoleAwareSidebar from '@/components/sidebar/RoleAwareSidebar';
@@ -58,7 +58,7 @@ function PcsWorkspaceShell({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <PcsNav />
+      <WorkspaceShell variant="research" />
       <div className="flex-1 flex">
         {sidebarRole ? (
           <RoleAwareSidebar role={sidebarRole} user={user} onRoleChange={onRoleChange} />

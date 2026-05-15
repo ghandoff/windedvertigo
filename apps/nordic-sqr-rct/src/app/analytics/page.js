@@ -2,7 +2,7 @@
 
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import { useState, useEffect, Fragment } from 'react';
 import Link from 'next/link';
@@ -1278,7 +1278,7 @@ function AnalyticsContent() {
   if (!loading && error === 'admin_required') {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="flex items-center justify-center h-96">
           <div className="card p-12 text-center max-w-md">
             <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
@@ -1295,7 +1295,7 @@ function AnalyticsContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-pacific" />
@@ -1308,7 +1308,7 @@ function AnalyticsContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (

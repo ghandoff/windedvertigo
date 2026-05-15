@@ -2,7 +2,7 @@
 
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
@@ -227,7 +227,7 @@ function ProfileContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-pacific" />
@@ -240,7 +240,7 @@ function ProfileContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
 
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8 sm:px-6">
         <h1 className="text-3xl font-bold text-pacific mb-8">My Profile</h1>

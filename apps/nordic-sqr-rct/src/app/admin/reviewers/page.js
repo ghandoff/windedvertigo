@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import AdminRoute from '@/components/AdminRoute';
 import { AuthProvider } from '@/lib/useAuth';
@@ -132,7 +132,7 @@ function ReviewerManagementContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-8 sm:px-6">
         <div className="flex items-center justify-between mb-8">

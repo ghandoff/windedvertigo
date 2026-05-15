@@ -2,7 +2,7 @@
 
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -162,7 +162,7 @@ ${institution}`;
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-16">
             <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-pacific" />
@@ -175,7 +175,7 @@ ${institution}`;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Navigation Cards */}

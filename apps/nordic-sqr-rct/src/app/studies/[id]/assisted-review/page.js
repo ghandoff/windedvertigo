@@ -4,7 +4,7 @@ import { useState, useEffect, use, useCallback } from 'react';
 import Link from 'next/link';
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import { getRubricByVersion, DEFAULT_RUBRIC_VERSION, RUBRIC_VERSIONS } from '@/lib/rubric';
 
@@ -393,7 +393,7 @@ export default function AssistedReviewPage({ params }) {
     <AuthProvider>
       <ProtectedRoute>
         <div className="min-h-screen bg-gray-50">
-          <Navbar />
+          <WorkspaceShell variant="reviewer" />
           <AssistedReviewInner studyId={studyId} />
           <Footer />
         </div>

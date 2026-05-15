@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import {
   RUBRIC_VERSIONS, DEFAULT_RUBRIC_VERSION,
@@ -209,7 +209,7 @@ const ScorePageContent = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-pacific"></div>
@@ -223,7 +223,7 @@ const ScorePageContent = () => {
   if (!targetId) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="max-w-2xl mx-auto px-4 py-16 text-center">
           <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
             <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -240,7 +240,7 @@ const ScorePageContent = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header with Version Toggle */}
         <div className="mb-6 flex items-start justify-between flex-wrap gap-4">

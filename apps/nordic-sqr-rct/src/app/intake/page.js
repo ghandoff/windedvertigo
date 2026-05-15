@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import { BLINDING_OPTIONS, A_PRIORI_POWER_OPTIONS } from '@/lib/rubric';
 
@@ -206,7 +206,7 @@ const IntakeFormContent = () => {
   if (loadingArticle) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-pacific"></div>
@@ -219,7 +219,7 @@ const IntakeFormContent = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

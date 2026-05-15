@@ -15,7 +15,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import AdminRoute from '@/components/AdminRoute';
 import { AuthProvider } from '@/lib/useAuth';
@@ -26,7 +26,7 @@ function PreviewBody({ slug }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-10 sm:px-6">
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">

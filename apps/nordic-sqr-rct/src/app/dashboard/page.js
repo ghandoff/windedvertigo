@@ -2,7 +2,7 @@
 
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { DashboardSkeleton } from '@/components/Skeletons';
@@ -102,7 +102,7 @@ function DashboardContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <DashboardSkeleton />
       </div>
     );
@@ -110,7 +110,7 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (

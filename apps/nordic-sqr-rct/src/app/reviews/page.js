@@ -2,7 +2,7 @@
 
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Footer from '@/components/Footer';
@@ -129,7 +129,7 @@ function ReviewsContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="skeleton h-8 w-48 rounded mb-8" />
@@ -153,7 +153,7 @@ function ReviewsContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         {error && (

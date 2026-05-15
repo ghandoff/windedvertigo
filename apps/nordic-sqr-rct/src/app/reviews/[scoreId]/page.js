@@ -2,7 +2,7 @@
 
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import WorkspaceShell from '@/components/WorkspaceShell';
 import Link from 'next/link';
 import { useState, useEffect, use } from 'react';
 import Footer from '@/components/Footer';
@@ -97,7 +97,7 @@ function ScoreDetailContent({ scoreId }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
             <div className="skeleton h-6 w-32 rounded" />
@@ -113,7 +113,7 @@ function ScoreDetailContent({ scoreId }) {
   if (error || !score) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <WorkspaceShell variant="reviewer" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card p-8 text-center">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
@@ -135,7 +135,7 @@ function ScoreDetailContent({ scoreId }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+      <WorkspaceShell variant="reviewer" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         <div className="flex items-center justify-between mb-6">
