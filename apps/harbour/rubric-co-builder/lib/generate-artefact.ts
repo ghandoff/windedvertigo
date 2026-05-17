@@ -1,5 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.warn("[rubric-co-builder] ANTHROPIC_API_KEY not set — artefact generation disabled");
+}
+
 export type GeneratedArtefact = {
   title: string;
   content: string;
