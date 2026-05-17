@@ -42,40 +42,80 @@ function PcsEvidence() {
       .finally(() => setLoading(false));
   }, [ingredient, type, sqrReviewed]);
 
+  // 2026-05-17 — Column redesign:
+  //   • DOI: replaced full string with a clickable link-icon presence check.
+  //     The full DOI is surfaced in the row expansion panel instead.
+  //   • Ingredients: first 2 shown as chips, overflow as "+N more" badge.
+  //   • sqrReviewed removed — the SQR score itself communicates review status;
+  //     a separate "Reviewed: Yes/No" column is redundant.
+  //   • Rows are expandable (chevron + click anywhere) showing full citation,
+  //     DOI/PMID links, and canonical summary.
   const columns = [
     {
       key: 'name',
       label: 'Name',
       render: (val, row) => (
-        <Link href={`/research/pcs/evidence/${row.id}`} className="max-w-[300px] inline-block truncate font-medium text-pacific-600 hover:underline" title={val}>{val}</Link>
+        <Link
+          href={`/research/pcs/evidence/${row.id}`}
+          className="max-w-[300px] inline-block truncate font-medium text-pacific-600 hover:underline"
+          title={val}
+          onClick={e => e.stopPropagation()}
+        >
+          {val}
+        </Link>
       ),
     },
-    { key: 'doi', label: 'DOI' },
+    {
+      key: 'doi',
+      label: 'DOI',
+      sortable: false,
+      render: (val) => val ? (
+        <a
+          href={`https://doi.org/${val}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={val}
+          className="inline-flex items-center text-pacific-500 hover:text-pacific-700"
+          onClick={e => e.stopPropagation()}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        </a>
+      ) : <span className="text-gray-200">—</span>,
+    },
     { key: 'evidenceType', label: 'Type' },
     {
       key: 'ingredient',
       label: 'Ingredients',
       sortable: false,
-      render: (val) => val?.length > 0 ? (
-        <span className="text-xs">{val.join(', ')}</span>
-      ) : <span className="text-gray-400 text-xs">Untagged</span>,
+      render: (val) => {
+        if (!val?.length) return <span className="text-gray-300 text-xs">—</span>;
+        const shown = val.slice(0, 2);
+        const extra = val.length - shown.length;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {shown.map(ing => (
+              <span key={ing} className="inline-block rounded-full bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-700">{ing}</span>
+            ))}
+            {extra > 0 && (
+              <span className="inline-block rounded-full bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-500" title={val.slice(2).join(', ')}>
+                +{extra}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     { key: 'publicationYear', label: 'Year' },
     {
       key: 'sqrScore',
-      label: 'SQR Score',
+      label: 'SQR',
       render: (val) => val != null ? (
-        <span className={`font-medium ${val >= 17 ? 'text-green-600' : val >= 11 ? 'text-yellow-600' : 'text-red-600'}`}>
+        <span className={`font-semibold tabular-nums ${val >= 17 ? 'text-green-600' : val >= 11 ? 'text-yellow-600' : 'text-red-600'}`}>
           {val}
         </span>
-      ) : '—',
-    },
-    {
-      key: 'sqrReviewed',
-      label: 'Reviewed',
-      render: (val) => val
-        ? <span className="text-green-600 text-xs font-medium">Yes</span>
-        : <span className="text-gray-400 text-xs">No</span>,
+      ) : <span className="text-gray-300">—</span>,
     },
     {
       key: 'pdf',
@@ -86,9 +126,57 @@ function PcsEvidence() {
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
           PDF
         </a>
-      ) : <span className="text-gray-300 text-xs">—</span>,
+      ) : <span className="text-gray-200 text-xs">—</span>,
     },
   ];
+
+  // 2026-05-17 — Expansion panel content for each evidence row.
+  // Shows the full citation (all authors, journal, volume, pages),
+  // DOI + PMID as external links, and the canonical summary if present.
+  const evidenceExpandRender = (row) => (
+    <div className="py-2.5 space-y-2">
+      {row.citation ? (
+        <p className="text-xs text-gray-700 leading-relaxed">{row.citation}</p>
+      ) : null}
+      <div className="flex flex-wrap items-center gap-3 text-[11px]">
+        {row.doi ? (
+          <a
+            href={`https://doi.org/${row.doi}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-pacific-600 hover:underline"
+            onClick={e => e.stopPropagation()}
+          >
+            DOI: {row.doi}
+          </a>
+        ) : null}
+        {row.pmid ? (
+          <a
+            href={`https://pubmed.ncbi.nlm.nih.gov/${row.pmid}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-pacific-600 hover:underline"
+            onClick={e => e.stopPropagation()}
+          >
+            PMID: {row.pmid}
+          </a>
+        ) : null}
+        {row.sqrScore != null ? (
+          <span className={`font-medium ${row.sqrScore >= 17 ? 'text-green-700' : row.sqrScore >= 11 ? 'text-yellow-700' : 'text-red-700'}`}>
+            SQR {row.sqrScore}{row.sqrRiskOfBias ? ` · ${row.sqrRiskOfBias} risk of bias` : ''}
+          </span>
+        ) : null}
+        {row.ingredient?.length > 2 ? (
+          <span className="text-gray-500">
+            All ingredients: {row.ingredient.join(', ')}
+          </span>
+        ) : null}
+      </div>
+      {row.canonicalSummary ? (
+        <p className="text-xs text-gray-500 italic leading-relaxed">{row.canonicalSummary}</p>
+      ) : null}
+    </div>
+  );
 
   // 2026-05-16 — fire-and-forget analytics fetch; banner is optional so errors are silent
   useEffect(() => {
@@ -223,6 +311,7 @@ function PcsEvidence() {
         defaultSortDir="desc"
         filterPlaceholder="Search evidence library…"
         filterLabel="Search evidence library"
+        expandRender={evidenceExpandRender}
       />
     </div>
   );

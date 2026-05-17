@@ -3,13 +3,17 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 
 /**
- * Reusable PCS table with sort, filter, and inline editing.
+ * Reusable PCS table with sort, filter, inline editing, and row expansion.
  *
  * columns: [{ key, label, sortable?, editable?, type?, options?, render? }]
  * data: array of row objects
  * onUpdate: (id, field, value) => Promise<void>  — for inline editing
  * tableKey: string — unique key for this table (e.g. 'claims', 'evidence')
  * userId: string — current user's ID for per-account sort persistence
+ * expandRender: (row) => JSX — when provided, each row becomes clickable and
+ *   reveals an expansion panel below it showing the returned content. A narrow
+ *   chevron column is prepended automatically; no changes needed at call sites
+ *   that don't use this prop.
  */
 export default function PcsTable({
   columns,
@@ -35,6 +39,10 @@ export default function PcsTable({
   // (claims, documents, ingredients, etc.) don't need any changes.
   filterPlaceholder = 'Search…',
   filterLabel = 'Search rows',
+  // 2026-05-17 — Optional row expansion. Pass a render function that receives
+  // the full row object and returns JSX. When provided, a chevron column is
+  // prepended and clicking a row toggles the expansion panel below it.
+  expandRender = null,
 }) {
   // Load saved sort preference from localStorage (per user + table).
   // 2026-05-05 — Bumped key version from `pcs-sort-` to `pcs-sort-v2-`
@@ -62,6 +70,16 @@ export default function PcsTable({
   const [editingCell, setEditingCell] = useState(null); // { rowId, key }
   const [editValue, setEditValue] = useState('');
   const escapedRef = useRef(false);
+  // Row expansion — tracks which row IDs are currently expanded.
+  const [expandedRows, setExpandedRows] = useState(new Set());
+
+  function toggleExpand(id) {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   // Hydrate saved sort on mount (avoids SSR mismatch). The defaults
   // are applied via useState above; this effect only overrides when
@@ -160,6 +178,10 @@ export default function PcsTable({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              {/* Chevron column — only rendered when expandRender is provided */}
+              {expandRender && (
+                <th className="w-7 px-2 py-2.5" aria-label="Expand row" />
+              )}
               {columns.map(col => (
                 <th
                   key={col.key}
@@ -179,66 +201,96 @@ export default function PcsTable({
           <tbody className="bg-white divide-y divide-gray-100">
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-sm text-gray-400">
+                <td colSpan={columns.length + (expandRender ? 1 : 0)} className="px-4 py-8 text-center text-sm text-gray-400">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              sorted.map(row => (
-                <tr key={row.id} className="hover:bg-gray-50">
-                  {columns.map(col => {
-                    const isEditing = editingCell?.rowId === row.id && editingCell?.key === col.key;
-                    const value = row[col.key];
+              sorted.map(row => {
+                const isExpanded = expandRender && expandedRows.has(row.id);
+                return (
+                  <>
+                    <tr
+                      key={row.id}
+                      className={`transition-colors ${expandRender ? 'cursor-pointer' : ''} ${isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50/70'}`}
+                      onClick={expandRender ? () => toggleExpand(row.id) : undefined}
+                    >
+                      {/* Expand chevron */}
+                      {expandRender && (
+                        <td className="w-7 px-2 py-2 text-gray-400" onClick={e => { e.stopPropagation(); toggleExpand(row.id); }}>
+                          <svg
+                            className={`w-3.5 h-3.5 transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`}
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </td>
+                      )}
+                      {columns.map(col => {
+                        const isEditing = editingCell?.rowId === row.id && editingCell?.key === col.key;
+                        const value = row[col.key];
 
-                    if (isEditing && col.editable) {
-                      if (col.type === 'select') {
+                        if (isEditing && col.editable) {
+                          if (col.type === 'select') {
+                            return (
+                              <td key={col.key} className="px-4 py-2" onClick={e => e.stopPropagation()}>
+                                <select
+                                  value={editValue}
+                                  onChange={e => { setEditValue(e.target.value); commitEdit(row.id, col.key); }}
+                                  onBlur={() => { if (!escapedRef.current) commitEdit(row.id, col.key); escapedRef.current = false; }}
+                                  onKeyDown={e => { if (e.key === 'Escape') { escapedRef.current = true; cancelEdit(); } }}
+                                  autoFocus
+                                  className="text-sm border border-pacific rounded px-2 py-1"
+                                >
+                                  {(col.options || []).map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                  ))}
+                                </select>
+                              </td>
+                            );
+                          }
+                          return (
+                            <td key={col.key} className="px-4 py-2" onClick={e => e.stopPropagation()}>
+                              <input
+                                type="text"
+                                value={editValue}
+                                onChange={e => setEditValue(e.target.value)}
+                                onBlur={() => { if (!escapedRef.current) commitEdit(row.id, col.key); escapedRef.current = false; }}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') commitEdit(row.id, col.key);
+                                  if (e.key === 'Escape') { escapedRef.current = true; cancelEdit(); }
+                                }}
+                                autoFocus
+                                className="text-sm border border-pacific rounded px-2 py-1 w-full"
+                              />
+                            </td>
+                          );
+                        }
+
                         return (
-                          <td key={col.key} className="px-4 py-2">
-                            <select
-                              value={editValue}
-                              onChange={e => { setEditValue(e.target.value); commitEdit(row.id, col.key); }}
-                              onBlur={() => { if (!escapedRef.current) commitEdit(row.id, col.key); escapedRef.current = false; }}
-                              onKeyDown={e => { if (e.key === 'Escape') { escapedRef.current = true; cancelEdit(); } }}
-                              autoFocus
-                              className="text-sm border border-pacific rounded px-2 py-1"
-                            >
-                              {(col.options || []).map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
+                          <td
+                            key={col.key}
+                            className={`px-4 py-2 text-sm text-gray-700 ${col.editable ? 'cursor-pointer hover:bg-pacific-50' : ''}`}
+                            onClick={col.editable ? (e) => { e.stopPropagation(); startEdit(row.id, col.key, value); } : undefined}
+                          >
+                            {col.render ? col.render(value, row) : (value ?? '—')}
                           </td>
                         );
-                      }
-                      return (
-                        <td key={col.key} className="px-4 py-2">
-                          <input
-                            type="text"
-                            value={editValue}
-                            onChange={e => setEditValue(e.target.value)}
-                            onBlur={() => { if (!escapedRef.current) commitEdit(row.id, col.key); escapedRef.current = false; }}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') commitEdit(row.id, col.key);
-                              if (e.key === 'Escape') { escapedRef.current = true; cancelEdit(); }
-                            }}
-                            autoFocus
-                            className="text-sm border border-pacific rounded px-2 py-1 w-full"
-                          />
+                      })}
+                    </tr>
+                    {/* Expansion panel — rendered as a sibling <tr> */}
+                    {isExpanded && (
+                      <tr key={`${row.id}-expanded`} className="bg-gray-50 border-t-0">
+                        <td colSpan={columns.length + 1} className="px-4 pb-4 pt-0">
+                          <div className="ml-5 border-l-2 border-gray-200 pl-4">
+                            {expandRender(row)}
+                          </div>
                         </td>
-                      );
-                    }
-
-                    return (
-                      <td
-                        key={col.key}
-                        className={`px-4 py-2 text-sm text-gray-700 ${col.editable ? 'cursor-pointer hover:bg-pacific-50' : ''}`}
-                        onClick={() => col.editable && startEdit(row.id, col.key, value)}
-                      >
-                        {col.render ? col.render(value, row) : (value ?? '—')}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))
+                      </tr>
+                    )}
+                  </>
+                );
+              })
             )}
           </tbody>
         </table>
