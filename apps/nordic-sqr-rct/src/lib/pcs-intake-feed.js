@@ -12,7 +12,7 @@
  * The reverse direction (SQR-RCT scores → PCS) is handled by sqr-sync.js.
  */
 
-import { createStudy, getStudyByDoi } from './notion.js';
+import { createStudy, getStudyByDoi } from './sqr-intakes.js';
 import { normalizeDoi } from './doi.js';
 
 // Evidence types eligible for SQR-RCT quality review

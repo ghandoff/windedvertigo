@@ -87,11 +87,22 @@ async function countNotion(databaseId) {
   let cursor;
   let pages = 0;
   do {
-    const res = await notion.databases.query({
-      database_id: databaseId,
-      page_size: 100,
-      start_cursor: cursor,
-    });
+    let res;
+    try {
+      res = await notion.databases.query({
+        database_id: databaseId,
+        page_size: 100,
+        start_cursor: cursor,
+      });
+    } catch (err) {
+      // Notion timeouts are transient — treat as capped rather than errored
+      // so they don't trigger Slack alerts. Real API errors (auth, not-found)
+      // still propagate and surface as alerts.
+      if (err?.code === 'notionhq_client_request_timeout') {
+        return { count, capped: true };
+      }
+      throw err;
+    }
     count += res.results.length;
     cursor = res.has_more ? res.next_cursor : undefined;
     pages += 1;

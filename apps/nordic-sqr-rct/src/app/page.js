@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -411,5 +411,11 @@ function LandingContent() {
 }
 
 export default function HomePage() {
-  return <AuthProvider><LandingContent /></AuthProvider>;
+  return (
+    <AuthProvider>
+      <Suspense fallback={null}>
+        <LandingContent />
+      </Suspense>
+    </AuthProvider>
+  );
 }

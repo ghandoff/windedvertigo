@@ -5,7 +5,7 @@
  */
 
 import bcrypt from 'bcryptjs';
-import { getReviewerByAlias, createReviewer } from '@/lib/notion';
+import { getReviewerByAlias, createReviewer } from '@/lib/sqr-reviewers';
 
 const AI_ALIAS = 'AI-Reviewer';
 const SALT_ROUNDS = 12;

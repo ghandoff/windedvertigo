@@ -10,7 +10,7 @@
  *   - unset/other → manual sync only (RA controls timing)
  */
 
-import { getScoresForStudy } from './notion.js';
+import { getScoresForStudy } from './sqr-scores.js';
 import { getQualityTier } from './rubric.js';
 import { normalizeDoi } from './doi.js';
 import { getPacketsForEvidence, updatePacketThreshold } from './pcs.js';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import LivingPcsView from '@/components/pcs/living-view/LivingPcsView';
 
@@ -10,7 +10,7 @@ import LivingPcsView from '@/components/pcs/living-view/LivingPcsView';
  * Wave 4.3.0 (Phase 0): skeleton route + Cover + Table B. Data is fetched
  * from /api/pcs/documents/[id]/view which returns `viewPayload`.
  */
-export default function LivingPcsViewPage() {
+function LivingPcsViewContent() {
   const { id } = useParams();
   const searchParams = useSearchParams();
   const versionId = searchParams?.get('versionId') || '';
@@ -70,5 +70,13 @@ export default function LivingPcsViewPage() {
       viewPayload={viewPayload}
       onEdited={() => setReloadKey(k => k + 1)}
     />
+  );
+}
+
+export default function LivingPcsViewPage() {
+  return (
+    <Suspense fallback={null}>
+      <LivingPcsViewContent />
+    </Suspense>
   );
 }

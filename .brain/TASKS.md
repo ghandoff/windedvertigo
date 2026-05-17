@@ -1,5 +1,17 @@
 # Tasks
 
+## Whirlpool actions — 2026-05-13
+
+From the may 13 whirlpool meeting recording ([Notes by Gemini](https://docs.google.com/document/d/1xlFszMKFsNQLXi365rfRj5lA6rtb-NPjvJmu173Z1sY/edit) · [Transcript](https://docs.google.com/document/d/1xlFszMKFsNQLXi365rfRj5lA6rtb-NPjvJmu173Z1sY/edit?tab=t.anee4cn9bvig) · [agenda](https://www.notion.so/35fe4ee74ba4818483c5c797e791790a)). The session shifted from the substack/harbour/Play@TED agenda into a focused website working session.
+
+- [ ] **garrett** — fix Website Load: resolve the "Do" page loading issue on windedvertigo.com
+- [ ] **the group** — catalog assets: pull existing assets Maria created for PRIME over the years; make tangible, accessible, and ready for showcasing
+- [ ] **garrett** — update homepage: clean up the "What" page hero copy (change "learning is change" to more explicit language), add a middle sentence outlining the 3 bullet points of what w.v does (research, products, experiences)
+- [ ] **garrett** — pause motion: implement a button option on the website enabling users to stop motion effects (e.g. "What" wobbling, "Do" quadrant spinning) — accessibility play
+- [ ] **payton** — process thinkpiece: take the "play with learning through play" content and give it a graphics treatment; post alongside Jamie's other written materials
+- [ ] **jamie** — hand off content: hand off think pieces and relevant assets to Payton for social campaigns / posting
+- [ ] **garrett** — implement hyperlinks: add "dive deeper" buttons/hyperlinks on the "What" page for key concepts (low-stakes environment, design process) → link to longer philosophical thinkpieces
+
 ## Whirlpool actions — 2026-05-06
 
 From the may 6 whirlpool meeting recording ([notion AI meeting](https://www.notion.so/358e4ee74ba480d7a270f44aa2dad4bd) · [agenda](https://www.notion.so/356e4ee74ba481f6bfa6e5487e1721d4)).
