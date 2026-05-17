@@ -13,7 +13,9 @@
  *   3. OpenAlex — aggregated OA locations across publishers + repos
  *   4. Europe PMC — broader than NCBI PMC, includes preprints + EU repos
  *   5. bioRxiv / medRxiv — preprint servers for biology + medicine
- *   6. NCBI PMC — NIH-funded open-access articles
+ *   6. Zenodo — CERN open repository, author-deposited post-prints + preprints
+ *   7. ORCID — author self-archived PDF links on ORCID profiles
+ *   8. NCBI PMC — NIH-funded open-access articles (final fallback)
  *
  * CORE (institutional repositories) was removed from the waterfall on
  * 2026-05-05 — its API license requires payment for commercial use, and
@@ -36,6 +38,7 @@ const EUROPE_PMC_BASE = 'https://www.ebi.ac.uk/europepmc/webservices/rest';
 const CORE_BASE = 'https://api.core.ac.uk/v3';
 const OPENALEX_BASE = 'https://api.openalex.org';
 const BIORXIV_BASE = 'https://api.biorxiv.org/details';
+const ZENODO_BASE = 'https://zenodo.org/api/records';
 
 // ─── ID Conversion ──────────────────────────────────────────────────
 
@@ -416,16 +419,87 @@ export async function checkBiorxiv(doi) {
   return { available: false, reason: 'Not found in bioRxiv/medRxiv' };
 }
 
+// ─── Zenodo ───────────────────────────────────────────────────────
+
+/**
+ * Check Zenodo for an open-access PDF.
+ * Zenodo (run by CERN) hosts 3M+ research outputs including author-deposited
+ * post-prints, preprints, and grey literature not on bioRxiv/medRxiv.
+ * Free REST API, no key required.
+ *
+ * @returns {{ available, pdfUrl, source }} or { available: false }
+ */
+export async function checkZenodo(doi) {
+  if (!doi) return { available: false, reason: 'No DOI' };
+  try {
+    const url = `${ZENODO_BASE}?q=doi:"${encodeURIComponent(doi)}"&size=1`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return { available: false, reason: `Zenodo ${res.status}` };
+    const data = await res.json();
+    const hit = data.hits?.hits?.[0];
+    if (!hit) return { available: false, reason: 'Not found in Zenodo' };
+    const pdfFile = hit.files?.find(f => f.type === 'pdf' || f.key?.endsWith('.pdf'));
+    if (!pdfFile) return { available: false, reason: 'No PDF in Zenodo record' };
+    const pdfUrl = pdfFile.links?.self
+      || `https://zenodo.org/record/${hit.id}/files/${pdfFile.key}`;
+    return { available: true, pdfUrl, source: 'zenodo' };
+  } catch (err) {
+    return { available: false, reason: `Zenodo error: ${err.message}` };
+  }
+}
+
+// ─── ORCID Author Self-Archive ────────────────────────────────────
+
+/**
+ * Check ORCID profiles of article authors for a self-archived PDF URL.
+ * Many researchers register papers on ORCID and include PDF or preprint links.
+ * Free public API, no key required. Caps at first 3 authors to limit latency.
+ *
+ * @param {string} doi
+ * @param {string[]} authorOrcids — ORCID IDs for the article's authors (e.g. from OpenAlex)
+ * @returns {{ available, pdfUrl, source, orcid }} or { available: false }
+ */
+export async function checkOrcidAuthors(doi, authorOrcids = []) {
+  if (!doi || authorOrcids.length === 0) {
+    return { available: false, reason: 'No ORCID IDs provided' };
+  }
+  for (const orcid of authorOrcids.slice(0, 3)) {
+    try {
+      const res = await fetch(`https://pub.orcid.org/v3.0/${orcid}/works`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      for (const group of data.group || []) {
+        for (const summary of group['work-summary'] || []) {
+          const extIds = summary['external-ids']?.['external-id'] || [];
+          const matchesDoi = extIds.some(
+            id => id['external-id-type'] === 'doi' &&
+                  id['external-id-value']?.toLowerCase() === doi.toLowerCase()
+          );
+          if (!matchesDoi) continue;
+          const url = summary?.url?.value;
+          if (url && (url.endsWith('.pdf') || url.includes('/pdf/'))) {
+            return { available: true, pdfUrl: url, source: 'orcid', orcid };
+          }
+        }
+      }
+    } catch { continue; }
+  }
+  return { available: false, reason: 'No PDF URL found via ORCID author profiles' };
+}
+
 // ─── Multi-Source Finder ───────────────────────────────────────────
 
 /**
  * Try all sources in sequence to find an open-access PDF.
  * Returns the first successful result with source attribution.
  *
- * @param {{ doi?: string, pmid?: string }} identifiers
+ * @param {{ doi?: string, pmid?: string, authorOrcids?: string[] }} identifiers
  * @returns {{ available, pdfUrl, source, ...metadata }} or { available: false, attempts: [] }
  */
-export async function findPdfUrl({ doi, pmid }) {
+export async function findPdfUrl({ doi, pmid, authorOrcids = [] }) {
   const attempts = [];
 
   // 1. Unpaywall (highest coverage for DOI-identified articles)
@@ -481,7 +555,21 @@ export async function findPdfUrl({ doi, pmid }) {
     if (biorxiv.available) return { ...biorxiv, attempts };
   }
 
-  // 7. NCBI PMC (fallback)
+  // 7. Zenodo (CERN open repository — preprints, post-prints, author deposits)
+  if (doi) {
+    const zenodo = await checkZenodo(doi);
+    attempts.push({ source: 'zenodo', ...zenodo });
+    if (zenodo.available) return { ...zenodo, attempts };
+  }
+
+  // 8. ORCID author self-archive (authors who deposited PDF links on their ORCID profile)
+  if (doi && authorOrcids.length > 0) {
+    const orcidResult = await checkOrcidAuthors(doi, authorOrcids);
+    attempts.push({ source: 'orcid', ...orcidResult });
+    if (orcidResult.available) return { ...orcidResult, attempts };
+  }
+
+  // 9. NCBI PMC (fallback)
   const pmc = await checkPdfAvailability({ doi, pmid });
   attempts.push({ source: 'pmc', available: pmc.available, reason: pmc.reason, pmcid: pmc.pmcid });
   if (pmc.available) return { available: true, pdfUrl: pmc.pdfUrl, source: 'pmc', pmcid: pmc.pmcid, license: pmc.license, attempts };
@@ -495,8 +583,8 @@ export async function findPdfUrl({ doi, pmid }) {
  *
  * @param {{ pmid?: string, doi?: string, filename?: string, r2?: R2Bucket }} opts
  */
-export async function findAndFetchPdf({ pmid, doi, filename, r2 }) {
-  const result = await findPdfUrl({ doi, pmid });
+export async function findAndFetchPdf({ pmid, doi, filename, r2, authorOrcids = [] }) {
+  const result = await findPdfUrl({ doi, pmid, authorOrcids });
 
   if (!result.available) {
     return {

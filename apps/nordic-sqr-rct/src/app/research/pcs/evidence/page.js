@@ -24,6 +24,7 @@ function PcsEvidence() {
   const sqrReviewed = searchParams.get('sqrReviewed');
   const [evidence, setEvidence] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -89,13 +90,21 @@ function PcsEvidence() {
     },
   ];
 
+  // 2026-05-16 — fire-and-forget analytics fetch; banner is optional so errors are silent
+  useEffect(() => {
+    fetch('/api/pcs/evidence/analytics')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setAnalytics(data); })
+      .catch(() => {});
+  }, []);
+
   const title = ingredient
     ? `Evidence — ${ingredient}`
     : type
     ? `Evidence — ${type}`
     : sqrReviewed === 'false'
     ? 'Evidence — Unreviewed'
-    : 'Evidence Library';
+    : 'Evidence Repository';
 
   // 2026-05-05 — refresh the table after a successful "Add to Evidence"
   // from the article-search panel so the new row appears immediately.
@@ -185,13 +194,23 @@ function PcsEvidence() {
       {!ingredient && !type && sqrReviewed === null && (
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <h2 className="text-base font-semibold text-gray-900">
-            Evidence Library
+            Evidence Repository
             {evidence.length > 0 && (
               <span className="ml-2 text-sm font-normal text-gray-400">
                 {evidence.length} {evidence.length === 1 ? 'article' : 'articles'}
               </span>
             )}
           </h2>
+          {analytics?.totalRetrieved > 0 && (
+            <span className="text-xs text-gray-500">
+              <span className="font-medium text-emerald-600">{analytics.totalRetrieved} PDFs</span>
+              {' '}auto-retrieved · est.{' '}
+              <span className="font-medium text-emerald-600">
+                ${analytics.totalSavingsUsd.toLocaleString()} saved
+              </span>
+              {' '}vs. publisher prices
+            </span>
+          )}
         </div>
       )}
 

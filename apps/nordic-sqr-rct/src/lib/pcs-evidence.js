@@ -15,11 +15,33 @@ import {
 
 // 2026-05-06 — column-name overrides for evidence's Notion → Postgres
 // mirror. Most fields follow camelCase → snake_case; these don't.
+// 2026-05-16 — pdf analytics fields added (Postgres-only, not in Notion).
 const EVIDENCE_PG_COLUMN_MAP = {
   pdf: 'pdf_url',
-  // Postgres uses `precision` directly so claims maps cleanly elsewhere;
-  // evidence has no exception beyond `pdf`.
+  pdfSource: 'pdf_source',
+  pdfRetrievedAt: 'pdf_retrieved_at',
+  pdfPlatformRetrieved: 'pdf_platform_retrieved',
+  publisherCostUsd: 'publisher_cost_usd',
 };
+
+// DOI prefixes for fully open-access publishers — no purchase cost for these.
+const OA_PUBLISHER_DOI_PREFIXES = [
+  '10.3390', // MDPI
+  '10.3389', // Frontiers
+  '10.1371', // PLOS
+  '10.7554', // eLife
+  '10.1186', // BioMed Central
+];
+
+/**
+ * Estimate the publisher purchase price for a closed-access article.
+ * Returns 0.00 for known fully-OA publishers, 35.00 (industry average) otherwise.
+ * Used to stamp publisher_cost_usd on Evidence rows for cost-savings analytics.
+ */
+export function estimatePublisherCost(doi) {
+  if (!doi) return 35.00;
+  return OA_PUBLISHER_DOI_PREFIXES.some(p => doi.startsWith(p)) ? 0.00 : 35.00;
+}
 
 
 const P = PROPS.evidence;
@@ -535,6 +557,14 @@ export async function createEvidence(fields) {
       if ((!existing.ingredient || existing.ingredient.length === 0) && fields.ingredient?.length > 0) {
         enrichments.ingredient = fields.ingredient;
       }
+      // 2026-05-16 — analytics: if this merge brings a platform-retrieved PDF
+      // to an existing row that lacked one, stamp the retrieval metadata.
+      if (!existing.pdfSource && fields.pdfSource) enrichments.pdfSource = fields.pdfSource;
+      if (!existing.pdfPlatformRetrieved && fields.pdfPlatformRetrieved) {
+        enrichments.pdfPlatformRetrieved = fields.pdfPlatformRetrieved;
+        enrichments.pdfRetrievedAt = fields.pdfRetrievedAt || new Date().toISOString();
+        enrichments.publisherCostUsd = fields.publisherCostUsd ?? estimatePublisherCost(fields.doi);
+      }
 
       const enrichedFields = Object.keys(enrichments);
       if (enrichedFields.length > 0) {
@@ -585,6 +615,11 @@ export async function createEvidence(fields) {
       endnoteGroup: fields.endnoteGroup || '',
       endnoteRecordId: fields.endnoteRecordId || '',
       pdf: fields.pdf || null, // notionShapeToPgRow maps 'pdf' → 'pdf_url' via EVIDENCE_PG_COLUMN_MAP
+      // 2026-05-16 — analytics fields (Postgres-only)
+      pdfSource: fields.pdfSource || null,
+      pdfRetrievedAt: fields.pdfRetrievedAt || null,
+      pdfPlatformRetrieved: fields.pdfPlatformRetrieved || false,
+      publisherCostUsd: fields.publisherCostUsd ?? estimatePublisherCost(fields.doi),
     };
     await writePostgresFirst(
       'pcs_evidence',
@@ -602,6 +637,12 @@ export async function createEvidence(fields) {
   });
   invalidateEvidenceCache();
   const parsed = parsePage(page);
+  // 2026-05-16 — analytics fields are Postgres-only; stamp them on parsed
+  // so mirrorToPostgres picks them up via EVIDENCE_PG_COLUMN_MAP.
+  if (fields.pdfSource) parsed.pdfSource = fields.pdfSource;
+  if (fields.pdfRetrievedAt) parsed.pdfRetrievedAt = fields.pdfRetrievedAt;
+  if (fields.pdfPlatformRetrieved) parsed.pdfPlatformRetrieved = fields.pdfPlatformRetrieved;
+  parsed.publisherCostUsd = fields.publisherCostUsd ?? estimatePublisherCost(fields.doi);
   await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }

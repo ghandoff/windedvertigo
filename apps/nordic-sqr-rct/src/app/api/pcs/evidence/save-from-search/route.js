@@ -36,7 +36,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { createEvidence } from '@/lib/pcs-evidence';
+import { createEvidence, estimatePublisherCost } from '@/lib/pcs-evidence';
 import { findAndFetchPdf } from '@/lib/pmc';
 import { isAutoFeedEnabled, feedToIntake } from '@/lib/pcs-intake-feed';
 
@@ -89,6 +89,11 @@ export async function POST(request) {
     evidenceType: hit.evidenceType || 'RCT',
     pdf: pdfUrl || undefined,
     canonicalSummary: hit.abstract ? hit.abstract.slice(0, 1900) : undefined,
+    // 2026-05-16 — analytics: track which tier retrieved the PDF and estimate savings
+    pdfSource: pdfSource || undefined,
+    pdfPlatformRetrieved: pdfSource != null && pdfSource !== 'discovery',
+    pdfRetrievedAt: (pdfSource != null && pdfSource !== 'discovery') ? new Date().toISOString() : undefined,
+    publisherCostUsd: estimatePublisherCost(hit.doi),
   });
   // 2026-05-05 — Wave 7.0.5 T8.1 hard-merge surfaces a `_wasMerged`
   // flag on the returned entry when an existing row was returned
