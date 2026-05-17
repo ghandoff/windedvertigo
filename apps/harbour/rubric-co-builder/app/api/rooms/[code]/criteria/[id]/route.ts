@@ -10,7 +10,8 @@ export async function PATCH(
   { params }: { params: Promise<{ code: string; id: string }> },
 ) {
   const { code, id } = await params;
-  if (!isValidRoomCode(code.toUpperCase())) {
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
   let body: unknown;
@@ -20,6 +21,13 @@ export async function PATCH(
     return NextResponse.json({ error: "invalid json body" }, { status: 400 });
   }
   const o = (body ?? {}) as Record<string, unknown>;
+  const participantId = typeof o.participant_id === "string" ? o.participant_id : "";
+  if (!participantId) {
+    return NextResponse.json({ error: "missing participant_id" }, { status: 400 });
+  }
+  if (!(await getStore().participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
   const patch: {
     name?: string;
     good_description?: string | null;
@@ -41,12 +49,21 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ code: string; id: string }> },
 ) {
   const { code, id } = await params;
-  if (!isValidRoomCode(code.toUpperCase())) {
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
+  }
+  const url = new URL(req.url);
+  const participantId = url.searchParams.get("participant_id") ?? "";
+  if (!participantId) {
+    return NextResponse.json({ error: "missing participant_id" }, { status: 400 });
+  }
+  if (!(await getStore().participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   const ok = await getStore().deleteCriterion(id);
   if (!ok) {

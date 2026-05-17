@@ -10,7 +10,8 @@ export async function PATCH(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
-  if (!isValidRoomCode(code.toUpperCase())) {
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
   let body: unknown;
@@ -20,11 +21,15 @@ export async function PATCH(
     return NextResponse.json({ error: "invalid json body" }, { status: 400 });
   }
   const o = (body ?? {}) as Record<string, unknown>;
+  const participantId = typeof o.participant_id === "string" ? o.participant_id : "";
   const criterionId = typeof o.criterion_id === "string" ? o.criterion_id : "";
   const level = Number(o.level);
   const descriptor = typeof o.descriptor === "string" ? o.descriptor.slice(0, 600) : "";
-  if (!criterionId || ![1, 2, 3, 4].includes(level)) {
-    return NextResponse.json({ error: "missing criterion_id or level" }, { status: 400 });
+  if (!participantId || !criterionId || ![1, 2, 3, 4].includes(level)) {
+    return NextResponse.json({ error: "missing participant_id, criterion_id or level" }, { status: 400 });
+  }
+  if (!(await getStore().participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   const result = await getStore().upsertScaleDescriptor(
     criterionId,

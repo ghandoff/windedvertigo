@@ -10,7 +10,8 @@ export async function PATCH(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
-  if (!isValidRoomCode(code.toUpperCase())) {
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
   let body: unknown;
@@ -26,6 +27,9 @@ export async function PATCH(
   const descriptor = typeof o.descriptor === "string" ? o.descriptor.slice(0, 600) : "";
   if (!participantId || !criterionId || ![1, 2, 3, 4].includes(level)) {
     return NextResponse.json({ error: "missing participant_id, criterion_id, or level" }, { status: 400 });
+  }
+  if (!(await getStore().participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   const result = await getStore().upsertScaleResponse(
     participantId,

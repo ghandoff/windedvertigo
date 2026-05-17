@@ -22,15 +22,23 @@ export async function POST(
     return NextResponse.json({ error: "invalid json body" }, { status: 400 });
   }
   const o = (body ?? {}) as Record<string, unknown>;
+  const participantId = typeof o.participant_id === "string" ? o.participant_id : "";
   const name = typeof o.name === "string" ? o.name.trim() : "";
   const good = typeof o.good_description === "string" ? o.good_description.trim() : "";
   const versionOf = typeof o.version_of === "string" ? o.version_of : null;
 
+  if (!participantId) {
+    return NextResponse.json({ error: "missing participant_id" }, { status: 400 });
+  }
   if (!name || name.length > 120) {
     return NextResponse.json({ error: "criterion needs a short name" }, { status: 400 });
   }
 
   const store = getStore();
+  if (!(await store.participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
   const snapshot = await store.getSnapshot(normalised);
   if (!snapshot) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });

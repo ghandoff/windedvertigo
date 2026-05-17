@@ -10,7 +10,8 @@ export async function POST(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
-  if (!isValidRoomCode(code.toUpperCase())) {
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
   let body: unknown;
@@ -25,6 +26,9 @@ export async function POST(
   const level = Number(o.level);
   if (!participantId || !criterionId || ![1, 2, 3, 4].includes(level)) {
     return NextResponse.json({ error: "missing ids or level" }, { status: 400 });
+  }
+  if (!(await getStore().participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   const score = await getStore().submitCalibrationScore(
     participantId,

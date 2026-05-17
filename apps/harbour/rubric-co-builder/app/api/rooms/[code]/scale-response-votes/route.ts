@@ -10,7 +10,8 @@ export async function POST(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
-  if (!isValidRoomCode(code.toUpperCase())) {
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
   let body: unknown;
@@ -26,6 +27,9 @@ export async function POST(
   if (!participantId || !scaleResponseId) {
     return NextResponse.json({ error: "missing ids" }, { status: 400 });
   }
+  if (!(await getStore().participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
   const vote = await getStore().castScaleResponseVote(participantId, scaleResponseId);
   if (!vote) {
     return NextResponse.json({ error: "couldn't cast vote" }, { status: 400 });
@@ -38,7 +42,8 @@ export async function DELETE(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
-  if (!isValidRoomCode(code.toUpperCase())) {
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
   const url = new URL(req.url);
@@ -46,6 +51,9 @@ export async function DELETE(
   const scaleResponseId = url.searchParams.get("scale_response_id") ?? "";
   if (!participantId || !scaleResponseId) {
     return NextResponse.json({ error: "missing ids" }, { status: 400 });
+  }
+  if (!(await getStore().participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   await getStore().removeScaleResponseVote(participantId, scaleResponseId);
   return NextResponse.json({ ok: true });

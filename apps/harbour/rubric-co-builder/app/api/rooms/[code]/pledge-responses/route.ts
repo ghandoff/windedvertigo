@@ -10,7 +10,8 @@ export async function PATCH(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
-  if (!isValidRoomCode(code.toUpperCase())) {
+  const normalised = code.toUpperCase();
+  if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
   let body: unknown;
@@ -29,8 +30,11 @@ export async function PATCH(
       { status: 400 },
     );
   }
+  if (!(await getStore().participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
   const result = await getStore().upsertPledgeResponse(
-    code.toUpperCase(),
+    normalised,
     participantId,
     slotIndex as 1 | 2 | 3 | 4,
     content,

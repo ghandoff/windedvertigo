@@ -27,6 +27,9 @@ export async function POST(
   if (!participantId || ![0, 1, 2, 3, 4].includes(levelNum)) {
     return NextResponse.json({ error: "missing participant or level" }, { status: 400 });
   }
+  if (!(await getStore().participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
   const vote = await getStore().castAiVote(
     participantId,
     normalised,

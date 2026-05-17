@@ -34,6 +34,10 @@ export async function POST(
   }
 
   const store = getStore();
+  if (!(await store.participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
   const snapshot = await store.getSnapshot(normalised);
   if (!snapshot) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
@@ -82,6 +86,9 @@ export async function DELETE(
   }
 
   const store = getStore();
+  if (!(await store.participantExists(participantId, normalised))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
   // determine round
   let round: 1 | 2 | 3 = 1;
   if (roundParam && ["1", "2", "3"].includes(roundParam)) {
