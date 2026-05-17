@@ -70,6 +70,11 @@ async function queryDataSource(
 }
 
 // ── database IDs ──────────────────────────────────────────
+// BD assets is a sub-collection inside the "business development" multi-source
+// database (container: 5e27b792…). Pages in the collection have
+// parent.database_id = BD_ASSETS_COLLECTION, not the container ID.
+const BD_ASSETS_COLLECTION = "6e8dbbd9-0a14-4342-9154-88fa379b0533";
+
 const DB = {
   siteContent: "09a046a556c1455e80073546b8f83297",
   portfolioAssets: "5e27b792adbb4a958779900fb59dd631",
@@ -511,18 +516,10 @@ async function hydrateQuadrantRel(pageIds: string[]): Promise<string[]> {
 async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
   const p = PROPS.portfolioAssets;
 
-  // Use notion.search() to find portfolio pages. The portfolio database is
-  // accessible to the integration via workspace-wide search access, but the
-  // Notion integration has not been explicitly shared with the database, so
-  // notion.databases.retrieve() / queryDataSource() returns 403/404.
-  // Workspace search is reliable; the perf win comes from parallel processing
-  // below (quadrant hydration + image sync), not from switching the query API.
-  const parentDbId = DB.portfolioAssets;
-  const parentDashed = parentDbId.replace(
-    /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
-    "$1-$2-$3-$4-$5",
-  );
-
+  // Query the BD assets sub-collection directly. The "business development"
+  // database is multi-source; asset rows live in collection BD_ASSETS_COLLECTION,
+  // not the container database. notion.search() filtered by the container ID
+  // returned 0 results because pages carry the sub-collection ID as their parent.
   let allPages: PageObjectResponse[] = [];
   let startCursor: string | undefined;
   let round = 0;
@@ -531,29 +528,22 @@ async function _fetchPortfolioAssets(): Promise<PortfolioAsset[]> {
     round++;
     const response = await withRetry(
       () =>
-        notion.search({
-          filter: { property: "object", value: "page" },
+        notion.dataSources.query({
+          data_source_id: BD_ASSETS_COLLECTION,
           page_size: 100,
           ...(startCursor ? { start_cursor: startCursor } : {}),
         }),
-      `searchPortfolioAssets:round${round}`,
+      `queryBdAssets:round${round}`,
     );
 
     for (const page of response.results) {
-      if (!("properties" in page)) continue;
-      const pid = (page as PageObjectResponse).parent;
-      if (
-        "database_id" in pid &&
-        (pid.database_id === parentDbId || pid.database_id === parentDashed)
-      ) {
-        allPages.push(page as PageObjectResponse);
-      }
+      if ("properties" in page) allPages.push(page as PageObjectResponse);
     }
 
     startCursor = response.has_more
       ? (response.next_cursor ?? undefined)
       : undefined;
-  } while (startCursor && round < 30);
+  } while (startCursor && round < 20);
 
   // ── Filter pages synchronously before any async work ────────────────────
   const relevantPages = allPages.filter((page) => {
