@@ -1,13 +1,18 @@
 /**
  * POST /api/pcs/evidence/backfill-pdf-analytics
  *
- * Admin endpoint. Stamps publisher_cost_usd on all existing evidence rows
- * using estimatePublisherCost(doi). Does NOT set pdf_platform_retrieved=true —
- * we can't retroactively determine if the waterfall retrieved them.
+ * Admin endpoint. Two idempotent passes:
  *
- * Run once after the migration to populate cost data for existing articles.
- * Idempotent — safe to run multiple times; only updates rows where the
- * computed cost differs from the current value.
+ *   Pass 1 — publisher_cost_usd: stamps estimatePublisherCost(doi) on every
+ *   row where the computed value differs from the stored value.
+ *
+ *   Pass 2 — pdf_platform_retrieved: marks TRUE on every row that has a
+ *   pdf_url but pdf_platform_retrieved = false. Used when confirming that
+ *   existing PDFs were retrieved by the platform waterfall (not manually
+ *   uploaded). Pass 2 only runs when confirmPlatformRetrieved=true is
+ *   included in the request body, so the caller must explicitly opt-in.
+ *
+ * Idempotent — safe to run multiple times.
  *
  * Capability: pcs.canonical:edit (researcher / RA / admin / super-user).
  */
@@ -26,13 +31,18 @@ export async function POST(request) {
   const sb = getPcsSupabase();
   if (!sb) return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 });
 
+  let body = {};
+  try { body = await request.json(); } catch { /* body is optional */ }
+  const { confirmPlatformRetrieved = false } = body;
+
+  // Pass 1 — stamp publisher_cost_usd on all rows
   const { data: rows, error: fetchErr } = await sb
     .from('pcs_evidence')
     .select('id, doi, publisher_cost_usd');
 
   if (fetchErr) return NextResponse.json({ error: fetchErr.message }, { status: 500 });
 
-  let updated = 0;
+  let costUpdated = 0;
   const errors = [];
   for (const row of rows || []) {
     const cost = estimatePublisherCost(row.doi);
@@ -41,9 +51,43 @@ export async function POST(request) {
       .from('pcs_evidence')
       .update({ publisher_cost_usd: cost })
       .eq('id', row.id);
-    if (upErr) { errors.push(`${row.id}: ${upErr.message}`); continue; }
-    updated++;
+    if (upErr) { errors.push(`cost/${row.id}: ${upErr.message}`); continue; }
+    costUpdated++;
   }
 
-  return NextResponse.json({ ok: true, updated, errors, total: rows?.length || 0 });
+  // Pass 2 — mark platform-retrieved for rows with existing PDFs (opt-in)
+  let platformRetrievedUpdated = 0;
+  if (confirmPlatformRetrieved) {
+    const { data: pdfRows, error: pdfFetchErr } = await sb
+      .from('pcs_evidence')
+      .select('id')
+      .not('pdf_url', 'is', null)
+      .neq('pdf_url', '')
+      .eq('pdf_platform_retrieved', false);
+
+    if (pdfFetchErr) {
+      errors.push(`platform_retrieved_fetch: ${pdfFetchErr.message}`);
+    } else {
+      for (const row of pdfRows || []) {
+        const { error: upErr } = await sb
+          .from('pcs_evidence')
+          .update({
+            pdf_platform_retrieved: true,
+            pdf_source: 'waterfall_backfill',
+            pdf_retrieved_at: new Date().toISOString(),
+          })
+          .eq('id', row.id);
+        if (upErr) { errors.push(`platform_retrieved/${row.id}: ${upErr.message}`); continue; }
+        platformRetrievedUpdated++;
+      }
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    costUpdated,
+    platformRetrievedUpdated,
+    errors,
+    total: rows?.length || 0,
+  });
 }
