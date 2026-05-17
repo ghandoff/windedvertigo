@@ -253,6 +253,7 @@ function memoryStore(): Store {
         sample_artefact_content: null,
         timer_end: null,
         timer_duration: null,
+        host_token: crypto.randomUUID(),
       };
       db.rooms.set(room.id, room);
       for (const slot of PLEDGE_SLOTS) {
@@ -981,7 +982,8 @@ function neonStore(url: string): Store {
         values (${input.code}, ${input.learning_outcome}, ${input.project_description})
         returning id, code, learning_outcome, project_description, state,
                   step_started_at, created_at,
-                  facilitator_nudge, sample_artefact_title, sample_artefact_content
+                  facilitator_nudge, sample_artefact_title, sample_artefact_content,
+                  host_token
       `;
       for (const slot of PLEDGE_SLOTS) {
         await sql`

@@ -35,6 +35,11 @@ export async function POST(
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
 
+  const hostToken = req.headers.get("X-Host-Token") ?? "";
+  if (!hostToken || snapshot.room.host_token !== hostToken) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
   // update statuses: keep selected_ids as "selected", reject everything else
   const selectedSet = new Set(selectedIds);
   const updates = await Promise.all(

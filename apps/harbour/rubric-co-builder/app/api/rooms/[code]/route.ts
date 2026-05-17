@@ -62,24 +62,26 @@ export async function PATCH(
     return NextResponse.json({ error: "invalid state" }, { status: 400 });
   }
 
-  // if from_state is provided, only advance if the room is still in that state
-  // (prevents timer-expiry races where multiple clients call advance simultaneously)
-  // snapshot errors (e.g. transient db issue) fall through so the update still runs
-  if (from_state) {
-    try {
-      const snapshot = await getStore().getSnapshot(normalised);
-      if (!snapshot) {
-        return NextResponse.json({ error: "room not found" }, { status: 404 });
-      }
-      if (snapshot.room.state !== from_state) {
-        return NextResponse.json({ code: snapshot.room.code, state: snapshot.room.state });
-      }
-    } catch {
-      // snapshot fetch failed — skip race-guard and attempt the update
-    }
+  const store = getStore();
+
+  // Always fetch snapshot for host token verification (also serves as the from_state guard)
+  const snapshot = await store.getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
 
-  const updated = await getStore().updateRoomState(normalised, state as RoomState);
+  const hostToken = req.headers.get("X-Host-Token") ?? "";
+  if (!hostToken || snapshot.room.host_token !== hostToken) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  // if from_state is provided, only advance if the room is still in that state
+  // (prevents timer-expiry races where multiple clients call advance simultaneously)
+  if (from_state && snapshot.room.state !== from_state) {
+    return NextResponse.json({ code: snapshot.room.code, state: snapshot.room.state });
+  }
+
+  const updated = await store.updateRoomState(normalised, state as RoomState);
   if (!updated) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }

@@ -34,6 +34,7 @@ export type Room = {
   sample_artefact_content: string | null;
   timer_end: string | null;
   timer_duration: number | null;
+  host_token: string;
 };
 
 export type Criterion = {

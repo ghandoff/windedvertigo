@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 // tally round 1 votes and advance to criteria_gate for facilitator review
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
@@ -15,7 +15,16 @@ export async function POST(
   if (!isValidRoomCode(normalised)) {
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
-  const result = await getStore().tallySelection(normalised, 1, "criteria_gate");
+  const store = getStore();
+  const snapshot = await store.getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+  const hostToken = req.headers.get("X-Host-Token") ?? "";
+  if (!hostToken || snapshot.room.host_token !== hostToken) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  const result = await store.tallySelection(normalised, 1, "criteria_gate");
   if (!result) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }

@@ -113,5 +113,5 @@ export async function POST(req: Request) {
     }
   });
 
-  return NextResponse.json({ code: room.code }, { status: 201 });
+  return NextResponse.json({ code: room.code, host_token: room.host_token }, { status: 201 });
 }

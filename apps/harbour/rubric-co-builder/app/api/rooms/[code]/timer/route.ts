@@ -24,6 +24,16 @@ export async function PATCH(
     return NextResponse.json({ error: "invalid json body" }, { status: 400 });
   }
 
+  const store = getStore();
+  const snapshot = await store.getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+  const hostToken = req.headers.get("X-Host-Token") ?? "";
+  if (!hostToken || snapshot.room.host_token !== hostToken) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
   const { duration } = (body ?? {}) as { duration?: number | null };
 
   if (duration !== null && duration !== undefined) {
@@ -32,7 +42,7 @@ export async function PATCH(
     }
   }
 
-  const updated = await getStore().setTimer(normalised, duration ?? null);
+  const updated = await store.setTimer(normalised, duration ?? null);
   if (!updated) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }

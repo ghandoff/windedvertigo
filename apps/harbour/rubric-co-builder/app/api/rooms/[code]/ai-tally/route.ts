@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 //  - vote3             → tally direct AI use votes, advance to pledge
 // falls back to the legacy level-ladder tally if no proposals have been posted.
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
@@ -24,6 +24,11 @@ export async function POST(
   const snapshot = await store.getSnapshot(normalised);
   if (!snapshot) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+
+  const hostToken = req.headers.get("X-Host-Token") ?? "";
+  if (!hostToken || snapshot.room.host_token !== hostToken) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
   if (snapshot.room.state === "ai_ladder_propose") {

@@ -20,10 +20,19 @@ export async function PATCH(
   } catch {
     return NextResponse.json({ error: "invalid json body" }, { status: 400 });
   }
+  const store = getStore();
+  const snapshot = await store.getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+  const hostToken = req.headers.get("X-Host-Token") ?? "";
+  if (!hostToken || snapshot.room.host_token !== hostToken) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
   const o = (body ?? {}) as Record<string, unknown>;
   const raw = typeof o.text === "string" ? o.text.trim().slice(0, 300) : "";
   const text = raw.length > 0 ? raw : null;
-  const room = await getStore().setFacilitatorNudge(normalised, text);
+  const room = await store.setFacilitatorNudge(normalised, text);
   if (!room) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
