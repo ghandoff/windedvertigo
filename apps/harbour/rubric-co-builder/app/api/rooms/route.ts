@@ -87,6 +87,7 @@ export async function POST(req: Request) {
     }
   }
   if (!room) throw new Error("could not generate unique room code");
+  const createdRoom = room;
 
   const seeds: SeedInput[] = data.seeds?.length
     ? data.seeds
@@ -111,7 +112,6 @@ export async function POST(req: Request) {
   // fire-and-forget: generate a sample artefact in the background so the
   // calibrate step can show something tailored to the teacher's brief.
   // after() keeps the connection alive past the response without blocking it.
-  const createdRoom = room;
   after(async () => {
     try {
       const generated = await generateArtefact(data.learning_outcome, data.project_description);
