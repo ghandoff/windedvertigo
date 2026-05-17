@@ -3,7 +3,7 @@ import { Wordmark } from "../_components/wordmark";
 
 export default function WatchPage() {
   return (
-    <main className="min-h-screen w-full flex items-center justify-center px-6 py-24">
+    <main className="min-h-screen bg-champagne w-full flex items-center justify-center px-6 py-24">
       <Wordmark />
       <div className="max-w-2xl w-full text-center">
         <p className="text-sm tracking-widest text-[color:var(--color-cadet)]/70 mb-6">

@@ -12,6 +12,7 @@ export function Wordmark({ className = "" }: { className?: string }) {
         width={132}
         height={24}
         priority
+        unoptimized
       />
     </div>
   );
