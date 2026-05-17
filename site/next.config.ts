@@ -377,9 +377,22 @@ const nextConfig: NextConfig = {
           "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/admin/:path*",
       },
 
-      // rubric co-builder — vercel project deleted in migration; rewrite
-      // removed to surface a clean 404 rather than proxy a dead host.
-      // restore when the app is migrated to CF Workers/Pages.
+      // rubric co-builder — CF Workers (migrated from Vercel)
+      {
+        source: "/harbour/rubric-co-builder",
+        destination:
+          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder",
+      },
+      {
+        source: "/harbour/rubric-co-builder/",
+        destination:
+          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder",
+      },
+      {
+        source: "/harbour/rubric-co-builder/:path*",
+        destination:
+          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder/:path*",
+      },
 
       // values-auction (Vite app — no basePath, serves from root)
       // wordmark.svg uses root-relative /wordmark.svg, proxy it to the app origin
