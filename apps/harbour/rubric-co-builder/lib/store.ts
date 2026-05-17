@@ -55,7 +55,8 @@ export type Store = {
   setCriterionStatus(id: string, status: "selected" | "rejected"): Promise<Criterion | null>;
   getSnapshot(code: string): Promise<RoomSnapshot | null>;
   updateRoomState(code: string, state: RoomState): Promise<Room | null>;
-  joinRoom(code: string): Promise<Participant | null>;
+  joinRoom(code: string): Promise<{ participant: Participant } | { error: "not_found" } | { error: "full" }>;
+  getRoomCount(): Promise<number>;
   participantExists(id: string, roomCode: string): Promise<boolean>;
 
   castVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<Vote | null>;
@@ -402,14 +403,23 @@ function memoryStore(): Store {
 
     async joinRoom(code) {
       const room = findByCode(code);
-      if (!room) return null;
+      if (!room) return { error: "not_found" as const };
+      const cnt = [...db.participants.values()].filter((p) => p.room_id === room.id).length;
+      if (cnt >= 60) return { error: "full" as const };
       const participant: Participant = {
         id: uuid(),
         room_id: room.id,
         joined_at: new Date().toISOString(),
       };
       db.participants.set(participant.id, participant);
-      return participant;
+      return { participant };
+    },
+
+    async getRoomCount() {
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+      return [...db.rooms.values()].filter(
+        (r) => new Date(r.created_at).getTime() > cutoff,
+      ).length;
     },
 
     async participantExists(id, roomCode) {
@@ -1048,7 +1058,7 @@ function neonStore(url: string): Store {
         select id, code, learning_outcome, project_description, state,
                step_started_at, created_at,
                facilitator_nudge, sample_artefact_title, sample_artefact_content,
-               timer_end, timer_duration
+               timer_end, timer_duration, host_token
         from rubric_cobuilder.rooms
         where code = ${code}
         limit 1
@@ -1171,13 +1181,19 @@ function neonStore(url: string): Store {
       const rooms = await sql`
         select id from rubric_cobuilder.rooms where code = ${code} limit 1
       `;
-      if (rooms.length === 0) return null;
+      if (rooms.length === 0) return { error: "not_found" as const };
+      const [{ cnt }] = await sql`
+        select count(*)::int as cnt from rubric_cobuilder.participants where room_id = (
+          select id from rubric_cobuilder.rooms where code = ${code}
+        )
+      `;
+      if ((cnt as number) >= 60) return { error: "full" as const };
       const [participant] = await sql`
         insert into rubric_cobuilder.participants (room_id)
         values (${rooms[0].id})
         returning id, room_id, joined_at
       `;
-      return participant as Participant;
+      return { participant: participant as Participant };
     },
 
     async participantExists(id, roomCode) {
@@ -1189,6 +1205,15 @@ function neonStore(url: string): Store {
         limit 1
       `;
       return rows.length > 0;
+    },
+
+    async getRoomCount() {
+      const [{ count }] = await sql`
+        select count(*)::int as count
+        from rubric_cobuilder.rooms
+        where created_at > now() - interval '24 hours'
+      `;
+      return count as number;
     },
 
     async castVote(participantId, criterionId, round) {

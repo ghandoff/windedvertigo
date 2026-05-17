@@ -67,6 +67,10 @@ export async function POST(req: Request) {
   }
 
   const store = getStore();
+  const count = await store.getRoomCount();
+  if (count >= 300) {
+    return NextResponse.json({ error: "too many rooms" }, { status: 429 });
+  }
   let room: Awaited<ReturnType<typeof store.createRoom>> | null = null;
   for (let attempt = 0; attempt < 8; attempt++) {
     const code = generateRoomCode();

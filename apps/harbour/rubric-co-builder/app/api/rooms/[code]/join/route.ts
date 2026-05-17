@@ -15,9 +15,12 @@ export async function POST(
     return NextResponse.json({ error: "invalid code" }, { status: 400 });
   }
 
-  const participant = await getStore().joinRoom(normalised);
-  if (!participant) {
-    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  const result = await getStore().joinRoom(normalised);
+  if ("error" in result) {
+    if (result.error === "not_found") {
+      return NextResponse.json({ error: "room not found" }, { status: 404 });
+    }
+    return NextResponse.json({ error: "room is full" }, { status: 409 });
   }
-  return NextResponse.json({ participant_id: participant.id }, { status: 201 });
+  return NextResponse.json({ participant_id: result.participant.id }, { status: 201 });
 }
