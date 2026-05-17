@@ -46,12 +46,8 @@ function sanitise(input: unknown): CreateRoomInput | null {
   return { learning_outcome: outcome, project_description: description, seeds };
 }
 
-async function generateUniqueCode(store: ReturnType<typeof getStore>): Promise<string> {
-  for (let i = 0; i < 8; i++) {
-    const code = generateRoomCode();
-    if (!(await store.codeExists(code))) return code;
-  }
-  throw new Error("could not generate a unique room code");
+function isUniqueViolation(e: unknown): boolean {
+  return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
 }
 
 export async function POST(req: Request) {
@@ -71,13 +67,22 @@ export async function POST(req: Request) {
   }
 
   const store = getStore();
-  const code = await generateUniqueCode(store);
-
-  const room = await store.createRoom({
-    code,
-    learning_outcome: data.learning_outcome,
-    project_description: data.project_description,
-  });
+  let room: Awaited<ReturnType<typeof store.createRoom>> | null = null;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const code = generateRoomCode();
+    try {
+      room = await store.createRoom({
+        code,
+        learning_outcome: data.learning_outcome,
+        project_description: data.project_description,
+      });
+      break;
+    } catch (e: unknown) {
+      if (isUniqueViolation(e)) continue;
+      throw e;
+    }
+  }
+  if (!room) throw new Error("could not generate unique room code");
 
   const seeds: SeedInput[] = data.seeds?.length
     ? data.seeds
@@ -90,7 +95,7 @@ export async function POST(req: Request) {
   for (let i = 0; i < seeds.length; i++) {
     const s = seeds[i];
     await store.createCriterion({
-      room_id: room.id,
+      room_id: createdRoom.id,
       name: s.name,
       good_description: s.good_description ?? null,
       source: "seed",
@@ -102,16 +107,17 @@ export async function POST(req: Request) {
   // fire-and-forget: generate a sample artefact in the background so the
   // calibrate step can show something tailored to the teacher's brief.
   // after() keeps the connection alive past the response without blocking it.
+  const createdRoom = room;
   after(async () => {
     try {
       const generated = await generateArtefact(data.learning_outcome, data.project_description);
       if (generated) {
-        await store.setSampleArtefact(room.code, generated.title, generated.content);
+        await store.setSampleArtefact(createdRoom.code, generated.title, generated.content);
       }
     } catch {
       // non-fatal — calibrate step falls back to the stock sample artefact
     }
   });
 
-  return NextResponse.json({ code: room.code, host_token: room.host_token }, { status: 201 });
+  return NextResponse.json({ code: createdRoom.code, host_token: createdRoom.host_token }, { status: 201 });
 }

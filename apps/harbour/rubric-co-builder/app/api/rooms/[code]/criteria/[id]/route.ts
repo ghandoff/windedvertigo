@@ -25,8 +25,16 @@ export async function PATCH(
   if (!participantId) {
     return NextResponse.json({ error: "missing participant_id" }, { status: 400 });
   }
-  if (!(await getStore().participantExists(participantId, normalised))) {
+  const store = getStore();
+  if (!(await store.participantExists(participantId, normalised))) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  const snapshot = await store.getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+  if (!snapshot.criteria.some((c) => c.id === id)) {
+    return NextResponse.json({ error: "criterion not found" }, { status: 404 });
   }
   const patch: {
     name?: string;
@@ -41,7 +49,7 @@ export async function PATCH(
     patch.failure_description = o.failure_description.trim().slice(0, 500);
   }
 
-  const updated = await getStore().updateCriterion(id, patch);
+  const updated = await store.updateCriterion(id, patch);
   if (!updated) {
     return NextResponse.json({ error: "criterion not found" }, { status: 404 });
   }
@@ -62,10 +70,18 @@ export async function DELETE(
   if (!participantId) {
     return NextResponse.json({ error: "missing participant_id" }, { status: 400 });
   }
-  if (!(await getStore().participantExists(participantId, normalised))) {
+  const store = getStore();
+  if (!(await store.participantExists(participantId, normalised))) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
-  const ok = await getStore().deleteCriterion(id);
+  const snapshot = await store.getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+  if (!snapshot.criteria.some((c) => c.id === id)) {
+    return NextResponse.json({ error: "criterion not found" }, { status: 404 });
+  }
+  const ok = await store.deleteCriterion(id);
   if (!ok) {
     return NextResponse.json({ error: "criterion not found" }, { status: 404 });
   }

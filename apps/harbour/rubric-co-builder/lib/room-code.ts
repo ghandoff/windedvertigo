@@ -1,5 +1,5 @@
 // unambiguous alphabet — no 0/O, 1/I, 5/S
-const ALPHABET = "ABCDEFGHJKLMNPQRTUVWXYZ23467989";
+const ALPHABET = "ABCDEFGHJKLMNPQRTUVWXYZ2346789";
 
 export function generateRoomCode(length = 6): string {
   let code = "";
