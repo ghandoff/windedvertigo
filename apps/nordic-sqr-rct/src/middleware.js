@@ -3,6 +3,15 @@ import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
+// Pre-warm the jose JIT on first module load so the first real request to a
+// protected route doesn't pay the ~800ms V8 crypto-compilation cost.
+// CF Workers compile JS code on first execution; calling jwtVerify once at
+// module-init forces the hot path to be compiled before any user hits it.
+// The dummy token always throws — that's expected and silently swallowed.
+void (async () => {
+  try { await jwtVerify('x.x.x', JWT_SECRET); } catch { /* expected */ }
+})();
+
 const PROTECTED_PREFIXES = [
   '/dashboard',
   '/admin',

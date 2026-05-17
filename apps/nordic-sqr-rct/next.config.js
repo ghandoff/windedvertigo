@@ -40,6 +40,21 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Fix B — 2026-05-15: Force CF edge to cache the login page HTML shell
+        // for 24h. Without this explicit directive, CF Workers bypass the edge
+        // CDN cache even when s-maxage is set, causing ~900ms TTFB on every
+        // request until CF eventually decides to cache after 2–3 misses.
+        // stale-while-revalidate allows CF to serve stale while it fetches
+        // a fresh copy in the background — no hard expiry gap for users.
+        source: '/',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=86400, stale-while-revalidate=3600',
+          },
+        ],
+      },
+      {
         source: '/(.*)',
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
