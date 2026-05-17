@@ -163,10 +163,11 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
     <section className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-sm font-semibold text-gray-900">Find research articles</h2>
+          <h2 className="text-sm font-semibold text-gray-900">Discover &amp; Add Articles</h2>
           <p className="text-xs text-gray-500 mt-0.5 max-w-2xl">
-            Paste a title, DOI, or PMID. We&apos;ll query PubMed and Semantic Scholar in parallel,
-            de-duplicate the hits, and show which sources confirmed each result.{' '}
+            Search PubMed and Semantic Scholar — external research databases — by title, DOI, or PMID.
+            Hits are de-duplicated and show which sources confirmed each result. Click{' '}
+            <span className="font-medium">+ Add to Evidence</span> to save an article to your library.{' '}
             <span className="text-gray-400 italic">OSF / pre-registration, Google Scholar, and ResearchGate are on the roadmap.</span>
           </p>
         </div>

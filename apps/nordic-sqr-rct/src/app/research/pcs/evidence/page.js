@@ -178,6 +178,23 @@ function PcsEvidence() {
           CORE / OSF / Google Scholar / ResearchGate roadmapped. */}
       <ArticleSearchPanel canAttach={canAttach} onAttached={handleAttached} />
 
+      {/* Section header separates external discovery (above) from the
+          local library (below). Only shown on the unfiltered view — when
+          ingredient/type/sqrReviewed is active the page h1 already carries
+          the filtered context (e.g. "Evidence — Unreviewed"). */}
+      {!ingredient && !type && sqrReviewed === null && (
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <h2 className="text-base font-semibold text-gray-900">
+            Evidence Library
+            {evidence.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-gray-400">
+                {evidence.length} {evidence.length === 1 ? 'article' : 'articles'}
+              </span>
+            )}
+          </h2>
+        </div>
+      )}
+
       <PcsTable
         columns={columns}
         data={evidence}
@@ -185,6 +202,8 @@ function PcsEvidence() {
         userId={user?.reviewerId}
         defaultSortKey="lastEditedTime"
         defaultSortDir="desc"
+        filterPlaceholder="Search evidence library…"
+        filterLabel="Search evidence library"
       />
     </div>
   );

@@ -29,6 +29,12 @@ export default function PcsTable({
   // pass `hideFilter` to suppress this built-in filter so the operator
   // doesn't see two stacked filter boxes against the same table.
   hideFilter = false,
+  // 2026-05-16 — Callers can override the placeholder and sr-only label
+  // to give context-specific copy (e.g. "Search evidence library…" on the
+  // evidence page). Defaults kept intentionally generic so existing callers
+  // (claims, documents, ingredients, etc.) don't need any changes.
+  filterPlaceholder = 'Search…',
+  filterLabel = 'Search rows',
 }) {
   // Load saved sort preference from localStorage (per user + table).
   // 2026-05-05 — Bumped key version from `pcs-sort-` to `pcs-sort-v2-`
@@ -137,13 +143,13 @@ export default function PcsTable({
       {!hideFilter && (
         <div>
           <label htmlFor={`pcs-table-filter-${tableKey || 'default'}`} className="sr-only">
-            Filter rows
+            {filterLabel}
           </label>
           <input
             id={`pcs-table-filter-${tableKey || 'default'}`}
             type="text"
-            placeholder="Filter..."
-            aria-label="Filter rows"
+            placeholder={filterPlaceholder}
+            aria-label={filterLabel}
             value={filter}
             onChange={e => setFilter(e.target.value)}
             className="w-full max-w-sm px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-pacific-500 focus:border-pacific-500"
