@@ -46,7 +46,9 @@
     "node": ">=22"
   },
   "overrides": {
-    "fast-uri": "3.1.2"
+    "fast-uri": "3.1.2",
+    "ws": "8.20.1",
+    "postcss": "8.5.14"
   },
   "devDependencies": {
     "marked": "^18.0.2",
