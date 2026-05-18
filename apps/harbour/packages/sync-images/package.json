@@ -16,6 +16,6 @@
     "build": "echo 'sync-images: no build step (consumed source-level via TS workspace resolution)'"
   },
   "devDependencies": {
-    "typescript": "^5.6.3"
+    "typescript": "^6.0.3"
   }
 }
