@@ -13,11 +13,11 @@
     "@windedvertigo/job-queue": "*",
     "@anthropic-ai/sdk": "^0.96.0",
     "@notionhq/client": "^5.19.0",
-    "resend": "^4.5.1"
+    "resend": "^6.12.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250510.0",
-    "typescript": "^5.0.0",
+    "typescript": "^6.0.3",
     "wrangler": "^4.0.0"
   }
 }
