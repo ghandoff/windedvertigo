@@ -18,7 +18,7 @@
     "@windedvertigo/feedback": "*",
     "@windedvertigo/stripe": "*",
     "html-to-image": "^1.11.13",
-    "next": "^16.2.3",
+    "next": "^16.2.6",
     "next-auth": "^5.0.0-beta.30",
     "partysocket": "^1.1.3",
     "qrcode.react": "^4.2.0",
@@ -28,7 +28,7 @@
     "@windedvertigo/security": "*"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.19.1",
+    "@opennextjs/cloudflare": "^1.19.10",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22",
     "@types/react": "^19",

@@ -15,13 +15,13 @@
     "@windedvertigo/auth": "*",
     "@windedvertigo/notion": "*",
     "@windedvertigo/tokens": "*",
-    "next": "^16.2.4",
+    "next": "^16.2.6",
     "next-auth": "5.0.0-beta.30",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.19.5",
+    "@opennextjs/cloudflare": "^1.19.10",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^25.6.0",
     "@types/react": "^19",
