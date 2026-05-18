@@ -14,12 +14,6 @@ const nextConfig: NextConfig = {
     BUILD_TIME: new Date().toISOString(),
   },
 
-  async rewrites() {
-    return [
-      { source: "/harbour-launch-map", destination: "/harbour-launch-map.html" },
-    ];
-  },
-
   async redirects() {
     return [
       // Phase 2 restructure — permanent redirects from old routes
