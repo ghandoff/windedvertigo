@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.90.0",
+    "@anthropic-ai/sdk": "^0.96.0",
     "@jalez/react-flow-smart-edge": "^4.0.0",
     "@neondatabase/serverless": "^1.0.2",
     "@opennextjs/cloudflare": "^1.19.10",
