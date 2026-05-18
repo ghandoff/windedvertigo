@@ -9,26 +9,23 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** sat 16 may 2026, ~21:15 PT (cowork, context-sync)
+**last synced:** sun 17 may 2026, ~21:10 PT (cowork, context-sync)
 
 **where we are right now:**
-last day at great wolf lodge with the girls; garrett returns to a quiet desk monday. engineering completely dormant — zero commits in the last 24h across the windedvertigo monorepo; the family weekend is genuinely a weekend. **the biggest new signal is commercial, not technical**: garrett sent sharon matheny (nordic naturals) a friday-morning email titled "nordic research platform — budget a + b, ready to move to contract" (gmail `19e2c50f94751e9a`, sent 8:46am PT fri 15 may), pre-emptively timed so it lands on her desk monday when she's back from conference travel. gina replied saturday calling it "very well crafted and tasteful" — material is good, now it's a waiting game for sharon. this folds the longstanding "lauren bosio post-demo follow-up" thread into a clearer commercial ask. **PRME session 3 reply to charlotta levay (NMBU)** still owed — apology email from fri remains starred + unread. **harbour review forms now 5 days past deadline** — still no commits surfacing the priority-app review forms; carrying into monday's whirlpool x harbour play lab as natural agenda fodder. **amna at 10** still awaiting jonelle's confirmed invite for wed 20 may 4pm UK; if nothing by monday end of day, nudge. **wv-crm vercel rollback project sunsets today (sun 17 may)** — port CF Workers stable through the window; safe to delete monday. dropbox plus trial expires thu 21 may. webinar takeaway kits 3A + 3B still pending upload to commons.
+back from great wolf lodge; garrett spent sun in a heavy claude-code session — **16 commits in the last 24h** is the headline. the rubric-co-builder migrated to CF Workers (commit `67f156e`) and got an 8-step security hardening pass landed in tiered pairs (1A/1B host_token + participantExists guards, 2A/2B TOCTOU + criterion ownership + room rate-limit, 3A/3B branded 404 + ANTHROPIC_API_KEY warning) — net-new project on the live infra surface that wasn't here yesterday. nordic PCS evidence also moved: literature retrieval tool now spans zenodo + ORCID tiers with cost-savings analytics (`e825e66`), expandable rows + opt-in platform-retrieved marking, and a search-vs-discovery clarification on the evidence library page. site `/do` gallery query rewritten to hit the BD assets sub-collection directly (`344b982`). on the commercial side nothing material has moved — fri's nordic naturals "ready to move to contract" email to sharon matheny is still in flight; **gmail inbox is quiet (zero unread in last 24h)**. **PRME session 3 reply to charlotta levay (NMBU)** still owed monday morning. **harbour review forms now 6 days past deadline** — natural agenda fodder for tomorrow's whirlpool x harbour play lab (9–10:30am PT, aaron fruit + marietta monge confirmed again). **wv-crm vercel rollback sunset window closes tonight** — clean delete path opens mon morning. dropbox plus trial expires thu 21 may. webinar takeaway kits 3A + 3B still pending upload to commons. amna at 10 invite from jonelle still not in — nudge mon EOD if still nothing.
 
 ### open threads
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| nordic naturals contract (sharon matheny) | garrett emailed budget a + b "ready to move to contract" fri 8:46am PT; gina endorsed the draft sat | passive monday → tuesday; if no reply by wed, soft nudge via lauren | gmail `19e2c50f94751e9a` |
-| PRME pedagogy session 3 follow-up | charlotta levay (NMBU) apology email landed fri; still starred + unread | warm, charitable reply monday morning before whirlpool; loop maria + meredith if material | gmail `19e2aa821394ac4a` |
-| harbour review forms | 5/6 whirlpool action on garrett; **5 days past mon 11 may deadline; still not surfacing** | design priority-app review forms; raise at mon 18 may whirlpool x harbour play lab | TASKS.md |
+| rubric-co-builder | 8 hardening commits + CF Workers migration today (`67f156e`…`1a4e3e9`) — net-new live surface | post-deploy smoke + verify site proxy rewrite end-to-end; surface in monday whirlpool | github `67f156e` |
+| nordic PCS evidence platform | literature retrieval (zenodo/ORCID + cost analytics) + expandable rows shipped sat/sun | set `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` on vercel prod env to lift coverage from 5/7 → 7/7 tiers | github `e825e66` |
+| nordic naturals contract (sharon matheny) | fri's budget a + b "ready to move to contract" email; gina endorsed sat | passive mon → tue; if no reply by wed, soft nudge via lauren | gmail `19e2c50f94751e9a` |
+| PRME pedagogy session 3 follow-up | charlotta levay (NMBU) apology email landed fri; still starred + unread | warm, charitable reply mon morning before whirlpool; loop maria + meredith if material | gmail `19e2aa821394ac4a` |
+| harbour review forms | 5/6 whirlpool action on garrett; **6 days past mon 11 may deadline** | design priority-app review forms; raise at mon 18 may whirlpool x harbour play lab | TASKS.md |
 | amna at 10 | wed 20 may 4pm UK confirmed; awaiting jonelle's invite with maria, lamis, jamie, sam added | passive — nudge end-of-day mon 18 may if still nothing | gmail thread `19e032bfd528e29a` |
-| wv-crm vercel sunset | port CF Workers stable; rollback project sunsets today (sun 17 may) | delete `wv-crm` vercel project mon morning + update CLAUDE.md infra table | CLAUDE.md infra table |
-| nordic research platform (PCS / SQR-RCT) | fri's 5 commits (cache, perf, labels, wrangler bump) — quiet sat | continue burn-in on Path 3 dual-write; verify pcs evidence pipeline still nominal | github `dc0fa49`…`0af2db5` |
-| collaboration handbook + starter skills | "may 2026 collaboration audit + 4 starter skills" landed in handbook fri (`6d549f9`) | circulate to collective; nominate one starter skill as monday whirlpool warmup | windedvertigo.com/handbook |
+| wv-crm vercel sunset | port CF Workers stable through window; rollback window closes tonight (sun 17 may) | delete `wv-crm` vercel project mon morning + update CLAUDE.md infra table to reflect zero vercel projects | CLAUDE.md infra table |
 | values-auction (post-300-person debrief) | maria's takeaway kits 3A + 3B in drive end of thu | upload to commons mon; debrief at wed whirlpool | slack group DM `C08SBKHFNNL` |
-| PRME capstone (keith) | tue 12 may PRME hold passed; _status to verify_ | confirm whether resolved verbally; if not, frame tier recommendation early this week | gmail thread `19dfd64eb573e79b` |
-| jennifer rose / manchester (PRME) | unsolicited praise sat 9 may — now 7 days owed | warm reply + flag as potential ppcs lead; loop maria | gmail `19e0cf4e22c12937` |
-| holistic skills framework | shipped + reviewed by maria; circulation still pending | share with collective; harbour 5/28 launch tile candidate | windedvertigo.com/portfolio/holistic-skills-a-primer |
 
 ### waiting on external
 
@@ -37,6 +34,7 @@ last day at great wolf lodge with the girls; garrett returns to a quiet desk mon
 - **charlotta levay (NMBU / PRME)** — apology email from fri; she's effectively waiting on garrett's response, not the other way around — flagged here so we don't lose it across the weekend
 - **lauren bosio (nordic naturals)** — folded into sharon thread now that the budget ask is in flight; passive
 - **PRME capstone (keith)** — possibly already settled on tue 12 may hold; _status to verify_
+- **jennifer rose / manchester (PRME)** — unsolicited praise sat 9 may, still owed warm reply (now 8 days); flag as potential ppcs lead
 - **paul ramchandani (pedal conference)** — proposal still unanswered since the holiday; passive
 - **KiwiCo international partnerships** — forwarded inquiry, no response since 17 apr; passive
 - **IDB Salvador** — evaluation committee reviewing apr 10 documentation; receipt confirmed 24 apr; passive monitor
@@ -45,8 +43,10 @@ last day at great wolf lodge with the girls; garrett returns to a quiet desk mon
 ### environment handoffs
 
 **Cowork → Claude Code:**
-- **wv-crm vercel deletion** — rollback window ends today (sun 17 may); delete `wv-crm` project mon morning + update CLAUDE.md infra table to reflect zero remaining vercel projects
+- **wv-crm vercel deletion** — rollback window ends tonight (sun 17 may); delete `wv-crm` project mon morning + update CLAUDE.md infra table to reflect zero remaining vercel projects
+- **rubric-co-builder smoke** — post-CF-Workers migration verify the site proxy rewrite end-to-end + confirm all 8 hardening tiers (host_token, participantExists, TOCTOU, rate-limit, etc.) emit expected guard responses in prod
 - **nordic Path 3 dual-write parity check** — fri's perf + cache wins are in; confirm drift counts clean before any read-path flip to Postgres-primary
+- **set SEMANTIC_SCHOLAR_API_KEY + CORE_API_KEY on vercel prod** — lifts literature retrieval coverage from 5/7 → 7/7 tiers (highest-leverage env-var task on the nordic platform)
 - **values-auction production alias merge** — preview on `claude/self-running-auction-game-7CbZz` still live at `claude-self-running-auction.values-auction-d9m.pages.dev`; production URL still on pre-redesign until branch merges to main
 - **Neon decommission** — clean window ended 2026-05-04; delete the project and update TASKS.md
 - **Vercel project cleanup** — ~22 dormant projects await garrett's confirmation (per `~/.claude/plans/graceful-popping-willow.md`)
@@ -57,20 +57,38 @@ last day at great wolf lodge with the girls; garrett returns to a quiet desk mon
 - **PRME session 3 reply to charlotta levay** — warm, charitable response monday morning; loop maria + meredith if material
 - **nordic naturals — passive watch on sharon's reply** — fri's budget a + b email is the live ask; track inbound, frame any negotiation
 - **upload webinar takeaway kits to commons** — maria sent 3A + 3B thursday end of day; grab on monday
-- **harbour review forms** — design the priority-app review forms (carried 5 days past deadline); use whirlpool x harbour play lab as the forcing function
+- **harbour review forms** — design the priority-app review forms (carried 6 days past deadline); use whirlpool x harbour play lab as the forcing function
 - **PRME capstone keith decision** — verify whether tue 12 may hold resolved this; if not, frame the tier recommendation
-- **jennifer rose reply** — warm response to her PRME session 2 praise; flag as potential ppcs lead
+- **jennifer rose reply** — warm response to her PRME session 2 praise; now 8 days owed; flag as potential ppcs lead
 - **circulate holistic skills framework** — share with collective + consider tile candidate for 5/28 launch
 - **dropbox plus decision** — trial expires thu 21 may; decide keep / cancel before billing
 - **routine admin** — ADP, QuickBooks, gusto expense reviews (verify against current state next sweep)
 
 ### mobile bookmarks
 
-- _no self-DMs in the last 24h_ — slack search for `from:@garrett to:@garrett` and `in:@garrett` both returned zero results. nothing parked from the road, consistent with a true family weekend.
+- _no self-DMs in the last 48h_ — slack search for `from:@garrett to:@garrett` and `in:@garrett` both returned zero results. nothing parked from the road; consistent with garrett returning fresh from great wolf lodge straight into a coding session.
 
 ---
 
 ## history (most recent first)
+
+---
+
+## 2026-05-17 (night) — context-sync: heavy claude-code sunday, rubric-co-builder migrated to CF Workers + 8 hardening tiers, nordic PCS literature retrieval shipped (Cowork)
+
+**what happened:**
+- **engineering completely flipped from yesterday's "dormant"** — 16 commits in the last 24h across the windedvertigo monorepo, all from a focused sun claude-code session after garrett got back from great wolf lodge.
+- **rubric-co-builder migrated to CF Workers** (`67f156e`, sat 23:20) with site proxy rewrite restored; then 8 hardening commits landed in tiered pairs through sun morning: `7706071` (1A host_token + facilitator guard), `65ddfcc` (1B participantExists guard on all writable routes), `6950c0a` (2A alphabet dedup + TOCTOU fix + criterion ownership + pledge indexes), `6330a1f` (2B 60-participant cap + 300/24h room rate limit), `21d2c02` (3A SVG wordmark + branded 404 + watch bg), `031e735` (3B security to devDeps + ANTHROPIC_API_KEY startup warning), `1a4e3e9` (TS hoist alias fix). net-new live infra surface that wasn't here yesterday.
+- **nordic PCS evidence platform got a major upgrade** — `e825e66` literature retrieval tool with zenodo + ORCID tiers and cost-savings analytics; `8ebdf24` clarified search vs. discovery distinction on the evidence library page; `d65bed7` extended backfill endpoint with opt-in platform-retrieved marking; `c342134` expandable rows + refined column design on the pcs-evidence table.
+- **site `/do` gallery rebuilt** (`344b982`) to query the BD assets sub-collection directly rather than going through the parent surface.
+- **middleware + perf work** — `b96c205` Fix A revised with valid JWT + await-gate for jose JIT pre-warm; `eae2325` eliminated cold-start JIT penalty + edge-cache login page + fixed ISR on API route; `8f092fa` suspense wrapping + drift-sync timeout resilience + lib import cleanup.
+- **commercial side is quiet** — no movement on sharon matheny (nordic naturals) yet; gmail inbox shows zero unread in last 24h; PRME session 3 reply to charlotta levay still owed.
+- **harbour review forms now 6 days past deadline** — claude-code session prioritised rubric-co-builder hardening and pcs-evidence over forms; tomorrow's whirlpool x harbour play lab (9–10:30am PT, aaron fruit + marietta monge again) is the forcing function.
+- **calendar — mon 18 may:** weekly site check 7am PT, whirlpool x harbour play lab 9–10:30am PT (lamis + jamie + maria + marietta confirmed; aaron tentative; payton needsAction), weekly = payton x garrett 11am PT, ortho 11:30am PT (declined on w.v calendar; accepted on personal).
+- **slack search:** zero self-DMs in last 48h (consistent with great wolf lodge weekend + coding session).
+- **wv-crm vercel rollback window closes tonight** — port CF Workers held stable through the 14-day rollback window; mon morning is the clean delete moment.
+- **dropbox plus trial reminder:** 4 days left, billing kicks in thu 21 may.
+- **slack DM sent to garrett (U06Q4UN4PKR).**
 
 ---
 
