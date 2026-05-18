@@ -1,3 +1,4 @@
+const html = `
 <!doctype html>
 <html lang="en">
 <head>
@@ -1013,3 +1014,5 @@ tabs.forEach(tab => {
 </script>
 </body>
 </html>
+`;
+export default html;
