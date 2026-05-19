@@ -13,7 +13,7 @@ export default function LandingPage() {
           className="text-xs tracking-widest uppercase"
           style={{ color: "var(--color-cadet)", opacity: 0.7 }}
         >
-          companion · single-user worksheet
+          co.rubric companion · free for the PRME community
         </p>
         <h1
           className="text-4xl md:text-5xl font-bold leading-tight"
@@ -40,14 +40,14 @@ export default function LandingPage() {
             start the worksheet
           </Link>
           <a
-            href="/harbour/rubric-co-builder"
+            href="/harbour/co-rubric"
             className="text-sm underline underline-offset-4"
             style={{
               color: "var(--color-cadet)",
               textDecorationColor: "color-mix(in srgb, var(--color-cadet) 30%, transparent)",
             }}
           >
-            facilitating a class? try the full version →
+            facilitating a class? try co.rubric (full) →
           </a>
         </div>
       </div>

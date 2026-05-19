@@ -30,8 +30,8 @@ const ROOMS = Number(arg("rooms", 20));
 const STUDENTS = Number(arg("students", 15));
 const COMPANION_HITS = Number(arg("hits", 300));
 const CONCURRENCY = Number(arg("concurrency", 30));
-const BASE_A = arg("base-a", "https://windedvertigo.com/harbour/rubric-co-builder");
-const BASE_B = arg("base-b", "https://windedvertigo.com/harbour/rubric-co-builder-companion");
+const BASE_A = arg("base-a", "https://windedvertigo.com/harbour/co-rubric");
+const BASE_B = arg("base-b", "https://windedvertigo.com/harbour/co-rubric-companion");
 
 // ── concurrency limiter ───────────────────────────────────────────────
 function makeLimiter(max) {

@@ -377,38 +377,41 @@ const nextConfig: NextConfig = {
           "https://wv-harbour-creaseworks.windedvertigo.workers.dev/harbour/creaseworks/admin/:path*",
       },
 
-      // rubric co-builder — CF Workers (migrated from Vercel)
+      // co.rubric (the full facilitated app — paid tier as of 2026-06+)
+      // Worker name stays wv-harbour-rubric-co-builder (internal rename
+      // would require Worker recreation + Neon schema rename — not worth it).
       {
-        source: "/harbour/rubric-co-builder",
+        source: "/harbour/co-rubric",
         destination:
-          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder",
+          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/co-rubric",
       },
       {
-        source: "/harbour/rubric-co-builder/",
+        source: "/harbour/co-rubric/",
         destination:
-          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder",
+          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/co-rubric",
       },
       {
-        source: "/harbour/rubric-co-builder/:path*",
+        source: "/harbour/co-rubric/:path*",
         destination:
-          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder/:path*",
+          "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/co-rubric/:path*",
       },
 
-      // rubric co-builder companion — lighter single-user worksheet
+      // co.rubric companion (the free single-user worksheet, free for
+      // the PRME community)
       {
-        source: "/harbour/rubric-co-builder-companion",
+        source: "/harbour/co-rubric-companion",
         destination:
-          "https://wv-harbour-rcb-companion.windedvertigo.workers.dev/harbour/rubric-co-builder-companion",
+          "https://wv-harbour-rcb-companion.windedvertigo.workers.dev/harbour/co-rubric-companion",
       },
       {
-        source: "/harbour/rubric-co-builder-companion/",
+        source: "/harbour/co-rubric-companion/",
         destination:
-          "https://wv-harbour-rcb-companion.windedvertigo.workers.dev/harbour/rubric-co-builder-companion",
+          "https://wv-harbour-rcb-companion.windedvertigo.workers.dev/harbour/co-rubric-companion",
       },
       {
-        source: "/harbour/rubric-co-builder-companion/:path*",
+        source: "/harbour/co-rubric-companion/:path*",
         destination:
-          "https://wv-harbour-rcb-companion.windedvertigo.workers.dev/harbour/rubric-co-builder-companion/:path*",
+          "https://wv-harbour-rcb-companion.windedvertigo.workers.dev/harbour/co-rubric-companion/:path*",
       },
 
       // values-auction (Vite app — no basePath, serves from root)
@@ -534,6 +537,31 @@ const nextConfig: NextConfig = {
       {
         source: "/harbour/feel-cards/:path*",
         destination: "/harbour/read-the-room/:path*",
+        permanent: true,
+      },
+
+      // co.rubric — slug rename from rubric-co-builder (2026-05-19).
+      // The companion redirect must come BEFORE the full-app redirect
+      // because Next.js evaluates redirects in order and the companion
+      // path starts with the full path's slug ("rubric-co-builder").
+      {
+        source: "/harbour/rubric-co-builder-companion",
+        destination: "/harbour/co-rubric-companion",
+        permanent: true,
+      },
+      {
+        source: "/harbour/rubric-co-builder-companion/:path*",
+        destination: "/harbour/co-rubric-companion/:path*",
+        permanent: true,
+      },
+      {
+        source: "/harbour/rubric-co-builder",
+        destination: "/harbour/co-rubric",
+        permanent: true,
+      },
+      {
+        source: "/harbour/rubric-co-builder/:path*",
+        destination: "/harbour/co-rubric/:path*",
         permanent: true,
       },
 

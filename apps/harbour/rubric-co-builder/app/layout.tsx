@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "rubric co-builder — winded.vertigo",
+  title: "co.rubric — winded.vertigo",
   description:
     "a browser tool that walks a class through co-designing an assessment rubric in real time.",
   robots: { index: false, follow: false },
