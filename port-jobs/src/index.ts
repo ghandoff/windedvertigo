@@ -60,6 +60,7 @@ import { postToSlack } from "@/lib/slack";
 import { notion } from "@/lib/notion/client";
 import {
   setProposalStatus,
+  setProposalStep,
   setProposalUrls,
   resetProposalToFailed,
 } from "@/lib/supabase/rfp-opportunities";
@@ -251,6 +252,9 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     }
 
     // 3. Parallel data fetch
+    setProposalStep(rfpId, "gathering_context").catch((e) =>
+      console.warn("[proposal] step tracking:", e),
+    );
     const orgId = rfp.organizationIds?.[0] ?? null;
     const rfpGeo = rfp.geography?.[0] ?? undefined;
     const funderTypeKeys = ["UN System", "IDB", "USAID"];
@@ -284,6 +288,9 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     // 4b. Fetch document requirements
     let documentRequirements: string | null = null;
     if (rfp.rfpDocumentUrl && rfp.rfpDocumentUrl.startsWith("http")) {
+      setProposalStep(rfpId, "reading_document").catch((e) =>
+        console.warn("[proposal] step tracking:", e),
+      );
       try {
         const docRes = await fetch(rfp.rfpDocumentUrl, { signal: AbortSignal.timeout(15000) });
         if (docRes.ok) {
@@ -305,12 +312,18 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     }
 
     // 4d. Match bibliography citations
+    setProposalStep(rfpId, "matching_citations").catch((e) =>
+      console.warn("[proposal] step tracking:", e),
+    );
     let relevantCitations = null;
     if (allCitations.length > 0) {
       relevantCitations = await matchCitations({ rfp, allCitations, userId: triggeredBy }).catch(() => null);
     }
 
     // 5. Generate proposal draft (direct call — no step.run checkpoint)
+    setProposalStep(rfpId, "writing_draft").catch((e) =>
+      console.warn("[proposal] step tracking:", e),
+    );
     let draft: import("@/lib/ai/proposal-generator").ProposalDraft;
     try {
       draft = await generateProposal({
@@ -332,6 +345,9 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     }
 
     // 6. Create Deal in Notion
+    setProposalStep(rfpId, "building_documents").catch((e) =>
+      console.warn("[proposal] step tracking:", e),
+    );
     const dueLabel   = formatDate(rfp.dueDate?.start);
     const valueLabel = rfp.estimatedValue
       ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(rfp.estimatedValue)
@@ -410,6 +426,9 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     }
 
     // 6e. Generate cover letter sub-page
+    setProposalStep(rfpId, "cover_letter").catch((e) =>
+      console.warn("[proposal] step tracking:", e),
+    );
     let coverLetterUrl: string | null = null;
     if (draft.requiresCoverLetter && draft.coverLetter) {
       try {
@@ -424,6 +443,9 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     }
 
     // 6f. Generate team CVs sub-page
+    setProposalStep(rfpId, "team_cvs").catch((e) =>
+      console.warn("[proposal] step tracking:", e),
+    );
     let teamCvsUrl: string | null = null;
     if (draft.teamMembersForCvs.length > 0) {
       try {
@@ -465,6 +487,10 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       coverLetterUrl: coverLetterUrl ?? null,
       teamCvsUrl: teamCvsUrl ?? null,
     }).catch((e) => console.warn("[proposal] supabase url sync failed:", e));
+    // Clear the active step now that generation is complete
+    setProposalStep(rfpId, null).catch((e) =>
+      console.warn("[proposal] step tracking:", e),
+    );
 
     // 7. Slack summary
     const lines = [
