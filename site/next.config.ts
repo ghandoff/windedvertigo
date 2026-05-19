@@ -503,16 +503,25 @@ const nextConfig: NextConfig = {
   },
 
   // Redirects — vertigo vault legacy URLs
+  //
+  // Order matters: the bare `/vertigo-vault` exact match MUST come before the
+  // `/vertigo-vault/:path*` catch-all. Otherwise the catch-all matches with
+  // `:path*` = "" and OpenNext-CF emits the destination string verbatim
+  // (`/harbour/vertigo-vault/:path*`), since the parameter-interpolation pass
+  // doesn't substitute an empty match. PRME participants hitting the bare
+  // legacy URL would land on a literal `:path*` 404. Probed in production
+  // 2026-05-19: `/vertigo-vault/some-slug` interpolated fine, `/vertigo-vault`
+  // did not — confirming the empty-path edge case.
   async redirects() {
     return [
       {
-        source: "/vertigo-vault/:path*",
-        destination: "/harbour/vertigo-vault/:path*",
+        source: "/vertigo-vault",
+        destination: "/harbour/vertigo-vault",
         permanent: true,
       },
       {
-        source: "/vertigo-vault",
-        destination: "/harbour/vertigo-vault",
+        source: "/vertigo-vault/:path*",
+        destination: "/harbour/vertigo-vault/:path*",
         permanent: true,
       },
 
