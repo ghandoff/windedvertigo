@@ -418,7 +418,17 @@ export function RfpKanban({ opportunities }: RfpKanbanProps) {
   const hasGenerating = opportunities.some((r) => r.proposalStatus === "generating");
   useEffect(() => {
     if (!hasGenerating) return;
-    const timer = setInterval(() => router.refresh(), 10_000);
+    let polls = 0;
+    const MAX_POLLS = 60; // 10 min at 10s intervals — guards against permanently stuck jobs
+    const timer = setInterval(() => {
+      polls += 1;
+      if (polls >= MAX_POLLS) {
+        clearInterval(timer);
+        console.warn("[rfp-kanban] stopped polling after 10 min — proposal may be stuck");
+        return;
+      }
+      router.refresh();
+    }, 10_000);
     return () => clearInterval(timer);
   }, [hasGenerating, router]);
 
@@ -431,7 +441,8 @@ export function RfpKanban({ opportunities }: RfpKanbanProps) {
     async (itemId: string, newStatus: string) => {
       const rfpStatus = newStatus as RfpStatus;
 
-      // Intercept moves to "reviewing", or moves to "pursuing" when fit score is still TBD
+      // Intercept moves to "reviewing"; also intercept moves to "pursuing" when fit score
+      // is TBD or "low fit" — high/medium fit cards move directly without a gate.
       if (rfpStatus === "reviewing") {
         const rfp = opportunities.find((r) => r.id === itemId);
         setPendingGoNoGo({
@@ -444,7 +455,7 @@ export function RfpKanban({ opportunities }: RfpKanbanProps) {
 
       if (rfpStatus === "pursuing") {
         const rfp = opportunities.find((r) => r.id === itemId);
-        if (rfp && rfp.wvFitScore === "TBD") {
+        if (rfp && (rfp.wvFitScore === "TBD" || rfp.wvFitScore === "low fit")) {
           setPendingGoNoGo({
             id: itemId,
             rfpName: rfp.opportunityName,
