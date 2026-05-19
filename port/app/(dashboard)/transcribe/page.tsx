@@ -16,9 +16,13 @@ export const dynamic = "force-dynamic";
 export default async function TranscribePage() {
   // Fetch members + active projects in parallel so the client can offer
   // attendee + project pickers without a second round-trip.
+  // .catch() guards prevent a Supabase hiccup from crashing the whole page —
+  // the form renders with empty pickers instead of a 500 error.
   const [members, { data: projects }] = await Promise.all([
-    getActiveMembersFromSupabase(),
-    getProjectsFromSupabase({ archive: false }, { pageSize: 100 }),
+    getActiveMembersFromSupabase().catch(() => [] as Awaited<ReturnType<typeof getActiveMembersFromSupabase>>),
+    getProjectsFromSupabase({ archive: false }, { pageSize: 100 }).catch(
+      () => ({ data: [], total: 0 }) as Awaited<ReturnType<typeof getProjectsFromSupabase>>,
+    ),
   ]);
 
   const activeProjects = projects
