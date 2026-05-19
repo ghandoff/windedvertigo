@@ -84,6 +84,7 @@ export function StepPropose({ code, criteria, canEdit }: Props) {
               onChange={(e) => setName(e.target.value)}
               maxLength={120}
               placeholder="criterion name"
+              aria-label="criterion name"
               className="w-full rounded-lg border border-[color:var(--color-cadet)]/20 bg-white px-4 py-3 placeholder:text-[color:var(--color-cadet)]/40 focus:border-[color:var(--color-cadet)] focus:outline-none"
             />
             <textarea
@@ -92,6 +93,7 @@ export function StepPropose({ code, criteria, canEdit }: Props) {
               maxLength={500}
               rows={2}
               placeholder="what good looks like (optional, one line)"
+              aria-label="what good looks like for this criterion (optional)"
               className="w-full rounded-lg border border-[color:var(--color-cadet)]/20 bg-white px-4 py-3 text-sm leading-relaxed placeholder:text-[color:var(--color-cadet)]/40 focus:border-[color:var(--color-cadet)] focus:outline-none"
             />
             <button
@@ -256,6 +258,7 @@ function CriterionCard({
             onChange={(e) => setVName(e.target.value)}
             maxLength={120}
             placeholder="variation name"
+            aria-label="variation name"
             className="w-full rounded border border-[color:var(--color-cadet)]/20 bg-[color:var(--color-champagne)]/30 px-3 py-2 text-sm focus:border-[color:var(--color-cadet)] focus:outline-none"
           />
           <textarea
@@ -264,6 +267,7 @@ function CriterionCard({
             maxLength={500}
             rows={2}
             placeholder="what good looks like"
+            aria-label="what good looks like for this variation"
             className="w-full rounded border border-[color:var(--color-cadet)]/20 bg-[color:var(--color-champagne)]/30 px-3 py-2 text-sm leading-relaxed focus:border-[color:var(--color-cadet)] focus:outline-none"
           />
           <button

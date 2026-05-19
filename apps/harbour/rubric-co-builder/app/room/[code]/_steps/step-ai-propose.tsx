@@ -83,6 +83,7 @@ export function StepAiPropose({
                 rows={4}
                 maxLength={600}
                 placeholder="one line on why this rung fits this project."
+                aria-label="rationale for your chosen AI use rung"
                 className="w-full rounded-lg border border-[color:var(--color-cadet)]/20 bg-white px-4 py-3 text-sm leading-relaxed placeholder:text-[color:var(--color-cadet)]/40 focus:border-[color:var(--color-cadet)] focus:outline-none"
               />
             </div>

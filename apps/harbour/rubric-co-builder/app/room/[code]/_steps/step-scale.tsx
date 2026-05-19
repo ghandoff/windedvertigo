@@ -243,6 +243,7 @@ function ScaleCell({
           rows={5}
           maxLength={600}
           placeholder={canonicalDescriptor || "describe this level…"}
+          aria-label={`descriptor for level ${level} (${label})`}
           className="w-full text-sm leading-relaxed bg-white rounded p-2 border border-transparent focus:border-[color:var(--color-cadet)]/30 focus:outline-none resize-none placeholder:text-[color:var(--color-cadet)]/30 placeholder:italic"
         />
       ) : (

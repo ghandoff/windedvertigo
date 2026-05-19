@@ -44,6 +44,18 @@ function fmt(secs: number): string {
   return `${m}:${s}`;
 }
 
+// UDL 1.2 / WCAG 1.1.1: timer urgency communicated via colour AND a
+// programmatic announcement. We re-emit aria-live updates only at
+// pedagogically relevant marks (1:00, 0:30, 0:10, 0:00) so screen-reader
+// users aren't bombarded every second.
+function timerAnnouncement(remaining: number): string | null {
+  if (remaining === 0) return "time is up, moving on";
+  if (remaining === 60) return "one minute left";
+  if (remaining === 30) return "thirty seconds left";
+  if (remaining === 10) return "ten seconds left";
+  return null;
+}
+
 function TimerBanner({ timerEnd, currentState }: {
   timerEnd: string | null;
   currentState: RoomState;
@@ -54,15 +66,30 @@ function TimerBanner({ timerEnd, currentState }: {
 
   const isUrgent = remaining <= 30 && remaining > 0;
   const isDone = remaining === 0;
+  const announcement = timerAnnouncement(remaining);
 
   return (
-    <div className={`flex items-center justify-center gap-3 rounded-lg px-4 py-3 mb-4 ${
+    <div
+      role="timer"
+      aria-label="time remaining in this step"
+      className={`flex items-center justify-center gap-3 rounded-lg px-4 py-3 mb-4 ${
       isDone
         ? "bg-[color:var(--color-sienna)]/20 border border-[color:var(--color-sienna)]/40"
         : isUrgent
         ? "bg-[color:var(--color-sienna)]/10 border border-[color:var(--color-sienna)]/30"
         : "bg-[color:var(--color-cadet)]/8 border border-[color:var(--color-cadet)]/15"
     }`}>
+      {/* off-screen announcer — only updates at the milestones above so
+          screen-readers aren't spammed every second. assertive at zero,
+          polite for warning marks. */}
+      <span
+        role="status"
+        aria-live={isDone ? "assertive" : "polite"}
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement ?? ""}
+      </span>
       <span className="text-xs tracking-widest opacity-60 uppercase">time left</span>
       <span className={`font-mono text-4xl font-bold tabular-nums leading-none ${
         isDone ? "text-[color:var(--color-sienna)]" : isUrgent ? "text-[color:var(--color-sienna)]" : "text-[color:var(--color-cadet)]"

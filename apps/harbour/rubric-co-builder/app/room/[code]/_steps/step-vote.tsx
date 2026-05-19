@@ -107,7 +107,11 @@ export function StepVote({
           criteria are locked in regardless of the vote.
         </p>
         {participantId ? (
-          <p className="text-sm">
+          // UDL 6.4 (capacity for monitoring progress): aria-live so
+          // screen-reader users hear the remaining-dots count update
+          // after each cast. role=status keeps the announcement polite
+          // — it queues behind whatever the SR is currently saying.
+          <p className="text-sm" role="status" aria-live="polite" aria-atomic="true">
             <span className="font-semibold text-[color:var(--color-sienna)]">
               {dotsLeft}
             </span>{" "}

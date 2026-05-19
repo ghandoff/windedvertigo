@@ -210,7 +210,13 @@ export function HostRoom({ code }: { code: string }) {
           <p className="text-[color:var(--color-cadet)]/80 leading-relaxed">
             this browser doesn&apos;t have the host token for room <strong>{code}</strong>.
             sessions don&apos;t survive opening the room in a different browser or
-            clearing site data. you can spin up a fresh room with the same brief.
+            clearing site data.
+          </p>
+          <p className="text-[color:var(--color-cadet)]/70 leading-relaxed text-sm">
+            the students&apos; join link for this room still works — only the host
+            controls were lost. if class is already running and you can&apos;t get
+            back to the original tab, spinning up a fresh room with the same brief
+            is the quickest path forward.
           </p>
           <a
             href={apiPath("/new")}
