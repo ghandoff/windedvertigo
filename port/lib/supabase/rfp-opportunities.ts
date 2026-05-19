@@ -539,8 +539,9 @@ export async function setRfpInfluencedByEventIds(
  * Called from PATCH /api/rfp-radar/[id] so Supabase stays in sync
  * with the Notion write that happens in the same request.
  *
- * Fire-and-forget safe — logs a warning but never throws so it can't
- * block the Notion write or the UI response.
+ * Throws on error — the PATCH handler awaits this before the Notion write,
+ * so a silent swallow would leave Supabase stale (defeating the purpose).
+ * Callers that want fire-and-forget should catch() themselves.
  */
 export async function setRfpStatus(
   notionPageId: string,
@@ -551,6 +552,6 @@ export async function setRfpStatus(
     .update({ status })
     .eq("notion_page_id", notionPageId);
   if (error) {
-    console.warn(`[supabase/rfp-opportunities] setRfpStatus: ${error.message}`);
+    throw new Error(`[supabase/rfp-opportunities] setRfpStatus: ${error.message}`);
   }
 }

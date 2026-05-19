@@ -58,6 +58,11 @@ import { generateProposal, TEAM_BIOS } from "@/lib/ai/proposal-generator";
 import { matchCitations } from "@/lib/ai/citation-matcher";
 import { postToSlack } from "@/lib/slack";
 import { notion } from "@/lib/notion/client";
+import {
+  setProposalStatus,
+  setProposalUrls,
+  resetProposalToFailed,
+} from "@/lib/supabase/rfp-opportunities";
 import { getTimesheet } from "@/lib/notion/timesheets";
 import { getActiveMembers } from "@/lib/notion/members";
 import { sendOutreachEmail } from "@/lib/email/resend";
@@ -449,6 +454,18 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
 
     updateRfpOpportunity(rfpId, rfpUpdates).catch(() => {});
 
+    // Sync final status + URLs to Supabase so the progress tracker sees
+    // "ready-for-review" immediately (it polls Supabase, not Notion).
+    // Without this, the tracker stays spinning until the 15-min sweep cron.
+    setProposalStatus(rfpId, "ready-for-review").catch((e) =>
+      console.warn("[proposal] supabase status sync failed:", e),
+    );
+    setProposalUrls(rfpId, {
+      proposalDraftUrl: dealUrl,
+      coverLetterUrl: coverLetterUrl ?? null,
+      teamCvsUrl: teamCvsUrl ?? null,
+    }).catch((e) => console.warn("[proposal] supabase url sync failed:", e));
+
     // 7. Slack summary
     const lines = [
       `📋 Proposal draft ready for review: *${rfpName}*`,
@@ -490,6 +507,13 @@ const proposalDlqConsumer = createQueueConsumer<RfpProposalJob>(
 
     await updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch((err) => {
       console.error("[proposal-dlq] could not reset proposalStatus:", err);
+    });
+
+    // Also reset in Supabase — the progress tracker polls Supabase, so without
+    // this the tracker stays spinning forever (the 5-min sweep cron is the
+    // only other path that would fix it).
+    await resetProposalToFailed(rfpId).catch((err) => {
+      console.warn("[proposal-dlq] could not reset supabase status:", err);
     });
 
     await postToSlack(

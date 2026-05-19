@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateRfpOpportunity, archiveRfpOpportunity } from "@/lib/notion/rfp-radar";
-import { setRfpInfluencedByEventIds, setRfpStatus } from "@/lib/supabase/rfp-opportunities";
-import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
+import {
+  setRfpInfluencedByEventIds,
+  setRfpStatus,
+  getRfpOpportunityByIdFromSupabase,
+  setProposalStatus,
+} from "@/lib/supabase/rfp-opportunities";
 import { json, withNotionError } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
 import { createRfpDeadlineEvent } from "@/lib/gcal";
@@ -52,38 +56,49 @@ export async function PATCH(
     const updated = await updateRfpOpportunity(id, body);
 
     // Trigger proposal generation when an RFP moves to "pursuing" —
-    // skip if a draft is already generating or complete to prevent duplicates.
-    if (
-      body.status === "pursuing" &&
-      updated.proposalStatus !== "complete" &&
-      updated.proposalStatus !== "generating"
-    ) {
-      const session = await auth();
-      const triggeredBy = session?.user?.email ?? "system";
+    // Guard reads from Supabase (the authoritative read layer) rather than the
+    // Notion response object: Notion's proposalStatus lags Supabase by up to
+    // 15 min (sync cron cadence), so using updated.proposalStatus could allow
+    // duplicate jobs when a card is re-dragged mid-generation.
+    if (body.status === "pursuing") {
+      const freshState = await getRfpOpportunityByIdFromSupabase(id).catch(() => null);
+      const alreadyActive =
+        freshState?.proposalStatus === "complete" ||
+        freshState?.proposalStatus === "generating" ||
+        freshState?.proposalStatus === "queued";
 
-      // Mark as generating in Notion *before* returning so the UI sees it on refresh
-      await updateRfpOpportunity(id, { proposalStatus: "generating" });
-      const withGenerating = { ...updated, proposalStatus: "generating" as const };
+      if (!alreadyActive) {
+        const session = await auth();
+        const triggeredBy = session?.user?.email ?? "system";
 
-      // Fire-and-forget — don't block the UI response
-      // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
-      const proposalPayload: RfpProposalJob = {
-        type: "rfp/generate-proposal",
-        rfpId: id,
-        triggeredBy,
-        requestedAt: new Date().toISOString(),
-      };
-      const { env } = getCloudflareContext();
-      publishJob(env.PROPOSAL_QUEUE, proposalPayload).catch((err) => {
-        console.warn("[rfp-radar] failed to enqueue proposal job:", err);
-      });
+        // Mark as generating in both Notion and Supabase *before* returning so
+        // the UI sees it on the next router.refresh() from either source.
+        await Promise.all([
+          updateRfpOpportunity(id, { proposalStatus: "generating" }),
+          setProposalStatus(id, "generating"),
+        ]);
+        const withGenerating = { ...updated, proposalStatus: "generating" as const };
 
-      // Auto-create a Google Calendar deadline event — fire-and-forget, never blocks
-      createRfpDeadlineEvent(updated).catch((err) => {
-        console.warn("[rfp-radar] failed to create GCal deadline event:", err);
-      });
+        // Fire-and-forget — don't block the UI response
+        // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
+        const proposalPayload: RfpProposalJob = {
+          type: "rfp/generate-proposal",
+          rfpId: id,
+          triggeredBy,
+          requestedAt: new Date().toISOString(),
+        };
+        const { env } = getCloudflareContext();
+        publishJob(env.PROPOSAL_QUEUE, proposalPayload).catch((err) => {
+          console.warn("[rfp-radar] failed to enqueue proposal job:", err);
+        });
 
-      return json(withGenerating);
+        // Auto-create a Google Calendar deadline event — fire-and-forget, never blocks
+        createRfpDeadlineEvent(updated).catch((err) => {
+          console.warn("[rfp-radar] failed to create GCal deadline event:", err);
+        });
+
+        return json(withGenerating);
+      }
     }
 
     return json(updated);
