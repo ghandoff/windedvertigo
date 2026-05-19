@@ -231,9 +231,13 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       rfp = await getRfpOpportunity(rfpId);
     } catch (err) {
       console.error("[proposal] failed to fetch RFP:", err);
-      // Sync failure back to Supabase so the UI escape hatch shows immediately
-      // and the sweep cron doesn't need to clean it up.
+      // Sync failure back to Supabase (authoritative read layer) so the UI
+      // escape hatch shows immediately without waiting for the sweep cron.
       setProposalStatus(rfpId, "failed").catch(() => {});
+      // Best-effort Notion reset — may fail if Notion itself caused the error
+      // (rate-limit burst, transient API error), but prevents Notion from
+      // showing "generating" indefinitely when Supabase already shows "failed".
+      updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
       await postToSlack(`⚠️ Proposal generation failed for RFP \`${rfpId}\` — could not fetch record from Notion.`);
       return { success: false, error: "rfp_not_found" };
     }
