@@ -362,7 +362,8 @@ a { color: var(--wv-cadet); }
         <p>direct artefact of the ppcs framework. solves a known pain (assessment that goes beyond recall) for the audience already in the room. credibility anchor — the 21-skill framework and un global compact branding sit behind it.</p>
         <h4>what to say in marketing</h4>
         <p>frame as "evidence for the work you're already doing" — not new content, but a way to surface the skills hidden in current curricula. faculty testimonial from ppcs is the killer asset.</p>
-        <div class="flag" style="margin-top:8px"><strong>launch status — pending:</strong> depth.chart's ownership was flagged as unresolved at the 06 may and 18 may whirlpools ("depth chart pending meredith's ownership"). confirmed not launching on may 28 until meredith conversation closes. hold launch copy until resolved.</div>
+        <div class="flag" style="margin-top:8px"><strong>launch status — explicitly deferred:</strong> depth.chart does <em>not</em> launch may 28. this is a values decision — out of respect for meredith and prme's claim on the current "upload objective → get task redesign" version. show as "coming soon" tile on the wave-1 site. action: garrett to schedule meredith call before may 22. remove from press kit, launch email, and all wave-1 marketing until resolved.</div>
+        <div class="callout" style="margin-top:8px; background:#faf6ef"><strong>jamie's redesign direction (may 18 transcript):</strong> current depth.chart creates more work, not less — that's the bug. jamie's proposed two-tier rebuild: <strong>shallow mode</strong> (time-saving, meets time-pressed faculty where they are — quick objective → task redesign, useful tomorrow) + <strong>deep mode</strong> (prompt archaeology: epistemic pause, ambiguity surfacing, pattern fragility probes, reverse epistemology queries that expose ai's hidden assumptions and statistical tendencies). deep mode is w.v ip — not announced at launch. develop post-prime as a pathway for the cohort already familiar with the framework. shallow version ships first as the "lifeguard at the shallow end." the harbour's other apps become the vector to move shallow-mode users toward deeper practice.</div>
         <div class="url">windedvertigo.com/harbour/depth-chart</div>
       </div>
     </div>
@@ -469,9 +470,14 @@ a { color: var(--wv-cadet); }
   <h3>shared positioning notes for the wave-1 set</h3>
   <ul>
     <li><strong>audience framing:</strong> "prime plus / adult / higher-ed" — decided 06 may. avoid kids/family language in any wave-1 copy; that's wave 2's job.</li>
-    <li><strong>monetisation:</strong> free sample, then ad-supported, then subscription or pack purchases. wave 1 keeps the free sample generous to let ppcs alumni walk in without friction.</li>
-    <li><strong>credibility anchor:</strong> un global compact / prme certification system and the ~250 educators who just lived through ppcs. use it explicitly in press pitches, with permission.</li>
-    <li><strong>ip note:</strong> tier 1 content is shared with prme; tiers 2–3 are w.v ip and monetisable. depth.chart in particular: pending meredith's ownership clarity before final launch copy.</li>
+    <li><strong>full ai versions excluded from launch:</strong> confirmed may 18. the may 28 launch ships app functionality without the full ai-powered features to ensure stability and prevent early negative experiences. ai features come after the initial wave is stable.</li>
+    <li><strong>version strategy:</strong> ship version 2 as the launch product. version 1 becomes the paid upgrade path later (discussed may 18 — counterintuitive framing, but it positions the launch as already "upgraded" from the internal beta).</li>
+    <li><strong>pricing (confirmed may 18):</strong> ~$20 individual for permanent access. institutional pricing tbd. vertigo.vault practitioner packs at $9.99 and $19.99 (team tiers). free sampler stays generous for ppcs alumni walkthrough.</li>
+    <li><strong>prme community scale:</strong> ~500 registered participants in the current 2026 cohort. 1,000+ total across all previous ppcs cohorts — this is the backfill marketing audience. backfill campaign to all 1,000+ is a priority post-launch.</li>
+    <li><strong>launch marketing anchor — shareable asset:</strong> create a ready-to-post social asset that ppcs participants can share (modelled on how many shared their ppcs certificate on linkedin). make it one-click. hashtag + tagging strategy for ugc. coordinate with maria + payton on asset design by may 22.</li>
+    <li><strong>credibility anchor:</strong> un global compact / prme certification system and the ~500 educators in the current cohort. use it explicitly in press pitches, with permission.</li>
+    <li><strong>ip note:</strong> tier 1 content is shared with prme; tiers 2–3 are w.v ip and monetisable. depth.chart deferred — not launching may 28 out of respect for ongoing meredith/prme ownership discussions.</li>
+    <li><strong>udl standard:</strong> universal design for learning (udl) guide adopted as mandatory reference and design requirement for all harbour app development (decided may 18, guide being shared across team by jamie).</li>
   </ul>
 </section>
 
@@ -497,6 +503,7 @@ a { color: var(--wv-cadet); }
         <p>most polished kids/family app, runtime-api'd into notion, with full content cms (playdates, materials, packs, collections, site copy, app config). already has user reflection logs from pilot use ("cloud cartographer activity successfully played" — 12 mar weekly).</p>
         <h4>what to say in marketing</h4>
         <p>video demo of a real playdate with a real kid. show the fold (the live activity) and the unfold (what the parent noticed afterward). target the conscious-parenting and play-based-learning niche on instagram and reddit's r/Montessori and r/homeschool.</p>
+        <div class="callout" style="margin-top:8px"><strong>wave-2 build priorities (may 18):</strong> (a) expand and internationalise the materials list — current list defaults to american classroom items; needs global scope for international families. (b) mechanism for users to submit new materials they discover, with gamification (points toward free packages) and a curation process before additions go live. (c) simplify the colour picker interface. jamie's article about creaseworks (in progress) is a key marketing asset for the wave-2 push.</div>
         <div class="url">windedvertigo.com/harbour/creaseworks · stripe-ready · auth shared with vertigo.vault</div>
       </div>
     </div>
@@ -879,7 +886,7 @@ a { color: var(--wv-cadet); }
     </div>
     <div style="background:#fff; border:1px solid var(--wv-line); border-radius:10px; padding:12px 14px;">
       <strong style="font-size:0.88rem;">in-app feedback modal</strong>
-      <p style="font-size:0.85rem; color:var(--wv-muted); margin:4px 0 0;">trigger: 15+ continuous minutes of active use. 2-question pop-up. one technical ("anything felt off?"), one impact ("what were you teaching when you used this?"). dismissible; credits offered for completion.</p>
+      <p style="font-size:0.85rem; color:var(--wv-muted); margin:4px 0 0;">trigger: <strong>3 distinct app uses</strong> OR <strong>15+ continuous minutes</strong> of active use (whichever comes first). 2-question pop-up. one technical ("anything felt off?"), one impact ("what were you teaching when you used this?"). dismissible; credits offered for completion. remove the current feedback widget before launch to prevent bot spam — replace with this structured modal.</p>
     </div>
   </div>
 
@@ -1058,6 +1065,9 @@ a { color: var(--wv-cadet); }
   <div class="handoff" style="margin-top:14px">
     <h3>3. analytics and ops (pre-launch)</h3>
     <ol>
+      <li><strong>fix google oauth / google sign-in — critical blocker:</strong> oauth login errors were live during the may 18 whirlpool itself (creaseworks couldn't launch — error codes on every google sign-in attempt). garrett was patching with claude during the meeting. this must be fully resolved and tested across all wave-1 apps before may 28. action: confirm with the full team that every app signs in cleanly on fresh accounts.</li>
+      <li><strong>per-app qa sessions:</strong> schedule 15-minute review sessions for each wave-1 app in the upcoming whirlpool meetings (may 19 and 21). full team (garrett, payton, jamie, lamis, maria) tests each app on their own device. failure mode: "i couldn't log in" or "it errored on step 2" caught here, not on launch day.</li>
+      <li><strong>august technical review:</strong> request august conduct a comprehensive technical architecture review and stress test once the prime certificate series concludes. this is a post-launch hardening step, not a pre-launch blocker — but schedule it now so it doesn't slip.</li>
       <li>meta business portfolio setup — 10 min, unblocks ig and fb analytics on the strategy page (cmo's #2 recommendation).</li>
       <li>wire up substack and linkedin api endpoints (or manual monthly entry) so the strategy page kpi cards stop showing null.</li>
       <li>add utm parameters per channel to launch email and social posts. follow the convention in the harbour-launch-plan ("set up tracking" line).</li>
@@ -1101,7 +1111,9 @@ a { color: var(--wv-cadet); }
       <li><strong>meredith's ownership of depth.chart — open, blocking:</strong> confirmed at the 18 may whirlpool — depth.chart does <em>not</em> launch may 28. show as "coming soon" tile. remove from press kit and launch email until meredith conversation closes. action: garrett to schedule call with meredith before the 22 may deadline.</li>
       <li><strong>character cast scope — resolved:</strong> cord, jugs, twig, swatch, crate, mud, drip are <em>pier c only</em>. pier a and b use professionally toned design language. no character mascots in wave-1 apps.</li>
       <li><strong>values.auction version — resolved:</strong> companion version (freemium, small-group) launches may 28. the 300-person self-running webinar redesign (3 acts, bid captain, durable objects) may become a paid extension.</li>
-      <li><strong>prme free access duration — open:</strong> 30, 60, or 90 days for ppcs alumni? decision needed before the welcome email sequence is built. recommendation: start with 60 days (one semester) and iterate.</li>
+      <li><strong>prme free access duration — open:</strong> 30, 60, or 90 days for ppcs alumni? decision needed before the welcome email sequence is built. recommendation: 60 days (one semester) as a starting point — iterate based on drop-off data.</li>
+      <li><strong>oauth / google sign-in — urgent pre-launch:</strong> google sign-in was actively broken during the may 18 whirlpool (creaseworks oauth errors on fresh accounts). garrett was patching live during the meeting. confirm fully resolved across all wave-1 apps before may 22 testing sessions.</li>
+      <li><strong>depth chart redesign scope — post-launch:</strong> jamie has sketched the two-tier redesign. when does this move into a build sprint? recommendation: after prime cert concludes and the wave-1 feedback is in hand — target a q3 build.</li>
       <li><strong>brand line:</strong> "sea captains for rough waters of uncertainty" surfaced in the may 6 whirlpool. confirm whether this is the launch tagline or internal narrative scaffolding before the press kit goes out.</li>
     </ol>
   </div>
