@@ -119,13 +119,13 @@ function AdminDashboardContent() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Link
-            href="/admin/reviewers"
+            href="/admin/users"
             className="btn-primary flex items-center justify-center gap-2 py-3 rounded-lg"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 12H9m6 0h.01M9 12h.01M7.07 12a7 7 0 1014 0M12 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            Manage Reviewers
+            Manage Users
           </Link>
 
           <Link

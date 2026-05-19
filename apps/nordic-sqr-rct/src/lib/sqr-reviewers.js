@@ -450,6 +450,32 @@ export async function updateReviewerEmail(reviewerId, email) {
   });
 }
 
+/**
+ * Update the Roles multi_select property for a reviewer.
+ * Writes to Notion (canonical), then mirrors to Postgres if the flag is set.
+ *
+ * @param {string} reviewerId — Notion page ID
+ * @param {string[]} roles    — full replacement set (e.g. ['reviewer', 'admin'])
+ */
+export async function updateReviewerRoles(reviewerId, roles) {
+  await notion.pages.update({
+    page_id: reviewerId,
+    properties: {
+      'Roles': { multi_select: roles.map(r => ({ name: r })) },
+    },
+  });
+  if (shouldWriteToSqrPostgresFirst()) {
+    try {
+      const sb = getPcsSupabase();
+      if (sb) {
+        await sb.from('reviewers').update({ roles }).eq('notion_page_id', reviewerId);
+      }
+    } catch (err) {
+      console.warn('[sqr-reviewers] Postgres roles update failed:', err.message);
+    }
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Postgres sync helpers (Phase 1 — additive, not called by Notion CRUD yet)
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import { requireCapability } from '@/lib/auth/require-capability';
+import { updateReviewerRoles } from '@/lib/sqr-reviewers';
 import { Client } from '@notionhq/client';
 import { NextResponse } from 'next/server';
 
@@ -14,7 +15,7 @@ export async function PATCH(request, { params }) {
     const body = await request.json();
     const { reviewerId } = await params;
 
-    // Build update payload
+    // Build update payload for inline Notion properties
     const properties = {};
 
     if (typeof body.isAdmin === 'boolean') {
@@ -25,12 +26,17 @@ export async function PATCH(request, { params }) {
       properties['Status'] = { select: { name: body.status } };
     }
 
-    // Update the page if there are changes
+    // Update the page if there are inline property changes
     if (Object.keys(properties).length > 0) {
       await notion.pages.update({
         page_id: reviewerId,
         properties,
       });
+    }
+
+    // Roles multi_select — delegate to the shared helper (Notion + Postgres mirror)
+    if (Array.isArray(body.roles)) {
+      await updateReviewerRoles(reviewerId, body.roles);
     }
 
     return NextResponse.json({ success: true });

@@ -218,7 +218,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         items: [
           { key: 'requests',       label: 'Requests',          href: '/research/pcs/requests', badgeKey: 'requests.total' },
           { key: 'drift',          label: 'Drift',             href: '/research/pcs/labels/drift', badgeKey: 'drift.openCount' },
-          { key: 'reviewer-activity', label: 'Reviewer Activity', href: '/admin/reviewers' },
+          { key: 'reviewer-activity', label: 'Reviewer Activity', href: '/admin/users' },
         ],
       },
       // Bundle 3 Phase 3.2 — AICS Library (RA + admin + super-user)
@@ -247,7 +247,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         defaultOpen: true,
         items: [
           { key: 'audit-log', label: 'Audit Log',  href: '/admin/audit' },
-          { key: 'users',     label: 'Users',      href: '/admin/reviewers' },
+          { key: 'users',     label: 'Users',      href: '/admin/users' },
           { key: 'backups',   label: 'Backups',    href: '/admin/backups' },
           { key: 'schema',    label: 'Schema',     href: '/admin/schema' },
         ],
