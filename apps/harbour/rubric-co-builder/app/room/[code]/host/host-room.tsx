@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRoom } from "@/lib/use-room";
 import { Wordmark } from "@/app/_components/wordmark";
 import { apiPath } from "@/lib/paths";
+import { hostFetch, loadHostToken } from "@/lib/host-token";
 import type {
   AiUseProposal,
   AiUseProposalVote,
@@ -77,6 +78,13 @@ const STATE_ORDER: RoomState[] = [
 export function HostRoom({ code }: { code: string }) {
   const state = useRoom(code);
 
+  // session check runs after mount to avoid SSR/CSR hydration mismatch.
+  // `null` = haven't checked yet, `true`/`false` = checked.
+  const [tokenPresent, setTokenPresent] = useState<boolean | null>(null);
+  useEffect(() => {
+    setTokenPresent(loadHostToken(code) !== null);
+  }, [code]);
+
   if (state.status === "loading") {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-3">
@@ -117,8 +125,36 @@ export function HostRoom({ code }: { code: string }) {
     pledge_response_votes,
   } = snapshot;
 
+  // facilitator session check — if the host arrived here without a token
+  // (e.g. opened the room link in a new browser, or sessionStorage was
+  // cleared), every mutation will 403. surface that cleanly with a
+  // recovery link rather than letting the host click into errors.
+  if (tokenPresent === false) {
+    return (
+      <main className="min-h-screen bg-[color:var(--color-champagne)] flex items-center justify-center px-6">
+        <div className="max-w-md text-center space-y-4">
+          <Wordmark />
+          <h1 className="text-2xl font-bold text-[color:var(--color-cadet)]">
+            facilitator session lost.
+          </h1>
+          <p className="text-[color:var(--color-cadet)]/80 leading-relaxed">
+            this browser doesn&apos;t have the host token for room <strong>{code}</strong>.
+            sessions don&apos;t survive opening the room in a different browser or
+            clearing site data. you can spin up a fresh room with the same brief.
+          </p>
+          <a
+            href={apiPath("/new")}
+            className="inline-block btn-primary text-sm"
+          >
+            open a new room
+          </a>
+        </div>
+      </main>
+    );
+  }
+
   const advance = useCallback(async (to: RoomState, fromState?: RoomState) => {
-    await fetch(apiPath(`/api/rooms/${code}`), {
+    await hostFetch(code, apiPath(`/api/rooms/${code}`), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ state: to, ...(fromState ? { from_state: fromState } : {}) }),
@@ -126,7 +162,7 @@ export function HostRoom({ code }: { code: string }) {
   }, [code]);
 
   const startTimer = useCallback(async (durationSeconds: number) => {
-    await fetch(apiPath(`/api/rooms/${code}/timer`), {
+    await hostFetch(code, apiPath(`/api/rooms/${code}/timer`), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ duration: durationSeconds }),
@@ -134,7 +170,7 @@ export function HostRoom({ code }: { code: string }) {
   }, [code]);
 
   const cancelTimer = useCallback(async () => {
-    await fetch(apiPath(`/api/rooms/${code}/timer`), {
+    await hostFetch(code, apiPath(`/api/rooms/${code}/timer`), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ duration: null }),
@@ -144,22 +180,22 @@ export function HostRoom({ code }: { code: string }) {
   const tally = useCallback(async (round: 1 | 2 | 3) => {
     const endpoint =
       round === 1 ? "tally" : round === 2 ? "tally2" : "tally3";
-    const res = await fetch(apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
+    const res = await hostFetch(code, apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
     if (!res.ok) throw new Error(`tally failed (${res.status})`);
   }, [code]);
 
   const aiTally = useCallback(async () => {
-    const res = await fetch(apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
+    const res = await hostFetch(code, apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
     if (!res.ok) throw new Error(`ai-tally failed (${res.status})`);
   }, [code]);
 
   const pledgeTally = useCallback(async () => {
-    const res = await fetch(apiPath(`/api/rooms/${code}/tally-pledge`), { method: "POST" });
+    const res = await hostFetch(code, apiPath(`/api/rooms/${code}/tally-pledge`), { method: "POST" });
     if (!res.ok) throw new Error(`pledge tally failed (${res.status})`);
   }, [code]);
 
   const resolveChoice = useCallback(async (selectedIds: string[]) => {
-    await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
+    await hostFetch(code, apiPath(`/api/rooms/${code}/facilitator-choice`), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ selected_ids: selectedIds }),
@@ -167,12 +203,12 @@ export function HostRoom({ code }: { code: string }) {
   }, [code]);
 
   const confirmGate = useCallback(async (selectedIds: string[]) => {
-    await fetch(apiPath(`/api/rooms/${code}/facilitator-choice`), {
+    await hostFetch(code, apiPath(`/api/rooms/${code}/facilitator-choice`), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ selected_ids: selectedIds }),
     });
-    await fetch(apiPath(`/api/rooms/${code}`), {
+    await hostFetch(code, apiPath(`/api/rooms/${code}`), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ state: "scale" }),

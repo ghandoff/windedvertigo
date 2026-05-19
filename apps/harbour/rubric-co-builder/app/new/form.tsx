@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiPath } from "@/lib/paths";
+import { saveHostToken } from "@/lib/host-token";
 import { ARTIFACT_EXAMPLES } from "@/lib/types";
 
 type SeedInput = {
@@ -75,7 +76,15 @@ export function NewRoomForm({ seeds }: Props) {
         setSubmitting(false);
         return;
       }
-      const { code } = (await res.json()) as { code: string };
+      const { code, host_token } = (await res.json()) as {
+        code: string;
+        host_token: string;
+      };
+      // persist host_token before navigating — the host page reads it
+      // from sessionStorage and attaches it as X-Host-Token on every
+      // facilitator mutation. dropping it here is how the room "opens"
+      // without the host being able to actually do anything.
+      if (host_token) saveHostToken(code, host_token);
       router.push(`/room/${code}/host`);
     } catch {
       setError("the network blinked. try again?");

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiPath } from "@/lib/paths";
+import { hostFetch } from "@/lib/host-token";
 
 type EditorProps = {
   code: string;
@@ -24,7 +25,7 @@ export function FacilitatorNudgeEditor({ code, currentNudge }: EditorProps) {
     setSaving(true);
     setStatus("idle");
     try {
-      await fetch(apiPath(`/api/rooms/${code}/nudge`), {
+      await hostFetch(code, apiPath(`/api/rooms/${code}/nudge`), {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ text }),
