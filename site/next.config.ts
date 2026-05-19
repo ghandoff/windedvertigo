@@ -394,6 +394,23 @@ const nextConfig: NextConfig = {
           "https://wv-harbour-rubric-co-builder.windedvertigo.workers.dev/harbour/rubric-co-builder/:path*",
       },
 
+      // rubric co-builder companion — lighter single-user worksheet
+      {
+        source: "/harbour/rubric-co-builder-companion",
+        destination:
+          "https://wv-harbour-rcb-companion.windedvertigo.workers.dev/harbour/rubric-co-builder-companion",
+      },
+      {
+        source: "/harbour/rubric-co-builder-companion/",
+        destination:
+          "https://wv-harbour-rcb-companion.windedvertigo.workers.dev/harbour/rubric-co-builder-companion",
+      },
+      {
+        source: "/harbour/rubric-co-builder-companion/:path*",
+        destination:
+          "https://wv-harbour-rcb-companion.windedvertigo.workers.dev/harbour/rubric-co-builder-companion/:path*",
+      },
+
       // values-auction (Vite app — no basePath, serves from root)
       // wordmark.svg uses root-relative /wordmark.svg, proxy it to the app origin
       {
