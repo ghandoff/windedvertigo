@@ -8,22 +8,42 @@ const _notion = new Client({
 });
 
 /**
- * Retry wrapper with exponential backoff + jitter
- * Retries on 429 (rate limit) and 5xx (server errors)
- * Notion rate limit: 3 requests/sec per integration token
+ * Retry wrapper with exponential backoff + jitter.
+ * Retries on:
+ *   - 429  (rate limit)   — up to maxRetries times
+ *   - 5xx  (server error) — up to maxRetries times
+ *   - notionhq_client_request_timeout — up to 1 time only.
+ *     Timeouts are transient Notion API hiccups. We allow a single
+ *     retry (with a flat 2s pause) rather than the full exponential
+ *     chain, because each retry costs another 30s timeout window and
+ *     we don't want to hold a CF Worker open for 90+ seconds per call.
+ *
+ * Notion rate limit: 3 requests/sec per integration token.
  */
 export async function withRetry(fn, maxRetries = 3) {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error) {
-      const status = error?.status || error?.code;
-      const isRetryable = status === 429 || (status >= 500 && status < 600);
+      const status = error?.status;
+      const code   = error?.code;
+      const isTimeout     = code === 'notionhq_client_request_timeout';
+      const isRateLimit   = status === 429;
+      const isServerError = status >= 500 && status < 600;
+      const isRetryable   = isRateLimit || isServerError || isTimeout;
+
       if (!isRetryable || attempt === maxRetries) throw error;
-      // Exponential backoff: 1s, 2s, 4s (capped at 10s) + random jitter
-      const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
-      const jitter = Math.random() * 500;
-      await new Promise(r => setTimeout(r, delay + jitter));
+
+      // Timeouts: single retry after a flat 2s pause — don't escalate.
+      // Rate limits / 5xx: exponential backoff 1s→2s→4s (capped 10s) + jitter.
+      const delay = isTimeout
+        ? 2000
+        : Math.min(1000 * Math.pow(2, attempt), 10000) + Math.random() * 500;
+
+      // Timeouts only get one retry regardless of maxRetries.
+      if (isTimeout && attempt >= 1) throw error;
+
+      await new Promise(r => setTimeout(r, delay));
     }
   }
 }

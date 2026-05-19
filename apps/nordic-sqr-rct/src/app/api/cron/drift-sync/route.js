@@ -293,30 +293,60 @@ export async function GET(request) {
         durationMs: Date.now() - tableStart,
       };
     } catch (err) {
-      console.error(`[cron:drift-sync] ${name} failed:`, err.message);
+      // notionhq_client_request_timeout = transient Notion API hiccup.
+      // Mark isTransient so the alert section can exclude these from
+      // Slack notifications — they're noise, not data integrity issues.
+      const isTransient = err?.code === 'notionhq_client_request_timeout';
+      if (isTransient) {
+        console.warn(`[cron:drift-sync] ${name} timed out (transient, skipping alert)`);
+      } else {
+        console.error(`[cron:drift-sync] ${name} failed:`, err.message);
+      }
       return {
         table: name,
         error: err.message,
+        isTransient,
         durationMs: Date.now() - tableStart,
       };
     }
   }
 
-  // Fan out all 13 tables in parallel — cuts wall-clock from ~50s to the
-  // time of the single slowest table (~3-5s). Promise.allSettled ensures
-  // every table runs to completion even if one throws.
-  const settled = await Promise.allSettled(tables.map(processTable));
-  const results = settled.map(s =>
-    s.status === 'fulfilled' ? s.value : { table: '?', error: s.reason?.message || String(s.reason) }
-  );
+  // Fan out tables in parallel batches of 5.
+  //
+  // Why not all 19 at once? Notion's API limit is 3 req/sec per integration
+  // token. Each processTable makes at least 2 Notion calls (sync + count),
+  // so 19 concurrent tables = 38+ simultaneous requests → immediate 429s →
+  // withRetry backoff chains → total wall-clock blows past the CF Worker
+  // budget and causes cascading timeouts across multiple tables.
+  //
+  // Batches of 5 = 10 concurrent Notion calls max per batch, which stays
+  // comfortably under the rate limit with the natural ~1-2s latency per call.
+  // A 300ms pause between batches lets rate-limit tokens replenish.
+  const BATCH_SIZE = 5;
+  const results = [];
+  for (let i = 0; i < tables.length; i += BATCH_SIZE) {
+    const batch = tables.slice(i, i + BATCH_SIZE);
+    const settled = await Promise.allSettled(batch.map(processTable));
+    results.push(...settled.map(s =>
+      s.status === 'fulfilled' ? s.value : { table: '?', error: s.reason?.message || String(s.reason) }
+    ));
+    if (i + BATCH_SIZE < tables.length) {
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
 
   // Rate-limited Slack alert: fire when any table is drifted OR errored,
   // but only after the boot grace period and once per cooldown window.
+  //
+  // Transient errors (Notion API timeouts that exhausted retries) are
+  // excluded from the alert — they're Notion infrastructure noise, not
+  // data integrity problems. They still appear in the JSON response for
+  // debugging but don't page the team.
   const now = Date.now();
   const inBootGrace = now - WORKER_BOOT_AT < BOOT_GRACE_MS;
   const inCooldown = now - lastAlertAt < ALERT_COOLDOWN_MS;
   const drifted = results.filter(r => r.drifted);
-  const errored = results.filter(r => r.error);
+  const errored = results.filter(r => r.error && !r.isTransient);
   let alert = { sent: false };
   if ((drifted.length > 0 || errored.length > 0) && !inBootGrace && !inCooldown) {
     alert = await sendDriftAlert({
@@ -339,12 +369,14 @@ export async function GET(request) {
     );
   }
 
+  const allErrored = results.filter(r => r.error);
   return NextResponse.json({
     ok: true,
     durationMs: Date.now() - start,
     totalMirrored,
     drifted: drifted.map(d => d.table),
-    errored: errored.map(e => e.table),
+    errored: errored.map(e => e.table),           // non-transient only (what was alerted)
+    transient: allErrored.filter(e => e.isTransient).map(e => e.table), // timeout skips
     alert,
     results,
   });
