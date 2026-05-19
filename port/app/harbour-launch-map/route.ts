@@ -261,8 +261,8 @@ a { color: var(--wv-cadet); }
       <div class="meta">wave 1 — 28 may 2026</div>
       <div class="name">prme · adult · higher-ed</div>
       <div class="audience-strip"><strong>audience:</strong> prme plus · adult · higher-ed faculty and facilitators</div>
-      <div class="body">5 polished apps that map directly to the ppcs sessions just delivered. launched on the last day of the certificate series so 250+ educators step from session into harbour.</div>
-      <div class="row"><span class="tag live">vertigo.vault</span><span class="tag live">depth.chart</span><span class="tag live">lines.become.loops</span><span class="tag live">values.auction</span><span class="tag live">feel.cards</span></div>
+      <div class="body">7 apps mapped directly to the ppcs sessions just delivered. launched on the last day of the certificate series so 250+ educators step from session into harbour.</div>
+      <div class="row"><span class="tag live">vertigo.vault</span><span class="tag live">depth.chart</span><span class="tag live">lines.become.loops</span><span class="tag live">values.auction</span><span class="tag live">read.the.room</span><span class="tag live">co-design.rubric</span><span class="tag live">regen.practices</span></div>
     </div>
     <div class="card wave2">
       <div class="stripe"></div>
@@ -282,7 +282,7 @@ a { color: var(--wv-cadet); }
     </div>
   </div>
 
-  <div class="flag" style="margin-top:14px"><strong>a naming reconciliation:</strong> "deep tech" in your message most likely maps to <span class="code-snip">depth.chart</span> (also possible: <span class="code-snip">deep.deck</span>). "title pool" maps to <span class="code-snip">tidal.pool</span> (one of four systems-thinking tools alongside <span class="code-snip">lines.become.loops</span>). flagged here so we can confirm before the press kit goes out.</div>
+  <div class="callout" style="margin-top:14px"><strong>naming resolved:</strong> "deep tech" = <span class="code-snip">deep.deck</span> (wave 2 · conversation cards · confirmed). "title pool" = <span class="code-snip">tidal.pool</span> (coming soon · systems-thinking sibling to <span class="code-snip">lines.become.loops</span>). <span class="code-snip">depth.chart</span> is the separate ai assessment tool — all three are distinct. two new apps join wave 1: <span class="code-snip">co-design.rubric</span> (prme pedagogy cert series) and <span class="code-snip">regenerative.practices.catalog</span> (pier a + b).</div>
 
   <h3>at a glance — every harbour app, by status</h3>
   <div class="legend">
@@ -296,7 +296,9 @@ a { color: var(--wv-cadet); }
     <div class="card wave1"><div class="stripe"></div><div class="meta">wave 1</div><div class="name">depth.chart</div><div class="tagline">ai assessment generator</div><div class="row"><span class="tag live">launch</span><span class="tag">educators</span></div></div>
     <div class="card wave1"><div class="stripe"></div><div class="meta">wave 1</div><div class="name">lines.become.loops</div><div class="tagline">systems thinking</div><div class="row"><span class="tag live">launch</span><span class="tag">higher-ed</span></div></div>
     <div class="card wave1"><div class="stripe"></div><div class="meta">wave 1</div><div class="name">values.auction</div><div class="tagline">values exploration</div><div class="row"><span class="tag live">launch</span><span class="tag">ppcs-derived</span></div></div>
-    <div class="card wave1"><div class="stripe"></div><div class="meta">wave 1</div><div class="name">feel.cards</div><div class="tagline">decolonisation prompts</div><div class="row"><span class="tag live">launch</span><span class="tag">prme</span></div></div>
+    <div class="card wave1"><div class="stripe"></div><div class="meta">wave 1</div><div class="name">read.the.room</div><div class="tagline">decolonisation prompts</div><div class="row"><span class="tag live">launch</span><span class="tag">prme</span></div></div>
+    <div class="card wave1"><div class="stripe"></div><div class="meta">wave 1 · prme cert series</div><div class="name">co-design.rubric</div><div class="tagline">collaborative assessment rubric</div><div class="row"><span class="tag live">launch</span><span class="tag">ppcs-derived</span><span class="tag">pier-b</span></div></div>
+    <div class="card wave1"><div class="stripe"></div><div class="meta">wave 1 · pier a + b</div><div class="name">regenerative.practices.catalog</div><div class="tagline">regenerative frameworks catalog</div><div class="row"><span class="tag live">launch</span><span class="tag">facilitators</span><span class="tag">educators</span></div></div>
 
     <div class="card wave2"><div class="stripe"></div><div class="meta">wave 2</div><div class="name">creaseworks</div><div class="tagline">playdates platform</div><div class="row"><span class="tag soon">jun</span><span class="tag">parents</span><span class="tag">k-12</span></div></div>
     <div class="card wave2"><div class="stripe"></div><div class="meta">wave 2</div><div class="name">raft.house</div><div class="tagline">multiplayer room codes</div><div class="row"><span class="tag soon">jun</span><span class="tag">facilitators</span><span class="tag">classrooms</span></div></div>
@@ -322,7 +324,7 @@ a { color: var(--wv-cadet); }
 <!-- WAVE 1 -->
 <section class="panel" id="wave1">
   <h2>wave 1 — may 28 launch</h2>
-  <p>five apps were named in the 06 may whirlpool as the adult/prme-plus/higher-ed launch lineup. the may 13 whirlpool agenda had "lock by today" on this list (t-15 days) — confirm the final five before the press kit. positioning below pulls from the harbour-launch-plan, the website cms, and product roadmap docs.</p>
+  <p>seven apps confirmed for the adult/prme-plus/higher-ed launch lineup: the original five from the 06 may whirlpool (vertigo.vault, depth.chart, lines.become.loops, values.auction, read.the.room) plus two additions from the ppcs certificate series — co-design.rubric and regenerative.practices.catalog. the may 13 whirlpool agenda had "lock by today" on the core five. positioning below pulls from the harbour-launch-plan, the website cms, and product roadmap docs.</p>
 
   <div class="grid">
 
@@ -360,6 +362,7 @@ a { color: var(--wv-cadet); }
         <p>direct artefact of the ppcs framework. solves a known pain (assessment that goes beyond recall) for the audience already in the room. credibility anchor — the 21-skill framework and un global compact branding sit behind it.</p>
         <h4>what to say in marketing</h4>
         <p>frame as "evidence for the work you're already doing" — not new content, but a way to surface the skills hidden in current curricula. faculty testimonial from ppcs is the killer asset.</p>
+        <div class="flag" style="margin-top:8px"><strong>launch status — pending:</strong> depth.chart's ownership was flagged as unresolved at the 06 may and 18 may whirlpools ("depth chart pending meredith's ownership"). confirmed not launching on may 28 until meredith conversation closes. hold launch copy until resolved.</div>
         <div class="url">windedvertigo.com/harbour/depth-chart</div>
       </div>
     </div>
@@ -390,8 +393,8 @@ a { color: var(--wv-cadet); }
       <div class="name">values.auction</div>
       <div class="tagline">trade your way to a value system — what you bid on shows what you stand for.</div>
       <div class="audience-strip"><strong>primary:</strong> ppcs participants · faculty teaching ethics and leadership · <strong>secondary:</strong> facilitators running off-sites</div>
-      <div class="row"><span class="tag live">live</span><span class="tag">ppcs-derived</span></div>
-      <div class="body">migrated to the harbour during the 27 apr ppcs prep session. a values-exploration activity where participants "bid" on competing values under scarcity. surfaces what people actually privilege when forced to choose — a corrective to the way written values lists let everyone pretend they care equally about everything.</div>
+      <div class="row"><span class="tag live">live</span><span class="tag">ppcs-derived</span><span class="tag">companion version</span></div>
+      <div class="body">migrated to the harbour during the 27 apr ppcs prep session. <strong>launching as the companion version</strong> — the freemium entry point for small groups and individual facilitators. the full 300-person self-running webinar version (with 3-act structure, bid captain, team consensus polls) may become a paid extension of this companion. a values-exploration activity where participants "bid" on competing values under scarcity. surfaces what people actually privilege when forced to choose.</div>
       <div class="pos">
         <h4>positioning</h4>
         <p><em>"the values exercise that doesn't let you have it all."</em></p>
@@ -406,7 +409,7 @@ a { color: var(--wv-cadet); }
     <div class="card wave1">
       <div class="stripe"></div>
       <div class="meta">wave 1 · decolonisation entry</div>
-      <div class="name">feel.cards</div>
+      <div class="name">read.the.room</div>
       <div class="tagline">prompt cards for naming emotions that classroom english doesn't have words for.</div>
       <div class="audience-strip"><strong>primary:</strong> prme faculty · facilitators working in cross-cultural settings · <strong>secondary:</strong> educators teaching decolonisation, dei</div>
       <div class="row"><span class="tag live">live</span><span class="tag">prme</span></div>
@@ -417,8 +420,47 @@ a { color: var(--wv-cadet); }
         <h4>why it leads the launch</h4>
         <p>fills the "soft skills and decolonisation" corner of the wave-1 lineup that vertigo.vault doesn't cover head-on. signals to prme participants that the harbour reflects the full series, not just the systems-thinking sessions.</p>
         <h4>what to say in marketing</h4>
-        <p>lead with maria's voice. quote a ppcs participant. keep this one understated — feel.cards is the wave-1 entry where over-marketing would betray the content. one well-chosen post is better than a campaign.</p>
-        <div class="url">windedvertigo.com/harbour/feel-cards (confirm slug)</div>
+        <p>lead with maria's voice. quote a ppcs participant. keep this one understated — read.the.room is the wave-1 entry where over-marketing would betray the content. one well-chosen post is better than a campaign.</p>
+        <div class="url">windedvertigo.com/harbour/read-the-room</div>
+      </div>
+    </div>
+
+
+    <div class="card wave1">
+      <div class="stripe"></div>
+      <div class="meta">wave 1 · prme cert series · pier b</div>
+      <div class="name">co-design.rubric</div>
+      <div class="tagline">a collaborative rubric builder for pedagogy teams — co-design the evidence criteria before you run the session.</div>
+      <div class="audience-strip"><strong>primary:</strong> prme faculty and curriculum designers · <strong>secondary:</strong> l&amp;d teams building shared assessment standards</div>
+      <div class="row"><span class="tag live">live</span><span class="tag">ppcs-derived</span><span class="tag">pier-b</span></div>
+      <div class="body">delivered as part of the ppcs certificate series. a rubric co-builder that brings multiple perspectives into the same assessment design process — what skills matter, how you'd know you're seeing them, what the evidence looks like. direct artefact of the "pedagogy in practice" work running through the prme cert sequence.</div>
+      <div class="pos">
+        <h4>positioning</h4>
+        <p><em>"the rubric your whole team actually agrees on — because you built it together."</em></p>
+        <h4>why it's wave 1</h4>
+        <p>ppcs alumni have already lived the co-design process. this gives them a tool to run the same process with their own department or cohort. immediate carry-over from the cert experience.</p>
+        <h4>what to say in marketing</h4>
+        <p>position as "the missing step between session design and assessment design." educator audience: show how a 20-min co-design session produces a rubric that replaces three rounds of back-and-forth email.</p>
+        <div class="url">windedvertigo.com/harbour/co-design-rubric</div>
+      </div>
+    </div>
+
+    <div class="card wave1">
+      <div class="stripe"></div>
+      <div class="meta">wave 1 · pier a + pier b</div>
+      <div class="name">regenerative.practices.catalog</div>
+      <div class="tagline">a curated reference of regenerative frameworks — for facilitators and educators building beyond sustainability.</div>
+      <div class="audience-strip"><strong>primary:</strong> sustainability educators · facilitators teaching regenerative design · <strong>secondary:</strong> corporate l&amp;d · higher-ed faculty in mba and sustainability programmes</div>
+      <div class="row"><span class="tag live">live</span><span class="tag">pier-a</span><span class="tag">pier-b</span></div>
+      <div class="body">spans both the workplace/leadership pier (pier a) and the classroom/higher-ed pier (pier b). a living catalog of regenerative frameworks, practices, and reference material — organised for use in sessions, courses, and off-sites. the kind of resource that prme faculty building "beyond sustainability" modules and corporate facilitators running regenerative-design offsites both need in one place.</div>
+      <div class="pos">
+        <h4>positioning</h4>
+        <p><em>"the reference shelf for practitioners moving from sustainability to regeneration."</em></p>
+        <h4>why it spans both piers</h4>
+        <p>regenerative practice crosses the facilitator/educator boundary. the corporate facilitator (pier a) and the higher-ed sustainability faculty (pier b) share the same upstream frameworks. one catalog, two audiences.</p>
+        <h4>what to say in marketing</h4>
+        <p>anchor on the "beyond sustainability" frame — regeneration is the next discourse layer. position this as the research companion to vertigo.vault's activity cards and depth.chart's assessment framework.</p>
+        <div class="url">windedvertigo.com/harbour/regenerative-practices</div>
       </div>
     </div>
 
@@ -501,6 +543,7 @@ a { color: var(--wv-cadet); }
 
   <h3>shared positioning notes for the wave-2 set</h3>
   <ul>
+    <li><strong>character cast — pier c exclusive:</strong> cord, jugs, twig, swatch, crate, mud, and drip (the material-as-character cast) are isolated to pier c family apps. wave-2 apps can use all seven characters in ui, onboarding, and marketing. wave-1 apps (pier a/b) stay professionally toned — no character mascots in the adult/prme-plus/higher-ed context.</li>
     <li><strong>visual shift:</strong> "wizard of oz transition" from the wave-1 brand — more colour, more animation, while keeping the harbour's overall design language. customisation controls (palette, motion) honour the accessibility guide jamie is preparing.</li>
     <li><strong>timing:</strong> aligned with school holidays and the prime global conference in june. summer = peak attention from parents looking for "screen time that matters."</li>
     <li><strong>co-creation:</strong> use the late-may to mid-june gap to run sessions with real kids before launch. sufi, alfie, egypt and other team kids surfaced in the 06 may whirlpool as natural testers.</li>
@@ -612,7 +655,7 @@ a { color: var(--wv-cadet); }
   <p>the 06 may whirlpool decided on a "piers" metaphor for organising the harbour by audience. three piers maps cleanly onto the three waves; a fourth "drydock" is a friendly home for the coming-soon apps. this also gives the website a natural home for browse-by-role nav.</p>
 
   <div class="diagram-wrap">
-    <svg class="ia-svg" viewBox="0 0 1000 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="harbour information architecture diagram: landing routes to four piers, each pier holds its apps">
+    <svg class="ia-svg" viewBox="0 0 1000 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="harbour information architecture diagram: landing routes to four piers, each pier holds its apps">
       <defs>
         <style>
           .ia-label-lg { font: 600 16px ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #2a2420; }
@@ -680,23 +723,28 @@ a { color: var(--wv-cadet); }
       <path class="conn" d="M 870 284 L 870 314" />
 
       <!-- App boxes -->
-      <rect x="20" y="314" width="220" height="160" rx="10" fill="#ffffff" stroke="#d9cdb9" stroke-width="1.2"/>
+      <rect x="20" y="314" width="220" height="185" rx="10" fill="#ffffff" stroke="#d9cdb9" stroke-width="1.2"/>
       <text x="38" y="336" class="ia-label-app">vertigo.vault</text>
-      <text x="38" y="356" class="ia-label-app">values.auction</text>
-      <text x="38" y="376" class="ia-label-app">feel.cards</text>
-      <text x="38" y="408" class="ia-label-sub">three apps · all wave 1</text>
-      <text x="38" y="426" class="ia-label-sub">facilitator-ready</text>
-      <text x="38" y="444" class="ia-label-sub">most monetisable pier</text>
-      <text x="38" y="462" class="ia-label-sub">short-run revenue lead</text>
+      <text x="38" y="356" class="ia-label-app">values.auction (companion)</text>
+      <text x="38" y="376" class="ia-label-app">read.the.room</text>
+      <text x="38" y="396" class="ia-label-app">regen.practices ↕</text>
+      <text x="38" y="420" class="ia-label-sub">four apps · all wave 1</text>
+      <text x="38" y="438" class="ia-label-sub">facilitator-ready</text>
+      <text x="38" y="456" class="ia-label-sub">most monetisable pier</text>
+      <text x="38" y="474" class="ia-label-sub">short-run revenue lead</text>
+      <text x="38" y="492" class="ia-label-sub">↕ shared with pier b</text>
 
-      <rect x="266" y="314" width="220" height="160" rx="10" fill="#ffffff" stroke="#d9cdb9" stroke-width="1.2"/>
-      <text x="284" y="336" class="ia-label-app">depth.chart</text>
+      <rect x="266" y="314" width="220" height="205" rx="10" fill="#ffffff" stroke="#d9cdb9" stroke-width="1.2"/>
+      <text x="284" y="336" class="ia-label-app">depth.chart ⚑</text>
       <text x="284" y="356" class="ia-label-app">vertigo.vault</text>
       <text x="284" y="376" class="ia-label-app">lines.become.loops</text>
-      <text x="284" y="396" class="ia-label-app">feel.cards</text>
-      <text x="284" y="424" class="ia-label-sub">four apps · all wave 1</text>
-      <text x="284" y="442" class="ia-label-sub">warmest hand-off —</text>
-      <text x="284" y="458" class="ia-label-sub">250 ppcs alumni land here</text>
+      <text x="284" y="396" class="ia-label-app">read.the.room</text>
+      <text x="284" y="416" class="ia-label-app">co-design.rubric</text>
+      <text x="284" y="436" class="ia-label-app">regen.practices ↕</text>
+      <text x="284" y="460" class="ia-label-sub">six apps · all wave 1</text>
+      <text x="284" y="478" class="ia-label-sub">warmest hand-off —</text>
+      <text x="284" y="494" class="ia-label-sub">250 ppcs alumni land here</text>
+      <text x="284" y="510" class="ia-label-sub">⚑ depth.chart pending meredith</text>
 
       <rect x="514" y="314" width="220" height="160" rx="10" fill="#ffffff" stroke="#d9cdb9" stroke-width="1.2"/>
       <text x="532" y="336" class="ia-label-app">creaseworks</text>
@@ -716,13 +764,14 @@ a { color: var(--wv-cadet); }
       <text x="778" y="456" class="ia-label-app">proof.garden · emerge.box</text>
 
       <!-- Cross-pier sharing note -->
-      <text x="500" y="510" text-anchor="middle" class="ia-label-sub" font-style="italic">vertigo.vault and feel.cards live in both pier a and pier b (multi-select cms field)</text>
+      <text x="500" y="535" text-anchor="middle" class="ia-label-sub" font-style="italic">vertigo.vault, read.the.room, and regen.practices span multiple piers (multi-select cms field)</text>
 
       <!-- Bottom routes legend -->
-      <rect x="20" y="540" width="960" height="64" rx="10" fill="#faf6ef" stroke="#d9cdb9"/>
-      <text x="36" y="562" class="ia-label-md">concrete site routes</text>
-      <text x="36" y="582" class="ia-label-mono">/harbour · /harbour/pier/leadership · /harbour/pier/classroom · /harbour/pier/family · /harbour/drydock</text>
-      <text x="36" y="598" class="ia-label-sub">individual app routes stay at /harbour/{slug} (vertigo-vault, depth-chart, etc.) — piers are aggregator pages over them.</text>
+      <rect x="20" y="555" width="960" height="72" rx="10" fill="#faf6ef" stroke="#d9cdb9"/>
+      <text x="36" y="577" class="ia-label-md">concrete site routes</text>
+      <text x="36" y="597" class="ia-label-mono">/harbour · /harbour/pier/leadership · /harbour/pier/classroom · /harbour/pier/family · /harbour/drydock</text>
+      <text x="36" y="613" class="ia-label-sub">individual app routes stay at /harbour/{slug} (vertigo-vault, depth-chart, co-design-rubric, etc.) — piers are aggregator pages over them.</text>
+      <text x="36" y="629" class="ia-label-sub">⚑ depth.chart status pending meredith ownership discussion before may 28 launch copy goes out.</text>
     </svg>
   </div>
 
@@ -733,8 +782,9 @@ a { color: var(--wv-cadet); }
       <p class="who">facilitators · l&amp;d · corporate trainers · off-site designers</p>
       <ul>
         <li><strong>vertigo.vault</strong> <span class="muted">— flagship activity gallery</span></li>
-        <li><strong>values.auction</strong> <span class="muted">— values exploration under scarcity</span></li>
-        <li><strong>feel.cards</strong> <span class="muted">— emotional prompt cards</span></li>
+        <li><strong>values.auction</strong> <span class="muted">— companion: values exploration under scarcity</span></li>
+        <li><strong>read.the.room</strong> <span class="muted">— emotional prompt cards</span></li>
+        <li><strong>regenerative.practices.catalog</strong> <span class="muted">— regenerative frameworks reference · shared with pier b</span></li>
       </ul>
       <p class="note">"the team off-site or workshop you actually want to be in." this pier is the most monetisable in the short run — corporate l&amp;d has budget the higher-ed and family piers don't.</p>
     </div>
@@ -743,10 +793,12 @@ a { color: var(--wv-cadet); }
       <h3>classroom and higher-ed</h3>
       <p class="who">prme faculty · educators · sustainability and mba programmes</p>
       <ul>
-        <li><strong>depth.chart</strong> <span class="muted">— skills-anchored assessment</span></li>
+        <li><strong>depth.chart</strong> <span class="muted">— skills-anchored assessment · pending meredith ownership</span></li>
         <li><strong>vertigo.vault</strong> <span class="muted">— shared with pier a</span></li>
         <li><strong>lines.become.loops</strong> <span class="muted">— systems thinking</span></li>
-        <li><strong>feel.cards</strong> <span class="muted">— shared with pier a</span></li>
+        <li><strong>read.the.room</strong> <span class="muted">— shared with pier a</span></li>
+        <li><strong>co-design.rubric</strong> <span class="muted">— collaborative rubric builder · ppcs cert series</span></li>
+        <li><strong>regenerative.practices.catalog</strong> <span class="muted">— regenerative frameworks · shared with pier a</span></li>
       </ul>
       <p class="note">"the prme certificate series, alive between sessions." this pier is the warmest hand-off — 250 educators just walked through ppcs and are ready to keep going.</p>
     </div>
@@ -760,6 +812,7 @@ a { color: var(--wv-cadet); }
         <li><strong>deep.deck</strong> <span class="muted">— conversation cards</span></li>
       </ul>
       <p class="note">"screen time that matters." closed on may 28 (shows as "coming end of june — sign up to be first in"). opens with the summer/back-to-school campaign.</p>
+      <p class="note" style="margin-top:8px; border-top: 1px dashed var(--wv-line); padding-top:8px;"><strong>character cast — pier c only:</strong> cord, jugs, twig, swatch, crate, mud, and drip are the material-as-character cast and are <em>isolated exclusively to pier c</em>. pier a (workplace) and pier b (higher-ed) stay professionally toned — no character mascots. the shape-shifting, kid-friendly character register belongs in the family play context only.</p>
     </div>
     <div class="pier dry">
       <div class="label">drydock · coming soon</div>
@@ -783,10 +836,68 @@ a { color: var(--wv-cadet); }
     <li><span class="code-snip">/harbour/start</span> — a "who are you" picker that routes new visitors to the right pier (optional v1, valuable v1.1).</li>
   </ul>
 
+  <h3>visitor registration and feedback model <span style="font-size:0.8rem; font-weight:400; color:var(--wv-muted)">(from may 18 whirlpool)</span></h3>
+
+  <div class="callout">
+    <strong>core principle (may 18):</strong> browse freely, but gate play. visitors can explore the harbour landing, read pier descriptions, and see app tiles — but launching any app requires sign-in / account creation. the friction is minimal (magic link or google oauth), but it unlocks the entire feedback and growth loop.
+  </div>
+
+  <div class="two-col" style="margin-top:14px">
+    <div>
+      <h4>sign-in model</h4>
+      <ul>
+        <li><strong>magic link</strong> (primary) — lowest friction. user enters email, clicks link, lands in the app. no password.</li>
+        <li><strong>google oauth</strong> — pool a sso already wired for <span class="code-snip">@windedvertigo.com</span>; extend to general google accounts for public visitors.</li>
+        <li><strong>prme participants:</strong> time-limited free access. duration tbd — 30, 60, or 90 days. provisioned via resend-triggered welcome email at cert completion.</li>
+        <li>no account = read-only harbour browsing. account = full play.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>feedback incentive model</h4>
+      <ul>
+        <li>two feedback types collected: <strong>technical</strong> (bugs, ux, friction) and <strong>teaching impact</strong> (what changed in your practice).</li>
+        <li><strong>incentive:</strong> credits toward paid packages (kickstarter model — feedback earns you a "founding supporter" rate on future paid tiers).</li>
+        <li>feedback is a first-class feature, not a survey afterthought.</li>
+        <li>target: frictionless signals with very low cognitive load per prompt.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h4>resend white-label email sequences</h4>
+  <div class="grid" style="margin-top:8px">
+    <div style="background:#fff; border:1px solid var(--wv-line); border-radius:10px; padding:12px 14px;">
+      <strong style="font-size:0.88rem;">first-play check-in</strong>
+      <p style="font-size:0.85rem; color:var(--wv-muted); margin:4px 0 0;">trigger: 24h after first app launch. subject: "how did it go?" — one question, two-tap response. links to full feedback form if they want more.</p>
+    </div>
+    <div style="background:#fff; border:1px solid var(--wv-line); border-radius:10px; padding:12px 14px;">
+      <strong style="font-size:0.88rem;">multi-app milestone</strong>
+      <p style="font-size:0.85rem; color:var(--wv-muted); margin:4px 0 0;">trigger: user launches 3+ distinct apps. subject: "you're exploring — what's landing?" — slightly richer prompt, still one-tap primary cta. highlights apps they haven't tried yet.</p>
+    </div>
+    <div style="background:#fff; border:1px solid var(--wv-line); border-radius:10px; padding:12px 14px;">
+      <strong style="font-size:0.88rem;">30-day teaching impact survey</strong>
+      <p style="font-size:0.85rem; color:var(--wv-muted); margin:4px 0 0;">trigger: 30 days after first play. 3–5 questions on practice change. highest-value signal for the ppcs/prme audience. ties to prme's evidence requirements — frame this as "help us document impact."</p>
+    </div>
+    <div style="background:#fff; border:1px solid var(--wv-line); border-radius:10px; padding:12px 14px;">
+      <strong style="font-size:0.88rem;">in-app feedback modal</strong>
+      <p style="font-size:0.85rem; color:var(--wv-muted); margin:4px 0 0;">trigger: 15+ continuous minutes of active use. 2-question pop-up. one technical ("anything felt off?"), one impact ("what were you teaching when you used this?"). dismissible; credits offered for completion.</p>
+    </div>
+  </div>
+
+  <h4 style="margin-top:16px">social sharing and virality hooks</h4>
+  <ul>
+    <li><strong>linkedin share button</strong> — pre-populated post: "just used [app name] with [context] — here's what happened." one click from any app's post-session screen.</li>
+    <li><strong>email share button</strong> — forwards a "try this with your group" summary with a signed invite link.</li>
+    <li><strong>"gift a ticket"</strong> — signed url giving a colleague 14-day free access. sharable from any app or from the harbour landing. natural referral loop without a formal referral programme.</li>
+  </ul>
+
+  <div class="callout" style="margin-top:12px">
+    <strong>depth chart — not launching may 28.</strong> confirmed at the may 18 whirlpool: depth.chart is held pending meredith's ownership conversation. show it as a "coming soon" tile on the wave-1 site rather than a live app. remove it from the launch email and press pitches until resolved.
+  </div>
+
   <h3>cms recommendation</h3>
   <p>add two fields to the <strong>harbour games</strong> notion database to support the piers model without a schema overhaul:</p>
   <ul>
-    <li><strong>pier</strong> (multi-select: leadership · classroom · family · drydock). an app can live in two piers (vertigo.vault and feel.cards do).</li>
+    <li><strong>pier</strong> (multi-select: leadership · classroom · family · drydock). an app can live in two piers (vertigo.vault and read.the.room do).</li>
     <li><strong>launch wave</strong> (select: wave-1 · wave-2 · coming-soon). this drives the visual treatment on the landing.</li>
   </ul>
   <p>both fields stay backwards-compatible with the existing <span class="code-snip">Status</span> field (live · coming-soon) — they just give the cms enough to drive a more sophisticated landing.</p>
@@ -927,7 +1038,7 @@ a { color: var(--wv-cadet); }
       <li>add <strong>pier</strong> field to <span class="code-snip">harbour games</span> db (multi-select: leadership, classroom, family, drydock).</li>
       <li>backfill all existing entries with both fields. use the wave and pier mapping in the "wave 1", "wave 2", "coming soon" tabs of this map.</li>
       <li>add <strong>tagline</strong> and <strong>one-liner</strong> text fields if not present. populate from this map's positioning briefs as starter copy (edit before publishing).</li>
-      <li>confirm two slugs: <span class="code-snip">values-auction</span> and <span class="code-snip">feel-cards</span>. these don't appear in the harbour games db search results — they may live under different slugs or in vertigo.vault as activity entries rather than standalone apps.</li>
+      <li>confirm the <span class="code-snip">values-auction</span> slug — may live as an activity entry in vertigo.vault rather than a standalone app. <span class="code-snip">read-the-room</span> is confirmed (formerly feel-cards — slug updated). add new slugs: <span class="code-snip">co-design-rubric</span> and <span class="code-snip">regenerative-practices</span>.</li>
     </ol>
   </div>
 
@@ -936,7 +1047,8 @@ a { color: var(--wv-cadet); }
     <ol>
       <li>refactor the <span class="code-snip">/harbour</span> landing to render <em>by pier</em>, not as a flat grid. pier sections collapse coming-soon apps into a single "drydock" wall.</li>
       <li>add four new routes: <span class="code-snip">/harbour/pier/leadership</span>, <span class="code-snip">/harbour/pier/classroom</span>, <span class="code-snip">/harbour/pier/family</span>, <span class="code-snip">/harbour/drydock</span>.</li>
-      <li>family pier renders in "coming end of june" state until launch — a single hero card with a waitlist email capture, plus greyed tiles for creaseworks, raft.house, deep.deck.</li>
+      <li>family pier renders in "coming end of june" state until launch — a single hero card with a waitlist email capture, plus greyed tiles for creaseworks, raft.house, deep.deck. <em>character cast (cord, jugs, twig, swatch, crate, mud, drip) live here — not on pier a or b.</em></li>
+      <li>depth.chart renders as a "coming soon" tile on the wave-1 pier b page with a "notify me" email capture. do not wire up the play-event system until meredith ownership is resolved.</li>
       <li>drydock renders the 14 threshold-concept apps as tease tiles with "notify me" capture. on launch day each tile says "available {month}" if there's an internal plan, else "in development."</li>
       <li>add a "who are you?" picker as <span class="code-snip">/harbour/start</span> (optional for v1; valuable for v1.1). three buttons: i'm a facilitator into pier a · i teach into pier b · i'm a parent into pier c.</li>
       <li>update <span class="code-snip">scripts/fetch-notion.js</span> to pull the new <strong>launch wave</strong> and <strong>pier</strong> fields. cache as static json (existing pattern).</li>
@@ -966,13 +1078,31 @@ a { color: var(--wv-cadet); }
   </div>
 
   <div class="handoff" style="margin-top:14px">
+    <h3>6. engineering spec — visitor registration and feedback infrastructure</h3>
+    <p>this is the build sequence for the sign-in gate, resend email sequences, in-app feedback modal, and social sharing hooks discussed at the may 18 whirlpool.</p>
+    <ol>
+      <li><strong>sign-in gate on harbour apps:</strong> extend pool a auth.js sso (already live for <span class="code-snip">@windedvertigo.com</span>) to accept any google account for public visitors. magic-link flow via resend: user enters email on the app's launch screen, resend delivers a signed link, auth.js validates it and creates a session. magic-link provider config for auth.js already documented in pool a architecture.</li>
+      <li><strong>user table:</strong> add a <span class="code-snip">harbour_users</span> table to supabase (wv-harbour-pool) or a cf d1 db on <span class="code-snip">wv-harbour-harbour</span>. columns: <span class="code-snip">id, email, first_play_at, app_plays (jsonb), prme_access_expires_at, credits</span>. prme-provisioned users get <span class="code-snip">prme_access_expires_at</span> set at cert completion via a resend webhook trigger.</li>
+      <li><strong>play-event logging:</strong> each harbour app posts a play-start event to a shared edge endpoint (<span class="code-snip">/api/harbour/play-event</span> on <span class="code-snip">wv-harbour-harbour</span>). payload: <span class="code-snip">&#123; userId, appSlug, sessionId, startedAt &#125;</span>. this is what triggers the resend sequences and the 15-min in-app modal.</li>
+      <li><strong>resend sequences:</strong> three automated flows. (a) first-play: scheduled send 24h after <span class="code-snip">first_play_at</span> via resend batch api. (b) multi-app milestone: cf cron on <span class="code-snip">wv-harbour-harbour</span> runs hourly, finds users with <span class="code-snip">app_plays</span> count = 3 who haven't received the milestone email. (c) 30-day survey: scheduled send 30 days after <span class="code-snip">first_play_at</span>. all three use resend's white-label domain at <span class="code-snip">mail.windedvertigo.com</span>.</li>
+      <li><strong>in-app modal:</strong> each app tracks active session duration client-side. at 15 continuous minutes, dispatch a custom event that triggers a dismissible 2-question overlay. answers post to <span class="code-snip">/api/harbour/feedback</span>. credits awarded server-side on submission (increment <span class="code-snip">harbour_users.credits</span>).</li>
+      <li><strong>gift-a-ticket (signed url):</strong> <span class="code-snip">/api/harbour/gift?token=&lt;signed&gt;</span> route on <span class="code-snip">wv-harbour-harbour</span>. token is a cf kv entry: <span class="code-snip">&#123; grantedBy, createdAt, expiresAt (14 days), redeemCount (max 1) &#125;</span>. on redeem: creates harbour_users entry with a 14-day trial. token is marked used. share buttons on post-session screens generate these via <span class="code-snip">/api/harbour/gift/generate</span>.</li>
+      <li><strong>social share buttons:</strong> server-side og-image generation for each app (already done via cf workers for the site og images). linkedin share uses the linkedin web share api. email share opens a mailto with a pre-filled subject + body including the gift link.</li>
+      <li><strong>depth.chart hold:</strong> render depth.chart on the wave-1 harbour page as a "coming soon" tile with a "notify me" email capture (writes to the harbour_users waitlist). do not wire up to the play-event system until meredith ownership is resolved. keep the app deployed but route its direct url to a waitlist page.</li>
+    </ol>
+  </div>
+
+  <div class="handoff" style="margin-top:14px">
     <h3>5. open questions to resolve before migrating</h3>
     <ol>
-      <li><strong>"deep tech" reconciliation:</strong> confirm whether the user's "deep tech" is depth.chart (most likely) or deep.deck.</li>
-      <li><strong>"title pool" reconciliation:</strong> confirm tidal.pool (apr 16 weekly notes mention "title pool works visually like tidal pool" — looks like a casual alt name).</li>
-      <li><strong>final wave-1 lineup:</strong> the 06 may whirlpool floated 5 apps (vertigo.vault, depth.chart, lines.become.loops, values.auction, feel.cards). the 13 may whirlpool agenda had the lock-by-today flag on it. verify the actual locked list — the may 6 names are the working assumption in this map.</li>
-      <li><strong>meredith's ownership of depth.chart:</strong> the 06 may whirlpool noted "depth chart (pending meredith's ownership)." confirm before launch copy goes out.</li>
-      <li><strong>brand line:</strong> "sea captains for rough waters of uncertainty" surfaced in the may 6 whirlpool. is this the launch tagline or just internal narrative scaffolding?</li>
+      <li><strong>"deep tech" — resolved:</strong> confirmed as <span class="code-snip">deep.deck</span> (wave 2, conversation cards). depth.chart is the separate ai assessment tool.</li>
+      <li><strong>"title pool" — resolved:</strong> confirmed as <span class="code-snip">tidal.pool</span> (coming soon, systems-thinking sibling to lines.become.loops).</li>
+      <li><strong>final wave-1 lineup — updated:</strong> 7 apps confirmed — vertigo.vault, lines.become.loops, values.auction (companion), read.the.room, co-design.rubric, regenerative.practices.catalog. depth.chart is <em>held</em> pending meredith ownership conversation (see below).</li>
+      <li><strong>meredith's ownership of depth.chart — open, blocking:</strong> confirmed at the 18 may whirlpool — depth.chart does <em>not</em> launch may 28. show as "coming soon" tile. remove from press kit and launch email until meredith conversation closes. action: garrett to schedule call with meredith before the 22 may deadline.</li>
+      <li><strong>character cast scope — resolved:</strong> cord, jugs, twig, swatch, crate, mud, drip are <em>pier c only</em>. pier a and b use professionally toned design language. no character mascots in wave-1 apps.</li>
+      <li><strong>values.auction version — resolved:</strong> companion version (freemium, small-group) launches may 28. the 300-person self-running webinar redesign (3 acts, bid captain, durable objects) may become a paid extension.</li>
+      <li><strong>prme free access duration — open:</strong> 30, 60, or 90 days for ppcs alumni? decision needed before the welcome email sequence is built. recommendation: start with 60 days (one semester) and iterate.</li>
+      <li><strong>brand line:</strong> "sea captains for rough waters of uncertainty" surfaced in the may 6 whirlpool. confirm whether this is the launch tagline or internal narrative scaffolding before the press kit goes out.</li>
     </ol>
   </div>
 </section>
@@ -992,6 +1122,7 @@ a { color: var(--wv-cadet); }
     <li>notion · <a href="https://www.notion.so/8e3f3364b2654640a91ed0f38b091a07">harbour games db</a> — canonical app list and schema</li>
     <li>notion (each app's individual harbour-games row) · vertigo.vault, depth.chart, deep.deck, creaseworks, raft.house, tidal.pool, paper.trail, mirror.log, bias.lens, time.prism, liminal.pass, pattern.weave, rhythm.lab, orbit.lab, code.weave, market.mind, scale.shift, proof.garden, emerge.box</li>
     <li>notion · <a href="https://www.notion.so/349e4ee74ba481e0a672d72ef1562181">strategy playdates — running log</a> — cmo and play@ted context</li>
+    <li>notion · <a href="https://www.notion.so/33ae4ee74ba481b1a391fed914baa05b">whirlpool agenda — may 18, 2026</a> — visitor registration model, depth.chart hold, feedback loops, gift-a-ticket, resend sequences, character cast scope</li>
     <li>gmail · "PRME Pedagogy Week 1 - AM to PM Recap" thread and related 2026-04-30 to 2026-05-15 prme correspondence</li>
     <li>slack · #client-prme-internal channel and windedvertigogo.slack.com app deployment notes ("deployed 11 new threshold concept apps")</li>
     <li>google drive · 250528_LearningAgenda_PRMEPedagogy.pdf, w.v rec from PRME.pdf, ppcs-2026 facilitation guides</li>
