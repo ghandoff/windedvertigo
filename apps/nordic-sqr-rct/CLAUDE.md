@@ -8,7 +8,7 @@
 
 Nordic Research Platform — Next.js 15 (App Router, JS) frontend to a Notion + Supabase Postgres backed evidence + claims system used by the Nordic / PRME research team (Sharon, Gina, Adin, Lauren + 2 RA TBD). Lives at `nordic.windedvertigo.com`. Runs on **Cloudflare Workers via OpenNext** (`wv-nordic` worker) — migrated from Vercel in the F.5 cutover, 2026-05-11.
 
-Deploy: **manual via `./scripts/deploy-nordic.sh` from monorepo root** (Next.js build → OpenNext bundle → `wrangler deploy`). CF Builds is NOT wired up for `wv-nordic` (unlike site/harbour/port/ancestry/ops/vault/creaseworks) — a merge to `main` will NOT redeploy on its own. Storage: PDFs go to R2 bucket `nordic-pcs`, not Vercel Blob. Crons (6 triggers) and routes are defined in `wrangler.jsonc`.
+Deploy: **auto via GitHub Action** on push to main (`.github/workflows/deploy-nordic.yml`). Manual trigger also available via GitHub Actions UI. Storage: PDFs go to R2 bucket `nordic-pcs`, not Vercel Blob. Crons (6 triggers) and routes are defined in `wrangler.jsonc`.
 
 ## directory shape
 
