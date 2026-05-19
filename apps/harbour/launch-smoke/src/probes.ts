@@ -118,6 +118,33 @@ export const TARGETS: readonly Target[] = [
   ],
   ["ops /api/auth/csrf", "https://ops.windedvertigo.com/api/auth/csrf", 200],
 
+  // ── vault PRME-free access (load-bearing) ──────────────────────────
+  // PRME participants without an entitlement must still reach free
+  // content. `animal-herding` is a `tier=prme` activity — if this 4xx's
+  // or redirects to login, free-tier access broke for every past PRME
+  // cohort. This is the highest-stakes probe in the vault surface.
+  [
+    "vault prme activity",
+    "https://windedvertigo.com/harbour/vertigo-vault/animal-herding",
+    200,
+  ],
+  // Legacy URL guard — old PRME emails / decks still reference the bare
+  // /vertigo-vault path. If this stops 308'ing to /harbour/vertigo-vault,
+  // those links break. Redirect was repaired 2026-05-19.
+  [
+    "vault legacy redirect",
+    "https://windedvertigo.com/vertigo-vault",
+    308,
+  ],
+  // Cron must stay CRON_SECRET-gated. If a misconfig ever lets this
+  // return 200 unauth, the secret env var is missing or the route guard
+  // regressed.
+  [
+    "vault cron unauth",
+    "https://windedvertigo.com/harbour/vertigo-vault/api/cron/sync",
+    [401, 405],
+  ],
+
   // ── admin endpoint (must NOT return 200 unauth) ────────────────────
   [
     "sync-tiles unauth",
