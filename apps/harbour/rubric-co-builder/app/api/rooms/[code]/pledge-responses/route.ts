@@ -34,11 +34,12 @@ export async function PATCH(
   if (!(await getStore().participantExists(participantId, normalised))) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
-  const snapshot = await getStore().getSnapshot(normalised);
-  if (!snapshot) {
+  // Uses lightweight getRoomState (single SELECT) instead of getSnapshot.
+  const currentState = await getStore().getRoomState(normalised);
+  if (!currentState) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
-  const stale = staleStateGuard(snapshot.room.state, ["pledge"]);
+  const stale = staleStateGuard(currentState, ["pledge"]);
   if (stale) return NextResponse.json(stale, { status: 409 });
   const result = await getStore().upsertPledgeResponse(
     normalised,

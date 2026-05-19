@@ -39,6 +39,9 @@ export async function POST(
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  // We need the full snapshot for ballot size + vote counting; the
+  // stale-state guard rides on the same snapshot rather than paying for a
+  // second round-trip via getRoomState.
   const snapshot = await store.getSnapshot(normalised);
   if (!snapshot) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });

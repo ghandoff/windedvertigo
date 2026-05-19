@@ -33,11 +33,12 @@ export async function POST(
   if (!(await getStore().participantExists(participantId, normalised))) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
-  const snapshot = await getStore().getSnapshot(normalised);
-  if (!snapshot) {
+  // Uses lightweight getRoomState (single SELECT) instead of getSnapshot.
+  const currentState = await getStore().getRoomState(normalised);
+  if (!currentState) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
-  const stale = staleStateGuard(snapshot.room.state, ["ai_ladder_propose"]);
+  const stale = staleStateGuard(currentState, ["ai_ladder_propose"]);
   if (stale) return NextResponse.json(stale, { status: 409 });
   const proposal = await getStore().upsertAiProposal(
     participantId,

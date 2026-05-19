@@ -61,6 +61,10 @@ export type Store = {
   // Bumps last_seen_at for a participant. Called by POST /api/rooms/[code]/heartbeat.
   // Returns false if the participant doesn't exist (host can show "lost session").
   touchParticipant(id: string, roomCode: string): Promise<boolean>;
+  // Lightweight read for the stale-state guard. A single SELECT instead of
+  // getSnapshot's 14 — used on every participant write to validate the room
+  // hasn't moved on. Returns null if the room doesn't exist.
+  getRoomState(code: string): Promise<RoomState | null>;
 
   castVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<Vote | null>;
   removeVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<boolean>;
@@ -439,6 +443,11 @@ function memoryStore(): Store {
       if (!room) return false;
       const p = db.participants.get(id);
       return !!p && p.room_id === room.id;
+    },
+
+    async getRoomState(code) {
+      const room = findByCode(code);
+      return room ? room.state : null;
     },
 
     async touchParticipant(id, roomCode) {
@@ -1267,6 +1276,13 @@ function neonStore(url: string): Store {
         limit 1
       `;
       return rows.length > 0;
+    },
+
+    async getRoomState(code) {
+      const rows = await sql`
+        select state from rubric_cobuilder.rooms where code = ${code} limit 1
+      `;
+      return rows.length > 0 ? (rows[0].state as RoomState) : null;
     },
 
     async touchParticipant(id, roomCode) {

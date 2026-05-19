@@ -33,11 +33,12 @@ export async function PATCH(
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   // Stale-state guard: scale responses only make sense in `scale`.
-  const snapshot = await getStore().getSnapshot(normalised);
-  if (!snapshot) {
+  // Uses lightweight getRoomState (single SELECT) instead of getSnapshot.
+  const currentState = await getStore().getRoomState(normalised);
+  if (!currentState) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
-  const stale = staleStateGuard(snapshot.room.state, ["scale"]);
+  const stale = staleStateGuard(currentState, ["scale"]);
   if (stale) return NextResponse.json(stale, { status: 409 });
   const result = await getStore().upsertScaleResponse(
     participantId,
