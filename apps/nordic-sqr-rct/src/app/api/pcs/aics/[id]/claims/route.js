@@ -4,6 +4,7 @@ import {
   getAicsDocument,
   getAicsVersionsForDocument,
   getAicsClaimsForVersion,
+  createAicsClaim,
 } from '@/lib/aics-documents';
 
 /**
@@ -42,4 +43,43 @@ export async function GET(request, { params }) {
     }
     throw err;
   }
+}
+
+/**
+ * POST /api/pcs/aics/[id]/claims — create a new claim on the latest version
+ * of this AICS document. Requires `aics.claims:edit` capability (RA+).
+ *
+ * Body: { claimId, claimText?, claimNo?, versionId?, ...claim fields }
+ * Response: the newly-created claim object.
+ */
+export async function POST(request, { params }) {
+  const auth = await requireCapability(request, 'aics.claims:edit', {
+    route: '/api/pcs/aics/[id]/claims',
+  });
+  if (auth.error) return auth.error;
+
+  const { id } = await params;
+  const body = await request.json().catch(() => ({}));
+
+  if (!body?.claimId) {
+    return NextResponse.json({ error: 'claimId is required.' }, { status: 400 });
+  }
+
+  // Resolve target version: body may supply an explicit versionId override;
+  // otherwise use isLatest or first available version.
+  let versionId = body.versionId || null;
+  if (!versionId) {
+    const versions = await getAicsVersionsForDocument(id);
+    const latest = versions.find((v) => v.isLatest) || versions[0] || null;
+    if (!latest) {
+      return NextResponse.json(
+        { error: 'Create a version before adding claims.' },
+        { status: 422 },
+      );
+    }
+    versionId = latest.id;
+  }
+
+  const claim = await createAicsClaim(id, versionId, body);
+  return NextResponse.json(claim, { status: 201 });
 }

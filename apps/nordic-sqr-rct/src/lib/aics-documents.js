@@ -593,6 +593,209 @@ export async function getAicsClaimsForVersion(versionId) {
   return res.results.map(parseAicsClaimPage);
 }
 
+// ─── Create helpers ───────────────────────────────────────────────────────
+
+/**
+ * Create an AICS Version page and relate it to its parent AICS document.
+ *
+ * @param {string} docId   — Notion page_id of the parent AICS document.
+ * @param {object} fields
+ * @param {string}  fields.version              — required; Notion title (PV.version)
+ * @param {string}  [fields.effectiveDate]      — ISO date string 'YYYY-MM-DD'
+ * @param {string}  [fields.changeDescription]
+ * @param {string}  [fields.responsibleDept]
+ * @param {string}  [fields.responsibleIndividual]
+ * @param {string}  [fields.approvedBy]
+ * @param {boolean} [fields.isLatest]
+ */
+export async function createAicsVersion(docId, fields) {
+  if (!docId) throw new Error('createAicsVersion: docId is required.');
+  if (!fields?.version) throw new Error('createAicsVersion: fields.version is required.');
+  if (!PCS_DB.aicsVersions) throw new Error('createAicsVersion: PCS_DB.aicsVersions is not configured (set NOTION_AICS_VERSIONS_DB).');
+
+  const properties = {};
+  properties[PV.version] = { title: [{ text: { content: fields.version } }] };
+  properties[PV.aicsDocument] = { relation: [{ id: docId }] };
+  if (fields.isLatest !== undefined) {
+    properties[PV.isLatest] = { checkbox: !!fields.isLatest };
+  }
+  if (fields.effectiveDate !== undefined) {
+    properties[PV.effectiveDate] = fields.effectiveDate
+      ? { date: { start: fields.effectiveDate } }
+      : { date: null };
+  }
+  if (fields.changeDescription !== undefined) {
+    properties[PV.changeDescription] = { rich_text: [{ text: { content: fields.changeDescription || '' } }] };
+  }
+  if (fields.responsibleDept !== undefined) {
+    properties[PV.responsibleDept] = fields.responsibleDept
+      ? { select: { name: fields.responsibleDept } }
+      : { select: null };
+  }
+  if (fields.responsibleIndividual !== undefined) {
+    properties[PV.responsibleIndividual] = { rich_text: [{ text: { content: fields.responsibleIndividual || '' } }] };
+  }
+  if (fields.approvedBy !== undefined) {
+    properties[PV.approvedBy] = { rich_text: [{ text: { content: fields.approvedBy || '' } }] };
+  }
+
+  if (shouldWriteToAicsPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      version: fields.version,
+      aicsDocumentId: docId,
+      isLatest: fields.isLatest || false,
+      effectiveDate: fields.effectiveDate || null,
+      changeDescription: fields.changeDescription || '',
+      responsibleDept: fields.responsibleDept || null,
+      responsibleIndividual: fields.responsibleIndividual || '',
+      approvedBy: fields.approvedBy || '',
+    };
+    return writePostgresFirst(
+      'aics_versions',
+      stubRow,
+      AICS_VERSIONS_PG_COLUMN_MAP,
+      () => notion.pages.create({ parent: { database_id: PCS_DB.aicsVersions }, properties }),
+    );
+  }
+
+  // Notion-only path
+  const page = await notion.pages.create({
+    parent: { database_id: PCS_DB.aicsVersions },
+    properties,
+  });
+  const parsed = parseAicsVersionPage(page);
+  await mirrorToPostgres('aics_versions', parsed, AICS_VERSIONS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+  return parsed;
+}
+
+/**
+ * Create an AICS Claim page and relate it to both its parent AICS document
+ * and the specific AICS version it belongs to.
+ *
+ * @param {string} docId      — Notion page_id of the parent AICS document.
+ * @param {string} versionId  — Notion page_id of the parent AICS version.
+ * @param {object} fields
+ * @param {string}   fields.claimId                      — required; Notion title (PC.claimText)
+ * @param {string}   [fields.claimText]                  — narrative claim body (PC.claimCore)
+ * @param {number}   [fields.claimNo]
+ * @param {string}   [fields.benefitCategory]
+ * @param {string}   [fields.ageGroup]
+ * @param {string}   [fields.sex]
+ * @param {number}   [fields.minDose]
+ * @param {string}   [fields.minDoseUnit]
+ * @param {string}   [fields.grade]
+ * @param {string[]} [fields.lifeStage]
+ * @param {string[]} [fields.lifestyleTags]
+ * @param {boolean}  [fields.fdaDsheaDisclaimerRequired]
+ * @param {string}   [fields.claimPrefix]
+ * @param {string}   [fields.claimStatus]
+ */
+export async function createAicsClaim(docId, versionId, fields) {
+  if (!docId) throw new Error('createAicsClaim: docId is required.');
+  if (!versionId) throw new Error('createAicsClaim: versionId is required.');
+  if (!fields?.claimId) throw new Error('createAicsClaim: fields.claimId is required.');
+  if (!PCS_DB.aicsClaims) throw new Error('createAicsClaim: PCS_DB.aicsClaims is not configured (set NOTION_AICS_CLAIMS_DB).');
+
+  const properties = {};
+  properties[PC.claimText] = { title: [{ text: { content: fields.claimId } }] };
+  properties[PC.aicsDocument] = { relation: [{ id: docId }] };
+  properties[PC.aicsVersion] = { relation: [{ id: versionId }] };
+
+  if (fields.claimText !== undefined) {
+    properties[PC.claimCore] = { rich_text: [{ text: { content: fields.claimText || '' } }] };
+  }
+  if (fields.claimNo !== undefined) {
+    properties[PC.claimNo] = fields.claimNo == null ? { number: null } : { number: Number(fields.claimNo) };
+  }
+  if (fields.benefitCategory !== undefined) {
+    properties[PC.benefitCategory] = fields.benefitCategory
+      ? { select: { name: fields.benefitCategory } }
+      : { select: null };
+  }
+  if (fields.ageGroup !== undefined) {
+    properties[PC.ageGroup] = fields.ageGroup
+      ? { select: { name: fields.ageGroup } }
+      : { select: null };
+  }
+  if (fields.sex !== undefined) {
+    properties[PC.sex] = fields.sex
+      ? { select: { name: fields.sex } }
+      : { select: null };
+  }
+  if (fields.minDose !== undefined) {
+    properties[PC.minDose] = fields.minDose == null ? { number: null } : { number: Number(fields.minDose) };
+  }
+  if (fields.minDoseUnit !== undefined) {
+    properties[PC.minDoseUnit] = fields.minDoseUnit
+      ? { select: { name: fields.minDoseUnit } }
+      : { select: null };
+  }
+  if (fields.grade !== undefined) {
+    properties[PC.grade] = fields.grade
+      ? { select: { name: fields.grade } }
+      : { select: null };
+  }
+  if (fields.lifeStage !== undefined) {
+    properties[PC.lifeStage] = { multi_select: (fields.lifeStage || []).map((name) => ({ name })) };
+  }
+  if (fields.lifestyleTags !== undefined) {
+    properties[PC.lifestyleTags] = { multi_select: (fields.lifestyleTags || []).map((name) => ({ name })) };
+  }
+  if (fields.fdaDsheaDisclaimerRequired !== undefined) {
+    properties[PC.fdaDsheaDisclaimerRequired] = { checkbox: !!fields.fdaDsheaDisclaimerRequired };
+  }
+  if (fields.claimPrefix !== undefined) {
+    properties[PC.claimPrefix] = { rich_text: [{ text: { content: fields.claimPrefix || '' } }] };
+  }
+  if (fields.claimStatus !== undefined) {
+    properties[PC.claimStatus] = fields.claimStatus
+      ? { select: { name: fields.claimStatus } }
+      : { select: null };
+  }
+
+  if (shouldWriteToAicsPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      claimId: fields.claimId,
+      claimText: fields.claimText || '',
+      claimNo: fields.claimNo ?? null,
+      benefitCategory: fields.benefitCategory || null,
+      ageGroup: fields.ageGroup || null,
+      sex: fields.sex || null,
+      minDose: fields.minDose ?? null,
+      minDoseUnit: fields.minDoseUnit || null,
+      grade: fields.grade || null,
+      lifeStage: fields.lifeStage || [],
+      lifestyleTags: fields.lifestyleTags || [],
+      fdaDsheaDisclaimerRequired: fields.fdaDsheaDisclaimerRequired || false,
+      aicsDocumentId: docId,
+      aicsVersionId: versionId,
+    };
+    return writePostgresFirst(
+      'aics_claims',
+      stubRow,
+      AICS_CLAIMS_PG_COLUMN_MAP,
+      () => notion.pages.create({ parent: { database_id: PCS_DB.aicsClaims }, properties }),
+    );
+  }
+
+  // Notion-only path
+  const page = await notion.pages.create({
+    parent: { database_id: PCS_DB.aicsClaims },
+    properties,
+  });
+  const parsed = parseAicsClaimPage(page);
+  await mirrorToPostgres('aics_claims', parsed, AICS_CLAIMS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
+  return parsed;
+}
+
 // ─── Drift-sync helpers (Phase 1 Postgres migration) ─────────────────────
 //
 // Called by /api/cron/drift-sync to pull Notion edits into Postgres.

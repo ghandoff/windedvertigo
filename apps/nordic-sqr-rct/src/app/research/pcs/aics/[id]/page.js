@@ -37,6 +37,7 @@ export default function AicsDetailPage() {
 
   const [doc, setDoc] = useState(null);
   const [claims, setClaims] = useState([]);
+  const [versions, setVersions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(null);
   const [activeTab, setActiveTab] = useState('cover');
@@ -60,13 +61,19 @@ export default function AicsDetailPage() {
         return r.json();
       }),
       fetch(`/api/pcs/aics/${id}/claims`).then(async (r) => {
+        if (!r.ok) return { versionId: null, items: [] };
+        return r.json();
+      }),
+      fetch(`/api/pcs/aics/${id}/versions`).then(async (r) => {
         if (!r.ok) return [];
         return r.json();
       }),
     ])
-      .then(([d, c]) => {
+      .then(([d, c, v]) => {
         setDoc(d);
-        setClaims(Array.isArray(c) ? c : []);
+        // Claims API returns { versionId, items: [...] }
+        setClaims(Array.isArray(c) ? c : (Array.isArray(c?.items) ? c.items : []));
+        setVersions(Array.isArray(v) ? v : []);
       })
       .catch(handleApiError)
       .finally(() => setLoading(false));
@@ -171,7 +178,7 @@ export default function AicsDetailPage() {
 
       {/* Tab body */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        {activeTab === 'cover' ? <CoverTab doc={doc} /> : null}
+        {activeTab === 'cover' ? <CoverTab doc={doc} versions={versions} /> : null}
         {activeTab === 'raw-materials' ? <RawMaterialsTab doc={doc} /> : null}
         {activeTab === 'claims' ? <ClaimsTab claims={claims} /> : null}
         {activeTab === 'regulatory' ? <RegulatoryTab doc={doc} claims={claims} setClaims={setClaims} canEdit={can(user, 'aics.claims:edit')} /> : null}
@@ -188,7 +195,7 @@ export default function AicsDetailPage() {
 
 // ─── Tabs ────────────────────────────────────────────────────────────────
 
-function CoverTab({ doc }) {
+function CoverTab({ doc, versions = [] }) {
   return (
     <div className="space-y-4">
       <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Document Revision History</h2>
@@ -204,9 +211,16 @@ function CoverTab({ doc }) {
             </tr>
           </thead>
           <tbody>
-            {Array.isArray(doc.versions) && doc.versions.length > 0 ? doc.versions.map((v) => (
+            {versions.length > 0 ? versions.map((v) => (
               <tr key={v.id || v.version} className="border-b border-gray-100">
-                <td className="py-2 pr-4 font-mono text-xs">{v.version}</td>
+                <td className="py-2 pr-4 font-mono text-xs">
+                  {v.version}
+                  {v.isLatest ? (
+                    <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[9px] bg-green-100 text-green-700 font-medium">
+                      latest
+                    </span>
+                  ) : null}
+                </td>
                 <td className="py-2 pr-4 text-gray-600">{v.effectiveDate || '—'}</td>
                 <td className="py-2 pr-4">{v.changeDescription || '—'}</td>
                 <td className="py-2 pr-4 text-xs">{v.responsibleDept || '—'}</td>
@@ -215,7 +229,7 @@ function CoverTab({ doc }) {
             )) : (
               <tr>
                 <td colSpan="5" className="py-6 text-center text-sm text-gray-400">
-                  No version history loaded yet.
+                  No versions yet — add the first version to track revision history.
                 </td>
               </tr>
             )}
@@ -233,42 +247,28 @@ function CoverTab({ doc }) {
 }
 
 function RawMaterialsTab({ doc }) {
-  const rows = Array.isArray(doc.rawMaterials) ? doc.rawMaterials : [];
+  const notionUrl = doc?.id
+    ? `https://www.notion.so/${doc.id.replace(/-/g, '')}`
+    : 'https://www.notion.so';
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
         Table A — Applicable NN Raw Materials
       </h2>
-      <p className="text-xs text-gray-500">
-        Per-AICS roster of qualified raw materials. PLM# is volatile and may be deprecated; SAP material number is the stable reference.
-      </p>
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200">
-              <th className="text-left py-2 pr-4">FM PLM #</th>
-              <th className="text-left py-2 pr-4">AI Source</th>
-              <th className="text-left py-2 pr-4">AI Form</th>
-              <th className="text-left py-2 pr-4">Active Ingredient</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length > 0 ? rows.map((r) => (
-              <tr key={r.id || r.fmPlmNumber} className="border-b border-gray-100">
-                <td className="py-2 pr-4 font-mono text-xs">{r.fmPlmNumber || '—'}</td>
-                <td className="py-2 pr-4">{r.aiSourceText || '—'}</td>
-                <td className="py-2 pr-4">{r.aiFormText || '—'}</td>
-                <td className="py-2 pr-4">{r.aiNameText || '—'}</td>
-              </tr>
-            )) : (
-              <tr>
-                <td colSpan="4" className="py-6 text-center text-sm text-gray-400">
-                  No raw materials linked yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="rounded-lg border border-amber-100 bg-amber-50 px-4 py-4">
+        <p className="text-sm font-medium text-amber-900 mb-1">Managed in Notion</p>
+        <p className="text-xs text-amber-800 mb-3">
+          Raw materials (FM PLM#, AI Source, AI Form) are maintained directly in the
+          AICS Notion database. In-platform editing is planned for a future release.
+        </p>
+        <a
+          href={notionUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-amber-700 underline hover:text-amber-900 transition"
+        >
+          Open this document in Notion ↗
+        </a>
       </div>
     </div>
   );
