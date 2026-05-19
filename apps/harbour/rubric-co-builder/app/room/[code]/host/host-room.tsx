@@ -112,6 +112,7 @@ export function HostRoom({ code }: { code: string }) {
     room,
     criteria,
     participants_count,
+    presence,
     votes,
     scales,
     scale_responses,
@@ -225,6 +226,7 @@ export function HostRoom({ code }: { code: string }) {
       state={room.state}
       role="host"
       participantsCount={participants_count}
+      presence={presence}
       surface={surface}
     >
       <div className="space-y-8">
@@ -313,17 +315,40 @@ function HostControls({
     }
   }, [current]);
 
-  // auto-advance when timer reaches zero
+  // auto-advance when timer reaches zero.
+  //
+  // For tally-needing states (vote/vote2 → tally; ai_ladder_propose,
+  // ai_ladder, vote3 → ai-tally; pledge_vote → pledge-tally) we fire
+  // the tally instead of a bare advance — otherwise criteria stay in
+  // 'proposed' (unscored) and the next-state UI looks broken. For
+  // pure-advance states (frame, propose, scale, etc.) we PATCH state
+  // directly. The tally calls themselves transition the room state
+  // server-side as part of the same write.
   useEffect(() => {
     if (remaining === 0 && timerEnd && timerFiredFor.current !== current) {
-      const i = STATE_ORDER.indexOf(current);
-      const next = i >= 0 && i < STATE_ORDER.length - 1 ? STATE_ORDER[i + 1] : null;
-      if (next) {
-        timerFiredFor.current = current;
-        onAdvance(next, current);
-      }
+      timerFiredFor.current = current;
+      const fire = async () => {
+        try {
+          if (current === "vote") return await onTally(1);
+          if (current === "vote2") return await onTally(2);
+          if (
+            current === "ai_ladder_propose" ||
+            current === "ai_ladder" ||
+            current === "vote3"
+          )
+            return await onAiTally();
+          if (current === "pledge_vote") return await onPledgeTally();
+          const i = STATE_ORDER.indexOf(current);
+          const next = i >= 0 && i < STATE_ORDER.length - 1 ? STATE_ORDER[i + 1] : null;
+          if (next) onAdvance(next, current);
+        } catch {
+          // tally failures don't auto-retry; the host UI's "tally" button
+          // is still there and shows the error if they try manually.
+        }
+      };
+      fire();
     }
-  }, [remaining, timerEnd, current, onAdvance]);
+  }, [remaining, timerEnd, current, onAdvance, onTally, onAiTally, onPledgeTally]);
 
   const next = (() => {
     const i = STATE_ORDER.indexOf(current);

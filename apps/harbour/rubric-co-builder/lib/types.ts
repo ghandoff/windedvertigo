@@ -55,6 +55,7 @@ export type Participant = {
   id: string;
   room_id: string;
   joined_at: string;
+  last_seen_at: string;
 };
 
 export type Vote = {
@@ -145,10 +146,25 @@ export type PledgeResponseVote = {
   created_at: string;
 };
 
+// Presence summary for the facilitator UI. Active = pinged within the
+// PRESENCE_ACTIVE_MS window; idle = joined but not pinged recently. The
+// total is participants_count.
+export type Presence = {
+  active: number;
+  idle: number;
+};
+
+// Tunables shared between client (heartbeat interval) and server (active
+// window). Active window MUST be > heartbeat interval + jitter so an idle
+// but online participant doesn't flicker between active/idle between beats.
+export const HEARTBEAT_INTERVAL_MS = 240_000; // 4 minutes
+export const PRESENCE_ACTIVE_MS = 360_000; // 6 minutes
+
 export type RoomSnapshot = {
   room: Room;
   criteria: Criterion[];
   participants_count: number;
+  presence: Presence;
   votes: Vote[];
   scales: Scale[];
   scale_responses: ScaleResponse[];

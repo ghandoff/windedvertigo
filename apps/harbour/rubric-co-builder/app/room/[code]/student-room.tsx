@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRoom } from "@/lib/use-room";
-import { ensureJoined } from "@/lib/participant";
+import { ensureJoined, clearParticipant } from "@/lib/participant";
+import { apiPath } from "@/lib/paths";
+import { HEARTBEAT_INTERVAL_MS } from "@/lib/types";
 import { StepShell } from "./_steps/shell";
 import { StepFrame } from "./_steps/step-frame";
 import { StepPropose } from "./_steps/step-propose";
@@ -84,6 +86,38 @@ export function StudentRoom({ code }: { code: string }) {
       cancelled = true;
     };
   }, [code]);
+
+  // Heartbeat: ping the room every HEARTBEAT_INTERVAL_MS so the host UI
+  // can show this participant as "active." If the heartbeat 404s (room
+  // was reset or participant pruned), clearing localStorage forces a
+  // fresh join on the next ensureJoined() cycle.
+  useEffect(() => {
+    if (!participantId) return;
+    let cancelled = false;
+    async function beat() {
+      try {
+        const res = await fetch(apiPath(`/api/rooms/${code}/heartbeat`), {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ participant_id: participantId }),
+        });
+        if (res.status === 404 && !cancelled) {
+          clearParticipant();
+          setParticipantId(null);
+        }
+      } catch {
+        // ignore — next tick will retry
+      }
+    }
+    beat();
+    const id = setInterval(() => {
+      if (!cancelled) beat();
+    }, HEARTBEAT_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [participantId, code]);
 
   if (state.status === "loading") {
     return (

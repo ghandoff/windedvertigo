@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
 import { roundForState } from "@/lib/types";
+import { staleStateGuard } from "@/lib/state-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +43,11 @@ export async function POST(
   if (!snapshot) {
     return NextResponse.json({ error: "room not found" }, { status: 404 });
   }
+
+  // Stale-state guard: silently dropping a vote into the wrong round
+  // poisons that round's tally. Reject if the room isn't in a voting state.
+  const stale = staleStateGuard(snapshot.room.state, ["vote", "vote2", "vote3"]);
+  if (stale) return NextResponse.json(stale, { status: 409 });
 
   // determine round from room state (client also sends it as a hint, but server is authoritative)
   const round: 1 | 2 | 3 =

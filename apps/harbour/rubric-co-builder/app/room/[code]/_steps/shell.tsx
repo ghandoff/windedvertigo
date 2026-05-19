@@ -1,7 +1,7 @@
 "use client";
 
 import { Wordmark } from "@/app/_components/wordmark";
-import type { RoomState } from "@/lib/types";
+import type { Presence, RoomState } from "@/lib/types";
 
 const STATE_LABELS: Record<RoomState, string> = {
   lobby: "0.5 arrivals",
@@ -25,15 +25,24 @@ export function StepShell({
   state,
   surface = "white",
   participantsCount,
+  presence,
   role,
 }: {
   children: React.ReactNode;
   state: RoomState;
   surface?: "white" | "champagne";
   participantsCount?: number;
+  presence?: Presence;
   role: "host" | "student";
 }) {
   const bg = surface === "champagne" ? "surface-champagne" : "";
+  // Only show the active/idle breakdown to facilitators — it would just
+  // create social pressure on students. The total count is fine for both.
+  const showPresence =
+    role === "host" &&
+    presence &&
+    typeof participantsCount === "number" &&
+    participantsCount > 0;
   return (
     <main className={`min-h-screen w-full px-6 py-10 ${bg}`}>
       <Wordmark />
@@ -41,7 +50,22 @@ export function StepShell({
         <p className="text-xs tracking-widest text-[color:var(--color-cadet)]/70">
           {role} view · step {STATE_LABELS[state] ?? state}
         </p>
-        {typeof participantsCount === "number" ? (
+        {showPresence ? (
+          <p
+            className="text-xs text-[color:var(--color-cadet)]/70"
+            title="active = pinged within 6 minutes; idle = joined but no recent heartbeat"
+          >
+            <span className="font-medium text-[color:var(--color-cadet)]">
+              {presence!.active} active
+            </span>
+            {presence!.idle > 0 ? (
+              <span className="text-[color:var(--color-cadet)]/50">
+                {" "}
+                · {presence!.idle} idle
+              </span>
+            ) : null}
+          </p>
+        ) : typeof participantsCount === "number" ? (
           <p className="text-xs text-[color:var(--color-cadet)]/70">
             {participantsCount} joined
           </p>

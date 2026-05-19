@@ -58,6 +58,9 @@ export type Store = {
   joinRoom(code: string): Promise<{ participant: Participant } | { error: "not_found" } | { error: "full" }>;
   getRoomCount(): Promise<number>;
   participantExists(id: string, roomCode: string): Promise<boolean>;
+  // Bumps last_seen_at for a participant. Called by POST /api/rooms/[code]/heartbeat.
+  // Returns false if the participant doesn't exist (host can show "lost session").
+  touchParticipant(id: string, roomCode: string): Promise<boolean>;
 
   castVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<Vote | null>;
   removeVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<boolean>;
@@ -336,9 +339,15 @@ function memoryStore(): Store {
             : a.created_at.localeCompare(b.created_at),
         );
       const criterionIds = new Set(criteria.map((c) => c.id));
-      const participants_count = [...db.participants.values()].filter(
+      const roomParticipants = [...db.participants.values()].filter(
         (p) => p.room_id === room.id,
+      );
+      const participants_count = roomParticipants.length;
+      const presenceCutoff = Date.now() - 360_000; // PRESENCE_ACTIVE_MS
+      const active = roomParticipants.filter(
+        (p) => new Date(p.last_seen_at ?? p.joined_at).getTime() > presenceCutoff,
       ).length;
+      const idle = Math.max(0, participants_count - active);
       const votes = [...db.votes.values()].filter((v) => criterionIds.has(v.criterion_id));
       const scales = [...db.scales.values()].filter((s) => criterionIds.has(s.criterion_id));
       const scale_responses = [...db.scaleResponses.values()].filter((sr) =>
@@ -373,6 +382,7 @@ function memoryStore(): Store {
         room,
         criteria,
         participants_count,
+        presence: { active, idle },
         votes,
         scales,
         scale_responses,
@@ -406,10 +416,12 @@ function memoryStore(): Store {
       if (!room) return { error: "not_found" as const };
       const cnt = [...db.participants.values()].filter((p) => p.room_id === room.id).length;
       if (cnt >= 60) return { error: "full" as const };
+      const now = new Date().toISOString();
       const participant: Participant = {
         id: uuid(),
         room_id: room.id,
-        joined_at: new Date().toISOString(),
+        joined_at: now,
+        last_seen_at: now,
       };
       db.participants.set(participant.id, participant);
       return { participant };
@@ -427,6 +439,15 @@ function memoryStore(): Store {
       if (!room) return false;
       const p = db.participants.get(id);
       return !!p && p.room_id === room.id;
+    },
+
+    async touchParticipant(id, roomCode) {
+      const room = findByCode(roomCode);
+      if (!room) return false;
+      const p = db.participants.get(id);
+      if (!p || p.room_id !== room.id) return false;
+      db.participants.set(id, { ...p, last_seen_at: new Date().toISOString() });
+      return true;
     },
 
     async castVote(participantId, criterionId, round) {
@@ -1073,11 +1094,35 @@ function neonStore(url: string): Store {
         where room_id = ${room.id}
         order by position asc, created_at asc
       `) as Criterion[];
-      const [{ count }] = await sql`
-        select count(*)::int as count
-        from rubric_cobuilder.participants
-        where room_id = ${room.id}
-      `;
+      // Presence summary: active = last_seen_at within PRESENCE_ACTIVE_MS,
+      // idle = otherwise. Falls back to "all active" if the column is
+      // missing (pre-migration), so the app stays functional during the
+      // brief window between code deploy and migration.
+      let count = 0;
+      let active = 0;
+      let idle = 0;
+      try {
+        const [row] = (await sql`
+          select
+            count(*)::int as count,
+            count(*) filter (where last_seen_at > now() - interval '6 minutes')::int as active
+          from rubric_cobuilder.participants
+          where room_id = ${room.id}
+        `) as Array<{ count: number; active: number }>;
+        count = row.count;
+        active = row.active;
+        idle = Math.max(0, count - active);
+      } catch {
+        // pre-migration fallback: column doesn't exist → treat all as active
+        const [row] = (await sql`
+          select count(*)::int as count
+          from rubric_cobuilder.participants
+          where room_id = ${room.id}
+        `) as Array<{ count: number }>;
+        count = row.count;
+        active = count;
+        idle = 0;
+      }
       const votes = (await sql`
         select v.id, v.participant_id, v.criterion_id,
                coalesce(v.round, 1)::int as round, v.created_at
@@ -1148,7 +1193,8 @@ function neonStore(url: string): Store {
       return {
         room,
         criteria,
-        participants_count: count as number,
+        participants_count: count,
+        presence: { active, idle },
         votes,
         scales,
         scale_responses,
@@ -1188,12 +1234,28 @@ function neonStore(url: string): Store {
         )
       `;
       if ((cnt as number) >= 60) return { error: "full" as const };
-      const [participant] = await sql`
-        insert into rubric_cobuilder.participants (room_id)
-        values (${rooms[0].id})
-        returning id, room_id, joined_at
-      `;
-      return { participant: participant as Participant };
+      // Try to return last_seen_at; if the column doesn't exist yet
+      // (pre-migration window), fall back to joined_at and synthesize.
+      let participant: Participant;
+      try {
+        const [row] = await sql`
+          insert into rubric_cobuilder.participants (room_id)
+          values (${rooms[0].id})
+          returning id, room_id, joined_at, last_seen_at
+        `;
+        participant = row as Participant;
+      } catch {
+        const [row] = await sql`
+          insert into rubric_cobuilder.participants (room_id)
+          values (${rooms[0].id})
+          returning id, room_id, joined_at
+        `;
+        participant = {
+          ...(row as { id: string; room_id: string; joined_at: string }),
+          last_seen_at: (row as { joined_at: string }).joined_at,
+        };
+      }
+      return { participant };
     },
 
     async participantExists(id, roomCode) {
@@ -1205,6 +1267,35 @@ function neonStore(url: string): Store {
         limit 1
       `;
       return rows.length > 0;
+    },
+
+    async touchParticipant(id, roomCode) {
+      // Atomic: existence check + bump in one UPDATE. Returns rowcount.
+      // If the column doesn't exist (pre-migration), fall back to the
+      // existence check so the heartbeat endpoint stays harmless.
+      try {
+        const rows = await sql`
+          update rubric_cobuilder.participants p
+          set last_seen_at = now()
+          from rubric_cobuilder.rooms r
+          where p.room_id = r.id
+            and p.id = ${id}
+            and r.code = ${roomCode}
+          returning p.id
+        `;
+        return rows.length > 0;
+      } catch {
+        // pre-migration: column missing. Treat as a no-op presence ping;
+        // still return whether the participant exists.
+        const rows = await sql`
+          select 1
+          from rubric_cobuilder.participants p
+          join rubric_cobuilder.rooms r on r.id = p.room_id
+          where p.id = ${id} and r.code = ${roomCode}
+          limit 1
+        `;
+        return rows.length > 0;
+      }
     },
 
     async getRoomCount() {

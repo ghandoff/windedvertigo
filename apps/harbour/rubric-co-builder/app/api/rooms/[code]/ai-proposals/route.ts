@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
 import type { AiUseLevel } from "@/lib/types";
+import { staleStateGuard } from "@/lib/state-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +33,12 @@ export async function POST(
   if (!(await getStore().participantExists(participantId, normalised))) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
+  const snapshot = await getStore().getSnapshot(normalised);
+  if (!snapshot) {
+    return NextResponse.json({ error: "room not found" }, { status: 404 });
+  }
+  const stale = staleStateGuard(snapshot.room.state, ["ai_ladder_propose"]);
+  if (stale) return NextResponse.json(stale, { status: 409 });
   const proposal = await getStore().upsertAiProposal(
     participantId,
     normalised,
