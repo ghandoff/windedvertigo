@@ -69,6 +69,37 @@ export type Store = {
   castVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<Vote | null>;
   removeVote(participantId: string, criterionId: string, round: 1 | 2 | 3): Promise<boolean>;
   countVotesForParticipant(participantId: string, roomId: string, round: 1 | 2 | 3): Promise<number>;
+  /**
+   * Atomic vote cast with quota enforcement. Replaces the count-then-insert
+   * TOCTOU race in /api/rooms/[code]/votes — under load, two concurrent
+   * casts from the same participant both read count<max and both insert,
+   * landing maxVotes+1 votes. Maria's quad reproduced this: 71 over-quota
+   * 201s where there should have been 409s.
+   *
+   * Implementation:
+   * - neon: pg_advisory_xact_lock on hash(participant_id, round) serializes
+   *   concurrent callers for the same (participant, round) before the
+   *   count + insert run inside the same transaction.
+   * - memory: Node's single-threaded event loop makes the count + insert
+   *   in a single async tick effectively atomic.
+   *
+   * Returns:
+   * - { ok: true, vote }: insert succeeded (or was an idempotent re-cast
+   *   of the same (participant, criterion, round) — `vote` is the existing row)
+   * - { ok: false, reason: "over_quota", count }: quota would be exceeded
+   * - { ok: false, reason: "not_found" }: participant or criterion missing
+   */
+  castVoteWithQuota(
+    participantId: string,
+    criterionId: string,
+    roomId: string,
+    round: 1 | 2 | 3,
+    maxVotes: number,
+  ): Promise<
+    | { ok: true; vote: Vote }
+    | { ok: false; reason: "over_quota"; count: number }
+    | { ok: false; reason: "not_found" }
+  >;
 
   tallySelection(
     code: string,
@@ -490,6 +521,43 @@ function memoryStore(): Store {
           roomCriteriaIds.has(v.criterion_id) &&
           v.round === round,
       ).length;
+    },
+
+    async castVoteWithQuota(participantId, criterionId, roomId, round, maxVotes) {
+      // Memory store is naturally atomic per-tick. We count + insert inside
+      // a single async function body, which the event loop won't interrupt.
+      const key = voteKey(participantId, criterionId, round);
+      const existing = db.votes.get(key);
+      if (existing) return { ok: true as const, vote: existing };
+
+      const participant = db.participants.get(participantId);
+      const criterion = db.criteria.get(criterionId);
+      if (!participant || !criterion) {
+        return { ok: false as const, reason: "not_found" as const };
+      }
+
+      const roomCriteriaIds = new Set(
+        [...db.criteria.values()].filter((c) => c.room_id === roomId).map((c) => c.id),
+      );
+      const count = [...db.votes.values()].filter(
+        (v) =>
+          v.participant_id === participantId &&
+          roomCriteriaIds.has(v.criterion_id) &&
+          v.round === round,
+      ).length;
+      if (count >= maxVotes) {
+        return { ok: false as const, reason: "over_quota" as const, count };
+      }
+
+      const vote: Vote = {
+        id: uuid(),
+        participant_id: participantId,
+        criterion_id: criterionId,
+        round,
+        created_at: new Date().toISOString(),
+      };
+      db.votes.set(key, vote);
+      return { ok: true as const, vote };
     },
 
     async tallySelection(code, round, nextState) {
@@ -1434,6 +1502,105 @@ function neonStore(url: string): Store {
           and coalesce(v.round, 1) = ${round}
       `;
       return count as number;
+    },
+
+    async castVoteWithQuota(participantId, criterionId, roomId, round, maxVotes) {
+      // Atomic count + insert with cluster-wide serialization for the
+      // (participant, round) pair via a Postgres transaction-scoped
+      // advisory lock. Neon's serverless driver supports multi-statement
+      // transactions via sql.transaction([...]); all statements run on the
+      // same connection inside a real BEGIN/COMMIT.
+      //
+      // Why the lock: under READ COMMITTED isolation, two concurrent
+      // INSERTs with quota-check subqueries can both see count<max and
+      // both succeed. The advisory lock pre-serializes them so the
+      // second one's count includes the first one's insert.
+      //
+      // hashtext(string) gives a deterministic int4; we pack
+      // participantId + ':' + round so different (participant, round)
+      // pairs don't contend.
+      const lockKey = `rcb:vote:${participantId}:${round}`;
+      let txResult: unknown;
+      try {
+        txResult = await sql.transaction([
+          sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`,
+          sql`insert into rubric_cobuilder.votes (participant_id, criterion_id, round)
+              select ${participantId}, ${criterionId}, ${round}
+              where (
+                select count(*) from rubric_cobuilder.votes v
+                join rubric_cobuilder.criteria c on c.id = v.criterion_id
+                where v.participant_id = ${participantId}
+                  and c.room_id = ${roomId}
+                  and coalesce(v.round, 1) = ${round}
+              ) < ${maxVotes}
+              on conflict (participant_id, criterion_id, round) do nothing
+              returning id, participant_id, criterion_id, round, created_at`,
+        ]);
+      } catch (e) {
+        // Fallback for older schemas without a round column on votes
+        // (matches the existing castVote fallback pattern). Same lock
+        // strategy; just omits the round column.
+        if (
+          typeof e === "object" &&
+          e !== null &&
+          /round/i.test(String((e as { message?: string }).message ?? ""))
+        ) {
+          txResult = await sql.transaction([
+            sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`,
+            sql`insert into rubric_cobuilder.votes (participant_id, criterion_id)
+                select ${participantId}, ${criterionId}
+                where (
+                  select count(*) from rubric_cobuilder.votes v
+                  join rubric_cobuilder.criteria c on c.id = v.criterion_id
+                  where v.participant_id = ${participantId}
+                    and c.room_id = ${roomId}
+                ) < ${maxVotes}
+                on conflict (participant_id, criterion_id) do nothing
+                returning id, participant_id, criterion_id, created_at`,
+          ]);
+        } else {
+          throw e;
+        }
+      }
+
+      // txResult[1] is the result of the second statement (the insert).
+      const inserted = (txResult as unknown[])[1] as Array<Record<string, unknown>>;
+      if (inserted.length > 0) {
+        const row = inserted[0];
+        return {
+          ok: true as const,
+          vote: { ...row, round: (row.round as number) ?? round } as Vote,
+        };
+      }
+
+      // No row inserted. Two reasons: (a) over quota, (b) idempotent re-cast
+      // of the same (participant, criterion, round) blocked by ON CONFLICT.
+      // Disambiguate via a fresh count.
+      const [{ count }] = (await sql`
+        select count(*)::int as count
+        from rubric_cobuilder.votes v
+        join rubric_cobuilder.criteria c on c.id = v.criterion_id
+        where v.participant_id = ${participantId}
+          and c.room_id = ${roomId}
+          and coalesce(v.round, 1) = ${round}
+      `) as Array<{ count: number }>;
+
+      if (count >= maxVotes) {
+        return { ok: false as const, reason: "over_quota" as const, count };
+      }
+
+      // Below quota but insert returned empty → it was a duplicate. Return
+      // the existing vote (idempotent semantics, same as the old castVote).
+      const [existing] = (await sql`
+        select id, participant_id, criterion_id,
+               coalesce(round, 1)::int as round, created_at
+        from rubric_cobuilder.votes
+        where participant_id = ${participantId} and criterion_id = ${criterionId}
+          and coalesce(round, 1) = ${round}
+        limit 1
+      `) as Array<Vote>;
+      if (existing) return { ok: true as const, vote: existing };
+      return { ok: false as const, reason: "not_found" as const };
     },
 
     async tallySelection(code, round, nextState) {

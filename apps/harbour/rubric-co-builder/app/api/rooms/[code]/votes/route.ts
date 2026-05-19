@@ -60,20 +60,29 @@ export async function POST(
 
   const ballotSize = snapshot.criteria.filter((c) => c.status !== "rejected").length;
   const maxVotes = maxVotesFor(ballotSize);
-  const count = await store.countVotesForParticipant(participantId, snapshot.room.id, round);
-  if (count >= maxVotes) {
-    return NextResponse.json(
-      {
-        error: `you've used all ${maxVotes} dot${maxVotes === 1 ? "" : "s"}. remove one first.`,
-      },
-      { status: 409 },
-    );
-  }
-  const vote = await store.castVote(participantId, criterionId, round);
-  if (!vote) {
+
+  // Atomic quota check + insert. Replaces the old count-then-insert
+  // TOCTOU race that landed 71 over-quota votes in Maria's 300-user
+  // load test. See castVoteWithQuota docs in lib/store.ts.
+  const result = await store.castVoteWithQuota(
+    participantId,
+    criterionId,
+    snapshot.room.id,
+    round,
+    maxVotes,
+  );
+  if (!result.ok) {
+    if (result.reason === "over_quota") {
+      return NextResponse.json(
+        {
+          error: `you've used all ${maxVotes} dot${maxVotes === 1 ? "" : "s"}. remove one first.`,
+        },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: "couldn't cast vote" }, { status: 400 });
   }
-  return NextResponse.json(vote, { status: 201 });
+  return NextResponse.json(result.vote, { status: 201 });
 }
 
 export async function DELETE(
