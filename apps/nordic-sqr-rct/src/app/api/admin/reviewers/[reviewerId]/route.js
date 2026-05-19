@@ -34,8 +34,23 @@ export async function PATCH(request, { params }) {
       });
     }
 
-    // Roles multi_select — delegate to the shared helper (Notion + Postgres mirror)
+    // Roles multi_select — delegate to the shared helper (Notion + Postgres mirror).
+    // Assigning `admin` or `super-user` is a privileged operation: only a
+    // super-user may grant or retain those roles. A regular admin (who holds
+    // `users:edit-role`) may only assign reviewer / researcher / ra.
     if (Array.isArray(body.roles)) {
+      const PRIVILEGED_ROLES = ['admin', 'super-user'];
+      const requestsPrivileged = body.roles.some(r => PRIVILEGED_ROLES.includes(r));
+      if (requestsPrivileged) {
+        const callerRoles = gate.user?.roles ?? [];
+        const callerIsSuperUser = callerRoles.includes('super-user');
+        if (!callerIsSuperUser) {
+          return NextResponse.json(
+            { error: 'Only super-users may assign admin or super-user roles.' },
+            { status: 403 },
+          );
+        }
+      }
       await updateReviewerRoles(reviewerId, body.roles);
     }
 

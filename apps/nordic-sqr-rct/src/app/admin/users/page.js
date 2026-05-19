@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/lib/useAuth';
 import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import AdminRoute from '@/components/AdminRoute';
@@ -83,12 +84,16 @@ function RoleChips({ roles }) {
 // RoleEditor — popover with checkboxes, saves on each change
 // ---------------------------------------------------------------------------
 
-function RoleEditor({ user, onSaved }) {
+// Roles that only a super-user may assign to another user.
+const PRIVILEGED_ROLES_SET = new Set(['admin', 'super-user']);
+
+function RoleEditor({ user, currentUserRoles = [], onSaved }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [localRoles, setLocalRoles] = useState(deriveRoles(user));
   const popoverRef = useRef(null);
   const toast = useToast();
+  const viewerIsSuperUser = currentUserRoles.includes('super-user');
 
   // Close on outside click
   useEffect(() => {
@@ -149,25 +154,36 @@ function RoleEditor({ user, onSaved }) {
             const impliedByAdmin = !superActive && adminActive && ROLES_IMPLIED_BY_ADMIN.has(role);
             const implied = impliedBySuperuser || impliedByAdmin;
             const impliedBy = impliedBySuperuser ? 'super-user' : 'admin';
-            const isDisabled = saving || implied;
+            // Non-super-users cannot assign privileged roles (admin / super-user)
+            const privilegeLocked = !viewerIsSuperUser && PRIVILEGED_ROLES_SET.has(role);
+            const isDisabled = saving || implied || privilegeLocked;
             const isSuperUser = role === 'super-user';
+            const isAdmin = role === 'admin';
+            const privilegeTitle = privilegeLocked
+              ? 'Only super-users can assign this role'
+              : implied
+              ? `Included in ${impliedBy}`
+              : isSuperUser
+              ? 'Grants every capability in the system'
+              : undefined;
             return (
               <label
                 key={role}
                 className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'} ${isSuperUser ? 'border-t border-gray-100 mt-1 pt-2' : ''}`}
-                title={implied ? `Included in ${impliedBy}` : isSuperUser ? 'Grants every capability in the system' : undefined}
+                title={privilegeTitle}
               >
                 <input
                   type="checkbox"
                   checked={localRoles.includes(role) || implied}
-                  onChange={() => !implied && toggleRole(role)}
+                  onChange={() => !implied && !privilegeLocked && toggleRole(role)}
                   disabled={isDisabled}
                   className="rounded border-gray-300 text-pacific focus:ring-pacific"
                 />
-                <span className={implied ? 'text-gray-400 italic' : isSuperUser ? 'text-red-600 font-medium' : 'text-gray-700'}>
+                <span className={implied ? 'text-gray-400 italic' : isSuperUser ? 'text-red-600 font-medium' : isAdmin ? 'text-orange-700 font-medium' : 'text-gray-700'}>
                   {role}
                   {implied && <span className="ml-1 text-xs">(included in {impliedBy})</span>}
-                  {isSuperUser && !implied && <span className="ml-1 text-xs text-red-400">— all capabilities</span>}
+                  {privilegeLocked && <span className="ml-1 text-xs text-gray-400">(super-user only)</span>}
+                  {isSuperUser && !implied && !privilegeLocked && <span className="ml-1 text-xs text-red-400">— all capabilities</span>}
                 </span>
               </label>
             );
@@ -392,6 +408,9 @@ const TABS = [
 ];
 
 function UserDirectoryContent() {
+  const { user: sessionUser } = useAuth();
+  const currentUserRoles = sessionUser ? deriveRoles(sessionUser) : [];
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -569,7 +588,7 @@ function UserDirectoryContent() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
                       <td className="px-6 py-4">
-                        <RoleEditor user={user} onSaved={handleRolesSaved} />
+                        <RoleEditor user={user} currentUserRoles={currentUserRoles} onSaved={handleRolesSaved} />
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{user.affiliation || '—'}</td>
                       <td className="px-6 py-4">

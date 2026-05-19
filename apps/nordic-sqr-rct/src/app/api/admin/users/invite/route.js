@@ -178,6 +178,21 @@ export async function POST(request) {
       return NextResponse.json({ error: 'At least one role is required.' }, { status: 400 });
     }
 
+    // Privilege escalation guard: only super-users may invite someone with
+    // admin or super-user roles. A regular admin (users:invite capability) may
+    // only invite reviewer / researcher / ra.
+    const PRIVILEGED_ROLES = ['admin', 'super-user'];
+    const requestsPrivileged = roles.some(r => PRIVILEGED_ROLES.includes(r));
+    if (requestsPrivileged) {
+      const callerRoles = gate.user?.roles ?? [];
+      if (!callerRoles.includes('super-user')) {
+        return NextResponse.json(
+          { error: 'Only super-users may invite users with admin or super-user roles.' },
+          { status: 403 },
+        );
+      }
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
 
     // Build pre-filled registration URL
