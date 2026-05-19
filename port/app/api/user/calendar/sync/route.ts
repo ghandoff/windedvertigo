@@ -21,6 +21,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createTimesheet, queryTimesheets } from "@/lib/notion/timesheets";
+import { upsertTimesheetToSupabase } from "@/lib/supabase/timesheets";
 import { getNotionUserMap } from "@/lib/role";
 
 // Backfill can create hundreds of Notion entries sequentially — allow up to 5 min.
@@ -178,13 +179,29 @@ export async function POST(req: NextRequest) {
     const hours = Math.round(eventDurationHours(event) * 100) / 100;
 
     try {
-      await createTimesheet({
+      const created_ts = await createTimesheet({
         entry:       name,
         hours,
         status:      "draft",
         billable:    false,
         dateAndTime: { start: dateStr, end: null },
         ...(personId ? { personIds: [personId] } : {}),
+      });
+      // Mirror to Supabase immediately so the time page reflects the sync
+      // without waiting for a cron. Fire-and-forget — Notion write already
+      // succeeded; a Supabase failure here is logged but doesn't count as an error.
+      upsertTimesheetToSupabase(created_ts.id, {
+        entry:       name,
+        hours,
+        status:      "draft",
+        billable:    false,
+        date_start:  dateStr,
+        date_end:    null,
+        person_ids:  personId ? [personId] : [],
+        task_ids:    [],
+        meeting_ids: [],
+      }).catch((e: unknown) => {
+        console.warn(`[calendar/sync] supabase mirror failed for "${name}":`, e instanceof Error ? e.message : e);
       });
       existingKeys.add(key); // prevent in-batch duplicates
       created++;
