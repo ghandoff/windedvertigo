@@ -61,6 +61,11 @@ export interface PipelineRow {
   timeline: string;
 }
 
+// NOTE: This array is the static FALLBACK only. The strategy pipeline tab
+// first attempts to load live data from fetchActivePipelineOpportunities()
+// (lib/marketing/rfp-analytics.ts). These rows render only if that fetch
+// returns empty or fails — keeping a reasonable baseline when RFP Radar
+// has no data yet.
 export const REVENUE_PIPELINE: PipelineRow[] = [
   {
     opportunity: "PRME 2026",
@@ -70,53 +75,32 @@ export const REVENUE_PIPELINE: PipelineRow[] = [
     timeline: "$48k received · $97k outstanding",
   },
   {
-    opportunity: "LEGO / Superskills",
-    stage: "active partnership",
-    estValue: "$30–60k",
-    probability: 75,
-    timeline: "with Learning Economy Foundation",
-  },
-  {
-    opportunity: "Sesame Workshop",
-    stage: "active engagement",
-    estValue: "$20–40k",
-    probability: 65,
-    timeline: "learning design scope in progress",
-  },
-  {
-    opportunity: "UNICEF",
-    stage: "active engagement",
-    estValue: "$20–40k",
-    probability: 60,
-    timeline: "learning design scope in progress",
-  },
-  {
-    opportunity: "Nordic Naturals",
-    stage: "SOW in progress",
+    opportunity: "Nordic",
+    stage: "finalizing contract",
     estValue: "$50k + retainer",
-    probability: 70,
-    timeline: "signed by june 30",
+    probability: 80,
+    timeline: "signing by june 2026",
   },
   {
     opportunity: "IDB El Salvador",
-    stage: "documentation phase",
+    stage: "in communication",
     estValue: "$50–100k",
     probability: 50,
     timeline: "decision by july 15",
   },
   {
     opportunity: "Amna at 10",
-    stage: "proposal submitted (53d, no reply)",
+    stage: "interview follow-up (may 20)",
     estValue: "$15–30k",
-    probability: 15,
-    timeline: "follow up or archive by june",
+    probability: 45,
+    timeline: "scope by june",
   },
   {
-    opportunity: "ISTE + ASCD 2026",
-    stage: "conference pipeline",
-    estValue: "$50–100k",
+    opportunity: "UNICEF",
+    stage: "early pursuit",
+    estValue: "$20–40k",
     probability: 30,
-    timeline: "june 28–july 1, orlando",
+    timeline: "Q3 2026",
   },
 ];
 
@@ -1047,6 +1031,10 @@ export interface DistributionProject {
   deadline: string;
   /** optional campaign id this project rolls up to */
   campaignId?: string;
+  /** Supabase notion_page_id of the corresponding PM project, if one exists.
+   *  When set, the distribution row name becomes a link to /projects/[id].
+   *  Also used by the project detail page to surface strategic context. */
+  linkedProjectId?: string;
 }
 
 export const DISTRIBUTION: DistributionProject[] = [

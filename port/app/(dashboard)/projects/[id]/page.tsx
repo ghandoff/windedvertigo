@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock, ClipboardList, Milestone as MilestoneIcon } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, ClipboardList, Milestone as MilestoneIcon, LayoutGrid } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/app/components/page-header";
@@ -12,6 +12,7 @@ import { getActiveMembersFromSupabase } from "@/lib/supabase/members";
 import { BudgetView } from "@/app/(dashboard)/work/contracts/components/budget-view";
 import { ProjectKanban } from "./project-kanban";
 import { MILESTONE_STATUS_COLORS } from "@/lib/work-constants";
+import { DISTRIBUTION, TEAM, WV_COLOURS } from "@/lib/strategy-data";
 import { formatDate } from "@/lib/format";
 import type { WorkItem } from "@/lib/notion/types";
 
@@ -145,7 +146,74 @@ export default async function ProjectDetailPage({ params }: Props) {
           <MilestoneList milestones={milestones} />
         </div>
       )}
+
+      {/* ── strategic context — only when a distribution row links to this project ── */}
+      <StrategicContextCard projectId={project.id} />
     </>
+  );
+}
+
+// ── strategic context card ────────────────────────────────────────────────────
+
+/**
+ * Renders a "strategic context" card if the DISTRIBUTION matrix has a row
+ * with `linkedProjectId === projectId`. Gives the project detail page a
+ * back-link into the strategy distribution tab.
+ */
+function StrategicContextCard({ projectId }: { projectId: string }) {
+  const distRow = DISTRIBUTION.find((d) => d.linkedProjectId === projectId);
+  if (!distRow) return null;
+
+  const ownerMember = TEAM.find((t) => t.name === distRow.owner);
+  const ownerColour = ownerMember ? WV_COLOURS[ownerMember.colour] : "#aaa";
+
+  return (
+    <div className="mt-8">
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
+              strategic context
+            </CardTitle>
+            <Link
+              href="/strategy?tab=distribution"
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← strategy
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="font-medium text-foreground">owner</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  className="inline-block w-2 h-2 rounded-full"
+                  style={{ backgroundColor: ownerColour }}
+                />
+                {distRow.owner}
+              </span>
+            </span>
+            {distRow.support.length > 0 && (
+              <span className="flex items-center gap-1.5">
+                <span className="font-medium text-foreground">support</span>
+                {distRow.support.join(", ")}
+              </span>
+            )}
+            <span className="flex items-center gap-1.5">
+              <span className="font-medium text-foreground">deadline</span>
+              {distRow.deadline}
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">next action</span>
+            {" "}{distRow.nextAction}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

@@ -21,8 +21,9 @@ import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { CardGridSkeleton } from "@/app/components/skeletons";
 import { getSocialStatsFromSnapshot } from "@/lib/marketing/social-stats";
 import { getPipelineProgress } from "@/lib/marketing/pipeline-progress";
-import { fetchRfpAnalytics, fetchEmailAnalytics } from "@/lib/marketing/rfp-analytics";
+import { fetchRfpAnalytics, fetchEmailAnalytics, fetchActivePipelineOpportunities } from "@/lib/marketing/rfp-analytics";
 import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
+import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { StrategyHero } from "./components/strategy-hero";
 import { TeamPulseStrip } from "./components/team-pulse-strip";
 import { DocentWelcomeBanner } from "@/app/components/docent-welcome-banner";
@@ -59,7 +60,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -71,7 +72,13 @@ export default async function StrategyPage({
     // Live RFP pipeline performance + email metrics (formerly /analytics page).
     fetchRfpAnalytics().catch(() => null),
     fetchEmailAnalytics().catch(() => null),
+    // Live active pipeline opportunities from RFP Lighthouse (rfp_opportunities).
+    // Falls back to the hardcoded REVENUE_PIPELINE in pipeline-tab.tsx on error.
+    fetchActivePipelineOpportunities().catch(() => []),
+    // Live PM projects for distribution matrix "active portfolio" section.
+    getProjectsFromSupabase({ archive: false }).catch(() => ({ data: [], total: 0 })),
   ]);
+  const pmProjects = pmProjectsResult.data;
   const crmCampaigns = allCampaigns.map((c) => ({
     id: c.id,
     name: c.name,
@@ -104,10 +111,10 @@ export default async function StrategyPage({
       {activeTab === "channels" && <ChannelsTab />}
       {activeTab === "audience" && <AudienceTab />}
       {activeTab === "pipeline" && (
-        <PipelineTab stats={stats} pipelineProgress={pipelineProgress} rfpAnalytics={rfpAnalytics} />
+        <PipelineTab stats={stats} pipelineProgress={pipelineProgress} rfpAnalytics={rfpAnalytics} livePipeline={livePipeline} />
       )}
       {activeTab === "distribution" && (
-        <DistributionTab memberFilter={memberFilter} />
+        <DistributionTab memberFilter={memberFilter} pmProjects={pmProjects} />
       )}
       {activeTab === "timeline" && <TimelineTab />}
       {activeTab === "competitors" && (

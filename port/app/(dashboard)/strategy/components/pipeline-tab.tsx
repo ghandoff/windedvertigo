@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Mail, Users, Heart, TrendingUp } from "lucide-react";
+import { Mail, Users, Heart, TrendingUp, ArrowUpRight } from "lucide-react";
 import {
   REVENUE_PIPELINE,
   WEEKLY_KPIS,
@@ -29,7 +29,7 @@ import {
 import { PipelineFunnel, type PipelineProgressOverrides } from "./pipeline-funnel";
 import { ClickableKpiCard } from "./kpi-source-modal";
 import { SyncNowButton } from "../sync-now-button";
-import { formatUSD, type RfpAnalytics } from "@/lib/marketing/rfp-analytics";
+import { formatUSD, type RfpAnalytics, type LivePipelineRow } from "@/lib/marketing/rfp-analytics";
 
 /** Full snapshot shape (matches `SocialStatsSnapshot` from lib/marketing/social-stats.ts).
     Loosely typed here to avoid coupling the tab to the marketing internals. */
@@ -67,9 +67,11 @@ export interface PipelineTabProps {
   pipelineProgress?: PipelineProgressOverrides;
   /** Live RFP performance data (formerly /analytics page). Null if fetch failed. */
   rfpAnalytics?: RfpAnalytics | null;
+  /** Live active pipeline rows from RFP Lighthouse. Empty array = use static fallback. */
+  livePipeline?: LivePipelineRow[];
 }
 
-export function PipelineTab({ stats, pipelineProgress, rfpAnalytics }: PipelineTabProps) {
+export function PipelineTab({ stats, pipelineProgress, rfpAnalytics, livePipeline }: PipelineTabProps) {
   const subscribersTarget = 2000;
   const followersTarget = 5000;
   const campaignActivityTarget = 100;
@@ -222,12 +224,23 @@ export function PipelineTab({ stats, pipelineProgress, rfpAnalytics }: PipelineT
         </Card>
       </div>
 
-      {/* concrete pipeline */}
+      {/* concrete pipeline — live from RFP Lighthouse when available, static fallback otherwise */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base text-[#273248]">
-            current pipeline
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base text-[#273248]">
+              current pipeline
+              {livePipeline && livePipeline.length > 0 && (
+                <span className="text-xs text-muted-foreground font-normal ml-2">· live</span>
+              )}
+            </CardTitle>
+            <Link
+              href="/opportunities?tab=rfps"
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              rfp radar <ArrowUpRight className="h-3 w-3" />
+            </Link>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -241,9 +254,21 @@ export function PipelineTab({ stats, pipelineProgress, rfpAnalytics }: PipelineT
               </TableRow>
             </TableHeader>
             <TableBody>
-              {REVENUE_PIPELINE.map((row) => (
+              {(livePipeline && livePipeline.length > 0 ? livePipeline : REVENUE_PIPELINE).map((row) => (
                 <TableRow key={row.opportunity} className="text-sm">
-                  <TableCell className="font-medium">{row.opportunity}</TableCell>
+                  <TableCell className="font-medium">
+                    {"id" in row ? (
+                      <Link
+                        href={`/opportunities?rfp=${row.id}`}
+                        className="hover:underline hover:text-[#273248] transition-colors inline-flex items-center gap-1"
+                      >
+                        {row.opportunity}
+                        <ArrowUpRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                      </Link>
+                    ) : (
+                      row.opportunity
+                    )}
+                  </TableCell>
                   <TableCell className="text-muted-foreground text-xs">{row.stage}</TableCell>
                   <TableCell className="tabular-nums text-xs font-medium">{row.estValue}</TableCell>
                   <TableCell className="text-center">

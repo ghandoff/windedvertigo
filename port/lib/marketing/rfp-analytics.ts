@@ -3,13 +3,15 @@
  * pipeline tab can consume the same data without duplicating the fetch logic.
  *
  * Exports:
- *   fetchRfpAnalytics()   — active pipeline + win rates + outcomes
- *   fetchEmailAnalytics() — email send / open / click metrics + 6-month trend
+ *   fetchActivePipelineOpportunities() — live RFP rows for strategy pipeline table
+ *   fetchRfpAnalytics()                — active pipeline + win rates + outcomes
+ *   fetchEmailAnalytics()              — email send / open / click metrics + 6-month trend
  */
 
 import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { queryEmailDrafts } from "@/lib/notion/email-drafts";
 import type { RfpOpportunity, EmailDraft } from "@/lib/notion/types";
+import type { PipelineRow } from "@/lib/strategy-data";
 
 // ── helpers ──────────────────────────────────────────────────────────
 
@@ -20,6 +22,80 @@ export function formatUSD(value: number): string {
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+// ── Live pipeline rows for strategy pipeline table ────────────────────
+
+/** A PipelineRow enriched with the Supabase notion_page_id for deep-linking. */
+export interface LivePipelineRow extends PipelineRow {
+  /** Supabase notion_page_id — used to link to /opportunities?rfp=<id> */
+  id: string;
+}
+
+const PIPELINE_STATUS_LABELS: Record<string, string> = {
+  pursuing:     "pursuing",
+  interviewing: "interviewing",
+  submitted:    "submitted",
+  reviewing:    "under review",
+  radar:        "in pipeline",
+};
+
+const PROBABILITY_BY_STATUS: Record<string, number> = {
+  pursuing:     70,
+  interviewing: 65,
+  submitted:    60,
+  reviewing:    50,
+  radar:        25,
+};
+
+const FIT_BONUS: Record<string, number> = {
+  "high fit":   15,
+  "medium fit":  0,
+  "low fit":   -15,
+};
+
+function formatEstValue(value: number | null): string {
+  if (value == null) return "TBD";
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000)     return `$${Math.round(value / 1_000)}k`;
+  return `$${value}`;
+}
+
+function formatDueDate(dateStr: string | null): string {
+  if (!dateStr) return "TBD";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toLowerCase();
+}
+
+/**
+ * Returns the active RFP opportunities from Supabase formatted as PipelineRows
+ * for the strategy pipeline table. Falls back to [] on error (the hardcoded
+ * REVENUE_PIPELINE in strategy-data.ts serves as the UI fallback).
+ *
+ * Sorted by derived probability desc, then by opportunity name.
+ */
+export async function fetchActivePipelineOpportunities(): Promise<LivePipelineRow[]> {
+  const ACTIVE = new Set(["radar", "reviewing", "pursuing", "interviewing", "submitted"]);
+
+  const { data: rfps } = await getRfpOpportunitiesFromSupabase({}, { pageSize: 200 });
+  const active = rfps.filter((r: RfpOpportunity) => ACTIVE.has(r.status));
+
+  return active
+    .map((r: RfpOpportunity): LivePipelineRow => {
+      const basePct = PROBABILITY_BY_STATUS[r.status] ?? 25;
+      const fitDelta = FIT_BONUS[r.wvFitScore ?? ""] ?? 0;
+      const probability = Math.max(5, Math.min(95, basePct + fitDelta));
+      return {
+        id:          r.id,
+        opportunity: r.opportunityName,
+        stage:       PIPELINE_STATUS_LABELS[r.status] ?? r.status,
+        estValue:    formatEstValue(r.estimatedValue),
+        probability,
+        timeline:    r.dueDate?.start ? `due ${formatDueDate(r.dueDate.start)}` : "TBD",
+      };
+    })
+    .sort((a, b) => b.probability - a.probability || a.opportunity.localeCompare(b.opportunity));
 }
 
 // ── RFP analytics ─────────────────────────────────────────────────────
