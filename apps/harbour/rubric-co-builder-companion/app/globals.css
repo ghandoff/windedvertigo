@@ -113,7 +113,13 @@
 }
 
 /* print stylesheet: hides navigation + rebuilds the rubric as a single,
-   inkable page. triggered from the commit step's "print rubric" button. */
+   inkable page. triggered from the commit step's "print rubric" button.
+   landscape A4 fits a 5-criteria × 4-level rubric without column squash. */
+@page {
+  size: A4 landscape;
+  margin: 1.5cm;
+}
+
 @media print {
   body {
     background: #fff !important;
@@ -131,6 +137,11 @@
     background: #fff !important;
   }
   .rubric-print-table {
+    page-break-inside: avoid;
+  }
+  /* row-level keep-together so a criterion + its 4 descriptors don't
+     split across pages mid-row. */
+  .rubric-print-table tr {
     page-break-inside: avoid;
   }
 }

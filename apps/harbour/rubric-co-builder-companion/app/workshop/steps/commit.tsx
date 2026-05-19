@@ -77,10 +77,18 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
         )}
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table
+            className="w-full text-sm border-collapse"
+            // UDL 1.3 / WCAG 1.3.1: scope attributes turn this from a
+            // visual grid into a programmatically-navigable rubric.
+            // Screen readers and printed-to-PDF readers can now announce
+            // each cell as "<criterion>, level N <descriptor>".
+            aria-label="rubric — criteria × proficiency levels"
+          >
             <thead>
               <tr>
                 <th
+                  scope="col"
                   className="text-left p-2 align-top w-1/5"
                   style={{
                     color: "var(--color-cadet)",
@@ -93,6 +101,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
                 {SCALE_LEVELS.map((lvl) => (
                   <th
                     key={lvl.level}
+                    scope="col"
                     className="text-left p-2 align-top"
                     style={{
                       color: "var(--color-cadet)",
@@ -108,8 +117,9 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
             <tbody>
               {draft.criteria.map((c) => (
                 <tr key={c.id}>
-                  <td
-                    className="p-2 align-top"
+                  <th
+                    scope="row"
+                    className="p-2 align-top text-left font-normal"
                     style={{
                       color: "var(--color-cadet)",
                       borderBottom:
@@ -133,7 +143,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
                         {c.good_description}
                       </p>
                     )}
-                  </td>
+                  </th>
                   {SCALE_LEVELS.map((lvl) => {
                     const d = draft.descriptors.find(
                       (x) => x.criterion_id === c.id && x.level === lvl.level,
