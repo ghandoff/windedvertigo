@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateRfpOpportunity, archiveRfpOpportunity } from "@/lib/notion/rfp-radar";
-import { setRfpInfluencedByEventIds } from "@/lib/supabase/rfp-opportunities";
+import { setRfpInfluencedByEventIds, setRfpStatus } from "@/lib/supabase/rfp-opportunities";
 import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { json, withNotionError } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
@@ -33,6 +33,15 @@ export async function PATCH(
   const body = await req.json();
 
   return withNotionError(async () => {
+    // Keep Supabase status in sync with Notion — the board reads from Supabase,
+    // so without this write every drag/dropdown/edit-form change snaps back after
+    // router.refresh() (Supabase returned the old status, DraggableKanban useEffect
+    // reset items to initialItems). Must run before the Notion write so the
+    // server re-render always sees the new status.
+    if (body.status !== undefined) {
+      await setRfpStatus(id, body.status);
+    }
+
     // Phase 8 (conference intelligence): influencedByEventIds is a Supabase-
     // only column — Notion has no equivalent property — so write it directly
     // before the Notion update. Idempotent; pass an empty array to clear.

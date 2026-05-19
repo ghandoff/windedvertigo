@@ -533,3 +533,24 @@ export async function setRfpInfluencedByEventIds(
     );
   }
 }
+
+/**
+ * Update the main pipeline status for an RFP opportunity.
+ * Called from PATCH /api/rfp-radar/[id] so Supabase stays in sync
+ * with the Notion write that happens in the same request.
+ *
+ * Fire-and-forget safe — logs a warning but never throws so it can't
+ * block the Notion write or the UI response.
+ */
+export async function setRfpStatus(
+  notionPageId: string,
+  status: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({ status })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpStatus: ${error.message}`);
+  }
+}
