@@ -230,16 +230,27 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     try {
       rfp = await getRfpOpportunity(rfpId);
     } catch (err) {
-      console.error("[proposal] failed to fetch RFP:", err);
-      // Sync failure back to Supabase (authoritative read layer) so the UI
-      // escape hatch shows immediately without waiting for the sweep cron.
+      // Extract the HTTP status code from the Notion SDK's APIResponseError so
+      // we can distinguish permanent failures (404 = page deleted, 403 = no
+      // access) from transient ones (429 = rate limit, 5xx = Notion outage).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const notionStatus: number | null = (err as any)?.status ?? null;
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error(`[proposal] failed to fetch RFP ${rfpId}: HTTP ${notionStatus ?? "?"} — ${errMsg}`);
+
       setProposalStatus(rfpId, "failed").catch(() => {});
-      // Best-effort Notion reset — may fail if Notion itself caused the error
-      // (rate-limit burst, transient API error), but prevents Notion from
-      // showing "generating" indefinitely when Supabase already shows "failed".
       updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
-      await postToSlack(`⚠️ Proposal generation failed for RFP \`${rfpId}\` — could not fetch record from Notion.`);
-      return { success: false, error: "rfp_not_found" };
+
+      const detail = notionStatus ? ` (Notion HTTP ${notionStatus})` : "";
+      await postToSlack(
+        `⚠️ Proposal generation failed for RFP \`${rfpId}\` — could not fetch record from Notion${detail}.\n` +
+        `Error: \`${errMsg.slice(0, 200)}\``,
+      );
+
+      // Permanent errors: ack immediately — retrying won't help and just
+      // floods #cowork with identical failure messages.
+      const isPermanent = notionStatus === 404 || notionStatus === 403;
+      return { success: isPermanent, error: "rfp_not_found" };
     }
 
     updateRfpOpportunity(rfpId, { proposalStatus: "generating" }).catch(() => {});

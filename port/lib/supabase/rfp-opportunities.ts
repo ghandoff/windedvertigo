@@ -440,6 +440,24 @@ export async function setDeadlineTimezone(
 }
 
 /**
+ * Sync the R2 document URL to Supabase immediately after upload.
+ * The detail page reads rfp_document_url from Supabase; without this write
+ * the page shows "no document" until the next sync cron (~15 min).
+ */
+export async function setRfpDocumentUrl(
+  notionPageId: string,
+  url: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({ rfp_document_url: url })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpDocumentUrl: ${error.message}`);
+  }
+}
+
+/**
  * Mark a proposal as permanently failed in Supabase — called by the Inngest
  * failure handler after all retries are exhausted. Without this, the progress
  * tracker would keep polling Supabase forever because the failure handler only
