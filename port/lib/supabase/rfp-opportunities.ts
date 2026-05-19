@@ -555,3 +555,85 @@ export async function setRfpStatus(
     throw new Error(`[supabase/rfp-opportunities] setRfpStatus: ${error.message}`);
   }
 }
+
+/**
+ * Sync all user-editable fields from the RFP edit form to Supabase.
+ *
+ * Called from PATCH /api/rfp-radar/[id] before the Notion write, so
+ * router.refresh() always sees the updated values (Supabase is the read
+ * layer; Notion-only writes leave the page showing stale data until the
+ * sync cron fires ~15 min later).
+ *
+ * Only fields present in `fields` are included in the SQL UPDATE — undefined
+ * values are omitted so unrelated columns are never clobbered.
+ */
+export async function setRfpEditableFields(
+  notionPageId: string,
+  fields: {
+    opportunityName?: string;
+    opportunityType?: string | null;
+    dueDate?: { start: string; end: string | null } | null;
+    estimatedValue?: number | null;
+    wvFitScore?: string | null;
+    serviceMatch?: string[];
+    category?: string[];
+    geography?: string[];
+    source?: string | null;
+    url?: string | null;
+    requirementsSnapshot?: string | null;
+    decisionNotes?: string | null;
+    whatWorked?: string | null;
+    whatFellFlat?: string | null;
+    clientFeedback?: string | null;
+    lessonsForNextTime?: string | null;
+    proposalNotes?: string | null;
+  },
+): Promise<void> {
+  // Build the Supabase update object — only include fields that were provided.
+  const update: Record<string, unknown> = {};
+
+  if (fields.opportunityName !== undefined)
+    update.opportunity_name = fields.opportunityName;
+  if (fields.opportunityType !== undefined)
+    update.opportunity_type = fields.opportunityType ?? null;
+  if (fields.dueDate !== undefined)
+    update.due_date = fields.dueDate?.start ?? null;
+  if (fields.estimatedValue !== undefined)
+    update.estimated_value = fields.estimatedValue ?? null;
+  if (fields.wvFitScore !== undefined)
+    update.wv_fit_score = fields.wvFitScore ?? null;
+  if (fields.serviceMatch !== undefined)
+    update.service_match = fields.serviceMatch.length > 0 ? fields.serviceMatch.join(", ") : null;
+  if (fields.category !== undefined)
+    update.category = fields.category.length > 0 ? fields.category.join(", ") : null;
+  if (fields.geography !== undefined)
+    update.geography = fields.geography.length > 0 ? fields.geography.join(", ") : null;
+  if (fields.source !== undefined)
+    update.source = fields.source ?? null;
+  if (fields.url !== undefined)
+    update.url = fields.url ?? null;
+  if (fields.requirementsSnapshot !== undefined)
+    update.requirements_snapshot = fields.requirementsSnapshot ?? null;
+  if (fields.decisionNotes !== undefined)
+    update.decision_notes = fields.decisionNotes ?? null;
+  if (fields.whatWorked !== undefined)
+    update.what_worked = fields.whatWorked ?? null;
+  if (fields.whatFellFlat !== undefined)
+    update.what_fell_flat = fields.whatFellFlat ?? null;
+  if (fields.clientFeedback !== undefined)
+    update.client_feedback = fields.clientFeedback ?? null;
+  if (fields.lessonsForNextTime !== undefined)
+    update.lessons_for_next_time = fields.lessonsForNextTime ?? null;
+  if (fields.proposalNotes !== undefined)
+    update.proposal_notes = fields.proposalNotes ?? null;
+
+  if (Object.keys(update).length === 0) return; // nothing to update
+
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update(update)
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    throw new Error(`[supabase/rfp-opportunities] setRfpEditableFields: ${error.message}`);
+  }
+}

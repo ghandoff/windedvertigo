@@ -3,6 +3,7 @@ import { updateRfpOpportunity, archiveRfpOpportunity } from "@/lib/notion/rfp-ra
 import {
   setRfpInfluencedByEventIds,
   setRfpStatus,
+  setRfpEditableFields,
   getRfpOpportunityByIdFromSupabase,
   setProposalStatus,
 } from "@/lib/supabase/rfp-opportunities";
@@ -37,21 +38,43 @@ export async function PATCH(
   const body = await req.json();
 
   return withNotionError(async () => {
-    // Keep Supabase status in sync with Notion — the board reads from Supabase,
-    // so without this write every drag/dropdown/edit-form change snaps back after
-    // router.refresh() (Supabase returned the old status, DraggableKanban useEffect
-    // reset items to initialItems). Must run before the Notion write so the
-    // server re-render always sees the new status.
+    // Keep Supabase in sync with Notion before the Notion write — the detail
+    // page and Kanban board both read from Supabase, so any field that is only
+    // written to Notion will appear stale (showing old data) until the sync
+    // cron fires ~15 min later.
     if (body.status !== undefined) {
       await setRfpStatus(id, body.status);
     }
 
-    // Phase 8 (conference intelligence): influencedByEventIds is a Supabase-
-    // only column — Notion has no equivalent property — so write it directly
-    // before the Notion update. Idempotent; pass an empty array to clear.
-    if (Array.isArray(body.influencedByEventIds)) {
-      await setRfpInfluencedByEventIds(id, body.influencedByEventIds);
-    }
+    // Sync all user-editable fields (dueDate, estimatedValue, opportunityName,
+    // wvFitScore, serviceMatch, category, geography, source, url, text fields,
+    // debrief fields, proposalNotes). Single SQL UPDATE — runs in parallel with
+    // the influencedByEventIds write since they touch different columns.
+    await Promise.all([
+      setRfpEditableFields(id, {
+        opportunityName:      body.opportunityName,
+        opportunityType:      body.opportunityType,
+        dueDate:              body.dueDate,
+        estimatedValue:       body.estimatedValue,
+        wvFitScore:           body.wvFitScore,
+        serviceMatch:         body.serviceMatch,
+        category:             body.category,
+        geography:            body.geography,
+        source:               body.source,
+        url:                  body.url,
+        requirementsSnapshot: body.requirementsSnapshot,
+        decisionNotes:        body.decisionNotes,
+        whatWorked:           body.whatWorked,
+        whatFellFlat:         body.whatFellFlat,
+        clientFeedback:       body.clientFeedback,
+        lessonsForNextTime:   body.lessonsForNextTime,
+        proposalNotes:        body.proposalNotes,
+      }),
+      // Phase 8 (conference intelligence): Supabase-only column.
+      ...(Array.isArray(body.influencedByEventIds)
+        ? [setRfpInfluencedByEventIds(id, body.influencedByEventIds)]
+        : []),
+    ]);
 
     const updated = await updateRfpOpportunity(id, body);
 
