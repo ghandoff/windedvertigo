@@ -18,7 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus } from "lucide-react";
+import { Plus, PenLine } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const revalidate = 300;
 
@@ -127,6 +128,12 @@ export default async function CampaignsPage(props: Props) {
       >
         {activeTab === "campaigns" && (
           <>
+            <Link href="/content">
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <PenLine className="h-3.5 w-3.5" />
+                content drafts
+              </Button>
+            </Link>
             <Link
               href="/campaigns/calendar"
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
