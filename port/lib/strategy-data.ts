@@ -67,7 +67,28 @@ export const REVENUE_PIPELINE: PipelineRow[] = [
     stage: "signed · invoicing",
     estValue: "$145,000",
     probability: 100,
-    timeline: "$48k received · $97k booked",
+    timeline: "$48k received · $97k outstanding",
+  },
+  {
+    opportunity: "LEGO / Superskills",
+    stage: "active partnership",
+    estValue: "$30–60k",
+    probability: 75,
+    timeline: "with Learning Economy Foundation",
+  },
+  {
+    opportunity: "Sesame Workshop",
+    stage: "active engagement",
+    estValue: "$20–40k",
+    probability: 65,
+    timeline: "learning design scope in progress",
+  },
+  {
+    opportunity: "UNICEF",
+    stage: "active engagement",
+    estValue: "$20–40k",
+    probability: 60,
+    timeline: "learning design scope in progress",
   },
   {
     opportunity: "Nordic Naturals",
@@ -85,17 +106,17 @@ export const REVENUE_PIPELINE: PipelineRow[] = [
   },
   {
     opportunity: "Amna at 10",
-    stage: "proposal submitted (38d, no reply)",
+    stage: "proposal submitted (53d, no reply)",
     estValue: "$15–30k",
-    probability: 20,
-    timeline: "june or archived",
+    probability: 15,
+    timeline: "follow up or archive by june",
   },
   {
-    opportunity: "PEDAL conf + field",
-    stage: "pipeline (speaking, sponsorship)",
+    opportunity: "ISTE + ASCD 2026",
+    stage: "conference pipeline",
     estValue: "$50–100k",
     probability: 30,
-    timeline: "july–september",
+    timeline: "june 28–july 1, orlando",
   },
 ];
 
@@ -819,15 +840,15 @@ export const PIPELINE_PROGRESS: StageProgress[] = [
   },
   {
     id: "proposal",
-    current: 2,
-    target: 3,
-    unitLabel: "proposals in flight",
+    current: 3,
+    target: 5,
+    unitLabel: "proposals in flight (IDB, Amna, ISTE)",
   },
   {
     id: "contract",
-    current: 1,
-    target: 2,
-    unitLabel: "contracts signed this month",
+    current: 2,
+    target: 3,
+    unitLabel: "active contracts (PRME 2026, PRME pedagogy)",
   },
 ];
 

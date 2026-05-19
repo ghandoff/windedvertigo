@@ -56,7 +56,7 @@ export function UrlTabs({ paramKey = "tab", tabs, activeTab }: UrlTabsProps) {
               "px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px",
               isActive
                 ? "border-foreground text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground",
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t-sm",
             )}
           >
             {tab.label}
