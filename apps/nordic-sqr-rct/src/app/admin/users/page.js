@@ -21,12 +21,15 @@ const ROLE_COLORS = {
   'sqr-rct':    'bg-gray-100 text-gray-600',
 };
 
-const EDITABLE_ROLES = ['reviewer', 'researcher', 'ra', 'admin'];
+// super-user is listed last so it appears at the bottom of the editor
+// with a warning label — it grants every capability in the system.
+const EDITABLE_ROLES = ['reviewer', 'researcher', 'ra', 'admin', 'super-user'];
 
 // Roles that supersede all roles below them in the hierarchy.
 // admin implies researcher + ra + reviewer; super-user implies everything.
 const ROLE_HIERARCHY = ['super-user', 'admin', 'ra', 'researcher', 'reviewer'];
-const ROLES_IMPLIED_BY_ADMIN = new Set(['researcher', 'ra', 'reviewer', 'sqr-rct']);
+const ROLES_IMPLIED_BY_ADMIN     = new Set(['researcher', 'ra', 'reviewer', 'sqr-rct']);
+const ROLES_IMPLIED_BY_SUPERUSER = new Set(['admin', 'researcher', 'ra', 'reviewer', 'sqr-rct']);
 
 /**
  * Derive a roles array from the API response.
@@ -140,25 +143,31 @@ function RoleEditor({ user, onSaved }) {
         <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-[160px] p-2">
           <p className="text-xs text-gray-500 px-2 pb-1 mb-1 border-b border-gray-100">Edit roles</p>
           {EDITABLE_ROLES.map(role => {
+            const superActive = localRoles.includes('super-user');
             const adminActive = localRoles.includes('admin');
-            const impliedByAdmin = adminActive && ROLES_IMPLIED_BY_ADMIN.has(role);
-            const isDisabled = saving || impliedByAdmin;
+            const impliedBySuperuser = superActive && ROLES_IMPLIED_BY_SUPERUSER.has(role);
+            const impliedByAdmin = !superActive && adminActive && ROLES_IMPLIED_BY_ADMIN.has(role);
+            const implied = impliedBySuperuser || impliedByAdmin;
+            const impliedBy = impliedBySuperuser ? 'super-user' : 'admin';
+            const isDisabled = saving || implied;
+            const isSuperUser = role === 'super-user';
             return (
               <label
                 key={role}
-                className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer text-gray-700'}`}
-                title={impliedByAdmin ? `Included in admin` : undefined}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'} ${isSuperUser ? 'border-t border-gray-100 mt-1 pt-2' : ''}`}
+                title={implied ? `Included in ${impliedBy}` : isSuperUser ? 'Grants every capability in the system' : undefined}
               >
                 <input
                   type="checkbox"
-                  checked={localRoles.includes(role) || impliedByAdmin}
-                  onChange={() => !impliedByAdmin && toggleRole(role)}
+                  checked={localRoles.includes(role) || implied}
+                  onChange={() => !implied && toggleRole(role)}
                   disabled={isDisabled}
                   className="rounded border-gray-300 text-pacific focus:ring-pacific"
                 />
-                <span className={impliedByAdmin ? 'text-gray-400 italic' : ''}>
+                <span className={implied ? 'text-gray-400 italic' : isSuperUser ? 'text-red-600 font-medium' : 'text-gray-700'}>
                   {role}
-                  {impliedByAdmin && <span className="ml-1 text-xs">(included in admin)</span>}
+                  {implied && <span className="ml-1 text-xs">(included in {impliedBy})</span>}
+                  {isSuperUser && !implied && <span className="ml-1 text-xs text-red-400">— all capabilities</span>}
                 </span>
               </label>
             );
