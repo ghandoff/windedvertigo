@@ -167,6 +167,9 @@ export async function POST(
 ) {
   const { id } = await params;
   const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
   const userId = session?.user?.email ?? "system";
 
   let formData: FormData;

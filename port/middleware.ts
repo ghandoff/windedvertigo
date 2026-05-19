@@ -25,6 +25,8 @@ export async function middleware(req: NextRequest) {
     pathname === "/api/revalidate" ||
     pathname === "/api/extract-text" ||
     pathname === "/api/version" ||
+    // Pixel tracking — called from external email links, no session context
+    pathname.startsWith("/api/tracking/") ||
     pathname === "/login" ||
     pathname.startsWith("/unsubscribe") ||
     pathname.startsWith("/view") ||
