@@ -85,6 +85,75 @@ export function HostRoom({ code }: { code: string }) {
     setTokenPresent(loadHostToken(code) !== null);
   }, [code]);
 
+  // IMPORTANT: ALL hooks must be declared above any conditional early
+  // return. React tracks hooks by call order — if a render bails early
+  // before reaching a useCallback that previous renders called, React
+  // crashes during reconciliation ("rendered fewer hooks than expected").
+  // The previous layout had these useCallbacks below the loading/error
+  // early returns, which is why opening the host page in a tab without
+  // the host_token in sessionStorage caused "this page couldn't load."
+  const advance = useCallback(async (to: RoomState, fromState?: RoomState) => {
+    await hostFetch(code, apiPath(`/api/rooms/${code}`), {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ state: to, ...(fromState ? { from_state: fromState } : {}) }),
+    });
+  }, [code]);
+
+  const startTimer = useCallback(async (durationSeconds: number) => {
+    await hostFetch(code, apiPath(`/api/rooms/${code}/timer`), {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ duration: durationSeconds }),
+    });
+  }, [code]);
+
+  const cancelTimer = useCallback(async () => {
+    await hostFetch(code, apiPath(`/api/rooms/${code}/timer`), {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ duration: null }),
+    });
+  }, [code]);
+
+  const tally = useCallback(async (round: 1 | 2 | 3) => {
+    const endpoint =
+      round === 1 ? "tally" : round === 2 ? "tally2" : "tally3";
+    const res = await hostFetch(code, apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
+    if (!res.ok) throw new Error(`tally failed (${res.status})`);
+  }, [code]);
+
+  const aiTally = useCallback(async () => {
+    const res = await hostFetch(code, apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
+    if (!res.ok) throw new Error(`ai-tally failed (${res.status})`);
+  }, [code]);
+
+  const pledgeTally = useCallback(async () => {
+    const res = await hostFetch(code, apiPath(`/api/rooms/${code}/tally-pledge`), { method: "POST" });
+    if (!res.ok) throw new Error(`pledge tally failed (${res.status})`);
+  }, [code]);
+
+  const resolveChoice = useCallback(async (selectedIds: string[]) => {
+    await hostFetch(code, apiPath(`/api/rooms/${code}/facilitator-choice`), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ selected_ids: selectedIds }),
+    });
+  }, [code]);
+
+  const confirmGate = useCallback(async (selectedIds: string[]) => {
+    await hostFetch(code, apiPath(`/api/rooms/${code}/facilitator-choice`), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ selected_ids: selectedIds }),
+    });
+    await hostFetch(code, apiPath(`/api/rooms/${code}`), {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ state: "scale" }),
+    });
+  }, [code]);
+
   if (state.status === "loading") {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-3">
@@ -153,68 +222,6 @@ export function HostRoom({ code }: { code: string }) {
       </main>
     );
   }
-
-  const advance = useCallback(async (to: RoomState, fromState?: RoomState) => {
-    await hostFetch(code, apiPath(`/api/rooms/${code}`), {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ state: to, ...(fromState ? { from_state: fromState } : {}) }),
-    });
-  }, [code]);
-
-  const startTimer = useCallback(async (durationSeconds: number) => {
-    await hostFetch(code, apiPath(`/api/rooms/${code}/timer`), {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ duration: durationSeconds }),
-    });
-  }, [code]);
-
-  const cancelTimer = useCallback(async () => {
-    await hostFetch(code, apiPath(`/api/rooms/${code}/timer`), {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ duration: null }),
-    });
-  }, [code]);
-
-  const tally = useCallback(async (round: 1 | 2 | 3) => {
-    const endpoint =
-      round === 1 ? "tally" : round === 2 ? "tally2" : "tally3";
-    const res = await hostFetch(code, apiPath(`/api/rooms/${code}/${endpoint}`), { method: "POST" });
-    if (!res.ok) throw new Error(`tally failed (${res.status})`);
-  }, [code]);
-
-  const aiTally = useCallback(async () => {
-    const res = await hostFetch(code, apiPath(`/api/rooms/${code}/ai-tally`), { method: "POST" });
-    if (!res.ok) throw new Error(`ai-tally failed (${res.status})`);
-  }, [code]);
-
-  const pledgeTally = useCallback(async () => {
-    const res = await hostFetch(code, apiPath(`/api/rooms/${code}/tally-pledge`), { method: "POST" });
-    if (!res.ok) throw new Error(`pledge tally failed (${res.status})`);
-  }, [code]);
-
-  const resolveChoice = useCallback(async (selectedIds: string[]) => {
-    await hostFetch(code, apiPath(`/api/rooms/${code}/facilitator-choice`), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ selected_ids: selectedIds }),
-    });
-  }, [code]);
-
-  const confirmGate = useCallback(async (selectedIds: string[]) => {
-    await hostFetch(code, apiPath(`/api/rooms/${code}/facilitator-choice`), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ selected_ids: selectedIds }),
-    });
-    await hostFetch(code, apiPath(`/api/rooms/${code}`), {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ state: "scale" }),
-    });
-  }, [code]);
 
   const surface: "white" | "champagne" =
     room.state === "lobby" || room.state === "frame" || room.state === "commit"
