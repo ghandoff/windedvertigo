@@ -164,9 +164,29 @@ windedvertigo/
 
 ## Deployment Workflow (standing authorization)
 
-Durable instruction for every Claude Code remote session, on any device (desktop app, code.claude.com on iPhone). Follow without re-asking. Garrett may run 5–10 concurrent sessions; each one operates independently under this contract.
+Durable instruction for every Claude Code session — local CLI, remote (desktop app, code.claude.com on iPhone), or human collaborator. Follow without re-asking. Garrett, Maria, Payton, Lamis, and James may each run 1–10 concurrent sessions across machines; each one operates independently under this contract.
 
 **Auth:** the remote session's local git proxy (e.g. `http://local_proxy@127.0.0.1:.../git/...`) authenticates to GitHub via the installed GitHub App. No PAT, no SSH, no `~/.git-credentials`. Do not rewrite `origin` to `https://github.com/...` — that breaks pushes here. The remote URL looking unusual is correct.
+
+### Work-in-flight signaling — draft PR at the START of editing (default since 2026-05-19)
+
+**The single biggest source of human friction in our parallel-session setup wasn't merge conflicts — it was teammates pinging "are you editing X? I don't want to step on you." The fix is to make in-flight work visible *before* the work is done, via a draft PR. Applies to both local and remote Claude sessions, and to humans editing without Claude.**
+
+**Protocol:**
+1. **Branch first, never edit `main` directly.** Cloud sessions get a `claude/<slug>-<id>` branch from the harness automatically. Local sessions: `git checkout -b <type>/<slug>` where `<type>` is `feat | fix | chore | docs | perf | a11y` and `<slug>` is the kebab-case intent (e.g. `fix/votes-toctou-race`, `feat/co-rubric-companion`).
+2. **Open a draft PR before substantive editing.** If you don't have a first commit yet, make an empty one: `git commit --allow-empty -m "wip: <intent>"`, push, then `mcp__github__create_pull_request` with `draft: true`. The PR title is the work-in-flight signal — make it descriptive (e.g. `fix(co-rubric): persist host_token client-side`). Body can be a one-line placeholder.
+3. **Commit and push edits as you go.** The draft PR auto-updates. Other teammates running `gh pr list` (or browsing GitHub mobile) see your intent the moment you start, not the moment you finish.
+4. **When the work is done**, mark the PR ready for review (drop the draft state) — then the existing actor-based routing below applies.
+
+**Carve-out — skip the draft-PR step for these:**
+- Pure `.brain/` memory updates, `TASKS.md` edits, `CLAUDE.md` edits, or other docs-only changes that don't touch source. These can land on main directly with `[skip ci]` per the existing harbour convention.
+- Truly trivial typo / one-line fixes where the PR ceremony costs more than the visibility buys. Use judgement; default to draft PR if the change touches >1 file or >5 LOC.
+
+**Why this matters:** the PR queue (`gh pr list --state open`) becomes the single source of truth for "what is in flight right now?" — no separate Slack ping, no shared in-flight.md, no new tooling. The convention is enforced by social pattern, not by branch protection: anyone reviewing the queue can see who's touching what.
+
+**Tooling note:** the GitHub web UI is still off-limits — draft PRs are created via `mcp__github__create_pull_request` (`draft: true` parameter). The local `gh pr create --draft` CLI also works for direct shell use.
+
+### Merge workflow (existing — unchanged)
 
 **When the user says "push," "deploy," "ship," "live," or "make it live":**
 1. Commit pending changes on the current session branch with a clear message
@@ -179,7 +199,7 @@ Durable instruction for every Claude Code remote session, on any device (desktop
 5. After merge (when applicable), wait 60–90s, then `curl -sI` (or fetch content from) the affected production URL and report what you saw
 6. If the merge or build fails, stop and explain. Never force-push, never retry-merge blindly, never bypass hooks
 
-**Never:** push directly to `main`, force-push, amend pushed commits, open the GitHub web UI (everything goes through `mcp__github__*` tools — that's the whole point of this setup).
+**Never:** push directly to `main` (the bypass rule exists for emergencies only — code changes always go through a branch + PR, even one-commit ones), force-push, amend pushed commits, open the GitHub web UI (everything goes through `mcp__github__*` tools — that's the whole point of this setup). The exception is the docs-only carve-out documented above.
 
 **Parallel sessions:** each session has its own harness-assigned branch (e.g. `claude/<slug>-<id>`); they don't share working trees, so collisions are rare. If push is rejected because `main` advanced, rebase the session branch on `origin/main` and re-push — don't merge `main` back into the feature branch.
 
