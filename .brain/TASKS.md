@@ -1,5 +1,19 @@
 # Tasks
 
+## Whirlpool actions — 2026-05-18
+
+From the may 18 whirlpool (harbour play lab format with aaron + marietta) ([Notes by Gemini](https://mail.notion.so/inbox/19e3c622c3c0d846) · [agenda](https://www.notion.so/364e4ee74ba4811793c0ca859e49455d)). T-10 days to the may 28 prime+ launch.
+
+- [ ] **garrett** — request technical audit: ask august to evaluate the prime apps, analyze the harbour architecture, and perform comprehensive testing before may 28
+- [ ] **the group** — review launch apps: conduct 15-minute review sessions for each prime+ app at wednesday's whirlpool to provide feedback + identify bugs
+- [ ] **garrett** — debug strategy app: troubleshoot and fix the loading issues in the strategy application within port
+- [ ] **lamis** — identify edtech journals: identify the top 20 edtech journals to target for article placement / outreach
+- [ ] **jamie** — draft ubango proposal: sketch a proposal draft for the ubango opportunity inside the notion workspace
+- [ ] **jamie** — upgrade claude plan: upgrade to claude max subscription to enable second-brain capabilities
+- [ ] **jamie** — evaluate claw tool: play with the tool to determine if it provides sufficient value for current work
+- [ ] **the group** — debrief omna: review the omna conversation during the wednesday may 20 whirlpool
+- [ ] **the group** — discuss proposals: evaluate the ubango and unicef proposals at the wednesday meeting
+
 ## Whirlpool actions — 2026-05-13
 
 From the may 13 whirlpool meeting recording ([Notes by Gemini](https://docs.google.com/document/d/1xlFszMKFsNQLXi365rfRj5lA6rtb-NPjvJmu173Z1sY/edit) · [Transcript](https://docs.google.com/document/d/1xlFszMKFsNQLXi365rfRj5lA6rtb-NPjvJmu173Z1sY/edit?tab=t.anee4cn9bvig) · [agenda](https://www.notion.so/35fe4ee74ba4818483c5c797e791790a)). The session shifted from the substack/harbour/Play@TED agenda into a focused website working session.

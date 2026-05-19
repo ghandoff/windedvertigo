@@ -148,8 +148,9 @@ const SELECT_COLS =
   "location, est_attendance, registration_cost, quadrant_relevance, bd_segments, " +
   "who_should_attend, why_it_matters, notes, url, " +
   // Phase 1 triage + lifecycle + provenance + costs + retro
+  // raw_payload_json excluded — large JSONB not rendered by any UI view
   "status, lifecycle_state, fit_score, triage_notes, triaged_at, triaged_by, " +
-  "owner_user_id, discovered_via, discovered_at, external_id, raw_payload_json, " +
+  "owner_user_id, discovered_via, discovered_at, external_id, " +
   "affiliated_org_id, deadlines, est_travel_cost, sponsorship_fee, " +
   "actual_cost_total, currency, outcome_notes, contacts_met_count, followup_due_by, " +
   // Phase 16 cover image

@@ -48,10 +48,17 @@ export async function getCampaignsFromSupabase(
   status?: string,
   type?: string,
   search?: string,
+  options?: { includeComplete?: boolean },
 ): Promise<Campaign[]> {
   let query = supabase.from("campaigns").select(SELECT_COLS).order("name", { ascending: true });
 
-  if (status) query = query.eq("status", status);
+  if (status) {
+    query = query.eq("status", status);
+  } else if (!options?.includeComplete) {
+    // Default: hide completed campaigns from the board (they clutter the kanban).
+    // Pass { includeComplete: true } or an explicit status to override.
+    query = query.neq("status", "complete");
+  }
   if (type)   query = query.eq("type", type);
   if (search) query = query.ilike("name", `%${search}%`);
 

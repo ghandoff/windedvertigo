@@ -9,68 +9,92 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** sun 17 may 2026, ~21:10 PT (cowork, context-sync)
+**last synced:** mon 18 may 2026, ~21:10 PT (cowork, context-sync)
 
 **where we are right now:**
-back from great wolf lodge; garrett spent sun in a heavy claude-code session — **16 commits in the last 24h** is the headline. the rubric-co-builder migrated to CF Workers (commit `67f156e`) and got an 8-step security hardening pass landed in tiered pairs (1A/1B host_token + participantExists guards, 2A/2B TOCTOU + criterion ownership + room rate-limit, 3A/3B branded 404 + ANTHROPIC_API_KEY warning) — net-new project on the live infra surface that wasn't here yesterday. nordic PCS evidence also moved: literature retrieval tool now spans zenodo + ORCID tiers with cost-savings analytics (`e825e66`), expandable rows + opt-in platform-retrieved marking, and a search-vs-discovery clarification on the evidence library page. site `/do` gallery query rewritten to hit the BD assets sub-collection directly (`344b982`). on the commercial side nothing material has moved — fri's nordic naturals "ready to move to contract" email to sharon matheny is still in flight; **gmail inbox is quiet (zero unread in last 24h)**. **PRME session 3 reply to charlotta levay (NMBU)** still owed monday morning. **harbour review forms now 6 days past deadline** — natural agenda fodder for tomorrow's whirlpool x harbour play lab (9–10:30am PT, aaron fruit + marietta monge confirmed again). **wv-crm vercel rollback sunset window closes tonight** — clean delete path opens mon morning. dropbox plus trial expires thu 21 may. webinar takeaway kits 3A + 3B still pending upload to commons. amna at 10 invite from jonelle still not in — nudge mon EOD if still nothing.
+monday landed full and clean — t-minus 10 days to the 28 may prime+ harbour launch. **whirlpool x harbour play lab ran 9–10:30am PT** (10 fresh action items in TASKS.md, maria out sick); **payton sync ran 11am PT**; **PRME session 3 reply to charlotta levay shipped at 3:17pm PT** — closes a friday-owed thread with warmth. on the commercial side **nordic naturals broke open**: sharon matheny came back from conference travel and booked a zoom call for **thu 21 may 11am PT** (invite confirmed 4:41pm PT). new RFP surfaced — **ubongo 10-year impact learnings report, due fri 22 may** — jamie has a v1 in the notion workspace; garrett ran v2 through claude against the TOR and shared via slack DM end of day. engineering was a focused half-day pushing the harbour-launch-map route on `wv-port` through four bundling iterations (`1da4436` → `e1d2c26`); rubric-co-builder hardening from sun is now stable in prod. cash signal unchanged. **harbour review forms** got reframed at today's whirlpool into a 15-min team review of each prime+ app at wed's session — forcing function moved from solo design to group walkthrough. weekly-dependency bot flagged a **tier-1 safe bump** (next 16.2.4 → 16.2.6: SSRF cvss 8.6 + middleware bypass cvss 8.1) plus `@opennextjs/cloudflare` 1.19.4 → 1.19.10 before next CF deploy.
 
 ### open threads
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| rubric-co-builder | 8 hardening commits + CF Workers migration today (`67f156e`…`1a4e3e9`) — net-new live surface | post-deploy smoke + verify site proxy rewrite end-to-end; surface in monday whirlpool | github `67f156e` |
-| nordic PCS evidence platform | literature retrieval (zenodo/ORCID + cost analytics) + expandable rows shipped sat/sun | set `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` on vercel prod env to lift coverage from 5/7 → 7/7 tiers | github `e825e66` |
-| nordic naturals contract (sharon matheny) | fri's budget a + b "ready to move to contract" email; gina endorsed sat | passive mon → tue; if no reply by wed, soft nudge via lauren | gmail `19e2c50f94751e9a` |
-| PRME pedagogy session 3 follow-up | charlotta levay (NMBU) apology email landed fri; still starred + unread | warm, charitable reply mon morning before whirlpool; loop maria + meredith if material | gmail `19e2aa821394ac4a` |
-| harbour review forms | 5/6 whirlpool action on garrett; **6 days past mon 11 may deadline** | design priority-app review forms; raise at mon 18 may whirlpool x harbour play lab | TASKS.md |
-| amna at 10 | wed 20 may 4pm UK confirmed; awaiting jonelle's invite with maria, lamis, jamie, sam added | passive — nudge end-of-day mon 18 may if still nothing | gmail thread `19e032bfd528e29a` |
-| wv-crm vercel sunset | port CF Workers stable through window; rollback window closes tonight (sun 17 may) | delete `wv-crm` vercel project mon morning + update CLAUDE.md infra table to reflect zero vercel projects | CLAUDE.md infra table |
-| values-auction (post-300-person debrief) | maria's takeaway kits 3A + 3B in drive end of thu | upload to commons mon; debrief at wed whirlpool | slack group DM `C08SBKHFNNL` |
+| nordic naturals (sharon matheny) | sharon's zoom invite landed mon 4:41pm PT — call thu 21 may 11am PT | prep brief mon eve / tue: surface budget a+b proposal, project map, retainer/contract framing | gmail `19e3bf71bf462294` |
+| ubongo RFP (due fri 22 may) | jamie drafted v1; garrett ran v2 through claude vs TOR + shared via slack | review v2 with jamie tue; confirm financial proposal + EOI; submit by fri | slack DM `D08HDLVM2PK` |
+| whirlpool actions — 18 may | 10 new items (technical audit ask to august, debug strategy app, lamis edtech journals, jamie ubongo + claude max, ubongo/unicef + omna debrief wed) | working through tue; debrief at wed 20 may whirlpool | TASKS.md |
+| amna at 10 (wed 20 may, 4pm UK) | session lands wednesday — debrief slot on whirlpool agenda | confirm session ran + capture takeaways; jonelle's full invite still owed | TASKS.md |
+| wv x press play / sparkshapebuild portfolio page | payton has the html locally; asked for monorepo clone + opus prompt to migrate to `windedvertigo.com/portfolio/sparkshapebuild` | hand off cleanly: clone repo on payton's laptop, scaffold the opus prompt with plan mode | slack DM `D08BWAFRSS3` |
+| harbour review forms → wed group walkthrough | reframed by whirlpool today: 15-min review per prime+ app at wed session | strategy-app loading bug still on garrett to fix beforehand | TASKS.md |
+| weekly dependency review (mon morning bot) | flagged tier-1 next 16.2.6 + `@opennextjs/cloudflare` 1.19.10 + anthropic-ai sdk drift | bump next + opennextjs across both monorepos pre-launch; investigate harbour-apps 403 allowlist | slack self-DM `D06QGJ34H53` |
+| values-auction (post-300-person debrief) | maria's takeaway kits 3A + 3B in drive end of thu 14 may | upload to commons + debrief at wed whirlpool | slack group DM `C08SBKHFNNL` |
 
 ### waiting on external
 
-- **sharon matheny (nordic naturals)** — fri's budget a + b "ready for contract" email; sharon back at desk monday after conference travel
-- **jonelle (amna at 10)** — confirmed-invite send-back with maria, lamis, jamie, sam added; since 11 may evening
-- **charlotta levay (NMBU / PRME)** — apology email from fri; she's effectively waiting on garrett's response, not the other way around — flagged here so we don't lose it across the weekend
-- **lauren bosio (nordic naturals)** — folded into sharon thread now that the budget ask is in flight; passive
+- **sharon matheny (nordic naturals)** — call booked thu 21 may 11am PT; no action until then, prep brief is on garrett
+- **jonelle (amna at 10)** — confirmed-invite send-back with maria, lamis, jamie, sam added; since 11 may evening; session lands wed 20 may regardless
+- **meredith storey (PRME)** — out of office through american memorial day weekend per auto-reply landed mon 3:03pm PT; passive
+- **lauren bosio (nordic naturals)** — folded into sharon thread; passive
 - **PRME capstone (keith)** — possibly already settled on tue 12 may hold; _status to verify_
-- **jennifer rose / manchester (PRME)** — unsolicited praise sat 9 may, still owed warm reply (now 8 days); flag as potential ppcs lead
+- **jennifer rose / manchester (PRME)** — unsolicited praise sat 9 may, still owed warm reply (now 9 days); flag as potential ppcs lead
 - **paul ramchandani (pedal conference)** — proposal still unanswered since the holiday; passive
 - **KiwiCo international partnerships** — forwarded inquiry, no response since 17 apr; passive
 - **IDB Salvador** — evaluation committee reviewing apr 10 documentation; receipt confirmed 24 apr; passive monitor
-- **CPA (aakib qureshi)** — taxdome thread still pending response (carried from 27 apr; _status to verify_)
+- **CPA (aakib qureshi)** — taxdome auto-reminder landed today 8:12am PT, still unread; _carried from 27 apr_
 
 ### environment handoffs
 
 **Cowork → Claude Code:**
-- **wv-crm vercel deletion** — rollback window ends tonight (sun 17 may); delete `wv-crm` project mon morning + update CLAUDE.md infra table to reflect zero remaining vercel projects
-- **rubric-co-builder smoke** — post-CF-Workers migration verify the site proxy rewrite end-to-end + confirm all 8 hardening tiers (host_token, participantExists, TOCTOU, rate-limit, etc.) emit expected guard responses in prod
-- **nordic Path 3 dual-write parity check** — fri's perf + cache wins are in; confirm drift counts clean before any read-path flip to Postgres-primary
-- **set SEMANTIC_SCHOLAR_API_KEY + CORE_API_KEY on vercel prod** — lifts literature retrieval coverage from 5/7 → 7/7 tiers (highest-leverage env-var task on the nordic platform)
-- **values-auction production alias merge** — preview on `claude/self-running-auction-game-7CbZz` still live at `claude-self-running-auction.values-auction-d9m.pages.dev`; production URL still on pre-redesign until branch merges to main
-- **Neon decommission** — clean window ended 2026-05-04; delete the project and update TASKS.md
-- **Vercel project cleanup** — ~22 dormant projects await garrett's confirmation (per `~/.claude/plans/graceful-popping-willow.md`)
-- **CF cleanup** — revoke temp CF API token, delete DNS-only token, close anotheroption CF account (post-consolidation)
+- **next 16.2.4 → 16.2.6 bump** (windedvertigo + harbour-apps monorepos) — SSRF cvss 8.6 + middleware bypass cvss 8.1; tier-1 safe, do this before next CF deploy
+- **`@opennextjs/cloudflare` 1.19.4 → 1.19.10** — harbour-apps lockfile resolves to vulnerable range; deploy-blocker for next CF Workers push
+- **harbour-apps registry 403** — `Host not in allowlist` on install; auth token needed for private registry
+- **strategy app loading bug** — debug + fix the loading issue in `/strategy` on port (today's whirlpool action on garrett, prerequisite for wed's group walkthrough)
+- **wv-crm vercel deletion** — 14-day rollback window closed sun 17 may; confirm `wv-crm` project deleted + update CLAUDE.md infra table to "zero vercel projects"
+- **rubric-co-builder post-deploy smoke** — site proxy rewrite end-to-end + confirm all 8 hardening tiers from sun emit expected guard responses in prod
+- **nordic literature retrieval API keys** — set `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` on `wv-nordic` CF Workers (nordic is on CF Workers post-F.5; previous handoff said "vercel" — correction)
+- **values-auction production alias merge** — preview on `claude/self-running-auction-game-7CbZz` still live at `claude-self-running-auction.values-auction-d9m.pages.dev`
+- **Neon decommission** — clean window ended 2026-05-04; delete project + update TASKS.md
+- **CF cleanup** — revoke temp CF API token, delete DNS-only token, close anotheroption CF account
 - **creaseworks content + refactor** — notion covers for playdates/packs/collections; phase 1 read-time `cover_url` refactor; body-content inline image sync
 
 **Claude Code → Cowork:**
-- **PRME session 3 reply to charlotta levay** — warm, charitable response monday morning; loop maria + meredith if material
-- **nordic naturals — passive watch on sharon's reply** — fri's budget a + b email is the live ask; track inbound, frame any negotiation
-- **upload webinar takeaway kits to commons** — maria sent 3A + 3B thursday end of day; grab on monday
-- **harbour review forms** — design the priority-app review forms (carried 6 days past deadline); use whirlpool x harbour play lab as the forcing function
-- **PRME capstone keith decision** — verify whether tue 12 may hold resolved this; if not, frame the tier recommendation
-- **jennifer rose reply** — warm response to her PRME session 2 praise; now 8 days owed; flag as potential ppcs lead
-- **circulate holistic skills framework** — share with collective + consider tile candidate for 5/28 launch
-- **dropbox plus decision** — trial expires thu 21 may; decide keep / cancel before billing
-- **routine admin** — ADP, QuickBooks, gusto expense reviews (verify against current state next sweep)
+- **nordic naturals thu 21 may prep brief** — pull budget a + b, project map, retainer framing into one doc by wed eve
+- **ubongo proposal review with jamie** — read jamie's v2 doc, validate against TOR, line up EOI + financial proposal; due fri 22 may
+- **technical audit ask to august** — request a comprehensive evaluation of prime+ apps + harbour architecture before 28 may (today's whirlpool action)
+- **wv x press play / sparkshapebuild handoff to payton** — clone monorepo on payton's laptop, scaffold the opus prompt (plan mode), point to `windedvertigo.com/portfolio/sparkshapebuild`
+- **upload webinar takeaway kits 3A + 3B to commons** — maria sent end of thu 14 may; still pending
+- **PRME capstone keith decision** — verify whether tue 12 may hold resolved this; if not, frame the tier recommendation (meredith OOO through mem-day weekend, so this can wait)
+- **jennifer rose reply** — warm response to her PRME session 2 praise; now 9 days owed
+- **dropbox plus decision** — trial expires thu 21 may; decide keep / cancel before billing kicks in
+- **CPA taxdome chat** — fresh auto-reminder today; respond to aakib qureshi
+- **circulate holistic skills framework** — share with collective + consider tile candidate for 28 may launch
+- **routine admin** — ADP, QuickBooks, gusto expense reviews
 
 ### mobile bookmarks
 
-- _no self-DMs in the last 48h_ — slack search for `from:@garrett to:@garrett` and `in:@garrett` both returned zero results. nothing parked from the road; consistent with garrett returning fresh from great wolf lodge straight into a coding session.
+- **ubongo notion page** — garrett DM'd jamie at 10:54am PT pointing to the [ubongo 10-year impact learnings RFP page](https://www.notion.so/Ubongo-10-Year-Impact-Learnings-Report-2015-2025-Consultant-RFP-bc2eef88b540462abfdd97802461f95e) with "due 22 may" — this is the proposal in flight
+- **ubongo v2 vs TOR for jamie** — garrett DM'd jamie at 6:17pm PT with the [google doc claude-refined v2](https://docs.google.com/document/d/1IEAZV8gkqWVWr4bZBMM_y9YY78mNj_A5fAoW2uD00JM/edit?usp=sharing) asking "how does v2 look?"
+- _no genuine garrett→garrett self-DMs in last 24h_ — only the automated weekly dependency-review bot post in the self-DM channel (already on the open-threads board)
 
 ---
 
 ## history (most recent first)
+
+---
+
+## 2026-05-18 (night) — context-sync: PRME session 3 reply shipped, nordic naturals call booked thu, ubongo RFP surfaced (Cowork)
+
+**what happened:**
+- **whirlpool x harbour play lab ran 9–10:30am PT** — maria out sick (slack DM at 8:56am: "won't make it to the whirlpool i am sick"); aaron + marietta in the room; 10 new action items logged to TASKS.md, including a technical-audit ask to august, a strategy-app loading bug for garrett, lamis on top-20 edtech journals, and jamie on ubongo proposal + claude max upgrade + claw evaluation. **harbour review forms got reframed** from solo design into a 15-min team review of each prime+ app at wed's whirlpool — group walkthrough is now the forcing function.
+- **PRME session 3 reply to charlotta levay (NMBU) shipped at 3:17pm PT** ([gmail thread](https://mail.google.com/mail/u/0/#inbox/19e2aa821394ac4a)) — warm and charitable, closes a friday-owed thread.
+- **nordic naturals contract path broke open** — sharon matheny back from conference travel; garrett confirmed thu 21 may 11am PT in her DM sun night; sharon's zoom invite landed mon 4:41pm PT ([gmail](https://mail.google.com/mail/u/0/#inbox/19e3bf71bf462294)). this is the active commercial thread — prep brief needed before wed eve.
+- **new RFP surfaced — ubongo 10-year impact learnings report (2015–2025), due fri 22 may** — [notion page](https://www.notion.so/Ubongo-10-Year-Impact-Learnings-Report-2015-2025-Consultant-RFP-bc2eef88b540462abfdd97802461f95e). jamie drafted v1; garrett ran v2 through claude vs the TOR at 6:17pm PT and shared the [google doc](https://docs.google.com/document/d/1IEAZV8gkqWVWr4bZBMM_y9YY78mNj_A5fAoW2uD00JM/edit?usp=sharing) for jamie's review.
+- **payton briefed for wv x press play portfolio migration** — payton has the html locally and asked garrett to clone the monorepo onto her laptop + scaffold an opus prompt (plan mode) to migrate the page to `windedvertigo.com/portfolio/sparkshapebuild`.
+- **engineering — 5 commits today on windedvertigo**, all on the `wv-port` harbour-launch-map route: `1da4436` serve from `public/` with rewrite → `f664345` embed as bundled ts constant → `3464895` inline html into route.ts → `e1d2c26` replace runtime=edge with dynamic=force-dynamic; plus `99b2eac` weekly auto-sync. four iterations on a single bundling problem.
+- **weekly dependency review** (self-DM bot, 6:15am PT): tier-1 safe bump = **next 16.2.4 → 16.2.6** (SSRF cvss 8.6 + middleware bypass cvss 8.1) + **`@opennextjs/cloudflare` 1.19.4 → 1.19.10** (harbour-apps deploy-blocker). Also: anthropic-ai sdk drift across repos, workflow devkit v4.x has HIGH vulns in nordic-sqr-rct.
+- **meredith storey OOO** through american memorial day weekend per auto-reply landed 3:03pm PT — PRME thread on pause until after the holiday.
+- **kristin's delayed reply** to garrett's 16 apr feedback-thank-you email arrived 1:10pm PT ([gmail](https://mail.google.com/mail/u/0/#inbox/19e3b35a463da0f2)) — gracious, no action needed beyond a kind close.
+- **CPA taxdome auto-reminder** landed today 8:12am PT, still unread; carries from 27 apr.
+- **calendar — tue 19 may:** bi-weekly strategy playdates 8am PT (lamis + maria — maria's status TBD given sickness), weekly = lamis x garrett 9am PT, weekly = garrett x maria part i 11am PT (likely affected by maria's illness), PRME hold 12pm PT (meredith OOO, so likely just sam thompson).
+- **slack DM sent to garrett (U06Q4UN4PKR).**
 
 ---
 

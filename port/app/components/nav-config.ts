@@ -15,7 +15,6 @@ import {
   Sparkles,
   CalendarDays,
   CalendarClock,
-  LayoutDashboard,
   LineChart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -41,13 +40,13 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "delivery",
     defaultOpen: true,
     items: [
-      { label: "home", href: "/", icon: LayoutDashboard },
+      { label: "strategy", href: "/strategy", icon: LineChart },
       { label: "projects", href: "/projects", icon: FolderKanban },
       { label: "time", href: "/work/time", icon: Clock },
     ],
   },
   {
-    title: "pipeline",
+    title: "growth",
     items: [
       { label: "pipeline", href: "/opportunities", icon: Target },
       { label: "contacts", href: "/contacts", icon: Users },
@@ -61,17 +60,10 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "bookings", href: "/bookings", icon: CalendarClock },
     ],
   },
-  {
-    title: "insights",
-    defaultOpen: true,
-    items: [
-      { label: "strategy", href: "/strategy", icon: LineChart },
-      { label: "ai hub", href: "/ai-hub", icon: Sparkles },
-    ],
-  },
 ];
 
 export const BOTTOM_ITEMS: NavItem[] = [
+  { label: "ai hub", href: "/ai-hub", icon: Sparkles },
   { label: "docent", href: "/docent", icon: Compass },
 ];
 

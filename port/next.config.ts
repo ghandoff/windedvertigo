@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
       { source: "/email", destination: "/campaigns?tab=email", permanent: true },
       // Phase 10: /events is now a standalone page — old redirect removed.
       // /campaigns?tab=events is handled by a server-side redirect inside campaigns/page.tsx.
-      { source: "/social", destination: "/campaigns?tab=social", permanent: true },
+      // /social redirect removed — social tab retired from campaigns page.
       // /analytics folded into /strategy?tab=pipeline (formerly Phase 11 promotion to top-level)
       { source: "/analytics",          destination: "/strategy?tab=pipeline", permanent: true },
       { source: "/settings/analytics", destination: "/strategy?tab=pipeline", permanent: true },
