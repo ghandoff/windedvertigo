@@ -16,6 +16,7 @@ import {
   CalendarDays,
   CalendarClock,
   LayoutDashboard,
+  LineChart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -64,6 +65,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "insights",
     defaultOpen: true,
     items: [
+      { label: "strategy", href: "/strategy", icon: LineChart },
       { label: "ai hub", href: "/ai-hub", icon: Sparkles },
     ],
   },
