@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
@@ -6,14 +6,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig({
-  base: '/portfolio/assets/values-auction/',
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
     },
   },
-  server: {
-    port: parseInt(process.env.PORT ?? '5173'),
-    host: true,
+  test: {
+    environment: 'jsdom',
+    globals: false,
+    include: ['tests/**/*.spec.ts'],
+    exclude: ['tests/e2e/**'],
   },
 });

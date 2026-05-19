@@ -550,10 +550,13 @@ const timesheetConsumer = createQueueConsumer<TimesheetStatusJob>(
         ? `Your timesheet "${entryLabel}" (${hoursLabel} on ${dateLabel}) has been approved by ${approverEmail}.`
         : `Your timesheet "${entryLabel}" has been returned to draft by ${approverEmail}. Please review and resubmit.`;
 
-      await sendOutreachEmail({
+      const result = await sendOutreachEmail({
         to: submitterEmail, subject, html, text,
         tags: [{ name: "type", value: "timesheet-notification" }, { name: "status", value: newStatus }],
-      }).catch((err) => console.warn("[timesheet] email send failed:", err));
+      });
+      if (result.error) {
+        console.warn("[timesheet] email send failed:", result.error.message);
+      }
     }
 
     // 4. Post Slack summary
