@@ -186,8 +186,7 @@ export function ProjectsTimeline({
       projects
         .filter((p) => !p.archive)
         .filter((p) => p.status !== "cancelled" && p.status !== "icebox")
-        .filter((p) => typeFilter === "all" || p.type === typeFilter)
-        .filter((p) => milestones.some((m) => m.projectIds.includes(p.id))),
+        .filter((p) => typeFilter === "all" || p.type === typeFilter),
     [projects, milestones, typeFilter],
   );
 
@@ -224,7 +223,6 @@ export function ProjectsTimeline({
     }
     // Sort projects by their earliest upcoming milestone
     return Array.from(map.values())
-      .filter((r) => r.milestones.length > 0)
       .sort((a, b) => {
         const aNext = soonestMilestoneDate(a.milestones);
         const bNext = soonestMilestoneDate(b.milestones);
@@ -301,7 +299,7 @@ export function ProjectsTimeline({
 
           {projectRows.length === 0 ? (
             <div className="py-12 text-center text-sm text-muted-foreground">
-              no projects with upcoming milestones. try a different type filter.
+              no active projects. try a different type filter.
             </div>
           ) : (
             <div ref={scrollRef} className="overflow-x-auto">

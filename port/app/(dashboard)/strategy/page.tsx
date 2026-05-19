@@ -25,6 +25,7 @@ import { fetchRfpAnalytics, fetchEmailAnalytics } from "@/lib/marketing/rfp-anal
 import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
 import { StrategyHero } from "./components/strategy-hero";
 import { TeamPulseStrip } from "./components/team-pulse-strip";
+import { DocentWelcomeBanner } from "@/app/components/docent-welcome-banner";
 import { StrategyTab } from "./components/strategy-tab";
 import { CampaignsTab } from "./components/campaigns-tab";
 import { ChannelsTab } from "./components/channels-tab";
@@ -83,6 +84,8 @@ export default async function StrategyPage({
         title="strategy"
         description="q2–q3 2026 · marketing command centre · cmo: claude · sponsor: garrett"
       />
+
+      <DocentWelcomeBanner />
 
       <StrategyHero subscribers={stats?.totalSubscribers ?? 0} />
 
