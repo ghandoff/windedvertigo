@@ -49,6 +49,9 @@ const PDF_SOURCE_LABEL = {
   openalex: 'OpenAlex',
   europe_pmc: 'Europe PMC',
   biorxiv_medrxiv: 'bioRxiv / medRxiv',
+  zenodo: 'Zenodo',
+  core: 'CORE',
+  orcid: 'ORCID',
   pmc: 'PubMed Central',
   discovery: 'discovery search',
 };

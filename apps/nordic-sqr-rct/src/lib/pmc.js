@@ -14,16 +14,12 @@
  *   4. Europe PMC — broader than NCBI PMC, includes preprints + EU repos
  *   5. bioRxiv / medRxiv — preprint servers for biology + medicine
  *   6. Zenodo — CERN open repository, author-deposited post-prints + preprints
- *   7. ORCID — author self-archived PDF links on ORCID profiles
- *   8. NCBI PMC — NIH-funded open-access articles (final fallback)
+ *   7. CORE — 25M+ institutional-repository AAMs (re-added 2026-05-19)
+ *   8. ORCID — author self-archived PDF links on ORCID profiles
+ *   9. NCBI PMC — NIH-funded open-access articles (final fallback)
  *
- * CORE (institutional repositories) was removed from the waterfall on
- * 2026-05-05 — its API license requires payment for commercial use, and
- * the unique-coverage it adds (institutional AAMs) is largely overlapping
- * with what Unpaywall + OpenAlex already surface. The checkCore() helper
- * remains below as a single-line restore if a paid plan is added later.
- * The remaining ~5-15% gap is filled by the manual PDF upload path
- * (POST /api/pcs/evidence/[id]/pdf-upload).
+ * The remaining gap after all tiers is filled by the manual PDF upload
+ * path (POST /api/pcs/evidence/[id]/pdf-upload).
  */
 
 // @vercel/blob imported dynamically in the local dev fallback (downloadAndUploadPdf)
@@ -291,16 +287,19 @@ export async function checkEuropePmc({ doi, pmid }) {
 
 /**
  * Check CORE for an open-access PDF.
- * CORE aggregates 260M+ documents from institutional repositories worldwide —
+ * CORE aggregates 25M+ documents from institutional repositories worldwide —
  * often author-accepted manuscripts deposited per funder mandates.
- * Free API, no key needed for basic search.
+ * Free REST API, no key required for basic per-paper lookups.
+ *
+ * Response shape: { results: [{ id, doi, downloadUrl, fullTextUrl, ... }] }
+ * A PDF is available when downloadUrl is non-null, or fullTextUrl ends in .pdf.
  *
  * @returns {{ available, pdfUrl, source }} or { available: false }
  */
 export async function checkCore(doi) {
   if (!doi) return { available: false, reason: 'No DOI' };
 
-  const url = `${CORE_BASE}/search/works/?q=doi:${encodeURIComponent(doi)}&limit=1`;
+  const url = `${CORE_BASE}/search/works?q=doi:"${encodeURIComponent(doi)}"&limit=1`;
 
   try {
     const res = await fetch(url, {
@@ -311,15 +310,15 @@ export async function checkCore(doi) {
 
     const data = await res.json();
     const result = data.results?.[0];
-    if (!result?.downloadUrl) {
-      return { available: false, reason: 'Not found in CORE' };
-    }
+    if (!result) return { available: false, reason: 'Not found in CORE' };
 
-    return {
-      available: true,
-      pdfUrl: result.downloadUrl,
-      source: 'core',
-    };
+    // Prefer downloadUrl; fall back to fullTextUrl if it points directly to a PDF
+    const pdfUrl = result.downloadUrl
+      || (result.fullTextUrl?.endsWith('.pdf') ? result.fullTextUrl : null);
+
+    if (!pdfUrl) return { available: false, reason: 'No PDF URL in CORE record' };
+
+    return { available: true, pdfUrl, source: 'core' };
   } catch (err) {
     return { available: false, reason: `CORE error: ${err.message}` };
   }
@@ -517,49 +516,37 @@ export async function findPdfUrl({ doi, pmid, authorOrcids = [] }) {
     await new Promise(r => setTimeout(r, 200)); // rate limit buffer
   }
 
-  // 3. CORE — REMOVED 2026-05-05.
-  //
-  // CORE's API license is structured around free-for-academic vs
-  // paid-for-commercial use. This platform is internal tooling for
-  // a for-profit client (Nordic Naturals) substantiating product
-  // claims, which falls under CORE's "commercial / restricted
-  // beneficiaries" definition. Without a paid license we'd just be
-  // hitting their endpoint and getting throttled.
-  //
-  // The unique-coverage CORE adds is institutional-repository AAMs,
-  // most of which Unpaywall (tier 1) and OpenAlex (tier 4) already
-  // surface. The remaining ~5-15% gap is filled by the manual PDF
-  // upload path (POST /api/pcs/evidence/[id]/pdf-upload) — operators
-  // can drop in a PDF acquired via institutional access whenever the
-  // waterfall misses.
-  //
-  // checkCore() helper is preserved below in case we later sign up
-  // for a paid plan; reactivation is a one-line restore here.
-
-  // 4. OpenAlex (aggregated OA locations)
+  // 3. OpenAlex (aggregated OA locations)
   if (doi) {
     const oalex = await checkOpenAlex(doi);
     attempts.push({ source: 'openalex', ...oalex });
     if (oalex.available) return { ...oalex, attempts };
   }
 
-  // 5. Europe PMC (broader than NCBI PMC, includes preprints + EU repos)
+  // 4. Europe PMC (broader than NCBI PMC, includes preprints + EU repos)
   const epmc = await checkEuropePmc({ doi, pmid });
   attempts.push({ source: 'europe_pmc', ...epmc });
   if (epmc.available) return { ...epmc, attempts };
 
-  // 6. bioRxiv / medRxiv (preprint servers)
+  // 5. bioRxiv / medRxiv (preprint servers)
   if (doi) {
     const biorxiv = await checkBiorxiv(doi);
     attempts.push({ source: 'biorxiv_medrxiv', ...biorxiv });
     if (biorxiv.available) return { ...biorxiv, attempts };
   }
 
-  // 7. Zenodo (CERN open repository — preprints, post-prints, author deposits)
+  // 6. Zenodo (CERN open repository — preprints, post-prints, author deposits)
   if (doi) {
     const zenodo = await checkZenodo(doi);
     attempts.push({ source: 'zenodo', ...zenodo });
     if (zenodo.available) return { ...zenodo, attempts };
+  }
+
+  // 7. CORE (institutional repositories — 25M+ author-accepted manuscripts)
+  if (doi) {
+    const core = await checkCore(doi);
+    attempts.push({ source: 'core', ...core });
+    if (core.available) return { ...core, attempts };
   }
 
   // 8. ORCID author self-archive (authors who deposited PDF links on their ORCID profile)
