@@ -289,6 +289,13 @@ export async function setProposalStatus(
   status: ProposalStatus,
 ): Promise<void> {
   const updates: Record<string, unknown> = { proposal_status: status };
+  if (status === "generating") {
+    // Set the start timestamp so the sweep cron can use it for the
+    // `proposal_started_at < cutoff` branch (instead of relying solely
+    // on the IS NULL branch which catches all generating records regardless
+    // of age — potentially too aggressive for records < 10 min old).
+    updates.proposal_started_at = new Date().toISOString();
+  }
   if (status !== null && TERMINAL_STATUSES.includes(status)) {
     updates.proposal_completed_at = new Date().toISOString();
   }

@@ -1,7 +1,10 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wv-port",
-  "main": ".open-next/worker.js",
+  // worker.entry.ts wraps .open-next/worker.js and re-exports scheduled().
+  // @opennextjs/cloudflare v1.19.5 silently drops defineCloudflareConfig's
+  // `scheduled` field, so we use this wrapper as the main entry instead.
+  "main": "worker.entry.ts",
   "compatibility_date": "2025-03-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 

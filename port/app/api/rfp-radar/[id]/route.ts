@@ -86,7 +86,7 @@ export async function PATCH(
     if (body.status === "pursuing") {
       const freshState = await getRfpOpportunityByIdFromSupabase(id).catch(() => null);
       const alreadyActive =
-        freshState?.proposalStatus === "complete" ||
+        freshState?.proposalStatus === "ready-for-review" ||
         freshState?.proposalStatus === "generating" ||
         freshState?.proposalStatus === "queued";
 
