@@ -1,0 +1,57 @@
+name: deploy nordic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/nordic-sqr-rct/**"
+      - ".github/workflows/deploy-nordic.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-nordic
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: "097c92553b268f8360b74f625f6d980a"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: build next.js
+        run: npm run build -w nordic-sqr-rct
+
+      - name: bundle for cloudflare workers (opennext)
+        working-directory: apps/nordic-sqr-rct
+        run: npx @opennextjs/cloudflare build --skipNextBuild
+
+      - name: deploy to cloudflare workers
+        working-directory: apps/nordic-sqr-rct
+        run: npx wrangler deploy
+
+      - name: smoke check
+        run: |
+          sleep 60
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/body -w "%{http_code}" https://nordic.windedvertigo.com/)
+            echo "attempt ${i}: HTTP ${code}"
+            if [ "$code" = "200" ]; then
+              echo "✓ nordic.windedvertigo.com responding 200"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::warning::deploy succeeded but smoke didn't confirm within 110s"
