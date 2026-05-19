@@ -139,7 +139,15 @@ function AicsLibrary() {
             </Link>
           )}
           {canCreate ? (
-            <Link href="/research/pcs/aics/new" className="btn-primary text-sm">+ New AICS doc</Link>
+            <>
+              <Link
+                href="/research/pcs/aics/import"
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
+              >
+                Batch import
+              </Link>
+              <Link href="/research/pcs/aics/new" className="btn-primary text-sm">+ New AICS doc</Link>
+            </>
           ) : null}
         </div>
       </div>

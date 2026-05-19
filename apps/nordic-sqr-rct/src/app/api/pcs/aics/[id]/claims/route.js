@@ -7,6 +7,8 @@ import {
   createAicsClaim,
 } from '@/lib/aics-documents';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/pcs/aics/[id]/claims — claims for the latest version of this
  * AICS doc. Resolves the latest version via the document's

@@ -132,7 +132,7 @@ export default function AicsDetailPage() {
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
           <h1 className="text-2xl font-bold text-gray-900">
             {doc.aicsId || 'AICS'}
-            {doc.aiNameText ? <span className="text-gray-600 font-normal ml-2">— {doc.aiNameText}</span> : null}
+            {doc.aiName ? <span className="text-gray-600 font-normal ml-2">— {doc.aiName}</span> : null}
           </h1>
           <div className="flex items-center gap-2 text-xs">
             {doc.raReviewStatus ? (
@@ -304,8 +304,8 @@ function ClaimsTab({ claims }) {
                 <p className="text-sm text-gray-900">{c.claimText}</p>
                 <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                   {c.benefitCategory ? <span>{c.benefitCategory}</span> : null}
-                  {c.ageGroupCode ? <span>· {c.ageGroupCode}</span> : null}
-                  {c.sexCode ? <span>· {c.sexCode}</span> : null}
+                  {c.ageGroup ? <span>· {c.ageGroup}</span> : null}
+                  {c.sex ? <span>· {c.sex}</span> : null}
                   {c.minDose ? (
                     <span className="font-medium text-gray-700">
                       · Min dose: {c.minDose}{c.minDoseUnit ? ` ${c.minDoseUnit}` : ''}
