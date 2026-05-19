@@ -23,6 +23,11 @@ const ROLE_COLORS = {
 
 const EDITABLE_ROLES = ['reviewer', 'researcher', 'ra', 'admin'];
 
+// Roles that supersede all roles below them in the hierarchy.
+// admin implies researcher + ra + reviewer; super-user implies everything.
+const ROLE_HIERARCHY = ['super-user', 'admin', 'ra', 'researcher', 'reviewer'];
+const ROLES_IMPLIED_BY_ADMIN = new Set(['researcher', 'ra', 'reviewer', 'sqr-rct']);
+
 /**
  * Derive a roles array from the API response.
  * The current API returns `isAdmin` boolean, not `roles[]`.
@@ -31,6 +36,19 @@ const EDITABLE_ROLES = ['reviewer', 'researcher', 'ra', 'admin'];
 function deriveRoles(user) {
   if (Array.isArray(user.roles) && user.roles.length > 0) return user.roles;
   return user.isAdmin ? ['admin'] : ['reviewer'];
+}
+
+/**
+ * Collapse implied roles for display purposes.
+ * If admin is present, don't also show researcher/ra/reviewer (they're implied).
+ * If super-user is present, show only super-user.
+ */
+function displayRoles(roles) {
+  if (!roles || roles.length === 0) return roles;
+  if (roles.includes('super-user')) return ['super-user'];
+  if (roles.includes('admin')) return ['admin'];
+  // For non-admin users, show all explicit roles
+  return roles.filter(r => r !== 'sqr-rct' || !roles.includes('reviewer'));
 }
 
 function isInternal(roles) {
@@ -42,10 +60,11 @@ function isInternal(roles) {
 // ---------------------------------------------------------------------------
 
 function RoleChips({ roles }) {
-  if (!roles || roles.length === 0) return <span className="text-gray-400">—</span>;
+  const shown = displayRoles(roles);
+  if (!shown || shown.length === 0) return <span className="text-gray-400">—</span>;
   return (
     <div className="flex flex-wrap gap-1">
-      {roles.map(role => (
+      {shown.map(role => (
         <span
           key={role}
           className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[role] || 'bg-gray-100 text-gray-600'}`}
@@ -120,21 +139,30 @@ function RoleEditor({ user, onSaved }) {
       {open && (
         <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-[160px] p-2">
           <p className="text-xs text-gray-500 px-2 pb-1 mb-1 border-b border-gray-100">Edit roles</p>
-          {EDITABLE_ROLES.map(role => (
-            <label
-              key={role}
-              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer text-sm text-gray-700"
-            >
-              <input
-                type="checkbox"
-                checked={localRoles.includes(role)}
-                onChange={() => toggleRole(role)}
-                disabled={saving}
-                className="rounded border-gray-300 text-pacific focus:ring-pacific"
-              />
-              {role}
-            </label>
-          ))}
+          {EDITABLE_ROLES.map(role => {
+            const adminActive = localRoles.includes('admin');
+            const impliedByAdmin = adminActive && ROLES_IMPLIED_BY_ADMIN.has(role);
+            const isDisabled = saving || impliedByAdmin;
+            return (
+              <label
+                key={role}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer text-gray-700'}`}
+                title={impliedByAdmin ? `Included in admin` : undefined}
+              >
+                <input
+                  type="checkbox"
+                  checked={localRoles.includes(role) || impliedByAdmin}
+                  onChange={() => !impliedByAdmin && toggleRole(role)}
+                  disabled={isDisabled}
+                  className="rounded border-gray-300 text-pacific focus:ring-pacific"
+                />
+                <span className={impliedByAdmin ? 'text-gray-400 italic' : ''}>
+                  {role}
+                  {impliedByAdmin && <span className="ml-1 text-xs">(included in admin)</span>}
+                </span>
+              </label>
+            );
+          })}
           <button
             onClick={() => setOpen(false)}
             className="mt-1 w-full text-xs text-gray-400 hover:text-gray-600 py-1"
