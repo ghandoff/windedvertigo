@@ -109,6 +109,26 @@ const CRON_TABLE: CronEntry[] = [
   //    UPSERT-only on notion_page_id — safe to run alongside port edits.
   { path: "/api/cron/sync-competitors-pilot", hours: [7] },
 
+  // ── PM + BD asset syncs (re-added 2026-05-19) ─────────────────────────────────
+  // Accidentally dropped from CRON_TABLE in Phase A4. Same pattern as the
+  // events/competitors/campaigns syncs restored on 2026-05-09. Supabase tables
+  // were empty; the pages were showing blank. Notion is still the write layer.
+
+  // Projects: hourly — project status + timeline changes frequently
+  { path: "/api/cron/sync-projects-pilot" },
+
+  // Work items: every 2 hours — tasks change throughout the day
+  { path: "/api/cron/sync-work-items", hours: [0,2,4,6,8,10,12,14,16,18,20,22] },
+
+  // Milestones: every 2 hours — less frequent than tasks but same ballpark
+  { path: "/api/cron/sync-milestones-pilot", hours: [1,3,5,7,9,11,13,15,17,19,21,23] },
+
+  // Cycles: daily at 5am UTC — cycles rarely change mid-day
+  { path: "/api/cron/sync-cycles-pilot", hours: [5] },
+
+  // BD Assets: daily at 6am UTC — assets change infrequently
+  { path: "/api/cron/sync-bd-assets-pilot", hours: [6] },
+
   // ── Notion dual-write pilots (still active; added to CRON_TABLE 2026-05-09) ──
   // These six Notion→Supabase syncs were accidentally dropped from CRON_TABLE
   // during Phase A4. They were still running on Vercel (vercel.json schedules).

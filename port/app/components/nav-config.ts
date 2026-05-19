@@ -6,19 +6,16 @@
  */
 
 import {
-  Building2,
   Users,
-  FolderOpen,
   FolderKanban,
   Megaphone,
   Target,
   Clock,
   Compass,
-  Shield,
   Sparkles,
-  PenLine,
   CalendarDays,
   CalendarClock,
+  LayoutDashboard,
   LineChart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -44,6 +41,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "delivery",
     defaultOpen: true,
     items: [
+      { label: "home", href: "/", icon: LayoutDashboard },
       { label: "projects", href: "/projects", icon: FolderKanban },
       { label: "time", href: "/work/time", icon: Clock },
     ],
@@ -51,10 +49,8 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: "pipeline",
     items: [
-      { label: "opportunities", href: "/opportunities", icon: Target },
+      { label: "pipeline", href: "/opportunities", icon: Target },
       { label: "contacts", href: "/contacts", icon: Users },
-      { label: "organisations", href: "/organizations", icon: Building2 },
-      { label: "competitors", href: "/competitors", icon: Shield },
     ],
   },
   {
@@ -63,8 +59,6 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "campaigns", href: "/campaigns", icon: Megaphone },
       { label: "events", href: "/events", icon: CalendarDays },
       { label: "bookings", href: "/bookings", icon: CalendarClock },
-      { label: "content", href: "/content", icon: PenLine },
-      { label: "assets", href: "/assets", icon: FolderOpen },
     ],
   },
   {

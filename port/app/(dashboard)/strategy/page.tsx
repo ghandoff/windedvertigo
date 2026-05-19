@@ -15,8 +15,10 @@
  * getCampaignsFromSupabase() flows into campaigns tab for CRM linking.
  */
 
+import { Suspense } from "react";
 import { PageHeader } from "@/app/components/page-header";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
+import { CardGridSkeleton } from "@/app/components/skeletons";
 import { getSocialStatsFromSnapshot } from "@/lib/marketing/social-stats";
 import { getPipelineProgress } from "@/lib/marketing/pipeline-progress";
 import { fetchRfpAnalytics, fetchEmailAnalytics } from "@/lib/marketing/rfp-analytics";
@@ -30,6 +32,7 @@ import { AudienceTab } from "./components/audience-tab";
 import { PipelineTab } from "./components/pipeline-tab";
 import { DistributionTab } from "./components/distribution-tab";
 import { TimelineTab } from "./components/timeline-tab";
+import { CompetitorsTab } from "./components/competitors-tab";
 
 const TABS: readonly TabDef[] = [
   { key: "strategy", label: "strategy" },
@@ -39,6 +42,7 @@ const TABS: readonly TabDef[] = [
   { key: "pipeline", label: "pipeline" },
   { key: "distribution", label: "distribution" },
   { key: "timeline", label: "timeline" },
+  { key: "competitors", label: "competitors" },
 ];
 
 export default async function StrategyPage({
@@ -103,6 +107,11 @@ export default async function StrategyPage({
         <DistributionTab memberFilter={memberFilter} />
       )}
       {activeTab === "timeline" && <TimelineTab />}
+      {activeTab === "competitors" && (
+        <Suspense fallback={<CardGridSkeleton />}>
+          <CompetitorsTab />
+        </Suspense>
+      )}
 
       {/* doc meta */}
       <div className="text-[10px] text-muted-foreground space-y-0.5 px-1 pt-4">

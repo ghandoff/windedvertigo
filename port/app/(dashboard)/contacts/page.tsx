@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/table";
 import { KanbanSkeleton, TableSkeleton } from "@/app/components/skeletons";
 import { EmptyState } from "@/app/components/empty-state";
-import { Users } from "lucide-react";
+import { Building2, Users } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const revalidate = 300;
 
@@ -143,6 +145,12 @@ export default async function ContactsPage(props: Props) {
         title="contacts"
         description="people linked to organizations in the pipeline"
       >
+        <Link href="/organizations">
+          <Button variant="outline" size="sm" className="gap-1.5">
+            <Building2 className="h-3.5 w-3.5" />
+            organisations
+          </Button>
+        </Link>
         <NewContactDialog />
       </PageHeader>
       <div className="flex flex-wrap items-center gap-3 mb-6">

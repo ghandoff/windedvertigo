@@ -58,8 +58,12 @@ export async function POST(request) {
   let waterfallAttempts = [];
   if (hit.doi || hit.pmid) {
     const filename = safeFilename(hit.doi, hit.pmid);
+    // Collect ORCID IDs from Semantic Scholar author externalIds for tier-8 lookup
+    const authorOrcids = (hit.authors || [])
+      .map(a => a?.externalIds?.ORCID)
+      .filter(Boolean);
     try {
-      const result = await findAndFetchPdf({ doi: hit.doi, pmid: hit.pmid, filename });
+      const result = await findAndFetchPdf({ doi: hit.doi, pmid: hit.pmid, filename, authorOrcids });
       waterfallAttempts = result.attempts || [];
       if (result.fetched) {
         pdfSource = result.source; // tier that hit
