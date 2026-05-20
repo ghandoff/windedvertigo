@@ -73,6 +73,66 @@ The Claude-authored commits also include a `Co-Authored-By: Claude ... <noreply@
 
 ---
 
+## Best practices
+
+These are the day-to-day habits that keep the multi-session, multi-collaborator setup working. They build on the protocol above — most are 30 seconds of effort that save someone (often future-you) much more.
+
+### Starting a session
+
+Whether you're opening a local terminal, a Codespace, or claude.ai/code, glance at four things before substantive editing:
+
+1. **The SessionStart hook output.** Claude Code prints it at the top of every session (see `.claude/hooks/session-start-diagnostic.sh`): current branch + upstream, dirty file count, local-main divergence from `origin/main`, and currently open draft PRs. If you don't see it, your session predates the hook — run `git fetch && git status && gh pr list --draft --state open` manually.
+2. **The freshest two or three handoff files in [`.brain/memory/handoff/`](./.brain/memory/handoff/).** Newest-first. If you're picking up where someone left off, the handoff is the fastest way in. The format is documented in [`.brain/memory/handoff/README.md`](./.brain/memory/handoff/README.md).
+3. **[`.brain/TASKS.md`](./.brain/TASKS.md)** — whirlpool action items, organized by date and assignee. If your name's next to something, that's a candidate for this session.
+4. **Open PRs touching files you plan to touch.** `gh pr list --state open --search "<filename or path>"` is enough. If two of you would be editing the same component, coordinate via Slack DM before doubling the work.
+
+### During work
+
+- **One branch, one intent.** If the intent shifts mid-session — you started a fix, found a refactor opportunity, and now want to do both — open a second branch for the second thing. Long, kitchen-sink branches are hard to review and hard to merge.
+- **Treat the draft PR title as your billboard.** It's what your teammates see in `gh pr list`. `fix(port): patch token refresh on stale session` is signal; `fix: stuff` is noise. Edit the title whenever your intent sharpens.
+- **Commit small, push often.** The draft PR auto-updates. If you push every 15–30 minutes during active work, the in-flight signal stays accurate and you minimize the work lost if something goes sideways.
+- **Rebase, don't merge, when you fall behind `main`.** If `origin/main` advances while you're working, run `git pull --rebase origin main` from your feature branch. Don't merge `main` *into* your branch — it pollutes the history with merge commits and makes the squash-merge harder to read.
+- **The `Session:` commit trailer.** If your commits are part of a coherent session — especially if you're running concurrently with someone else — add a `Session: <short-slug>` line to the commit message. `git log --grep="Session:"` then becomes a forensic tool when something goes wrong.
+
+### Wrapping a session
+
+- **Drop a handoff file when the work warrants it.** Not every session needs one. Write a handoff when: (a) you finished something a teammate will need to know about, (b) you stopped mid-flight and want to make it easy to resume, (c) you discovered something surprising about the codebase or the system. Skip it for routine fixes. Format and naming are in [`.brain/memory/handoff/README.md`](./.brain/memory/handoff/README.md); `git add -f` the new file the first time.
+- **Mark the PR ready for review** when the work is done. If you're stopping mid-flight, leave it draft and write a one-line "where I left off" in the PR description.
+- **Don't end the day with unpushed commits on a feature branch.** Push them. The remote is the only copy your next session (or another teammate) can see.
+- **For Garrett and Maria:** if the PR is ready and the actor-routing rules apply to you, squash-merge immediately. Don't queue PRs for next-day; the longer they sit, the more they drift from `main`.
+
+### Working without an engineering background (Payton, Lamis, future collaborators)
+
+You can do everything described above without learning git deeply — Claude Code handles the mechanics. A few things help:
+
+- **Open the repo in a Codespace** (green "Code" button on the GitHub repo page → "Codespaces" → "Create"). Claude Code is preinstalled. You don't need to install anything locally.
+- **Tell Claude what you want in plain English.** "Add a new tile to the harbour grid that points to the play, fair page" is enough. Claude will create the branch, edit the files, open the draft PR, and push — you watch the PR appear and review what changed.
+- **Use GitHub mobile to review.** The "Pull requests" tab on mobile shows your open PRs, the file diffs, and the conversation. You can comment, request changes, or just mark "Looks good" — all from your phone.
+- **Garrett reviews and merges your PRs.** Per the actor-routing rules above, your PRs are gated to him. That's intentional — the review is part of the learning loop, not a blocker. Keep iterating on the same branch and the PR updates automatically; he'll review when he has a moment.
+- **Spawn new Claude sessions liberally.** Sessions are cheap. If a task is unrelated to what you were just doing, open a new session rather than juggling intents in one.
+
+### When you learn something the team should know
+
+This is where the partition design pays off. Three places to write, depending on what you learned:
+
+| What you learned | Where it goes |
+|------------------|---------------|
+| A workflow convention everyone should follow ("we should always run `npm run typecheck` before pushing infra changes") | Propose a new section in **`CONTRIBUTING.md`** |
+| A fact about the team / a glossary term / an infra entry / an active project ("the Slack agent is now called `wv-claw`, not `OpenClaw`") | Propose an edit to **`TEAM.md`** |
+| A preference for how Claude should behave **for you specifically** ("respond in lowercase by default") | Write it in your own gitignored root **`CLAUDE.md`** |
+
+Promoting too aggressively (writing into TEAM.md when the fact is actually personal) is a low-cost mistake — Garrett can revert in the review. Promoting too conservatively (hoarding shared knowledge in your personal CLAUDE.md) is the more expensive failure mode because the team can't learn from it.
+
+### Anti-patterns to avoid
+
+- **Editing the same file in two concurrent sessions without coordinating.** The PR queue (`gh pr list`) and the SessionStart hook exist specifically to prevent this. If you notice it happening, stop and DM the other session's owner.
+- **Letting a branch live for more than a few days.** Three days of drift can usually be rebased away. A week of drift usually means the work should be split, abandoned, or merged-and-iterated. If a branch has been open for two weeks, close it or finish it.
+- **Closing a draft PR without explanation.** Leave a one-line comment ("superseded by #N", "scope abandoned, see TASKS.md"). The next session deserves to know why.
+- **Writing into TEAM.md / CONTRIBUTING.md without a draft PR.** These files are shared institutional memory — they deserve review, not direct pushes. The docs-only `[skip ci]` carve-out exists for typos and pure additions to your own `.brain/` files, not for editing shared canonical docs unilaterally.
+- **Treating `.brain/memory/handoff/` as a running chat log.** Each file is a session boundary, written once at the end of a session — not a Slack channel. If you want a running conversation, use Slack.
+
+---
+
 ## Things that are never OK
 
 - **Pushing directly to `main`** outside the docs-only carve-out above. The repo's bypass rule exists for genuine emergencies (broken production, expired secret rotations), not as the default path.
