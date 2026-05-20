@@ -9,74 +9,112 @@ When Cowork or Claude Code finishes a significant session, drop a note here so t
 ## 🟢 live state
 <!-- updated by context-sync daily 9pm PT, and manually at end of significant sessions. only this block is auto-refreshed. everything below is append-only history. -->
 
-**last synced:** mon 18 may 2026, ~21:10 PT (cowork, context-sync)
+**last synced:** wed 20 may 2026, ~05:05 PT (claude code, end-of-session)
 
 **where we are right now:**
-monday landed full and clean — t-minus 10 days to the 28 may prime+ harbour launch. **whirlpool x harbour play lab ran 9–10:30am PT** (10 fresh action items in TASKS.md, maria out sick); **payton sync ran 11am PT**; **PRME session 3 reply to charlotta levay shipped at 3:17pm PT** — closes a friday-owed thread with warmth. on the commercial side **nordic naturals broke open**: sharon matheny came back from conference travel and booked a zoom call for **thu 21 may 11am PT** (invite confirmed 4:41pm PT). new RFP surfaced — **ubongo 10-year impact learnings report, due fri 22 may** — jamie has a v1 in the notion workspace; garrett ran v2 through claude against the TOR and shared via slack DM end of day. engineering was a focused half-day pushing the harbour-launch-map route on `wv-port` through four bundling iterations (`1da4436` → `e1d2c26`); rubric-co-builder hardening from sun is now stable in prod. cash signal unchanged. **harbour review forms** got reframed at today's whirlpool into a 15-min team review of each prime+ app at wed's session — forcing function moved from solo design to group walkthrough. weekly-dependency bot flagged a **tier-1 safe bump** (next 16.2.4 → 16.2.6: SSRF cvss 8.6 + middleware bypass cvss 8.1) plus `@opennextjs/cloudflare` 1.19.4 → 1.19.10 before next CF deploy.
+tuesday was the **single heaviest engineering day of the quarter** — **30+ commits** across the windedvertigo monorepo with the centrepiece being a full rebrand: **rubric-co-builder → co.rubric / rcb-companion → co.rubric companion** (`41add74`). on top of the rename, the co.rubric stack got hardened end-to-end (lazy-participant heartbeat + presence + auto-tally `800e48f`, TOCTOU vote-quota race closed with an advisory-lock transaction `8e5984d`, hydration crash fix `7b179db`, perf parallelisation `f4c8a6c`, host_token persisted client-side `d591b5d`, UDL audit fixes #1/#3/#4/#5 on the main tool `e8c4416` + #6 on the companion `b0a32e2`). new ground was broken on **AICS**: `/research/pcs/aics/new` page + CF env vars, batch import API + versions route + cover-tab versions fix, and three relational-integrity bugs caught + fixed. **port/strategy got wired bi-directionally to the PM project portfolio** (`7745fc2`), `/projects/[id]` detail page landed (`e096a45`), nav now redirects `/` → `/strategy` (`9f19fd5`), and **press play was added to the bookings layer** with a docent banner. on the commercial side, **jamie reviewed v2 of the ubongo proposal** at 1:22pm + 2:24pm PT today and left comments in the google doc — first one nudging the team size ("8–12 internal and 6–10 external"), second on an in-country research associate scope in dar es salaam. **amna at 10 confirmed invite finally landed** (sent 12 may, attendees added) — session lands **wed 20 may 8am PT (4pm UK)** with fatima/gabriella/hejer/jonelle on amna's side and maria/lamis/jamie on ours. new **PRME bibliography request** came in 6:13am PT from joseph satish (via pedagogy@unprme.org) asking for session-slide references — addressed to garrett + maria, starred + important. **CONTRIBUTING.md** was committed (`3fb0192`) codifying the draft-PR-at-start workflow that landed in CLAUDE.md yesterday. weekly-dependency bot did not run this morning — _source unavailable_ so the next 16.2.6 + opennextjs 1.19.10 bumps from yesterday still stand.
 
 ### open threads
 
 | project | last action | next action | link |
 |---------|-------------|-------------|------|
-| nordic naturals (sharon matheny) | sharon's zoom invite landed mon 4:41pm PT — call thu 21 may 11am PT | prep brief mon eve / tue: surface budget a+b proposal, project map, retainer/contract framing | gmail `19e3bf71bf462294` |
-| ubongo RFP (due fri 22 may) | jamie drafted v1; garrett ran v2 through claude vs TOR + shared via slack | review v2 with jamie tue; confirm financial proposal + EOI; submit by fri | slack DM `D08HDLVM2PK` |
-| whirlpool actions — 18 may | 10 new items (technical audit ask to august, debug strategy app, lamis edtech journals, jamie ubongo + claude max, ubongo/unicef + omna debrief wed) | working through tue; debrief at wed 20 may whirlpool | TASKS.md |
-| amna at 10 (wed 20 may, 4pm UK) | session lands wednesday — debrief slot on whirlpool agenda | confirm session ran + capture takeaways; jonelle's full invite still owed | TASKS.md |
-| wv x press play / sparkshapebuild portfolio page | payton has the html locally; asked for monorepo clone + opus prompt to migrate to `windedvertigo.com/portfolio/sparkshapebuild` | hand off cleanly: clone repo on payton's laptop, scaffold the opus prompt with plan mode | slack DM `D08BWAFRSS3` |
-| harbour review forms → wed group walkthrough | reframed by whirlpool today: 15-min review per prime+ app at wed session | strategy-app loading bug still on garrett to fix beforehand | TASKS.md |
-| weekly dependency review (mon morning bot) | flagged tier-1 next 16.2.6 + `@opennextjs/cloudflare` 1.19.10 + anthropic-ai sdk drift | bump next + opennextjs across both monorepos pre-launch; investigate harbour-apps 403 allowlist | slack self-DM `D06QGJ34H53` |
-| values-auction (post-300-person debrief) | maria's takeaway kits 3A + 3B in drive end of thu 14 may | upload to commons + debrief at wed whirlpool | slack group DM `C08SBKHFNNL` |
+| amna at 10 (wed 20 may 8am PT / 4pm UK) | jonelle's confirmed invite landed with full attendee list (fatima, gabriella, hejer + maria, lamis, jamie) | session lands tomorrow morning — debrief slot on the whirlpool agenda right after | gcal `Video Call: Amna/ Winded Vertigo Collective` |
+| ubongo RFP (due fri 22 may) | jamie left two comments on v2 google doc this afternoon (team size; in-country research associate) | respond to jamie's threads tue eve / wed; lock financial proposal + EOI by thu | google doc `1IEAZV8gkqWVWr4bZBMM_y9YY78mNj_A5fAoW2uD00JM` |
+| nordic naturals (sharon matheny) | sharon's zoom invite stable for thu 21 may 11am PT | prep brief wed eve: budget a+b proposal, project map, retainer/contract framing | gmail `19e3bf71bf462294` |
+| PRME bibliography request (joseph satish) | forwarded via charlotta levay / pedagogy@unprme.org 6:13am PT — addressed to garrett + maria, starred | pull session-slide references + reply (warm, brief) — likely co-owned with maria | gmail `19e405f478340561` |
+| whirlpool x harbour play lab (wed 20 may, 9–10:30am PT) | 15-min team review of each prime+ app is the forcing function; omna debrief slot booked | strategy-app loading bug still on garrett to fix tonight / pre-whirlpool | TASKS.md |
+| dry run PPCS with maria (wed 20 may, 1pm PT) | maria-organised, recurring slot, accepted | hold the time — pairs with the amna session that morning | gcal `dry run PPCS` |
+| co.rubric rebrand fan-out | rename shipped at 15:35 PT; companion + UDL fixes + race conditions all hardened | update CLAUDE.md infra/tool references + any external links pointing at /rubric-co-builder paths | commit `41add74` |
+| wv x press play / sparkshapebuild portfolio page | payton has the html locally; awaiting clone + opus prompt scaffold | hand-off still on garrett — carried from monday | slack DM `D08BWAFRSS3` |
 
 ### waiting on external
 
-- **sharon matheny (nordic naturals)** — call booked thu 21 may 11am PT; no action until then, prep brief is on garrett
-- **jonelle (amna at 10)** — confirmed-invite send-back with maria, lamis, jamie, sam added; since 11 may evening; session lands wed 20 may regardless
-- **meredith storey (PRME)** — out of office through american memorial day weekend per auto-reply landed mon 3:03pm PT; passive
+- **jonelle / amna at 10 team** — invite confirmed, session lands wed 20 may; passive until tomorrow
+- **jamie galpin (ubongo v2)** — left two google-doc comments today (1:22 + 2:24pm PT); awaiting his next turn on team-size + in-country scope decisions
+- **sharon matheny (nordic naturals)** — call booked thu 21 may 11am PT; prep brief is on garrett
+- **meredith storey (PRME)** — still OOO through american memorial day weekend; passive
 - **lauren bosio (nordic naturals)** — folded into sharon thread; passive
-- **PRME capstone (keith)** — possibly already settled on tue 12 may hold; _status to verify_
-- **jennifer rose / manchester (PRME)** — unsolicited praise sat 9 may, still owed warm reply (now 9 days); flag as potential ppcs lead
+- **PRME capstone (keith)** — _status to verify_ (carried from yesterday)
+- **jennifer rose / manchester (PRME)** — unsolicited praise from sat 9 may, now 10 days owed; flag as potential ppcs lead
 - **paul ramchandani (pedal conference)** — proposal still unanswered since the holiday; passive
-- **KiwiCo international partnerships** — forwarded inquiry, no response since 17 apr; passive
-- **IDB Salvador** — evaluation committee reviewing apr 10 documentation; receipt confirmed 24 apr; passive monitor
-- **CPA (aakib qureshi)** — taxdome auto-reminder landed today 8:12am PT, still unread; _carried from 27 apr_
+- **KiwiCo international partnerships** — no response since 17 apr; passive
+- **IDB Salvador** — evaluation committee reviewing apr 10 docs; passive monitor
+- **CPA (aakib qureshi)** — new taxdome notification at 6:34pm PT today ("please complete Q2 2026 Tax Amplifier Organizer") on top of the unresponded 27 apr thread
 
 ### environment handoffs
 
 **Cowork → Claude Code:**
-- **next 16.2.4 → 16.2.6 bump** (windedvertigo + harbour-apps monorepos) — SSRF cvss 8.6 + middleware bypass cvss 8.1; tier-1 safe, do this before next CF deploy
+- **strategy-app loading bug** — debug + fix the loading issue in `/strategy` on port (whirlpool action on garrett, prerequisite for tomorrow's group walkthrough); the redirect `/` → `/strategy` shipped today makes this an even higher-traffic page
+- **next 16.2.4 → 16.2.6 bump** (windedvertigo + harbour-apps monorepos) — SSRF cvss 8.6 + middleware bypass cvss 8.1; tier-1 safe, still pending pre-launch
 - **`@opennextjs/cloudflare` 1.19.4 → 1.19.10** — harbour-apps lockfile resolves to vulnerable range; deploy-blocker for next CF Workers push
 - **harbour-apps registry 403** — `Host not in allowlist` on install; auth token needed for private registry
-- **strategy app loading bug** — debug + fix the loading issue in `/strategy` on port (today's whirlpool action on garrett, prerequisite for wed's group walkthrough)
-- **wv-crm vercel deletion** — 14-day rollback window closed sun 17 may; confirm `wv-crm` project deleted + update CLAUDE.md infra table to "zero vercel projects"
-- **rubric-co-builder post-deploy smoke** — site proxy rewrite end-to-end + confirm all 8 hardening tiers from sun emit expected guard responses in prod
-- **nordic literature retrieval API keys** — set `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` on `wv-nordic` CF Workers (nordic is on CF Workers post-F.5; previous handoff said "vercel" — correction)
+- **co.rubric rebrand follow-through** — sweep CLAUDE.md infra table, docs, and any hard-coded paths still pointing at `rubric-co-builder` / `rcb-companion`; smoke the renamed routes in prod
+- **wv-crm vercel deletion confirmation** — 14-day rollback window closed sun 17 may; confirm `wv-crm` project deleted + update CLAUDE.md infra table to "zero vercel projects"
+- **nordic literature retrieval API keys** — set `SEMANTIC_SCHOLAR_API_KEY` + `CORE_API_KEY` on `wv-nordic` CF Workers
 - **values-auction production alias merge** — preview on `claude/self-running-auction-game-7CbZz` still live at `claude-self-running-auction.values-auction-d9m.pages.dev`
 - **Neon decommission** — clean window ended 2026-05-04; delete project + update TASKS.md
 - **CF cleanup** — revoke temp CF API token, delete DNS-only token, close anotheroption CF account
 - **creaseworks content + refactor** — notion covers for playdates/packs/collections; phase 1 read-time `cover_url` refactor; body-content inline image sync
 
 **Claude Code → Cowork:**
-- **nordic naturals thu 21 may prep brief** — pull budget a + b, project map, retainer framing into one doc by wed eve
-- **ubongo proposal review with jamie** — read jamie's v2 doc, validate against TOR, line up EOI + financial proposal; due fri 22 may
-- **technical audit ask to august** — request a comprehensive evaluation of prime+ apps + harbour architecture before 28 may (today's whirlpool action)
-- **wv x press play / sparkshapebuild handoff to payton** — clone monorepo on payton's laptop, scaffold the opus prompt (plan mode), point to `windedvertigo.com/portfolio/sparkshapebuild`
+- **respond to jamie's ubongo v2 comments** — team-size thread (8–12 internal + 6–10 external) and in-country research associate scope in dar es salaam; both need garrett's call before locking the financial proposal
+- **nordic naturals thu 21 may prep brief** — budget a + b, project map, retainer framing into one doc by wed eve
+- **PRME bibliography reply (joseph satish via charlotta)** — pull session-slide references; co-own with maria; warm + brief
+- **technical audit ask to august** — request comprehensive evaluation of prime+ apps + harbour architecture before 28 may (carried from yesterday's whirlpool action)
+- **amna at 10 session debrief** — capture takeaways for the whirlpool 9am slot immediately after
+- **wv x press play / sparkshapebuild handoff to payton** — clone monorepo on her laptop, scaffold the opus prompt (plan mode); _carried_
 - **upload webinar takeaway kits 3A + 3B to commons** — maria sent end of thu 14 may; still pending
-- **PRME capstone keith decision** — verify whether tue 12 may hold resolved this; if not, frame the tier recommendation (meredith OOO through mem-day weekend, so this can wait)
-- **jennifer rose reply** — warm response to her PRME session 2 praise; now 9 days owed
+- **PRME capstone keith decision** — verify status (meredith still OOO so this can wait)
+- **jennifer rose reply** — warm response to PRME session 2 praise; now 10 days owed
+- **CPA taxdome** — Q2 2026 organizer reminder added on top of the 27 apr thread; still unresponded
 - **dropbox plus decision** — trial expires thu 21 may; decide keep / cancel before billing kicks in
-- **CPA taxdome chat** — fresh auto-reminder today; respond to aakib qureshi
+- **samantha thompson (PRME) mention** — pinged garrett at 12:24pm PT in the Certificate Evidence tracking google doc; check + respond
 - **circulate holistic skills framework** — share with collective + consider tile candidate for 28 may launch
 - **routine admin** — ADP, QuickBooks, gusto expense reviews
 
 ### mobile bookmarks
 
-- **ubongo notion page** — garrett DM'd jamie at 10:54am PT pointing to the [ubongo 10-year impact learnings RFP page](https://www.notion.so/Ubongo-10-Year-Impact-Learnings-Report-2015-2025-Consultant-RFP-bc2eef88b540462abfdd97802461f95e) with "due 22 may" — this is the proposal in flight
-- **ubongo v2 vs TOR for jamie** — garrett DM'd jamie at 6:17pm PT with the [google doc claude-refined v2](https://docs.google.com/document/d/1IEAZV8gkqWVWr4bZBMM_y9YY78mNj_A5fAoW2uD00JM/edit?usp=sharing) asking "how does v2 look?"
-- _no genuine garrett→garrett self-DMs in last 24h_ — only the automated weekly dependency-review bot post in the self-DM channel (already on the open-threads board)
+- _no genuine garrett→garrett self-DMs in last 24h_ — slack search returned zero results for both `from:@garrett to:@garrett` and `in:@garrett`; consistent with a head-down coding day. weekly-dependency bot post did not appear in the self-DM channel this morning (_source unavailable_ — bot may have been skipped or fired outside the 24h window)
 
 ---
 
 ## history (most recent first)
+
+---
+
+## 2026-05-20 (early AM) — port proposal pipeline fixed, strategy data moved to Supabase (Claude Code)
+
+**what happened:**
+- **wv-port-jobs NOTION_TOKEN fixed** — stale/wrong token in the `wv-port-jobs` CF Worker secret store was causing all proposal generation to fail with HTTP 401. `wv-port` and `wv-port-jobs` have separate CF secret stores; the jobs worker token was never set correctly. Fixed by reading correct token from build output and running `wrangler secret put NOTION_TOKEN --name wv-port-jobs`. Ireland Civil Society RFP (`359e4ee7`) was also stuck at "generating" in both Notion and Supabase — reset both to "failed" so auto-retry could fire.
+- **document upload Supabase sync** — `document/route.ts` was writing `rfpDocumentUrl` to Notion only; the detail page reads Supabase. Added `setRfpDocumentUrl()` to `rfp-opportunities.ts` and call it fire-and-forget on upload. PR #104 merged (`afccd7d`).
+- **TED + ADB added to RFP feed sources** — both confirmed working public RSS. Added directly to Notion `RFP feed sources` DB; both enabled and will be picked up by next `poll-rss` cron. DevelopmentAid confirmed inaccessible (JS SPA, auth-gated).
+- **strategy Gantt + distribution moved from hardcode to Supabase** — PR #105 merged (`4453399`). Two new tables: `strategy_campaign_timelines` (6 campaigns) + `strategy_distribution_items` (12 items). Components now accept props instead of importing constants. Falls back to hardcoded arrays on error. Deployed to `wv-port` via `wrangler deploy`. To update data without redeploy: edit rows directly in Supabase Table Editor (`wv-port-pilot` project).
+
+**key deployed commits:**
+- `afccd7d` — fix(proposal-pipeline): wire cron handler + fix Supabase env mismatch in consumer (PR #104)
+- `4453399` — feat(strategy): move Gantt + distribution data from hardcode to Supabase (PR #105)
+
+---
+
+## 2026-05-19 (night) — context-sync: heaviest engineering day of the quarter (30+ commits), co.rubric rebrand shipped, amna at 10 confirmed for tomorrow (Cowork)
+
+**what happened:**
+- **30+ commits across the windedvertigo monorepo today** — the single heaviest engineering day of the quarter, all logged between 9:59am and 19:14 PT.
+- **co.rubric rebrand shipped** (`41add74` at 15:35 PT) — `rubric-co-builder` → `co.rubric` and `rubric-co-builder-companion` → `co.rubric companion`. paired with a stack of hardening commits: lazy-participant resilience with heartbeats + presence + auto-tally (`800e48f`), TOCTOU vote-quota race closed with advisory-lock transaction (`8e5984d`), hydration crash fix moving all hooks above early returns (`7b179db`), perf parallelisation via `Promise.all` (`f4c8a6c`), host_token persisted client-side (`d591b5d`), and UDL audit fixes #1/#3/#4/#5 on the main tool + #6 on the companion (table-scope + landscape print).
+- **AICS new ground** — `/research/pcs/aics/new` page + CF env vars (`0d33d59`), batch import API + versions route + Cover-tab versions fix (`a4b4236`), three relational-integrity bugs fixed (`3392bd2`).
+- **port/strategy bi-directional wiring** — live pipeline + PM project portfolio (`7745fc2`), `/projects/[id]` detail page (`e096a45`), nav redirect `/` → `/strategy` + docent banner (`9f19fd5`), strategy pipeline data refreshed + press play added to bookings (`329356c`).
+- **admin/users surface** — User Directory with role chips + in-app role editing + invite email (`9b33b3c`), super-user added to role editor with hierarchy collapse (`c868a63`), privilege-escalation prevention in role assignment (`1a65e2f`), companion single-user worksheet tool (`30706b5`).
+- **RFP pipeline cleanup** — Supabase env mismatch fix in consumer + cron handler wired (`afccd7d`), all edit-form fields sync to Supabase on PATCH (`826fc38`), document URL syncs to Supabase on upload + Notion error codes surfaced (`5b6a1fb`), Notion proposalStatus syncs to failed in rfp_not_found path (`2b7b41e`).
+- **site / vault fixes** — `/vertigo-vault` redirect order fixed so PRME legacy links work (`bbe695e` #102), 3 vault-specific smoke probes added to `wv-launch-smoke` (`7d35ca1` #103).
+- **CONTRIBUTING.md added** (`3fb0192`) — codifies the draft-PR-at-start workflow that landed in CLAUDE.md yesterday. proof the convention is now living in the repo.
+- **commercial — jamie reviewed ubongo v2** at 1:22pm + 2:24pm PT, two google-doc comments: one nudging team size to "8–12 internal and 6–10 external", one on an in-country research associate scope in dar es salaam. proposal still on track for fri 22 may submission.
+- **amna at 10 confirmed invite landed** — `Video Call: Amna/ Winded Vertigo Collective` wed 20 may 8am PT / 4pm UK; organised by jonelle gyamfi with fatima ribeiro, gabriella brent, hejer dhahbi on amna's side and maria, lamis, jamie added on ours. teams meeting link in the invite.
+- **PRME bibliography request** — joseph satish forwarded by pedagogy@unprme.org (charlotta levay's address) at 6:13am PT, asking garrett + maria to share the references from last week's session-3 slides. starred + important.
+- **samantha thompson (PRME) mention** — pinged garrett at 12:24pm PT in the "Certificate Evidence tracking" google doc.
+- **CPA taxdome — Q2 2026 Tax Amplifier Organizer** notification at 6:34pm PT today, on top of the unresolved 27 apr thread.
+- **calendar — wed 20 may:** Amna/winded vertigo video call 8am PT, whirlpool x harbour play lab 9–10:30am PT (aaron tentative, marietta needsAction), FruitStand 11am PT (with aaron + payton), dry run PPCS with maria 1pm PT.
+- **slack search:** zero self-DMs, zero outbound messages from garrett in last 24h — consistent with a head-down coding day. weekly-dependency bot did not post in the self-DM channel this morning; _source unavailable_, may have been skipped.
+- **slack DM sent to garrett (U06Q4UN4PKR).**
 
 ---
 
