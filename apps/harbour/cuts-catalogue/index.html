@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>the cuts catalogue.</title>
+  <link rel="canonical" href="https://www.windedvertigo.com/tools/cuts-catalogue/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -22,7 +23,10 @@
       --redwood: #B15043;
       --sienna: #CB7858;
       --muted: #9A8577;
+      --ink-muted: #6B5C50;
+      --label-accent: #993D32;
       --t1: #D4A84C;
+      --t1-text: #8A6D2A;
       --t2: #CB7858;
       --t3: #B15043;
       --t4: #7E3A47;
@@ -50,6 +54,23 @@
       outline-offset: 2px;
       border-radius: 2px;
     }
+
+    /* visually-hidden helper for screen-reader-only headings */
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    /* skip link — appears on focus */
+    .skip-link {
+      position: absolute; left: -9999px; top: auto;
+      z-index: 1000; padding: 8px 16px;
+      background: var(--cadet); color: var(--champagne);
+      border-radius: 0 0 4px 0; font-size: 14px;
+      text-decoration: none;
+    }
+    .skip-link:focus { left: 0; top: 0; }
 
     button { cursor: pointer; font-family: inherit; }
 
@@ -188,18 +209,18 @@
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.2em;
-      color: var(--redwood);
+      color: var(--label-accent);
       text-transform: lowercase;
     }
 
     .chip-group { display: flex; flex-wrap: wrap; gap: 5px; }
 
     .chip {
-      padding: 4px 9px;
+      padding: 5px 9px;
       border-radius: 4px;
       border: 1px solid rgba(154,133,119,0.45);
       background: transparent;
-      color: var(--muted);
+      color: var(--ink-muted);
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.02em;
@@ -209,7 +230,7 @@
     .chip.active { background: var(--cadet); color: var(--champagne); border-color: var(--cadet); }
 
     /* tier chips — colored borders and active states */
-    .chip-t[data-value="1"] { border-color: var(--t1); color: var(--t1); }
+    .chip-t[data-value="1"] { border-color: var(--t1-text); color: var(--t1-text); }
     .chip-t[data-value="2"] { border-color: var(--t2); color: var(--t2); }
     .chip-t[data-value="3"] { border-color: var(--t3); color: var(--t3); }
     .chip-t[data-value="4"] { border-color: var(--t4); color: var(--t4); }
@@ -234,7 +255,7 @@
       background: transparent;
       font-size: 11px;
       font-weight: 600;
-      color: var(--muted);
+      color: var(--ink-muted);
       letter-spacing: 0.02em;
       transition: background 0.1s, color 0.1s;
     }
@@ -291,7 +312,7 @@
       display: flex;
       justify-content: space-between;
       font-size: 11px;
-      color: var(--muted);
+      color: var(--ink-muted);
       font-weight: 600;
     }
 
@@ -306,7 +327,7 @@
     }
     .result-count {
       font-size: 11px;
-      color: var(--muted);
+      color: var(--ink-muted);
       font-weight: 600;
       letter-spacing: 0.04em;
     }
@@ -317,7 +338,7 @@
       background: transparent;
       font-size: 12px;
       font-weight: 600;
-      color: var(--muted);
+      color: var(--ink-muted);
       letter-spacing: 0.02em;
       transition: border-color 0.1s, color 0.1s;
       text-align: left;
@@ -373,6 +394,8 @@
       white-space: nowrap;
       flex-shrink: 0;
     }
+    /* tier-1 (gold) bg is too light for champagne text — use cadet for contrast */
+    .time-chip-light { color: var(--cadet); }
     .card-name {
       font-size: 15px;
       font-weight: 700;
@@ -385,13 +408,14 @@
       align-items: center;
       gap: 3px;
       font-size: 11px;
-      color: var(--muted);
+      color: var(--ink-muted);
       row-gap: 2px;
     }
-    .bdot { color: var(--muted); opacity: 0.4; padding: 0 1px; }
+    /* size dots, separator dots, and stakes dot are decorative-only — aria-hidden in markup; size info is in the badges aria-label */
+    .bdot { color: var(--ink-muted); opacity: 0.4; padding: 0 1px; }
     .sdot { font-size: 8px; line-height: 1; }
     .sdots { display: inline-flex; gap: 2px; align-items: center; }
-    .btag { color: var(--muted); }
+    .btag { color: var(--ink-muted); }
     .assess-yes { color: var(--cadet); font-weight: 700; }
     .assess-no  { color: var(--muted); opacity: 0.5; }
 
@@ -406,6 +430,15 @@
     /* ── card expand ── */
     .card { cursor: pointer; }
     .card:hover { box-shadow: 0 2px 8px rgba(39,50,72,0.14); }
+
+    /* .card has overflow:hidden which clips the default outline — use box-shadow */
+    [role="listitem"]:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px #3B82F6, 0 1px 3px rgba(39,50,72,0.07);
+      border-radius: 8px;
+      z-index: 1;
+      position: relative;
+    }
     .tier-row-right { display: flex; align-items: center; gap: 6px; }
     .expand-icon {
       font-size: 11px;
@@ -425,7 +458,7 @@
     .card.expanded .card-expand { display: block; }
     .expand-ctx {
       font-size: 11px;
-      color: var(--muted);
+      color: var(--ink-muted);
       line-height: 1.6;
       margin-bottom: 6px;
     }
@@ -433,7 +466,7 @@
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.12em;
-      color: var(--redwood);
+      color: var(--label-accent);
       text-transform: lowercase;
     }
     .expand-ex { margin-top: 6px; }
@@ -461,7 +494,7 @@
       text-align: center;
       gap: 16px;
     }
-    .empty-state p { color: var(--muted); font-size: 14px; }
+    .empty-state p { color: var(--ink-muted); font-size: 14px; }
 
     /* ── footer ── */
     .site-footer {
@@ -469,7 +502,7 @@
       border-top: 1px solid rgba(39,50,72,0.1);
       text-align: center;
       font-size: 11px;
-      color: var(--muted);
+      color: var(--ink-muted);
       letter-spacing: 0.06em;
       flex-shrink: 0;
     }
@@ -510,6 +543,8 @@
   </style>
 </head>
 <body>
+
+<a href="#cards-grid" class="skip-link">skip to moves</a>
 
 <script id="cuts-data" type="application/json">
 {
@@ -758,7 +793,9 @@
     </div>
 
     <div class="sidebar-foot">
-      <div class="result-count" id="result-count" aria-live="polite" aria-atomic="true">showing 100 of 100 moves</div>
+      <div class="result-count" id="result-count" role="status" aria-live="polite" aria-atomic="true">
+        showing <span id="visible-count">100</span> of 100 moves
+      </div>
       <button class="reset-btn" id="reset-btn">reset filters</button>
     </div>
   </aside>
@@ -1203,6 +1240,7 @@
   var lblTmin     = document.getElementById('lbl-tmin');
   var lblTmax     = document.getElementById('lbl-tmax');
   var countEl     = document.getElementById('result-count');
+  var visibleCountEl = document.getElementById('visible-count');
   var gridEl      = document.getElementById('cards-grid');
   var emptyEl     = document.getElementById('empty-state');
   var resetBtn    = document.getElementById('reset-btn');
@@ -1292,6 +1330,8 @@
   function card(m) {
     var tier = tierMap[m.tier];
     var tc = tier.color_hex;
+    // tier 1 (gold) needs a darker shade for text contrast on light bgs (#8A6D2A vs the #D4A84C bar/bg)
+    var tcText = m.tier === 1 ? '#8A6D2A' : tc;
     var szLabel = SIZES.filter(function(s){return m.class_size.indexOf(s)>-1;}).join(', ');
     var dots = SIZES.map(function(s){
       var f = m.class_size.indexOf(s) > -1;
@@ -1310,17 +1350,17 @@
       + '<div class="card-bar" style="background:' + tc + '" aria-hidden="true"></div>'
       + '<div class="card-body">'
         + '<div class="tier-row">'
-          + '<span class="tier-lbl" style="color:' + tc + '">tier ' + m.tier + ' · ' + tier.name + '</span>'
+          + '<span class="tier-lbl" style="color:' + tcText + '">tier ' + m.tier + ' · ' + tier.name + '</span>'
           + '<div class="tier-row-right">'
-            + '<span class="time-chip" style="background:' + tc + '">' + m.time_min + ' min</span>'
+            + '<span class="time-chip' + (m.tier === 1 ? ' time-chip-light' : '') + '" style="background:' + tc + '">' + m.time_min + ' min</span>'
             + '<span class="expand-icon" aria-hidden="true">▾</span>'
           + '</div>'
         + '</div>'
-        + '<h2 class="card-name">' + m.name + '</h2>'
+        + '<h3 class="card-name">' + m.name + '</h3>'
         + '<div class="badges" aria-label="' + aLabel + '">'
           + '<span class="sdots" aria-hidden="true">' + dots + '</span>'
           + '<span class="bdot" aria-hidden="true">·</span>'
-          + '<span aria-hidden="true" style="color:' + tc + ';font-weight:600">' + prepTxt + '</span>'
+          + '<span aria-hidden="true" style="color:' + tcText + ';font-weight:600">' + prepTxt + '</span>'
           + '<span class="bdot" aria-hidden="true">·</span>'
           + '<span class="btag">' + TECH[m.tech] + '</span>'
           + '<span class="bdot" aria-hidden="true">·</span>'
@@ -1342,7 +1382,7 @@
   // ── render ─────────────────────────────────────────────────────────────────
   function render() {
     var f = filtered();
-    countEl.textContent = 'showing ' + f.length + ' of ' + moves.length + ' moves';
+    visibleCountEl.textContent = f.length;
     updateBadge();
     if (f.length === 0) {
       gridEl.style.display = 'none';
@@ -1350,7 +1390,18 @@
     } else {
       emptyEl.style.display = 'none';
       gridEl.style.display = 'grid';
-      gridEl.innerHTML = f.map(card).join('');
+      // group by tier, prepend a visually-hidden h2 per tier so the page has a real document outline
+      var byTier = {};
+      f.forEach(function (m) { (byTier[m.tier] = byTier[m.tier] || []).push(m); });
+      var html = '';
+      data.tiers.forEach(function (t) {
+        var ms = byTier[t.id];
+        if (!ms || !ms.length) return;
+        html += '<h2 class="sr-only">tier ' + t.id + ' — ' + t.name
+              + ' (' + ms.length + ' move' + (ms.length === 1 ? '' : 's') + ')</h2>';
+        html += ms.map(card).join('');
+      });
+      gridEl.innerHTML = html;
     }
     writeURL();
   }
@@ -1362,6 +1413,8 @@
     timeMaxEl.value = st.timeMax;
     lblTmin.textContent = st.timeMin + ' min';
     lblTmax.textContent = st.timeMax + ' min';
+    timeMinEl.setAttribute('aria-valuetext', st.timeMin + ' minutes');
+    timeMaxEl.setAttribute('aria-valuetext', st.timeMax + ' minutes');
     updateFill();
 
     allChips.forEach(function (chip) {
@@ -1403,13 +1456,28 @@
   }
 
   // ── events ─────────────────────────────────────────────────────────────────
-  searchEl.addEventListener('input', function () { st.q = searchEl.value.trim(); render(); });
+  // debounce search-as-you-type so the live-region count doesn't fire on every keystroke
+  var searchTimer = null;
+  searchEl.addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () {
+      st.q = searchEl.value.trim();
+      render();
+    }, 300);
+  });
+
+  function setSliderValueText(el) {
+    el.setAttribute('aria-valuetext', el.value + ' minutes');
+  }
+  setSliderValueText(timeMinEl);
+  setSliderValueText(timeMaxEl);
 
   timeMinEl.addEventListener('input', function () {
     var mn = parseInt(timeMinEl.value), mx = parseInt(timeMaxEl.value);
     if (mn > mx) { mx = mn; timeMaxEl.value = mx; }
     st.timeMin = mn; st.timeMax = mx;
     lblTmin.textContent = mn + ' min'; lblTmax.textContent = mx + ' min';
+    setSliderValueText(timeMinEl); setSliderValueText(timeMaxEl);
     updateFill(); render();
   });
 
@@ -1418,6 +1486,7 @@
     if (mx < mn) { mn = mx; timeMinEl.value = mn; }
     st.timeMin = mn; st.timeMax = mx;
     lblTmin.textContent = mn + ' min'; lblTmax.textContent = mx + ' min';
+    setSliderValueText(timeMinEl); setSliderValueText(timeMaxEl);
     updateFill(); render();
   });
 
