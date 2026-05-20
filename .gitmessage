@@ -1,0 +1,8 @@
+
+
+# type(scope): concise summary (≤72 chars)
+#
+# Why this change. What it touches. Anything reviewers should not assume.
+#
+# Session: <short-id>     # e.g. laptop-tmux-3, claude-code-cloud, cowork-desktop
+# Co-Authored-By: Claude <noreply@anthropic.com>
