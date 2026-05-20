@@ -25,13 +25,13 @@ const reviewerNavItems = [
 
 // Research (PCS) mobile nav items — desktop center is intentionally empty
 const researchMobileNavItems = [
-  { href: '/pcs', label: 'Command Center', exact: true },
-  { href: '/pcs/claims', label: 'Claims' },
-  { href: '/pcs/evidence', label: 'Evidence' },
-  { href: '/pcs/ingredients', label: 'Ingredients' },
-  { href: '/pcs/documents', label: 'Documents' },
-  { href: '/pcs/requests', label: 'Requests' },
-  { href: '/pcs/data', label: 'Data' },
+  { href: '/research/pcs', label: 'Command Center', exact: true },
+  { href: '/research/pcs/claims', label: 'Claims' },
+  { href: '/research/pcs/evidence', label: 'Evidence' },
+  { href: '/research/pcs/ingredients', label: 'Ingredients' },
+  { href: '/research/pcs/documents', label: 'Documents' },
+  { href: '/research/pcs/requests', label: 'Requests' },
+  { href: '/research/pcs/data', label: 'Data' },
 ];
 
 /**

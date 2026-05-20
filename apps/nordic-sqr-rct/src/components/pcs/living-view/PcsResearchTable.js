@@ -103,7 +103,7 @@ function ResearchCard({ packet, onRequestReview }) {
           <h3 className="text-sm font-semibold text-gray-900">
             {packet.evidenceItemId ? (
               <Link
-                href={`/pcs/evidence/${packet.evidenceItemId}`}
+                href={`/research/pcs/evidence/${packet.evidenceItemId}`}
                 className="text-pacific-700 hover:underline"
               >
                 {citation}

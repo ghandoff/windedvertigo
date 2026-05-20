@@ -64,7 +64,7 @@ export default function RoleRoute({ requires, children }) {
             You don't have permission to access this section. Contact your administrator to request access.
           </p>
           <Link href={fallbackHref} className="btn-primary inline-block">
-            Go to {fallbackHref === '/pcs' ? 'PCS Portal' : 'Dashboard'}
+            Go to {fallbackHref.startsWith('/research/pcs') ? 'PCS Portal' : 'Dashboard'}
           </Link>
         </div>
       </div>

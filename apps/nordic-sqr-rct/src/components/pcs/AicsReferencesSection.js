@@ -185,7 +185,7 @@ export default function AicsReferencesSection({ linkedAicsIds, documentId, canEd
             }
             return (
               <li key={aics.id} className="rounded-md border border-gray-200 bg-white px-3 py-2 group relative">
-                <Link href={`/pcs/aics/${aics.id}`} className="block hover:underline">
+                <Link href={`/research/pcs/aics/${aics.id}`} className="block hover:underline">
                   <div className="flex items-center justify-between gap-2 pr-6">
                     <span className="font-medium text-pacific-700 text-sm">{aics.aicsId || 'AICS'}</span>
                     {aics.raReviewStatus ? (

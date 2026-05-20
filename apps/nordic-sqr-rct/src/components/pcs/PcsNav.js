@@ -18,13 +18,13 @@ import PlatformToggle from '@/components/PlatformToggle';
 // per-role sidebar at Wave 7.4 live). Mobile dropdown still surfaces these
 // as a fallback for narrow viewports where the sidebar may be collapsed.
 const mobileNavItems = [
-  { href: '/pcs', label: 'Command Center', exact: true },
-  { href: '/pcs/claims', label: 'Claims' },
-  { href: '/pcs/evidence', label: 'Evidence' },
-  { href: '/pcs/ingredients', label: 'Ingredients' },
-  { href: '/pcs/documents', label: 'Documents' },
-  { href: '/pcs/requests', label: 'Requests' },
-  { href: '/pcs/data', label: 'Data' },
+  { href: '/research/pcs', label: 'Command Center', exact: true },
+  { href: '/research/pcs/claims', label: 'Claims' },
+  { href: '/research/pcs/evidence', label: 'Evidence' },
+  { href: '/research/pcs/ingredients', label: 'Ingredients' },
+  { href: '/research/pcs/documents', label: 'Documents' },
+  { href: '/research/pcs/requests', label: 'Requests' },
+  { href: '/research/pcs/data', label: 'Data' },
 ];
 
 // Wave 7.0.2 — role checks moved to `hasAnyRole`/`ROLE_SETS`.

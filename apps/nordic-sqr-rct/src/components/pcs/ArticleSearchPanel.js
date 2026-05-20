@@ -74,7 +74,7 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
   // view without leaving the page first.
   useEffect(() => {
     function handler(e) {
-      if (e?.detail?.href === '/pcs/evidence') {
+      if (e?.detail?.href === '/research/pcs/evidence') {
         setQuery('');
         setHits([]);
         setProviders([]);
@@ -297,7 +297,7 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
                     <>
                       <span className="text-xs text-emerald-700 font-medium">✓ In library</span>
                       <Link
-                        href={`/pcs/evidence/${h.existingEvidenceId}`}
+                        href={`/research/pcs/evidence/${h.existingEvidenceId}`}
                         className="text-[11px] text-pacific-600 hover:underline"
                       >
                         Open existing row →
@@ -307,7 +307,7 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
                     <>
                       {a.id ? (
                         <Link
-                          href={`/pcs/evidence/${a.id}`}
+                          href={`/research/pcs/evidence/${a.id}`}
                           className="text-xs text-green-700 font-medium hover:underline"
                           title="Open the new Evidence Library row"
                         >

@@ -226,7 +226,7 @@ export default function RequestDetailSideSheet({ requestId, onClose, user, onRes
                 {req.relatedPcsId && (
                   <div>
                     <Link
-                      href={`/pcs/documents/${req.relatedPcsId}`}
+                      href={`/research/pcs/documents/${req.relatedPcsId}`}
                       className="text-pacific-600 hover:underline"
                     >
                       → Open PCS document

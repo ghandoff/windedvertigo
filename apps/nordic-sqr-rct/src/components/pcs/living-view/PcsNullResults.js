@@ -49,7 +49,7 @@ export default function PcsNullResults({ evidencePackets = [] }) {
               <td className="px-4 py-2 text-sm text-gray-800 align-top">
                 {p.evidenceItemId ? (
                   <Link
-                    href={`/pcs/evidence/${p.evidenceItemId}`}
+                    href={`/research/pcs/evidence/${p.evidenceItemId}`}
                     className="text-pacific-700 hover:underline"
                   >
                     {p.name || '(untitled packet)'}

@@ -216,7 +216,7 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
               </button>
             )}
             <Link
-              href={`/pcs/documents/${doc.id}`}
+              href={`/research/pcs/documents/${doc.id}`}
               className="px-3 py-1.5 text-xs font-medium text-pacific-600 border border-pacific-600 rounded-md hover:bg-pacific-50 transition-colors whitespace-nowrap"
             >
               Edit metadata

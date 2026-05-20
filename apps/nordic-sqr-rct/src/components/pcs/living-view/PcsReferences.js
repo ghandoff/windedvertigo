@@ -38,7 +38,7 @@ export default function PcsReferences({ references = [] }) {
             )}
             {r.evidenceItemId ? (
               <Link
-                href={`/pcs/evidence/${r.evidenceItemId}`}
+                href={`/research/pcs/evidence/${r.evidenceItemId}`}
                 className="text-pacific-700 hover:underline"
               >
                 {text}
