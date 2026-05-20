@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { downloadMarkdown } from "@/lib/export-rubric";
+// downloadMarkdown export from lib/export-rubric.ts is no longer used here;
+// the markdown export buttons were removed in PR #113. draftToMarkdown is
+// still exported from that module in case it's wanted elsewhere later.
 import { AI_USE_LEVELS, SCALE_LEVELS } from "@/lib/types";
 import type { Draft } from "@/lib/types";
 
@@ -14,11 +16,9 @@ type Props = {
 export function StepCommit({ draft, onBack, onReset }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
 
-  function copyMarkdown() {
-    import("@/lib/export-rubric").then(({ draftToMarkdown }) => {
-      navigator.clipboard.writeText(draftToMarkdown(draft));
-    });
-  }
+  // Markdown export buttons (download / copy) removed per PR #113.
+  // The draftToMarkdown function in lib/export-rubric.ts is still exported
+  // and may be used elsewhere later — kept untouched.
 
   return (
     <div className="space-y-8">
@@ -216,15 +216,8 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
       </article>
 
       <div className="flex flex-wrap items-center gap-3 no-print">
-        <button
-          type="button"
-          onClick={() => downloadMarkdown(draft)}
-          className="btn-primary text-sm"
-        >
-          download as .md
-        </button>
-        <button type="button" onClick={copyMarkdown} className="btn-secondary text-sm">
-          copy markdown
+        <button type="button" onClick={onBack} className="btn-secondary text-sm">
+          back
         </button>
         <button
           type="button"
@@ -232,9 +225,6 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
           className="btn-secondary text-sm"
         >
           print rubric
-        </button>
-        <button type="button" onClick={onBack} className="btn-secondary text-sm">
-          back
         </button>
         {confirmReset ? (
           <button
