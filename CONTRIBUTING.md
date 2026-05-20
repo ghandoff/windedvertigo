@@ -111,6 +111,17 @@ You can do everything described above without learning git deeply — Claude Cod
 - **Garrett reviews and merges your PRs.** Per the actor-routing rules above, your PRs are gated to him. That's intentional — the review is part of the learning loop, not a blocker. Keep iterating on the same branch and the PR updates automatically; he'll review when he has a moment.
 - **Spawn new Claude sessions liberally.** Sessions are cheap. If a task is unrelated to what you were just doing, open a new session rather than juggling intents in one.
 
+#### Getting fluent with PR review — a graduated ramp
+
+You don't need to be able to read code to participate in PR review. The skill grows in stages, and each stage is useful on its own. Don't try to skip ahead — each one is meant to feel boring before the next one becomes useful.
+
+1. **Now: just notice.** When Garrett (or whoever has merge authority) merges your PR, GitHub will email you and surface a green ✓ on mobile. That's the loop closing. You don't have to do anything — just register that the work landed.
+2. **Next few weeks: read review comments.** When the reviewer leaves a comment on your PR, read it. Most will be "looks good" or a small suggestion. If it's a suggestion, you can usually just ask Claude to address it ("the reviewer said X — can you handle that?") and Claude will push a follow-up commit.
+3. **Later: skim Files Changed before marking ready.** Before flipping your draft PR to ready-for-review, open the "Files changed" tab on GitHub mobile and skim. You don't have to understand the code — just check that what changed matches what you asked Claude to do. If anything looks off, ask Claude to explain or adjust.
+4. **Eventually: glance at the queue.** `gh pr list --state open` (or the Pull Requests tab on mobile) shows everyone's open work. Browse it occasionally — you'll start to recognize patterns ("Maria's working on the strategy app again," "there's a security fix in flight"). You don't have to comment; just noticing builds intuition.
+
+The reason the ramp matters: skipping straight to "read every diff" is overwhelming and counterproductive. Stage 1 (notice) is the foundation. Stage 4 is months away for most people, and that's fine.
+
 ### When you learn something the team should know
 
 This is where the partition design pays off. Three places to write, depending on what you learned:
