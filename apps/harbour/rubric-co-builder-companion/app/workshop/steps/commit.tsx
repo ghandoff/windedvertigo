@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { downloadMarkdown } from "@/lib/export-rubric";
-import { SCALE_LEVELS } from "@/lib/types";
+import { AI_USE_LEVELS, SCALE_LEVELS } from "@/lib/types";
 import type { Draft } from "@/lib/types";
 
 type Props = {
@@ -57,24 +57,63 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
           )}
         </header>
 
-        {draft.pledge.text.trim() && (
-          <aside
-            className="rounded border-l-4 p-3 text-sm leading-relaxed"
-            style={{
-              borderColor: "var(--color-sienna)",
-              background: "var(--color-champagne)",
-              color: "var(--color-cadet)",
-            }}
-          >
-            <p
-              className="text-xs uppercase tracking-widest mb-1"
-              style={{ opacity: 0.7 }}
+        {(() => {
+          const p = draft.pledge;
+          const hasAny =
+            p.ai_level !== null ||
+            p.will_use_for.trim() ||
+            p.will_not_use_for.trim() ||
+            p.will_disclose.trim() ||
+            p.if_cross_line.trim();
+          if (!hasAny) return null;
+          const aiRung =
+            p.ai_level !== null
+              ? AI_USE_LEVELS.find((r) => r.level === p.ai_level)
+              : null;
+          return (
+            <aside
+              className="rounded border-l-4 p-4 text-sm leading-relaxed space-y-3"
+              style={{
+                borderColor: "var(--color-sienna)",
+                background: "var(--color-champagne)",
+                color: "var(--color-cadet)",
+              }}
             >
-              quality pledge
-            </p>
-            {draft.pledge.text}
-          </aside>
-        )}
+              <p
+                className="text-xs uppercase tracking-widest"
+                style={{ opacity: 0.7 }}
+              >
+                AI use pledge
+              </p>
+              {aiRung && (
+                <p>
+                  <strong>rung {aiRung.level}:</strong> {aiRung.name}{" "}
+                  <span style={{ opacity: 0.75 }}>{aiRung.helper}</span>
+                </p>
+              )}
+              {p.will_use_for.trim() && (
+                <p>
+                  <strong>we will use AI for:</strong> {p.will_use_for}
+                </p>
+              )}
+              {p.will_not_use_for.trim() && (
+                <p>
+                  <strong>we will NOT use AI for:</strong> {p.will_not_use_for}
+                </p>
+              )}
+              {p.will_disclose.trim() && (
+                <p>
+                  <strong>we will disclose:</strong> {p.will_disclose}
+                </p>
+              )}
+              {p.if_cross_line.trim() && (
+                <p>
+                  <strong>if we cross our own line, we will:</strong> {p.if_cross_line}
+                </p>
+              )}
+            </aside>
+          );
+        })()}
 
         <div className="overflow-x-auto">
           <table

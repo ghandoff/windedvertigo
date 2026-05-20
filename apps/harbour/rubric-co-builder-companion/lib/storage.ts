@@ -8,7 +8,12 @@
 
 import type { Draft } from "./types";
 
-const KEY = "rcb-c:draft";
+// Key version bumped 2026-05-20 (PRME launch): Pledge shape changed from
+// { text: string } to a 5-field object. Loading an old-shape draft would
+// silently mis-render the pledge step. Bumping the key abandons any
+// pre-PRME drafts (held only in sessionStorage = same browser tab) so we
+// never try to migrate them.
+const KEY = "rcb-c:draft:v2";
 
 export function loadDraft(): Draft | null {
   if (typeof window === "undefined") return null;

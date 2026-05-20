@@ -1,7 +1,7 @@
 "use client";
 
-import { ARTIFACT_EXAMPLES, seedCriterion, SEED_CRITERIA } from "@/lib/types";
-import type { Draft } from "@/lib/types";
+import { COURSE_CONTEXTS, seedCriterion, SEED_CRITERIA } from "@/lib/types";
+import type { CourseContext, Draft } from "@/lib/types";
 
 type Props = {
   draft: Draft;
@@ -12,9 +12,19 @@ type Props = {
 export function StepFrame({ draft, onPatch, onNext }: Props) {
   const ready = draft.learning_outcome.trim() && draft.artefact.trim();
 
+  // The artefact field stores free text. To know if a card is "selected"
+  // we compare against the canonical artefact sentence for each context.
+  // This lets users tap a card, then tweak the wording, and still see
+  // the card highlighted until the text diverges materially.
+  function isPicked(ctx: CourseContext): boolean {
+    return draft.artefact.trim() === ctx.artefact.trim();
+  }
+
+  function pickContext(ctx: CourseContext) {
+    onPatch({ artefact: ctx.artefact });
+  }
+
   function handleNext() {
-    // seed the criteria list with defaults if the user has none yet —
-    // they'll edit / add / remove on the next step.
     if (draft.criteria.length === 0) {
       onPatch({
         criteria: SEED_CRITERIA.map((s) =>
@@ -64,6 +74,90 @@ export function StepFrame({ draft, onPatch, onNext }: Props) {
         />
       </div>
 
+      {/*
+        Course-context picker (replaces the old free-text + datalist artefact
+        field). Six PRME-anchored teaching scenarios, two-column grid on md+
+        viewports, single column on mobile. Tapping a card fills the
+        artefact field with the canonical artefact sentence; users can
+        still edit the field below to tweak wording.
+      */}
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <p
+            className="block text-sm font-medium"
+            style={{ color: "var(--color-cadet)" }}
+          >
+            course context
+          </p>
+          <p
+            className="text-xs"
+            style={{ color: "var(--color-cadet)", opacity: 0.6 }}
+          >
+            pick the closest match. you can edit the artefact wording
+            below if your module&apos;s set-up is a little different.
+          </p>
+        </div>
+
+        <div
+          role="radiogroup"
+          aria-label="course context"
+          className="grid grid-cols-1 md:grid-cols-2 gap-3"
+        >
+          {COURSE_CONTEXTS.map((ctx) => {
+            const picked = isPicked(ctx);
+            return (
+              <button
+                key={ctx.id}
+                type="button"
+                role="radio"
+                aria-checked={picked}
+                onClick={() => pickContext(ctx)}
+                className="text-left rounded-lg p-4 border-l-4 transition-colors focus:outline-none"
+                style={{
+                  background: picked
+                    ? "color-mix(in srgb, var(--color-champagne) 80%, white)"
+                    : "color-mix(in srgb, var(--color-champagne) 50%, white)",
+                  borderLeftColor: picked
+                    ? "var(--color-redwood)"
+                    : "color-mix(in srgb, var(--color-redwood) 50%, transparent)",
+                  boxShadow: picked
+                    ? "0 0 0 2px color-mix(in srgb, var(--color-cadet) 25%, transparent)"
+                    : "none",
+                }}
+              >
+                <p
+                  className="text-[10px] tracking-widest uppercase mb-1"
+                  style={{ color: "var(--color-redwood)" }}
+                >
+                  context {ctx.number}
+                </p>
+                <p
+                  className="text-sm font-bold"
+                  style={{ color: "var(--color-cadet)" }}
+                >
+                  {ctx.title} · {ctx.level}
+                </p>
+                <p
+                  className="text-xs italic mt-1"
+                  style={{ color: "var(--color-cadet)", opacity: 0.75 }}
+                >
+                  &ldquo;{ctx.theme}&rdquo;
+                </p>
+                <p
+                  className="text-xs mt-2 leading-relaxed"
+                  style={{ color: "var(--color-cadet)" }}
+                >
+                  artefact: {ctx.artefact}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Editable artefact field — pre-filled when a card is picked,
+          but the user can override for courses that don't match any
+          of the six contexts. */}
       <div className="space-y-2">
         <label
           htmlFor="artefact"
@@ -76,26 +170,21 @@ export function StepFrame({ draft, onPatch, onNext }: Props) {
           className="text-xs"
           style={{ color: "var(--color-cadet)", opacity: 0.6 }}
         >
-          the deliverable students create to demonstrate learning.
+          edit if your module&apos;s artefact isn&apos;t quite what the card
+          above describes.
         </p>
-        <input
+        <textarea
           id="artefact"
-          type="text"
-          list="artefact-examples"
+          rows={3}
           maxLength={1000}
           value={draft.artefact}
           onChange={(e) => onPatch({ artefact: e.target.value })}
-          placeholder="e.g. presentation, essay, prototype…"
-          className="w-full rounded-lg border bg-white px-4 py-3 text-base focus:outline-none"
+          placeholder="pick a course context above, or describe your own artefact here…"
+          className="w-full rounded-lg border bg-white px-4 py-3 text-base leading-relaxed focus:outline-none"
           style={{
             borderColor: "color-mix(in srgb, var(--color-cadet) 20%, transparent)",
           }}
         />
-        <datalist id="artefact-examples">
-          {ARTIFACT_EXAMPLES.map((ex) => (
-            <option key={ex} value={ex} />
-          ))}
-        </datalist>
       </div>
 
       <div className="flex items-center gap-4">

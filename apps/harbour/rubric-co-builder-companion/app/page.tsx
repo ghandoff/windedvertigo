@@ -1,13 +1,11 @@
 import Link from "next/link";
-import { Wordmark } from "./_components/wordmark";
 
 export default function LandingPage() {
   return (
     <main
-      className="min-h-screen flex flex-col items-center justify-center px-6 py-12"
+      className="flex-1 flex flex-col items-center justify-center px-6 py-12"
       style={{ background: "var(--color-champagne)" }}
     >
-      <Wordmark />
       <div className="max-w-xl text-center space-y-6">
         <p
           className="text-xs tracking-widest uppercase"
@@ -39,6 +37,10 @@ export default function LandingPage() {
           <Link href="/workshop" className="btn-primary text-base">
             start the worksheet
           </Link>
+          {/* The "try co.rubric (full)" upsell link is hidden until the
+              full facilitated app ships as the paid tier. To re-enable,
+              uncomment the <a> below. (Edit #1 in PR #112.) */}
+          {/*
           <a
             href="/harbour/co-rubric"
             className="text-sm underline underline-offset-4"
@@ -49,6 +51,7 @@ export default function LandingPage() {
           >
             facilitating a class? try co.rubric (full) →
           </a>
+          */}
         </div>
       </div>
     </main>
