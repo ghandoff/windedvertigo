@@ -461,8 +461,9 @@ const nextConfig: NextConfig = {
       },
 
       // cuts catalogue — served as a static HTML tool from
-      // public/tools/cuts-catalogue/. Mounted via redirects() below
-      // (NOT here) for the same reason as three-intelligence-workbook.
+      // public/harbour/cuts-catalogue/ (moved from /tools/ on 2026-05-20
+      // PRME-launch canonicalisation). 301 from /tools/cuts-catalogue
+      // → /harbour/cuts-catalogue is in redirects() below.
 
       // read the room — formerly "feel cards"; renamed 2026-05-06.
       // wv-harbour-read-the-room serves the static HTML and /api/room/* WS
@@ -495,28 +496,34 @@ const nextConfig: NextConfig = {
         destination: "/tools/three-intelligence-workbook/index.html",
       },
 
-      // harbour hub (catch-all — must be last)
-      // NOTE: three-intelligence-workbook is a static HTML tool that lives at
-      // /tools/three-intelligence-workbook/. Mounted via redirects() below
-      // (NOT here) because OpenNext-on-CF's internal rewrite to a static
-      // asset directory doesn't resolve cleanly — it 307s to the slash form
-      // which the rewriter treats as the rewrite's final response.
-      {
-        source: "/harbour",
-        destination:
-          "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
-      },
-      {
-        source: "/harbour/",
-        destination:
-          "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
-      },
-      {
-        source: "/harbour/:path*",
-        destination:
-          "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour/:path*",
-      },
-    ] };
+      // NOTE: harbour-hub catch-all has moved from beforeFiles → fallback (2026-05-20).
+      // Rationale: PRME-launch canonicalisation put static apps + API routes at
+      // /harbour/lines-become-loops/, /harbour/values-companion/, /harbour/cuts-catalogue/.
+      // beforeFiles ran the catch-all BEFORE the site's filesystem check, so those
+      // local routes never served. Moving the catch-all to fallback lets the
+      // public/ + app/ paths resolve first; anything else under /harbour/*
+      // (the hub homepage, /login, /account, /api/auth, etc.) still falls
+      // through to the hub Worker.
+    ],
+
+      fallback: [
+        {
+          source: "/harbour",
+          destination:
+            "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
+        },
+        {
+          source: "/harbour/",
+          destination:
+            "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
+        },
+        {
+          source: "/harbour/:path*",
+          destination:
+            "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour/:path*",
+        },
+      ],
+    };
   },
 
   // Redirects — vertigo vault legacy URLs
@@ -579,15 +586,16 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
 
-      // lines-become-loops — slug rename from systems-thinking (2026-04-28)
+      // lines-become-loops — slug rename from systems-thinking (2026-04-28),
+      // then path-canonicalisation to /harbour/<slug> on 2026-05-20 (PRME launch).
       {
         source: "/portfolio/assets/systems-thinking",
-        destination: "/portfolio/assets/lines-become-loops",
+        destination: "/harbour/lines-become-loops",
         permanent: true,
       },
       {
         source: "/portfolio/assets/systems-thinking/:path*",
-        destination: "/portfolio/assets/lines-become-loops/:path*",
+        destination: "/harbour/lines-become-loops/:path*",
         permanent: true,
       },
       // whirlpool tools — redirect clean URLs to static HTML in public/
@@ -627,62 +635,70 @@ const nextConfig: NextConfig = {
         destination: "/tools/three-intelligence-workbook/index.html",
         permanent: false,
       },
-      // cuts catalogue — static HTML tool. Migrated from its own Vercel
-      // project (deleted in the 2026-04/05 cutover) into wv-site's
-      // public/ folder using the same recipe as three-intelligence-workbook.
-      {
-        source: "/harbour/cuts-catalogue",
-        destination: "/tools/cuts-catalogue/index.html",
-        permanent: false,
-      },
-      {
-        source: "/harbour/cuts-catalogue/",
-        destination: "/tools/cuts-catalogue/index.html",
-        permanent: false,
-      },
-
       // PRME-launch URL canonicalisation (28 May 2026):
-      // Every PRME-launch tool should have a /harbour/<slug> entry point.
-      // Three static-HTML tools currently live elsewhere — add /harbour/*
-      // entry redirects using the same "redirect to specific index.html"
-      // pattern as cuts-catalogue above. Phase 2 (post-launch) moves the
-      // files under public/harbour/* so the URL bar stays canonical.
-
-      // lines-become-loops — currently /portfolio/assets/lines-become-loops/
-      {
-        source: "/harbour/lines-become-loops",
-        destination: "/portfolio/assets/lines-become-loops/index.html",
-        permanent: false,
-      },
-      {
-        source: "/harbour/lines-become-loops/",
-        destination: "/portfolio/assets/lines-become-loops/index.html",
-        permanent: false,
-      },
-
-      // values-companion (freemium) — currently /tools/values-companion/
-      {
-        source: "/harbour/values-companion",
-        destination: "/tools/values-companion/index.html",
-        permanent: false,
-      },
-      {
-        source: "/harbour/values-companion/",
-        destination: "/tools/values-companion/index.html",
-        permanent: false,
-      },
-
-      // Legacy URL → harbour canonical (301 permanent, browser URL updates).
-      // These come AFTER the /harbour entry redirects above so the chain
-      // resolves cleanly: legacy → /harbour/<slug> → static index.html.
+      // lines-become-loops, values-companion, and cuts-catalogue static
+      // files now physically live under site/public/harbour/<slug>/, so
+      // /harbour/<slug> serves natively from the public dir — no rewrite
+      // needed. Only the legacy-URL → harbour 301s remain here, for
+      // external links / SEO continuity.
+      // lines-become-loops: ONLY redirect the bare URL. The :path* catch-all
+      // is omitted intentionally because /portfolio/assets/lines-become-loops/api/
+      // is a real Next.js API route (session state) and must not be redirected
+      // away. Static frontend pages at /portfolio/assets/lines-become-loops/<page>.html
+      // are no longer present (files moved to /harbour/lines-become-loops/), so
+      // legacy deep links to those HTMLs will 404 — acceptable trade-off vs
+      // breaking the API. The frontend at /harbour/lines-become-loops/ calls the
+      // API at its original /portfolio/assets/... path; users never see this.
       {
         source: "/portfolio/assets/lines-become-loops",
         destination: "/harbour/lines-become-loops",
         permanent: true,
       },
+      // Specific HTML subpages — explicit so the API path under the same
+      // prefix isn't swept up by a wildcard.
+      {
+        source: "/portfolio/assets/lines-become-loops/index.html",
+        destination: "/harbour/lines-become-loops/",
+        permanent: true,
+      },
+      {
+        source: "/portfolio/assets/lines-become-loops/facilitator.html",
+        destination: "/harbour/lines-become-loops/facilitator.html",
+        permanent: true,
+      },
+      {
+        source: "/portfolio/assets/lines-become-loops/simulator.html",
+        destination: "/harbour/lines-become-loops/simulator.html",
+        permanent: true,
+      },
+      {
+        source: "/portfolio/assets/lines-become-loops/lakeshore-simulator.html",
+        destination: "/harbour/lines-become-loops/lakeshore-simulator.html",
+        permanent: true,
+      },
+      {
+        source: "/portfolio/assets/lines-become-loops/teacher-guides/:guide",
+        destination: "/harbour/lines-become-loops/teacher-guides/:guide",
+        permanent: true,
+      },
+      {
+        source: "/tools/values-companion",
+        destination: "/harbour/values-companion",
+        permanent: true,
+      },
+      {
+        source: "/tools/values-companion/:path*",
+        destination: "/harbour/values-companion/:path*",
+        permanent: true,
+      },
       {
         source: "/tools/cuts-catalogue",
         destination: "/harbour/cuts-catalogue",
+        permanent: true,
+      },
+      {
+        source: "/tools/cuts-catalogue/:path*",
+        destination: "/harbour/cuts-catalogue/:path*",
         permanent: true,
       },
 
@@ -691,11 +707,10 @@ const nextConfig: NextConfig = {
         destination: "/tools/writers-room/index.html",
         permanent: false,
       },
-      {
-        source: "/tools/values-companion",
-        destination: "/tools/values-companion/index.html",
-        permanent: false,
-      },
+      // values-companion's old /tools/values-companion → /tools/.../index.html
+      // 307 retired 2026-05-20 — static now lives at /harbour/values-companion/
+      // with a 301 from /tools/values-companion → /harbour/values-companion
+      // earlier in this redirects() block.
       // conference experience — redirect to static HTML in public/
       {
         source: "/portfolio/assets/pedal-conference-experience",

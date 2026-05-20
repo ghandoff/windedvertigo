@@ -499,10 +499,10 @@ body {
 <header class="page-header" role="banner">
   <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
   <nav class="scenario-picker" aria-label="switch scenario">
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/lakeshore-simulator">lakeshore college</a>
   </nav>
 </header>
 
@@ -545,7 +545,7 @@ body {
         </div>
         <div class="session-join-error" id="join-error" role="alert"></div>
       </div>
-      <a class="facilitator-link" href="/portfolio/assets/lines-become-loops/facilitator.html">facilitator dashboard &rarr;</a>
+      <a class="facilitator-link" href="/harbour/lines-become-loops/facilitator.html">facilitator dashboard &rarr;</a>
     </div>
     <div class="landing-footer">w.v × prme · ppcs 2026</div>
   </div>
@@ -568,7 +568,7 @@ body {
             <span class="scenario-chip">higher ed</span>
             <span class="scenario-chip">emissions</span>
           </div>
-          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
+          <a class="scenario-link" href="/harbour/lines-become-loops/lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
         </div>
       </div>
       <!-- 1. SaaS Churn -->
@@ -581,7 +581,7 @@ body {
             <span class="scenario-chip">business</span>
             <span class="scenario-chip">retention</span>
           </div>
-          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=churn" aria-label="play saas churn scenario">play</a>
+          <a class="scenario-link" href="/harbour/lines-become-loops/simulator.html?s=churn" aria-label="play saas churn scenario">play</a>
         </div>
       </div>
       <!-- 2. Team Burnout -->
@@ -594,7 +594,7 @@ body {
             <span class="scenario-chip">business</span>
             <span class="scenario-chip">wellbeing</span>
           </div>
-          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=burnout" aria-label="play team burnout scenario">play</a>
+          <a class="scenario-link" href="/harbour/lines-become-loops/simulator.html?s=burnout" aria-label="play team burnout scenario">play</a>
         </div>
       </div>
       <!-- 3. Sleep Debt -->
@@ -607,7 +607,7 @@ body {
             <span class="scenario-chip">personal</span>
             <span class="scenario-chip">wellbeing</span>
           </div>
-          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=sleep" aria-label="play sleep debt scenario">play</a>
+          <a class="scenario-link" href="/harbour/lines-become-loops/simulator.html?s=sleep" aria-label="play sleep debt scenario">play</a>
         </div>
       </div>
     </div>
@@ -641,7 +641,7 @@ document.getElementById('btn-join-session').addEventListener('click', async () =
   const btn = document.getElementById('btn-join-session');
   btn.disabled = true;
   try {
-    const res = await fetch('/api/session/join', {
+    const res = await fetch('/portfolio/assets/lines-become-loops/api/session/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
