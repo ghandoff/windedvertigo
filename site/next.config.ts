@@ -19,6 +19,20 @@ const nextConfig: NextConfig = {
       // app/portfolio/assets/lines-become-loops/api/session/* (CF KV via
       // SESSION_KV binding in wrangler.jsonc). No proxy/rewrite needed.
 
+      // regenerative-practices-catalogue — Next.js page in site/app/portfolio/.
+      // PRME-launch canonicalisation: serve at /harbour/<slug> via URL-preserving
+      // rewrite. The /portfolio/... URL still works (no backward redirect added)
+      // so legacy bookmarks don't break; harbour becomes canonical via the
+      // pier IA's Notion Href pointing at the new path.
+      {
+        source: "/harbour/regenerative-practices-catalogue",
+        destination: "/portfolio/regenerative-practices-catalogue",
+      },
+      {
+        source: "/harbour/regenerative-practices-catalogue/:path*",
+        destination: "/portfolio/regenerative-practices-catalogue/:path*",
+      },
+
       // values-auction — portfolio route (CF Pages, base: /portfolio/assets/values-auction/)
       {
         source: "/portfolio/assets/values-auction",
@@ -626,6 +640,52 @@ const nextConfig: NextConfig = {
         destination: "/tools/cuts-catalogue/index.html",
         permanent: false,
       },
+
+      // PRME-launch URL canonicalisation (28 May 2026):
+      // Every PRME-launch tool should have a /harbour/<slug> entry point.
+      // Three static-HTML tools currently live elsewhere — add /harbour/*
+      // entry redirects using the same "redirect to specific index.html"
+      // pattern as cuts-catalogue above. Phase 2 (post-launch) moves the
+      // files under public/harbour/* so the URL bar stays canonical.
+
+      // lines-become-loops — currently /portfolio/assets/lines-become-loops/
+      {
+        source: "/harbour/lines-become-loops",
+        destination: "/portfolio/assets/lines-become-loops/index.html",
+        permanent: false,
+      },
+      {
+        source: "/harbour/lines-become-loops/",
+        destination: "/portfolio/assets/lines-become-loops/index.html",
+        permanent: false,
+      },
+
+      // values-companion (freemium) — currently /tools/values-companion/
+      {
+        source: "/harbour/values-companion",
+        destination: "/tools/values-companion/index.html",
+        permanent: false,
+      },
+      {
+        source: "/harbour/values-companion/",
+        destination: "/tools/values-companion/index.html",
+        permanent: false,
+      },
+
+      // Legacy URL → harbour canonical (301 permanent, browser URL updates).
+      // These come AFTER the /harbour entry redirects above so the chain
+      // resolves cleanly: legacy → /harbour/<slug> → static index.html.
+      {
+        source: "/portfolio/assets/lines-become-loops",
+        destination: "/harbour/lines-become-loops",
+        permanent: true,
+      },
+      {
+        source: "/tools/cuts-catalogue",
+        destination: "/harbour/cuts-catalogue",
+        permanent: true,
+      },
+
       {
         source: "/tools/writers-room",
         destination: "/tools/writers-room/index.html",
