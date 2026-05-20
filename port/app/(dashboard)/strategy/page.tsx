@@ -24,6 +24,9 @@ import { getPipelineProgress } from "@/lib/marketing/pipeline-progress";
 import { fetchRfpAnalytics, fetchEmailAnalytics, fetchActivePipelineOpportunities } from "@/lib/marketing/rfp-analytics";
 import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
 import { getProjectsFromSupabase } from "@/lib/supabase/projects";
+import { getStrategyTimelines } from "@/lib/supabase/strategy-timelines";
+import { getStrategyDistribution } from "@/lib/supabase/strategy-distribution";
+import { CAMPAIGN_TIMELINES, DISTRIBUTION } from "@/lib/strategy-data";
 import { StrategyHero } from "./components/strategy-hero";
 import { TeamPulseStrip } from "./components/team-pulse-strip";
 import { DocentWelcomeBanner } from "@/app/components/docent-welcome-banner";
@@ -60,7 +63,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -77,6 +80,10 @@ export default async function StrategyPage({
     fetchActivePipelineOpportunities().catch(() => []),
     // Live PM projects for distribution matrix "active portfolio" section.
     getProjectsFromSupabase({ archive: false }).catch(() => ({ data: [], total: 0 })),
+    // Campaign timelines (Gantt) — falls back to hardcoded array on error.
+    getStrategyTimelines().catch(() => CAMPAIGN_TIMELINES),
+    // Distribution items — falls back to hardcoded array on error.
+    getStrategyDistribution().catch(() => DISTRIBUTION),
   ]);
   const pmProjects = pmProjectsResult.data;
   const crmCampaigns = allCampaigns.map((c) => ({
@@ -96,7 +103,7 @@ export default async function StrategyPage({
 
       <StrategyHero subscribers={stats?.totalSubscribers ?? 0} />
 
-      <TeamPulseStrip activeMember={memberFilter} />
+      <TeamPulseStrip activeMember={memberFilter} timelines={liveTimelines} distributionItems={liveDistribution} />
 
       <UrlTabs tabs={TABS} activeTab={activeTab} />
 
@@ -114,9 +121,9 @@ export default async function StrategyPage({
         <PipelineTab stats={stats} pipelineProgress={pipelineProgress} rfpAnalytics={rfpAnalytics} livePipeline={livePipeline} />
       )}
       {activeTab === "distribution" && (
-        <DistributionTab memberFilter={memberFilter} pmProjects={pmProjects} />
+        <DistributionTab memberFilter={memberFilter} items={liveDistribution} pmProjects={pmProjects} />
       )}
-      {activeTab === "timeline" && <TimelineTab />}
+      {activeTab === "timeline" && <TimelineTab timelines={liveTimelines} />}
       {activeTab === "competitors" && (
         <Suspense fallback={<CardGridSkeleton />}>
           <CompetitorsTab />
