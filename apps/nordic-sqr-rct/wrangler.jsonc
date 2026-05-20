@@ -81,5 +81,9 @@
   //   NEXT_PUBLIC_APP_URL      — "https://nordic.windedvertigo.com"
   //
   // All NOTION_PCS_* database IDs (see src/lib/pcs-config.js for full list)
-  // All NOTION_AICS_* database IDs (not yet populated — AICS features inactive)
+  //
+  // AICS database IDs (set via `wrangler secret put --name wv-nordic`):
+  //   NOTION_AICS_DOCUMENTS_DB   — 7d743889-e549-432b-a2fc-a58491015f6b
+  //   NOTION_AICS_VERSIONS_DB    — cd39cd9b-f92e-4a08-a60d-048fb6a063ba
+  //   NOTION_AICS_CLAIMS_DB      — 2571a98a-2d2c-4b05-b518-56857b57c85f
 }

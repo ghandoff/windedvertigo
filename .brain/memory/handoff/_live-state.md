@@ -14,9 +14,11 @@
 - **Pause-motion accessibility button** — stop motion effects on wobbling/spinning elements. → garrett to implement
 - **Ubango proposal draft** — sketch inside Notion. → jamie to draft
 - **Edtech journals shortlist** — top 20 for article placement. → lamis to identify
-- **Maria's cuts-catalogue a11y PR (#72)** — 7 days open, UDL + WCAG fixes ready. → blocked on review/merge
+- ~~**Maria's cuts-catalogue a11y PR (#72)** — 7 days open.~~ → **resolved 2026-05-20**: squash-merged as `71c66545`
 - **Garrett's stale draft PRs** — #89 (rubric-co-builder proxy, 5d), #60 (/api/version roll, 7d), #52 (wv-pr-pager, 7d). → ship / close / revive each
 - **Payton's first-commit playground PR (#44)** — 9 days open. → blocked on review or graceful close
+- ~~**`wv-crm` rollback expiry verification**~~ → **resolved 2026-05-20**: `vercel projects ls --scope winded-vertigo` returns zero projects; CF Workers transition complete
+- **IDB Salvador follow-up** — 26d silence since Nadia's 24 apr "comisión actualmente realizando." → follow-up email drafted in Gmail (Maria's voice, Spanish, in-thread reply); awaiting send
 
 ## environment handoffs
 
@@ -42,7 +44,7 @@
 
 ## notable risks
 
-- `operational.md` `active-projects` last-reviewed 2026-04-13 (>30d) — needs human refresh; IDB Salvador deadline has passed without status update on the row.
-- All 5 open PRs are 5–9 days old; none have moved in 5+ days. This is the anti-pattern CONTRIBUTING.md explicitly calls out — sweep needed.
+- ~~`operational.md` `active-projects` last-reviewed 2026-04-13 (>30d)~~ → **partially addressed 2026-05-20**: IDB row refreshed + last-reviewed bumped to today; the infra table within operational.md still needs a full refresh (called out via inline comment pointing to TEAM.md as canonical).
+- 4 of 5 open PRs still 5–9 days old (sweep partially done — #72 merged); #89/#60/#52/#44 remaining. Anti-pattern threshold still tripped.
 - TASKS.md May 6 whirlpool items still uncrossed; possible silent drift where work shipped but wasn't logged (esp. Payton's May-13 Substack post).
-- No per-session handoff file has been written for today's brain-partition work yet (PRs #107–#109) — this `_live-state.md` partially captures it, but a proper session file from today would help anyone picking up tomorrow.
+- ~~No per-session handoff file for today's brain-partition work~~ → **resolved 2026-05-20**: `2026-05-20-claude-code-brain-partition.md` filed, force-tracked, appended with follow-on work (#72 merge, wv-crm verification, IDB draft).

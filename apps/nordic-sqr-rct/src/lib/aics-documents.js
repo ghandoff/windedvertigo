@@ -347,6 +347,7 @@ function aicsDocumentProps(fields) {
  */
 export async function createAicsDocument(fields) {
   if (!fields?.aicsId) throw new Error('createAicsDocument: aicsId is required.');
+  if (!PCS_DB.aicsDocuments) throw new Error('createAicsDocument: PCS_DB.aicsDocuments is not configured (set NOTION_AICS_DOCUMENTS_DB).');
   const properties = aicsDocumentProps(fields);
 
   if (shouldWriteToAicsPostgresFirst()) {

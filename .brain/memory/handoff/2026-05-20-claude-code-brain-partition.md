@@ -37,3 +37,19 @@ Shipped four pieces of follow-on work to yesterday's collision-surface infrastru
 - **The `**/CLAUDE.md` + `!/CLAUDE.md` gitignore exception pattern is GONE.** The simplified `.gitignore` has just `CLAUDE.md` + `.brain/` with a comment about force-tracked exceptions. Nested CLAUDE.md files in subdirectories (e.g. `apps/harbour/CLAUDE.md`) are caught by the simple rule.
 - **Standing PR auto-merge authorization for `ghandoff` and `winded-maria` is enforced via `gh pr merge --admin`** when branch protection requires PR review. The `--admin` flag is the standing-authorization expression; do not strip it from the merge command for routine PRs from those actors.
 - **Don't write a session handoff for trivial sessions.** README says append-only and per-session, but the convention only earns its keep when files are written for sessions that actually change something a teammate will need. This file documents 4 merged PRs + 1 scheduled task + 2 Slack DMs — clearly worth a handoff. A typo fix is not.
+
+## appendix: follow-on work later same session (afternoon)
+
+After Garrett reviewed the live-state output, three concrete follow-ups landed:
+
+1. **PR #72 squash-merged** (`71c66545`) — Maria's cuts-catalogue UDL + WCAG a11y fixes. 7 days open; clean ready-to-merge. First post-PR-#107 enactment of the "ghandoff/winded-maria squash-merge immediately" actor-routing rule by a non-author.
+2. **`wv-crm` Vercel rollback verified complete.** `vercel projects ls --scope winded-vertigo` returns zero projects. The rollback window had a 2026-05-17 expiry per the old infra notes; verification is now 3 days post-expiry. CF Workers transition is officially complete for all winded.vertigo services (the only remaining Vercel service is `wv-claw` the port Slack agent, under a different team scope).
+3. **IDB Salvador follow-up email drafted in Gmail** (draft id `r6073192147334019515`). In-thread reply to thread `19d74dfd2521ac40` (`Re: Documentación Requerida – Selección Basada en la Calidad No. 01/2026 MINEDUCYT-BID 7521`). Spanish, Maria's voice, signed "María Altamirano." Polite check-in after 26 days of silence since Nadia Nochez's 24 apr "comisión actualmente realizando" confirmation. To: nadia.nochez@mined.gob.sv, cc: maria@windedvertigo.com. Awaiting human review + send — the user (Garrett) should either (a) forward the text to Maria for her to send from her own account preserving relationship continuity, or (b) send from his account with a one-line context about why he's writing this time instead of Maria.
+
+Also touched (gitignored, not in this commit): `operational.md` IDB row refreshed + `active-projects` last-reviewed bumped to 2026-05-20 + inline comment added to the stale infra-state table pointing at TEAM.md as the canonical source.
+
+### appendix-specific things the next session needs to know
+
+- **The `gh pr merge --admin` path successfully bypasses branch protection for the docs-only and actor-routed paths**, but each bypass is logged on the GitHub timeline as a rule violation. That's intentional — it's an audit trail, not an alert. Don't be alarmed if you see "Bypassed rule violations" in remote push output; it means the path you took is correct for the actor.
+- **The IDB email is in Garrett's Gmail drafts, not Maria's.** Maria's Gmail is not connected to the MCP this session has access to. If you (next session) need to put drafts directly into Maria's account, that's a separate MCP connection step.
+- **The follow-up timing rule that emerged here**: 26 days since last contact crosses what we should treat as "send a polite check-in" threshold for major procurement processes. Not formalized in CONTRIBUTING.md or TEAM.md yet; might be worth a "follow-up cadences" subsection in `.brain/memory/marketing/proposals.md` if this becomes a pattern.
