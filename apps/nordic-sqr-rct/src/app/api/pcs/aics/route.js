@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { listAicsDocuments, createAicsDocument } from '@/lib/aics-documents';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   const auth = await requireCapability(request, 'aics.documents:read', { route: '/api/pcs/aics' });
   if (auth.error) return auth.error;
@@ -19,10 +21,21 @@ export async function POST(request) {
   const auth = await requireCapability(request, 'aics.documents:create', { route: '/api/pcs/aics' });
   if (auth.error) return auth.error;
 
-  const fields = await request.json();
+  let fields;
+  try {
+    fields = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
   if (!fields?.aicsId) {
     return NextResponse.json({ error: 'aicsId is required' }, { status: 400 });
   }
-  const doc = await createAicsDocument(fields);
-  return NextResponse.json(doc, { status: 201 });
+  try {
+    const doc = await createAicsDocument(fields);
+    return NextResponse.json(doc, { status: 201 });
+  } catch (err) {
+    const msg = err?.message || 'Failed to create AICS document';
+    const status = msg.includes('not configured') ? 503 : 500;
+    return NextResponse.json({ error: msg }, { status });
+  }
 }
