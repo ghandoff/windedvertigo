@@ -2,7 +2,7 @@
 
 Conventions for everyone working on the `windedvertigo` monorepo — Garrett, Maria, Payton, Lamis, James, and any Claude Code session (local or cloud) acting on their behalf.
 
-GitHub auto-links this file from every PR. Treat it as the single source of truth for "how do we coordinate code changes here."
+GitHub auto-links this file from every PR. Treat it as the single source of truth for "how do we coordinate code changes here." For the **what** of winded.vertigo — people, terms, projects, infrastructure — see [TEAM.md](./TEAM.md).
 
 ---
 
@@ -85,4 +85,12 @@ The Claude-authored commits also include a `Co-Authored-By: Claude ... <noreply@
 
 ## Per-developer local config
 
-Each developer has their own `CLAUDE.md` (gitignored) for Claude-specific instructions. Team-wide conventions live here in `CONTRIBUTING.md` so they're version-controlled and shared. If you find yourself writing a convention into your CLAUDE.md that everyone should follow, **promote it to CONTRIBUTING.md instead.**
+Each developer has their own `CLAUDE.md` (gitignored) for Claude-specific instructions. The team has two shared, tracked files at the repo root:
+
+- **`CONTRIBUTING.md`** (this file) — conventions for **how** we work (branches, PRs, commits).
+- **[`TEAM.md`](./TEAM.md)** — shared knowledge about **what** we're working on (people, terms, projects, infrastructure).
+
+If you find yourself writing into your personal `CLAUDE.md`:
+
+- A convention everyone should follow → **promote to CONTRIBUTING.md**.
+- A fact about the team, a glossary term, or an infra entry → **promote to TEAM.md**.
