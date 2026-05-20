@@ -12,13 +12,11 @@ node_modules/
 !.claude/hooks/
 
 # Second brain — Garrett's private operational layer (tracked separately via 'brain' remote)
-# Root /CLAUDE.md is team-shared (tracked). Everything else stays private:
-#  - nested CLAUDE.md files in subdirs (private by default — opt-in to share)
-#  - CLAUDE.private.md anywhere
-#  - the .brain/ directory
-**/CLAUDE.md
-!/CLAUDE.md
-CLAUDE.private.md
+# Per-developer root CLAUDE.md is gitignored (each contributor has their own).
+# Team-shared institutional context lives in TEAM.md; team conventions in CONTRIBUTING.md.
+# Specific .brain/ files (TASKS.md, memory/handoff/*) are force-tracked via `git add -f`
+# as collision-surface infrastructure — see .brain/memory/handoff/README.md.
+CLAUDE.md
 .brain/
 
 # Nested git repos — Phase A.2 dissolved port/ nested-clone 2026-05-01
