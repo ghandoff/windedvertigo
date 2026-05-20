@@ -23,19 +23,24 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import {
   CAMPAIGNS,
-  CAMPAIGN_TIMELINES,
   DISTRIBUTION,
   TEAM,
   WV_COLOURS,
+  type CampaignTimeline,
+  type DistributionProject,
 } from "@/lib/strategy-data";
 import { Users, Megaphone, Folder } from "lucide-react";
 
 export interface TeamPulseStripProps {
   /** lower-case first name, or null for "all" */
   activeMember: string | null;
+  /** Campaign timelines — used for colour dots on chips. Fetched from Supabase by page. */
+  timelines: CampaignTimeline[];
+  /** Distribution items — used for per-member project lists. Fetched from Supabase by page. */
+  distributionItems: DistributionProject[];
 }
 
-export function TeamPulseStrip({ activeMember }: TeamPulseStripProps) {
+export function TeamPulseStrip({ activeMember, timelines, distributionItems }: TeamPulseStripProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -73,10 +78,10 @@ export function TeamPulseStrip({ activeMember }: TeamPulseStripProps) {
     ? CAMPAIGNS.filter((c) => c.ownerNames.includes(member.name))
     : [];
   const ownedProjects = member
-    ? DISTRIBUTION.filter((d) => d.owner === member.name)
+    ? distributionItems.filter((d) => d.owner === member.name)
     : [];
   const supportedProjects = member
-    ? DISTRIBUTION.filter(
+    ? distributionItems.filter(
         (d) => d.owner !== member.name && d.support.includes(member.name),
       )
     : [];
@@ -95,9 +100,9 @@ export function TeamPulseStrip({ activeMember }: TeamPulseStripProps) {
 
   // campaign colour lookup (timeline view is the source of truth)
   const campaignColour = useCallback((id: string): string => {
-    const t = CAMPAIGN_TIMELINES.find((c) => c.id === id);
+    const t = timelines.find((c) => c.id === id);
     return t?.colour ?? WV_COLOURS.navy;
-  }, []);
+  }, [timelines]);
 
   return (
     <div className="rounded-lg border bg-card p-3 space-y-3">
@@ -111,7 +116,7 @@ export function TeamPulseStrip({ activeMember }: TeamPulseStripProps) {
           </span>
         ) : (
           <span className="ml-auto text-muted-foreground normal-case tracking-normal">
-            5 collective members · {CAMPAIGNS.length} campaigns · {DISTRIBUTION.length} projects
+            5 collective members · {CAMPAIGNS.length} campaigns · {distributionItems.length} projects
           </span>
         )}
       </div>

@@ -16,7 +16,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  CAMPAIGN_TIMELINES,
   TIMELINE_RANGE,
   type CampaignTimeline,
 } from "@/lib/strategy-data";
@@ -59,10 +58,12 @@ function formatShortDate(iso: string): string {
 }
 
 export interface TimelineGanttProps {
+  /** Campaign timelines to render — fetched from Supabase by the page. */
+  timelines: CampaignTimeline[];
   hideMilestones?: boolean;
 }
 
-export function TimelineGantt({ hideMilestones = false }: TimelineGanttProps) {
+export function TimelineGantt({ timelines, hideMilestones = false }: TimelineGanttProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const today = useMemo(() => todayPercent(), []);
@@ -79,7 +80,7 @@ export function TimelineGantt({ hideMilestones = false }: TimelineGanttProps) {
 
   const activeCampaign: CampaignTimeline | null =
     activeId !== null
-      ? (CAMPAIGN_TIMELINES.find((c) => c.id === activeId) ?? null)
+      ? (timelines.find((c) => c.id === activeId) ?? null)
       : null;
 
   return (
@@ -94,7 +95,7 @@ export function TimelineGantt({ hideMilestones = false }: TimelineGanttProps) {
               <div className="h-5 mb-3" />
               {/* top padding to match the bar block's pt-3 */}
               <div className="pt-3 space-y-2">
-                {CAMPAIGN_TIMELINES.map((c) => {
+                {timelines.map((c) => {
                   const isActive = activeId === c.id;
                   return (
                     <button
@@ -175,7 +176,7 @@ export function TimelineGantt({ hideMilestones = false }: TimelineGanttProps) {
                 )}
 
                 {/* one row per campaign */}
-                {CAMPAIGN_TIMELINES.map((c) => {
+                {timelines.map((c) => {
                   const left = dayToPercent(c.start);
                   const width = Math.max(2, dayToPercent(c.end) - left);
                   const isActive = activeId === c.id;
@@ -234,7 +235,7 @@ export function TimelineGantt({ hideMilestones = false }: TimelineGanttProps) {
         <div className="text-[11px] text-muted-foreground px-1">
           may → sep · today: {todayLabel}
         </div>
-        {CAMPAIGN_TIMELINES.map((c) => {
+        {timelines.map((c) => {
           const left = dayToPercent(c.start);
           const width = Math.max(4, dayToPercent(c.end) - left);
           const isActive = activeId === c.id;

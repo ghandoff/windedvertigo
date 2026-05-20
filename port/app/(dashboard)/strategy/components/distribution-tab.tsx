@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DISTRIBUTION, TEAM, WV_COLOURS } from "@/lib/strategy-data";
+import { TEAM, WV_COLOURS, type DistributionProject } from "@/lib/strategy-data";
 import type { Project } from "@/lib/notion/types";
 
 const PROJECT_STATUS_COLORS: Record<string, string> = {
@@ -38,17 +38,19 @@ const PROJECT_STATUS_COLORS: Record<string, string> = {
 
 export interface DistributionTabProps {
   memberFilter: string | null;
+  /** Distribution items fetched from Supabase by strategy/page.tsx. */
+  items: DistributionProject[];
   /** Live active PM projects from Supabase — drives the "active portfolio" section. */
   pmProjects: Project[];
 }
 
-export function DistributionTab({ memberFilter, pmProjects }: DistributionTabProps) {
+export function DistributionTab({ memberFilter, items, pmProjects }: DistributionTabProps) {
   const visible = memberFilter
-    ? DISTRIBUTION.filter(
+    ? items.filter(
         (d) =>
           d.owner === memberFilter || d.support.includes(memberFilter),
       )
-    : DISTRIBUTION;
+    : items;
 
   return (
     <div className="space-y-6">
@@ -59,7 +61,7 @@ export function DistributionTab({ memberFilter, pmProjects }: DistributionTabPro
             project distribution matrix
             {memberFilter && (
               <span className="text-xs text-muted-foreground font-normal ml-2">
-                · {memberFilter} owns or supports {visible.length} of {DISTRIBUTION.length}
+                · {memberFilter} owns or supports {visible.length} of {items.length}
               </span>
             )}
           </CardTitle>
