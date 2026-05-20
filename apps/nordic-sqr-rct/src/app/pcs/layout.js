@@ -81,7 +81,7 @@ export default function PcsLayout({ children }) {
     <AuthProvider>
       <ToastProvider>
         <ProtectedRoute>
-          <RoleRoute requires={['pcs', 'pcs-readonly', 'admin']}>
+          <RoleRoute requires={['pcs', 'pcs-readonly', 'admin', 'super-user', 'researcher', 'ra']}>
             <PcsWorkspaceShell>{children}</PcsWorkspaceShell>
           </RoleRoute>
         </ProtectedRoute>

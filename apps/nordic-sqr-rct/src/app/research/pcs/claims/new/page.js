@@ -145,7 +145,7 @@ function FormEntryPanel({ router }) {
       setSuccess(`Claim created (id: ${body.id || 'unknown'}). Redirecting...`);
       // Redirect to the claim detail (or back to claims list if route absent).
       setTimeout(() => {
-        if (body.id) router.push(`/pcs/claims/${body.id}`);
+        if (body.id) router.push(`/research/pcs/claims/${body.id}`);
         else router.push('/research/pcs/claims');
       }, 800);
     } catch (err) {

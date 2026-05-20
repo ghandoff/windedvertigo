@@ -123,7 +123,7 @@ function PcsDocuments() {
     const sp = new URLSearchParams(searchParams);
     if (next === 'active') sp.delete('view');
     else sp.set('view', next);
-    router.replace(`/pcs/documents${sp.toString() ? '?' + sp.toString() : ''}`);
+    router.replace(`/research/pcs/documents${sp.toString() ? '?' + sp.toString() : ''}`);
   }
 
   const columns = [

@@ -45,8 +45,10 @@ export default function RoleRoute({ requires, children }) {
 
   if (!hasAccess) {
     // Determine where to send them based on what they CAN access
-    const fallbackHref = userRoles.includes('sqr-rct') ? '/dashboard'
-      : userRoles.includes('pcs') || userRoles.includes('pcs-readonly') ? '/pcs'
+    const fallbackHref =
+      userRoles.includes('super-user') || userRoles.includes('admin') || userRoles.includes('researcher') || userRoles.includes('ra') ? '/research/pcs'
+      : userRoles.includes('pcs') || userRoles.includes('pcs-readonly') ? '/research/pcs'
+      : userRoles.includes('sqr-rct') || userRoles.includes('reviewer') ? '/dashboard'
       : '/';
 
     return (

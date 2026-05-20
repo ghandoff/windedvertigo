@@ -72,7 +72,7 @@ function PcsRequests() {
     // updated visually but the `useEffect(fetchRows)` dependency didn't fire.
     // Using push + scroll:false guarantees a client-side navigation event
     // that re-renders consumers of useSearchParams().
-    router.push(`/pcs/requests?${params.toString()}`, { scroll: false });
+    router.push(`/research/pcs/requests?${params.toString()}`, { scroll: false });
   }
 
   function handleResolved(updated) {

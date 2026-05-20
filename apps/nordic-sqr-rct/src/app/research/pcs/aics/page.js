@@ -155,10 +155,10 @@ function AicsLibrary() {
       {/* Filter chips */}
       <div className="flex flex-wrap gap-2">
         {[
-          { label: 'All', href: '/pcs/aics', match: !statusFilter },
-          { label: 'Pending RA Review', href: '/pcs/aics?status=Pending+RA+Review', match: statusFilter === 'Pending RA Review' },
-          { label: 'Approved', href: '/pcs/aics?status=Approved', match: statusFilter === 'Approved' },
-          { label: 'Archived', href: '/pcs/aics?status=Archived', match: statusFilter === 'Archived' },
+          { label: 'All', href: '/research/pcs/aics', match: !statusFilter },
+          { label: 'Pending RA Review', href: '/research/pcs/aics?status=Pending+RA+Review', match: statusFilter === 'Pending RA Review' },
+          { label: 'Approved', href: '/research/pcs/aics?status=Approved', match: statusFilter === 'Approved' },
+          { label: 'Archived', href: '/research/pcs/aics?status=Archived', match: statusFilter === 'Archived' },
         ].map((chip) => (
           <Link
             key={chip.label}
