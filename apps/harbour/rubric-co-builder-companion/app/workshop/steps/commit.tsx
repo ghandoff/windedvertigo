@@ -72,7 +72,11 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
               : null;
           return (
             <aside
-              className="rounded border-l-4 p-4 text-sm leading-relaxed space-y-3"
+              // rubric-print-pledge: print stylesheet hook. globals.css
+              // drops the champagne fill and thins the border for ink
+              // efficiency, and applies page-break-inside: avoid so the
+              // pledge doesn't split mid-section. (PR #114 polish #2.)
+              className="rubric-print-pledge rounded border-l-4 p-4 text-sm leading-relaxed space-y-3"
               style={{
                 borderColor: "var(--color-sienna)",
                 background: "var(--color-champagne)",

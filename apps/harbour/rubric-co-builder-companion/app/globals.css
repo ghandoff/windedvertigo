@@ -144,6 +144,21 @@
   .rubric-print-table tr {
     page-break-inside: avoid;
   }
+  /* AI pledge aside — ink-efficient print form (PR #114 polish #2):
+     - drop the champagne fill (saves printer ink and looks cleaner on paper)
+     - thin the left border from sienna to a gray hairline
+     - tighten vertical rhythm so the pledge takes less vertical real estate
+     - keep the whole block together so it doesn't split mid-pledge */
+  .rubric-print-pledge {
+    background: #fff !important;
+    border-left-color: #999 !important;
+    border-left-width: 2px !important;
+    padding: 0.5rem 0.75rem !important;
+    page-break-inside: avoid;
+  }
+  .rubric-print-pledge > * + * {
+    margin-top: 0.25rem !important;
+  }
 }
 
 .print-only {

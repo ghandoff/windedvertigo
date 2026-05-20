@@ -77,9 +77,15 @@ export function StepFrame({ draft, onPatch, onNext }: Props) {
       {/*
         Course-context picker (replaces the old free-text + datalist artefact
         field). Six PRME-anchored teaching scenarios, two-column grid on md+
-        viewports, single column on mobile. Tapping a card fills the
-        artefact field with the canonical artefact sentence; users can
-        still edit the field below to tweak wording.
+        viewports, single column on mobile. Tapping a card pre-fills the
+        artefact field below with the canonical artefact sentence; the
+        picker is *optional* — users can also skip it and type their own
+        artefact directly in the textarea below.
+
+        Hint placement: the "pick or skip" framing lives *above* the
+        grid, so users who don't pick anything aren't reading a
+        confusing "edit if your card doesn't fit" message that presumes
+        they picked one. (PR #114 polish #1.)
       */}
       <div className="space-y-3">
         <div className="space-y-1">
@@ -87,14 +93,14 @@ export function StepFrame({ draft, onPatch, onNext }: Props) {
             className="block text-sm font-medium"
             style={{ color: "var(--color-cadet)" }}
           >
-            course context
+            course context · optional starting point
           </p>
           <p
             className="text-xs"
             style={{ color: "var(--color-cadet)", opacity: 0.6 }}
           >
-            pick the closest match. you can edit the artefact wording
-            below if your module&apos;s set-up is a little different.
+            tap the closest PRME scenario to pre-fill the artefact field
+            below, or skip the cards and write your own artefact.
           </p>
         </div>
 
@@ -157,7 +163,9 @@ export function StepFrame({ draft, onPatch, onNext }: Props) {
 
       {/* Editable artefact field — pre-filled when a card is picked,
           but the user can override for courses that don't match any
-          of the six contexts. */}
+          of the six contexts. The "pick or write your own" guidance
+          lives above the cards so it applies whether the user used
+          the picker or skipped it (PR #114 polish #1). */}
       <div className="space-y-2">
         <label
           htmlFor="artefact"
@@ -166,13 +174,6 @@ export function StepFrame({ draft, onPatch, onNext }: Props) {
         >
           artefact
         </label>
-        <p
-          className="text-xs"
-          style={{ color: "var(--color-cadet)", opacity: 0.6 }}
-        >
-          edit if your module&apos;s artefact isn&apos;t quite what the card
-          above describes.
-        </p>
         <textarea
           id="artefact"
           rows={3}

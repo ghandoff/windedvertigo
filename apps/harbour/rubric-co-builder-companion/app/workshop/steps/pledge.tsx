@@ -14,30 +14,45 @@ type Props = {
 // transparency → recovery. Each field is independent — users can fill
 // any combination, including just one. The "next" button doesn't gate
 // on completeness because over-prescribing degrades the worksheet feel.
+// Each field has a `placeholder` with one or two concrete starter
+// examples — these replaced the auto-generated "label + ellipsis"
+// placeholders, which just echoed the label and gave users nothing to
+// react to. The examples are descriptive ("e.g. …"), not prescriptive,
+// so users see a possibility rather than instructions to follow.
+// (PR #114 polish #3.)
 const PLEDGE_FIELDS: Array<{
   key: keyof Omit<Pledge, "ai_level">;
   label: string;
   hint: string;
+  placeholder: string;
 }> = [
   {
     key: "will_use_for",
     label: "we will use AI for…",
     hint: "the specific tasks where AI is in-scope for this assessment.",
+    placeholder:
+      "e.g. brainstorming opening questions, sanity-checking grammar, summarising long source material…",
   },
   {
     key: "will_not_use_for",
     label: "we will NOT use AI for…",
     hint: "the boundaries — the parts that have to be human work.",
+    placeholder:
+      "e.g. drafting the final memo, generating the diagrams, formulating our argument…",
   },
   {
     key: "will_disclose",
     label: "we will disclose…",
     hint: "what students will say about their AI use, and where they'll say it.",
+    placeholder:
+      "e.g. a footer listing which tools we used and where, plus a one-line statement in the submission cover…",
   },
   {
     key: "if_cross_line",
     label: "if we cross our own line, we will…",
     hint: "the recovery move — what happens when the pledge gets broken.",
+    placeholder:
+      "e.g. flag it to the marker before they read, re-submit a clean version, or note the over-step in our reflection…",
   },
 ];
 
@@ -161,7 +176,7 @@ export function StepPledge({ draft, onPatch, onNext, onBack }: Props) {
               maxLength={500}
               value={draft.pledge[field.key]}
               onChange={(e) => setField(field.key, e.target.value)}
-              placeholder={`${field.label.replace(/…$/, "")} …`}
+              placeholder={field.placeholder}
               className="w-full rounded-lg border bg-white px-4 py-3 text-sm leading-relaxed focus:outline-none"
               style={{
                 borderColor:
