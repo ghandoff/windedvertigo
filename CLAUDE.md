@@ -1,29 +1,25 @@
-# Memory
+# winded.vertigo — team context
 
-> Deep memory, tasks, and operational files live in `.brain/`
-> Tasks: `.brain/TASKS.md` | Memory: `.brain/memory/` | Archive: `.brain/archive/`
+Welcome. This file is the shared context for anyone working in this monorepo with Claude Code — whether locally or in a GitHub Codespace. It's intentionally small: a glossary, a project list, infrastructure pointers, and the workflow we use to ship together. If you're a designer learning git, read [How We Work](#how-we-work) first.
 
-> **What's new (2026-05-13):** Values Auction redesign deployed to `claude-self-running-auction.values-auction-d9m.pages.dev` (preview alias on branch `claude/self-running-auction-game-7CbZz`). Self-running rebuild for 300-person webinars: 3 new acts (brainstorm wall, practice round, restrategize break), embedded team-consensus polls per value, self-served bid captain with auto-transfer on disconnect, persistent team chip, facilitator-side participant preview. Maria has the Slack heads-up; production URL unchanged until branch merges. Earlier (2026-05-12): Ops auth fixed — `AUTH_URL` secret was set to `wv-ops.windedvertigo.workers.dev` (old canary URL); updated to `https://ops.windedvertigo.com`. OAuth flow now works end-to-end. Earlier (2026-05-11): Creaseworks H.2 complete — migrated to CF Workers (`wv-harbour-creaseworks`), Vercel project deleted. Zero Vercel services remain except `wv-crm` rollback (expires 2026-05-17). R2 secrets migrated from Vercel, admin rewrites updated, VERCEL_URL fallback removed. Nordic F.5, Ancestry H.4, Ops H.1, Vault H.3 cutovers all complete — Vercel projects for all deleted. Previous (2026-05-03): Port migrated to CF Workers (`wv-port`); Vercel `wv-crm` rollback expires 2026-05-17.
-
-## Me
-Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learning design collective. Based in San Francisco, CA (Pacific time). Email: garrett@windedvertigo.com
+> Garrett's personal operational layer (CFO/COO/CMO automation, financial reviews, scheduled tasks) lives in a separate, gitignored second brain. Team members interact with those outputs through Slack, Notion, and the port dashboard — not through this repo. You don't need it to do your work here.
 
 ## People
+
 | Who | Role |
 |-----|------|
+| **Garrett** | Garrett Jaeger — founder & legal rep, winded.vertigo LLC |
 | **Payton** | Payton Jaeger, w.v collective — comms, website circulation, outreach |
-| **Lamis** | Lamis Sabra, w.v collective — weekly sync Tuesdays 4pm UTC |
-| **Maria** | Maria Altamirano Gonzalez, w.v collective — operations, IDB Salvador lead. Weekly Tuesdays 6pm UTC |
+| **Lamis** | Lamis Sabra, w.v collective |
+| **Maria** | Maria Altamirano Gonzalez, w.v collective — operations, IDB Salvador lead |
+| **James** | James Galpin, w.v collective |
 | **Apoorva** | Apoorva Shivaram — formerly w.v collective (inactive) |
 | **Kristin** | Kristin Lansing — formerly w.v collective (inactive) |
-| **James** | James Galpin, w.v collective |
-| **Randall** | External — weekly call Tuesdays 5pm UTC |
-| **Gina** | Gina Jaeger — family |
 | **Meredith** | Meredith Storey, UN Global Compact / PRME — key client contact |
 | **Sam** | Sam at PRME — works with Meredith on contracts |
-→ Full list: .brain/memory/glossary.md, profiles: .brain/memory/people/
 
 ## Terms
+
 | Term | Meaning |
 |------|---------|
 | **w.v** | winded.vertigo |
@@ -42,173 +38,102 @@ Garrett Jaeger, Founder & Legal Representative of winded.vertigo LLC — a learn
 | **MINEDUCYT** | El Salvador Ministry of Education, Science and Technology |
 | **the collective** | The Winded Vertigo Collective — the full team |
 | **Press Play** | Partner or program — joint whirlpool sessions |
-| **stack audit** | Annual review of tools, DNS, hosting, subscriptions (first Monday of Jan) |
-→ Full glossary: .brain/memory/glossary.md
+| **stack audit** | Annual review of tools, DNS, hosting, subscriptions |
+| **the port** | port.windedvertigo.com — operational hub (CRM + PM + studios + RFP) |
+| **harbour** | The public side of the website family at windedvertigo.com |
 
 ## Active Projects
+
 | Name | What | Status |
 |------|------|--------|
-| **IDB Salvador** | Ed-tech modernization procurement SDP 01/2026. Deadline: **April 10, 2026** | Active — docs requested |
-| **PRME 2026** | Contract with UN Global Compact. Signed. PO approved Mar 27. First invoice submitted. | Active — invoicing |
-| **Amna at 10** | Evidence synthesis & impact report proposal submitted Mar 26 | Proposal submitted |
+| **IDB Salvador** | Ed-tech modernization procurement SDP 01/2026 | Active |
+| **PRME 2026** | Contract with UN Global Compact | Active — invoicing |
+| **Amna at 10** | Evidence synthesis & impact report proposal | Submitted |
 | **LEGO / Superskills!** | Cross-cutting skills certification with Learning Economy Foundation | Active |
 | **Sesame Workshop** | Learning design engagement | Active |
 | **UNICEF** | Learning design engagement | Active |
-| **Website launch** | windedvertigo.com circulated to trusted contacts for feedback Mar 27 | Active — soft launch |
-| **401k / CPA** | Plan #156733 with ADP. Final 5500 + year-end testing needed | Active — admin |
-→ Details: .brain/memory/projects/
-
-## Recurring Meetings
-| Meeting | When | Who |
-|---------|------|-----|
-| whirlpool | Mon & Wed 4pm UTC (9am PT) | Lamis, Payton, Maria, + (Mon "x Press Play" includes Jan, Casper) |
-| weekly = lamis x garrett | Tue 4pm UTC | Lamis |
-| Randall | Tue 5pm UTC | Randall, Gina |
-| garrett x maria (part i) | Tue 6pm UTC | Maria |
-| PRME hold | Tue 7pm UTC | Meredith, Sam, + |
-| R&D meeting | Fri 6pm UTC | Gina, + |
-| bi-weekly strategy playdates | Every 2 weeks | Team |
-
-## Scheduled Tasks (AI Automation)
-| Task | Schedule | What |
-|------|----------|------|
-| **weekly-cfo-review** | Mon 9:05am | Cash position, revenue pipeline, CPA liaison, action items |
-| **invoice-processor** | Daily 9am | Scans Gmail for invoices, logs to Notion, labels in Gmail |
-| **weekly-cmo-review** | Wed 9am | Content calendar, social media, campaigns, outreach pipeline, brand review |
-| **whirlpool-agenda-generator** | Sun & Tue 8pm PT | Auto-generates whirlpool agenda from last meeting's action items, project updates, Slack threads, and calendar context. Creates Notion entry + Slack DM for Garrett to review. Hub: notion.so/33ae4ee74ba481b1a391fed914baa05b |
-
-## Tool Stack
-| Tool | What we use it for |
-|------|-------------------|
-| **Notion** | Central knowledge base, project management, invoice tracker, wiki |
-| **Slack** | Team communication, async coordination |
-| **Gmail** | External comms, client correspondence, invoice capture |
-| **Google Calendar** | Scheduling, meeting cadence, time blocking |
-| **Google Drive** | Document storage, shared folders, proposals |
-| **Cloudflare** | Primary hosting (Workers via OpenNext: site, harbour, depth-chart), DNS, R2 storage, edge |
-| **Vercel** | Nothing live — `wv-crm` rollback only (expires 2026-05-17, then fully off Vercel) |
-| **Cowork (Claude)** | CFO/COO operations, memory system, scheduled tasks, file management |
-| **Otter AI** | Meeting transcription (archived in Notion) |
-| **ADP** | 401k plan administration |
-
-## AI Roles (Second Brain C-Suite)
-- **CFO**: Financial reporting, cash flow, invoicing, CPA coordination, revenue pipeline, budget monitoring
-- **COO**: Task management, meeting prep, project health, team coordination, process automation
-- **CMO**: Brand voice enforcement, content calendar, social media strategy, campaign planning, outreach pipeline, event promotion, competitive positioning → `.brain/memory/marketing/`
-- Scheduled tasks = "dispatch" — autonomous operations that run without prompting
-
-## Dual-Environment Architecture
-
-The second brain operates across two Claude environments with a shared memory layer.
-
-### Cowork (Desktop App) — Operations Layer
-**Role:** CFO/COO copilot. Runs the business.
-- Financial reviews via QuickBooks + Gusto MCPs
-- Email triage, drafts, invoice processing (Gmail MCP)
-- Meeting prep + calendar management (GCal MCP)
-- Team coordination (Slack + Notion MCPs)
-- Document creation (proposals, reports, decks, PDFs)
-- Scheduled dispatch tasks (invoice-processor, weekly-cfo-review)
-- Cross-tool search and synthesis (enterprise search)
-- Project tracking, task management, memory updates
-- Google Drive document retrieval
-
-### Claude Code (Terminal) — Engineering Bench
-**Role:** Builder. Ships code.
-- Monorepo code changes: `harbour/`, `crm/`, `ops/`, `packages/`
-- Build fixes, dependency management, config files
-- Git operations (commit, push, branch, PR)
-- Deployment via Vercel CLI (ops, creaseworks, vault) and Wrangler/OpenNext (site, harbour, depth-chart, port, nordic, ancestry on CF Workers)
-- New features for ops dashboard, CRM, website
-- Infrastructure (Cloudflare workers, D1, KV if needed)
-- Debugging build/runtime errors
-- Any task that needs `git push` or `npm run`
-
-### Shared Foundation
-Both environments read the same repo, same `CLAUDE.md`, same `.brain/`.
-- Memory updates happen in whichever environment finishes a significant session
-- When Cowork identifies engineering work → log it in `TASKS.md` under `## Engineering (Claude Code)`
-- When Claude Code finishes building → update `TASKS.md` and note what's deployed
-- Handoff notes go in `.brain/memory/handoff/` — one file per session (`YYYY-MM-DD-<env>-<slug>.md`); the `_live-state.md` snapshot is owned by the `context-sync` scheduled task. See `.brain/memory/handoff/README.md` for the format. Replaced the single `handoff.md` on 2026-05-19 to eliminate the recurring multi-session merge conflict.
+| **Website launch** | windedvertigo.com circulated to trusted contacts | Active — soft launch |
 
 ## Monorepo Structure
+
 ```
 windedvertigo/
   harbour/          — main website (windedvertigo.com)
   crm/              — client relationship manager (port.windedvertigo.com)
   ops/              — command center dashboard (ops.windedvertigo.com)
+  apps/             — standalone apps (values-auction, PEDAL-conference, harbour subapps)
+  ancestry/         — ancestry.windedvertigo.com
   packages/         — shared packages
-  scripts/          — deploy scripts (deploy-crm.sh, deploy-ops.sh)
-  .vercel/          — Vercel project config (swapped by deploy scripts)
+  scripts/          — deploy scripts (deploy-crm.sh, deploy-ops.sh, deploy-site.sh)
 ```
 
-**Tech stack:** Next.js 16 + Turbopack, Tailwind v4, Auth.js v5 (Google OAuth), npm workspaces (no turborepo), Vercel hosting, Cloudflare DNS.
+**Tech stack:** Next.js 16 + Turbopack, Tailwind v4, Auth.js v5 (Google OAuth), npm workspaces (no turborepo). Cloudflare Workers (via OpenNext) is the primary host. Cloudflare DNS.
 
 ## Infrastructure State
-| Service | Domain | Host | Project / Worker | Status |
-|---------|--------|------|------------------|--------|
-| Site | windedvertigo.com | CF Workers (OpenNext) | `wv-site` | Live (migrated from Vercel 2026-04-25) |
-| Harbour | (apps under windedvertigo.com) | CF Workers (OpenNext) | `wv-harbour-harbour` (R2 binding for tile images, Auth.js host in Pool A SSO) | Live — magic-link signin live; security headers via @windedvertigo/security wrapper |
-| Depth-chart | windedvertigo.com/harbour/depth-chart/* | CF Workers (OpenNext) | `wv-harbour-depth-chart` (own CF routes, bypasses site router) | Live — Pool A SSO; security headers via wrapper |
-| wv-launch-smoke | wv-launch-smoke.windedvertigo.workers.dev | CF Workers | `wv-launch-smoke` (cron `*/30 * * * *`, KV `SMOKE_LATEST`) | Live — 40-target probe, posts to wv-claw on red |
-| Port (CRM) | port.windedvertigo.com | CF Workers (OpenNext) | `wv-port` (R3 bindings: PROPOSAL_QUEUE, TIMESHEET_QUEUE, RFP_DOCUMENT_QUEUE; R2 `port-assets`; AUTH_TRUST_HOST=true) | Live — migrated 2026-05-03; Vercel `wv-crm` kept as rollback until 2026-05-17 |
-| Port agent | Slack DM @wv-claw | Vercel (worker `wv-claw`) | App `A0AUA3VQHFH` / bot `U0AUPLEA8RL` / audit DB `f2f48a9998d84cd69598efdc79a44f1e` | Live end-to-end |
-| Nordic | nordic.windedvertigo.com | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs` binding, `workflow` SDK removed, Supabase saga for ingredient-safety) | Live — F.5 cutover confirmed + Vercel project decommissioned 2026-05-11. |
-| Ancestry | ancestry.windedvertigo.com | CF Workers (OpenNext) | `wv-ancestry` (R2 `ancestry-media`, 2 cron triggers, `@neondatabase/serverless`, Google OAuth) | Live — H.4 cutover 2026-05-11. Route `ancestry.windedvertigo.com/*` added to wrangler.jsonc. |
-| Ops | ops.windedvertigo.com | CF Workers (OpenNext) | `wv-ops` (OPS_DATA + SMOKE_LATEST KV bindings, Google OAuth, Supabase, Notion) | Live — H.1 cutover 2026-05-11. Auth fixed 2026-05-12: AUTH_URL was pointing to .workers.dev canary URL, updated to ops.windedvertigo.com. |
-| Vault | windedvertigo.com/harbour/vertigo-vault/* | CF Workers (OpenNext) | `wv-vault` (Auth.js Pool A SSO, 17 secrets set, R2 `creaseworks-evidence`, Notion) | Live — H.3 confirmed 2026-05-11. Vercel `vertigo-vault` project deleted. `site/next.config.ts` rewrites → workers.dev. |
-| Creaseworks | windedvertigo.com/harbour/creaseworks/ | CF Workers (OpenNext) | `wv-harbour-creaseworks` (service binding self-ref crons, `@windedvertigo/security` wrapper, R2 `creaseworks-evidence` via S3 API) | Live — H.2 complete 2026-05-11. Vercel `creaseworks` project deleted. |
-| Values Auction | values-auction-d9m.pages.dev | CF Pages (SPA) | `values-auction` Pages project + `values-auction-hub` Worker (Durable Object `HUB_SESSION` + KV `EVENTS_KV`) | Live (preview) — redesign branch `claude/self-running-auction-game-7CbZz` deployed 2026-05-12 to `claude-self-running-auction.values-auction-d9m.pages.dev`. Production alias unchanged until branch merges to main. |
 
-**Canonical image bucket:** R2 `creaseworks-evidence` (in garrett CF account `097c92553b268f8360b74f625f6d980a`, migrated 2026-04-25 from anotheroption). Public URL: `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev`. Used by site, harbour, vault, creaseworks.
+| Service | Domain | Host | Worker | Status |
+|---------|--------|------|--------|--------|
+| Site | windedvertigo.com | CF Workers (OpenNext) | `wv-site` | Live |
+| Harbour | apps under windedvertigo.com | CF Workers (OpenNext) | `wv-harbour-harbour` (R2 tile images, Auth.js Pool A SSO) | Live |
+| Depth-chart | windedvertigo.com/harbour/depth-chart/* | CF Workers (OpenNext) | `wv-harbour-depth-chart` | Live |
+| Port (CRM) | port.windedvertigo.com | CF Workers (OpenNext) | `wv-port` (R3 bindings, R2 `port-assets`) | Live |
+| Port agent | Slack DM @wv-claw | Vercel | `wv-claw` | Live |
+| Nordic | nordic.windedvertigo.com | CF Workers (OpenNext) | `wv-nordic` (5 cron triggers, R2 `nordic-pcs`) | Live |
+| Ancestry | ancestry.windedvertigo.com | CF Workers (OpenNext) | `wv-ancestry` (R2 `ancestry-media`, 2 cron triggers) | Live |
+| Ops | ops.windedvertigo.com | CF Workers (OpenNext) | `wv-ops` (OPS_DATA + SMOKE_LATEST KV) | Live |
+| Vault | windedvertigo.com/harbour/vertigo-vault/* | CF Workers (OpenNext) | `wv-vault` (Auth.js Pool A SSO, R2 `creaseworks-evidence`) | Live |
+| Creaseworks | windedvertigo.com/harbour/creaseworks/ | CF Workers (OpenNext) | `wv-harbour-creaseworks` | Live |
+| Values Auction | values-auction-d9m.pages.dev | CF Pages + Worker | `values-auction` + `values-auction-hub` (Durable Object + KV) | Live |
+| wv-launch-smoke | wv-launch-smoke.windedvertigo.workers.dev | CF Workers | `wv-launch-smoke` (30-min cron, 40-target probe) | Live |
 
-## Deployment Workflow (standing authorization)
+**Canonical image bucket:** R2 `creaseworks-evidence`. Public URL: `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev`. Used by site, harbour, vault, creaseworks.
 
-Durable instruction for every Claude Code session — local CLI, remote (desktop app, code.claude.com on iPhone), or human collaborator. Follow without re-asking. Garrett, Maria, Payton, Lamis, and James may each run 1–10 concurrent sessions across machines; each one operates independently under this contract.
+## How We Work
 
-**Auth:** the remote session's local git proxy (e.g. `http://local_proxy@127.0.0.1:.../git/...`) authenticates to GitHub via the installed GitHub App. No PAT, no SSH, no `~/.git-credentials`. Do not rewrite `origin` to `https://github.com/...` — that breaks pushes here. The remote URL looking unusual is correct.
+This section is for everyone — including designers learning git through Codespaces + Claude Code. The workflow is small and stable; once you've done it twice it's automatic.
 
-### Work-in-flight signaling — draft PR at the START of editing (default since 2026-05-19)
+**The rule:** never edit `main` directly. Every change goes through a branch and a pull request (PR). PRs are how we see each other's in-flight work without having to ask.
 
-**The single biggest source of human friction in our parallel-session setup wasn't merge conflicts — it was teammates pinging "are you editing X? I don't want to step on you." The fix is to make in-flight work visible *before* the work is done, via a draft PR. Applies to both local and remote Claude sessions, and to humans editing without Claude.**
+### The four-step rhythm
 
-**Protocol:**
-1. **Branch first, never edit `main` directly.** Cloud sessions get a `claude/<slug>-<id>` branch from the harness automatically. Local sessions: `git checkout -b <type>/<slug>` where `<type>` is `feat | fix | chore | docs | perf | a11y` and `<slug>` is the kebab-case intent (e.g. `fix/votes-toctou-race`, `feat/co-rubric-companion`).
-2. **Open a draft PR before substantive editing.** If you don't have a first commit yet, make an empty one: `git commit --allow-empty -m "wip: <intent>"`, push, then `mcp__github__create_pull_request` with `draft: true`. The PR title is the work-in-flight signal — make it descriptive (e.g. `fix(co-rubric): persist host_token client-side`). Body can be a one-line placeholder.
-3. **Commit and push edits as you go.** The draft PR auto-updates. Other teammates running `gh pr list` (or browsing GitHub mobile) see your intent the moment you start, not the moment you finish.
-4. **When the work is done**, mark the PR ready for review (drop the draft state) — then the existing actor-based routing below applies.
+1. **Branch.** Before editing anything, ask Claude to create a branch. Naming pattern: `<type>/<short-description>` where `<type>` is one of `feat` (new feature), `fix` (bug fix), `chore` (housekeeping), `docs` (documentation), `perf` (performance), `a11y` (accessibility). Examples: `fix/votes-race-condition`, `feat/co-rubric-companion`, `docs/onboarding-guide`.
 
-**Carve-out — skip the draft-PR step for these:**
-- Pure `.brain/` memory updates, `TASKS.md` edits, `CLAUDE.md` edits, or other docs-only changes that don't touch source. These can land on main directly with `[skip ci]` per the existing harbour convention.
-- Truly trivial typo / one-line fixes where the PR ceremony costs more than the visibility buys. Use judgement; default to draft PR if the change touches >1 file or >5 LOC.
+2. **Open a draft PR immediately — before doing the work.** Claude Code does this for you. The PR title becomes a signal to the rest of the team: "I'm working on X right now." This prevents the most common friction in our setup, which was teammates accidentally editing the same thing because they couldn't see what others were doing. The PR starts in *draft* state, which means: visible to everyone, but not asking for review yet.
 
-**Why this matters:** the PR queue (`gh pr list --state open`) becomes the single source of truth for "what is in flight right now?" — no separate Slack ping, no shared in-flight.md, no new tooling. The convention is enforced by social pattern, not by branch protection: anyone reviewing the queue can see who's touching what.
+3. **Edit, commit, push.** Make your changes. Claude Code commits and pushes them. The draft PR auto-updates as you go — anyone watching can see the work evolve. Iterate as much as you want; you can keep editing the same branch.
 
-**Tooling note:** the GitHub web UI is still off-limits — draft PRs are created via `mcp__github__create_pull_request` (`draft: true` parameter). The local `gh pr create --draft` CLI also works for direct shell use.
+4. **Mark ready for review.** When you're done, Claude removes the "draft" state. For **Payton and Lamis**, this is where Garrett takes over: he reviews the branch and merges it into `main`. You're not blocked — you can start the next thing. For **Maria**, you have ship authority: Claude will squash-merge directly on your behalf.
 
-### Merge workflow (existing — unchanged)
+### Carve-outs (where you can skip the draft PR)
 
-**When the user says "push," "deploy," "ship," "live," or "make it live":**
-1. Commit pending changes on the current session branch with a clear message
-2. `git push -u origin <branch>` (works without credentials thanks to the proxy)
-3. Open a PR to `main` via `mcp__github__create_pull_request` — short title, 1–3 bullet summary
-4. **Identify the actor** via `mcp__github__get_me` and route by `login`:
-   - `ghandoff` (Garrett) or `winded-maria` (Maria) → squash-merge immediately via `mcp__github__merge_pull_request`. Standing authorization, no confirmation needed. Maria has the same ship authority as Garrett
-   - `paytonjaeger` (Payton) or `lamissabra` (Lamis) → **stop here.** Request `ghandoff` as reviewer, report the PR URL, and frame the result as a learning workflow: the branch is built and ready, Garrett will look it over and merge into main. This is intentional — Payton and Lamis are getting fluent with Claude Code + GitHub mobile and the PR review cadence is part of that. Do not self-merge. They can keep iterating on the same branch and the PR will update automatically
-   - Any other `login` → **stop here.** Request `ghandoff` as reviewer and report the PR URL. Garrett gates production merges for unknown collaborators by default
-5. After merge (when applicable), wait 60–90s, then `curl -sI` (or fetch content from) the affected production URL and report what you saw
-6. If the merge or build fails, stop and explain. Never force-push, never retry-merge blindly, never bypass hooks
+- Pure docs / memory edits: `CLAUDE.md`, `.brain/`, `TASKS.md`, README typos — these can land on `main` directly with a `[skip ci]` tag in the commit message.
+- One-line typo fixes where the PR ceremony costs more than the visibility buys. Use judgment; default to draft PR if the change touches more than one file.
 
-**Never:** push directly to `main` (the bypass rule exists for emergencies only — code changes always go through a branch + PR, even one-commit ones), force-push, amend pushed commits, open the GitHub web UI (everything goes through `mcp__github__*` tools — that's the whole point of this setup). The exception is the docs-only carve-out documented above.
+### What never to do
 
-**Parallel sessions:** each session has its own harness-assigned branch (e.g. `claude/<slug>-<id>`); they don't share working trees, so collisions are rare. If push is rejected because `main` advanced, rebase the session branch on `origin/main` and re-push — don't merge `main` back into the feature branch.
+- Don't push directly to `main` for code changes.
+- Don't force-push.
+- Don't open the GitHub web UI to merge — everything routes through Claude Code's GitHub integration so the audit trail stays clean.
+- Don't worry about merge conflicts in advance. If the push is rejected because `main` advanced, Claude rebases your branch on the latest `main` and re-pushes. Ask Claude to handle it.
 
-**Verifying CF deploy:** Cloudflare auto-builds the affected Worker on merge to `main`. The CF MCP exposes Workers/KV/R2/D1 metadata but not OpenNext build status, so verification = `curl` the live URL ~60–90s after merge and confirm new content/headers. If it hasn't picked up after ~3 min, say so — don't keep polling silently.
+### Parallel sessions
+
+Multiple people (and multiple Claude Code sessions per person) can be editing at the same time. Each session gets its own branch, so collisions are rare. The PR queue (`gh pr list --state open`, or the Pull Requests tab on GitHub mobile) is the single source of truth for what's in flight.
+
+## Your Context
+
+This `CLAUDE.md` gives Claude shared context about the project. For your own personal preferences — how you like Claude to respond, projects you're focused on, tools you use — you can create your own private file:
+
+- **`.claude/CLAUDE.md`** at your home directory (user-level, lives outside the repo, applies to all your Claude Code sessions). Not tracked in git, just yours.
+- **`.brain/` directory at the repo root** (already gitignored). If you want a deeper personal memory system — task lists, decision logs, project notes — this is the convention. Your `.brain/` is invisible to teammates; only Garrett's exists in his local working tree and pushes to his separate private repo.
+
+You don't have to set up either of these. The team `CLAUDE.md` you're reading is enough to start. Add personal layers as you discover what you want Claude to remember between sessions.
+
+## CMO / brand voice context
+
+Marketing strategy, brand voice guides, and campaign artifacts live in `.brain/memory/marketing/` — but that directory is gitignored and only exists in Garrett's local tree. If you're working on a marketing-adjacent task (social post, campaign copy, website tile language), ask in Slack or check the Notion brand voice page rather than expecting the directory to be present in your Codespace.
 
 ## Preferences
-- Continuous copilot mode — don't wait to be asked, surface relevant info proactively
-- All domains integrated: work, personal, creative, health, financial/CPA
-- Lowercase aesthetic in brand voice (winded.vertigo style)
-- Financial clarity is top priority — "where do we stand?" should always have an answer
-- Memory should always be updated after significant sessions
-- Engineering work → Claude Code. Operations work → Cowork. Don't fight the tools.
+
+- **Lowercase aesthetic in brand voice** (winded.vertigo style). Avoid sentence-initial capitalization in marketing copy unless the source explicitly uses it.
+- **Brand voice reference:** see Notion brand voice page or Garrett's `.brain/memory/marketing/` (Garrett's local only).

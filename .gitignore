@@ -11,8 +11,14 @@ node_modules/
 !.claude/settings.json
 !.claude/hooks/
 
-# Second brain (tracked separately via 'brain' remote)
-CLAUDE.md
+# Second brain — Garrett's private operational layer (tracked separately via 'brain' remote)
+# Root /CLAUDE.md is team-shared (tracked). Everything else stays private:
+#  - nested CLAUDE.md files in subdirs (private by default — opt-in to share)
+#  - CLAUDE.private.md anywhere
+#  - the .brain/ directory
+**/CLAUDE.md
+!/CLAUDE.md
+CLAUDE.private.md
 .brain/
 
 # Nested git repos — Phase A.2 dissolved port/ nested-clone 2026-05-01
