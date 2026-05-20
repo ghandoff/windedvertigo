@@ -4,6 +4,10 @@
 
 export type ScaleLevel = 1 | 2 | 3 | 4;
 
+// AI use ladder rungs (mirrored from the full app's AI_USE_LEVELS so the
+// freemium-to-paid handoff has the same vocabulary).
+export type AiUseLevel = 0 | 1 | 2 | 3 | 4;
+
 export type Criterion = {
   id: string; // client-side uuid, never sent to a server
   name: string;
@@ -17,8 +21,17 @@ export type Descriptor = {
   text: string;
 };
 
+// Pledge restructured 2026-05-20 for the PRME launch: a rung on the AI
+// ladder + four prompt completions ("we will use AI for…", etc.). The
+// old single-text Pledge.text shape is dead; sessionStorage versioning
+// in lib/storage.ts bumps the key so any pre-PRME drafts get cleared
+// rather than silently mis-rendered.
 export type Pledge = {
-  text: string;
+  ai_level: AiUseLevel | null;
+  will_use_for: string;
+  will_not_use_for: string;
+  will_disclose: string;
+  if_cross_line: string;
 };
 
 export type DraftStep = "frame" | "seed" | "scale" | "pledge" | "commit";
@@ -52,16 +65,115 @@ export const SEED_CRITERIA: Array<Pick<Criterion, "name" | "good_description">> 
   },
 ];
 
-export const ARTIFACT_EXAMPLES = [
-  "presentation",
-  "essay",
-  "prototype",
-  "portfolio",
-  "case study",
-  "code project",
-  "research paper",
-  "design mockup",
-  "video",
+// The six PRME course contexts (replaces the old generic ARTIFACT_EXAMPLES
+// dropdown). Each is a concrete teaching scenario PRME faculty actually
+// run. Selecting a context fills the artefact field with the "artifact"
+// sentence; the learning_outcome field stays open text so faculty can
+// adapt the theme to their module's own outcome wording.
+export type CourseContext = {
+  id: string;
+  number: number; // for "CONTEXT 1" through "CONTEXT 6" labels
+  title: string;
+  level: string; // "UG year 1", "MBA", etc.
+  theme: string; // a one-line learning theme; offered as a hint, not auto-filled
+  artefact: string; // detailed sentence describing the assessed artefact
+};
+
+export const COURSE_CONTEXTS: CourseContext[] = [
+  {
+    id: "intro-responsible-business",
+    number: 1,
+    title: "Introduction to responsible business",
+    level: "UG year 1",
+    theme: "Values, stakeholders, and the firm.",
+    artefact:
+      "a 60-minute assessed discussion in which students present a stakeholder analysis of a company of their choice.",
+  },
+  {
+    id: "corporate-sustainability-strategy",
+    number: 2,
+    title: "Corporate sustainability strategy",
+    level: "MBA",
+    theme: "Materiality assessment.",
+    artefact:
+      "a 2,500-word individual report assessing a company's sustainability strategy against a materiality matrix.",
+  },
+  {
+    id: "business-ethics-society",
+    number: 3,
+    title: "Business ethics and society",
+    level: "UG year 2",
+    theme: "Ethical decision making.",
+    artefact:
+      "a 1,500-word memo advising a board on an ethical dilemma.",
+  },
+  {
+    id: "research-methods-management",
+    number: 4,
+    title: "Research methods for management",
+    level: "postgraduate",
+    theme: "Research design proposal.",
+    artefact:
+      "a 3,000-word proposal for an original research project. Current rubric has four rows; students have never contributed to rubric design.",
+  },
+  {
+    id: "strategic-management",
+    number: 5,
+    title: "Strategic management",
+    level: "UG year 3",
+    theme: "Live case presentation.",
+    artefact:
+      "a 20-minute group presentation on a real company's strategic challenge.",
+  },
+  {
+    id: "organisational-learning-development",
+    number: 6,
+    title: "Organisational learning & development",
+    level: "MBA elective",
+    theme: "Reflective practice portfolio.",
+    artefact:
+      "a portfolio of six reflective entries produced across the module.",
+  },
+];
+
+// AI ladder rungs — mirrored from the full app's AI_USE_LEVELS (full
+// rubric-co-builder/lib/types.ts). Kept in sync verbatim so a teacher
+// who graduates from companion → full app keeps the same vocabulary.
+export const AI_USE_LEVELS: Array<{
+  level: AiUseLevel;
+  name: string;
+  helper: string;
+}> = [
+  {
+    level: 0,
+    name: "no AI anywhere.",
+    helper:
+      "nothing in this project touches an AI tool. research, drafting, feedback, polishing — all human.",
+  },
+  {
+    level: 1,
+    name: "AI for brainstorming only.",
+    helper:
+      "we can use AI to explore ideas at the start. every word in the final artefact is ours.",
+  },
+  {
+    level: 2,
+    name: "AI for feedback on drafts.",
+    helper:
+      "we draft, then use AI to test for clarity or gaps. we rewrite based on what we learn. the AI doesn't hold the pen.",
+  },
+  {
+    level: 3,
+    name: "AI co-authors our work, disclosed.",
+    helper:
+      "AI contributes to the drafting itself. we disclose where and how in the artefact.",
+  },
+  {
+    level: 4,
+    name: "AI is the subject we're studying.",
+    helper:
+      "the project is about AI. using AI tools is part of the inquiry. we document what we used and what we found.",
+  },
 ];
 
 export const SCALE_LEVELS: Array<{ level: ScaleLevel; label: string }> = [
@@ -80,13 +192,23 @@ export const DEFAULT_DESCRIPTORS: Record<ScaleLevel, string> = {
 
 export const STEP_ORDER: DraftStep[] = ["frame", "seed", "scale", "pledge", "commit"];
 
+export function emptyPledge(): Pledge {
+  return {
+    ai_level: null,
+    will_use_for: "",
+    will_not_use_for: "",
+    will_disclose: "",
+    if_cross_line: "",
+  };
+}
+
 export function emptyDraft(): Draft {
   return {
     learning_outcome: "",
     artefact: "",
     criteria: [],
     descriptors: [],
-    pledge: { text: "" },
+    pledge: emptyPledge(),
     step: "frame",
     updated_at: new Date().toISOString(),
   };

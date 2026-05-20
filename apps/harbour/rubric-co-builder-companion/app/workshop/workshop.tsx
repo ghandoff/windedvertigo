@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useReducer } from "react";
-import { Wordmark } from "../_components/wordmark";
+// Wordmark now lives in the root layout as a global footer (PR #112) —
+// no longer imported per-page.
 import { StepFrame } from "./steps/frame";
 import { StepSeed } from "./steps/seed";
 import { StepScale } from "./steps/scale";
@@ -65,13 +66,12 @@ export function Workshop() {
 
   return (
     <main
-      className="min-h-screen px-4 py-8 md:py-12"
+      className="flex-1 px-4 py-8 md:py-12"
       style={{
         background:
           surface === "champagne" ? "var(--color-champagne)" : "var(--color-wv-white)",
       }}
     >
-      <Wordmark />
       <ProgressBar step={draft.step} />
       <div className="max-w-2xl mx-auto pt-8">
         {draft.step === "frame" && (
