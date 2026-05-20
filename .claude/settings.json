@@ -72,6 +72,18 @@
         ]
       }
     ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start-diagnostic.sh",
+            "timeout": 8000
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "",

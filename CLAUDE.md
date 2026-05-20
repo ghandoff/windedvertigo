@@ -129,7 +129,7 @@ Both environments read the same repo, same `CLAUDE.md`, same `.brain/`.
 - Memory updates happen in whichever environment finishes a significant session
 - When Cowork identifies engineering work → log it in `TASKS.md` under `## Engineering (Claude Code)`
 - When Claude Code finishes building → update `TASKS.md` and note what's deployed
-- Handoff notes go in `.brain/memory/handoff.md` for cross-environment context
+- Handoff notes go in `.brain/memory/handoff/` — one file per session (`YYYY-MM-DD-<env>-<slug>.md`); the `_live-state.md` snapshot is owned by the `context-sync` scheduled task. See `.brain/memory/handoff/README.md` for the format. Replaced the single `handoff.md` on 2026-05-19 to eliminate the recurring multi-session merge conflict.
 
 ## Monorepo Structure
 ```
