@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import {
@@ -39,6 +40,11 @@ export default async function RegenerativeCataloguePage() {
         <CataloguePage practices={practices} schema={schema} />
       </main>
       <SiteFooter sections={homeSections} />
+      <Script
+        src="/feedback-widget.js"
+        data-app-slug="regenerative-practices-catalogue"
+        strategy="afterInteractive"
+      />
     </>
   );
 }
