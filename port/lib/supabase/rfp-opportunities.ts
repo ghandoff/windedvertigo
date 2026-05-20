@@ -289,6 +289,13 @@ export async function setProposalStatus(
   status: ProposalStatus,
 ): Promise<void> {
   const updates: Record<string, unknown> = { proposal_status: status };
+  if (status === "generating") {
+    // Set the start timestamp so the sweep cron can use it for the
+    // `proposal_started_at < cutoff` branch (instead of relying solely
+    // on the IS NULL branch which catches all generating records regardless
+    // of age — potentially too aggressive for records < 10 min old).
+    updates.proposal_started_at = new Date().toISOString();
+  }
   if (status !== null && TERMINAL_STATUSES.includes(status)) {
     updates.proposal_completed_at = new Date().toISOString();
   }
@@ -429,6 +436,24 @@ export async function setDeadlineTimezone(
     .eq("notion_page_id", notionPageId);
   if (error) {
     console.warn(`[supabase/rfp-opportunities] setDeadlineTimezone: ${error.message}`);
+  }
+}
+
+/**
+ * Sync the R2 document URL to Supabase immediately after upload.
+ * The detail page reads rfp_document_url from Supabase; without this write
+ * the page shows "no document" until the next sync cron (~15 min).
+ */
+export async function setRfpDocumentUrl(
+  notionPageId: string,
+  url: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({ rfp_document_url: url })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpDocumentUrl: ${error.message}`);
   }
 }
 

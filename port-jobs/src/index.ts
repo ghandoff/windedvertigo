@@ -110,8 +110,13 @@ function seedProcessEnv(env: Env): void {
   process.env.SLACK_WEBHOOK_URL       = env.SLACK_WEBHOOK_URL;
   process.env.SLACK_BOT_TOKEN         = env.SLACK_BOT_TOKEN;
   process.env.NOTION_TOKEN            = env.NOTION_TOKEN;
-  process.env.SUPABASE_URL            = env.SUPABASE_URL;
-  process.env.SUPABASE_SERVICE_KEY    = env.SUPABASE_SERVICE_KEY;
+  // port/lib/supabase/client.ts reads NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SECRET_KEY.
+  // wv-port-jobs secrets use the shorter names SUPABASE_URL + SUPABASE_SERVICE_KEY.
+  // Seed both variants so the Supabase client initialises correctly in the consumer.
+  process.env.NEXT_PUBLIC_SUPABASE_URL = env.SUPABASE_URL;
+  process.env.SUPABASE_SECRET_KEY      = env.SUPABASE_SERVICE_KEY;
+  process.env.SUPABASE_URL             = env.SUPABASE_URL;
+  process.env.SUPABASE_SERVICE_KEY     = env.SUPABASE_SERVICE_KEY;
 }
 
 // ── Shared Notion block builders (copied from generate-proposal.ts) ────────────
@@ -225,9 +230,27 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     try {
       rfp = await getRfpOpportunity(rfpId);
     } catch (err) {
-      console.error("[proposal] failed to fetch RFP:", err);
-      await postToSlack(`⚠️ Proposal generation failed for RFP \`${rfpId}\` — could not fetch record from Notion.`);
-      return { success: false, error: "rfp_not_found" };
+      // Extract the HTTP status code from the Notion SDK's APIResponseError so
+      // we can distinguish permanent failures (404 = page deleted, 403 = no
+      // access) from transient ones (429 = rate limit, 5xx = Notion outage).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const notionStatus: number | null = (err as any)?.status ?? null;
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error(`[proposal] failed to fetch RFP ${rfpId}: HTTP ${notionStatus ?? "?"} — ${errMsg}`);
+
+      setProposalStatus(rfpId, "failed").catch(() => {});
+      updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
+
+      const detail = notionStatus ? ` (Notion HTTP ${notionStatus})` : "";
+      await postToSlack(
+        `⚠️ Proposal generation failed for RFP \`${rfpId}\` — could not fetch record from Notion${detail}.\n` +
+        `Error: \`${errMsg.slice(0, 200)}\``,
+      );
+
+      // Permanent errors: ack immediately — retrying won't help and just
+      // floods #cowork with identical failure messages.
+      const isPermanent = notionStatus === 404 || notionStatus === 403;
+      return { success: isPermanent, error: "rfp_not_found" };
     }
 
     updateRfpOpportunity(rfpId, { proposalStatus: "generating" }).catch(() => {});
@@ -243,6 +266,7 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
 
     if (missingRequired.length > 0) {
       updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
+      setProposalStatus(rfpId, "failed").catch(() => {}); // sync to Supabase immediately
       await postToSlack(
         `⚠️ *${rfpName}* moved to pursuing but is missing info needed for proposal generation.\n\n` +
         `Please add the following to the Notion record:\n${missingRequired.map((f) => `• ${f}`).join("\n")}\n\n` +
@@ -340,6 +364,7 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     } catch (err) {
       console.error("[proposal] Claude generation failed:", err);
       updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
+      setProposalStatus(rfpId, "failed").catch(() => {}); // sync to Supabase immediately
       await postToSlack(`⚠️ Proposal draft generation failed for *${rfpName}*. The AI call encountered an error. Please try again or draft manually.`);
       return { success: false, error: "generation_failed" };
     }
@@ -368,6 +393,7 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     } catch (err) {
       console.error("[proposal] failed to create Deal:", err);
       updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
+      setProposalStatus(rfpId, "failed").catch(() => {}); // sync to Supabase immediately
       await postToSlack(`⚠️ Proposal draft was generated for *${rfpName}* but could not create a Deal record in Notion.`);
       return { success: false, error: "deal_creation_failed" };
     }
