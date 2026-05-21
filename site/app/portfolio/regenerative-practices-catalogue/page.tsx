@@ -11,18 +11,34 @@ import { CataloguePage } from "./catalogue-page";
 
 export const revalidate = 300;
 
+// Canonical moved to /harbour/regenerative-practices-catalogue ahead of the
+// 28 May PRME launch — the legacy /portfolio/... URL still 301s here via
+// next.config.ts redirects.
+const OG_IMAGE =
+  "https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/regenerative-practices.png";
+
 export const metadata: Metadata = {
   title: "regenerative practices catalogue — winded.vertigo",
   description:
     "a living catalogue of regenerative teaching practices, designed by faculty in the PPCS programme.",
   alternates: {
-    canonical: "/portfolio/regenerative-practices-catalogue/",
+    canonical: "/harbour/regenerative-practices-catalogue",
   },
   openGraph: {
-    title: "regenerative practices catalogue — winded.vertigo",
+    type: "website",
+    siteName: "winded.vertigo · harbour",
+    title: "regenerative practices catalogue — a living catalogue, by PRME faculty",
     description:
       "a living catalogue of regenerative teaching practices, designed by faculty in the PPCS programme.",
-    url: "/portfolio/regenerative-practices-catalogue/",
+    url: "/harbour/regenerative-practices-catalogue",
+    images: [{ url: OG_IMAGE, width: 1200, height: 720 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "regenerative practices catalogue — a living catalogue, by PRME faculty",
+    description:
+      "a living catalogue of regenerative teaching practices, designed by faculty in the PPCS programme.",
+    images: [OG_IMAGE],
   },
 };
 
