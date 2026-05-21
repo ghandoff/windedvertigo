@@ -58,11 +58,18 @@
   //   RESEND_API_KEY         — Transactional email (timesheet notifications)
   //   SLACK_WEBHOOK_URL      — Slack incoming webhook (channel posts)
   //   SLACK_BOT_TOKEN        — Slack bot token (DMs + Block Kit)
-  //   NOTION_TOKEN           — Notion read/write (proposal output)
+  //   NOTION_TOKEN           — Notion read/write (Deal CRM record)
   //   SUPABASE_URL           — wv-port-pilot project URL
   //   SUPABASE_SERVICE_KEY   — Service role key (bypasses RLS for job writes)
   //
-  // Copy values from wv-port Vercel environment (same secrets):
+  // Google Docs output secrets (optional — pipeline falls back to Notion if absent):
+  //   GOOGLE_DOCS_FOLDER_ID      — Drive folder ID (from folder URL: /folders/<id>)
+  //   GOOGLE_DOCS_REFRESH_TOKEN  — OAuth refresh token with drive.file scope
+  //                                See port/lib/gdocs.ts header for how to get this.
+  //   GOOGLE_DOCS_CLIENT_ID      — OAuth client ID (can reuse Calendar OAuth app)
+  //   GOOGLE_DOCS_CLIENT_SECRET  — OAuth client secret
+  //
+  // Copy core values from wv-port secrets (same as wv-port):
   //   vercel env pull .env.port-jobs --project wv-port --environment production
   //   Then: cat .env.port-jobs | grep -E 'ANTHROPIC|RESEND|SLACK|NOTION|SUPABASE' | xargs -I{} wrangler secret put {} --name wv-port-jobs
 
