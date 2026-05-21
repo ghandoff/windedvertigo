@@ -56,13 +56,22 @@ export default function RootLayout({
         <a href="#main" className="skip-link">
           skip to content
         </a>
-        {/* min-h-screen flex on the page wrapper lets the Wordmark footer
-            bottom-stick naturally without needing position: fixed. The
-            individual page <main>s use flex-1 so they fill available space. */}
+        {/*
+          Page wrapper. The Wordmark footer is `position: fixed; bottom: 0`
+          (see _components/wordmark.tsx) so it's always visible regardless
+          of scroll position. Because the footer is out of flow, scrollable
+          content needs bottom padding to clear it — `pb-20` (5rem ≈ 80px)
+          is enough room for the footer's ~56px height plus the iPhone
+          home-indicator safe-area on PWA installs.
+
+          The flex column is preserved (even though the fixed footer no
+          longer needs it) so per-page <main>s with `flex-1` keep working
+          identically — minimizes blast radius vs touching every step.
+        */}
         <div
           id="main"
           tabIndex={-1}
-          className="min-h-screen flex flex-col"
+          className="min-h-screen flex flex-col pb-20"
         >
           {children}
           <Wordmark />
