@@ -29,3 +29,47 @@ export function staleStateGuard(
     expected,
   };
 }
+
+// Quorum guard (Maria audit #2): tally endpoints succeed with zero
+// participant input today. A facilitator who clicks "tally" before any
+// student has voted ends up with an empty / nonsensical rubric. Each
+// tally route now counts the relevant input and refuses to advance if
+// the count is below `required` (default 1) — unless the host explicitly
+// passes `{ force: true }` in the POST body.
+
+export type NoQuorumResponse = {
+  ok: false;
+  reason: "no_quorum";
+  what: string; // human-readable description of what was missing
+  required: number;
+  found: number;
+};
+
+/**
+ * Returns a NextResponse-shaped payload if `found < required`, otherwise
+ * null. `what` is a short human-readable label like "round 1 votes" that
+ * the client can show to the host (e.g., "you can't tally yet — no
+ * <what> have been cast").
+ */
+export function quorumGuard(
+  what: string,
+  found: number,
+  required = 1,
+): NoQuorumResponse | null {
+  if (found >= required) return null;
+  return { ok: false, reason: "no_quorum", what, required, found };
+}
+
+/**
+ * Best-effort `force` extraction from a POST body. Tally routes are
+ * mostly empty-body POSTs today; this lets them adopt `{ force: true }`
+ * without breaking existing callers. Returns false on any parse error.
+ */
+export async function readForceFlag(req: Request): Promise<boolean> {
+  try {
+    const body = (await req.clone().json()) as { force?: unknown } | null;
+    return body?.force === true;
+  } catch {
+    return false;
+  }
+}
