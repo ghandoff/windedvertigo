@@ -124,7 +124,7 @@ export function StepScale({ draft, onPatch, onNext, onBack }: Props) {
         <button
           type="button"
           onClick={persistAndNext}
-          className="btn-primary text-base"
+          className="btn-primary text-sm"
         >
           next: add a pledge
         </button>

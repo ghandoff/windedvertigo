@@ -192,7 +192,7 @@ export function StepPledge({ draft, onPatch, onNext, onBack }: Props) {
         <button type="button" onClick={onBack} className="btn-secondary text-sm">
           back
         </button>
-        <button type="button" onClick={onNext} className="btn-primary text-base">
+        <button type="button" onClick={onNext} className="btn-primary text-sm">
           next: see the rubric
         </button>
       </div>

@@ -193,7 +193,7 @@ export function StepFrame({ draft, onPatch, onNext }: Props) {
           type="button"
           onClick={handleNext}
           disabled={!ready}
-          className="btn-primary text-base disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           next: pick criteria
         </button>

@@ -124,7 +124,7 @@ export function StepSeed({ draft, onPatch, onNext, onBack }: Props) {
           type="button"
           onClick={onNext}
           disabled={!ready}
-          className="btn-primary text-base disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           next: scale the criteria
         </button>
