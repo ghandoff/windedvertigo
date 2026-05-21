@@ -32,7 +32,7 @@ const FROM_ADDRESS = 'Nordic Research Platform <noreply@windedvertigo.com>';
 const ROLE_LABELS = {
   reviewer:    'External Reviewer',
   researcher:  'Researcher',
-  ra:          'Research Associate',
+  ra:          'Regulatory Affairs',
   admin:       'Administrator',
   'super-user': 'Super User',
   // legacy aliases

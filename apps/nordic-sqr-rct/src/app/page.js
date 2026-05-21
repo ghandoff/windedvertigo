@@ -331,9 +331,15 @@ function LandingContent() {
                         <Link href="/register" className="btn-secondary w-full text-center">Apply to be a reviewer</Link>
                       </>
                     ) : (
-                      <p className="text-sm text-gray-600">
-                        <span className="font-semibold">Need access?</span> Nordic team accounts are provisioned by the platform admin. Contact your manager or email <a href="mailto:garrett@windedvertigo.com" className="text-pacific underline">garrett@windedvertigo.com</a>.
-                      </p>
+                      <>
+                        <p className="text-sm text-gray-600">
+                          <span className="font-semibold">Need access?</span> Nordic team accounts are provisioned by the platform admin. Contact your manager or email <a href="mailto:garrett@windedvertigo.com" className="text-pacific underline">garrett@windedvertigo.com</a>.
+                        </p>
+                        <p className="text-xs text-gray-400 mt-2">
+                          <span className="font-medium">First time?</span>{' '}
+                          Use &ldquo;Send a sign-in link instead&rdquo; — no password needed. A link will arrive at your Nordic Naturals email within a minute.
+                        </p>
+                      </>
                     )}
                   </div>
                 </div>

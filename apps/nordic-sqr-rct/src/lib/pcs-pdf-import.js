@@ -36,7 +36,7 @@ export const HAIKU_MODEL = process.env.PREFLIGHT_MODEL || 'claude-haiku-4-5-2025
  * each import job so the batch-import dashboard can flag committed jobs that
  * were extracted under a stale prompt (and offer bulk re-extract).
  */
-export const PROMPT_VERSION = 'v2.2-confidence';
+export const PROMPT_VERSION = 'v2.3-ai-name-accuracy';
 
 /**
  * Extract all structured data from a PCS document (PDF or DOCX) in a single
@@ -491,7 +491,9 @@ Return a single JSON object:
 7. Parse dates to ISO format (YYYY-MM-DD) where possible.
 8. For every emitted claim, formula line, evidence packet, and reference, include the 1-indexed PDF page number (\`sourcePage\`) where that item was observed in the PDF. If the item spans pages or the page is genuinely unknown, use null.
 9. For every claim, formula line, and evidence packet: emit a confidence field. Use lower values (0.3-0.6) when source text is ambiguous, partially obscured, or could be interpreted multiple ways. Reserve 0.9+ only for clear, direct observations. Be honest — low confidence on a few items is far more useful than uniform 1.0 scores.
-10. Return ONLY valid JSON — no commentary before or after.`;
+10. Return ONLY valid JSON — no commentary before or after.
+11. For each claim's doseRequirements, the \`ai\` field MUST use the EXACT same string as the corresponding \`ai\` value already emitted in \`formulaLines\` for this product. Do not paraphrase, abbreviate, or use the chemical form name — use the bare active ingredient label (e.g., if formulaLines has "Vitamin D3", write "Vitamin D3" in doseRequirements, not "Vitamin D" or "cholecalciferol"). This ensures the claim-to-ingredient relational link resolves correctly in the database.
+12. For claims about omega fatty acids, be precise: if the dose requirement specifies EPA, use "EPA"; if DHA, use "DHA"; if the claim can be met by either alone, emit two separate doseRequirements rows with different combinationGroup numbers. Never collapse "EPA" and "DHA" into "Omega-3" in the ai field unless the PCS literally uses that term.`;
 }
 
 /**
@@ -676,6 +678,13 @@ export async function commitExtraction(data, existingDocId = null) {
       }
     }
 
+    // Collect AI names from the just-committed formula lines for cross-checking
+    // against doseRequirements in Phase 4b. Catches cases where the LLM used
+    // different name variants between formulaLines.ai and doseRequirements.ai.
+    const formulaLineAiNames = new Set(
+      (data.formulaLines || []).map(fl => (fl.ai || '').trim().toLowerCase()).filter(Boolean)
+    );
+
     // Phase 4: Claims (linked to version)
     // Track claimNo → claimId for evidence-packet linking in Phase 7
     const claimIdByNo = {};
@@ -745,6 +754,21 @@ export async function commitExtraction(data, existingDocId = null) {
                 activeIngredientCanonicalId = ing.id;
               } else {
                 warnings.push(`Active ingredient not in canonical DB for claim ${claim.claimNo} dose requirement: "${req.ai}"`);
+              }
+              // Cross-check: doseRequirements.ai should match a formulaLines.ai
+              // from this same document (rule 11). Surface a warning if not —
+              // the reviewer can correct the ingredient name before committing.
+              if (formulaLineAiNames.size > 0) {
+                const reqAiNorm = req.ai.trim().toLowerCase();
+                const matched = [...formulaLineAiNames].some(name =>
+                  name === reqAiNorm || name.includes(reqAiNorm) || reqAiNorm.includes(name)
+                );
+                if (!matched) {
+                  warnings.push(
+                    `Claim ${claim.claimNo} dose requirement AI "${req.ai}" does not match any formula line AI name in this document. ` +
+                    `Known AIs: ${[...formulaLineAiNames].join(', ')}. Verify this is correct before committing.`
+                  );
+                }
               }
             }
             const dr = await createClaimDoseReq({

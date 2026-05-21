@@ -46,13 +46,16 @@ export function hasAnyRole(user, roles) {
  */
 export const ROLE_SETS = Object.freeze({
   // Read-or-write PCS access (includes pcs-readonly). Matches hasPcsAccess.
-  PCS_ANY:        ['pcs', 'pcs-readonly', 'admin'],
+  // Wave 7.1.4: added `researcher`, `ra` (new-world role names); legacy `pcs`/
+  // `pcs-readonly` kept so JWTs minted before the Notion migration keep working.
+  PCS_ANY:        ['pcs', 'pcs-readonly', 'researcher', 'ra', 'admin'],
   // PCS writers only (no readonly).
-  PCS_WRITERS:    ['pcs', 'admin'],
-  // Legacy "internal Nordic user" mix used by the old fallback ternary.
-  PCS_OR_RCT:     ['sqr-rct', 'pcs', 'pcs-readonly', 'admin'],
+  PCS_WRITERS:    ['pcs', 'researcher', 'ra', 'admin'],
+  // Internal Nordic user mix + external reviewers.
+  // Wave 7.1.4: added `researcher`, `ra`, `reviewer` alongside legacy aliases.
+  PCS_OR_RCT:     ['sqr-rct', 'reviewer', 'pcs', 'pcs-readonly', 'researcher', 'ra', 'admin'],
   // SQR-RCT score reviewers.
-  SQR_REVIEWERS:  ['sqr-rct', 'admin'],
+  SQR_REVIEWERS:  ['sqr-rct', 'reviewer', 'admin'],
   // Admin-only (UX hint — server must re-verify via requireAdminLive).
   ADMIN_ONLY:     ['admin'],
 });
