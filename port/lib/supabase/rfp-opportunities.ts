@@ -255,10 +255,13 @@ export async function claimProposalGeneration(
   //   UPDATE rfp_opportunities
   //   SET proposal_status='generating', proposal_started_at=NOW()
   //   WHERE notion_page_id = $1
-  //     AND (proposal_status IS NULL OR proposal_status NOT IN ('generating','queued'))
+  //     AND (proposal_status IS NULL
+  //          OR proposal_status NOT IN ('generating'))
   //   RETURNING notion_page_id
   //
   // Zero rows → another caller already holds the lock. Non-zero → we won.
+  // NOTE: 'queued' must remain claimable — it is the state set by the enqueue
+  // path and signals "ready to process". Only 'generating' is an active lock.
   const { data, error } = await supabase
     .from("rfp_opportunities")
     .update({
@@ -266,7 +269,7 @@ export async function claimProposalGeneration(
       proposal_started_at: new Date().toISOString(),
     })
     .eq("notion_page_id", notionPageId)
-    .or("proposal_status.is.null,proposal_status.not.in.(generating,queued)")
+    .or("proposal_status.is.null,proposal_status.not.in.(generating)")
     .select("notion_page_id");
 
   if (error) {

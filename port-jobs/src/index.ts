@@ -63,6 +63,7 @@ import {
   setProposalStep,
   setProposalUrls,
   resetProposalToFailed,
+  getRfpOpportunityByIdFromSupabase,
 } from "@/lib/supabase/rfp-opportunities";
 import { getTimesheet } from "@/lib/notion/timesheets";
 import { getActiveMembers } from "@/lib/notion/members";
@@ -225,31 +226,33 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     seedProcessEnv(env as unknown as Env);
     const { rfpId, triggeredBy } = payload;
 
-    // 1. Fetch RFP
+    // 1. Fetch RFP — read from Supabase (not Notion).
+    //
+    // The Inngest version switched to Supabase here after discovering that
+    // calling getRfpOpportunity() from Notion caused the consumer to hang
+    // and restart from scratch on timeout (150-300ms per call, no retry
+    // isolation). Supabase is fast (~10ms), doesn't require NOTION_TOKEN,
+    // and always reflects the authoritative state since the write path
+    // syncs all RFP mutations to rfp_opportunities.
     let rfp;
     try {
-      rfp = await getRfpOpportunity(rfpId);
+      rfp = await getRfpOpportunityByIdFromSupabase(rfpId);
+      if (!rfp) throw new Error(`RFP ${rfpId} not found in Supabase`);
     } catch (err) {
-      // Extract the HTTP status code from the Notion SDK's APIResponseError so
-      // we can distinguish permanent failures (404 = page deleted, 403 = no
-      // access) from transient ones (429 = rate limit, 5xx = Notion outage).
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const notionStatus: number | null = (err as any)?.status ?? null;
       const errMsg = err instanceof Error ? err.message : String(err);
-      console.error(`[proposal] failed to fetch RFP ${rfpId}: HTTP ${notionStatus ?? "?"} — ${errMsg}`);
+      console.error(`[proposal] failed to fetch RFP ${rfpId} from Supabase — ${errMsg}`);
 
       setProposalStatus(rfpId, "failed").catch(() => {});
       updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
 
-      const detail = notionStatus ? ` (Notion HTTP ${notionStatus})` : "";
       await postToSlack(
-        `⚠️ Proposal generation failed for RFP \`${rfpId}\` — could not fetch record from Notion${detail}.\n` +
+        `⚠️ Proposal generation failed for RFP \`${rfpId}\` — could not fetch record from Supabase.\n` +
         `Error: \`${errMsg.slice(0, 200)}\``,
       );
 
-      // Permanent errors: ack immediately — retrying won't help and just
-      // floods #cowork with identical failure messages.
-      const isPermanent = notionStatus === 404 || notionStatus === 403;
+      // Supabase errors are likely transient (network, cold start) — allow retry.
+      // "not found" means the row was deleted; don't retry.
+      const isPermanent = errMsg.includes("not found in Supabase");
       return { success: isPermanent, error: "rfp_not_found" };
     }
 
