@@ -114,9 +114,13 @@
 
 /* print stylesheet: hides navigation + rebuilds the rubric as a single,
    inkable page. triggered from the commit step's "print rubric" button.
-   landscape A4 fits a 5-criteria × 4-level rubric without column squash. */
+   Portrait A4 (PR #117). To fit 5 columns (criterion + 4 levels) on a
+   ~18cm printable width without overflow, we shrink the table typography
+   to 8pt with tight padding and force table-layout: fixed so cells
+   share width evenly rather than letting long descriptors push the
+   layout sideways. */
 @page {
-  size: A4 landscape;
+  size: A4 portrait;
   margin: 1.5cm;
 }
 
@@ -136,8 +140,36 @@
   .surface-champagne {
     background: #fff !important;
   }
+  /* The whole rubric article — let it span across pages if it has to,
+     but each row stays whole (rule below). */
   .rubric-print-table {
-    page-break-inside: avoid;
+    page-break-inside: auto;
+  }
+  /* Force fixed table layout so columns share the printable width
+     evenly. Without this, table-layout: auto lets the longest cell
+     dictate column width and pushes the table beyond 18cm. */
+  .rubric-print-table table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    font-size: 8pt !important;
+    line-height: 1.3 !important;
+  }
+  .rubric-print-table th,
+  .rubric-print-table td {
+    padding: 3px 5px !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  /* The first column ("criterion" header + criterion-name rows) gets
+     a slightly wider share since it carries the rubric's anchor labels.
+     1.4fr for criterion, 1fr each for the 4 levels = 5.4 shares total. */
+  .rubric-print-table th:first-child,
+  .rubric-print-table td:first-child {
+    width: 26% !important;
+  }
+  .rubric-print-table th:not(:first-child),
+  .rubric-print-table td:not(:first-child) {
+    width: 18.5% !important;
   }
   /* row-level keep-together so a criterion + its 4 descriptors don't
      split across pages mid-row. */
