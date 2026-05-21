@@ -10,10 +10,14 @@ import { BASE_PATH } from "@/lib/paths";
  * scrollable content needs bottom padding to clear the footer (see
  * layout.tsx — `pb-20` on the page wrapper).
  *
+ * Wordmark: the stacked WINDED VERTIGO PNG (wv-stacked.png), pinned
+ * to the LEFT of the footer (PR #123). Previously the flat horizontal
+ * SVG (wv-cadet.svg), right-aligned. The stacked treatment is more
+ * visually distinctive in a small footer space.
+ *
  * Image src manually prefixes BASE_PATH because `next/image` with
  * `unoptimized: true` doesn't auto-prepend basePath for string-literal
- * src values. Without this the image 404s (resolves to
- * /wordmark/wv-cadet.svg instead of /harbour/co-rubric-companion/wordmark/wv-cadet.svg).
+ * src values. Without this the image 404s.
  *
  * `env(safe-area-inset-bottom)` keeps the wordmark above the iPhone
  * home indicator when the page is added to home screen as a PWA.
@@ -26,10 +30,10 @@ export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <footer
       role="contentinfo"
-      className={`no-print fixed bottom-0 inset-x-0 z-10 bg-white border-t flex items-center justify-end px-4 py-3 ${className}`}
+      className={`no-print fixed bottom-0 inset-x-0 z-10 bg-white border-t flex items-center justify-start px-4 py-2 ${className}`}
       style={{
         borderColor: "color-mix(in srgb, var(--color-cadet) 10%, transparent)",
-        paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))",
+        paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))",
       }}
     >
       <a
@@ -37,11 +41,16 @@ export function Wordmark({ className = "" }: { className?: string }) {
         aria-label="winded.vertigo — visit harbour"
         className="inline-flex items-center opacity-80 hover:opacity-100 transition-opacity"
       >
+        {/* Stacked WINDED VERTIGO wordmark (PR #123) — replaces the
+            previous wv-cadet.svg flat horizontal mark. The stacked
+            treatment is more visually distinctive in a small footer.
+            Source PNG is 2954×1565 (ratio 1.887:1); 80×42 matches that
+            ratio within 1% so there's no layout shift on first paint. */}
         <Image
-          src={`${BASE_PATH}/wordmark/wv-cadet.svg`}
+          src={`${BASE_PATH}/wordmark/wv-stacked.png`}
           alt="winded.vertigo"
-          width={110}
-          height={20}
+          width={80}
+          height={42}
           priority
           unoptimized
         />
