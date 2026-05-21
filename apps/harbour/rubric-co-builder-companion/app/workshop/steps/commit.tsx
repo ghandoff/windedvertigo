@@ -223,12 +223,18 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
         <button type="button" onClick={onBack} className="btn-secondary text-sm">
           back
         </button>
+        {/* Button triggers window.print() — Chrome and Safari default the
+            "Destination" dropdown in that dialog to "Save as PDF", so
+            naming the button after what 99% of users will do (PDF) is
+            more honest than naming it after the underlying mechanic
+            (print). Hint sentence below covers the two dialog
+            checkboxes worth tweaking for the cleanest output. */}
         <button
           type="button"
           onClick={() => window.print()}
           className="btn-secondary text-sm"
         >
-          print rubric
+          save as PDF
         </button>
         {confirmReset ? (
           <button
@@ -250,6 +256,19 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
           </button>
         )}
       </div>
+
+      {/* One-line hint nudging users toward the two browser-print-dialog
+          settings that materially improve the saved PDF. We can't enforce
+          either from CSS, so the cheapest move is just to tell people. */}
+      <p
+        className="text-xs no-print"
+        style={{ color: "var(--color-cadet)", opacity: 0.65 }}
+      >
+        opens your browser&apos;s print dialog with{" "}
+        <strong>save as PDF</strong> pre-selected. for the cleanest output,
+        uncheck <em>headers and footers</em> and check{" "}
+        <em>background graphics</em>.
+      </p>
     </div>
   );
 }
