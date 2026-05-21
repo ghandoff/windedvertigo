@@ -72,6 +72,16 @@ export default function RootLayout({
           id="main"
           tabIndex={-1}
           className="min-h-screen flex flex-col pb-20"
+          // Cadet bg on the wrapper so the `pb-20` clearance strip
+          // (the gap above the fixed footer) reads as one continuous
+          // cadet band with the footer itself, instead of a
+          // body-white sliver that looked like a second footer bar
+          // on screens where the step bg differed from white. Each
+          // workshop step's own <main> still owns its own background
+          // (champagne or white) and covers its content area, so
+          // cadet only shows in the 20px-ish gap between the bottom
+          // of the step's main and the top of the footer. PR #124.
+          style={{ background: "var(--color-cadet)" }}
         >
           {children}
           <Wordmark />

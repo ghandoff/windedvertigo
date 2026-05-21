@@ -34,6 +34,10 @@ import {
   getRfpOpportunity,
   updateRfpOpportunity,
 } from "@/lib/notion/rfp-radar";
+import {
+  createProposalGoogleDoc,
+  createCoverLetterGoogleDoc,
+} from "@/lib/gdocs";
 // Inlined from port/lib/inngest/functions/parse-rfp-questions.ts
 // (avoids a hard dependency on the inngest module path, which is deleted post-G.2.4)
 interface QuestionBankEntry {
@@ -83,6 +87,12 @@ export interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
 
+  // Google Docs / Drive secrets (optional — pipeline falls back gracefully)
+  GOOGLE_DOCS_FOLDER_ID:      string; // Drive folder ID where proposal docs are created
+  GOOGLE_DOCS_REFRESH_TOKEN:  string; // OAuth refresh token with drive.file scope
+  GOOGLE_DOCS_CLIENT_ID:      string; // OAuth client ID (can reuse Calendar app)
+  GOOGLE_DOCS_CLIENT_SECRET:  string; // OAuth client secret
+
   // Plain-text vars (set in wrangler.jsonc [vars])
   R2_PUBLIC_URL: string; // public domain for port-assets bucket
 
@@ -118,6 +128,11 @@ function seedProcessEnv(env: Env): void {
   process.env.SUPABASE_SECRET_KEY      = env.SUPABASE_SERVICE_KEY;
   process.env.SUPABASE_URL             = env.SUPABASE_URL;
   process.env.SUPABASE_SERVICE_KEY     = env.SUPABASE_SERVICE_KEY;
+  // Google Docs / Drive — optional; gdocs.ts returns null if absent
+  if (env.GOOGLE_DOCS_FOLDER_ID)     process.env.GOOGLE_DOCS_FOLDER_ID     = env.GOOGLE_DOCS_FOLDER_ID;
+  if (env.GOOGLE_DOCS_REFRESH_TOKEN) process.env.GOOGLE_DOCS_REFRESH_TOKEN = env.GOOGLE_DOCS_REFRESH_TOKEN;
+  if (env.GOOGLE_DOCS_CLIENT_ID)     process.env.GOOGLE_DOCS_CLIENT_ID     = env.GOOGLE_DOCS_CLIENT_ID;
+  if (env.GOOGLE_DOCS_CLIENT_SECRET) process.env.GOOGLE_DOCS_CLIENT_SECRET = env.GOOGLE_DOCS_CLIENT_SECRET;
 }
 
 // ── Shared Notion block builders (copied from generate-proposal.ts) ────────────
@@ -401,9 +416,43 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       return { success: false, error: "deal_creation_failed" };
     }
 
-    // 6b. Append proposal content as Notion blocks
+    // 6b. Create proposal Google Doc (main output — full proposal + team CVs)
+    // Team CVs are appended as a final section in the same doc (two docs total:
+    // proposal + cover letter, per the "two docs per RFP" convention).
+    setProposalStep(rfpId, "building_documents").catch((e) =>
+      console.warn("[proposal] step tracking:", e),
+    );
+    let proposalDocUrl: string | null = null;
+    try {
+      const proposalDoc = await createProposalGoogleDoc(
+        rfpName,
+        draft,
+        org?.organization ?? null,
+        dueLabel !== "TBD" ? dueLabel : null,
+        valueLabel,
+        TEAM_BIOS,
+      );
+      if (proposalDoc) {
+        proposalDocUrl = proposalDoc.url;
+        console.log(`[proposal] created proposal Google Doc: ${proposalDoc.id}`);
+      }
+    } catch (err) {
+      console.warn("[proposal] Google Doc creation failed (non-fatal, will use Notion Deal URL):", err);
+    }
+
+    // 6c. Write proposal status back to RFP
+    // proposalDraftUrl prefers the Google Doc; falls back to the Notion Deal page.
+    const dealUrl  = notionUrl(deal.id);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const blocks: any[] = [
+    const rfpUpdates: any = {
+      proposalStatus:   "ready-for-review",
+      proposalDraftUrl: proposalDocUrl ?? dealUrl,
+    };
+
+    // Append a minimal header to the Notion Deal page: metadata + link to Google Docs.
+    // The full proposal text lives in the Google Doc — Notion serves as the CRM record.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dealHeaderBlocks: any[] = [
       calloutBlock(
         [
           `📋 RFP: ${rfpName}`,
@@ -414,39 +463,15 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
         ].filter(Boolean).join("\n"),
         "📋",
       ),
-      divider(),
-      heading1("Executive Summary"),        ...sectionToBlocks(draft.executiveSummary),         divider(),
-      heading1("Understanding of Requirements"), ...sectionToBlocks(draft.understandingOfRequirements), divider(),
-      heading1("Proposed Approach"),        ...sectionToBlocks(draft.proposedApproach),          divider(),
-      heading1("Relevant Experience"),
-      ...draft.relevantExperience.flatMap((exp) => [heading3(exp.project), ...sectionToBlocks(exp.relevance)]),
-      divider(),
-      heading1("Team Composition"),         ...sectionToBlocks(draft.teamComposition),           divider(),
-      heading1("Value Proposition"),        ...sectionToBlocks(draft.valueProposition),          divider(),
-      heading1("Budget Framework"),         ...sectionToBlocks(draft.budgetFramework),           divider(),
-      heading1("Risk Mitigation"),          ...sectionToBlocks(draft.riskMitigation),
     ];
-
-    if (draft.clarifyingQuestions.length > 0) {
-      blocks.push(divider(), heading2("❓ Clarifying Questions for Client"), ...draft.clarifyingQuestions.map((q) => bulletItem(q)));
+    if (proposalDocUrl) {
+      dealHeaderBlocks.push(
+        para(`📝 Proposal draft: ${proposalDocUrl}`),
+      );
     }
-    if (draft.missingInfo.length > 0) {
-      blocks.push(divider(), heading2("🔍 Gaps to Fill Before Submitting"), ...draft.missingInfo.map((m) => para(m)));
-    }
-    if (draft.references.length > 0) {
-      blocks.push(divider(), heading2("References"), ...draft.references.map((r) => para(r)));
-    }
-
-    try {
-      await appendBlocks(deal.id, blocks);
-    } catch (err) {
-      console.warn("[proposal] block append failed:", err);
-    }
-
-    // 6c. Write proposal status back to RFP
-    const dealUrl = notionUrl(deal.id);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rfpUpdates: any = { proposalStatus: "ready-for-review", proposalDraftUrl: dealUrl };
+    appendBlocks(deal.id, dealHeaderBlocks).catch((err) =>
+      console.warn("[proposal] deal header append failed (non-fatal):", err),
+    );
 
     // 6d. Increment timesUsed on cited BD assets
     const citedAssetIds = draft.relevantExperience.map((e) => e.assetId).filter((id): id is string => !!id);
@@ -454,54 +479,24 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       await Promise.all(citedAssetIds.map((id) => incrementBdAssetUsage(id).catch(() => {})));
     }
 
-    // 6e. Generate cover letter sub-page
-    setProposalStep(rfpId, "cover_letter").catch((e) =>
-      console.warn("[proposal] step tracking:", e),
-    );
+    // 6e. Create cover letter Google Doc (separate doc when required)
     let coverLetterUrl: string | null = null;
     if (draft.requiresCoverLetter && draft.coverLetter) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const clPage = await notion.pages.create({ parent: { page_id: deal.id }, properties: { title: [{ type: "text", text: { content: `Cover Letter — ${rfpName}` } }] } } as any);
-        await appendBlocks(clPage.id, [calloutBlock(`Cover letter for: ${rfpName}\nDue: ${dueLabel}`, "📬"), divider(), ...sectionToBlocks(draft.coverLetter)]);
-        coverLetterUrl = notionUrl(clPage.id);
-        rfpUpdates.coverLetterUrl = coverLetterUrl;
+        const clDoc = await createCoverLetterGoogleDoc(rfpName, draft.coverLetter);
+        if (clDoc) {
+          coverLetterUrl = clDoc.url;
+          rfpUpdates.coverLetterUrl = coverLetterUrl;
+          console.log(`[proposal] created cover letter Google Doc: ${clDoc.id}`);
+        }
       } catch (err) {
-        console.warn("[proposal] cover letter page creation failed:", err);
+        console.warn("[proposal] cover letter Google Doc creation failed (non-fatal):", err);
       }
     }
 
-    // 6f. Generate team CVs sub-page
-    setProposalStep(rfpId, "team_cvs").catch((e) =>
-      console.warn("[proposal] step tracking:", e),
-    );
-    let teamCvsUrl: string | null = null;
-    if (draft.teamMembersForCvs.length > 0) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const cvsPage = await notion.pages.create({ parent: { page_id: deal.id }, properties: { title: [{ type: "text", text: { content: `Team CVs — ${rfpName}` } }] } } as any);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const cvBlocks: any[] = [calloutBlock(`Team CVs for: ${rfpName}`, "👥"), divider()];
-        for (const name of draft.teamMembersForCvs) {
-          const bio = TEAM_BIOS[name];
-          if (!bio) continue;
-          cvBlocks.push(heading2(name), para(bio));
-          const relevantAssets = bdAssetsResult.filter((a) => draft.relevantExperience.some((e) => e.assetId === a.id)).slice(0, 4);
-          if (relevantAssets.length > 0) {
-            cvBlocks.push(heading3("Selected Relevant Experience"));
-            for (const asset of relevantAssets) {
-              cvBlocks.push(bulletItem(`${asset.asset}${asset.description ? ` — ${asset.description.slice(0, 200)}` : ""}`));
-            }
-          }
-          cvBlocks.push(divider());
-        }
-        await appendBlocks(cvsPage.id, cvBlocks);
-        teamCvsUrl = notionUrl(cvsPage.id);
-        rfpUpdates.teamCvsUrl = teamCvsUrl;
-      } catch (err) {
-        console.warn("[proposal] team CVs page creation failed:", err);
-      }
-    }
+    // 6f. Team CVs — included in the main proposal Google Doc (see buildProposalHtml).
+    // No separate Notion sub-page needed. teamCvsUrl stays null.
+    const teamCvsUrl: string | null = null;
 
     updateRfpOpportunity(rfpId, rfpUpdates).catch(() => {});
 
@@ -528,9 +523,11 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       `📅 Due ${dueLabel}`,
       valueLabel ? `💰 ${valueLabel}` : "",
       ``,
-      `<${dealUrl}|Open proposal draft in Notion →>`,
-      coverLetterUrl ? `<${coverLetterUrl}|Cover letter →>` : "",
-      teamCvsUrl ? `<${teamCvsUrl}|Team CVs →>` : "",
+      proposalDocUrl
+        ? `<${proposalDocUrl}|Open proposal draft in Google Docs →>`
+        : `<${dealUrl}|Open proposal draft in Notion →>`,
+      coverLetterUrl ? `<${coverLetterUrl}|Cover letter (Google Doc) →>` : "",
+      `<${dealUrl}|CRM Deal record (Notion) →>`,
       ``,
       `_Review the draft, fill any flagged gaps, and mark complete when submission-ready._`,
     ];

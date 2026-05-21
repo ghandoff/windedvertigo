@@ -12,6 +12,25 @@ import { formatRatesForPrompt } from "@/lib/notion/rate-reference";
 
 // ── output schema ─────────────────────────────────────────
 
+/**
+ * A single output deliverable from a proposal generation run.
+ * Used by proposal-bundle-writer.ts to create per-file bundles.
+ */
+export interface ProposalDeliverable {
+  /** Human-readable label matching the RFP requirement (e.g., "Cover Letter", "Technical Proposal"). */
+  label: string;
+  /** ID of the rfp_requirements row this deliverable satisfies, if any. */
+  requirementId?: string | null;
+  /** Page limit specified in the requirement. */
+  pageLimit?: number | null;
+  /** Word limit specified in the requirement. */
+  wordLimit?: number | null;
+  /** Submission format: "pdf" | "word" | "either" | null. */
+  format?: string | null;
+  /** The Markdown content of the deliverable. */
+  content?: string;
+}
+
 export interface ProposalDraft {
   executiveSummary: string;
   understandingOfRequirements: string;
