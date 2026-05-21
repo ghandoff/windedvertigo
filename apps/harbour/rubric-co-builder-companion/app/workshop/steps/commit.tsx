@@ -215,7 +215,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
           className="text-[10px] uppercase tracking-widest pt-2 print-only"
           style={{ color: "var(--color-cadet)", opacity: 0.6 }}
         >
-          drafted with the rubric co-builder companion · winded.vertigo
+          drafted with co.rubric companion · winded.vertigo
         </footer>
       </article>
 
