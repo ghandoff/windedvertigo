@@ -13,26 +13,6 @@ import Image from 'next/image';
  * between hero, about, stats, and CTA.
  */
 const AUDIENCE_CONTENT = {
-  reviewer: {
-    label: 'External Reviewer',
-    heroTitle: 'Study Quality Rubric for RCTs',
-    heroSubtitle: 'Independent secondary reviews of randomized controlled trials in nutraceutical and pharmaceutical research. Earn credibility, build your portfolio.',
-    primaryCtaLabel: 'Apply to be a reviewer',
-    primaryCtaHref: '/register',
-    secondaryCtaLabel: 'Sign in',
-    aboutHeading: 'How peer review works',
-    steps: [
-      { title: 'Submit Intake', desc: 'Extract key study details from the published article using our structured intake form.', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-      { title: 'Score Quality', desc: 'Rate the study across 11 validated rubric questions, each assessing a different quality dimension.', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
-      { title: 'Analyze Results', desc: 'View inter-rater reliability metrics, quality distributions, and detailed analytics across all reviews.', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-    ],
-    stats: [
-      { label: 'Rubric Questions', value: '11' },
-      { label: 'Quality Dimensions', value: '3 Tiers' },
-      { label: 'Max Score', value: '22' },
-      { label: 'Reviewers per Article', value: 'Up to 3' },
-    ],
-  },
   nordic: {
     label: 'Nordic Team Member',
     heroTitle: 'Substantiate the Science Behind Every Claim',
@@ -51,6 +31,26 @@ const AUDIENCE_CONTENT = {
       { label: 'PCS Lifecycle Stages', value: '5' },
       { label: 'Per-Role Sidebars', value: '5' },
       { label: 'Audit Coverage', value: '100%' },
+    ],
+  },
+  reviewer: {
+    label: 'External Reviewer',
+    heroTitle: 'Study Quality Rubric for RCTs',
+    heroSubtitle: 'Independent secondary reviews of randomized controlled trials in nutraceutical and pharmaceutical research. Earn credibility, build your portfolio.',
+    primaryCtaLabel: 'Apply to be a reviewer',
+    primaryCtaHref: '/register',
+    secondaryCtaLabel: 'Sign in',
+    aboutHeading: 'How peer review works',
+    steps: [
+      { title: 'Submit Intake', desc: 'Extract key study details from the published article using our structured intake form.', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
+      { title: 'Score Quality', desc: 'Rate the study across 11 validated rubric questions, each assessing a different quality dimension.', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
+      { title: 'Analyze Results', desc: 'View inter-rater reliability metrics, quality distributions, and detailed analytics across all reviews.', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+    ],
+    stats: [
+      { label: 'Rubric Questions', value: '11' },
+      { label: 'Quality Dimensions', value: '3 Tiers' },
+      { label: 'Max Score', value: '22' },
+      { label: 'Reviewers per Article', value: 'Up to 3' },
     ],
   },
 };
@@ -72,14 +72,14 @@ function LandingContent() {
   const [magicSubmitting, setMagicSubmitting] = useState(false);
   const [magicError, setMagicError] = useState('');
 
-  // Login mode — reviewer tab defaults to magic link (Wave 7.3.1)
+  // Login mode — nordic tab defaults to password; reviewer tab defaults to magic link (Wave 7.3.1)
   // 'magic' | 'password'
-  const [loginMode, setLoginMode] = useState('magic');
+  const [loginMode, setLoginMode] = useState('password');
 
-  // Audience tab — defaults to 'reviewer' since that is the marketing /
-  // acquisition surface (Nordic team members typically know the URL and
-  // sign in directly; external reviewers are discovering the platform).
-  const [audience, setAudience] = useState('reviewer');
+  // Audience tab — defaults to 'nordic' since the primary users of this
+  // platform are Nordic team members. External reviewers are a secondary
+  // audience and can switch tabs if needed.
+  const [audience, setAudience] = useState('nordic');
   const content = AUDIENCE_CONTENT[audience];
 
   // Detect ?error=magic-link-invalid from the verify redirect.
@@ -213,8 +213,8 @@ function LandingContent() {
                       </div>
                     )}
 
-                    {/* ── Reviewer tab: magic link primary ── */}
-                    {audience === 'reviewer' && loginMode === 'magic' && (
+                    {/* ── Magic link form (any audience when loginMode === 'magic') ── */}
+                    {loginMode === 'magic' && (
                       <>
                         <p className="text-sm text-gray-500 mb-6">
                           Enter your email and we&apos;ll send a one-click sign-in link. No password needed.
@@ -246,7 +246,7 @@ function LandingContent() {
                                 id="magic-email"
                                 type="email"
                                 className="input-field"
-                                placeholder="you@example.com"
+                                placeholder={audience === 'nordic' ? 'you@nordicnaturals.com' : 'you@example.com'}
                                 value={magicEmail}
                                 onChange={(e) => setMagicEmail(e.target.value)}
                                 required
@@ -277,8 +277,8 @@ function LandingContent() {
                       </>
                     )}
 
-                    {/* ── Password form (Nordic tab always; reviewer tab if toggled) ── */}
-                    {(audience === 'nordic' || loginMode === 'password') && (
+                    {/* ── Password form (any audience when loginMode === 'password') ── */}
+                    {loginMode === 'password' && (
                       <>
                         <p className="text-sm text-gray-500 mb-6">
                           {audience === 'reviewer'
@@ -308,18 +308,16 @@ function LandingContent() {
                           </div>
                           {error && <div className="p-3 rounded-lg bg-red-50 border border-red-200"><p className="text-sm text-red-700">{error}</p></div>}
                           <button type="submit" disabled={submitting} className="btn-primary w-full">{submitting ? 'Signing in…' : 'Sign in'}</button>
-                          {audience === 'reviewer' && (
-                            <p className="text-center text-xs text-gray-400">
-                              or{' '}
-                              <button
-                                type="button"
-                                onClick={() => { setLoginMode('magic'); setError(''); }}
-                                className="text-pacific hover:underline"
-                              >
-                                send a sign-in link instead
-                              </button>
-                            </p>
-                          )}
+                          <p className="text-center text-xs text-gray-400">
+                            or{' '}
+                            <button
+                              type="button"
+                              onClick={() => { setLoginMode('magic'); setError(''); }}
+                              className="text-pacific hover:underline"
+                            >
+                              send a sign-in link instead
+                            </button>
+                          </p>
                         </form>
                       </>
                     )}
