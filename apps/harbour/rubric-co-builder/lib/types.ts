@@ -295,3 +295,81 @@ export function roundForState(state: RoomState): 1 | 2 | 3 {
   if (state === "vote3") return 3;
   return 1;
 }
+
+// Canonical forward progression of room states. Shared between the host
+// UI (which uses it for "what's next?" arrows + auto-advance on timer
+// expiry) and the server-side transition validator below.
+//
+// `calibrate` is a legacy state that pre-dates the rework — rooms created
+// before the move to vote2/vote3 still land there. It's intentionally
+// NOT in STATE_ORDER; canTransitionTo() short-circuits to "allowed" when
+// either side of the transition is calibrate, so old rooms keep working.
+export const STATE_ORDER: RoomState[] = [
+  "lobby",
+  "frame",
+  "propose",
+  "vote",
+  "criteria_gate",
+  "scale",
+  "vote2",
+  "ai_ladder_propose",
+  "ai_ladder",
+  "vote3",
+  "pledge",
+  "pledge_vote",
+  "commit",
+];
+
+/**
+ * Forward-only state-machine guard. Rejects requests that try to skip
+ * ahead in the workflow — without this, a host could PATCH the room
+ * straight from `lobby` to `commit` and produce a nonsensical rubric.
+ *
+ * Allowed:
+ *   - same state (no-op)
+ *   - exactly one step forward in STATE_ORDER
+ *   - any number of steps backward (facilitator misclick recovery)
+ *   - any transition involving `calibrate` (legacy escape hatch)
+ *
+ * Rejected:
+ *   - forward jumps of more than one step
+ *
+ * Returns a discriminated union so the caller can produce a structured
+ * 409 payload telling the client what the valid next state would be.
+ */
+export type TransitionResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "invalid_transition";
+      from: RoomState;
+      to: RoomState;
+      allowed_next: RoomState | null;
+    };
+
+export function canTransitionTo(from: RoomState, to: RoomState): TransitionResult {
+  if (from === to) return { ok: true };
+  // Legacy carve-out: rooms created before the rework can move in/out of
+  // `calibrate` freely. New rooms never enter this state.
+  if (from === "calibrate" || to === "calibrate") return { ok: true };
+
+  const fromIdx = STATE_ORDER.indexOf(from);
+  const toIdx = STATE_ORDER.indexOf(to);
+  // Defensive: if either state isn't in STATE_ORDER (e.g. a new state was
+  // added to RoomState but not to the order array), don't block — the
+  // type system would catch the mismatch in a code review.
+  if (fromIdx === -1 || toIdx === -1) return { ok: true };
+
+  // Backward (or no-op): allowed
+  if (toIdx <= fromIdx) return { ok: true };
+  // Forward exactly one step: allowed
+  if (toIdx === fromIdx + 1) return { ok: true };
+  // Forward >1 step: rejected
+  return {
+    ok: false,
+    reason: "invalid_transition",
+    from,
+    to,
+    allowed_next: fromIdx < STATE_ORDER.length - 1 ? STATE_ORDER[fromIdx + 1] : null,
+  };
+}

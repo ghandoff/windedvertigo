@@ -21,7 +21,7 @@ import type {
   ScaleResponseVote,
   Vote,
 } from "@/lib/types";
-import { roundForState } from "@/lib/types";
+import { roundForState, STATE_ORDER } from "@/lib/types";
 
 function useCountdown(timerEnd: string | null): number | null {
   const [remaining, setRemaining] = useState<number | null>(null);
@@ -59,21 +59,8 @@ import { StepCommit } from "../_steps/step-commit";
 import { JoinQR } from "@/app/_components/join-qr";
 import { FacilitatorNudgeEditor } from "@/app/_components/nudge";
 
-const STATE_ORDER: RoomState[] = [
-  "lobby",
-  "frame",
-  "propose",
-  "vote",
-  "criteria_gate",
-  "scale",
-  "vote2",
-  "ai_ladder_propose",
-  "ai_ladder",
-  "vote3",
-  "pledge",
-  "pledge_vote",
-  "commit",
-];
+// STATE_ORDER is now imported from @/lib/types — single source of truth
+// shared with the server-side transition validator (PR #116).
 
 export function HostRoom({ code }: { code: string }) {
   const state = useRoom(code);
