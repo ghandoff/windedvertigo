@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
 import type { RoomState } from "@/lib/types";
+import { canTransitionTo } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -79,6 +80,16 @@ export async function PATCH(
   // (prevents timer-expiry races where multiple clients call advance simultaneously)
   if (from_state && snapshot.room.state !== from_state) {
     return NextResponse.json({ code: snapshot.room.code, state: snapshot.room.state });
+  }
+
+  // Forward-only transition guard. Without this, a host (or anyone with the
+  // host_token) can PATCH from lobby → commit and skip every participant
+  // phase. canTransitionTo() permits same-state, one-step-forward, and any
+  // backward move; rejects >1 step forward with a structured 409. See
+  // lib/types.ts for the legacy-calibrate carve-out and reasoning.
+  const transition = canTransitionTo(snapshot.room.state, state as RoomState);
+  if (!transition.ok) {
+    return NextResponse.json(transition, { status: 409 });
   }
 
   const updated = await store.updateRoomState(normalised, state as RoomState);
