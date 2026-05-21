@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
+import { quorumGuard, readForceFlag } from "@/lib/state-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,12 +32,33 @@ export async function POST(
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  // Quorum guard varies by state — ai-tally has three modes (Maria #2).
+  // Default required = 1 for all, override via { force: true } in body.
+  const force = await readForceFlag(req);
+
   if (snapshot.room.state === "ai_ladder_propose") {
+    // Opening the proposal-vote ballot. Need ≥1 proposal to vote on,
+    // otherwise the next screen is empty.
+    if (!force) {
+      const violation = quorumGuard(
+        "AI use proposals",
+        snapshot.ai_use_proposals.length,
+      );
+      if (violation) return NextResponse.json(violation, { status: 409 });
+    }
     await store.updateRoomState(normalised, "ai_ladder");
     return NextResponse.json({ advanced_to: "ai_ladder" });
   }
 
   if (snapshot.room.state === "vote3") {
+    // Final binding AI-use vote tally → advance to pledge.
+    if (!force) {
+      const violation = quorumGuard(
+        "AI-use votes",
+        snapshot.ai_use_votes.length,
+      );
+      if (violation) return NextResponse.json(violation, { status: 409 });
+    }
     const result = await store.tallyAiVote(normalised);
     if (!result) {
       return NextResponse.json({ error: "couldn't tally" }, { status: 400 });
@@ -44,8 +66,21 @@ export async function POST(
     return NextResponse.json(result);
   }
 
-  // ai_ladder: tally proposals, advance to vote3 for final direct vote
+  // ai_ladder: tally proposal votes (or fall back to legacy ai_use_votes
+  // if no proposals were posted). Quorum is "any input exists" — either
+  // proposal votes OR fallback votes — since the store function picks
+  // the right path based on hasProposals below.
   const hasProposals = (snapshot.ai_use_proposals?.length ?? 0) > 0;
+  if (!force) {
+    const inputCount = hasProposals
+      ? snapshot.ai_use_proposal_votes.length
+      : snapshot.ai_use_votes.length;
+    const violation = quorumGuard(
+      hasProposals ? "votes on AI-use proposals" : "AI-use votes",
+      inputCount,
+    );
+    if (violation) return NextResponse.json(violation, { status: 409 });
+  }
   const result = hasProposals
     ? await store.tallyAiProposals(normalised)
     : await store.tallyAiLadder(normalised);

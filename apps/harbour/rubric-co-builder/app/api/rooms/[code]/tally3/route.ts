@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import { isValidRoomCode } from "@/lib/room-code";
+import { quorumGuard, readForceFlag } from "@/lib/state-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +24,11 @@ export async function POST(
   const hostToken = req.headers.get("X-Host-Token") ?? "";
   if (!hostToken || snapshot.room.host_token !== hostToken) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  // Quorum guard: require ≥1 final AI-use vote unless { force: true }.
+  if (!(await readForceFlag(req))) {
+    const violation = quorumGuard("AI-use votes", snapshot.ai_use_votes.length);
+    if (violation) return NextResponse.json(violation, { status: 409 });
   }
   const result = await store.tallyAiVote(normalised);
   if (!result) {
