@@ -30,25 +30,21 @@ export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <footer
       role="contentinfo"
-      className={`no-print fixed bottom-0 inset-x-0 z-10 flex items-center justify-start px-4 py-2 ${className}`}
+      className={`no-print fixed bottom-0 inset-x-0 z-10 bg-white border-t flex items-center justify-start px-4 py-2 ${className}`}
       style={{
-        background: "var(--color-cadet)",
+        borderColor: "color-mix(in srgb, var(--color-cadet) 10%, transparent)",
         paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))",
       }}
     >
       <a
         href="https://windedvertigo.com/harbour"
         aria-label="winded.vertigo — visit harbour"
-        className="inline-flex items-center opacity-90 hover:opacity-100 transition-opacity"
+        className="inline-flex items-center opacity-80 hover:opacity-100 transition-opacity"
       >
-        {/* Stacked WINDED VERTIGO wordmark (PR #123) — sourced as a
-            dark-cadet PNG. PR #124 changed the footer bg to cadet, so
-            the dark mark on cadet would be invisible. `filter:
-            brightness(0) invert(1)` is a CSS-only inversion that
-            turns any dark color into white while preserving the PNG's
-            shape, stripes, and dimensional shading. If we ever want a
-            "real" white-on-cadet variant of the wordmark, we can ship
-            a wv-stacked-white.png and drop the filter. */}
+        {/* Stacked WINDED VERTIGO wordmark (PR #123). Footer reverted
+            to white bg in PR #125, so the dark-cadet PNG renders at
+            its natural color and reads cleanly. The earlier inversion
+            filter (PR #124) was dropped per Garrett's feedback. */}
         <Image
           src={`${BASE_PATH}/wordmark/wv-stacked.png`}
           alt="winded.vertigo"
@@ -56,7 +52,6 @@ export function Wordmark({ className = "" }: { className?: string }) {
           height={42}
           priority
           unoptimized
-          style={{ filter: "brightness(0) invert(1)" }}
         />
       </a>
     </footer>

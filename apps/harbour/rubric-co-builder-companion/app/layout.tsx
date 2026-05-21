@@ -59,29 +59,23 @@ export default function RootLayout({
         {/*
           Page wrapper. The Wordmark footer is `position: fixed; bottom: 0`
           (see _components/wordmark.tsx) so it's always visible regardless
-          of scroll position. Because the footer is out of flow, scrollable
-          content needs bottom padding to clear it — `pb-20` (5rem ≈ 80px)
-          is enough room for the footer's ~56px height plus the iPhone
-          home-indicator safe-area on PWA installs.
+          of scroll position.
 
-          The flex column is preserved (even though the fixed footer no
-          longer needs it) so per-page <main>s with `flex-1` keep working
-          identically — minimizes blast radius vs touching every step.
+          Footer-clearance padding (pb-20) now lives INSIDE each step's
+          own content area (see workshop.tsx) rather than on this wrapper.
+          Reason: per-step bg colors (champagne/white) cover the workshop's
+          full main area, including the clearance space, so there's no
+          visible gap between step content and the fixed footer. PR #124's
+          cadet wrapper bg was a workaround for the wrong layer — fixed
+          properly here in PR #125.
+
+          The flex column is preserved so per-page <main>s with `flex-1`
+          keep working identically.
         */}
         <div
           id="main"
           tabIndex={-1}
-          className="min-h-screen flex flex-col pb-20"
-          // Cadet bg on the wrapper so the `pb-20` clearance strip
-          // (the gap above the fixed footer) reads as one continuous
-          // cadet band with the footer itself, instead of a
-          // body-white sliver that looked like a second footer bar
-          // on screens where the step bg differed from white. Each
-          // workshop step's own <main> still owns its own background
-          // (champagne or white) and covers its content area, so
-          // cadet only shows in the 20px-ish gap between the bottom
-          // of the step's main and the top of the footer. PR #124.
-          style={{ background: "var(--color-cadet)" }}
+          className="min-h-screen flex flex-col"
         >
           {children}
           <Wordmark />

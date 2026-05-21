@@ -73,7 +73,12 @@ export function Workshop() {
       }}
     >
       <ProgressBar step={draft.step} />
-      <div className="max-w-2xl mx-auto pt-8">
+      {/* pb-20 here (not on the layout wrapper) so the workshop step's
+          own bg color (champagne/white from the parent <main>) extends
+          all the way down to where the fixed footer overlays — no
+          visible gap above the footer regardless of step bg. (PR #125
+          replacement for the failed cadet-wrapper approach in #124.) */}
+      <div className="max-w-2xl mx-auto pt-8 pb-20">
         {draft.step === "frame" && (
           <StepFrame
             draft={draft}
