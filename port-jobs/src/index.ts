@@ -35,6 +35,7 @@ import {
   updateRfpOpportunity,
 } from "@/lib/notion/rfp-radar";
 import {
+  createProposalFolder,
   createProposalGoogleDoc,
   createCoverLetterGoogleDoc,
 } from "@/lib/gdocs";
@@ -88,10 +89,10 @@ export interface Env {
   SUPABASE_SERVICE_KEY: string;
 
   // Google Docs / Drive secrets (optional — pipeline falls back gracefully)
-  GOOGLE_DOCS_FOLDER_ID:      string; // Drive folder ID where proposal docs are created
-  GOOGLE_DOCS_REFRESH_TOKEN:  string; // OAuth refresh token with drive.file scope
-  GOOGLE_DOCS_CLIENT_ID:      string; // OAuth client ID (can reuse Calendar app)
-  GOOGLE_DOCS_CLIENT_SECRET:  string; // OAuth client secret
+  GOOGLE_DOCS_PARENT_FOLDER_ID: string; // Drive parent folder ID ("1 funding opportunities")
+  GOOGLE_DOCS_REFRESH_TOKEN:    string; // OAuth refresh token with drive.file scope
+  GOOGLE_DOCS_CLIENT_ID:        string; // OAuth client ID
+  GOOGLE_DOCS_CLIENT_SECRET:    string; // OAuth client secret
 
   // Plain-text vars (set in wrangler.jsonc [vars])
   R2_PUBLIC_URL: string; // public domain for port-assets bucket
@@ -129,10 +130,10 @@ function seedProcessEnv(env: Env): void {
   process.env.SUPABASE_URL             = env.SUPABASE_URL;
   process.env.SUPABASE_SERVICE_KEY     = env.SUPABASE_SERVICE_KEY;
   // Google Docs / Drive — optional; gdocs.ts returns null if absent
-  if (env.GOOGLE_DOCS_FOLDER_ID)     process.env.GOOGLE_DOCS_FOLDER_ID     = env.GOOGLE_DOCS_FOLDER_ID;
-  if (env.GOOGLE_DOCS_REFRESH_TOKEN) process.env.GOOGLE_DOCS_REFRESH_TOKEN = env.GOOGLE_DOCS_REFRESH_TOKEN;
-  if (env.GOOGLE_DOCS_CLIENT_ID)     process.env.GOOGLE_DOCS_CLIENT_ID     = env.GOOGLE_DOCS_CLIENT_ID;
-  if (env.GOOGLE_DOCS_CLIENT_SECRET) process.env.GOOGLE_DOCS_CLIENT_SECRET = env.GOOGLE_DOCS_CLIENT_SECRET;
+  if (env.GOOGLE_DOCS_PARENT_FOLDER_ID) process.env.GOOGLE_DOCS_PARENT_FOLDER_ID = env.GOOGLE_DOCS_PARENT_FOLDER_ID;
+  if (env.GOOGLE_DOCS_REFRESH_TOKEN)    process.env.GOOGLE_DOCS_REFRESH_TOKEN    = env.GOOGLE_DOCS_REFRESH_TOKEN;
+  if (env.GOOGLE_DOCS_CLIENT_ID)        process.env.GOOGLE_DOCS_CLIENT_ID        = env.GOOGLE_DOCS_CLIENT_ID;
+  if (env.GOOGLE_DOCS_CLIENT_SECRET)    process.env.GOOGLE_DOCS_CLIENT_SECRET    = env.GOOGLE_DOCS_CLIENT_SECRET;
 }
 
 // ── Shared Notion block builders (copied from generate-proposal.ts) ────────────
@@ -416,12 +417,15 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       return { success: false, error: "deal_creation_failed" };
     }
 
-    // 6b. Create proposal Google Doc (main output — full proposal + team CVs)
-    // Team CVs are appended as a final section in the same doc (two docs total:
-    // proposal + cover letter, per the "two docs per RFP" convention).
+    // 6b. Create per-org Drive subfolder + proposal Google Doc
+    // All docs for this proposal (main + cover letter) land in the same subfolder.
+    // Folder name = org name if available, otherwise the RFP name.
     setProposalStep(rfpId, "building_documents").catch((e) =>
       console.warn("[proposal] step tracking:", e),
     );
+    const folderName     = org?.organization ?? rfpName;
+    const proposalFolderId = await createProposalFolder(folderName).catch(() => null);
+
     let proposalDocUrl: string | null = null;
     try {
       const proposalDoc = await createProposalGoogleDoc(
@@ -431,6 +435,7 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
         dueLabel !== "TBD" ? dueLabel : null,
         valueLabel,
         TEAM_BIOS,
+        proposalFolderId,
       );
       if (proposalDoc) {
         proposalDocUrl = proposalDoc.url;
@@ -483,7 +488,7 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     let coverLetterUrl: string | null = null;
     if (draft.requiresCoverLetter && draft.coverLetter) {
       try {
-        const clDoc = await createCoverLetterGoogleDoc(rfpName, draft.coverLetter);
+        const clDoc = await createCoverLetterGoogleDoc(rfpName, draft.coverLetter, proposalFolderId);
         if (clDoc) {
           coverLetterUrl = clDoc.url;
           rfpUpdates.coverLetterUrl = coverLetterUrl;

@@ -22,10 +22,17 @@
  *   6. Set it: printf '<token>' | npx wrangler secret put GOOGLE_DOCS_REFRESH_TOKEN --name wv-port-jobs
  *
  * Required secrets in wv-port-jobs:
- *   GOOGLE_DOCS_FOLDER_ID        — Drive folder ID (from the folder URL)
+ *   GOOGLE_DOCS_PARENT_FOLDER_ID — Drive folder ID of the parent "1 funding opportunities" folder
+ *                                   (from the folder URL: /folders/<id>)
  *   GOOGLE_DOCS_REFRESH_TOKEN    — OAuth refresh token with drive.file scope
  *   GOOGLE_DOCS_CLIENT_ID        — OAuth client ID (can reuse Calendar app)
- *   GOOGLE_DOCS_CLIENT_SECRET    — OAuth client secret (can reuse Calendar app)
+ *   GOOGLE_DOCS_CLIENT_SECRET    — OAuth client secret
+ *
+ * Per-proposal folder structure:
+ *   GOOGLE_DOCS_PARENT_FOLDER_ID/
+ *     └── {orgName}/            ← created automatically per generation
+ *           ├── Proposal — {rfpName}.gdoc
+ *           └── Cover Letter — {rfpName}.gdoc (can reuse Calendar app)
  *
  * All public functions return null and log a warning if credentials are absent,
  * so the pipeline can fall back gracefully without crashing.
@@ -36,6 +43,7 @@ import type { ProposalDraft } from "@/lib/ai/proposal-generator";
 
 const TOKEN_URL    = "https://oauth2.googleapis.com/token";
 const DRIVE_UPLOAD = "https://www.googleapis.com/upload/drive/v3/files";
+const DRIVE_FILES  = "https://www.googleapis.com/drive/v3/files";
 const GDOCS_SCOPE  = "https://www.googleapis.com/auth/drive.file";
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -166,6 +174,38 @@ async function uploadHtmlAsGoogleDoc(
   return res.json() as Promise<{ id: string }>;
 }
 
+/**
+ * Create a subfolder inside a Drive parent folder.
+ * Uses the same `drive.file` scope as document uploads.
+ * Returns the new folder's ID.
+ */
+async function createDriveFolder(
+  name: string,
+  parentFolderId: string,
+  accessToken: string,
+): Promise<string> {
+  const res = await fetch(DRIVE_FILES, {
+    method: "POST",
+    headers: {
+      Authorization:  `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name,
+      mimeType: "application/vnd.google-apps.folder",
+      parents:  [parentFolderId],
+    }),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "<no body>");
+    throw new Error(`[gdocs] Drive folder creation failed (${res.status}): ${txt.slice(0, 300)}`);
+  }
+
+  const data = await res.json() as { id: string };
+  return data.id;
+}
+
 // ── HTML builders ─────────────────────────────────────────────────────────────
 
 function esc(s: string): string {
@@ -294,14 +334,41 @@ export interface GDocResult {
 }
 
 /**
- * Create the main proposal Google Doc in the configured Drive folder.
+ * Create a per-organisation subfolder inside GOOGLE_DOCS_PARENT_FOLDER_ID.
  *
- * Returns null (and logs a warning) when:
- *   - GOOGLE_DOCS_FOLDER_ID is not set
- *   - Google auth credentials are missing or invalid
+ * Returns the folder ID on success, or null if credentials / parent folder ID
+ * are missing. The caller passes the returned ID to both doc-creation functions
+ * so that the proposal + cover letter live in the same folder.
+ */
+export async function createProposalFolder(orgName: string): Promise<string | null> {
+  const parentFolderId = process.env.GOOGLE_DOCS_PARENT_FOLDER_ID;
+  if (!parentFolderId) {
+    console.warn("[gdocs] GOOGLE_DOCS_PARENT_FOLDER_ID not set — will upload to root");
+    return null;
+  }
+
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    console.warn("[gdocs] no Google credentials — skipping folder creation");
+    return null;
+  }
+
+  try {
+    const id = await createDriveFolder(orgName, parentFolderId, accessToken);
+    console.log(`[gdocs] created proposal folder "${orgName}" (${id})`);
+    return id;
+  } catch (err) {
+    console.warn("[gdocs] folder creation failed (non-fatal, using parent):", err);
+    return parentFolderId; // graceful fallback: use the parent folder directly
+  }
+}
+
+/**
+ * Create the main proposal Google Doc.
  *
- * Throws on Drive API errors so the caller can surface them in Slack.
- *
+ * @param folderId  Folder to place the doc in. Pass the result of
+ *                  `createProposalFolder()`. If null, falls back to
+ *                  GOOGLE_DOCS_PARENT_FOLDER_ID. Returns null if neither is set.
  * @param teamBios  Pass TEAM_BIOS from @/lib/ai/proposal-generator
  */
 export async function createProposalGoogleDoc(
@@ -311,10 +378,11 @@ export async function createProposalGoogleDoc(
   dueDate:    string | null,
   valueLabel: string | null,
   teamBios:   Record<string, string>,
+  folderId:   string | null = null,
 ): Promise<GDocResult | null> {
-  const folderId = process.env.GOOGLE_DOCS_FOLDER_ID;
-  if (!folderId) {
-    console.warn("[gdocs] GOOGLE_DOCS_FOLDER_ID not set — skipping Google Doc creation");
+  const targetFolderId = folderId ?? process.env.GOOGLE_DOCS_PARENT_FOLDER_ID ?? null;
+  if (!targetFolderId) {
+    console.warn("[gdocs] no folder ID available — skipping proposal Google Doc creation");
     return null;
   }
 
@@ -331,7 +399,7 @@ export async function createProposalGoogleDoc(
   const { id } = await uploadHtmlAsGoogleDoc(
     `Proposal — ${rfpName}`,
     html,
-    folderId,
+    targetFolderId,
     accessToken,
   );
 
@@ -339,17 +407,19 @@ export async function createProposalGoogleDoc(
 }
 
 /**
- * Create the cover letter Google Doc in the configured Drive folder.
+ * Create the cover letter Google Doc.
  *
- * Returns null when credentials are absent. Throws on Drive API errors.
+ * @param folderId  Same folder ID returned by `createProposalFolder()`.
+ *                  Falls back to GOOGLE_DOCS_PARENT_FOLDER_ID if null.
  */
 export async function createCoverLetterGoogleDoc(
   rfpName:         string,
   coverLetterText: string,
+  folderId:        string | null = null,
 ): Promise<GDocResult | null> {
-  const folderId = process.env.GOOGLE_DOCS_FOLDER_ID;
-  if (!folderId) {
-    console.warn("[gdocs] GOOGLE_DOCS_FOLDER_ID not set — skipping cover letter Google Doc");
+  const targetFolderId = folderId ?? process.env.GOOGLE_DOCS_PARENT_FOLDER_ID ?? null;
+  if (!targetFolderId) {
+    console.warn("[gdocs] no folder ID available — skipping cover letter Google Doc");
     return null;
   }
 
@@ -363,7 +433,7 @@ export async function createCoverLetterGoogleDoc(
   const { id } = await uploadHtmlAsGoogleDoc(
     `Cover Letter — ${rfpName}`,
     html,
-    folderId,
+    targetFolderId,
     accessToken,
   );
 
