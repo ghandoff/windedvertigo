@@ -12,7 +12,7 @@
  * The "already generating" check is now atomic via Supabase:
  *   UPDATE rfp_opportunities SET proposal_status='generating', proposal_started_at=NOW()
  *   WHERE notion_page_id = $id
- *     AND (proposal_status IS NULL OR proposal_status NOT IN ('generating','queued'))
+ *     AND (proposal_status IS NULL OR proposal_status NOT IN ('generating'))
  *   RETURNING notion_page_id
  *
  * If 0 rows → another caller already holds the lock → 409.

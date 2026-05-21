@@ -40,6 +40,7 @@
     { "binding": "SELF", "service": "wv-nordic" }
   ],
 
+
   // ── Custom domain (DNS cutover complete 2026-05-07) ─────────────
   // nordic.windedvertigo.com is live on CF Workers. Vercel project is
   // still running in parallel during the 48h monitoring window but no
