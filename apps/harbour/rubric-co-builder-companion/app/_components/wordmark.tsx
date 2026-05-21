@@ -30,9 +30,9 @@ export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <footer
       role="contentinfo"
-      className={`no-print fixed bottom-0 inset-x-0 z-10 bg-white border-t flex items-center justify-start px-4 py-2 ${className}`}
+      className={`no-print fixed bottom-0 inset-x-0 z-10 flex items-center justify-start px-4 py-2 ${className}`}
       style={{
-        borderColor: "color-mix(in srgb, var(--color-cadet) 10%, transparent)",
+        background: "var(--color-cadet)",
         paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))",
       }}
     >
