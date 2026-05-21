@@ -41,7 +41,12 @@ const PC = PROPS.aicsClaims;
 // applied by notionShapeToPgRow in supabase-pcs.js. List only the fields
 // that deviate from that rule.
 
-const AICS_DOCUMENTS_PG_COLUMN_MAP = {};
+const AICS_DOCUMENTS_PG_COLUMN_MAP = {
+  // ai_name_text deviates from mechanical camelCase→snake_case ('ai_name')
+  // because the table also has an active_ingredient_id UUID FK; the _text
+  // suffix distinguishes the free-text fallback column from the relational one.
+  aiName: 'ai_name_text',
+};
 
 const AICS_VERSIONS_PG_COLUMN_MAP = {};
 
