@@ -140,6 +140,35 @@
   .surface-champagne {
     background: #fff !important;
   }
+  /* Strip on-screen layout chrome that breaks print pagination (PR #120):
+     - `#main`'s `min-h-screen` was forcing the wrapper to ≥1 viewport
+       tall, centering the rubric in dead space that spilled to page 2
+     - `pb-20` on `#main` reserved ~80px to clear the fixed footer on
+       screen — but the footer is .no-print-hidden, so that's just gap
+     - per-page <main> elements use `py-8 md:py-12` for screen breathing
+       room; in print we want zero top/bottom padding so the article
+       starts at the top of the page
+     A 4-row rubric now fits on a single A4 page after this. */
+  body,
+  #main {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+    display: block !important;
+  }
+  #main > main {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+  }
+  /* Inner step container (.max-w-2xl.mx-auto.pt-8 in workshop.tsx) — also
+     loses its top padding for print. */
+  #main > main > div {
+    padding-top: 0 !important;
+  }
+  /* The rubric article itself: tighter padding for ink efficiency. */
+  .rubric-print-table {
+    padding: 0.5rem !important;
+  }
   /* The whole rubric article — let it span across pages if it has to,
      but each row stays whole (rule below). */
   .rubric-print-table {
