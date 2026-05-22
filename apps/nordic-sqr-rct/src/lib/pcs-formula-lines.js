@@ -119,6 +119,29 @@ function laurenTemplateProps(fields) {
   return out;
 }
 
+export async function getFormulaLinesForIngredient(ingredientId) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_formula_lines')
+        .select('*')
+        .eq('active_ingredient_canonical_id', ingredientId)
+        .order('notion_last_edited_at', { ascending: false })
+        .limit(5000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-formula-lines] Postgres forIngredient failed, falling back to Notion: ${err.message}`);
+    }
+  }
+  const res = await notion.databases.query({
+    database_id: PCS_DB.formulaLines,
+    filter: { property: P.activeIngredientCanonical, relation: { contains: ingredientId } },
+  });
+  return res.results.map(parsePage);
+}
+
 export async function getFormulaLinesForVersion(versionId) {
   if (shouldReadFromPostgres()) {
     try {

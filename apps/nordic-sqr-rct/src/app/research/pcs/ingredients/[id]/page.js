@@ -26,6 +26,7 @@ export default function IngredientDetailPage({ params }) {
   const [ingredient, setIngredient] = useState(null);
   const [forms, setForms] = useState([]);
   const [catalog, setCatalog] = useState(null);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -33,10 +34,11 @@ export default function IngredientDetailPage({ params }) {
     setLoading(true);
     setError('');
     try {
-      const [ingRes, formRes, catalogRes] = await Promise.all([
+      const [ingRes, formRes, catalogRes, productsRes] = await Promise.all([
         fetch(`/api/pcs/ingredients/${id}`),
         fetch(`/api/pcs/ingredient-forms?ingredientId=${id}`),
         fetch(`/api/pcs/ingredients/${id}/dose-graded-claims`),
+        fetch(`/api/pcs/ingredients/${id}/products`),
       ]);
       if (!ingRes.ok) throw new Error('Could not load ingredient');
       const ing = await ingRes.json();
@@ -45,6 +47,8 @@ export default function IngredientDetailPage({ params }) {
       setForms(Array.isArray(fm) ? fm : []);
       const ct = catalogRes.ok ? await catalogRes.json() : null;
       setCatalog(ct);
+      const pr = productsRes.ok ? await productsRes.json() : { products: [] };
+      setProducts(Array.isArray(pr.products) ? pr.products : []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -162,6 +166,9 @@ export default function IngredientDetailPage({ params }) {
       {/* Dose-graded claim catalog (Phase 4.6 D.1) */}
       <DoseGradedClaimsSection catalog={catalog} ingredient={ingredient} />
 
+      {/* Products containing this ingredient */}
+      <ProductsSection products={products} />
+
       {/* Forms table */}
       <div className="card overflow-hidden">
         {/* 2026-05-05 — header was `flex items-center justify-between` with
@@ -207,6 +214,87 @@ export default function IngredientDetailPage({ params }) {
           </table>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Products using this ingredient — shows which PCS documents contain
+ * this AI, at what dose, and in what form. Populated once formula lines
+ * have their `activeIngredientCanonicalId` relation set (via import or backfill).
+ */
+function ProductsSection({ products }) {
+  if (!products || products.length === 0) {
+    return (
+      <div className="card p-5">
+        <h2 className="text-sm font-semibold text-gray-900 mb-1">Products containing this ingredient</h2>
+        <p className="text-xs text-gray-500 mb-3">
+          PCS documents whose Table 2 formula includes this active ingredient.
+        </p>
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500 text-center">
+          No products linked yet. Re-import existing PCS documents or run the ingredient-relations backfill
+          (<code className="bg-gray-100 px-1 py-0.5 rounded text-xs">POST /api/admin/backfill/ingredient-relations?auto_create=true&table=formula</code>)
+          to populate this section.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-200">
+        <h2 className="text-sm font-semibold text-gray-900">
+          Products containing this ingredient
+          <span className="ml-2 text-xs font-normal text-gray-500">({products.length})</span>
+        </h2>
+        <p className="text-xs text-gray-500">
+          Sourced from Table 2 of each PCS document. Dose is per-serving as stated in the PCS.
+        </p>
+      </div>
+      <table className="min-w-full text-sm">
+        <thead className="bg-gray-50 text-gray-600">
+          <tr>
+            <th className="px-4 py-2 text-left font-medium">Product</th>
+            <th className="px-4 py-2 text-left font-medium">Format</th>
+            <th className="px-4 py-2 text-left font-medium">AI Form</th>
+            <th className="px-4 py-2 text-right font-medium">Amount / serving</th>
+            <th className="px-4 py-2 text-right font-medium">% DV</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map(p => (
+            <tr key={p.formulaLineId} className="border-t border-gray-100 hover:bg-gray-50">
+              <td className="px-4 py-2">
+                {p.pcsDocumentId ? (
+                  <Link
+                    href={`/research/pcs/documents/${p.pcsDocumentId}`}
+                    className="text-pacific-600 hover:underline font-medium"
+                  >
+                    {p.finishedGoodName || p.pcsId || '(unnamed)'}
+                  </Link>
+                ) : (
+                  <span className="text-gray-700 font-medium">
+                    {p.finishedGoodName || p.pcsId || '(unnamed)'}
+                  </span>
+                )}
+                {p.pcsId && p.finishedGoodName && (
+                  <span className="ml-1.5 text-xs text-gray-400 font-mono">{p.pcsId}</span>
+                )}
+              </td>
+              <td className="px-4 py-2 text-gray-600">{p.format || '—'}</td>
+              <td className="px-4 py-2 text-gray-600">{p.aiForm || '—'}</td>
+              <td className="px-4 py-2 text-right font-mono text-gray-700">
+                {p.amountPerServing != null
+                  ? `${p.amountPerServing} ${p.amountUnit || ''}`.trim()
+                  : '—'}
+              </td>
+              <td className="px-4 py-2 text-right text-gray-600">
+                {p.percentDailyValue != null ? `${p.percentDailyValue}%` : '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

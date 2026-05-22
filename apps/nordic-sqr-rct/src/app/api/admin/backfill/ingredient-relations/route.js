@@ -32,6 +32,7 @@ export async function POST(request) {
 
   const { searchParams } = new URL(request.url);
   const dryRun = searchParams.get('dry_run') === 'true';
+  const autoCreate = searchParams.get('auto_create') === 'true';
   const limitStr = searchParams.get('limit');
   const limit = limitStr ? parseInt(limitStr, 10) : null;
   const tableParam = searchParams.get('table');
@@ -49,7 +50,7 @@ export async function POST(request) {
   }
 
   try {
-    const result = await runIngredientRelationsBackfill({ tables, dryRun, limit });
+    const result = await runIngredientRelationsBackfill({ tables, dryRun, limit, autoCreate });
 
     // Trim per-table sample arrays to keep the response small
     const trimSamples = (r) => {
@@ -59,9 +60,11 @@ export async function POST(request) {
         alreadyTagged: r.alreadyTagged,
         processed: r.processed,
         matchedCount: r.matched.length,
+        autoCreatedCount: (r.autoCreated || []).length,
         noMatchCount: r.noMatch.length,
         errorCount: r.errors.length,
         sampleMatched: r.matched.slice(0, 20),
+        sampleAutoCreated: (r.autoCreated || []).slice(0, 20),
         sampleNoMatch: r.noMatch.slice(0, 20),
         errors: r.errors,
       };

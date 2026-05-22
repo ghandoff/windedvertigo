@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
 import {
-  getAllFormulaLines, getFormulaLinesForVersion, createFormulaLine,
+  getAllFormulaLines, getFormulaLinesForVersion, getFormulaLinesForIngredient, createFormulaLine,
 } from '@/lib/pcs-formula-lines';
 
 export async function GET(request) {
@@ -10,10 +10,13 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const versionId = searchParams.get('versionId');
+  const ingredientId = searchParams.get('ingredientId');
 
   const lines = versionId
     ? await getFormulaLinesForVersion(versionId)
-    : await getAllFormulaLines();
+    : ingredientId
+      ? await getFormulaLinesForIngredient(ingredientId)
+      : await getAllFormulaLines();
   return NextResponse.json(lines);
 }
 

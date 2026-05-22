@@ -13,8 +13,8 @@
  * no LLM calls. See `resolveIngredientCached` /  `resolveFormCached`.
  */
 
-import { getAllIngredients, resolveIngredientCached } from './pcs-ingredients.js';
-import { getAllIngredientForms, resolveFormCached } from './pcs-ingredient-forms.js';
+import { getAllIngredients, resolveIngredientCached, createIngredient } from './pcs-ingredients.js';
+import { getAllIngredientForms, resolveFormCached, createIngredientForm } from './pcs-ingredient-forms.js';
 import { getAllFormulaLines, updateFormulaLine } from './pcs-formula-lines.js';
 import { getAllEvidence, updateEvidence } from './pcs-evidence.js';
 import { getAllClaimDoseReqs, updateClaimDoseReq } from './pcs-claim-dose-reqs.js';
@@ -33,27 +33,73 @@ function nonEmpty(s) {
  *     against the canonical Active Ingredients list.
  *   - If an AI matched and `row.aiForm` is non-empty, resolve the form
  *     scoped to that AI.
+ *
+ * When `autoCreate=true` (the default for the backfill route when called
+ * from the admin UI), any AI text that doesn't match an existing canonical
+ * ingredient is auto-created — exactly like the import pipeline now does.
+ * Pass `autoCreate=false` for a pure resolve-only dry-run preview.
  */
-export async function backfillFormulaLines({ ingredients, forms, dryRun, limit }) {
+export async function backfillFormulaLines({ ingredients, forms, dryRun, limit, autoCreate = false }) {
   const rows = await getAllFormulaLines();
   const candidates = rows.filter(r => !r.activeIngredientCanonicalId);
   const target = limit ? candidates.slice(0, limit) : candidates;
 
-  const results = { totalScanned: rows.length, alreadyTagged: rows.length - candidates.length, processed: target.length, matched: [], noMatch: [], errors: [] };
+  const results = {
+    totalScanned: rows.length,
+    alreadyTagged: rows.length - candidates.length,
+    processed: target.length,
+    matched: [],
+    autoCreated: [],
+    noMatch: [],
+    errors: [],
+  };
 
   for (const row of target) {
     const aiText = nonEmpty(row.ai) ? row.ai : (nonEmpty(row.ingredientForm) ? row.ingredientForm : '');
-    if (!nonEmpty(aiText)) continue; // skip rows with no AI text — don't count
+    if (!nonEmpty(aiText)) continue; // skip rows with no AI text
 
-    const ing = resolveIngredientCached(aiText, ingredients);
+    let ing = resolveIngredientCached(aiText, ingredients);
+
     if (!ing) {
-      results.noMatch.push({ id: row.id, ai: aiText, aiForm: row.aiForm || null });
-      continue;
+      if (!autoCreate) {
+        results.noMatch.push({ id: row.id, ai: aiText, aiForm: row.aiForm || null });
+        continue;
+      }
+      // Auto-create the canonical ingredient (same as import pipeline).
+      // Only write in non-dry-run mode; in dry-run we preview what would be created.
+      if (!dryRun) {
+        try {
+          ing = await createIngredient({ canonicalName: aiText.trim() });
+          ingredients.push(ing); // update local list so later rows in same run can resolve it
+          await sleep(NOTION_RATE_MS);
+        } catch (err) {
+          results.errors.push({ id: row.id, ai: aiText, error: `auto-create ingredient failed: ${err.message}` });
+          continue;
+        }
+      } else {
+        // Dry-run: record what would be created but don't write.
+        results.autoCreated.push({ ai: aiText, action: 'would create canonical ingredient' });
+        continue;
+      }
+      results.autoCreated.push({ id: ing.id, canonicalName: ing.canonicalName });
     }
 
     let formMatch = null;
     if (nonEmpty(row.aiForm)) {
       formMatch = resolveFormCached(row.aiForm, ing.id, forms);
+      if (!formMatch && autoCreate && !dryRun) {
+        try {
+          formMatch = await createIngredientForm({
+            formName: row.aiForm.trim(),
+            activeIngredientId: ing.id,
+          });
+          forms.push(formMatch);
+          await sleep(NOTION_RATE_MS);
+        } catch (err) {
+          // Non-fatal — ingredient relation still gets written
+          results.errors.push({ id: row.id, ai: aiText, error: `auto-create form failed: ${err.message}` });
+        }
+      }
     }
 
     const update = { activeIngredientCanonicalId: ing.id };
@@ -185,15 +231,20 @@ export async function backfillClaimDoseReqs({ ingredients, dryRun, limit }) {
  * `tables` is an array containing any of: 'formula', 'evidence', 'claims'.
  * Pre-fetches the canonical ingredient + form lists once, so each table
  * costs O(rows) Notion writes instead of O(rows × ingredients) reads.
+ *
+ * `autoCreate` — when true, formula lines whose `ai` text has no matching
+ * canonical ingredient will auto-create one (same as the import pipeline).
+ * Defaults to false to preserve the existing resolve-only behavior unless
+ * explicitly requested.
  */
-export async function runIngredientRelationsBackfill({ tables = ['formula', 'evidence', 'claims'], dryRun = false, limit = null } = {}) {
+export async function runIngredientRelationsBackfill({ tables = ['formula', 'evidence', 'claims'], dryRun = false, limit = null, autoCreate = false } = {}) {
   const [ingredients, forms] = await Promise.all([
     getAllIngredients(),
     getAllIngredientForms(),
   ]);
 
   const out = {
-    options: { tables, dryRun, limit },
+    options: { tables, dryRun, limit, autoCreate },
     canonical: { ingredients: ingredients.length, forms: forms.length },
     formula: null,
     evidence: null,
@@ -201,7 +252,7 @@ export async function runIngredientRelationsBackfill({ tables = ['formula', 'evi
   };
 
   if (tables.includes('formula')) {
-    out.formula = await backfillFormulaLines({ ingredients, forms, dryRun, limit });
+    out.formula = await backfillFormulaLines({ ingredients, forms, dryRun, limit, autoCreate });
   }
   if (tables.includes('evidence')) {
     out.evidence = await backfillEvidence({ ingredients, dryRun, limit });
