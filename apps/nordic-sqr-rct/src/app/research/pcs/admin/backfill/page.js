@@ -47,15 +47,24 @@ export default function PcsBackfillAdminPage() {
       />
 
       <BackfillCard
-        title="Ingredient Forms / Relations"
-        description="Backfill ingredient-form relations on existing rows. (Owned by a separate pipeline — see scripts/backfill-ingredient-relations.mjs.)"
+        title="Canonical Ingredients — populate from formula lines (auto-create)"
+        description="Reads every formula line whose 'AI' text field has no canonical ingredient relation. For each unlinked AI name, auto-creates a new canonical ingredient record and wires the relation — same logic the import pipeline now uses for new PCS documents. Run this once to backfill all ~20 existing documents. Dry-run first to preview what will be created."
         endpoint="/api/admin/backfill/ingredient-relations"
+        extraParams={{ auto_create: 'true', table: 'formula' }}
+        supportsLimit
+      />
+
+      <BackfillCard
+        title="Ingredient Relations — resolve-only (no auto-create)"
+        description="Fuzzy-matches existing formula lines, evidence library entries, and claim dose requirements against the canonical Ingredients DB. Only links rows where a match already exists — does not create new canonical records. Useful after manually adding ingredients to the DB."
+        endpoint="/api/admin/backfill/ingredient-relations"
+        supportsLimit
       />
     </div>
   );
 }
 
-function BackfillCard({ title, description, endpoint, supportsLimit = false }) {
+function BackfillCard({ title, description, endpoint, supportsLimit = false, extraParams = {} }) {
   const { user } = useAuth();
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState(null);
@@ -67,7 +76,7 @@ function BackfillCard({ title, description, endpoint, supportsLimit = false }) {
     setError(null);
     setResults(null);
     try {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams(extraParams);
       if (dryRun) params.set('dry_run', 'true');
       if (supportsLimit && limit && /^\d+$/.test(limit)) params.set('limit', limit);
       const qs = params.toString();
