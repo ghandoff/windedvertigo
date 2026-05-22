@@ -189,6 +189,16 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'imports',       label: 'Imports',       href: '/research/pcs/admin/imports', badgeKey: 'imports.active' },
           { key: 'label-imports', label: 'Label Imports', href: '/research/pcs/admin/labels/imports', badgeKey: 'labelImports.active' },
           { key: 'export',        label: 'Export',        href: '/research/pcs/export' },
+          { key: 'backfill',      label: 'Backfill',      href: '/research/pcs/admin/backfill' },
+        ],
+      },
+      {
+        key: 'governance',
+        label: 'Governance',
+        defaultOpen: false,
+        items: [
+          { key: 'users',     label: 'Users',      href: '/admin/users' },
+          { key: 'audit-log', label: 'Audit Log',  href: '/admin/audit' },
         ],
       },
     ],
@@ -239,6 +249,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'imports',       label: 'Imports',       href: '/research/pcs/admin/imports', badgeKey: 'imports.active' },
           { key: 'label-imports', label: 'Label Imports', href: '/research/pcs/admin/labels/imports', badgeKey: 'labelImports.active' },
           { key: 'export',        label: 'Export',        href: '/research/pcs/export' },
+          { key: 'backfill',      label: 'Backfill',      href: '/research/pcs/admin/backfill' },
         ],
       },
       {
