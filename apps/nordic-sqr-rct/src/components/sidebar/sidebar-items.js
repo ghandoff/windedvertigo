@@ -42,7 +42,7 @@ export const ROLES = Object.freeze([
 export const ROLE_LABEL = Object.freeze({
   'reviewer':   'Reviewer',
   'researcher': 'Researcher',
-  'ra':         'Research Assistant (RA)',
+  'ra':         'Regulatory Affairs (RA)',
   'admin':      'Admin',
   'super-user': 'Super-user',
 });

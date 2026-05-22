@@ -263,9 +263,22 @@ function PcsDocuments() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">PCS Documents</h1>
-        <p className="mt-1 text-sm text-gray-500">{currentView.description}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">PCS Documents</h1>
+          <p className="mt-1 text-sm text-gray-500">{currentView.description}</p>
+        </div>
+        {canEdit && (
+          <Link
+            href="/research/pcs/documents/new"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-md bg-pacific-600 px-3 py-2 text-sm font-medium text-white hover:bg-pacific-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            New PCS
+          </Link>
+        )}
       </div>
 
       {/* Stat strip */}

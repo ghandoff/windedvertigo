@@ -520,8 +520,8 @@ export async function commitExtraction(data, existingDocId = null) {
   const { resolveByName: resolveBenefitCategory } = await import('./pcs-benefit-categories.js');
   const coreBenefits = await import('./pcs-core-benefits.js');
   // Canonical AI + AI Form resolvers (Phase 1) — added 2026-04-19
-  const { getAllIngredients, resolveIngredientCached } = await import('./pcs-ingredients.js');
-  const { getAllIngredientForms, resolveFormCached } = await import('./pcs-ingredient-forms.js');
+  const { getAllIngredients, resolveIngredientCached, createIngredient } = await import('./pcs-ingredients.js');
+  const { getAllIngredientForms, resolveFormCached, createIngredientForm } = await import('./pcs-ingredient-forms.js');
 
   const warnings = [];
   const result = {
@@ -629,8 +629,11 @@ export async function commitExtraction(data, existingDocId = null) {
           || [line.ai, line.aiForm && `(${line.aiForm})`].filter(Boolean).join(' ')
           || 'Ingredient';
 
-        // Resolve canonical AI + AI Form. Leave relation empty and warn if
-        // missing; never fail the commit on an unknown ingredient.
+        // Resolve canonical AI + AI Form. Auto-create if not found so the
+        // ingredients DB is bootstrapped from imports rather than requiring
+        // manual pre-seeding. New records are added to the local arrays so
+        // subsequent formula lines on the same document resolve without an
+        // extra Notion round-trip. Never fail the commit on a creation error.
         let activeIngredientCanonicalId = null;
         let activeIngredientFormCanonicalId = null;
         let resolvedIngredient = null;
@@ -639,7 +642,15 @@ export async function commitExtraction(data, existingDocId = null) {
           if (resolvedIngredient) {
             activeIngredientCanonicalId = resolvedIngredient.id;
           } else {
-            warnings.push(`Active ingredient not in canonical DB: "${line.ai}" on formula line ${idx + 1}`);
+            try {
+              const newIng = await createIngredient({ canonicalName: line.ai.trim() });
+              ingredients.push(newIng);
+              resolvedIngredient = newIng;
+              activeIngredientCanonicalId = newIng.id;
+              warnings.push(`Auto-created canonical ingredient: "${line.ai}" — add synonyms, FDA RDI, and category in the Ingredients DB.`);
+            } catch (err) {
+              warnings.push(`Active ingredient not in canonical DB and could not be auto-created: "${line.ai}" on formula line ${idx + 1} (${err?.message || err})`);
+            }
           }
         }
         if (line.aiForm) {
@@ -647,7 +658,17 @@ export async function commitExtraction(data, existingDocId = null) {
           if (form) {
             activeIngredientFormCanonicalId = form.id;
           } else {
-            warnings.push(`AI form not in canonical DB for ${resolvedIngredient?.canonicalName || line.ai || 'unknown AI'}: "${line.aiForm}"`);
+            try {
+              const newForm = await createIngredientForm({
+                formName: line.aiForm.trim(),
+                ...(activeIngredientCanonicalId ? { activeIngredientId: activeIngredientCanonicalId } : {}),
+              });
+              forms.push(newForm);
+              activeIngredientFormCanonicalId = newForm.id;
+              warnings.push(`Auto-created AI form: "${line.aiForm}" for ${resolvedIngredient?.canonicalName || line.ai || 'unknown AI'}.`);
+            } catch (err) {
+              warnings.push(`AI form not in canonical DB and could not be auto-created for ${resolvedIngredient?.canonicalName || line.ai || 'unknown AI'}: "${line.aiForm}" (${err?.message || err})`);
+            }
           }
         }
 

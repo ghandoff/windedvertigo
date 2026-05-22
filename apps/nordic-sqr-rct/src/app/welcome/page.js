@@ -139,18 +139,25 @@ function WelcomeContent() {
   const hasSqr   = hasAnyRole(user, ROLE_SETS.SQR_REVIEWERS);
   const isAdmin  = user?.isAdmin;
   const isReviewerOnly = hasSqr && !hasPcs && !isAdmin;
+  // Nordic team member with no SQR reviewer role → skip welcome, go straight
+  // to the Command Center. Mirrors the reviewer-only auto-route pattern.
+  const isPcsOnly = hasPcs && !hasSqr;
   const variant  = hasPcs ? 'research' : 'reviewer';
 
-  // Reviewer-only users have exactly one destination — skip the welcome
-  // screen entirely and deep-link directly. This preserves the feel of a
-  // single-purpose tool for the external reviewer audience.
+  // Single-destination users skip the welcome card grid entirely.
+  // - Reviewer-only  → /reviews/dashboard
+  // - Nordic team    → /research/pcs (Command Center)
+  // Users with both PCS + SQR reviewer access continue to see the card grid.
   useEffect(() => {
     if (!loading && isReviewerOnly) {
       router.replace('/reviews/dashboard');
     }
-  }, [loading, isReviewerOnly, router]);
+    if (!loading && isPcsOnly) {
+      router.replace('/research/pcs');
+    }
+  }, [loading, isReviewerOnly, isPcsOnly, router]);
 
-  if (loading || isReviewerOnly) {
+  if (loading || isReviewerOnly || isPcsOnly) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-pacific-200 border-t-pacific rounded-full animate-spin" />
