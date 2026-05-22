@@ -4,6 +4,8 @@ import { getAllDocuments } from '@/lib/pcs-documents';
 import { getAllClaims, getClaimsWithoutEvidence } from '@/lib/pcs-claims';
 import { getOpenRequests } from '@/lib/pcs-requests';
 import { getAllEvidence } from '@/lib/pcs-evidence';
+import { getAllFormulaLines } from '@/lib/pcs-formula-lines';
+import { getAllVersions } from '@/lib/pcs-versions';
 
 // 2026-05-03 perf fixes:
 //   1. In-memory cache (60s TTL) — survives across warm invocations.
@@ -25,12 +27,14 @@ export async function GET(request) {
 
   // Heatmap is fetched lazily by /api/pcs/dashboard/coverage; this route
   // only fetches what KPI cards + simple charts need (5 DBs, ~3s p95).
-  const [documents, claims, claimsNoEvidence, openRequests, evidence] = await Promise.all([
+  const [documents, claims, claimsNoEvidence, openRequests, evidence, formulaLines, versions] = await Promise.all([
     getAllDocuments(),
     getAllClaims(),
     getClaimsWithoutEvidence(),
     getOpenRequests(),
     getAllEvidence(),
+    getAllFormulaLines(),
+    getAllVersions(),
   ]);
 
   const underRevision = documents.filter(d => d.fileStatus === 'Under revision').length;
@@ -116,6 +120,35 @@ export async function GET(request) {
     ? Math.round(scored.reduce((s, e) => s + e.sqrScore, 0) / scored.length * 10) / 10
     : null;
 
+  // ── Tier 2 additions ─────────────────────────────────────────────────────
+
+  // PCS Extraction Status — how many docs have at least one version
+  const docIdsWithVersions = new Set(versions.map(v => v.pcsDocumentId).filter(Boolean));
+  const docExtractionStatus = {
+    total: documents.length,
+    extracted: documents.filter(d => docIdsWithVersions.has(d.id)).length,
+    notStarted: documents.filter(d => !docIdsWithVersions.has(d.id)).length,
+  };
+
+  // Top Active Ingredients by formula-line count (uses ai field, not canonical ID,
+  // so it works before and after the ingredient auto-create backfill)
+  const ingredientCountMap = {};
+  for (const fl of formulaLines) {
+    const name = (fl.ai || '').trim();
+    if (name) ingredientCountMap[name] = (ingredientCountMap[name] || 0) + 1;
+  }
+  const topIngredients = Object.entries(ingredientCountMap)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 12)
+    .map(([name, count]) => ({ name, count }));
+
+  // Requests by type
+  const requestsByType = {};
+  for (const r of openRequests) {
+    const t = r.requestType || 'other';
+    requestsByType[t] = (requestsByType[t] || 0) + 1;
+  }
+
   const payload = {
     // KPIs
     totalDocuments: documents.length,
@@ -141,6 +174,11 @@ export async function GET(request) {
     sqrDistribution,
     sqrDistributionByType,
     // heatmapData lazy-loaded via /api/pcs/dashboard/coverage
+
+    // Tier 2
+    docExtractionStatus,
+    topIngredients,
+    requestsByType,
   };
 
   _cache = payload;
