@@ -139,9 +139,13 @@ function WelcomeContent() {
   const hasSqr   = hasAnyRole(user, ROLE_SETS.SQR_REVIEWERS);
   const isAdmin  = user?.isAdmin;
   const isReviewerOnly = hasSqr && !hasPcs && !isAdmin;
-  // Nordic team member with no SQR reviewer role → skip welcome, go straight
-  // to the Command Center. Mirrors the reviewer-only auto-route pattern.
-  const isPcsOnly = hasPcs && !hasSqr;
+  // Nordic team member → skip welcome, go straight to the Command Center.
+  // `admin` is included in SQR_REVIEWERS (for capability gating), so a plain
+  // `hasPcs && !hasSqr` check never fires for admins. We override: if the
+  // user has PCS access AND is either non-SQR or an admin, send them to the
+  // command center. Only users with an explicit non-admin SQR reviewer role
+  // alongside PCS access still see the card grid.
+  const isPcsFirst = hasPcs && (!hasSqr || isAdmin);
   const variant  = hasPcs ? 'research' : 'reviewer';
 
   // Single-destination users skip the welcome card grid entirely.
@@ -152,12 +156,12 @@ function WelcomeContent() {
     if (!loading && isReviewerOnly) {
       router.replace('/reviews/dashboard');
     }
-    if (!loading && isPcsOnly) {
+    if (!loading && isPcsFirst) {
       router.replace('/research/pcs');
     }
-  }, [loading, isReviewerOnly, isPcsOnly, router]);
+  }, [loading, isReviewerOnly, isPcsFirst, router]);
 
-  if (loading || isReviewerOnly || isPcsOnly) {
+  if (loading || isReviewerOnly || isPcsFirst) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-pacific-200 border-t-pacific rounded-full animate-spin" />
