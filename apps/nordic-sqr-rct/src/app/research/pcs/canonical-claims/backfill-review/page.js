@@ -98,7 +98,7 @@ export default function BackfillReviewPage() {
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
-      setApprovalLog((s) => ({ ...s, [p.pcsClaimId]: { ok: true, variantsCreated: body.variantsCreated } }));
+      setApprovalLog((s) => ({ ...s, [p.pcsClaimId]: { ok: true, variantsCreated: body.variantsCreated, standardized: body.standardized } }));
       // Optimistic: mark applied locally and remove from list (refresh next change)
       setProposals((prev) => prev.filter((x) => x.pcsClaimId !== p.pcsClaimId));
     } catch (err) {
@@ -356,7 +356,9 @@ function ProposalRow({ p, canEdit, busy, feedback, onApprove, allCanonicals, all
         )}
         {feedback ? (
           <span className={`ml-auto text-xs ${feedback.ok ? 'text-green-700' : 'text-red-700'}`}>
-            {feedback.ok ? `✓ ${feedback.variantsCreated || 0} variant(s) created` : `✗ ${feedback.message}`}
+            {feedback.ok
+              ? `✓ ${feedback.standardized ? 'Text standardized · ' : ''}${feedback.variantsCreated || 0} variant(s) logged`
+              : `✗ ${feedback.message}`}
           </span>
         ) : null}
       </div>

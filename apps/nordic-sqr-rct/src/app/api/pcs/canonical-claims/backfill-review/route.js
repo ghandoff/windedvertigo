@@ -26,6 +26,7 @@ import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getMatchingProposals, filterProposals } from '@/lib/canonical-claim-matcher';
 import { updateClaim } from '@/lib/pcs-claims';
+import { getCanonicalClaim } from '@/lib/pcs-canonical-claims';
 import { notion } from '@/lib/notion';
 import { PCS_DB, PROPS } from '@/lib/pcs-config';
 import { getPcsSupabase } from '@/lib/supabase-pcs';
@@ -179,17 +180,89 @@ export async function POST(request) {
 
   try {
     // 1) Write relations on the PCS claim row.
-    const fields = {};
-    if (canonicalClaimId !== undefined) fields.canonicalClaimId = canonicalClaimId || null;
-    if (claimPrefixId !== undefined) fields.claimPrefixId = claimPrefixId || null;
+    const claimFields = {};
+    if (canonicalClaimId !== undefined) claimFields.canonicalClaimId = canonicalClaimId || null;
+    if (claimPrefixId !== undefined) claimFields.claimPrefixId = claimPrefixId || null;
     if (coreBenefitIds !== undefined && coreBenefitIds.length > 0) {
       // PCS Claims has only one core_benefit relation; pick the first
-      fields.coreBenefitId = coreBenefitIds[0] || null;
+      claimFields.coreBenefitId = coreBenefitIds[0] || null;
     }
-    const updated = await updateClaim(pcsClaimId, fields);
+    const updated = await updateClaim(pcsClaimId, claimFields);
 
-    // 2) Create Wording Variant rows (only if variants array provided + non-empty).
+    // 2) Standardize claim text to canonical wording + create version log.
+    //
+    // When a canonical claim is linked we fetch its authoritative text and:
+    //   a) Overwrite the PCS claim's free-text `claim` field with that wording.
+    //   b) Create two Wording Variant rows as a permanent version log:
+    //        • isPrimary=true  → canonical standardized text
+    //        • isPrimary=false → original pre-standardization text
+    //
+    // Both variant rows are created even when the texts match so the audit
+    // trail is complete. Variant creation is soft-failed per-row.
+
     let variantsCreated = 0;
+    let standardized = false;
+    const originalText = updated?.claim || '';
+
+    if (canonicalClaimId && PCS_DB.wordingVariants) {
+      const VP = PROPS.wordingVariants;
+
+      // Fetch canonical text (Postgres mirror first, Notion fallback).
+      let canonicalText = null;
+      try {
+        const canonical = await getCanonicalClaim(canonicalClaimId);
+        canonicalText = canonical?.canonicalClaim || null;
+      } catch (err) {
+        console.warn('[backfill-review] failed to fetch canonical claim text (non-fatal):', err?.message);
+      }
+
+      if (canonicalText) {
+        // a) Update the PCS claim text to the canonical wording.
+        if (originalText !== canonicalText) {
+          try {
+            await updateClaim(pcsClaimId, { claim: canonicalText });
+            standardized = true;
+          } catch (err) {
+            console.warn('[backfill-review] failed to standardize claim text (non-fatal):', err?.message);
+          }
+        }
+
+        // b) Version log: primary = canonical text, secondary = original text.
+        const versionRows = [
+          {
+            wording: canonicalText,
+            isPrimary: true,
+            notes: 'Canonical — standardized via backfill-review.',
+          },
+          ...(originalText && originalText !== canonicalText
+            ? [{
+                wording: originalText,
+                isPrimary: false,
+                notes: 'Original pre-standardization text.',
+              }]
+            : []),
+        ];
+
+        for (const row of versionRows) {
+          try {
+            await notion.pages.create({
+              parent: { database_id: PCS_DB.wordingVariants },
+              properties: {
+                [VP.wording]: { title: [{ text: { content: row.wording.slice(0, 1990) } }] },
+                [VP.pcsClaim]: { relation: [{ id: pcsClaimId }] },
+                [VP.isPrimary]: { checkbox: row.isPrimary },
+                [VP.variantNotes]: { rich_text: [{ text: { content: row.notes } }] },
+              },
+            });
+            variantsCreated++;
+          } catch (err) {
+            console.error('[backfill-review] failed to create wording variant:', err?.message);
+          }
+        }
+      }
+    }
+
+    // 3) Additional user-supplied wording variants (if provided separately).
     if (Array.isArray(variants) && variants.length > 0 && PCS_DB.wordingVariants) {
       const VP = PROPS.wordingVariants;
       for (let i = 0; i < variants.length; i++) {
@@ -202,16 +275,13 @@ export async function POST(request) {
             properties: {
               [VP.wording]: { title: [{ text: { content: wording.slice(0, 1990) } }] },
               [VP.pcsClaim]: { relation: [{ id: pcsClaimId }] },
-              [VP.isPrimary]: { checkbox: i === 0 },
-              ...(variants.length > 1
-                ? { [VP.variantNotes]: { rich_text: [{ text: { content: `Approved via backfill-review. Variant ${i + 1}/${variants.length}.` } }] } }
-                : {}),
+              [VP.isPrimary]: { checkbox: false },
+              [VP.variantNotes]: { rich_text: [{ text: { content: `User-supplied variant ${i + 1}/${variants.length} (backfill-review).` } }] },
             },
           });
           variantsCreated++;
         } catch (err) {
-          // Soft-fail per variant; partial success is fine
-          console.error('[backfill-review] failed to create variant:', err?.message);
+          console.error('[backfill-review] failed to create user variant:', err?.message);
         }
       }
     }
@@ -221,6 +291,7 @@ export async function POST(request) {
       ok: true,
       pcsClaim: updated,
       variantsCreated,
+      standardized,
     });
   } catch (err) {
     return NextResponse.json({ error: err?.message || 'approval failed' }, { status: 500 });
