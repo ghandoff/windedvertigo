@@ -7,9 +7,16 @@
  *   - Token usage tracking for the AI Hub cost dashboard
  *
  * Every call records token usage, cost, and duration.
+ *
+ * IMPORTANT: Uses streamText (not generateText) for all calls.
+ * generateText makes a blocking HTTP request that waits for the full response;
+ * for large outputs (12k tokens at ~30 tok/s ≈ 400s), Cloudflare's 100-second
+ * origin-timeout fires and returns HTTP 524 before Anthropic responds.
+ * streamText uses SSE (Server-Sent Events), which sends heartbeats that keep
+ * the connection alive for the full generation duration.
  */
 
-import { generateText } from "ai";
+import { streamText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import type { AiFeature, ModelId, TokenUsageEntry } from "./types";
 import { MODEL_PRICING, FEATURE_MODELS } from "./types";
@@ -53,17 +60,35 @@ export async function callClaude(opts: AiCallOptions): Promise<AiCallResult> {
 
   const start = Date.now();
 
-  // AbortSignal.timeout() cancels the request if Claude doesn't respond within
-  // the allotted time. This prevents hung API calls from consuming the entire
-  // Inngest step budget (8 min function timeout).
-  const { text, usage } = await generateText({
-    model: anthropicProvider(modelId),
-    maxOutputTokens: opts.maxTokens ?? 1024,
-    temperature: opts.temperature ?? 0.7,
-    system: opts.system,
-    prompt: opts.userMessage,
-    abortSignal: AbortSignal.timeout(opts.timeoutMs ?? 300_000),
-  });
+  // Use AbortController + setTimeout instead of AbortSignal.timeout() because
+  // AbortSignal.timeout() fires immediately (0 ms) in CF Workers with the
+  // nodejs_compat flag — a known runtime bug. Manual AbortController uses the
+  // standard setTimeout which works correctly in all environments.
+  const timeoutMs = opts.timeoutMs ?? 300_000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  // streamText keeps the SSE connection alive during generation; generateText
+  // would block the TCP connection until the full response arrives, triggering
+  // Cloudflare's 100-second origin-timeout (HTTP 524) on large completions.
+  let text: string;
+  let usage: { inputTokens?: number; outputTokens?: number };
+  try {
+    const result = streamText({
+      model: anthropicProvider(modelId),
+      maxOutputTokens: opts.maxTokens ?? 1024,
+      temperature: opts.temperature ?? 0.7,
+      system: opts.system,
+      prompt: opts.userMessage,
+      abortSignal: controller.signal,
+    });
+    // Await both in parallel — text resolves after last chunk, usage after stream end
+    [text, usage] = await Promise.all([result.text, result.usage]);
+  } catch (err) {
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const durationMs = Date.now() - start;
 

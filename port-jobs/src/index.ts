@@ -319,7 +319,11 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
         console.warn("[proposal] step tracking:", e),
       );
       try {
-        const docRes = await fetch(rfp.rfpDocumentUrl, { signal: AbortSignal.timeout(15000) });
+        // AbortSignal.timeout() fires immediately (0ms) in CF Workers with nodejs_compat.
+        // Use AbortController + setTimeout instead.
+        const docAbort = new AbortController();
+        const docTimeout = setTimeout(() => docAbort.abort(), 15000);
+        const docRes = await fetch(rfp.rfpDocumentUrl, { signal: docAbort.signal }).finally(() => clearTimeout(docTimeout));
         if (docRes.ok) {
           const contentType = docRes.headers.get("content-type") ?? "";
           if (contentType.includes("text/plain")) {
@@ -333,7 +337,9 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     let questionBank: QuestionBank | null = null;
     if (rfp.questionBankUrl && rfp.questionBankUrl.startsWith("http")) {
       try {
-        const qbRes = await fetch(rfp.questionBankUrl, { signal: AbortSignal.timeout(10000) });
+        const qbAbort = new AbortController();
+        const qbTimeout = setTimeout(() => qbAbort.abort(), 10000);
+        const qbRes = await fetch(rfp.questionBankUrl, { signal: qbAbort.signal }).finally(() => clearTimeout(qbTimeout));
         if (qbRes.ok) questionBank = await qbRes.json() as QuestionBank;
       } catch { /* non-fatal */ }
     }
@@ -775,7 +781,9 @@ const rfpDocumentConsumer = createQueueConsumer<RfpDocumentUploadedJob>(
 
     if (contentType === "text/plain" && documentUrl.startsWith("http")) {
       try {
-        const res = await fetch(documentUrl, { signal: AbortSignal.timeout(15000) });
+        const docAbort = new AbortController();
+        const docTimeout = setTimeout(() => docAbort.abort(), 15000);
+        const res = await fetch(documentUrl, { signal: docAbort.signal }).finally(() => clearTimeout(docTimeout));
         if (res.ok) documentText = await res.text();
       } catch { /* fall through to snapshot */ }
     }

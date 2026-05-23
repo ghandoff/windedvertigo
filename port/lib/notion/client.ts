@@ -6,16 +6,31 @@
  */
 
 import { createNotionClient } from "@/lib/shared/notion";
+import type { Client } from "@notionhq/client";
 
-const notionToken = process.env.NOTION_TOKEN;
-if (!notionToken && process.env.NODE_ENV === "production") {
-  // Surface in Vercel runtime logs (level=error) so failures aren't silent.
-  // Pages will return 500 with a clear cause rather than a cryptic crash.
-  console.error(
-    "[notion/client] NOTION_TOKEN is not set — all Notion API calls will fail",
-  );
+// Lazy singleton — deferred until first use so that seedProcessEnv(env) in
+// CF Workers queue consumers can set process.env.NOTION_TOKEN before the
+// Client is constructed. (Module-level initialisation runs before seedProcessEnv,
+// so reading process.env.NOTION_TOKEN at import time always yields undefined.)
+let _notionClient: Client | null = null;
+
+function getNotionClient(): Client {
+  if (_notionClient) return _notionClient;
+  const token = process.env.NOTION_TOKEN;
+  if (!token && process.env.NODE_ENV === "production") {
+    console.error(
+      "[notion/client] NOTION_TOKEN is not set — all Notion API calls will fail",
+    );
+  }
+  _notionClient = createNotionClient(token ?? "missing-notion-token");
+  return _notionClient;
 }
-export const notion = createNotionClient(notionToken ?? "missing-notion-token");
+
+export const notion = new Proxy({} as Client, {
+  get(_target, prop) {
+    return (getNotionClient() as unknown as Record<string | symbol, unknown>)[prop];
+  },
+});
 
 /**
  * Data source (collection) IDs — used with dataSources.query (API v2025-09-03).
