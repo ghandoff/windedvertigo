@@ -89,7 +89,8 @@ export default function InlineField({
           disabled={!canEdit}
           aria-label={canEdit ? `Toggle ${fieldName}` : undefined}
           className={[
-            'inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium',
+            // py-1.5 on mobile (touch) → py-0.5 on md+ (density)
+            'inline-flex items-center gap-1.5 px-2 py-1.5 md:py-0.5 rounded text-xs font-medium min-h-[36px] md:min-h-0',
             checked ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-500',
             canEdit ? 'cursor-pointer hover:opacity-80' : '',
           ].join(' ')}
@@ -108,7 +109,8 @@ export default function InlineField({
         aria-label={canEdit ? `Edit ${fieldName}` : undefined}
         className={[
           'group flex items-start gap-2 w-full text-left',
-          canEdit ? 'rounded -mx-1 px-1 py-0.5 hover:bg-pacific-50/60 focus:bg-pacific-50 focus:outline-none focus:ring-1 focus:ring-pacific-300 cursor-text' : '',
+          // py-2 on mobile (touch ≥44px row) → py-0.5 on md+ (density)
+          canEdit ? 'rounded -mx-1 px-1 py-2 md:py-0.5 hover:bg-pacific-50/60 focus:bg-pacific-50 focus:outline-none focus:ring-1 focus:ring-pacific-300 cursor-text' : '',
         ].join(' ')}
       >
         <div className="flex-1 min-w-0">
@@ -224,10 +226,11 @@ export default function InlineField({
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function PencilIcon({ className = 'w-3.5 h-3.5' }) {
+function PencilIcon({ className = '' }) {
+  // 16px on mobile (visible against finger), 14px on md+ (desktop density)
   return (
-    <span aria-hidden="true" className={className}>
-      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+    <span aria-hidden="true" className={`inline-flex shrink-0 ${className}`}>
+      <svg className="w-4 h-4 md:w-3.5 md:h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
       </svg>
     </span>
