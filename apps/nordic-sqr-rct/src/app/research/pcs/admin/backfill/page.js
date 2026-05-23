@@ -54,6 +54,8 @@ export default function PcsBackfillAdminPage() {
         supportsLimit
       />
 
+      <SyncIngredientsCard />
+
       <BackfillCard
         title="Ingredient Relations — resolve-only (no auto-create)"
         description="Fuzzy-matches existing formula lines, evidence library entries, and claim dose requirements against the canonical Ingredients DB. Only links rows where a match already exists — does not create new canonical records. Useful after manually adding ingredients to the DB."
@@ -162,6 +164,89 @@ function BackfillCard({ title, description, endpoint, supportsLimit = false, ext
               {JSON.stringify(results, null, 2)}
             </pre>
           </details>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Step 2 after running the auto-create backfill: force-sync newly created
+ * Notion ingredient pages into the Postgres mirror. Required because
+ * `mirrorToPostgres` inside `createIngredient` silently swallows write
+ * errors, so the Postgres read-path may not yet see the new rows.
+ */
+function SyncIngredientsCard() {
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  async function run() {
+    setBusy(true);
+    setError(null);
+    setResult(null);
+    try {
+      // Look back 24h to catch any ingredients created today
+      const res = await fetch('/api/admin/sync/ingredients?hours=24', { method: 'POST' });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
+      setResult(json);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="rounded-lg border border-amber-200 bg-amber-50 p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-medium text-gray-900">
+            Step 2 — Sync Ingredients: Notion → Database
+          </h2>
+          <p className="mt-1 text-sm text-gray-600">
+            After running the auto-create backfill above, click this to push the newly created
+            ingredient records from Notion into the Postgres database. Required because the
+            platform reads from Postgres in production — without this sync, the Ingredients
+            page will not reflect the new data.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={run}
+          disabled={busy}
+          className="shrink-0 rounded bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+        >
+          {busy ? 'Syncing…' : 'Sync now'}
+        </button>
+      </div>
+
+      {error && (
+        <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
+
+      {result && (
+        <div className="mt-4 space-y-2">
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="rounded bg-white px-3 py-2 border border-amber-100">
+              <div className="text-gray-500">Fetched from Notion</div>
+              <div className="mt-0.5 font-mono font-semibold text-gray-900">{result.fetched ?? '—'}</div>
+            </div>
+            <div className="rounded bg-white px-3 py-2 border border-amber-100">
+              <div className="text-gray-500">Mirrored to DB</div>
+              <div className="mt-0.5 font-mono font-semibold text-green-700">{result.synced ?? result.count ?? '—'}</div>
+            </div>
+            <div className="rounded bg-white px-3 py-2 border border-amber-100">
+              <div className="text-gray-500">Lookback</div>
+              <div className="mt-0.5 font-mono font-semibold text-gray-900">{result.hours}h</div>
+            </div>
+          </div>
+          {(result.synced ?? result.count ?? 0) > 0 && (
+            <p className="text-xs text-green-700 font-medium">
+              ✓ Sync complete — reload the Ingredients page to see the updated list.
+            </p>
+          )}
         </div>
       )}
     </section>
