@@ -1,34 +1,25 @@
 import { NextResponse } from 'next/server';
-import { requireCapability } from '@/lib/auth/require-capability';
-import { syncRecentIngredientsToPostgres } from '@/lib/pcs-ingredients';
+
+export const dynamic = 'force-dynamic';
 
 /**
- * POST /api/admin/sync/ingredients
+ * POST /api/admin/sync/ingredients — RETIRED (Phase G-1, 2026-05-23)
  *
- * Force-syncs Notion → Postgres for the canonical Ingredients table.
- * Used after a backfill that auto-created Notion pages whose
- * mirrorToPostgres calls may have been silently swallowed.
+ * This endpoint force-synced Notion → Postgres for the canonical Ingredients
+ * table. With Postgres as the canonical store (Part 10 migration, 2026-05-23),
+ * there's nothing to sync FROM — Notion has been retired as a write surface
+ * and no one edits ingredients there anymore.
  *
- * Query params:
- *   hours=N   — look back N hours (default: 2; max: 168 = 7 days)
+ * The `syncRecentIngredientsToPostgres` helper in pcs-ingredients.js still
+ * exists as dead code (zero callers); a future codemod PR will delete it
+ * along with the matching helpers across the other 20 lib files.
  */
-export async function POST(request) {
-  const auth = await requireCapability(request, 'pcs.taxonomy:edit', {
-    route: '/api/admin/sync/ingredients',
-  });
-  if (auth.error) return auth.error;
-
-  const { searchParams } = new URL(request.url);
-  const hours = Math.min(parseInt(searchParams.get('hours') || '2', 10), 168);
-  const sinceIso = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-
-  const result = await syncRecentIngredientsToPostgres(sinceIso);
-
-  return NextResponse.json({
-    sinceIso,
-    hours,
-    synced: result.mirrored ?? result.count ?? 0,
-    fetched: result.fetched ?? 0,
-    ...result,
-  });
+export async function POST() {
+  return NextResponse.json(
+    {
+      retired: true,
+      message: 'admin/sync/ingredients retired — Postgres is the canonical store (Part 10 migration, 2026-05-23). No Notion → Postgres sync needed.',
+    },
+    { status: 410 },
+  );
 }

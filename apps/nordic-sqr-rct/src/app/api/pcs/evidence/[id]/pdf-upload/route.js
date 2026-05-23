@@ -21,8 +21,9 @@
 
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-// @vercel/blob imported dynamically in the local dev fallback below so it
-// is never evaluated on CF Workers (where the module throws on init).
+// R2 migration complete (2026-05-07): PDF uploads land in Cloudflare R2 via
+// `bucket.put` below. The previous @vercel/blob fallback was removed in
+// Phase G-2 (2026-05-23) — @vercel/blob is no longer a dependency.
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { requireCapability } from '@/lib/auth/require-capability';
 import { getEvidence, updateEvidence } from '@/lib/pcs-evidence';
