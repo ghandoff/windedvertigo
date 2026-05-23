@@ -31,12 +31,14 @@ import { PCS_DB, PROPS } from '@/lib/pcs-config';
 import { getPcsSupabase } from '@/lib/supabase-pcs';
 
 // ── Layer 1: in-memory cache ────────────────────────────────────────────────
-// Rebuilt every CACHE_TTL_MS.  Single-flight pattern prevents duplicate Notion
-// scans when concurrent requests arrive during a cold-start rebuild.
+// Rebuilt every MEM_TTL_MS within the same CF Workers isolate lifetime.
+// NOTE: Cloudflare Workers creates a new isolate per request, so _cache is
+// always null on a cold start — the Supabase layer is the real persistent cache.
 let _cache = null;
 let _cacheBuiltAt = 0;
 let _inflight = null;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
+const MEM_TTL_MS = 5 * 60 * 1000;  // 5 min  — in-memory (same isolate only)
+const SB_TTL_MS  = 30 * 60 * 1000; // 30 min — Supabase (survives cold starts)
 const SB_TABLE = 'pcs_backfill_proposals_cache';
 const SB_ROW_ID = 'singleton';
 
@@ -87,28 +89,30 @@ async function deleteSbCache() {
 // ── getProposalsCached ──────────────────────────────────────────────────────
 
 async function getProposalsCached() {
-  // Fast path: in-memory hit (same instance, within TTL)
-  if (_cache && Date.now() - _cacheBuiltAt < CACHE_TTL_MS) return _cache;
+  // Fast path: in-memory hit (same CF Workers isolate, within TTL)
+  if (_cache && Date.now() - _cacheBuiltAt < MEM_TTL_MS) return _cache;
 
   // Single-flight: concurrent requests share one in-progress Promise
   if (_inflight) return _inflight;
 
-  // Cold-start: check Supabase before triggering full Notion rebuild
+  // Cold-start: check Supabase before triggering full Notion rebuild.
+  // SB_TTL_MS (30 min) >> MEM_TTL_MS (5 min) so that cold-start isolates
+  // reuse the cached scan for up to 30 min without hitting Notion again.
   const sbRow = await readSbCache();
-  if (sbRow && Date.now() - sbRow.builtAt < CACHE_TTL_MS) {
+  if (sbRow && Date.now() - sbRow.builtAt < SB_TTL_MS) {
     _cache = sbRow.proposals;
     _cacheBuiltAt = sbRow.builtAt;
     return _cache;
   }
 
-  // Full rebuild from Notion — write result to both layers when done
+  // Full rebuild from Notion — await the Supabase write before returning so
+  // CF Workers cannot cancel it when the isolate ends after the response.
   _inflight = getMatchingProposals()
-    .then((proposals) => {
+    .then(async (proposals) => {
       _cache = proposals;
       _cacheBuiltAt = Date.now();
       _inflight = null;
-      // Persist to Supabase asynchronously — don't block the response
-      writeSbCache(proposals);
+      await writeSbCache(proposals); // await ensures write completes before isolate exit
       return proposals;
     })
     .catch((err) => {
