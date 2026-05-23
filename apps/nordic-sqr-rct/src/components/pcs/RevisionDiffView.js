@@ -122,7 +122,7 @@ export default function RevisionDiffView({ beforeValue, afterValue }) {
   const same = beforeDisplay === afterDisplay;
 
   return (
-    <div className="grid grid-cols-2 gap-2 text-xs">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
       <div className={`px-2 py-1.5 rounded border font-mono whitespace-pre-wrap break-words ${
         same ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-red-200 bg-red-50 text-red-900'
       }`}>

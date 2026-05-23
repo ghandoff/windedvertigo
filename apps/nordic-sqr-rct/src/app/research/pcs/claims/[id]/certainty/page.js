@@ -161,14 +161,14 @@ export default function CertaintyPage({ params }) {
           <p className="text-xs text-orange-700 mt-3">Single-study cap applied — rating limited to Low because only one study supports this claim.</p>
         )}
         {persisted && (
-          <p className="text-xs text-green-700 mt-3">Saved and persisted to Notion at {new Date(persisted).toLocaleTimeString()}.</p>
+          <p className="text-xs text-green-700 mt-3">Saved at {new Date(persisted).toLocaleTimeString()}.</p>
         )}
       </div>
 
       {/* Derived inputs (read-only) */}
       <div className="card p-4">
         <h2 className="text-sm font-semibold text-gray-700 mb-3">Derived from existing data</h2>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-gray-50 p-3 rounded">
             <p className="text-xs text-gray-500 uppercase">Evidence count</p>
             <p className="text-2xl font-bold">{derivedInputs.evidenceCount}</p>

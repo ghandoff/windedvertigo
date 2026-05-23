@@ -349,15 +349,18 @@ export default function PcsDocumentDetail() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      {/* Sticky toolbar header — stays accessible while scrolling long PCS bodies.
+          top-14 = below the navbar (h-14). -mx + px keeps the full-width white
+          background under the buttons even though the parent has page padding. */}
+      <div className="sticky top-14 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-gray-50/95 backdrop-blur-sm border-b border-gray-200 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <Link href="/research/pcs/documents" className="text-sm text-pacific-600 hover:underline">
             ← All documents
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2">{doc.pcsId}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 truncate">{doc.pcsId}</h1>
         </div>
         {!editing && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {/* Wave 8 Phase B — view mode segmented control */}
             <div
               className="inline-flex rounded-md border border-gray-300 overflow-hidden text-sm font-medium"

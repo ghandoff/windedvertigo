@@ -1,0 +1,90 @@
+/* Harbour-preview header — minimal harbour-themed shell.
+ *
+ * Brand tokens (--wv-*) come from site/styles/tokens.css via the root
+ * import in app/globals.css. Don't redefine them here.
+ *
+ * The header is `position: sticky` rather than `fixed` so the preview
+ * banner directly underneath it (which is also sticky) stacks naturally
+ * without the SVG scrolling under both. */
+
+.header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: transparent;
+  transition: background-color 240ms ease, border-color 240ms ease,
+    backdrop-filter 240ms ease;
+}
+
+.scrolled {
+  background-color: rgba(39, 50, 72, 0.96); /* var(--wv-cadet)/96 */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.875rem; /* ~ var(--space-lg) 30px */
+  max-width: 100%;
+}
+
+.brand {
+  display: block;
+  transition: opacity 200ms ease;
+}
+.brand:hover {
+  opacity: 0.85;
+}
+
+.logo {
+  display: block;
+  width: 150px;
+  height: auto;
+}
+@media (min-width: 768px) {
+  .logo {
+    width: 200px;
+  }
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.navLink {
+  font-family: var(--font-body, "Inter", system-ui, sans-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: var(--wv-champagne, #ffebd2);
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: color 200ms ease, background-color 200ms ease;
+}
+.navLink:hover {
+  color: var(--wv-champagne, #ffebd2);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.navLink:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .inner {
+    padding: 0.75rem 1rem;
+  }
+  .navLink {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.5rem;
+  }
+}

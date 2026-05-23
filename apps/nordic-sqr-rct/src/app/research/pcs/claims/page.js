@@ -166,6 +166,7 @@ function PcsClaims() {
         userId={user?.reviewerId}
         defaultSortKey="lastEditedTime"
         defaultSortDir="desc"
+        stickyFirstCol
       />
     </div>
   );

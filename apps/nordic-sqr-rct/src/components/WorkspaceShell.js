@@ -37,15 +37,41 @@ const researchMobileNavItems = [
 /**
  * WorkspaceShell — unified top nav for both platform surfaces.
  *
- * @param {{ variant: 'reviewer' | 'research' }} props
+ * @param {{
+ *   variant: 'reviewer' | 'research',
+ *   externalMobileMenuOpen?: boolean,
+ *   onExternalMobileMenuToggle?: () => void,
+ * }} props
  *   variant="reviewer"  SQR-RCT surface: logo → /dashboard, desktop center nav links visible
  *   variant="research"  PCS surface:     logo → /pcs,       desktop center is empty (sidebar handles it)
+ *
+ *   When `onExternalMobileMenuToggle` is provided (research variant only),
+ *   the hamburger drives that callback instead of WorkspaceShell's internal
+ *   `mobileOpen` state, and the research-variant mobile dropdown is suppressed.
+ *   The host layout is expected to render a slide-in drawer in its place.
  */
-export default function WorkspaceShell({ variant = 'reviewer' }) {
+export default function WorkspaceShell({
+  variant = 'reviewer',
+  externalMobileMenuOpen,
+  onExternalMobileMenuToggle,
+}) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+
+  // When external state is provided (research variant w/ drawer), defer to it.
+  // Otherwise (reviewer variant, or research routes without a host drawer),
+  // keep using the internal toggle + internal mobile dropdown.
+  const usingExternal = typeof onExternalMobileMenuToggle === 'function';
+  const mobileOpen = usingExternal ? !!externalMobileMenuOpen : internalMobileOpen;
+  const setMobileOpen = usingExternal
+    ? (val) => {
+        // Resolve `(prev => ...)` callers into a plain boolean for the host.
+        const next = typeof val === 'function' ? val(mobileOpen) : val;
+        if (next !== mobileOpen) onExternalMobileMenuToggle();
+      }
+    : setInternalMobileOpen;
   const [profileImage, setProfileImage] = useState(null);
 
   const isReviewer = variant === 'reviewer';
@@ -273,8 +299,13 @@ export default function WorkspaceShell({ variant = 'reviewer' }) {
               Sign out
             </button>
           </div>
+        ) : usingExternal ? (
+          /* Research variant with external drawer — host layout renders the
+             slide-in sidebar. WorkspaceShell intentionally omits the legacy
+             flat dropdown here to avoid two nav surfaces competing on mobile. */
+          null
         ) : (
-          /* Research mobile dropdown */
+          /* Research mobile dropdown (legacy — used when no external drawer) */
           <nav className="md:hidden border-t border-gray-100 bg-white px-4 pb-3 pt-2 space-y-1">
             {filteredResearchMobileNav.map(item => {
               const isActive = item.exact

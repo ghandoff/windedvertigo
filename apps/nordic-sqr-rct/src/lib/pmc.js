@@ -22,8 +22,9 @@
  * path (POST /api/pcs/evidence/[id]/pdf-upload).
  */
 
-// @vercel/blob imported dynamically in the local dev fallback (downloadAndUploadPdf)
-// so it is never evaluated on CF Workers (where the module throws on init).
+// R2 migration complete (2026-05-07): PMC PDF storage uses Cloudflare R2 via
+// `r2.put` in downloadAndUploadPdf below. The previous @vercel/blob fallback
+// was removed in Phase G-2 (2026-05-23) — @vercel/blob is no longer a dependency.
 
 const NCBI_BASE = 'https://www.ncbi.nlm.nih.gov';
 const PMC_OA_BASE = `${NCBI_BASE}/pmc/utils/oa/oa.fcgi`;

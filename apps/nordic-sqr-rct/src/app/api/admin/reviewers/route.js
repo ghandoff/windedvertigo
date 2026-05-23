@@ -1,6 +1,6 @@
 import { requireCapability } from '@/lib/auth/require-capability';
 import { NextResponse } from 'next/server';
-import { getAllReviewers } from '@/lib/sqr-reviewers';
+import { getAllReviewersAdmin } from '@/lib/sqr-reviewers';
 import { getAllScores } from '@/lib/sqr-scores';
 
 /**
@@ -17,8 +17,11 @@ export async function GET(request) {
 
     // Fetch reviewers and scores in parallel — both lib functions use
     // Postgres when SQR_READ_FROM_POSTGRES=1 (already set in production).
+    // Admin view: include all reviewers regardless of consent status (use
+    // getAllReviewersAdmin, not getAllReviewers — the latter filters out
+    // non-consented entries like August Kinloch).
     const [reviewers, allScores] = await Promise.all([
-      getAllReviewers(),
+      getAllReviewersAdmin(),
       getAllScores(),
     ]);
 

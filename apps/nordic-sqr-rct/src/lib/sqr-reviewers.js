@@ -452,28 +452,39 @@ export async function updateReviewerEmail(reviewerId, email) {
 
 /**
  * Update the Roles multi_select property for a reviewer.
- * Writes to Notion (canonical), then mirrors to Postgres if the flag is set.
  *
- * @param {string} reviewerId — Notion page ID
+ * Part 10 (Supabase-only): Postgres is canonical. We write to Postgres
+ * synchronously, then fire-and-forget the Notion mirror so the UI never
+ * blocks on a dead/slow Notion API call. Notion errors are silently
+ * swallowed — they were retired as a write target in the Part 10 migration.
+ *
+ * @param {string} reviewerId — reviewer ID (Postgres notion_page_id column)
  * @param {string[]} roles    — full replacement set (e.g. ['reviewer', 'admin'])
  */
 export async function updateReviewerRoles(reviewerId, roles) {
-  await notion.pages.update({
-    page_id: reviewerId,
-    properties: {
-      'Roles': { multi_select: roles.map(r => ({ name: r })) },
-    },
-  });
+  // 1) Postgres write — canonical, blocking.
   if (shouldWriteToSqrPostgresFirst()) {
-    try {
-      const sb = getPcsSupabase();
-      if (sb) {
-        await sb.from('reviewers').update({ roles }).eq('notion_page_id', reviewerId);
-      }
-    } catch (err) {
-      console.warn('[sqr-reviewers] Postgres roles update failed:', err.message);
+    const sb = getPcsSupabase();
+    if (sb) {
+      const { error } = await sb
+        .from('reviewers')
+        .update({ roles })
+        .eq('notion_page_id', reviewerId);
+      if (error) throw new Error(`Postgres roles update failed: ${error.message}`);
     }
   }
+
+  // 2) Notion mirror — best-effort, non-blocking. (Notion was retired as a
+  //    write target; this is kept only so legacy Notion-side views stay in
+  //    sync if anyone happens to look. Failures are expected and ignored.)
+  notion.pages
+    .update({
+      page_id: reviewerId,
+      properties: {
+        'Roles': { multi_select: roles.map(r => ({ name: r })) },
+      },
+    })
+    .catch(() => { /* Part 10 — Notion no longer canonical */ });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

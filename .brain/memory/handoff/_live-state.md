@@ -1,50 +1,56 @@
-# Live state — refreshed 2026-05-20 11:32 PT by context-sync (first manual run)
+# live state
 
-> Single-writer file. Owned by the `context-sync` scheduled task (Cowork or Claude Code, daily 9pm PT).
-> Manual edits should only happen when explicitly taking the snapshot; otherwise let the schedule rewrite it.
+> single-writer file. owned by the `context-sync` scheduled task (daily 9pm pt).
+> manual edits should only happen when explicitly taking the snapshot; otherwise let the schedule rewrite it.
 >
-> History and per-session notes live in sibling files in this directory. The archive of everything pre-split is `_archive-pre-split-2026-05-19.md`.
+> history and per-session notes live in sibling files in this directory. the archive of everything pre-split is `_archive-pre-split-2026-05-19.md`.
 
-## open threads
+**last synced:** 2026-05-22 21:08 pt (context-sync autonomous run)
 
-- **Prime+ launch May 28 (T-8 days)** — multiple subtasks active across team. → garrett to request technical audit from August
-- **Strategy app debugging** — loading issues in port. → garrett to troubleshoot
-- **Website "Do" page load fix** — windedvertigo.com /do not loading. → garrett to fix
-- **Homepage copy refresh** — "What" page hero ("learning is change" → more explicit) + 3-bullet middle sentence (research / products / experiences). → garrett to update
-- **Pause-motion accessibility button** — stop motion effects on wobbling/spinning elements. → garrett to implement
-- **Ubango proposal draft** — sketch inside Notion. → jamie to draft
-- **Edtech journals shortlist** — top 20 for article placement. → lamis to identify
-- ~~**Maria's cuts-catalogue a11y PR (#72)** — 7 days open.~~ → **resolved 2026-05-20**: squash-merged as `71c66545`
-- **Garrett's stale draft PRs** — #89 (rubric-co-builder proxy, 5d), #60 (/api/version roll, 7d), #52 (wv-pr-pager, 7d). → ship / close / revive each
-- **Payton's first-commit playground PR (#44)** — 9 days open. → blocked on review or graceful close
-- ~~**`wv-crm` rollback expiry verification**~~ → **resolved 2026-05-20**: `vercel projects ls --scope winded-vertigo` returns zero projects; CF Workers transition complete
-- **IDB Salvador follow-up** — 26d silence since Nadia's 24 apr "comisión actualmente realizando." → follow-up email drafted in Gmail (Maria's voice, Spanish, in-thread reply); awaiting send
+**where we are right now:** t-6 days to the may 28 prime+ / harbour launch. nordic platform was the dominant engineering surface in the last 24 hours — 11 commits landed on main covering Part 7 living-view inline editing, Part 8 delete-request system + canonical claim overrides, ingredient auto-create, a role-aware command center dashboard, and welcome-redirect fixes. the kinloch technical audit kickoff happened today at 2:30pm pt (rescheduled from noon). proposal pipeline is quiet today — the 3 local-only files on main from yesterday's gdocs→notion revert remain uncommitted (now joined by port-jobs/src/index.ts and the modified ai/proposal-generator.ts), and main is even with origin/main (no longer 1 ahead). two new rejections came in this morning — ubongo (10-year impact RFP, auto-decline ~7 min after submission) and rmu asia-pacific (distilling lesson study). cash position unchanged from last sync (prme 2026 booked at $145k against the $500k target). tomorrow is a saturday — calendar is empty save the chase ink cc payment reminder.
 
-## environment handoffs
+### open threads
 
-**Cowork (operations):**
-- `operational.md` `active-projects` block last-reviewed 2026-04-13 (37 days). Refresh from current state — IDB Salvador deadline has passed, several entries are stale.
-- May 6 whirlpool items still uncrossed in TASKS.md — verify Payton's "post Learning to Fly on May 13" status; cross off if shipped, escalate if dropped.
-- Wednesday whirlpool agenda: confirm it includes the 15-min Prime+ app review block per the May 18 action item.
+| project | last action | next action | link |
+|---|---|---|---|
+| prime+ launch (may 28) | t-6 days; no engineering merges directly on prime+ in last 24h | wed 27 may whirlpool: 15-min per-app review block; ship co-rubric-companion polish remaining items | [TASKS.md whirlpool 2026-05-18](../../TASKS.md) |
+| nordic platform — sharon follow-up wave | parts 7 + 8 shipped today (`444a1d2`, `a6002bf`), command center + ingredients + welcome-redirect fixes all merged | verify role-extraction accuracy + delete-request flow in prod; confirm magic-link path for non-team users | apps/nordic-sqr-rct |
+| proposal pipeline output route | reverted gdocs → notion (`bedb0a2`, 21 may); gdocs per-org subfolders still landed (`f81041e`) | lock direction; commit-or-stash the 5 modified files locally (`port-jobs/src/index.ts`, `port/lib/ai/client.ts`, `port/lib/ai/proposal-generator.ts`, `port/lib/notion/client.ts`, plus this file) | _local working tree_ |
+| kinloch technical audit | kickoff completed today 2:30pm pt (slot moved from noon) | capture his scope decision + agenda outputs into a session handoff file; queue follow-up actions for engineering | calendar event `e14a9fbcbf7f` |
+| ubongo 10-year impact rfp | proposal sent 22 may 06:49 utc; auto-decline arrived 7 minutes later | post-mortem: was it a hard auto-filter, missing eligibility field, or human review? log learnings for the question-bank | gmail thread `19e4e6de36caf459` |
+| rmu asia-pacific (distilling lesson study) | rejection received this morning re: 4 may submission | graceful close-out reply; tag opportunity as lost in pipeline | gmail thread `19df4c14823e9f83` |
+| attio crm trial | 60-day inactivity notice today — workspace deletion imminent | decide keep-or-cancel; if cancelling, export any retained contacts before deletion | gmail thread `19e526183d2f0039` |
+| stale draft prs sweep | unchanged since 21 may sync | ship / close / revive: #89 (rubric-co-builder proxy, now 7d), #60 (/api/version, 9d), #52 (wv-pr-pager, 9d), #44 (payton's first-commit, 11d) | github pr queue |
 
-**Claude Code (engineering):**
-- Triage the 5 stale open PRs (all 5–9 days). At minimum: comment on each with a status or close it. CONTRIBUTING.md anti-pattern threshold is 3+ days = rebase, 7+ days = split/abandon/merge.
-- Today's session merged 3 PRs (#107 TEAM.md, #108 best-practices, #109 PR-fluency ramp) and shipped the `context-sync` scheduled task. No engineering follow-ups in flight.
+### waiting on external
 
-**Cloud Claude / mobile sessions:**
-- Nothing explicitly pending. The new SessionStart hook means any new session will surface its own collision-surface picture on boot.
+- **august kinloch** — kickoff just landed; awaiting his written audit scope + go/no-go signal back.
+- **idb salvador / nadia nochez** — 28 days of silence since the 24 apr "comisión actualmente realizando" confirmation; follow-up draft (in maria's voice, spanish) still unsent.
+- **collective members (aet, eco966, solihull, nsit)** — idb project references still outstanding.
+- **amna at 10 (jonelle + walaa)** — submitted 26 mar; ~57 days, no response.
+- **sesame workshop close-out** — pass received 31 mar; graceful reply still undrafted.
+- **paul ramchandani (pedal conference)** — sent over the holiday, no response yet.
+- **kristin miller (smartersupplyworld)** — inbound cold outreach today re: "4–8 new contracts in 90 days"; awaiting garrett triage (probably ignore, but worth a glance).
 
-## recent merges (24–48h)
+### environment handoffs
 
-- `ed09985` — docs(contributing): graduated ramp for getting fluent with PR review (#109) (ghandoff)
-- `9aa4279` — docs(contributing): add best practices for working in this environment (#108) (ghandoff)
-- `fbdd70c` — chore: add TEAM.md for shared institutional knowledge (#107) (ghandoff)
-- `60ed480` — chore(parallel): hybrid collision-surface reductions (#106) (ghandoff)
-- `4453399` — feat(strategy): move Gantt + distribution data from hardcode to Supabase (#105) (ghandoff)
+**cowork → claude code (engineering queued up):**
 
-## notable risks
+- decide proposal-output direction (notion vs gdocs) and lock it in — pipeline has flip-flopped twice in the last 48 hours; the 5 modified files in the local working tree are blocking on this decision.
+- commit-or-stash the locally-modified files on main: `port-jobs/src/index.ts`, `port/lib/ai/client.ts`, `port/lib/ai/proposal-generator.ts`, `port/lib/notion/client.ts`, plus this handoff file.
+- stale draft prs sweep still queued — #89/#60/#52/#44; payton's #44 now at 11 days.
+- nordic Part 7 + Part 8 verification in production: living-view inline edits round-trip cleanly, delete-request system fires correct events, canonical-claim overrides behave for tier-1 admins.
 
-- ~~`operational.md` `active-projects` last-reviewed 2026-04-13 (>30d)~~ → **partially addressed 2026-05-20**: IDB row refreshed + last-reviewed bumped to today; the infra table within operational.md still needs a full refresh (called out via inline comment pointing to TEAM.md as canonical).
-- 4 of 5 open PRs still 5–9 days old (sweep partially done — #72 merged); #89/#60/#52/#44 remaining. Anti-pattern threshold still tripped.
-- TASKS.md May 6 whirlpool items still uncrossed; possible silent drift where work shipped but wasn't logged (esp. Payton's May-13 Substack post).
-- ~~No per-session handoff file for today's brain-partition work~~ → **resolved 2026-05-20**: `2026-05-20-claude-code-brain-partition.md` filed, force-tracked, appended with follow-on work (#72 merge, wv-crm verification, IDB draft).
+**claude code → cowork (ops queued up):**
+
+- write up the kinloch kickoff into a `2026-05-22-cowork-kinloch-kickoff.md` handoff file — scope decisions, next-step actions, garrett's read on whether to proceed.
+- ubongo auto-decline post-mortem: pull the form submission record, compare against what they accepted historically, decide if it's a process problem or a fit problem.
+- attio trial decision — flip keep-or-cancel before the 60-day workspace deletion fires; if cancelling, ensure no live contacts depend on it.
+- rmu asia-pacific graceful close-out reply (similar template to sesame when that goes out).
+- idb salvador follow-up — draft still sits in gmail; needs garrett to forward to maria or send from his account.
+- verify payton's may 13 "learning to fly" substack post — was it ever published? cross off or escalate.
+- confirm wednesday whirlpool agenda includes the 15-min prime+ app review block per the may 18 action item.
+
+### mobile bookmarks
+
+_no slack self-DMs from u06q4un4pkr in the last 24 hours._

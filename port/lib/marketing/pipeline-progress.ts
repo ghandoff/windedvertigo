@@ -12,10 +12,8 @@
  *     `rfp_opportunities` rows with status='pursuing' and proposal_status
  *     not yet failed or complete
  *
- *   - **contracts-signed-this-month**: derived from
- *     `REVENUE_PROGRESS.breakdown` (the single source of truth for w.v
- *     contracts year-to-date — when Nordic signs, you edit one constant
- *     and the count updates automatically)
+ *   - **contracts-signed**: live count from Supabase `deals` rows where
+ *     `revenue_tier = 'signed'`. Updated via CMO PATCH or the deal sync cron.
  *
  * The top three funnel stages (awareness / engagement / conversation) stay
  * null until tier 2 (the weekly admin form) lands.
@@ -26,7 +24,6 @@
  */
 
 import { supabase } from "@/lib/supabase/client";
-import { REVENUE_PROGRESS } from "@/lib/strategy-data";
 
 export interface PipelineProgressOverrides {
   proposal: number | null;
@@ -71,18 +68,27 @@ export async function getPipelineProgress(): Promise<PipelineProgressOverrides> 
     });
   }
 
-  // ── contracts signed this month ────────────────────────────────────
-  // Counts entries in REVENUE_PROGRESS.breakdown with status='signed'.
-  // Deliberately not "this month" yet — the breakdown is YTD only and
-  // only PRME has signed in 2026 so far. When the breakdown grows, we
-  // can add a `signedAt` field per row and filter by month.
-  //
-  // Until then "1" reflects the truth: PRME is the only signed contract
-  // YTD, and the strategy page should match the revenue tracker which
-  // already derives from the same source.
-  const contract = REVENUE_PROGRESS.breakdown.filter(
-    (b) => b.status === "signed",
-  ).length;
+  // ── contracts signed ────────────────────────────────────────────────
+  // Count deals where revenue_tier = 'signed' in Supabase.
+  // Primary source now that deals carry a revenue_tier field.
+  // Falls back to null (UI shows "awaiting first input" pill) on query error.
+  let contract: number | null = null;
+  try {
+    const { count, error: contractError } = await supabase
+      .from("deals")
+      .select("notion_page_id", { count: "exact", head: true })
+      .eq("revenue_tier", "signed");
+    if (contractError) {
+      errors.push({ stage: "contract", message: contractError.message });
+    } else {
+      contract = count ?? 0;
+    }
+  } catch (err) {
+    errors.push({
+      stage: "contract",
+      message: err instanceof Error ? err.message : "supabase query failed",
+    });
+  }
 
   return {
     proposal,

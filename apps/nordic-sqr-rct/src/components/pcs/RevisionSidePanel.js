@@ -204,7 +204,7 @@ export default function RevisionSidePanel({
 
         {/* Filters */}
         <div className="px-4 py-2 border-b border-gray-200 space-y-2 bg-gray-50">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <input
               type="text"
               value={actorFilter}

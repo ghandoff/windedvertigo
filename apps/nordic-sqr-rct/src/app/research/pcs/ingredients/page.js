@@ -361,7 +361,7 @@ function DuplicatePairCard({ pair, ingredients, onDismiss, onMerge }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
         {[{ ing: ingredientA, other: ingredientB }, { ing: ingredientB, other: ingredientA }].map(({ ing, other }) => (
           <div key={ing.id} className="space-y-0.5">
             <Link href={`/research/pcs/ingredients/${ing.id}`} className="font-medium text-pacific-700 hover:underline text-sm">

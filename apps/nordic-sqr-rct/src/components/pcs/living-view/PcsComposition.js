@@ -72,7 +72,24 @@ export default function PcsComposition({
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+    <>
+    {/* Mobile — card list (one card per formula line) */}
+    <div className="md:hidden space-y-3">
+      {sorted.map((line) => (
+        <FormulaLineCard
+          key={line.id}
+          line={line}
+          canEdit={canEdit}
+          ingredientOptions={ingredientOptions}
+          allIngredients={allIngredients}
+          makeSaveFn={makeSaveFn}
+          onUpdated={onFormulaLineUpdated}
+        />
+      ))}
+    </div>
+
+    {/* Desktop / tablet — classic table */}
+    <div className="hidden md:block bg-white rounded-lg border border-gray-200 overflow-x-auto">
       <table className="min-w-full text-sm">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
@@ -119,6 +136,154 @@ export default function PcsComposition({
         </tbody>
       </table>
     </div>
+    </>
+  );
+}
+
+// ── Mobile card — same InlineField components, vertical layout ────────────────
+
+function FormulaLineCard({ line, canEdit, ingredientOptions, allIngredients, makeSaveFn, onUpdated }) {
+  const [local, setLocal] = useState(line);
+  function handleSaved() {
+    return (updated) => {
+      setLocal(updated);
+      if (onUpdated) onUpdated(updated);
+    };
+  }
+
+  const linkedIngredient = local.activeIngredientCanonicalId
+    ? allIngredients.find(i => i.id === local.activeIngredientCanonicalId)
+    : null;
+
+  // Each field is a row in the card: label on the left, InlineField on the right.
+  // The label/value rows are wider than a typical table cell, which gives the
+  // inline-edit popovers room to breathe on a 375px viewport.
+  const FieldRow = ({ label, children, hint }) => (
+    <div className="flex items-start justify-between gap-3 py-2 border-t border-gray-100">
+      <div className="shrink-0 min-w-[88px]">
+        <dt className="text-xs uppercase tracking-wide text-gray-500">{label}</dt>
+        {hint && <p className="text-[10px] text-gray-400 mt-0.5">{hint}</p>}
+      </div>
+      <dd className="min-w-0 flex-1 text-right">{children}</dd>
+    </div>
+  );
+
+  return (
+    <article className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <header className="text-base font-semibold text-gray-900 break-words mb-1">
+        <InlineField
+          value={local.ai || local.ingredientForm || ''}
+          onSave={makeSaveFn(local.id, 'ai')}
+          onSaved={handleSaved('ai')}
+          canEdit={canEdit}
+          fieldName="AI name"
+          placeholder="e.g. Vitamin D3"
+          displayClassName="text-base font-semibold text-gray-900"
+        />
+      </header>
+      <dl>
+        <FieldRow label="AI Form">
+          <InlineField
+            value={local.aiForm || ''}
+            onSave={makeSaveFn(local.id, 'aiForm')}
+            onSaved={handleSaved('aiForm')}
+            canEdit={canEdit}
+            fieldName="AI form"
+            placeholder="e.g. cholecalciferol"
+            displayClassName="text-sm text-gray-900"
+          />
+        </FieldRow>
+        <FieldRow label="Amount / Serving">
+          <InlineField
+            value={local.amountPerServing ?? ''}
+            onSave={makeSaveFn(local.id, 'amountPerServing')}
+            onSaved={handleSaved('amountPerServing')}
+            canEdit={canEdit}
+            fieldName="amount per serving"
+            variant="number"
+            displayClassName="text-sm font-mono text-gray-900"
+            emptyLabel="—"
+          />
+        </FieldRow>
+        <FieldRow label="Unit">
+          <InlineField
+            value={local.amountUnit || ''}
+            onSave={makeSaveFn(local.id, 'amountUnit')}
+            onSaved={handleSaved('amountUnit')}
+            canEdit={canEdit}
+            fieldName="unit"
+            variant="select"
+            options={AI_UNITS}
+            displayClassName="text-sm text-gray-900"
+            emptyLabel="—"
+          />
+        </FieldRow>
+        <FieldRow label="% Daily Value">
+          <InlineField
+            value={local.percentDailyValue ?? ''}
+            onSave={makeSaveFn(local.id, 'percentDailyValue')}
+            onSaved={handleSaved('percentDailyValue')}
+            canEdit={canEdit}
+            fieldName="% daily value"
+            variant="number"
+            displayClassName="text-sm font-mono text-gray-900"
+            emptyLabel="—"
+          />
+        </FieldRow>
+        <FieldRow label="FM PLM #">
+          <InlineField
+            value={local.fmPlm || ''}
+            onSave={makeSaveFn(local.id, 'fmPlm')}
+            onSaved={handleSaved('fmPlm')}
+            canEdit={canEdit}
+            fieldName="FM PLM number"
+            displayClassName="text-sm font-mono text-gray-900"
+            emptyLabel={<span className="text-amber-600">—</span>}
+          />
+        </FieldRow>
+        <FieldRow label="Source">
+          <InlineField
+            value={local.ingredientSource || ''}
+            onSave={makeSaveFn(local.id, 'ingredientSource')}
+            onSaved={handleSaved('ingredientSource')}
+            canEdit={canEdit}
+            fieldName="ingredient source"
+            displayClassName="text-sm text-gray-600"
+          />
+        </FieldRow>
+        <FieldRow label="Canonical AI" hint="Links to ingredient DB">
+          {local.activeIngredientCanonicalId ? (
+            <Link
+              href={`/research/pcs/ingredients/${local.activeIngredientCanonicalId}`}
+              className="text-sm text-pacific-600 hover:underline font-medium"
+            >
+              {linkedIngredient?.canonicalName || '(linked)'}
+            </Link>
+          ) : (
+            <InlineField
+              value={local.activeIngredientCanonicalId || ''}
+              onSave={async (value) => {
+                const res = await fetch(`/api/pcs/formula-lines/${local.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ fieldPath: 'activeIngredientCanonicalId', value }),
+                });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
+                return json;
+              }}
+              onSaved={handleSaved('activeIngredientCanonicalId')}
+              canEdit={canEdit && ingredientOptions.length > 0}
+              fieldName="canonical ingredient"
+              variant="select"
+              options={ingredientOptions}
+              emptyLabel={<span className="text-amber-600 text-xs font-medium">⚠ unlinked</span>}
+              displayClassName="text-sm text-amber-700 font-medium"
+            />
+          )}
+        </FieldRow>
+      </dl>
+    </article>
   );
 }
 

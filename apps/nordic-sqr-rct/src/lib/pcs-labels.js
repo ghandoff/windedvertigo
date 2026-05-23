@@ -1,20 +1,54 @@
 /**
- * Product Labels CRUD (Wave 5.0 — added 2026-04-21).
+ * Product Labels CRUD (Wave 5.0; Postgres-first as of Part 10 PR #5, 2026-05-23).
  *
- * Product Labels are the market-facing substantiation anchor:
- * every SKU ships a label, and the label is what the regulator,
- * consumer, and plaintiff attorney actually read. Labels relate to
- * PCS Documents (substantiation), Ingredients (printed composition),
- * Evidence Library (safety cross-check), and PCS Requests (drift findings).
+ * Product Labels are the market-facing substantiation anchor: every SKU
+ * ships a label, and the label is what the regulator, consumer, and
+ * plaintiff attorney actually read. Labels relate to PCS Documents
+ * (substantiation), Ingredients (printed composition), Evidence Library
+ * (safety cross-check), and PCS Requests (drift findings).
  *
- * See docs/plans/wave-5-product-labels.md §2 for the property schema.
+ * Storage: `pcs_labels` Supabase table (migration 014). Notion is mirrored
+ * fire-and-forget for legacy view continuity; never blocks the platform.
+ *
+ * See docs/plans/wave-5-product-labels.md §2 for the original property schema.
  */
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import { getPcsSupabase } from './supabase-pcs.js';
 
 const P = PROPS.productLabels;
 
+// ─── Parse ───────────────────────────────────────────────────────────────
+
+/** Public shape from a pcs_labels Postgres row. */
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id || row.id,
+    sku: row.sku || '',
+    upc: row.upc || '',
+    productNameAsMarketed: row.product_name_as_marketed || '',
+    labelImage: row.label_image || [],
+    labelVersionDate: row.label_version_date || null,
+    regulatoryFramework: row.regulatory_framework || null,
+    markets: row.markets || [],
+    approvedClaimsOnLabel: row.approved_claims_on_label || '',
+    ingredientListIds: row.ingredient_list_ids || [],
+    ingredientDoses: row.ingredient_doses || '',
+    dvCompliance: row.dv_compliance || false,
+    pcsDocumentId: row.pcs_document_id || null,
+    linkedEvidenceIds: row.linked_evidence_ids || [],
+    status: row.status || null,
+    lastDriftCheck: row.last_drift_check || null,
+    driftFindingIds: row.drift_finding_ids || [],
+    ownerIds: row.owner_ids || [],
+    notes: row.notes || '',
+    createdTime: row.notion_created_at || null,
+    lastEditedTime: row.notion_last_edited_at || null,
+  };
+}
+
+/** Public shape from a Notion page (legacy fallback). */
 export function parsePage(page) {
   const p = page.properties;
   return {
@@ -45,9 +79,82 @@ export function parsePage(page) {
   };
 }
 
+// ─── Row builder (camelCase fields → snake_case columns) ─────────────────
+
+function buildRow(fields) {
+  const row = {};
+  if (fields.sku !== undefined) row.sku = fields.sku || '';
+  if (fields.upc !== undefined) row.upc = fields.upc || '';
+  if (fields.productNameAsMarketed !== undefined) row.product_name_as_marketed = fields.productNameAsMarketed || '';
+  if (fields.labelImage !== undefined) {
+    row.label_image = (fields.labelImage || []).map(f => ({
+      name: f.name || 'label',
+      url: f.external?.url || f.url || null,
+    }));
+  }
+  if (fields.labelVersionDate !== undefined) row.label_version_date = fields.labelVersionDate || null;
+  if (fields.regulatoryFramework !== undefined) row.regulatory_framework = fields.regulatoryFramework || null;
+  if (fields.markets !== undefined) row.markets = fields.markets || [];
+  if (fields.approvedClaimsOnLabel !== undefined) row.approved_claims_on_label = fields.approvedClaimsOnLabel || '';
+  if (fields.ingredientListIds !== undefined) row.ingredient_list_ids = fields.ingredientListIds || [];
+  if (fields.ingredientDoses !== undefined) row.ingredient_doses = fields.ingredientDoses || '';
+  if (fields.dvCompliance !== undefined) row.dv_compliance = !!fields.dvCompliance;
+  if (fields.pcsDocumentId !== undefined) row.pcs_document_id = fields.pcsDocumentId || null;
+  if (fields.linkedEvidenceIds !== undefined) row.linked_evidence_ids = fields.linkedEvidenceIds || [];
+  if (fields.status !== undefined) row.status = fields.status || null;
+  if (fields.lastDriftCheck !== undefined) row.last_drift_check = fields.lastDriftCheck || null;
+  if (fields.driftFindingIds !== undefined) row.drift_finding_ids = fields.driftFindingIds || [];
+  if (fields.ownerIds !== undefined) row.owner_ids = fields.ownerIds || [];
+  if (fields.notes !== undefined) row.notes = fields.notes || '';
+  return row;
+}
+
+/** Build Notion-shaped properties (legacy mirror only). */
+function buildProperties(fields, { forCreate } = { forCreate: false }) {
+  const properties = {};
+  if (forCreate || fields.sku !== undefined) properties[P.sku] = { title: [{ text: { content: fields.sku || '' } }] };
+  if (fields.upc !== undefined) properties[P.upc] = { rich_text: [{ text: { content: fields.upc || '' } }] };
+  if (fields.productNameAsMarketed !== undefined) properties[P.productNameAsMarketed] = { rich_text: [{ text: { content: fields.productNameAsMarketed || '' } }] };
+  if (fields.labelImage !== undefined) {
+    const files = (fields.labelImage || []).map(f => {
+      if (f.external?.url) return { name: f.name || 'label', type: 'external', external: { url: f.external.url } };
+      if (f.url) return { name: f.name || 'label', type: 'external', external: { url: f.url } };
+      return f;
+    });
+    properties[P.labelImage] = { files };
+  }
+  if (fields.labelVersionDate !== undefined) properties[P.labelVersionDate] = fields.labelVersionDate ? { date: { start: fields.labelVersionDate } } : { date: null };
+  if (fields.regulatoryFramework !== undefined) properties[P.regulatoryFramework] = fields.regulatoryFramework ? { select: { name: fields.regulatoryFramework } } : { select: null };
+  if (fields.markets !== undefined) properties[P.markets] = { multi_select: (fields.markets || []).map(name => ({ name })) };
+  if (fields.approvedClaimsOnLabel !== undefined) properties[P.approvedClaimsOnLabel] = { rich_text: [{ text: { content: fields.approvedClaimsOnLabel || '' } }] };
+  if (fields.ingredientListIds !== undefined) properties[P.ingredientList] = { relation: (fields.ingredientListIds || []).map(id => ({ id })) };
+  if (fields.ingredientDoses !== undefined) properties[P.ingredientDoses] = { rich_text: [{ text: { content: fields.ingredientDoses || '' } }] };
+  if (fields.dvCompliance !== undefined) properties[P.dvCompliance] = { checkbox: !!fields.dvCompliance };
+  if (fields.pcsDocumentId !== undefined) properties[P.pcsDocument] = fields.pcsDocumentId ? { relation: [{ id: fields.pcsDocumentId }] } : { relation: [] };
+  if (fields.linkedEvidenceIds !== undefined) properties[P.linkedEvidence] = { relation: (fields.linkedEvidenceIds || []).map(id => ({ id })) };
+  if (fields.status !== undefined) properties[P.status] = fields.status ? { select: { name: fields.status } } : { select: null };
+  if (fields.lastDriftCheck !== undefined) properties[P.lastDriftCheck] = fields.lastDriftCheck ? { date: { start: fields.lastDriftCheck } } : { date: null };
+  if (fields.driftFindingIds !== undefined) properties[P.driftFindings] = { relation: (fields.driftFindingIds || []).map(id => ({ id })) };
+  if (fields.ownerIds !== undefined) properties[P.owner] = { people: (fields.ownerIds || []).map(id => ({ id })) };
+  if (fields.notes !== undefined) properties[P.notes] = { rich_text: [{ text: { content: fields.notes || '' } }] };
+  return properties;
+}
+
+// ─── Reads ───────────────────────────────────────────────────────────────
+
 export async function getAllLabels(maxPages = 50) {
+  const sb = getPcsSupabase();
+  if (sb) {
+    const { data, error } = await sb
+      .from('pcs_labels')
+      .select('*')
+      .order('sku', { ascending: true })
+      .limit(maxPages * 100);
+    if (!error) return (data || []).map(parsePostgresRow);
+    console.warn('[pcs-labels] Postgres read failed, falling back to Notion:', error.message);
+  }
   let all = [];
-  let cursor = undefined;
+  let cursor;
   let pages = 0;
   do {
     const res = await notion.databases.query({
@@ -64,11 +171,29 @@ export async function getAllLabels(maxPages = 50) {
 }
 
 export async function getLabel(id) {
+  const sb = getPcsSupabase();
+  if (sb) {
+    const { data, error } = await sb
+      .from('pcs_labels')
+      .select('*')
+      .eq('notion_page_id', id)
+      .maybeSingle();
+    if (!error && data) return parsePostgresRow(data);
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
 
 export async function getLabelsForPcs(pcsId) {
+  const sb = getPcsSupabase();
+  if (sb) {
+    const { data, error } = await sb
+      .from('pcs_labels')
+      .select('*')
+      .eq('pcs_document_id', pcsId)
+      .order('sku', { ascending: true });
+    if (!error) return (data || []).map(parsePostgresRow);
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.productLabels,
     filter: { property: P.pcsDocument, relation: { contains: pcsId } },
@@ -78,6 +203,16 @@ export async function getLabelsForPcs(pcsId) {
 }
 
 export async function getLabelsForIngredient(ingredientId) {
+  const sb = getPcsSupabase();
+  if (sb) {
+    // Postgres array containment: ingredient_list_ids @> ARRAY[ingredientId]
+    const { data, error } = await sb
+      .from('pcs_labels')
+      .select('*')
+      .contains('ingredient_list_ids', [ingredientId])
+      .order('sku', { ascending: true });
+    if (!error) return (data || []).map(parsePostgresRow);
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.productLabels,
     filter: { property: P.ingredientList, relation: { contains: ingredientId } },
@@ -86,114 +221,62 @@ export async function getLabelsForIngredient(ingredientId) {
   return res.results.map(parsePage);
 }
 
-function buildProperties(fields, { forCreate } = { forCreate: false }) {
-  const properties = {};
-  if (forCreate || fields.sku !== undefined) {
-    properties[P.sku] = { title: [{ text: { content: fields.sku || '' } }] };
-  }
-  if (fields.upc !== undefined) {
-    properties[P.upc] = { rich_text: [{ text: { content: fields.upc || '' } }] };
-  }
-  if (fields.productNameAsMarketed !== undefined) {
-    properties[P.productNameAsMarketed] = {
-      rich_text: [{ text: { content: fields.productNameAsMarketed || '' } }],
-    };
-  }
-  if (fields.labelImage !== undefined) {
-    const files = (fields.labelImage || []).map(f => {
-      if (f.external?.url) return { name: f.name || 'label', type: 'external', external: { url: f.external.url } };
-      if (f.url) return { name: f.name || 'label', type: 'external', external: { url: f.url } };
-      // Pass through raw API shapes for advanced callers
-      return f;
-    });
-    properties[P.labelImage] = { files };
-  }
-  if (fields.labelVersionDate !== undefined) {
-    properties[P.labelVersionDate] = fields.labelVersionDate
-      ? { date: { start: fields.labelVersionDate } }
-      : { date: null };
-  }
-  if (fields.regulatoryFramework !== undefined) {
-    properties[P.regulatoryFramework] = fields.regulatoryFramework
-      ? { select: { name: fields.regulatoryFramework } }
-      : { select: null };
-  }
-  if (fields.markets !== undefined) {
-    properties[P.markets] = { multi_select: (fields.markets || []).map(name => ({ name })) };
-  }
-  if (fields.approvedClaimsOnLabel !== undefined) {
-    properties[P.approvedClaimsOnLabel] = {
-      rich_text: [{ text: { content: fields.approvedClaimsOnLabel || '' } }],
-    };
-  }
-  if (fields.ingredientListIds !== undefined) {
-    properties[P.ingredientList] = {
-      relation: (fields.ingredientListIds || []).map(id => ({ id })),
-    };
-  }
-  if (fields.ingredientDoses !== undefined) {
-    properties[P.ingredientDoses] = {
-      rich_text: [{ text: { content: fields.ingredientDoses || '' } }],
-    };
-  }
-  if (fields.dvCompliance !== undefined) {
-    properties[P.dvCompliance] = { checkbox: !!fields.dvCompliance };
-  }
-  if (fields.pcsDocumentId !== undefined) {
-    properties[P.pcsDocument] = fields.pcsDocumentId
-      ? { relation: [{ id: fields.pcsDocumentId }] }
-      : { relation: [] };
-  }
-  if (fields.linkedEvidenceIds !== undefined) {
-    properties[P.linkedEvidence] = {
-      relation: (fields.linkedEvidenceIds || []).map(id => ({ id })),
-    };
-  }
-  if (fields.status !== undefined) {
-    properties[P.status] = fields.status ? { select: { name: fields.status } } : { select: null };
-  }
-  if (fields.lastDriftCheck !== undefined) {
-    properties[P.lastDriftCheck] = fields.lastDriftCheck
-      ? { date: { start: fields.lastDriftCheck } }
-      : { date: null };
-  }
-  if (fields.driftFindingIds !== undefined) {
-    properties[P.driftFindings] = {
-      relation: (fields.driftFindingIds || []).map(id => ({ id })),
-    };
-  }
-  if (fields.ownerIds !== undefined) {
-    properties[P.owner] = { people: (fields.ownerIds || []).map(id => ({ id })) };
-  }
-  if (fields.notes !== undefined) {
-    properties[P.notes] = { rich_text: [{ text: { content: fields.notes || '' } }] };
-  }
-  return properties;
-}
+// ─── Writes — Postgres canonical, Notion mirror fire-and-forget ──────────
 
 export async function createLabel(fields) {
   if (!fields.sku) throw new Error('createLabel: sku is required');
-  const properties = buildProperties(fields, { forCreate: true });
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.productLabels },
-    properties,
-  });
-  const parsed = parsePage(page);
+
+  const row = buildRow(fields);
+  const newId = crypto.randomUUID();
+  row.notion_page_id = newId;
+  row.notion_created_at = new Date().toISOString();
+  row.notion_last_edited_at = row.notion_created_at;
+
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('Supabase not configured');
+
+  const { data, error } = await sb
+    .from('pcs_labels')
+    .insert(row)
+    .select('*')
+    .single();
+  if (error) throw new Error(`Label insert failed: ${error.message}`);
+
+  notion.pages
+    .create({
+      parent: { database_id: PCS_DB.productLabels },
+      properties: buildProperties(fields, { forCreate: true }),
+    })
+    .catch(() => { /* Part 10 — Notion no longer canonical */ });
+
+  const parsed = parsePostgresRow(data);
   // Wave 5.2 — queue label-drift detection on create. Best-effort; never throws.
-  // Skipped when the label has no backing PCS yet (drift is undefined).
-  if (parsed.pcsDocumentId) {
-    scheduleLabelDrift(parsed.id, 'create');
-  }
+  if (parsed.pcsDocumentId) scheduleLabelDrift(parsed.id, 'create');
   return parsed;
 }
 
 export async function updateLabel(id, fields) {
-  const properties = buildProperties(fields);
-  const page = await notion.pages.update({ page_id: id, properties });
-  const parsed = parsePage(page);
+  const row = buildRow(fields);
+  row.notion_last_edited_at = new Date().toISOString();
+
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('Supabase not configured');
+
+  const { data, error } = await sb
+    .from('pcs_labels')
+    .update(row)
+    .eq('notion_page_id', id)
+    .select('*')
+    .single();
+  if (error) throw new Error(`Label update failed: ${error.message}`);
+
+  notion.pages
+    .update({ page_id: id, properties: buildProperties(fields) })
+    .catch(() => { /* Part 10 — Notion no longer canonical */ });
+
+  const parsed = parsePostgresRow(data);
   // Wave 5.2 — only re-check drift when claims, ingredients, doses, or the
-  // backing PCS changed. Skips drift-stamp updates to avoid infinite loops,
-  // since the drift detector itself writes lastDriftCheck + driftFindingIds.
+  // backing PCS changed. Skips drift-stamp updates to avoid infinite loops.
   const driftRelevant = (
     fields.approvedClaimsOnLabel !== undefined
     || fields.ingredientListIds !== undefined
@@ -215,7 +298,6 @@ export async function updateLabel(id, fields) {
  * so a drift-detection bug never fails a label write.
  */
 function scheduleLabelDrift(labelId, reason) {
-  // Dynamic import breaks the circular dep (label-drift.js -> pcs-labels.js).
   queueMicrotask(async () => {
     try {
       const { detectDriftForLabel } = await import('./label-drift.js');

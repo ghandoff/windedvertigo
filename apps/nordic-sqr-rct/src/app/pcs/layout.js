@@ -9,6 +9,7 @@ import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
 import FeedbackButton from '@/components/FeedbackButton';
 import RoleAwareSidebar from '@/components/sidebar/RoleAwareSidebar';
+import MobileSidebarDrawer from '@/components/sidebar/MobileSidebarDrawer';
 import { deriveSidebarRole, getLayoutForRole } from '@/components/sidebar/sidebar-items';
 
 const ROLE_OVERRIDE_STORAGE_KEY = 'sidebarRoleOverride';
@@ -56,12 +57,23 @@ function PcsWorkspaceShell({ children }) {
 
   const sidebarRole = canOverride && overrideRole ? overrideRole : baseRole;
 
+  // Mobile drawer state — driven by the WorkspaceShell hamburger.
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const toggleMobileSidebar = () => setMobileSidebarOpen((o) => !o);
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <WorkspaceShell variant="research" />
+      <WorkspaceShell
+        variant="research"
+        externalMobileMenuOpen={mobileSidebarOpen}
+        onExternalMobileMenuToggle={sidebarRole ? toggleMobileSidebar : undefined}
+      />
       <div className="flex-1 flex">
+        {/* Desktop sidebar — md+ only. Below md it's hidden; the drawer handles nav. */}
         {sidebarRole ? (
-          <RoleAwareSidebar role={sidebarRole} user={user} onRoleChange={onRoleChange} />
+          <div className="hidden md:flex">
+            <RoleAwareSidebar role={sidebarRole} user={user} onRoleChange={onRoleChange} />
+          </div>
         ) : null}
         <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6">
           <div className="max-w-7xl mx-auto w-full">
@@ -69,6 +81,18 @@ function PcsWorkspaceShell({ children }) {
           </div>
         </main>
       </div>
+
+      {/* Mobile slide-in drawer — only mounted when a sidebar role exists. */}
+      {sidebarRole ? (
+        <MobileSidebarDrawer
+          open={mobileSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
+          role={sidebarRole}
+          user={user}
+          onRoleChange={onRoleChange}
+        />
+      ) : null}
+
       <Footer />
       {/* Wave 6.1 — floating feedback button, persists across route changes. */}
       <FeedbackButton />

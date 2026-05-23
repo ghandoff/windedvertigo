@@ -216,6 +216,7 @@ function PcsRequests() {
             }
             tableKey="requests"
             userId={user?.reviewerId}
+            stickyFirstCol
           />
         </>
       )}

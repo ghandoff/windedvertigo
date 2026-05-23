@@ -150,7 +150,7 @@ export default function CanonicalClaimDetailPage({ params }) {
         />
       </section>
 
-      <section className="grid grid-cols-2 gap-4 text-sm text-gray-600 border-t pt-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 border-t pt-4">
         <div>
           <div className="text-xs uppercase tracking-wide text-gray-500">Prefix (relation)</div>
           <code className="text-xs">{claim.claimPrefixId || '—'}</code>

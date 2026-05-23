@@ -1,5 +1,18 @@
 # Tasks
 
+## Whirlpool actions — 2026-05-20
+
+From the may 20 whirlpool ([notion AI meeting](https://www.notion.so/366e4ee74ba48035836fca89b21386d6) · [agenda](https://www.notion.so/366e4ee74ba481f79453eb7516cd3872)). T-8 days to the may 28 harbour prime+ launch. Morning debriefed the Amna intro meeting, then a harbour crawl + co.rubric companion demo.
+
+- [ ] **maria** — fix participant ID bug in co.rubric companion (blocks adding proposals to the board)
+- [ ] **the group** — 30–60 min/day testing harbour apps + log feedback in `#harbour` slack (newcomer / facilitator / sceptic lenses)
+- [ ] **garrett** — add live app links to the notion agenda + add a bug-report button to every harbour game
+- [ ] **lamis** — develop landing-page copy for the harbour (purpose + user experience)
+- [ ] **garrett** — meet with aaron (fruit) about creating illustrations for harbour piers
+- [ ] **the group** — review + provide feedback on jamie's ubongo proposal draft
+- [ ] **garrett** — add PDF export option to co.rubric companion (markdown alone is insufficient for teachers)
+- [ ] **the group** — register for tomorrow's prime session if observing
+
 ## Whirlpool actions — 2026-05-18
 
 From the may 18 whirlpool (harbour play lab format with aaron + marietta) ([Notes by Gemini](https://mail.notion.so/inbox/19e3c622c3c0d846) · [agenda](https://www.notion.so/364e4ee74ba4811793c0ca859e49455d)). T-10 days to the may 28 prime+ launch.

@@ -421,14 +421,14 @@ export default function PcsEvidenceDetail() {
       )}
 
       {/* Core metadata */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Field label="Evidence Type" value={editing ? draft.evidenceType : evidence.evidenceType} editing={editing} onEdit={v => updateDraft('evidenceType', v)} type="select" options={EVIDENCE_TYPES} />
         <Field label="Publication Year" value={editing ? draft.publicationYear : evidence.publicationYear} editing={editing} onEdit={v => updateDraft('publicationYear', v)} type="number" />
         <Field label="DOI" value={editing ? draft.doi : evidence.doi} editing={editing} onEdit={v => updateDraft('doi', v)} />
         <Field label="PMID" value={editing ? draft.pmid : evidence.pmid} editing={editing} onEdit={v => updateDraft('pmid', v)} />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Field label="URL" value={editing ? draft.url : evidence.url} editing={editing} onEdit={v => updateDraft('url', v)} type="url" />
         <div>
           <p className="text-xs text-gray-500 uppercase">PDF</p>
@@ -539,7 +539,7 @@ export default function PcsEvidenceDetail() {
             {reviewFeedback.message}
           </div>
         )}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p className="text-xs text-gray-500 uppercase">Reviewed</p>
             <p className="text-sm font-medium">
@@ -576,7 +576,7 @@ export default function PcsEvidenceDetail() {
       {(evidence.usedInPacketIds?.length > 0 || evidence.pcsReferenceIds?.length > 0) && (
         <div className="border-t pt-4">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Linked Records</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-xs text-gray-500 uppercase">Evidence Packets</p>
               <p className="text-sm font-medium text-gray-900">{evidence.usedInPacketIds?.length || 0} linked</p>

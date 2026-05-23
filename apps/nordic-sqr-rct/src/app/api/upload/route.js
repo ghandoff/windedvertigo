@@ -12,8 +12,9 @@
  */
 
 import { NextResponse } from 'next/server';
-// @vercel/blob imported dynamically in the local dev fallback below so it
-// is never evaluated on CF Workers (where the module throws on init).
+// R2 migration complete (2026-05-07): uploads go to Cloudflare R2 via the
+// `bucket.put` call below. The previous @vercel/blob fallback path was
+// removed in Phase G-2 (2026-05-23) — @vercel/blob is no longer a dependency.
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { authenticateRequest } from '@/lib/auth';
 

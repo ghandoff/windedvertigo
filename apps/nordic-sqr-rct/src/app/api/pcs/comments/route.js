@@ -54,13 +54,23 @@ export async function POST(request) {
       return NextResponse.json({ error: 'pageId and text are required' }, { status: 400 });
     }
 
-    const comment = await addComment(pageId, text, discussionId || null);
+    // Part 10 / PR #3 (2026-05-23): comments now persist to the
+    // pcs_comments Postgres table. Author is no longer inferred from a
+    // Notion integration token — we must thread the platform-authenticated
+    // user through as the actor.
+    const comment = await addComment(pageId, text, {
+      discussionId: discussionId || null,
+      actorId: auth.user.reviewerId,
+    });
 
     return NextResponse.json({
       comment,
       author: {
-        name: `${auth.user.firstName || ''} ${auth.user.lastName || ''}`.trim() || auth.user.alias || 'Unknown',
-        alias: auth.user.alias || null,
+        name: comment.authorName
+          || `${auth.user.firstName || ''} ${auth.user.lastName || ''}`.trim()
+          || auth.user.alias
+          || 'Unknown',
+        alias: comment.authorAlias || auth.user.alias || null,
       },
     });
   } catch (error) {

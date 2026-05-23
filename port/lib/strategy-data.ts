@@ -89,17 +89,31 @@ export const REVENUE_PIPELINE: PipelineRow[] = [
     timeline: "decision by july 15",
   },
   {
+    opportunity: "Ubongo",
+    stage: "proposal submitted (may 22)",
+    estValue: "$49,500",
+    probability: 40,
+    timeline: "decision by june",
+  },
+  {
+    opportunity: "ICSP — Concern Worldwide",
+    stage: "proposal due may 25",
+    estValue: "€28,800 (~$31,700)",
+    probability: 40,
+    timeline: "decision by july",
+  },
+  {
     opportunity: "Amna at 10",
-    stage: "interview follow-up (may 20)",
-    estValue: "$15–30k",
+    stage: "interviewed · scoping",
+    estValue: "$29,350",
     probability: 45,
     timeline: "scope by june",
   },
   {
-    opportunity: "UNICEF",
-    stage: "early pursuit",
-    estValue: "$20–40k",
-    probability: 30,
+    opportunity: "UNICEF LTA",
+    stage: "framework · early pursuit",
+    estValue: "$20–40k (per task order)",
+    probability: 25,
     timeline: "Q3 2026",
   },
 ];
@@ -858,7 +872,7 @@ export const REVENUE_PROGRESS = {
   target: 500_000,
   /** breakdown for the tooltip / detail view */
   breakdown: [
-    { client: "PRME 2026", amount: 145_000, status: "signed" as const },
+    { client: "PRME 2026", amount: 145_000, status: "signed" as const, receivedAmount: 48_285 },
     {
       client: "Nordic — Budget A",
       detail: "PCS + SQR-RCT platform build",
@@ -874,6 +888,24 @@ export const REVENUE_PROGRESS = {
     {
       client: "IDB El Salvador",
       amount: 75_000,
+      status: "documentation" as const,
+    },
+    {
+      client: "Ubongo",
+      detail: "10-year impact & learnings report",
+      amount: 49_500,
+      status: "documentation" as const,
+    },
+    {
+      client: "ICSP — Concern Worldwide",
+      detail: "GCE evaluation · ireland",
+      amount: 31_700,
+      status: "documentation" as const,
+    },
+    {
+      client: "Amna",
+      detail: "refugee education network · at 10",
+      amount: 29_350,
       status: "documentation" as const,
     },
   ],
@@ -1242,6 +1274,13 @@ export interface RevenueProgressInput {
     client: string;
     amount: number;
     status: string;
+    /** Cash already received for this contract. Non-zero only for signed deals
+     *  where partial payment has landed. Drives the paid/signedUnpaid split in
+     *  the hero bar. When absent the row is treated as fully unpaid (no split). */
+    receivedAmount?: number;
+    /** Optional scope blurb shown on the chip — disambiguates two budgets under
+     *  the same client (e.g. Nordic Budget A vs B). */
+    detail?: string;
   }>;
 }
 
@@ -1257,15 +1296,12 @@ export function deriveRevenueTiers(
   for (const row of progress.breakdown) {
     const amount = row.amount;
     if (row.status === "signed") {
-      // PRME is the only currently-signed contract whose received portion
-      // is tracked separately (PRME_RECEIVED). Any other signed contract
-      // counts entirely as signedUnpaid until its own received-value lands.
-      if (amount === PRME_CONTRACT_TOTAL) {
-        paid += PRME_RECEIVED;
-        signedUnpaid += amount - PRME_RECEIVED;
-      } else {
-        signedUnpaid += amount;
-      }
+      // Use receivedAmount when present to split paid vs signedUnpaid.
+      // Falls back to 0 (entire amount is signedUnpaid) for contracts where
+      // no payment has landed yet.
+      const recv = row.receivedAmount ?? 0;
+      paid += recv;
+      signedUnpaid += amount - recv;
     } else if (row.status === "in-progress") {
       advanced += amount;
     } else if (row.status === "negotiation") {

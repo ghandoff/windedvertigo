@@ -164,7 +164,7 @@ export default function PcsClaimFormFields({ onSubmit, initialValues, busy = fal
         helperText={formHelper}
       />
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="col-span-2 space-y-1">
           <label htmlFor="cv-dose-amount" className="block text-sm font-medium text-gray-700">
             Dose <span className="text-red-500">*</span>
@@ -197,7 +197,7 @@ export default function PcsClaimFormFields({ onSubmit, initialValues, busy = fal
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <MultiSelect
           id="cv-age"
           label="Age groups"

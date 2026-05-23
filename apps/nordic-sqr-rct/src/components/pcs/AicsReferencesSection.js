@@ -154,17 +154,10 @@ export default function AicsReferencesSection({ linkedAicsIds, documentId, canEd
       {ids.length === 0 ? (
         <div className="rounded-md border border-dashed border-gray-300 bg-white px-4 py-5 text-sm text-gray-600">
           <p>
-            No AICS docs linked yet. <span className="font-medium">RA</span> can link upstream
-            AICS substantiation in two ways:
+            No AICS docs linked yet. <span className="font-medium">RA</span> can link
+            upstream AICS substantiation from the AICS database — the in-platform picker
+            is on the roadmap (Phase 3.4 P2).
           </p>
-          <ul className="mt-2 list-disc list-inside space-y-1 text-xs text-gray-500">
-            <li>
-              In Notion directly: open this PCS doc&apos;s Notion page and use the <span className="font-mono bg-white px-1 rounded">Linked AICS</span> relation field.
-            </li>
-            <li>
-              In the platform: the in-app picker is on the roadmap (Phase 3.4 P2). Until then, Notion is canonical.
-            </li>
-          </ul>
         </div>
       ) : loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">

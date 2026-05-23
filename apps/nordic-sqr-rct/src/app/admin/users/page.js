@@ -409,9 +409,22 @@ const TABS = [
 
 function UserDirectoryContent() {
   const { user: sessionUser } = useAuth();
-  const currentUserRoles = sessionUser ? deriveRoles(sessionUser) : [];
-
   const [users, setUsers] = useState([]);
+
+  // 2026-05-23 — Source of truth for the viewer's roles is the LIVE
+  // Postgres data, not the JWT. A super-user whose token was minted before
+  // they were promoted (or before Part 10's role refresh logic landed) would
+  // otherwise see all admin/super-user checkboxes locked because the JWT
+  // still says `['admin']`. By looking up the current viewer's row in the
+  // fetched users list, we always honor whatever Postgres holds right now.
+  const sessionRolesFromJwt = sessionUser ? deriveRoles(sessionUser) : [];
+  const myRowRoles = sessionUser
+    ? users.find(u => u.id === sessionUser.id)?.roles
+    : null;
+  const currentUserRoles = Array.isArray(myRowRoles) && myRowRoles.length > 0
+    ? myRowRoles
+    : sessionRolesFromJwt;
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');

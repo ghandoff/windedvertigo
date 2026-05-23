@@ -189,7 +189,7 @@ export default function RequestDetailSideSheet({ requestId, onClose, user, onRes
                 </div>
               </div>
 
-              <dl className="grid grid-cols-3 gap-y-2 text-xs">
+              <dl className="grid grid-cols-1 sm:grid-cols-3 gap-y-2 text-xs">
                 <dt className="text-gray-500 col-span-1">Type</dt>
                 <dd className="col-span-2 text-gray-900">{req.requestType || '—'}</dd>
 

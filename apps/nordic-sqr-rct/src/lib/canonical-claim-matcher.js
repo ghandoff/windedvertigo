@@ -25,7 +25,14 @@
  * The matcher does NOT mutate Notion. Approval lives in the API POST handler.
  */
 
-import { notion } from './notion.js';
+// Part 10 (2026-05-23): switched from raw Notion queries to Postgres-first
+// lib readers. Each of these libs has shouldReadFromPostgres() guards and
+// returns parsed shape with camelCase fields — no more page.properties[X]
+// title extraction needed.
+import { getAllClaims } from './pcs-claims.js';
+import { getAllCanonicalClaims } from './pcs-canonical-claims.js';
+import { getAllPrefixes } from './pcs-prefixes.js';
+import { getAllCoreBenefits } from './pcs-core-benefits.js';
 import { PCS_DB, PROPS } from './pcs-config.js';
 
 // ─── String similarity ──────────────────────────────────────────────────────
@@ -107,33 +114,11 @@ export function splitVariants(title) {
   return [t];
 }
 
-// ─── Notion fetchers ────────────────────────────────────────────────────────
-
-async function fetchAll(databaseId) {
-  if (!databaseId) return [];
-  const all = [];
-  let cursor;
-  let pages = 0;
-  do {
-    const res = await notion.databases.query({
-      database_id: databaseId,
-      page_size: 100,
-      start_cursor: cursor,
-    });
-    all.push(...res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-    pages++;
-  } while (cursor && pages < 50);
-  return all;
-}
-
-function titleOf(page, propertyName) {
-  const prop = page.properties?.[propertyName];
-  if (!prop) return '';
-  if (prop.title) return prop.title.map((t) => t.plain_text).join('');
-  if (prop.rich_text) return prop.rich_text.map((t) => t.plain_text).join('');
-  return '';
-}
+// ─── Data fetchers — Postgres-first via lib helpers ─────────────────────────
+//
+// The lib helpers already handle PCS_READ_FROM_POSTGRES. Each returns parsed
+// shape (camelCase fields, no Notion `page.properties` layer), so the matcher
+// no longer needs its own `titleOf` extractor.
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
@@ -154,15 +139,16 @@ function titleOf(page, propertyName) {
  */
 export async function getMatchingProposals() {
   const [pcsClaims, canonical, prefixes, benefits] = await Promise.all([
-    fetchAll(PCS_DB.claims),
-    fetchAll(PCS_DB.canonicalClaims),
-    fetchAll(PCS_DB.prefixes),
-    fetchAll(PCS_DB.coreBenefits),
+    getAllClaims(),
+    getAllCanonicalClaims(),
+    getAllPrefixes(),
+    getAllCoreBenefits(),
   ]);
 
-  const canonicalIndex = canonical.map((p) => ({ id: p.id, title: titleOf(p, PROPS.canonicalClaims.canonicalClaim) }));
-  const prefixIndex = prefixes.map((p) => ({ id: p.id, title: titleOf(p, PROPS.prefixes.prefix) }));
-  const benefitIndex = benefits.map((p) => ({ id: p.id, title: titleOf(p, PROPS.coreBenefits.coreBenefit) }));
+  // Parsed shapes from the Postgres-first libs — fields are already camelCase.
+  const canonicalIndex = canonical.map((c) => ({ id: c.id, title: c.canonicalClaim || '' }));
+  const prefixIndex    = prefixes.map((p)  => ({ id: p.id, title: p.prefix || '' }));
+  const benefitIndex   = benefits.map((b)  => ({ id: b.id, title: b.coreBenefit || '' }));
 
   // Pre-normalize the canonical and benefit titles once — reused across all
   // claim iterations rather than re-computed inside the inner loops.
@@ -171,9 +157,9 @@ export async function getMatchingProposals() {
 
   const proposals = [];
   for (const claim of pcsClaims) {
-    const title = titleOf(claim, PROPS.claims.claim);
+    const title = claim.claim || '';
     if (!title) continue;
-    const currentCanonicalId = (claim.properties?.[PROPS.claims.canonicalClaim]?.relation || [])[0]?.id || null;
+    const currentCanonicalId = claim.canonicalClaimId || null;
 
     // ── Fast path: claim is already mapped ──────────────────────────────────
     // Skip the expensive Levenshtein + benefit loops entirely. The proposal is

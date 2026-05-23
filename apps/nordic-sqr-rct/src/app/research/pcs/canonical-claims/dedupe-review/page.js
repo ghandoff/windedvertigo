@@ -309,7 +309,7 @@ function ClusterCard({ index, cluster, canEdit, onRowUpdated }) {
             <th className="px-3 py-2 text-left">Created</th>
             <th className="px-3 py-2 text-left">Decision</th>
             <th className="px-3 py-2 text-left">Status</th>
-            <th className="px-3 py-2 text-left">Notion</th>
+            <th className="px-3 py-2 text-left">Source</th>
           </tr>
         </thead>
         <tbody>
@@ -420,7 +420,7 @@ function OrphanClusterCard({ members }) {
               <th className="px-3 py-2 text-left">Title</th>
               <th className="px-3 py-2 text-left">Short ID</th>
               <th className="px-3 py-2 text-left">PCS app link</th>
-              <th className="px-3 py-2 text-left">Notion</th>
+              <th className="px-3 py-2 text-left">Source</th>
             </tr>
           </thead>
           <tbody>

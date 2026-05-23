@@ -49,6 +49,10 @@ function mapPageToDeal(page: PageObjectResponse): Deal {
     debriefClientFeedback: getText(props[P.debriefClientFeedback]),
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
+    // Revenue-pipeline fields are Supabase-only and not synced from Notion.
+    revenueTier: null,
+    receivedAmount: 0,
+    contractedAmount: null,
   };
 }
 

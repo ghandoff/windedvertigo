@@ -26,7 +26,8 @@ import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
 import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { getStrategyTimelines } from "@/lib/supabase/strategy-timelines";
 import { getStrategyDistribution } from "@/lib/supabase/strategy-distribution";
-import { CAMPAIGN_TIMELINES, DISTRIBUTION } from "@/lib/strategy-data";
+import { fetchRevenueProgress } from "@/lib/marketing/revenue-progress";
+import { CAMPAIGN_TIMELINES, DISTRIBUTION, REVENUE_PROGRESS } from "@/lib/strategy-data";
 import { StrategyHero } from "./components/strategy-hero";
 import { TeamPulseStrip } from "./components/team-pulse-strip";
 import { DocentWelcomeBanner } from "@/app/components/docent-welcome-banner";
@@ -63,7 +64,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, revenueProgress] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -84,6 +85,9 @@ export default async function StrategyPage({
     getStrategyTimelines().catch(() => CAMPAIGN_TIMELINES),
     // Distribution items — falls back to hardcoded array on error.
     getStrategyDistribution().catch(() => DISTRIBUTION),
+    // Live revenue bar data — merges signed deals + active RFPs.
+    // Falls back to hardcoded REVENUE_PROGRESS on any fetch error.
+    fetchRevenueProgress().catch(() => REVENUE_PROGRESS),
   ]);
   const pmProjects = pmProjectsResult.data;
   const crmCampaigns = allCampaigns.map((c) => ({
@@ -101,7 +105,7 @@ export default async function StrategyPage({
 
       <DocentWelcomeBanner />
 
-      <StrategyHero subscribers={stats?.totalSubscribers ?? 0} />
+      <StrategyHero subscribers={stats?.totalSubscribers ?? 0} revenueProgress={revenueProgress} />
 
       <TeamPulseStrip activeMember={memberFilter} timelines={liveTimelines} distributionItems={liveDistribution} />
 

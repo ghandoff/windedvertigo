@@ -10,8 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   CASH_ON_HAND,
   PIPELINE_MATH,
-  PRME_CONTRACT_TOTAL,
-  PRME_RECEIVED,
   REVENUE_PROGRESS,
   REVENUE_TARGET,
   RUNWAY_MONTHS,
@@ -19,6 +17,7 @@ import {
   deriveRevenueTiers,
   fmt,
   pct,
+  type RevenueProgressInput,
 } from "@/lib/strategy-data";
 import { DollarSign, Target, Calendar, TrendingUp } from "lucide-react";
 
@@ -40,10 +39,16 @@ const COLOR_OPEN_FALLBACK = "rgba(245, 158, 11, 0.4)"; // legend dot color (the 
 
 export interface StrategyHeroProps {
   subscribers?: number;
+  /** Live revenue data from Supabase. Falls back to hardcoded REVENUE_PROGRESS
+   *  when not provided or when the server-side fetch fails. */
+  revenueProgress?: RevenueProgressInput;
 }
 
-export function StrategyHero({ subscribers = 0 }: StrategyHeroProps) {
-  const tiers = deriveRevenueTiers(REVENUE_PROGRESS);
+export function StrategyHero({ subscribers = 0, revenueProgress }: StrategyHeroProps) {
+  // Cast the fallback so the `as const` literal union widens to RevenueProgressInput,
+  // giving consistent access to optional fields like `detail` and `receivedAmount`.
+  const activeProgress: RevenueProgressInput = revenueProgress ?? (REVENUE_PROGRESS as RevenueProgressInput);
+  const tiers = deriveRevenueTiers(activeProgress);
   const lockedPct = pct(tiers.signed, REVENUE_TARGET);
   const subsTarget = 2000;
 
@@ -152,12 +157,12 @@ export function StrategyHero({ subscribers = 0 }: StrategyHeroProps) {
               Nordic Budget A vs Budget B render as two separate chips at
               different confidence tiers (A = advanced, B = negotiation). */}
           <div className="flex flex-wrap gap-2 pt-1">
-            {REVENUE_PROGRESS.breakdown.map((row) => {
+            {activeProgress.breakdown.map((row) => {
               // Some rows (Nordic A/B) carry an optional scope blurb so the
               // chip can disambiguate two budgets under the same client.
-              const scope = "detail" in row ? row.detail : undefined;
+              const scope = row.detail;
               if (row.status === "signed") {
-                const paidPart = row.amount === PRME_CONTRACT_TOTAL ? PRME_RECEIVED : 0;
+                const paidPart = row.receivedAmount ?? 0;
                 const signedPart = row.amount - paidPart;
                 return (
                   <ContractChip

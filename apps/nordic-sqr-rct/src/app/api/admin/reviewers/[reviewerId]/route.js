@@ -1,5 +1,5 @@
 import { requireCapability } from '@/lib/auth/require-capability';
-import { updateReviewerRoles, updateReviewerProperties } from '@/lib/sqr-reviewers';
+import { updateReviewerRoles, updateReviewerProperties, getReviewerById } from '@/lib/sqr-reviewers';
 import { NextResponse } from 'next/server';
 
 /**
@@ -32,12 +32,27 @@ export async function PATCH(request, { params }) {
     // Roles — delegate to the shared helper.
     // Assigning `admin` or `super-user` is privileged: only a super-user may grant.
     // A regular admin (users:edit-role) may only assign reviewer / researcher / ra.
+    //
+    // 2026-05-23 — Look up the caller's LIVE roles from Postgres rather
+    // than trusting the JWT. A super-user whose token was minted before
+    // they were promoted would otherwise be 403'd here despite their
+    // Postgres row already containing `super-user`. The token will catch
+    // up on its next refresh, but the platform shouldn't make them wait.
     if (Array.isArray(body.roles)) {
       const PRIVILEGED_ROLES = ['admin', 'super-user'];
       const requestsPrivileged = body.roles.some(r => PRIVILEGED_ROLES.includes(r));
       if (requestsPrivileged) {
-        const callerRoles = gate.user?.roles ?? [];
-        const callerIsSuperUser = callerRoles.includes('super-user');
+        let callerIsSuperUser = false;
+        if (gate.user?.reviewerId) {
+          try {
+            const liveReviewer = await getReviewerById(gate.user.reviewerId);
+            const liveRoles = Array.isArray(liveReviewer?.roles) ? liveReviewer.roles : [];
+            callerIsSuperUser = liveRoles.includes('super-user');
+          } catch {
+            // Fall back to JWT if Postgres lookup fails — preserves the gate.
+            callerIsSuperUser = (gate.user?.roles ?? []).includes('super-user');
+          }
+        }
         if (!callerIsSuperUser) {
           return NextResponse.json(
             { error: 'Only super-users may assign admin or super-user roles.' },
