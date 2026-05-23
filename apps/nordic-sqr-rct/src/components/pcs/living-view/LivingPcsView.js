@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
 import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
@@ -55,6 +55,12 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
   // Allow sectionHealth to be locally overridden after a request is created
   // (optimistic clear until a refetch replaces it).
   const [healthOverrides, setHealthOverrides] = useState({});
+  // Part 7B/7C — local copies of formula lines + claims for optimistic inline edits.
+  // Initialized from viewPayload; updated in-place on each successful cell save.
+  const [localFormulaLines, setLocalFormulaLines] = useState(null);
+  const [localClaims, setLocalClaims] = useState(null);
+  // Canonical ingredients list for the formula line picker (fetched once for editors).
+  const [allIngredients, setAllIngredients] = useState([]);
 
   const openBackfillSheet = useCallback((sectionKey, variant) => {
     setSheetDraft({
@@ -65,6 +71,19 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
   }, []);
 
   const closeSheet = useCallback(() => setSheetDraft(null), []);
+
+  // Sync local copies when viewPayload changes (e.g. parent re-fetches the view).
+  useEffect(() => { setLocalFormulaLines(null); }, [viewPayload]);
+  useEffect(() => { setLocalClaims(null); }, [viewPayload]);
+
+  // Fetch all canonical ingredients once for editors (powers the AI picker in Table 2).
+  useEffect(() => {
+    if (!canWrite) return;
+    fetch('/api/pcs/ingredients')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setAllIngredients(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [canWrite]);
 
   const onCreated = useCallback(() => {
     if (!sheetDraft?.sectionKey) return;
@@ -80,12 +99,16 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
     version,
     sectionHealth = {},
     revisionEvents = [],
-    formulaLines = [],
-    claims = [],
+    formulaLines: payloadFormulaLines = [],
+    claims: payloadClaims = [],
     evidencePackets = [],
     references = [],
     labels = [],
   } = viewPayload;
+
+  // Use local optimistic copies if set, otherwise fall back to the payload arrays.
+  const formulaLines = localFormulaLines ?? payloadFormulaLines;
+  const claims = localClaims ?? payloadClaims;
 
   // 3A-approved claims the copy drafter can use.
   const claims3A = (claims || []).filter(c => {
@@ -294,7 +317,16 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
         title="Product Composition"
         badge={badgeFor('table2')}
       >
-        <PcsComposition formulaLines={formulaLines} />
+        <PcsComposition
+          formulaLines={formulaLines}
+          canEdit={canWrite}
+          allIngredients={allIngredients}
+          onFormulaLineUpdated={(updated) => {
+            setLocalFormulaLines(prev =>
+              (prev ?? payloadFormulaLines).map(l => l.id === updated.id ? updated : l)
+            );
+          }}
+        />
       </SectionAnchor>
 
       <SectionAnchor
@@ -322,9 +354,15 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
       >
         <PcsClaimsSection
           claims={claims}
+          canEdit={canWrite}
           doc={doc}
           version={version}
           onRequestReview={openClaimReviewSheet}
+          onClaimUpdated={(updated) => {
+            setLocalClaims(prev =>
+              (prev ?? payloadClaims).map(c => c.id === updated.id ? updated : c)
+            );
+          }}
         />
       </SectionAnchor>
 

@@ -57,6 +57,21 @@ export async function PATCH(request, { params }) {
     }
   }
 
+  // Living View inline editing adds these core text/number fields (Part 7C).
+  // No extra validation needed — they are passed directly to updateClaim().
+  // Numeric coercion: ensure minDoseMg / maxDoseMg are numbers or null.
+  for (const numField of ['minDoseMg', 'maxDoseMg', 'claimNo']) {
+    if (fields[numField] !== undefined && fields[numField] !== null && fields[numField] !== '') {
+      const n = Number(fields[numField]);
+      if (isNaN(n)) {
+        return NextResponse.json({ error: `${numField} must be a number` }, { status: 400 });
+      }
+      fields[numField] = n;
+    } else if (fields[numField] === '' || fields[numField] === null) {
+      fields[numField] = null;
+    }
+  }
+
   // Rejection requires a note
   if (fields.claimStatus === 'Not approved' && !fields.claimNotes?.trim()) {
     const existing = await getClaim(id);

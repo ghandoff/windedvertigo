@@ -3,6 +3,9 @@
 import { useState, useEffect, use, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
+import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
+import InlineField from '@/components/pcs/InlineField';
+import { AI_CATEGORIES, AI_UNITS } from '@/lib/pcs-config';
 
 /**
  * Active Ingredient detail page.
@@ -20,8 +23,7 @@ import { useAuth } from '@/lib/useAuth';
  */
 export default function IngredientDetailPage({ params }) {
   const { id } = use(params);
-  const { user } = useAuth(); // reserved for future inline edits
-  void user;
+  const { user } = useAuth();
 
   const [ingredient, setIngredient] = useState(null);
   const [forms, setForms] = useState([]);
@@ -80,6 +82,23 @@ export default function IngredientDetailPage({ params }) {
 
   if (!ingredient) return null;
 
+  const canWrite = hasAnyRole(user, ROLE_SETS.PCS_WRITERS);
+
+  /** PATCH /api/pcs/ingredients/[id] for a single field. Returns updated ingredient. */
+  function makeSaveFn(fieldPath) {
+    return async (value) => {
+      const res = await fetch(`/api/pcs/ingredients/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [fieldPath]: value }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
+      setIngredient(json);
+      return json;
+    };
+  }
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
@@ -89,46 +108,82 @@ export default function IngredientDetailPage({ params }) {
         <span className="text-gray-700 font-medium">{ingredient.canonicalName || 'Untitled'}</span>
       </div>
 
-      {/* 2026-05-05 — Read-only notice. Inline-edit affordances are
-           planned (see useAuth import above) but not yet wired. Surface
-           the limitation so writers don't hunt for a missing pencil.
-           Once inline edits ship, swap this banner for the actual
-           Edit affordance. */}
-      <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-        This page is read-only for now. To edit ingredient metadata,
-        use the import flow at <a href="/research/pcs/admin/imports" className="font-medium underline hover:text-amber-900">/pcs/admin/imports</a>.
-      </div>
+      {canWrite && (
+        <p className="text-xs text-gray-400 italic">Click any field to edit in place.</p>
+      )}
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{ingredient.canonicalName || 'Untitled'}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-600">
-          {ingredient.category && (
-            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-              {ingredient.category}
-            </span>
-          )}
-          {ingredient.standardUnit && (
-            <span className="text-xs text-gray-500">
-              Standard unit: <span className="font-medium text-gray-700">{ingredient.standardUnit}</span>
-            </span>
-          )}
+      {/* Header — canonical name + category + standard unit */}
+      <div className="space-y-2">
+        <InlineField
+          value={ingredient.canonicalName || ''}
+          onSave={makeSaveFn('canonicalName')}
+          canEdit={canWrite}
+          fieldName="canonical name"
+          displayClassName="text-2xl font-bold text-gray-900"
+          placeholder="Canonical ingredient name"
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <InlineField
+            value={ingredient.category || ''}
+            onSave={makeSaveFn('category')}
+            canEdit={canWrite}
+            fieldName="category"
+            variant="select"
+            options={AI_CATEGORIES}
+            displayClassName="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
+            emptyLabel={<span className="text-xs text-gray-400 italic">No category</span>}
+          />
+          <span className="text-xs text-gray-500 flex items-center gap-1">
+            Standard unit:
+            <InlineField
+              value={ingredient.standardUnit || ''}
+              onSave={makeSaveFn('standardUnit')}
+              canEdit={canWrite}
+              fieldName="standard unit"
+              variant="select"
+              options={AI_UNITS}
+              displayClassName="font-medium text-gray-700"
+              emptyLabel={<span className="text-gray-400">—</span>}
+            />
+          </span>
         </div>
       </div>
 
       {/* Synonyms + general notes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="card p-4">
-          <div className="text-xs uppercase text-gray-500 mb-1">Synonyms</div>
-          <p className="text-sm text-gray-800 whitespace-pre-wrap">
-            {ingredient.synonyms || <span className="text-gray-400">— None recorded —</span>}
-          </p>
+          <div className="text-xs uppercase text-gray-500 mb-2">Synonyms</div>
+          <InlineField
+            value={ingredient.synonyms || ''}
+            onSave={makeSaveFn('synonyms')}
+            canEdit={canWrite}
+            fieldName="synonyms"
+            variant="textarea"
+            rows={3}
+            placeholder="e.g. cholecalciferol, D3, vitamin D-3"
+            displayClassName="text-sm text-gray-800 whitespace-pre-wrap"
+            emptyLabel={<span className="text-gray-400 text-sm italic">— None recorded —</span>}
+          />
+          {ingredient.synonyms && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {ingredient.synonyms.split(',').map(s => s.trim()).filter(Boolean).map(s => (
+                <span key={s} className="inline-block px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[11px]">{s}</span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="card p-4">
-          <div className="text-xs uppercase text-gray-500 mb-1">Notes</div>
-          <p className="text-sm text-gray-800 whitespace-pre-wrap">
-            {ingredient.notes || <span className="text-gray-400">— None —</span>}
-          </p>
+          <div className="text-xs uppercase text-gray-500 mb-2">Notes</div>
+          <InlineField
+            value={ingredient.notes || ''}
+            onSave={makeSaveFn('notes')}
+            canEdit={canWrite}
+            fieldName="notes"
+            variant="textarea"
+            rows={3}
+            displayClassName="text-sm text-gray-800 whitespace-pre-wrap"
+            emptyLabel={<span className="text-gray-400 text-sm italic">— None —</span>}
+          />
         </div>
       </div>
 
@@ -137,28 +192,71 @@ export default function IngredientDetailPage({ params }) {
         <div className="text-xs uppercase text-gray-500 font-medium">Regulatory & bioavailability</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <div className="text-xs text-gray-500">FDA RDI</div>
-            <div className="font-medium text-gray-800">
-              {ingredient.fdaRdi != null ? `${ingredient.fdaRdi} ${ingredient.fdaRdiUnit || ''}`.trim() : '—'}
+            <div className="text-xs text-gray-500 mb-1">FDA RDI</div>
+            <div className="flex items-center gap-2">
+              <InlineField
+                value={ingredient.fdaRdi ?? ''}
+                onSave={makeSaveFn('fdaRdi')}
+                canEdit={canWrite}
+                fieldName="FDA RDI"
+                variant="number"
+                displayClassName="font-medium text-gray-800 font-mono"
+                emptyLabel={<span className="text-gray-400">—</span>}
+              />
+              <InlineField
+                value={ingredient.fdaRdiUnit || ''}
+                onSave={makeSaveFn('fdaRdiUnit')}
+                canEdit={canWrite}
+                fieldName="FDA RDI unit"
+                variant="select"
+                options={AI_UNITS}
+                displayClassName="text-gray-600 text-xs"
+                emptyLabel={<span className="text-gray-400 text-xs">unit</span>}
+              />
             </div>
           </div>
           <div>
-            <div className="text-xs text-gray-500">Regulatory ceiling</div>
-            <div className="font-medium text-gray-800">
-              {ingredient.regulatoryCeiling != null ? `${ingredient.regulatoryCeiling} ${ingredient.standardUnit || ''}`.trim() : '—'}
+            <div className="text-xs text-gray-500 mb-1">Regulatory ceiling</div>
+            <div className="flex items-center gap-1">
+              <InlineField
+                value={ingredient.regulatoryCeiling ?? ''}
+                onSave={makeSaveFn('regulatoryCeiling')}
+                canEdit={canWrite}
+                fieldName="regulatory ceiling"
+                variant="number"
+                displayClassName="font-medium text-gray-800 font-mono"
+                emptyLabel={<span className="text-gray-400">—</span>}
+              />
+              {ingredient.standardUnit && (
+                <span className="text-xs text-gray-500 ml-1">{ingredient.standardUnit}</span>
+              )}
             </div>
           </div>
           <div className="md:col-span-2">
-            <div className="text-xs text-gray-500">Bioavailability notes</div>
-            <p className="text-sm text-gray-800 whitespace-pre-wrap">
-              {ingredient.bioavailabilityNotes || <span className="text-gray-400">— None —</span>}
-            </p>
+            <div className="text-xs text-gray-500 mb-1">Bioavailability notes</div>
+            <InlineField
+              value={ingredient.bioavailabilityNotes || ''}
+              onSave={makeSaveFn('bioavailabilityNotes')}
+              canEdit={canWrite}
+              fieldName="bioavailability notes"
+              variant="textarea"
+              rows={3}
+              displayClassName="text-sm text-gray-800 whitespace-pre-wrap"
+              emptyLabel={<span className="text-gray-400 text-sm italic">— None —</span>}
+            />
           </div>
           <div className="md:col-span-2">
-            <div className="text-xs text-gray-500">Interaction cautions</div>
-            <p className="text-sm text-gray-800 whitespace-pre-wrap">
-              {ingredient.interactionCautions || <span className="text-gray-400">— None —</span>}
-            </p>
+            <div className="text-xs text-gray-500 mb-1">Interaction cautions</div>
+            <InlineField
+              value={ingredient.interactionCautions || ''}
+              onSave={makeSaveFn('interactionCautions')}
+              canEdit={canWrite}
+              fieldName="interaction cautions"
+              variant="textarea"
+              rows={3}
+              displayClassName="text-sm text-gray-800 whitespace-pre-wrap"
+              emptyLabel={<span className="text-gray-400 text-sm italic">— None —</span>}
+            />
           </div>
         </div>
       </div>

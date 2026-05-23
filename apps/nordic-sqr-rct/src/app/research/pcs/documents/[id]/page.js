@@ -246,6 +246,17 @@ export default function PcsDocumentDetail() {
     try { localStorage.setItem('pcsDocViewMode', mode); } catch { /* ignore */ }
   }
 
+  /**
+   * Shared InlineField onSaved handler — updates compact-view state AND
+   * resets the Word-view payload so it re-fetches next time Word mode is
+   * activated (Part 7F stale-cache fix).
+   */
+  function handleInlineSaved(updated) {
+    setDoc(updated);
+    setDraft(updated);
+    setWordPayload(null); // force re-fetch on next Word-mode activation
+  }
+
   function updateDraft(field, value) {
     setDraft(prev => ({ ...prev, [field]: value }));
   }
@@ -497,7 +508,7 @@ export default function PcsDocumentDetail() {
               variant="select"
               options={FILE_STATUSES}
               canEdit={canWrite}
-              onSaved={(updated) => { setDoc(updated); setDraft(updated); }}
+              onSaved={handleInlineSaved}
             />
           )}
         </div>
@@ -520,7 +531,7 @@ export default function PcsDocumentDetail() {
               variant="select"
               options={PRODUCT_STATUSES}
               canEdit={canWrite}
-              onSaved={(updated) => { setDoc(updated); setDraft(updated); }}
+              onSaved={handleInlineSaved}
             />
           )}
         </div>
@@ -543,7 +554,7 @@ export default function PcsDocumentDetail() {
               variant="select"
               options={TRANSFER_STATUSES}
               canEdit={canWrite}
-              onSaved={(updated) => { setDoc(updated); setDraft(updated); }}
+              onSaved={handleInlineSaved}
             />
           )}
         </div>
@@ -574,7 +585,7 @@ export default function PcsDocumentDetail() {
                 variant="text"
                 placeholder="e.g. Ultimate Omega-D3 Minis"
                 canEdit={canWrite}
-                onSaved={(updated) => { setDoc(updated); setDraft(updated); }}
+                onSaved={handleInlineSaved}
               />
             )}
           </div>
@@ -597,7 +608,7 @@ export default function PcsDocumentDetail() {
                 variant="select"
                 options={FORMATS}
                 canEdit={canWrite}
-                onSaved={(updated) => { setDoc(updated); setDraft(updated); }}
+                onSaved={handleInlineSaved}
               />
             )}
           </div>
@@ -620,7 +631,7 @@ export default function PcsDocumentDetail() {
                 placeholder="e.g. 41490"
                 displayClassName="text-sm font-mono font-medium text-gray-900"
                 canEdit={canWrite}
-                onSaved={(updated) => { setDoc(updated); setDraft(updated); }}
+                onSaved={handleInlineSaved}
               />
             )}
           </div>
@@ -642,7 +653,7 @@ export default function PcsDocumentDetail() {
                 variant="tags"
                 placeholder="Comma-separated SKU codes"
                 canEdit={canWrite}
-                onSaved={(updated) => { setDoc(updated); setDraft(updated); }}
+                onSaved={handleInlineSaved}
               />
             )}
           </div>
@@ -744,7 +755,7 @@ export default function PcsDocumentDetail() {
             variant="textarea"
             placeholder="Document-level notes"
             canEdit={canWrite}
-            onSaved={(updated) => { setDoc(updated); setDraft(updated); }}
+            onSaved={handleInlineSaved}
           />
         )}
       </div>
