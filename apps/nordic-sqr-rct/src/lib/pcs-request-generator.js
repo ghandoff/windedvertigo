@@ -17,10 +17,11 @@
  * wrap it in try/catch so a generator bug never fails an import.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion, withRetry } from './notion.js';
+import { getRequestsForDocument, createRequest, updateRequest } from './pcs-requests.js';
 
-const P = PROPS.requests;
+// PCS_DB / PROPS / notion imports were removed in Phase G (2026-05-23) —
+// upsertRequest now delegates to pcs-requests.js (Postgres-first) rather
+// than building Notion-shaped payloads or running Notion DB filters.
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 
@@ -110,98 +111,41 @@ export function pickAssignee(_role) {
   return null;
 }
 
-// ─── Notion helpers ─────────────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function buildProperties({
-  title,
-  notes,
-  documentId,
-  versionId,
-  type,
-  specificField,
-  assignedRole,
-  assignee,
-  priority,
-  source,
-  openedDate,
-  lastPingedDate,
-  status,
-}) {
-  const properties = {};
-  if (title !== undefined) {
-    properties[P.request] = { title: [{ text: { content: title.slice(0, 200) } }] };
-  }
-  if (notes !== undefined) {
-    properties[P.requestNotes] = { rich_text: [{ text: { content: String(notes).slice(0, 1900) } }] };
-  }
-  if (documentId) {
-    properties[P.relatedPcs] = { relation: [{ id: documentId }] };
-  }
-  if (versionId) {
-    properties[P.pcsVersion] = { relation: [{ id: versionId }] };
-  }
-  if (type) {
-    properties[P.requestType] = { select: { name: type } };
-  }
-  if (specificField !== undefined) {
-    properties[P.specificField] = { rich_text: [{ text: { content: String(specificField).slice(0, 400) } }] };
-  }
-  if (assignedRole) {
-    properties[P.assignedRole] = { select: { name: assignedRole } };
-  }
-  if (Array.isArray(assignee) && assignee.length > 0) {
-    properties[P.assignee] = { people: assignee.map(id => ({ id })) };
-  }
-  if (priority) {
-    properties[P.priority] = { select: { name: priority } };
-  }
-  if (source) {
-    properties[P.source] = { select: { name: source } };
-  }
-  if (openedDate) {
-    properties[P.openedDate] = { date: { start: openedDate } };
-  }
-  if (lastPingedDate) {
-    properties[P.lastPingedDate] = { date: { start: lastPingedDate } };
-  }
-  if (status) {
-    properties[P.status] = { status: { name: status } };
-  }
-  return properties;
-}
-
 /**
  * Find an existing open (Status != Done) request matching the dedup key.
- * Returns the matching Notion page or null.
+ * Returns the matching request (Postgres-shaped) or null.
+ *
+ * Phase G (2026-05-23): Postgres-first via getRequestsForDocument. The dedup
+ * filter — same documentId + requestType + specificField + status != Done —
+ * is applied in JS over the (small) per-document open-request set.
  */
 async function findOpenMatch({ documentId, type, specificField }) {
-  const filters = [
-    { property: P.relatedPcs, relation: { contains: documentId } },
-    { property: P.requestType, select: { equals: type } },
-    { property: P.status, status: { does_not_equal: 'Done' } },
-  ];
-  // specificField is rich_text — Notion rich_text.equals is not supported; use contains
-  // on the exact string. Field names in this system are short, distinct identifiers
-  // so false-positive matches are highly unlikely.
-  if (specificField) {
-    filters.push({ property: P.specificField, rich_text: { equals: specificField } });
+  if (!documentId) return null;
+  // pcs-requests.js' getRequestsForDocument hits Postgres first and returns
+  // parsed-shape rows (with .id = notion_page_id, .requestType, .specificField,
+  // .status). { openOnly: true } already filters status != 'Done'.
+  const candidates = await getRequestsForDocument(documentId, { openOnly: true });
+  for (const r of candidates) {
+    if (r.requestType !== type) continue;
+    if (specificField && r.specificField !== specificField) continue;
+    return r;
   }
-  const res = await withRetry(() => notion.databases.query({
-    database_id: PCS_DB.requests,
-    filter: { and: filters },
-    page_size: 5,
-  }));
-  return res.results[0] || null;
+  return null;
 }
 
 /**
  * Upsert a request. If an open match exists (dedup key = documentId + type +
- * specificField), patch it (bump Last pinged date, update notes/priority/assignee).
- * Otherwise create a new row with Status = 'New' and Opened date = today.
+ * specificField), patch it (bump lastPingedDate, update notes/priority/assignee).
+ * Otherwise create a new row with status = 'New' and openedDate = today.
+ *
+ * Phase G (2026-05-23): Postgres-canonical via pcs-requests.js helpers.
+ * Those helpers fire-and-forget the Notion mirror internally.
  *
  * @returns {{ action: 'created' | 'updated' | 'skipped', id: string | null }}
  */
@@ -221,46 +165,37 @@ export async function upsertRequest(input) {
 
   if (!documentId) return { action: 'skipped', id: null };
   if (!type) return { action: 'skipped', id: null };
-  if (!PCS_DB.requests) return { action: 'skipped', id: null };
 
-  const existing = await findOpenMatch({ documentId, type, specificField });
   const assigneeIds = assignee ? (Array.isArray(assignee) ? assignee : [assignee]) : null;
+  const existing = await findOpenMatch({ documentId, type, specificField });
 
   if (existing) {
-    const properties = buildProperties({
+    const updated = await updateRequest(existing.id, {
       notes,
       priority,
       assignedRole,
-      assignee: assigneeIds,
+      ...(assigneeIds ? { assigneeIds } : {}),
       lastPingedDate: todayIso(),
     });
-    const page = await withRetry(() => notion.pages.update({
-      page_id: existing.id,
-      properties,
-    }));
-    return { action: 'updated', id: page.id };
+    return { action: 'updated', id: updated?.id || existing.id };
   }
 
-  const properties = buildProperties({
-    title,
-    notes,
-    documentId,
-    versionId,
-    type,
+  const created = await createRequest({
+    request: title,
+    requestNotes: notes,
+    relatedPcsId: documentId,
+    pcsVersionId: versionId,
+    requestType: type,
     specificField,
     assignedRole,
-    assignee: assigneeIds,
+    ...(assigneeIds ? { assigneeIds } : {}),
     priority,
     source,
     openedDate: todayIso(),
     lastPingedDate: todayIso(),
     status: 'New',
   });
-  const page = await withRetry(() => notion.pages.create({
-    parent: { database_id: PCS_DB.requests },
-    properties,
-  }));
-  return { action: 'created', id: page.id };
+  return { action: 'created', id: created?.id || null };
 }
 
 // ─── Confidence walkers ─────────────────────────────────────────────────────
