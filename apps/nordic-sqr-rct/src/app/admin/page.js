@@ -25,10 +25,13 @@ function AdminDashboardContent() {
       if (reviewersData?.reviewers) {
         const reviewers = reviewersData.reviewers;
         const totalReviews = reviewers.reduce((s, r) => s + (r.reviewCount || 0), 0);
-        const scores = reviewers.filter(r => r.avgScore != null).map(r => r.avgScore);
-        const avgScore = scores.length > 0
-          ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)
-          : '—';
+        // Weighted average: weight each reviewer's avg score by their review count so
+        // reviewers with more reviews contribute proportionally. Only include reviewers
+        // who have actually submitted at least one scored review.
+        const scoredReviewers = reviewers.filter(r => r.reviewCount > 0 && r.avgScore != null);
+        const weightedSum = scoredReviewers.reduce((s, r) => s + r.avgScore * r.reviewCount, 0);
+        const scoredTotal = scoredReviewers.reduce((s, r) => s + r.reviewCount, 0);
+        const avgScore = scoredTotal > 0 ? (weightedSum / scoredTotal).toFixed(1) : '—';
         setSqrStats({ totalReviewers: reviewers.length, totalReviews, avgScore });
       }
     }).catch(() => {}).finally(() => setLoading(false));
