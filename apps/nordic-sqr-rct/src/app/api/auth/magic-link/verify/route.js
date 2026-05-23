@@ -71,7 +71,7 @@ export async function GET(request) {
     });
     const refreshToken = await signRefreshToken({ reviewerId: reviewer.id });
 
-    const response = NextResponse.redirect(new URL('/welcome', request.url));
+    const response = NextResponse.redirect(new URL('/research/pcs', request.url));
     const cookieBase = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
