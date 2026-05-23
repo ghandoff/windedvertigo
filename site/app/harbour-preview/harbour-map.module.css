@@ -1,0 +1,174 @@
+/* harbour-preview — scoped styles for the map page.
+ *
+ * Brand tokens (--wv-*) defined in site/styles/tokens.css and loaded
+ * via app/globals.css. Don't redefine here.
+ *
+ * Layout: SVG fills 100% of viewport width; the 1:2 viewBox aspect
+ * ratio means rendered height = 2× width naturally. On a 1440px
+ * desktop the harbour ends up ~2880px tall — a long immersive scroll
+ * from horizon (top) to family-play (bottom). Mobile users get the
+ * same experience scaled to their viewport width.
+ */
+
+.page {
+  min-height: 100vh;
+  background-color: var(--wv-cadet, #273248);
+  /* The preview banner is sticky; main needs to be a stacking context
+     so the banner z-index works as expected against the map below. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.previewBanner {
+  position: sticky;
+  top: 60px; /* sits just under the sticky harbour header */
+  z-index: 20;
+  background-color: #1e2738; /* darker cadet — reads as a chrome strip */
+  color: var(--wv-champagne, #ffebd2);
+  padding: 0.625rem 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  text-align: center;
+  border-top: 1px solid rgba(255, 235, 210, 0.12);
+  border-bottom: 1px solid rgba(255, 235, 210, 0.12);
+}
+
+/* The SVG wrapper. width: 100% with display: block so the SVG fills
+   the available width with no horizontal scroll. Aspect ratio comes
+   from the SVG's viewBox attribute — no need to set it in CSS. */
+.mapWrapper {
+  width: 100%;
+  display: block;
+  position: relative; /* anchor for the tooltip overlay */
+}
+
+.map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── boat bobbing ────────────────────────────────────────────────
+   The harbour breathes as a wave: each boat translates vertically on
+   a 5s loop, staggered per-boat by `--boat-index * 400ms` so they
+   don't bob in lockstep. The transform is on the <g data-boat>
+   element — text inside the group inherits the motion.
+
+   Why not pure CSS without --boat-index: animation-delay needs a
+   numeric ms value, and stagger from a single keyframe requires the
+   per-boat custom property to pick up the index from JSX.
+*/
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.boat {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: bob 5.5s ease-in-out infinite;
+  animation-delay: calc(var(--boat-index, 0) * 400ms);
+  cursor: pointer;
+  /* Slight scale on hover/focus reinforces the affordance. The text
+     inside is `pointer-events: none` (set in JSX) so hover doesn't
+     flicker as the cursor crosses the label. */
+  transition: transform 200ms ease;
+}
+.boat:hover,
+.boat:focus-visible {
+  /* Scale layered on top of the bob translate by combining transforms
+     via the parent <a>'s style — but `transform` on the <g> already
+     animates. Use filter as a low-risk affordance instead. */
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4)) brightness(1.08);
+}
+.boat:focus-visible {
+  outline: none; /* the <a> wrapper takes the focus ring */
+}
+
+.boatComing {
+  /* Coming-soon boats: no bob (we don't want them to read as alive
+     when they aren't). Hover still highlights. */
+  animation: none;
+  cursor: default;
+}
+.boatComing:hover {
+  filter: none;
+}
+
+/* SVG <a> tags inherit focus styling — give them a visible ring. */
+.map a:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+/* ── tooltip ──────────────────────────────────────────────────────
+   Positioned via inline left/top from the React state. transform
+   centres it horizontally relative to its own width and lifts it
+   above the boat (negative Y).
+*/
+.tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 12px));
+  background-color: rgba(30, 39, 56, 0.97); /* darker cadet */
+  color: var(--wv-champagne, #ffebd2);
+  padding: 0.625rem 0.875rem;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 235, 210, 0.15);
+  max-width: 280px;
+  pointer-events: none; /* tooltip is informational; never intercepts clicks */
+  z-index: 25;
+  /* Small caret pointing down toward the boat. */
+}
+.tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background-color: rgba(30, 39, 56, 0.97);
+  border-right: 1px solid rgba(255, 235, 210, 0.15);
+  border-bottom: 1px solid rgba(255, 235, 210, 0.15);
+}
+
+.tooltipText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.tooltipBadge {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wv-redwood, #b15043);
+  background-color: rgba(177, 80, 67, 0.12);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.375rem;
+}
+
+.tooltipComing .tooltipText {
+  color: rgba(255, 235, 210, 0.82);
+}
+
+/* ── reduced motion ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .boat {
+    animation: none;
+    transition: none;
+  }
+  .boat:hover,
+  .boat:focus-visible {
+    filter: none;
+  }
+}
