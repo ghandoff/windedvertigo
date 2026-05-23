@@ -7,7 +7,7 @@
  * Write operations additionally re-verify against Notion.
  */
 
-import { authenticateRequest, verifyAdminFromNotion } from './auth.js';
+import { authenticateRequest, verifyAdminFromDB } from './auth.js';
 import { NextResponse } from 'next/server';
 
 function hasPcsAccess(roles) {

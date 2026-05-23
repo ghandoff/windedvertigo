@@ -19,9 +19,39 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.claimDoseReqs;
+
+// ── Postgres path (Part 10 migration) ────────────────────────────────────────
+// The pcs_claim_dose_reqs table stores the core dose fields.
+// combinationGroup, activeIngredient (text), aiForm, and
+// activeIngredientCanonicalId are Notion-only until a schema extension.
+const CLAIM_DOSE_REQS_PG_COLUMN_MAP = {
+  pcsClaimId: 'claim_id',
+  amount: 'dose_min_mg',
+  unit: 'dose_unit',
+  createdTime: 'notion_created_at',
+  lastEditedTime: 'notion_last_edited_at',
+};
+
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    requirement: row.notes || '',       // use notes as fallback label
+    pcsClaimId: row.claim_id || null,
+    activeIngredient: '',               // not in current Postgres schema
+    aiForm: '',                         // not in current Postgres schema
+    amount: row.dose_min_mg ?? null,
+    unit: row.dose_unit || null,
+    combinationGroup: null,             // not in current Postgres schema
+    notes: row.notes || '',
+    activeIngredientCanonicalId: null,  // not in current Postgres schema
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
 
 function parsePage(page) {
   const p = page.properties;
@@ -60,6 +90,20 @@ export function composeLabel({ activeIngredient, aiForm, amount, unit }) {
 }
 
 export async function getAllClaimDoseReqs(maxPages = 50) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_claim_dose_reqs')
+        .select('*')
+        .order('notion_last_edited_at', { ascending: false })
+        .limit(10000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-claim-dose-reqs] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -77,6 +121,19 @@ export async function getAllClaimDoseReqs(maxPages = 50) {
 }
 
 export async function getReqsForClaim(claimId) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_claim_dose_reqs')
+        .select('*')
+        .eq('claim_id', claimId);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-claim-dose-reqs] Postgres forClaim failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.claimDoseReqs,
     filter: { property: P.pcsClaim, relation: { contains: claimId } },
@@ -88,6 +145,20 @@ export async function getReqsForClaim(claimId) {
 }
 
 export async function getClaimDoseReq(id) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_claim_dose_reqs')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+    } catch (err) {
+      console.warn(`[pcs-claim-dose-reqs] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
@@ -125,11 +196,32 @@ export async function createClaimDoseReq(fields) {
     properties[P.activeIngredientCanonical] = { relation: [{ id: fields.activeIngredientCanonicalId }] };
   }
 
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      requirement: label,
+      pcsClaimId: fields.pcsClaimId || null,
+      activeIngredient: fields.activeIngredient || '',
+      aiForm: fields.aiForm || '',
+      amount: fields.amount ?? null,
+      unit: fields.unit || null,
+      combinationGroup: fields.combinationGroup ?? 1,
+      notes: fields.notes || '',
+      activeIngredientCanonicalId: fields.activeIngredientCanonicalId || null,
+    };
+    await writePostgresFirst('pcs_claim_dose_reqs', stubRow, CLAIM_DOSE_REQS_PG_COLUMN_MAP, () =>
+      notion.pages.create({ parent: { database_id: PCS_DB.claimDoseReqs }, properties })
+    );
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.claimDoseReqs },
     properties,
   });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_claim_dose_reqs', parsed, CLAIM_DOSE_REQS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
+  return parsed;
 }
 
 export async function updateClaimDoseReq(id, fields) {
@@ -180,10 +272,53 @@ export async function updateClaimDoseReq(id, fields) {
     properties[P.requirement] = { title: [{ text: { content: composeLabel(merged) } }] };
   }
 
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_claim_dose_reqs', stubRow, CLAIM_DOSE_REQS_PG_COLUMN_MAP, () =>
+      notion.pages.update({ page_id: id, properties })
+    );
+    return stubRow;
+  }
   const page = await notion.pages.update({ page_id: id, properties });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_claim_dose_reqs', parsed, CLAIM_DOSE_REQS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
+  return parsed;
 }
 
 export async function deleteClaimDoseReq(id) {
+  if (shouldWriteToPostgresFirst()) {
+    const sb = getPcsSupabase();
+    await sb.from('pcs_claim_dose_reqs').delete().eq('notion_page_id', id);
+    notion.pages.update({ page_id: id, archived: true }).catch(err =>
+      console.warn('[pcs-claim-dose-reqs] async Notion archive failed:', err?.message)
+    );
+    return;
+  }
   await notion.pages.update({ page_id: id, archived: true });
+}
+
+// ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────
+export async function syncRecentClaimDoseReqsToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.claimDoseReqs,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_claim_dose_reqs', parsed, CLAIM_DOSE_REQS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
+}
+
+export async function syncSingleClaimDoseReqPageToPostgres(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  const parsed = parsePage(page);
+  return mirrorToPostgres('pcs_claim_dose_reqs', parsed, CLAIM_DOSE_REQS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
 }

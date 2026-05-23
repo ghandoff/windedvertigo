@@ -16,7 +16,7 @@ import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_ingredients; all fields follow the camelCase → snake_case convention.
@@ -222,6 +222,26 @@ export async function getIngredient(id) {
 export async function createIngredient(fields) {
   if (!fields.canonicalName) throw new Error('canonicalName is required');
   const properties = buildProps(fields);
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      canonicalName: fields.canonicalName || '',
+      synonyms: fields.synonyms || '',
+      category: fields.category || null,
+      standardUnit: fields.standardUnit || null,
+      fdaRdi: fields.fdaRdi ?? null,
+      fdaRdiUnit: fields.fdaRdiUnit || null,
+      regulatoryCeiling: fields.regulatoryCeiling ?? null,
+      bioavailabilityNotes: fields.bioavailabilityNotes || '',
+      interactionCautions: fields.interactionCautions || '',
+      notes: fields.notes || '',
+      formIds: fields.formIds || [],
+    };
+    await writePostgresFirst('pcs_ingredients', stubRow, INGREDIENTS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.ingredients }, properties }));
+    invalidateIngredientsCache();
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.ingredients },
     properties,
@@ -264,6 +284,12 @@ export async function updateIngredientField({ id, fieldPath, value, actor, reaso
 
 export async function updateIngredient(id, fields) {
   const properties = buildProps(fields);
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_ingredients', stubRow, INGREDIENTS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    invalidateIngredientsCache();
+    return stubRow;
+  }
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateIngredientsCache();
   const parsed = parsePage(page);
@@ -273,6 +299,12 @@ export async function updateIngredient(id, fields) {
 }
 
 export async function deleteIngredient(id) {
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, archived: true };
+    await writePostgresFirst('pcs_ingredients', stubRow, INGREDIENTS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, archived: true }));
+    invalidateIngredientsCache();
+    return;
+  }
   await notion.pages.update({ page_id: id, archived: true });
   invalidateIngredientsCache();
   // 2026-05-06 — Path-2 Day 2.6 delete-mirror. Notion archives the page;

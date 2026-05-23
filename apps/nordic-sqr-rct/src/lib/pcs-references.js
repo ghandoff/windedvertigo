@@ -7,7 +7,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for pcs_references.
 // All camelCase keys map mechanically.
@@ -202,6 +202,20 @@ export async function createReference(fields) {
   if (fields.evidenceItemId) {
     properties[P.evidenceItem] = { relation: [{ id: fields.evidenceItemId }] };
   }
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      name: fields.name || '',
+      pcsReferenceLabel: fields.pcsReferenceLabel || '',
+      referenceTextAsWritten: fields.referenceTextAsWritten || '',
+      referenceNotes: fields.referenceNotes || '',
+      pcsVersionId: fields.pcsVersionId || null,
+      evidenceItemId: fields.evidenceItemId || null,
+    };
+    await writePostgresFirst('pcs_references', stubRow, REFERENCES_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.references }, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.references },
     properties,
@@ -229,6 +243,11 @@ export async function updateReference(id, fields) {
     properties[P.evidenceItem] = fields.evidenceItemId
       ? { relation: [{ id: fields.evidenceItemId }] }
       : { relation: [] };
+  }
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_references', stubRow, REFERENCES_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    return stubRow;
   }
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);

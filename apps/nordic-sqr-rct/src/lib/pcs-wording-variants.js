@@ -7,7 +7,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides. All mechanical.
 const WORDING_VARIANTS_PG_COLUMN_MAP = {};
@@ -163,6 +163,18 @@ export async function createWordingVariant(fields) {
   if (fields.isPrimary !== undefined) properties[P.isPrimary] = { checkbox: fields.isPrimary };
   if (fields.variantNotes) properties[P.variantNotes] = { rich_text: [{ text: { content: fields.variantNotes } }] };
 
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      wording: fields.wording || '',
+      pcsClaimId: fields.pcsClaimId || null,
+      isPrimary: fields.isPrimary || false,
+      variantNotes: fields.variantNotes || '',
+    };
+    await writePostgresFirst('pcs_wording_variants', stubRow, WORDING_VARIANTS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.wordingVariants }, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.wordingVariants },
     properties,
@@ -187,6 +199,11 @@ export async function updateWordingVariant(id, fields) {
     properties[P.pcsClaim] = fields.pcsClaimId
       ? { relation: [{ id: fields.pcsClaimId }] }
       : { relation: [] };
+  }
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_wording_variants', stubRow, WORDING_VARIANTS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    return stubRow;
   }
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);

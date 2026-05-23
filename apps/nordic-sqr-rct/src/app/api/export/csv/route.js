@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { authenticateRequest, verifyAdminFromNotion } from '@/lib/auth';
+import { authenticateRequest, verifyAdminFromDB } from '@/lib/auth';
 import { getAllStudies } from '@/lib/sqr-intakes';
 import { getAllScores } from '@/lib/sqr-scores';
 
@@ -29,7 +29,7 @@ export async function GET(request) {
   if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
-  const isAdmin = await verifyAdminFromNotion(user);
+  const isAdmin = await verifyAdminFromDB(user);
   if (!isAdmin) {
     return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
   }

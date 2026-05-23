@@ -1,4 +1,4 @@
-import { authenticateRequest, verifyAdminFromNotion } from '@/lib/auth';
+import { authenticateRequest, verifyAdminFromDB } from '@/lib/auth';
 import { getAllStudies } from '@/lib/sqr-intakes';
 import { getAllReviewers } from '@/lib/sqr-reviewers';
 import { getAllScores } from '@/lib/sqr-scores';
@@ -20,7 +20,7 @@ export async function GET(request) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  const isAdmin = await verifyAdminFromNotion(user);
+  const isAdmin = await verifyAdminFromDB(user);
   if (!isAdmin) {
     return new Response(JSON.stringify({ error: 'Admin access required' }), {
       status: 403,

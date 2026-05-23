@@ -8,7 +8,7 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides. The `AI`
 // uppercase-abbreviation in `elementalAI` would otherwise produce
@@ -268,6 +268,31 @@ export async function createFormulaLine(fields) {
   if (fields.formulaNotes) properties[P.formulaNotes] = { rich_text: [{ text: { content: fields.formulaNotes } }] };
   Object.assign(properties, laurenTemplateProps(fields));
 
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      ingredientForm: fields.ingredientForm || '',
+      pcsVersionId: fields.pcsVersionId || null,
+      ingredientSource: fields.ingredientSource || '',
+      elementalAI: fields.elementalAI || null,
+      elementalAmountMg: fields.elementalAmountMg ?? null,
+      ratioNote: fields.ratioNote || '',
+      servingBasisNote: fields.servingBasisNote || '',
+      formulaNotes: fields.formulaNotes || '',
+      ai: fields.ai || '',
+      aiForm: fields.aiForm || '',
+      fmPlm: fields.fmPlm || '',
+      amountPerServing: fields.amountPerServing ?? null,
+      amountUnit: fields.amountUnit || null,
+      percentDailyValue: fields.percentDailyValue ?? null,
+      activeIngredientCanonicalId: fields.activeIngredientCanonicalId || null,
+      activeIngredientFormCanonicalId: fields.activeIngredientFormCanonicalId || null,
+      confidence: fields.confidence ?? null,
+    };
+    await writePostgresFirst('pcs_formula_lines', stubRow, FORMULA_LINES_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.formulaLines }, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.formulaLines },
     properties,
@@ -335,6 +360,11 @@ export async function updateFormulaLine(id, fields) {
     properties[P.formulaNotes] = { rich_text: [{ text: { content: fields.formulaNotes } }] };
   }
   Object.assign(properties, laurenTemplateProps(fields));
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_formula_lines', stubRow, FORMULA_LINES_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);
   await mirrorToPostgres('pcs_formula_lines', parsed, FORMULA_LINES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });

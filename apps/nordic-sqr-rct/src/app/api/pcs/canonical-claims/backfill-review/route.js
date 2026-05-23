@@ -27,8 +27,8 @@ import { requireCapability } from '@/lib/auth/require-capability';
 import { getMatchingProposals, filterProposals } from '@/lib/canonical-claim-matcher';
 import { updateClaim } from '@/lib/pcs-claims';
 import { getCanonicalClaim } from '@/lib/pcs-canonical-claims';
-import { notion } from '@/lib/notion';
-import { PCS_DB, PROPS } from '@/lib/pcs-config';
+import { createWordingVariant } from '@/lib/pcs-wording-variants';
+import { PCS_DB } from '@/lib/pcs-config';
 import { getPcsSupabase } from '@/lib/supabase-pcs';
 
 // ── Layer 1: in-memory cache ────────────────────────────────────────────────
@@ -204,9 +204,7 @@ export async function POST(request) {
     let standardized = false;
     const originalText = updated?.claim || '';
 
-    if (canonicalClaimId && PCS_DB.wordingVariants) {
-      const VP = PROPS.wordingVariants;
-
+    if (canonicalClaimId) {
       // Fetch canonical text (Postgres mirror first, Notion fallback).
       let canonicalText = null;
       try {
@@ -245,14 +243,11 @@ export async function POST(request) {
 
         for (const row of versionRows) {
           try {
-            await notion.pages.create({
-              parent: { database_id: PCS_DB.wordingVariants },
-              properties: {
-                [VP.wording]: { title: [{ text: { content: row.wording.slice(0, 1990) } }] },
-                [VP.pcsClaim]: { relation: [{ id: pcsClaimId }] },
-                [VP.isPrimary]: { checkbox: row.isPrimary },
-                [VP.variantNotes]: { rich_text: [{ text: { content: row.notes } }] },
-              },
+            await createWordingVariant({
+              wording: row.wording.slice(0, 1990),
+              pcsClaimId,
+              isPrimary: row.isPrimary,
+              variantNotes: row.notes,
             });
             variantsCreated++;
           } catch (err) {
@@ -263,21 +258,17 @@ export async function POST(request) {
     }
 
     // 3) Additional user-supplied wording variants (if provided separately).
-    if (Array.isArray(variants) && variants.length > 0 && PCS_DB.wordingVariants) {
-      const VP = PROPS.wordingVariants;
+    if (Array.isArray(variants) && variants.length > 0) {
       for (let i = 0; i < variants.length; i++) {
         const v = variants[i];
         const wording = typeof v === 'string' ? v : v?.wording;
         if (!wording) continue;
         try {
-          await notion.pages.create({
-            parent: { database_id: PCS_DB.wordingVariants },
-            properties: {
-              [VP.wording]: { title: [{ text: { content: wording.slice(0, 1990) } }] },
-              [VP.pcsClaim]: { relation: [{ id: pcsClaimId }] },
-              [VP.isPrimary]: { checkbox: false },
-              [VP.variantNotes]: { rich_text: [{ text: { content: `User-supplied variant ${i + 1}/${variants.length} (backfill-review).` } }] },
-            },
+          await createWordingVariant({
+            wording: wording.slice(0, 1990),
+            pcsClaimId,
+            isPrimary: false,
+            variantNotes: `User-supplied variant ${i + 1}/${variants.length} (backfill-review).`,
           });
           variantsCreated++;
         } catch (err) {

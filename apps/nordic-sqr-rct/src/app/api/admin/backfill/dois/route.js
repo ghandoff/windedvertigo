@@ -3,16 +3,10 @@ import { requireCapability } from '@/lib/auth/require-capability';
 import { getAllEvidence } from '@/lib/pcs-evidence';
 import { getAllStudies } from '@/lib/sqr-intakes';
 import { normalizeDoi } from '@/lib/doi';
-import { Client } from '@notionhq/client';
-import { withRetry } from '@/lib/notion';
+import { getPcsSupabase } from '@/lib/supabase-pcs';
 
 const PUBMED_ESUMMARY = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi';
 const PUBMED_ESEARCH = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi';
-
-const _notion = new Client({ auth: process.env.NOTION_TOKEN, timeoutMs: 30000 });
-const notion = {
-  pages: { update: (...args) => withRetry(() => _notion.pages.update(...args)) },
-};
 
 /**
  * POST /api/admin/backfill/dois
@@ -58,17 +52,14 @@ export async function POST(request) {
 
         if (result.doi && !dryRun) {
           try {
-            // PCS DOI is rich_text type
-            await notion.pages.update({
-              page_id: entry.id,
-              properties: {
-                'DOI': { rich_text: [{ text: { content: result.doi } }] },
-                // Backfill PMID if we found one and it's missing
-                ...(!entry.pmid && result.pmid ? {
-                  'PMID': { rich_text: [{ text: { content: result.pmid } }] },
-                } : {}),
-              },
-            });
+            const sb = getPcsSupabase();
+            const updateFields = { doi: result.doi };
+            if (!entry.pmid && result.pmid) updateFields.pmid = result.pmid;
+            const { error } = await sb
+              .from('pcs_evidence')
+              .update(updateFields)
+              .eq('notion_page_id', entry.id);
+            if (error) throw error;
             item.written = true;
           } catch (err) {
             item.writeError = err.message;
@@ -103,16 +94,16 @@ export async function POST(request) {
 
         if (result.doi && !dryRun) {
           try {
-            // SQR-RCT DOI is url type — store as full URL
-            const doiUrl = result.doi.startsWith('http')
-              ? result.doi
-              : `https://doi.org/${result.doi}`;
-            await notion.pages.update({
-              page_id: study.id,
-              properties: {
-                'DOI': { url: doiUrl },
-              },
-            });
+            // Normalize to bare DOI for storage (no https://doi.org/ prefix in DB)
+            const doiNormalized = result.doi.startsWith('http')
+              ? result.doi.replace(/^https?:\/\/doi\.org\//i, '')
+              : result.doi;
+            const sb = getPcsSupabase();
+            const { error } = await sb
+              .from('intakes')
+              .update({ doi: doiNormalized })
+              .eq('notion_page_id', study.id);
+            if (error) throw error;
             item.written = true;
           } catch (err) {
             item.writeError = err.message;

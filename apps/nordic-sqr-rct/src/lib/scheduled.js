@@ -20,7 +20,7 @@
 
 // Values can be a single path string OR an array of paths for the same schedule.
 const ROUTES = {
-  '*/2 * * * *': ['/api/cron/process-imports', '/api/cron/drift-sync'],
+  '*/2 * * * *': '/api/cron/process-imports',  // drift-sync retired — Part 10 Supabase-only migration
   '*/3 * * * *': '/api/cron/retry-pending-writes',
   '*/5 * * * *': '/api/cron/process-label-imports',
   '0 8 * * *':   '/api/cron/sweep-label-drift',

@@ -19,7 +19,7 @@
   ],
   "triggers": {
     "crons": [
-      "*/2 * * * *",   // process-imports + drift-sync (both; see src/lib/scheduled.js)
+      "*/2 * * * *",   // process-imports (drift-sync retired — Part 10 Supabase-only migration)
       "*/3 * * * *",   // retry-pending-writes (Phase B strong-consistency queue)
       "*/5 * * * *",   // process-label-imports
       "0 8 * * *",     // sweep-label-drift

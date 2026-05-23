@@ -60,15 +60,15 @@ export function _clearLiveAdminCache(reviewerId) {
 }
 
 /**
- * Authenticate a request AND confirm the user is still an admin in Notion.
+ * Authenticate a request AND confirm the user is still an admin in the DB.
  *
  * Returns `{ user }` on success or `{ error: NextResponse }` on failure.
- * The returned `user` carries Notion-live `roles` (not stale JWT roles).
+ * The returned `user` carries DB-live `roles` (not stale JWT roles).
  *
  * Status codes:
  *   401 — no/invalid JWT
  *   403 — authenticated but admin revoked (or never was)
- *   503 — Notion lookup failed (fail closed)
+ *   503 — DB lookup failed (fail closed)
  */
 export async function requireAdminLive(request, { route } = {}) {
   const user = await authenticateRequest(request);
@@ -89,14 +89,14 @@ export async function requireAdminLive(request, { route } = {}) {
     return { user: { ...user, roles: cached.roles } };
   }
 
-  // Cache miss — re-read from Notion.
+  // Cache miss — re-read from Postgres (sqr-reviewers has shouldReadFromSqrPostgres path).
   let reviewer;
   try {
-    const { getReviewerById } = await import('@/lib/notion');
+    const { getReviewerById } = await import('@/lib/sqr-reviewers');
     reviewer = await getReviewerById(user.reviewerId);
   } catch (err) {
     // Fail closed. See module docblock.
-    console.error('[requireAdminLive] Notion lookup failed:', err?.message || err);
+    console.error('[requireAdminLive] DB lookup failed:', err?.message || err);
     return {
       error: NextResponse.json(
         { error: 'Authorization check failed. Please retry.' },

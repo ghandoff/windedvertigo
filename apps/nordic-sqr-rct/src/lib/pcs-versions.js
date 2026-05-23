@@ -7,7 +7,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for versions.
 // Notion shape uses uppercase abbreviations (EPA, DHA) that the default
@@ -279,6 +279,40 @@ export async function createVersion(fields) {
   }
   Object.assign(properties, laurenTemplateProps(fields));
 
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      version: fields.version || '',
+      pcsDocumentId: fields.pcsDocumentId || null,
+      effectiveDate: fields.effectiveDate || null,
+      isLatest: fields.isLatest || false,
+      versionNotes: fields.versionNotes || '',
+      supersedesId: fields.supersedesId || null,
+      claimIds: [],
+      formulaLineIds: [],
+      referenceIds: [],
+      revisionEventIds: [],
+      requestIds: [],
+      latestVersionOfId: fields.latestVersionOfId || null,
+      productName: fields.productName || '',
+      formatOverride: fields.formatOverride || '',
+      demographic: fields.demographic || [],
+      biologicalSex: fields.biologicalSex || [],
+      ageGroup: fields.ageGroup || [],
+      lifeStage: fields.lifeStage || [],
+      lifestyle: fields.lifestyle || [],
+      demographicBackfillReview: fields.demographicBackfillReview || '',
+      dailyServingSize: fields.dailyServingSize || '',
+      totalEPA: fields.totalEPA ?? null,
+      totalDHA: fields.totalDHA ?? null,
+      totalEPAandDHA: fields.totalEPAandDHA ?? null,
+      totalOmega6: fields.totalOmega6 ?? null,
+      totalOmega9: fields.totalOmega9 ?? null,
+    };
+    await writePostgresFirst('pcs_versions', stubRow, VERSIONS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.versions }, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.versions },
     properties,
@@ -319,6 +353,11 @@ export async function updateVersion(id, fields) {
     properties[P.versionNotes] = { rich_text: [{ text: { content: fields.versionNotes } }] };
   }
   Object.assign(properties, laurenTemplateProps(fields));
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_versions', stubRow, VERSIONS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);
   await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });

@@ -7,7 +7,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for pcs_requests.
 // All other camelCase keys map mechanically. The `assignees` field is
@@ -452,6 +452,11 @@ export async function updateRequest(id, fields) {
       properties[P.resCompleted] = date;
     }
   }
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_requests', stripUnmirroredRequest(stubRow), REQUESTS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);
   await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
@@ -497,6 +502,36 @@ export async function createRequest(fields) {
     properties[P.specificField] = { rich_text: [{ text: { content: fields.specificField } }] };
   }
 
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      request: fields.request || '',
+      status: fields.status || null,
+      requestedBy: fields.requestedBy || '',
+      requestNotes: fields.requestNotes || '',
+      pcsVersionId: fields.pcsVersionId || null,
+      relatedClaimIds: fields.relatedClaimIds || [],
+      raDue: fields.raDue || null,
+      raCompleted: null,
+      resDue: fields.resDue || null,
+      resCompleted: null,
+      relatedPcsId: fields.relatedPcsId || null,
+      requestType: fields.requestType || null,
+      specificField: fields.specificField || '',
+      assignedRole: fields.assignedRole || null,
+      assignees: [],
+      assigneeIds: fields.assigneeIds || [],
+      priority: fields.priority || null,
+      openedDate: fields.openedDate || null,
+      lastPingedDate: null,
+      resolutionNote: '',
+      source: fields.source || null,
+      ageDays: null,
+    };
+    await writePostgresFirst('pcs_requests', stripUnmirroredRequest(stubRow), REQUESTS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.requests }, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.requests },
     properties,

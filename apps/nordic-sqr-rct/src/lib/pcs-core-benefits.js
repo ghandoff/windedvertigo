@@ -12,7 +12,7 @@
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_core_benefits; all fields follow the camelCase → snake_case
@@ -173,6 +173,19 @@ export async function createCoreBenefit(fields) {
   if (fields.notes !== undefined) {
     properties[P.notes] = { rich_text: [{ text: { content: fields.notes || '' } }] };
   }
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      coreBenefit: fields.coreBenefit || '',
+      benefitCategoryId: fields.benefitCategoryId || null,
+      notes: fields.notes || '',
+      pcsClaimInstanceIds: [],
+    };
+    await writePostgresFirst('pcs_core_benefits', stubRow, CORE_BENEFITS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.coreBenefits }, properties }));
+    invalidateCoreBenefitsCache();
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.coreBenefits },
     properties,
@@ -196,6 +209,12 @@ export async function updateCoreBenefit(id, fields) {
   }
   if (fields.notes !== undefined) {
     properties[P.notes] = { rich_text: [{ text: { content: fields.notes || '' } }] };
+  }
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_core_benefits', stubRow, CORE_BENEFITS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    invalidateCoreBenefitsCache();
+    return stubRow;
   }
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateCoreBenefitsCache();

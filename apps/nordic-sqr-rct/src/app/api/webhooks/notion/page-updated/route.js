@@ -1,176 +1,29 @@
-/**
- * POST /api/webhooks/notion/page-updated
- *
- * General Notion → Postgres sync webhook.
- *
- * When any team member edits a PCS record directly in Notion, this
- * webhook fires immediately and mirrors the change to Postgres — giving
- * sub-second sync instead of waiting up to 2 minutes for the drift-sync
- * cron to catch it.
- *
- * Complementary to (not a replacement for) the drift-sync cron:
- *   - Webhook: real-time push on individual edits
- *   - Cron:    safety net, catches edits the webhook missed
- *
- * Routing: identifies the edited page's parent database ID at runtime
- * and dispatches to the appropriate `syncSingle*PageToPostgres` export.
- * Only the 13 tables that have Postgres mirrors are handled; edits to
- * other Notion databases (labels, prefixes, etc.) are silently acked.
- *
- * Auth: `NOTION_WEBHOOK_TOKEN` bearer token (same as evidence-updated).
- * If unset, accepts all calls (Preview / local dev) with a warning.
- *
- * Setup: register this URL in Notion's webhook configuration for each
- * PCS database. Use `page.updated` and `page.created` event types.
- * See docs/runbooks/notion-webhooks.md for setup instructions.
- */
-
 import { NextResponse } from 'next/server';
-import { notion } from '@/lib/notion';
-import { PCS_DB } from '@/lib/pcs-config';
-import { syncSingleEvidencePageToPostgres } from '@/lib/pcs-evidence';
-import { syncSingleClaimPageToPostgres } from '@/lib/pcs-claims';
-import { syncSingleDocumentPageToPostgres } from '@/lib/pcs-documents';
-import { syncSingleIngredientPageToPostgres } from '@/lib/pcs-ingredients';
-import { syncSingleCanonicalClaimPageToPostgres } from '@/lib/pcs-canonical-claims';
-import { syncSingleCoreBenefitPageToPostgres } from '@/lib/pcs-core-benefits';
-import { syncSingleEvidencePacketPageToPostgres } from '@/lib/pcs-evidence-packets';
-import { syncSingleFormulaLinePageToPostgres } from '@/lib/pcs-formula-lines';
-import { syncSingleReferencePageToPostgres } from '@/lib/pcs-references';
-import { syncSingleRequestPageToPostgres } from '@/lib/pcs-requests';
-import { syncSingleRevisionEventPageToPostgres } from '@/lib/pcs-revision-events';
-import { syncSingleVersionPageToPostgres } from '@/lib/pcs-versions';
-import { syncSingleWordingVariantPageToPostgres } from '@/lib/pcs-wording-variants';
-import { syncSingleAicsDocumentPageToPostgres, syncSingleAicsVersionPageToPostgres, syncSingleAicsClaimPageToPostgres } from '@/lib/aics-documents';
-import { syncSingleReviewerPageToPostgres } from '@/lib/sqr-reviewers';
-import { syncSingleIntakePageToPostgres }   from '@/lib/sqr-intakes';
-import { syncSingleScorePageToPostgres }    from '@/lib/sqr-scores';
-import { SQR_DB }                           from '@/lib/sqr-config';
 
-// runtime = 'nodejs' removed — CF Workers/OpenNext requires edge-compatible routes.
-// @notionhq/client uses fetch internally and works on the CF V8 edge runtime.
 export const dynamic = 'force-dynamic';
 
-function verifyAuth(request) {
-  const expected = process.env.NOTION_WEBHOOK_TOKEN;
-  if (!expected) {
-    console.warn('[page-updated] NOTION_WEBHOOK_TOKEN not set — accepting all calls');
-    return true;
-  }
-  const auth = request.headers.get('authorization') || '';
-  const xToken = request.headers.get('x-notion-webhook-token') || '';
-  return auth === `Bearer ${expected}` || xToken === expected;
-}
-
 /**
- * Build an inverted map: Notion database ID → syncSinglePage function.
- * Called at request time so env vars are resolved correctly.
+ * POST /api/webhooks/notion/page-updated — RETIRED (Part 10, 2026-05-23)
+ *
+ * This webhook mirrored Notion edits into Postgres in real time.
+ * It is no longer needed because:
+ *   1. Notion is no longer an editing surface — no one edits data
+ *      directly in Notion. The Nordic Research Platform is the sole
+ *      write path for all PCS and SQR data.
+ *   2. All writes go Postgres-first (PCS_WRITE_TO_POSTGRES=1). Postgres
+ *      is the source of truth; nothing needs to be synced from Notion.
+ *
+ * ACTION REQUIRED: Unregister this webhook in Notion's integration
+ * settings to prevent Notion from repeatedly retrying calls here.
+ *
+ * Returns 410 Gone so Notion sees a permanent failure and stops retrying.
  */
-function buildDbSyncMap() {
-  const raw = {
-    [PCS_DB.evidenceLibrary]: syncSingleEvidencePageToPostgres,
-    [PCS_DB.claims]:          syncSingleClaimPageToPostgres,
-    [PCS_DB.documents]:       syncSingleDocumentPageToPostgres,
-    [PCS_DB.ingredients]:     syncSingleIngredientPageToPostgres,
-    [PCS_DB.canonicalClaims]: syncSingleCanonicalClaimPageToPostgres,
-    [PCS_DB.coreBenefits]:    syncSingleCoreBenefitPageToPostgres,
-    [PCS_DB.evidencePackets]: syncSingleEvidencePacketPageToPostgres,
-    [PCS_DB.formulaLines]:    syncSingleFormulaLinePageToPostgres,
-    [PCS_DB.references]:      syncSingleReferencePageToPostgres,
-    [PCS_DB.requests]:        syncSingleRequestPageToPostgres,
-    [PCS_DB.revisionEvents]:  syncSingleRevisionEventPageToPostgres,
-    [PCS_DB.versions]:        syncSingleVersionPageToPostgres,
-    [PCS_DB.wordingVariants]: syncSingleWordingVariantPageToPostgres,
-    [PCS_DB.aicsDocuments]:   syncSingleAicsDocumentPageToPostgres,
-    [PCS_DB.aicsVersions]:    syncSingleAicsVersionPageToPostgres,
-    [PCS_DB.aicsClaims]:      syncSingleAicsClaimPageToPostgres,
-    [SQR_DB.reviewers]:       syncSingleReviewerPageToPostgres,
-    [SQR_DB.intakes]:         syncSingleIntakePageToPostgres,
-    [SQR_DB.scores]:          syncSingleScorePageToPostgres,
-  };
-  // Filter out undefined/null keys (env vars not set in local dev)
-  return Object.fromEntries(
-    Object.entries(raw).filter(([k]) => k && k !== 'undefined')
+export async function POST() {
+  return NextResponse.json(
+    {
+      retired: true,
+      message: 'Notion webhook retired — all writes are Postgres-first as of Part 10 migration (2026-05-23). Please unregister this webhook in Notion integration settings.',
+    },
+    { status: 410 },
   );
-}
-
-export async function POST(request) {
-  if (!verifyAuth(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
-
-  // Notion verification challenge — mirror the token back on first setup.
-  if (body?.type === 'url_verification' && body?.challenge) {
-    return NextResponse.json({ challenge: body.challenge });
-  }
-  if (body?.verification_token) {
-    // Notion sends verification_token during initial webhook setup (may or may
-    // not include a type field). Echo it back so Notion confirms reachability.
-    return NextResponse.json({ ok: true, verification_token: body.verification_token });
-  }
-
-  // Accept a variety of Notion webhook payload shapes. We need the page id.
-  const pageId =
-    body?.entity?.id ||
-    body?.data?.parent?.id ||
-    body?.page?.id ||
-    body?.id ||
-    null;
-
-  if (!pageId) {
-    return NextResponse.json({ ok: true, reason: 'no page id in payload' });
-  }
-
-  // Fetch the page to determine which database it belongs to.
-  // This also validates the page exists and is accessible.
-  let parentDatabaseId;
-  try {
-    const page = await notion.pages.retrieve({ page_id: pageId });
-    parentDatabaseId = page?.parent?.database_id || null;
-  } catch (err) {
-    // Page may have been deleted or be inaccessible — ack without error
-    // so Notion doesn't retry indefinitely.
-    console.warn('[page-updated] page retrieve failed for %s: %s', pageId, err?.message);
-    return NextResponse.json({ ok: true, reason: 'page not accessible', pageId });
-  }
-
-  if (!parentDatabaseId) {
-    return NextResponse.json({ ok: true, reason: 'page has no database parent', pageId });
-  }
-
-  const dbSyncMap = buildDbSyncMap();
-  const syncFn = dbSyncMap[parentDatabaseId];
-
-  if (!syncFn) {
-    // Page belongs to a non-mirrored database (labels, prefixes, AICS, etc.)
-    // Ack silently — not an error.
-    return NextResponse.json({
-      ok: true,
-      reason: 'database not mirrored',
-      pageId,
-      parentDatabaseId,
-    });
-  }
-
-  try {
-    const result = await syncFn(pageId);
-    console.log('[page-updated] mirrored pageId=%s dbId=%s mirrored=%s',
-      pageId, parentDatabaseId, result?.mirrored);
-    return NextResponse.json({ ok: true, pageId, result });
-  } catch (err) {
-    // Mirror failure should not cause Notion to retry the webhook —
-    // the drift-sync cron is the safety net. Log and ack.
-    console.error('[page-updated] mirror failed pageId=%s: %s', pageId, err?.message);
-    return NextResponse.json(
-      { ok: true, reason: 'mirror failed — cron will catch up', pageId, error: err?.message },
-      { status: 200 },
-    );
-  }
 }

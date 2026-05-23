@@ -64,13 +64,13 @@ export async function POST(request) {
     return resp;
   }
 
-  // Re-read the reviewer from Notion. This is the live role re-verification.
+  // Re-read the reviewer from Postgres for live role re-verification.
   let reviewer;
   try {
-    const { getReviewerById } = await import('@/lib/notion');
+    const { getReviewerById } = await import('@/lib/sqr-reviewers');
     reviewer = await getReviewerById(claims.reviewerId);
   } catch (err) {
-    console.error('refresh: Notion lookup failed', err);
+    console.error('refresh: DB lookup failed', err);
     return NextResponse.json({ error: 'Could not verify session.' }, { status: 500 });
   }
 

@@ -8,7 +8,7 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.evidencePackets;
@@ -283,6 +283,34 @@ export async function createEvidencePacket(fields) {
   if (fields.sortOrder !== undefined) properties[P.sortOrder] = { number: fields.sortOrder };
   Object.assign(properties, laurenTemplateProps(fields));
 
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      name: fields.name || '',
+      pcsClaimId: fields.pcsClaimId || null,
+      evidenceItemId: fields.evidenceItemId || null,
+      evidenceRole: fields.evidenceRole || null,
+      meetsSqrThreshold: fields.meetsSqrThreshold || false,
+      relevanceNote: fields.relevanceNote || '',
+      sortOrder: fields.sortOrder ?? null,
+      substantiationTier: fields.substantiationTier || null,
+      studyDoseAI: fields.studyDoseAI || '',
+      studyDoseAmount: fields.studyDoseAmount ?? null,
+      studyDoseUnit: fields.studyDoseUnit || null,
+      nullResultRationale: fields.nullResultRationale || '',
+      keyTakeaway: fields.keyTakeaway || '',
+      studyDesignSummary: fields.studyDesignSummary || '',
+      sampleSize: fields.sampleSize ?? null,
+      positiveResults: fields.positiveResults || '',
+      neutralResults: fields.neutralResults || '',
+      negativeResults: fields.negativeResults || '',
+      potentialBiases: fields.potentialBiases || '',
+      confidence: fields.confidence ?? null,
+    };
+    await writePostgresFirst('pcs_evidence_packets', stubRow, EVIDENCE_PACKETS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.evidencePackets }, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.evidencePackets },
     properties,
@@ -424,6 +452,11 @@ export async function updateEvidencePacket(id, fields) {
       : { relation: [] };
   }
   Object.assign(properties, laurenTemplateProps(fields));
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_evidence_packets', stubRow, EVIDENCE_PACKETS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);
   await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });

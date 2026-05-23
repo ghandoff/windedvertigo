@@ -7,7 +7,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for revision events.
 // All camelCase keys map mechanically to snake_case; no exceptions.
@@ -262,6 +262,28 @@ export async function createRevisionEvent(fields) {
   if (fields.approverAlias) properties[P.approverAlias] = { rich_text: [{ text: { content: fields.approverAlias } }] };
   if (fields.approverDepartment) properties[P.approverDepartment] = { select: { name: sanitizeSelectName(fields.approverDepartment) } };
 
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      event: fields.event || '',
+      activityType: fields.activityType || null,
+      responsibleDept: fields.responsibleDept || null,
+      responsibleIndividual: fields.responsibleIndividual || null,
+      startDate: fields.startDate || null,
+      endDate: fields.endDate || null,
+      fromVersion: fields.fromVersion || '',
+      toVersion: fields.toVersion || '',
+      fromVersionLinkedId: fields.fromVersionLinkedId || null,
+      toVersionLinkedId: fields.toVersionLinkedId || null,
+      pcsVersionId: fields.pcsVersionId || null,
+      eventNotes: fields.eventNotes || '',
+      approverAlias: fields.approverAlias || '',
+      approverDepartment: fields.approverDepartment || null,
+    };
+    await writePostgresFirst('pcs_revision_events', stubRow, REVISION_EVENTS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.revisionEvents }, properties }));
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.revisionEvents },
     properties,
@@ -303,6 +325,11 @@ export async function updateRevisionEvent(id, fields) {
     properties[P.approverDepartment] = fields.approverDepartment
       ? { select: { name: fields.approverDepartment } }
       : { select: null };
+  }
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_revision_events', stubRow, REVISION_EVENTS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    return stubRow;
   }
   const page = await notion.pages.update({ page_id: id, properties });
   const parsed = parsePage(page);

@@ -16,7 +16,7 @@ import {
 import { getPrefixDoseSensitivity } from './pcs-prefixes.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency } from './supabase-pcs.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_canonical_claims; all fields follow the camelCase → snake_case
@@ -257,6 +257,12 @@ export async function updateCanonicalClaim(id, fields) {
     properties[P.doseSensitivityApplied] = fields.doseSensitivityApplied
       ? { select: { name: fields.doseSensitivityApplied } }
       : { select: null };
+  }
+  if (shouldWriteToPostgresFirst()) {
+    const stubRow = { id, ...fields };
+    await writePostgresFirst('pcs_canonical_claims', stubRow, CANONICAL_CLAIMS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    invalidateCanonicalClaimsCache();
+    return stubRow;
   }
   const page = await notion.pages.update({ page_id: id, properties });
   invalidateCanonicalClaimsCache();

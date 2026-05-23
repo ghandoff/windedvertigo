@@ -13,9 +13,49 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.importJobs;
+
+// ── Postgres path (Part 10 migration) ────────────────────────────────────────
+// The pcs_import_jobs table stores status-tracking columns only.
+// extractedData, diffReport, batchId, contentHash, and other rich fields
+// are Notion-only until a future schema extension adds TEXT columns for them.
+// getJobByContentHash and getJobsByBatch therefore remain Notion-only.
+const IMPORT_JOBS_PG_COLUMN_MAP = {
+  pcsId: 'pcs_id',
+  error: 'error_log',
+  createdTime: 'notion_created_at',
+  lastEditedTime: 'notion_last_edited_at',
+};
+
+function parsePostgresRow(row) {
+  return {
+    id: row.notion_page_id,
+    jobId: row.pcs_id || '',         // best substitute; full jobId not stored
+    status: row.status || null,
+    pdfUrl: null,                    // not in current Postgres schema
+    pdfFilename: '',                 // not in current Postgres schema
+    pcsId: row.pcs_id || '',
+    existingDocId: '',               // not in current Postgres schema
+    conflictAction: null,            // not in current Postgres schema
+    extractedData: '',               // not in current Postgres schema
+    createdDocumentId: '',           // not in current Postgres schema
+    resultCounts: '',                // not in current Postgres schema
+    warnings: '',                    // not in current Postgres schema
+    error: row.error_log || '',
+    retryCount: 0,                   // not in current Postgres schema
+    batchId: '',                     // not in current Postgres schema
+    ownerEmail: null,                // not in current Postgres schema
+    contentHash: '',                 // not in current Postgres schema
+    promptVersion: '',               // not in current Postgres schema
+    notificationSent: false,         // not in current Postgres schema
+    diffReport: null,                // not in current Postgres schema
+    createdTime: row.notion_created_at,
+    lastEditedTime: row.notion_last_edited_at,
+  };
+}
 
 // Notion rich_text limits: each text run caps at 2000 chars, a property
 // accepts up to 100 runs. We use a conservative 1800-char chunk to leave
@@ -106,6 +146,20 @@ export function parsePage(page) {
  * @returns {Promise<object[]>} All jobs.
  */
 export async function getAllJobs(maxPages = 50) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_import_jobs')
+        .select('*')
+        .order('notion_created_at', { ascending: false })
+        .limit(5000);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-import-jobs] Postgres read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   let all = [];
   let cursor = undefined;
   let pages = 0;
@@ -130,6 +184,20 @@ export async function getAllJobs(maxPages = 50) {
  * @returns {Promise<object>} Parsed job.
  */
 export async function getJob(id) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_import_jobs')
+        .select('*')
+        .eq('notion_page_id', id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return parsePostgresRow(data);
+    } catch (err) {
+      console.warn(`[pcs-import-jobs] Postgres single-row read failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const page = await notion.pages.retrieve({ page_id: id });
   return parsePage(page);
 }
@@ -142,6 +210,21 @@ export async function getJob(id) {
  * @returns {Promise<object[]>} Matching jobs.
  */
 export async function getJobsByStatus(status, limit = 10) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_import_jobs')
+        .select('*')
+        .eq('status', status)
+        .order('notion_created_at', { ascending: true })
+        .limit(limit);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-import-jobs] Postgres byStatus failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.importJobs,
     page_size: Math.min(limit, 100),
@@ -177,6 +260,22 @@ export async function getJobsByBatch(batchId) {
  * @returns {Promise<object[]>} Stale jobs.
  */
 export async function getStaleJobs(status, olderThan, limit = 10) {
+  if (shouldReadFromPostgres()) {
+    try {
+      const sb = getPcsSupabase();
+      const { data, error } = await sb
+        .from('pcs_import_jobs')
+        .select('*')
+        .eq('status', status)
+        .lt('notion_last_edited_at', olderThan.toISOString())
+        .order('notion_last_edited_at', { ascending: true })
+        .limit(limit);
+      if (error) throw error;
+      return (data || []).map(parsePostgresRow);
+    } catch (err) {
+      console.warn(`[pcs-import-jobs] Postgres staleJobs failed, falling back to Notion: ${err.message}`);
+    }
+  }
   const res = await notion.databases.query({
     database_id: PCS_DB.importJobs,
     page_size: Math.min(limit, 100),
@@ -286,11 +385,42 @@ export async function createJob({
   if (error) properties[P.error] = { rich_text: toRichText(error) };
   if (warnings) properties[P.warnings] = { rich_text: toRichText(warnings) };
 
+  if (shouldWriteToPostgresFirst()) {
+    const preId = crypto.randomUUID();
+    const stubRow = {
+      id: preId,
+      jobId,
+      status: initialStatus,
+      pdfUrl: pdfUrl || null,
+      pdfFilename: pdfFilename || '',
+      pcsId: pcsId || '',
+      existingDocId: existingDocId || '',
+      conflictAction: conflictAction || 'skip',
+      extractedData: '',
+      createdDocumentId: '',
+      resultCounts: '',
+      warnings: warnings || '',
+      error: error || '',
+      retryCount: 0,
+      batchId: batchId || '',
+      ownerEmail: ownerEmail || null,
+      contentHash: contentHash || '',
+      promptVersion: promptVersion || '',
+      notificationSent: false,
+      diffReport: null,
+    };
+    await writePostgresFirst('pcs_import_jobs', stubRow, IMPORT_JOBS_PG_COLUMN_MAP, () =>
+      notion.pages.create({ parent: { database_id: PCS_DB.importJobs }, properties })
+    );
+    return stubRow;
+  }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.importJobs },
     properties,
   });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_import_jobs', parsed, IMPORT_JOBS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
+  return parsed;
 }
 
 /**
@@ -372,6 +502,47 @@ export async function updateJob(id, fields) {
     const serialized = fields.diffReport === null ? '' : JSON.stringify(fields.diffReport);
     properties[P.diffReport] = { rich_text: toRichText(serialized) };
   }
+  if (shouldWriteToPostgresFirst()) {
+    // Only update the Postgres columns we have. The full Notion update still
+    // runs async for extractedData, diffReport, batchId, etc.
+    const pgFields = { id };
+    if (fields.status !== undefined) pgFields.status = fields.status;
+    if (fields.error !== undefined) pgFields.error = fields.error;
+    if (fields.pcsId !== undefined) pgFields.pcsId = fields.pcsId;
+    await writePostgresFirst('pcs_import_jobs', pgFields, IMPORT_JOBS_PG_COLUMN_MAP, () =>
+      notion.pages.update({ page_id: id, properties })
+    );
+    return { id, ...fields };
+  }
   const page = await notion.pages.update({ page_id: id, properties });
-  return parsePage(page);
+  const parsed = parsePage(page);
+  await mirrorToPostgres('pcs_import_jobs', parsed, IMPORT_JOBS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
+  return parsed;
+}
+
+// ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────
+export async function syncRecentJobsToPostgres(sinceIso) {
+  const res = await notion.databases.query({
+    database_id: PCS_DB.importJobs,
+    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
+    page_size: 100,
+    sorts: [{ timestamp: 'created_time', direction: 'descending' }],
+  });
+  let maxSeen = sinceIso;
+  let mirrored = 0;
+  for (const page of res.results) {
+    const parsed = parsePage(page);
+    const result = await mirrorToPostgres('pcs_import_jobs', parsed, IMPORT_JOBS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
+    if (result.mirrored) mirrored++;
+    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
+  }
+  return { count: mirrored, maxSeen, fetched: res.results.length };
+}
+
+export async function syncSingleJobPageToPostgres(pageId) {
+  const page = await notion.pages.retrieve({ page_id: pageId });
+  const parsed = parsePage(page);
+  return mirrorToPostgres('pcs_import_jobs', parsed, IMPORT_JOBS_PG_COLUMN_MAP, {
+    enqueueOnFailure: shouldUseStrongConsistency(),
+  });
 }

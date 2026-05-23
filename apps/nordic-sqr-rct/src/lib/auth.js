@@ -86,17 +86,20 @@ export async function authenticateRequest(request) {
 }
 
 /**
- * Verify admin access by re-checking the Notion database.
+ * Verify admin access by re-checking the database (Postgres via sqr-reviewers).
  * Use on admin-protected routes instead of trusting the JWT isAdmin claim.
- * Dynamically imports notion.js to avoid circular dependency.
+ * Dynamically imports sqr-reviewers to avoid circular dependency.
  */
-export async function verifyAdminFromNotion(user) {
+export async function verifyAdminFromDB(user) {
   if (!user?.reviewerId) return false;
   try {
-    const { getReviewerById } = await import('@/lib/notion');
+    const { getReviewerById } = await import('@/lib/sqr-reviewers');
     const reviewer = await getReviewerById(user.reviewerId);
     return reviewer?.isAdmin === true;
   } catch {
     return false;
   }
 }
+
+/** @deprecated Use verifyAdminFromDB instead */
+export const verifyAdminFromNotion = verifyAdminFromDB;
