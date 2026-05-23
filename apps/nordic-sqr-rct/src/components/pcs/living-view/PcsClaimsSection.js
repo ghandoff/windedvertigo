@@ -159,7 +159,113 @@ function Bucket3ATable({ rows, canEdit, user, onRequestReview, onClaimUpdated })
       {canEdit && (
         <p className="text-xs text-gray-400 italic">Click any cell to edit in place.</p>
       )}
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+
+      {/* Mobile — card list (one card per claim). The 7-column 3A table
+          can't usefully horizontal-scroll on a 375px viewport; cards let
+          users see every field for one claim at a time with vertical flow. */}
+      <div className="md:hidden space-y-3">
+        {rows.map((claim) => (
+          <ClaimRow key={claim.id} claim={claim} canEdit={canEdit} onClaimUpdated={onClaimUpdated}>
+            {({ local, makeSaveFn }) => (
+              <article className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+                <header className="flex items-baseline justify-between gap-2 mb-1">
+                  <div className="text-xs uppercase tracking-wide text-gray-500">Claim #</div>
+                  <InlineField
+                    value={local.claimNo ?? ''}
+                    onSave={makeSaveFn('claimNo')}
+                    canEdit={canEdit}
+                    fieldName="claim number"
+                    variant="number"
+                    displayClassName="text-sm font-semibold text-gray-900"
+                    emptyLabel="—"
+                  />
+                </header>
+                <div className="mt-1">
+                  <InlineField
+                    value={local.claim || ''}
+                    onSave={makeSaveFn('claim')}
+                    canEdit={canEdit}
+                    fieldName="claim text"
+                    variant="textarea"
+                    rows={3}
+                    displayClassName="text-sm text-gray-800"
+                  />
+                </div>
+                <dl className="mt-2 divide-y divide-gray-100">
+                  <ClaimFieldRow label="Status">
+                    <InlineField
+                      value={local.claimStatus || ''}
+                      onSave={makeSaveFn('claimStatus')}
+                      canEdit={canEdit}
+                      fieldName="claim status"
+                      variant="select"
+                      options={CLAIM_STATUSES}
+                      emptyLabel={<ClaimStatusBadge status={null} />}
+                      displayClassName=""
+                    />
+                  </ClaimFieldRow>
+                  <ClaimFieldRow label="Bucket">
+                    <InlineField
+                      value={local.claimBucket || ''}
+                      onSave={makeSaveFn('claimBucket')}
+                      canEdit={canEdit}
+                      fieldName="claim bucket"
+                      variant="select"
+                      options={CLAIM_BUCKETS}
+                      displayClassName="text-sm text-gray-700"
+                      emptyLabel="3A"
+                    />
+                  </ClaimFieldRow>
+                  <ClaimFieldRow label="Min dose (mg)">
+                    <InlineField
+                      value={local.minDoseMg ?? ''}
+                      onSave={makeSaveFn('minDoseMg')}
+                      canEdit={canEdit}
+                      fieldName="min dose"
+                      variant="number"
+                      displayClassName="text-sm font-mono text-gray-900"
+                      emptyLabel="—"
+                    />
+                  </ClaimFieldRow>
+                  <ClaimFieldRow label="Max dose (mg)">
+                    <InlineField
+                      value={local.maxDoseMg ?? ''}
+                      onSave={makeSaveFn('maxDoseMg')}
+                      canEdit={canEdit}
+                      fieldName="max dose"
+                      variant="number"
+                      displayClassName="text-sm font-mono text-gray-900"
+                      emptyLabel="—"
+                    />
+                  </ClaimFieldRow>
+                  <ClaimFieldRow label="Disclaimer">
+                    <InlineField
+                      value={local.disclaimerRequired ?? false}
+                      onSave={makeSaveFn('disclaimerRequired')}
+                      canEdit={canEdit}
+                      fieldName="disclaimer required"
+                      variant="checkbox"
+                    />
+                  </ClaimFieldRow>
+                </dl>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onRequestReview?.(local)}
+                    className="px-3 py-1.5 text-xs font-medium text-pacific-700 border border-pacific-300 rounded hover:bg-pacific-50"
+                  >
+                    Request review
+                  </button>
+                  {canEdit && <ClaimDeleteButton claim={local} user={user} />}
+                </div>
+              </article>
+            )}
+          </ClaimRow>
+        ))}
+      </div>
+
+      {/* Desktop / tablet — classic table */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200">
         <table className="min-w-full divide-y divide-gray-100 text-sm">
           <thead className="bg-gray-50">
             <tr>
@@ -381,6 +487,16 @@ function Th({ children, className = '' }) {
 function Td({ children, className = '' }) {
   return (
     <td className={`px-4 py-2 align-top ${className}`}>{children}</td>
+  );
+}
+
+// Card-list field row used by the mobile claim cards (Bucket 3A).
+function ClaimFieldRow({ label, children }) {
+  return (
+    <div className="flex items-start justify-between gap-3 py-1.5">
+      <dt className="text-xs uppercase tracking-wide text-gray-500 shrink-0 min-w-[90px]">{label}</dt>
+      <dd className="min-w-0 flex-1 text-right">{children}</dd>
+    </div>
   );
 }
 

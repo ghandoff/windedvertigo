@@ -178,7 +178,11 @@ export default function PcsTable({
           />
         </div>
       )}
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      {/* Desktop / tablet — classic table.
+          Below md, this is hidden and the card list (further down) takes over.
+          The card list provides a vertically-scrolled layout that fits a 375px
+          viewport without sacrificing the secondary columns to horizontal scroll. */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -302,6 +306,75 @@ export default function PcsTable({
           </tbody>
         </table>
       </div>
+
+      {/* Mobile — card list. Each table row becomes a stacked card with the
+          first column promoted to a header and the rest as label/value pairs.
+          Sort order persists from desktop sessions via localStorage (no
+          mobile-only sort selector yet — can be added if users ask).
+          Inline editing is intentionally desktop-only: tapping a value on
+          mobile would conflict with the row-expand tap target, and on-screen
+          keyboards eat too much viewport for a comfortable inline edit. */}
+      <div className="md:hidden space-y-3">
+        {sorted.length === 0 ? (
+          <div className="text-center text-sm text-gray-400 py-8 rounded-lg border border-gray-200 bg-white">
+            {emptyMessage}
+          </div>
+        ) : (
+          sorted.map((row) => {
+            const firstCol = columns[0];
+            const restCols = columns.slice(1);
+            const isExpanded = expandRender && expandedRows.has(row.id);
+            const headerValue = row[firstCol.key];
+            const headerContent = firstCol.render
+              ? firstCol.render(headerValue, row)
+              : (headerValue ?? '—');
+            return (
+              <article
+                key={row.id}
+                className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+              >
+                <header className="text-base font-semibold text-gray-900 break-words">
+                  {headerContent}
+                </header>
+                <dl className="mt-2 divide-y divide-gray-100">
+                  {restCols.map((col) => {
+                    const value = row[col.key];
+                    const display = col.render ? col.render(value, row) : (value ?? '—');
+                    return (
+                      <div key={col.key} className="flex items-start justify-between gap-3 py-1.5 text-sm">
+                        <dt className="text-xs uppercase tracking-wide text-gray-500 shrink-0">
+                          {col.label}
+                        </dt>
+                        <dd className="min-w-0 text-right text-gray-700 break-words">
+                          {display}
+                        </dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+                {expandRender && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); toggleExpand(row.id); }}
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-pacific-600 hover:text-pacific-800 min-h-[36px]"
+                    >
+                      <span className={`inline-block transition-transform ${isExpanded ? 'rotate-90' : ''}`}>▸</span>
+                      {isExpanded ? 'Hide details' : 'Show details'}
+                    </button>
+                    {isExpanded && (
+                      <div className="mt-2 border-t border-gray-200 pt-3">
+                        {expandRender(row)}
+                      </div>
+                    )}
+                  </>
+                )}
+              </article>
+            );
+          })
+        )}
+      </div>
+
       <p className="text-xs text-gray-400">{sorted.length} of {data.length} rows</p>
     </div>
   );
