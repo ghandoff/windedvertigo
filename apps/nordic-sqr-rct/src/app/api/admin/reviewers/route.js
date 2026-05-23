@@ -101,7 +101,7 @@ export async function GET(request) {
           const scores = [score.q1, score.q2, score.q3, score.q4, score.q5, score.q6, score.q7, score.q8, score.q9, score.q10, score.q11].filter(s => s !== null);
           return sum + scores.length;
         }, 0);
-        avgScore = totalAnswers > 0 ? (totalScore / totalAnswers).toFixed(2) : null;
+        avgScore = reviewerScores.length > 0 ? (totalScore / reviewerScores.length).toFixed(2) : null;
       }
 
       const lastReviewDate = reviewerScores.length > 0 ? reviewerScores[0].timestamp : null;
