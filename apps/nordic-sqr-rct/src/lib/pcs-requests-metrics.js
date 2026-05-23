@@ -13,6 +13,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
+import { getPcsSupabase } from './supabase-pcs.js';
 import { getAllDocuments } from './pcs-documents.js';
 import { queryRequests } from './pcs-requests.js';
 
@@ -57,16 +58,56 @@ function roundDays(n) {
 
 /**
  * Query Done requests whose completion timestamp falls within the last
- * `windowDays`. Completion is the max of `raCompleted` / `resCompleted` on the
- * row (whichever is populated); if neither is set we fall back to `last_edited_time`.
+ * `windowDays`. Completion is the max of `ra_completed` / `res_completed`
+ * on the row (whichever is populated); if neither is set we fall back to
+ * `notion_last_edited_at`.
+ *
+ * Part 10 / Tier-2 PR #7 (2026-05-23): Postgres-first. Notion fallback
+ * retained for resilience.
  */
 async function fetchRecentlyResolvedRequests(windowDays = 90) {
+  const cutoff = Date.now() - windowDays * 86400000;
+  const sb = getPcsSupabase();
+  if (sb) {
+    const { data, error } = await sb
+      .from('pcs_requests')
+      .select('notion_page_id, request_type, assigned_role, opened_date, ra_completed, res_completed, notion_created_at, notion_last_edited_at')
+      .eq('status', 'Done')
+      .limit(500);
+    if (!error) {
+      const rows = [];
+      for (const r of data || []) {
+        const openedDate = r.opened_date
+          || (r.notion_created_at ? String(r.notion_created_at).slice(0, 10) : null);
+        const completedCandidates = [r.ra_completed, r.res_completed].filter(Boolean);
+        const completedAt = completedCandidates.length > 0
+          ? completedCandidates.sort().slice(-1)[0]
+          : (r.notion_last_edited_at ? String(r.notion_last_edited_at).slice(0, 10) : null);
+        if (!openedDate || !completedAt) continue;
+        const completedMs = new Date(completedAt).getTime();
+        if (!Number.isFinite(completedMs) || completedMs < cutoff) continue;
+        const d = daysBetween(completedAt, openedDate);
+        if (d == null) continue;
+        rows.push({
+          id: r.notion_page_id,
+          requestType: r.request_type,
+          assignedRole: r.assigned_role,
+          openedDate,
+          completedAt,
+          resolveDays: d,
+        });
+      }
+      return rows;
+    }
+    console.warn('[requests-metrics] Postgres read failed, falling back to Notion:', error.message);
+  }
+
+  // Notion fallback (rare post-Part-10).
   const res = await notion.databases.query({
     database_id: PCS_DB.requests,
     filter: { property: P.status, status: { equals: 'Done' } },
     page_size: 100,
   });
-  const cutoff = Date.now() - windowDays * 86400000;
   const rows = [];
   for (const page of res.results) {
     const props = page.properties;
