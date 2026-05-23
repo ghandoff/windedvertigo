@@ -208,7 +208,7 @@ export default function ReformulationSuggestionModal({
                   autoFocus
                 />
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     Current dose
@@ -315,7 +315,7 @@ export default function ReformulationSuggestionModal({
                       </div>
 
                       {(s.newIngredient || s.newDose != null || s.newWarningText) && (
-                        <dl className="grid grid-cols-3 gap-x-2 gap-y-1 text-xs bg-gray-50 rounded p-2 border border-gray-200">
+                        <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-2 gap-y-1 text-xs bg-gray-50 rounded p-2 border border-gray-200">
                           {s.newIngredient && (
                             <>
                               <dt className="text-gray-500">New ingredient</dt>

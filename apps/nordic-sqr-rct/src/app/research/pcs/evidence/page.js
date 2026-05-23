@@ -312,6 +312,7 @@ function PcsEvidence() {
         filterPlaceholder="Search evidence library…"
         filterLabel="Search evidence library"
         expandRender={evidenceExpandRender}
+        stickyFirstCol
       />
     </div>
   );

@@ -168,7 +168,7 @@ export default function CertaintyPage({ params }) {
       {/* Derived inputs (read-only) */}
       <div className="card p-4">
         <h2 className="text-sm font-semibold text-gray-700 mb-3">Derived from existing data</h2>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-gray-50 p-3 rounded">
             <p className="text-xs text-gray-500 uppercase">Evidence count</p>
             <p className="text-2xl font-bold">{derivedInputs.evidenceCount}</p>

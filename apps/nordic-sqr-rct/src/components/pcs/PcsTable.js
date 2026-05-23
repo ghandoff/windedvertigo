@@ -43,6 +43,10 @@ export default function PcsTable({
   // the full row object and returns JSX. When provided, a chevron column is
   // prepended and clicking a row toggles the expansion panel below it.
   expandRender = null,
+  // 2026-05-23 — Pin the first data column to the left edge so users on
+  // narrow viewports can scroll horizontally without losing the row identity.
+  // No-op on viewports where the table fits (md+ in most pages).
+  stickyFirstCol = false,
 }) {
   // Load saved sort preference from localStorage (per user + table).
   // 2026-05-05 — Bumped key version from `pcs-sort-` to `pcs-sort-v2-`
@@ -182,10 +186,10 @@ export default function PcsTable({
               {expandRender && (
                 <th className="w-7 px-2 py-2.5" aria-label="Expand row" />
               )}
-              {columns.map(col => (
+              {columns.map((col, idx) => (
                 <th
                   key={col.key}
-                  className={`px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.sortable !== false ? 'cursor-pointer hover:text-gray-700 select-none' : ''}`}
+                  className={`px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.sortable !== false ? 'cursor-pointer hover:text-gray-700 select-none' : ''} ${stickyFirstCol && idx === 0 ? 'sticky left-0 bg-gray-50 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.05)]' : ''}`}
                   onClick={() => col.sortable !== false && handleSort(col.key)}
                 >
                   <span className="flex items-center gap-1">
@@ -226,14 +230,17 @@ export default function PcsTable({
                           </svg>
                         </td>
                       )}
-                      {columns.map(col => {
+                      {columns.map((col, idx) => {
                         const isEditing = editingCell?.rowId === row.id && editingCell?.key === col.key;
                         const value = row[col.key];
+                        const stickyCls = stickyFirstCol && idx === 0
+                          ? `sticky left-0 z-10 ${isExpanded ? 'bg-gray-50' : 'bg-white'} shadow-[2px_0_4px_-2px_rgba(0,0,0,0.05)]`
+                          : '';
 
                         if (isEditing && col.editable) {
                           if (col.type === 'select') {
                             return (
-                              <td key={col.key} className="px-4 py-2" onClick={e => e.stopPropagation()}>
+                              <td key={col.key} className={`px-4 py-2 ${stickyCls}`} onClick={e => e.stopPropagation()}>
                                 <select
                                   value={editValue}
                                   onChange={e => { setEditValue(e.target.value); commitEdit(row.id, col.key); }}
@@ -250,7 +257,7 @@ export default function PcsTable({
                             );
                           }
                           return (
-                            <td key={col.key} className="px-4 py-2" onClick={e => e.stopPropagation()}>
+                            <td key={col.key} className={`px-4 py-2 ${stickyCls}`} onClick={e => e.stopPropagation()}>
                               <input
                                 type="text"
                                 value={editValue}
@@ -270,7 +277,7 @@ export default function PcsTable({
                         return (
                           <td
                             key={col.key}
-                            className={`px-4 py-2 text-sm text-gray-700 ${col.editable ? 'cursor-pointer hover:bg-pacific-50' : ''}`}
+                            className={`px-4 py-2 text-sm text-gray-700 ${col.editable ? 'cursor-pointer hover:bg-pacific-50' : ''} ${stickyCls}`}
                             onClick={col.editable ? (e) => { e.stopPropagation(); startEdit(row.id, col.key, value); } : undefined}
                           >
                             {col.render ? col.render(value, row) : (value ?? '—')}
