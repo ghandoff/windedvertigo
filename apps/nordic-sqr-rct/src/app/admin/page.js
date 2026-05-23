@@ -16,12 +16,14 @@ import { AuthProvider } from '@/lib/useAuth';
  */
 function AdminDashboardContent() {
   const [sqrStats, setSqrStats] = useState({ totalReviewers: 0, totalReviews: 0, avgScore: 0 });
+  const [pendingDeleteCount, setPendingDeleteCount] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetch('/api/admin/reviewers').then(r => r.ok ? r.json() : null),
-    ]).then(([reviewersData]) => {
+      fetch('/api/pcs/requests?filter=all').then(r => r.ok ? r.json() : []),
+    ]).then(([reviewersData, requestsData]) => {
       if (reviewersData?.reviewers) {
         const reviewers = reviewersData.reviewers;
         const totalReviews = reviewers.reduce((s, r) => s + (r.reviewCount || 0), 0);
@@ -33,6 +35,10 @@ function AdminDashboardContent() {
         const scoredTotal = scoredReviewers.reduce((s, r) => s + r.reviewCount, 0);
         const avgScore = scoredTotal > 0 ? (weightedSum / scoredTotal).toFixed(1) : '—';
         setSqrStats({ totalReviewers: reviewers.length, totalReviews, avgScore });
+      }
+      if (Array.isArray(requestsData)) {
+        const pending = requestsData.filter(r => r.requestType === 'Delete' && r.status !== 'Done').length;
+        setPendingDeleteCount(pending);
       }
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
@@ -96,6 +102,33 @@ function AdminDashboardContent() {
             />
           </div>
         </section>
+
+        {/* ── Pending delete requests ────────────────────────── */}
+        {pendingDeleteCount !== null && (
+          <section>
+            <Link
+              href="/research/pcs/requests?requestType=Delete"
+              className={`flex items-center justify-between rounded-xl border px-5 py-4 shadow-sm transition-colors ${
+                pendingDeleteCount > 0
+                  ? 'bg-red-50 border-red-200 hover:bg-red-100'
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">Pending deletion requests</div>
+                <div className={`mt-1 text-3xl font-bold ${pendingDeleteCount > 0 ? 'text-red-700' : 'text-gray-400'}`}>
+                  {pendingDeleteCount}
+                </div>
+                {pendingDeleteCount > 0 && (
+                  <p className="text-xs text-red-600 mt-0.5">Review and action in the requests queue →</p>
+                )}
+              </div>
+              {pendingDeleteCount > 0 && (
+                <span className="text-2xl">🗑️</span>
+              )}
+            </Link>
+          </section>
+        )}
 
         {/* ── SQR-RCT ─────────────────────────────────────────── */}
         <section className="space-y-4">

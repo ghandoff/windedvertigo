@@ -9,14 +9,14 @@ import { CLAIM_BUCKETS, CLAIM_STATUSES } from '@/lib/pcs-config';
  * PcsClaimsSection — Tables 3A / 3B / 3C (Wave 4.3.2).
  *
  * Part 7C — added inline editing to all three bucket tables.
- * PATCH /api/pcs/claims/[id] already exists; we extended it to accept
- * `claim`, `claimNo`, `minDoseMg`, `maxDoseMg`, `disclaimerRequired`, `claimNotes`.
+ * Part 8A — "Request deletion" button on 3A rows (sends to admin queue + Slack).
  *
  * Props:
  *   claims          — array of claim rows
  *   canEdit         — true when user has pcs.claims:edit
  *   doc             — document payload
  *   version         — latest version payload
+ *   user            — current user (for requestedBy on delete requests)
  *   onRequestReview — (claim) => void; opens BackfillSideSheet
  *   onClaimUpdated  — (updatedClaim) => void; parent replaces claim in state
  */
@@ -25,6 +25,7 @@ export default function PcsClaimsSection({
   canEdit = false,
   doc,
   version,
+  user,
   onRequestReview,
   onClaimUpdated,
 }) {
@@ -93,7 +94,7 @@ export default function PcsClaimsSection({
 
       <div role="tabpanel" id={`claims-panel-${tab}`} aria-labelledby={`claims-tab-${tab}`}>
         {tab === '3A' && (
-          <Bucket3ATable rows={bucketed['3A']} canEdit={canEdit} onRequestReview={onRequestReview} onClaimUpdated={onClaimUpdated} />
+          <Bucket3ATable rows={bucketed['3A']} canEdit={canEdit} user={user} onRequestReview={onRequestReview} onClaimUpdated={onClaimUpdated} />
         )}
         {tab === '3B' && (
           <Bucket3BTable rows={bucketed['3B']} canEdit={canEdit} onClaimUpdated={onClaimUpdated} />
@@ -148,7 +149,7 @@ function ClaimRow({ claim, canEdit, onClaimUpdated, children }) {
 
 // ── Table 3A ──────────────────────────────────────────────────────────────────
 
-function Bucket3ATable({ rows, canEdit, onRequestReview, onClaimUpdated }) {
+function Bucket3ATable({ rows, canEdit, user, onRequestReview, onClaimUpdated }) {
   if (!rows || rows.length === 0) {
     return <p className="text-sm text-gray-400 italic">No primary claims on this version yet.</p>;
   }
@@ -256,13 +257,18 @@ function Bucket3ATable({ rows, canEdit, onRequestReview, onClaimUpdated }) {
                       />
                     </Td>
                     <Td>
-                      <button
-                        type="button"
-                        onClick={() => onRequestReview?.(local)}
-                        className="px-2 py-0.5 text-[11px] font-medium text-pacific-700 border border-pacific-300 rounded hover:bg-pacific-50"
-                      >
-                        Request review
-                      </button>
+                      <div className="flex flex-col gap-1">
+                        <button
+                          type="button"
+                          onClick={() => onRequestReview?.(local)}
+                          className="px-2 py-0.5 text-[11px] font-medium text-pacific-700 border border-pacific-300 rounded hover:bg-pacific-50"
+                        >
+                          Request review
+                        </button>
+                        {canEdit && (
+                          <ClaimDeleteButton claim={local} user={user} />
+                        )}
+                      </div>
                     </Td>
                   </tr>
                 )}
@@ -375,5 +381,82 @@ function Th({ children, className = '' }) {
 function Td({ children, className = '' }) {
   return (
     <td className={`px-4 py-2 align-top ${className}`}>{children}</td>
+  );
+}
+
+// ── Claim delete request button ───────────────────────────────────────────────
+
+function ClaimDeleteButton({ claim, user }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+
+  if (submitted) {
+    return <span className="text-[11px] text-amber-700">Delete requested ✓</span>;
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="px-2 py-0.5 text-[11px] font-medium text-red-600 border border-red-200 rounded hover:bg-red-50"
+      >
+        Request deletion
+      </button>
+    );
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!reason.trim()) { setError('Reason required.'); return; }
+    setSubmitting(true);
+    setError('');
+    const claimLabel = claim.claimNo ? `Claim #${claim.claimNo}` : (claim.claim?.slice(0, 60) || claim.id.slice(0, 8));
+    try {
+      const res = await fetch('/api/pcs/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          request: `Delete request: Claim — ${claimLabel}`,
+          requestType: 'Delete',
+          requestNotes: reason.trim(),
+          specificField: `/research/pcs/claims/${claim.id}`,
+          resourceType: 'Claim',
+          resourceName: claimLabel,
+          requestedBy: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.alias || 'unknown',
+          status: 'Open',
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-1 mt-1 p-2 bg-red-50 border border-red-200 rounded text-xs">
+      <textarea
+        value={reason}
+        onChange={e => setReason(e.target.value)}
+        placeholder="Reason…"
+        rows={2}
+        className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+      />
+      {error && <p className="text-red-600">{error}</p>}
+      <div className="flex gap-1">
+        <button type="submit" disabled={submitting} className="px-2 py-0.5 bg-red-600 text-white rounded text-[11px] disabled:opacity-50">
+          {submitting ? '…' : 'Send'}
+        </button>
+        <button type="button" onClick={() => { setOpen(false); setReason(''); setError(''); }} className="text-gray-500 hover:underline text-[11px]">
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }

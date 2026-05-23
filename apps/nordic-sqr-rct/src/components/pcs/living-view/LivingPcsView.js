@@ -357,6 +357,7 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
           canEdit={canWrite}
           doc={doc}
           version={version}
+          user={user}
           onRequestReview={openClaimReviewSheet}
           onClaimUpdated={(updated) => {
             setLocalClaims(prev =>

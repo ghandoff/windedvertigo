@@ -5,6 +5,7 @@ import {
   getRequestsForVersion, getRequestsForDocument, createRequest,
   queryRequests,
 } from '@/lib/pcs-requests';
+import { notifyDeleteRequest } from '@/lib/slack-notifier';
 
 export async function GET(request) {
   const auth = await requireCapability(request, 'pcs.requests:read', { route: '/api/pcs/requests' });
@@ -53,5 +54,19 @@ export async function POST(request) {
     return NextResponse.json({ error: 'request title is required' }, { status: 400 });
   }
   const req = await createRequest(fields);
+
+  // Fire-and-forget Slack notification for delete requests so Garrett is
+  // alerted immediately. Non-fatal — request is already stored in Notion.
+  if (fields.requestType === 'Delete') {
+    const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://nordic.windedvertigo.com';
+    notifyDeleteRequest({
+      resourceType: fields.resourceType || 'Record',
+      resourceName: fields.resourceName || fields.request,
+      resourceUrl: fields.specificField ? `${base}${fields.specificField}` : base,
+      requestedBy: fields.requestedBy || `${auth.user?.firstName || ''} ${auth.user?.lastName || ''}`.trim() || auth.user?.alias || 'unknown',
+      reason: fields.requestNotes || '',
+    }).catch(() => {}); // soft-fail — don't block the 201 response
+  }
+
   return NextResponse.json(req, { status: 201 });
 }

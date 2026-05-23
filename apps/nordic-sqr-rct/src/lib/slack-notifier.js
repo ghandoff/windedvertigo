@@ -161,3 +161,58 @@ export async function notifyFeedback({ category, message, emailBack, context = {
   }
 }
 
+/**
+ * Notify admin (Garrett) that a delete request has been submitted.
+ * Reuses SLACK_WEBHOOK_URL. No-ops if unset.
+ *
+ * @param {object} args
+ * @param {string} args.resourceType  — e.g. "Evidence", "Claim"
+ * @param {string} args.resourceName  — display name of the record
+ * @param {string} args.resourceUrl   — full URL to the record in the platform
+ * @param {string} args.requestedBy   — name or email of the requester
+ * @param {string} args.reason        — reason entered by the requester
+ * @param {string} [args.adminUrl]    — link to the admin delete-request queue
+ * @returns {Promise<{sent:boolean, reason?:string}>}
+ */
+export async function notifyDeleteRequest({ resourceType, resourceName, resourceUrl, requestedBy, reason, adminUrl }) {
+  const webhook = process.env.SLACK_WEBHOOK_URL;
+  if (!webhook) return { sent: false, reason: 'SLACK_WEBHOOK_URL not set' };
+
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://nordic.windedvertigo.com';
+  const queueUrl = adminUrl || `${base}/research/pcs/requests?requestType=Delete`;
+
+  const headerText = `🗑️ *Delete request — ${resourceType}*`;
+  const nameQuoted = resourceName ? `"${resourceName}"` : '(unnamed)';
+  const bodyText = `${nameQuoted}\nRequested by: *${requestedBy || 'unknown'}*\nReason: ${reason || '_(no reason given)_'}`;
+
+  const blocks = [
+    { type: 'section', text: { type: 'mrkdwn', text: headerText } },
+    { type: 'section', text: { type: 'mrkdwn', text: bodyText } },
+    {
+      type: 'actions',
+      elements: [
+        { type: 'button', text: { type: 'plain_text', text: 'Review queue' }, url: queueUrl },
+        { type: 'button', text: { type: 'plain_text', text: 'Open record' }, url: resourceUrl || base },
+      ],
+    },
+  ];
+
+  const slackBody = {
+    text: `🗑️ Delete request (${resourceType}): ${resourceName || 'unknown'} — from ${requestedBy || 'user'}`,
+    blocks,
+  };
+
+  try {
+    const resp = await fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(slackBody),
+    });
+    if (!resp.ok) {
+      return { sent: false, reason: `Slack webhook returned ${resp.status}: ${await resp.text()}` };
+    }
+    return { sent: true };
+  } catch (err) {
+    return { sent: false, reason: `Slack webhook error: ${err.message}` };
+  }
+}

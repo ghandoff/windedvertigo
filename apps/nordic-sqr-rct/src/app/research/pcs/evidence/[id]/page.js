@@ -593,6 +593,112 @@ export default function PcsEvidenceDetail() {
       <div className="border-t pt-4 text-xs text-gray-400">
         Created: {new Date(evidence.createdTime).toLocaleString()} · Last edited: {new Date(evidence.lastEditedTime).toLocaleString()}
       </div>
+
+      {/* Delete request — writers submit; only admins execute the actual deletion */}
+      {canWrite && (
+        <DeleteRequestPanel
+          resourceType="Evidence"
+          resourceName={evidence.name || evidence.citation || 'Untitled'}
+          resourcePath={`/research/pcs/evidence/${evidence.id}`}
+          user={user}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Delete request panel ───────────────────────────────────────────────────────
+
+function DeleteRequestPanel({ resourceType, resourceName, resourcePath, user }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!reason.trim()) { setError('Please provide a reason.'); return; }
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch('/api/pcs/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          request: `Delete request: ${resourceType} — ${resourceName}`,
+          requestType: 'Delete',
+          requestNotes: reason.trim(),
+          specificField: resourcePath,
+          resourceType,
+          resourceName,
+          requestedBy: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.alias || 'unknown',
+          status: 'Open',
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || `HTTP ${res.status}`);
+      }
+      setSubmitted(true);
+      setOpen(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="border-t pt-4">
+        <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+          ✓ Delete request submitted — Garrett will review and action it.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t pt-4">
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="text-xs text-red-600 hover:text-red-800 hover:underline"
+        >
+          Request deletion of this record
+        </button>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-2 max-w-lg">
+          <p className="text-xs font-medium text-red-700">Request deletion — {resourceName}</p>
+          <textarea
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder="Reason for deletion (required)…"
+            rows={3}
+            className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-red-300 focus:border-transparent"
+          />
+          {error && <p className="text-xs text-red-600">{error}</p>}
+          <div className="flex gap-2 items-center">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+            >
+              {submitting ? 'Sending…' : 'Submit request'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setOpen(false); setReason(''); setError(''); }}
+              className="text-xs text-gray-500 hover:underline"
+            >
+              Cancel
+            </button>
+            <span className="text-[11px] text-gray-400 ml-1">No data is deleted until Garrett approves.</span>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

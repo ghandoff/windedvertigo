@@ -43,6 +43,15 @@ export default function BackfillReviewPage() {
   const [status, setStatus] = useState('pending-high');
   const [approving, setApproving] = useState({});
   const [approvalLog, setApprovalLog] = useState({});
+  const [allCanonicals, setAllCanonicals] = useState([]);
+
+  // Load all canonical claims once so each ProposalRow can offer an override picker.
+  useEffect(() => {
+    fetch('/api/pcs/canonical-claims')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setAllCanonicals(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   const load = async () => {
     setLoading(true);
@@ -166,6 +175,7 @@ export default function BackfillReviewPage() {
               busy={!!approving[p.pcsClaimId]}
               feedback={approvalLog[p.pcsClaimId]}
               onApprove={onApprove}
+              allCanonicals={allCanonicals}
             />
           ))}
         </div>
@@ -196,37 +206,94 @@ function ConfidenceBadge({ score }) {
   );
 }
 
-function ProposalRow({ p, canEdit, busy, feedback, onApprove }) {
+function ProposalRow({ p, canEdit, busy, feedback, onApprove, allCanonicals }) {
   const isApplied = !!p.currentCanonicalId;
+  const [selectedId, setSelectedId] = useState(p.proposedCanonical?.id || '');
+  const isOverridden = selectedId && selectedId !== (p.proposedCanonical?.id || '');
+
+  // Sort canonicals: proposed first (if any), then alphabetical rest
+  const sortedCanonicals = useMemo(() => {
+    const proposed = p.proposedCanonical ? allCanonicals.find(c => c.id === p.proposedCanonical.id) : null;
+    const rest = allCanonicals
+      .filter(c => !proposed || c.id !== proposed.id)
+      .sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    return proposed ? [proposed, ...rest] : rest;
+  }, [allCanonicals, p.proposedCanonical]);
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* LEFT — original */}
+        {/* LEFT — original PCS claim text (prominent for cross-checking) */}
         <div className="space-y-2">
-          <div className="text-[11px] uppercase tracking-wide text-gray-500">Original PCS claim</div>
-          <div className="text-sm text-gray-900 font-medium leading-snug">{p.pcsClaimTitle}</div>
-          <div className="text-[11px] text-gray-400 font-mono">{p.pcsClaimId.slice(0, 8)}…</div>
+          <div className="text-[11px] uppercase tracking-wide text-gray-500">PCS Claim Text</div>
+          <div className="rounded-md bg-gray-50 border border-gray-200 px-3 py-2">
+            <p className="text-sm text-gray-900 font-medium leading-snug">{p.pcsClaimTitle}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-gray-400 font-mono">{p.pcsClaimId.slice(0, 8)}…</span>
+            <Link href={`/research/pcs/claims/${p.pcsClaimId}`} className="text-[11px] text-pacific-600 hover:underline" target="_blank">
+              Open claim →
+            </Link>
+          </div>
         </div>
 
-        {/* RIGHT — proposed */}
-        <div className="space-y-2 border-l border-gray-100 md:pl-4">
+        {/* RIGHT — canonical override picker */}
+        <div className="space-y-3 border-l border-gray-100 md:pl-4">
           <div className="flex items-center justify-between">
-            <div className="text-[11px] uppercase tracking-wide text-gray-500">Proposed mapping</div>
+            <div className="text-[11px] uppercase tracking-wide text-gray-500">Canonical mapping</div>
             <ConfidenceBadge score={p.confidence} />
           </div>
 
-          <Field label="Canonical Claim" value={p.proposedCanonical ? `${p.proposedCanonical.title} (${p.proposedCanonical.score.toFixed(2)})` : '—'} />
+          {/* Canonical claim dropdown */}
+          <div>
+            <label className="text-[10px] uppercase tracking-wide text-gray-500 block mb-1">
+              Canonical Claim
+              {p.proposedCanonical && (
+                <span className={`ml-2 text-[10px] font-normal ${isOverridden ? 'text-amber-600' : 'text-gray-400'}`}>
+                  {isOverridden ? '(overridden)' : `auto-suggested · ${p.proposedCanonical.score.toFixed(2)}`}
+                </span>
+              )}
+            </label>
+            <select
+              value={selectedId}
+              onChange={e => setSelectedId(e.target.value)}
+              disabled={!canEdit || isApplied}
+              className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 bg-white focus:ring-2 focus:ring-pacific-300 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+            >
+              <option value="">— No canonical —</option>
+              {p.proposedCanonical && (
+                <optgroup label="Auto-suggested">
+                  <option value={p.proposedCanonical.id}>
+                    {p.proposedCanonical.title} ({p.proposedCanonical.score.toFixed(2)})
+                  </option>
+                </optgroup>
+              )}
+              {sortedCanonicals.filter(c => !p.proposedCanonical || c.id !== p.proposedCanonical.id).length > 0 && (
+                <optgroup label="All canonicals">
+                  {sortedCanonicals
+                    .filter(c => !p.proposedCanonical || c.id !== p.proposedCanonical.id)
+                    .map(c => (
+                      <option key={c.id} value={c.id}>{c.title}</option>
+                    ))}
+                </optgroup>
+              )}
+            </select>
+          </div>
+
           <Field label="Claim Prefix" value={p.proposedPrefix?.title || '—'} />
           <Field
             label="Core Benefit(s)"
             value={p.proposedBenefits.length > 0 ? p.proposedBenefits.map((b) => `${b.title} (${b.score.toFixed(2)})`).join(', ') : '—'}
           />
-          {p.variants && p.variants.length > 1 ? (
-            <div className="text-xs text-gray-700">
-              <span className="text-[10px] uppercase tracking-wide text-gray-500">Variants ({p.variants.length}): </span>
-              <span className="italic">{p.variants[0]} · …</span>
-            </div>
-          ) : null}
+          {selectedId && (
+            <Link
+              href={`/research/pcs/canonical-claims/${selectedId}`}
+              className="text-[11px] text-pacific-600 hover:underline"
+              target="_blank"
+            >
+              Preview selected canonical →
+            </Link>
+          )}
         </div>
       </div>
 
@@ -240,32 +307,21 @@ function ProposalRow({ p, canEdit, busy, feedback, onApprove }) {
           <>
             <button
               type="button"
-              disabled={!canEdit || busy || !p.proposedCanonical}
-              onClick={() => onApprove(p)}
-              className={`px-3 py-1 rounded text-xs font-medium border ${
-                canEdit && p.proposedCanonical
-                  ? 'bg-pacific-600 text-white border-pacific-600 hover:bg-pacific-700 disabled:opacity-50'
+              disabled={!canEdit || busy || !selectedId}
+              onClick={() => onApprove(p, { canonicalId: selectedId || null })}
+              className={`px-3 py-1 rounded text-xs font-medium border transition-colors ${
+                canEdit && selectedId
+                  ? isOverridden
+                    ? 'bg-amber-600 text-white border-amber-600 hover:bg-amber-700 disabled:opacity-50'
+                    : 'bg-pacific-600 text-white border-pacific-600 hover:bg-pacific-700 disabled:opacity-50'
                   : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
               }`}
             >
-              {busy ? 'Approving…' : '✓ Approve as proposed'}
+              {busy ? 'Approving…' : isOverridden ? '✓ Approve with override' : '✓ Approve as proposed'}
             </button>
-            {p.proposedCanonical ? (
-              <Link
-                href={`/research/pcs/canonical-claims/${p.proposedCanonical.id}`}
-                className="text-xs text-pacific-600 hover:underline"
-                target="_blank"
-              >
-                Open canonical →
-              </Link>
-            ) : null}
-            <Link
-              href={`/research/pcs/claims/${p.pcsClaimId}`}
-              className="text-xs text-gray-600 hover:underline"
-              target="_blank"
-            >
-              Open PCS claim →
-            </Link>
+            {!selectedId && (
+              <span className="text-xs text-gray-400 italic">Select a canonical to enable approval</span>
+            )}
           </>
         )}
         {feedback ? (
