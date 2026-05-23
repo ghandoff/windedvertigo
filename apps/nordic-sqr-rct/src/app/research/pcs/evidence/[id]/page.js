@@ -633,7 +633,6 @@ function DeleteRequestPanel({ resourceType, resourceName, resourcePath, user }) 
           resourceType,
           resourceName,
           requestedBy: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.alias || 'unknown',
-          status: 'Open',
         }),
       });
       if (!res.ok) {

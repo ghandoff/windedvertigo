@@ -130,34 +130,11 @@ export default function IngredientsPage() {
       ),
     },
     {
-      key: 'standardUnit',
-      label: 'Standard unit',
-      render: (val, row) => (
-        <InlineField
-          value={val || ''}
-          onSave={makeSaveFn(row.id, 'standardUnit')}
-          canEdit={canWrite}
-          fieldName="standard unit"
-          variant="select"
-          options={AI_UNITS}
-          displayClassName="text-sm text-gray-700"
-          emptyLabel={<span className="text-gray-400">—</span>}
-        />
-      ),
-    },
-    {
       key: 'formCount',
       label: 'Forms',
       render: (val) => (
         <span className="text-xs text-gray-600">{val} form{val === 1 ? '' : 's'}</span>
       ),
-    },
-    {
-      key: 'synonyms',
-      label: 'Synonyms',
-      render: (val) => val ? (
-        <span className="text-xs text-gray-500 truncate max-w-[260px] inline-block" title={val}>{val}</span>
-      ) : '—',
     },
   // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [canWrite]);

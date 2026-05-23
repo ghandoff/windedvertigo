@@ -427,7 +427,6 @@ function ClaimDeleteButton({ claim, user }) {
           resourceType: 'Claim',
           resourceName: claimLabel,
           requestedBy: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.alias || 'unknown',
-          status: 'Open',
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

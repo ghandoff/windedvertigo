@@ -44,12 +44,17 @@ export default function BackfillReviewPage() {
   const [approving, setApproving] = useState({});
   const [approvalLog, setApprovalLog] = useState({});
   const [allCanonicals, setAllCanonicals] = useState([]);
+  const [allPrefixes, setAllPrefixes] = useState([]);
 
-  // Load all canonical claims once so each ProposalRow can offer an override picker.
+  // Load all canonical claims + prefixes once so ProposalRow can offer override pickers.
   useEffect(() => {
     fetch('/api/pcs/canonical-claims')
       .then(r => r.ok ? r.json() : [])
       .then(data => setAllCanonicals(Array.isArray(data) ? data : []))
+      .catch(() => {});
+    fetch('/api/pcs/prefixes')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setAllPrefixes(Array.isArray(data) ? data : []))
       .catch(() => {});
   }, []);
 
@@ -176,6 +181,7 @@ export default function BackfillReviewPage() {
               feedback={approvalLog[p.pcsClaimId]}
               onApprove={onApprove}
               allCanonicals={allCanonicals}
+              allPrefixes={allPrefixes}
             />
           ))}
         </div>
@@ -206,17 +212,20 @@ function ConfidenceBadge({ score }) {
   );
 }
 
-function ProposalRow({ p, canEdit, busy, feedback, onApprove, allCanonicals }) {
+function ProposalRow({ p, canEdit, busy, feedback, onApprove, allCanonicals, allPrefixes }) {
   const isApplied = !!p.currentCanonicalId;
   const [selectedId, setSelectedId] = useState(p.proposedCanonical?.id || '');
-  const isOverridden = selectedId && selectedId !== (p.proposedCanonical?.id || '');
+  const [selectedPrefixId, setSelectedPrefixId] = useState(p.proposedPrefix?.id || '');
+  const isOverridden = (selectedId && selectedId !== (p.proposedCanonical?.id || ''))
+    || (selectedPrefixId !== (p.proposedPrefix?.id || ''));
 
-  // Sort canonicals: proposed first (if any), then alphabetical rest
+  // Sort canonicals: proposed first (if any), then alphabetical rest.
+  // API objects use `canonicalClaim` for the text field (not `title`).
   const sortedCanonicals = useMemo(() => {
     const proposed = p.proposedCanonical ? allCanonicals.find(c => c.id === p.proposedCanonical.id) : null;
     const rest = allCanonicals
       .filter(c => !proposed || c.id !== proposed.id)
-      .sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      .sort((a, b) => (a.canonicalClaim || a.title || '').localeCompare(b.canonicalClaim || b.title || ''));
     return proposed ? [proposed, ...rest] : rest;
   }, [allCanonicals, p.proposedCanonical]);
 
@@ -273,14 +282,35 @@ function ProposalRow({ p, canEdit, busy, feedback, onApprove, allCanonicals }) {
                   {sortedCanonicals
                     .filter(c => !p.proposedCanonical || c.id !== p.proposedCanonical.id)
                     .map(c => (
-                      <option key={c.id} value={c.id}>{c.title}</option>
+                      <option key={c.id} value={c.id}>{c.canonicalClaim || c.title}</option>
                     ))}
                 </optgroup>
               )}
             </select>
           </div>
 
-          <Field label="Claim Prefix" value={p.proposedPrefix?.title || '—'} />
+          {/* Claim prefix dropdown */}
+          <div>
+            <label className="text-[10px] uppercase tracking-wide text-gray-500 block mb-1">
+              Claim Prefix
+              {p.proposedPrefix && (
+                <span className={`ml-2 text-[10px] font-normal ${selectedPrefixId !== (p.proposedPrefix?.id || '') ? 'text-amber-600' : 'text-gray-400'}`}>
+                  {selectedPrefixId !== (p.proposedPrefix?.id || '') ? '(overridden)' : 'auto-suggested'}
+                </span>
+              )}
+            </label>
+            <select
+              value={selectedPrefixId}
+              onChange={e => setSelectedPrefixId(e.target.value)}
+              disabled={!canEdit || isApplied}
+              className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 bg-white focus:ring-2 focus:ring-pacific-300 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+            >
+              <option value="">— No prefix —</option>
+              {allPrefixes.map(pf => (
+                <option key={pf.id} value={pf.id}>{pf.prefix}</option>
+              ))}
+            </select>
+          </div>
           <Field
             label="Core Benefit(s)"
             value={p.proposedBenefits.length > 0 ? p.proposedBenefits.map((b) => `${b.title} (${b.score.toFixed(2)})`).join(', ') : '—'}
@@ -308,7 +338,7 @@ function ProposalRow({ p, canEdit, busy, feedback, onApprove, allCanonicals }) {
             <button
               type="button"
               disabled={!canEdit || busy || !selectedId}
-              onClick={() => onApprove(p, { canonicalId: selectedId || null })}
+              onClick={() => onApprove(p, { canonicalId: selectedId || null, prefixId: selectedPrefixId || null })}
               className={`px-3 py-1 rounded text-xs font-medium border transition-colors ${
                 canEdit && selectedId
                   ? isOverridden
