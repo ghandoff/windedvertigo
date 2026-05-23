@@ -70,7 +70,8 @@ export async function POST(request) {
       userAlias: user.alias,
       userName,
       roles: user.roles,
-      commitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
+      // Cloudflare Workers doesn't expose a build-time SHA env var equivalent
+      // to VERCEL_GIT_COMMIT_SHA; the deploy timestamp encodes provenance.
       userAgent,
       viewport,
     },

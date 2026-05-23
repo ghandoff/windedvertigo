@@ -161,7 +161,7 @@ export default function CertaintyPage({ params }) {
           <p className="text-xs text-orange-700 mt-3">Single-study cap applied — rating limited to Low because only one study supports this claim.</p>
         )}
         {persisted && (
-          <p className="text-xs text-green-700 mt-3">Saved and persisted to Notion at {new Date(persisted).toLocaleTimeString()}.</p>
+          <p className="text-xs text-green-700 mt-3">Saved at {new Date(persisted).toLocaleTimeString()}.</p>
         )}
       </div>
 

@@ -256,10 +256,10 @@ function RawMaterialsTab({ doc }) {
         Table A — Applicable NN Raw Materials
       </h2>
       <div className="rounded-lg border border-amber-100 bg-amber-50 px-4 py-4">
-        <p className="text-sm font-medium text-amber-900 mb-1">Managed in Notion</p>
+        <p className="text-sm font-medium text-amber-900 mb-1">Read-only view</p>
         <p className="text-xs text-amber-800 mb-3">
-          Raw materials (FM PLM#, AI Source, AI Form) are maintained directly in the
-          AICS Notion database. In-platform editing is planned for a future release.
+          Raw materials (FM PLM#, AI Source, AI Form) are maintained in the AICS
+          database. In-platform editing is planned for a future release.
         </p>
         <a
           href={notionUrl}
