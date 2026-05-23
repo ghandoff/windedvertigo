@@ -955,20 +955,68 @@ export async function commitExtraction(data, existingDocId = null) {
 }
 
 /**
- * Archive (soft-delete) a list of Notion pages. Used for cleanup on partial import failure.
- * Silently ignores individual archive errors to ensure best-effort cleanup.
+ * Roll back a list of partially-created records when commitExtraction()
+ * fails partway through. Each ID is a `notion_page_id` that may live in
+ * any of the PCS tables (documents, claims, evidence, formula lines, etc.).
+ *
+ * Part 10 / Tier-1 PR #6 (2026-05-23): Postgres-first. We issue DELETEs
+ * against every candidate table — Postgres only removes rows whose
+ * notion_page_id matches, so non-matching IDs are silent no-ops. Then we
+ * fire-and-forget the legacy Notion archive so any remaining Notion
+ * mirror gets cleaned up too.
+ *
+ * Individual delete errors are logged and swallowed so a rollback bug
+ * never compounds a primary failure.
  */
 async function archivePages(pageIds) {
   if (!pageIds.length) return;
-  const { Client } = await import('@notionhq/client');
-  const { withRetry } = await import('./notion.js');
-  const _notion = new Client({ auth: process.env.NOTION_TOKEN, timeoutMs: 30000 });
 
-  for (const id of pageIds) {
-    try {
-      await withRetry(() => _notion.pages.update({ page_id: id, archived: true }));
-    } catch (archiveError) {
-      console.error(`Failed to archive page ${id} during cleanup:`, archiveError);
+  // 1) Postgres rollback — issue DELETEs against every table any of these
+  //    IDs *could* live in. Each delete is scoped by notion_page_id, so
+  //    IDs not present in that table are simply no-ops.
+  try {
+    const { getPcsSupabase } = await import('./supabase-pcs.js');
+    const sb = getPcsSupabase();
+    if (sb) {
+      const TABLES = [
+        'pcs_documents',
+        'pcs_claims',
+        'pcs_evidence',
+        'pcs_evidence_packets',
+        'pcs_formula_lines',
+        'pcs_versions',
+        'pcs_ingredients',
+        'pcs_ingredient_forms',
+        'pcs_wording_variants',
+        'pcs_references',
+        'pcs_canonical_claims',
+        'pcs_revision_events',
+      ];
+      // Parallelise the per-table DELETEs; each one is bounded by a fast
+      // index lookup on notion_page_id and they're independent.
+      await Promise.all(TABLES.map(async (table) => {
+        try {
+          await sb.from(table).delete().in('notion_page_id', pageIds);
+        } catch (err) {
+          console.warn(`[ROLLBACK] Postgres delete from ${table} failed:`, err?.message || err);
+        }
+      }));
     }
+  } catch (err) {
+    console.warn('[ROLLBACK] Postgres rollback failed:', err?.message || err);
+  }
+
+  // 2) Notion mirror cleanup — fire-and-forget. Each individual archive
+  //    is wrapped so a single failure doesn't break the rest.
+  try {
+    const { Client } = await import('@notionhq/client');
+    const { withRetry } = await import('./notion.js');
+    const _notion = new Client({ auth: process.env.NOTION_TOKEN, timeoutMs: 30000 });
+    for (const id of pageIds) {
+      withRetry(() => _notion.pages.update({ page_id: id, archived: true }))
+        .catch((err) => console.warn(`[ROLLBACK] Notion archive ${id} failed:`, err?.message || err));
+    }
+  } catch (err) {
+    console.warn('[ROLLBACK] Notion archive setup failed:', err?.message || err);
   }
 }
