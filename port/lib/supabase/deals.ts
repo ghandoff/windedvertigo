@@ -7,7 +7,7 @@
  */
 
 import { supabase } from "./client";
-import type { Deal, DealStage, DealLostReason } from "@/lib/notion/types";
+import type { Deal, DealStage, DealLostReason, RevenueTier } from "@/lib/notion/types";
 
 interface DealRow {
   notion_page_id: string;
@@ -18,6 +18,10 @@ interface DealRow {
   rfp_ids: string[];
   notes: string | null;
   loss_reason: string | null;
+  // Revenue-pipeline fields (added 2026-05-23 migration)
+  revenue_tier: string | null;
+  received_amount: number | null;
+  contracted_amount: number | null;
 }
 
 function mapRowToDeal(row: DealRow): Deal {
@@ -39,11 +43,14 @@ function mapRowToDeal(row: DealRow): Deal {
     debriefClientFeedback: "",
     createdTime: "",
     lastEditedTime: "",
+    revenueTier: (row.revenue_tier as RevenueTier) ?? null,
+    receivedAmount: row.received_amount ?? 0,
+    contractedAmount: row.contracted_amount ?? null,
   };
 }
 
 const SELECT_COLS =
-  "notion_page_id, deal, stage, value, org_ids, rfp_ids, notes, loss_reason";
+  "notion_page_id, deal, stage, value, org_ids, rfp_ids, notes, loss_reason, revenue_tier, received_amount, contracted_amount";
 
 export async function getDealsFromSupabase(
   stage?: DealStage,
@@ -111,4 +118,41 @@ export async function deleteDealFromSupabase(notionPageId: string): Promise<void
     .delete()
     .eq("notion_page_id", notionPageId);
   if (error) throw new Error(`[supabase/deals] delete: ${error.message}`);
+}
+
+/**
+ * Fetch deals that have been placed in the revenue pipeline by the CMO.
+ *
+ * Only returns rows where `revenue_tier IS NOT NULL` and `stage != 'lost'`.
+ * Used by fetchRevenueProgress() to build the StrategyHero confidence bar.
+ */
+export async function getRevenuePipelineDeals(): Promise<Deal[]> {
+  const { data, error } = await supabase
+    .from("deals")
+    .select(SELECT_COLS)
+    .not("revenue_tier", "is", null)
+    .neq("stage", "lost")
+    .order("deal", { ascending: true });
+
+  if (error) throw new Error(`[supabase/deals] getRevenuePipelineDeals: ${error.message}`);
+  return (data as DealRow[]).map(mapRowToDeal);
+}
+
+/**
+ * Update only the revenue-tier fields for a deal.
+ * Used by PATCH /api/deals/[id]/revenue.
+ */
+export async function updateDealRevenue(
+  notionPageId: string,
+  fields: {
+    revenue_tier?: RevenueTier | null;
+    received_amount?: number;
+    contracted_amount?: number | null;
+  },
+): Promise<void> {
+  const { error } = await supabase
+    .from("deals")
+    .update(fields)
+    .eq("notion_page_id", notionPageId);
+  if (error) throw new Error(`[supabase/deals] updateDealRevenue: ${error.message}`);
 }

@@ -872,7 +872,7 @@ export const REVENUE_PROGRESS = {
   target: 500_000,
   /** breakdown for the tooltip / detail view */
   breakdown: [
-    { client: "PRME 2026", amount: 145_000, status: "signed" as const },
+    { client: "PRME 2026", amount: 145_000, status: "signed" as const, receivedAmount: 48_285 },
     {
       client: "Nordic — Budget A",
       detail: "PCS + SQR-RCT platform build",
@@ -1274,6 +1274,13 @@ export interface RevenueProgressInput {
     client: string;
     amount: number;
     status: string;
+    /** Cash already received for this contract. Non-zero only for signed deals
+     *  where partial payment has landed. Drives the paid/signedUnpaid split in
+     *  the hero bar. When absent the row is treated as fully unpaid (no split). */
+    receivedAmount?: number;
+    /** Optional scope blurb shown on the chip — disambiguates two budgets under
+     *  the same client (e.g. Nordic Budget A vs B). */
+    detail?: string;
   }>;
 }
 
@@ -1289,15 +1296,12 @@ export function deriveRevenueTiers(
   for (const row of progress.breakdown) {
     const amount = row.amount;
     if (row.status === "signed") {
-      // PRME is the only currently-signed contract whose received portion
-      // is tracked separately (PRME_RECEIVED). Any other signed contract
-      // counts entirely as signedUnpaid until its own received-value lands.
-      if (amount === PRME_CONTRACT_TOTAL) {
-        paid += PRME_RECEIVED;
-        signedUnpaid += amount - PRME_RECEIVED;
-      } else {
-        signedUnpaid += amount;
-      }
+      // Use receivedAmount when present to split paid vs signedUnpaid.
+      // Falls back to 0 (entire amount is signedUnpaid) for contracts where
+      // no payment has landed yet.
+      const recv = row.receivedAmount ?? 0;
+      paid += recv;
+      signedUnpaid += amount - recv;
     } else if (row.status === "in-progress") {
       advanced += amount;
     } else if (row.status === "negotiation") {

@@ -791,6 +791,10 @@ export interface BlueprintFilters {
 
 export type DealStage = "identified" | "pitched" | "proposal" | "won" | "lost";
 
+/** CMO-set confidence tier for the strategy hero bar. NULL means the deal is
+ *  not yet part of the revenue pipeline view. */
+export type RevenueTier = "signed" | "advanced" | "negotiation" | "open";
+
 export type DealLostReason =
   | "budget"
   | "timing"
@@ -817,6 +821,13 @@ export interface Deal {
   debriefClientFeedback: string;
   createdTime: string;
   lastEditedTime: string;
+  // ── revenue pipeline fields (Supabase-only; not synced from Notion) ──
+  /** CMO-set confidence tier for the strategy hero bar. null = not in revenue view. */
+  revenueTier: RevenueTier | null;
+  /** Cash already received for this contract (signed deals with partial payment). */
+  receivedAmount: number;
+  /** Override value shown in the revenue bar. Falls back to `value` when null. */
+  contractedAmount: number | null;
 }
 
 export interface DealFilters {
