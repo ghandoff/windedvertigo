@@ -15,7 +15,7 @@ const env = Object.fromEntries(
 
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY);
 
-const tables = ["campaigns", "contacts", "organizations", "rfp_opportunities"];
+const tables = ["campaigns", "contacts", "organizations", "rfp_opportunities", "deals"];
 
 let failed = false;
 for (const table of tables) {
@@ -30,6 +30,24 @@ for (const table of tables) {
     failed = true;
   } else {
     console.log(`✅  ${table}: ${count} rows`);
+  }
+}
+
+// Extra: verify revenue pipeline — at least some deals should have revenue_tier set
+const { data: revDeals, error: revErr } = await sb
+  .from("deals")
+  .select("id", { count: "exact" })
+  .not("revenue_tier", "is", null);
+
+if (revErr) {
+  console.error(`❌  deals.revenue_tier column: ${revErr.message}`);
+  failed = true;
+} else {
+  const n = revDeals?.length ?? 0;
+  if (n === 0) {
+    console.warn(`🟡  deals.revenue_tier: 0 rows — revenue pipeline may not be seeded`);
+  } else {
+    console.log(`✅  deals.revenue_tier: ${n} deal(s) tagged`);
   }
 }
 
