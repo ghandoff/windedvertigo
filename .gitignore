@@ -10,6 +10,7 @@ node_modules/
 .claude/*
 !.claude/settings.json
 !.claude/hooks/
+!.claude/skills/
 
 # Second brain — Garrett's private operational layer (tracked separately via 'brain' remote)
 # Per-developer root CLAUDE.md is gitignored (each contributor has their own).
