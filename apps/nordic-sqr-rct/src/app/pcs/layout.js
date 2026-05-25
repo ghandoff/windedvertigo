@@ -7,7 +7,6 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import RoleRoute from '@/components/RoleRoute';
 import WorkspaceShell from '@/components/WorkspaceShell';
 import Footer from '@/components/Footer';
-import FeedbackButton from '@/components/FeedbackButton';
 import RoleAwareSidebar from '@/components/sidebar/RoleAwareSidebar';
 import MobileSidebarDrawer from '@/components/sidebar/MobileSidebarDrawer';
 import { deriveSidebarRole, getLayoutForRole } from '@/components/sidebar/sidebar-items';
@@ -94,8 +93,8 @@ function PcsWorkspaceShell({ children }) {
       ) : null}
 
       <Footer />
-      {/* Wave 6.1 — floating feedback button, persists across route changes. */}
-      <FeedbackButton />
+      {/* FeedbackButton now lives in the root layout (via FeedbackButtonRoot)
+          so it appears on every page, not just /pcs/*. Don't re-mount here. */}
     </div>
   );
 }
