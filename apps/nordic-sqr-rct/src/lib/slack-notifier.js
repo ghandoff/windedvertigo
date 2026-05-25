@@ -103,8 +103,26 @@ export async function notifyBatchComplete({ batchId, stats, sanityWarnings = [],
  * @returns {Promise<{sent:boolean, reason?:string}>}
  */
 export async function notifyFeedback({ category, message, emailBack, context = {} }) {
+  // Routing policy:
+  //   1) If SLACK_BOT_TOKEN + SLACK_FEEDBACK_CHANNEL are both set, use
+  //      chat.postMessage to that channel (preferred — lets us point at a
+  //      project-specific channel like #nordic-updates without provisioning
+  //      a dedicated Incoming Webhook URL).
+  //   2) Else fall back to the legacy SLACK_WEBHOOK_URL path (whatever
+  //      channel that webhook is bound to — typically a generic feedback
+  //      sink).
+  //   3) Else return {sent: false, reason: ...} so the API route can 500
+  //      with a user-visible toast.
+  const botToken = process.env.SLACK_BOT_TOKEN;
+  const feedbackChannel = process.env.SLACK_FEEDBACK_CHANNEL;
   const webhook = process.env.SLACK_WEBHOOK_URL;
-  if (!webhook) return { sent: false, reason: 'SLACK_WEBHOOK_URL not set' };
+
+  if (!botToken && !webhook) {
+    return { sent: false, reason: 'Neither SLACK_BOT_TOKEN+SLACK_FEEDBACK_CHANNEL nor SLACK_WEBHOOK_URL is set' };
+  }
+  if (botToken && !feedbackChannel && !webhook) {
+    return { sent: false, reason: 'SLACK_BOT_TOKEN set but SLACK_FEEDBACK_CHANNEL is missing and no webhook fallback' };
+  }
 
   const categoryMeta = {
     bug:       { emoji: '🐛', label: 'bug',       color: '#dc2626' },
@@ -141,11 +159,48 @@ export async function notifyFeedback({ category, message, emailBack, context = {
     });
   }
 
+  const fallbackText = `${meta.emoji} Feedback [${meta.label}] from ${userAlias || 'user'}`;
+
+  // Preferred path: bot token + channel
+  if (botToken && feedbackChannel) {
+    try {
+      const resp = await fetch('https://slack.com/api/chat.postMessage', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${botToken}`,
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: JSON.stringify({
+          channel: feedbackChannel,
+          text: fallbackText,
+          attachments: [{ color: meta.color, blocks: attachmentBlocks }],
+        }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || data?.ok === false) {
+        const reason = `chat.postMessage failed: status=${resp.status} error=${data?.error || '?'} channel=${feedbackChannel}`;
+        // If the bot isn't in the channel, fall through to webhook (if configured)
+        // so feedback still lands somewhere. Otherwise return the failure.
+        if (data?.error === 'not_in_channel' || data?.error === 'channel_not_found') {
+          if (!webhook) return { sent: false, reason: `${reason} (and no webhook fallback)` };
+          // fall through to webhook
+        } else {
+          return { sent: false, reason };
+        }
+      } else {
+        return { sent: true };
+      }
+    } catch (err) {
+      if (!webhook) return { sent: false, reason: `chat.postMessage threw: ${err.message}` };
+      // fall through to webhook
+    }
+  }
+
+  // Fallback path: incoming webhook
   const body = {
-    text: `${meta.emoji} Feedback [${meta.label}] from ${userAlias || 'user'}`,
+    text: fallbackText,
     attachments: [{ color: meta.color, blocks: attachmentBlocks }],
   };
-
   try {
     const resp = await fetch(webhook, {
       method: 'POST',
