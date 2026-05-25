@@ -1,4 +1,5 @@
 import './globals.css';
+import FeedbackButtonRoot from '@/components/FeedbackButtonRoot';
 
 export const metadata = {
   title: 'Nordic Research Platform',
@@ -13,7 +14,14 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-sans min-h-screen flex flex-col">{children}</body>
+      <body className="font-sans min-h-screen flex flex-col">
+        {children}
+        {/* Floating feedback button — wraps its own AuthProvider so it
+            shows on every authenticated page, not just /pcs/*. Removed
+            the per-layout mounts in /pcs/layout.js and
+            /research/pcs/layout.js below to avoid double-rendering. */}
+        <FeedbackButtonRoot />
+      </body>
     </html>
   );
 }
