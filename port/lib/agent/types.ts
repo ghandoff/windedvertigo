@@ -33,7 +33,10 @@ export type AgentToolName =
   | "queryWorkItems"
   | "queryEvents"
   | "queryMembers"
-  | "logTimeEntry";
+  | "logTimeEntry"
+  | "queryMeetings"
+  | "getMeetingActions"
+  | "readStrategyDoc";
 
 /**
  * A write action that has been staged but not yet executed. Stored in

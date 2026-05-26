@@ -1,37 +1,45 @@
 /**
  * Claude API client wrapper with built-in token tracking.
  *
- * Uses @ai-sdk/anthropic (Vercel AI SDK v6) which supports:
- *   - Vercel AI Gateway routing (configure base URL via vercel env pull)
- *   - AbortSignal-based timeouts so hung calls don't consume Inngest step budgets
- *   - Token usage tracking for the AI Hub cost dashboard
+ * Uses the OFFICIAL @anthropic-ai/sdk (same as wv-claw) — NOT the Vercel AI
+ * SDK's @ai-sdk/anthropic. The latter was returning 404 on some Haiku model
+ * IDs even when direct curl with the same model + key returned 200, and was
+ * silently swallowing errors as empty text via the streamText path. The
+ * official SDK fails loudly and uses the same wire protocol — it works.
+ *
+ * Streaming concern: the old comment claimed streamText was used to avoid
+ * CF Workers' 100s origin timeout for large completions. In practice every
+ * caller uses maxTokens ≤ 4096, which completes in <30s. We use the simpler
+ * non-streaming messages.create() path. If a caller someday needs >100s of
+ * output, switch THAT caller specifically to anthropic.messages.stream().
  *
  * Every call records token usage, cost, and duration.
- *
- * IMPORTANT: Uses streamText (not generateText) for all calls.
- * generateText makes a blocking HTTP request that waits for the full response;
- * for large outputs (12k tokens at ~30 tok/s ≈ 400s), Cloudflare's 100-second
- * origin-timeout fires and returns HTTP 524 before Anthropic responds.
- * streamText uses SSE (Server-Sent Events), which sends heartbeats that keep
- * the connection alive for the full generation duration.
  */
 
-import { streamText } from "ai";
-import { createAnthropic } from "@ai-sdk/anthropic";
+import Anthropic from "@anthropic-ai/sdk";
 import type { AiFeature, ModelId, TokenUsageEntry } from "./types";
 import { MODEL_PRICING, FEATURE_MODELS } from "./types";
 import { recordUsage } from "./usage-store";
 
-// Provider is created once per module (env vars are stable within a serverless
-// invocation).
-//
-// Auth is handled entirely via environment variables populated by `vercel env pull`.
-// Vercel injects credentials at runtime via OIDC workload identity — no keys
-// are referenced in code. When a gateway base URL is configured, the provider
-// routes through it; otherwise calls go directly to the upstream API.
-const anthropicProvider = createAnthropic({
-  ...(process.env.ANTHROPIC_BASE_URL ? { baseURL: process.env.ANTHROPIC_BASE_URL } : {}),
-});
+// Built lazily so secret rotations propagate without redeploy on CF Workers.
+// Same lazy-init pattern wv-claw uses in lib/agent/index.ts.
+let _client: Anthropic | null = null;
+let _cachedKey: string | undefined;
+
+function getAnthropic(): Anthropic {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
+  if (!_client || apiKey !== _cachedKey) {
+    _client = new Anthropic({
+      apiKey,
+      // Explicit baseURL needed on CF Workers because the SDK's default sometimes
+      // resolves to a relative path; same fix wv-claw uses.
+      baseURL: process.env.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com",
+    });
+    _cachedKey = apiKey;
+  }
+  return _client;
+}
 
 interface AiCallOptions {
   feature: AiFeature;
@@ -68,33 +76,41 @@ export async function callClaude(opts: AiCallOptions): Promise<AiCallResult> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  // streamText keeps the SSE connection alive during generation; generateText
-  // would block the TCP connection until the full response arrives, triggering
-  // Cloudflare's 100-second origin-timeout (HTTP 524) on large completions.
   let text: string;
-  let usage: { inputTokens?: number; outputTokens?: number };
+  let inputTokens = 0;
+  let outputTokens = 0;
   try {
-    const result = streamText({
-      model: anthropicProvider(modelId),
-      maxOutputTokens: opts.maxTokens ?? 1024,
-      temperature: opts.temperature ?? 0.7,
-      system: opts.system,
-      prompt: opts.userMessage,
-      abortSignal: controller.signal,
-    });
-    // Await both in parallel — text resolves after last chunk, usage after stream end
-    [text, usage] = await Promise.all([result.text, result.usage]);
-  } catch (err) {
-    throw err;
+    const response = await getAnthropic().messages.create(
+      {
+        model: modelId,
+        max_tokens: opts.maxTokens ?? 1024,
+        temperature: opts.temperature ?? 0.7,
+        system: opts.system,
+        messages: [{ role: "user", content: opts.userMessage }],
+      },
+      { signal: controller.signal },
+    );
+
+    // Concatenate text blocks from the response.
+    text = response.content
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((b: any) => b.type === "text")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((b: any) => b.text)
+      .join("");
+    inputTokens = response.usage?.input_tokens ?? 0;
+    outputTokens = response.usage?.output_tokens ?? 0;
+
+    if (!text) {
+      throw new Error(
+        `Anthropic returned no text content (feature=${opts.feature} model=${modelId} stop=${response.stop_reason})`,
+      );
+    }
   } finally {
     clearTimeout(timeoutId);
   }
 
   const durationMs = Date.now() - start;
-
-  // usage fields are number | undefined — some providers omit token counts
-  const inputTokens = usage.inputTokens ?? 0;
-  const outputTokens = usage.outputTokens ?? 0;
   const costUsd =
     (inputTokens / 1_000_000) * pricing.input +
     (outputTokens / 1_000_000) * pricing.output;
@@ -118,8 +134,16 @@ export async function callClaude(opts: AiCallOptions): Promise<AiCallResult> {
 
 /**
  * Extract and parse JSON from LLM output.
- * Strips markdown fences, leading/trailing text, and handles common
- * LLM response quirks before parsing.
+ *
+ * Three passes:
+ *   1. Extract: strip markdown fences, trim non-JSON pre/post text.
+ *   2. Strict parse.
+ *   3. On failure, run a small repair pass (trailing commas, smart quotes,
+ *      double-comma, unterminated trailing string) and try again. This
+ *      handles the long-transcript failure mode where Claude emits subtle
+ *      JSON glitches around character 5k+. Cheaper than a retry call.
+ *
+ * Throws the LAST parse error (with both attempts' info) on full failure.
  */
 export function parseJsonResponse<T>(raw: string): T {
   let cleaned = raw.trim();
@@ -144,5 +168,42 @@ export function parseJsonResponse<T>(raw: string): T {
     cleaned = cleaned.slice(0, lastBrace + 1);
   }
 
-  return JSON.parse(cleaned);
+  try {
+    return JSON.parse(cleaned);
+  } catch (firstErr) {
+    // Repair pass — handle the malformations LLMs commonly emit. Each
+    // transformation is conservative (no false positives on well-formed JSON).
+    const repaired = repairLooseJson(cleaned);
+    try {
+      return JSON.parse(repaired);
+    } catch (secondErr) {
+      // Surface both errors so callers can see whether repair changed anything.
+      const firstMsg = firstErr instanceof Error ? firstErr.message : String(firstErr);
+      const secondMsg = secondErr instanceof Error ? secondErr.message : String(secondErr);
+      throw new Error(
+        `JSON parse failed even after repair. strict=${firstMsg} · repaired=${secondMsg}`,
+      );
+    }
+  }
+}
+
+/**
+ * Best-effort fixes for LLM-emitted JSON. Each step is idempotent and safe
+ * on already-well-formed JSON.
+ */
+function repairLooseJson(s: string): string {
+  return (
+    s
+      // Trailing commas before `]` or `}` — the single most common LLM glitch.
+      // Allowed by JS object/array literals, rejected by strict JSON.
+      .replace(/,(\s*[}\]])/g, "$1")
+      // Doubled commas (`,,`) — happens on slow streams that retry a chunk.
+      .replace(/,\s*,/g, ",")
+      // Smart quotes around strings — Claude occasionally emits these in
+      // proper-name fields. Replace ONLY at field boundaries to avoid
+      // mangling actual content (apostrophe in a name etc).
+      .replace(/[“”]/g, '"')
+      .replace(/([:\[\{,]\s*)['‘]/g, '$1"')
+      .replace(/['’](\s*[,\]\}])/g, '"$1')
+  );
 }

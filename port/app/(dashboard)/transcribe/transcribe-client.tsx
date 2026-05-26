@@ -88,6 +88,10 @@ export function TranscribeClient({ members, projects }: TranscribeClientProps) {
   const [attendeeIds, setAttendeeIds] = useState<string[]>([]);
   const [category, setCategory] = useState<string>("check-in");
   const [projectId, setProjectId] = useState<string>("");
+  // Council visibility: 'shared' (default; team-visible at /council) or
+  // 'private' (only this user sees it). For non-WV meetings (1:1s, family
+  // calls, etc) the recorder can flip to private before submitting.
+  const [visibility, setVisibility] = useState<"shared" | "private">("shared");
 
   // Recorder state
   const [recorder, setRecorder] = useState<RecorderState>({ kind: "idle" });
@@ -256,6 +260,7 @@ export function TranscribeClient({ members, projects }: TranscribeClientProps) {
       form.append("duration", String(recorder.elapsed));
       form.append("attendeeIds", JSON.stringify(attendeeIds));
       if (projectId) form.append("projectId", projectId);
+      form.append("visibility", visibility);
 
       const res = await fetch("/api/transcribe", { method: "POST", body: form });
 
@@ -272,7 +277,7 @@ export function TranscribeClient({ members, projects }: TranscribeClientProps) {
         message: err instanceof Error ? err.message : "something went wrong.",
       });
     }
-  }, [recorder, title, date, category, attendeeIds, projectId]);
+  }, [recorder, title, date, category, attendeeIds, projectId, visibility]);
 
   // ─ rendering ────────────────────────────────────────────────────
 
@@ -399,6 +404,43 @@ export function TranscribeClient({ members, projects }: TranscribeClientProps) {
               </Select>
             </div>
           )}
+
+          {/* council visibility — shared (team) vs private (only you) */}
+          <div className="space-y-1.5">
+            <Label>council visibility</Label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setVisibility("shared")}
+                className={cn(
+                  "flex-1 rounded-md border px-3 py-2 text-xs text-left transition-colors",
+                  visibility === "shared"
+                    ? "bg-[#43b187]/10 border-[#43b187] text-[#273248]"
+                    : "border-border text-muted-foreground hover:border-[#43b187]/40",
+                )}
+              >
+                <div className="font-medium">shared with team</div>
+                <div className="text-[10px] opacity-75 mt-0.5">
+                  visible to everyone at /council. default for w.v meetings.
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibility("private")}
+                className={cn(
+                  "flex-1 rounded-md border px-3 py-2 text-xs text-left transition-colors",
+                  visibility === "private"
+                    ? "bg-[#cb7858]/10 border-[#cb7858] text-[#273248]"
+                    : "border-border text-muted-foreground hover:border-[#cb7858]/40",
+                )}
+              >
+                <div className="font-medium">private (only you)</div>
+                <div className="text-[10px] opacity-75 mt-0.5">
+                  for 1:1s, personal, or off-team calls. you can flip later.
+                </div>
+              </button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

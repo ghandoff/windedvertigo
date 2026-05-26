@@ -29,6 +29,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { notion } from "@/lib/notion/client";
+// W1+ Council parallel write — same transcript also lands in Supabase
+// `meetings` + `meeting_action_items` via the ingest pipeline, so it's
+// visible at /council immediately instead of waiting 4h for the legacy
+// Notion-mirror cron.
+import { ingestToSupabase } from "@/lib/meeting-ingest/ingest-to-supabase";
 import { uploadAsset, generateAssetKey } from "@/lib/r2/upload";
 import { transcribeAudio } from "@/lib/transcribe/whisper";
 import { summariseTranscript } from "@/lib/transcribe/summarise";
@@ -64,6 +69,11 @@ export async function POST(req: NextRequest) {
   const duration = Number.parseInt(durationStr, 10) || 0;
   const attendeeIdsStr = (form.get("attendeeIds") ?? "[]").toString();
   const projectId = (form.get("projectId") ?? "").toString().trim();
+  // Council visibility — defaults to 'shared' for backward compat when the
+  // client doesn't send the field. Only valid values flow through.
+  const visibilityRaw = (form.get("visibility") ?? "shared").toString().trim();
+  const visibility: "shared" | "private" =
+    visibilityRaw === "private" ? "private" : "shared";
 
   if (!(audio instanceof Blob) || audio.size === 0) {
     return NextResponse.json({ error: "audio is required" }, { status: 400 });
@@ -157,9 +167,44 @@ export async function POST(req: NextRequest) {
     const pageResponse = page as unknown as PageResponse;
     const pageUrl = pageResponse.url ?? `https://www.notion.so/${pageResponse.id.replace(/-/g, "")}`;
 
+    // 7. Council parallel write (fire-and-forget). Reuses the existing
+    // extractMeetingActions path through ingestToSupabase so action items
+    // get owner-resolved + filed to meeting_action_items, and the meeting
+    // appears at /council without waiting for the 4h Notion-mirror cron.
+    // Fail-open: a Supabase failure here doesn't break the Notion write
+    // the user is waiting on.
+    let councilMeetingId: string | null = null;
+    if (transcript) {
+      try {
+        const council = await ingestToSupabase({
+          title,
+          notes: transcript,
+          capturedVia: "in-browser",
+          startedAt: new Date(date).toISOString(),
+          userId: "transcribe-route",
+          // Owner = whoever recorded. Determined from the auth session above.
+          ownerEmail: session.user.email,
+          visibility,
+        });
+        councilMeetingId = council.meetingId;
+        if (council.errors.length > 0) {
+          console.warn("[transcribe] council ingest had errors:", council.errors.join("; "));
+        }
+      } catch (err) {
+        console.warn(
+          "[transcribe] council ingest threw:",
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+
     return NextResponse.json({
       pageId: pageResponse.id,
       pageUrl,
+      councilMeetingId,
+      councilUrl: councilMeetingId
+        ? `https://port.windedvertigo.com/council/${councilMeetingId}`
+        : null,
       hasTranscript: !!transcript,
       hasSummary: !!summary,
     });

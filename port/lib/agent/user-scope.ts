@@ -49,6 +49,9 @@ const USER_SCOPES: Record<string, UserScope> = {
       "queryEvents",
       "queryMembers",
       "logTimeEntry",
+      "queryMeetings",
+      "getMeetingActions",
+      "readStrategyDoc",
     ],
     notionContext: {
       campaignsDbId: PORT_DB.campaigns,
@@ -60,7 +63,7 @@ const USER_SCOPES: Record<string, UserScope> = {
   "payton@windedvertigo.com": {
     authEmail: "payton@windedvertigo.com",
     displayName: "Payton",
-    allowedTools: ["queryPaytonSocialPlan"],
+    allowedTools: ["queryPaytonSocialPlan", "queryMeetings", "getMeetingActions", "readStrategyDoc"],
     notionContext: {
       campaignsDbId: null,
       socialPlanDbId: PAYTON_SOCIAL_PLAN_DB_ID,
@@ -94,6 +97,9 @@ const USER_SCOPES: Record<string, UserScope> = {
       "queryEvents",
       "queryMembers",
       "logTimeEntry",
+      "queryMeetings",
+      "getMeetingActions",
+      "readStrategyDoc",
     ],
     notionContext: {
       campaignsDbId: PORT_DB.campaigns,

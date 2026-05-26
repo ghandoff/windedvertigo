@@ -16,6 +16,8 @@ import {
   CalendarDays,
   CalendarClock,
   LineChart,
+  MessagesSquare,
+  FileText,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -41,6 +43,8 @@ export const NAV_SECTIONS: NavSection[] = [
     defaultOpen: true,
     items: [
       { label: "strategy", href: "/strategy", icon: LineChart },
+      { label: "council", href: "/council", icon: MessagesSquare },
+      { label: "designs", href: "/designs", icon: FileText },
       { label: "projects", href: "/projects", icon: FolderKanban },
       { label: "time", href: "/work/time", icon: Clock },
     ],
@@ -56,6 +60,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "outreach",
     items: [
       { label: "campaigns", href: "/campaigns", icon: Megaphone },
+      { label: "compose", href: "/compose", icon: FileText },
       { label: "events", href: "/events", icon: CalendarDays },
       { label: "bookings", href: "/bookings", icon: CalendarClock },
     ],

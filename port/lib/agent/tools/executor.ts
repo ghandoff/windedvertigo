@@ -53,6 +53,18 @@ import {
   type AgentWritableOrgField,
   type AgentWritableContactField,
 } from "../agent-writable-fields";
+import { queryMeetingsTool, getMeetingActionsTool } from "./council";
+import { readStrategyDocTool, type StrategySection } from "./strategy";
+
+const STRATEGY_SECTIONS: ReadonlySet<StrategySection> = new Set([
+  "strategy",
+  "campaigns",
+  "channels",
+  "audience",
+  "pipeline",
+  "distribution",
+  "timeline",
+]);
 
 export interface ToolUseRequest {
   tool_use_id: string;
@@ -917,6 +929,52 @@ export async function executeTool(
           request.tool_use_id,
           `unhandled pending action type: ${String((_exhaustive as PendingAction).type)}`,
         );
+      }
+
+      case "queryMeetings": {
+        const limit = typeof request.input.limit === "number" ? request.input.limit : undefined;
+        const result = await queryMeetingsTool({ limit });
+        return {
+          tool_use_id: request.tool_use_id,
+          content: JSON.stringify(result),
+          is_error: false,
+        };
+      }
+
+      case "getMeetingActions": {
+        const ownerEmail = typeof request.input.ownerEmail === "string" ? request.input.ownerEmail : undefined;
+        const meetingId  = typeof request.input.meetingId  === "string" ? request.input.meetingId  : undefined;
+        const statusIn   = typeof request.input.status     === "string" ? request.input.status     : undefined;
+        const status =
+          statusIn === "open" || statusIn === "done" || statusIn === "cancelled" ? statusIn : undefined;
+        if (!ownerEmail && !meetingId) {
+          return errorResult(
+            request.tool_use_id,
+            "missing 'ownerEmail' or 'meetingId' — provide at least one",
+          );
+        }
+        const result = await getMeetingActionsTool({ ownerEmail, meetingId, status });
+        return {
+          tool_use_id: request.tool_use_id,
+          content: JSON.stringify(result),
+          is_error: false,
+        };
+      }
+
+      case "readStrategyDoc": {
+        const sectionRaw = String(request.input.section ?? "").trim();
+        if (!STRATEGY_SECTIONS.has(sectionRaw as StrategySection)) {
+          return errorResult(
+            request.tool_use_id,
+            "invalid 'section'. valid: strategy, campaigns, channels, audience, pipeline, distribution, timeline",
+          );
+        }
+        const result = readStrategyDocTool(sectionRaw as StrategySection);
+        return {
+          tool_use_id: request.tool_use_id,
+          content: JSON.stringify(result),
+          is_error: false,
+        };
       }
 
       default: {

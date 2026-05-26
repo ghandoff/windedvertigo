@@ -51,7 +51,10 @@ async function getTokenViaRefresh(): Promise<string | null> {
   return data.access_token ?? null;
 }
 
-async function getTokenViaServiceAccount(saKeyJson: string): Promise<string | null> {
+async function getTokenViaServiceAccount(
+  saKeyJson: string,
+  subjectOverride?: string,
+): Promise<string | null> {
   let key: { client_email: string; private_key: string };
   try {
     key = JSON.parse(saKeyJson) as { client_email: string; private_key: string };
@@ -62,13 +65,20 @@ async function getTokenViaServiceAccount(saKeyJson: string): Promise<string | nu
 
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: "RS256", typ: "JWT" };
-  const payload = {
+  // GOOGLE_IMPERSONATE_SUBJECT — if set, mint a JWT that acts AS that user
+  // via Domain-Wide Delegation (configured in Workspace Admin → API controls).
+  // Lets the SA access the user's personal calendar without an explicit share.
+  // Leave unset to use plain SA mode (works for org-owned calendars shared
+  // with the SA email).
+  const impersonate = subjectOverride ?? process.env.GOOGLE_IMPERSONATE_SUBJECT;
+  const payload: Record<string, unknown> = {
     iss: key.client_email,
     scope: GCAL_SCOPE,
     aud: TOKEN_URL,
     iat: now,
     exp: now + 3600,
   };
+  if (impersonate) payload.sub = impersonate;
 
   const b64url = (obj: object) => Buffer.from(JSON.stringify(obj)).toString("base64url");
   const signingInput = `${b64url(header)}.${b64url(payload)}`;
@@ -98,10 +108,19 @@ async function getTokenViaServiceAccount(saKeyJson: string): Promise<string | nu
   return data.access_token ?? null;
 }
 
-async function getAccessToken(): Promise<string | null> {
+/**
+ * Mint a Calendar API access token. With multi-member support, callers can
+ * pass `subject` to impersonate a specific Workspace user via DWD. When
+ * omitted, falls back to env-default (GOOGLE_IMPERSONATE_SUBJECT) — same
+ * behavior as the single-user gcal-sync that's been running.
+ *
+ * The legacy refresh-token path is kept for callers (createRfpDeadlineEvent)
+ * that don't use DWD impersonation.
+ */
+async function getAccessToken(subject?: string): Promise<string | null> {
   const saKeyJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (saKeyJson) {
-    return getTokenViaServiceAccount(saKeyJson);
+    return getTokenViaServiceAccount(saKeyJson, subject);
   }
   return getTokenViaRefresh();
 }
@@ -168,4 +187,136 @@ export async function createRfpDeadlineEvent(rfp: RfpOpportunity): Promise<void>
   } catch (err) {
     console.warn(`[gcal] unexpected error creating event for "${rfp.opportunityName}":`, err);
   }
+}
+
+// ── W4 Council additions ─────────────────────────────────
+
+export interface GcalEvent {
+  id: string;
+  summary?: string;
+  description?: string;
+  start?: { dateTime?: string; date?: string };
+  end?: { dateTime?: string; date?: string };
+  status?: string;
+  organizer?: { email?: string };
+  attendees?: Array<{ email: string; responseStatus?: string; self?: boolean }>;
+  conferenceData?: { entryPoints?: Array<{ uri?: string; entryPointType?: string }> };
+  htmlLink?: string;
+  // Calendar surfaces non-meeting event types: "default" (regular meeting),
+  // "workingLocation" (Home/Office indicators), "focusTime", "outOfOffice".
+  // Council only cares about default/meeting-style events.
+  eventType?: string;
+  // Per-event visibility set by the user in GCal: "default" (calendar's
+  // default), "public", "private", or "confidential". When the user marks
+  // an event private (e.g. therapy, doctor, personal), Council mirrors
+  // that into the meetings row so it never appears on the team-shared list.
+  visibility?: "default" | "public" | "private" | "confidential";
+}
+
+/**
+ * List events on a calendar between timeMin and timeMax (ISO timestamps).
+ * Uses service-account or refresh-token auth — same as createRfpDeadlineEvent.
+ * Returns null on auth failure (caller should treat as "skip").
+ */
+export async function listEvents(
+  timeMin: string,
+  timeMax: string,
+  calendarId = "primary",
+  subject?: string,
+): Promise<GcalEvent[] | null> {
+  const accessToken = await getAccessToken(subject);
+  if (!accessToken) {
+    console.warn("[gcal] listEvents: no credentials");
+    return null;
+  }
+
+  const events: GcalEvent[] = [];
+  let pageToken: string | undefined;
+  do {
+    const params = new URLSearchParams({
+      timeMin,
+      timeMax,
+      singleEvents: "true",
+      orderBy: "startTime",
+      maxResults: "250",
+      ...(pageToken ? { pageToken } : {}),
+    });
+    const res = await fetch(
+      `${GCAL_API}/${encodeURIComponent(calendarId)}/events?${params}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    if (res.status === 401 || res.status === 403) {
+      console.warn(`[gcal] listEvents auth ${res.status} — token missing scope or expired`);
+      return null;
+    }
+    if (!res.ok) {
+      const txt = await res.text();
+      console.warn("[gcal] listEvents failed:", res.status, txt);
+      break;
+    }
+    const data = (await res.json()) as { items?: GcalEvent[]; nextPageToken?: string };
+    events.push(...(data.items ?? []));
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+
+  return events;
+}
+
+/**
+ * Patch an event — used to append the Council URL to the event description.
+ *
+ * Returns a tri-state result so callers can distinguish:
+ *   - "ok"                  — patch landed
+ *   - "skipped_permission"  — 403 from Google because the caller is an
+ *                             attendee (not organizer) on the event/series;
+ *                             EXPECTED failure on standing-meeting series we
+ *                             don't own. Bucketed away from real errors.
+ *   - "failed"              — anything else (auth missing, network, 404, etc.)
+ *                             Real errors worth investigating.
+ *
+ * The ACL distinction matters because Workspace events you're invited to
+ * (e.g. external client recurring syncs) reject single-instance description
+ * patches with `forbiddenForNonOrganizer` per Google Calendar API rules.
+ * Patching the SERIES instead would stamp every occurrence with one Council
+ * URL, which is wrong — we want a per-meeting Council URL per occurrence.
+ * So we accept the loss on non-owned events rather than corrupting the series.
+ */
+export type PatchEventResult = "ok" | "skipped_permission" | "failed";
+
+export async function patchEvent(
+  eventId: string,
+  patch: Partial<{ description: string; summary: string }>,
+  calendarId = "primary",
+  subject?: string,
+): Promise<PatchEventResult> {
+  const accessToken = await getAccessToken(subject);
+  if (!accessToken) {
+    console.warn("[gcal] patchEvent: no credentials");
+    return "failed";
+  }
+  const res = await fetch(
+    `${GCAL_API}/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(patch),
+    },
+  );
+  if (res.ok) return "ok";
+
+  const txt = await res.text();
+  // Detect "you're not the organizer" — expected on shared/attendee events.
+  // Google surfaces this as 403 with reasons like 'forbiddenForNonOrganizer'
+  // or 'requiredAccessLevel' in the response body.
+  if (
+    res.status === 403 &&
+    /forbiddenForNonOrganizer|requiredAccessLevel|forbiddenForNonAttendee/i.test(txt)
+  ) {
+    return "skipped_permission";
+  }
+  console.warn(`[gcal] patchEvent ${eventId} failed:`, res.status, txt);
+  return "failed";
 }

@@ -735,6 +735,90 @@ export const AGENT_TOOLS: AgentToolDefinition[] = [
       required: ["projectId", "memberId", "hours"],
     },
   },
+  // ── queryMeetings (W4 Council) ────────────────────────────────────────
+  {
+    name: "queryMeetings" as AgentToolName,
+    description:
+      "List recent Council meetings with title, AI summary, captured-via source, attendee count, " +
+      "and action item count. Use to answer 'what meetings did we have this week?', " +
+      "'show me the last fruitstand', 'summarize recent client calls'. " +
+      "Does NOT return full transcripts (use getMeetingActions to drill into a specific meeting).",
+    input_schema: {
+      type: "object",
+      properties: {
+        limit: {
+          type: "number",
+          description: "Max meetings to return (1-25). Defaults to 10.",
+          default: 10,
+        },
+      },
+    },
+  },
+  // ── getMeetingActions (W4 Council) ────────────────────────────────────
+  {
+    name: "getMeetingActions" as AgentToolName,
+    description:
+      "List action items from Council meetings. Provide ownerEmail to filter to one person, " +
+      "or meetingId to drill into a specific meeting. Use 'my open actions', " +
+      "'what does Lamis owe me', 'action items from the IDB sync'. " +
+      "Returns title, owner, deadline, priority, type, context, status. " +
+      "Status defaults to 'open' when ownerEmail is provided alone.",
+    input_schema: {
+      type: "object",
+      properties: {
+        ownerEmail: {
+          type: "string",
+          description: "Filter to actions owned by this email (lowercased automatically).",
+        },
+        meetingId: {
+          type: "string",
+          description: "Filter to actions from a specific meeting (UUID).",
+        },
+        status: {
+          type: "string",
+          enum: ["open", "done", "cancelled"],
+          description: "Filter by status. Defaults to 'open' when ownerEmail-only.",
+        },
+      },
+    },
+  },
+  // ── readStrategyDoc — Q2-Q3 2026 strategy command centre ──────────────
+  {
+    name: "readStrategyDoc" as AgentToolName,
+    description:
+      "Read a section of the Q2-Q3 2026 marketing strategy — the source content " +
+      "behind port.windedvertigo.com/strategy. Returns structured data the " +
+      "agent should summarise into natural-language answers. Use to answer " +
+      "questions like 'what's our positioning?', 'who's our audience?', 'what " +
+      "channels are we investing in?', 'what's the Q3 timeline?', 'who owns " +
+      "this campaign?'. Sections map 1:1 with the dashboard's tabs.",
+    input_schema: {
+      type: "object",
+      properties: {
+        section: {
+          type: "string",
+          enum: [
+            "strategy",
+            "campaigns",
+            "channels",
+            "audience",
+            "pipeline",
+            "distribution",
+            "timeline",
+          ],
+          description:
+            "Which section to read. 'strategy' = revenue targets + cash + pipeline math. " +
+            "'campaigns' = campaign list + their timelines. " +
+            "'channels' = owned/earned/paid channel mix. " +
+            "'audience' = audience segments. " +
+            "'pipeline' = revenue pipeline + funnel + weekly KPIs. " +
+            "'distribution' = team + project ownership + budget. " +
+            "'timeline' = phase plan + campaign timelines + weekly cadence.",
+        },
+      },
+      required: ["section"],
+    },
+  },
 ];
 
 /** Whitelisted tool names — mirrors the AgentToolName union. Cheap runtime guard. */
