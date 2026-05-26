@@ -30,6 +30,17 @@ function formatDeadline(deadline: string | null): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+/** Relative-ish "added" date for the row. "today" / "yesterday" / "Nd ago"
+ *  for fresh items, an absolute short date once it's been hanging around. */
+function formatAddedDate(iso: string): string {
+  const d = new Date(iso);
+  const days = Math.floor((Date.now() - d.getTime()) / 86_400_000);
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days}d ago`;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 function priorityClass(p: MeetingActionItem["priority"]): string {
   if (p === "high") return "text-[#b15043] border-[#b15043]/30 bg-[#b15043]/5";
   if (p === "medium") return "text-[#cb7858] border-[#cb7858]/30 bg-[#cb7858]/5";
@@ -146,6 +157,12 @@ function ActionRow({ action }: { action: MeetingActionItem }) {
           )}
           <span className="text-[10px] text-muted-foreground tabular-nums">
             due: {formatDeadline(action.deadline)}
+          </span>
+          {/* "added" stamps the day the action item was ingested from a
+              meeting — useful for separating stale items the AI extracted
+              days ago from items just dropped in this morning. */}
+          <span className="text-[10px] text-muted-foreground/70 tabular-nums">
+            added: {formatAddedDate(action.createdAt)}
           </span>
           <ActionStatusToggle
             actionId={action.id}

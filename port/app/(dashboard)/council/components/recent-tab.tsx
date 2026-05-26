@@ -34,6 +34,18 @@ function formatDate(iso: string | null): string {
   });
 }
 
+/** Hour:minute (e.g. "12:00 PM"). Used to disambiguate multiple same-day
+ *  meetings — e.g. the back-to-back Session 5 recordings stacked at the
+ *  same date but different start times. */
+function formatTime(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function capturedViaLabel(via: Meeting["capturedVia"]): string {
   const labels: Record<Meeting["capturedVia"], string> = {
     "in-browser":    "in-browser",
@@ -86,7 +98,12 @@ export async function RecentTab({ meetings, mode = "recent" }: RecentTabProps) {
                   {m.title}
                 </Link>
                 <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground">
-                  <span>{formatDate(m.startedAt ?? m.createdAt)}</span>
+                  <span className="tabular-nums">
+                    {formatDate(m.startedAt ?? m.createdAt)}
+                    {m.startedAt && (
+                      <span className="ml-1.5 text-muted-foreground/70">· {formatTime(m.startedAt)}</span>
+                    )}
+                  </span>
                   <span className="inline-flex items-center gap-1">
                     <Mic className="h-3 w-3" />
                     {capturedViaLabel(m.capturedVia)}

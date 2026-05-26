@@ -16,6 +16,10 @@ import { queryProjects } from "@/lib/notion/projects";
 import { getActiveMembers, type Member } from "@/lib/notion/members";
 import { postToSlack } from "@/lib/slack";
 import type { WorkItemType, WorkItemPriority } from "@/lib/notion/types";
+// W1: Council Supabase parallel-write — runs alongside the Notion work_item
+// path during the trial window. Reuses the extraction result so no extra
+// Claude calls happen.
+import { writeMeetingToSupabase } from "./ingest-to-supabase";
 
 // ── types ────────────────────────────────────────────────
 
@@ -242,6 +246,26 @@ export async function ingestMeetingNotes(): Promise<IngestResult> {
         result.pagesSkipped++;
         continue;
       }
+
+      // 2d-bis (W1 Council). Parallel-write to Supabase. Reuses the same
+      // extraction object so no extra Claude calls. Fire-and-forget — if
+      // Supabase write fails we still complete the legacy Notion path.
+      void writeMeetingToSupabase(
+        {
+          title,
+          capturedVia: "notion-legacy",
+          // Use page's last_edited_time as a best-effort started_at when
+          // the Notion page is the only source of timing info.
+          startedAt: page.last_edited_time,
+          attendeeEmails: [],
+        },
+        extraction,
+      ).catch((err) => {
+        console.warn(
+          `[meeting-ingest] supabase parallel-write failed for "${title}":`,
+          err instanceof Error ? err.message : err,
+        );
+      });
 
       // 2e. Match to a project
       const keyword = extractProjectKeyword(title);

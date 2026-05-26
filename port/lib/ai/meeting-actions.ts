@@ -55,7 +55,13 @@ export async function extractMeetingActions(
     system: SYSTEM_PROMPT,
     userMessage: `Today's date: ${today}\n\nMeeting notes:\n${notes}`,
     userId,
-    maxTokens: 1536,
+    // Bumped from 1536 — long whirlpool/fruitstand transcripts produce
+    // 15-20 action items × ~150 tokens each + summary, which truncates JSON
+    // mid-array under the old cap. 4096 covers the longest meetings we've
+    // seen at ~3k JSON tokens, with headroom. Cost goes from ~$0.005 to
+    // ~$0.012 per call (Haiku), still trivial vs the value of complete
+    // action lists.
+    maxTokens: 4096,
     temperature: 0.2,
   });
 

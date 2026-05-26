@@ -1,21 +1,26 @@
 /**
  * Agent audit logging + event-ID idempotency.
  *
- * Two sinks — both fail-open (never throw, never block the agent reply):
- *   1. Structured console.log: always active. Vercel's log drain captures it.
- *   2. Notion persistence: active when AGENT_AUDIT_DB_ID points at an
- *      `agent actions` data source. Writes a row per turn with all queryable
- *      columns (Event ID, User Email, Tools, Turns, Duration ms, Status,
- *      Error, Notes).
+ * Three sinks — all fail-open (never throw, never block the agent reply):
+ *   1. Structured console.log: always active. Worker log drain captures it.
+ *   2. Supabase persistence: PRIMARY since W0.1 (May 2026). Inserts a row
+ *      per turn into agent_actions. Source of truth going forward.
+ *   3. Notion persistence: LEGACY (safety net). Active when AGENT_AUDIT_DB_ID
+ *      points at an `agent actions` data source. Will be retired after a
+ *      ~1-week parallel-write trial confirms Supabase is reliable.
  *
  * Idempotency:
- *   hasAuditedEvent(eventId) queries the DB for an existing row with the
- *   same Event ID. runAgentTurn calls this at start — if true, it skips.
- *   This dedupes Slack webhook retries (Slack uses at-least-once delivery;
- *   it may resend the same event_id if our ack dropped).
+ *   hasAuditedEvent(eventId) queries Supabase first (fast, primary). Falls
+ *   back to Notion only if Supabase errors. runAgentTurn calls this at start
+ *   — if true, it skips. Dedupes Slack at-least-once webhook retries.
  */
 
 import { notion } from "@/lib/notion/client";
+import {
+  insertAgentAction,
+  hasAgentActionForEvent,
+  type AgentActionStatus,
+} from "@/lib/supabase/agent-actions";
 
 export interface AuditEntry {
   eventId: string;
@@ -26,11 +31,18 @@ export interface AuditEntry {
   errorMessage: string | null;
   durationMs: number;
   turnCount: number;
+  // W0.1 additions — cost economics. Optional so callers that don't track
+  // tokens (e.g. rejection path) can omit.
+  inputTokens?: number;
+  outputTokens?: number;
+  costUsd?: number;
+  modelId?: string;
+  // W0.3 follow-up — cache effectiveness tracking.
+  cacheCreationInputTokens?: number;
+  cacheReadInputTokens?: number;
 }
 
-type AuditStatus = "success" | "error" | "timeout" | "rejected";
-
-function classifyStatus(entry: AuditEntry): AuditStatus {
+function classifyStatus(entry: AuditEntry): AgentActionStatus {
   if (!entry.errorMessage) return "success";
   if (entry.errorMessage.includes("timed out")) return "timeout";
   return "error";
@@ -53,19 +65,45 @@ export async function auditTurn(entry: AuditEntry): Promise<void> {
       durationMs: entry.durationMs,
       error: entry.errorMessage,
       replyLength: entry.finalReply.length,
+      costUsd: entry.costUsd,
+      modelId: entry.modelId,
     }),
   );
 
+  const status = classifyStatus(entry);
+  const replyPreview = entry.finalReply.slice(0, 1800);
+
+  // Step 2: Supabase (primary). Fire-and-forget — insertAgentAction is
+  // fail-open internally.
+  void insertAgentAction({
+    eventId:       entry.eventId,
+    userEmail:     entry.userEmail,
+    displayName:   entry.displayName,
+    status,
+    toolsCalled:   entry.toolsCalledNames,
+    turnCount:     entry.turnCount,
+    durationMs:    entry.durationMs,
+    replyPreview,
+    errorMessage:  entry.errorMessage,
+    inputTokens:   entry.inputTokens ?? null,
+    outputTokens:  entry.outputTokens ?? null,
+    costUsd:       entry.costUsd ?? null,
+    modelId:       entry.modelId ?? null,
+    cacheCreationInputTokens: entry.cacheCreationInputTokens ?? null,
+    cacheReadInputTokens:     entry.cacheReadInputTokens ?? null,
+  });
+
+  // Step 3: Notion (legacy safety net). Skip silently if not configured —
+  // this is how we'll retire the Notion path after the trial period.
   const dbId = process.env.AGENT_AUDIT_DB_ID;
   if (!dbId) return;
 
   try {
     const date = new Date().toISOString().slice(0, 10);
     const title = `agent turn — ${entry.displayName} — ${date}`;
-    const status = classifyStatus(entry);
     const notesJson = JSON.stringify({
       eventId: entry.eventId,
-      replyPreview: entry.finalReply.slice(0, 1800),
+      replyPreview,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,6 +160,24 @@ export async function auditRejection(
     }),
   );
 
+  // Step 2: Supabase. Use minimal entry — no user/tools/cost data for rejections.
+  void insertAgentAction({
+    eventId,
+    userEmail:     "unknown",
+    displayName:   "rejected",
+    status:        "rejected",
+    toolsCalled:   [],
+    turnCount:     null,
+    durationMs:    null,
+    replyPreview:  null,
+    errorMessage:  reason,
+    inputTokens:   null,
+    outputTokens:  null,
+    costUsd:       null,
+    modelId:       null,
+  });
+
+  // Step 3: Notion legacy.
   const dbId = process.env.AGENT_AUDIT_DB_ID;
   if (!dbId) return;
 
@@ -150,13 +206,17 @@ export async function auditRejection(
 /**
  * Idempotency check — has an audit row been written for this Event ID?
  *
- * Returns false if the DB isn't configured, if the query fails, or if no
- * match is found. Callers should treat "don't know" as "haven't seen" to
- * avoid silently dropping legitimate events on transient Notion errors.
- * A double-run is recoverable (user sees two replies); a missed-run is
- * worse (user sees nothing).
+ * Query Supabase first (primary). Fall back to Notion only if Supabase
+ * returned false (could be either "not found" or "error"). Treats "don't
+ * know" as "haven't seen" to avoid silently dropping legitimate events on
+ * transient backend errors.
  */
 export async function hasAuditedEvent(eventId: string): Promise<boolean> {
+  // Primary: Supabase. Fast and reliable.
+  if (await hasAgentActionForEvent(eventId)) return true;
+
+  // Legacy fallback: Notion. Only meaningful during the parallel-write
+  // trial; once we retire AGENT_AUDIT_DB_ID this branch is dead.
   const dbId = process.env.AGENT_AUDIT_DB_ID;
   if (!dbId) return false;
 

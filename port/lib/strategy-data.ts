@@ -97,10 +97,17 @@ export const REVENUE_PIPELINE: PipelineRow[] = [
   },
   {
     opportunity: "ICSP — Concern Worldwide",
-    stage: "proposal due may 25",
+    stage: "submitted (may 25)",
     estValue: "€28,800 (~$31,700)",
-    probability: 40,
+    probability: 45,
     timeline: "decision by july",
+  },
+  {
+    opportunity: "DW Akademie",
+    stage: "submitted (may 25)",
+    estValue: "€20,850 (~$22,950)",
+    probability: 40,
+    timeline: "contract start aug 2026",
   },
   {
     opportunity: "Amna at 10",
@@ -898,7 +905,7 @@ export const REVENUE_PROGRESS = {
     },
     {
       client: "ICSP — Concern Worldwide",
-      detail: "GCE evaluation · ireland",
+      detail: "GCE evaluation · ireland · submitted 25 may",
       amount: 31_700,
       status: "documentation" as const,
     },
@@ -906,6 +913,12 @@ export const REVENUE_PROGRESS = {
       client: "Amna",
       detail: "refugee education network · at 10",
       amount: 29_350,
+      status: "documentation" as const,
+    },
+    {
+      client: "DW Akademie",
+      detail: "IMS evaluation · OECD/DAC · submitted 25 may",
+      amount: 22_950,
       status: "documentation" as const,
     },
   ],

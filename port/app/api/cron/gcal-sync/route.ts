@@ -198,6 +198,16 @@ async function syncOneSubject(
       // Dedupe across team: if Maria already pre-created this gcal_event_id
       // from her sync earlier this run, our upsert returns isNew=false and
       // we update the existing row with Garrett's view of attendees.
+      //
+      // Honor GCal's per-event visibility flag. `private` and `confidential`
+      // are both treated as private in Council — they're the user explicitly
+      // saying "don't show this to other people who can see my calendar."
+      // Mirroring that into Council pre-creation prevents personal events
+      // (therapy, doctor, family) from ever appearing on the shared list.
+      const gcalVisibility =
+        event.visibility === "private" || event.visibility === "confidential"
+          ? "private"
+          : "shared";
       const meetingRow = await upsertPendingMeetingFromGcal({
         gcalEventId: event.id,
         title,
@@ -205,6 +215,10 @@ async function syncOneSubject(
         endedAt,
         organizerEmail,
         attendeeEmails,
+        visibility: gcalVisibility,
+        // Owner only meaningful for private rows; for shared we leave null
+        // so anyone on the team can claim ownership later if they want.
+        ownerEmail: gcalVisibility === "private" ? subject : null,
       });
       if (!meetingRow) {
         result.errors.push(`upsert returned null for ${event.id}`);

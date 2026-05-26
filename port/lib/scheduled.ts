@@ -61,6 +61,17 @@ interface CronEntry {
 //   sync-replies       — sends email replies (not a data mirror)
 
 const CRON_TABLE: CronEntry[] = [
+  // ── Hourly (Council GCal sync — W4) ─────────────────────────────────────────
+  // Pulls upcoming events for the next 7 days, creates pending Council records,
+  // and appends the council URL to each event description. Idempotent.
+  { path: "/api/cron/gcal-sync" },
+
+  // ── Hourly (Council Meet AI transcript ingest — W4 final) ──────────────────
+  // Watches the Drive Meet Recordings folder, parses new "Notes by Gemini"
+  // docs, extracts action items via Claude, and merges into the pending
+  // Council meeting record (by gcal_event_id). Idempotent (transcript_doc_id).
+  { path: "/api/cron/meet-transcript-ingest" },
+
   // ── Daily at fixed times ────────────────────────────────────────────────────
   { path: "/api/cron/rfp-gmail-scanner",   hours: [8] },
   { path: "/api/rfp-radar/poll-rss",       hours: [8], originalMinute: 15 },

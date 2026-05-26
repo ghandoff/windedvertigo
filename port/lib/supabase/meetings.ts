@@ -287,6 +287,19 @@ export async function upsertPendingMeetingFromGcal(input: {
   endedAt?: string | null;
   organizerEmail?: string | null;
   attendeeEmails?: string[];
+  /**
+   * GCal-derived visibility. When the source event is marked private/
+   * confidential in Google Calendar, we mirror that into Council so the
+   * row is auto-protected at pre-creation time (no manual flip needed).
+   * Defaults to 'shared' when omitted.
+   */
+  visibility?: "shared" | "private";
+  /**
+   * Owner email — set when visibility=private so the private-visibility
+   * filter knows which user can see the row. Typically the calendar
+   * subject the sync impersonated.
+   */
+  ownerEmail?: string | null;
 }): Promise<{ id: string; isNew: boolean } | null> {
   try {
     // Check first (cheap, indexed).
@@ -308,6 +321,8 @@ export async function upsertPendingMeetingFromGcal(input: {
         ended_at:        input.endedAt ?? null,
         organizer_email: input.organizerEmail ?? null,
         attendee_emails: input.attendeeEmails ?? [],
+        visibility:      input.visibility ?? "shared",
+        owner_email:     input.ownerEmail ?? null,
       })
       .select("id")
       .single();
