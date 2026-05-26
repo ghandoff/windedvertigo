@@ -59,7 +59,7 @@
   background-image: url('/harbour-preview/south-bank1.svg');
   background-position: bottom right;
   background-repeat: no-repeat;
-  background-size: 1900px auto;
+  background-size: auto 23.7%;
 }
 
 .map {
