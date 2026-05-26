@@ -38,11 +38,28 @@
 
 /* The SVG wrapper. width: 100% with display: block so the SVG fills
    the available width with no horizontal scroll. Aspect ratio comes
-   from the SVG's viewBox attribute — no need to set it in CSS. */
+   from the SVG's viewBox attribute — no need to set it in CSS.
+
+   Two CSS background layers here (bottom → top):
+     1. background-color (#3b5577) — harbour basin water blue, shows
+        through the transparent areas of the bank SVGs above.
+     2. south-bank1.svg — anchored bottom-right at a fixed height
+        (1014px, matching 78% of the 1300px reference container so it
+        is proportionally the same height as the Left/Right banks).
+        The SVG is 6707px wide at this height; on mobile the viewport
+        clips the left portion and the bank nearly disappears; on
+        wider desktop viewports progressively more of the panorama
+        slides into view from the left. The inline SVG (with Left-Bank,
+        Right-bank, and boats) renders on top of both backgrounds. */
 .mapWrapper {
   width: 100%;
   display: block;
   position: relative; /* anchor for the tooltip overlay */
+  background-color: #3b5577;
+  background-image: url('/harbour-preview/south-bank1.svg');
+  background-position: bottom right;
+  background-repeat: no-repeat;
+  background-size: auto 1014px;
 }
 
 .map {

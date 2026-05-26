@@ -3,12 +3,20 @@
 /**
  * harbour-preview map — the SVG portrait.
  *
- * One inline <svg> with three layers inside a 1000×2000 viewBox:
- *   1. water <rect> — #3b5577 blue for the open harbour basin
- *   2. landscape <image> elements — Left-Bank, Right-bank, south-bank1
- *      SVGs produced by Payton, served from /public/harbour-preview/
- *   3. boats <g> — eight interactive red-oval placeholders; Payton is
+ * One inline <svg> with two layers inside a 1000×2000 viewBox:
+ *   1. landscape <image> elements — Left-Bank and Right-bank SVGs produced
+ *      by Payton, served from /public/harbour-preview/
+ *   2. boats <g> — eight interactive red-oval placeholders; Payton is
  *      producing per-boat SVG artwork that will slot in here next.
+ *
+ * The water background colour (#3b5577) and the south-bank1.svg panorama
+ * live on the .mapWrapper div as CSS background layers, NOT in the SVG.
+ * This is necessary because the south bank needs CSS `background-position:
+ * bottom right` behaviour — anchored to the bottom-right corner at a fixed
+ * height so the visible portion expands as the viewport widens (desktop)
+ * and contracts to nearly nothing on mobile. That kind of responsive
+ * positioning is impossible inside SVG coordinate space where everything
+ * scales proportionally with the viewBox.
  *
  * The wrapper is `width: 100%` with no max-width, so the SVG fills
  * whatever space the page gives it; aspect-ratio is preserved by the
@@ -22,11 +30,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BOATS, type Boat } from "./boats";
 import styles from "./harbour-map.module.css";
 
-// Brand palette — colours used by the boat layer only.
-// Shore/pier/landmark colours are no longer needed here — those layers
-// are provided by Payton's SVG artwork referenced via <image> below.
+// Brand palette — boat layer only.
+// Water colour lives in harbour-map.module.css (.mapWrapper background-color)
+// so it can coexist with the south-bank CSS background-image layer.
 const COLOURS = {
-  water: "#3b5577",         // mid blue — the harbour basin (shows in horizon + centre)
   boat: "#cb7858",          // sienna for live boats
   boatComing: "#7a5147",    // muted redwood for coming-soon boats
   boatStroke: "#b15043",    // redwood outline on live boats
@@ -98,30 +105,19 @@ export function HarbourMap() {
         aria-label="harbour map — click a boat to open an app"
         className={styles.map}
       >
-        {/* ── layer 1: water ────────────────────────────────────── */}
-        {/* Solid fill for the harbour basin and open horizon above the
-            south bank. The SVG artwork layers below are transparent in
-            the water areas so this colour shows through. */}
-        <rect x="0" y="0" width="1000" height="2000" fill={COLOURS.water} />
+        {/* ── layers 1–2: Payton's bank SVGs ──────────────────────
+            Water colour + south bank live on .mapWrapper (CSS) so they
+            can use `background-position: bottom right` anchoring.
 
-        {/* ── layers 2–4: Payton's SVG landscape ───────────────── */}
-        {/*
-          Three Illustrator-exported SVG files composited as <image>
-          elements. Dimensions are computed from each file's natural
-          viewBox aspect ratio so there is no letterboxing.
+            Left-Bank  (394.4 × 2987.93): height = 78% of 2000 = 1560 units
+                                           width  = 1560 × (394.4 / 2987.93) ≈ 206
+            Right-bank (514.18 × 3207.57): same height 1560
+                                            width  = 1560 × (514.18 / 3207.57) ≈ 250
+                                            x      = 1000 − 250 = 750
 
-          Left-Bank  (394.4 × 2987.93): height = 78 % of 2000 = 1560 units
-                                         width  = 1560 × (394.4 / 2987.93) ≈ 206
-          Right-bank (514.18 × 3207.57): same height 1560
-                                          width  = 1560 × (514.18 / 3207.57) ≈ 250
-                                          x      = 1000 − 250 = 750
-          south-bank1 (6707.48 × 1088.72): width = 1000 (full-bleed)
-                                             height = 1000 / 6.162 ≈ 162
-                                             y      = 2000 − 162 = 1838
-
-          When Payton adds per-boat SVGs, swap the placeholder ellipses
-          in <g data-boats> for <image> elements anchored at each boat's
-          existing cx / cy. The coordinate data in boats.ts stays the same.
+            When Payton adds per-boat SVGs, swap the placeholder ellipses
+            in <g data-boats> for <image> elements anchored at each boat's
+            existing cx / cy. boats.ts coordinate data stays the same.
         */}
         <image
           href="/harbour-preview/Left-Bank.svg"
@@ -132,11 +128,6 @@ export function HarbourMap() {
           href="/harbour-preview/Right-bank.svg"
           x="750" y="0" width="250" height="1560"
           preserveAspectRatio="xMaxYMin meet"
-        />
-        <image
-          href="/harbour-preview/south-bank1.svg"
-          x="0" y="1838" width="1000" height="162"
-          preserveAspectRatio="xMidYMax meet"
         />
 
         {/* ── layer 5: boats (the interactive layer) ─────────────── */}
