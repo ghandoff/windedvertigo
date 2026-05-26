@@ -5,52 +5,60 @@
 >
 > history and per-session notes live in sibling files in this directory. the archive of everything pre-split is `_archive-pre-split-2026-05-19.md`.
 
-**last synced:** 2026-05-22 21:08 pt (context-sync autonomous run)
+**last synced:** 2026-05-25 21:05 pt (context-sync autonomous run)
 
-**where we are right now:** t-6 days to the may 28 prime+ / harbour launch. nordic platform was the dominant engineering surface in the last 24 hours — 11 commits landed on main covering Part 7 living-view inline editing, Part 8 delete-request system + canonical claim overrides, ingredient auto-create, a role-aware command center dashboard, and welcome-redirect fixes. the kinloch technical audit kickoff happened today at 2:30pm pt (rescheduled from noon). proposal pipeline is quiet today — the 3 local-only files on main from yesterday's gdocs→notion revert remain uncommitted (now joined by port-jobs/src/index.ts and the modified ai/proposal-generator.ts), and main is even with origin/main (no longer 1 ahead). two new rejections came in this morning — ubongo (10-year impact RFP, auto-decline ~7 min after submission) and rmu asia-pacific (distilling lesson study). cash position unchanged from last sync (prme 2026 booked at $145k against the $500k target). tomorrow is a saturday — calendar is empty save the chase ink cc payment reminder.
+**where we are right now:** t-3 days to the thursday 28 may prime+ / harbour launch. memorial-day monday with the whirlpool cancelled, but engineering quietly shipped three nordic-feedback plumbing prs on main (#131, #132, #133) — feedback button now mounted on every nordic page, slack feedback routes via `chat.postMessage` to `#nordic-updates` with a webhook fallback, and `port/.env.example` rewritten to document the post-tidy unified-bot architecture (one general "winded.vertigo" notification bot, one "wv-claw" agent app). the big ops win of the day: garrett **submitted the concern icsp gce financial proposal to amy dignam at 06:10 pdt** and amy confirmed receipt 08:50 pdt — yesterday's "address the insurance-line comment and decide submission" thread is now closed; we're in await-review. on the working tree (`chore/wv-slack-env-example-tidy`, no upstream): two unmerged changes worth knowing about — `port/app/components/nav-config.ts` adds new `/council` and `/designs` nav items, and `port/lib/agent/audit.ts` is mid-w0.1 upgrade adding supabase as the primary audit sink (notion drops to legacy safety net + cost-economics columns: input/output tokens, cost usd, model id, cache reads). cash unchanged from prior sync (prme 2026 booked at $145k against the $500k target). tomorrow returns to the full tuesday cadence — 7am site check, 9am lamis 1:1, 10am randall, 11am maria part i, 12pm prme — so the harbour launch-week clock effectively starts at tomorrow's 7am.
 
 ### open threads
 
 | project | last action | next action | link |
 |---|---|---|---|
-| prime+ launch (may 28) | t-6 days; no engineering merges directly on prime+ in last 24h | wed 27 may whirlpool: 15-min per-app review block; ship co-rubric-companion polish remaining items | [TASKS.md whirlpool 2026-05-18](../../TASKS.md) |
-| nordic platform — sharon follow-up wave | parts 7 + 8 shipped today (`444a1d2`, `a6002bf`), command center + ingredients + welcome-redirect fixes all merged | verify role-extraction accuracy + delete-request flow in prod; confirm magic-link path for non-team users | apps/nordic-sqr-rct |
-| proposal pipeline output route | reverted gdocs → notion (`bedb0a2`, 21 may); gdocs per-org subfolders still landed (`f81041e`) | lock direction; commit-or-stash the 5 modified files locally (`port-jobs/src/index.ts`, `port/lib/ai/client.ts`, `port/lib/ai/proposal-generator.ts`, `port/lib/notion/client.ts`, plus this file) | _local working tree_ |
-| kinloch technical audit | kickoff completed today 2:30pm pt (slot moved from noon) | capture his scope decision + agenda outputs into a session handoff file; queue follow-up actions for engineering | calendar event `e14a9fbcbf7f` |
-| ubongo 10-year impact rfp | proposal sent 22 may 06:49 utc; auto-decline arrived 7 minutes later | post-mortem: was it a hard auto-filter, missing eligibility field, or human review? log learnings for the question-bank | gmail thread `19e4e6de36caf459` |
-| rmu asia-pacific (distilling lesson study) | rejection received this morning re: 4 may submission | graceful close-out reply; tag opportunity as lost in pipeline | gmail thread `19df4c14823e9f83` |
-| attio crm trial | 60-day inactivity notice today — workspace deletion imminent | decide keep-or-cancel; if cancelling, export any retained contacts before deletion | gmail thread `19e526183d2f0039` |
-| stale draft prs sweep | unchanged since 21 may sync | ship / close / revive: #89 (rubric-co-builder proxy, now 7d), #60 (/api/version, 9d), #52 (wv-pr-pager, 9d), #44 (payton's first-commit, 11d) | github pr queue |
+| prime+ / harbour launch (thu 28 may) | monday whirlpool absorbed into wednesday; weekend playtest brief still pinned in #whirlpool with the six prime+ app links | wednesday 27 may whirlpool agenda is now live in notion (`36be4ee74ba481adb1fac616e2a6dc30`) — confirm it includes the 15-min per-app review block; finalise harbour map artwork with `@fruit` + payton ahead of thursday | [whirlpool agenda 2026-05-27](https://www.notion.so/36be4ee74ba481adb1fac616e2a6dc30) |
+| concern icsp gce financial proposal | _submitted today 06:10 pdt to amy.dignam@concern.net (jamie cc'd); receipt acknowledged 08:50 pdt_ | passive — track for response window; nothing required of garrett until concern's review team replies | [gmail thread `19e5e53ff72b6ee7`](https://mail.google.com/mail/u/0/#inbox/19e5e53ff72b6ee7) |
+| nordic feedback plumbing (shipped today) | prs #131 (mount feedbackbutton globally), #132 (bot-token routing to `#nordic-updates`), #133 (`.env.example` rewrite) all merged to main on `wv-port` | invite the `winded.vertigo` bot into `#nordic-updates` (currently only garrett is in there) so `chat.postMessage` succeeds — until then feedback falls through to the legacy webhook in `#harbour-feedback` | apps/nordic-sqr-rct |
+| port agent audit — supabase primary (w0.1) | uncommitted on `chore/wv-slack-env-example-tidy`: `port/lib/agent/audit.ts` now writes to supabase first, notion second; adds input/output token + cost-usd + model-id + cache-token columns to `agentaction` | commit and open a pr; plan a ~1-week parallel-write trial before retiring the notion sink | port/lib/agent/audit.ts |
+| port nav — `/council` + `/designs` | uncommitted on same branch: two new nav items added under the "build" section in `nav-config.ts` (icons `MessagesSquare` + `FileText`) | confirm the matching routes exist (or are landing imminently); decide whether these ship with the audit pr or get their own | port/app/components/nav-config.ts |
+| nordic platform — postgres cutover verify | yesterday's queued retire-the-stale-notion-webhook + weekend smoke checklist still open; no new commits today touched the cutover surface itself | retire (or formally orphan) the notion → `nordic.windedvertigo.com/api/webhooks/notion/page-updated` endpoint; finish the weekend prod-smoke pass (roles, pcs labels, applicability, metrics, label-intake-queue, pcs-pdf-import rollback, canonical-claim matcher, avg-sqr score division) | apps/nordic-sqr-rct |
+| august kinloch technical audit | no new movement today; rsvp acceptance landed yesterday, scope still pending from august's side | drop the long-overdue `2026-05-22-cowork-kinloch-kickoff.md` handoff file with scope decision + agenda outputs; chase august for written scope this week | _pending_ |
+| stale draft prs sweep | unchanged again; payton's #44 now ~15 days old | ship / close / revive: #89 (rubric-co-builder proxy, ~12d), #60 (/api/version, ~14d), #52 (wv-pr-pager, ~14d), #44 (payton's first-commit, ~15d) | github pr queue |
 
 ### waiting on external
 
-- **august kinloch** — kickoff just landed; awaiting his written audit scope + go/no-go signal back.
-- **idb salvador / nadia nochez** — 28 days of silence since the 24 apr "comisión actualmente realizando" confirmation; follow-up draft (in maria's voice, spanish) still unsent.
+- **concern (amy dignam)** — icsp gce gse-stream proposal submitted 25 may 06:10 pdt; receipt confirmed; review team window opens now.
+- **august kinloch** — kickoff done; still awaiting his written audit scope + go/no-go.
+- **idb salvador / nadia nochez** — ~31 days of silence since the 24 apr "comisión actualmente realizando" confirmation; spanish follow-up draft (maria's voice) still sits in gmail unsent.
 - **collective members (aet, eco966, solihull, nsit)** — idb project references still outstanding.
-- **amna at 10 (jonelle + walaa)** — submitted 26 mar; ~57 days, no response.
+- **amna at 10 (jonelle + walaa)** — submitted 26 mar; ~60 days, no response.
 - **sesame workshop close-out** — pass received 31 mar; graceful reply still undrafted.
 - **paul ramchandani (pedal conference)** — sent over the holiday, no response yet.
-- **kristin miller (smartersupplyworld)** — inbound cold outreach today re: "4–8 new contracts in 90 days"; awaiting garrett triage (probably ignore, but worth a glance).
+- **attio crm trial** — 60-day inactivity / workspace-deletion window still ticking; keep-or-cancel decision before contacts vanish.
+- **straight talk cpas (aakib qureshi)** — taxdome reminder fired today; unread chat awaiting garrett's reply.
 
 ### environment handoffs
 
 **cowork → claude code (engineering queued up):**
 
-- decide proposal-output direction (notion vs gdocs) and lock it in — pipeline has flip-flopped twice in the last 48 hours; the 5 modified files in the local working tree are blocking on this decision.
-- commit-or-stash the locally-modified files on main: `port-jobs/src/index.ts`, `port/lib/ai/client.ts`, `port/lib/ai/proposal-generator.ts`, `port/lib/notion/client.ts`, plus this handoff file.
-- stale draft prs sweep still queued — #89/#60/#52/#44; payton's #44 now at 11 days.
-- nordic Part 7 + Part 8 verification in production: living-view inline edits round-trip cleanly, delete-request system fires correct events, canonical-claim overrides behave for tier-1 admins.
+- commit the working-tree changes on `chore/wv-slack-env-example-tidy` — `audit.ts` supabase primary + `nav-config.ts` `/council` + `/designs` additions — and open a pr (likely two prs given they're independent concerns).
+- invite the `winded.vertigo` bot into `#nordic-updates` so #132's `chat.postMessage` path actually succeeds; until then the three-tier fallback lands feedback in `#harbour-feedback` rather than nordic's own channel.
+- retire (or formally document as orphaned) the notion → `nordic.windedvertigo.com/api/webhooks/notion/page-updated` webhook now that nordic is fully postgres; notion's still auto-pausing it.
+- weekend smoke on nordic still open — roles, pcs labels/comments, applicability, metrics/revisions, label-intake-queue, pcs-pdf-import rollback, canonical-claim matcher, avg-sqr score division (which moved from /answer-count to /review-count in `b5038cd`).
+- confirm the proposal pipeline fix end-to-end now that icsp gce has been submitted via the new path — supabase status flips cleanly off `generating`, dlq resets both stores.
+- act on the 9 high vulns flagged in this morning's weekly dep review — `next@16.2.6` + `workflow@4.2.5` on nordic-sqr-rct are the critical bumps.
+- stale draft prs sweep still queued — #89/#60/#52/#44; payton's #44 now ~15 days.
+- populate the new deals columns (`revenue_tier`, `received_amount`, `contracted_amount`) so the strategyhero bar reads accurate numbers against the $145k / $500k target.
 
 **claude code → cowork (ops queued up):**
 
-- write up the kinloch kickoff into a `2026-05-22-cowork-kinloch-kickoff.md` handoff file — scope decisions, next-step actions, garrett's read on whether to proceed.
-- ubongo auto-decline post-mortem: pull the form submission record, compare against what they accepted historically, decide if it's a process problem or a fit problem.
-- attio trial decision — flip keep-or-cancel before the 60-day workspace deletion fires; if cancelling, ensure no live contacts depend on it.
-- rmu asia-pacific graceful close-out reply (similar template to sesame when that goes out).
-- idb salvador follow-up — draft still sits in gmail; needs garrett to forward to maria or send from his account.
-- verify payton's may 13 "learning to fly" substack post — was it ever published? cross off or escalate.
-- confirm wednesday whirlpool agenda includes the 15-min prime+ app review block per the may 18 action item.
+- write up the kinloch kickoff into `2026-05-22-cowork-kinloch-kickoff.md` — still missing from the handoff dir four days later.
+- review the substack outline garrett dm'd himself overnight (`we're doing it again`, 2,000-word draft built from the may 11–20 whirlpool transcripts); decide whether jamie picks it up or it joins the substack split queue.
+- ubongo auto-decline post-mortem still outstanding; pull the form submission record and decide process vs fit.
+- rmu asia-pacific graceful close-out reply (same template family as sesame, when that one finally goes out).
+- attio trial decision — flip keep-or-cancel before workspace deletion; export retained contacts first if cancelling.
+- idb salvador follow-up — draft still sits in gmail; forward to maria or send.
+- respond to the taxdome unread chat from aakib qureshi (likely 401k / year-end coordination).
+- confirm wednesday's whirlpool agenda (notion `36be4ee7…`) includes the 15-min per-prime-app review block; if it doesn't, add it.
 
 ### mobile bookmarks
 
-_no slack self-DMs from u06q4un4pkr in the last 24 hours._
+- **weekly dependency review — 2026-05-25** (self-dm 06:16 pdt): 9 high vulns in `nordic-sqr-rct`, safe-tier bumps `next@16.2.6` + `workflow@4.2.5`; `@opennextjs/cloudflare` 1.19.4→1.19.11 across 19 harbour-apps cf workers; `@anthropic-ai/sdk` 3-way drift in harbour-apps to standardise before 1.0; stripe 17→22 + neon 0.10→1.x still pending; typescript 5→6 + wrangler 3.x lingering. [full report](https://claude.ai/code/scheduled/trig_01FBGX39dkqQ8M8Gqeyri168).
+- **substack outline — "we're doing it again"** (self-dm 00:30 pdt, 6-reply thread): 2,000-word working outline built from the may 11–20 whirlpool transcripts; richest source material is the 18 may garrett↔jamie exchange (~02:03:45) on shallow vs deep ai use + the "criticism of hypocrisy" line. caveat: windedvertigo.com fetch was blocked, voice was proxied off `depth.chart` + the prme + ai-enhanced design docs. needs garrett to decide whether jamie picks it up or it shelves until post-launch.
