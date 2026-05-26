@@ -3,45 +3,34 @@
 /**
  * harbour-preview map — the SVG portrait.
  *
- * One inline <svg> renders six layers (water → shorelines → piers →
- * landmarks → boats → labels) inside a 1000×2000 viewBox. The wrapper
- * is `width: 100%` with no max-width, so the SVG fills whatever space
- * the page gives it; aspect-ratio is preserved by the viewBox, so on a
- * 1440px desktop the rendered height is ~2880px and the user scrolls
- * down through the harbour from horizon → family-play pier.
+ * One inline <svg> with three layers inside a 1000×2000 viewBox:
+ *   1. water <rect> — #3b5577 blue for the open harbour basin
+ *   2. landscape <image> elements — Left-Bank, Right-bank, south-bank1
+ *      SVGs produced by Payton, served from /public/harbour-preview/
+ *   3. boats <g> — eight interactive red-oval placeholders; Payton is
+ *      producing per-boat SVG artwork that will slot in here next.
  *
- * Why inline SVG instead of <img src="harbour.svg"> + absolutely
- * positioned hit-targets: per-element click + ARIA + focus, no
- * overlay-DOM gymnastics, and the swap-in path for Fruit's real
- * background is just to drop in a single <image> underlay (TODO comment
- * below marks where).
+ * The wrapper is `width: 100%` with no max-width, so the SVG fills
+ * whatever space the page gives it; aspect-ratio is preserved by the
+ * viewBox, so on a 1440px desktop the rendered height is ~2880px and
+ * the user scrolls down through the harbour from horizon to south shore.
  *
- * Boat data lives in ./boats.ts — that's where Maria/Payton/Garrett
- * will nudge positions during review. Don't hand-position in this file.
+ * Boat data lives in ./boats.ts — nudge cx/cy positions there, not here.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BOATS, LANDMARKS, PIERS, type Boat } from "./boats";
+import { BOATS, type Boat } from "./boats";
 import styles from "./harbour-map.module.css";
 
-// Brand palette — also defined in site/styles/tokens.css; duplicated as
-// constants here so the SVG fills are self-contained (CSS vars on an
-// SVG <fill> attribute don't always evaluate at the right time on
-// hydration).
+// Brand palette — colours used by the boat layer only.
+// Shore/pier/landmark colours are no longer needed here — those layers
+// are provided by Payton's SVG artwork referenced via <image> below.
 const COLOURS = {
-  water: "#3b5577",         // mid blue — the harbour basin
-  waterShallow: "#4d6a8c",  // slightly lighter — fades into shoreline
-  shore: "#5b8466",         // sage-green land
-  shoreEdge: "#4a6e54",     // darker outline for the shoreline
-  pier: "#9a7050",          // warm brown — pier decks
-  pierEdge: "#6e4f3a",      // darker outline for piers
+  water: "#3b5577",         // mid blue — the harbour basin (shows in horizon + centre)
   boat: "#cb7858",          // sienna for live boats
   boatComing: "#7a5147",    // muted redwood for coming-soon boats
   boatStroke: "#b15043",    // redwood outline on live boats
-  landmark: "#ffffff",      // white for landmark fills
-  landmarkStroke: "#b15043", // redwood outline
   text: "#ffffff",          // labels on dark fills
-  textOnLight: "#273248",   // labels on white/sand fills
 } as const;
 
 interface TooltipState {
@@ -106,146 +95,49 @@ export function HarbourMap() {
         viewBox="0 0 1000 2000"
         preserveAspectRatio="xMidYMid meet"
         role="img"
-        aria-label="harbour map — placeholder; click a boat to open an app"
+        aria-label="harbour map — click a boat to open an app"
         className={styles.map}
       >
-        {/*
-          TODO(Fruit): when the real background SVG ships, replace the
-          rect/polygon/pier/landmark layers below with a single
-          <image href="/harbour-preview/harbour-bg.svg" width="1000" height="2000" />
-          and keep the boats group (`<g data-boats>`) at the bottom of
-          the SVG so they paint on top.
-        */}
-
         {/* ── layer 1: water ────────────────────────────────────── */}
+        {/* Solid fill for the harbour basin and open horizon above the
+            south bank. The SVG artwork layers below are transparent in
+            the water areas so this colour shows through. */}
         <rect x="0" y="0" width="1000" height="2000" fill={COLOURS.water} />
 
-        {/* ── layer 2: shorelines (L + R) as polygons ───────────── */}
-        {/* These polygons frame the central water column and narrow
-            toward the bottom, mirroring the mockup. Each polygon walks
-            the visible edge of the green land in clockwise order. */}
-        <polygon
-          fill={COLOURS.shore}
-          stroke={COLOURS.shoreEdge}
-          strokeWidth="3"
-          points="
-            0,640
-            120,720
-            140,900
-            100,1100
-            150,1380
-            120,1640
-            0,1800
-            0,2000
-            0,2000
-            0,640
-          "
+        {/* ── layers 2–4: Payton's SVG landscape ───────────────── */}
+        {/*
+          Three Illustrator-exported SVG files composited as <image>
+          elements. Dimensions are computed from each file's natural
+          viewBox aspect ratio so there is no letterboxing.
+
+          Left-Bank  (394.4 × 2987.93): height = 78 % of 2000 = 1560 units
+                                         width  = 1560 × (394.4 / 2987.93) ≈ 206
+          Right-bank (514.18 × 3207.57): same height 1560
+                                          width  = 1560 × (514.18 / 3207.57) ≈ 250
+                                          x      = 1000 − 250 = 750
+          south-bank1 (6707.48 × 1088.72): width = 1000 (full-bleed)
+                                             height = 1000 / 6.162 ≈ 162
+                                             y      = 2000 − 162 = 1838
+
+          When Payton adds per-boat SVGs, swap the placeholder ellipses
+          in <g data-boats> for <image> elements anchored at each boat's
+          existing cx / cy. The coordinate data in boats.ts stays the same.
+        */}
+        <image
+          href="/harbour-preview/Left-Bank.svg"
+          x="0" y="0" width="206" height="1560"
+          preserveAspectRatio="xMinYMin meet"
         />
-        <polygon
-          fill={COLOURS.shore}
-          stroke={COLOURS.shoreEdge}
-          strokeWidth="3"
-          points="
-            1000,520
-            850,580
-            830,800
-            900,990
-            960,1180
-            870,1380
-            830,1620
-            900,1820
-            1000,1820
-            1000,2000
-            1000,520
-          "
+        <image
+          href="/harbour-preview/Right-bank.svg"
+          x="750" y="0" width="250" height="1560"
+          preserveAspectRatio="xMaxYMin meet"
         />
-
-        {/* ── layer 3: piers (brown rects with labels) ──────────── */}
-        <g data-piers>
-          {PIERS.map((p) => (
-            <g key={p.id}>
-              <rect
-                x={p.x}
-                y={p.y}
-                width={p.width}
-                height={p.height}
-                rx="6"
-                fill={COLOURS.pier}
-                stroke={COLOURS.pierEdge}
-                strokeWidth="3"
-              />
-              <text
-                x={p.x + p.width / 2}
-                y={p.y + p.height / 2 + 8}
-                fontSize="22"
-                fontWeight="700"
-                fill={COLOURS.textOnLight}
-                textAnchor="middle"
-                fontFamily="Inter, system-ui, sans-serif"
-              >
-                {p.label}
-              </text>
-            </g>
-          ))}
-        </g>
-
-        {/* ── layer 4: landmarks (white shapes with labels) ────── */}
-        <g data-landmarks>
-          {LANDMARKS.map((lm) => {
-            const labelY = lm.cy + (lm.shape === "rect" ? (lm.heightOverride ?? lm.size * 2) / 2 + 30 : lm.size + 30);
-            const shapeEl =
-              lm.shape === "circle" ? (
-                <circle
-                  cx={lm.cx}
-                  cy={lm.cy}
-                  r={lm.size}
-                  fill={COLOURS.landmark}
-                  stroke={COLOURS.landmarkStroke}
-                  strokeWidth="3"
-                />
-              ) : (
-                <rect
-                  x={lm.cx - lm.size}
-                  y={lm.cy - (lm.heightOverride ?? lm.size * 2) / 2}
-                  width={lm.size * 2}
-                  height={lm.heightOverride ?? lm.size * 2}
-                  rx="4"
-                  fill={COLOURS.landmark}
-                  stroke={COLOURS.landmarkStroke}
-                  strokeWidth="3"
-                />
-              );
-
-            // If href ever gets set, wrap in <a> so the landmark becomes
-            // a real link. Today they're all decorative.
-            const inner = (
-              <>
-                {shapeEl}
-                <text
-                  x={lm.cx}
-                  y={labelY}
-                  fontSize="20"
-                  fontWeight="700"
-                  fill={COLOURS.landmarkStroke}
-                  textAnchor="middle"
-                  fontFamily="Inter, system-ui, sans-serif"
-                >
-                  {lm.label}
-                </text>
-              </>
-            );
-
-            return lm.href ? (
-              <a key={lm.id} href={lm.href}>
-                {inner}
-              </a>
-            ) : (
-              <g key={lm.id} aria-hidden="true">
-                {inner}
-              </g>
-            );
-          })}
-        </g>
+        <image
+          href="/harbour-preview/south-bank1.svg"
+          x="0" y="1838" width="1000" height="162"
+          preserveAspectRatio="xMidYMax meet"
+        />
 
         {/* ── layer 5: boats (the interactive layer) ─────────────── */}
         <g data-boats>
