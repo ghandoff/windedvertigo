@@ -30,13 +30,17 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Cocoa palette: re-bind the legacy token names. Component code that
-   reads var(--color-cadet) now sees cocoa; var(--color-champagne) now
-   sees cream; var(--color-wv-white) stays white. Sienna stays the
-   same hex but takes on a new semantic role (accent / button bg). */
+/* Cocoa palette: re-bind the legacy token names.
+   PR #152 flip: --color-cadet is used as the TEXT color across the
+   component code (~80 of its 110 references), so rebinding it to cocoa
+   made all text render cocoa-on-cocoa = invisible. The correct mapping
+   is the opposite: cadet (was dark TEXT) → cream (light text on cocoa
+   bg); champagne (was light BG) → cocoa (dark bg). The handful of
+   places that used cadet as a surface color (skip-link, progress-tab
+   fill) degrade to cream-as-surface, which is acceptable for v1. */
 :root[data-palette="cocoa"] {
-  --color-cadet: var(--cr-ground);
-  --color-champagne: var(--cr-text);
+  --color-cadet: var(--cr-text);     /* dark text → cream text on cocoa */
+  --color-champagne: var(--cr-ground); /* light bg → cocoa bg */
 }
 
 @layer base {
@@ -194,6 +198,25 @@
 [data-palette="cocoa"] .surface-pledge {
   background: transparent !important;
   color: var(--cr-text) !important;
+}
+
+/* White card / input surfaces (criterion cards, form inputs, the final
+   rubric table on commit step). Component code inside these uses inline
+   `style="color: var(--color-cadet)"` which under cocoa would resolve
+   to cream — invisible against the white card bg. Force cocoa text on
+   any descendant of a white-bg surface so cards stay legible. Buttons
+   inside these surfaces are targeted by the more-specific
+   `.btn-primary` / `.btn-secondary` selectors above, so they retain
+   their cream-on-terracotta treatment. PR #152. */
+[data-palette="cocoa"] .bg-white,
+[data-palette="cocoa"] .bg-white * {
+  color: var(--cr-card-text) !important;
+}
+[data-palette="cocoa"] .bg-white .btn-primary,
+[data-palette="cocoa"] .bg-white .btn-primary *,
+[data-palette="cocoa"] .bg-white .btn-secondary,
+[data-palette="cocoa"] .bg-white .btn-secondary * {
+  color: var(--cr-btn-text) !important;
 }
 
 /* print stylesheet: hides navigation + rebuilds the rubric as a single,
