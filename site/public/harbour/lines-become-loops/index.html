@@ -130,8 +130,7 @@ body {
 .landing-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 24px;
 }
@@ -168,8 +167,7 @@ body {
 .skill-chip {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 6px 14px;
   border: 1px solid var(--rule-dark);
   color: var(--cadet);
@@ -183,8 +181,7 @@ body {
 .landing-how-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 16px;
   text-align: center;
@@ -240,8 +237,7 @@ body {
 .landing-footer {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-top: 48px;
 }
@@ -255,8 +251,7 @@ body {
 .scenarios-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   text-align: center;
   margin-bottom: 8px;
@@ -273,6 +268,10 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
+}
+@media (min-width: 1024px) {
+  .scenarios { max-width: 1200px; }
+  .scenario-grid { grid-template-columns: repeat(4, 1fr); }
 }
 .scenario-card {
   background: #fff;
@@ -292,8 +291,7 @@ body {
 .scenario-number {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   margin-bottom: 8px;
 }
@@ -326,8 +324,7 @@ body {
 .scenario-chip {
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 2px 6px;
   background: rgba(203, 120, 88, 0.12);
   color: var(--sienna);
@@ -354,8 +351,7 @@ body {
 .scenario-badge {
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   font-style: italic;
 }
@@ -432,8 +428,7 @@ body {
 .session-join-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   display: block;
   margin-bottom: 6px;
@@ -491,33 +486,41 @@ body {
 }
 .facilitator-link:hover { color: var(--sienna); text-decoration: underline; }
 .facilitator-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
-</style>
 
-  <!-- opengraph / twitter — added for may 28 prme launch -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://windedvertigo.com/harbour/lines-become-loops" />
-  <meta property="og:title" content="lines become loops — a systems-thinking simulator" />
-  <meta property="og:description" content="a single-session sim where small changes ripple into a system — for facilitators, classrooms, and anyone learning to see loops instead of lines." />
-  <meta property="og:image" content="https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/lines-become-loops.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="720" />
-  <meta property="og:site_name" content="winded.vertigo · harbour" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="lines become loops — a systems-thinking simulator" />
-  <meta name="twitter:description" content="a single-session sim where small changes ripple into a system — for facilitators, classrooms, and anyone learning to see loops instead of lines." />
-  <meta name="twitter:image" content="https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/lines-become-loops.png" />
-  <link rel="canonical" href="https://windedvertigo.com/harbour/lines-become-loops" />
+/* ── theme v2: mint + icy aqua palette (activate with ?v=2) ── */
+body.theme-v2 {
+  --soft-card:  #FFFFFF;
+  --champagne:  #FFFFFF;
+  --sienna:     #58CBB2;
+  --redwood:    #D2FDFF;
+  --rule:       rgba(255,255,255,0.22);
+  --rule-dark:  rgba(255,255,255,0.08);
+  --on-dark:    #FFFFFF;
+  --on-dark-muted: rgba(255,255,255,0.7);
+  --muted:      rgba(255,255,255,0.5);
+  --lbl-lead:   #58CBB2;
+  --lbl-soft:   #D2FDFF;
+}
+body.theme-v2 .btn { background: var(--lbl-lead); color: #273248; border-radius: 8px; }
+body.theme-v2 .btn:hover { background: var(--lbl-soft); opacity: 1; }
+body.theme-v2 .skill-chip { background: rgba(210,253,255,0.15); color: var(--lbl-soft); border-radius: 6px; }
+body.theme-v2 .scenario-chip { background: rgba(88,203,178,0.12); color: var(--lbl-lead); border-radius: 4px; }
+body.theme-v2 .scenario-card { border-radius: 8px; }
+body.theme-v2 .scenario-link { background: var(--lbl-lead); color: #273248; border-radius: 6px; }
+body.theme-v2 .scenario-link:hover { background: var(--lbl-soft); opacity: 1; }
+</style>
 </head>
 <body>
+<script>(function(){if(new URLSearchParams(location.search).get('v')==='2')document.body.classList.add('theme-v2');})()</script>
 
 <!-- wordmark -->
 <header class="page-header" role="banner">
   <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
   <nav class="scenario-picker" aria-label="switch scenario">
-    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=churn">saas churn</a>
-    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=burnout">team burnout</a>
-    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=sleep">sleep debt</a>
-    <a class="scenario-tab" href="/harbour/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
   </nav>
 </header>
 
@@ -530,7 +533,7 @@ body {
     <div class="landing-body">
       four scenarios. four stocks. three leverage tiers.<br><br>
       each scenario gives you a system with a mandate and three decisions. some change parameters. some change rules. some change the goal itself.<br><br>
-      your job is not to find the right answer. it is to notice which kind of decision bends the system — and why.
+      your job is not to find the right answer. it is to notice which kind of decision bends the system, and why.
     </div>
     <div class="landing-skills">
       <span class="skill-chip">systems dynamics</span>
@@ -546,7 +549,7 @@ body {
         <li>read the mandate. understand what the system is doing.</li>
         <li>read each intervention. expand the detail. discuss.</li>
         <li>run an intervention. watch the trajectory.</li>
-        <li>after each run, read the "why" — it names the leverage tier.</li>
+        <li>after each run, read the "why": it names the leverage tier.</li>
         <li>after all three, look for the pattern across interventions.</li>
       </ol>
     </div>
@@ -560,7 +563,7 @@ body {
         </div>
         <div class="session-join-error" id="join-error" role="alert"></div>
       </div>
-      <a class="facilitator-link" href="/harbour/lines-become-loops/facilitator.html">facilitator dashboard &rarr;</a>
+      <a class="facilitator-link" href="/portfolio/assets/lines-become-loops/facilitator.html">facilitator dashboard &rarr;</a>
     </div>
     <div class="landing-footer">w.v × prme · ppcs 2026</div>
   </div>
@@ -583,7 +586,7 @@ body {
             <span class="scenario-chip">higher ed</span>
             <span class="scenario-chip">emissions</span>
           </div>
-          <a class="scenario-link" href="/harbour/lines-become-loops/lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
         </div>
       </div>
       <!-- 1. SaaS Churn -->
@@ -596,7 +599,7 @@ body {
             <span class="scenario-chip">business</span>
             <span class="scenario-chip">retention</span>
           </div>
-          <a class="scenario-link" href="/harbour/lines-become-loops/simulator.html?s=churn" aria-label="play saas churn scenario">play</a>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=churn" aria-label="play saas churn scenario">play</a>
         </div>
       </div>
       <!-- 2. Team Burnout -->
@@ -609,7 +612,7 @@ body {
             <span class="scenario-chip">business</span>
             <span class="scenario-chip">wellbeing</span>
           </div>
-          <a class="scenario-link" href="/harbour/lines-become-loops/simulator.html?s=burnout" aria-label="play team burnout scenario">play</a>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=burnout" aria-label="play team burnout scenario">play</a>
         </div>
       </div>
       <!-- 3. Sleep Debt -->
@@ -622,7 +625,7 @@ body {
             <span class="scenario-chip">personal</span>
             <span class="scenario-chip">wellbeing</span>
           </div>
-          <a class="scenario-link" href="/harbour/lines-become-loops/simulator.html?s=sleep" aria-label="play sleep debt scenario">play</a>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=sleep" aria-label="play sleep debt scenario">play</a>
         </div>
       </div>
     </div>
@@ -656,7 +659,7 @@ document.getElementById('btn-join-session').addEventListener('click', async () =
   const btn = document.getElementById('btn-join-session');
   btn.disabled = true;
   try {
-    const res = await fetch('/portfolio/assets/lines-become-loops/api/session/join', {
+    const res = await fetch('/api/session/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
@@ -684,6 +687,5 @@ document.getElementById('session-code-input').addEventListener('keydown', (e) =>
   if (e.key === 'Enter') document.getElementById('btn-join-session').click();
 });
 </script>
-    <script src="/feedback-widget.js" data-app-slug="lines-become-loops" defer></script>
-  </body>
+</body>
 </html>

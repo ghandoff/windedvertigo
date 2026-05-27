@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>systems thinking simulator</title>
+<title>lines become loops</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -42,24 +42,31 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
-body { min-height: 100vh; }
+body { min-height: 100vh; padding-top: 146px; }
+@media (max-width: 640px) { body { padding-top: 130px; } }
 
-.wordmark {
+.page-header {
   position: fixed;
-  top: 24px;
-  left: 24px;
+  top: 0; left: 0; right: 0;
   z-index: 100;
-  font-weight: 700;
-  font-size: 24px;
-  color: var(--on-dark);
-  letter-spacing: -0.01em;
-  user-select: none;
+  background: var(--cadet);
+  padding: 16px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
-.wordmark .dot { color: var(--sienna); }
+.wordmark { display: inline-block; line-height: 0; }
+.wordmark img { display: block; width: 160px; height: auto; }
+@media (max-width: 640px) {
+  .wordmark img { width: 120px; }
+}
 
 .screen {
   display: none;
-  min-height: 100vh;
+  min-height: calc(100vh - 146px);
+}
+@media (max-width: 640px) {
+  .screen { min-height: calc(100vh - 130px); }
 }
 .screen.active {
   display: flex;
@@ -76,8 +83,7 @@ body { min-height: 100vh; }
 .mandate-eyebrow {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 16px;
 }
@@ -98,16 +104,14 @@ body { min-height: 100vh; }
 .mandate-loop {
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--sienna);
   margin-bottom: 32px;
 }
 .mandate-footer {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-top: 32px;
 }
@@ -163,8 +167,11 @@ body { min-height: 100vh; }
 /* -- decisions -- */
 .screen-decisions {
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 146px);
   overflow: hidden;
+}
+@media (max-width: 640px) {
+  .screen-decisions { height: calc(100vh - 130px); }
 }
 .decisions-content {
   display: flex;
@@ -189,8 +196,7 @@ body { min-height: 100vh; }
 .card-stack-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 16px;
 }
@@ -291,8 +297,7 @@ body { min-height: 100vh; }
 .leverage-chip {
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 2px 8px;
   flex-shrink: 0;
   margin-left: 8px;
@@ -329,8 +334,7 @@ body { min-height: 100vh; }
 .card-detail dt {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   margin-top: 8px;
 }
@@ -452,8 +456,7 @@ body { min-height: 100vh; }
 .resource-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 6px;
 }
@@ -555,8 +558,7 @@ body { min-height: 100vh; }
   display: inline-block;
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   background: var(--cadet);
   color: var(--champagne);
   padding: 2px 8px;
@@ -596,14 +598,13 @@ body { min-height: 100vh; }
 }
 .commit-confirm-actions { display: flex; gap: 12px; justify-content: center; }
 
-/* -- scenario picker -- */
+/* -- scenario picker (lives inside .page-header) -- */
 .scenario-picker {
   display: flex;
   gap: 0;
   border-bottom: 1px solid var(--rule-dark);
+  margin: 0 -24px;
   padding: 0 24px;
-  background: var(--cadet);
-  flex-shrink: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -625,7 +626,8 @@ body { min-height: 100vh; }
   display: block;
 }
 .scenario-tab:hover { color: var(--on-dark); }
-.scenario-tab.active {
+.scenario-tab.active,
+.scenario-tab[aria-current="page"] {
   color: var(--on-dark);
   border-bottom-color: var(--sienna);
 }
@@ -680,8 +682,7 @@ body { min-height: 100vh; }
 .insight-eyebrow {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--sienna);
   margin-bottom: 8px;
 }
@@ -783,8 +784,7 @@ body { min-height: 100vh; }
 .handoff-footer {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-top: 24px;
 }
@@ -834,8 +834,7 @@ body { min-height: 100vh; }
 .secondary-label {
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.20em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   white-space: nowrap;
 }
@@ -973,8 +972,7 @@ body { min-height: 100vh; }
 .export-eyebrow {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--sienna);
   margin-bottom: 8px;
 }
@@ -998,8 +996,7 @@ body { min-height: 100vh; }
 .export-section-label {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   margin-bottom: 6px;
 }
@@ -1022,8 +1019,7 @@ body { min-height: 100vh; }
 .export-li-tier {
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 2px 6px;
   background: rgba(203, 120, 88, 0.15);
   color: var(--sienna);
@@ -1069,7 +1065,9 @@ body { min-height: 100vh; }
     color: #000 !important;
     height: auto !important;
     overflow: visible !important;
+    padding-top: 0 !important;
   }
+  .page-header { display: none !important; }
   body * { visibility: hidden !important; }
   #reflection-export, #reflection-export * { visibility: visible !important; }
   #reflection-export {
@@ -1140,6 +1138,7 @@ body { min-height: 100vh; }
   box-shadow: 0 1px 3px rgba(0,0,0,0.18);
   cursor: pointer;
   transition: transform 0.15s ease;
+  margin-top: -6px;
 }
 .dosage-slider::-webkit-slider-thumb:hover {
   transform: scale(1.15);
@@ -1187,8 +1186,7 @@ body { min-height: 100vh; }
 .mode-toggle-wrap .mode-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
 }
 .mode-toggle {
@@ -1346,8 +1344,7 @@ body { min-height: 100vh; }
   font-family: var(--font);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 8px 16px;
   border: none;
   border-bottom: 2px solid transparent;
@@ -1428,6 +1425,43 @@ body { min-height: 100vh; }
 }
 @media (prefers-reduced-motion: reduce) {
   .onboarding-hints { transition: none; }
+}
+
+/* slider hint — fades on first interaction */
+.slider-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--on-dark-muted);
+  margin-bottom: 6px;
+  transition: opacity 0.2s;
+}
+.slider-hint.dismissed { opacity: 0; pointer-events: none; }
+
+/* first-run overlay */
+.first-run-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(39, 50, 72, 0.6);
+  opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.first-run-overlay.visible { opacity: 1; pointer-events: all; }
+.first-run-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; font-size: 18px;
+  background: none; border: 1px solid var(--on-dark-muted);
+  color: var(--on-dark-muted); cursor: pointer; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+.first-run-label {
+  position: absolute; font-size: 12px; font-weight: 500;
+  color: var(--on-dark); background: rgba(39,50,72,0.85);
+  padding: 6px 10px; border-radius: 4px; max-width: 22ch; line-height: 1.4;
+}
+.first-run-label-left  { left: 24px;  top: 50%; transform: translateY(-50%); }
+.first-run-label-mid   { left: 50%;   top: 24px; transform: translateX(-50%); }
+.first-run-label-right { right: 24px; top: 50%; transform: translateY(-50%); }
+@media (prefers-reduced-motion: reduce) {
+  .first-run-overlay { transition: none; }
 }
 
 /* pattern screen legend — colour-coded labels for each trajectory */
@@ -1514,11 +1548,48 @@ body { min-height: 100vh; }
     min-height: 250px;
   }
 }
+
+/* ── theme v2: mint + icy aqua palette (activate with ?v=2) ── */
+body.theme-v2 {
+  --champagne:  #FFFFFF;
+  --sienna:     #58CBB2;
+  --redwood:    #D2FDFF;
+  --rule:       rgba(255,255,255,0.22);
+  --rule-dark:  rgba(255,255,255,0.08);
+  --on-dark:    #FFFFFF;
+  --on-dark-muted: rgba(255,255,255,0.7);
+  --muted:      rgba(255,255,255,0.5);
+  --lbl-lead:   #58CBB2;
+  --lbl-soft:   #D2FDFF;
+  --lbl-lead-glow: rgba(210,253,255,0.35);
+}
+body.theme-v2 .btn { background: var(--lbl-lead); color: #273248; border-radius: 8px; }
+body.theme-v2 .btn:hover { background: var(--lbl-soft); opacity: 1; }
+body.theme-v2 .btn-ghost { color: var(--lbl-lead); border-color: var(--lbl-lead); border-radius: 8px; }
+body.theme-v2 .leverage-chip { background: rgba(210,253,255,0.15); color: var(--lbl-soft); border-radius: 6px; }
+body.theme-v2 .chip-parameter { background: rgba(210,253,255,0.15); color: var(--lbl-soft); border-radius: 6px; }
+body.theme-v2 .chip-rules { background: rgba(88,203,178,0.15); color: var(--lbl-lead); border-radius: 6px; }
+body.theme-v2 .chip-goals { background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; }
+body.theme-v2 .intervention-card,
+body.theme-v2 .insight-block { border-radius: 8px; }
+body.theme-v2 .scenario-tab.active,
+body.theme-v2 .right-tab.active { color: var(--lbl-lead); border-bottom-color: var(--lbl-lead); }
+body.theme-v2 input[type=range]::-webkit-slider-runnable-track { background: var(--lbl-soft); }
+body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-lead); border-color: #fff; }
 </style>
 </head>
 <body>
+<script>(function(){if(new URLSearchParams(location.search).get('v')==='2')document.body.classList.add('theme-v2');})()</script>
 
-<div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<header class="page-header" role="banner">
+  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+  <nav class="scenario-picker" id="scenario-picker" aria-label="switch scenario">
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+  </nav>
+</header>
 <!-- teacher's guide link moved to facilitator dashboard -->
 
 <!-- screen 1: mandate -->
@@ -1546,7 +1617,6 @@ body { min-height: 100vh; }
 
 <!-- screen 3: decisions -->
 <div id="screen-decisions" class="screen screen-decisions" role="region" aria-label="intervention decisions">
-  <nav class="scenario-picker" id="scenario-picker" aria-label="switch scenario"></nav>
   <div class="decisions-content">
   <div class="decisions-left">
     <div class="explore-prompt" id="explore-prompt">
@@ -1554,7 +1624,7 @@ body { min-height: 100vh; }
       <div class="explore-sub">read all three. expand the details. when you're ready, click "this is my decision" on the one you think will move the stock the most. you won't see the data until you commit.</div>
     </div>
     <div class="hint-cards" id="hint-cards" style="display:none;">
-      now run each intervention to see what the system does over 25 years. start with your choice — then try the others.
+      now run each intervention to see what the system does over 25 years. start with your choice. then try the others.
     </div>
     <div id="mode-toggle-wrap" class="mode-toggle-wrap" style="display:none;">
       <span class="mode-label">mode</span>
@@ -1573,8 +1643,8 @@ body { min-height: 100vh; }
   </div>
   <div class="decisions-right">
     <div class="onboarding-hints" id="onboarding-hints" aria-live="polite" hidden>
-      <div class="onboarding-hint"><strong>charts</strong> — how each intervention bends the stock over 25 years. run a slider on the left to draw a line.</div>
-      <div class="onboarding-hint"><strong>systems map</strong> — how pressure ripples through the parts of the system. numbers are 0–100 pressure, not the slider units.</div>
+      <div class="onboarding-hint"><strong>charts:</strong> how each intervention bends the stock over 25 years. run a slider on the left to draw a line.</div>
+      <div class="onboarding-hint"><strong>systems map:</strong> how pressure ripples through the parts of the system. numbers are 0–100 pressure, not the slider units.</div>
     </div>
     <div class="right-tabs" role="tablist" aria-label="right panel view">
       <button class="right-tab active" id="tab-charts" role="tab" aria-selected="true" aria-controls="panel-charts">charts</button>
@@ -1610,7 +1680,7 @@ body { min-height: 100vh; }
     </div>
     <div class="right-panel right-panel-hidden" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
       <div class="systems-map-caption">
-        numbers inside each circle show that node's pressure on a 0–100 scale. they're separate from the slider units on the left — sliders set how much of an intervention you apply; circles show how that ripple reaches each part of the system.
+        numbers inside each circle show that node's pressure on a 0–100 scale. they're separate from the slider units on the left. sliders set how much of an intervention you apply; circles show how that ripple reaches each part of the system.
       </div>
       <div class="systems-map-wrap" id="systems-map-wrap"></div>
     </div>
@@ -1644,7 +1714,7 @@ body { min-height: 100vh; }
     </div>
     <div class="insight-block">
       <div class="insight-eyebrow">how to spot the pattern</div>
-      <div class="insight-body" id="insight-spot">parameter tweaks produce a dip, then a recovery — the system absorbs them. structural changes bend the curve permanently because they change which questions get asked.</div>
+      <div class="insight-body" id="insight-spot">parameter tweaks produce a dip, then a recovery, and the system absorbs them. structural changes bend the curve permanently because they change which questions get asked.</div>
     </div>
     <div class="insight-block">
       <div class="insight-eyebrow">which lever matters most</div>
@@ -1652,7 +1722,7 @@ body { min-height: 100vh; }
     </div>
   </div>
   <div class="calibration-note">
-    note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual outcomes. the relative ordering of interventions — not the absolute numbers — is the lesson.
+    note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual outcomes. the relative ordering of interventions (not the absolute numbers) is the lesson.
   </div>
 
   <section class="export-wrap" id="reflection-export" aria-label="take this with you">
@@ -1677,7 +1747,7 @@ body { min-height: 100vh; }
     </div>
 
     <div class="export-section">
-      <div class="export-section-label"><label for="shifted-textarea">one sentence — what shifted?</label></div>
+      <div class="export-section-label"><label for="shifted-textarea">one sentence: what shifted?</label></div>
       <textarea id="shifted-textarea" class="shifted-textarea" maxlength="280" rows="2" placeholder="what changed in how you saw the system?"></textarea>
     </div>
 
@@ -1714,7 +1784,7 @@ body { min-height: 100vh; }
   </div>
   <div class="handoff-links">
     <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
-    <a class="btn" href="/portfolio/assets/systems-thinking/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
+    <a class="btn" href="/portfolio/assets/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
   </div>
   <div class="handoff-footer">ppcs 2026 · session 1A · w.v × prme · simulator v1.0</div>
 </div>
@@ -1722,9 +1792,9 @@ body { min-height: 100vh; }
 <div class="commit-confirm" id="commit-confirm" role="dialog" aria-label="confirm your decision">
   <div class="commit-confirm-inner">
     <div class="commit-confirm-title" id="commit-confirm-title"></div>
-    <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention — starting with yours.</div>
+    <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention. starting with yours.</div>
     <div class="hypo-wrap">
-      <label class="hypo-label" for="hypo-textarea">one sentence — I chose this because I think the bottleneck is&hellip;</label>
+      <label class="hypo-label" for="hypo-textarea">one sentence: I chose this because I think the bottleneck is&hellip;</label>
       <textarea id="hypo-textarea" class="hypo-textarea" maxlength="240" rows="3" placeholder="e.g., price, trust, how we measure success, who gets to decide&hellip;" aria-describedby="hypo-counter"></textarea>
       <div class="hypo-meta">
         <span><span id="hypo-counter">0</span>&thinsp;/&thinsp;240</span>
@@ -1736,6 +1806,14 @@ body { min-height: 100vh; }
       <button class="btn btn-small" id="btn-commit-confirm" disabled>lock it in</button>
     </div>
   </div>
+</div>
+
+<!-- first-run overlay: shown once after first commit, dismissed via × -->
+<div id="first-run-overlay" class="first-run-overlay" role="dialog" aria-modal="true" aria-label="how to use this view" hidden>
+  <button class="first-run-close" id="first-run-close" aria-label="dismiss">&times;</button>
+  <div class="first-run-label first-run-label-left">interventions: pick one, then watch what the system does</div>
+  <div class="first-run-label first-run-label-mid">trajectory: what the stock does over 25 years</div>
+  <div class="first-run-label first-run-label-right">system map: pressure on each node, 0 to 100</div>
 </div>
 
 <script>
@@ -1884,28 +1962,31 @@ body { min-height: 100vh; }
     const value = node.displayValue !== undefined ? node.displayValue : node.baseValue;
     const valuePct = node.valuePct !== undefined ? node.valuePct : value / 100;
 
-    // pulse
-    const pulseAmp = prefersReducedMotion ? 0 : (1 + valuePct * 1.5);
-    const pulse = Math.sin(tick * 0.1 + value * 0.05) * pulseAmp;
+    // pulse — speed scales with node pressure, baseline ~3.5s period
+    const targetMult = prefersReducedMotion ? 0 : (0.030 + valuePct * 0.119);
+    if (node._pulseMult === undefined) node._pulseMult = targetMult;
+    node._pulseMult += (targetMult - node._pulseMult) * 0.035; // ~400ms lerp
+    const pulseAmp = prefersReducedMotion ? 0 : (0.3 + valuePct * 1.2);
+    const pulse = Math.sin(tick * node._pulseMult + value * 0.05) * pulseAmp;
     const radius = NODE_RADIUS + pulse;
 
     // glow for directly influenced nodes
     if (isHighlighted) {
       ctx.save();
-      ctx.shadowColor = 'rgba(255, 235, 210, 0.4)';
+      ctx.shadowColor = COLORS.glow;
       ctx.shadowBlur = 16;
       ctx.beginPath();
       ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255, 235, 210, 0.15)';
+      ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.15)' : 'rgba(255,235,210,0.15)';
       ctx.fill();
       ctx.restore();
     } else if (isIndirect) {
       ctx.save();
-      ctx.shadowColor = 'rgba(255, 235, 210, 0.2)';
+      ctx.shadowColor = _v2 ? 'rgba(210,253,255,0.2)' : 'rgba(255,235,210,0.2)';
       ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255, 235, 210, 0.06)';
+      ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.06)' : 'rgba(255,235,210,0.06)';
       ctx.fill();
       ctx.restore();
     }
@@ -1951,7 +2032,7 @@ body { min-height: 100vh; }
     // label below (handle multiline with \n)
     ctx.save();
     ctx.font = LABEL_FONT;
-    ctx.fillStyle = 'rgba(255, 235, 210, 0.7)';
+    ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.7)' : 'rgba(255,235,210,0.7)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     const lines = (node.label || '').split('\n');
@@ -1979,7 +2060,7 @@ body { min-height: 100vh; }
     ctx.fillRect(0, 0, w, h);
 
     // subtle grid dots
-    ctx.fillStyle = 'rgba(255, 235, 210, 0.04)';
+    ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.04)' : 'rgba(255,235,210,0.04)';
     for (let gx = 40; gx < w; gx += 40) {
       for (let gy = 40; gy < h; gy += 40) {
         ctx.beginPath();
@@ -2081,9 +2162,9 @@ const SCENARIOS = {
     baselineDirection: 'down',
     baselineRate: -0.012,
     dominantId: 1,
-    intro: 'a mid-stage B2B SaaS company sells a project-management tool to small agencies. annual recurring revenue has plateaued. the customer base is churning at 8% monthly — not catastrophically, but faster than new sign-ups replace losses. the product team believes the tool needs more features. the sales team believes the pricing is wrong. the CEO believes the brand needs repositioning. the data shows something simpler: customers who activate three features in their first week almost never leave. most never activate the first.',
-    insightSpot: 'the higher-tier interventions produce familiar shapes — onboarding restructures the experience, repositioning shifts who arrives. but the parameter-level discount barely decays. that\'s the signature of a binding constraint: when the bottleneck is at the parameter layer, a parameter fix holds. meadows warned the leverage point is not always where you expect it.',
-    insightLever: 'in this system, the dominant lever is intervention (1) — the discount. price-to-value is the binding constraint. the product works; customers leave because perceived value doesn\'t justify the cost at the current activation rate. the paradigm shift is valuable but slower and less certain than directly releasing the bottleneck.',
+    intro: 'a mid-stage B2B SaaS company sells a project-management tool to small agencies. annual recurring revenue has plateaued. the customer base is churning at 8% monthly (not catastrophically, but faster than new sign-ups replace losses). the product team believes the tool needs more features. the sales team believes the pricing is wrong. the CEO believes the brand needs repositioning. the data shows something simpler: customers who activate three features in their first week almost never leave. most never activate the first.',
+    insightSpot: 'the higher-tier interventions produce familiar shapes: onboarding restructures the experience, repositioning shifts who arrives. but the parameter-level discount barely decays. that\'s the signature of a binding constraint: when the bottleneck is at the parameter layer, a parameter fix holds. meadows warned the leverage point is not always where you expect it.',
+    insightLever: 'in this system, the dominant lever is intervention (1): the discount. price-to-value is the binding constraint. the product works; customers leave because perceived value doesn\'t justify the cost at the current activation rate. the paradigm shift is valuable but slower and less certain than directly releasing the bottleneck.',
     map: {
       nodes: [
         { id: 0, label: 'active\ncustomers', icon: '\uD83D\uDC65', color: '#CB7858', x: 240, y: 30, baseValue: 55 },
@@ -2102,15 +2183,15 @@ const SCENARIOS = {
       ],
     },
     mandate: 'reverse the customer attrition trend and build a base that grows itself through retention and referral.',
-    baselineCaption: 'churn compounds — each lost customer weakens word-of-mouth, which accelerates the next loss.',
-    insight: 'this is a system with a binding constraint. churn looks like many problems — pricing, support, positioning — but the data shows one variable that predicts retention almost perfectly: early activation. most interventions address symptoms downstream of this single bottleneck. the lever is not the highest tier. it is the one that releases the constraint.',
+    baselineCaption: 'churn compounds: each lost customer weakens word-of-mouth, which accelerates the next loss.',
+    insight: 'this is a system with a binding constraint. churn looks like many problems (pricing, support, positioning), but the data shows one variable that predicts retention almost perfectly: early activation. most interventions address symptoms downstream of this single bottleneck. the lever is not the highest tier. it is the one that releases the constraint.',
     interventions: [
       {
         id: 1, title: 'offer a 20% discount on annual renewals.',
-        body: 'prices loyalty. in this system, price is the binding variable — most churned users cited cost-to-value ratio.',
+        body: 'prices loyalty. in this system, price is the binding variable. most churned users cited cost-to-value ratio.',
         chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'renewal rate via price incentive', timeline: 'immediate retention bump, sustained because price IS the constraint', assumptions: 'in most systems, discounts decay as expectations reset. in this system, the product delivers value — the price-to-value ratio is the bottleneck. adjusting it releases the constraint directly.', stakes: 'margin erosion, but the LTV increase outweighs the discount cost.' },
-        why: 'this looks like a standard <em>parameter-level</em> change — and in most systems, it would decay. but in this system, price is the <em>binding constraint</em>. the product works; customers leave because the perceived value doesn\'t justify the price at the current activation rate. the discount releases the bottleneck directly. meadows warned: "the leverage point is not always where you expect it."',
+        detail: { targets: 'renewal rate via price incentive', timeline: 'immediate retention bump, sustained because price IS the constraint', assumptions: 'in most systems, discounts decay as expectations reset. in this system, the product delivers value: the price-to-value ratio is the bottleneck. adjusting it releases the constraint directly.', stakes: 'margin erosion, but the LTV increase outweighs the discount cost.' },
+        why: 'this looks like a standard <em>parameter-level</em> change, and in most systems, it would decay. but in this system, price is the <em>binding constraint</em>. the product works; customers leave because the perceived value doesn\'t justify the price at the current activation rate. the discount releases the bottleneck directly. meadows warned: "the leverage point is not always where you expect it."',
         effect: { type: 'parameter', magnitude: 0.42, decayRate: 0.08 },
         dosage: { label: 'discount on annual renewals', unit: '%', min: 0, max: 40 },
         mapHighlight: [0, 3],
@@ -2121,7 +2202,7 @@ const SCENARIOS = {
         body: 'changes the first experience. changes what "using the product" means.',
         chip: 'rules', chipClass: 'chip-rules',
         detail: { targets: 'time-to-value for new customers', timeline: 'one quarter to redesign, effects compound', assumptions: 'customers who reach value quickly stay longer. onboarding is the highest-leverage moment in the customer lifecycle.', stakes: 'requires engineering investment. high payoff if executed well.' },
-        why: 'this is a <em>rules-level</em> change. it restructures the critical first experience so that value is reached before doubt sets in. the curve bends modestly — it helps, but the binding constraint (price-to-value) is partially addressed by activation, not fully by onboarding alone.',
+        why: 'this is a <em>rules-level</em> change. it restructures the critical first experience so that value is reached before doubt sets in. the curve bends modestly: it helps, but the binding constraint (price-to-value) is partially addressed by activation, not fully by onboarding alone.',
         effect: { type: 'rules', magnitude: 0.22 },
         dosage: { label: 'onboarding redesign depth', unit: '% of funnel rebuilt', min: 0, max: 100 },
         mapHighlight: [0, 2],
@@ -2129,10 +2210,10 @@ const SCENARIOS = {
       },
       {
         id: 3, title: 'reposition the product: from "tool for X" to "platform for the outcome customers actually want."',
-        body: 'changes what the product claims to be — and therefore who it attracts and why they stay.',
+        body: 'changes what the product claims to be, and therefore who it attracts and why they stay.',
         chip: 'goals & paradigms', chipClass: 'chip-goals',
         detail: { targets: 'the identity of the product and its customer base', timeline: 'immediate repositioning, market shift over quarters', assumptions: 'repositioning changes who arrives. customers who come for the right reason churn less. the referral loop strengthens because the message is clearer.', stakes: 'profound. requires alignment across product, marketing, and sales. some existing customers won\'t recognise the new positioning.' },
-        why: 'this is a <em>paradigm-level</em> change. repositioning changes who arrives, which eventually addresses the activation problem upstream. but it is slower and more uncertain than directly releasing the binding constraint. in this system, the paradigm shift is valuable but not dominant — the bottleneck was at the parameter layer all along.',
+        why: 'this is a <em>paradigm-level</em> change. repositioning changes who arrives, which eventually addresses the activation problem upstream. but it is slower and more uncertain than directly releasing the binding constraint. in this system, the paradigm shift is valuable but not dominant. the bottleneck was at the parameter layer all along.',
         effect: { type: 'goals', magnitude: 0.35, compoundRate: 0.15 },
         dosage: { label: 'repositioning commitment', unit: 'quarters invested', min: 0, max: 4 },
         mapHighlight: [0, 1, 2, 3, 4],
@@ -2151,9 +2232,9 @@ const SCENARIOS = {
     baselineDirection: 'down',
     baselineRate: -0.010,
     dominantId: 2,
-    intro: 'a 14-person product team at a mid-size company ships a release every two weeks. velocity has been rising for three quarters — and so has attrition. two senior engineers left in the last six months; exit interviews cited "unsustainable pace." the remaining team absorbs the work. the planning process sets sprint scope based on the previous sprint\'s output, which means every good sprint raises the bar for the next one. the people burning out don\'t sit at the planning table.',
-    insightSpot: 'the contractors and no-meeting fridays share the same shape: a brief recovery that the system absorbs. the planning process ratchets — every good sprint raises the bar. the parameter intervention subsidises coping while the structural load keeps increasing. the scope cap breaks the ratchet.',
-    insightLever: 'in this system, the dominant lever is the scope cap — intervention (2). it puts the captured party (the team) at the planning table structurally. the planning process can no longer use last sprint\'s output as next sprint\'s floor. the paradigm shift helps, but without the structural mechanism change, the ratchet reasserts.',
+    intro: 'a 14-person product team at a mid-size company ships a release every two weeks. velocity has been rising for three quarters, and so has attrition. two senior engineers left in the last six months; exit interviews cited "unsustainable pace." the remaining team absorbs the work. the planning process sets sprint scope based on the previous sprint\'s output, which means every good sprint raises the bar for the next one. the people burning out don\'t sit at the planning table.',
+    insightSpot: 'the contractors and no-meeting fridays share the same shape: a brief recovery that the system absorbs. the planning process ratchets. every good sprint raises the bar. the parameter intervention subsidises coping while the structural load keeps increasing. the scope cap breaks the ratchet.',
+    insightLever: 'in this system, the dominant lever is the scope cap: intervention (2). it puts the captured party (the team) at the planning table structurally. the planning process can no longer use last sprint\'s output as next sprint\'s floor. the paradigm shift helps, but without the structural mechanism change, the ratchet reasserts.',
     map: {
       nodes: [
         { id: 0, label: 'team\nenergy', icon: '\uD83D\uDD0B', color: '#22C55E', x: 240, y: 100, baseValue: 45 },
@@ -2176,7 +2257,7 @@ const SCENARIOS = {
         id: 1, title: 'hire contractors to absorb overflow work.',
         body: 'adds capacity. doesn\'t change how much work enters the system.',
         chip: 'parameter', chipClass: 'chip-parameter',
-        detail: { targets: 'team workload distribution', timeline: 'immediate relief', assumptions: 'contractors handle overflow but create coordination overhead. work expands to fill available capacity.', stakes: 'expensive. risk of induced demand — more capacity invites more scope.' },
+        detail: { targets: 'team workload distribution', timeline: 'immediate relief', assumptions: 'contractors handle overflow but create coordination overhead. work expands to fill available capacity.', stakes: 'expensive. risk of induced demand: more capacity invites more scope.' },
         why: 'this is the strongest <em>parameter-level</em> intervention. it genuinely reduces load in the short term. but without a scope cap, the system absorbs the new capacity and returns to overload.',
         effect: { type: 'parameter', magnitude: 0.08 },
         dosage: { label: 'overflow contractors', unit: 'headcount', min: 0, max: 6 },
@@ -2188,7 +2269,7 @@ const SCENARIOS = {
         body: 'changes the rules of how much work enters the system.',
         chip: 'rules', chipClass: 'chip-rules',
         detail: { targets: 'the structural relationship between capacity and demand', timeline: 'one sprint to see effects, compounds over quarters', assumptions: 'a hard cap prevents scope creep at the source. 20% slack allows recovery, learning, and absorption of surprises.', stakes: 'requires leadership to defend the cap against scope pressure. high friction, high payoff.' },
-        why: 'this is a <em>rules-level</em> change — and in this system, it is the dominant lever. the scope cap puts the captured party (the team) at the planning table structurally: the cap exists because someone measured their capacity and made it binding. energy recovers because the loop that was draining it has been structurally interrupted. the planning process can no longer ratchet.',
+        why: 'this is a <em>rules-level</em> change, and in this system, it is the dominant lever. the scope cap puts the captured party (the team) at the planning table structurally: the cap exists because someone measured their capacity and made it binding. energy recovers because the loop that was draining it has been structurally interrupted. the planning process can no longer ratchet.',
         effect: { type: 'rules', magnitude: 0.52 },
         dosage: { label: 'protected slack', unit: '% of capacity', min: 0, max: 30 },
         mapHighlight: [0, 2, 4],
@@ -2199,7 +2280,7 @@ const SCENARIOS = {
         body: 'changes what the team is optimising for.',
         chip: 'goals & paradigms', chipClass: 'chip-goals',
         detail: { targets: 'the team\'s identity and what it means to do good work', timeline: 'immediate reframing, cultural shift over quarters', assumptions: 'when "success" includes sustainability, every sprint planning conversation changes. overwork stops being heroic and starts being a system failure.', stakes: 'profound. requires executive alignment. some high-performers will resist the redefinition.' },
-        why: 'this is a <em>paradigm-level</em> change. it redefines what the team optimises for — but in this system, the reinforcing loop is driven by the planning process, not by culture alone. redefining success helps, but unless the planning mechanism changes, the loop reasserts. the paradigm shift is necessary but not sufficient; the structural cap is the lever.',
+        why: 'this is a <em>paradigm-level</em> change. it redefines what the team optimises for, but in this system, the reinforcing loop is driven by the planning process, not by culture alone. redefining success helps, but unless the planning mechanism changes, the loop reasserts. the paradigm shift is necessary but not sufficient; the structural cap is the lever.',
         effect: { type: 'goals', magnitude: 0.40, compoundRate: 0.15 },
         dosage: { label: 'definition shift depth', unit: '% adoption', min: 0, max: 100 },
         mapHighlight: [0, 1, 2, 3, 4],
@@ -2218,7 +2299,7 @@ const SCENARIOS = {
     baselineDirection: 'down',
     baselineRate: -0.004,
     mandate: 'restore average nightly sleep to a sustainable level before the compounding effects of sleep debt become chronic.',
-    baselineCaption: 'sleep erodes slowly — each short night makes the next one more likely.',
+    baselineCaption: 'sleep erodes slowly: each short night makes the next one more likely.',
     insight: 'this is a reinforcing loop in decline. less sleep \u2192 lower cognitive function \u2192 worse time management \u2192 later bedtime \u2192 less sleep. the debt compounds silently.',
     map: {
       nodes: [
@@ -2384,7 +2465,7 @@ const logger = new SessionLogger();
 logger.log('scenario_started', { scenario: scenarioSlug });
 
 if (!scenario) {
-  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#273248;text-align:center;padding:24px;"><div><h2>scenario not found.</h2><p style="color:#6B7589;margin:16px 0;">the scenario "' + (scenarioSlug || '') + '" doesn\'t exist yet.</p><a href="/portfolio/assets/systems-thinking/" style="color:#CB7858;">back to all scenarios</a></div></div>';
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#273248;text-align:center;padding:24px;"><div><h2>scenario not found.</h2><p style="color:#6B7589;margin:16px 0;">the scenario "' + (scenarioSlug || '') + '" doesn\'t exist yet.</p><a href="/portfolio/assets/lines-become-loops/" style="color:#CB7858;">back to all scenarios</a></div></div>';
   throw new Error('unknown scenario: ' + scenarioSlug);
 }
 
@@ -2651,9 +2732,9 @@ if (scenario.insightLever) document.getElementById('insight-lever').textContent 
 if (scenario.dominantId && scenario.dominantId !== 3) {
   const domIntv = scenario.interventions.find(x => x.id === scenario.dominantId);
   const domTier = domIntv ? domIntv.chip : 'parameter';
-  document.getElementById('pattern-caption').textContent = 'three decisions. one shape — but not the shape you might expect. in this system, the dominant trajectory is a ' + domTier + '-level intervention. the leverage point is where the system\'s structure asks for it, not where the ladder predicts.';
+  document.getElementById('pattern-caption').textContent = 'three decisions. one shape, but not the shape you might expect. in this system, the dominant trajectory is a ' + domTier + '-level intervention. the leverage point is where the system\'s structure asks for it, not where the ladder predicts.';
 }
-document.title = scenario.name + ' — systems thinking simulator';
+document.title = scenario.name + ' — lines become loops';
 
 // secondary stock label + pattern-screen reveal
 if (secondarySpec) {
@@ -2678,18 +2759,13 @@ if (exportMandate) exportMandate.textContent = scenario.mandate || '';
 // hide resource meter (lakeshore-only feature)
 document.getElementById('resource-meter-wrap').style.display = 'none';
 
-// populate scenario picker
-const LIBRARY_SCENARIOS = ['churn', 'burnout', 'sleep'];
-const picker = document.getElementById('scenario-picker');
-LIBRARY_SCENARIOS.forEach(slug => {
-  const s = SCENARIOS[slug];
-  if (!s) return;
-  const a = document.createElement('a');
-  a.className = 'scenario-tab' + (slug === scenarioSlug ? ' active' : '');
-  a.textContent = s.name;
-  a.href = 'simulator.html?s=' + slug;
-  a.setAttribute('aria-current', slug === scenarioSlug ? 'page' : 'false');
-  picker.appendChild(a);
+// mark the active tab in the page-header scenario picker
+document.querySelectorAll('.scenario-tab').forEach(tab => {
+  const tabUrl = new URL(tab.href, location.origin);
+  if (tabUrl.searchParams.get('s') === scenarioSlug) {
+    tab.classList.add('active');
+    tab.setAttribute('aria-current', 'page');
+  }
 });
 
 // render systems map if defined
@@ -2705,15 +2781,18 @@ if (scenario.map) {
 // ────────────────────────────────────────────
 // charts
 // ────────────────────────────────────────────
+const _v2 = document.body.classList.contains('theme-v2');
 const COLORS = {
-  cadet: '#273248',
-  sienna: '#CB7858',
-  redwood: '#B15043',
-  champagne: '#FFEBD2',
-  muted: '#6B7589',
-  rule: '#EAD9BD',
-  chartTick: '#B5BBC9',
-  chartGrid: 'rgba(255,235,210,0.08)',
+  cadet:     '#273248',
+  sienna:    _v2 ? '#58CBB2' : '#CB7858',
+  redwood:   _v2 ? '#D2FDFF' : '#B15043',
+  champagne: _v2 ? '#FFFFFF' : '#FFEBD2',
+  softCard:  '#ffffff',
+  muted:     _v2 ? 'rgba(255,255,255,0.5)' : '#6B7589',
+  rule:      _v2 ? 'rgba(255,255,255,0.22)' : '#EAD9BD',
+  chartTick: _v2 ? 'rgba(255,255,255,0.5)' : '#B5BBC9',
+  chartGrid: _v2 ? 'rgba(255,255,255,0.06)' : 'rgba(255,235,210,0.08)',
+  glow:      _v2 ? 'rgba(210,253,255,0.4)' : 'rgba(255,235,210,0.4)',
 };
 
 let chartBaseline = null;
@@ -2733,7 +2812,7 @@ function makeSecondaryChartOptions() {
     scales: {
       x: {
         type: 'linear', min: 2025, max: 2050,
-        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 10 } },
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 10 }, callback: v => String(v) },
         grid: { color: COLORS.chartGrid },
       },
       y: {
@@ -2770,7 +2849,7 @@ function makeChartOptions(yLabel) {
         type: 'linear',
         min: 2025,
         max: 2050,
-        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 11 } },
+        ticks: { stepSize: 5, color: COLORS.chartTick, font: { family: 'Inter', size: 11 }, callback: v => String(v) },
         grid: { color: COLORS.chartGrid },
       },
       y: {
@@ -2808,7 +2887,8 @@ function makeBaselineDataset(alpha) {
 function getTrajectoryColor(id) {
   const intv = scenario.interventions.find(x => x.id === id);
   if (!intv) return COLORS.sienna;
-  if (intv.effect.type === 'goals') return COLORS.cadet;
+  // goals & paradigms = champagne (highest leverage, brightest contrast on cadet bg)
+  if (intv.effect.type === 'goals') return COLORS.champagne;
   if (intv.effect.type === 'rules') return COLORS.redwood;
   return COLORS.sienna;
 }
@@ -2826,7 +2906,7 @@ function updateDecisionsChart(highlightId) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -2862,7 +2942,7 @@ function updateSecondaryChart(highlightId) {
     datasets.push({
       label: 'intervention ' + id,
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '4D',
+      borderColor: isHighlight ? getTrajectoryColor(id) : getTrajectoryColor(id) + '99',
       borderWidth: isHighlight ? 2.5 : 1.5,
       pointRadius: 0,
       order: isHighlight ? 1 : 5,
@@ -2941,7 +3021,7 @@ function initPatternChart() {
     datasets.push({
       label: intv.title.split('.')[0],
       data: YEARS.map((y, i) => ({ x: y, y: traj[i] })),
-      borderColor: isDominant ? COLORS.cadet : getTrajectoryColor(intv.id) + '80',
+      borderColor: isDominant ? getTrajectoryColor(intv.id) : getTrajectoryColor(intv.id) + 'CC',
       borderWidth: isDominant ? 2.5 : 1.5,
       borderDash: intv.effect.type === 'parameter' && !isDominant ? [4, 2] : [],
       pointRadius: 0,
@@ -2964,8 +3044,8 @@ function initPatternChart() {
     scenario.interventions.forEach(intv => {
       const isDominant = intv.id === domId;
       items.push({
-        label: intv.title.split('.')[0].trim() + (isDominant ? ' — dominant lever' : ''),
-        color: isDominant ? COLORS.cadet : getTrajectoryColor(intv.id),
+        label: intv.title.split('.')[0].trim() + (isDominant ? ' (dominant lever)' : ''),
+        color: getTrajectoryColor(intv.id),
         dashed: intv.effect.type === 'parameter' && !isDominant,
         dominant: isDominant,
       });
@@ -2994,7 +3074,7 @@ function initPatternChart() {
     sDatasets.push({
       label: 'intervention ' + intv.id,
       data: YEARS.map((y, i) => ({ x: y, y: allSec[intv.id][i] })),
-      borderColor: isDom ? COLORS.cadet : getTrajectoryColor(intv.id) + '80',
+      borderColor: isDom ? getTrajectoryColor(intv.id) : getTrajectoryColor(intv.id) + 'CC',
       borderWidth: isDom ? 2.5 : 1.5,
       borderDash: intv.effect.type === 'parameter' && !isDom ? [4, 2] : [],
       pointRadius: 0,
@@ -3103,7 +3183,7 @@ function buildCards() {
           const focusable = chosen ? isChosen : i === 0;
           return '<button type="button" class="surprise-chip" data-tradeoff-id="' + d.id + '" data-tradeoff-val="' + v + '" role="radio" aria-pressed="' + (isChosen ? 'true' : 'false') + '" tabindex="' + (focusable ? '0' : '-1') + '">' + v + '</button>';
         }).join('');
-        return '<div class="tradeoff-wrap"><div class="tradeoff-prompt" id="tradeoff-prompt-' + d.id + '">notice the second chart — was that trade-off visible to you when you chose?</div><div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-' + d.id + '">' + chips + '</div></div>';
+        return '<div class="tradeoff-wrap"><div class="tradeoff-prompt" id="tradeoff-prompt-' + d.id + '">notice the second chart: was that trade-off visible to you when you chose?</div><div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-' + d.id + '">' + chips + '</div></div>';
       })() : ''}
       <div class="card-footer">
         ${state.committed ? (function() {
@@ -3115,11 +3195,15 @@ function buildCards() {
             : Math.round(currentDosage * 100);
           const unit = dosageInfo ? dosageInfo.unit : '%';
           const label = dosageInfo ? dosageInfo.label : 'dosage';
+          const sliderHint = (!state.sliderTouched || !state.sliderTouched[d.id])
+            ? '<div class="slider-hint">drag to see how this intervention bends the trajectory</div>'
+            : '';
           return '<div class="dosage-slider-wrap">' +
             '<div class="dosage-header">' +
               '<span class="dosage-label">' + label + '</span>' +
               '<span class="dosage-dosage">' + currentVal + unit + '</span>' +
             '</div>' +
+            sliderHint +
             '<input type="range" class="dosage-slider" data-slider-id="' + d.id + '" min="0" max="100" value="' + Math.round(currentDosage * 100) + '" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(currentDosage * 100) + '">' +
             '<span class="card-meta">25-year change: ' + (changePct !== null ? '<span class="result-value">' + (isStockBad ? '\u2212' : '+') + changePct + '%</span>' : '\u2014') + '</span>' +
           '</div>';
@@ -3160,6 +3244,13 @@ function buildCards() {
     slider.addEventListener('input', () => {
       state.sliderActive = true;
       const id = parseInt(slider.dataset.sliderId);
+      // dismiss per-slider hint on first touch
+      if (!state.sliderTouched) state.sliderTouched = {};
+      if (!state.sliderTouched[id]) {
+        state.sliderTouched[id] = true;
+        const hint = slider.closest('.dosage-slider-wrap').querySelector('.slider-hint');
+        if (hint) { hint.classList.add('dismissed'); setTimeout(() => hint.remove(), 220); }
+      }
       const dosageEl = slider.closest('.dosage-slider-wrap').querySelector('.dosage-dosage');
       const metaEl = slider.closest('.dosage-slider-wrap').querySelector('.card-meta');
       const intv = scenario.interventions.find(x => x.id === id);
@@ -3533,6 +3624,22 @@ function render() {
 }
 
 // ────────────────────────────────────────────
+// ────────────────────────────────────────────
+// first-run overlay (shown once after first commit)
+// ────────────────────────────────────────────
+function maybeShowFirstRunOverlay() {
+  try { if (localStorage.getItem('lbl_simulator_overlay_seen')) return; } catch(e) { return; }
+  const overlay = document.getElementById('first-run-overlay');
+  if (!overlay) return;
+  overlay.hidden = false;
+  requestAnimationFrame(() => overlay.classList.add('visible'));
+  document.getElementById('first-run-close').addEventListener('click', () => {
+    overlay.classList.remove('visible');
+    overlay.addEventListener('transitionend', () => { overlay.hidden = true; }, { once: true });
+    try { localStorage.setItem('lbl_simulator_overlay_seen', '1'); } catch(e) {}
+  }, { once: true });
+}
+
 // commitment flow
 // ────────────────────────────────────────────
 let pendingCommitId = null;
@@ -3600,8 +3707,8 @@ function buildExportPlainText() {
     const tn = state.tradeoffNoticed[d.id];
     const primaryStr = formatStockValue(lastVal, scenario.stockUnit);
     const secStr = secondarySpec ? ' · secondary: ' + formatStockValue(secLast, secondarySpec.meta.units) : '';
-    const tnStr = tn ? ' — trade-off noticed: ' + tn : '';
-    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + tnStr + ' — primary: ' + primaryStr + secStr);
+    const tnStr = tn ? ', trade-off noticed: ' + tn : '';
+    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '], surprise: ' + surprise + tnStr + ', primary: ' + primaryStr + secStr);
   });
   lines.push('');
   lines.push('what shifted: ' + (state.shifted || '(blank)'));
@@ -3738,6 +3845,9 @@ document.getElementById('btn-commit-confirm').addEventListener('click', () => {
   if (left) left.classList.add('individual-mode');
   updateModeToggle();
 
+  // show first-run guidance overlay (once per browser, persisted in localStorage)
+  maybeShowFirstRunOverlay();
+
   // auto-run the committed intervention after a brief pause
   setTimeout(() => handleRunIntervention(id, 1), 400);
 });
@@ -3759,7 +3869,7 @@ document.getElementById('mailing-form').addEventListener('submit', (e) => {
   }
   document.getElementById('mailing-email').disabled = true;
   document.getElementById('mailing-form').querySelector('.mailing-btn').disabled = true;
-  document.getElementById('mailing-success').textContent = 'thank you — we\'ll keep you posted.';
+  document.getElementById('mailing-success').textContent = 'thank you. we\'ll keep you posted.';
 });
 
 document.getElementById('btn-handoff').addEventListener('click', () => showScreen('handoff'));
