@@ -27,7 +27,7 @@ export function draftToMarkdown(d: Draft): string {
       const desc = d.descriptors.find(
         (x) => x.criterion_id === c.id && x.level === level.level,
       );
-      lines.push(`- **${level.level} · ${level.label}** — ${desc?.text ?? "—"}`);
+      lines.push(`- **${level.level} · ${level.label}**: ${desc?.text ?? "…"}`);
     }
     lines.push("");
   }
@@ -65,7 +65,7 @@ export function draftToMarkdown(d: Draft): string {
   }
   lines.push(`---`);
   lines.push(
-    `_drafted with the co.rubric companion — windedvertigo.com/harbour/co-rubric-companion_`,
+    `_drafted with the co.rubric companion · windedvertigo.com/harbour/co-rubric-companion_`,
   );
   return lines.join("\n");
 }

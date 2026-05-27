@@ -38,7 +38,7 @@ export function Wordmark({ className = "" }: { className?: string }) {
     >
       <a
         href="https://windedvertigo.com/harbour"
-        aria-label="winded.vertigo — visit harbour"
+        aria-label="winded.vertigo · visit harbour"
         className="inline-flex items-center opacity-80 hover:opacity-100 transition-opacity"
       >
         {/* Stacked WINDED VERTIGO wordmark (PR #123). Footer reverted

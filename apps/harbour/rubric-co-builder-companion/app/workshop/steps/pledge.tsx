@@ -36,7 +36,7 @@ const PLEDGE_FIELDS: Array<{
   {
     key: "will_not_use_for",
     label: "we will NOT use AI for…",
-    hint: "the boundaries — the parts that have to be human work.",
+    hint: "the boundaries: the parts that have to be human work.",
     placeholder:
       "e.g. drafting the final memo, generating the diagrams, formulating our argument…",
   },
@@ -50,7 +50,7 @@ const PLEDGE_FIELDS: Array<{
   {
     key: "if_cross_line",
     label: "if we cross our own line, we will…",
-    hint: "the recovery move — what happens when the pledge gets broken.",
+    hint: "the recovery move: what happens when the pledge gets broken.",
     placeholder:
       "e.g. flag it to the marker before they read, re-submit a clean version, or note the over-step in our reflection…",
   },
@@ -69,7 +69,7 @@ export function StepPledge({ draft, onPatch, onNext, onBack }: Props) {
     <div className="space-y-8">
       <header className="space-y-2">
         <p
-          className="text-xs tracking-widest uppercase"
+          className="text-xs tracking-widest"
           style={{ color: "var(--color-cadet)", opacity: 0.7 }}
         >
           step 4 of 5 · pledge
@@ -79,7 +79,7 @@ export function StepPledge({ draft, onPatch, onNext, onBack }: Props) {
         </h1>
         <p style={{ color: "var(--color-cadet)" }}>
           pick a rung on the AI use ladder, then sketch the boundaries.
-          this is the contract students sign with themselves — the bar they
+          this is the contract students sign with themselves. the bar they
           pledge to hold even when no one&apos;s watching.
         </p>
       </header>
@@ -121,7 +121,7 @@ export function StepPledge({ draft, onPatch, onNext, onBack }: Props) {
               >
                 <div className="flex items-baseline gap-3">
                   <span
-                    className="text-xs tracking-widest uppercase font-mono w-8 shrink-0"
+                    className="text-xs tracking-widest font-mono w-8 shrink-0"
                     style={{ color: "var(--color-redwood)" }}
                   >
                     {rung.level}

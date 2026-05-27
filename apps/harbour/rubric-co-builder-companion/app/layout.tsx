@@ -20,7 +20,7 @@ const CANONICAL = "https://windedvertigo.com/harbour/co-rubric-companion";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://windedvertigo.com"),
-  title: "co.rubric companion — winded.vertigo",
+  title: "co.rubric companion · winded.vertigo",
   description:
     "a single-user worksheet that walks you through drafting a rubric for any learning artefact. free for the PRME community.",
   // robots: index off — companion is invite-only until the May 28 PRME launch.
@@ -31,14 +31,14 @@ export const metadata: Metadata = {
     type: "website",
     url: CANONICAL,
     siteName: "winded.vertigo · harbour",
-    title: "co.rubric companion — co-design assessment with your class",
+    title: "co.rubric companion · co-design assessment with your class",
     description:
       "a single-user worksheet that walks you through drafting a rubric for any learning artefact. free for the PRME community.",
     images: [{ url: OG_IMAGE, width: 1200, height: 720 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "co.rubric companion — co-design assessment with your class",
+    title: "co.rubric companion · co-design assessment with your class",
     description:
       "draft a rubric for any learning artefact. free for the PRME community.",
     images: [OG_IMAGE],

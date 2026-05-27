@@ -24,7 +24,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
     <div className="space-y-8">
       <header className="space-y-2 no-print">
         <p
-          className="text-xs tracking-widest uppercase"
+          className="text-xs tracking-widest"
           style={{ color: "var(--color-cadet)", opacity: 0.7 }}
         >
           step 5 of 5 · rubric
@@ -34,7 +34,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
         </h1>
         <p style={{ color: "var(--color-cadet)" }}>
           print it, copy it as markdown, or download the .md file. nothing was
-          uploaded anywhere — this lived only in your browser.
+          uploaded anywhere. this lived only in your browser.
         </p>
       </header>
 
@@ -84,7 +84,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
               }}
             >
               <p
-                className="text-xs uppercase tracking-widest"
+                className="text-xs tracking-widest"
                 style={{ opacity: 0.7 }}
               >
                 AI use pledge
@@ -126,7 +126,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
             // visual grid into a programmatically-navigable rubric.
             // Screen readers and printed-to-PDF readers can now announce
             // each cell as "<criterion>, level N <descriptor>".
-            aria-label="rubric — criteria × proficiency levels"
+            aria-label="rubric: criteria × proficiency levels"
           >
             <thead>
               <tr>
@@ -172,7 +172,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
                     <div className="font-bold">{c.name}</div>
                     {c.required && (
                       <div
-                        className="text-[10px] uppercase tracking-widest"
+                        className="text-[10px] tracking-widest"
                         style={{ color: "var(--color-redwood)" }}
                       >
                         required
@@ -201,7 +201,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
                             "1px solid color-mix(in srgb, var(--color-cadet) 10%, transparent)",
                         }}
                       >
-                        {d?.text || "—"}
+                        {d?.text || "…"}
                       </td>
                     );
                   })}
@@ -212,7 +212,7 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
         </div>
 
         <footer
-          className="text-[10px] uppercase tracking-widest pt-2 print-only"
+          className="text-[10px] tracking-widest pt-2 print-only"
           style={{ color: "var(--color-cadet)", opacity: 0.6 }}
         >
           drafted with co.rubric companion · winded.vertigo
