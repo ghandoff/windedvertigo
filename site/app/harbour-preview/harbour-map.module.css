@@ -240,6 +240,15 @@
   color: rgba(255, 235, 210, 0.75);
 }
 
+/* ── global animation kill-switch (sit-still button) ────────────── */
+/* html[data-still] is set by AnimationProvider when the user clicks
+   "make this page sit still". CSS Modules classes can't be listed in
+   main.css (they're hashed), so the pause rule lives here instead.  */
+:global(html[data-still]) .boat,
+:global(html[data-still]) .tapHint {
+  animation-play-state: paused !important;
+}
+
 /* ── reduced motion ──────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .boat {
