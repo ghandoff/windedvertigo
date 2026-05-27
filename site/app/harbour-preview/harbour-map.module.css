@@ -71,6 +71,11 @@
 .boatComing:hover {
   filter: none;
 }
+/* Static coming-soon boat images are dimmed to distinguish them from live
+   boats — same SVG but at ~55% opacity so they read as "not yet open". */
+.boatComing .boatImg {
+  opacity: 0.55;
+}
 
 .boatImg {
   display: block;
@@ -150,7 +155,9 @@
   border-radius: 12px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
   padding: 1.125rem 1.125rem 1.125rem 1.25rem;
-  z-index: 50;
+  /* sit above the feedback widget's "hello." button (z-index ~100)
+     but below the harbour nav (z-index 9999). */
+  z-index: 9000;
   animation: cardSlideUp 220ms ease-out both;
 }
 
