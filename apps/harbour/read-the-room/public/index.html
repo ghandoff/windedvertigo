@@ -23,6 +23,8 @@
       --light:     #ffebd2;   /* default body text on cadet */
       --light-soft: rgba(255,235,210,0.62);
       --line:      rgba(255,235,210,0.18);
+      /* gradient used in inline-style thumbnail overlays — overridable via v2 */
+      --thumb-grad: rgba(255,235,210,0.97);
       /* legacy aliases — kept so the deck SVG palettes still resolve */
       --cream: #ffebd2;
       --sand: #fff5e6;
@@ -148,7 +150,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      padding: 18px 10px 10px;
+      padding: 28px 10px 10px;
       text-align: center;
       font-family: 'Inter', -apple-system, system-ui, sans-serif;
       font-size: 12px;
@@ -156,7 +158,7 @@
       color: var(--ink);
       letter-spacing: 0.01em;
       line-height: 1.2;
-      background: linear-gradient(to top, rgba(255,235,210,0.96) 0%, rgba(255,235,210,0.88) 55%, rgba(255,235,210,0) 100%);
+      background: linear-gradient(to top, rgba(255,235,210,0.96) 0%, rgba(255,235,210,0.92) 45%, rgba(255,235,210,0.55) 80%, rgba(255,235,210,0.30) 100%);
       pointer-events: none;
     }
     .card-xl {
@@ -242,10 +244,9 @@
       letter-spacing: -0.02em;
     }
     .position-btn .pos-tag {
-      font-size: 10px;
-      letter-spacing: 0.12em;
+      font-size: 12px;
+      letter-spacing: 0.10em;
       text-transform: lowercase;
-      opacity: 0.72;
       line-height: 1;
     }
     /* six distinct tile colours, each WCAG-AA-safe with its text colour */
@@ -294,12 +295,12 @@
     .position-btn:disabled,
     .position-btn.taken {
       cursor: not-allowed;
-      opacity: 0.42;
-      filter: saturate(0.4);
+      opacity: 0.60;
+      filter: saturate(0.3) brightness(0.88);
     }
     @media (max-width: 360px) {
       .position-btn .pos-num { font-size: 36px; }
-      .position-btn .pos-tag { font-size: 9px; }
+      .position-btn .pos-tag { font-size: 11px; }
     }
     .difficulty-picker {
       display: flex;
@@ -538,6 +539,132 @@
     @media (max-width: 340px) {
       .prompt { font-size: 22px; }
       h1 { font-size: 34px; }
+    }
+  </style>
+
+  <!-- palette v2 — "quiet perception": cornflower + lilac + slate.
+       Activated by html.v2 class (set via ?v2=1 or localStorage rtr-theme=v2).
+       To promote to default: remove the html.v2 scope wrappers + applyTheme() call. -->
+  <style>
+    /* ── Token remapping ── */
+    html.v2 {
+      --redwood:    #436DB1;                      /* cornflower — primary CTA, seat fill */
+      --sienna:     #5882c5;                      /* lighter cornflower — gradients */
+      --champagne:  #D5D2FF;                      /* lilac — text on dark + on cornflower */
+      --light:      #D5D2FF;
+      --light-soft: rgba(213,210,255,0.65);
+      --line:       rgba(213,210,255,0.18);
+      --cream:      #D5D2FF;
+      --rose:       #5882c5;   --sage: #5882c5;
+      --terracotta: #436DB1;   --gold: #436DB1;
+      --thumb-grad: rgba(213,210,255,0.97);
+    }
+
+    /* ── Hardcoded rgba overrides (not reachable via token remapping) ── */
+    html.v2 .btn-primary:disabled {
+      background: rgba(213,210,255,0.10);
+      color:      rgba(213,210,255,0.45);
+    }
+    html.v2 .card-label {
+      background: linear-gradient(to top,
+        rgba(213,210,255,0.96) 0%,
+        rgba(213,210,255,0.92) 45%,
+        rgba(213,210,255,0.55) 80%,
+        rgba(213,210,255,0.30) 100%);
+    }
+    html.v2 .card-xl .card-label {
+      background: linear-gradient(to top,
+        rgba(213,210,255,0.98) 10%,
+        rgba(213,210,255,0.90) 60%,
+        rgba(213,210,255,0)    100%);
+    }
+    html.v2 .size-btn {
+      border-color: rgba(213,210,255,0.18);
+    }
+    html.v2 .size-btn:not(.active):hover {
+      background: rgba(213,210,255,0.08);
+    }
+    html.v2 .position-btn.active {
+      box-shadow: 0 0 0 2px rgba(213,210,255,0.25), 0 6px 18px rgba(0,0,0,0.32);
+    }
+    html.v2 .dot {
+      background: rgba(213,210,255,0.20);
+    }
+    html.v2 .reveal-hint {
+      background: rgba(213,210,255,0.08);
+    }
+    html.v2 .solution-input {
+      border-color: rgba(213,210,255,0.18);
+    }
+    html.v2 .solution-input:focus {
+      border-color: var(--champagne);
+      box-shadow: 0 0 0 3px rgba(213,210,255,0.25);
+    }
+    html.v2 .reflection-card .tiny {
+      color: rgba(213,210,255,0.72) !important;
+    }
+    html.v2 .exit-btn {
+      background:  rgba(213,210,255,0.10);
+      border-color: rgba(213,210,255,0.18);
+    }
+    html.v2 .exit-btn:hover { background: rgba(213,210,255,0.18); }
+
+    /* ── Role-banner interpreter: sienna→paper gradient fails contrast when
+          sienna remaps to cornflower. Replace with subtle tint + lilac text. ── */
+    html.v2 .role-banner.interpreter {
+      background: rgba(67,109,177,0.20);
+    }
+    html.v2 .role-banner.interpreter .tiny,
+    html.v2 .role-banner.interpreter h2,
+    html.v2 .role-banner.interpreter p { color: var(--champagne) !important; }
+
+    /* ── Structural change 1: uniform cornflower circles for all seats ── */
+    html.v2 .position-picker {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 20px;
+    }
+    html.v2 .position-btn,
+    html.v2 .position-btn.seat-1,
+    html.v2 .position-btn.seat-2,
+    html.v2 .position-btn.seat-3,
+    html.v2 .position-btn.seat-4,
+    html.v2 .position-btn.seat-5,
+    html.v2 .position-btn.seat-6 {
+      width:  clamp(80px, 22vw, 110px);
+      height: clamp(80px, 22vw, 110px);
+      aspect-ratio: unset;
+      border-radius: 50%;
+      background: var(--redwood);   /* → cornflower */
+      color:      var(--champagne);  /* → lilac */
+      border: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+    }
+    html.v2 .position-btn .pos-num { font-size: 38px; font-weight: 500; }
+    html.v2 .position-btn .pos-tag { font-size: 11px; opacity: 0.80; letter-spacing: 0.08em; }
+    html.v2 .position-btn.active   { border: none; box-shadow: none; transform: scale(1.06); }
+    html.v2 .position-btn:hover:not(:disabled):not(.active) { transform: translateY(-2px); }
+    html.v2 .position-btn:disabled,
+    html.v2 .position-btn.taken   {
+      opacity: 0.52;
+      filter: saturate(0.25) brightness(0.85);
+      cursor: not-allowed;
+    }
+
+    /* ── Structural change 2: centred single-column lobby layout ── */
+    html.v2 .screen-lobby {
+      align-items: center;
+      text-align: center;
+    }
+    html.v2 .screen-lobby .code-card {
+      max-width: 460px;
+      width: 100%;
+    }
+    html.v2 .screen-lobby > .btn-primary,
+    html.v2 .screen-lobby > .btn-ghost {
+      max-width: 460px;
     }
   </style>
 
@@ -1038,7 +1165,7 @@
         // server has already moved to 'prompt' — handled above.
         render();
       } else if (m.t === 'error') {
-        state.lastError = m.code === 'seat_taken' ? `seat ${m.position} is taken — try another.` : 'something went wrong.';
+        state.lastError = m.code === 'seat_taken' ? `seat ${m.position} is taken, try another.` : 'something went wrong.';
         render();
       }
     }
@@ -1065,7 +1192,7 @@
       if (!CODE_PATTERN.test(clean)) {
         // Vowels were stripped at generate-time. Help the user catch a typo
         // before pinging the server.
-        state.joinError = "no vowels in our codes — they're consonants only.";
+        state.joinError = "no vowels in our codes: they're consonants only.";
         render();
         return;
       }
@@ -1686,10 +1813,10 @@
         const allClaimed = claimedCount() === sz;
         const err = state.lastError ? `<div class="tiny" style="margin-top: 8px; color: #ffb09a;">${state.lastError}</div>` : '';
         return `
-        <div class="screen fade-in">
+        <div class="screen fade-in screen-lobby">
           <div class="tiny">your room</div>
           <h2 class="serif" style="margin-top: 10px;">share this code.</h2>
-          <div style="margin-top: 14px; padding: 18px; background: var(--paper); color: var(--ink); border-radius: 14px; text-align: center;">
+          <div class="code-card" style="margin-top: 14px; padding: 18px; background: var(--paper); color: var(--ink); border-radius: 14px; text-align: center;">
             <div class="serif" style="font-size: 34px; letter-spacing: 0.22em; font-weight: 400; color: var(--ink);">${state.code || '······'}</div>
             <button class="btn-ghost" data-action="copy-code" style="margin-top: 2px; color: var(--ink-soft);">copy code</button>
           </div>
@@ -1786,7 +1913,7 @@
           <div style="text-align: center;">
             <div class="serif" style="font-size: 54px; line-height: 1.1; font-weight: 300; color: var(--ink);">everyone<br/>is in.</div>
             <p class="muted" style="margin-top: 24px; font-size: 16px; max-width: 340px; margin-left: auto; margin-right: auto;">
-              when you're ready, anyone can press reveal — the cards turn for all ${state.size || 3} of you at once.
+              when you're ready, anyone can press reveal; the cards turn for all ${state.size || 3} of you at once.
             </p>
           </div>
           <div class="spacer"></div>
@@ -1860,12 +1987,12 @@
           const isMeP = p === state.position;
           const sublabel = `${p}${isHolderP ? ' · holder' : ''}${isMeP ? ' · you' : ''}`;
           thumbs.push(`
-            <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:0 0 auto;">
-              <div style="width:60px;height:90px;border-radius:9px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.18);position:relative;opacity:${card ? 1 : 0.28};">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:7px;flex:0 0 auto;">
+              <div style="width:96px;height:144px;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.22);position:relative;opacity:${card ? 1 : 0.28};">
                 ${card ? card.svg : '<div style="width:100%;height:100%;background:var(--line);"></div>'}
-                ${card ? `<div style="position:absolute;bottom:0;left:0;right:0;padding:10px 3px 3px;font-size:8px;font-style:italic;color:var(--ink);background:linear-gradient(to top,rgba(255,235,210,0.97) 0%,transparent 100%);text-align:center;line-height:1.2;">${card.label}</div>` : ''}
+                ${card ? `<div style="position:absolute;bottom:0;left:0;right:0;padding:18px 6px 6px;font-size:11px;font-style:italic;color:var(--ink);background:linear-gradient(to top,var(--thumb-grad) 0%,transparent 100%);text-align:center;line-height:1.3;">${card.label}</div>` : ''}
               </div>
-              <div style="font-size:10px;letter-spacing:0.04em;text-align:center;color:var(--light-soft);">${sublabel}</div>
+              <div style="font-size:11px;letter-spacing:0.04em;text-align:center;color:var(--light-soft);">${sublabel}</div>
             </div>`);
         }
         return `
@@ -1877,7 +2004,7 @@
             </div>
             <div style="margin-top: 18px;">
               <div class="tiny" style="margin-bottom: 10px; opacity: 0.7;">what everyone chose</div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap;">${thumbs.join('')}</div>
+              <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">${thumbs.join('')}</div>
             </div>
             <textarea id="solution-input" class="solution-input" placeholder="one or two concrete sentences…" rows="4">${existing}</textarea>
             <p class="muted tiny" style="margin-top: 10px;">everyone writes their own version on their own device. this stays with you.</p>
@@ -2068,6 +2195,13 @@
         });
       }
     }
+
+    // ---------- THEME FLAG ----------
+    // Activate palette v2 (cornflower/lilac) via ?v2=1. Persists in
+    // localStorage so refresh keeps it. ?v2=0 clears it. Once the team
+    // approves, remove this block and delete the html.v2 CSS scope.
+    // palette v2 is now the default — class applied unconditionally
+    document.documentElement.classList.add('v2');
 
     // ---------- INIT ----------
     // Bumped whenever the client-side state shape changes in a breaking
