@@ -460,6 +460,24 @@ const nextConfig: NextConfig = {
         destination: "https://values-auction-d9m.pages.dev/:path*",
       },
 
+      // role-dice — static HTML tool (CF Pages). a dice-roll UI for the
+      // five-perspectives critique framework: builder, ghost, ripple,
+      // explorer, time traveller, plus an "imagine" sixth face that
+      // invites the group to name a perspective the other five can't
+      // offer. Source: harbour-apps/apps/role-dice/.
+      {
+        source: "/harbour/role-dice",
+        destination: "https://role-dice.pages.dev/",
+      },
+      {
+        source: "/harbour/role-dice/",
+        destination: "https://role-dice.pages.dev/",
+      },
+      {
+        source: "/harbour/role-dice/:path*",
+        destination: "https://role-dice.pages.dev/:path*",
+      },
+
       // cuts catalogue — served as a static HTML tool from
       // public/harbour/cuts-catalogue/ (moved from /tools/ on 2026-05-20
       // PRME-launch canonicalisation). 301 from /tools/cuts-catalogue
