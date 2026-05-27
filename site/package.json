@@ -6,7 +6,9 @@
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:cf": "opennextjs-cloudflare build && node scripts/write-assets-headers.mjs",
+    "deploy:cf": "npm run build:cf && opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@windedvertigo/booking": "*",
