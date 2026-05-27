@@ -37,8 +37,31 @@ interface CardState {
 
 export function HarbourMap() {
   const [card, setCard] = useState<CardState | null>(null);
-  const cardRef  = useRef<HTMLDivElement>(null);
+  const cardRef    = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const svgRef     = useRef<SVGSVGElement>(null);
+
+  /**
+   * svgWidth tracks the SVG element's rendered pixel width so we can
+   * compensate for the non-uniform stretch introduced by
+   * preserveAspectRatio="none".  With a 1000-unit viewBox and a
+   * container that is W px wide, every horizontal SVG unit becomes
+   * W/1000 px — stretching shapes horizontally.  Dividing boat
+   * dimensions by that factor (i.e. multiplying by 1000/W) restores
+   * the intended aspect ratios while keeping boat centres at the
+   * correct proportional x positions.
+   */
+  const [svgWidth, setSvgWidth] = useState(1000);
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      const w = entries[0].contentRect.width;
+      if (w > 0) setSvgWidth(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const openCard = useCallback((boat: Boat) => {
     setCard({
@@ -78,6 +101,7 @@ export function HarbourMap() {
           viewBox 0 0 1000 1300 matches the 1300px fixed container height.
           The CSS backgrounds (banks) are behind this layer. */}
       <svg
+        ref={svgRef}
         viewBox="0 0 1000 1300"
         preserveAspectRatio="none"
         role="img"
@@ -94,7 +118,14 @@ export function HarbourMap() {
             // ── custom artwork (svgPair / svgHref) or placeholder ellipse ──
             const hasCustomArt = !!(boat.svgPair || boat.svgHref);
             const svgH  = boat.svgHeight ?? boat.ry * 2;
+            // svgW is the "natural" width in viewBox units at 1:1 scale.
+            // xScale corrects for preserveAspectRatio="none" stretching:
+            // divide horizontal dimensions by (svgWidth/1000) so they
+            // render at their intended pixel size regardless of container width.
             const svgW  = Math.round(svgH * (boat.svgAspect ?? 1));
+            const xScale = 1000 / svgWidth;
+            const corrW = Math.round(svgW  * xScale);
+            const corrRx = boat.rx * xScale;
 
             const boatVisual = (
               <g
@@ -132,9 +163,9 @@ export function HarbourMap() {
                     <>
                       <image
                         href={boat.svgPair[0]}
-                        x={boat.cx - svgW}
+                        x={boat.cx - corrW}
                         y={boat.cy - svgH / 2}
-                        width={svgW}
+                        width={corrW}
                         height={svgH}
                         preserveAspectRatio="xMidYMid meet"
                       />
@@ -142,7 +173,7 @@ export function HarbourMap() {
                         href={boat.svgPair[1]}
                         x={boat.cx}
                         y={boat.cy - svgH / 2}
-                        width={svgW}
+                        width={corrW}
                         height={svgH}
                         preserveAspectRatio="xMidYMid meet"
                       />
@@ -151,9 +182,9 @@ export function HarbourMap() {
                     /* single image, centred on cx/cy */
                     <image
                       href={boat.svgHref}
-                      x={boat.cx - svgW / 2}
+                      x={boat.cx - corrW / 2}
                       y={boat.cy - svgH / 2}
-                      width={svgW}
+                      width={corrW}
                       height={svgH}
                       preserveAspectRatio="xMidYMid meet"
                     />
@@ -164,7 +195,7 @@ export function HarbourMap() {
                     <ellipse
                       cx={boat.cx}
                       cy={boat.cy}
-                      rx={boat.rx}
+                      rx={corrRx}
                       ry={boat.ry}
                       fill={fill}
                       stroke={stroke}
