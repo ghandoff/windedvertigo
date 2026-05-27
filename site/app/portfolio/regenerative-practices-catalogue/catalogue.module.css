@@ -1,3 +1,12 @@
+/* The global `main { padding-top: 160px }` rule in site/styles/main.css
+   was sized for the now-removed SiteHeader on this route. Harbour apps
+   use the harbour-nav-widget which adds 52px to body padding-top
+   itself, so we zero out main's padding-top here. This :global rule
+   ships only with this route's CSS chunk. */
+:global(main#main-content) {
+  padding: 0;
+}
+
 /* ── page wrapper ──────────────────────────────────────────────── */
 
 .pageWrapper {

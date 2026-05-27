@@ -21,14 +21,6 @@
   padding-bottom: 6rem;
 }
 
-/* Edge-to-edge olive. The body bg is overridden in this route's
-   chunk so any space the harbour-nav-widget leaves around itself
-   still reads as olive. */
-:global(html),
-:global(body) {
-  background-color: #434824;
-}
-
 /* ── container ─────────────────────────────────────────────── */
 
 .container {
