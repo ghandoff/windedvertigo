@@ -1444,7 +1444,7 @@ body { min-height: 100vh; padding-top: 146px; }
   opacity: 0; transition: opacity 0.3s;
   pointer-events: none;
 }
-.first-run-overlay.visible { opacity: 1; pointer-events: all; }
+.first-run-overlay.visible { opacity: 1; pointer-events: all; cursor: pointer; }
 .first-run-close {
   position: absolute; top: 16px; right: 16px;
   width: 32px; height: 32px; font-size: 18px;
@@ -1460,6 +1460,11 @@ body { min-height: 100vh; padding-top: 146px; }
 .first-run-label-left  { left: 24px;  top: 50%; transform: translateY(-50%); }
 .first-run-label-mid   { left: 50%;   top: 24px; transform: translateX(-50%); }
 .first-run-label-right { right: 24px; top: 50%; transform: translateY(-50%); }
+.first-run-dismiss {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; font-weight: 500; color: var(--on-dark-muted);
+  letter-spacing: 0.04em;
+}
 @media (prefers-reduced-motion: reduce) {
   .first-run-overlay { transition: none; }
 }
@@ -1810,10 +1815,10 @@ body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-le
 
 <!-- first-run overlay: shown once after first commit, dismissed via × -->
 <div id="first-run-overlay" class="first-run-overlay" role="dialog" aria-modal="true" aria-label="how to use this view" hidden>
-  <button class="first-run-close" id="first-run-close" aria-label="dismiss">&times;</button>
   <div class="first-run-label first-run-label-left">interventions: pick one, then watch what the system does</div>
   <div class="first-run-label first-run-label-mid">trajectory: what the stock does over 25 years</div>
   <div class="first-run-label first-run-label-right">system map: pressure on each node, 0 to 100</div>
+  <div class="first-run-dismiss">tap anywhere to continue</div>
 </div>
 
 <script>
@@ -3633,11 +3638,19 @@ function maybeShowFirstRunOverlay() {
   if (!overlay) return;
   overlay.hidden = false;
   requestAnimationFrame(() => overlay.classList.add('visible'));
-  document.getElementById('first-run-close').addEventListener('click', () => {
+  let dismissed = false;
+  function dismissOverlay() {
+    if (dismissed) return;
+    dismissed = true;
+    clearTimeout(autoTimer);
     overlay.classList.remove('visible');
     overlay.addEventListener('transitionend', () => { overlay.hidden = true; }, { once: true });
     try { localStorage.setItem('lbl_simulator_overlay_seen', '1'); } catch(e) {}
-  }, { once: true });
+  }
+  // click anywhere on overlay to dismiss (not just the × button)
+  overlay.addEventListener('click', dismissOverlay, { once: true });
+  // auto-dismiss after 4s
+  const autoTimer = setTimeout(dismissOverlay, 4000);
 }
 
 // commitment flow
