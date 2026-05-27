@@ -31,7 +31,11 @@ import { ingestRecentMeetTranscripts } from "@/lib/meeting-ingest/sources/google
 import { findFolderByName } from "@/lib/gdrive";
 import { listImpersonationSubjects } from "@/lib/shared/google-sa";
 
-export const maxDuration = 300;
+// Bumped from 300s to support 1-year backfill runs. A full sweep over
+// a year of paginated Drive scans + per-doc Claude extraction can take
+// 8-12 minutes for a heavily-used calendar. Cloudflare Workers cron-
+// triggered routes cap at 15 min — we stay safely under.
+export const maxDuration = 800;
 
 function verifyCronAuth(req: NextRequest): boolean {
   const authHeader = req.headers.get("authorization");
