@@ -9,6 +9,11 @@
  *
  * SVG viewBox: 0 0 1000 1300  (matches the 1300px fixed height;
  * x-axis stays at 1000 units so cx values in boats.ts are unchanged).
+ *
+ * Interaction model: tap/click always opens a persistent fixed-bottom
+ * card (app name + tagline + "open app" link). No hover-tooltip — this
+ * gives mobile and desktop the same behaviour. The card closes on
+ * Escape, a close-button click, or a click outside the card.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -22,48 +27,50 @@ const COLOURS = {
   text:        "#ffffff",
 } as const;
 
-interface TooltipState {
+interface CardState {
   slug:    string;
+  label:   string;
   tagline: string;
+  href:    string;
   status:  "live" | "coming-soon";
-  x:       number;
-  y:       number;
 }
 
 export function HarbourMap() {
-  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [card, setCard] = useState<CardState | null>(null);
+  const cardRef  = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const openTooltip = useCallback((boat: Boat, target: SVGElement) => {
-    const rect = target.getBoundingClientRect();
-    setTooltip({
+  const openCard = useCallback((boat: Boat) => {
+    setCard({
       slug:    boat.slug,
+      label:   boat.label,
       tagline: boat.tagline,
+      href:    boat.href,
       status:  boat.status,
-      x: rect.left + rect.width  / 2 + window.scrollX,
-      y: rect.top                    + window.scrollY,
     });
   }, []);
 
-  const closeTooltip = useCallback(() => setTooltip(null), []);
+  const closeCard = useCallback(() => setCard(null), []);
 
+  /* ── Escape key ─────────────────────────────────────────────────── */
   useEffect(() => {
-    if (!tooltip) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeTooltip(); };
+    if (!card) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeCard(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [tooltip, closeTooltip]);
+  }, [card, closeCard]);
 
+  /* ── click outside the card ─────────────────────────────────────── */
   useEffect(() => {
-    if (!tooltip) return;
+    if (!card) return;
     const onPointerDown = (e: PointerEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        closeTooltip();
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        closeCard();
       }
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [tooltip, closeTooltip]);
+  }, [card, closeCard]);
 
   return (
     <div ref={wrapperRef} className={styles.mapWrapper}>
@@ -79,9 +86,9 @@ export function HarbourMap() {
       >
         <g data-boats>
           {BOATS.map((boat, index) => {
-            const isLive   = boat.status === "live";
-            const fill     = isLive ? COLOURS.boat   : COLOURS.boatComing;
-            const stroke   = isLive ? COLOURS.boatStroke : COLOURS.boatComing;
+            const isLive    = boat.status === "live";
+            const fill      = isLive ? COLOURS.boat      : COLOURS.boatComing;
+            const stroke    = isLive ? COLOURS.boatStroke : COLOURS.boatComing;
             const styleVars = { ["--boat-index" as string]: String(index) } as React.CSSProperties;
 
             // ── custom artwork (svgPair / svgHref) or placeholder ellipse ──
@@ -94,18 +101,29 @@ export function HarbourMap() {
                 className={`${styles.boat} ${!isLive ? styles.boatComing : ""}`}
                 style={styleVars}
                 data-boat={boat.slug}
-                onMouseEnter={(e) => openTooltip(boat, e.currentTarget)}
-                onMouseLeave={closeTooltip}
-                onFocus={(e)    => openTooltip(boat, e.currentTarget)}
-                onBlur={closeTooltip}
                 onClick={(e) => {
-                  if (!window.matchMedia("(hover: hover)").matches && tooltip?.slug !== boat.slug) {
-                    e.preventDefault();
-                    openTooltip(boat, e.currentTarget as SVGElement);
+                  e.preventDefault();
+                  // Toggle: tapping the active boat closes the card
+                  if (card?.slug === boat.slug) {
+                    closeCard();
+                  } else {
+                    openCard(boat);
                   }
                 }}
-                tabIndex={isLive ? 0 : undefined}
-                aria-describedby={`tip-${boat.slug}`}
+                tabIndex={0}
+                role="button"
+                aria-label={isLive ? `${boat.label} — ${boat.tagline}` : `${boat.label} — coming soon`}
+                aria-expanded={card?.slug === boat.slug}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (card?.slug === boat.slug) {
+                      closeCard();
+                    } else {
+                      openCard(boat);
+                    }
+                  }
+                }}
               >
                 {hasCustomArt ? (
                   /* ── Payton's custom SVG artwork ─────────────────────── */
@@ -171,12 +189,8 @@ export function HarbourMap() {
               </g>
             );
 
-            return isLive ? (
-              <a key={boat.slug} href={boat.href} aria-label={`${boat.label} — ${boat.tagline}`}>
-                {boatVisual}
-              </a>
-            ) : (
-              <g key={boat.slug} role="group" aria-label={`${boat.label} — coming soon`}>
+            return (
+              <g key={boat.slug} role="none">
                 {boatVisual}
               </g>
             );
@@ -184,17 +198,35 @@ export function HarbourMap() {
         </g>
       </svg>
 
-      {tooltip && (
+      {/* ── fixed-bottom card ────────────────────────────────────────── */}
+      {card && (
         <div
-          id={`tip-${tooltip.slug}`}
-          role="tooltip"
-          className={`${styles.tooltip} ${tooltip.status === "coming-soon" ? styles.tooltipComing : ""}`}
-          style={{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }}
+          ref={cardRef}
+          role="dialog"
+          aria-modal="false"
+          aria-label={card.label}
+          className={`${styles.boatCard} ${card.status === "coming-soon" ? styles.boatCardComing : ""}`}
         >
-          {tooltip.status === "coming-soon" && (
-            <span className={styles.tooltipBadge}>coming soon</span>
-          )}
-          <p className={styles.tooltipText}>{tooltip.tagline}</p>
+          <div className={styles.boatCardBody}>
+            <div className={styles.boatCardText}>
+              <p className={styles.boatCardName}>{card.label}</p>
+              <p className={styles.boatCardTagline}>{card.tagline}</p>
+            </div>
+            {card.status === "live" ? (
+              <a href={card.href} className={styles.boatCardLink}>
+                open app →
+              </a>
+            ) : (
+              <span className={styles.boatCardBadge}>coming soon</span>
+            )}
+          </div>
+          <button
+            className={styles.boatCardClose}
+            onClick={closeCard}
+            aria-label="close"
+          >
+            ×
+          </button>
         </div>
       )}
     </div>
