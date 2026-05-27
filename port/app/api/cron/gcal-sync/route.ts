@@ -21,7 +21,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { listEvents, patchEvent } from "@/lib/gcal";
-import { upsertPendingMeetingFromGcal } from "@/lib/supabase/meetings";
+import {
+  upsertPendingMeetingFromGcal,
+  deleteMeetingByGcalEventId,
+} from "@/lib/supabase/meetings";
 import { listImpersonationSubjects } from "@/lib/shared/google-sa";
 
 export const maxDuration = 300;
@@ -107,6 +110,12 @@ interface PerSubjectResult {
   descriptionsSkippedExternal: number;
   /** Past-leaked Council URLs cleaned from external events this run. */
   descriptionsCleanedExternal: number;
+  /**
+   * Council rows removed because their backing GCal event came back with
+   * status='cancelled' this pass. Multi-member crons race-call delete; only
+   * the first member to see the cancellation produces a non-zero increment.
+   */
+  cancelledDeleted: number;
   skipped: number;
   errors: string[];
 }
@@ -135,6 +144,7 @@ async function syncOneSubject(
     descriptionsSkippedNoPermission: 0,
     descriptionsSkippedExternal: 0,
     descriptionsCleanedExternal: 0,
+    cancelledDeleted: 0,
     skipped: 0,
     errors: [],
   };
@@ -146,7 +156,18 @@ async function syncOneSubject(
   result.scanned = events.length;
 
   for (const event of events) {
-    if (event.status === "cancelled") { result.skipped++; continue; }
+    if (event.status === "cancelled") {
+      // Mirror the cancellation into Council: drop the pending row (and its
+      // cascaded children) so /council doesn't show ghost meetings for
+      // events the user already cancelled in their calendar. Multi-member
+      // safe — only the first member's pass that sees the cancellation
+      // actually deletes; subsequent calls are no-ops via the
+      // deleteByGcalEventId not-found return.
+      const { deleted } = await deleteMeetingByGcalEventId(event.id);
+      if (deleted) result.cancelledDeleted++;
+      else result.skipped++;
+      continue;
+    }
     if (event.eventType && event.eventType !== "default") {
       // Working-location/focusTime/outOfOffice — skip
       result.skipped++;
@@ -316,6 +337,7 @@ export async function GET(req: NextRequest) {
         acc.descriptionsSkippedNoPermission + p.descriptionsSkippedNoPermission,
       descriptionsSkippedExternal: acc.descriptionsSkippedExternal + p.descriptionsSkippedExternal,
       descriptionsCleanedExternal: acc.descriptionsCleanedExternal + p.descriptionsCleanedExternal,
+      cancelledDeleted: acc.cancelledDeleted + p.cancelledDeleted,
       skipped: acc.skipped + p.skipped,
       errors: acc.errors + p.errors.length,
     }),
@@ -328,6 +350,7 @@ export async function GET(req: NextRequest) {
       descriptionsSkippedNoPermission: 0,
       descriptionsSkippedExternal: 0,
       descriptionsCleanedExternal: 0,
+      cancelledDeleted: 0,
       skipped: 0,
       errors: 0,
     },
