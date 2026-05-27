@@ -31,6 +31,11 @@ export interface DriveFile {
  * newest-first. Optional `nameContains` filter narrows to transcript-shaped
  * filenames. Returns up to `limit` entries.
  *
+ * Paginates via Drive's `nextPageToken` so backfills covering a year+ of
+ * transcripts return all matching files, not just the first page. Each
+ * Drive API call fetches up to 1000 files; we loop until either the
+ * response has no `nextPageToken` or we've collected `limit` files.
+ *
  * Returns null on auth failure (treat as "skip this run"). Returns empty
  * array on "no matches", which is a normal state.
  */
@@ -39,6 +44,11 @@ export async function listFilesInFolder(
   opts: {
     modifiedSinceIso?: string;
     nameContains?: string;
+    /**
+     * Hard cap on total files returned across all pages. Defaults to 50 to
+     * keep the historical hourly-cron behavior unchanged. Backfill callers
+     * pass much larger numbers (500+) along with a wider modifiedSinceIso.
+     */
     limit?: number;
     /** Impersonate a specific Workspace user (multi-member ingest). */
     subject?: string;
@@ -49,6 +59,8 @@ export async function listFilesInFolder(
     console.warn("[gdrive] no SA access token (scope=drive.readonly)");
     return null;
   }
+
+  const limit = opts.limit ?? 50;
 
   // Drive's `q` param uses a SQL-like syntax. Quote folder id + escape
   // single quotes in name filters defensively.
@@ -64,29 +76,61 @@ export async function listFilesInFolder(
     clauses.push(`name contains '${safe}'`);
   }
 
-  const params = new URLSearchParams({
+  // Use Drive's max pageSize (1000) per request — fewer round-trips when
+  // backfilling. Cap each loop iteration by what's still needed to honor
+  // the caller's `limit`. Reset to 1000 if `limit` is huge.
+  const baseParams = {
     q: clauses.join(" and "),
     orderBy: "modifiedTime desc",
-    pageSize: String(opts.limit ?? 50),
+    // `nextPageToken` MUST be requested explicitly in fields, otherwise the
+    // server silently omits it and pagination breaks.
     fields:
-      "files(id,name,mimeType,modifiedTime,createdTime,webViewLink,properties)",
+      "nextPageToken,files(id,name,mimeType,modifiedTime,createdTime,webViewLink,properties)",
     // Required for service-account-as-user calls against personal Drives.
     supportsAllDrives: "true",
     includeItemsFromAllDrives: "true",
-  });
+  };
 
-  const res = await fetch(`${DRIVE_API}/files?${params.toString()}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const collected: DriveFile[] = [];
+  let pageToken: string | undefined = undefined;
 
-  if (!res.ok) {
-    const txt = await res.text();
-    console.warn(`[gdrive] list failed (${res.status}):`, txt.slice(0, 400));
-    return null;
+  // Safety cap — prevents infinite loops if Drive misbehaves with a
+  // permanent nextPageToken. 50 pages × 1000 = 50k files — more than any
+  // realistic Meet Recordings folder.
+  for (let page = 0; page < 50; page++) {
+    const remaining = limit - collected.length;
+    if (remaining <= 0) break;
+
+    const params = new URLSearchParams({
+      ...baseParams,
+      pageSize: String(Math.min(1000, remaining)),
+    });
+    if (pageToken) params.set("pageToken", pageToken);
+
+    const res = await fetch(`${DRIVE_API}/files?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      console.warn(`[gdrive] list failed (${res.status}):`, txt.slice(0, 400));
+      // Return what we've collected so far if we already got at least one
+      // page, otherwise null. Partial results > total failure for backfills.
+      return collected.length > 0 ? collected : null;
+    }
+
+    const data = (await res.json()) as {
+      files?: DriveFile[];
+      nextPageToken?: string;
+    };
+    if (data.files) collected.push(...data.files);
+    if (!data.nextPageToken) break;
+    pageToken = data.nextPageToken;
   }
 
-  const data = (await res.json()) as { files?: DriveFile[] };
-  return data.files ?? [];
+  // Slice to the caller's limit — paranoid trim in case Drive returned
+  // slightly more on the final page than we requested.
+  return collected.slice(0, limit);
 }
 
 /**
