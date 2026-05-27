@@ -1,20 +1,8 @@
-/* harbour-preview — scoped styles for the map page.
- *
- * Brand tokens (--wv-*) defined in site/styles/tokens.css and loaded
- * via app/globals.css. Don't redefine here.
- *
- * Layout: SVG fills 100% of viewport width; the 1:2 viewBox aspect
- * ratio means rendered height = 2× width naturally. On a 1440px
- * desktop the harbour ends up ~2880px tall — a long immersive scroll
- * from horizon (top) to family-play (bottom). Mobile users get the
- * same experience scaled to their viewport width.
- */
+/* harbour-preview — scoped styles for the map page. */
 
 .page {
   min-height: 100vh;
   background-color: var(--wv-cadet, #273248);
-  /* The preview banner is sticky; main needs to be a stacking context
-     so the banner z-index works as expected against the map below. */
   position: relative;
   display: flex;
   flex-direction: column;
@@ -22,9 +10,9 @@
 
 .previewBanner {
   position: sticky;
-  top: 60px; /* sits just under the sticky harbour header */
+  top: 60px;
   z-index: 20;
-  background-color: #1e2738; /* darker cadet — reads as a chrome strip */
+  background-color: #1e2738;
   color: var(--wv-champagne, #ffebd2);
   padding: 0.625rem 1.25rem;
   font-size: 0.8125rem;
@@ -36,56 +24,44 @@
   border-bottom: 1px solid rgba(255, 235, 210, 0.12);
 }
 
-/* The SVG wrapper. width: 100% with display: block so the SVG fills
-   the available width with no horizontal scroll. Aspect ratio comes
-   from the SVG's viewBox attribute — no need to set it in CSS.
+/* ── harbour scene ───────────────────────────────────────────────────
+   Fruit's exact CSS — fixed 1300px height, three background-image
+   layers, water-blue fill. No SVG scaling; no responsive tricks.
 
-   Four CSS background layers here (bottom → top):
-     1. background-color (#3b5577) — harbour basin water blue.
-     2. south-bank1.svg — anchored bottom-right, fixed 1900×308px.
-        Panoramic slide-in: as the viewport widens, more of the 1900px
-        wide image slides into view from the right edge.
-     3. Right-bank.svg — anchored top-right. Fixed at auto×1014px so it
-        never grows beyond Fruit's reference size. On viewports narrower
-        than ~650px the bank shrinks proportionally via min(1014px, 78%).
-     4. Left-Bank.svg — anchored top-left, same fixed-size logic.
-
-   All three banks are CSS backgrounds (not SVG <image> elements) so
-   they stay at a fixed visual size regardless of how wide the SVG
-   scales. The inline SVG contains only the interactive boats layer. */
+   Left-Bank:  top left,    auto × 78%    (= ~1014px tall)
+   Right-Bank: top right,   auto × 78%
+   south-bank1: bottom right, 1900px wide (panoramic slide-in)
+*/
 .mapWrapper {
+  height: 1300px;
   width: 100%;
-  display: block;
-  position: relative; /* anchor for the tooltip overlay */
-  background-color: #3b5577;
+  position: relative; /* anchor for the boats SVG + tooltip */
+  background-color: #273248;
   background-image:
     url('/harbour-preview/Left-Bank.svg'),
     url('/harbour-preview/Right-bank.svg'),
     url('/harbour-preview/south-bank1.svg');
   background-repeat: no-repeat, no-repeat, no-repeat;
   background-position: top left, top right, bottom right;
-  background-size:
-    auto min(1014px, 78%),
-    auto min(1014px, 78%),
-    1900px auto;
+  background-size: auto 78%, auto 78%, 1900px auto;
 }
 
-.map {
+/* ── boats SVG layer ─────────────────────────────────────────────────
+   Absolutely fills .mapWrapper so boat coordinates (viewBox 0 0 1000 1300)
+   align 1:1 with the CSS background. pointer-events: none at SVG level;
+   individual boat <g> elements opt back in. */
+.boatsLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: auto;
-  display: block;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
 }
 
-/* ── boat bobbing ────────────────────────────────────────────────
-   The harbour breathes as a wave: each boat translates vertically on
-   a 5s loop, staggered per-boat by `--boat-index * 400ms` so they
-   don't bob in lockstep. The transform is on the <g data-boat>
-   element — text inside the group inherits the motion.
-
-   Why not pure CSS without --boat-index: animation-delay needs a
-   numeric ms value, and stagger from a single keyframe requires the
-   per-boat custom property to pick up the index from JSX.
-*/
+/* ── boat bobbing ────────────────────────────────────────────────────
+   Staggered per-boat via --boat-index CSS custom property. */
 @keyframes bob {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-8px); }
@@ -97,25 +73,18 @@
   animation: bob 5.5s ease-in-out infinite;
   animation-delay: calc(var(--boat-index, 0) * 400ms);
   cursor: pointer;
-  /* Slight scale on hover/focus reinforces the affordance. The text
-     inside is `pointer-events: none` (set in JSX) so hover doesn't
-     flicker as the cursor crosses the label. */
+  pointer-events: auto;
   transition: transform 200ms ease;
 }
 .boat:hover,
 .boat:focus-visible {
-  /* Scale layered on top of the bob translate by combining transforms
-     via the parent <a>'s style — but `transform` on the <g> already
-     animates. Use filter as a low-risk affordance instead. */
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4)) brightness(1.08);
 }
 .boat:focus-visible {
-  outline: none; /* the <a> wrapper takes the focus ring */
+  outline: none;
 }
 
 .boatComing {
-  /* Coming-soon boats: no bob (we don't want them to read as alive
-     when they aren't). Hover still highlights. */
   animation: none;
   cursor: default;
 }
@@ -123,31 +92,26 @@
   filter: none;
 }
 
-/* SVG <a> tags inherit focus styling — give them a visible ring. */
-.map a:focus-visible {
+.boatsLayer a:focus-visible {
   outline: 3px solid #3b82f6;
   outline-offset: 4px;
   border-radius: 6px;
 }
 
-/* ── tooltip ──────────────────────────────────────────────────────
-   Positioned via inline left/top from the React state. transform
-   centres it horizontally relative to its own width and lifts it
-   above the boat (negative Y).
-*/
+/* ── tooltip ─────────────────────────────────────────────────────────
+   Absolute-positioned, anchored via inline left/top from React state. */
 .tooltip {
   position: absolute;
   transform: translate(-50%, calc(-100% - 12px));
-  background-color: rgba(30, 39, 56, 0.97); /* darker cadet */
+  background-color: rgba(30, 39, 56, 0.97);
   color: var(--wv-champagne, #ffebd2);
   padding: 0.625rem 0.875rem;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(255, 235, 210, 0.15);
   max-width: 280px;
-  pointer-events: none; /* tooltip is informational; never intercepts clicks */
+  pointer-events: none;
   z-index: 25;
-  /* Small caret pointing down toward the boat. */
 }
 .tooltip::after {
   content: "";
@@ -186,7 +150,7 @@
   color: rgba(255, 235, 210, 0.82);
 }
 
-/* ── reduced motion ────────────────────────────────────────────── */
+/* ── reduced motion ──────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .boat {
     animation: none;

@@ -2,9 +2,9 @@
  * harbour-preview — single source of truth for boat + landmark positions
  * inside the SVG.
  *
- * Coordinate system: the SVG renders with viewBox="0 0 1000 2000" — a 1:2
- * portrait that matches the iPhone-portrait mockup. All cx/cy values below
- * are in those viewBox units, so a (500, 1000) boat sits dead-centre.
+ * Coordinate system: the SVG renders with viewBox="0 0 1000 1300" — matching
+ * the fixed 1300px container height. All cx/cy values below are in those
+ * viewBox units, so a (500, 650) boat sits dead-centre.
  *
  * Why these are placeholders: Payton is producing per-app boat SVGs and
  * Fruit is producing the background harbour. When the real art arrives,
@@ -29,7 +29,7 @@ export interface Boat {
   tagline: string;
   /** centre x in the 1000-wide viewBox */
   cx: number;
-  /** centre y in the 2000-tall viewBox */
+  /** centre y in the 1300-tall viewBox */
   cy: number;
   /** ellipse radius x (placeholder shape) */
   rx: number;
@@ -83,7 +83,7 @@ export const BOATS: readonly Boat[] = [
     href: "/harbour/vertigo-vault",
     tagline: "a curated catalogue of group activities, energizers, and reflective exercises.",
     cx: 290,
-    cy: 870,
+    cy: 566,
     rx: 130,
     ry: 60,
     status: "live",
@@ -94,7 +94,7 @@ export const BOATS: readonly Boat[] = [
     href: "/harbour/lines-become-loops",
     tagline: "a systems-thinking simulator — small choices ripple into the whole system.",
     cx: 500,
-    cy: 990,
+    cy: 644,
     rx: 150,
     ry: 65,
     status: "live",
@@ -105,7 +105,7 @@ export const BOATS: readonly Boat[] = [
     href: "/harbour/depth-chart",
     tagline: "AI-assisted assessment generator for PRME faculty. coming soon.",
     cx: 200,
-    cy: 1050,
+    cy: 683,
     rx: 130,
     ry: 60,
     status: "coming-soon",
@@ -116,7 +116,7 @@ export const BOATS: readonly Boat[] = [
     href: "/harbour/read-the-room",
     tagline: "a quiet two-player game of interpretation.",
     cx: 520,
-    cy: 1130,
+    cy: 735,
     rx: 130,
     ry: 60,
     status: "live",
@@ -127,7 +127,7 @@ export const BOATS: readonly Boat[] = [
     href: "/harbour/values-companion",
     tagline: "a values game for facilitators — free for the PRME community.",
     cx: 720,
-    cy: 1100,
+    cy: 715,
     rx: 145,
     ry: 60,
     status: "live",
@@ -138,7 +138,7 @@ export const BOATS: readonly Boat[] = [
     href: "/harbour/cuts-catalogue",
     tagline: "a vocabulary of narrative pacing cuts — for writers, editors, and educators.",
     cx: 360,
-    cy: 1200,
+    cy: 780,
     rx: 135,
     ry: 60,
     status: "live",
@@ -149,7 +149,7 @@ export const BOATS: readonly Boat[] = [
     href: "/harbour/co-rubric-companion",
     tagline: "co-design assessment with your class — free for the PRME community.",
     cx: 580,
-    cy: 1290,
+    cy: 839,
     rx: 125,
     ry: 60,
     status: "live",
@@ -160,7 +160,7 @@ export const BOATS: readonly Boat[] = [
     href: "/harbour/creaseworks",
     tagline: "the kid + family system of play. coming soon.",
     cx: 470,
-    cy: 1480,
+    cy: 962,
     rx: 130,
     ry: 60,
     status: "coming-soon",
