@@ -15,6 +15,7 @@ import { getComposeDraft, updateComposeDraft } from "@/lib/supabase/compose-draf
 import { createLinkedInPost } from "@/lib/social/linkedin";
 import { createBlueskyPost } from "@/lib/social/bluesky";
 import { createSubstackDraft } from "@/lib/social/substack";
+import { createFacebookPost, createInstagramPost } from "@/lib/social/meta";
 
 export const maxDuration = 60;
 
@@ -67,11 +68,39 @@ export async function POST(
         publish: false,
       });
       result = { id: String(sub.id), url: sub.url };
+    } else if (draft.channel === "meta-facebook") {
+      // Facebook: text-only OR text+image. Image is optional.
+      // If the draft has multiple images attached, only the first is used —
+      // multi-image FB posts (albums) require a different API flow.
+      const fb = await createFacebookPost({
+        text: draft.contentText,
+        imageUrl: draft.attachedImageUrls[0],
+      });
+      result = fb;
+    } else if (draft.channel === "meta-instagram") {
+      // Instagram: image is REQUIRED (the Graph API rejects text-only IG posts).
+      // Surface a clean 400 here so the UI doesn't have to parse an underlying
+      // Meta error message — though the editor already disables publish
+      // until an image is attached, this is the belt-and-suspenders gate.
+      if (!draft.attachedImageUrls[0]) {
+        return NextResponse.json(
+          {
+            error: "image_required",
+            message: "Instagram requires an image. Attach one before publishing.",
+          },
+          { status: 400 },
+        );
+      }
+      const ig = await createInstagramPost({
+        caption: draft.contentText,
+        imageUrl: draft.attachedImageUrls[0],
+      });
+      result = ig;
     } else {
       return NextResponse.json(
         {
           error: "channel_not_yet_supported",
-          message: `Publishing for ${draft.channel} ships in a follow-up. LinkedIn and Bluesky are live today.`,
+          message: `Publishing for ${draft.channel} ships in a follow-up.`,
         },
         { status: 501 },
       );
