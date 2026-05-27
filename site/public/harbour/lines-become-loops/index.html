@@ -47,25 +47,23 @@ html {
 
 body {
   min-height: 100vh;
-  padding-top: 146px;
+  /* harbour nav (52px mobile / 56px desktop) + scenario bar (~56px) */
+  padding-top: 108px !important;
 }
-@media (max-width: 640px) { body { padding-top: 130px; } }
+@media (min-width: 640px) { body { padding-top: 112px !important; } }
 
-/* -- page header (fixed) -- */
+/* -- page header (fixed, sits below the harbour nav) -- */
 .page-header {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: 52px; left: 0; right: 0; /* offset by harbour nav height (mobile) */
   z-index: 100;
   background: var(--cadet);
-  padding: 16px 24px 0 24px;
+  padding: 0 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
-.wordmark { display: inline-block; line-height: 0; }
-.wordmark img { display: block; width: 160px; height: auto; }
-@media (max-width: 640px) {
-  .wordmark img { width: 120px; }
+@media (min-width: 640px) {
+  .page-header { top: 56px; } /* harbour nav is 56px on desktop */
 }
 
 /* -- scenario picker (lives inside .page-header) -- */
@@ -105,10 +103,10 @@ body {
 /* -- screens -- */
 .screen {
   display: none;
-  min-height: calc(100vh - 146px);
+  min-height: calc(100vh - 108px);
 }
-@media (max-width: 640px) {
-  .screen { min-height: calc(100vh - 130px); }
+@media (min-width: 640px) {
+  .screen { min-height: calc(100vh - 112px); }
 }
 .screen.active {
   display: block;
@@ -120,12 +118,12 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 146px);
+  min-height: calc(100vh - 108px);
   padding: 24px 24px 48px;
   text-align: center;
 }
-@media (max-width: 640px) {
-  .landing { min-height: calc(100vh - 130px); }
+@media (min-width: 640px) {
+  .landing { min-height: calc(100vh - 112px); }
 }
 .landing-title {
   font-size: 11px;
@@ -513,9 +511,8 @@ body.theme-v2 .scenario-link:hover { background: var(--lbl-soft); opacity: 1; }
 <body>
 <script>(function(){if(new URLSearchParams(location.search).get('v')==='2')document.body.classList.add('theme-v2');})()</script>
 
-<!-- wordmark -->
+<!-- scenario picker (sits below the harbour nav) -->
 <header class="page-header" role="banner">
-  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
   <nav class="scenario-picker" aria-label="switch scenario">
     <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=churn">saas churn</a>
     <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=burnout">team burnout</a>
@@ -687,5 +684,6 @@ document.getElementById('session-code-input').addEventListener('keydown', (e) =>
   if (e.key === 'Enter') document.getElementById('btn-join-session').click();
 });
 </script>
+<script src="/harbour-nav-widget.js" data-app="lines-become-loops" defer></script>
 </body>
 </html>
