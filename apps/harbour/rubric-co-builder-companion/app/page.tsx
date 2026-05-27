@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function LandingPage() {
   return (
     <main
-      className="flex-1 flex flex-col items-center justify-center px-6 py-12"
+      className="surface-page flex-1 flex flex-col items-center justify-center px-6 py-12"
       style={{ background: "var(--color-champagne)" }}
     >
       <div className="max-w-xl text-center space-y-6">

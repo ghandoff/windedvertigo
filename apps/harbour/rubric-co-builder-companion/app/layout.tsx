@@ -53,6 +53,28 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body>
+        {/* Palette bootstrap (PR #151). Runs before React hydrates so the
+            data-palette attribute is set before first paint, avoiding any
+            flash of the wrong palette. Reads ?palette=cocoa|cadet from
+            the URL (persists to localStorage for that browser), then
+            sets the attribute on <html> if cocoa is sticky. No-op
+            otherwise — legacy palette renders as the unchanged default. */}
+        <Script id="cr-palette-bootstrap" strategy="beforeInteractive">{`
+          (function () {
+            try {
+              var url = new URL(window.location.href);
+              var p = url.searchParams.get("palette");
+              if (p === "cocoa" || p === "cadet") {
+                window.localStorage.setItem("cr-palette", p);
+              }
+              if (window.localStorage.getItem("cr-palette") === "cocoa") {
+                document.documentElement.setAttribute("data-palette", "cocoa");
+              }
+            } catch (e) {
+              /* best-effort; no flag set means legacy palette */
+            }
+          })();
+        `}</Script>
         <a href="#main" className="skip-link">
           skip to content
         </a>

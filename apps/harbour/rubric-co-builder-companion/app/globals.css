@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @theme {
+  /* Legacy "winded.vertigo cadet" palette — default. Unchanged from prior
+     releases so existing component code (~110 var() references across
+     8 files) keeps working without per-file edits. */
   --color-cadet: #273248;
   --color-redwood: #b15043;
   --color-sienna: #cb7858;
@@ -9,7 +12,31 @@
   --color-wv-white: #ffffff;
   --color-focus: #3b82f6;
 
+  /* New "drawn together" palette (palette #3) — applied only when
+     <html data-palette="cocoa">. Each cr-* token names what the value
+     means semantically; the legacy token names are re-bound below so
+     the swap is purely tokenic and component code stays untouched.
+     (PR #151.) */
+  --cr-ground: #482D27;            /* cocoa — page background, edge to edge */
+  --cr-accent: #CB7858;            /* terracotta — active tab + buttons + remove links */
+  --cr-text: #FFEBD2;              /* cream — primary text on cocoa */
+  --cr-text-muted: rgba(255, 235, 210, 0.72);
+  --cr-text-faint: rgba(255, 235, 210, 0.55);
+  --cr-card-bg: #FFFFFF;            /* pure white — form/card surfaces */
+  --cr-card-text: #482D27;          /* cocoa — text on white surfaces */
+  --cr-card-border: rgba(72, 45, 39, 0.22);
+  --cr-btn-text: #FFEBD2;           /* cream — button text on terracotta (~2.4:1, fails AA-normal; documented per Garrett) */
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Cocoa palette: re-bind the legacy token names. Component code that
+   reads var(--color-cadet) now sees cocoa; var(--color-champagne) now
+   sees cream; var(--color-wv-white) stays white. Sienna stays the
+   same hex but takes on a new semantic role (accent / button bg). */
+:root[data-palette="cocoa"] {
+  --color-cadet: var(--cr-ground);
+  --color-champagne: var(--cr-text);
 }
 
 @layer base {
@@ -110,6 +137,63 @@
 .skip-link:focus {
   left: 1rem;
   top: 1rem;
+}
+
+/* ─── Cocoa palette structural overrides (PR #151) ───────────────────────
+   These only apply when <html data-palette="cocoa"> — set by the
+   bootstrap script in layout.tsx based on ?palette=cocoa URL param
+   (persisted to localStorage). Default state: not present, legacy
+   palette renders unchanged. */
+
+[data-palette="cocoa"] body {
+  /* Edge-to-edge cocoa ground replaces the body's default white. */
+  background: var(--cr-ground);
+}
+
+[data-palette="cocoa"] .btn-primary,
+[data-palette="cocoa"] .btn-secondary {
+  /* Both primary and secondary become identical terracotta-filled
+     pills with cream text. Visual hierarchy comes from text length
+     only, per the spec. */
+  background: var(--cr-accent);
+  color: var(--cr-btn-text);
+  border: none;
+  border-radius: 999px;
+  padding: 0.6875rem 1.5rem;
+  font-weight: 500;
+}
+
+[data-palette="cocoa"] .btn-primary:hover,
+[data-palette="cocoa"] .btn-secondary:hover {
+  background: color-mix(in srgb, var(--cr-accent) 90%, #000);
+  transform: translateY(-1px);
+}
+
+[data-palette="cocoa"] .btn-primary:disabled,
+[data-palette="cocoa"] .btn-secondary:disabled {
+  background: var(--cr-accent);
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* `.surface-page` is applied to elements whose legacy palette uses an
+   inline `style={{ background: var(--color-champagne) }}` (landing main,
+   workshop main when frame/commit step, commit-step pledge aside). The
+   inline style wins in legacy mode (no rule beats it without !important);
+   under cocoa, this !important override flips them to the cocoa ground
+   so the layout reads as one continuous color. */
+[data-palette="cocoa"] .surface-page {
+  background: var(--cr-ground) !important;
+}
+
+/* `.surface-pledge` is applied to the AI-pledge aside on the commit step.
+   In legacy palette it has a champagne fill. Under cocoa, drop the fill
+   entirely so the aside sits transparently on the cocoa ground with
+   only its terracotta left-border to mark it. */
+[data-palette="cocoa"] .surface-pledge {
+  background: transparent !important;
+  color: var(--cr-text) !important;
 }
 
 /* print stylesheet: hides navigation + rebuilds the rubric as a single,

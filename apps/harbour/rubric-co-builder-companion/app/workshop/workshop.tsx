@@ -66,7 +66,7 @@ export function Workshop() {
 
   return (
     <main
-      className="flex-1 px-4 py-8 md:py-12"
+      className="surface-page flex-1 px-4 py-8 md:py-12"
       style={{
         background:
           surface === "champagne" ? "var(--color-champagne)" : "var(--color-wv-white)",
