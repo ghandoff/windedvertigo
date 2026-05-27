@@ -41,15 +41,17 @@ export const metadata: Metadata = {
 
 // This page is a harbour app (lives under /harbour/...) and uses the
 // shared harbour-nav-widget that every other harbour app loads, not the
-// site-wide SiteHeader/SiteFooter. The visual-identity flag (?v=2) only
+// site-wide SiteHeader/SiteFooter. The visual-identity flag (?v=1) only
 // swaps the page palette; the navbar is the same for both versions.
+// v2 (olive + jade + cream) is the default; v1 (cadet + redwood +
+// champagne) remains reachable via ?v=1 as a rollback escape hatch.
 export default async function RegenerativeCataloguePage({
   searchParams,
 }: {
   searchParams: Promise<{ v?: string }>;
 }) {
   const params = await searchParams;
-  const version = params.v === "2" ? 2 : 1;
+  const version = params.v === "1" ? 1 : 2;
 
   const [practices, schema] = await Promise.all([
     fetchRegenerativePractices(),
