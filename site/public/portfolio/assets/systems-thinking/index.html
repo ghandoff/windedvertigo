@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>systems thinking simulator — w.v × prme</title>
+<title>lines become loops — w.v × prme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -47,28 +47,68 @@ html {
 
 body {
   min-height: 100vh;
+  padding-top: 146px;
+}
+@media (max-width: 640px) { body { padding-top: 130px; } }
+
+/* -- page header (fixed) -- */
+.page-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: var(--cadet);
+  padding: 16px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wordmark { display: inline-block; line-height: 0; }
+.wordmark img { display: block; width: 160px; height: auto; }
+@media (max-width: 640px) {
+  .wordmark img { width: 120px; }
 }
 
-/* -- wordmark -- */
-.wordmark {
-  position: fixed;
-  top: 24px;
-  left: 24px;
-  z-index: 100;
-  font-weight: 700;
-  font-size: 24px;
-  color: var(--on-dark);
-  letter-spacing: -0.01em;
-  user-select: none;
+/* -- scenario picker (lives inside .page-header) -- */
+.scenario-picker {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule-dark);
+  margin: 0 -24px;
+  padding: 0 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
-.wordmark .dot {
-  color: var(--sienna);
+.scenario-picker::-webkit-scrollbar { display: none; }
+.scenario-tab {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: block;
+  transition: color 0.15s, border-color 0.15s;
+}
+.scenario-tab:hover { color: var(--on-dark); }
+.scenario-tab.active,
+.scenario-tab[aria-current="page"] {
+  color: var(--on-dark);
+  border-bottom-color: var(--sienna);
 }
 
 /* -- screens -- */
 .screen {
   display: none;
-  min-height: 100vh;
+  min-height: calc(100vh - 146px);
+}
+@media (max-width: 640px) {
+  .screen { min-height: calc(100vh - 130px); }
 }
 .screen.active {
   display: block;
@@ -80,15 +120,17 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 80px 24px 48px;
+  min-height: calc(100vh - 146px);
+  padding: 24px 24px 48px;
   text-align: center;
+}
+@media (max-width: 640px) {
+  .landing { min-height: calc(100vh - 130px); }
 }
 .landing-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 24px;
 }
@@ -125,8 +167,7 @@ body {
 .skill-chip {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 6px 14px;
   border: 1px solid var(--rule-dark);
   color: var(--cadet);
@@ -140,8 +181,7 @@ body {
 .landing-how-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 16px;
   text-align: center;
@@ -197,23 +237,21 @@ body {
 .landing-footer {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-top: 48px;
 }
 
 /* -- scenarios menu -- */
 .scenarios {
-  padding: 80px 24px 48px;
+  padding: 24px 24px 48px;
   max-width: 900px;
   margin: 0 auto;
 }
 .scenarios-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   text-align: center;
   margin-bottom: 8px;
@@ -230,6 +268,10 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
+}
+@media (min-width: 1024px) {
+  .scenarios { max-width: 1200px; }
+  .scenario-grid { grid-template-columns: repeat(4, 1fr); }
 }
 .scenario-card {
   background: #fff;
@@ -249,8 +291,7 @@ body {
 .scenario-number {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   margin-bottom: 8px;
 }
@@ -283,8 +324,7 @@ body {
 .scenario-chip {
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 2px 6px;
   background: rgba(203, 120, 88, 0.12);
   color: var(--sienna);
@@ -311,8 +351,7 @@ body {
 .scenario-badge {
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   font-style: italic;
 }
@@ -389,8 +428,7 @@ body {
 .session-join-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   display: block;
   margin-bottom: 6px;
@@ -448,23 +486,54 @@ body {
 }
 .facilitator-link:hover { color: var(--sienna); text-decoration: underline; }
 .facilitator-link:focus-visible { outline: 3px solid #3B82F6; outline-offset: 2px; }
+
+/* ── theme v2: mint + icy aqua palette (activate with ?v=2) ── */
+body.theme-v2 {
+  --soft-card:  #FFFFFF;
+  --champagne:  #FFFFFF;
+  --sienna:     #58CBB2;
+  --redwood:    #D2FDFF;
+  --rule:       rgba(255,255,255,0.22);
+  --rule-dark:  rgba(255,255,255,0.08);
+  --on-dark:    #FFFFFF;
+  --on-dark-muted: rgba(255,255,255,0.7);
+  --muted:      rgba(255,255,255,0.5);
+  --lbl-lead:   #58CBB2;
+  --lbl-soft:   #D2FDFF;
+}
+body.theme-v2 .btn { background: var(--lbl-lead); color: #273248; border-radius: 8px; }
+body.theme-v2 .btn:hover { background: var(--lbl-soft); opacity: 1; }
+body.theme-v2 .skill-chip { background: rgba(210,253,255,0.15); color: var(--lbl-soft); border-radius: 6px; }
+body.theme-v2 .scenario-chip { background: rgba(88,203,178,0.12); color: var(--lbl-lead); border-radius: 4px; }
+body.theme-v2 .scenario-card { border-radius: 8px; }
+body.theme-v2 .scenario-link { background: var(--lbl-lead); color: #273248; border-radius: 6px; }
+body.theme-v2 .scenario-link:hover { background: var(--lbl-soft); opacity: 1; }
 </style>
 </head>
 <body>
+<script>(function(){if(new URLSearchParams(location.search).get('v')==='2')document.body.classList.add('theme-v2');})()</script>
 
 <!-- wordmark -->
-<div class="wordmark" aria-hidden="true">w<span class="dot">.</span>v</div>
+<header class="page-header" role="banner">
+  <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
+  <nav class="scenario-picker" aria-label="switch scenario">
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+  </nav>
+</header>
 
 <!-- screen 1: landing -->
 <div id="screen-landing" class="screen active" role="region" aria-label="introduction">
   <div class="landing">
-    <div class="landing-title">systems thinking simulator</div>
+    <div class="landing-title">lines become loops</div>
     <div class="landing-headline">every system is perfectly designed to produce the results it gets.</div>
     <div class="landing-rule"></div>
     <div class="landing-body">
       four scenarios. four stocks. three leverage tiers.<br><br>
       each scenario gives you a system with a mandate and three decisions. some change parameters. some change rules. some change the goal itself.<br><br>
-      your job is not to find the right answer. it is to notice which kind of decision bends the system — and why.
+      your job is not to find the right answer. it is to notice which kind of decision bends the system, and why.
     </div>
     <div class="landing-skills">
       <span class="skill-chip">systems dynamics</span>
@@ -480,7 +549,7 @@ body {
         <li>read the mandate. understand what the system is doing.</li>
         <li>read each intervention. expand the detail. discuss.</li>
         <li>run an intervention. watch the trajectory.</li>
-        <li>after each run, read the "why" — it names the leverage tier.</li>
+        <li>after each run, read the "why": it names the leverage tier.</li>
         <li>after all three, look for the pattern across interventions.</li>
       </ol>
     </div>
@@ -494,7 +563,7 @@ body {
         </div>
         <div class="session-join-error" id="join-error" role="alert"></div>
       </div>
-      <a class="facilitator-link" href="/portfolio/assets/systems-thinking/facilitator.html">facilitator dashboard &rarr;</a>
+      <a class="facilitator-link" href="/portfolio/assets/lines-become-loops/facilitator.html">facilitator dashboard &rarr;</a>
     </div>
     <div class="landing-footer">w.v × prme · ppcs 2026</div>
   </div>
@@ -517,7 +586,7 @@ body {
             <span class="scenario-chip">higher ed</span>
             <span class="scenario-chip">emissions</span>
           </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/lakeshore-simulator.html" aria-label="play lakeshore college scenario">play</a>
         </div>
       </div>
       <!-- 1. SaaS Churn -->
@@ -530,7 +599,7 @@ body {
             <span class="scenario-chip">business</span>
             <span class="scenario-chip">retention</span>
           </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=churn" aria-label="play saas churn scenario">play</a>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=churn" aria-label="play saas churn scenario">play</a>
         </div>
       </div>
       <!-- 2. Team Burnout -->
@@ -543,7 +612,7 @@ body {
             <span class="scenario-chip">business</span>
             <span class="scenario-chip">wellbeing</span>
           </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=burnout" aria-label="play team burnout scenario">play</a>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=burnout" aria-label="play team burnout scenario">play</a>
         </div>
       </div>
       <!-- 3. Sleep Debt -->
@@ -556,7 +625,7 @@ body {
             <span class="scenario-chip">personal</span>
             <span class="scenario-chip">wellbeing</span>
           </div>
-          <a class="scenario-link" href="/portfolio/assets/systems-thinking/simulator.html?s=sleep" aria-label="play sleep debt scenario">play</a>
+          <a class="scenario-link" href="/portfolio/assets/lines-become-loops/simulator.html?s=sleep" aria-label="play sleep debt scenario">play</a>
         </div>
       </div>
     </div>
